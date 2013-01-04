@@ -402,7 +402,8 @@ describe "CommandPanel", ->
 
         expect(previewList.scrollBottom()).toBeCloseTo previewList.prop('scrollHeight'), -1
 
-        _.times previewList.getOperations().length, -> previewList.trigger 'core:move-up'
+        previewList.trigger 'core:move-down'
+        expect(previewList.scrollTop()).toBe 0
 
       it "wraps around when the list is at the beginning or end", ->
         rootView.attachToDom()

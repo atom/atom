@@ -73,7 +73,10 @@ class PreviewList extends ScrollView
     @children(".selected").removeClass('selected')
     element = @children("li.operation:eq(#{index})")
     element.addClass('selected')
-    @scrollToElement(element)
+    if index is 0
+      @scrollToTop()
+    else
+      @scrollToElement(element)
     @selectedOperationIndex = index
 
   executeSelectedOperation: ->
