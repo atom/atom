@@ -429,6 +429,21 @@ describe "CommandPanel", ->
         expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
         expect(commandPanel.miniEditor.getText()).toBe 'command'
 
+    describe "when move-to-top and move-to-bottom are triggered on the preview list", ->
+      it "selects the first/last operation", ->
+        rootView.attachToDom()
+        expect(previewList.getOperations().length).toBeGreaterThan 0
+        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
+
+        previewList.trigger 'core:move-to-bottom'
+        expect(previewList.find('li.operation:last')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
+
+        previewList.trigger 'core:move-to-top'
+        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
+
     describe "when core:confirm is triggered on the preview list", ->
       it "opens the operation's buffer, selects and scrolls to the search result, and focuses the active editor", ->
         rootView.height(200)

@@ -67,16 +67,19 @@ class PreviewList extends ScrollView
     else
       @setSelectedOperationIndex(@selectedOperationIndex - 1)
 
-  setSelectedOperationIndex: (index) ->
+  setSelectedOperationIndex: (index, scrollToOperation=true) ->
     index = Math.max(0, index)
     index = Math.min(@operations.length - 1, index)
     @children(".selected").removeClass('selected')
     element = @children("li.operation:eq(#{index})")
     element.addClass('selected')
-    if index is 0
-      @scrollToTop()
-    else
-      @scrollToElement(element)
+
+    if scrollToOperation
+      if index is 0
+        @scrollToTop()
+      else
+        @scrollToElement(element)
+
     @selectedOperationIndex = index
 
   executeSelectedOperation: ->
@@ -105,3 +108,13 @@ class PreviewList extends ScrollView
       @scrollBottom(bottom)
     if top < @scrollTop()
       @scrollTop(top)
+
+  scrollToBottom: ->
+    super()
+
+    @setSelectedOperationIndex(Infinity, false)
+
+  scrollToTop: ->
+    super()
+
+    @setSelectedOperationIndex(0, false)
