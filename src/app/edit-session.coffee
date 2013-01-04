@@ -56,7 +56,7 @@ class EditSession
     @buffer.on "contents-conflicted.edit-session-#{@id}", =>
       @trigger "contents-conflicted"
 
-    @buffer.on "update-anchors-after-change.edit-session-#{@id}", =>
+    @buffer.on "anchors-updated.edit-session-#{@id}", =>
       @mergeCursors()
 
     @preserveCursorPositionOnBufferReload()

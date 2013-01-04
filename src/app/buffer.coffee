@@ -284,6 +284,7 @@ class Buffer
     anchor.pauseEvents() for anchor in anchors
     anchor.handleBufferChange(change) for anchor in anchors
     anchor.resumeEvents() for anchor in anchors
+    @trigger 'anchors-updated'
 
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()

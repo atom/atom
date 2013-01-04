@@ -43,7 +43,6 @@ class BufferChangeOperation
     @buffer.trigger 'changed', event
     @buffer.scheduleStoppedChangingEvent()
     @buffer.updateAnchors(event)
-    @buffer.trigger 'update-anchors-after-change'
     newRange
 
   calculateNewRange: (oldRange, newText) ->
