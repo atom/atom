@@ -451,10 +451,10 @@ describe "Editor", ->
         editor.splitLeft().remove()
         editor.splitRight().remove()
 
-  describe "editor-open event", ->
-    it 'only triggers an editor-open event when it is first added to the DOM', ->
+  describe "editor:attached event", ->
+    it 'only triggers an editor:attached event when it is first added to the DOM', ->
       openHandler = jasmine.createSpy('openHandler')
-      editor.on 'editor-open', openHandler
+      editor.on 'editor:attached', openHandler
 
       editor.simulateDomAttachment()
       expect(openHandler).toHaveBeenCalled()

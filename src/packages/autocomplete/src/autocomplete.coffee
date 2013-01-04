@@ -6,7 +6,7 @@ module.exports =
 class Autocomplete extends SelectList
   @activate: (rootView) ->
     new Autocomplete(editor) for editor in rootView.getEditors()
-    rootView.on 'editor-open', (e, editor) -> new Autocomplete(editor) unless editor.mini
+    rootView.on 'editor:attached', (e, editor) -> new Autocomplete(editor) unless editor.mini
 
   @viewClass: -> "autocomplete #{super}"
 

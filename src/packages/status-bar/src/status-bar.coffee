@@ -8,7 +8,7 @@ class StatusBar extends View
     for editor in rootView.getEditors()
       @appendToEditorPane(rootView, editor) if rootView.parents('html').length
 
-    rootView.on 'editor-open', (e, editor) =>
+    rootView.on 'editor:attached', (e, editor) =>
       @appendToEditorPane(rootView, editor)
 
   @appendToEditorPane: (rootView, editor) ->

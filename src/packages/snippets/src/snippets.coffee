@@ -10,7 +10,7 @@ module.exports =
 
   activate: (@rootView) ->
     @loadSnippets()
-    @rootView.on 'editor-open', (e, editor) => @enableSnippetsInEditor(editor)
+    @rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
 
   loadSnippets: ->
     snippetsDir = fs.join(config.configDirPath, 'snippets')

@@ -422,7 +422,7 @@ class Editor extends View
 
     @resetDisplay()
 
-    @trigger 'editor-open', [this]
+    @trigger 'editor:attached', [this]
 
   edit: (editSession) ->
     index = @editSessions.indexOf(editSession)
@@ -680,7 +680,7 @@ class Editor extends View
   remove: (selector, keepData) ->
     return super if keepData
 
-    @trigger 'before-remove'
+    @trigger 'editor:will-be-removed'
 
     @destroyEditSessions()
 

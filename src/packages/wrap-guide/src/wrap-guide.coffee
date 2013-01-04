@@ -9,7 +9,7 @@ class WrapGuide extends View
       if rootView.parents('html').length
         @appendToEditorPane(rootView, editor)
 
-    rootView.on 'editor-open', (e, editor) =>
+    rootView.on 'editor:attached', (e, editor) =>
       @appendToEditorPane(rootView, editor)
 
   @appendToEditorPane: (rootView, editor, config) ->

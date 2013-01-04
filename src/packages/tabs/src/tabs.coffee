@@ -8,7 +8,7 @@ class Tabs extends View
     for editor in rootView.getEditors()
       @prependToEditorPane(rootView, editor) if rootView.parents('html').length
 
-    rootView.on 'editor-open', (e, editor) =>
+    rootView.on 'editor:attached', (e, editor) =>
       @prependToEditorPane(rootView, editor)
 
   @prependToEditorPane: (rootView, editor) ->
