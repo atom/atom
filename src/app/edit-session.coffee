@@ -6,6 +6,7 @@ DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
 Selection = require 'selection'
 EventEmitter = require 'event-emitter'
+Subscriber = require 'subscriber'
 Range = require 'range'
 AnchorRange = require 'anchor-range'
 _ = require 'underscore'
@@ -13,8 +14,6 @@ fs = require 'fs'
 
 module.exports =
 class EditSession
-  @idCounter: 1
-
   @deserialize: (state, project) ->
     if fs.exists(state.buffer)
       session = project.buildEditSessionForPath(state.buffer)
@@ -39,7 +38,6 @@ class EditSession
   softWrap: false
 
   constructor: ({@project, @buffer, tabLength, @autoIndent, softTabs, @softWrap }) ->
-    @id = @constructor.idCounter++
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
@@ -50,28 +48,21 @@ class EditSession
     @addCursorAtScreenPosition([0, 0])
 
     @buffer.retain()
-    @buffer.on "path-changed.edit-session-#{@id}", =>
-      @trigger "path-changed"
-
-    @buffer.on "contents-conflicted.edit-session-#{@id}", =>
-      @trigger "contents-conflicted"
-
-    @buffer.on "anchors-updated.edit-session-#{@id}", =>
-      @mergeCursors()
+    @subscribe @buffer, "path-changed", => @trigger "path-changed"
+    @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
+    @subscribe @buffer, "anchors-updated", => @mergeCursors()
 
     @preserveCursorPositionOnBufferReload()
 
-    @displayBuffer.on "changed.edit-session-#{@id}", (e) =>
+    @subscribe @displayBuffer, "changed", (e) =>
       @refreshAnchorScreenPositions() unless e.bufferDelta
       @trigger 'screen-lines-changed', e
 
   destroy: ->
     throw new Error("Edit session already destroyed") if @destroyed
     @destroyed = true
-
-    @buffer.off ".edit-session-#{@id}"
+    @unsubscribe()
     @buffer.release()
-    @displayBuffer.off ".edit-session-#{@id}"
     @displayBuffer.destroy()
     @project.removeEditSession(this)
     anchor.destroy() for anchor in @getAnchors()
@@ -611,10 +602,11 @@ class EditSession
 
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
-    @buffer.on "will-reload.edit-session-#{@id}", =>
+    @subscribe @buffer, "will-reload", =>
       cursorPosition = @getCursorBufferPosition()
-    @buffer.on "reloaded.edit-session-#{@id}", =>
+    @subscribe @buffer, "reloaded", =>
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
 
 _.extend(EditSession.prototype, EventEmitter)
+_.extend(EditSession.prototype, Subscriber)
