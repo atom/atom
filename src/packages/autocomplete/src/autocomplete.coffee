@@ -17,7 +17,6 @@ class Autocomplete extends SelectList
   originalSelectionBufferRange: null
   originalCursorPosition: null
   aboveCursor: false
-  undoCount: 0
   filterKey: 'word'
 
   initialize: (@editor) ->
@@ -75,14 +74,15 @@ class Autocomplete extends SelectList
     @editor.setCursorBufferPosition([position.row, position.column + match.suffix.length])
 
   cancelled: ->
-    @editor.undo() for undo in [0...@undoCount]
+    @editor.abort()
     @editor.setSelectedBufferRange(@originalSelectionBufferRange)
 
     @miniEditor.setText('')
     @editor.rootView()?.focus() if @miniEditor.isFocused
 
   attach: ->
-    @undoCount = 0
+    @editor.transact()
+
     @aboveCursor = false
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @originalCursorPosition = @editor.getCursorScreenPosition()
@@ -133,13 +133,12 @@ class Autocomplete extends SelectList
     selection = @editor.getSelection()
     startPosition = selection.getBufferRange().start
     buffer = @editor.getBuffer()
-    @editor.activeEditSession.transact =>
-      selection.deleteSelectedText()
-      cursorPosition = @editor.getCursorBufferPosition()
-      buffer.delete(Range.fromPointWithDelta(cursorPosition, 0, match.suffix.length))
-      buffer.delete(Range.fromPointWithDelta(cursorPosition, 0, -match.prefix.length))
-      @editor.insertText(match.word)
-    @undoCount++
+
+    selection.deleteSelectedText()
+    cursorPosition = @editor.getCursorBufferPosition()
+    buffer.delete(Range.fromPointWithDelta(cursorPosition, 0, match.suffix.length))
+    buffer.delete(Range.fromPointWithDelta(cursorPosition, 0, -match.prefix.length))
+    @editor.insertText(match.word)
 
     infixLength = match.word.length - match.prefix.length - match.suffix.length
     @editor.setSelectedBufferRange([startPosition, [startPosition.row, startPosition.column + infixLength]])

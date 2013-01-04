@@ -223,6 +223,19 @@ describe "Autocomplete", ->
       expect(editor.lineForBufferRow(10)).toBe "extra:S:extra"
       expect(editor.getCursorBufferPosition()).toEqual [10,7]
 
+    it "restores the original buffer contents even if there was an additional operation after autocomplete attached (regression)", ->
+      editor.getBuffer().insert([10,0] ,"extra:s:extra")
+      editor.setCursorBufferPosition([10,7])
+      autocomplete.attach()
+
+      editor.getBuffer().append('hi')
+      expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
+      autocomplete.trigger 'core:cancel'
+      expect(editor.lineForBufferRow(10)).toBe "extra:s:extra"
+
+      editor.redo()
+      expect(editor.lineForBufferRow(10)).toBe "extra:s:extra"
+
   describe 'move-up event', ->
     it "highlights the previous match and replaces the selection with it", ->
       editor.getBuffer().insert([10,0] ,"extra:t:extra")
