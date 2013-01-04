@@ -24,7 +24,7 @@ class TokenizedBuffer
     @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
     @invalidRows = []
     @invalidateRow(0)
-    @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
+    @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -36,7 +36,7 @@ class TokenizedBuffer
     lastRow = @buffer.getLastRow()
     @screenLines = @buildPlaceholderScreenLinesForRows(0, lastRow)
     @invalidateRow(0)
-    @trigger "change", { start: 0, end: lastRow, delta: 0 }
+    @trigger "changed", { start: 0, end: lastRow, delta: 0 }
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk
@@ -67,7 +67,7 @@ class TokenizedBuffer
 
       @validateRow(row)
       @invalidateRow(row + 1) unless filledRegion
-      @trigger "change", { start: invalidRow, end: row, delta: 0 }
+      @trigger "changed", { start: invalidRow, end: row, delta: 0 }
 
     @tokenizeInBackground() if @firstInvalidRow()?
 
@@ -105,7 +105,7 @@ class TokenizedBuffer
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
-    @trigger "change", { start, end, delta, bufferChange: e }
+    @trigger "changed", { start, end, delta, bufferChange: e }
 
   buildScreenLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack

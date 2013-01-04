@@ -23,7 +23,7 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
       editSession.setVisible(true)
       changeHandler = jasmine.createSpy('changeHandler')
-      tokenizedBuffer.on "change", changeHandler
+      tokenizedBuffer.on "changed", changeHandler
 
     afterEach ->
       editSession.destroy()

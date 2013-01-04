@@ -25,7 +25,7 @@ class DisplayBuffer
     @activeFolds = {}
     @foldsById = {}
     @buildLineMap()
-    @tokenizedBuffer.on 'change', (e) => @handleTokenizedBufferChange(e)
+    @tokenizedBuffer.on 'changed', (e) => @handleTokenizedBufferChange(e)
 
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 

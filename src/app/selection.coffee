@@ -25,7 +25,7 @@ class Selection
       @cursor.destroy()
     @anchor?.destroy()
     @editSession.removeSelection(this)
-    @trigger 'destroy'
+    @trigger 'destroyed'
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
@@ -83,7 +83,7 @@ class Selection
 
   screenRangeChanged: ->
     screenRange = @getScreenRange()
-    @trigger 'change-screen-range', screenRange
+    @trigger 'screen-range-changed', screenRange
     @cursor?.setVisible(screenRange.isEmpty())
 
   getText: ->

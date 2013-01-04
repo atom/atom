@@ -40,7 +40,7 @@ class BufferChangeOperation
     @buffer.replaceLines(oldRange.start.row, oldRange.end.row, newTextLines)
 
     event = { oldRange, newRange, oldText, newText }
-    @buffer.trigger 'change', event
+    @buffer.trigger 'changed', event
     @buffer.scheduleStoppedChangingEvent()
     @buffer.updateAnchors(event)
     @buffer.trigger 'update-anchors-after-change'

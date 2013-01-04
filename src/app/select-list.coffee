@@ -22,7 +22,7 @@ class SelectList extends View
   initialize: ->
     requireStylesheet 'select-list.css'
 
-    @miniEditor.getBuffer().on 'change', => @schedulePopulateList()
+    @miniEditor.getBuffer().on 'changed', => @schedulePopulateList()
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
     @on 'core:move-down', => @selectNextItem()

@@ -88,7 +88,7 @@ describe 'Buffer', ->
     it "does not trigger a change event when Atom modifies the file", ->
       buffer.insert([0,0], "HELLO!")
       changeHandler = jasmine.createSpy("buffer changed")
-      buffer.on "change", changeHandler
+      buffer.on "changed", changeHandler
       buffer.save()
 
       waits 30
@@ -96,9 +96,9 @@ describe 'Buffer', ->
         expect(changeHandler).not.toHaveBeenCalled()
 
     describe "when the buffer is in an unmodified state before the on-disk change", ->
-      it "changes the memory contents of the buffer to match the new disk contents and triggers a 'change' event", ->
+      it "changes the memory contents of the buffer to match the new disk contents and triggers a 'changed' event", ->
         changeHandler = jasmine.createSpy('changeHandler')
-        buffer.on 'change', changeHandler
+        buffer.on 'changed', changeHandler
         fs.write(path, "second")
 
         expect(changeHandler.callCount).toBe 0
@@ -158,7 +158,7 @@ describe 'Buffer', ->
       fs.write(path, 'moo')
 
       waitsFor 'change event', (done) ->
-        bufferToDelete.one 'change', done
+        bufferToDelete.one 'changed', done
 
   describe ".isModified()", ->
     it "returns true when user changes buffer", ->
@@ -202,7 +202,7 @@ describe 'Buffer', ->
 
     beforeEach ->
       changeHandler = jasmine.createSpy('changeHandler')
-      buffer.on 'change', changeHandler
+      buffer.on 'changed', changeHandler
 
     describe "when used to insert (called with an empty range and a non-empty string)", ->
       describe "when the given string has no newlines", ->
@@ -301,8 +301,8 @@ describe 'Buffer', ->
         expect(event.oldText).toBe oldText
         expect(event.newText).toBe "foo\nbar"
 
-    it "allows a 'change' event handler to safely undo the change", ->
-      buffer.on 'change', -> buffer.undo()
+    it "allows a 'changed' event handler to safely undo the change", ->
+      buffer.on 'changed', -> buffer.undo()
       buffer.change([0, 0], "hello")
       expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
@@ -311,7 +311,7 @@ describe 'Buffer', ->
       lastRow = buffer.getLastRow()
       expectedPreRange = [[0,0], [lastRow, buffer.lineForRow(lastRow).length]]
       changeHandler = jasmine.createSpy('changeHandler')
-      buffer.on 'change', changeHandler
+      buffer.on 'changed', changeHandler
 
       newText = "I know you are.\nBut what am I?"
       buffer.setText(newText)
@@ -411,7 +411,7 @@ describe 'Buffer', ->
 
       saveAsBuffer = new Buffer(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
-      saveAsBuffer.on 'change', changeHandler
+      saveAsBuffer.on 'changed', changeHandler
       saveAsBuffer.saveAs(newPath)
       expect(changeHandler).not.toHaveBeenCalled()
 

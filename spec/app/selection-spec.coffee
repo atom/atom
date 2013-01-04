@@ -59,10 +59,10 @@ describe "Selection", ->
       expect(selection.isReversed()).toBeFalsy()
 
   describe "when only the selection's anchor is moved (regression)", ->
-    it "emits the 'change-screen-range' event", ->
+    it "emits the 'screen-range-changed' event", ->
       selection.setBufferRange([[2, 0], [2, 10]], reverse: true)
       changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
-      selection.on 'change-screen-range', changeScreenRangeHandler
+      selection.on 'screen-range-changed', changeScreenRangeHandler
 
       buffer.insert([2, 5], 'abc')
       expect(changeScreenRangeHandler).toHaveBeenCalled()
