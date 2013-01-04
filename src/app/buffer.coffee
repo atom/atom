@@ -55,7 +55,7 @@ class Buffer
     this
 
   subscribeToFile: ->
-    @file.on "contents-change", =>
+    @file.on "contents-changed", =>
       if @isModified()
         @conflict = true
         @updateCachedDiskContents()

@@ -126,13 +126,13 @@ describe "Editor", ->
       editor.insertText("now the buffer is modified")
 
       fileChangeHandler = jasmine.createSpy('fileChange')
-      editSession.buffer.file.on 'contents-change', fileChangeHandler
+      editSession.buffer.file.on 'contents-changed', fileChangeHandler
 
       spyOn(atom, "confirm")
 
       fs.write(path, "a file change")
 
-      waitsFor "file to trigger contents-change event", ->
+      waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
 
       runs ->
@@ -287,7 +287,7 @@ describe "Editor", ->
 
         fs.write(path, "a file change")
 
-        waitsFor "file to trigger contents-change event", (done) ->
+        waitsFor "file to trigger contents-changed event", (done) ->
           editSession.one 'contents-conflicted', done
 
         runs ->
@@ -1992,11 +1992,11 @@ describe "Editor", ->
       editor.save()
 
       fileChangeHandler = jasmine.createSpy('fileChange')
-      editor.getBuffer().file.on 'contents-change', fileChangeHandler
+      editor.getBuffer().file.on 'contents-changed', fileChangeHandler
 
       editor.checkoutHead()
 
-      waitsFor "file to trigger contents-change event", ->
+      waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
 
       runs ->

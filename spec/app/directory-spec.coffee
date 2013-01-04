@@ -20,12 +20,12 @@ describe "Directory", ->
     afterEach ->
       fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
-    it "triggers 'contents-change' event handlers", ->
+    it "triggers 'contents-changed' event handlers", ->
       changeHandler = null
 
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
-        directory.on 'contents-change', changeHandler
+        directory.on 'contents-changed', changeHandler
         fs.write(temporaryFilePath, '')
 
       waitsFor "first change", -> changeHandler.callCount > 0
@@ -51,7 +51,7 @@ describe "Directory", ->
 
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
-        directory.on 'contents-change', changeHandler
+        directory.on 'contents-changed', changeHandler
         fs.write(temporaryFilePath, '')
 
       waitsFor "change event", -> changeHandler.callCount > 0

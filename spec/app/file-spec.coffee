@@ -16,10 +16,10 @@ describe 'File', ->
     fs.remove(path) if fs.exists(path)
 
   describe "when the contents of the file change", ->
-    it "triggers 'contents-change' event handlers", ->
+    it "triggers 'contents-changed' event handlers", ->
       changeHandler = null
       changeHandler = jasmine.createSpy('changeHandler')
-      file.on 'contents-change', changeHandler
+      file.on 'contents-changed', changeHandler
       fs.write(file.getPath(), "this is new!")
 
       waitsFor "change event", ->
@@ -66,13 +66,13 @@ describe 'File', ->
       runs ->
         expect(file.getPath()).toBe newPath
 
-    it "maintains 'contents-change' events set on previous path", ->
+    it "maintains 'contents-changed' events set on previous path", ->
       moveHandler = null
       moveHandler = jasmine.createSpy('moveHandler')
       file.on 'move', moveHandler
       changeHandler = null
       changeHandler = jasmine.createSpy('changeHandler')
-      file.on 'contents-change', changeHandler
+      file.on 'contents-changed', changeHandler
 
       fs.move(path, newPath)
 
@@ -93,7 +93,7 @@ describe 'File', ->
 
       changeHandler = jasmine.createSpy("file changed")
       removeHandler = jasmine.createSpy("file removed")
-      file.on 'contents-change', changeHandler
+      file.on 'contents-changed', changeHandler
       file.on 'remove', removeHandler
 
       expect(changeHandler).not.toHaveBeenCalled()

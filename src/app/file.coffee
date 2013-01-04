@@ -52,7 +52,7 @@ class File
       oldContents = @read()
       newContents = @read(true)
       return if oldContents == newContents
-      @trigger 'contents-change'
+      @trigger 'contents-changed'
 
   detectResurrectionAfterDelay: ->
     _.delay (=> @detectResurrection()), 50

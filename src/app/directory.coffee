@@ -35,7 +35,7 @@ class Directory
 
   subscribeToNativeChangeEvents: ->
     @watchId = $native.watchPath @path, (eventType) =>
-      @trigger "contents-change" if eventType is "contents-change"
+      @trigger "contents-changed" if eventType is "contents-change"
 
   unsubscribeFromNativeChangeEvents: ->
     $native.unwatchPath(@path, @watchId)

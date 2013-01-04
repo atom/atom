@@ -116,13 +116,13 @@ describe 'Buffer', ->
     describe "when the buffer's memory contents differ from the *previous* disk contents", ->
       it "leaves the buffer in a modified state (does not update its memory contents)", ->
         fileChangeHandler = jasmine.createSpy('fileChange')
-        buffer.file.on 'contents-change', fileChangeHandler
+        buffer.file.on 'contents-changed', fileChangeHandler
 
         buffer.insert([0, 0], "a change")
         fs.write(path, "second")
 
         expect(fileChangeHandler.callCount).toBe 0
-        waitsFor "file to trigger contents-change event", ->
+        waitsFor "file to trigger 'contents-changed' event", ->
           fileChangeHandler.callCount > 0
 
         runs ->

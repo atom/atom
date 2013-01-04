@@ -63,7 +63,7 @@ class DirectoryView extends View
     @isExpanded = false
 
   watchEntries: ->
-    @directory.on "contents-change.tree-view", =>
+    @directory.on "contents-changed.tree-view", =>
       @buildEntries()
       @trigger "tree-view:directory-modified"
 
