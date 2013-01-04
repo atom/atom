@@ -96,7 +96,7 @@ class Autocomplete extends SelectList
     else
       @editor.appendToLinesView(this)
       @setPosition()
-    @miniEditor.focus()
+      @miniEditor.focus()
 
   detach: ->
     super
