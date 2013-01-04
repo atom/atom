@@ -146,7 +146,7 @@ public:
     git_diff_list *diffs;
     int diffStatus = git_diff_tree_to_workdir(&diffs, repo, tree, &options);
     free(copiedPath);
-    if (diffStatus != GIT_OK) {
+    if (diffStatus != GIT_OK || git_diff_num_deltas(diffs) != 1) {
       return CefV8Value::CreateNull();
     }
 
