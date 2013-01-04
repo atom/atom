@@ -5,7 +5,7 @@ module.exports =
     for buffer in rootView.project.getBuffers()
       @stripTrailingWhitespaceBeforeSave(buffer)
 
-    rootView.project.on 'new-buffer', (buffer) =>
+    rootView.project.on 'buffer-created', (buffer) =>
       @stripTrailingWhitespaceBeforeSave(buffer)
 
   stripTrailingWhitespaceBeforeSave: (buffer) ->

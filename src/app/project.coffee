@@ -41,7 +41,7 @@ class Project
     else
       @rootDirectory = null
 
-    @trigger "path-change"
+    @trigger "path-changed"
 
   getRootDirectory: ->
     @rootDirectory
@@ -88,7 +88,7 @@ class Project
     options.buffer = buffer
     editSession = new EditSession(options)
     @editSessions.push editSession
-    @trigger 'new-edit-session', editSession
+    @trigger 'edit-session-created', editSession
     editSession
 
   defaultEditSessionOptions: ->
@@ -124,7 +124,7 @@ class Project
   buildBuffer: (filePath) ->
     buffer = new Buffer(filePath, this)
     @buffers.push buffer
-    @trigger 'new-buffer', buffer
+    @trigger 'buffer-created', buffer
     buffer
 
   removeBuffer: (buffer) ->
