@@ -18,7 +18,7 @@ class AtomPackage extends Package
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
-      rootView.activatePackage(@module) if @module
+      rootView.activatePackage(@name, @module) if @module
     catch e
       console.error "Failed to load package named '#{@name}'", e.stack
 

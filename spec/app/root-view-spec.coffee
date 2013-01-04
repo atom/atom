@@ -128,14 +128,12 @@ describe "RootView", ->
     it "absorbs exceptions that are thrown by the package module's serialize methods", ->
       spyOn(console, 'error')
 
-      rootView.activatePackage(
-        name: "bad-egg"
+      rootView.activatePackage("bad-egg",
         activate: ->
         serialize: -> throw new Error("I'm broken")
       )
 
-      rootView.activatePackage(
-        name: "good-egg"
+      rootView.activatePackage("good-egg"
         activate: ->
         serialize: -> "I still get called"
       )
@@ -398,39 +396,35 @@ describe "RootView", ->
 
     beforeEach ->
       packageModule =
-        name: 'package'
         deactivate: ->
         activate: jasmine.createSpy("activate")
         serialize: -> "it worked"
 
-    describe ".activatePackage(packageModule)", ->
+    describe ".activatePackage(name, packageModule)", ->
       it "calls activate on the package module", ->
-        rootView.activatePackage(packageModule)
+        rootView.activatePackage('package', packageModule)
         expect(packageModule.activate).toHaveBeenCalledWith(rootView, undefined)
 
       it "calls activate on the package module with its previous state", ->
-        rootView.activatePackage(packageModule)
+        rootView.activatePackage('package', packageModule)
         packageModule.activate.reset()
 
         newRootView = RootView.deserialize(rootView.serialize())
-        newRootView.activatePackage(packageModule)
+        newRootView.activatePackage('package', packageModule)
         expect(packageModule.activate).toHaveBeenCalledWith(newRootView, "it worked")
         newRootView.remove()
 
-      it "throws an exception if the package module has no 'name' property", ->
-        expect(-> rootView.activatePackage({ activate: -> })).toThrow()
-
-    describe ".deactivatePackage(packageModule)", ->
+    describe ".deactivatePackage(packageName)", ->
       it "deactivates and removes the package module from the package module map", ->
-        rootView.activatePackage(packageModule)
-        expect(rootView.packageModules[packageModule.name]).toBeTruthy()
+        rootView.activatePackage('package', packageModule)
+        expect(rootView.packageModules['package']).toBeTruthy()
         spyOn(packageModule, "deactivate").andCallThrough()
-        rootView.deactivatePackage(packageModule)
+        rootView.deactivatePackage('package')
         expect(packageModule.deactivate).toHaveBeenCalled()
-        expect(rootView.packageModules[packageModule.name]).toBeFalsy()
+        expect(rootView.packageModules['package']).toBeFalsy()
 
       it "is called when the rootView is deactivated to deactivate all packages", ->
-        rootView.activatePackage(packageModule)
+        rootView.activatePackage('package', packageModule)
         spyOn(rootView, "deactivatePackage").andCallThrough()
         spyOn(packageModule, "deactivate").andCallThrough()
         rootView.deactivate()

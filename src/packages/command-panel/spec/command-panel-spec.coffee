@@ -36,7 +36,7 @@ describe "CommandPanel", ->
       rootView.deactivate()
       rootView2.attachToDom()
 
-      commandPanel = rootView2.activatePackage(CommandPanel)
+      commandPanel = rootView2.activatePackage('command-panel', CommandPanel)
       expect(rootView2.find('.command-panel')).toExist()
       expect(commandPanel.miniEditor.getText()).toBe 'abc'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
@@ -49,7 +49,7 @@ describe "CommandPanel", ->
       rootView3 = RootView.deserialize(rootView2.serialize())
       rootView2.deactivate()
       rootView3.attachToDom()
-      commandPanel = rootView3.activatePackage(CommandPanel)
+      commandPanel = rootView3.activatePackage('command-panel', CommandPanel)
 
       expect(commandPanel.miniEditor.isFocused).toBeFalsy()
       rootView3.deactivate()
@@ -71,7 +71,7 @@ describe "CommandPanel", ->
       rootView.deactivate()
       rootView2.attachToDom()
 
-      commandPanel = rootView2.activatePackage(CommandPanel)
+      commandPanel = rootView2.activatePackage('command-panel', CommandPanel)
       expect(commandPanel.history.length).toBe(2)
       expect(commandPanel.history[0]).toBe('/test2')
       expect(commandPanel.history[1]).toBe('/test3')

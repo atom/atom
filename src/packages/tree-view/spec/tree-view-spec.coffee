@@ -51,7 +51,7 @@ describe "TreeView", ->
         rootView.deactivate()
 
         rootView = new RootView
-        rootView.activatePackage(TreeView)
+        atom.loadPackage 'tree-view'
         treeView = rootView.find(".tree-view").view()
 
       it "does not create a root node", ->
@@ -71,12 +71,6 @@ describe "TreeView", ->
         expect(treeView.root).not.toEqual oldRoot
         expect(oldRoot.hasParent()).toBeFalsy()
 
-  describe "when the prototypes deactivate method is called", ->
-    it "calls the deactivate on tree view instance", ->
-      spyOn(treeView, "deactivate").andCallThrough()
-      rootView.deactivatePackage(TreeView)
-      expect(treeView.deactivate).toHaveBeenCalled()
-
   describe "serialization", ->
     [newRootView, newTreeView] = []
 
@@ -89,7 +83,7 @@ describe "TreeView", ->
       newRootView = RootView.deserialize(rootView.serialize())
       rootView.deactivate() # Deactivates previous TreeView
 
-      newRootView.activatePackage(TreeView)
+      newRootView.activatePackage('tree-view', TreeView)
 
       newTreeView = newRootView.find(".tree-view").view()
 
@@ -106,7 +100,7 @@ describe "TreeView", ->
       rootView.deactivate() # Deactivates previous TreeView
 
       newRootView.attachToDom()
-      newRootView.activatePackage(TreeView)
+      newRootView.activatePackage('tree-view', TreeView)
 
       newTreeView = newRootView.find(".tree-view").view()
       expect(newTreeView).toMatchSelector ':focus'
@@ -589,7 +583,7 @@ describe "TreeView", ->
 
       rootView = new RootView(rootDirPath)
       project = rootView.project
-      rootView.activatePackage(TreeView)
+      atom.loadPackage('tree-view')
       treeView = rootView.find(".tree-view").view()
       dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
       dirView.expand()

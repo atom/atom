@@ -16,7 +16,7 @@ describe "the `atom` global", ->
     it "requires and activates the package's main module if it exists", ->
       spyOn(rootView, 'activatePackage').andCallThrough()
       atom.loadPackage("package-with-module")
-      expect(rootView.activatePackage).toHaveBeenCalledWith(extension)
+      expect(rootView.activatePackage).toHaveBeenCalledWith('package-with-module', extension)
 
     describe "keymap loading", ->
       describe "when package.json does not contain a 'keymaps' manifest", ->

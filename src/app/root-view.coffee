@@ -112,18 +112,17 @@ class RootView extends View
       when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
       when 'Editor' then Editor.deserialize(viewState, this)
 
-  activatePackage: (packageModule) ->
-    throw new Error("Trying to activate a package module with no name attribute") unless packageModule.name?
-    @packageModules[packageModule.name] = packageModule
-    packageModule.activate(this, @packageStates[packageModule.name])
+  activatePackage: (name, packageModule) ->
+    @packageModules[name] = packageModule
+    packageModule.activate(this, @packageStates[name])
 
-  deactivatePackage: (packageModule) ->
-    packageModule.deactivate?()
-    delete @packageModules[packageModule.name]
+  deactivatePackage: (name) ->
+    @packageModules[name].deactivate?()
+    delete @packageModules[name]
 
   deactivate: ->
     atom.setRootViewStateForPath(@project.getPath(), @serialize())
-    @deactivatePackage(packageModule) for name, packageModule of @packageModules
+    @deactivatePackage(name) for name of @packageModules
     @remove()
 
   open: (path, options = {}) ->
