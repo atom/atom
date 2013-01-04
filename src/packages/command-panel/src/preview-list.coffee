@@ -56,10 +56,16 @@ class PreviewList extends ScrollView
     lineNumbers.width(maxWidth)
 
   selectNextOperation: ->
-    @setSelectedOperationIndex(@selectedOperationIndex + 1)
+    if @selectedOperationIndex is @operations.length - 1
+      @setSelectedOperationIndex(0)
+    else
+      @setSelectedOperationIndex(@selectedOperationIndex + 1)
 
   selectPreviousOperation: ->
-    @setSelectedOperationIndex(@selectedOperationIndex - 1)
+    if @selectedOperationIndex is 0
+      @setSelectedOperationIndex(@operations.length - 1)
+    else
+      @setSelectedOperationIndex(@selectedOperationIndex - 1)
 
   setSelectedOperationIndex: (index) ->
     index = Math.max(0, index)
