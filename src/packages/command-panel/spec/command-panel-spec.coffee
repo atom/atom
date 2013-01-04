@@ -297,7 +297,7 @@ describe "CommandPanel", ->
         expect(commandPanel.previewList).toBeVisible()
         expect(commandPanel.previewList).toMatchSelector ':focus'
         previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
-        expect(previewItem.find('.path').text()).toBe "dir/a"
+        expect(previewItem.text()).toBe "dir/a"
         expect(previewItem.next().find('.preview').text()).toBe "aaa bbb"
         expect(previewItem.next().find('.preview > .match').text()).toBe "aaa"
 
