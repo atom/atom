@@ -34,8 +34,7 @@ class PreviewList extends ScrollView
       operation.index = index for operation, index in operations
       operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
       for path, ops of operationsByPath
-        @li =>
-          @span path, class: 'path'
+        @li path, class: 'path'
         for operation in ops
           {prefix, suffix, match, range} = operation.preview()
           @li 'data-index': operation.index, class: 'operation', =>
