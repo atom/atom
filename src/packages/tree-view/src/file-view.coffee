@@ -31,11 +31,14 @@ class FileView extends View
   updateStatus: ->
     path = @getPath()
     @removeClass('ignored modified new')
-    if @project.repo.isPathIgnored(path)
+    repo = @project.repo
+    return unless repo?
+
+    if repo.isPathIgnored(path)
       @addClass('ignored')
-    else if @project.repo.isPathModified(path)
+    else if repo.isPathModified(path)
       @addClass('modified')
-    else if @project.repo.isPathNew(path)
+    else if repo.isPathNew(path)
       @addClass('new')
 
   getPath: ->
