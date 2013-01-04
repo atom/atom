@@ -27,7 +27,8 @@ GIT_BEGIN_DECL
  * @param out pointer to output object
  * @param repo the repository to search in
  * @param spec the textual specification for an object
- * @return  on success, GIT_ERROR otherwise (use git_error_last for information about the error)
+ * @return 0 on success, GIT_ENOTFOUND, GIT_EAMBIGUOUS,
+ * GIT_EINVALIDSPEC or an error code
  */
 GIT_EXTERN(int) git_revparse_single(git_object **out, git_repository *repo, const char *spec);
 

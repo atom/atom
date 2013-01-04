@@ -29,11 +29,11 @@ GIT_BEGIN_DECL
  * The method will automatically detect if 'path' is a normal
  * or bare repository or fail is 'path' is neither.
  *
- * @param repository pointer to the repo which will be opened
+ * @param out pointer to the repo which will be opened
  * @param path the path to the repository
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_repository_open(git_repository **repository, const char *path);
+GIT_EXTERN(int) git_repository_open(git_repository **out, const char *path);
 
 /**
  * Create a "fake" repository to wrap an object database
@@ -42,11 +42,11 @@ GIT_EXTERN(int) git_repository_open(git_repository **repository, const char *pat
  * with the API when all you have is an object database. This doesn't
  * have any paths associated with it, so use with care.
  *
- * @param repository pointer to the repo
+ * @param out pointer to the repo
  * @param odb the object database to wrap
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_repository_wrap_odb(git_repository **repository, git_odb *odb);
+GIT_EXTERN(int) git_repository_wrap_odb(git_repository **out, git_odb *odb);
 
 /**
  * Look for a git repository and copy its path in the given buffer.
@@ -58,10 +58,10 @@ GIT_EXTERN(int) git_repository_wrap_odb(git_repository **repository, git_odb *od
  * The method will automatically detect if the repository is bare
  * (if there is a repository).
  *
- * @param repository_path The user allocated buffer which will
+ * @param path_out The user allocated buffer which will
  * contain the found path.
  *
- * @param size repository_path size
+ * @param path_size repository_path size
  *
  * @param start_path The base path where the lookup starts.
  *
@@ -77,8 +77,8 @@ GIT_EXTERN(int) git_repository_wrap_odb(git_repository **repository, git_odb *od
  * @return 0 or an error code
  */
 GIT_EXTERN(int) git_repository_discover(
-		char *repository_path,
-		size_t size,
+		char *path_out,
+		size_t path_size,
 		const char *start_path,
 		int across_fs,
 		const char *ceiling_dirs);
@@ -95,18 +95,18 @@ GIT_EXTERN(int) git_repository_discover(
  *   directory "/home/user/source/" will not return "/.git/" as the found
  *   repo if "/" is a different filesystem than "/home".)
  */
-enum {
+typedef enum {
 	GIT_REPOSITORY_OPEN_NO_SEARCH = (1 << 0),
 	GIT_REPOSITORY_OPEN_CROSS_FS  = (1 << 1),
-};
+} git_repository_open_flag_t;
 
 /**
  * Find and open a repository with extended controls.
  *
- * @param repo_out Pointer to the repo which will be opened.  This can
+ * @param out Pointer to the repo which will be opened.  This can
  *        actually be NULL if you only want to use the error code to
  *        see if a repo at this path could be opened.
- * @param start_path Path to open as git repository.  If the flags
+ * @param path Path to open as git repository.  If the flags
  *        permit "searching", then this can be a path to a subdirectory
  *        inside the working directory of the repository.
  * @param flags A combination of the GIT_REPOSITORY_OPEN flags above.
@@ -118,9 +118,9 @@ enum {
  *        (such as repo corruption or system errors).
  */
 GIT_EXTERN(int) git_repository_open_ext(
-	git_repository **repo,
-	const char *start_path,
-	uint32_t flags,
+	git_repository **out,
+	const char *path,
+	unsigned int flags,
 	const char *ceiling_dirs);
 
 /**
@@ -142,7 +142,7 @@ GIT_EXTERN(void) git_repository_free(git_repository *repo);
  * TODO:
  *	- Reinit the repository
  *
- * @param repo_out pointer to the repo which will be created or reinitialized
+ * @param out pointer to the repo which will be created or reinitialized
  * @param path the path to the repository
  * @param is_bare if true, a Git repository without a working directory is
  *		created at the pointed path. If false, provided path will be
@@ -152,7 +152,7 @@ GIT_EXTERN(void) git_repository_free(git_repository *repo);
  * @return 0 or an error code
  */
 GIT_EXTERN(int) git_repository_init(
-	git_repository **repo_out,
+	git_repository **out,
 	const char *path,
 	unsigned is_bare);
 
@@ -182,14 +182,14 @@ GIT_EXTERN(int) git_repository_init(
  *        `init.templatedir` global config if not, or falling back on
  *        "/usr/share/git-core/templates" if it exists.
  */
-enum {
+typedef enum {
 	GIT_REPOSITORY_INIT_BARE              = (1u << 0),
 	GIT_REPOSITORY_INIT_NO_REINIT         = (1u << 1),
 	GIT_REPOSITORY_INIT_NO_DOTGIT_DIR     = (1u << 2),
 	GIT_REPOSITORY_INIT_MKDIR             = (1u << 3),
 	GIT_REPOSITORY_INIT_MKPATH            = (1u << 4),
 	GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE = (1u << 5),
-};
+} git_repository_init_flag_t;
 
 /**
  * Mode options for `git_repository_init_ext`.
@@ -204,11 +204,11 @@ enum {
  * * SHARED_ALL - Use "--shared=all" behavior, adding world readability.
  * * Anything else - Set to custom value.
  */
-enum {
+typedef enum {
 	GIT_REPOSITORY_INIT_SHARED_UMASK = 0,
 	GIT_REPOSITORY_INIT_SHARED_GROUP = 0002775,
 	GIT_REPOSITORY_INIT_SHARED_ALL   = 0002777,
-};
+} git_repository_init_mode_t;
 
 /**
  * Extended options structure for `git_repository_init_ext`.
@@ -239,6 +239,7 @@ enum {
  *        will be added pointing to this URL.
  */
 typedef struct {
+	unsigned int version;
 	uint32_t    flags;
 	uint32_t    mode;
 	const char *workdir_path;
@@ -248,6 +249,9 @@ typedef struct {
 	const char *origin_url;
 } git_repository_init_options;
 
+#define GIT_REPOSITORY_INIT_OPTIONS_VERSION 1
+#define GIT_REPOSITORY_INIT_OPTIONS_INIT {GIT_REPOSITORY_INIT_OPTIONS_VERSION}
+
 /**
  * Create a new Git repository in the given folder with extended controls.
  *
@@ -256,26 +260,30 @@ typedef struct {
  * auto-detect the case sensitivity of the file system and if the
  * file system supports file mode bits correctly.
  *
- * @param repo_out Pointer to the repo which will be created or reinitialized.
+ * @param out Pointer to the repo which will be created or reinitialized.
  * @param repo_path The path to the repository.
  * @param opts Pointer to git_repository_init_options struct.
  * @return 0 or an error code on failure.
  */
 GIT_EXTERN(int) git_repository_init_ext(
-	git_repository **repo_out,
+	git_repository **out,
 	const char *repo_path,
 	git_repository_init_options *opts);
 
 /**
  * Retrieve and resolve the reference pointed at by HEAD.
  *
- * @param head_out pointer to the reference which will be retrieved
+ * The returned `git_reference` will be owned by caller and
+ * `git_reference_free()` must be called when done with it to release the
+ * allocated memory and prevent a leak.
+ *
+ * @param out pointer to the reference which will be retrieved
  * @param repo a repository object
  *
  * @return 0 on success, GIT_EORPHANEDHEAD when HEAD points to a non existing
- * branch, an error code otherwise
+ * branch, GIT_ENOTFOUND when HEAD is missing; an error code otherwise
  */
-GIT_EXTERN(int) git_repository_head(git_reference **head_out, git_repository *repo);
+GIT_EXTERN(int) git_repository_head(git_reference **out, git_repository *repo);
 
 /**
  * Check if a repository's HEAD is detached
@@ -305,7 +313,7 @@ GIT_EXTERN(int) git_repository_head_orphan(git_repository *repo);
  * Check if a repository is empty
  *
  * An empty repository has just been initialized and contains
- * no commits.
+ * no references.
  *
  * @param repo Repo to test
  * @return 1 if the repository is empty, 0 if it isn't, error code
@@ -468,12 +476,12 @@ GIT_EXTERN(void) git_repository_set_index(git_repository *repo, git_index *index
  * Use this function to get the contents of this file. Don't forget to
  * remove the file after you create the commit.
  *
- * @param buffer Buffer to write data into or NULL to just read required size
+ * @param out Buffer to write data into or NULL to just read required size
  * @param len Length of buffer in bytes
  * @param repo Repository to read prepared message from
  * @return Bytes written to buffer, GIT_ENOTFOUND if no message, or -1 on error
  */
-GIT_EXTERN(int) git_repository_message(char *buffer, size_t len, git_repository *repo);
+GIT_EXTERN(int) git_repository_message(char *out, size_t len, git_repository *repo);
 
 /**
  * Remove git's prepared message.
@@ -481,6 +489,49 @@ GIT_EXTERN(int) git_repository_message(char *buffer, size_t len, git_repository 
  * Remove the message that `git_repository_message` retrieves.
  */
 GIT_EXTERN(int) git_repository_message_remove(git_repository *repo);
+
+/**
+ * Remove all the metadata associated with an ongoing git merge, including
+ * MERGE_HEAD, MERGE_MSG, etc.
+ *
+ * @param repo A repository object
+ * @return 0 on success, or error
+ */
+GIT_EXTERN(int) git_repository_merge_cleanup(git_repository *repo);
+
+typedef int (*git_repository_fetchhead_foreach_cb)(const char *ref_name,
+	const char *remote_url,
+	const git_oid *oid,
+	unsigned int is_merge,
+	void *payload);
+
+/**
+ * Call callback 'callback' for each entry in the given FETCH_HEAD file.
+ *
+ * @param repo A repository object
+ * @param callback Callback function
+ * @param payload Pointer to callback data (optional)
+ * @return 0 on success, GIT_ENOTFOUND, GIT_EUSER or error
+ */
+GIT_EXTERN(int) git_repository_fetchhead_foreach(git_repository *repo,
+	git_repository_fetchhead_foreach_cb callback,
+	void *payload);
+
+typedef int (*git_repository_mergehead_foreach_cb)(const git_oid *oid,
+	void *payload);
+
+/**
+ * If a merge is in progress, call callback 'cb' for each commit ID in the
+ * MERGE_HEAD file.
+ *
+ * @param repo A repository object
+ * @param callback Callback function
+ * @param apyload Pointer to callback data (optional)
+ * @return 0 on success, GIT_ENOTFOUND, GIT_EUSER or error
+ */
+GIT_EXTERN(int) git_repository_mergehead_foreach(git_repository *repo,
+	git_repository_mergehead_foreach_cb callback,
+	void *payload);
 
 /**
  * Calculate hash of file using repository filtering rules.
@@ -574,6 +625,12 @@ typedef enum {
 	GIT_REPOSITORY_STATE_MERGE,
 	GIT_REPOSITORY_STATE_REVERT,
 	GIT_REPOSITORY_STATE_CHERRY_PICK,
+	GIT_REPOSITORY_STATE_BISECT,
+	GIT_REPOSITORY_STATE_REBASE,
+	GIT_REPOSITORY_STATE_REBASE_INTERACTIVE,
+	GIT_REPOSITORY_STATE_REBASE_MERGE,
+	GIT_REPOSITORY_STATE_APPLY_MAILBOX,
+	GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE,
 } git_repository_state_t;
 
 /**

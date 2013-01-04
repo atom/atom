@@ -318,7 +318,7 @@ GIT_EXTERN(int) git_submodule_set_url(git_submodule *submodule, const char *url)
  * @param submodule Pointer to submodule object
  * @return Pointer to git_oid or NULL if submodule is not in index.
  */
-GIT_EXTERN(const git_oid *) git_submodule_index_oid(git_submodule *submodule);
+GIT_EXTERN(const git_oid *) git_submodule_index_id(git_submodule *submodule);
 
 /**
  * Get the OID for the submodule in the current HEAD tree.
@@ -326,7 +326,7 @@ GIT_EXTERN(const git_oid *) git_submodule_index_oid(git_submodule *submodule);
  * @param submodule Pointer to submodule object
  * @return Pointer to git_oid or NULL if submodule is not in the HEAD.
  */
-GIT_EXTERN(const git_oid *) git_submodule_head_oid(git_submodule *submodule);
+GIT_EXTERN(const git_oid *) git_submodule_head_id(git_submodule *submodule);
 
 /**
  * Get the OID for the submodule in the current working directory.
@@ -339,7 +339,7 @@ GIT_EXTERN(const git_oid *) git_submodule_head_oid(git_submodule *submodule);
  * @param submodule Pointer to submodule object
  * @return Pointer to git_oid or NULL if submodule is not checked out.
  */
-GIT_EXTERN(const git_oid *) git_submodule_wd_oid(git_submodule *submodule);
+GIT_EXTERN(const git_oid *) git_submodule_wd_id(git_submodule *submodule);
 
 /**
  * Get the ignore rule for the submodule.

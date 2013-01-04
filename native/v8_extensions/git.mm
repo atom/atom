@@ -33,7 +33,7 @@ public:
     git_reference *head;
     if (git_repository_head(&head, repo) == GIT_OK) {
       if (git_repository_head_detached(repo) == 1) {
-        const git_oid* sha = git_reference_oid(head);
+        const git_oid* sha = git_reference_target(head);
         if (sha) {
           char oid[GIT_OID_HEXSZ + 1];
           git_oid_tostr(oid, GIT_OID_HEXSZ + 1, sha);
@@ -91,9 +91,8 @@ public:
 
     char *copiedPath = (char *)malloc(sizeof(char) * (strlen(path) + 1));
     strcpy(copiedPath, path);
-    git_checkout_opts options;
-    memset(&options, 0, sizeof(options));
-    options.checkout_strategy = GIT_CHECKOUT_OVERWRITE_MODIFIED;
+    git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
+    options.checkout_strategy = GIT_CHECKOUT_UPDATE_MODIFIED;
     git_strarray paths;
     paths.count = 1;
     paths.strings = &copiedPath;
@@ -119,7 +118,7 @@ public:
       return CefV8Value::CreateNull();
     }
 
-    const git_oid* sha = git_reference_oid(head);
+    const git_oid* sha = git_reference_target(head);
     git_commit *commit;
     int commitStatus = git_commit_lookup(&commit, repo, sha);
     git_reference_free(head);
@@ -136,8 +135,7 @@ public:
 
     char *copiedPath = (char *)malloc(sizeof(char) * (strlen(path) + 1));
     strcpy(copiedPath, path);
-    git_diff_options options;
-    memset(&options, 0, sizeof(options));
+    git_diff_options options = GIT_DIFF_OPTIONS_INIT;
     git_strarray paths;
     paths.count = 1;
     paths.strings = &copiedPath;
@@ -146,7 +144,7 @@ public:
     options.flags = GIT_DIFF_DISABLE_PATHSPEC_MATCH;
 
     git_diff_list *diffs;
-    int diffStatus = git_diff_workdir_to_tree(repo, &options, tree, &diffs);
+    int diffStatus = git_diff_tree_to_workdir(&diffs, repo, tree, &options);
     free(copiedPath);
     if (diffStatus != GIT_OK) {
       return CefV8Value::CreateNull();
@@ -165,12 +163,11 @@ public:
     for (int i = 0; i < hunks; i++) {
       int lines = git_diff_patch_num_lines_in_hunk(patch, i);
       for (int j = 0; j < lines; j++) {
-        char lineType[2];
-        lineType[1] = '\0';
-        if (git_diff_patch_get_line_in_hunk(lineType, NULL, NULL, NULL, NULL, patch, i, j) == GIT_OK) {
-          if (strcmp(lineType, "+") == 0) {
+        char lineType;
+        if (git_diff_patch_get_line_in_hunk(&lineType, NULL, NULL, NULL, NULL, patch, i, j) == GIT_OK) {
+          if (lineType == GIT_DIFF_LINE_ADDITION) {
             added++;
-          } else if(strcmp(lineType, "-") == 0) {
+          } else if(lineType == GIT_DIFF_LINE_DELETION) {
             deleted++;
           }
         }

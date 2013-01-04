@@ -41,23 +41,30 @@ typedef struct {
 	unsigned int level;
 } git_config_entry;
 
+typedef int  (*git_config_foreach_cb)(const git_config_entry *, void *);
+
+
 /**
  * Generic backend that implements the interface to
  * access a configuration file
  */
-struct git_config_file {
+struct git_config_backend {
+	unsigned int version;
 	struct git_config *cfg;
 
 	/* Open means open the file/database and parse if necessary */
-	int (*open)(struct git_config_file *, unsigned int level);
-	int (*get)(struct git_config_file *, const char *key, const git_config_entry **entry);
-	int (*get_multivar)(struct git_config_file *, const char *key, const char *regexp, int (*fn)(const git_config_entry *, void *), void *data);
-	int (*set)(struct git_config_file *, const char *key, const char *value);
-	int (*set_multivar)(git_config_file *cfg, const char *name, const char *regexp, const char *value);
-	int (*del)(struct git_config_file *, const char *key);
-	int (*foreach)(struct git_config_file *, const char *, int (*fn)(const git_config_entry *, void *), void *data);
-	void (*free)(struct git_config_file *);
+	int (*open)(struct git_config_backend *, unsigned int level);
+	int (*get)(const struct git_config_backend *, const char *key, const git_config_entry **entry);
+	int (*get_multivar)(struct git_config_backend *, const char *key, const char *regexp, git_config_foreach_cb callback, void *payload);
+	int (*set)(struct git_config_backend *, const char *key, const char *value);
+	int (*set_multivar)(git_config_backend *cfg, const char *name, const char *regexp, const char *value);
+	int (*del)(struct git_config_backend *, const char *key);
+	int (*foreach)(struct git_config_backend *, const char *, git_config_foreach_cb callback, void *payload);
+	int (*refresh)(struct git_config_backend *);
+	void (*free)(struct git_config_backend *);
 };
+#define GIT_CONFIG_BACKEND_VERSION 1
+#define GIT_CONFIG_BACKEND_INIT {GIT_CONFIG_BACKEND_VERSION}
 
 typedef enum {
 	GIT_CVAR_FALSE = 0,
@@ -86,11 +93,11 @@ typedef struct {
  * This method will not guess the path to the xdg compatible
  * config file (.config/git/config).
  *
- * @param global_config_path Buffer of GIT_PATH_MAX length to store the path
- * @return 0 if a global configuration file has been
- *	found. Its path will be stored in `buffer`.
+ * @param out Buffer to store the path in
+ * @param length size of the buffer in bytes
+ * @return 0 if a global configuration file has been found. Its path will be stored in `buffer`.
  */
-GIT_EXTERN(int) git_config_find_global(char *global_config_path, size_t length);
+GIT_EXTERN(int) git_config_find_global(char *out, size_t length);
 
 /**
  * Locate the path to the global xdg compatible configuration file
@@ -103,11 +110,12 @@ GIT_EXTERN(int) git_config_find_global(char *global_config_path, size_t length);
  * may be used on any `git_config` call to load the
  * xdg compatible configuration file.
  *
- * @param xdg_config_path Buffer of GIT_PATH_MAX length to store the path
+ * @param out Buffer to store the path in
+ * @param length size of the buffer in bytes
  * @return 0 if a xdg compatible configuration file has been
  *	found. Its path will be stored in `buffer`.
  */
-GIT_EXTERN(int) git_config_find_xdg(char *xdg_config_path, size_t length);
+GIT_EXTERN(int) git_config_find_xdg(char *out, size_t length);
 
 /**
  * Locate the path to the system configuration file
@@ -115,11 +123,12 @@ GIT_EXTERN(int) git_config_find_xdg(char *xdg_config_path, size_t length);
  * If /etc/gitconfig doesn't exist, it will look for
  * %PROGRAMFILES%\Git\etc\gitconfig.
 
- * @param system_config_path Buffer of GIT_PATH_MAX length to store the path
+ * @param global_config_path Buffer to store the path in
+ * @param length size of the buffer in bytes
  * @return 0 if a system configuration file has been
  *	found. Its path will be stored in `buffer`.
  */
-GIT_EXTERN(int) git_config_find_system(char *system_config_path, size_t length);
+GIT_EXTERN(int) git_config_find_system(char *out, size_t length);
 
 /**
  * Open the global, XDG and system configuration files
@@ -132,19 +141,6 @@ GIT_EXTERN(int) git_config_find_system(char *system_config_path, size_t length);
  * @return 0 or an error code
  */
 GIT_EXTERN(int) git_config_open_default(git_config **out);
-
-/**
- * Create a configuration file backend for ondisk files
- *
- * These are the normal `.gitconfig` files that Core Git
- * processes. Note that you first have to add this file to a
- * configuration object before you can query it for configuration
- * variables.
- *
- * @param out the new backend
- * @param path where the config file is located
- */
-GIT_EXTERN(int) git_config_file__ondisk(struct git_config_file **out, const char *path);
 
 /**
  * Allocate a new configuration object
@@ -175,9 +171,9 @@ GIT_EXTERN(int) git_config_new(git_config **out);
  * @return 0 on success, GIT_EEXISTS when adding more than one file
  *  for a given priority level (and force_replace set to 0), or error code
  */
-GIT_EXTERN(int) git_config_add_file(
+GIT_EXTERN(int) git_config_add_backend(
 	git_config *cfg,
-	git_config_file *file,
+	git_config_backend *file,
 	unsigned int level,
 	int force);
 
@@ -201,14 +197,14 @@ GIT_EXTERN(int) git_config_add_file(
  * @param force if a config file already exists for the given
  *  priority level, replace it
  * @return 0 on success, GIT_EEXISTS when adding more than one file
- *  for a given priority level (and force_replace set to 0), or error code
+ *  for a given priority level (and force_replace set to 0),
+ *  GIT_ENOTFOUND when the file doesn't exist or error code
  */
 GIT_EXTERN(int) git_config_add_file_ondisk(
 	git_config *cfg,
 	const char *path,
 	unsigned int level,
 	int force);
-
 
 /**
  * Create a new config instance containing a single on-disk file
@@ -218,11 +214,12 @@ GIT_EXTERN(int) git_config_add_file_ondisk(
  *	- git_config_new
  *	- git_config_add_file_ondisk
  *
- * @param cfg The configuration instance to create
+ * @param out The configuration instance to create
  * @param path Path to the on-disk file to open
- * @return 0 or an error code
+ * @return 0 on success, GIT_ENOTFOUND when the file doesn't exist
+ * or an error code
  */
-GIT_EXTERN(int) git_config_open_ondisk(git_config **cfg, const char *path);
+GIT_EXTERN(int) git_config_open_ondisk(git_config **out, const char *path);
 
 /**
  * Build a single-level focused config object from a multi-level one.
@@ -234,13 +231,29 @@ GIT_EXTERN(int) git_config_open_ondisk(git_config **cfg, const char *path);
  * will return different config instances, but containing the same config_file
  * instance.
  *
+ * @param out The configuration instance to create
+ * @param parent Multi-level config to search for the given level
+ * @param level Configuration level to search for
  * @return 0, GIT_ENOTFOUND if the passed level cannot be found in the
  * multi-level parent config, or an error code
  */
 GIT_EXTERN(int) git_config_open_level(
-    git_config **cfg_out,
-    git_config *cfg_parent,
+    git_config **out,
+    const git_config *parent,
     unsigned int level);
+
+/**
+ * Reload changed config files
+ *
+ * A config file may be changed on disk out from under the in-memory
+ * config object.  This function causes us to look for files that have
+ * been modified since we last loaded them and refresh the config with
+ * the latest information.
+ *
+ * @param cfg The configuration to refresh
+ * @return 0 or an error code
+ */
+GIT_EXTERN(int) git_config_refresh(git_config *cfg);
 
 /**
  * Free the configuration and its associated memory and files
@@ -260,7 +273,10 @@ GIT_EXTERN(void) git_config_free(git_config *cfg);
  * @param name the variable's name
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_config_get_config_entry(const git_config_entry **out, git_config *cfg, const char *name);
+GIT_EXTERN(int) git_config_get_entry(
+   const git_config_entry **out,
+	const git_config *cfg,
+	const char *name);
 
 /**
  * Get the value of an integer config variable.
@@ -274,7 +290,7 @@ GIT_EXTERN(int) git_config_get_config_entry(const git_config_entry **out, git_co
  * @param name the variable's name
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_config_get_int32(int32_t *out, git_config *cfg, const char *name);
+GIT_EXTERN(int) git_config_get_int32(int32_t *out, const git_config *cfg, const char *name);
 
 /**
  * Get the value of a long integer config variable.
@@ -288,7 +304,7 @@ GIT_EXTERN(int) git_config_get_int32(int32_t *out, git_config *cfg, const char *
  * @param name the variable's name
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_config_get_int64(int64_t *out, git_config *cfg, const char *name);
+GIT_EXTERN(int) git_config_get_int64(int64_t *out, const git_config *cfg, const char *name);
 
 /**
  * Get the value of a boolean config variable.
@@ -305,7 +321,7 @@ GIT_EXTERN(int) git_config_get_int64(int64_t *out, git_config *cfg, const char *
  * @param name the variable's name
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_config_get_bool(int *out, git_config *cfg, const char *name);
+GIT_EXTERN(int) git_config_get_bool(int *out, const git_config *cfg, const char *name);
 
 /**
  * Get the value of a string config variable.
@@ -322,7 +338,7 @@ GIT_EXTERN(int) git_config_get_bool(int *out, git_config *cfg, const char *name)
  * @param name the variable's name
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_config_get_string(const char **out, git_config *cfg, const char *name);
+GIT_EXTERN(int) git_config_get_string(const char **out, const git_config *cfg, const char *name);
 
 /**
  * Get each value of a multivar.
@@ -336,7 +352,7 @@ GIT_EXTERN(int) git_config_get_string(const char **out, git_config *cfg, const c
  * @param fn the function to be called on each value of the variable
  * @param data opaque pointer to pass to the callback
  */
-GIT_EXTERN(int) git_config_get_multivar(git_config *cfg, const char *name, const char *regexp, int (*fn)(const git_config_entry *, void *), void *data);
+GIT_EXTERN(int) git_config_get_multivar(const git_config *cfg, const char *name, const char *regexp, git_config_foreach_cb callback, void *payload);
 
 /**
  * Set the value of an integer config variable in the config file
@@ -402,7 +418,7 @@ GIT_EXTERN(int) git_config_set_multivar(git_config *cfg, const char *name, const
  * @param cfg the configuration
  * @param name the variable to delete
  */
-GIT_EXTERN(int) git_config_delete(git_config *cfg, const char *name);
+GIT_EXTERN(int) git_config_delete_entry(git_config *cfg, const char *name);
 
 /**
  * Perform an operation on each config variable.
@@ -418,8 +434,8 @@ GIT_EXTERN(int) git_config_delete(git_config *cfg, const char *name);
  * @return 0 on success, GIT_EUSER on non-zero callback, or error code
  */
 GIT_EXTERN(int) git_config_foreach(
-	git_config *cfg,
-	int (*callback)(const git_config_entry *, void *payload),
+	const git_config *cfg,
+	git_config_foreach_cb callback,
 	void *payload);
 
 /**
@@ -436,9 +452,9 @@ GIT_EXTERN(int) git_config_foreach(
  * @return 0 or the return value of the callback which didn't return 0
  */
 GIT_EXTERN(int) git_config_foreach_match(
-	git_config *cfg,
+	const git_config *cfg,
 	const char *regexp,
-	int (*callback)(const git_config_entry *entry, void *payload),
+	git_config_foreach_cb callback,
 	void *payload);
 
 /**
@@ -475,7 +491,12 @@ GIT_EXTERN(int) git_config_foreach_match(
  * @param map_n number of mapping objects in `maps`
  * @return 0 on success, error code otherwise
  */
-GIT_EXTERN(int) git_config_get_mapped(int *out, git_config *cfg, const char *name, git_cvar_map *maps, size_t map_n);
+GIT_EXTERN(int) git_config_get_mapped(
+      int *out,
+      const git_config *cfg,
+      const char *name,
+      const git_cvar_map *maps,
+      size_t map_n);
 
 /**
  * Maps a string value to an integer constant
@@ -487,7 +508,7 @@ GIT_EXTERN(int) git_config_get_mapped(int *out, git_config *cfg, const char *nam
  */
 GIT_EXTERN(int) git_config_lookup_map_value(
 	int *out,
-	git_cvar_map *maps,
+	const git_cvar_map *maps,
 	size_t map_n,
 	const char *value);
 
@@ -504,18 +525,6 @@ GIT_EXTERN(int) git_config_lookup_map_value(
 GIT_EXTERN(int) git_config_parse_bool(int *out, const char *value);
 
 /**
- * Parse a string value as an int64.
- *
- * An optional value suffix of 'k', 'm', or 'g' will
- * cause the value to be multiplied by 1024, 1048576,
- * or 1073741824 prior to output.
- *
- * @param out place to store the result of the parsing
- * @param value value to parse
- */
-GIT_EXTERN(int) git_config_parse_int64(int64_t *out, const char *value);
-
-/**
  * Parse a string value as an int32.
  *
  * An optional value suffix of 'k', 'm', or 'g' will
@@ -526,6 +535,18 @@ GIT_EXTERN(int) git_config_parse_int64(int64_t *out, const char *value);
  * @param value value to parse
  */
 GIT_EXTERN(int) git_config_parse_int32(int32_t *out, const char *value);
+
+/**
+ * Parse a string value as an int64.
+ *
+ * An optional value suffix of 'k', 'm', or 'g' will
+ * cause the value to be multiplied by 1024, 1048576,
+ * or 1073741824 prior to output.
+ *
+ * @param out place to store the result of the parsing
+ * @param value value to parse
+ */
+GIT_EXTERN(int) git_config_parse_int64(int64_t *out, const char *value);
 
 
 /** @} */

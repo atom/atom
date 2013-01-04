@@ -68,6 +68,17 @@ GIT_INLINE(void) git_blob_free(git_blob *blob)
 	git_object_free((git_object *) blob);
 }
 
+/**
+ * Get the id of a blob.
+ *
+ * @param blob a previously loaded blob.
+ * @return SHA1 hash for this blob.
+ */
+GIT_INLINE(const git_oid *) git_blob_id(const git_blob *blob)
+{
+	return git_object_id((const git_object *)blob);
+}
+
 
 /**
  * Get a read-only buffer with the raw content of a blob.
@@ -88,32 +99,35 @@ GIT_EXTERN(const void *) git_blob_rawcontent(git_blob *blob);
  * @param blob pointer to the blob
  * @return size on bytes
  */
-GIT_EXTERN(size_t) git_blob_rawsize(git_blob *blob);
+GIT_EXTERN(git_off_t) git_blob_rawsize(git_blob *blob);
 
 /**
  * Read a file from the working folder of a repository
  * and write it to the Object Database as a loose blob
  *
- * @param oid return the id of the written blob
+ * @param id return the id of the written blob
  * @param repo repository where the blob will be written.
  *	this repository cannot be bare
- * @param path file from which the blob will be created,
+ * @param relative_path file from which the blob will be created,
  *	relative to the repository's working dir
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_blob_create_fromfile(git_oid *oid, git_repository *repo, const char *path);
+GIT_EXTERN(int) git_blob_create_fromworkdir(git_oid *id, git_repository *repo, const char *relative_path);
 
 /**
  * Read a file from the filesystem and write its content
  * to the Object Database as a loose blob
  *
- * @param oid return the id of the written blob
+ * @param id return the id of the written blob
  * @param repo repository where the blob will be written.
  *	this repository can be bare or not
  * @param path file from which the blob will be created
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_blob_create_fromdisk(git_oid *oid, git_repository *repo, const char *path);
+GIT_EXTERN(int) git_blob_create_fromdisk(git_oid *id, git_repository *repo, const char *path);
+
+
+typedef int (*git_blob_chunk_cb)(char *content, size_t max_length, void *payload);
 
 /**
  * Write a loose blob to the Object Database from a
@@ -141,7 +155,7 @@ GIT_EXTERN(int) git_blob_create_fromdisk(git_oid *oid, git_repository *repo, con
  *  - When an error occurs, the callback should return -1.
  *
  *
- * @param oid Return the id of the written blob
+ * @param id Return the id of the written blob
  *
  * @param repo repository where the blob will be written.
  * This repository can be bare or not.
@@ -152,10 +166,10 @@ GIT_EXTERN(int) git_blob_create_fromdisk(git_oid *oid, git_repository *repo, con
  * @return GIT_SUCCESS or an error code
  */
 GIT_EXTERN(int) git_blob_create_fromchunks(
-	git_oid *oid,
+	git_oid *id,
 	git_repository *repo,
 	const char *hintpath,
-	int (*source_cb)(char *content, size_t max_length, void *payload),
+	git_blob_chunk_cb callback,
 	void *payload);
 
 /**
@@ -168,6 +182,19 @@ GIT_EXTERN(int) git_blob_create_fromchunks(
  * @return 0 or an error code
  */
 GIT_EXTERN(int) git_blob_create_frombuffer(git_oid *oid, git_repository *repo, const void *buffer, size_t len);
+
+/**
+ * Determine if the blob content is most certainly binary or not.
+ *
+ * The heuristic used to guess if a file is binary is taken from core git:
+ * Searching for NUL bytes and looking for a reasonable ratio of printable
+ * to non-printable characters among the first 4000 bytes.
+ *
+ * @param blob The blob which content should be analyzed
+ * @return 1 if the content of the blob is detected
+ * as binary; 0 otherwise.
+ */
+GIT_EXTERN(int) git_blob_is_binary(git_blob *blob);
 
 /** @} */
 GIT_END_DECL

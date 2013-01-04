@@ -86,6 +86,11 @@ GIT_BEGIN_DECL
 #define GIT_PATH_MAX 4096
 
 /**
+ * The string representation of the null object ID.
+ */
+#define GIT_OID_HEX_ZERO "0000000000000000000000000000000000000000"
+
+/**
  * Return the version of the libgit2 library
  * being currently used.
  *

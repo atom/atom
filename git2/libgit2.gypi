@@ -41,6 +41,10 @@
       'git2/include/git2/reset.h',
       'git2/include/git2/revparse.h',
       'git2/include/git2/strarray.h',
+      'git2/include/git2/graph.h',
+      'git2/include/git2/push.h',
+      'git2/include/git2/stash.h',
+      'git2/include/git2/transport.h',
     ],
   }
 }

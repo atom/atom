@@ -29,7 +29,10 @@ GIT_BEGIN_DECL
  *
  * The returned reference must be freed by the user.
  *
- * @param branch_out Pointer where to store the underlying reference.
+ * The branch name will be checked for validity.
+ * See `git_tag_create()` for rules about valid names.
+ *
+ * @param out Pointer where to store the underlying reference.
  *
  * @param branch_name Name for the branch; this name is
  * validated for consistency. It should also not conflict with
@@ -42,15 +45,15 @@ GIT_BEGIN_DECL
  *
  * @param force Overwrite existing branch.
  *
- * @return 0 or an error code.
+ * @return 0, GIT_EINVALIDSPEC or an error code.
  * A proper reference is written in the refs/heads namespace
  * pointing to the provided target commit.
  */
 GIT_EXTERN(int) git_branch_create(
-		git_reference **branch_out,
+		git_reference **out,
 		git_repository *repo,
 		const char *branch_name,
-		const git_object *target,
+		const git_commit *target,
 		int force);
 
 /**
@@ -94,6 +97,9 @@ GIT_EXTERN(int) git_branch_foreach(
 /**
  * Move/rename an existing local branch reference.
  *
+ * The new branch name will be checked for validity.
+ * See `git_tag_create()` for rules about valid names.
+ *
  * @param branch Current underlying reference of the branch.
  *
  * @param new_branch_name Target name of the branch once the move
@@ -101,7 +107,7 @@ GIT_EXTERN(int) git_branch_foreach(
  *
  * @param force Overwrite existing branch.
  *
- * @return 0 on success, or an error code.
+ * @return 0 on success, GIT_EINVALIDSPEC or an error code.
  */
 GIT_EXTERN(int) git_branch_move(
 		git_reference *branch,
@@ -113,7 +119,10 @@ GIT_EXTERN(int) git_branch_move(
  *
  * The generated reference must be freed by the user.
  *
- * @param branch_out pointer to the looked-up branch reference
+ * The branch name will be checked for validity.
+ * See `git_tag_create()` for rules about valid names.
+ *
+ * @param out pointer to the looked-up branch reference
  *
  * @param repo the repository to look up the branch
  *
@@ -124,10 +133,10 @@ GIT_EXTERN(int) git_branch_move(
  * be valued with either GIT_BRANCH_LOCAL or GIT_BRANCH_REMOTE.
  *
  * @return 0 on success; GIT_ENOTFOUND when no matching branch
- * exists, otherwise an error code.
+ * exists, GIT_EINVALIDSPEC, otherwise an error code.
  */
 GIT_EXTERN(int) git_branch_lookup(
-		git_reference **branch_out,
+		git_reference **out,
 		git_repository *repo,
 		const char *branch_name,
 		git_branch_t branch_type);
@@ -136,7 +145,7 @@ GIT_EXTERN(int) git_branch_lookup(
  * Return the reference supporting the remote tracking branch,
  * given a local branch reference.
  *
- * @param tracking_out Pointer where to store the retrieved
+ * @param out Pointer where to store the retrieved
  * reference.
  *
  * @param branch Current underlying reference of the branch.
@@ -145,7 +154,7 @@ GIT_EXTERN(int) git_branch_lookup(
  * reference exists, otherwise an error code.
  */
 GIT_EXTERN(int) git_branch_tracking(
-		git_reference **tracking_out,
+		git_reference **out,
 		git_reference *branch);
 
 /**

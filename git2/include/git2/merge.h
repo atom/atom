@@ -27,8 +27,13 @@ GIT_BEGIN_DECL
  * @param repo the repository where the commits exist
  * @param one one of the commits
  * @param two the other commit
+ * @return Zero on success; GIT_ENOTFOUND or -1 on failure.
  */
-GIT_EXTERN(int) git_merge_base(git_oid *out, git_repository *repo, const git_oid *one, const git_oid *two);
+GIT_EXTERN(int) git_merge_base(
+	git_oid *out,
+	git_repository *repo,
+	const git_oid *one,
+	const git_oid *two);
 
 /**
  * Find a merge base given a list of commits
@@ -37,8 +42,13 @@ GIT_EXTERN(int) git_merge_base(git_oid *out, git_repository *repo, const git_oid
  * @param repo the repository where the commits exist
  * @param input_array oids of the commits
  * @param length The number of commits in the provided `input_array`
+ * @return Zero on success; GIT_ENOTFOUND or -1 on failure.
  */
-GIT_EXTERN(int) git_merge_base_many(git_oid *out, git_repository *repo, const git_oid input_array[], size_t length);
+GIT_EXTERN(int) git_merge_base_many(
+	git_oid *out,
+	git_repository *repo,
+	const git_oid input_array[],
+	size_t length);
 
 /** @} */
 GIT_END_DECL

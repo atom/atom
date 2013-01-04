@@ -11,6 +11,7 @@
 #include "types.h"
 #include "oid.h"
 #include "odb_backend.h"
+#include "indexer.h"
 
 /**
  * @file git2/odb.h
@@ -88,6 +89,23 @@ GIT_EXTERN(int) git_odb_add_backend(git_odb *odb, git_odb_backend *backend, int 
 GIT_EXTERN(int) git_odb_add_alternate(git_odb *odb, git_odb_backend *backend, int priority);
 
 /**
+ * Add an on-disk alternate to an existing Object DB.
+ *
+ * Note that the added path must point to an `objects`, not
+ * to a full repository, to use it as an alternate store.
+ *
+ * Alternate backends are always checked for objects *after*
+ * all the main backends have been exhausted.
+ *
+ * Writing is disabled on alternate backends.
+ *
+ * @param odb database to add the backend to
+ * @param path path to the objects folder for the alternate
+ * @return 0 on success; error code otherwise
+ */
+GIT_EXTERN(int) git_odb_add_disk_alternate(git_odb *odb, const char *path);
+
+/**
  * Close an open object database.
  *
  * @param db database pointer to close. If NULL no action is taken.
@@ -135,9 +153,10 @@ GIT_EXTERN(int) git_odb_read(git_odb_object **out, git_odb *db, const git_oid *i
  * @param db database to search for the object in.
  * @param short_id a prefix of the id of the object to read.
  * @param len the length of the prefix
- * @return 0 if the object was read;
- *	GIT_ENOTFOUND if the object is not in the database.
- *	GIT_EAMBIGUOUS if the prefix is ambiguous (several objects match the prefix)
+ * @return 
+ * - 0 if the object was read;
+ * - GIT_ENOTFOUND if the object is not in the database.
+ * - GIT_EAMBIGUOUS if the prefix is ambiguous (several objects match the prefix)
  */
 GIT_EXTERN(int) git_odb_read_prefix(git_odb_object **out, git_odb *db, const git_oid *short_id, size_t len);
 
@@ -151,15 +170,15 @@ GIT_EXTERN(int) git_odb_read_prefix(git_odb_object **out, git_odb *db, const git
  * of an object, so the whole object will be read and then the
  * header will be returned.
  *
- * @param len_p pointer where to store the length
- * @param type_p pointer where to store the type
+ * @param len_out pointer where to store the length
+ * @param type_out pointer where to store the type
  * @param db database to search for the object in.
  * @param id identity of the object to read.
  * @return
  * - 0 if the object was read;
  * - GIT_ENOTFOUND if the object is not in the database.
  */
-GIT_EXTERN(int) git_odb_read_header(size_t *len_p, git_otype *type_p, git_odb *db, const git_oid *id);
+GIT_EXTERN(int) git_odb_read_header(size_t *len_out, git_otype *type_out, git_odb *db, const git_oid *id);
 
 /**
  * Determine if the given object can be found in the object database.
@@ -182,10 +201,10 @@ GIT_EXTERN(int) git_odb_exists(git_odb *db, const git_oid *id);
  *
  * @param db database to use
  * @param cb the callback to call for each object
- * @param data data to pass to the callback
+ * @param payload data to pass to the callback
  * @return 0 on success, GIT_EUSER on non-zero callback, or error code
  */
-GIT_EXTERN(int) git_odb_foreach(git_odb *db, int (*cb)(git_oid *oid, void *data), void *data);
+GIT_EXTERN(int) git_odb_foreach(git_odb *db, git_odb_foreach_cb cb, void *payload);
 
 /**
  * Write an object directly into the ODB
@@ -198,14 +217,14 @@ GIT_EXTERN(int) git_odb_foreach(git_odb *db, int (*cb)(git_oid *oid, void *data)
  * This method is provided for compatibility with custom backends
  * which are not able to support streaming writes
  *
- * @param oid pointer to store the OID result of the write
+ * @param out pointer to store the OID result of the write
  * @param odb object database where to store the object
  * @param data buffer with the data to store
  * @param len size of the buffer
  * @param type type of the data to store
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_odb_write(git_oid *oid, git_odb *odb, const void *data, size_t len, git_otype type);
+GIT_EXTERN(int) git_odb_write(git_oid *out, git_odb *odb, const void *data, size_t len, git_otype type);
 
 /**
  * Open a stream to write an object into the ODB
@@ -228,13 +247,13 @@ GIT_EXTERN(int) git_odb_write(git_oid *oid, git_odb *odb, const void *data, size
  *
  * @see git_odb_stream
  *
- * @param stream pointer where to store the stream
+ * @param out pointer where to store the stream
  * @param db object database where the stream will write
  * @param size final size of the object that will be written
  * @param type type of the object that will be written
  * @return 0 if the stream was created; error code otherwise
  */
-GIT_EXTERN(int) git_odb_open_wstream(git_odb_stream **stream, git_odb *db, size_t size, git_otype type);
+GIT_EXTERN(int) git_odb_open_wstream(git_odb_stream **out, git_odb *db, size_t size, git_otype type);
 
 /**
  * Open a stream to read an object from the ODB
@@ -255,12 +274,36 @@ GIT_EXTERN(int) git_odb_open_wstream(git_odb_stream **stream, git_odb *db, size_
  *
  * @see git_odb_stream
  *
- * @param stream pointer where to store the stream
+ * @param out pointer where to store the stream
  * @param db object database where the stream will read from
  * @param oid oid of the object the stream will read from
  * @return 0 if the stream was created; error code otherwise
  */
-GIT_EXTERN(int) git_odb_open_rstream(git_odb_stream **stream, git_odb *db, const git_oid *oid);
+GIT_EXTERN(int) git_odb_open_rstream(git_odb_stream **out, git_odb *db, const git_oid *oid);
+
+/**
+ * Open a stream for writing a pack file to the ODB.
+ *
+ * If the ODB layer understands pack files, then the given
+ * packfile will likely be streamed directly to disk (and a
+ * corresponding index created).  If the ODB layer does not
+ * understand pack files, the objects will be stored in whatever
+ * format the ODB layer uses.
+ *
+ * @see git_odb_writepack
+ *
+ * @param out pointer to the writepack functions
+ * @param db object database where the stream will read from
+ * @param progress_cb function to call with progress information.
+ * Be aware that this is called inline with network and indexing operations,
+ * so performance may be affected.
+ * @param progress_payload payload for the progress callback
+ */
+GIT_EXTERN(int) git_odb_write_pack(
+	git_odb_writepack **out,
+	git_odb *db,
+	git_transfer_progress_callback progress_cb,
+	void *progress_payload);
 
 /**
  * Determine the object-ID (sha1 hash) of a data buffer
@@ -268,13 +311,13 @@ GIT_EXTERN(int) git_odb_open_rstream(git_odb_stream **stream, git_odb *db, const
  * The resulting SHA-1 OID will be the identifier for the data
  * buffer as if the data buffer it were to written to the ODB.
  *
- * @param id the resulting object-ID.
+ * @param out the resulting object-ID.
  * @param data data to hash
  * @param len size of the data
  * @param type of the data to hash
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_odb_hash(git_oid *id, const void *data, size_t len, git_otype type);
+GIT_EXTERN(int) git_odb_hash(git_oid *out, const void *data, size_t len, git_otype type);
 
 /**
  * Read a file from disk and fill a git_oid with the object id

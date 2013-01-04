@@ -41,9 +41,10 @@ GIT_EXTERN(int) git_ignore_add_rule(
 /**
  * Clear ignore rules that were explicitly added.
  *
- * Clears the internal ignore rules that have been set up.  This will not
- * turn off the rules in .gitignore files that actually exist in the
- * filesystem.
+ * Resets to the default internal ignore rules.  This will not turn off
+ * rules in .gitignore files that actually exist in the filesystem.
+ *
+ * The default internal ignores ignore ".", ".." and ".git" entries.
  *
  * @param repo The repository to remove ignore rules from.
  * @return 0 on success

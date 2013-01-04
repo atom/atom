@@ -179,13 +179,14 @@ GIT_EXTERN(size_t) git_object__size(git_otype type);
  *
  * @param peeled Pointer to the peeled git_object
  * @param object The object to be processed
- * @param target_type The type of the requested object
- * @return 0 or an error code
+ * @param target_type The type of the requested object (GIT_OBJ_COMMIT,
+ * GIT_OBJ_TAG, GIT_OBJ_TREE, GIT_OBJ_BLOB or GIT_OBJ_ANY).
+ * @return 0 on success, GIT_EAMBIGUOUS, GIT_ENOTFOUND or an error code
  */
 GIT_EXTERN(int) git_object_peel(
-		git_object **peeled,
-		git_object *object,
-		git_otype target_type);
+	git_object **peeled,
+	const git_object *object,
+	git_otype target_type);
 
 /** @} */
 GIT_END_DECL

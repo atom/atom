@@ -183,6 +183,8 @@ GIT_EXTERN(int) git_attr_get_many(
 	size_t num_attr,
 	const char **names);
 
+typedef int (*git_attr_foreach_cb)(const char *name, const char *value, void *payload);
+
 /**
  * Loop over all the git attributes for a path.
  *
@@ -204,7 +206,7 @@ GIT_EXTERN(int) git_attr_foreach(
 	git_repository *repo,
 	uint32_t flags,
 	const char *path,
-	int (*callback)(const char *name, const char *value, void *payload),
+	git_attr_foreach_cb callback,
 	void *payload);
 
 /**

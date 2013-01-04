@@ -16,16 +16,26 @@
 GIT_BEGIN_DECL
 
 /**
+ * Kinds of reset operation
+ */
+typedef enum {
+	GIT_RESET_SOFT  = 1, /** Move the head to the given commit */
+	GIT_RESET_MIXED = 2, /** SOFT plus reset index to the commit */
+	GIT_RESET_HARD  = 3, /** MIXED plus changes in working tree discarded */
+} git_reset_t;
+
+/**
  * Sets the current head to the specified commit oid and optionally
  * resets the index and working tree to match.
  *
- * When specifying a Soft kind of reset, the head will be moved to the commit.
+ * SOFT reset means the head will be moved to the commit.
  *
- * Specifying a Mixed kind of reset will trigger a Soft reset and the index will
- * be replaced with the content of the commit tree.
+ * MIXED reset will trigger a SOFT reset, plus the index will be replaced
+ * with the content of the commit tree.
  *
- * Specifying a Hard kind of reset will trigger a Mixed reset and the working
- * directory will be replaced with the content of the index.
+ * HARD reset will trigger a MIXED reset and the working directory will be
+ * replaced with the content of the index.  (Untracked and ignored files
+ * will be left alone, however.)
  *
  * TODO: Implement remaining kinds of resets.
  *
@@ -38,9 +48,10 @@ GIT_BEGIN_DECL
  *
  * @param reset_type Kind of reset operation to perform.
  *
- * @return GIT_SUCCESS or an error code
+ * @return 0 on success or an error code < 0
  */
-GIT_EXTERN(int) git_reset(git_repository *repo, git_object *target, git_reset_type reset_type);
+GIT_EXTERN(int) git_reset(
+	git_repository *repo, git_object *target, git_reset_t reset_type);
 
 /** @} */
 GIT_END_DECL

@@ -44,14 +44,14 @@ GIT_EXTERN(int) git_indexer_stream_new(
 		git_indexer_stream **out,
 		const char *path,
 		git_transfer_progress_callback progress_cb,
-		void *progress_callback_payload);
+		void *progress_cb_payload);
 
 /**
  * Add data to the indexer
  *
  * @param idx the indexer
  * @param data the data to add
- * @param size the size of the data
+ * @param size the size of the data in bytes
  * @param stats stat storage
  */
 GIT_EXTERN(int) git_indexer_stream_add(git_indexer_stream *idx, const void *data, size_t size, git_transfer_progress *stats);
@@ -73,7 +73,7 @@ GIT_EXTERN(int) git_indexer_stream_finalize(git_indexer_stream *idx, git_transfe
  *
  * @param idx the indexer instance
  */
-GIT_EXTERN(const git_oid *) git_indexer_stream_hash(git_indexer_stream *idx);
+GIT_EXTERN(const git_oid *) git_indexer_stream_hash(const git_indexer_stream *idx);
 
 /**
  * Free the indexer and its resources
@@ -120,7 +120,7 @@ GIT_EXTERN(int) git_indexer_write(git_indexer *idx);
  *
  * @param idx the indexer instance
  */
-GIT_EXTERN(const git_oid *) git_indexer_hash(git_indexer *idx);
+GIT_EXTERN(const git_oid *) git_indexer_hash(const git_indexer *idx);
 
 /**
  * Free the indexer and its resources

@@ -19,20 +19,34 @@
 GIT_BEGIN_DECL
 
 /**
+ * Callback for git_note_foreach.
+ *
+ * Receives:
+ * - blob_id: Oid of the blob containing the message
+ * - annotated_object_id: Oid of the git object being annotated
+ * - payload: Payload data passed to `git_note_foreach`
+ */
+typedef int (*git_note_foreach_cb)(
+	const git_oid *blob_id, const git_oid *annotated_object_id, void *payload);
+
+/**
  * Read the note for an object
  *
  * The note must be freed manually by the user.
  *
- * @param note pointer to the read note; NULL in case of error
+ * @param out pointer to the read note; NULL in case of error
  * @param repo repository where to look up the note
- * @param notes_ref canonical name of the reference to use (optional);
- *					defaults to "refs/notes/commits"
+ * @param notes_ref canonical name of the reference to use (optional); defaults to
+ *                  "refs/notes/commits"
  * @param oid OID of the git object to read the note from
  *
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_note_read(git_note **note, git_repository *repo,
-			      const char *notes_ref, const git_oid *oid);
+GIT_EXTERN(int) git_note_read(
+	git_note **out,
+	git_repository *repo,
+	const char *notes_ref,
+	const git_oid *oid);
 
 /**
  * Get the note message
@@ -40,7 +54,7 @@ GIT_EXTERN(int) git_note_read(git_note **note, git_repository *repo,
  * @param note
  * @return the note message
  */
-GIT_EXTERN(const char *) git_note_message(git_note *note);
+GIT_EXTERN(const char *) git_note_message(const git_note *note);
 
 
 /**
@@ -49,7 +63,7 @@ GIT_EXTERN(const char *) git_note_message(git_note *note);
  * @param note
  * @return the note object OID
  */
-GIT_EXTERN(const git_oid *) git_note_oid(git_note *note);
+GIT_EXTERN(const git_oid *) git_note_oid(const git_note *note);
 
 /**
  * Add a note for an object
@@ -62,13 +76,19 @@ GIT_EXTERN(const git_oid *) git_note_oid(git_note *note);
  *					defaults to "refs/notes/commits"
  * @param oid OID of the git object to decorate
  * @param note Content of the note to add for object oid
+ * @param force Overwrite existing note
  *
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_note_create(git_oid *out, git_repository *repo,
-				git_signature *author, git_signature *committer,
-				const char *notes_ref, const git_oid *oid,
-				 const char *note);
+GIT_EXTERN(int) git_note_create(
+	git_oid *out,
+	git_repository *repo,
+	const git_signature *author,
+	const git_signature *committer,
+	const char *notes_ref,
+	const git_oid *oid,
+	const char *note,
+	int force);
 
 
 /**
@@ -83,9 +103,12 @@ GIT_EXTERN(int) git_note_create(git_oid *out, git_repository *repo,
  *
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_note_remove(git_repository *repo, const char *notes_ref,
-				git_signature *author, git_signature *committer,
-				const git_oid *oid);
+GIT_EXTERN(int) git_note_remove(
+	git_repository *repo,
+	const char *notes_ref,
+	const git_signature *author,
+	const git_signature *committer,
+	const git_oid *oid);
 
 /**
  * Free a git_note object
@@ -103,17 +126,6 @@ GIT_EXTERN(void) git_note_free(git_note *note);
  * @return 0 or an error code
  */
 GIT_EXTERN(int) git_note_default_ref(const char **out, git_repository *repo);
-
-/**
- * Basic components of a note
- *
- *  - Oid of the blob containing the message
- *  - Oid of the git object being annotated
- */
-typedef struct {
-	git_oid blob_oid;
-	git_oid annotated_object_oid;
-} git_note_data;
 
 /**
  * Loop over all the notes within a specified namespace
@@ -134,9 +146,8 @@ typedef struct {
 GIT_EXTERN(int) git_note_foreach(
 	git_repository *repo,
 	const char *notes_ref,
-	int (*note_cb)(git_note_data *note_data, void *payload),
-	void *payload
-);
+	git_note_foreach_cb note_cb,
+	void *payload);
 
 /** @} */
 GIT_END_DECL

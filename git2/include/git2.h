@@ -23,6 +23,7 @@
 #include "git2/repository.h"
 #include "git2/revwalk.h"
 #include "git2/merge.h"
+#include "git2/graph.h"
 #include "git2/refs.h"
 #include "git2/reflog.h"
 #include "git2/revparse.h"
@@ -36,9 +37,11 @@
 
 #include "git2/index.h"
 #include "git2/config.h"
+#include "git2/transport.h"
 #include "git2/remote.h"
 #include "git2/clone.h"
 #include "git2/checkout.h"
+#include "git2/push.h"
 
 #include "git2/attr.h"
 #include "git2/ignore.h"
@@ -52,5 +55,6 @@
 #include "git2/reset.h"
 #include "git2/message.h"
 #include "git2/pack.h"
+#include "git2/stash.h"
 
 #endif

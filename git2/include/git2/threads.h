@@ -27,8 +27,10 @@ GIT_BEGIN_DECL
  *
  * If libgit2 has been built without GIT_THREADS
  * support, this function is a no-op.
+ *
+ * @return 0 or an error code
  */
-GIT_EXTERN(void) git_threads_init(void);
+GIT_EXTERN(int) git_threads_init(void);
 
 /**
  * Shutdown the threading system.
