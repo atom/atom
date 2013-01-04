@@ -479,9 +479,9 @@ describe "RootView", ->
         expect(keybindings["meta-a"]).toEqual "test-event-a"
 
   describe "when the focused editor changes", ->
-    it "changes the title and emits an active-editor-path-change event", ->
+    it "changes the title and emits an root-view:active-path-changed event", ->
       pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
-      rootView.on 'active-editor-path-change', pathChangeHandler
+      rootView.on 'root-view:active-path-changed', pathChangeHandler
 
       editor1 = rootView.getActiveEditor()
       expect(rootView.getTitle()).toBe "#{fs.base(editor1.getPath())} – #{rootView.project.getPath()}"
@@ -507,9 +507,9 @@ describe "RootView", ->
       expect(rootView.project.getPath()).toBe '/tmp'
 
   describe "when editors are focused", ->
-    it "triggers 'active-editor-path-change' events if the path of the active editor actually changes", ->
+    it "triggers 'root-view:active-path-changed' events if the path of the active editor actually changes", ->
       pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
-      rootView.on 'active-editor-path-change', pathChangeHandler
+      rootView.on 'root-view:active-path-changed', pathChangeHandler
 
       editor1 = rootView.getActiveEditor()
       editor2 = rootView.getActiveEditor().splitLeft()

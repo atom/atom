@@ -71,7 +71,7 @@ class RootView extends View
     $(window).on 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
-    @on 'active-editor-path-change', (e, path) =>
+    @on 'root-view:active-path-changed', (e, path) =>
       @project.setPath(path) unless @project.getRootDirectory()
       if path
         @setTitle(fs.base(path))
@@ -175,9 +175,9 @@ class RootView extends View
 
     if not editor.mini
       editor.on 'editor:path-changed.root-view', =>
-        @trigger 'active-editor-path-change', editor.getPath()
+        @trigger 'root-view:active-path-changed', editor.getPath()
       if not previousActiveEditor or editor.getPath() != previousActiveEditor.getPath()
-        @trigger 'active-editor-path-change', editor.getPath()
+        @trigger 'root-view:active-path-changed', editor.getPath()
 
   activeKeybindings: ->
     keymap.bindingsForElement(document.activeElement)
