@@ -29,13 +29,14 @@ class UndoManager
       @clear()
 
   transact: (fn) ->
-    shouldCommit = not @currentTransaction?
+    isNewTransaction = not @currentTransaction?
     @currentTransaction ?= []
     if fn
       try
         fn()
       finally
-        @commit() if shouldCommit
+        @commit() if isNewTransaction
+    isNewTransaction
 
   commit: ->
     @undoHistory.push(@currentTransaction) if @currentTransaction?.length

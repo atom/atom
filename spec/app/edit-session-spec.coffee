@@ -1678,6 +1678,28 @@ describe "EditSession", ->
         expect(editSession.getSelectedBufferRange()).toEqual [[2, 2], [3, 3]]
         expect(otherEditSession.getSelectedBufferRange()).toEqual [[3, 3], [3, 3]]
 
+    describe ".transact([fn])", ->
+      describe "when called without a function", ->
+        it "restores the selection when the transaction is undone/redone", ->
+          buffer.setText('1234')
+          editSession.setSelectedBufferRange([[0, 1], [0, 3]])
+          editSession.transact()
+
+          editSession.delete()
+          editSession.moveCursorToEndOfLine()
+          editSession.insertText('5')
+          expect(buffer.getText()).toBe '145'
+
+          editSession.commit()
+
+          editSession.undo()
+          expect(buffer.getText()).toBe '1234'
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [0, 3]]
+
+          editSession.redo()
+          expect(buffer.getText()).toBe '145'
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 3], [0, 3]]
+
     describe "when the buffer is changed (via its direct api, rather than via than edit session)", ->
       it "moves the cursor so it is in the same relative position of the buffer", ->
         expect(editSession.getCursorScreenPosition()).toEqual [0, 0]

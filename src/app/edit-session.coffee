@@ -235,6 +235,27 @@ class EditSession
   redo: ->
     @buffer.redo(this)
 
+  transact: (fn) ->
+    isNewTransaction = @buffer.transact()
+    console.log isNewTransaction
+    oldSelectedRanges = @getSelectedBufferRanges()
+    @pushOperation
+      undo: (editSession) ->
+        editSession?.setSelectedBufferRanges(oldSelectedRanges)
+    if fn
+      fn()
+      @commit() if isNewTransaction
+
+  commit: ->
+    newSelectedRanges = @getSelectedBufferRanges()
+    @pushOperation
+      redo: (editSession) ->
+        editSession?.setSelectedBufferRanges(newSelectedRanges)
+    @buffer.commit()
+
+  abort: ->
+    @buffer.abort()
+
   foldAll: ->
     @displayBuffer.foldAll()
 
@@ -302,19 +323,6 @@ class EditSession
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
-
-  transact: (fn) ->
-    @buffer.transact =>
-      oldSelectedRanges = @getSelectedBufferRanges()
-      @pushOperation
-        undo: (editSession) ->
-          editSession?.setSelectedBufferRanges(oldSelectedRanges)
-
-      fn()
-      newSelectedRanges = @getSelectedBufferRanges()
-      @pushOperation
-        redo: (editSession) ->
-          editSession?.setSelectedBufferRanges(newSelectedRanges)
 
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)

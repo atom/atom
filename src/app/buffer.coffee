@@ -224,14 +224,11 @@ class Buffer
     else
       operation.do()
 
-  transact: (fn) ->
-    @undoManager.transact(fn)
-
-  undo: (editSession) ->
-    @undoManager.undo(editSession)
-
-  redo: (editSession) ->
-    @undoManager.redo(editSession)
+  transact: (fn) ->  @undoManager.transact(fn)
+  undo: (editSession) -> @undoManager.undo(editSession)
+  redo: (editSession) -> @undoManager.redo(editSession)
+  commit: -> @undoManager.commit()
+  abort: -> @undoManager.abort()
 
   save: ->
     @saveAs(@getPath()) if @isModified()
