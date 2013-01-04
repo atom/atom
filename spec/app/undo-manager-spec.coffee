@@ -102,14 +102,13 @@ describe "UndoManager", ->
       it "undoes operations that occured prior to an exception when the transaction is undone", ->
         buffer.setText("jumpstreet")
 
-        try
+        expect(->
           undoManager.transact ->
             buffer.insert([0,0], "3")
             buffer.insert([0,0], "2")
             throw new Error("problem")
             buffer.insert([0,0], "2")
-        catch e
-          expect(e.message).toBe "problem"
+        ).toThrow('problem')
 
         expect(buffer.lineForRow(0)).toBe "23jumpstreet"
         undoManager.undo()
@@ -186,8 +185,11 @@ describe "UndoManager", ->
         do: -> throw new Error("I'm a bad do operation")
 
       buffer.insert([0,0], "1")
-      undoManager.pushOperation(new FailingOperation())
-      expect(console.error).toHaveBeenCalled()
+
+      expect(->
+        undoManager.pushOperation(new FailingOperation())
+      ).toThrow("I'm a bad do operation")
+
       undoManager.undo()
       expect(buffer.lineForRow(0)).toBe "1word"
 
@@ -200,8 +202,9 @@ describe "UndoManager", ->
 
       buffer.insert([0,0], "1")
       undoManager.pushOperation(new FailingOperation())
-      undoManager.undo()
-      expect(console.error).toHaveBeenCalled()
+      expect(->
+        undoManager.undo()
+      ).toThrow("I'm a bad undo operation")
       expect(buffer.lineForRow(0)).toBe "1word"
 
   describe "when an `redo` operation throws an exception", ->
@@ -209,11 +212,12 @@ describe "UndoManager", ->
       spyOn(console, 'error')
       buffer.setText("word")
       class FailingOperation
-        redo: -> throw new Error("I'm a bad undo operation")
+        redo: -> throw new Error("I'm a bad redo operation")
 
       buffer.insert([0,0], "1")
       undoManager.pushOperation(new FailingOperation())
       undoManager.undo()
-      undoManager.redo()
-      expect(console.error).toHaveBeenCalled()
+      expect(->
+        undoManager.redo()
+      ).toThrow("I'm a bad redo operation")
       expect(buffer.lineForRow(0)).toBe "1word"

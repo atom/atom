@@ -25,8 +25,8 @@ class UndoManager
     try
       operation.do?(editSession)
     catch e
-      console.error e.stack
       @clear()
+      throw e
 
   transact: (fn) ->
     isNewTransaction = not @currentTransaction?
@@ -65,8 +65,8 @@ class UndoManager
         @redoHistory.push batch
         batch.oldSelectionRanges
     catch e
-      console.error e.stack
       @clear()
+      throw e
 
   redo: (editSession) ->
     try
@@ -78,5 +78,5 @@ class UndoManager
         @undoHistory.push(batch)
         batch.newSelectionRanges
     catch e
-      console.error e.stack
       @clear()
+      throw e
