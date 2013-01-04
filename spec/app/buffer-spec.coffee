@@ -141,7 +141,7 @@ describe 'Buffer', ->
 
       fs.remove(path)
       waitsFor "file to be removed",  (done) ->
-        bufferToDelete.file.one 'remove', done
+        bufferToDelete.file.one 'removed', done
 
     afterEach ->
       bufferToDelete.destroy()
@@ -770,7 +770,7 @@ describe 'Buffer', ->
 
         fs.remove(path)
         waitsFor "file to be removed",  (done) ->
-          bufferToDelete.file.one 'remove', done
+          bufferToDelete.file.one 'removed', done
 
         runs ->
           expect(contentsModifiedHandler).toHaveBeenCalledWith(differsFromDisk:true)

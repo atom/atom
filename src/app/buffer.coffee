@@ -63,11 +63,11 @@ class Buffer
       else
         @reload()
 
-    @file.on "remove", =>
+    @file.on "removed", =>
       @updateCachedDiskContents()
       @trigger "contents-modified", {differsFromDisk: true}
 
-    @file.on "move", =>
+    @file.on "moved", =>
       @trigger "path-changed", this
 
   reload: ->

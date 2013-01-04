@@ -47,7 +47,7 @@ class File
       @detectResurrectionAfterDelay()
     else if eventType is "move"
       @setPath(path)
-      @trigger "move"
+      @trigger "moved"
     else if eventType is "contents-change"
       oldContents = @read()
       newContents = @read(true)
@@ -64,7 +64,7 @@ class File
     else
       @cachedContents = null
       @unsubscribeFromNativeChangeEvents()
-      @trigger "remove"
+      @trigger "removed"
 
   subscribeToNativeChangeEvents: ->
     @watchId = $native.watchPath @path, (eventType, path) =>
