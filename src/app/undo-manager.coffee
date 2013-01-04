@@ -29,19 +29,22 @@ class UndoManager
       @clear()
 
   transact: (fn) ->
-    safeFn = ->
+    shouldCommit = not @currentTransaction?
+    @currentTransaction ?= []
+    if fn
       try
         fn()
-      catch e
-        console.error e.stack
+      finally
+        @commit() if shouldCommit
 
-    if @currentTransaction
-      safeFn()
-    else
-      @currentTransaction = []
-      safeFn()
-      @undoHistory.push(@currentTransaction) if @currentTransaction?.length
-      @currentTransaction = null
+  commit: ->
+    @undoHistory.push(@currentTransaction) if @currentTransaction?.length
+    @currentTransaction = null
+
+  abort: ->
+    @commit()
+    @undo()
+    @redoHistory.pop()
 
   undo: (editSession) ->
     try
