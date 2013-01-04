@@ -237,7 +237,6 @@ class EditSession
 
   transact: (fn) ->
     isNewTransaction = @buffer.transact()
-    console.log isNewTransaction
     oldSelectedRanges = @getSelectedBufferRanges()
     @pushOperation
       undo: (editSession) ->
