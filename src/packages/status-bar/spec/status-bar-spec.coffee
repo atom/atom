@@ -114,6 +114,7 @@ describe "StatusBar", ->
 
     it "displays the current branch for files in repositories", ->
       path = require.resolve('fixtures/git/master.git/HEAD')
+      rootView.project.setPath(require.resolve('fixtures/git/master.git'))
       rootView.open(path)
       expect(statusBar.branchArea).toBeVisible()
       expect(statusBar.branchLabel.text()).toBe 'master'
