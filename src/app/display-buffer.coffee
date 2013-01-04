@@ -39,7 +39,7 @@ class DisplayBuffer
     @buildLineMap()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @trigger 'change', { start, end, screenDelta, bufferDelta }
+    @trigger 'changed', { start, end, screenDelta, bufferDelta }
 
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
@@ -95,7 +95,7 @@ class DisplayBuffer
       end = oldScreenRange.end.row
       screenDelta = newScreenRange.end.row - oldScreenRange.end.row
       bufferDelta = 0
-      @trigger 'change', { start, end, screenDelta, bufferDelta }
+      @trigger 'changed', { start, end, screenDelta, bufferDelta }
 
     fold
 
@@ -124,7 +124,7 @@ class DisplayBuffer
       screenDelta = newScreenRange.end.row - oldScreenRange.end.row
       bufferDelta = 0
 
-      @trigger 'change', { start, end, screenDelta, bufferDelta }
+      @trigger 'changed', { start, end, screenDelta, bufferDelta }
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     for row, folds of @activeFolds
@@ -225,7 +225,7 @@ class DisplayBuffer
     @lineMap.replaceScreenRows(start, end, newScreenLines)
     screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
 
-    @trigger 'change', { start, end, screenDelta, bufferDelta }
+    @trigger 'changed', { start, end, screenDelta, bufferDelta }
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)

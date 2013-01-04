@@ -8,7 +8,7 @@ describe "DisplayBuffer", ->
     editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabLength })
     { buffer, displayBuffer } = editSession
     changeHandler = jasmine.createSpy 'changeHandler'
-    displayBuffer.on 'change', changeHandler
+    displayBuffer.on 'changed', changeHandler
 
   afterEach ->
     editSession.destroy()
@@ -200,7 +200,7 @@ describe "DisplayBuffer", ->
     beforeEach ->
       editSession2 = fixturesProject.buildEditSessionForPath('two-hundred.txt')
       { buffer, displayBuffer } = editSession2
-      displayBuffer.on 'change', changeHandler
+      displayBuffer.on 'changed', changeHandler
 
     afterEach ->
       editSession2.destroy()

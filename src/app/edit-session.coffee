@@ -61,9 +61,9 @@ class EditSession
 
     @preserveCursorPositionOnBufferReload()
 
-    @displayBuffer.on "change.edit-session-#{@id}", (e) =>
+    @displayBuffer.on "changed.edit-session-#{@id}", (e) =>
       @refreshAnchorScreenPositions() unless e.bufferDelta
-      @trigger 'screen-lines-change', e
+      @trigger 'screen-lines-changed', e
 
   destroy: ->
     throw new Error("Edit session already destroyed") if @destroyed

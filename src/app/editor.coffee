@@ -784,7 +784,7 @@ class Editor extends View
       @newSelections.push(selection)
       @requestDisplayUpdate()
 
-    @activeEditSession.on 'screen-lines-change.editor', (e) => @handleScreenLinesChange(e)
+    @activeEditSession.on 'screen-lines-changed.editor', (e) => @handleScreenLinesChange(e)
 
     @newCursors = @activeEditSession.getCursors()
     @newSelections = @activeEditSession.getSelections()
