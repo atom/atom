@@ -24,10 +24,20 @@
 }
 
 .command-panel .preview-list .path {
-  padding-top: 2px;
   padding-left: 5px;
-  padding-bottom: 2px;
   color: #ffd2a7;
+}
+
+.command-panel .preview-list .path:before {
+  font-family: 'Octicons Regular';
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  -webkit-font-smoothing: antialiased;
+  content: "\f011";
+  position: relative;
+  top: 1px;
 }
 
 .command-panel .preview-list .operation {
