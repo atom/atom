@@ -887,6 +887,13 @@ describe "TreeView", ->
       it "adds a custom style", ->
         expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
 
+      describe "when the window gains focus after the contents are restored to a clean state", ->
+        it "removes the custom style", ->
+          expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
+          fs.write modifiedFile, originalFileContent
+          $(window).trigger 'focus'
+          expect(treeView.find('.file:contains(tree-view.txt)')).not.toHaveClass 'modified'
+
     describe "when a file is new", ->
       it "adds a custom style", ->
         expect(treeView.find('.file:contains(.gitignore)')).toHaveClass 'new'
