@@ -1,5 +1,6 @@
 .command-panel {
-  background: #515151;
+  background-color: #303030;
+  border: 1px solid #252525;
   color: #ededed;
   padding: 5px;
 }
