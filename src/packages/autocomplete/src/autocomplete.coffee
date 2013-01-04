@@ -135,8 +135,9 @@ class Autocomplete extends SelectList
     buffer = @editor.getBuffer()
     @editor.activeEditSession.transact =>
       selection.deleteSelectedText()
-      buffer.delete(Range.fromPointWithDelta(@editor.getCursorBufferPosition(), 0, -match.prefix.length))
-      buffer.delete(Range.fromPointWithDelta(@editor.getCursorBufferPosition(), 0, match.suffix.length))
+      cursorPosition = @editor.getCursorBufferPosition()
+      buffer.delete(Range.fromPointWithDelta(cursorPosition, 0, match.suffix.length))
+      buffer.delete(Range.fromPointWithDelta(cursorPosition, 0, -match.prefix.length))
       @editor.insertText(match.word)
     @undoCount++
 
