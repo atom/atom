@@ -43,7 +43,6 @@ class SelectList extends View
 
   setArray: (@array) ->
     @populateList()
-    @selectItem(@list.find('li:first'))
     @setLoading()
 
   setError: (message) ->
