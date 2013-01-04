@@ -18,11 +18,11 @@
 }
 
 .command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
-  background-color: rgba(255, 255, 255, .2);
+  background-color: rgba(255, 255, 255, .13);
 }
 
 .command-panel .preview-list:focus li.selected {
-  background: #223555;
+  background-color: rgba(255, 255, 255, .2);
 }
 
 .command-panel .preview-list .path {
