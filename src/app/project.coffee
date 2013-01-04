@@ -23,7 +23,6 @@ class Project
     @setPath(path)
     @editSessions = []
     @buffers = []
-    @repo = new Git(path)
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
@@ -40,6 +39,7 @@ class Project
       @repo = new Git(path)
     else
       @rootDirectory = null
+      @repo = null
 
     @trigger "path-changed"
 
