@@ -39,16 +39,18 @@ class UndoManager
     isNewTransaction
 
   commit: ->
-    @undoHistory.push(@currentTransaction) if @currentTransaction?.length
+    unless @currentTransaction?
+      throw new Error("Trying to commit when there is no current transaction")
+
     empty = @currentTransaction.length is 0
     @undoHistory.push(@currentTransaction) unless empty
     @currentTransaction = null
     not empty
 
   abort: ->
-    @commit()
-    @undo()
-    @redoHistory.pop()
+    unless @currentTransaction?
+      throw new Error("Trying to abort when there is no current transaction")
+
     if @commit()
       @undo()
       @redoHistory.pop()

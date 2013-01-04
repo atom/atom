@@ -157,6 +157,12 @@ describe "UndoManager", ->
         undoManager.redo()
         expect(buffer.getText()).toBe '12'
 
+  describe "commit", ->
+    it "throws an exception if there is no current transaction", ->
+      expect(->
+        buffer.commit()
+      ).toThrow()
+
   describe "abort", ->
     it "does not affect the undo stack when the current transaction is empty", ->
       buffer.setText('')
@@ -166,6 +172,11 @@ describe "UndoManager", ->
       expect(buffer.getText()).toBe '1'
       buffer.undo()
       expect(buffer.getText()).toBe ''
+
+    it "throws an exception if there is no current transaction", ->
+      expect(->
+        buffer.abort()
+      ).toThrow()
 
   describe "when a `do` operation throws an exception", ->
     it "clears the stack", ->
