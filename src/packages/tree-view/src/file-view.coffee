@@ -1,4 +1,4 @@
-{View, $$} = require 'space-pen'
+{View} = require 'space-pen'
 $ = require 'jquery'
 Git = require 'git'
 fs = require 'fs'
