@@ -465,7 +465,7 @@ describe "Editor", ->
       editor.simulateDomAttachment()
       expect(openHandler).not.toHaveBeenCalled()
 
-  describe "editor-path-change event", ->
+  describe "editor-path-changed event", ->
     path = null
     beforeEach ->
       path = "/tmp/something.txt"
@@ -476,20 +476,20 @@ describe "Editor", ->
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
-      editor.on 'editor-path-change', eventHandler
+      editor.on 'editor:path-changed', eventHandler
       editor.getBuffer().saveAs(path)
       expect(eventHandler).toHaveBeenCalled()
 
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
-      editor.on 'editor-path-change', eventHandler
+      editor.on 'editor:path-changed', eventHandler
       editor.edit(rootView.project.buildEditSessionForPath(path))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
       eventHandler = jasmine.createSpy('eventHandler')
       oldBuffer = editor.getBuffer()
-      editor.on 'editor-path-change', eventHandler
+      editor.on 'editor:path-changed', eventHandler
 
       editor.edit(rootView.project.buildEditSessionForPath(path))
       expect(eventHandler).toHaveBeenCalled()

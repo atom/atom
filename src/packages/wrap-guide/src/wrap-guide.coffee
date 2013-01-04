@@ -24,7 +24,7 @@ class WrapGuide extends View
 
   initialize: (@rootView, @editor) =>
     @observeConfig 'editor.fontSize', => @updateGuide()
-    @subscribe @editor, 'editor-path-change', => @updateGuide()
+    @subscribe @editor, 'editor:path-changed', => @updateGuide()
     @subscribe @editor, 'editor:min-width-changed', => @updateGuide()
     @subscribe $(window), 'resize', => @updateGuide()
 

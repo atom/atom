@@ -29,7 +29,7 @@ class StatusBar extends View
 
   initialize: (@rootView, @editor) ->
     @updatePathText()
-    @editor.on 'editor-path-change', =>
+    @editor.on 'editor:path-changed', =>
       @subscribeToBuffer()
       @updatePathText()
 

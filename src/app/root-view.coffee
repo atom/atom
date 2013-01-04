@@ -174,7 +174,7 @@ class RootView extends View
     editor.addClass('active')
 
     if not editor.mini
-      editor.on 'editor-path-change.root-view', =>
+      editor.on 'editor:path-changed.root-view', =>
         @trigger 'active-editor-path-change', editor.getPath()
       if not previousActiveEditor or editor.getPath() != previousActiveEditor.getPath()
         @trigger 'active-editor-path-change', editor.getPath()

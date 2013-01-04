@@ -477,9 +477,9 @@ class Editor extends View
       @showBufferConflictAlert(@activeEditSession)
 
     @activeEditSession.on "path-changed.editor", =>
-      @trigger 'editor-path-change'
+      @trigger 'editor:path-changed'
 
-    @trigger 'editor-path-change'
+    @trigger 'editor:path-changed'
     @trigger 'editor:active-edit-session-changed', [@activeEditSession, index]
     @resetDisplay()
 
