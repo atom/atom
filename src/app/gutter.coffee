@@ -22,7 +22,7 @@ class Gutter extends View
     editor = @editor()
     highlightLines = => @highlightLines()
     editor.on 'cursor:moved', highlightLines
-    editor.on 'selection-change', highlightLines
+    editor.on 'selection:changed', highlightLines
     @on 'click', '.line-number', (e) =>
       row = parseInt($(e.target).text()) - 1
       position = new Point(row, 0)

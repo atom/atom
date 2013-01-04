@@ -22,7 +22,7 @@ class SelectionView extends View
     @clearRegions()
     range = @getScreenRange()
 
-    @trigger 'selection-change'
+    @trigger 'selection:changed'
     @editor.highlightFoldsContainingBufferRange(@getBufferRange())
     return if range.isEmpty()
 
