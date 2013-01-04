@@ -40,12 +40,18 @@ class UndoManager
 
   commit: ->
     @undoHistory.push(@currentTransaction) if @currentTransaction?.length
+    empty = @currentTransaction.length is 0
+    @undoHistory.push(@currentTransaction) unless empty
     @currentTransaction = null
+    not empty
 
   abort: ->
     @commit()
     @undo()
     @redoHistory.pop()
+    if @commit()
+      @undo()
+      @redoHistory.pop()
 
   undo: (editSession) ->
     try
