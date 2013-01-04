@@ -51,7 +51,7 @@ class EditSession
 
     @buffer.retain()
     @buffer.on "path-changed.edit-session-#{@id}", =>
-      @trigger "buffer-path-change"
+      @trigger "path-changed"
 
     @buffer.on "contents-conflicted.edit-session-#{@id}", =>
       @trigger "contents-conflicted"
@@ -371,7 +371,7 @@ class EditSession
 
   addCursor: (cursor=new Cursor(editSession: this, screenPosition: [0,0])) ->
     @cursors.push(cursor)
-    @trigger 'add-cursor', cursor
+    @trigger 'cursor-added', cursor
     @addSelectionForCursor(cursor)
     cursor
 
@@ -381,7 +381,7 @@ class EditSession
   addSelectionForCursor: (cursor) ->
     selection = new Selection(editSession: this, cursor: cursor)
     @selections.push(selection)
-    @trigger 'add-selection', selection
+    @trigger 'selection-added', selection
     selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->

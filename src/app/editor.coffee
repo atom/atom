@@ -476,7 +476,7 @@ class Editor extends View
     @activeEditSession.on "contents-conflicted.editor", =>
       @showBufferConflictAlert(@activeEditSession)
 
-    @activeEditSession.on "buffer-path-change.editor", =>
+    @activeEditSession.on "path-changed.editor", =>
       @trigger 'editor-path-change'
 
     @trigger 'editor-path-change'
@@ -779,7 +779,7 @@ class Editor extends View
     @updateLayerDimensions()
     @setScrollPositionFromActiveEditSession()
 
-    @activeEditSession.on 'add-selection.editor', (selection) =>
+    @activeEditSession.on 'selection-added.editor', (selection) =>
       @newCursors.push(selection.cursor)
       @newSelections.push(selection)
       @requestDisplayUpdate()
