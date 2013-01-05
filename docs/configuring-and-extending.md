@@ -30,8 +30,9 @@ config.get("fuzzyFinder.ignoredPaths").push "vendor"
 config.update() # be sure to call `config.update` after the change
 ```
 
-You can also use `setDefaults`, which will assign keys on the object at the given
-only if they are currently undefined.
+You can also use `setDefaults`, which will assign default values for keys that
+are always overridden by values assigned with `set`. Defaults are not written out
+to the the `config.json` file to prevent it from becoming cluttered.
 
 ```coffeescript
 config.setDefaults("editor", fontSize: 18, showInvisibles: true)
