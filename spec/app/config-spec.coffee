@@ -1,3 +1,5 @@
+fs = require 'fs'
+
 describe "Config", ->
   describe ".get(keyPath) and .set(keyPath, value)", ->
     it "allows a key path's value to be read and written", ->
@@ -15,14 +17,33 @@ describe "Config", ->
       expect(config.save).toHaveBeenCalled()
       expect(observeHandler).toHaveBeenCalledWith 42
 
+  describe ".save()", ->
+    beforeEach ->
+      spyOn(fs, 'write')
+      jasmine.unspy config, 'save'
+
+    it "writes any non-default properties to the config.json in the user's .atom directory", ->
+      config.set("a.b.c", 1)
+      config.set("a.b.d", 2)
+      config.set("x.y.z", 3)
+      config.setDefaults("a.b", e: 4, f: 5)
+
+      config.save()
+
+      writtenConfig = JSON.parse(fs.write.argsForCall[0][1])
+      expect(writtenConfig).toEqual config.settings
+
   describe ".setDefaults(keyPath, defaults)", ->
     it "assigns any previously-unassigned keys to the object at the key path", ->
       config.set("foo.bar.baz", a: 1)
       config.setDefaults("foo.bar.baz", a: 2, b: 3, c: 4)
-      expect(config.get("foo.bar.baz")).toEqual(a: 1, b: 3, c: 4)
+      expect(config.get("foo.bar.baz.a")).toBe 1
+      expect(config.get("foo.bar.baz.b")).toBe 3
+      expect(config.get("foo.bar.baz.c")).toBe 4
 
       config.setDefaults("foo.quux", x: 0, y: 1)
-      expect(config.get("foo.quux")).toEqual(x: 0, y: 1)
+      expect(config.get("foo.quux.x")).toBe 0
+      expect(config.get("foo.quux.y")).toBe 1
 
   describe ".update()", ->
     it "updates observers if a value is mutated without the use of .set", ->

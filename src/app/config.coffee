@@ -22,12 +22,14 @@ class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
   packageDirPaths: [userPackagesDirPath, bundledVendorPackagesDirPath, bundledPackagesDirPath]
+  defaultSettings: null
   settings: null
 
   constructor: ->
-    @settings =
+    @defaultSettings =
       core: _.clone(require('root-view').configDefaults)
       editor: _.clone(require('editor').configDefaults)
+    @settings = {}
 
   load: ->
     @loadUserConfig()
@@ -41,7 +43,8 @@ class Config
       _.extend(@settings, userConfig)
 
   get: (keyPath) ->
-    _.valueForKeyPath(@settings, keyPath)
+    _.valueForKeyPath(@settings, keyPath) ?
+      _.valueForKeyPath(@defaultSettings, keyPath)
 
   set: (keyPath, value) ->
     keys = keyPath.split('.')
@@ -57,12 +60,12 @@ class Config
 
   setDefaults: (keyPath, defaults) ->
     keys = keyPath.split('.')
-    hash = @settings
+    hash = @defaultSettings
     for key in keys
       hash[key] ?= {}
       hash = hash[key]
 
-    _.defaults hash, defaults
+    _.extend hash, defaults
     @update()
 
   observe: (keyPath, callback) ->
