@@ -63,6 +63,12 @@ _.mixin
   capitalize: (word) ->
     word[0].toUpperCase() + word[1..]
 
+  pluralize: (count=0, singular, plural=singular+'s') ->
+    if count is 1
+      "#{count} #{singular}"
+    else
+      "#{count} #{plural}"
+
   losslessInvert: (hash) ->
     inverted = {}
     for key, value of hash

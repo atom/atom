@@ -13,7 +13,14 @@
 
 .command-logger .category-header {
   text-align: center;
+  padding-bottom: 5px;
+  font-size: 16px;
+}
+
+.command-logger .category-summary {
+  text-align: center;
   padding-bottom: 10px;
+  font-size: 12px;
 }
 
 .command-logger .tree-map {

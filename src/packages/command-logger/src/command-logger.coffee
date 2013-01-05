@@ -12,6 +12,7 @@ class CommandLogger extends ScrollView
   @content: (rootView) ->
     @div class: 'command-logger', tabindex: -1, =>
       @h1 class: 'category-header', outlet: 'categoryHeader'
+      @h1 class: 'category-summary', outlet: 'categorySummary'
       @div class: 'tree-map', outlet: 'treeMap'
 
   @serialize: ->
@@ -95,12 +96,22 @@ class CommandLogger extends ScrollView
     y = d3.scale.linear().range([0, h])
     color = d3.scale.category20()
 
-    setCategoryHeader = (node) =>
+    updateCategoryHeader = (node) =>
       @categoryHeader.text("#{node.name} Commands")
-    setCategoryHeader(root)
+      reduceChildren = (previous, current) ->
+        if current.size?
+          previous + current.size
+        else if current.children?.length > 0
+          previous + current.children.reduce(reduceChildren, 0)
+        else
+          previous
+      commandCount = node.children.length
+      runCount = node.children.reduce(reduceChildren, 0)
+      @categorySummary.text("#{_.pluralize(commandCount, 'command')}, #{_.pluralize(runCount, 'invocation')}")
+    updateCategoryHeader(root)
 
     zoom = (d) ->
-      setCategoryHeader(d)
+      updateCategoryHeader(d)
       kx = w / d.dx
       ky = h / d.dy
       x.domain([d.x, d.x + d.dx])
