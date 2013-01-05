@@ -28,6 +28,7 @@ describe "Config", ->
       config.set("x.y.z", 3)
       config.setDefaults("a.b", e: 4, f: 5)
 
+      fs.write.reset()
       config.save()
 
       writtenConfig = JSON.parse(fs.write.argsForCall[0][1])
