@@ -396,8 +396,9 @@ describe "RootView", ->
 
     beforeEach ->
       packageModule =
-        deactivate: ->
+        configDefaults: foo: { bar: 2, baz: 3 }
         activate: jasmine.createSpy("activate")
+        deactivate: ->
         serialize: -> "it worked"
 
     describe ".activatePackage(name, packageModule)", ->
@@ -413,6 +414,13 @@ describe "RootView", ->
         newRootView.activatePackage('package', packageModule)
         expect(packageModule.activate).toHaveBeenCalledWith(newRootView, "it worked")
         newRootView.remove()
+
+      it "loads config defaults based on the `configDefaults` key", ->
+        expect(config.get('foo.bar')).toBeUndefined()
+        rootView.activatePackage('package', packageModule)
+        config.set("package.foo.bar", 1)
+        expect(config.get('package.foo.bar')).toBe 1
+        expect(config.get('package.foo.baz')).toBe 3
 
     describe ".deactivatePackage(packageName)", ->
       it "deactivates and removes the package module from the package module map", ->

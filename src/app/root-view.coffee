@@ -113,6 +113,7 @@ class RootView extends View
       when 'Editor' then Editor.deserialize(viewState, this)
 
   activatePackage: (name, packageModule) ->
+    config.setDefaults(name, packageModule.configDefaults) if packageModule.configDefaults?
     @packageModules[name] = packageModule
     packageModule.activate(this, @packageStates[name])
 
