@@ -139,22 +139,22 @@
 }
 
 
-.tree-view .file .text-name:before {
+.tree-view .file .text-icon:before {
   content: "\f011";
   top: -2px;
 }
 
-.tree-view .file .image-name:before {
+.tree-view .file .image-icon:before {
   content: "\f012";
   top: -2px;
 }
 
-.tree-view .file .compressed-name:before {
+.tree-view .file .compressed-icon:before {
   content: "\f013";
   top: -2px;
 }
 
-.tree-view .file .pdf-name:before {
+.tree-view .file .pdf-icon:before {
   content: "\f014";
   top: -2px;
 }

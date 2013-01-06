@@ -18,13 +18,13 @@ class FileView extends View
 
     extension = fs.extension(@getPath())
     if fs.isCompressedExtension(extension)
-      @fileName.addClass('compressed-name')
+      @fileName.addClass('compressed-icon')
     else if fs.isImageExtension(extension)
-      @fileName.addClass('image-name')
+      @fileName.addClass('image-icon')
     else if fs.isPdfExtension(extension)
-      @fileName.addClass('pdf-name')
+      @fileName.addClass('pdf-icon')
     else
-      @fileName.addClass('text-name')
+      @fileName.addClass('text-icon')
 
     @updateStatus()
 
