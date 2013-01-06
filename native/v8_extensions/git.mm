@@ -191,7 +191,7 @@ public:
     if (git_repository_index(&index, repo) == GIT_OK) {
       git_index_read(index);
       const git_index_entry *entry = git_index_get_bypath(index, path, 0);
-      isSubmodule = entry != NULL && (entry->mode & S_IFMT) == 0160000;
+      isSubmodule = entry != NULL && (entry->mode & S_IFMT) == GIT_FILEMODE_COMMIT;
       git_index_free(index);
     }
 
