@@ -1770,7 +1770,7 @@ describe "Editor", ->
         editor.attachToDom(30)
 
       it "highlights the foreground of the gutter", ->
-        editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
+        editor.getSelection().setBufferRange(new Range([0,0],[2,2]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line-number.cursor-line').length).toBe 3
 
@@ -1778,6 +1778,12 @@ describe "Editor", ->
         editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 0
+
+      it "doesn't highlight the last line if it ends at the beginning of a line", ->
+        editor.getSelection().setBufferRange(new Range([0,0],[1,0]))
+        expect(editor.getSelection().isSingleScreenLine()).toBe false
+        expect(editor.find('.line-number.cursor-line').length).toBe 1
+        expect(editor.find('.line-number.cursor-line').text()).toBe "1"
 
     it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
       editor.setCursorScreenPosition([1,0])

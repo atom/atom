@@ -110,7 +110,9 @@ class Gutter extends View
       @selectionEmpty = true
     else
       selectedRows = @editor().getSelection().getScreenRange()
-      selectedRows = new Range([selectedRows.start.row, 0], [selectedRows.end.row, 0])
+      endRow = selectedRows.end.row
+      endRow-- if selectedRows.end.column is 0
+      selectedRows = new Range([selectedRows.start.row, 0], [endRow, 0])
       return if not @selectionEmpty and @highlightedRows?.isEqual(selectedRows)
 
       @removeLineHighlights()
