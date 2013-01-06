@@ -34,3 +34,6 @@
 [submodule "vendor/packages/json.tmbundle"]
 	path = vendor/packages/json.tmbundle
 	url = https://github.com/textmate/json.tmbundle.git
+[submodule "vendor/packages/shellscript.tmbundle"]
+	path = vendor/packages/shellscript.tmbundle
+	url = https://github.com/textmate/shellscript.tmbundle
