@@ -26,7 +26,6 @@ class DirectoryView extends View
     if repo?
       path = @directory.getPath()
       @directoryName.addClass('ignored') if repo.isPathIgnored(path)
-      console.log path, repo.getWorkingDirectory()
       if path is repo.getWorkingDirectory()
         @directoryName.addClass('repository-icon')
       else
