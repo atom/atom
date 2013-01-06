@@ -20,8 +20,7 @@ class Git
 
   getWorkingDirectory: ->
     repoPath = @getPath()
-    if repoPath
-      repoPath.substring(0, repoPath.length - 5)
+    repoPath?.substring(0, repoPath.length - 6)
 
   getHead: ->
     @repo.getHead() or ''
@@ -48,7 +47,7 @@ class Git
 
   relativize: (path) ->
     workingDirectory = @getWorkingDirectory()
-    if workingDirectory and path.indexOf(workingDirectory) is 0
+    if workingDirectory and path.indexOf("#{workingDirectory}/") is 0
       path.substring(workingDirectory.length)
     else
       path
@@ -65,5 +64,4 @@ class Git
     @repo.checkoutHead(@relativize(path))
 
   getDiffStats: (path) ->
-    stats = @repo.getDiffStats(@relativize(path))
-    stats or {'added': 0, 'deleted': 0}
+    @repo.getDiffStats(@relativize(path)) or added: 0, deleted: 0

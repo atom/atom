@@ -21,7 +21,18 @@ class DirectoryView extends View
   initialize: ({@directory, isExpanded, @project, parent} = {}) ->
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
-    @directoryName.addClass('ignored') if @project.repo.isPathIgnored(@directory.getPath())
+
+    repo = @project.repo
+    if repo?
+      path = @directory.getPath()
+      @directoryName.addClass('ignored') if repo.isPathIgnored(path)
+      console.log path, repo.getWorkingDirectory()
+      if path is repo.getWorkingDirectory()
+        @directoryName.addClass('repository-icon')
+      else
+        @directoryName.addClass('directory-icon')
+    else
+      @directoryName.addClass('directory-icon')
 
   getPath: ->
     @directory.path

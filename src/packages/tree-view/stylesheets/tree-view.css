@@ -128,10 +128,16 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.tree-view .directory .header .name:before {
+.tree-view .directory .header .directory-icon:before {
   content: "\f016";
   top: -5px;
 }
+
+.tree-view .directory .header .repository-icon:before {
+  content: "\f001";
+  top: -4px;
+}
+
 
 .tree-view .file .text-name:before {
   content: "\f011";
