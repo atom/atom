@@ -65,3 +65,6 @@ class Git
 
   getDiffStats: (path) ->
     @repo.getDiffStats(@relativize(path)) or added: 0, deleted: 0
+
+  isSubmodule: (path) ->
+    @repo.isSubmodule(@relativize(path))

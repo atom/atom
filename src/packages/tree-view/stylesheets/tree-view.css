@@ -138,6 +138,10 @@
   top: -4px;
 }
 
+.tree-view .directory .header .submodule-icon:before {
+  content: "\f017";
+  top: -5px;
+}
 
 .tree-view .file .text-icon:before {
   content: "\f011";

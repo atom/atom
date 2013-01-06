@@ -181,6 +181,23 @@ public:
     return result;
   }
 
+  CefRefPtr<CefV8Value> IsSubmodule(const char *path) {
+    if (!exists) {
+      return CefV8Value::CreateBool(false);
+    }
+
+    BOOL isSubmodule = false;
+    git_index* index;
+    if (git_repository_index(&index, repo) == GIT_OK) {
+      git_index_read(index);
+      const git_index_entry *entry = git_index_get_bypath(index, path, 0);
+      isSubmodule = entry != NULL && (entry->mode & S_IFMT) == 0160000;
+      git_index_free(index);
+    }
+
+    return CefV8Value::CreateBool(isSubmodule);
+  }
+
   IMPLEMENT_REFCOUNTING(GitRepository);
 };
 
@@ -235,6 +252,12 @@ bool Git::Execute(const CefString& name,
   if (name == "getDiffStats") {
     GitRepository *userData = (GitRepository *)object->GetUserData().get();
     retval = userData->GetDiffStats(arguments[0]->GetStringValue().ToString().c_str());
+    return true;
+  }
+
+  if (name == "isSubmodule") {
+    GitRepository *userData = (GitRepository *)object->GetUserData().get();
+    retval = userData->IsSubmodule(arguments[0]->GetStringValue().ToString().c_str());
     return true;
   }
 
