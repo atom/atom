@@ -28,6 +28,17 @@ html, body {
   position: relative;
 }
 
+#root-view #panes:before {
+  display: block;
+  content: "\f208";
+  font-family: 'Octicons Regular';
+  color: #303030;
+  -webkit-font-smoothing: antialiased;
+  font-size: 100vmin;
+  line-height: 100vmin;
+  text-align: center;
+}
+
 #root-view #panes .column {
   position: absolute;
   top: 0;
