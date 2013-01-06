@@ -165,10 +165,13 @@ public:
       for (int j = 0; j < lines; j++) {
         char lineType;
         if (git_diff_patch_get_line_in_hunk(&lineType, NULL, NULL, NULL, NULL, patch, i, j) == GIT_OK) {
-          if (lineType == GIT_DIFF_LINE_ADDITION) {
-            added++;
-          } else if(lineType == GIT_DIFF_LINE_DELETION) {
-            deleted++;
+          switch (lineType) {
+            case GIT_DIFF_LINE_ADDITION:
+              added++;
+              break;
+            case GIT_DIFF_LINE_DELETION:
+              deleted++;
+              break;
           }
         }
       }
