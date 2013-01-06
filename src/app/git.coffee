@@ -48,7 +48,7 @@ class Git
   relativize: (path) ->
     workingDirectory = @getWorkingDirectory()
     if workingDirectory and path.indexOf("#{workingDirectory}/") is 0
-      path.substring(workingDirectory.length)
+      path.substring(workingDirectory.length + 1)
     else
       path
 
