@@ -30,6 +30,20 @@ describe "EventPalette", ->
         else
           expect(eventLi).not.toExist()
 
+    it "displays all events registerd on the window", ->
+      editorEvents = rootView.getActiveEditor().events()
+      windowEvents = $(window).events()
+      expect(_.isEmpty(windowEvents)).toBeFalsy()
+      for eventName, description of windowEvents
+        eventLi = palette.list.children("[data-event-name='#{eventName}']")
+        description = editorEvents[eventName] unless description
+        if description
+          expect(eventLi).toExist()
+          expect(eventLi.find('.event-name')).toHaveText(eventName)
+          expect(eventLi.find('.event-description')).toHaveText(description)
+        else
+          expect(eventLi).not.toExist()
+
     it "focuses the mini-editor and selects the first event", ->
       expect(palette.miniEditor.isFocused).toBeTruthy()
       expect(palette.find('.event:first')).toHaveClass 'selected'
