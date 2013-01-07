@@ -98,15 +98,20 @@ class CommandLogger extends ScrollView
 
     updateCategoryHeader = (node) =>
       @categoryHeader.text("#{node.name} Commands")
-      reduceChildren = (previous, current) ->
+      reduceRunCount = (previous, current) ->
         if current.size?
           previous + current.size
         else if current.children?.length > 0
-          previous + current.children.reduce(reduceChildren, 0)
+          current.children.reduce(reduceRunCount, previous)
         else
           previous
-      commandCount = node.children.length
-      runCount = node.children.reduce(reduceChildren, 0)
+      runCount = node.children.reduce(reduceRunCount, 0)
+      reduceCommandCount = (previous, current) ->
+        if current.children?.length > 0
+          current.children.reduce(reduceCommandCount, previous)
+        else
+          previous + 1
+      commandCount = node.children.reduce(reduceCommandCount, 0)
       @categorySummary.text("#{_.pluralize(commandCount, 'command')}, #{_.pluralize(runCount, 'invocation')}")
     updateCategoryHeader(root)
 
