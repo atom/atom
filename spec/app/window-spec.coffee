@@ -11,9 +11,14 @@ describe "Window", ->
     $(window).off 'beforeunload'
 
   describe ".close()", ->
-    it "is triggered by the 'close' event", ->
+    it "is triggered by the 'core:close' event", ->
       spyOn window, 'close'
       $(window).trigger 'core:close'
+      expect(window.close).toHaveBeenCalled()
+
+    it "is triggered by the 'window:close event'", ->
+      spyOn window, 'close'
+      $(window).trigger 'window:close'
       expect(window.close).toHaveBeenCalled()
 
   describe ".reload()", ->
