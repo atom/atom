@@ -216,16 +216,23 @@ describe "Snippets extension", ->
   describe "Snippets parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
       bodyTree = Snippets.parser.parse """
-        go here next:($2) and finally go here:(${3:here!})
-        go here first:($1)
+        the quick brown $1fox ${2:jumped ${3:over}
+        }the ${4:lazy} dog
       """
 
       expect(bodyTree).toEqual [
-        "go here next:(",
-        { index: 2, content: [] },
-        ") and finally go here:(",
-        { index: 3, content: ["here!"] },
-        ")\ngo here first:(",
+        "the quick brown ",
         { index: 1, content: [] },
-        ")"
+        "fox ",
+        {
+          index: 2,
+          content: [
+            "jumped ",
+            { index: 3, content: ["over"]},
+            "\n"
+          ],
+        }
+        "the "
+        { index: 4, content: ["lazy"] },
+        " dog"
       ]
