@@ -156,6 +156,7 @@ class EditSession
   getLastScreenRow: -> @displayBuffer.getLastRow()
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+  getCursorScopes: (index) -> @getCursor(index).getScopes()
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   insertText: (text, options) ->

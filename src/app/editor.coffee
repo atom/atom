@@ -281,7 +281,7 @@ class Editor extends View
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
 
   logCursorScope: ->
-    console.log @activeEditSession.scopesForBufferPosition(@getCursorBufferPosition())
+    console.log @activeEditSession.getCursorScopes()
 
   pageDown: ->
     newScrollTop = @scrollTop() + @scrollView[0].clientHeight

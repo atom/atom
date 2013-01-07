@@ -190,4 +190,7 @@ class Cursor
   isAtEndOfLine: ->
     @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
 
+  getScopes: ->
+    @editSession.scopesForBufferPosition(@getBufferPosition())
+
 _.extend Cursor.prototype, EventEmitter
