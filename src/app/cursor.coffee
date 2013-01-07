@@ -167,7 +167,7 @@ class Cursor
       if not allowNext and matchRange.start.isGreaterThan(currentBufferPosition)
         endOfWordPosition = currentBufferPosition
       stop()
-    endOfWordPosition
+    endOfWordPosition or currentBufferPosition
 
   getCurrentWordBufferRange: ->
     new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))

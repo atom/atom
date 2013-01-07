@@ -529,6 +529,13 @@ describe "EditSession", ->
            editSession.selectWord()
            expect(editSession.getSelectedBufferRange()).toEqual [[5, 0], [5, 6]]
 
+       describe "when the cursor is at the end of the text", ->
+         it "select the previous word", ->
+           editSession.buffer.append 'word'
+           editSession.moveCursorToBottom()
+           editSession.selectWord()
+           expect(editSession.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
+
     describe ".setSelectedBufferRanges(ranges)", ->
       it "clears existing selections and creates selections for each of the given ranges", ->
         editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
