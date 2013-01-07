@@ -1,4 +1,5 @@
 Snippets = require 'snippets'
+Snippet = require 'snippets/src/snippet'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
@@ -196,6 +197,10 @@ describe "Snippets extension", ->
         expect(anotherEditor.getCursorBufferPosition()).toEqual [0, 14]
         anotherEditor.trigger keydownEvent('tab', target: anotherEditor[0])
         expect(anotherEditor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
+
+  describe "snippet loading", ->
+    it "loads snippets from all packages with a snippets directory", ->
+      expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
 
   describe "Snippets parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->

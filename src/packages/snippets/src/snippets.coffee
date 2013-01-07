@@ -3,6 +3,7 @@ PEG = require 'pegjs'
 _ = require 'underscore'
 SnippetExpansion = require 'snippets/src/snippet-expansion'
 Snippet = require './snippet'
+require './package-extensions'
 
 module.exports =
   snippetsByExtension: {}
@@ -15,6 +16,9 @@ module.exports =
     @rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
 
   loadAll: ->
+    for pack in atom.getPackages()
+      pack.loadSnippets()
+
     for snippetsPath in fs.list(@userSnippetsDir)
       @load(snippetsPath)
 

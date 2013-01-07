@@ -17,8 +17,14 @@
       beforeEach ->
         $1
     """
+  "After each":
+    prefix: "af"
+    body: """
+      afterEach ->
+        $1
+    """
   "Expectation":
-    prefix: "be"
+    prefix: "ex"
     body: "expect($1).to$2"
   "Console log":
     prefix: "log"

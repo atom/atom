@@ -1,0 +1,4 @@
+".test":
+  "Test Snippet":
+    prefix: "test"
+    body: "testing 123"
