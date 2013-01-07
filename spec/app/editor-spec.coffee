@@ -2042,3 +2042,19 @@ describe "Editor", ->
       event.shiftKey = true
       editor.underlayer.trigger event
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
+
+  describe ".destroyInactiveEditSessions()", ->
+    it "destroys all non-active, non-modified edit sessions", ->
+      editor.setText("I'm dirty")
+      dirtySession = editor.activeEditSession
+      rootView.open('sample.txt')
+      cssSession = rootView.open('css.css')
+      rootView.open('coffee.coffee')
+      rootView.open('hello.rb')
+      expect(editor.getEditSessions().length).toBe 5
+      editor.setActiveEditSessionIndex(2)
+      editor.destroyInactiveEditSessions()
+      expect(editor.getActiveEditSessionIndex()).toBe 1
+      expect(editor.getEditSessions().length).toBe 2
+      expect(editor.getEditSessions()[0]).toBe dirtySession
+      expect(editor.getEditSessions()[1]).toBe cssSession

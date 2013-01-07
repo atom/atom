@@ -176,6 +176,7 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
+        'editor:close-other-editors': @destroyInactiveEditSessions
 
     documentation = {}
     for name, method of editorBindings
@@ -456,6 +457,14 @@ class Editor extends View
       _.remove(@editSessions, editSession)
       editSession.destroy()
       @trigger 'editor:edit-session-removed', [editSession, index]
+
+  destroyInactiveEditSessions: ->
+    index = 0
+    while session = @editSessions[index]
+      if @activeEditSession is session or session.buffer.isModified()
+        index++
+      else
+        @destroyEditSessionIndex(index)
 
   loadNextEditSession: ->
     nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
