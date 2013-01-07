@@ -47,12 +47,20 @@ describe "Snippets extension", ->
           "tab stop placeholders":
             prefix: "t4"
             body: """
-              go here ${1:first} and then here ${2:second}
+              go here ${1:first
+              think a while}, and then here ${2:second}
 
             """
 
-          "caused problems with undo":
+          "multi-line placeholders":
             prefix: "t5"
+            body: """
+              behold ${1:my multi-
+              line placeholder}. amazing.
+            """
+
+          "caused problems with undo":
+            prefix: "t6"
             body: """
               first line$1
                 ${2:placeholder ending second line}
@@ -108,8 +116,11 @@ describe "Snippets extension", ->
           it "auto-fills the placeholder text and highlights it when navigating to that tab stop", ->
             editor.insertText 't4'
             editor.trigger 'snippets:expand'
-            expect(buffer.lineForRow(0)).toBe 'go here first and then here second'
-            expect(editor.getSelectedBufferRange()).toEqual [[0, 8], [0, 13]]
+            expect(buffer.lineForRow(0)).toBe 'go here first'
+            expect(buffer.lineForRow(1)).toBe 'think a while, and then here second'
+            expect(editor.getSelectedBufferRange()).toEqual [[0, 8], [1, 13]]
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(editor.getSelectedBufferRange()).toEqual [[1, 29], [1, 35]]
 
         describe "when the cursor is moved beyond the bounds of a tab stop", ->
           it "terminates the snippet", ->
@@ -162,18 +173,18 @@ describe "Snippets extension", ->
 
     describe "when a previous snippet expansion has just been undone", ->
       it "expands the snippet based on the current prefix rather than jumping to the old snippet's tab stop", ->
-        editor.insertText 't5\n'
+        editor.insertText 't6\n'
         editor.setCursorBufferPosition [0, 2]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "first line"
         editor.undo()
-        expect(buffer.lineForRow(0)).toBe "t5"
+        expect(buffer.lineForRow(0)).toBe "t6"
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "first line"
 
     describe "when a snippet expansion is undone and redone", ->
       it "recreates the snippet's tab stops", ->
-        editor.insertText '    t5\n'
+        editor.insertText '    t6\n'
         editor.setCursorBufferPosition [0, 6]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "    first line"
@@ -187,7 +198,7 @@ describe "Snippets extension", ->
       it "restores tabs stops in active edit session even when the initial expansion was in a different edit session", ->
         anotherEditor = editor.splitRight()
 
-        editor.insertText '    t5\n'
+        editor.insertText '    t6\n'
         editor.setCursorBufferPosition [0, 6]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "    first line"
@@ -211,10 +222,10 @@ describe "Snippets extension", ->
 
       expect(bodyTree).toEqual [
         "go here next:(",
-        { index: 2, placeholderText: "" },
+        { index: 2, content: [] },
         ") and finally go here:(",
-        { index: 3, placeholderText: "here!" },
+        { index: 3, content: ["here!"] },
         ")\ngo here first:(",
-        { index: 1, placeholderText: "" },
+        { index: 1, content: [] },
         ")"
       ]
