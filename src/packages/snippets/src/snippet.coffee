@@ -3,19 +3,21 @@ Range = require 'range'
 
 module.exports =
 class Snippet
+  name: null
+  prefix: null
   body: null
   lineCount: null
   tabStops: null
 
-  constructor: ({@bodyPosition, @prefix, @description, body}) ->
-    @body = @extractTabStops(body)
+  constructor: ({@name, @prefix, bodyTree}) ->
+    @body = @extractTabStops(bodyTree)
 
-  extractTabStops: (bodyLines) ->
+  extractTabStops: (bodyTree) ->
     tabStopsByIndex = {}
     bodyText = []
 
     [row, column] = [0, 0]
-    for bodyLine, i in bodyLines
+    for bodyLine, i in bodyTree
       lineText = []
       for segment in bodyLine
         if segment.index

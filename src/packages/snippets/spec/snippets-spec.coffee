@@ -17,36 +17,45 @@ describe "Snippets extension", ->
 
   afterEach ->
     rootView.remove()
+    delete window.snippets
 
   describe "when 'tab' is triggered on the editor", ->
     beforeEach ->
-      Snippets.evalSnippets 'js', """
-        snippet t1 "Snippet without tab stops"
-        this is a test
-        endsnippet
+      snippets.add
+        ".source.js":
+          "without tab stops":
+            prefix: "t1"
+            body: "this is a test"
 
-        snippet t2 "With tab stops"
-        go here next:($2) and finally go here:($3)
-        go here first:($1)
+          "tab stops":
+            prefix: "t2"
+            body: """
+              go here next:($2) and finally go here:($3)
+              go here first:($1)
 
-        endsnippet
+            """
 
-        snippet t3 "With indented second line"
-        line 1
-          line 2$1
+          "indented second line":
+            prefix: "t3"
+            body: """
+              line 1
+                line 2$1
 
-        endsnippet
+            """
 
-        snippet t4 "With tab stop placeholders"
-        go here ${1:first} and then here ${2:second}
+          "tab stop placeholders":
+            prefix: "t4"
+            body: """
+              go here ${1:first} and then here ${2:second}
 
-        endsnippet
+            """
 
-        snippet t5 "Caused problems with undo"
-        first line$1
-          ${2:placeholder ending second line}
-        endsnippet
-      """
+          "caused problems with undo":
+            prefix: "t5"
+            body: """
+              first line$1
+                ${2:placeholder ending second line}
+            """
 
     describe "when the letters preceding the cursor trigger a snippet", ->
       describe "when the snippet contains no tab stops", ->
@@ -188,56 +197,20 @@ describe "Snippets extension", ->
         anotherEditor.trigger keydownEvent('tab', target: anotherEditor[0])
         expect(anotherEditor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
 
-  describe ".loadSnippetsFile(path)", ->
-    it "loads the snippets in the given file", ->
-      spyOn(fs, 'read').andReturn """
-        snippet t1 "Test snippet 1"
-        this is a test 1
-        endsnippet
-      """
-
-      Snippets.loadSnippetsFile('/tmp/foo/js.snippets')
-      expect(fs.read).toHaveBeenCalledWith('/tmp/foo/js.snippets')
-
-      editor.insertText("t1")
-      editor.trigger 'snippets:expand'
-      expect(buffer.lineForRow(0)).toBe "this is a test 1var quicksort = function () {"
-
   describe "Snippets parser", ->
-    it "can parse multiple snippets", ->
-      snippets = Snippets.snippetsParser.parse """
-        snippet t1 "Test snippet 1"
-        this is a test 1
-        endsnippet
-
-        snippet t2 "Test snippet 2"
-        this is a test 2
-        endsnippet
-      """
-      expect(_.keys(snippets).length).toBe 2
-      snippet = snippets['t1']
-      expect(snippet.prefix).toBe 't1'
-      expect(snippet.description).toBe "Test snippet 1"
-      expect(snippet.body).toBe "this is a test 1"
-
-      snippet = snippets['t2']
-      expect(snippet.prefix).toBe 't2'
-      expect(snippet.description).toBe "Test snippet 2"
-      expect(snippet.body).toBe "this is a test 2"
-
-    it "can parse snippets with tabstops", ->
-      snippets = Snippets.snippetsParser.parse """
-        # this line intentially left blank.
-        snippet t1 "Snippet with tab stops"
-        go here next:($2) and finally go here:($3)
+    it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
+      bodyTree = Snippets.parser.parse """
+        go here next:($2) and finally go here:(${3:here!})
         go here first:($1)
-        endsnippet
       """
 
-      snippet = snippets['t1']
-      expect(snippet.body).toBe """
-        go here next:() and finally go here:()
-        go here first:()
-      """
-
-      expect(snippet.tabStops).toEqual [[[1, 15], [1, 15]], [[0, 14], [0, 14]], [[0, 37], [0, 37]]]
+      expect(bodyTree).toEqual [
+        [
+          "go here next:(",
+          { index: 2, placeholderText: "" },
+          ") and finally go here:(",
+          { index: 3, placeholderText: "here!" },
+          ")",
+        ],
+        [ "go here first:(", { index: 1, placeholderText: "" }, ")"]
+      ]
