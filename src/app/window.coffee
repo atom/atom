@@ -47,7 +47,8 @@ windowAdditions =
       false
 
   shutdown: ->
-    @rootView.deactivate()
+    @rootView?.deactivate()
+    @rootView = null
     $(window).unbind('focus')
     $(window).unbind('blur')
     $(window).off('before')
