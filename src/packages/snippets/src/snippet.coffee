@@ -17,22 +17,23 @@ class Snippet
     bodyText = []
 
     [row, column] = [0, 0]
-    for bodyLine, i in bodyTree
-      lineText = []
-      for segment in bodyLine
-        if segment.index
-          { index, placeholderText } = segment
-          tabStopsByIndex[index] = new Range([row, column], [row, column + placeholderText.length])
-          lineText.push(placeholderText)
-        else
-          lineText.push(segment)
-          column += segment.length
-      bodyText.push(lineText.join(''))
-      row++; column = 0
-    @lineCount = row
+    for segment in bodyTree
+      if segment.index
+        { index, placeholderText } = segment
+        tabStopsByIndex[index] = new Range([row, column], [row, column + placeholderText.length])
+        bodyText.push(placeholderText)
+        column += placeholderText.length
+      else
+        bodyText.push(segment)
+        segmentLines = segment.split('\n')
+        column += segmentLines.shift().length
+        while nextLine = segmentLines.shift()
+          row += 1
+          column = nextLine.length
 
+    @lineCount = row + 1
     @tabStops = []
     for index in _.keys(tabStopsByIndex).sort()
       @tabStops.push tabStopsByIndex[index]
 
-    bodyText.join('\n')
+    bodyText.join('')

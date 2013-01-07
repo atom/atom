@@ -199,7 +199,7 @@ describe "Snippets extension", ->
         expect(anotherEditor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
 
   describe "snippet loading", ->
-    it "loads snippets from all packages with a snippets directory", ->
+    it "loads snippets from all atom packages with a snippets directory", ->
       expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
 
   describe "Snippets parser", ->
@@ -210,12 +210,11 @@ describe "Snippets extension", ->
       """
 
       expect(bodyTree).toEqual [
-        [
-          "go here next:(",
-          { index: 2, placeholderText: "" },
-          ") and finally go here:(",
-          { index: 3, placeholderText: "here!" },
-          ")",
-        ],
-        [ "go here first:(", { index: 1, placeholderText: "" }, ")"]
+        "go here next:(",
+        { index: 2, placeholderText: "" },
+        ") and finally go here:(",
+        { index: 3, placeholderText: "here!" },
+        ")\ngo here first:(",
+        { index: 1, placeholderText: "" },
+        ")"
       ]
