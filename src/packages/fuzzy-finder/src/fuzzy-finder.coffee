@@ -24,6 +24,15 @@ class FuzzyFinder extends SelectList
     @observeConfig 'fuzzy-finder.ignoredNames', (ignoredNames) =>
       @projectPaths = null
 
+    @miniEditor.command 'editor:split-left', =>
+      @splitOpenPath (editor, session) -> editor.splitLeft(session)
+    @miniEditor.command 'editor:split-right', =>
+      @splitOpenPath (editor, session) -> editor.splitRight(session)
+    @miniEditor.command 'editor:split-down', =>
+      @splitOpenPath (editor, session) -> editor.splitDown(session)
+    @miniEditor.command 'editor:split-up', =>
+      @splitOpenPath (editor, session) -> editor.splitUp(session)
+
   itemForElement: (path) ->
     $$ ->
       @li =>
@@ -40,10 +49,23 @@ class FuzzyFinder extends SelectList
         if folder = fs.directory(path)
           @span "- #{folder}/", class: 'directory'
 
+  openPath: (path) ->
+    @rootView.open(path, {@allowActiveEditorChange}) if path
+
+  splitOpenPath: (fn) ->
+    path = @getSelectedElement()
+    return unless path
+
+    editor = @rootView.getActiveEditor()
+    if editor
+      fn(editor, @rootView.project.buildEditSessionForPath(path))
+    else
+      @openPath(path)
+
   confirmed : (path) ->
     return unless path.length
     @cancel()
-    @rootView.open(path, {@allowActiveEditorChange})
+    @openPath(path)
 
   cancelled: ->
     @miniEditor.setText('')

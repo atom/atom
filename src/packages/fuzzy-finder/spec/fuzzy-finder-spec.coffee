@@ -273,3 +273,52 @@ describe 'FuzzyFinder', ->
 
       runs ->
         expect(rootView.project.getFilePaths).toHaveBeenCalled()
+
+  describe "opening a path into a split", ->
+    beforeEach ->
+      rootView.attachToDom()
+
+    describe "when an editor is active", ->
+      it "opens the path by splitting the active editor left", ->
+        editor = rootView.getActiveEditor()
+        spyOn(editor, "splitLeft").andCallThrough()
+        expect(rootView.find('.editor').length).toBe 1
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+        finder.miniEditor.trigger 'editor:split-left'
+        expect(rootView.find('.editor').length).toBe 2
+        expect(editor.splitLeft).toHaveBeenCalled()
+        expect(rootView.getActiveEditor()).not.toBe editor
+        expect(rootView.getActiveEditor().getPath()).toBe editor.getPath()
+
+      it "opens the path by splitting the active editor right", ->
+        editor = rootView.getActiveEditor()
+        spyOn(editor, "splitRight").andCallThrough()
+        expect(rootView.find('.editor').length).toBe 1
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+        finder.miniEditor.trigger 'editor:split-right'
+        expect(rootView.find('.editor').length).toBe 2
+        expect(editor.splitRight).toHaveBeenCalled()
+        expect(rootView.getActiveEditor()).not.toBe editor
+        expect(rootView.getActiveEditor().getPath()).toBe editor.getPath()
+
+      it "opens the path by splitting the active editor down", ->
+        editor = rootView.getActiveEditor()
+        spyOn(editor, "splitDown").andCallThrough()
+        expect(rootView.find('.editor').length).toBe 1
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+        finder.miniEditor.trigger 'editor:split-down'
+        expect(rootView.find('.editor').length).toBe 2
+        expect(editor.splitDown).toHaveBeenCalled()
+        expect(rootView.getActiveEditor()).not.toBe editor
+        expect(rootView.getActiveEditor().getPath()).toBe editor.getPath()
+
+      it "opens the path by splitting the active editor up", ->
+        editor = rootView.getActiveEditor()
+        spyOn(editor, "splitUp").andCallThrough()
+        expect(rootView.find('.editor').length).toBe 1
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+        finder.miniEditor.trigger 'editor:split-up'
+        expect(rootView.find('.editor').length).toBe 2
+        expect(editor.splitUp).toHaveBeenCalled()
+        expect(rootView.getActiveEditor()).not.toBe editor
+        expect(rootView.getActiveEditor().getPath()).toBe editor.getPath()

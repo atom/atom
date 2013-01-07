@@ -649,20 +649,20 @@ class Editor extends View
 
   getFontSize: -> @fontSize
 
-  newSplitEditor: ->
-    new Editor { editSession: @activeEditSession.copy() }
+  newSplitEditor: (editSession) ->
+    new Editor { editSession: editSession ? @activeEditSession.copy() }
 
-  splitLeft: ->
-    @pane()?.splitLeft(@newSplitEditor()).wrappedView
+  splitLeft: (editSession) ->
+    @pane()?.splitLeft(@newSplitEditor(editSession)).wrappedView
 
-  splitRight: ->
-    @pane()?.splitRight(@newSplitEditor()).wrappedView
+  splitRight: (editSession) ->
+    @pane()?.splitRight(@newSplitEditor(editSession)).wrappedView
 
-  splitUp: ->
-    @pane()?.splitUp(@newSplitEditor()).wrappedView
+  splitUp: (editSession) ->
+    @pane()?.splitUp(@newSplitEditor(editSession)).wrappedView
 
-  splitDown: ->
-    @pane()?.splitDown(@newSplitEditor()).wrappedView
+  splitDown: (editSession) ->
+    @pane()?.splitDown(@newSplitEditor(editSession)).wrappedView
 
   pane: ->
     @parent('.pane').view()
