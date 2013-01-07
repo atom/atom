@@ -133,6 +133,7 @@ class Editor extends View
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
       'editor:transpose': @transpose
+      'editor:upper-case': @upperCase
 
     unless @mini
       _.extend editorBindings,
@@ -226,6 +227,7 @@ class Editor extends View
   selectWord: -> @activeEditSession.selectWord()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   transpose: -> @activeEditSession.transpose()
+  upperCase: -> @activeEditSession.upperCase()
   clearSelections: -> @activeEditSession.clearSelections()
 
   backspace: -> @activeEditSession.backspace()

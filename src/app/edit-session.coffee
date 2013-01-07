@@ -552,6 +552,16 @@ class EditSession
       else
         selection.insertText selection.getText().split('').reverse().join('')
 
+  upperCase: ->
+    @mutateSelectedText (selection) =>
+      range = selection.getBufferRange()
+      if selection.isEmpty()
+        selection.selectWord()
+      text = selection.getText()
+      selection.delete()
+      selection.insertText text.toUpperCase()
+      selection.setBufferRange(range) if range
+
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()
 
