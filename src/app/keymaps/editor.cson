@@ -32,3 +32,4 @@
   'ctrl-W': 'editor:select-word'
   'meta-alt-p': 'editor:log-cursor-scope'
   'meta-u': 'editor:upper-case'
+  'meta-U': 'editor:lower-case'

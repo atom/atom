@@ -314,6 +314,17 @@ class EditSession
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
 
+  replaceSelectedText: (options={}, fn) ->
+    {selectWordIfEmpty} = options
+    @mutateSelectedText (selection) =>
+      range = selection.getBufferRange()
+      if selectWordIfEmpty and selection.isEmpty()
+        selection.selectWord()
+      text = selection.getText()
+      selection.delete()
+      selection.insertText(fn(text))
+      selection.setBufferRange(range)
+
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
 
@@ -553,14 +564,10 @@ class EditSession
         selection.insertText selection.getText().split('').reverse().join('')
 
   upperCase: ->
-    @mutateSelectedText (selection) =>
-      range = selection.getBufferRange()
-      if selection.isEmpty()
-        selection.selectWord()
-      text = selection.getText()
-      selection.delete()
-      selection.insertText text.toUpperCase()
-      selection.setBufferRange(range) if range
+    @replaceSelectedText selectWordIfEmpty:true, (text) => text.toUpperCase()
+
+  lowerCase: ->
+    @replaceSelectedText selectWordIfEmpty:true, (text) => text.toLowerCase()
 
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()

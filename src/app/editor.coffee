@@ -134,6 +134,7 @@ class Editor extends View
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
+      'editor:lower-case': @lowerCase
 
     unless @mini
       _.extend editorBindings,
@@ -228,6 +229,7 @@ class Editor extends View
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   transpose: -> @activeEditSession.transpose()
   upperCase: -> @activeEditSession.upperCase()
+  lowerCase: -> @activeEditSession.lowerCase()
   clearSelections: -> @activeEditSession.clearSelections()
 
   backspace: -> @activeEditSession.backspace()

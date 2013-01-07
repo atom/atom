@@ -1871,6 +1871,23 @@ describe "EditSession", ->
         expect(editSession.lineForBufferRow(0)).toBe 'ABc'
         expect(editSession.getSelectedBufferRange()).toEqual [[0, 0], [0, 2]]
 
+  describe ".lowerCase()", ->
+    describe "when there is no selection", ->
+      it "lower cases the current word", ->
+        editSession.buffer.setText("aBC")
+        editSession.setCursorScreenPosition([0, 1])
+        editSession.lowerCase()
+        expect(editSession.lineForBufferRow(0)).toBe 'abc'
+        expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [0, 1]]
+
+    describe "when there is a selection", ->
+      it "lower cases the current selection", ->
+        editSession.buffer.setText("ABC")
+        editSession.setSelectedBufferRange([[0,0], [0,2]])
+        editSession.lowerCase()
+        expect(editSession.lineForBufferRow(0)).toBe 'abC'
+        expect(editSession.getSelectedBufferRange()).toEqual [[0, 0], [0, 2]]
+
   describe "soft-tabs detection", ->
     it "assign soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', softTabs: false)
