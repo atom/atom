@@ -1,3 +1,5 @@
+$ = require 'jquery'
+
 module.exports =
 class Git
 
@@ -15,6 +17,9 @@ class Git
 
   constructor: (path) ->
     @repo = new GitRepository(path)
+    $(window).on 'focus', => @refreshIndex()
+
+  refreshIndex: -> @repo.refreshIndex()
 
   getPath: -> @repo.getPath()
 

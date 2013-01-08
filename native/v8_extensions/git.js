@@ -9,6 +9,7 @@ var $git = {};
   native function checkoutHead(path);
   native function getDiffStats(path);
   native function isSubmodule(path);
+  native function refreshIndex();
 
   function GitRepository(path) {
     var repo = getRepository(path);
@@ -24,5 +25,6 @@ var $git = {};
   GitRepository.prototype.checkoutHead = checkoutHead;
   GitRepository.prototype.getDiffStats = getDiffStats;
   GitRepository.prototype.isSubmodule = isSubmodule;
+  GitRepository.prototype.refreshIndex = refreshIndex;
   this.GitRepository = GitRepository;
 })();

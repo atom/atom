@@ -69,12 +69,6 @@ public:
       return CefV8Value::CreateInt(0);
     }
 
-    git_index* index;
-    if (git_repository_index(&index, repo) == GIT_OK) {
-      git_index_read(index);
-      git_index_free(index);
-    }
-
     unsigned int status = 0;
     if (git_status_file(&status, repo, path) == GIT_OK) {
       return CefV8Value::CreateInt(status);
@@ -192,13 +186,20 @@ public:
     BOOL isSubmodule = false;
     git_index* index;
     if (git_repository_index(&index, repo) == GIT_OK) {
-      git_index_read(index);
       const git_index_entry *entry = git_index_get_bypath(index, path, 0);
       isSubmodule = entry != NULL && (entry->mode & S_IFMT) == GIT_FILEMODE_COMMIT;
       git_index_free(index);
     }
 
     return CefV8Value::CreateBool(isSubmodule);
+  }
+
+  void RefreshIndex() {
+    git_index* index;
+    if (exists && git_repository_index(&index, repo) == GIT_OK) {
+      git_index_read(index);
+      git_index_free(index);
+    }
   }
 
   IMPLEMENT_REFCOUNTING(GitRepository);
@@ -261,6 +262,12 @@ bool Git::Execute(const CefString& name,
   if (name == "isSubmodule") {
     GitRepository *userData = (GitRepository *)object->GetUserData().get();
     retval = userData->IsSubmodule(arguments[0]->GetStringValue().ToString().c_str());
+    return true;
+  }
+
+  if (name == "refreshIndex") {
+    GitRepository *userData = (GitRepository *)object->GetUserData().get();
+    userData->RefreshIndex();
     return true;
   }
 
