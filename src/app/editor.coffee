@@ -177,6 +177,7 @@ class Editor extends View
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
         'editor:close-other-editors': @destroyInactiveEditSessions
+        'editor:close-all-editors': @destroyAllEditSessions
 
     documentation = {}
     for name, method of editorBindings
@@ -470,6 +471,12 @@ class Editor extends View
       index++ if @activeEditSession is @editSessions[index]
       @destroyEditSessionIndex(index, destroyIndex) if @editSessions[index]
     destroyIndex(0)
+
+  destroyAllEditSessions: ->
+    destroyIndex = (index) =>
+      @destroyEditSessionIndex(index, destroyIndex) if @editSessions[index]
+    destroyIndex(0)
+
   loadNextEditSession: ->
     nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
     @setActiveEditSessionIndex(nextIndex)

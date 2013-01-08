@@ -2077,3 +2077,15 @@ describe "Editor", ->
       expect(atom.confirm).toHaveBeenCalled()
       expect(editor.getEditSessions().length).toBe 2
       expect(editor.getEditSessions()[0].buffer.isModified()).toBeTruthy()
+
+  describe ".destroyAllEditSessions()", ->
+    it "destroys every edit session", ->
+      rootView.open('sample.txt')
+      rootView.open('css.css')
+      rootView.open('coffee.coffee')
+      rootView.open('hello.rb')
+      expect(editor.getEditSessions().length).toBe 5
+      editor.setActiveEditSessionIndex(2)
+      editor.destroyAllEditSessions()
+      expect(editor.pane()).toBeUndefined()
+      expect(editor.getEditSessions().length).toBe 0
