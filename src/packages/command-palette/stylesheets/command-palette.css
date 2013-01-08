@@ -1,29 +1,29 @@
-.event-palette {
+.command-palette {
   width: 50%;
   margin-left: -25%;
 }
 
-.event-palette ol {
+.command-palette ol {
   max-height: 300px;
 }
 
-.event-palette ol li {
+.command-palette ol li {
   padding: 2px;
   border-bottom: 1px solid rgba(255, 255, 255, .05);
 }
 
-.event-palette ol .event-description {
+.command-palette ol .event-description {
   float: left;
   display: inline-block;
   margin-right: .5em;
   margin: 4px 0;
 }
 
-.event-palette li .right {
+.command-palette li .right {
   float: right;
 }
 
-.event-palette ol .event-name, .event-palette ol .key-binding {
+.command-palette ol .event-name, .command-palette ol .key-binding {
   display: inline-block;
   margin: 4px 0;
   margin-right: .5em;
@@ -33,10 +33,10 @@
   padding: 0 4px;
 }
 
-.event-palette ol .event-name {
+.command-palette ol .event-name {
   background: rgba(0, 0, 0, .2);
 }
 
-.event-palette ol .key-binding {
+.command-palette ol .key-binding {
   background: rgba(255, 255, 255, .1);
 }

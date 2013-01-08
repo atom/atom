@@ -1,0 +1,5 @@
+'body, .command-palette .editor':
+  'meta-p': 'command-palette:toggle'
+
+'.command-palette .editor':
+  'meta-p': 'command-palette:toggle'

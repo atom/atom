@@ -4,13 +4,13 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 module.exports =
-class EventPalette extends SelectList
+class CommandPalette extends SelectList
   @activate: (rootView) ->
-    @instance = new EventPalette(rootView)
-    rootView.command 'event-palette:toggle', => @instance.attach()
+    @instance = new CommandPalette(rootView)
+    rootView.command 'command-palette:toggle', => @instance.attach()
 
   @viewClass: ->
-    "#{super} event-palette"
+    "#{super} command-palette"
 
   filterKey: 'eventDescription'
 
@@ -18,7 +18,7 @@ class EventPalette extends SelectList
   keyBindings: null
 
   initialize: (@rootView) ->
-    @command 'event-palette:toggle', =>
+    @command 'command-palette:toggle', =>
       @cancel()
       false
     super
