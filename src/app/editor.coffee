@@ -178,6 +178,7 @@ class Editor extends View
         'editor:checkout-head-revision': @checkoutHead
         'editor:close-other-editors': @destroyInactiveEditSessions
         'editor:close-all-editors': @destroyAllEditSessions
+        'editor:select-grammar': @selectGrammar
 
     documentation = {}
     for name, method of editorBindings
@@ -1113,3 +1114,14 @@ class Editor extends View
       @highlightedLine.addClass('cursor-line')
     else
       @highlightedLine = null
+
+  getGrammar: -> @activeEditSession.getGrammar()
+
+  selectGrammar: ->
+    GrammarView = require 'grammar-view'
+    new GrammarView(this)
+
+  reloadGrammar: ->
+    @activeEditSession.reloadGrammar()
+    @clearRenderedLines()
+    @updateDisplay()

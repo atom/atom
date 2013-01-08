@@ -8,6 +8,7 @@ module.exports =
 class Syntax
   constructor: ->
     @grammars = []
+    @grammarsByPath = {}
     @grammarsByFileType = {}
     @grammarsByScopeName = {}
     @globalProperties = {}
@@ -20,6 +21,12 @@ class Syntax
       @grammarsByFileType[fileType] = grammar
       @grammarsByScopeName[grammar.scopeName] = grammar
 
+  addGrammarForPath: (path, grammar) ->
+    @grammarsByPath[path] = grammar
+
+  removeGrammarForPath: (path) ->
+    delete @grammarsByPath[path]
+
   grammarForFilePath: (filePath) ->
     return @grammarsByFileType["txt"] unless filePath
 
@@ -27,7 +34,8 @@ class Syntax
     if filePath and extension.length == 0
       extension = fs.base(filePath)
 
-    @grammarsByFileType[extension] or
+    @grammarsByPath[filePath] or
+      @grammarsByFileType[extension] or
       @grammarByShebang(filePath) or
       @grammarByFileTypeSuffix(filePath) or
       @grammarsByFileType["txt"]

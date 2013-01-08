@@ -16,7 +16,7 @@ class LanguageMode
 
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
-    @grammar = syntax.grammarForFilePath(@buffer.getPath())
+    @reloadGrammar()
     @bracketAnchorRanges = []
 
     _.adviseBefore @editSession, 'insertText', (text) =>
@@ -46,6 +46,9 @@ class LanguageMode
         range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
         @bracketAnchorRanges.push @editSession.addAnchorRange(range)
         false
+
+  reloadGrammar: ->
+    @grammar = syntax.grammarForFilePath(@buffer.getPath())
 
   isQuote: (string) ->
     /'|"/.test(string)

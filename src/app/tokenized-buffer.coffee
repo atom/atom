@@ -21,10 +21,13 @@ class TokenizedBuffer
   constructor: (@buffer, { @languageMode, @tabLength }) ->
     @tabLength ?= 2
     @id = @constructor.idCounter++
+    @resetScreenLines()
+    @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
+
+  resetScreenLines: ->
     @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
     @invalidRows = []
     @invalidateRow(0)
-    @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible

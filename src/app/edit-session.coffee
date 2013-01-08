@@ -626,5 +626,12 @@ class EditSession
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
 
+  getGrammar: -> @languageMode.grammar
+
+  reloadGrammar: ->
+    @unfoldAll()
+    @languageMode.reloadGrammar()
+    @displayBuffer.tokenizedBuffer.resetScreenLines()
+
 _.extend(EditSession.prototype, EventEmitter)
 _.extend(EditSession.prototype, Subscriber)

@@ -2089,3 +2089,37 @@ describe "Editor", ->
       editor.destroyAllEditSessions()
       expect(editor.pane()).toBeUndefined()
       expect(editor.getEditSessions().length).toBe 0
+
+  describe ".reloadGrammar()", ->
+    path = []
+
+    beforeEach ->
+      path = "/tmp/grammar-change.txt"
+      fs.write(path, "var i;")
+      rootView.attachToDom()
+
+    afterEach ->
+      syntax.removeGrammarForPath(path)
+      fs.remove(path) if fs.exists(path)
+
+    it "updates all rendered lines", ->
+      rootView.open(path)
+      editor = rootView.getActiveEditor()
+      expect(editor.getGrammar().name).toBe 'Plain Text'
+      jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
+      expect(jsGrammar.name).toBe 'JavaScript'
+
+      syntax.addGrammarForPath(path, jsGrammar)
+      editor.reloadGrammar()
+      expect(editor.getGrammar()).toBe jsGrammar
+
+      tokenizedBuffer = editor.activeEditSession.displayBuffer.tokenizedBuffer
+      line0 = tokenizedBuffer.lineForScreenRow(0)
+      expect(line0.tokens.length).toBe 3
+      expect(line0.tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+
+      line0 = editor.renderedLines.find('.line:first')
+      span0 = line0.children('span:eq(0)')
+      expect(span0).toMatchSelector '.source.js'
+      expect(span0.children('span:eq(0)')).toMatchSelector '.storage.modifier.js'
+      expect(span0.children('span:eq(0)').text()).toBe 'var'

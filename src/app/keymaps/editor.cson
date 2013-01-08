@@ -34,3 +34,4 @@
   'meta-U': 'editor:lower-case'
   'alt-meta-w': 'editor:close-other-editors'
   'meta-P': 'editor:close-all-editors'
+  'meta-l': 'editor:select-grammar'
