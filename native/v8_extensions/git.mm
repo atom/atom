@@ -94,12 +94,7 @@ public:
 
     int result = git_checkout_head(repo, &options);
     free(copiedPath);
-    if (result == GIT_OK) {
-      return CefV8Value::CreateBool(true);
-    }
-    else {
-      return CefV8Value::CreateBool(false);
-    }
+    return CefV8Value::CreateBool(result == GIT_OK);
   }
 
   CefRefPtr<CefV8Value> GetDiffStats(const char *path) {
