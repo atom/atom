@@ -1,34 +1,43 @@
+Subscriber = require 'subscriber'
 _ = require 'underscore'
 
 module.exports =
 class SnippetExpansion
+  snippet: null
   tabStopAnchorRanges: null
   settingTabStop: false
 
-  constructor: (snippet, @editSession) ->
+  constructor: (@snippet, @editSession) ->
     @editSession.selectToBeginningOfWord()
     startPosition = @editSession.getCursorBufferPosition()
     @editSession.transact =>
       @editSession.insertText(snippet.body, autoIndent: false)
-      if snippet.tabStops.length
-        @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
-      if snippet.lineCount > 1
-        @indentSubsequentLines(startPosition.row, snippet)
+      editSession.pushOperation
+        do: =>
+          @subscribe @editSession, 'cursor-moved.snippet-expansion', (e) => @cursorMoved(e)
+          @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
+          @editSession.snippetExpansion = this
+        undo: => @destroy()
+      @indentSubsequentLines(startPosition.row, snippet) if snippet.lineCount > 1
 
-    @editSession.on 'cursor-moved.snippet-expansion', ({oldBufferPosition, newBufferPosition}) =>
-      return if @settingTabStop
+  cursorMoved: ({oldBufferPosition, newBufferPosition}) ->
+    return if @settingTabStop
 
-      oldTabStops = @tabStopsForBufferPosition(oldBufferPosition)
-      newTabStops = @tabStopsForBufferPosition(newBufferPosition)
+    oldTabStops = @tabStopsForBufferPosition(oldBufferPosition)
+    newTabStops = @tabStopsForBufferPosition(newBufferPosition)
 
-      @destroy() unless _.intersect(oldTabStops, newTabStops).length
+    @destroy() unless _.intersect(oldTabStops, newTabStops).length
 
   placeTabStopAnchorRanges: (startPosition, tabStopRanges) ->
+    return unless @snippet.tabStops.length > 0
+
     @tabStopAnchorRanges = tabStopRanges.map ({start, end}) =>
       anchorRange = @editSession.addAnchorRange([startPosition.add(start), startPosition.add(end)])
-      anchorRange.on 'destroyed', => _.remove(@tabStopAnchorRanges, anchorRange)
+      @subscribe anchorRange, 'destroyed', =>
+        _.remove(@tabStopAnchorRanges, anchorRange)
       anchorRange
     @setTabStopIndex(0)
+
 
   indentSubsequentLines: (startRow, snippet) ->
     initialIndent = @editSession.lineForBufferRow(startRow).match(/^\s*/)[0]
@@ -70,11 +79,13 @@ class SnippetExpansion
     _.intersection(@tabStopAnchorRanges, @editSession.anchorRangesForBufferPosition(bufferPosition))
 
   destroy: ->
-    anchorRange.destroy() for anchorRange in new Array(@tabStopAnchorRanges...)
-    @editSession.off '.snippet-expansion'
+    @unsubscribe()
+    anchorRange.destroy() for anchorRange in @tabStopAnchorRanges
     @editSession.snippetExpansion = null
 
   restore: (@editSession) ->
     @editSession.snippetExpansion = this
     @tabStopAnchorRanges = @tabStopAnchorRanges.map (anchorRange) =>
       @editSession.addAnchorRange(anchorRange.getBufferRange())
+
+_.extend(SnippetExpansion.prototype, Subscriber)

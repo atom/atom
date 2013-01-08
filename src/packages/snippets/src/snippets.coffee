@@ -42,11 +42,7 @@ module.exports =
       prefix = editSession.getLastCursor().getCurrentWordPrefix()
       if snippet = syntax.getProperty(editSession.getCursorScopes(), "snippets.#{prefix}")
         editSession.transact ->
-          snippetExpansion = new SnippetExpansion(snippet, editSession)
-          editSession.snippetExpansion = snippetExpansion
-          editSession.pushOperation
-            undo: -> snippetExpansion.destroy()
-            redo: (editSession) -> snippetExpansion.restore(editSession)
+          new SnippetExpansion(snippet, editSession)
       else
         e.abortKeyBinding()
 
