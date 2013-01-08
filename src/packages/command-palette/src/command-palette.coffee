@@ -1,4 +1,4 @@
-{View, $$} = require 'space-pen'
+{$$} = require 'space-pen'
 SelectList = require 'select-list'
 $ = require 'jquery'
 _ = require 'underscore'
