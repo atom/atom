@@ -2099,7 +2099,7 @@ describe "Editor", ->
       rootView.attachToDom()
 
     afterEach ->
-      syntax.removeGrammarForPath(path)
+      rootView.project.removeGrammarOverrideForPath(path)
       fs.remove(path) if fs.exists(path)
 
     it "updates all rendered lines", ->
@@ -2109,7 +2109,7 @@ describe "Editor", ->
       jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
       expect(jsGrammar.name).toBe 'JavaScript'
 
-      syntax.addGrammarForPath(path, jsGrammar)
+      rootView.project.addGrammarOverrideForPath(path, jsGrammar)
       editor.reloadGrammar()
       expect(editor.getGrammar()).toBe jsGrammar
 

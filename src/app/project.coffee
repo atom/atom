@@ -18,6 +18,7 @@ class Project
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
+  grammarOverridesByPath: {}
 
   constructor: (path) ->
     @setPath(path)
@@ -26,6 +27,16 @@ class Project
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
+
+  addGrammarOverrideForPath: (path, grammar) ->
+    @grammarOverridesByPath[path] = grammar.scopeName
+
+  removeGrammarOverrideForPath: (path) ->
+    delete @grammarOverridesByPath[path]
+
+  grammarForFilePath: (path) ->
+    grammar = syntax.grammarForScopeName(@grammarOverridesByPath[path]) if path
+    grammar or syntax.grammarForFilePath(path)
 
   getPath: ->
     @rootDirectory?.path

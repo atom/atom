@@ -3,12 +3,13 @@ GrammarView = require 'grammar-view'
 _ = require 'underscore'
 
 describe "GrammarView", ->
-  [editor, rootView, textGrammar, jsGrammar] =  []
+  [editor, textGrammar, jsGrammar] =  []
 
   beforeEach ->
     path = require.resolve('fixtures/sample.js')
-    syntax.removeGrammarForPath(path)
-    rootView = new RootView(path)
+    rootView = new RootView()
+    rootView.project.removeGrammarOverrideForPath(path)
+    rootView.open(path)
     editor = rootView.getActiveEditor()
     rootView.attachToDom()
     textGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'Plain Text'
