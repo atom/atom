@@ -139,7 +139,7 @@
 
 - (void)open:(NSString *)path pidToKillWhenWindowCloses:(NSNumber *)pid {
   for (NSWindow *window in [self windows]) {
-    if ([window isVisible] && ![window isExcludedFromWindowsMenu]) {
+    if (![window isExcludedFromWindowsMenu]) {
       AtomWindowController *controller = [window windowController];
       if ([path isEqualToString:controller.pathToOpen]) {
         [window makeKeyAndOrderFront:nil];

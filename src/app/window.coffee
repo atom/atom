@@ -29,6 +29,7 @@ windowAdditions =
     @pasteboard = new Pasteboard
 
     $(window).on 'core:close', => @close()
+    $(window).command 'window:close', => @close()
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
@@ -46,7 +47,8 @@ windowAdditions =
       false
 
   shutdown: ->
-    @rootView.deactivate()
+    @rootView?.deactivate()
+    @rootView = null
     $(window).unbind('focus')
     $(window).unbind('blur')
     $(window).off('before')

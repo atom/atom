@@ -2,8 +2,11 @@ $ = require 'jquery'
 fs = require 'fs'
 
 describe "Window", ->
+  [rootView] = []
+
   beforeEach ->
     window.attachRootView(require.resolve('fixtures'))
+    rootView = window.rootView
 
   afterEach ->
     window.shutdown()
@@ -11,9 +14,14 @@ describe "Window", ->
     $(window).off 'beforeunload'
 
   describe ".close()", ->
-    it "is triggered by the 'close' event", ->
+    it "is triggered by the 'core:close' event", ->
       spyOn window, 'close'
       $(window).trigger 'core:close'
+      expect(window.close).toHaveBeenCalled()
+
+    it "is triggered by the 'window:close event'", ->
+      spyOn window, 'close'
+      $(window).trigger 'window:close'
       expect(window.close).toHaveBeenCalled()
 
   describe ".reload()", ->
@@ -63,7 +71,7 @@ describe "Window", ->
       expect(atom.getRootViewStateForPath(window.rootView.project.getPath())).toBeUndefined()
       expectedState = JSON.parse(JSON.stringify(window.rootView.serialize())) # JSON.stringify removes keys with undefined values
       $(window).trigger 'beforeunload'
-      expect(atom.getRootViewStateForPath(window.rootView.project.getPath())).toEqual expectedState
+      expect(atom.getRootViewStateForPath(rootView.project.getPath())).toEqual expectedState
 
     it "unsubscribes from all buffers", ->
       rootView.open('sample.js')
@@ -74,3 +82,12 @@ describe "Window", ->
       $(window).trigger 'beforeunload'
 
       expect(editor1.getBuffer().subscriptionCount()).toBe 0
+
+  describe ".shutdown()", ->
+    it "only deactivates the RootView the first time it is called", ->
+      deactivateSpy = spyOn(rootView, "deactivate").andCallThrough()
+      window.shutdown()
+      expect(rootView.deactivate).toHaveBeenCalled()
+      deactivateSpy.reset()
+      window.shutdown()
+      expect(rootView.deactivate).not.toHaveBeenCalled()

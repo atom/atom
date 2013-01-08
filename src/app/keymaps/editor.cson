@@ -4,7 +4,6 @@
   'meta-enter': 'editor:newline-below'
   'tab': 'editor:indent'
   'meta-d': 'editor:delete-line'
-  'alt-meta-w': 'editor:toggle-soft-wrap'
   'ctrl-[': 'editor:fold-current-row'
   'ctrl-]': 'editor:unfold-current-row'
   'ctrl-{': 'editor:fold-all'
@@ -33,3 +32,4 @@
   'meta-alt-p': 'editor:log-cursor-scope'
   'meta-u': 'editor:upper-case'
   'meta-U': 'editor:lower-case'
+  'alt-meta-w': 'editor:close-other-editors'

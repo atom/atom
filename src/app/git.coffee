@@ -1,3 +1,5 @@
+$ = require 'jquery'
+
 module.exports =
 class Git
 
@@ -15,6 +17,9 @@ class Git
 
   constructor: (path) ->
     @repo = new GitRepository(path)
+    $(window).on 'focus', => @refreshIndex()
+
+  refreshIndex: -> @repo.refreshIndex()
 
   getPath: -> @repo.getPath()
 
@@ -31,19 +36,25 @@ class Git
   isPathIgnored: (path) ->
     @repo.isIgnored(@relativize(path))
 
-  isPathModified: (path) ->
+  isStatusModified: (status) ->
     modifiedFlags = @statusFlags.working_dir_modified |
                     @statusFlags.working_dir_delete |
                     @statusFlags.working_dir_typechange |
                     @statusFlags.index_modified |
                     @statusFlags.index_deleted |
                     @statusFlags.index_typechange
-    (@getPathStatus(path) & modifiedFlags) > 0
+    (status & modifiedFlags) > 0
 
-  isPathNew: (path) ->
+  isPathModified: (path) ->
+    @isStatusModified(@getPathStatus(path))
+
+  isStatusNew: (status) ->
     newFlags = @statusFlags.working_dir_new |
                @statusFlags.index_new
-    (@getPathStatus(path) & newFlags) > 0
+    (status & newFlags) > 0
+
+  isPathNew: (path) ->
+    @isStatusNew(@getPathStatus(path))
 
   relativize: (path) ->
     workingDirectory = @getWorkingDirectory()

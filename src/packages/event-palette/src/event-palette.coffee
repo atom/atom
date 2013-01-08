@@ -28,7 +28,7 @@ class EventPalette extends SelectList
     @keyBindings = _.losslessInvert(keymap.bindingsForElement(@previouslyFocusedElement))
 
     events = []
-    for eventName, eventDescription of @previouslyFocusedElement.events()
+    for eventName, eventDescription of _.extend($(window).events(), @previouslyFocusedElement.events())
       events.push({eventName, eventDescription}) if eventDescription
 
     events = _.sortBy events, (e) -> e.eventDescription

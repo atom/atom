@@ -2042,3 +2042,38 @@ describe "Editor", ->
       event.shiftKey = true
       editor.underlayer.trigger event
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
+
+  describe ".destroyEditSessionIndex(index)", ->
+    it "prompts to save dirty buffers before closing", ->
+      editor.setText("I'm dirty")
+      rootView.open('sample.txt')
+      expect(editor.getEditSessions().length).toBe 2
+      spyOn(atom, "confirm")
+      editor.destroyEditSessionIndex(0)
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(editor.getEditSessions().length).toBe 2
+      expect(editor.getEditSessions()[0].buffer.isModified()).toBeTruthy()
+
+  describe ".destroyInactiveEditSessions()", ->
+    it "destroys every edit session except the active one", ->
+      rootView.open('sample.txt')
+      cssSession = rootView.open('css.css')
+      rootView.open('coffee.coffee')
+      rootView.open('hello.rb')
+      expect(editor.getEditSessions().length).toBe 5
+      editor.setActiveEditSessionIndex(2)
+      editor.destroyInactiveEditSessions()
+      expect(editor.getActiveEditSessionIndex()).toBe 0
+      expect(editor.getEditSessions().length).toBe 1
+      expect(editor.getEditSessions()[0]).toBe cssSession
+
+    it "prompts to save dirty buffers before destroying", ->
+      editor.setText("I'm dirty")
+      dirtySession = editor.activeEditSession
+      rootView.open('sample.txt')
+      expect(editor.getEditSessions().length).toBe 2
+      spyOn(atom, "confirm")
+      editor.destroyInactiveEditSessions()
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(editor.getEditSessions().length).toBe 2
+      expect(editor.getEditSessions()[0].buffer.isModified()).toBeTruthy()

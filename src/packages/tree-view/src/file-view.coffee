@@ -36,10 +36,12 @@ class FileView extends View
     path = @getPath()
     if repo.isPathIgnored(path)
       @addClass('ignored')
-    else if repo.isPathModified(path)
-      @addClass('modified')
-    else if repo.isPathNew(path)
-      @addClass('new')
+    else
+      status = repo.getPathStatus(path)
+      if repo.isStatusModified(status)
+        @addClass('modified')
+      else if repo.isStatusNew(status)
+        @addClass('new')
 
   getPath: ->
     @file.path

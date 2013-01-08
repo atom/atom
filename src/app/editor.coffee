@@ -148,7 +148,7 @@ class Editor extends View
         'core:select-down': @selectDown
         'core:select-to-top': @selectToTop
         'core:select-to-bottom': @selectToBottom
-        'core:close': @close
+        'core:close': @destroyActiveEditSession
         'editor:save': @save
         'editor:newline-below': @insertNewlineBelow
         'editor:toggle-soft-tabs': @toggleSoftTabs
@@ -176,6 +176,7 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
+        'editor:close-other-editors': @destroyInactiveEditSessions
 
     documentation = {}
     for name, method of editorBindings
@@ -446,17 +447,29 @@ class Editor extends View
   destroyActiveEditSession: ->
     @destroyEditSessionIndex(@getActiveEditSessionIndex())
 
-  destroyEditSessionIndex: (index) ->
-    if @editSessions.length == 1
-      @remove()
-    else
-      editSession = @editSessions[index]
-      if index is @getActiveEditSessionIndex()
+  destroyEditSessionIndex: (index, callback) ->
+    return if @mini
+
+    editSession = @editSessions[index]
+    destroySession = =>
+      if index is @getActiveEditSessionIndex() and @editSessions.length > 1
         @loadPreviousEditSession()
       _.remove(@editSessions, editSession)
       editSession.destroy()
       @trigger 'editor:edit-session-removed', [editSession, index]
+      @remove() if @editSessions.length is 0
+      callback(index) if callback
 
+    if editSession.buffer.isModified()
+      @promptToSaveDirtySession(editSession, destroySession)
+    else
+      destroySession(editSession)
+
+  destroyInactiveEditSessions: ->
+    destroyIndex = (index) =>
+      index++ if @activeEditSession is @editSessions[index]
+      @destroyEditSessionIndex(index, destroyIndex) if @editSessions[index]
+    destroyIndex(0)
   loadNextEditSession: ->
     nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
     @setActiveEditSessionIndex(nextIndex)
@@ -625,14 +638,14 @@ class Editor extends View
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
 
-  save: (onSuccess) ->
+  save: (session=@activeEditSession, onSuccess) ->
     if @getPath()
-      @activeEditSession.save()
+      session.save()
       onSuccess?()
     else
       atom.showSaveDialog (path) =>
         if path
-          @activeEditSession.saveAs(path)
+          session.saveAs(path)
           onSuccess?()
 
   autosave: ->
@@ -670,19 +683,16 @@ class Editor extends View
   rootView: ->
     @parents('#root-view').view()
 
-  close: ->
-    return if @mini
-    if @getBuffer().isModified()
-      filename = if @getPath() then fs.base(@getPath()) else "untitled buffer"
-      atom.confirm(
-        "'#{filename}' has changes, do you want to save them?"
-        "Your changes will be lost if you don't save them"
-        "Save", (=> @save(=> @destroyActiveEditSession())),
-        "Cancel", null
-        "Don't save", (=> @destroyActiveEditSession())
-      )
-    else
-      @destroyActiveEditSession()
+  promptToSaveDirtySession: (session, callback) ->
+    path = session.getPath()
+    filename = if path then fs.base(path) else "untitled buffer"
+    atom.confirm(
+      "'#{filename}' has changes, do you want to save them?"
+      "Your changes will be lost if you don't save them"
+      "Save", => @save(session, callback),
+      "Cancel", null
+      "Don't save", callback
+    )
 
   remove: (selector, keepData) ->
     return super if keepData
