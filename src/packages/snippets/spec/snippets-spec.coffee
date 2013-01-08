@@ -190,7 +190,7 @@ describe "Snippets extension", ->
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "first line"
 
-    ffdescribe "when a snippet expansion is undone and redone", ->
+    describe "when a snippet expansion is undone and redone", ->
       it "recreates the snippet's tab stops", ->
         editor.insertText '    t6\n'
         editor.setCursorBufferPosition [0, 6]
