@@ -11,6 +11,7 @@ class GrammarView extends SelectList
   initialize: (@editor) ->
     @currentGrammar = @editor.getGrammar()
     @path = @editor.getPath()
+    @autoDetect = name: 'Auto Detect'
     requireStylesheet 'grammar-view.css'
     @command 'editor:select-grammar', =>
       @cancel()
@@ -30,7 +31,9 @@ class GrammarView extends SelectList
       @li grammar.name, class: grammarClass
 
   populate: ->
-    @setArray(syntax.grammars)
+    grammars = new Array(syntax.grammars...)
+    grammars.unshift(@autoDetect)
+    @setArray(grammars)
 
   cancelled: ->
     @miniEditor.setText('')
@@ -38,7 +41,10 @@ class GrammarView extends SelectList
 
   confirmed: (grammar) ->
     @cancel()
-    syntax.addGrammarForPath(@path, grammar)
+    if grammar is @autoDetect
+      syntax.removeGrammarForPath(@path)
+    else
+      syntax.addGrammarForPath(@path, grammar)
     @editor.reloadGrammar()
 
   attach: ->
