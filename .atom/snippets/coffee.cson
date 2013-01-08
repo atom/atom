@@ -35,6 +35,10 @@
   "Point array":
     prefix: "pt"
     body: "[$1, $2]"
+
+  "Key-value pair":
+    prefix: ":"
+    body: '${1:"${2:key}"}: ${3:value}'
   "Create Jasmine spy":
     prefix: "pt"
     body: 'jasmine.createSpy("${1:description}")$2'

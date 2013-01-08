@@ -25,7 +25,9 @@ class SnippetExpansion
 
   placeTabStopAnchorRanges: (startPosition, tabStopRanges) ->
     @tabStopAnchorRanges = tabStopRanges.map ({start, end}) =>
-      @editSession.addAnchorRange([startPosition.add(start), startPosition.add(end)])
+      anchorRange = @editSession.addAnchorRange([startPosition.add(start), startPosition.add(end)])
+      anchorRange.on 'destroyed', => _.remove(@tabStopAnchorRanges, anchorRange)
+      anchorRange
     @setTabStopIndex(0)
 
   indentSubsequentLines: (startRow, snippet) ->
@@ -68,7 +70,7 @@ class SnippetExpansion
     _.intersection(@tabStopAnchorRanges, @editSession.anchorRangesForBufferPosition(bufferPosition))
 
   destroy: ->
-    anchorRange.destroy() for anchorRange in @tabStopAnchorRanges
+    anchorRange.destroy() for anchorRange in new Array(@tabStopAnchorRanges...)
     @editSession.off '.snippet-expansion'
     @editSession.snippetExpansion = null
 

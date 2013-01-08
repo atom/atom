@@ -52,12 +52,9 @@ describe "Snippets extension", ->
 
             """
 
-          "multi-line placeholders":
+          "nested tab stops":
             prefix: "t5"
-            body: """
-              behold ${1:my multi-
-              line placeholder}. amazing.
-            """
+            body: '${1:"${2:key}"}: ${3:value}'
 
           "caused problems with undo":
             prefix: "t6"
@@ -122,6 +119,17 @@ describe "Snippets extension", ->
             editor.trigger keydownEvent('tab', target: editor[0])
             expect(editor.getSelectedBufferRange()).toEqual [[1, 29], [1, 35]]
 
+        describe "when tab stops are nested", ->
+          it "destroys the inner tab stop if the outer tab stop is modified", ->
+            buffer.setText('')
+            editor.insertText 't5'
+            editor.trigger 'snippets:expand'
+            expect(buffer.lineForRow(0)).toBe '"key": value'
+            expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 5]]
+            editor.insertText("foo")
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(editor.getSelectedBufferRange()).toEqual [[0, 5], [0, 10]]
+
         describe "when the cursor is moved beyond the bounds of a tab stop", ->
           it "terminates the snippet", ->
             editor.setCursorScreenPosition([2, 0])
@@ -182,7 +190,7 @@ describe "Snippets extension", ->
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "first line"
 
-    describe "when a snippet expansion is undone and redone", ->
+    ffdescribe "when a snippet expansion is undone and redone", ->
       it "recreates the snippet's tab stops", ->
         editor.insertText '    t6\n'
         editor.setCursorBufferPosition [0, 6]
