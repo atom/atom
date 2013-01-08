@@ -66,19 +66,11 @@ class TextMateGrammar
     ruleStack.forEach (rule) -> rule.clearAnchorPosition()
     { tokens, ruleStack }
 
-  ruleForInclude: (name) ->
-    if name[0] == "#"
-      @repository[name[1..]]
-    else if name == "$self" or name == "$base"
-      @initialRule
-    else
-      syntax.grammarForScopeName(name)?.initialRule
-
 class Rule
   grammar: null
   scopeName: null
   patterns: null
-  allPatterns: null
+  scannersByBaseGrammarName: null
   createEndPattern: null
   anchorPosition: -1
 
@@ -86,25 +78,26 @@ class Rule
     patterns ?= []
     @patterns = patterns.map (pattern) => new Pattern(grammar, pattern)
     @patterns.unshift(@endPattern) if @endPattern and !@endPattern.hasBackReferences
+    @scannersByBaseGrammarName = {}
 
-  getIncludedPatterns: (included=[]) ->
-    return @allPatterns if @allPatterns
+  getIncludedPatterns: (baseGrammar, included=[]) ->
     return [] if _.include(included, this)
 
     included = included.concat([this])
-    @allPatterns = []
+    allPatterns = []
     for pattern in @patterns
-      @allPatterns.push(pattern.getIncludedPatterns(included)...)
-    @allPatterns
+      allPatterns.push(pattern.getIncludedPatterns(baseGrammar, included)...)
+    allPatterns
 
   clearAnchorPosition: -> @anchorPosition = -1
 
-  getScanner: (position, firstLine) ->
-    return @scanner if @scanner
+  getScanner: (baseGrammar, position, firstLine) ->
+    return scanner if scanner = @scannersByBaseGrammarName[baseGrammar.name]
 
     anchored = false
     regexes = []
-    @getIncludedPatterns().forEach (pattern) =>
+    patterns = @getIncludedPatterns(baseGrammar)
+    patterns.forEach (pattern) =>
       if pattern.anchored
         anchored = true
         regex = pattern.replaceAnchor(firstLine, position, @anchorPosition)
@@ -113,14 +106,17 @@ class Rule
       regexes.push regex if regex
 
     regexScanner = new OnigScanner(regexes)
-    @scanner = regexScanner unless anchored
+    regexScanner.patterns = patterns
+    @scannersByBaseGrammarName[baseGrammar.name] = regexScanner unless anchored
     regexScanner
 
-  getNextTokens: (stack, line, position, firstLine) ->
-    patterns = @getIncludedPatterns()
+  getNextTokens: (ruleStack, line, position, firstLine) ->
+    baseGrammar = ruleStack[0].grammar
+    patterns = @getIncludedPatterns(baseGrammar)
 
+    scanner = @getScanner(baseGrammar, position, firstLine)
     # Add a `\n` to appease patterns that contain '\n' explicitly
-    return null unless result = @getScanner(position, firstLine).findNextMatch("#{line}\n", position)
+    return null unless result = scanner.findNextMatch("#{line}\n", position)
     { index, captureIndices } = result
     # Since the `\n' (added above) is not part of the line, truncate captures to the line's actual length
     lineLength = line.length
@@ -129,7 +125,7 @@ class Rule
       value
 
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
-    nextTokens = patterns[index].handleMatch(stack, line, captureIndices)
+    nextTokens = patterns[index].handleMatch(ruleStack, line, captureIndices)
     { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
 
   getRuleToPush: (line, beginPatternCaptureIndices) ->
@@ -214,10 +210,20 @@ class Pattern
 
     new Pattern(@grammar, { hasBackReferences: false, match: resolvedMatch, @captures, @popRule })
 
-  getIncludedPatterns: (included) ->
+  ruleForInclude: (baseGrammar, name) ->
+    if name[0] == "#"
+      @grammar.repository[name[1..]]
+    else if name == "$self"
+      @grammar.initialRule
+    else if name == "$base"
+      baseGrammar.initialRule
+    else
+      syntax.grammarForScopeName(name)?.initialRule
+
+  getIncludedPatterns: (baseGrammar, included) ->
     if @include
-      rule = @grammar.ruleForInclude(@include)
-      rule?.getIncludedPatterns(included) ? []
+      rule = @ruleForInclude(baseGrammar, @include)
+      rule?.getIncludedPatterns(baseGrammar, included) ? []
     else
       [this]
 

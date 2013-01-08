@@ -401,7 +401,7 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.lineForScreenRow(2).text).toBe '}'
       expect(tokenizedBuffer.lineForScreenRow(3).text).toBe ''
 
-  fdescribe "when an Objective-C source file is tokenized", ->
+  describe "when an Objective-C source file is tokenized", ->
     beforeEach ->
       editSession =  fixturesProject.buildEditSessionForPath('function.mm', autoIndent: false)
       buffer = editSession.buffer
