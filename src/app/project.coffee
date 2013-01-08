@@ -11,6 +11,10 @@ Git = require 'git'
 
 module.exports =
 class Project
+
+  @deserialize: (state) ->
+    new Project(state.path, state.grammarOverridesByPath)
+
   tabLength: 2
   autoIndent: true
   softTabs: true
@@ -18,12 +22,16 @@ class Project
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
-  grammarOverridesByPath: {}
+  grammarOverridesByPath: null
 
-  constructor: (path) ->
+  constructor: (path, @grammarOverridesByPath={}) ->
     @setPath(path)
     @editSessions = []
     @buffers = []
+
+  serialize: ->
+    path: @getPath()
+    grammarOverridesByPath: @grammarOverridesByPath
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
@@ -34,9 +42,11 @@ class Project
   removeGrammarOverrideForPath: (path) ->
     delete @grammarOverridesByPath[path]
 
+  grammarOverrideForPath: (path) ->
+    syntax.grammarForScopeName(@grammarOverridesByPath[path])
+
   grammarForFilePath: (path) ->
-    grammar = syntax.grammarForScopeName(@grammarOverridesByPath[path]) if path
-    grammar or syntax.grammarForFilePath(path)
+    @grammarOverrideForPath(path) or syntax.grammarForFilePath(path)
 
   getPath: ->
     @rootDirectory?.path

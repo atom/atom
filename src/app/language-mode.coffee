@@ -48,7 +48,10 @@ class LanguageMode
         false
 
   reloadGrammar: ->
-    @grammar = rootView.project.grammarForFilePath(@buffer.getPath())
+    if @buffer.project?
+      @grammar = @buffer.project.grammarForFilePath(@buffer.getPath())
+    else
+      @grammar = syntax.grammarForFilePath(@buffer.getPath())
 
   isQuote: (string) ->
     /'|"/.test(string)

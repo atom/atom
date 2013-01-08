@@ -23,8 +23,9 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'
 
-  @deserialize: ({ projectPath, panesViewState, packageStates }) ->
-    rootView = new RootView(projectPath, packageStates: packageStates, suppressOpen: true)
+  @deserialize: ({ projectState, panesViewState, packageStates }) ->
+    project = Project.deserialize(projectState) if projectState
+    rootView = new RootView(project, packageStates: packageStates, suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
 
@@ -32,11 +33,16 @@ class RootView extends View
   packageStates: null
   title: null
 
-  initialize: (pathToOpen, { @packageStates, suppressOpen } = {}) ->
+  initialize: (projectOrPathToOpen, { @packageStates, suppressOpen } = {}) ->
     window.rootView = this
     @packageStates ?= {}
     @packageModules = {}
-    @project = new Project(pathToOpen)
+
+    if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
+      pathToOpen = projectOrPathToOpen
+      @project = new Project(projectOrPathToOpen)
+    else
+      @project = projectOrPathToOpen
 
     config.load()
 
@@ -48,7 +54,7 @@ class RootView extends View
       @open()
 
   serialize: ->
-    projectPath: @project?.getPath()
+    projectState: @project?.serialize()
     panesViewState: @panes.children().view()?.serialize()
     packageStates: @serializePackages()
 
