@@ -31,6 +31,7 @@ describe "fs", ->
         expect(fs.directory("/a/b/c")).toBe "/a/b"
         expect(fs.directory("/a")).toBe ""
         expect(fs.directory("a")).toBe ""
+        expect(fs.directory("/a/b/c++")).toBe "/a/b"
 
   describe ".exists(path)", ->
     it "returns true when path exsits", ->

@@ -21,7 +21,7 @@ module.exports =
   # parent directory if the file is a directory. A terminal directory
   # separator is ignored.
   directory: (path) ->
-    parentPath = path.replace(new RegExp("/#{@base(path)}\/?$"), '')
+    parentPath = path.replace(new RegExp("/#{@base(_.escapeRegExp(path))}\/?$"), '')
     return "" if path == parentPath
     parentPath
 
