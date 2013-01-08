@@ -447,17 +447,18 @@ class Editor extends View
   destroyActiveEditSession: ->
     @destroyEditSessionIndex(@getActiveEditSessionIndex())
 
-  destroyEditSessionIndex: (index) ->
+  destroyEditSessionIndex: (index, callback) ->
     return if @mini
 
     editSession = @editSessions[index]
     destroySession = =>
-      if index is @getActiveEditSessionIndex()
+      if index is @getActiveEditSessionIndex() and @editSessions.length > 1
         @loadPreviousEditSession()
       _.remove(@editSessions, editSession)
       editSession.destroy()
       @trigger 'editor:edit-session-removed', [editSession, index]
       @remove() if @editSessions.length is 0
+      callback(index) if callback
 
     if editSession.buffer.isModified()
       @promptToSaveDirtySession(editSession, destroySession)
@@ -465,13 +466,10 @@ class Editor extends View
       destroySession(editSession)
 
   destroyInactiveEditSessions: ->
-    index = 0
-    while session = @editSessions[index]
-      if @activeEditSession is session or session.buffer.isModified()
-        index++
-      else
-        @destroyEditSessionIndex(index)
-
+    destroyIndex = (index) =>
+      index++ if @activeEditSession is @editSessions[index]
+      @destroyEditSessionIndex(index, destroyIndex) if @editSessions[index]
+    destroyIndex(0)
   loadNextEditSession: ->
     nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
     @setActiveEditSessionIndex(nextIndex)
