@@ -26,7 +26,7 @@ class DirectoryView extends View
     if repo?
       path = @directory.getPath()
       @directoryName.addClass('ignored') if repo.isPathIgnored(path)
-      if path is repo.getWorkingDirectory()
+      if not parent and path is repo.getWorkingDirectory()
         @directoryName.addClass('repository-icon')
       else if repo.isSubmodule(path)
         @directoryName.addClass('submodule-icon')
