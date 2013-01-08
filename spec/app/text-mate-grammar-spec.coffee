@@ -218,7 +218,7 @@ describe "TextMateGrammar", ->
           expect(tokens[21]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
           expect(tokens[22]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
 
-    it "can parse a grammar with newline charachters in its regular expressions (regression)", ->
+    it "can parse a grammar with newline characters in its regular expressions (regression)", ->
       grammar = new TextMateGrammar
         name: "test"
         scopeName: "source.imaginaryLanguage"
