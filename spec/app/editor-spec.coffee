@@ -2043,6 +2043,17 @@ describe "Editor", ->
       editor.underlayer.trigger event
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
 
+  describe ".destroyEditSessionIndex(index)", ->
+    it "prompts to save dirty buffers before closing", ->
+      editor.setText("I'm dirty")
+      rootView.open('sample.txt')
+      expect(editor.getEditSessions().length).toBe 2
+      spyOn(atom, "confirm")
+      editor.destroyEditSessionIndex(0)
+      expect(atom.confirm).toHaveBeenCalled
+      expect(editor.getEditSessions().length).toBe 2
+      expect(editor.getEditSessions()[0].buffer.isModified()).toBeTruthy()
+
   describe ".destroyInactiveEditSessions()", ->
     it "destroys all non-active, non-modified edit sessions", ->
       editor.setText("I'm dirty")
