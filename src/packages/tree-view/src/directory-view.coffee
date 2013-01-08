@@ -23,17 +23,15 @@ class DirectoryView extends View
     @disclosureArrow.on 'click', => @toggleExpansion()
 
     repo = @project.repo
+    iconClass = 'directory-icon'
     if repo?
       path = @directory.getPath()
-      @directoryName.addClass('ignored') if parent and repo.isPathIgnored(path)
-      if not parent and path is repo.getWorkingDirectory()
-        @directoryName.addClass('repository-icon')
-      else if repo.isSubmodule(path)
-        @directoryName.addClass('submodule-icon')
+      if parent
+        @directoryName.addClass('ignored') if repo.isPathIgnored(path)
+        iconClass = 'submodule-icon' if repo.isSubmodule(path)
       else
-        @directoryName.addClass('directory-icon')
-    else
-      @directoryName.addClass('directory-icon')
+        iconClass = 'repository-icon' if path is repo.getWorkingDirectory()
+    @directoryName.addClass(iconClass)
 
   getPath: ->
     @directory.path
