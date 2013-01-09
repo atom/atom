@@ -20,12 +20,12 @@ class Snippet
     # recursive helper function; mutates vars above
     extractTabStops = (bodyTree) ->
       for segment in bodyTree
-        if segment.index
+        if segment.index?
           { index, content } = segment
           start = [row, column]
           extractTabStops(content)
           tabStopsByIndex[index] = new Range(start, [row, column])
-        else
+        else if _.isString(segment)
           bodyText.push(segment)
           segmentLines = segment.split('\n')
           column += segmentLines.shift().length

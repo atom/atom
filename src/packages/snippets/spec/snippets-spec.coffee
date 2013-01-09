@@ -5,11 +5,15 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 _ = require 'underscore'
 fs = require 'fs'
+AtomPackage = require 'atom-package'
+TextMatePackage = require 'text-mate-package'
 
 describe "Snippets extension", ->
   [buffer, editor] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
+    spyOn(AtomPackage.prototype, 'loadSnippets')
+    spyOn(TextMatePackage.prototype, 'loadSnippets')
     atom.loadPackage("snippets")
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
@@ -31,8 +35,8 @@ describe "Snippets extension", ->
           "tab stops":
             prefix: "t2"
             body: """
-              go here next:($2) and finally go here:($3)
-              go here first:($1)
+              go here next:($1) and finally go here:($2)
+              go here first:($0)
 
             """
 
@@ -204,7 +208,24 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     it "loads snippets from all atom packages with a snippets directory", ->
+      jasmine.unspy(AtomPackage.prototype, 'loadSnippets')
+      snippets.loadAll()
+
       expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
+
+    it "loads snippets from all TextMate packages with snippets", ->
+      jasmine.unspy(TextMatePackage.prototype, 'loadSnippets')
+      snippets.loadAll()
+
+      snippet = syntax.getProperty(['.source.js'], 'snippets.fun')
+      expect(snippet.constructor).toBe Snippet
+      expect(snippet.prefix).toBe 'fun'
+      expect(snippet.name).toBe 'Function'
+      expect(snippet.body).toBe """
+        function function_name (argument) {
+        \t// body...
+        }
+      """
 
   describe "Snippets parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->

@@ -35,7 +35,6 @@ module.exports =
         snippetsByPrefix[snippet.prefix] = snippet
       syntax.addProperties(selector, snippets: snippetsByPrefix)
 
-
   enableSnippetsInEditor: (editor) ->
     editor.command 'snippets:expand', (e) =>
       editSession = editor.activeEditSession

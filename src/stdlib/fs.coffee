@@ -184,3 +184,11 @@ module.exports =
       CoffeeScript.eval(contents, bare: true)
     else
       JSON.parse(contents)
+
+  readPlist: (path) ->
+    plist = require 'plist'
+    object = null
+    plist.parseString @read(path), (e, data) ->
+      throw new Error(e) if e
+      object = data[0]
+    object

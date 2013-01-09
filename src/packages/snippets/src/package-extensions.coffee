@@ -9,3 +9,19 @@ AtomPackage.prototype.loadSnippets = ->
       snippets.load(snippetsPath)
 
 TextMatePackage.prototype.loadSnippets = ->
+  snippetsDirPath = fs.join(@path, 'Snippets')
+  if fs.exists(snippetsDirPath)
+    tmSnippets = fs.list(snippetsDirPath).map (snippetPath) -> fs.readPlist(snippetPath)
+    snippets.add(@translateSnippets(tmSnippets))
+
+TextMatePackage.prototype.translateSnippets = (tmSnippets) ->
+  atomSnippets = {}
+  for { scope, name, content, tabTrigger } in tmSnippets
+    if scope
+      scope = TextMatePackage.cssSelectorFromScopeSelector(scope)
+    else
+      scope = '*'
+
+    snippetsForScope = (atomSnippets[scope] ?= {})
+    snippetsForScope[name] = { prefix: tabTrigger, body: content }
+  atomSnippets
