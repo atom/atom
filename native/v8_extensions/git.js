@@ -13,11 +13,12 @@ var $git = {};
 
   function GitRepository(path) {
     var repo = getRepository(path);
-    if (repo) {
-      repo.constructor = GitRepository;
-      repo.__proto__ = GitRepository.prototype;
-      return repo;
-    }
+    if (!repo)
+      throw new Error("No Git repository found searching path: " + path);
+
+    repo.constructor = GitRepository;
+    repo.__proto__ = GitRepository.prototype;
+    return repo;
   }
 
   GitRepository.prototype.getHead = getHead;

@@ -8,7 +8,7 @@ describe "Git", ->
 
   describe "@open(path)", ->
     it "returns null when no repository is found", ->
-      expect(Git.open('/tmp/nogit.txt')).toBeNull(0)
+      expect(Git.open('/tmp/nogit.txt')).toBeNull()
 
   describe "new Git(path)", ->
     it "throws an exception when no repository is found", ->
