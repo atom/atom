@@ -185,7 +185,7 @@ class Editor extends View
       do (name, method) =>
         @command name, => method.call(this); false
 
-  getCursor: (index) -> @activeEditSession.getCursor(index)
+  getCursor: -> @activeEditSession.getCursor()
   getCursors: -> @activeEditSession.getCursors()
   getLastCursor: -> @activeEditSession.getLastCursor()
   addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)

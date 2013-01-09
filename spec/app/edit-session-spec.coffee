@@ -16,7 +16,13 @@ describe "EditSession", ->
   afterEach ->
     fixturesProject.destroy()
 
-  describe "cursor movement", ->
+  describe "cursor", ->
+    describe ".getCursor()", ->
+      it "returns the most recently created cursor", ->
+        editSession.addCursorAtScreenPosition([1, 0])
+        lastCursor = editSession.addCursorAtScreenPosition([2, 0])
+        expect(editSession.getCursor()).toBe lastCursor
+
     describe ".setCursorScreenPosition(screenPosition)", ->
       it "clears a goal column established by vertical movement", ->
         # set a goal column by moving down

@@ -1936,11 +1936,11 @@ describe "Editor", ->
     it "moves to the last line when page down is repeated from the first line", ->
       rows = editor.getLineCount() - 1
       expect(rows).toBeGreaterThan(0)
-      row = editor.getCursor(0).getScreenPosition().row
+      row = editor.getCursor().getScreenPosition().row
       expect(row).toBe(0)
       while row < rows
         editor.pageDown()
-        newRow = editor.getCursor(0).getScreenPosition().row
+        newRow = editor.getCursor().getScreenPosition().row
         expect(newRow).toBeGreaterThan(row)
         if (newRow <= row)
           break
