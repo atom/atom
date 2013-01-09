@@ -2102,7 +2102,7 @@ describe "Editor", ->
       rootView.project.removeGrammarOverrideForPath(path)
       fs.remove(path) if fs.exists(path)
 
-    it "updates all rendered lines", ->
+    it "updates all the rendered lines when the grammar changes", ->
       rootView.open(path)
       editor = rootView.getActiveEditor()
       expect(editor.getGrammar().name).toBe 'Plain Text'
@@ -2110,7 +2110,7 @@ describe "Editor", ->
       expect(jsGrammar.name).toBe 'JavaScript'
 
       rootView.project.addGrammarOverrideForPath(path, jsGrammar)
-      editor.reloadGrammar()
+      expect(editor.reloadGrammar()).toBeTruthy()
       expect(editor.getGrammar()).toBe jsGrammar
 
       tokenizedBuffer = editor.activeEditSession.displayBuffer.tokenizedBuffer
@@ -2123,3 +2123,11 @@ describe "Editor", ->
       expect(span0).toMatchSelector '.source.js'
       expect(span0.children('span:eq(0)')).toMatchSelector '.storage.modifier.js'
       expect(span0.children('span:eq(0)').text()).toBe 'var'
+
+    it "doesn't update the rendered lines when the grammar doesn't change", ->
+      expect(editor.getGrammar().name).toBe 'JavaScript'
+      spyOn(editor, 'updateDisplay').andCallThrough()
+      editor.reloadGrammar()
+      expect(editor.reloadGrammar()).toBeFalsy()
+      expect(editor.updateDisplay).not.toHaveBeenCalled()
+      expect(editor.getGrammar().name).toBe 'JavaScript'

@@ -629,9 +629,11 @@ class EditSession
   getGrammar: -> @languageMode.grammar
 
   reloadGrammar: ->
-    @unfoldAll()
-    @languageMode.reloadGrammar()
-    @displayBuffer.tokenizedBuffer.resetScreenLines()
+    grammarChanged = @languageMode.reloadGrammar()
+    if grammarChanged
+      @unfoldAll()
+      @displayBuffer.tokenizedBuffer.resetScreenLines()
+    grammarChanged
 
 _.extend(EditSession.prototype, EventEmitter)
 _.extend(EditSession.prototype, Subscriber)

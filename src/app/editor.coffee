@@ -1122,6 +1122,8 @@ class Editor extends View
     new GrammarView(this)
 
   reloadGrammar: ->
-    @activeEditSession.reloadGrammar()
-    @clearRenderedLines()
-    @updateDisplay()
+    grammarChanged =  @activeEditSession.reloadGrammar()
+    if grammarChanged
+      @clearRenderedLines()
+      @updateDisplay()
+    grammarChanged
