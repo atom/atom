@@ -1,14 +1,19 @@
 Snippets = require 'snippets'
+Snippet = require 'snippets/src/snippet'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 _ = require 'underscore'
 fs = require 'fs'
+AtomPackage = require 'atom-package'
+TextMatePackage = require 'text-mate-package'
 
 describe "Snippets extension", ->
   [buffer, editor] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
+    spyOn(AtomPackage.prototype, 'loadSnippets')
+    spyOn(TextMatePackage.prototype, 'loadSnippets')
     atom.loadPackage("snippets")
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
@@ -17,36 +22,50 @@ describe "Snippets extension", ->
 
   afterEach ->
     rootView.remove()
+    delete window.snippets
 
   describe "when 'tab' is triggered on the editor", ->
     beforeEach ->
-      Snippets.evalSnippets 'js', """
-        snippet t1 "Snippet without tab stops"
-        this is a test
-        endsnippet
+      snippets.add
+        ".source.js":
+          "without tab stops":
+            prefix: "t1"
+            body: "this is a test"
 
-        snippet t2 "With tab stops"
-        go here next:($2) and finally go here:($3)
-        go here first:($1)
+          "tab stops":
+            prefix: "t2"
+            body: """
+              go here next:($2) and finally go here:($0)
+              go here first:($1)
 
-        endsnippet
+            """
 
-        snippet t3 "With indented second line"
-        line 1
-          line 2$1
+          "indented second line":
+            prefix: "t3"
+            body: """
+              line 1
+                line 2$1
 
-        endsnippet
+            """
 
-        snippet t4 "With tab stop placeholders"
-        go here ${1:first} and then here ${2:second}
+          "tab stop placeholders":
+            prefix: "t4"
+            body: """
+              go here ${1:first
+              think a while}, and then here ${2:second}
 
-        endsnippet
+            """
 
-        snippet t5 "Caused problems with undo"
-        first line$1
-          ${2:placeholder ending second line}
-        endsnippet
-      """
+          "nested tab stops":
+            prefix: "t5"
+            body: '${1:"${2:key}"}: ${3:value}'
+
+          "caused problems with undo":
+            prefix: "t6"
+            body: """
+              first line$1
+                ${2:placeholder ending second line}
+            """
 
     describe "when the letters preceding the cursor trigger a snippet", ->
       describe "when the snippet contains no tab stops", ->
@@ -98,8 +117,22 @@ describe "Snippets extension", ->
           it "auto-fills the placeholder text and highlights it when navigating to that tab stop", ->
             editor.insertText 't4'
             editor.trigger 'snippets:expand'
-            expect(buffer.lineForRow(0)).toBe 'go here first and then here second'
-            expect(editor.getSelectedBufferRange()).toEqual [[0, 8], [0, 13]]
+            expect(buffer.lineForRow(0)).toBe 'go here first'
+            expect(buffer.lineForRow(1)).toBe 'think a while, and then here second'
+            expect(editor.getSelectedBufferRange()).toEqual [[0, 8], [1, 13]]
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(editor.getSelectedBufferRange()).toEqual [[1, 29], [1, 35]]
+
+        describe "when tab stops are nested", ->
+          it "destroys the inner tab stop if the outer tab stop is modified", ->
+            buffer.setText('')
+            editor.insertText 't5'
+            editor.trigger 'snippets:expand'
+            expect(buffer.lineForRow(0)).toBe '"key": value'
+            expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 5]]
+            editor.insertText("foo")
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(editor.getSelectedBufferRange()).toEqual [[0, 5], [0, 10]]
 
         describe "when the cursor is moved beyond the bounds of a tab stop", ->
           it "terminates the snippet", ->
@@ -152,92 +185,68 @@ describe "Snippets extension", ->
 
     describe "when a previous snippet expansion has just been undone", ->
       it "expands the snippet based on the current prefix rather than jumping to the old snippet's tab stop", ->
-        editor.insertText 't5\n'
+        editor.insertText 't6\n'
         editor.setCursorBufferPosition [0, 2]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "first line"
         editor.undo()
-        expect(buffer.lineForRow(0)).toBe "t5"
+        expect(buffer.lineForRow(0)).toBe "t6"
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "first line"
 
     describe "when a snippet expansion is undone and redone", ->
       it "recreates the snippet's tab stops", ->
-        editor.insertText '    t5\n'
+        editor.insertText '    t6\n'
         editor.setCursorBufferPosition [0, 6]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "    first line"
         editor.undo()
         editor.redo()
-
         expect(editor.getCursorBufferPosition()).toEqual [0, 14]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(editor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
 
-      it "restores tabs stops in active edit session even when the initial expansion was in a different edit session", ->
-        anotherEditor = editor.splitRight()
+  describe "snippet loading", ->
+    it "loads snippets from all atom packages with a snippets directory", ->
+      jasmine.unspy(AtomPackage.prototype, 'loadSnippets')
+      snippets.loadAll()
 
-        editor.insertText '    t5\n'
-        editor.setCursorBufferPosition [0, 6]
-        editor.trigger keydownEvent('tab', target: editor[0])
-        expect(buffer.lineForRow(0)).toBe "    first line"
-        editor.undo()
+      expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
 
-        anotherEditor.redo()
-        expect(anotherEditor.getCursorBufferPosition()).toEqual [0, 14]
-        anotherEditor.trigger keydownEvent('tab', target: anotherEditor[0])
-        expect(anotherEditor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
+    it "loads snippets from all TextMate packages with snippets", ->
+      jasmine.unspy(TextMatePackage.prototype, 'loadSnippets')
+      snippets.loadAll()
 
-  describe ".loadSnippetsFile(path)", ->
-    it "loads the snippets in the given file", ->
-      spyOn(fs, 'read').andReturn """
-        snippet t1 "Test snippet 1"
-        this is a test 1
-        endsnippet
+      snippet = syntax.getProperty(['.source.js'], 'snippets.fun')
+      expect(snippet.constructor).toBe Snippet
+      expect(snippet.prefix).toBe 'fun'
+      expect(snippet.name).toBe 'Function'
+      expect(snippet.body).toBe """
+        function function_name (argument) {
+        \t// body...
+        }
       """
-
-      Snippets.loadSnippetsFile('/tmp/foo/js.snippets')
-      expect(fs.read).toHaveBeenCalledWith('/tmp/foo/js.snippets')
-
-      editor.insertText("t1")
-      editor.trigger 'snippets:expand'
-      expect(buffer.lineForRow(0)).toBe "this is a test 1var quicksort = function () {"
 
   describe "Snippets parser", ->
-    it "can parse multiple snippets", ->
-      snippets = Snippets.snippetsParser.parse """
-        snippet t1 "Test snippet 1"
-        this is a test 1
-        endsnippet
-
-        snippet t2 "Test snippet 2"
-        this is a test 2
-        endsnippet
-      """
-      expect(_.keys(snippets).length).toBe 2
-      snippet = snippets['t1']
-      expect(snippet.prefix).toBe 't1'
-      expect(snippet.description).toBe "Test snippet 1"
-      expect(snippet.body).toBe "this is a test 1"
-
-      snippet = snippets['t2']
-      expect(snippet.prefix).toBe 't2'
-      expect(snippet.description).toBe "Test snippet 2"
-      expect(snippet.body).toBe "this is a test 2"
-
-    it "can parse snippets with tabstops", ->
-      snippets = Snippets.snippetsParser.parse """
-        # this line intentially left blank.
-        snippet t1 "Snippet with tab stops"
-        go here next:($2) and finally go here:($3)
-        go here first:($1)
-        endsnippet
+    it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
+      bodyTree = Snippets.parser.parse """
+        the quick brown $1fox ${2:jumped ${3:over}
+        }the ${4:lazy} dog
       """
 
-      snippet = snippets['t1']
-      expect(snippet.body).toBe """
-        go here next:() and finally go here:()
-        go here first:()
-      """
-
-      expect(snippet.tabStops).toEqual [[[1, 15], [1, 15]], [[0, 14], [0, 14]], [[0, 37], [0, 37]]]
+      expect(bodyTree).toEqual [
+        "the quick brown ",
+        { index: 1, content: [] },
+        "fox ",
+        {
+          index: 2,
+          content: [
+            "jumped ",
+            { index: 3, content: ["over"]},
+            "\n"
+          ],
+        }
+        "the "
+        { index: 4, content: ["lazy"] },
+        " dog"
+      ]

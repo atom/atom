@@ -13,11 +13,12 @@ TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
 require 'window'
 requireStylesheet "jasmine.css"
-require.paths.unshift(require.resolve('fixtures/packages'))
+fixturePackagesPath = require.resolve('fixtures/packages')
+require.paths.unshift(fixturePackagesPath)
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 # Load TextMate bundles, which specs rely on (but not other packages)
-atom.loadPackages(atom.getAvailableTextMateBundles())
+atom.loadTextMatePackages()
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
@@ -29,6 +30,7 @@ beforeEach ->
 
   # reset config before each spec; don't load or save from/to `config.json`
   window.config = new Config()
+  config.packageDirPaths.unshift(fixturePackagesPath)
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.set "editor.fontSize", 16
