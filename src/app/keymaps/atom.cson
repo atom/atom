@@ -33,3 +33,4 @@
 '.tool-panel':
   'meta-escape': 'tool-panel:unfocus'
   'escape': 'core:close'
+  'meta-w': 'noop'
