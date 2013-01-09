@@ -45,8 +45,8 @@ class Project
   grammarOverrideForPath: (path) ->
     syntax.grammarForScopeName(@grammarOverridesByPath[path])
 
-  grammarForFilePath: (path) ->
-    @grammarOverrideForPath(path) or syntax.grammarForFilePath(path)
+  grammarForFilePath: (path, contents) ->
+    @grammarOverrideForPath(path) or syntax.grammarForFilePath(path, contents)
 
   getPath: ->
     @rootDirectory?.path

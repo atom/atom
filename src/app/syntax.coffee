@@ -20,15 +20,15 @@ class Syntax
       @grammarsByFileType[fileType] = grammar
       @grammarsByScopeName[grammar.scopeName] = grammar
 
-  grammarForFilePath: (filePath) ->
+  grammarForFilePath: (filePath, fileContents) ->
     return @grammarsByFileType["txt"] unless filePath
 
     extension = fs.extension(filePath)?[1..]
     if filePath and extension.length == 0
       extension = fs.base(filePath)
 
-    @grammarsByFileType[extension] or
-      @grammarByFirstLineRegex(filePath) or
+    @grammarByFirstLineRegex(filePath, fileContents) or
+      @grammarsByFileType[extension] or
       @grammarByFileTypeSuffix(filePath) or
       @grammarsByFileType["txt"]
 
@@ -36,9 +36,9 @@ class Syntax
     for fileType, grammar of @grammarsByFileType
       return grammar if _.endsWith(filePath, fileType)
 
-  grammarByFirstLineRegex: (filePath) ->
+  grammarByFirstLineRegex: (filePath, fileContents) ->
     try
-      fileContents = fs.read(filePath)
+      fileContents = fs.read(filePath) unless fileContents?
     catch e
       null
 

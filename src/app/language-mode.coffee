@@ -48,10 +48,12 @@ class LanguageMode
         false
 
   reloadGrammar: ->
+    path = @buffer.getPath()
+    pathContents = @buffer.cachedDiskContents
     if @buffer.project?
-      @grammar = @buffer.project.grammarForFilePath(@buffer.getPath())
+      @grammar = @buffer.project.grammarForFilePath(path, pathContents)
     else
-      @grammar = syntax.grammarForFilePath(@buffer.getPath())
+      @grammar = syntax.grammarForFilePath(path, pathContents)
 
   isQuote: (string) ->
     /'|"/.test(string)

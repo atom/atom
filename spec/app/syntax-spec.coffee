@@ -1,3 +1,5 @@
+fs = require 'fs'
+
 describe "the `syntax` global", ->
   describe ".grammarForFilePath(filePath)", ->
     it "uses the filePath's extension to load the correct grammar", ->
@@ -9,6 +11,13 @@ describe "the `syntax` global", ->
     it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
       filePath = require.resolve("fixtures/shebang")
       expect(syntax.grammarForFilePath(filePath).name).toBe "Ruby"
+
+    it "doesn't read the file when the file contents are specified", ->
+      filePath = require.resolve("fixtures/shebang")
+      filePathContents = fs.read(filePath)
+      spyOn(fs, 'read').andCallThrough()
+      expect(syntax.grammarForFilePath(filePath, filePathContents).name).toBe "Ruby"
+      expect(fs.read).not.toHaveBeenCalled()
 
     it "uses the grammar's fileType as a suffix of the full filePath if the grammar cannot be determined by shebang line", ->
       expect(syntax.grammarForFilePath("/tmp/.git/config").name).toBe "Git Config"
