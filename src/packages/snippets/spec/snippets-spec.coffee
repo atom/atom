@@ -35,8 +35,8 @@ describe "Snippets extension", ->
           "tab stops":
             prefix: "t2"
             body: """
-              go here next:($1) and finally go here:($2)
-              go here first:($0)
+              go here next:($2) and finally go here:($0)
+              go here first:($1)
 
             """
 

@@ -22,6 +22,7 @@ class Snippet
       for segment in bodyTree
         if segment.index?
           { index, content } = segment
+          index = Infinity if index == 0
           start = [row, column]
           extractTabStops(content)
           tabStopsByIndex[index] = new Range(start, [row, column])
