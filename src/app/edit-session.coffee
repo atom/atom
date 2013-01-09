@@ -92,7 +92,6 @@ class EditSession
   getScrollLeft: -> @scrollLeft
 
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
-  setAutoIndent: (@autoIndent) ->
   setSoftTabs: (@softTabs) ->
 
   getSoftWrap: -> @softWrap
@@ -158,18 +157,23 @@ class EditSession
   getCursorScopes: -> @getCursor().getScopes()
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
-  insertText: (text, options) ->
+  shouldAutoIndent: ->
+    false
+
+  insertText: (text, options={}) ->
+    options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
 
   insertNewline: ->
-    @insertText('\n', autoIndent: true)
+    @insertText('\n')
 
   insertNewlineBelow: ->
     @moveCursorToEndOfLine()
     @insertNewline()
 
-  indent: ->
-    @mutateSelectedText (selection) -> selection.indent()
+  indent: (options={})->
+    options.autoIndent ?= @shouldAutoIndent()
+    @mutateSelectedText (selection) -> selection.indent(options)
 
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
@@ -216,9 +220,13 @@ class EditSession
       selection.copy(maintainPasteboard)
       maintainPasteboard = true
 
-  pasteText: ->
+  pasteText: (options={})->
+    options.normalizeIndent ?= true
+
     [text, metadata] = pasteboard.read()
-    @insertText(text, _.extend(metadata ? {}, normalizeIndent: true))
+    _.extend(options, metadata) if metadata
+
+    @insertText(text, options)
 
   undo: ->
     @buffer.undo(this)

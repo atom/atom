@@ -243,7 +243,7 @@ class Editor extends View
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
-  indent: -> @activeEditSession.indent()
+  indent: (options) -> @activeEditSession.indent(options)
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
   cutSelection: -> @activeEditSession.cutSelectedText()
@@ -380,7 +380,7 @@ class Editor extends View
       @selectOnMousemoveUntilMouseup()
 
     @on "textInput", (e) =>
-      @insertText(e.originalEvent.data, autoIndent: true)
+      @insertText(e.originalEvent.data)
       false
 
     @scrollView.on 'mousewheel', (e) =>
