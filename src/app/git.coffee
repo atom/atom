@@ -3,6 +3,12 @@ $ = require 'jquery'
 module.exports =
 class Git
 
+  @open: (path) ->
+    try
+      new Git(path)
+    catch e
+      null
+
   statusFlags:
     index_new: 1 << 0
     index_modified: 1 << 1

@@ -57,10 +57,7 @@ class Project
     if path?
       directory = if fs.isDirectory(path) then path else fs.directory(path)
       @rootDirectory = new Directory(directory)
-      try
-        @repo = new Git(path)
-      catch e
-        @repo = null
+      @repo = Git.open(path)
     else
       @rootDirectory = null
       @repo = null

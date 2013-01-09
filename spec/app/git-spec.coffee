@@ -6,6 +6,10 @@ describe "Git", ->
   beforeEach ->
     fs.remove('/tmp/.git') if fs.isDirectory('/tmp/.git')
 
+  describe "@open(path)", ->
+    it "returns null when no repository is found", ->
+      expect(Git.open('/tmp/nogit.txt')).toBeNull(0)
+
   describe "new Git(path)", ->
     it "throws an exception when no repository is found", ->
       expect(-> new Git('/tmp/nogit.txt')).toThrow()
