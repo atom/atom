@@ -28,7 +28,7 @@ class Syntax
       extension = fs.base(filePath)
 
     @grammarsByFileType[extension] or
-      @grammarByShebang(filePath) or
+      @grammarByFirstLineRegex(filePath) or
       @grammarByFileTypeSuffix(filePath) or
       @grammarsByFileType["txt"]
 
@@ -36,7 +36,7 @@ class Syntax
     for fileType, grammar of @grammarsByFileType
       return grammar if _.endsWith(filePath, fileType)
 
-  grammarByShebang: (filePath) ->
+  grammarByFirstLineRegex: (filePath) ->
     try
       fileContents = fs.read(filePath)
     catch e
