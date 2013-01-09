@@ -17,6 +17,8 @@ class Git
 
   constructor: (path) ->
     @repo = new GitRepository(path)
+    unless @repo?
+      throw new Error("No Git repository found searching path: #{path}")
     $(window).on 'focus', => @refreshIndex()
 
   refreshIndex: -> @repo.refreshIndex()

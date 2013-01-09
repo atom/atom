@@ -65,7 +65,7 @@ class StatusBar extends View
     @branchArea.hide()
     return unless path
 
-    head = @buffer.getRepo()?.getShortHead()
+    head = @buffer.getRepo()?.getShortHead() or ''
     @branchLabel.text(head)
     @branchArea.show() if head
 

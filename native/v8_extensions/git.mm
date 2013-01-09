@@ -6,30 +6,28 @@ namespace v8_extensions {
 
 class GitRepository : public CefBase {
 private:
-  bool exists;
   git_repository *repo;
 
 public:
   GitRepository(const char *pathInRepo) {
-    exists = git_repository_open_ext(&repo, pathInRepo, 0, NULL) == GIT_OK;
+    if (git_repository_open_ext(&repo, pathInRepo, 0, NULL) != GIT_OK) {
+      repo = NULL;
+    }
   }
 
   ~GitRepository() {
-    if (repo)
-      git_repository_free(repo);
+    git_repository_free(repo);
+  }
+
+  BOOL exists() {
+    return repo != NULL;
   }
 
   CefRefPtr<CefV8Value> GetPath() {
-    if (exists)
-      return CefV8Value::CreateString(git_repository_path(repo));
-    else
-      return CefV8Value::CreateNull();
+    return CefV8Value::CreateString(git_repository_path(repo));
   }
 
   CefRefPtr<CefV8Value> GetHead() {
-    if (!exists)
-      return CefV8Value::CreateNull();
-
     git_reference *head;
     if (git_repository_head(&head, repo) == GIT_OK) {
       if (git_repository_head_detached(repo) == 1) {
@@ -51,10 +49,6 @@ public:
   }
 
   CefRefPtr<CefV8Value> IsIgnored(const char *path) {
-    if (!exists) {
-      return CefV8Value::CreateBool(false);
-    }
-
     int ignored;
     if (git_ignore_path_is_ignored(&ignored, repo, path) == GIT_OK) {
       return CefV8Value::CreateBool(ignored == 1);
@@ -65,10 +59,6 @@ public:
   }
 
   CefRefPtr<CefV8Value> GetStatus(const char *path) {
-    if (!exists) {
-      return CefV8Value::CreateInt(0);
-    }
-
     unsigned int status = 0;
     if (git_status_file(&status, repo, path) == GIT_OK) {
       return CefV8Value::CreateInt(status);
@@ -79,10 +69,6 @@ public:
   }
 
   CefRefPtr<CefV8Value> CheckoutHead(const char *path) {
-    if (!exists) {
-      return CefV8Value::CreateBool(false);
-    }
-
     char *copiedPath = (char *)malloc(sizeof(char) * (strlen(path) + 1));
     strcpy(copiedPath, path);
     git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
@@ -98,10 +84,6 @@ public:
   }
 
   CefRefPtr<CefV8Value> GetDiffStats(const char *path) {
-    if (!exists) {
-      return CefV8Value::CreateNull();
-    }
-
     git_reference *head;
     if (git_repository_head(&head, repo) != GIT_OK) {
       return CefV8Value::CreateNull();
@@ -174,10 +156,6 @@ public:
   }
 
   CefRefPtr<CefV8Value> IsSubmodule(const char *path) {
-    if (!exists) {
-      return CefV8Value::CreateBool(false);
-    }
-
     BOOL isSubmodule = false;
     git_index* index;
     if (git_repository_index(&index, repo) == GIT_OK) {
@@ -185,13 +163,12 @@ public:
       isSubmodule = entry != NULL && (entry->mode & S_IFMT) == GIT_FILEMODE_COMMIT;
       git_index_free(index);
     }
-
     return CefV8Value::CreateBool(isSubmodule);
   }
 
   void RefreshIndex() {
     git_index* index;
-    if (exists && git_repository_index(&index, repo) == GIT_OK) {
+    if (git_repository_index(&index, repo) == GIT_OK) {
       git_index_read(index);
       git_index_free(index);
     }
@@ -212,9 +189,14 @@ bool Git::Execute(const CefString& name,
                   CefRefPtr<CefV8Value>& retval,
                   CefString& exception) {
   if (name == "getRepository") {
-    CefRefPtr<CefBase> userData = new GitRepository(arguments[0]->GetStringValue().ToString().c_str());
-    retval = CefV8Value::CreateObject(NULL);
-    retval->SetUserData(userData);
+    GitRepository *repository = new GitRepository(arguments[0]->GetStringValue().ToString().c_str());
+    if (repository->exists()) {
+      CefRefPtr<CefBase> userData = repository;
+      retval = CefV8Value::CreateObject(NULL);
+      retval->SetUserData(userData);
+    } else {
+      retval = CefV8Value::CreateNull();
+    }
     return true;
   }
 

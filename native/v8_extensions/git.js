@@ -13,9 +13,11 @@ var $git = {};
 
   function GitRepository(path) {
     var repo = getRepository(path);
-    repo.constructor = GitRepository;
-    repo.__proto__ = GitRepository.prototype;
-    return repo;
+    if (repo) {
+      repo.constructor = GitRepository;
+      repo.__proto__ = GitRepository.prototype;
+      return repo;
+    }
   }
 
   GitRepository.prototype.getHead = getHead;
