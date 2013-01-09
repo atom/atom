@@ -14,13 +14,10 @@ class AtomPackage extends Package
       @module.name = @name
 
   load: ->
-    try
-      @loadMetadata()
-      @loadKeymaps()
-      @loadStylesheets()
-      rootView.activatePackage(@name, @module) if @module
-    catch e
-      console.error "Failed to load package named '#{@name}'", e.stack
+    @loadMetadata()
+    @loadKeymaps()
+    @loadStylesheets()
+    rootView.activatePackage(@name, @module) if @module
 
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, "package"), ['cson', 'json'])

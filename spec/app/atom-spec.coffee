@@ -18,6 +18,11 @@ describe "the `atom` global", ->
       atom.loadPackage("package-with-module")
       expect(rootView.activatePackage).toHaveBeenCalledWith('package-with-module', extension)
 
+    it "logs warning instead of throwing an exception if a package fails to load", ->
+      spyOn(console, "warn")
+      expect(-> atom.loadPackage("package-that-throws-an-exception")).not.toThrow()
+      expect(console.warn).toHaveBeenCalled()
+
     describe "keymap loading", ->
       describe "when package.json does not contain a 'keymaps' manifest", ->
         it "loads all keymaps in the directory", ->

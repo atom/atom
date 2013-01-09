@@ -6,10 +6,13 @@ class Package
     AtomPackage = require 'atom-package'
     TextMatePackage = require 'text-mate-package'
 
-    if TextMatePackage.testName(name)
-      new TextMatePackage(name).load()
-    else
-      new AtomPackage(name).load()
+    try
+      if TextMatePackage.testName(name)
+        new TextMatePackage(name).load()
+      else
+        new AtomPackage(name).load()
+    catch e
+      console.warn "Failed to load package named '#{name}'", e.stack
 
 
   name: null
