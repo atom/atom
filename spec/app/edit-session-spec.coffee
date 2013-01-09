@@ -1727,7 +1727,7 @@ describe "EditSession", ->
         expect(cursor3.getScreenPosition()).toEqual [1, 0]
 
       it "does not destroy cursor or selection anchors when a change encompasses them", ->
-        cursor = editSession.getLastCursor()
+        cursor = editSession.getCursor()
         cursor.setBufferPosition [3, 3]
         editSession.buffer.delete([[3, 1], [3, 5]])
         expect(cursor.getBufferPosition()).toEqual [3, 1]
@@ -1791,7 +1791,7 @@ describe "EditSession", ->
 
   describe ".deleteLine()", ->
     it "deletes the first line when the cursor is there", ->
-      editSession.getLastCursor().moveToTop()
+      editSession.getCursor().moveToTop()
       line1 = buffer.lineForRow(1)
       count = buffer.getLineCount()
       expect(buffer.lineForRow(0)).not.toBe(line1)
@@ -1803,7 +1803,7 @@ describe "EditSession", ->
       count = buffer.getLineCount()
       secondToLastLine = buffer.lineForRow(count - 2)
       expect(buffer.lineForRow(count - 1)).not.toBe(secondToLastLine)
-      editSession.getLastCursor().moveToBottom()
+      editSession.getCursor().moveToBottom()
       editSession.deleteLine()
       newCount = buffer.getLineCount()
       expect(buffer.lineForRow(newCount - 1)).toBe(secondToLastLine)
@@ -1830,8 +1830,8 @@ describe "EditSession", ->
 
     it "deletes the entire region when invoke on a folded region", ->
       editSession.foldBufferRow(1)
-      editSession.getLastCursor().moveToTop()
-      editSession.getLastCursor().moveDown()
+      editSession.getCursor().moveToTop()
+      editSession.getCursor().moveDown()
       expect(buffer.getLineCount()).toBe(13)
       editSession.deleteLine()
       expect(buffer.getLineCount()).toBe(4)
@@ -1840,7 +1840,7 @@ describe "EditSession", ->
       count = buffer.getLineCount()
       expect(count).toBeGreaterThan(0)
       for line in [0...count]
-        editSession.getLastCursor().moveToBottom()
+        editSession.getCursor().moveToBottom()
         editSession.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
@@ -1849,7 +1849,7 @@ describe "EditSession", ->
       count = buffer.getLineCount()
       expect(count).toBeGreaterThan(0)
       for line in [0...count]
-        editSession.getLastCursor().moveToTop()
+        editSession.getCursor().moveToTop()
         editSession.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')

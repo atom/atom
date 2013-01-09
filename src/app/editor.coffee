@@ -187,7 +187,6 @@ class Editor extends View
 
   getCursor: -> @activeEditSession.getCursor()
   getCursors: -> @activeEditSession.getCursors()
-  getLastCursor: -> @activeEditSession.getLastCursor()
   addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)
   addCursorAtBufferPosition: (bufferPosition) -> @activeEditSession.addCursorAtBufferPosition(bufferPosition)
   moveCursorUp: -> @activeEditSession.moveCursorUp()

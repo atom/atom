@@ -57,7 +57,7 @@ class Cursor
   isVisible: -> @visible
 
   isLastCursor: ->
-    this == @editSession.getLastCursor()
+    this == @editSession.getCursor()
 
   autoscrolled: ->
     @needsAutoscroll = false

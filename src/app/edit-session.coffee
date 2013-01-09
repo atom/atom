@@ -370,9 +370,6 @@ class EditSession
   getCursor: ->
     _.last(@cursors)
 
-  getLastCursor: ->
-    _.last(@cursors)
-
   addCursorAtScreenPosition: (screenPosition) ->
     @addCursor(new Cursor(editSession: this, screenPosition: screenPosition))
 
@@ -455,16 +452,16 @@ class EditSession
     @moveCursors (cursor) -> cursor.setScreenPosition(position)
 
   getCursorScreenPosition: ->
-    @getLastCursor().getScreenPosition()
+    @getCursor().getScreenPosition()
 
   getCursorScreenRow: ->
-    @getLastCursor().getScreenRow()
+    @getCursor().getScreenRow()
 
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
   getCursorBufferPosition: ->
-    @getLastCursor().getBufferPosition()
+    @getCursor().getBufferPosition()
 
   getSelectedScreenRange: ->
     @getLastSelection().getScreenRange()
