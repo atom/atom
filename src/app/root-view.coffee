@@ -25,10 +25,10 @@ class RootView extends View
 
   @deserialize: ({ projectState, panesViewState, packageStates, projectPath }) ->
     if projectState
-      projectOrPathToOpen = Project.deserialize(projectState) 
+      projectOrPathToOpen = Project.deserialize(projectState)
     else
       projectOrPathToOpen = projectPath # This will migrate people over to the new project serialization scheme. It should be removed eventually.
-      
+
     rootView = new RootView(projectOrPathToOpen , packageStates: packageStates, suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
@@ -42,7 +42,7 @@ class RootView extends View
     @packageStates ?= {}
     @packageModules = {}
 
-    if not projectOrPathToOpen or _.isString(projectOrPathToOpen)      
+    if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
       pathToOpen = projectOrPathToOpen
       @project = new Project(projectOrPathToOpen)
     else
