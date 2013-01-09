@@ -86,7 +86,7 @@ public:
     char *copiedPath = (char *)malloc(sizeof(char) * (strlen(path) + 1));
     strcpy(copiedPath, path);
     git_checkout_opts options = GIT_CHECKOUT_OPTS_INIT;
-    options.checkout_strategy = GIT_CHECKOUT_UPDATE_MODIFIED;
+    options.checkout_strategy = GIT_CHECKOUT_FORCE;
     git_strarray paths;
     paths.count = 1;
     paths.strings = &copiedPath;

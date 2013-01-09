@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2012 the libgit2 contributors
+ * Copyright (C) the libgit2 contributors. All rights reserved.
  *
  * This file is part of libgit2, distributed under the GNU GPL v2 with
  * a Linking Exception. For full terms see the included COPYING file.
@@ -91,7 +91,7 @@ GIT_INLINE(const git_oid *) git_blob_id(const git_blob *blob)
  * @param blob pointer to the blob
  * @return the pointer; NULL if the blob has no contents
  */
-GIT_EXTERN(const void *) git_blob_rawcontent(git_blob *blob);
+GIT_EXTERN(const void *) git_blob_rawcontent(const git_blob *blob);
 
 /**
  * Get the size in bytes of the contents of a blob
@@ -99,7 +99,7 @@ GIT_EXTERN(const void *) git_blob_rawcontent(git_blob *blob);
  * @param blob pointer to the blob
  * @return size on bytes
  */
-GIT_EXTERN(git_off_t) git_blob_rawsize(git_blob *blob);
+GIT_EXTERN(git_off_t) git_blob_rawsize(const git_blob *blob);
 
 /**
  * Read a file from the working folder of a repository

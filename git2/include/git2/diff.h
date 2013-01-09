@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2012 the libgit2 contributors
+ * Copyright (C) the libgit2 contributors. All rights reserved.
  *
  * This file is part of libgit2, distributed under the GNU GPL v2 with
  * a Linking Exception. For full terms see the included COPYING file.
@@ -241,8 +241,8 @@ typedef struct {
  * callback functions and you can use the contents to understand exactly
  * what has changed.
  *
- * The `old_file` repesents the "from" side of the diff and the `new_file`
- * repesents to "to" side of the diff.  What those means depend on the
+ * The `old_file` represents the "from" side of the diff and the `new_file`
+ * represents to "to" side of the diff.  What those means depend on the
  * function that was used to generate the diff and will be documented below.
  * You can also use the `GIT_DIFF_REVERSE` flag to flip it around.
  *
@@ -802,26 +802,48 @@ GIT_EXTERN(int) git_diff_patch_to_str(
  */
 
 /**
- * Directly run a text diff on two blobs.
+ * Directly run a diff on two blobs.
  *
  * Compared to a file, a blob lacks some contextual information. As such,
- * the `git_diff_file` parameters of the callbacks will be filled
- * accordingly to the following: `mode` will be set to 0, `path` will be set
- * to NULL. When dealing with a NULL blob, `oid` will be set to 0.
+ * the `git_diff_file` given to the callback will have some fake data; i.e.
+ * `mode` will be 0 and `path` will be NULL.
  *
- * When at least one of the blobs being dealt with is binary, the
- * `git_diff_delta` binary attribute will be set to 1 and no call to the
- * hunk_cb nor line_cb will be made.
+ * NULL is allowed for either `old_blob` or `new_blob` and will be treated
+ * as an empty blob, with the `oid` set to NULL in the `git_diff_file` data.
+ *
+ * We do run a binary content check on the two blobs and if either of the
+ * blobs looks like binary data, the `git_diff_delta` binary attribute will
+ * be set to 1 and no call to the hunk_cb nor line_cb will be made (unless
+ * you pass `GIT_DIFF_FORCE_TEXT` of course).
  *
  * @return 0 on success, GIT_EUSER on non-zero callback, or error code
  */
 GIT_EXTERN(int) git_diff_blobs(
-	git_blob *old_blob,
-	git_blob *new_blob,
+	const git_blob *old_blob,
+	const git_blob *new_blob,
 	const git_diff_options *options,
 	git_diff_file_cb file_cb,
 	git_diff_hunk_cb hunk_cb,
 	git_diff_data_cb line_cb,
+	void *payload);
+
+/**
+ * Directly run a diff between a blob and a buffer.
+ *
+ * As with `git_diff_blobs`, comparing a blob and buffer lacks some context,
+ * so the `git_diff_file` parameters to the callbacks will be faked a la the
+ * rules for `git_diff_blobs()`.
+ *
+ * @return 0 on success, GIT_EUSER on non-zero callback, or error code
+ */
+GIT_EXTERN(int) git_diff_blob_to_buffer(
+	const git_blob *old_blob,
+	const char *buffer,
+	size_t buffer_len,
+	const git_diff_options *options,
+	git_diff_file_cb file_cb,
+	git_diff_hunk_cb hunk_cb,
+	git_diff_data_cb data_cb,
 	void *payload);
 
 GIT_END_DECL

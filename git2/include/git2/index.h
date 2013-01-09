@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2012 the libgit2 contributors
+ * Copyright (C) the libgit2 contributors. All rights reserved.
  *
  * This file is part of libgit2, distributed under the GNU GPL v2 with
  * a Linking Exception. For full terms see the included COPYING file.
@@ -311,6 +311,17 @@ GIT_EXTERN(const git_index_entry *) git_index_get_bypath(
  * @return 0 or an error code
  */
 GIT_EXTERN(int) git_index_remove(git_index *index, const char *path, int stage);
+
+/**
+ * Remove all entries from the index under a given directory
+ *
+ * @param index an existing index object
+ * @param dir container directory path
+ * @param stage stage to search
+ * @return 0 or an error code
+ */
+GIT_EXTERN(int) git_index_remove_directory(
+	git_index *index, const char *dir, int stage);
 
 /**
  * Add or update an index entry from an in-memory struct
