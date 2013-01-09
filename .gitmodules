@@ -37,3 +37,9 @@
 [submodule "vendor/packages/shellscript.tmbundle"]
 	path = vendor/packages/shellscript.tmbundle
 	url = https://github.com/textmate/shellscript.tmbundle
+[submodule "vendor/packages/xml.tmbundle"]
+	path = vendor/packages/xml.tmbundle
+	url = https://github.com/textmate/xml.tmbundle.git
+[submodule "vendor/packages/property-list.tmbundle"]
+	path = vendor/packages/property-list.tmbundle
+	url = https://github.com/textmate/property-list.tmbundle.git
