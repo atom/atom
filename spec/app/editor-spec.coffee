@@ -502,6 +502,11 @@ describe "Editor", ->
       editor.getBuffer().saveAs("/tmp/atom-new.txt")
       expect(eventHandler).toHaveBeenCalled()
 
+    it "loads the grammar for the new path", ->
+      expect(editor.getGrammar().name).toBe 'JavaScript'
+      editor.getBuffer().saveAs(path)
+      expect(editor.getGrammar().name).toBe 'Plain Text'
+
   describe "font size", ->
     it "sets the initial font size based on the value from config", ->
       config.set("editor.fontSize", 20)
@@ -2091,7 +2096,7 @@ describe "Editor", ->
       expect(editor.getEditSessions().length).toBe 0
 
   describe ".reloadGrammar()", ->
-    path = []
+    [path] = []
 
     beforeEach ->
       path = "/tmp/grammar-change.txt"

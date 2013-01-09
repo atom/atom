@@ -505,6 +505,7 @@ class Editor extends View
       @showBufferConflictAlert(@activeEditSession)
 
     @activeEditSession.on "path-changed.editor", =>
+      @reloadGrammar()
       @trigger 'editor:path-changed'
 
     @trigger 'editor:path-changed'
