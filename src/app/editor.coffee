@@ -1127,3 +1127,20 @@ class Editor extends View
       @clearRenderedLines()
       @updateDisplay()
     grammarChanged
+
+  bindToKeyedEvent: (key, event, callback) ->
+    binding = {}
+    binding[key] = event
+    window.keymap.bindKeys '.editor', binding
+    @on event, =>
+      callback(this, event)
+
+  replaceSelectedText: (replaceFn) ->
+    selection = @getSelection()
+    return false if selection.isEmpty()
+
+    text = replaceFn(@getTextInRange(selection.getBufferRange()))
+    return false if text is null or text is undefined
+
+    @insertText(text, select: true)
+    true

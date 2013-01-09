@@ -2,11 +2,7 @@ module.exports =
   name: "strip trailing whitespace"
 
   activate: (rootView) ->
-    for buffer in rootView.project.getBuffers()
-      @stripTrailingWhitespaceBeforeSave(buffer)
-
-    rootView.project.on 'buffer-created', (buffer) =>
-      @stripTrailingWhitespaceBeforeSave(buffer)
+    rootView.eachBuffer (buffer) => @stripTrailingWhitespaceBeforeSave(buffer)
 
   stripTrailingWhitespaceBeforeSave: (buffer) ->
     buffer.on 'will-be-saved', ->

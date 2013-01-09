@@ -258,3 +258,17 @@ class RootView extends View
 
   saveAll: ->
     editor.save() for editor in @getEditors()
+
+  eachEditor: (callback) ->
+    for editor in @getEditors()
+      callback(editor)
+
+    @on 'editor:attached', (e, editor) ->
+      callback(editor)
+
+  eachBuffer: (callback) ->
+    for buffer in @project.getBuffers()
+      callback(buffer)
+
+    @project.on 'buffer-created', (buffer) ->
+      callback(buffer)

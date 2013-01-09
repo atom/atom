@@ -174,7 +174,10 @@ class Selection
     text = @normalizeIndent(text, options) if options.normalizeIndent
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
-    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
+    if options.select
+      @setBufferRange(newBufferRange, reverse: wasReversed)
+    else
+      @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
     if @editSession.autoIndent and options.autoIndent
       if text == '\n'
