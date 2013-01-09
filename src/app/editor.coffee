@@ -80,7 +80,6 @@ class Editor extends View
         buffer: new Buffer()
         softWrap: false
         tabLength: 2
-        autoIndent: false
         softTabs: true
 
       @editSessions.push editSession
