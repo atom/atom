@@ -1358,11 +1358,7 @@ describe "EditSession", ->
           expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.getTabLength() * 2]
 
     describe "pasteboard operations", ->
-      pasteboard = null
       beforeEach ->
-        pasteboard = 'first'
-        spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboard = text
-        spyOn($native, 'readFromPasteboard').andCallFake -> pasteboard
         editSession.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
 
       describe ".cutSelectedText()", ->
@@ -1381,7 +1377,7 @@ describe "EditSession", ->
             editSession.cutToEndOfLine()
             expect(buffer.lineForRow(2)).toBe '    if (items.length'
             expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-            expect(pasteboard).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+            expect(pasteboard.read()[0]).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
 
         describe "when text is selected", ->
           it "only cuts the selected text, not to the end of the line", ->
@@ -1391,7 +1387,7 @@ describe "EditSession", ->
 
             expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
             expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-            expect(pasteboard).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+            expect(pasteboard.read()[0]).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
@@ -1402,6 +1398,7 @@ describe "EditSession", ->
 
       describe ".pasteText()", ->
         it "pastes text into the buffer", ->
+          pasteboard.write('first')
           editSession.pasteText()
           expect(editSession.buffer.lineForRow(0)).toBe "var first = function () {"
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"

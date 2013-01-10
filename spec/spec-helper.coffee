@@ -47,6 +47,10 @@ beforeEach ->
   TokenizedBuffer.prototype.chunkSize = Infinity
   spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
+  pasteboardContent = 'initial pasteboard content'
+  spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboardContent = text
+  spyOn($native, 'readFromPasteboard').andCallFake -> pasteboardContent
+
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
