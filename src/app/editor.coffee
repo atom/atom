@@ -17,6 +17,8 @@ class Editor extends View
     fontSize: 20
     showInvisibles: false
     autosave: false
+    autoIndent: true
+    autoIndentOnPaste: false
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>

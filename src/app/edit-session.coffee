@@ -158,10 +158,10 @@ class EditSession
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   shouldAutoIndent: ->
-    config.get("editor.autoIndent") ? true
+    config.get("editor.autoIndent")
 
   shouldAutoIndentPastedText: ->
-    config.get("editor.autoIndentOnPaste") ? false
+    config.get("editor.autoIndentOnPaste")
 
   insertText: (text, options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
