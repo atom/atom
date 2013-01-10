@@ -1918,7 +1918,8 @@ describe "EditSession", ->
 
   describe "auto-indent", ->
     describe "editor.autoIndent", ->
-      it "auto-indents newlines by default", ->
+      it "auto-indents newlines if editor.autoIndent is undefined (the default)", ->
+        config.set("editor.autoIndent", undefined)
         editSession.setCursorBufferPosition([1, 30])
         editSession.insertText("\n")
         expect(editSession.lineForBufferRow(2)).toBe "    "
@@ -1929,7 +1930,8 @@ describe "EditSession", ->
         editSession.insertText("\n")
         expect(editSession.lineForBufferRow(2)).toBe ""
 
-      it "auto-indents calls to `indent` by default", ->
+      it "auto-indents calls to `indent` if editor.autoIndent is undefined (the default)", ->
+        config.set("editor.autoIndent", undefined)
         editSession.setCursorBufferPosition([1, 30])
         editSession.insertText("\n ")
         expect(editSession.lineForBufferRow(2)).toBe " "
