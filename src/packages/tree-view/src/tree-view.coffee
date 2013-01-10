@@ -96,6 +96,7 @@ class TreeView extends ScrollView
         @attach()
 
   attach: ->
+    return unless rootView.project.getPath()
     @rootView.horizontal.prepend(this)
     @focus()
 

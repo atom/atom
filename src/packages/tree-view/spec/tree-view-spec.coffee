@@ -54,7 +54,12 @@ describe "TreeView", ->
         atom.loadPackage 'tree-view'
         treeView = TreeView.instance
 
-      it "does not attach or create a root node", ->
+      it "does not attach to the root view or create a root node when initialized", ->
+        expect(treeView.hasParent()).toBeFalsy()
+        expect(treeView.root).not.toExist()
+
+      it "does not attach to the root view or create a root node when attach() is called", ->
+        treeView.attach()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).not.toExist()
 
