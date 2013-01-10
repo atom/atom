@@ -16,7 +16,12 @@ class TreeView extends ScrollView
       @instance = TreeView.deserialize(state, rootView)
     else
       @instance = new TreeView(rootView)
-      @instance.attach()
+
+      if rootView.project.getPath()
+        @instance.attach()
+      else
+        rootView.project.one "path-changed", =>
+          @instance.attach()
 
   @deactivate: ->
     @instance.deactivate()
@@ -118,8 +123,8 @@ class TreeView extends ScrollView
 
   updateRoot: ->
     @root?.remove()
-    if @rootView.project.getRootDirectory()
-      @root = new DirectoryView(directory: @rootView.project.getRootDirectory(), isExpanded: true, project: @rootView.project)
+    if rootDirectory = @rootView.project.getRootDirectory()
+      @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: @rootView.project)
       @append(@root)
     else
       @root = null

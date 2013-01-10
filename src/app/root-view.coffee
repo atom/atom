@@ -82,8 +82,8 @@ class RootView extends View
       @handleFocus(e) if document.activeElement is document.body
 
     @on 'root-view:active-path-changed', (e, path) =>
-      @project.setPath(path) unless @project.getRootDirectory()
       if path
+        @project.setPath(path) unless @project.getRootDirectory()
         @setTitle(fs.base(path))
       else
         @setTitle("untitled")
