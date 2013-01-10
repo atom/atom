@@ -40,5 +40,5 @@
     prefix: ":"
     body: '${1:"${2:key}"}: ${3:value}'
   "Create Jasmine spy":
-    prefix: "pt"
+    prefix: "spy"
     body: 'jasmine.createSpy("${1:description}")$2'
