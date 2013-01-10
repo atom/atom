@@ -74,3 +74,5 @@ $.fn.command = (args...) ->
   @on(args...)
 
 $.Event.prototype.abortKeyBinding = ->
+$.Event.prototype.currentTargetView = -> $(this.currentTarget).view()
+$.Event.prototype.targetView = -> $(this.target).view()
