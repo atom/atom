@@ -41,6 +41,7 @@ class RootView extends View
     window.rootView = this
     @packageStates ?= {}
     @packageModules = {}
+    @handleEvents()
 
     if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
       pathToOpen = projectOrPathToOpen
@@ -49,8 +50,6 @@ class RootView extends View
       @project = projectOrPathToOpen
 
     config.load()
-
-    @handleEvents()
 
     if pathToOpen
       @open(pathToOpen) if fs.isFile(pathToOpen) and not suppressOpen
