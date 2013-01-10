@@ -17,6 +17,8 @@ class Editor extends View
     fontSize: 20
     showInvisibles: false
     autosave: false
+    autoIndent: true
+    autoIndentOnPaste: false
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
@@ -80,7 +82,6 @@ class Editor extends View
         buffer: new Buffer()
         softWrap: false
         tabLength: 2
-        autoIndent: false
         softTabs: true
 
       @editSessions.push editSession
@@ -244,7 +245,7 @@ class Editor extends View
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
-  indent: -> @activeEditSession.indent()
+  indent: (options) -> @activeEditSession.indent(options)
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
   cutSelection: -> @activeEditSession.cutSelectedText()
@@ -381,7 +382,7 @@ class Editor extends View
       @selectOnMousemoveUntilMouseup()
 
     @on "textInput", (e) =>
-      @insertText(e.originalEvent.data, autoIndent: true)
+      @insertText(e.originalEvent.data)
       false
 
     @scrollView.on 'mousewheel', (e) =>
