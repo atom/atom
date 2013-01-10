@@ -160,6 +160,9 @@ class EditSession
   shouldAutoIndent: ->
     config.get("editor.autoIndent") ? true
 
+  shouldAutoIndentPastedText: ->
+    config.get("editor.autoIndentPastedText") ? false
+
   insertText: (text, options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
@@ -220,12 +223,14 @@ class EditSession
       selection.copy(maintainPasteboard)
       maintainPasteboard = true
 
-  pasteText: (options={})->
+  pasteText: (options={}) ->
     options.normalizeIndent ?= true
+    options.autoIndent ?= @shouldAutoIndentPastedText()
 
     [text, metadata] = pasteboard.read()
     _.extend(options, metadata) if metadata
 
+    console.log options
     @insertText(text, options)
 
   undo: ->

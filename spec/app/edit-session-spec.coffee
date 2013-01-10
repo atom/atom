@@ -1943,3 +1943,27 @@ describe "EditSession", ->
         expect(editSession.lineForBufferRow(2)).toBe " "
         editSession.indent()
         expect(editSession.lineForBufferRow(2)).toBe "   "
+
+    describe "editor.autoIndentPastedText", ->
+      it "does not auto-indent pasted text by default", ->
+        editSession.setCursorBufferPosition([2, 0])
+        editSession.insertText("0\n  2\n    4\n")
+        editSession.getSelection().setBufferRange([[2,0], [5,0]])
+        editSession.cutSelectedText()
+
+        editSession.pasteText()
+        expect(editSession.lineForBufferRow(2)).toBe "0"
+        expect(editSession.lineForBufferRow(3)).toBe "  2"
+        expect(editSession.lineForBufferRow(4)).toBe "    4"
+
+      it "auto-indents pasted text when editor.autoIndentPastedText is true", ->
+        config.set("editor.autoIndentPastedText", true)
+        editSession.setCursorBufferPosition([2, 0])
+        editSession.insertText("0\n  2\n    4\n")
+        editSession.getSelection().setBufferRange([[2,0], [5,0]])
+        editSession.cutSelectedText()
+
+        editSession.pasteText()
+        expect(editSession.lineForBufferRow(2)).toBe "    0"
+        expect(editSession.lineForBufferRow(3)).toBe "      2"
+        expect(editSession.lineForBufferRow(4)).toBe "        4"
