@@ -375,7 +375,7 @@ describe "CommandPanel", ->
     beforeEach ->
       previewList = commandPanel.previewList
       rootView.trigger 'command-panel:toggle'
-      waitsForPromise -> commandPanel.execute('X x/a/')
+      waitsForPromise -> commandPanel.execute('X x/sort/')
 
     describe "when move-down and move-up are triggered on the preview list", ->
       it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->
