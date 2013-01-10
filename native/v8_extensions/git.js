@@ -10,6 +10,7 @@ var $git = {};
   native function getDiffStats(path);
   native function isSubmodule(path);
   native function refreshIndex();
+  native function destroy();
 
   function GitRepository(path) {
     var repo = getRepository(path);
@@ -29,5 +30,6 @@ var $git = {};
   GitRepository.prototype.getDiffStats = getDiffStats;
   GitRepository.prototype.isSubmodule = isSubmodule;
   GitRepository.prototype.refreshIndex = refreshIndex;
+  GitRepository.prototype.destroy = destroy;
   this.GitRepository = GitRepository;
 })();

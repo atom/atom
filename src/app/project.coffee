@@ -34,6 +34,8 @@ class Project
     grammarOverridesByPath: @grammarOverridesByPath
 
   destroy: ->
+    @repo?.destroy()
+    @repo = null
     editSession.destroy() for editSession in @getEditSessions()
 
   addGrammarOverrideForPath: (path, grammar) ->

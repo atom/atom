@@ -1,4 +1,6 @@
 $ = require 'jquery'
+_ = require 'underscore'
+Subscriber = require 'subscriber'
 
 module.exports =
 class Git
@@ -23,11 +25,16 @@ class Git
 
   constructor: (path) ->
     @repo = new GitRepository(path)
-    $(window).on 'focus', => @refreshIndex()
+    @subscribe $(window), 'focus', => @refreshIndex()
 
   refreshIndex: -> @repo.refreshIndex()
 
   getPath: -> @repo.getPath()
+
+  destroy: ->
+    @repo.destroy()
+    @repo = null
+    @unsubscribe()
 
   getWorkingDirectory: ->
     repoPath = @getPath()
@@ -85,3 +92,5 @@ class Git
 
   isSubmodule: (path) ->
     @repo.isSubmodule(@relativize(path))
+
+_.extend Git.prototype, Subscriber
