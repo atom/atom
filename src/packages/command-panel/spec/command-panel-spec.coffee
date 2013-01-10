@@ -127,7 +127,7 @@ describe "CommandPanel", ->
     describe "when the preview list is/was previously visible", ->
       beforeEach ->
         rootView.trigger 'command-panel:toggle'
-        waitsForPromise -> commandPanel.execute('X x/a+/')
+        waitsForPromise -> commandPanel.execute('X x/quicksort/')
 
       describe "when the command panel is visible", ->
         beforeEach ->
