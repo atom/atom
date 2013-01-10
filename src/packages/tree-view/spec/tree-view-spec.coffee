@@ -66,23 +66,10 @@ describe "TreeView", ->
       it "serializes without throwing an exception", ->
         expect(-> treeView.serialize()).not.toThrow()
 
-      describe "when the project is assigned a path because a buffer is opened", ->
-        it "attaches the tree and creates a root directory view", ->
-          rootView.open(require.resolve('fixtures/sample.js'))
-          expect(treeView.hasParent()).toBeTruthy()
-          expect(treeView.root.getPath()).toBe require.resolve('fixtures')
-          expect(treeView.root.parent()).toMatchSelector(".tree-view")
-
-          oldRoot = treeView.root
-
-          rootView.project.setPath('/tmp')
-          expect(treeView.root).not.toEqual oldRoot
-          expect(oldRoot.hasParent()).toBeFalsy()
-
       describe "when the project is assigned a path because a new buffer is saved", ->
-        it "attaches the tree and creates a root directory view", ->
+        it "creates a root directory view but does not attach to the root view", ->
           rootView.getActiveEditSession().saveAs("/tmp/test.txt")
-          expect(treeView.hasParent()).toBeTruthy()
+          expect(treeView.hasParent()).toBeFalsy()
           expect(treeView.root.getPath()).toBe require.resolve('/tmp')
           expect(treeView.root.parent()).toMatchSelector(".tree-view")
 

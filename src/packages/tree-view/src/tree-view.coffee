@@ -17,11 +17,8 @@ class TreeView extends ScrollView
     else
       @instance = new TreeView(rootView)
 
-      if rootView.project.getPath()
-        @instance.attach() unless rootView.pathToOpenIsFile
-      else
-        rootView.project.one "path-changed", =>
-          @instance.attach()
+      if rootView.project.getPath() and not rootView.pathToOpenIsFile
+        @instance.attach()
 
   @deactivate: ->
     @instance.deactivate()
