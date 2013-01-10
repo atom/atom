@@ -1916,17 +1916,30 @@ describe "EditSession", ->
       editSession.buffer.reload()
       expect(editSession.getCursorScreenPosition()).toEqual [0,1]
 
-  describe "autoIndent", ->
-    describe "when editor.autoIndent returns true based on the EditSession's grammar scope", ->
-      it "auto indents lines", ->
-        syntax.addProperties("." + editSession.languageMode.grammar.scopeName, editor: autoIndent: true )
+  describe "auto-indent", ->
+    describe "editor.autoIndent", ->
+      it "auto-indents newlines by default", ->
         editSession.setCursorBufferPosition([1, 30])
         editSession.insertText("\n")
         expect(editSession.lineForBufferRow(2)).toBe "    "
 
-    describe "when editor.autoIndent returns false based on the EditSession's grammar scope", ->
-      it "auto indents lines", ->
-        syntax.addProperties("." + editSession.languageMode.grammar.scopeName, editor: autoIndent: false )
+      it "does not auto-indent newlines if editor.autoIndent is false", ->
+        config.set("editor.autoIndent", false)
         editSession.setCursorBufferPosition([1, 30])
         editSession.insertText("\n")
         expect(editSession.lineForBufferRow(2)).toBe ""
+
+      it "auto-indents calls to `indent` by default", ->
+        editSession.setCursorBufferPosition([1, 30])
+        editSession.insertText("\n ")
+        expect(editSession.lineForBufferRow(2)).toBe " "
+        editSession.indent()
+        expect(editSession.lineForBufferRow(2)).toBe "    "
+
+      it "does not auto-indents calls to `indent` if editor.autoIndent is false", ->
+        config.set("editor.autoIndent", false)
+        editSession.setCursorBufferPosition([1, 30])
+        editSession.insertText("\n ")
+        expect(editSession.lineForBufferRow(2)).toBe " "
+        editSession.indent()
+        expect(editSession.lineForBufferRow(2)).toBe "   "
