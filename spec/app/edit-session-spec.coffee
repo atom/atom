@@ -1915,3 +1915,18 @@ describe "EditSession", ->
       editSession.setCursorScreenPosition([0, 1])
       editSession.buffer.reload()
       expect(editSession.getCursorScreenPosition()).toEqual [0,1]
+
+  describe "autoIndent", ->
+    describe "when editor.autoIndent returns true based on the EditSession's grammar scope", ->
+      it "auto indents lines", ->
+        syntax.addProperties("." + editSession.languageMode.grammar.scopeName, editor: autoIndent: true )
+        editSession.setCursorBufferPosition([1, 30])
+        editSession.insertText("\n")
+        expect(editSession.lineForBufferRow(2)).toBe "    "
+
+    describe "when editor.autoIndent returns false based on the EditSession's grammar scope", ->
+      it "auto indents lines", ->
+        syntax.addProperties("." + editSession.languageMode.grammar.scopeName, editor: autoIndent: false )
+        editSession.setCursorBufferPosition([1, 30])
+        editSession.insertText("\n")
+        expect(editSession.lineForBufferRow(2)).toBe ""

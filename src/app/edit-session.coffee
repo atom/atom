@@ -158,7 +158,7 @@ class EditSession
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   shouldAutoIndent: ->
-    false
+    syntax.getProperty(["." + @languageMode.grammar.scopeName], "editor.autoIndent") ? false
 
   insertText: (text, options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
