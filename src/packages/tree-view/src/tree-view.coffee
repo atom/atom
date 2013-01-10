@@ -135,7 +135,6 @@ class TreeView extends ScrollView
 
   revealActiveFile: ->
     @attach()
-    @focus()
 
     return unless activeFilePath = @rootView.getActiveEditor()?.getPath()
 
