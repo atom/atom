@@ -121,3 +121,9 @@ describe "Git", ->
       expect(repo.checkoutHead(path1)).toBeTruthy()
       expect(fs.read(path2)).toBe('path 2 is edited')
       expect(repo.isPathModified(path2)).toBeTruthy()
+
+  describe ".destroy()", ->
+    it "throws an exception when any method is called after it is called", ->
+      repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
+      repo.destroy()
+      expect(-> repo.getHead()).toThrow()

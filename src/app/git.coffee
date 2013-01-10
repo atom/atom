@@ -27,12 +27,17 @@ class Git
     @repo = new GitRepository(path)
     @subscribe $(window), 'focus', => @refreshIndex()
 
-  refreshIndex: -> @repo.refreshIndex()
+  getRepo: ->
+    unless @repo?
+      throw new Error("Repository has been destroyed")
+    @repo
 
-  getPath: -> @repo.getPath()
+  refreshIndex: -> @getRepo().refreshIndex()
+
+  getPath: -> @getRepo().getPath()
 
   destroy: ->
-    @repo.destroy()
+    @getRepo().destroy()
     @repo = null
     @unsubscribe()
 
@@ -41,13 +46,13 @@ class Git
     repoPath?.substring(0, repoPath.length - 6)
 
   getHead: ->
-    @repo.getHead() or ''
+    @getRepo().getHead() or ''
 
   getPathStatus: (path) ->
-    pathStatus = @repo.getStatus(@relativize(path))
+    pathStatus = @getRepo().getStatus(@relativize(path))
 
   isPathIgnored: (path) ->
-    @repo.isIgnored(@relativize(path))
+    @getRepo().isIgnored(@relativize(path))
 
   isStatusModified: (status) ->
     modifiedFlags = @statusFlags.working_dir_modified |
@@ -85,12 +90,12 @@ class Git
     return head
 
   checkoutHead: (path) ->
-    @repo.checkoutHead(@relativize(path))
+    @getRepo().checkoutHead(@relativize(path))
 
   getDiffStats: (path) ->
-    @repo.getDiffStats(@relativize(path)) or added: 0, deleted: 0
+    @getRepo().getDiffStats(@relativize(path)) or added: 0, deleted: 0
 
   isSubmodule: (path) ->
-    @repo.isSubmodule(@relativize(path))
+    @getRepo().isSubmodule(@relativize(path))
 
 _.extend Git.prototype, Subscriber
