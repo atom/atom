@@ -86,6 +86,18 @@ describe "TreeView", ->
           expect(treeView.root.getPath()).toBe require.resolve('/tmp')
           expect(treeView.root.parent()).toMatchSelector(".tree-view")
 
+    describe "when the root view is opened to a file path", ->
+      beforeEach ->
+        rootView.deactivate()
+
+        rootView = new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
+        atom.loadPackage 'tree-view'
+        treeView = TreeView.instance
+
+      it "does not attach to the root view but does create a root node when initialized", ->
+        expect(treeView.hasParent()).toBeFalsy()
+        expect(treeView.root).toExist()
+
   describe "serialization", ->
     [newRootView, newTreeView] = []
 

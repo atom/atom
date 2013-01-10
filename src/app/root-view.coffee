@@ -36,6 +36,7 @@ class RootView extends View
   packageModules: null
   packageStates: null
   title: null
+  pathToOpenIsFile: false
 
   initialize: (projectOrPathToOpen, { @packageStates, suppressOpen } = {}) ->
     window.rootView = this
@@ -48,11 +49,12 @@ class RootView extends View
       @project = new Project(projectOrPathToOpen)
     else
       @project = projectOrPathToOpen
+    @pathToOpenIsFile = pathToOpen and fs.isFile(pathToOpen)
 
     config.load()
 
     if pathToOpen
-      @open(pathToOpen) if fs.isFile(pathToOpen) and not suppressOpen
+      @open(pathToOpen) if @pathToOpenIsFile and not suppressOpen
     else
       @open()
 

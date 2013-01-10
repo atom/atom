@@ -18,7 +18,7 @@ class TreeView extends ScrollView
       @instance = new TreeView(rootView)
 
       if rootView.project.getPath()
-        @instance.attach()
+        @instance.attach() unless rootView.pathToOpenIsFile
       else
         rootView.project.one "path-changed", =>
           @instance.attach()
