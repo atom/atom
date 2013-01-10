@@ -20,6 +20,7 @@ module.exports =
       success: (response) ->
         pasteboard.write(response.html_url)
         notification = $$ ->
-          @div "Gist #{response.id} created", class: 'gist-notification'
+          @div class: 'gist-notification', =>
+            @span "Gist #{response.id} created"
         rootView.append(notification.hide())
         notification.fadeIn().delay(1800).fadeOut(complete: -> $(this).remove())

@@ -4,8 +4,24 @@
   left: 50%;
   margin-left: -5%;
   z-index: 99;
-  padding: 10px;
+  padding-left: 5px;
+  padding-right: 10px;
   -webkit-box-shadow: 0px 0px 5px 5px #222;
   color: #FFF;
   background-color: #444;
+}
+
+.gist-notification span {
+  position: relative;
+  top: -8px;
+}
+
+.gist-notification:before {
+  font-family: 'Octicons Regular';
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  margin-right: 5px;
+  -webkit-font-smoothing: antialiased;
+  content: "\f08c";
 }
