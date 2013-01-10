@@ -1,4 +1,5 @@
 $ = require 'jquery'
+{$$} = require 'space-pen'
 
 module.exports =
   activate: (rootView) ->
@@ -16,4 +17,9 @@ module.exports =
       dataType: 'json'
       contentType: 'application/json; charset=UTF-8'
       data: JSON.stringify(gist)
-      success: (response) -> pasteboard.write(response.html_url)
+      success: (response) ->
+        pasteboard.write(response.html_url)
+        notification = $$ ->
+          @div "Gist #{response.id} created", class: 'gist-notification'
+        rootView.append(notification.hide())
+        notification.fadeIn().delay(1800).fadeOut(complete: -> $(this).remove())

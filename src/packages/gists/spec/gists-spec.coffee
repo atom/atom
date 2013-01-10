@@ -17,21 +17,37 @@ describe "Gists package", ->
   describe "when gist:create is triggered on an editor", ->
 
     describe "when the editor has no selection", ->
-      it "creates an Ajax request to api.github.com with the entire buffer contents as the Gist's content", ->
+      [request, originalFxOffValue] = []
+
+      beforeEach ->
+        originalFxOffValue = $.fx.off
+        $.fx.off = true
         editor.trigger 'gist:create'
         expect($.ajax).toHaveBeenCalled()
         request = $.ajax.argsForCall[0][0]
+
+      afterEach ->
+        $.fx.off = originalFxOffValue
+
+      it "creates an Ajax request to api.github.com with the entire buffer contents as the Gist's content", ->
         expect(request.url).toBe 'https://api.github.com/gists'
         expect(request.type).toBe 'POST'
         requestData = JSON.parse(request.data)
         expect(requestData.public).toBeFalsy()
         expect(requestData.files).toEqual 'sample.js': content: editor.getText()
 
-      it "places the created Gist's URL on the clipboard", ->
-        editor.trigger 'gist:create'
-        request = $.ajax.argsForCall[0][0]
-        request.success(html_url: 'https://gist.github.com/1')
-        expect(pasteboard.read()[0]).toBe 'https://gist.github.com/1'
+      describe "when the server responds successfully", ->
+        beforeEach ->
+          request.success(html_url: 'https://gist.github.com/1', id: '1')
+
+        it "places the created Gist's URL on the clipboard", ->
+          expect(pasteboard.read()[0]).toBe 'https://gist.github.com/1'
+
+        it "flashes that the Gist was created", ->
+          expect(rootView.find('.gist-notification')).toExist()
+          expect(rootView.find('.gist-notification').text()).toBe 'Gist 1 created'
+          advanceClock(2000)
+          expect(rootView.find('.gist-notification')).not.toExist()
 
     describe "when the editor has a selection", ->
       beforeEach ->
