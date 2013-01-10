@@ -161,7 +161,7 @@ class EditSession
     config.get("editor.autoIndent") ? true
 
   shouldAutoIndentPastedText: ->
-    config.get("editor.autoIndentPastedText") ? false
+    config.get("editor.autoIndentOnPaste") ? false
 
   insertText: (text, options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
@@ -230,7 +230,6 @@ class EditSession
     [text, metadata] = pasteboard.read()
     _.extend(options, metadata) if metadata
 
-    console.log options
     @insertText(text, options)
 
   undo: ->
