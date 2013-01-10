@@ -139,6 +139,7 @@ class EditSession
   getLastBufferRow: -> @buffer.getLastRow()
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
@@ -488,6 +489,9 @@ class EditSession
 
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
+
+  getCurrentParagraphBufferRange: ->
+    @getCursor().getCurrentParagraphBufferRange()
 
   moveCursorUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount)

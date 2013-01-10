@@ -307,6 +307,36 @@ describe "EditSession", ->
         editSession.moveCursorToEndOfWord()
         expect(editSession.getCursorBufferPosition()).toEqual endPosition
 
+    describe ".getCurrentParagraphBufferRange()", ->
+      it "returns the buffer range of the current paragraph, delimited by blank lines or the beginning / end of the file", ->
+        buffer.setText """
+            I am the first paragraph,
+          bordered by the beginning of
+          the file
+          #{'   '}
+
+            I am the second paragraph
+          with blank lines above and below
+          me.
+
+          I am the last paragraph,
+          bordered by the end of the file.
+        """
+
+        # in a paragraph
+        editSession.setCursorBufferPosition([1, 7])
+        expect(editSession.getCurrentParagraphBufferRange()).toEqual [[0, 0], [2, 8]]
+
+        editSession.setCursorBufferPosition([7, 1])
+        expect(editSession.getCurrentParagraphBufferRange()).toEqual [[5, 0], [7, 3]]
+
+        editSession.setCursorBufferPosition([9, 10])
+        expect(editSession.getCurrentParagraphBufferRange()).toEqual [[9, 0], [10, 32]]
+
+        # between paragraphs
+        editSession.setCursorBufferPosition([3, 1])
+        expect(editSession.getCurrentParagraphBufferRange()).toBeUndefined()
+
   describe "selection", ->
     selection = null
 
