@@ -19,7 +19,7 @@ describe 'FuzzyFinder', ->
   describe "file-finder behavior", ->
     describe "toggling", ->
       describe "when the root view's project has a path", ->
-        it "shows the FuzzyFinder or hides it nad returns focus to the active editor if it already showing", ->
+        it "shows the FuzzyFinder or hides it and returns focus to the active editor if it already showing", ->
           rootView.attachToDom()
           expect(rootView.find('.fuzzy-finder')).not.toExist()
           rootView.find('.editor').trigger 'editor:split-right'
