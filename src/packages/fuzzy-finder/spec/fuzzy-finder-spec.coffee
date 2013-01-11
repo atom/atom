@@ -251,28 +251,17 @@ describe 'FuzzyFinder', ->
         expect(rootView.project.getFilePaths).toHaveBeenCalled()
 
   describe "path ignoring", ->
-    it "ignores paths that match entries in config.fuzzy-finder.ignoredNames", ->
+    it "ignores paths that match entries in config.fuzzyFinder.ignoredNames", ->
       spyOn(rootView.project, "getFilePaths").andCallThrough()
-      config.set("fuzzy-finder.ignoredNames", ["tree-view"])
+      config.set("fuzzyFinder.ignoredNames", ["tree-view.js"])
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
       finder.maxItems = Infinity
-      finder.miniEditor.setText("file1")
 
       waitsFor ->
         finder.list.children('li').length > 0
 
       runs ->
-        expect(rootView.project.getFilePaths).toHaveBeenCalled()
-        rootView.project.getFilePaths.reset()
-        $(window).trigger 'focus'
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
-
-      waitsFor ->
-        finder.list.children('li').length > 0
-
-      runs ->
-        expect(rootView.project.getFilePaths).toHaveBeenCalled()
+        expect(finder.list.find("li:contains(tree-view.js)")).not.toExist()
 
   describe "opening a path into a split", ->
     beforeEach ->
