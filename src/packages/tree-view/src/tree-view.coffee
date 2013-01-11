@@ -208,7 +208,7 @@ class TreeView extends ScrollView
     entry = @selectedEntry()
     return unless entry
     oldPath = entry.getPath()
-    if fs.isFile(oldPath)
+    if entry instanceof FileView
       prompt = "Enter the new path for the file."
     else
       prompt = "Enter the new path for the directory."
