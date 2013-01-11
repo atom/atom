@@ -86,6 +86,28 @@ class CommandLogger extends ScrollView
       @div style: "height:#{node.dy - 1}px;width:#{node.dx - 1}px", =>
         @span node.name
 
+  updateCategoryHeader: (node) ->
+    @categoryHeader.text("#{node.name} Commands")
+    reduceRunCount = (previous, current) ->
+      if current.size?
+        previous + current.size
+      else if current.children?.length > 0
+        current.children.reduce(reduceRunCount, previous)
+      else
+        previous
+    runCount = node.children.reduce(reduceRunCount, 0)
+    reduceCommandCount = (previous, current) ->
+      if current.children?.length > 0
+        current.children.reduce(reduceCommandCount, previous)
+      else
+        previous + 1
+    commandCount = node.children.reduce(reduceCommandCount, 0)
+    @categorySummary.text("#{_.pluralize(commandCount, 'command')}, #{_.pluralize(runCount, 'invocation')}")
+
+  updateTreeMapSize: ->
+    @treeMap.width(@width() - 20)
+    @treeMap.height(@height() - @categoryHeader.outerHeight() - @categorySummary.outerHeight() - 20)
+
   addTreeMap: ->
     root =
      name: 'All'
@@ -94,33 +116,17 @@ class CommandLogger extends ScrollView
 
     @treeMap.empty()
 
+    @updateCategoryHeader(root)
+    @updateTreeMapSize()
     w = @treeMap.width()
     h = @treeMap.height()
+
     x = d3.scale.linear().range([0, w])
     y = d3.scale.linear().range([0, h])
     color = d3.scale.category20()
 
-    updateCategoryHeader = (node) =>
-      @categoryHeader.text("#{node.name} Commands")
-      reduceRunCount = (previous, current) ->
-        if current.size?
-          previous + current.size
-        else if current.children?.length > 0
-          current.children.reduce(reduceRunCount, previous)
-        else
-          previous
-      runCount = node.children.reduce(reduceRunCount, 0)
-      reduceCommandCount = (previous, current) ->
-        if current.children?.length > 0
-          current.children.reduce(reduceCommandCount, previous)
-        else
-          previous + 1
-      commandCount = node.children.reduce(reduceCommandCount, 0)
-      @categorySummary.text("#{_.pluralize(commandCount, 'command')}, #{_.pluralize(runCount, 'invocation')}")
-    updateCategoryHeader(root)
-
-    zoom = (d) ->
-      updateCategoryHeader(d)
+    zoom = (d) =>
+      @updateCategoryHeader(d)
       kx = w / d.dx
       ky = h / d.dy
       x.domain([d.x, d.x + d.dx])
