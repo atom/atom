@@ -49,6 +49,7 @@ class RootView extends View
       @project = new Project(projectOrPathToOpen)
     else
       @project = projectOrPathToOpen
+      pathToOpen = @project?.getPath()
     @pathToOpenIsFile = pathToOpen and fs.isFile(pathToOpen)
 
     config.load()
