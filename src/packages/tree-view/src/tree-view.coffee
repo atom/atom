@@ -208,9 +208,13 @@ class TreeView extends ScrollView
     entry = @selectedEntry()
     return unless entry
     oldPath = entry.getPath()
+    if fs.isFile(oldPath)
+      prompt = "Enter the new path for the file."
+    else
+      prompt = "Enter the new path for the directory."
 
     dialog = new Dialog
-      prompt: "Enter the new path for the file."
+      prompt: prompt
       path: @rootView.project.relativize(oldPath)
       select: true
       iconClass: 'move'
