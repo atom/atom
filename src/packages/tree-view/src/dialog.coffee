@@ -23,7 +23,11 @@ class Dialog extends View
     if select
       extension = fs.extension(path)
       baseName = fs.base(path)
-      range = [[0, path.length - baseName.length], [0, path.length - extension.length]]
+      if baseName is extension
+        selectionEnd = path.length
+      else
+        selectionEnd = path.length - extension.length
+      range = [[0, path.length - baseName.length], [0, selectionEnd]]
       @miniEditor.setSelectedBufferRange(range)
 
   close: ->

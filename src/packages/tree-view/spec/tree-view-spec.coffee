@@ -831,6 +831,24 @@ describe "TreeView", ->
             expect(moveDialog.parent()).not.toExist()
             expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
+      describe "when a file is selected that's name starts with a '.'", ->
+        [dotFilePath, dotFileView, moveDialog] = []
+
+        beforeEach ->
+          dotFilePath = fs.join(dirPath, ".dotfile")
+          fs.write(dotFilePath, "dot")
+          dirView.collapse()
+          dirView.expand()
+          dotFileView = treeView.find('.file:contains(.dotfile)').view()
+          dotFileView.click()
+          treeView.trigger "tree-view:move"
+          moveDialog = rootView.find(".tree-view-dialog").view()
+
+        it "selects the entire file name", ->
+          expect(moveDialog).toExist()
+          expect(moveDialog.miniEditor.getText()).toBe(project.relativize(dotFilePath))
+          expect(moveDialog.miniEditor.getSelectedText()).toBe '.dotfile'
+
     describe "tree-view:remove", ->
       it "shows the native alert dialog", ->
         fileView.click()
