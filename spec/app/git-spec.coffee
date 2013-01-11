@@ -8,7 +8,7 @@ describe "Git", ->
 
   describe "@open(path)", ->
     it "returns null when no repository is found", ->
-      expect(Git.open('/tmp/nogit.txt')).toBeNull(0)
+      expect(Git.open('/tmp/nogit.txt')).toBeNull()
 
   describe "new Git(path)", ->
     it "throws an exception when no repository is found", ->
@@ -121,3 +121,9 @@ describe "Git", ->
       expect(repo.checkoutHead(path1)).toBeTruthy()
       expect(fs.read(path2)).toBe('path 2 is edited')
       expect(repo.isPathModified(path2)).toBeTruthy()
+
+  describe ".destroy()", ->
+    it "throws an exception when any method is called after it is called", ->
+      repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
+      repo.destroy()
+      expect(-> repo.getHead()).toThrow()

@@ -1,5 +1,5 @@
 $ = require 'jquery'
-{$$} = require 'space-pen'
+{View, $$} = require 'space-pen'
 
 describe 'jQuery extensions', ->
   describe '$.fn.preempt(eventName, handler)', ->
@@ -75,3 +75,33 @@ describe 'jQuery extensions', ->
         'b2': "B2: Looks evil. Kinda is."
         'a1': "A1: Waste perfectly-good steak"
         'a2': null
+
+  describe "Event.prototype", ->
+    class GrandchildView extends View
+      @content: -> @div class: 'grandchild'
+
+    class ChildView extends View
+      @content: ->
+        @div class: 'child', =>
+          @subview 'grandchild', new GrandchildView
+
+    class ParentView extends View
+      @content: ->
+        @div class: 'parent', =>
+          @subview 'child', new ChildView
+
+    [parentView, event] = []
+    beforeEach ->
+      parentView = new ParentView
+      eventHandler = jasmine.createSpy('eventHandler')
+      parentView.on 'foo', '.child', eventHandler
+      parentView.child.grandchild.trigger 'foo'
+      event = eventHandler.argsForCall[0][0]
+
+    describe ".currentTargetView()", ->
+      it "returns the current target's space pen view", ->
+        expect(event.currentTargetView()).toBe parentView.child
+
+    describe ".targetView()", ->
+      it "returns the target's space pen view", ->
+        expect(event.targetView()).toBe parentView.child.grandchild

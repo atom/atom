@@ -127,7 +127,7 @@ describe "CommandPanel", ->
     describe "when the preview list is/was previously visible", ->
       beforeEach ->
         rootView.trigger 'command-panel:toggle'
-        waitsForPromise -> commandPanel.execute('X x/a+/')
+        waitsForPromise -> commandPanel.execute('X x/quicksort/')
 
       describe "when the command panel is visible", ->
         beforeEach ->
@@ -290,22 +290,22 @@ describe "CommandPanel", ->
         rootView.attachToDom()
         editor.remove()
         rootView.trigger 'command-panel:toggle'
-        waitsForPromise -> commandPanel.execute('X x/a+/')
+        waitsForPromise -> commandPanel.execute('X x/quicksort/')
 
       it "displays and focuses the operation preview list", ->
         expect(commandPanel).toBeVisible()
         expect(commandPanel.previewList).toBeVisible()
         expect(commandPanel.previewList).toMatchSelector ':focus'
-        previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
-        expect(previewItem.text()).toBe "dir/a"
-        expect(previewItem.next().find('.preview').text()).toBe "aaa bbb"
-        expect(previewItem.next().find('.preview > .match').text()).toBe "aaa"
+        previewItem = commandPanel.previewList.find("li:contains(sample.js):first")
+        expect(previewItem.text()).toBe "sample.js"
+        expect(previewItem.next().find('.preview').text()).toBe "var quicksort = function () {"
+        expect(previewItem.next().find('.preview > .match').text()).toBe "quicksort"
 
         rootView.trigger 'command-panel:toggle-preview' # ensure we can close panel without problems
         expect(commandPanel).toBeHidden()
 
       it "destroys previously previewed operations if there are any", ->
-        waitsForPromise -> commandPanel.execute('X x/b+/')
+        waitsForPromise -> commandPanel.execute('X x/pivot/')
         # there shouldn't be any dangling operations after this
 
     describe "if the command is malformed", ->
@@ -375,7 +375,7 @@ describe "CommandPanel", ->
     beforeEach ->
       previewList = commandPanel.previewList
       rootView.trigger 'command-panel:toggle'
-      waitsForPromise -> commandPanel.execute('X x/a/')
+      waitsForPromise -> commandPanel.execute('X x/sort/')
 
     describe "when move-down and move-up are triggered on the preview list", ->
       it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->

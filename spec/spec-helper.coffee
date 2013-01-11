@@ -13,11 +13,12 @@ TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
 require 'window'
 requireStylesheet "jasmine.css"
-require.paths.unshift(require.resolve('fixtures/packages'))
+fixturePackagesPath = require.resolve('fixtures/packages')
+require.paths.unshift(fixturePackagesPath)
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 # Load TextMate bundles, which specs rely on (but not other packages)
-atom.loadPackages(atom.getAvailableTextMateBundles())
+atom.loadTextMatePackages()
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
@@ -29,9 +30,11 @@ beforeEach ->
 
   # reset config before each spec; don't load or save from/to `config.json`
   window.config = new Config()
+  config.packageDirPaths.unshift(fixturePackagesPath)
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.set "editor.fontSize", 16
+  config.set "editor.autoIndent", false
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
@@ -43,6 +46,10 @@ beforeEach ->
   # make tokenization synchronous
   TokenizedBuffer.prototype.chunkSize = Infinity
   spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
+
+  pasteboardContent = 'initial pasteboard content'
+  spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboardContent = text
+  spyOn($native, 'readFromPasteboard').andCallFake -> pasteboardContent
 
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
@@ -192,9 +199,6 @@ $.fn.textInput = (data) ->
     event.initTextEvent('textInput', true, true, window, data)
     event = jQuery.event.fix(event)
     $(this).trigger(event)
-
-$.fn.simulateDomAttachment = ->
-  $('<html>').append(this)
 
 unless fs.md5ForPath(require.resolve('fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
   throw "Sample.js is modified"

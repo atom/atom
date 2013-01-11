@@ -25,7 +25,7 @@ class StatusBar extends View
         @span class: 'current-path', outlet: 'currentPath'
         @span class: 'buffer-modified', outlet: 'bufferModified'
       @span class: 'cursor-position', outlet: 'cursorPosition'
-
+      @span class: 'grammar-name', outlet: 'grammarName'
 
   initialize: (@rootView, @editor) ->
     @updatePathText()
@@ -36,6 +36,8 @@ class StatusBar extends View
     @updateCursorPositionText()
     @subscribe @editor, 'cursor:moved', => @updateCursorPositionText()
     @subscribe $(window), 'focus', => @updateStatusBar()
+    @subscribe @grammarName, 'click', => @editor.trigger 'editor:select-grammar'
+    @subscribe @editor, 'editor:grammar-changed', => @updateGrammarText()
 
     @subscribeToBuffer()
 
@@ -48,9 +50,13 @@ class StatusBar extends View
     @updateStatusBar()
 
   updateStatusBar: ->
+    @updateGrammarText()
     @updateBranchText()
     @updateBufferHasModifiedText(@buffer.isModified())
     @updateStatusText()
+
+  updateGrammarText: ->
+    @grammarName.text(@editor.getGrammar().name)
 
   updateBufferHasModifiedText: (differsFromDisk)->
     if differsFromDisk

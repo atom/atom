@@ -1,0 +1,44 @@
+".source.coffee":
+  "Describe block":
+    prefix: "de"
+    body: """
+      describe "${1:description}", ->
+        ${2:body}
+    """
+  "It block":
+    prefix: "i"
+    body: """
+      it "$1", ->
+        $2
+    """
+  "Before each":
+    prefix: "be"
+    body: """
+      beforeEach ->
+        $1
+    """
+  "After each":
+    prefix: "af"
+    body: """
+      afterEach ->
+        $1
+    """
+  "Expectation":
+    prefix: "ex"
+    body: "expect($1).to$2"
+  "Console log":
+    prefix: "log"
+    body: "console.log $1"
+  "Range array":
+    prefix: "ra"
+    body: "[[$1, $2], [$3, $4]]"
+  "Point array":
+    prefix: "pt"
+    body: "[$1, $2]"
+
+  "Key-value pair":
+    prefix: ":"
+    body: '${1:"${2:key}"}: ${3:value}'
+  "Create Jasmine spy":
+    prefix: "spy"
+    body: 'jasmine.createSpy("${1:description}")$2'

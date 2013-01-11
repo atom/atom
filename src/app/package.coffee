@@ -2,15 +2,13 @@ fs = require 'fs'
 
 module.exports =
 class Package
-  @load: (name) ->
+  @build: (name) ->
     AtomPackage = require 'atom-package'
     TextMatePackage = require 'text-mate-package'
-
     if TextMatePackage.testName(name)
-      new TextMatePackage(name).load()
+      new TextMatePackage(name)
     else
-      new AtomPackage(name).load()
-
+      new AtomPackage(name)
 
   name: null
   path: null
@@ -26,10 +24,3 @@ class Package
     else
       @requireModule = true
       @path = fs.directory(@path)
-
-  load: ->
-    for grammar in @getGrammars()
-      syntax.addGrammar(grammar)
-
-    for { selector, properties } in @getScopedProperties()
-      syntax.addProperties(selector, properties)

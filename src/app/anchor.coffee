@@ -10,6 +10,7 @@ class Anchor
   screenPosition: null
   ignoreChangesStartingOnAnchor: false
   strong: false
+  destroyed: false
 
   constructor: (@buffer, options = {}) ->
     { @editSession, @ignoreChangesStartingOnAnchor, @strong } = options
@@ -81,8 +82,10 @@ class Anchor
     @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false, autoscroll: options.autoscroll)
 
   destroy: ->
+    return if @destroyed
     @buffer.removeAnchor(this)
     @editSession?.removeAnchor(this)
+    @destroyed = true
     @trigger 'destroyed'
 
 _.extend(Anchor.prototype, EventEmitter)

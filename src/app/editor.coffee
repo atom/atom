@@ -17,6 +17,8 @@ class Editor extends View
     fontSize: 20
     showInvisibles: false
     autosave: false
+    autoIndent: true
+    autoIndentOnPaste: false
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
@@ -80,7 +82,6 @@ class Editor extends View
         buffer: new Buffer()
         softWrap: false
         tabLength: 2
-        autoIndent: false
         softTabs: true
 
       @editSessions.push editSession
@@ -176,8 +177,8 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
-        'editor:close-other-editors': @destroyInactiveEditSessions
-        'editor:close-all-editors': @destroyAllEditSessions
+        'editor:close-other-edit-sessions': @destroyInactiveEditSessions
+        'editor:close-all-edit-sessions': @destroyAllEditSessions
         'editor:select-grammar': @selectGrammar
 
     documentation = {}
@@ -205,6 +206,7 @@ class Editor extends View
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
+  getCurrentParagraphBufferRange: -> @activeEditSession.getCurrentParagraphBufferRange()
 
   getSelection: (index) -> @activeEditSession.getSelection(index)
   getSelections: -> @activeEditSession.getSelections()
@@ -244,7 +246,7 @@ class Editor extends View
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
-  indent: -> @activeEditSession.indent()
+  indent: (options) -> @activeEditSession.indent(options)
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
   cutSelection: -> @activeEditSession.cutSelectedText()
@@ -381,7 +383,7 @@ class Editor extends View
       @selectOnMousemoveUntilMouseup()
 
     @on "textInput", (e) =>
-      @insertText(e.originalEvent.data, autoIndent: true)
+      @insertText(e.originalEvent.data)
       false
 
     @scrollView.on 'mousewheel', (e) =>
@@ -1126,4 +1128,22 @@ class Editor extends View
     if grammarChanged
       @clearRenderedLines()
       @updateDisplay()
+      @trigger 'editor:grammar-changed'
     grammarChanged
+
+  bindToKeyedEvent: (key, event, callback) ->
+    binding = {}
+    binding[key] = event
+    window.keymap.bindKeys '.editor', binding
+    @on event, =>
+      callback(this, event)
+
+  replaceSelectedText: (replaceFn) ->
+    selection = @getSelection()
+    return false if selection.isEmpty()
+
+    text = replaceFn(@getTextInRange(selection.getBufferRange()))
+    return false if text is null or text is undefined
+
+    @insertText(text, select: true)
+    true

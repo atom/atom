@@ -16,7 +16,6 @@ class Project
     new Project(state.path, state.grammarOverridesByPath)
 
   tabLength: 2
-  autoIndent: true
   softTabs: true
   softWrap: false
   rootDirectory: null
@@ -34,6 +33,8 @@ class Project
     grammarOverridesByPath: @grammarOverridesByPath
 
   destroy: ->
+    @repo?.destroy()
+    @repo = null
     editSession.destroy() for editSession in @getEditSessions()
 
   addGrammarOverrideForPath: (path, grammar) ->
@@ -91,9 +92,6 @@ class Project
   relativize: (fullPath) ->
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
-  getAutoIndent: -> @autoIndent
-  setAutoIndent: (@autoIndent) ->
-
   getSoftTabs: -> @softTabs
   setSoftTabs: (@softTabs) ->
 
@@ -114,7 +112,6 @@ class Project
 
   defaultEditSessionOptions: ->
     tabLength: @tabLength
-    autoIndent: @getAutoIndent()
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()
 

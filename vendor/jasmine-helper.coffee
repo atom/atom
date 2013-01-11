@@ -6,6 +6,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   nakedLoad 'jasmine-focused'
 
   $ = require 'jquery'
+  TimeReporter = require 'time-reporter'
 
   $('body').append $$ ->
     @div id: 'jasmine-content'
@@ -18,5 +19,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   require specSuite
   jasmineEnv = jasmine.getEnv()
   jasmineEnv.addReporter(reporter)
+
+  jasmineEnv.addReporter(new TimeReporter())
   jasmineEnv.specFilter = (spec) -> reporter.specFilter(spec)
   jasmineEnv.execute()

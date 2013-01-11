@@ -31,6 +31,7 @@ void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exceptio
 Native::Native() : CefV8Handler() {
   NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/native.js"];
   NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
+  windowState = "{}";
   CefRegisterExtension("v8/native", [extensionCode UTF8String], this);
 }
 
@@ -483,6 +484,16 @@ bool Native::Execute(const CefString& name,
   }
   else if (name == "getPlatform") {
     retval = CefV8Value::CreateString("mac");
+    return true;
+  }
+
+  else if (name == "setWindowState") {
+    windowState = arguments[0]->GetStringValue().ToString();
+    return true;
+  }
+
+  else if (name == "getWindowState") {
+    retval = CefV8Value::CreateString(windowState);
     return true;
   }
 

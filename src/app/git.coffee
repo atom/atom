@@ -1,4 +1,6 @@
 $ = require 'jquery'
+_ = require 'underscore'
+Subscriber = require 'subscriber'
 
 module.exports =
 class Git
@@ -23,26 +25,34 @@ class Git
 
   constructor: (path) ->
     @repo = new GitRepository(path)
+    @subscribe $(window), 'focus', => @refreshIndex()
+
+  getRepo: ->
     unless @repo?
-      throw new Error("No Git repository found searching path: #{path}")
-    $(window).on 'focus', => @refreshIndex()
+      throw new Error("Repository has been destroyed")
+    @repo
 
-  refreshIndex: -> @repo.refreshIndex()
+  refreshIndex: -> @getRepo().refreshIndex()
 
-  getPath: -> @repo.getPath()
+  getPath: -> @getRepo().getPath()
+
+  destroy: ->
+    @getRepo().destroy()
+    @repo = null
+    @unsubscribe()
 
   getWorkingDirectory: ->
     repoPath = @getPath()
     repoPath?.substring(0, repoPath.length - 6)
 
   getHead: ->
-    @repo.getHead() or ''
+    @getRepo().getHead() or ''
 
   getPathStatus: (path) ->
-    pathStatus = @repo.getStatus(@relativize(path))
+    pathStatus = @getRepo().getStatus(@relativize(path))
 
   isPathIgnored: (path) ->
-    @repo.isIgnored(@relativize(path))
+    @getRepo().isIgnored(@relativize(path))
 
   isStatusModified: (status) ->
     modifiedFlags = @statusFlags.working_dir_modified |
@@ -80,10 +90,12 @@ class Git
     return head
 
   checkoutHead: (path) ->
-    @repo.checkoutHead(@relativize(path))
+    @getRepo().checkoutHead(@relativize(path))
 
   getDiffStats: (path) ->
-    @repo.getDiffStats(@relativize(path)) or added: 0, deleted: 0
+    @getRepo().getDiffStats(@relativize(path)) or added: 0, deleted: 0
 
   isSubmodule: (path) ->
-    @repo.isSubmodule(@relativize(path))
+    @getRepo().isSubmodule(@relativize(path))
+
+_.extend Git.prototype, Subscriber

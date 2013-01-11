@@ -1,4 +1,7 @@
 Range = require 'range'
+EventEmitter = require 'event-emitter'
+Subscriber = require 'subscriber'
+_ = require 'underscore'
 
 module.exports =
 class AnchorRange
@@ -6,11 +9,14 @@ class AnchorRange
   end: null
   buffer: null
   editSession: null # optional
+  destroyed: false
 
   constructor: (bufferRange, @buffer, @editSession) ->
     bufferRange = Range.fromObject(bufferRange)
     @startAnchor = @buffer.addAnchorAtPosition(bufferRange.start, ignoreChangesStartingOnAnchor: true)
     @endAnchor = @buffer.addAnchorAtPosition(bufferRange.end)
+    @subscribe @startAnchor, 'destroyed', => @destroy()
+    @subscribe @endAnchor, 'destroyed', => @destroy()
 
   getBufferRange: ->
     new Range(@startAnchor.getBufferPosition(), @endAnchor.getBufferPosition())
@@ -22,7 +28,14 @@ class AnchorRange
     @getBufferRange().containsPoint(bufferPosition)
 
   destroy: ->
+    return if @destroyed
+    @unsubscribe()
     @startAnchor.destroy()
     @endAnchor.destroy()
     @buffer.removeAnchorRange(this)
     @editSession?.removeAnchorRange(this)
+    @destroyed = true
+    @trigger 'destroyed'
+
+_.extend(AnchorRange.prototype, EventEmitter)
+_.extend(AnchorRange.prototype, Subscriber)
