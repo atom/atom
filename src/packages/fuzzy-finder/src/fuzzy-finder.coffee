@@ -65,8 +65,12 @@ class FuzzyFinder extends SelectList
 
   confirmed : (path) ->
     return unless path.length
-    @cancel()
-    @openPath(path)
+    if fs.isFile(rootView.project.resolve(path))
+      @cancel()
+      @openPath(path)
+    else
+      @setError('Selected path does not exist')
+      setTimeout(=> @setError('')), 2000
 
   cancelled: ->
     @miniEditor.setText('')
