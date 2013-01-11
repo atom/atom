@@ -47,14 +47,7 @@ class Config
       _.valueForKeyPath(@defaultSettings, keyPath)
 
   set: (keyPath, value) ->
-    keys = keyPath.split('.')
-    hash = @settings
-    while keys.length > 1
-      key = keys.shift()
-      hash[key] ?= {}
-      hash = hash[key]
-    hash[keys.shift()] = value
-
+    _.setValueForKeyPath(@settings, keyPath, value)
     @update()
     value
 

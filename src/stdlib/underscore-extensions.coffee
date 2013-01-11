@@ -99,6 +99,14 @@ _.mixin
       return unless object?
     object
 
+  setValueForKeyPath: (object, keyPath, value) ->
+    keys = keyPath.split('.')
+    while keys.length > 1
+      key = keys.shift()
+      object[key] ?= {}
+      object = object[key]
+    object[keys.shift()] = value
+
   compactObject: (object) ->
     newObject = {}
     for key, value of object
