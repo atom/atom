@@ -177,8 +177,8 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
-        'editor:close-other-editors': @destroyInactiveEditSessions
-        'editor:close-all-editors': @destroyAllEditSessions
+        'editor:close-other-edit-sessions': @destroyInactiveEditSessions
+        'editor:close-all-edit-sessions': @destroyAllEditSessions
         'editor:select-grammar': @selectGrammar
 
     documentation = {}
