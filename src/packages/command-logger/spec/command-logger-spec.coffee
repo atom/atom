@@ -9,7 +9,6 @@ describe "CommandLogger", ->
     atom.loadPackage 'command-logger'
     editor = rootView.getActiveEditor()
     commandLogger = CommandLogger.instance
-    rootView.attachToDom()
 
   afterEach ->
     rootView.deactivate()
