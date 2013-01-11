@@ -157,9 +157,6 @@ directory, it will automatically be translated from TextMate's format to CSS
 so it works with Atom. There are a few slight differences between TextMate's
 semantics and those of stylesheets, but they should be negligible in practice.
 
-
-# Packages
-
 ### Grammars
 
 ## TextMate Compatibility
