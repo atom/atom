@@ -47,8 +47,10 @@ windowAdditions =
       false
 
   shutdown: ->
-    @rootView?.deactivate()
-    @rootView = null
+    if @rootView
+      atom.setWindowState('pathToOpen', @rootView.project.getPath())
+      @rootView.deactivate()
+      @rootView = null
     $(window).unbind('focus')
     $(window).unbind('blur')
     $(window).off('before')

@@ -76,4 +76,10 @@ var $native = {};
   native function getPlatform();
   $native.getPlatform = getPlatform;
 
+  native function setWindowState(state);
+  $native.setWindowState = setWindowState;
+
+  native function getWindowState();
+  $native.getWindowState = getWindowState;
+
 })();
