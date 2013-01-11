@@ -2136,3 +2136,70 @@ describe "Editor", ->
       expect(editor.reloadGrammar()).toBeFalsy()
       expect(editor.updateDisplay).not.toHaveBeenCalled()
       expect(editor.getGrammar().name).toBe 'JavaScript'
+
+    it "emits an editor:grammar-changed event when updated", ->
+      rootView.open(path)
+      editor = rootView.getActiveEditor()
+      eventHandler = jasmine.createSpy('eventHandler')
+      editor.on('editor:grammar-changed', eventHandler)
+      editor.reloadGrammar()
+
+      expect(eventHandler).not.toHaveBeenCalled()
+
+      jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
+      rootView.project.addGrammarOverrideForPath(path, jsGrammar)
+      editor.reloadGrammar()
+
+      expect(eventHandler).toHaveBeenCalled()
+
+  describe ".replaceSelectedText()", ->
+    it "doesn't call the replace function when the selection is empty", ->
+      replaced = false
+      edited = false
+      replacer = (text) ->
+        replaced = true
+        'new'
+
+      editor.moveCursorToTop()
+      edited = editor.replaceSelectedText(replacer)
+      expect(replaced).toBe false
+      expect(edited).toBe false
+
+    it "returns true when transformed text is non-empty", ->
+      replaced = false
+      edited = false
+      replacer = (text) ->
+        replaced = true
+        'new'
+
+      editor.moveCursorToTop()
+      editor.selectToEndOfLine()
+      edited = editor.replaceSelectedText(replacer)
+      expect(replaced).toBe true
+      expect(edited).toBe true
+
+    it "returns false when transformed text is null", ->
+      replaced = false
+      edited = false
+      replacer = (text) ->
+        replaced = true
+        null
+
+      editor.moveCursorToTop()
+      editor.selectToEndOfLine()
+      edited = editor.replaceSelectedText(replacer)
+      expect(replaced).toBe true
+      expect(edited).toBe false
+
+    it "returns false when transformed text is undefined", ->
+      replaced = false
+      edited = false
+      replacer = (text) ->
+        replaced = true
+        undefined
+
+      editor.moveCursorToTop()
+      editor.selectToEndOfLine()
+      edited = editor.replaceSelectedText(replacer)
+      expect(replaced).toBe true
+      expect(edited).toBe false

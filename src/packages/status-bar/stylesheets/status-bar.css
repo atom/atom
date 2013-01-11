@@ -6,10 +6,17 @@
   line-height: 14px;
   color: #969696;
   position: relative;
+  -webkit-user-select: none;
+  cursor: default;
 }
 
-.status-bar .cursor-position {
+.status-bar .cursor-position,
+.status-bar .grammar-name {
   padding-left: 10px;
+}
+
+.status-bar .grammar-name {
+  cursor: pointer;
 }
 
 .status-bar .git-branch {

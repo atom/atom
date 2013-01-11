@@ -1,3 +1,3 @@
-## The Definitive Guide to Atom
+# The Atom Guide
 
 Welcome!

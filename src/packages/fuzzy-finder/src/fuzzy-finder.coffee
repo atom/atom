@@ -17,12 +17,13 @@ class FuzzyFinder extends SelectList
   allowActiveEditorChange: null
   maxItems: 10
   projectPaths: null
+  reloadProjectPaths: true
 
   initialize: (@rootView) ->
     super
-    @subscribe $(window), 'focus', => @projectPaths = null
-    @observeConfig 'fuzzy-finder.ignoredNames', (ignoredNames) =>
-      @projectPaths = null
+
+    @subscribe $(window), 'focus', => @reloadProjectPaths = true
+    @observeConfig 'fuzzy-finder.ignoredNames', => @reloadProjectPaths = true
 
     @miniEditor.command 'editor:split-left', =>
       @splitOpenPath (editor, session) -> editor.splitLeft(session)
@@ -64,8 +65,12 @@ class FuzzyFinder extends SelectList
 
   confirmed : (path) ->
     return unless path.length
-    @cancel()
-    @openPath(path)
+    if fs.isFile(rootView.project.resolve(path))
+      @cancel()
+      @openPath(path)
+    else
+      @setError('Selected path does not exist')
+      setTimeout((=> @setError()), 2000)
 
   cancelled: ->
     @miniEditor.setText('')
@@ -93,6 +98,8 @@ class FuzzyFinder extends SelectList
       @setArray(@projectPaths)
     else
       @setLoading("Indexing...")
+
+    if @reloadProjectPaths
       @rootView.project.getFilePaths().done (paths) =>
         ignoredNames = config.get("fuzzyFinder.ignoredNames") or []
         ignoredNames = ignoredNames.concat(config.get("core.ignoredNames") or [])
@@ -103,6 +110,7 @@ class FuzzyFinder extends SelectList
               return false if _.contains(ignoredNames, segment)
             return true
 
+        @reloadProjectPaths = false
         @setArray(@projectPaths)
 
   populateOpenBufferPaths: ->

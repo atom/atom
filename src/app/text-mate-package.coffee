@@ -23,6 +23,16 @@ class TextMatePackage extends Package
     @preferencesPath = fs.join(@path, "Preferences")
     @syntaxesPath = fs.join(@path, "Syntaxes")
 
+  load: ->
+    try
+      for grammar in @getGrammars()
+        syntax.addGrammar(grammar)
+
+      for { selector, properties } in @getScopedProperties()
+        syntax.addProperties(selector, properties)
+    catch e
+      console.warn "Failed to load package named '#{@name}'", e.stack
+
   getGrammars: ->
     return @grammars if @grammars
     @grammars = []

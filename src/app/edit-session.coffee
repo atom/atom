@@ -33,11 +33,10 @@ class EditSession
   anchorRanges: null
   cursors: null
   selections: null
-  autoIndent: false # TODO: re-enabled auto-indent after fixing the rest of tokenization
   softTabs: true
   softWrap: false
 
-  constructor: ({@project, @buffer, tabLength, @autoIndent, softTabs, @softWrap }) ->
+  constructor: ({@project, @buffer, tabLength, softTabs, @softWrap }) ->
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
@@ -93,7 +92,6 @@ class EditSession
   getScrollLeft: -> @scrollLeft
 
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
-  setAutoIndent: (@autoIndent) ->
   setSoftTabs: (@softTabs) ->
 
   getSoftWrap: -> @softWrap
@@ -141,6 +139,7 @@ class EditSession
   getLastBufferRow: -> @buffer.getLastRow()
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
@@ -159,18 +158,26 @@ class EditSession
   getCursorScopes: -> @getCursor().getScopes()
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
-  insertText: (text, options) ->
+  shouldAutoIndent: ->
+    config.get("editor.autoIndent")
+
+  shouldAutoIndentPastedText: ->
+    config.get("editor.autoIndentOnPaste")
+
+  insertText: (text, options={}) ->
+    options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
 
   insertNewline: ->
-    @insertText('\n', autoIndent: true)
+    @insertText('\n')
 
   insertNewlineBelow: ->
     @moveCursorToEndOfLine()
     @insertNewline()
 
-  indent: ->
-    @mutateSelectedText (selection) -> selection.indent()
+  indent: (options={})->
+    options.autoIndent ?= @shouldAutoIndent()
+    @mutateSelectedText (selection) -> selection.indent(options)
 
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
@@ -217,9 +224,14 @@ class EditSession
       selection.copy(maintainPasteboard)
       maintainPasteboard = true
 
-  pasteText: ->
+  pasteText: (options={}) ->
+    options.normalizeIndent ?= true
+    options.autoIndent ?= @shouldAutoIndentPastedText()
+
     [text, metadata] = pasteboard.read()
-    @insertText(text, _.extend(metadata ? {}, normalizeIndent: true))
+    _.extend(options, metadata) if metadata
+
+    @insertText(text, options)
 
   undo: ->
     @buffer.undo(this)
@@ -477,6 +489,9 @@ class EditSession
 
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
+
+  getCurrentParagraphBufferRange: ->
+    @getCursor().getCurrentParagraphBufferRange()
 
   moveCursorUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount)

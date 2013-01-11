@@ -12,7 +12,23 @@ _.extend atom,
 
   pendingBrowserProcessCallbacks: {}
 
-  getAvailablePackages: ->
+  loadPackages: ->
+    pack.load() for pack in @getPackages()
+
+  getPackages: ->
+    @getPackageNames().map (name) -> Package.build(name)
+
+  loadTextMatePackages: ->
+    pack.load() for pack in @getTextMatePackages()
+
+  getTextMatePackages: ->
+    @getPackages().filter (pack) -> pack instanceof TextMatePackage
+
+  loadPackage: (name) ->
+    Package.build(name).load()
+
+  getPackageNames: ->
+    disabledPackages = config.get("core.disabledPackages") ? []
     allPackageNames = []
     for packageDirPath in config.packageDirPaths
       packageNames = fs.list(packageDirPath)
@@ -20,17 +36,7 @@ _.extend atom,
         .map((packagePath) -> fs.base(packagePath))
       allPackageNames.push(packageNames...)
     _.unique(allPackageNames)
-
-  getAvailableTextMateBundles: ->
-    @getAvailablePackages().filter (packageName) => TextMatePackage.testName(packageName)
-
-  loadPackages: (packageNames=@getAvailablePackages()) ->
-    disabledPackages = config.get("core.disabledPackages") ? []
-    for packageName in packageNames
-      @loadPackage(packageName) unless _.contains(disabledPackages, packageName)
-
-  loadPackage: (name) ->
-    Package.load(name)
+      .filter (name) -> not _.contains(disabledPackages, name)
 
   loadThemes: ->
     themeNames = config.get("core.themes") ? ['IR_Black']
@@ -103,3 +109,16 @@ _.extend atom,
     if name is 'reply'
       [messageId, callbackIndex] = data.shift()
       @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+
+  setWindowState: (keyPath, value) ->
+    windowState = @getWindowState()
+    _.setValueForKeyPath(windowState, keyPath, value)
+    $native.setWindowState(JSON.stringify(windowState))
+    windowState
+
+  getWindowState: (keyPath) ->
+    windowState = JSON.parse($native.getWindowState())
+    if keyPath
+      _.valueForKeyPath(windowState, keyPath)
+    else
+      windowState

@@ -8,7 +8,8 @@
   color: #eee;
   overflow: auto;
   z-index: 99;
-  padding: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .command-logger .category-header {
@@ -25,9 +26,6 @@
 
 .command-logger .tree-map {
   margin: auto;
-  position: relative;
-  width: 960px;
-  height: 700px;
   background-color: #efefef;
   border: 1px solid #999;
 }

@@ -174,15 +174,18 @@ class Selection
     text = @normalizeIndent(text, options) if options.normalizeIndent
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
-    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
+    if options.select
+      @setBufferRange(newBufferRange, reverse: wasReversed)
+    else
+      @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
-    if @editSession.autoIndent and options.autoIndent
+    if options.autoIndent
       if text == '\n'
         @editSession.autoIndentBufferRow(newBufferRange.end.row)
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
-  indent: ->
+  indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
     if @isEmpty()
@@ -190,7 +193,7 @@ class Selection
       desiredIndent = @editSession.suggestedIndentForBufferRow(row)
       delta = desiredIndent - @cursor.getIndentLevel()
 
-      if @editSession.autoIndent and delta > 0
+      if autoIndent and delta > 0
         @insertText(@editSession.buildIndentString(delta))
       else
         @insertText(@editSession.getTabText())
@@ -218,7 +221,7 @@ class Selection
 
     if insideExistingLine
       desiredBasis = @editSession.indentationForBufferRow(currentBufferRow)
-    else if @editSession.autoIndent
+    else if options.autoIndent
       desiredBasis = @editSession.suggestedIndentForBufferRow(currentBufferRow)
     else
       desiredBasis = @cursor.getIndentLevel()

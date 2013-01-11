@@ -16,10 +16,17 @@ public:
   }
 
   ~GitRepository() {
-    git_repository_free(repo);
+    Destroy();
   }
 
-  BOOL exists() {
+  void Destroy() {
+    if (Exists()) {
+      git_repository_free(repo);
+      repo = NULL;
+    }
+  }
+
+  BOOL Exists() {
     return repo != NULL;
   }
 
@@ -190,7 +197,7 @@ bool Git::Execute(const CefString& name,
                   CefString& exception) {
   if (name == "getRepository") {
     GitRepository *repository = new GitRepository(arguments[0]->GetStringValue().ToString().c_str());
-    if (repository->exists()) {
+    if (repository->Exists()) {
       CefRefPtr<CefBase> userData = repository;
       retval = CefV8Value::CreateObject(NULL);
       retval->SetUserData(userData);
@@ -245,6 +252,12 @@ bool Git::Execute(const CefString& name,
   if (name == "refreshIndex") {
     GitRepository *userData = (GitRepository *)object->GetUserData().get();
     userData->RefreshIndex();
+    return true;
+  }
+
+  if (name == "destroy") {
+    GitRepository *userData = (GitRepository *)object->GetUserData().get();
+    userData->Destroy();
     return true;
   }
 

@@ -9,18 +9,18 @@ class AtomPackage extends Package
   constructor: (@name) ->
     super
     @keymapsDirPath = fs.join(@path, 'keymaps')
-    if @requireModule
-      @module = require(@path)
-      @module.name = @name
 
   load: ->
     try
+      if @requireModule
+        @module = require(@path)
+        @module.name = @name
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
       rootView.activatePackage(@name, @module) if @module
     catch e
-      console.error "Failed to load package named '#{@name}'", e.stack
+      console.warn "Failed to load package named '#{@name}'", e.stack
 
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, "package"), ['cson', 'json'])

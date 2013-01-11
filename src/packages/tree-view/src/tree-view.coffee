@@ -16,7 +16,9 @@ class TreeView extends ScrollView
       @instance = TreeView.deserialize(state, rootView)
     else
       @instance = new TreeView(rootView)
-      @instance.attach()
+
+      if rootView.project.getPath() and not rootView.pathToOpenIsFile
+        @instance.attach()
 
   @deactivate: ->
     @instance.deactivate()
@@ -91,6 +93,7 @@ class TreeView extends ScrollView
         @attach()
 
   attach: ->
+    return unless rootView.project.getPath()
     @rootView.horizontal.prepend(this)
     @focus()
 
@@ -118,8 +121,8 @@ class TreeView extends ScrollView
 
   updateRoot: ->
     @root?.remove()
-    if @rootView.project.getRootDirectory()
-      @root = new DirectoryView(directory: @rootView.project.getRootDirectory(), isExpanded: true, project: @rootView.project)
+    if rootDirectory = @rootView.project.getRootDirectory()
+      @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: @rootView.project)
       @append(@root)
     else
       @root = null
@@ -130,7 +133,6 @@ class TreeView extends ScrollView
 
   revealActiveFile: ->
     @attach()
-    @focus()
 
     return unless activeFilePath = @rootView.getActiveEditor()?.getPath()
 

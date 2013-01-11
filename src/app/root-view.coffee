@@ -23,33 +23,39 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'
 
-  @deserialize: ({ projectState, panesViewState, packageStates }) ->
-    project = Project.deserialize(projectState) if projectState
-    rootView = new RootView(project, packageStates: packageStates, suppressOpen: true)
+  @deserialize: ({ projectState, panesViewState, packageStates, projectPath }) ->
+    if projectState
+      projectOrPathToOpen = Project.deserialize(projectState)
+    else
+      projectOrPathToOpen = projectPath # This will migrate people over to the new project serialization scheme. It should be removed eventually.
+
+    rootView = new RootView(projectOrPathToOpen , packageStates: packageStates, suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
 
   packageModules: null
   packageStates: null
   title: null
+  pathToOpenIsFile: false
 
   initialize: (projectOrPathToOpen, { @packageStates, suppressOpen } = {}) ->
     window.rootView = this
     @packageStates ?= {}
     @packageModules = {}
+    @handleEvents()
 
     if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
       pathToOpen = projectOrPathToOpen
       @project = new Project(projectOrPathToOpen)
     else
       @project = projectOrPathToOpen
+      pathToOpen = @project?.getPath()
+    @pathToOpenIsFile = pathToOpen and fs.isFile(pathToOpen)
 
     config.load()
 
-    @handleEvents()
-
     if pathToOpen
-      @open(pathToOpen) if fs.isFile(pathToOpen) and not suppressOpen
+      @open(pathToOpen) if @pathToOpenIsFile and not suppressOpen
     else
       @open()
 
@@ -74,12 +80,12 @@ class RootView extends View
   handleEvents: ->
     @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
-    $(window).on 'focus', (e) =>
+    @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
     @on 'root-view:active-path-changed', (e, path) =>
-      @project.setPath(path) unless @project.getRootDirectory()
       if path
+        @project.setPath(path) unless @project.getRootDirectory()
         @setTitle(fs.base(path))
       else
         @setTitle("untitled")
@@ -98,6 +104,10 @@ class RootView extends View
       config.set("editor.showInvisibles", !config.get("editor.showInvisibles"))
     @command 'window:toggle-ignored-files', =>
       config.set("core.hideGitIgnoredFiles", not config.core.hideGitIgnoredFiles)
+    @command 'window:toggle-auto-indent', =>
+      config.set("editor.autoIndent", !config.get("editor.autoIndent"))
+    @command 'window:toggle-auto-indent-on-paste', =>
+      config.set("editor.autoIndentOnPaste", !config.get("editor.autoIndentOnPaste"))
 
   afterAttach: (onDom) ->
     @focus() if onDom
@@ -254,3 +264,17 @@ class RootView extends View
 
   saveAll: ->
     editor.save() for editor in @getEditors()
+
+  eachEditor: (callback) ->
+    for editor in @getEditors()
+      callback(editor)
+
+    @on 'editor:attached', (e, editor) ->
+      callback(editor)
+
+  eachBuffer: (callback) ->
+    for buffer in @project.getBuffers()
+      callback(buffer)
+
+    @project.on 'buffer-created', (buffer) ->
+      callback(buffer)

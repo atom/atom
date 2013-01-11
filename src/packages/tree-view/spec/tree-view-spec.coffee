@@ -14,7 +14,7 @@ describe "TreeView", ->
     project = rootView.project
 
     atom.loadPackage("tree-view")
-    treeView = rootView.find(".tree-view").view()
+    treeView = TreeView.instance
     treeView.root = treeView.find('> li:first').view()
     sampleJs = treeView.find('.file:contains(tree-view.js)')
     sampleTxt = treeView.find('.file:contains(tree-view.txt)')
@@ -52,24 +52,38 @@ describe "TreeView", ->
 
         rootView = new RootView
         atom.loadPackage 'tree-view'
-        treeView = rootView.find(".tree-view").view()
+        treeView = TreeView.instance
 
-      it "does not create a root node", ->
+      it "does not attach to the root view or create a root node when initialized", ->
+        expect(treeView.hasParent()).toBeFalsy()
+        expect(treeView.root).not.toExist()
+
+      it "does not attach to the root view or create a root node when attach() is called", ->
+        treeView.attach()
+        expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).not.toExist()
 
       it "serializes without throwing an exception", ->
         expect(-> treeView.serialize()).not.toThrow()
 
-      it "creates a root view when the project path is created", ->
-        rootView.open(require.resolve('fixtures/sample.js'))
-        expect(treeView.root.getPath()).toBe require.resolve('fixtures')
-        expect(treeView.root.parent()).toMatchSelector(".tree-view")
+      describe "when the project is assigned a path because a new buffer is saved", ->
+        it "creates a root directory view but does not attach to the root view", ->
+          rootView.getActiveEditSession().saveAs("/tmp/test.txt")
+          expect(treeView.hasParent()).toBeFalsy()
+          expect(treeView.root.getPath()).toBe require.resolve('/tmp')
+          expect(treeView.root.parent()).toMatchSelector(".tree-view")
 
-        oldRoot = treeView.root
+    describe "when the root view is opened to a file path", ->
+      beforeEach ->
+        rootView.deactivate()
 
-        rootView.project.setPath('/tmp')
-        expect(treeView.root).not.toEqual oldRoot
-        expect(oldRoot.hasParent()).toBeFalsy()
+        rootView = new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
+        atom.loadPackage 'tree-view'
+        treeView = TreeView.instance
+
+      it "does not attach to the root view but does create a root node when initialized", ->
+        expect(treeView.hasParent()).toBeFalsy()
+        expect(treeView.root).toExist()
 
   describe "serialization", ->
     [newRootView, newTreeView] = []
