@@ -9,7 +9,6 @@ describe "MarkdownPreview", ->
     rootView = new RootView(require.resolve('fixtures/markdown'))
     atom.loadPackage("markdown-preview")
     markdownPreview = MarkdownPreview.instance
-    rootView.attachToDom()
 
   afterEach ->
     rootView.deactivate()
