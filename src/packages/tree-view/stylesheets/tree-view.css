@@ -94,10 +94,39 @@
   bottom: 0;
   width: 100%;
   background-color: #333;
-  color: white;
   border: 2px solid #222;
   -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
   z-index: 99;
+  padding: 5px;
+}
+
+.tree-view-dialog .prompt {
+  padding-bottom: 3px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #aaa;
+}
+
+.tree-view-dialog .prompt span {
+  position: relative;
+  top: -1px;
+}
+
+.tree-view-dialog .prompt:before {
+  font-family: 'Octicons Regular';
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 3px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tree-view-dialog .prompt.add:before {
+  content: "\f086";
+}
+
+.tree-view-dialog .prompt.move:before {
+  content: "\f03e";
 }
 
 .tree-view .directory .header .name,

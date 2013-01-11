@@ -660,7 +660,7 @@ describe "TreeView", ->
 
               expect(addDialog.prompt.text()).toContain 'Error'
               expect(addDialog.prompt.text()).toContain 'already exists'
-              expect(addDialog.prompt).toHaveClass('error')
+              expect(addDialog).toHaveClass('error')
               expect(addDialog.hasParent()).toBeTruthy()
 
         describe "when the path with a trailing '/' is changed and confirmed", ->
@@ -700,7 +700,7 @@ describe "TreeView", ->
 
               expect(addDialog.prompt.text()).toContain 'Error'
               expect(addDialog.prompt.text()).toContain 'already exists'
-              expect(addDialog.prompt).toHaveClass('error')
+              expect(addDialog).toHaveClass('error')
               expect(addDialog.hasParent()).toBeTruthy()
 
         describe "when 'core:cancel' is triggered on the add dialog", ->
@@ -764,7 +764,7 @@ describe "TreeView", ->
           extension = fs.extension(filePath)
           fileNameWithoutExtension = fs.base(filePath, extension)
           expect(moveDialog).toExist()
-          expect(moveDialog.prompt.text()).toBe "Enter the new path for the file:"
+          expect(moveDialog.prompt.text()).toBe "Enter the new path for the file."
           expect(moveDialog.miniEditor.getText()).toBe(project.relativize(filePath))
           expect(moveDialog.miniEditor.getSelectedText()).toBe fs.base(fileNameWithoutExtension)
           expect(moveDialog.miniEditor.isFocused).toBeTruthy()
@@ -814,7 +814,7 @@ describe "TreeView", ->
 
                 expect(moveDialog.prompt.text()).toContain 'Error'
                 expect(moveDialog.prompt.text()).toContain 'already exists'
-                expect(moveDialog.prompt).toHaveClass('error')
+                expect(moveDialog).toHaveClass('error')
                 expect(moveDialog.hasParent()).toBeTruthy()
 
         describe "when 'core:cancel' is triggered on the move dialog", ->
