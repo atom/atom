@@ -24,6 +24,10 @@ class CommandLogger extends ScrollView
     'core:cancel'
     'core:confirm'
     'core:delete'
+    'core:move-down'
+    'core:move-left'
+    'core:move-right'
+    'core:move-up'
     'editor:newline'
     'tree-view:directory-modified'
   ]
