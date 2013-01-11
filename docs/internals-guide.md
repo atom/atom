@@ -40,6 +40,29 @@ singleton instance of the `RootView` view class. The root view fills the entire
 window, and contains every other view. If you open Atom's inspector with
 `alt-meta-i`, you can see the internal structure of `RootView`:
 
-![RootView in the inspector](./images/root-view-inspector.png)
+![RootView in the inspector](http://f.cl.ly/items/2n0s3m0I2d223p3s3W01/root-view-inspector.png)
+
+#### Panes
+
+The `RootView` contains a `#horizontal` and a `#vertical` axis surrounding
+`#panes`. Elements in the horizontal axis will tile across the window
+horizontally, appearing to have a vertical orientation. Items in the vertical
+axis will tile across the window vertically, appearing to have a horizontal
+orientation. You would typically attach tool panels to the root view's primary
+axes. Tool panels are elements which take up some screen real estate that isn't
+devoted to direct editing. In the example above, the `TreeView` is present in
+the `#horizontal` axis to the left of the `#panes`, and the `CommandPanel` is
+present in the `#vertical` axis below the `#panes`.
+
+You can attach a tool panel to an axis using the `horizontal` or `vertical`
+outlets as follows:
+
+```coffeescript
+# place a view to the left of the panes (or use .append() to place it to the right)
+rootView.horizontal.prepend(new MyView)
+
+# place a view below the panes (or use .prepend() to place it above)
+rootView.vertical.append(new MyOtherView)
+```
 
 ## Models
