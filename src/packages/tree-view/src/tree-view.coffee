@@ -226,7 +226,7 @@ class TreeView extends ScrollView
           fs.move(oldPath, newPath)
           dialog.close()
         catch e
-          dialog.showError("Error: #{e.message}. Try a different path")
+          dialog.showError("Error: #{e.message} Try a different path.")
 
     @rootView.append(dialog)
 
@@ -272,7 +272,7 @@ class TreeView extends ScrollView
             @rootView.open(path)
             dialog.close()
         catch e
-          dialog.showError("Error: #{e.message}. Try a different path")
+          dialog.showError("Error: #{e.message} Try a different path.")
 
     @rootView.append(dialog)
 
