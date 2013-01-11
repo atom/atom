@@ -849,6 +849,12 @@ describe "TreeView", ->
           expect(moveDialog.miniEditor.getText()).toBe(project.relativize(dotFilePath))
           expect(moveDialog.miniEditor.getSelectedText()).toBe '.dotfile'
 
+      describe "when the project is selected", ->
+        it "doesn't display the move dialog", ->
+          treeView.root.click()
+          treeView.trigger "tree-view:move"
+          expect(rootView.find(".tree-view-dialog").view()).not.toExist()
+
     describe "tree-view:remove", ->
       it "shows the native alert dialog", ->
         fileView.click()

@@ -206,7 +206,7 @@ class TreeView extends ScrollView
 
   moveSelectedEntry: ->
     entry = @selectedEntry()
-    return unless entry
+    return unless entry and entry isnt @root
     oldPath = entry.getPath()
     if entry instanceof FileView
       prompt = "Enter the new path for the file."
