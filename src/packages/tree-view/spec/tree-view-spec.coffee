@@ -740,6 +740,17 @@ describe "TreeView", ->
 
           expect(addDialog.miniEditor.getText().length).toBe 0
 
+      describe "when there is no entry selected", ->
+        it "opens an add dialog with no path populated", ->
+          addDialog.cancel()
+          treeView.root.click()
+          treeView.root.removeClass('selected')
+          expect(treeView.selectedEntry()).toBeUndefined()
+          treeView.trigger "tree-view:add"
+          addDialog = rootView.find(".tree-view-dialog").view()
+
+          expect(addDialog.miniEditor.getText().length).toBe 0
+
     describe "tree-view:move", ->
       describe "when a file is selected", ->
         moveDialog = null

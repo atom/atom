@@ -239,7 +239,8 @@ class TreeView extends ScrollView
     )
 
   add: ->
-    selectedPath = @selectedEntry().getPath()
+    selectedEntry = @selectedEntry() or @root
+    selectedPath = selectedEntry.getPath()
     directoryPath = if fs.isFile(selectedPath) then fs.directory(selectedPath) else selectedPath
     relativeDirectoryPath = @rootView.project.relativize(directoryPath)
     relativeDirectoryPath += '/' if relativeDirectoryPath.length > 0
