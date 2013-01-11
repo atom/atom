@@ -92,9 +92,10 @@
 .tree-view-dialog {
   position: absolute;
   bottom: 0;
-  width: 100%;
+  left: 0;
+  right: 0;
   background-color: #333;
-  border: 2px solid #222;
+  border-top: 1px solid #555;
   -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
   z-index: 99;
   padding: 5px;
