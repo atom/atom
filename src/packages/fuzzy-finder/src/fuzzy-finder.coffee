@@ -70,7 +70,7 @@ class FuzzyFinder extends SelectList
       @openPath(path)
     else
       @setError('Selected path does not exist')
-      setTimeout(=> @setError('')), 2000
+      setTimeout((=> @setError()), 2000)
 
   cancelled: ->
     @miniEditor.setText('')
