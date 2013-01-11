@@ -243,11 +243,6 @@ describe 'FuzzyFinder', ->
         $(window).trigger 'focus'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
-
-      waitsFor ->
-        finder.list.children('li').length > 0
-
-      runs ->
         expect(rootView.project.getFilePaths).toHaveBeenCalled()
 
   describe "path ignoring", ->
