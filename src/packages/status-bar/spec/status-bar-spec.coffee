@@ -176,3 +176,21 @@ describe "StatusBar", ->
     it "displays the diff stat for new files", ->
       rootView.open(newPath)
       expect(statusBar.gitStatusIcon).toHaveText('+1')
+
+  describe "grammar label", ->
+    it "displays the name of the current grammar", ->
+      expect(statusBar.find('.grammar-name').text()).toBe 'JavaScript'
+
+    describe "when the editor's grammar changes", ->
+      it "displays the new grammar of the editor", ->
+        textGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'Plain Text'
+        rootView.project.addGrammarOverrideForPath(editor.getPath(), textGrammar)
+        editor.reloadGrammar()
+        expect(statusBar.find('.grammar-name').text()).toBe textGrammar.name
+
+    describe "when clicked", ->
+      it "toggles the editor:select-grammar event", ->
+        eventHandler = jasmine.createSpy('eventHandler')
+        editor.on 'editor:select-grammar', eventHandler
+        statusBar.find('.grammar-name').click()
+        expect(eventHandler).toHaveBeenCalled()

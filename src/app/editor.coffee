@@ -1128,6 +1128,7 @@ class Editor extends View
     if grammarChanged
       @clearRenderedLines()
       @updateDisplay()
+      @trigger 'editor:grammar-changed'
     grammarChanged
 
   bindToKeyedEvent: (key, event, callback) ->
