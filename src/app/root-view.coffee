@@ -80,7 +80,7 @@ class RootView extends View
   handleEvents: ->
     @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
-    $(window).on 'focus', (e) =>
+    @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
     @on 'root-view:active-path-changed', (e, path) =>
