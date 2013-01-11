@@ -1,6 +1,4 @@
 module.exports =
-  name: "strip trailing whitespace"
-
   activate: (rootView) ->
     rootView.eachBuffer (buffer) => @stripTrailingWhitespaceBeforeSave(buffer)
 
