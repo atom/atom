@@ -14,10 +14,12 @@ module.exports =
     currentLine = []
     currentLineLength = 0
     for segment in @segmentText(text.replace(/\n/g, ' '))
-      if /\w/.test(segment) and currentLineLength + segment.length > wrapColumn
-        lines.push(currentLine.join(''))
-        currentLine = []
-        currentLineLength = 0
+      if /\w/.test(segment) and
+        (currentLineLength + segment.length > wrapColumn) and
+        (currentLineLength > 0 or segment.length < wrapColumn)
+          lines.push(currentLine.join(''))
+          currentLine = []
+          currentLineLength = 0
       currentLine.push(segment)
       currentLineLength += segment.length
     lines.push(currentLine.join(''))

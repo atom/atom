@@ -7,10 +7,10 @@ describe "Autoflow package", ->
     rootView = new RootView
     atom.loadPackage 'autoflow'
     editor = rootView.getActiveEditor()
+    config.set('editor.preferredLineLength', 30)
 
   describe "autoflow:reflow-paragraph", ->
     it "rearranges line breaks in the current paragraph to ensure lines are shorter than config.editor.preferredLineLength", ->
-      config.set('editor.preferredLineLength', 30)
       editor.setText """
         This is a preceding paragraph, which shouldn't be modified by a reflow of the following paragraph.
 
@@ -38,4 +38,16 @@ describe "Autoflow package", ->
 
         This is a following paragraph, which shouldn't be modified by a reflow of the preciding paragraph.
 
+      """
+
+    it "allows for single words that exceed the preferred wrap column length", ->
+      editor.setText("this-is-a-super-long-word-that-shouldn't-break-autoflow and these are some smaller words")
+
+      editor.setCursorBufferPosition([0, 4])
+      editor.trigger 'autoflow:reflow-paragraph'
+
+      expect(editor.getText()).toBe """
+        this-is-a-super-long-word-that-shouldn't-break-autoflow
+        and these are some smaller
+        words
       """
