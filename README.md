@@ -1,6 +1,6 @@
-# Atom — Futuristic Text Editing 
+# Atom — Futuristic Text Editing
 
-![atomic](http://schlich.com/images/atomic-energy-lab.gif)
+![atom](http://f.cl.ly/items/3h1L1O333p1d0W3D2K3r/atom-sketch.jpg)
 
 ## Building from source
 
@@ -10,7 +10,7 @@ Requirements
 
 **Mountain Lion**
 
-**The Setup™** 
+**The Setup™**
 
 **Xcode** (Get Xcode from the App Store (ugh, I know))
 
@@ -96,5 +96,3 @@ window.keymap.bindKeys '.editor'
 When a keypress matches a pattern on an element that matches the selector, it will be translated to the
 named event, which will bubble up the DOM from the site of the keypress. Extension code can listen for
 the named event and react to it.
-
-
