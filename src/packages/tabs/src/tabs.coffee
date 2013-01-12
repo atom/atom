@@ -5,11 +5,8 @@ Tab = require 'tabs/src/tab'
 module.exports =
 class Tabs extends View
   @activate: (rootView) ->
-    for editor in rootView.getEditors()
-      @prependToEditorPane(rootView, editor) if rootView.parents('html').length
-
-    rootView.on 'editor:attached', (e, editor) =>
-      @prependToEditorPane(rootView, editor)
+    rootView.eachEditor (editor) =>
+      @prependToEditorPane(rootView, editor) if editor.attached
 
   @prependToEditorPane: (rootView, editor) ->
     if pane = editor.pane()
