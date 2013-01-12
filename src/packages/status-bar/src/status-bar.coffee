@@ -5,11 +5,8 @@ $ = require 'jquery'
 module.exports =
 class StatusBar extends View
   @activate: (rootView) ->
-    for editor in rootView.getEditors()
-      @appendToEditorPane(rootView, editor) if rootView.parents('html').length
-
-    rootView.on 'editor:attached', (e, editor) =>
-      @appendToEditorPane(rootView, editor)
+    rootView.eachEditor (editor) =>
+      @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
     if pane = editor.pane()
