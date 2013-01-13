@@ -660,7 +660,7 @@ describe "TreeView", ->
 
               expect(addDialog.prompt.text()).toContain 'Error'
               expect(addDialog.prompt.text()).toContain 'already exists'
-              expect(addDialog.prompt).toHaveClass('error')
+              expect(addDialog).toHaveClass('error')
               expect(addDialog.hasParent()).toBeTruthy()
 
         describe "when the path with a trailing '/' is changed and confirmed", ->
@@ -700,7 +700,7 @@ describe "TreeView", ->
 
               expect(addDialog.prompt.text()).toContain 'Error'
               expect(addDialog.prompt.text()).toContain 'already exists'
-              expect(addDialog.prompt).toHaveClass('error')
+              expect(addDialog).toHaveClass('error')
               expect(addDialog.hasParent()).toBeTruthy()
 
         describe "when 'core:cancel' is triggered on the add dialog", ->
@@ -740,6 +740,17 @@ describe "TreeView", ->
 
           expect(addDialog.miniEditor.getText().length).toBe 0
 
+      describe "when there is no entry selected", ->
+        it "opens an add dialog with no path populated", ->
+          addDialog.cancel()
+          treeView.root.click()
+          treeView.root.removeClass('selected')
+          expect(treeView.selectedEntry()).toBeUndefined()
+          treeView.trigger "tree-view:add"
+          addDialog = rootView.find(".tree-view-dialog").view()
+
+          expect(addDialog.miniEditor.getText().length).toBe 0
+
     describe "tree-view:move", ->
       describe "when a file is selected", ->
         moveDialog = null
@@ -753,7 +764,7 @@ describe "TreeView", ->
           extension = fs.extension(filePath)
           fileNameWithoutExtension = fs.base(filePath, extension)
           expect(moveDialog).toExist()
-          expect(moveDialog.prompt.text()).toBe "Enter the new path for the file:"
+          expect(moveDialog.prompt.text()).toBe "Enter the new path for the file."
           expect(moveDialog.miniEditor.getText()).toBe(project.relativize(filePath))
           expect(moveDialog.miniEditor.getSelectedText()).toBe fs.base(fileNameWithoutExtension)
           expect(moveDialog.miniEditor.isFocused).toBeTruthy()
@@ -803,7 +814,7 @@ describe "TreeView", ->
 
                 expect(moveDialog.prompt.text()).toContain 'Error'
                 expect(moveDialog.prompt.text()).toContain 'already exists'
-                expect(moveDialog.prompt).toHaveClass('error')
+                expect(moveDialog).toHaveClass('error')
                 expect(moveDialog.hasParent()).toBeTruthy()
 
         describe "when 'core:cancel' is triggered on the move dialog", ->
@@ -819,6 +830,30 @@ describe "TreeView", ->
             rootView.focus()
             expect(moveDialog.parent()).not.toExist()
             expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+
+      describe "when a file is selected that's name starts with a '.'", ->
+        [dotFilePath, dotFileView, moveDialog] = []
+
+        beforeEach ->
+          dotFilePath = fs.join(dirPath, ".dotfile")
+          fs.write(dotFilePath, "dot")
+          dirView.collapse()
+          dirView.expand()
+          dotFileView = treeView.find('.file:contains(.dotfile)').view()
+          dotFileView.click()
+          treeView.trigger "tree-view:move"
+          moveDialog = rootView.find(".tree-view-dialog").view()
+
+        it "selects the entire file name", ->
+          expect(moveDialog).toExist()
+          expect(moveDialog.miniEditor.getText()).toBe(project.relativize(dotFilePath))
+          expect(moveDialog.miniEditor.getSelectedText()).toBe '.dotfile'
+
+      describe "when the project is selected", ->
+        it "doesn't display the move dialog", ->
+          treeView.root.click()
+          treeView.trigger "tree-view:move"
+          expect(rootView.find(".tree-view-dialog").view()).not.toExist()
 
     describe "tree-view:remove", ->
       it "shows the native alert dialog", ->

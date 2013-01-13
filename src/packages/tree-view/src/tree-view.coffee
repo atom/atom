@@ -206,13 +206,18 @@ class TreeView extends ScrollView
 
   moveSelectedEntry: ->
     entry = @selectedEntry()
-    return unless entry
+    return unless entry and entry isnt @root
     oldPath = entry.getPath()
+    if entry instanceof FileView
+      prompt = "Enter the new path for the file."
+    else
+      prompt = "Enter the new path for the directory."
 
     dialog = new Dialog
-      prompt: "Enter the new path for the file:"
+      prompt: prompt
       path: @rootView.project.relativize(oldPath)
       select: true
+      iconClass: 'move'
       onConfirm: (newPath) =>
         newPath = @rootView.project.resolve(newPath)
         directoryPath = fs.directory(newPath)
@@ -221,7 +226,7 @@ class TreeView extends ScrollView
           fs.move(oldPath, newPath)
           dialog.close()
         catch e
-          dialog.showError("Error: " + e.message + " Try a different path:")
+          dialog.showError("Error: #{e.message} Try a different path.")
 
     @rootView.append(dialog)
 
@@ -239,22 +244,24 @@ class TreeView extends ScrollView
     )
 
   add: ->
-    selectedPath = @selectedEntry().getPath()
+    selectedEntry = @selectedEntry() or @root
+    selectedPath = selectedEntry.getPath()
     directoryPath = if fs.isFile(selectedPath) then fs.directory(selectedPath) else selectedPath
     relativeDirectoryPath = @rootView.project.relativize(directoryPath)
     relativeDirectoryPath += '/' if relativeDirectoryPath.length > 0
 
     dialog = new Dialog
-      prompt: "Enter the path for the new file/directory. Directories end with '/':"
+      prompt: "Enter the path for the new file/directory. Directories end with a '/'."
       path: relativeDirectoryPath
       select: false
+      iconClass: 'add'
       onConfirm: (relativePath) =>
         endsWithDirectorySeparator = /\/$/.test(relativePath)
         path = @rootView.project.resolve(relativePath)
         try
           if fs.exists(path)
             pathType = if fs.isFile(path) then "file" else "directory"
-            dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path:")
+            dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path.")
           else if endsWithDirectorySeparator
             fs.makeTree(path)
             dialog.cancel()
@@ -265,7 +272,7 @@ class TreeView extends ScrollView
             @rootView.open(path)
             dialog.close()
         catch e
-          dialog.showError("Error: " + e.message + " Try a different path:")
+          dialog.showError("Error: #{e.message} Try a different path.")
 
     @rootView.append(dialog)
 
