@@ -5,14 +5,10 @@ _ = require 'underscore'
 module.exports =
 class WrapGuide extends View
   @activate: (rootView, state) ->
-    for editor in rootView.getEditors()
-      if rootView.parents('html').length
-        @appendToEditorPane(rootView, editor)
+    rootView.eachEditor (editor) =>
+      @appendToEditorPane(rootView, editor) if editor.attached
 
-    rootView.on 'editor:attached', (e, editor) =>
-      @appendToEditorPane(rootView, editor)
-
-  @appendToEditorPane: (rootView, editor, config) ->
+  @appendToEditorPane: (rootView, editor) ->
     if underlayer = editor.pane()?.find('.underlayer')
       underlayer.append(new WrapGuide(rootView, editor))
 

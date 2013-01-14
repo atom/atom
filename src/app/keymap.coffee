@@ -28,6 +28,12 @@ class Keymap
     $(document).command 'open', => atom.open()
     $(document).command 'open-unstable', => atom.openUnstable()
 
+  loadBundledKeymaps: ->
+    @loadDirectory(require.resolve('keymaps'))
+
+  loadUserKeymaps: ->
+    @loadDirectory(fs.join(config.configDirPath, 'keymaps'))
+
   loadDirectory: (directoryPath) ->
     @load(filePath) for filePath in fs.list(directoryPath)
 
