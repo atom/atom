@@ -28,9 +28,9 @@ class WrapGuide extends View
     return @defaultColumn unless _.isArray(customColumns)
     for customColumn in customColumns
       continue unless _.isObject(customColumn)
-      regex = customColumn['pattern']
-      continue unless regex
-      return parseInt(customColumn['column']) if new RegExp(regex).test(path)
+      pattern = customColumn['pattern']
+      continue unless pattern
+      return parseInt(customColumn['column']) if new RegExp(pattern).test(path)
     @defaultColumn
 
   updateGuide: ->
