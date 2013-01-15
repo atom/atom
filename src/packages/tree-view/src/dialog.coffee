@@ -1,4 +1,4 @@
-{View, $$} = require 'space-pen'
+{View} = require 'space-pen'
 Editor = require 'editor'
 fs = require 'fs'
 $ = require 'jquery'
