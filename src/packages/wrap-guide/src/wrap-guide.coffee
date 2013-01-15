@@ -15,7 +15,6 @@ class WrapGuide extends View
   @content: ->
     @div class: 'wrap-guide'
 
-  getGuideColumn: null
   defaultColumn: 80
 
   initialize: (@rootView, @editor) =>
