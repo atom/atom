@@ -125,7 +125,7 @@ task :nof do
 end
 
 task :tags do
-  system %{find src native cef -not -name "*spec.coffee" -type f | xargs ctags}
+  system %{find src native cef vendor -not -name "*spec.coffee" -type f -print0 | xargs -0 ctags}
 end
 
 def application_path
