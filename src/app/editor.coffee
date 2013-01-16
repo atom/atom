@@ -14,6 +14,7 @@ _ = require 'underscore'
 module.exports =
 class Editor extends View
   @configDefaults:
+    fontFamily: "Inconsolata, Monaco, Courier"
     fontSize: 20
     showInvisibles: false
     autosave: false
@@ -340,6 +341,7 @@ class Editor extends View
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
+    @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
 
   handleEvents: ->
     @on 'focus', =>
@@ -683,13 +685,24 @@ class Editor extends View
   setFontSize: (@fontSize) ->
     if fontSize?
       @css('font-size', fontSize + 'px')
-      return unless @attached
-      @calculateDimensions()
-      @updatePaddingOfRenderedLines()
-      @updateLayerDimensions()
-      @requestDisplayUpdate()
+      @redraw()
 
   getFontSize: -> @fontSize
+
+  setFontFamily: (@fontFamily) ->
+    if fontFamily?
+      @css('font-family', fontFamily)
+      @redraw()
+
+  getFontFamily: -> @fontFamily
+
+
+  redraw: ->
+    return unless @attached
+    @calculateDimensions()
+    @updatePaddingOfRenderedLines()
+    @updateLayerDimensions()
+    @requestDisplayUpdate()
 
   newSplitEditor: (editSession) ->
     new Editor { editSession: editSession ? @activeEditSession.copy() }
