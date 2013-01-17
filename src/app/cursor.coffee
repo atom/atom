@@ -150,7 +150,7 @@ class Cursor
     previousLinesRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = currentBufferPosition
-    @editSession.backwardsScanInRange @wordRegex, previousLinesRange, (match, matchRange, { stop }) =>
+    @editSession.backwardsScanInRange (options.wordRegex || @wordRegex), previousLinesRange, (match, matchRange, { stop }) =>
       if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = matchRange.start
       stop()
@@ -162,7 +162,7 @@ class Cursor
     range = [currentBufferPosition, @editSession.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInRange @wordRegex, range, (match, matchRange, { stop }) =>
+    @editSession.scanInRange (options.wordRegex || @wordRegex), range, (match, matchRange, { stop }) =>
       endOfWordPosition = matchRange.end
       if not allowNext and matchRange.start.isGreaterThan(currentBufferPosition)
         endOfWordPosition = currentBufferPosition
@@ -194,6 +194,14 @@ class Cursor
 
   getCurrentWordPrefix: ->
     @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
+
+  getCurrentWord: (options = {}) ->
+    match = @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(options),
+    @getEndOfCurrentWordBufferPosition(options)])
+    return match if options.includeDelimiter?
+
+    if match?.length > 2
+      match.substring(1, match.length-1)
 
   isAtBeginningOfLine: ->
     @getBufferPosition().column == 0
