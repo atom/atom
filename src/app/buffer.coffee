@@ -288,7 +288,6 @@ class Buffer
 
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()
-
     matches = []
 
     regex.lastIndex = startIndex
