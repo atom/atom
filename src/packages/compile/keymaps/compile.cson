@@ -1,0 +1,2 @@
+window.keymap.bindKeys '.editor'
+  'meta-shift-c': 'compile:run'
