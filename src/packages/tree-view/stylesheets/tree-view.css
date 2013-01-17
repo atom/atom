@@ -6,7 +6,6 @@
   cursor: default;
   -webkit-user-select: none;
   border-right: 2px solid #191919;
-  min-width: 100px;
   width: 200px;
   z-index: 2;
 }
