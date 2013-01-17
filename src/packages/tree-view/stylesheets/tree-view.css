@@ -9,13 +9,12 @@
   min-width: 100px;
   width: 200px;
   z-index: 2;
-  padding-left: 12px;
 }
 
 .tree-view .tree-view-resizer {
   position: fixed;
   float: right;
-  left: 212px;
+  left: 200px;
   height: 100%;
   width: 10px;
   background: transparent;

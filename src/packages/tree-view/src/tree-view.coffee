@@ -131,7 +131,7 @@ class TreeView extends ScrollView
 
   resizeTreeView: (e) =>
     $('.tree-view').css(width: e.pageX)
-    $('.tree-view .tree-view-resizer').css(left: e.pageX + 12) # Tree view has padding-left: 12
+    $('.tree-view .tree-view-resizer').css(left: e.pageX)
 
   updateRoot: ->
     @root?.remove()
