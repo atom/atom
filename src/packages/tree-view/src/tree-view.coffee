@@ -28,7 +28,7 @@ class TreeView extends ScrollView
 
   @content: (rootView) ->
     @ol class: 'tree-view tool-panel', tabindex: -1, =>
-      @div class: 'tree-view-resizer'
+      @div class: 'tree-view-resizer', outlet: 'resizer'
 
   @deserialize: (state, rootView) ->
     treeView = new TreeView(rootView)
@@ -122,16 +122,18 @@ class TreeView extends ScrollView
     false
 
   resizeStarted: (e) =>
-    $(document.body).bind('mousemove', @resizeTreeView)
-    $(document.body).bind('mouseup', @resizeStopped)
+    $(document.body).on('mousemove', @resizeTreeView)
+    $(document.body).on('mouseup', @resizeStopped)
+    @css(overflow: 'hidden')
 
   resizeStopped: (e) =>
-    $(document.body).unbind('mousemove', @resizeTreeView)
-    $(document.body).unbind('mouseup', @resizeStopped)
+    $(document.body).off('mousemove', @resizeTreeView)
+    $(document.body).off('mouseup', @resizeStopped)
+    @css(overflow: 'auto')
 
   resizeTreeView: (e) =>
-    $('.tree-view').css(width: e.pageX)
-    $('.tree-view .tree-view-resizer').css(left: e.pageX)
+    @css(width: e.pageX)
+    @resizer.css(left: e.pageX)
 
   updateRoot: ->
     @root?.remove()
