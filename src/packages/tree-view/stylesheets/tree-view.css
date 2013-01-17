@@ -7,12 +7,25 @@
   -webkit-user-select: none;
   border-right: 2px solid #191919;
   min-width: 100px;
+  width: 200px;
   z-index: 2;
   padding-left: 12px;
 }
 
+.tree-view .tree-view-resizer {
+  position: fixed;
+  float: right;
+  left: 212px;
+  height: 100%;
+  width: 2px;
+  background: transparent;
+  cursor: col-resize;
+}
+
 .tree-view .entry {
   text-shadow: 0 -1px 0 #000;
+  text-wrap: none;
+  white-space: nowrap;
 }
 
 .tree-view .entries {

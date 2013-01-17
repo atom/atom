@@ -27,7 +27,8 @@ class TreeView extends ScrollView
     @instance.serialize()
 
   @content: (rootView) ->
-    @ol class: 'tree-view tool-panel', tabindex: -1
+    @ol class: 'tree-view tool-panel', tabindex: -1, =>
+      @div class: 'tree-view-resizer'
 
   @deserialize: (state, rootView) ->
     treeView = new TreeView(rootView)
@@ -46,6 +47,7 @@ class TreeView extends ScrollView
   initialize: (@rootView) ->
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
+    @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
     @command 'core:move-up', => @moveUp()
     @command 'core:move-down', => @moveDown()
     @command 'core:close', => @detach(); false
@@ -118,6 +120,18 @@ class TreeView extends ScrollView
           entry.toggleExpansion()
 
     false
+
+  resizeStarted: (e) =>
+    $(document.body).bind('mousemove', @resizeTreeView)
+    $(document.body).bind('mouseup', @resizeStopped)
+
+  resizeStopped: (e) =>
+    $(document.body).unbind('mousemove', @resizeTreeView)
+    $(document.body).unbind('mouseup', @resizeStopped)
+
+  resizeTreeView: (e) =>
+    $('.tree-view').css(width: e.pageX)
+    $('.tree-view .tree-view-resizer').css(left: e.pageX + 12) # Tree view has padding-left: 12
 
   updateRoot: ->
     @root?.remove()
