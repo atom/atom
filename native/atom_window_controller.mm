@@ -180,9 +180,9 @@
   if (_cefClient && _cefClient->GetBrowser()) {
     _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("shutdown"));
   }
-  
+
   if (_pidToKillOnClose) kill([_pidToKillOnClose intValue], SIGQUIT);
-  
+
   [self autorelease];
   return YES;
 }
