@@ -108,8 +108,8 @@ class FuzzyFinder extends SelectList
         @populateProjectPaths(filter: theWord, done: (paths) =>
           if paths?.length == 1
             @rootView.open(paths[0])
-          else
-            @attach() if paths?.length
+          else if paths?.length
+            @attach()
             @miniEditor.setText(theWord))
 
   populateProjectPaths: (options = {}) ->
@@ -145,7 +145,6 @@ class FuzzyFinder extends SelectList
             @projectPaths
 
         @setArray(listedItems)
-        debugger
         options.done(listedItems) if options.done?
 
   populateOpenBufferPaths: ->
