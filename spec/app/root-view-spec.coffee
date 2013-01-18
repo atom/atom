@@ -18,7 +18,7 @@ describe "RootView", ->
   afterEach ->
     rootView.deactivate()
 
-  describe "initialize(pathToOpen)", ->
+  describe ".initialize(pathToOpen)", ->
     describe "when called with a pathToOpen", ->
       describe "when pathToOpen references a file", ->
         it "creates a project for the file's parent directory, then sets the title and opens the file in an editor", ->
@@ -42,95 +42,6 @@ describe "RootView", ->
           expect(rootView.getEditors().length).toBe 0
           expect(rootView.getTitle()).toBe rootView.project.getPath()
 
-    describe "when called with view state data returned from a previous call to RootView.prototype.serialize", ->
-      viewState = null
-
-      describe "when the serialized RootView has an unsaved buffer", ->
-        buffer = null
-
-        beforeEach ->
-          rootView.remove()
-          rootView = new RootView
-          rootView.open()
-          editor1 = rootView.getActiveEditor()
-          buffer = editor1.getBuffer()
-          editor1.splitRight()
-          viewState = rootView.serialize()
-
-        it "constructs the view with the same panes", ->
-          rootView = RootView.deserialize(viewState)
-          expect(rootView.project.getPath()?).toBeFalsy()
-          expect(rootView.getEditors().length).toBe 2
-          expect(rootView.getActiveEditor().getText()).toBe buffer.getText()
-          expect(rootView.getTitle()).toBe 'untitled'
-
-      describe "when the serialized RootView has a project", ->
-        beforeEach ->
-          path = require.resolve 'fixtures'
-          rootView.remove()
-          rootView = new RootView(path)
-
-        describe "when there are open editors", ->
-          beforeEach ->
-            rootView.open('dir/a')
-            editor1 = rootView.getActiveEditor()
-            editor2 = editor1.splitRight()
-            editor3 = editor2.splitRight()
-            editor4 = editor2.splitDown()
-            editor2.edit(rootView.project.buildEditSessionForPath('dir/b'))
-            editor3.edit(rootView.project.buildEditSessionForPath('sample.js'))
-            editor3.setCursorScreenPosition([2, 4])
-            editor4.edit(rootView.project.buildEditSessionForPath('sample.txt'))
-            editor4.setCursorScreenPosition([0, 2])
-            rootView.attachToDom()
-            editor2.focus()
-            viewState = rootView.serialize()
-            rootView.remove()
-
-          it "constructs the view with the same project and panes", ->
-            rootView = RootView.deserialize(viewState)
-            rootView.attachToDom()
-
-            expect(rootView.getEditors().length).toBe 4
-            editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
-            editor3 = rootView.panes.find('.row > .pane .editor:eq(1)').view()
-            editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
-            editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
-
-            expect(editor1.getPath()).toBe require.resolve('fixtures/dir/a')
-            expect(editor2.getPath()).toBe require.resolve('fixtures/dir/b')
-            expect(editor3.getPath()).toBe require.resolve('fixtures/sample.js')
-            expect(editor3.getCursorScreenPosition()).toEqual [2, 4]
-            expect(editor4.getPath()).toBe require.resolve('fixtures/sample.txt')
-            expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
-
-            # ensure adjust pane dimensions is called
-            expect(editor1.width()).toBeGreaterThan 0
-            expect(editor2.width()).toBeGreaterThan 0
-            expect(editor3.width()).toBeGreaterThan 0
-            expect(editor4.width()).toBeGreaterThan 0
-
-            # ensure correct editor is focused again
-            expect(editor2.isFocused).toBeTruthy()
-            expect(editor1.isFocused).toBeFalsy()
-            expect(editor3.isFocused).toBeFalsy()
-            expect(editor4.isFocused).toBeFalsy()
-
-            expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
-
-        describe "where there are no open editors", ->
-          beforeEach ->
-            rootView.attachToDom()
-            viewState = rootView.serialize()
-            rootView.remove()
-
-          it "constructs the view with no open editors", ->
-              rootView = RootView.deserialize(viewState)
-              rootView.attachToDom()
-
-              expect(rootView.getEditors().length).toBe 0
-
-
     describe "when called with no pathToOpen", ->
       it "opens an empty buffer", ->
         rootView.remove()
@@ -138,6 +49,107 @@ describe "RootView", ->
         expect(rootView.getEditors().length).toBe 1
         expect(rootView.getEditors()[0].getText()).toEqual ""
         expect(rootView.getTitle()).toBe 'untitled'
+
+  describe "@deserialize()", ->
+    viewState = null
+
+    describe "when the serialized RootView has an unsaved buffer", ->
+      buffer = null
+
+      beforeEach ->
+        rootView.remove()
+        rootView = new RootView
+        rootView.open()
+        editor1 = rootView.getActiveEditor()
+        buffer = editor1.getBuffer()
+        editor1.splitRight()
+        viewState = rootView.serialize()
+
+      it "constructs the view with the same panes", ->
+        rootView = RootView.deserialize(viewState)
+        expect(rootView.project.getPath()?).toBeFalsy()
+        expect(rootView.getEditors().length).toBe 2
+        expect(rootView.getActiveEditor().getText()).toBe buffer.getText()
+        expect(rootView.getTitle()).toBe 'untitled'
+
+    describe "when the serialized RootView has a project", ->
+      beforeEach ->
+        path = require.resolve 'fixtures'
+        rootView.remove()
+        rootView = new RootView(path)
+
+      describe "when there are open editors", ->
+        beforeEach ->
+          rootView.open('dir/a')
+          editor1 = rootView.getActiveEditor()
+          editor2 = editor1.splitRight()
+          editor3 = editor2.splitRight()
+          editor4 = editor2.splitDown()
+          editor2.edit(rootView.project.buildEditSessionForPath('dir/b'))
+          editor3.edit(rootView.project.buildEditSessionForPath('sample.js'))
+          editor3.setCursorScreenPosition([2, 4])
+          editor4.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+          editor4.setCursorScreenPosition([0, 2])
+          rootView.attachToDom()
+          editor2.focus()
+          viewState = rootView.serialize()
+          rootView.remove()
+
+        it "constructs the view with the same project and panes", ->
+          rootView = RootView.deserialize(viewState)
+          rootView.attachToDom()
+
+          expect(rootView.getEditors().length).toBe 4
+          editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
+          editor3 = rootView.panes.find('.row > .pane .editor:eq(1)').view()
+          editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
+          editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
+
+          expect(editor1.getPath()).toBe require.resolve('fixtures/dir/a')
+          expect(editor2.getPath()).toBe require.resolve('fixtures/dir/b')
+          expect(editor3.getPath()).toBe require.resolve('fixtures/sample.js')
+          expect(editor3.getCursorScreenPosition()).toEqual [2, 4]
+          expect(editor4.getPath()).toBe require.resolve('fixtures/sample.txt')
+          expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
+
+          # ensure adjust pane dimensions is called
+          expect(editor1.width()).toBeGreaterThan 0
+          expect(editor2.width()).toBeGreaterThan 0
+          expect(editor3.width()).toBeGreaterThan 0
+          expect(editor4.width()).toBeGreaterThan 0
+
+          # ensure correct editor is focused again
+          expect(editor2.isFocused).toBeTruthy()
+          expect(editor1.isFocused).toBeFalsy()
+          expect(editor3.isFocused).toBeFalsy()
+          expect(editor4.isFocused).toBeFalsy()
+
+          expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
+
+      describe "where there are no open editors", ->
+        beforeEach ->
+          rootView.attachToDom()
+          viewState = rootView.serialize()
+          rootView.remove()
+
+        it "constructs the view with no open editors", ->
+            rootView = RootView.deserialize(viewState)
+            rootView.attachToDom()
+
+            expect(rootView.getEditors().length).toBe 0
+
+    describe "when a pane's wrapped view cannot be deserialized", ->
+      fit "renders an empty pane", ->
+        viewState =
+          panesViewState:
+            viewClass: "Pane",
+            wrappedView:
+              viewClass: "BogusView"
+
+        rootView.remove()
+        rootView = RootView.deserialize(viewState)
+        expect(rootView.find('.pane').length).toBe 1
+        expect(rootView.find('.pane').children().length).toBe 0
 
   describe ".serialize()", ->
     it "absorbs exceptions that are thrown by the package module's serialize methods", ->

@@ -6,14 +6,14 @@ module.exports =
 class Pane extends View
   @content: (wrappedView) ->
     @div class: 'pane', =>
-      @subview 'wrappedView', wrappedView
+      @subview 'wrappedView', wrappedView if wrappedView
 
   @deserialize: ({wrappedView}, rootView) ->
     new Pane(rootView.deserializeView(wrappedView))
 
   serialize: ->
     viewClass: "Pane"
-    wrappedView: @wrappedView.serialize()
+    wrappedView: @wrappedView?.serialize()
 
   adjustDimensions: -> # do nothing
 
