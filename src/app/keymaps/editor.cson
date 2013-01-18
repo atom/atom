@@ -3,6 +3,7 @@
   'enter': 'editor:newline'
   'meta-enter': 'editor:newline-below'
   'tab': 'editor:indent'
+  'meta-=': 'editor:auto-indent'
   'meta-d': 'editor:delete-line'
   'ctrl-[': 'editor:fold-current-row'
   'ctrl-]': 'editor:unfold-current-row'

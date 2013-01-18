@@ -206,6 +206,9 @@ class EditSession
   toggleLineCommentsInSelection: ->
     @mutateSelectedText (selection) -> selection.toggleLineComments()
 
+  autoIndentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
+
   cutToEndOfLine: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
