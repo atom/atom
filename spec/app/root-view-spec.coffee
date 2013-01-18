@@ -139,7 +139,7 @@ describe "RootView", ->
             expect(rootView.getEditors().length).toBe 0
 
     describe "when a pane's wrapped view cannot be deserialized", ->
-      fit "renders an empty pane", ->
+      it "renders an empty pane", ->
         viewState =
           panesViewState:
             viewClass: "Pane",
