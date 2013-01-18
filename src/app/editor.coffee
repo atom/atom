@@ -117,6 +117,7 @@ class Editor extends View
       'editor:select-word': @selectWord
       'editor:newline': @insertNewline
       'editor:indent': @indent
+      'editor:auto-indent': @autoIndent
       'editor:indent-selected-rows': @indentSelectedRows
       'editor:outdent-selected-rows': @outdentSelectedRows
       'editor:backspace-to-beginning-of-word': @backspaceToBeginningOfWord
@@ -248,6 +249,7 @@ class Editor extends View
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   indent: (options) -> @activeEditSession.indent(options)
+  autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows(options)
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
   cutSelection: -> @activeEditSession.cutSelectedText()
