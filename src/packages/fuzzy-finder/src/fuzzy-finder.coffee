@@ -110,14 +110,14 @@ class FuzzyFinder extends SelectList
             @rootView.open(paths[0])
           else if paths?.length
             @attach()
-            @miniEditor.setText(theWord))
+            @miniEditor.setText(''+theWord))
 
   populateProjectPaths: (options = {}) ->
     if @projectPaths?.length > 0
       listedItems =
         if options.filter?
           @projectPaths.filter (path) ->
-            return path.indexOf(options.filter) >= 0
+            path.indexOf(options.filter) >= 0
         else
           @projectPaths
       @setArray(listedItems)
@@ -140,7 +140,7 @@ class FuzzyFinder extends SelectList
         listedItems =
           if options.filter?
             @projectPaths.filter (path) ->
-              return path.indexOf(options.filter) >= 0
+              path.indexOf(options.filter) >= 0
           else
             @projectPaths
 
