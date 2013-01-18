@@ -4,9 +4,9 @@ PEG = require 'pegjs'
 module.exports =
 class CommandInterpreter
   constructor: (@project) ->
-    @parser = PEG.buildParser(fs.read(require.resolve 'command-panel/commands.pegjs'))
 
   eval: (string, activeEditSession) ->
+    @parser ?= PEG.buildParser(fs.read(require.resolve 'command-panel/commands.pegjs'))
     compositeCommand = @parser.parse(string)
     @lastRelativeAddress = compositeCommand if compositeCommand.isRelativeAddress()
     compositeCommand.execute(@project, activeEditSession)

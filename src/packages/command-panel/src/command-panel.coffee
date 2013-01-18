@@ -36,7 +36,7 @@ class CommandPanel extends View
       @subview 'previewList', new PreviewList(rootView)
       @ul class: 'error-messages', outlet: 'errorMessages'
       @div class: 'prompt-and-editor', =>
-        @div ':', class: 'prompt', outlet: 'prompt'
+        @div class: 'prompt', outlet: 'prompt'
         @subview 'miniEditor', new Editor(mini: true)
 
   commandInterpreter: null
@@ -67,6 +67,7 @@ class CommandPanel extends View
 
     @previewList.hide()
     @errorMessages.hide()
+    @prompt.iconSize(@miniEditor.fontSize)
 
   destroy: ->
     @previewList.destroy()

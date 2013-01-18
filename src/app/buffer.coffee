@@ -54,6 +54,8 @@ class Buffer
     @destroy() if @refcount <= 0
     this
 
+  hasEditors: -> @refcount > 1
+
   subscribeToFile: ->
     @file.on "contents-changed", =>
       if @isModified()
