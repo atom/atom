@@ -82,9 +82,10 @@ resolve = (name, {verifyExistence}={}) ->
         file = expanded
 
     if not moduleAlreadyLoaded
+      hasExtension = /\.(.+)$/.test(file)
       paths.some (path) ->
-        fileExists = /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
-        jsFileExists = not /\.(.+)$/.test(file) and __exists "#{path}/#{file}.js"
+        fileExists = hasExtension and __exists "#{path}/#{file}"
+        jsFileExists = not hasExtension and __exists "#{path}/#{file}.js"
 
         if jsFileExists
           file = "#{path}/#{file}.js"
