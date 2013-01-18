@@ -28,7 +28,7 @@ require = (path, cb) ->
   parts = file.split '.'
   ext   = parts[parts.length-1]
 
-  if __modules[file]?
+  if __moduleExists file
     if not __modules.loaded[file.toLowerCase()]?
       console.warn "Circular require: #{__filename} required #{file}"
     return __modules[file]
@@ -102,7 +102,7 @@ resolve = (name, {verifyExistence}={}) ->
     null
 
 __moduleExists = (path) ->
-  __modules[path] isnt undefined
+  __modules[path]?
 
 __moduleExpand = (path) ->
   return path if __moduleExists path
