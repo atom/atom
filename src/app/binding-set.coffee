@@ -7,13 +7,16 @@ PEG = require 'pegjs'
 
 module.exports =
 class BindingSet
+
+  @parser: null
+
   selector: null
   commandsByKeystrokes: null
   commandForEvent: null
   parser: null
 
   constructor: (@selector, commandsByKeystrokes, @index) ->
-    @parser = PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
+    BindingSet.parser ?= PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(@selector)
     @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)
 
@@ -42,7 +45,7 @@ class BindingSet
     normalizedKeystrokes.join(' ')
 
   normalizeKeystroke: (keystroke) ->
-    keys = @parser.parse(keystroke)
+    keys = BindingSet.parser.parse(keystroke)
     modifiers = keys[0...-1]
     modifiers.sort()
     [modifiers..., _.last(keys)].join('-')

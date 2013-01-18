@@ -2,7 +2,6 @@
 ScrollView = require 'scroll-view'
 $ = require 'jquery'
 _ = require 'underscore'
-d3 = require 'd3.v3'
 
 module.exports =
 class CommandLogger extends ScrollView
@@ -120,6 +119,8 @@ class CommandLogger extends ScrollView
     @updateTreeMapSize()
     w = @treeMap.width()
     h = @treeMap.height()
+
+    d3 = require 'd3.v3'
 
     x = d3.scale.linear().range([0, w])
     y = d3.scale.linear().range([0, h])
