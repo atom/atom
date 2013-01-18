@@ -1,0 +1,19 @@
+.select-list.autocomplete {
+  min-width: 150px;
+  border: 2px solid #222;
+  webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
+  box-sizing: content-box;
+  margin-left: 0px;
+  width: auto;
+  -webkit-box-shadow: none;
+}
+
+.autocomplete ol {
+  position: relative;
+  overflow-y: scroll;
+  max-height: 200px;
+}
+
+.autocomplete ol li {
+  padding: 0.1em 0.2em;
+}

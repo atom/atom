@@ -1,0 +1,42 @@
+.command-palette {
+  width: 50%;
+  margin-left: -25%;
+}
+
+.command-palette ol {
+  max-height: 300px;
+}
+
+.command-palette ol li {
+  padding: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+.command-palette ol .event-description {
+  float: left;
+  display: inline-block;
+  margin-right: .5em;
+  margin: 4px 0;
+}
+
+.command-palette li .right {
+  float: right;
+}
+
+.command-palette ol .event-name, .command-palette ol .key-binding {
+  display: inline-block;
+  margin: 4px 0;
+  margin-right: .5em;
+  font-size: 90%;
+  color: #ddd;
+  -webkit-border-radius: 3px;
+  padding: 0 4px;
+}
+
+.command-palette ol .event-name {
+  background: rgba(0, 0, 0, .2);
+}
+
+.command-palette ol .key-binding {
+  background: rgba(255, 255, 255, .1);
+}

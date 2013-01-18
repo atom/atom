@@ -1,0 +1,31 @@
+.select-list {
+  position: absolute;
+  width: 80%;
+  top: 0;
+  left: 50%;
+  margin-left: -40%;
+  background-color: #444;
+  box-sizing: border-box;
+  color: #eee;
+  -webkit-box-shadow: 0 0 5px 5px #222;
+  padding: 5px;
+  z-index: 99;
+}
+
+.select-list ol {
+  position: relative;
+  overflow-y: auto;
+}
+
+.select-list li:hover {
+  background-color: #555;
+}
+
+.select-list ol .selected {
+  background: green;
+}
+
+.select-list .error {
+  padding-top: 5px;
+  font-weight: bold;
+}
