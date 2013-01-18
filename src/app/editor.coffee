@@ -463,7 +463,7 @@ class Editor extends View
       @remove() if @editSessions.length is 0
       callback(index) if callback
 
-    if editSession.buffer.isModified()
+    if editSession.isModified() and not editSession.hasEditors()
       @promptToSaveDirtySession(editSession, destroySession)
     else
       destroySession(editSession)
