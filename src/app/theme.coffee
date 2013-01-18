@@ -21,6 +21,7 @@ class Theme
       if TextMateTheme.testPath(path)
         new TextMateTheme(path)
       else
+        require.paths.unshift path
         new AtomTheme(path)
 
     theme.load()

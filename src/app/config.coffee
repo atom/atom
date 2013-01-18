@@ -9,7 +9,6 @@ Theme = require 'theme'
 configDirPath = fs.absolute("~/.atom")
 configJsonPath = fs.join(configDirPath, "config.json")
 userInitScriptPath = fs.join(configDirPath, "atom.coffee")
-bundledThemesDirPath = fs.join(resourcePath, "themes")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
 bundledVendorPackagesDirPath = fs.join(resourcePath, "vendor/packages")
 userThemesDirPath = fs.join(configDirPath, "themes")
@@ -20,7 +19,7 @@ require.paths.unshift userPackagesDirPath
 module.exports =
 class Config
   configDirPath: configDirPath
-  themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
+  themeDirPaths: [userThemesDirPath]
   packageDirPaths: [userPackagesDirPath, bundledVendorPackagesDirPath, bundledPackagesDirPath]
   defaultSettings: null
   settings: null
@@ -34,8 +33,8 @@ class Config
   load: ->
     @loadUserConfig()
     @requireUserInitScript()
-    atom.loadPackages()
     atom.loadThemes()
+    atom.loadPackages()
 
   loadUserConfig: ->
     if fs.exists(configJsonPath)
