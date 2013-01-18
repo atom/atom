@@ -151,6 +151,7 @@ class Editor extends View
         'core:select-to-bottom': @selectToBottom
         'core:close': @destroyActiveEditSession
         'editor:save': @save
+        'editor:save-as': @saveAs
         'editor:newline-below': @insertNewlineBelow
         'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
@@ -653,6 +654,9 @@ class Editor extends View
       session.save()
       onSuccess?()
     else
+      @saveAs(session, onSuccess)
+
+  saveAs: (session=@activeEditSession, onSuccess) ->
       atom.showSaveDialog (path) =>
         if path
           session.saveAs(path)
