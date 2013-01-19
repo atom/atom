@@ -99,9 +99,10 @@ windowAdditions =
 
   measure: (description, fn) ->
     start = new Date().getTime()
-    fn()
+    value = fn()
     result = new Date().getTime() - start
     console.log description, result
+    value
 
 window[key] = value for key, value of windowAdditions
 window.startup()

@@ -117,6 +117,7 @@ class Editor extends View
       'editor:select-word': @selectWord
       'editor:newline': @insertNewline
       'editor:indent': @indent
+      'editor:auto-indent': @autoIndent
       'editor:indent-selected-rows': @indentSelectedRows
       'editor:outdent-selected-rows': @outdentSelectedRows
       'editor:backspace-to-beginning-of-word': @backspaceToBeginningOfWord
@@ -151,6 +152,7 @@ class Editor extends View
         'core:select-to-bottom': @selectToBottom
         'core:close': @destroyActiveEditSession
         'editor:save': @save
+        'editor:save-as': @saveAs
         'editor:newline-below': @insertNewlineBelow
         'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
@@ -247,6 +249,7 @@ class Editor extends View
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   indent: (options) -> @activeEditSession.indent(options)
+  autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows(options)
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
   cutSelection: -> @activeEditSession.cutSelectedText()
@@ -463,7 +466,7 @@ class Editor extends View
       @remove() if @editSessions.length is 0
       callback(index) if callback
 
-    if editSession.buffer.isModified()
+    if editSession.isModified() and not editSession.hasEditors()
       @promptToSaveDirtySession(editSession, destroySession)
     else
       destroySession(editSession)
@@ -653,6 +656,9 @@ class Editor extends View
       session.save()
       onSuccess?()
     else
+      @saveAs(session, onSuccess)
+
+  saveAs: (session=@activeEditSession, onSuccess) ->
       atom.showSaveDialog (path) =>
         if path
           session.saveAs(path)
@@ -701,7 +707,7 @@ class Editor extends View
       "Your changes will be lost if you don't save them"
       "Save", => @save(session, callback),
       "Cancel", null
-      "Don't save", callback
+      "Don't Save", callback
     )
 
   remove: (selector, keepData) ->

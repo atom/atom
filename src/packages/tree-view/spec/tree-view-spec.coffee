@@ -445,6 +445,14 @@ describe "TreeView", ->
         treeView.trigger 'core:move-to-top'
         expect(treeView.scrollTop()).toBe 0
 
+      it "selects the root entry", ->
+        entryCount = treeView.find(".entry").length
+        _.times entryCount, -> treeView.moveDown()
+
+        expect(treeView.root).not.toHaveClass 'selected'
+        treeView.trigger 'core:move-to-top'
+        expect(treeView.root).toHaveClass 'selected'
+
     describe "core:move-to-bottom", ->
       it "scrolls to the bottom", ->
         treeView.height(100)
@@ -455,6 +463,11 @@ describe "TreeView", ->
         expect(treeView.scrollTop()).toBe 0
         treeView.trigger 'core:move-to-bottom'
         expect(treeView.scrollBottom()).toBe treeView.prop('scrollHeight')
+
+      it "selects the last entry", ->
+        expect(treeView.root).toHaveClass 'selected'
+        treeView.trigger 'core:move-to-bottom'
+        expect(treeView.root.find('.entry:last')).toHaveClass 'selected'
 
    describe "core:page-up", ->
       it "scrolls up a page", ->

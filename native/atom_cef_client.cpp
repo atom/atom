@@ -76,6 +76,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "endTracing") {
     EndTracing();
   }
+  else if (name == "show") {
+    Show(browser);
+  }
   else {
     return false;
   }

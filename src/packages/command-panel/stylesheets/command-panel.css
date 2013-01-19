@@ -67,10 +67,20 @@
   display: -webkit-box;
 }
 
-.command-panel .prompt {
-  color: white;
-  font-weight: bold;
-  padding-right: 5px;
+.command-panel .prompt-and-editor .prompt:before {
+  color: #969696;
+  content: '\f078';
+  font-family: 'Octicons Regular';
+  position: relative;
+  top: -5px;
+  left: -5px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.command-panel .prompt-and-editor .editor {
+  position: relative;
+  left: -4px;
+  margin-right: -4px;
 }
 
 .error-messages {

@@ -42,6 +42,12 @@ class RootView extends View
     window.rootView = this
     @packageStates ?= {}
     @packageModules = {}
+    @viewClasses = {
+      "Pane": Pane,
+      "PaneRow": PaneRow,
+      "PaneColumn": PaneColumn,
+      "Editor": Editor
+    }
     @handleEvents()
 
     if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
@@ -121,12 +127,11 @@ class RootView extends View
         console?.error("Exception serializing '#{name}' package's module\n", e.stack)
     packageStates
 
+  registerViewClass: (viewClass) ->
+    @viewClasses[viewClass.name] = viewClass
+
   deserializeView: (viewState) ->
-    switch viewState.viewClass
-      when 'Pane' then Pane.deserialize(viewState, this)
-      when 'PaneRow' then PaneRow.deserialize(viewState, this)
-      when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
-      when 'Editor' then Editor.deserialize(viewState, this)
+    @viewClasses[viewState.viewClass]?.deserialize(viewState, this)
 
   activatePackage: (name, packageModule) ->
     config.setDefaults(name, packageModule.configDefaults) if packageModule.configDefaults?

@@ -28,7 +28,7 @@ require = (path, cb) ->
   parts = file.split '.'
   ext   = parts[parts.length-1]
 
-  if __modules[file]?
+  if __moduleExists file
     if not __modules.loaded[file.toLowerCase()]?
       console.warn "Circular require: #{__filename} required #{file}"
     return __modules[file]
@@ -73,16 +73,26 @@ resolve = (name, {verifyExistence}={}) ->
     file = file.replace '../', "#{prefix}/"
 
   if file[0] isnt '/'
-    paths.some (path) ->
-      fileExists = /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
-      jsFileExists = not /\.(.+)$/.test(file) and __exists "#{path}/#{file}.js"
-
-      if jsFileExists
-        file = "#{path}/#{file}.js"
-      else if fileExists
+    moduleAlreadyLoaded = paths.some (path) ->
+      if __moduleExists "#{path}/#{file}"
         file = "#{path}/#{file}"
-      else if expanded = __expand "#{path}/#{file}"
+      else if __moduleExists "#{path}/#{file}.js"
+        file = "#{path}/#{file}.js"
+      else if expanded = __moduleExpand "#{path}/#{file}"
         file = expanded
+
+    if not moduleAlreadyLoaded
+      hasExtension = /\.(.+)$/.test(file)
+      paths.some (path) ->
+        fileExists = hasExtension and __exists "#{path}/#{file}"
+        jsFileExists = not hasExtension and __exists "#{path}/#{file}.js"
+
+        if jsFileExists
+          file = "#{path}/#{file}.js"
+        else if fileExists
+          file = "#{path}/#{file}"
+        else if expanded = __expand "#{path}/#{file}"
+          file = expanded
   else
     file = __expand(file) or file
 
@@ -92,16 +102,27 @@ resolve = (name, {verifyExistence}={}) ->
     console.warn("Failed to resolve '#{name}'") if verifyExistence
     null
 
+__moduleExists = (path) ->
+  __modules[path]?
+
+__moduleExpand = (path) ->
+  return path if __moduleExists path
+  for ext, handler of exts
+    return "#{path}.#{ext}" if __moduleExists "#{path}.#{ext}"
+    return "#{path}/index.#{ext}" if __moduleExists "#{path}/index.#{ext}"
+  null
+
 __expand = (path) ->
+  modulePath = __moduleExpand path
+  return modulePath if modulePath
+
   return path if __isFile path
   for ext, handler of exts
-    if __exists "#{path}.#{ext}"
-      return "#{path}.#{ext}"
-    else if __exists "#{path}/index.#{ext}"
-      return "#{path}/index.#{ext}"
+    return "#{path}.#{ext}" if __exists "#{path}.#{ext}"
+    return "#{path}/index.#{ext}" if __exists "#{path}/index.#{ext}"
 
   return path if __exists path
-  return null
+  null
 
 __exists = (path) ->
   $native.exists path
