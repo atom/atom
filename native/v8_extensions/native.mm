@@ -478,6 +478,11 @@ bool Native::Execute(const CefString& name,
       };
     }
 
+    NSString *cwd = stringFromCefV8Value(options->GetValue("cwd"));
+    if (cwd) {
+      [task setCurrentDirectoryPath: cwd];
+    }
+
     [task launch];
 
     return true;
