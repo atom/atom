@@ -296,3 +296,13 @@ class TreeView extends ScrollView
       @scrollBottom(bottom)
     if top < @scrollTop()
       @scrollTop(top)
+
+  scrollToBottom: ->
+    super()
+
+    @selectEntry(@root.find('.entry:last')) if @root
+
+  scrollToTop: ->
+    super()
+
+    @selectEntry(@root) if @root

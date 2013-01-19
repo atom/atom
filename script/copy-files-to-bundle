@@ -15,7 +15,7 @@ cp "$PROJECT_DIR/native/v8_extensions/"*.js "$RESOUCES_PATH/v8_extensions/"
 
 DIRS="src static vendor"
 
-# Compile and .coffee files into bundle
+# Compile .coffee files into bundle
 COFFEE_FILES=$(find $DIRS -type file -name '*.coffee')
 for COFFEE_FILE in $COFFEE_FILES; do
   echo $COFFEE_FILE
@@ -28,5 +28,18 @@ for COFFEE_FILE in $COFFEE_FILES; do
   fi
 done;
 
+# Compile .cson files into bundle
+CSON_FILES=$(find $DIRS -type file -name '*.cson')
+for CSON_FILE in $CSON_FILES; do
+  echo $CSON_FILE
+  JSON_FILE=$(echo "$RESOUCES_PATH/$CSON_FILE" | sed 's/.cson/.json/' )
+  OUTPUT_PATH="$RESOUCES_PATH/$(dirname "$CSON_FILE")"
+
+  if [ $CSON_FILE -nt "$JSON_FILE" ]; then
+    mkdir -p "$OUTPUT_PATH"
+    node_modules/.bin/cson2json "$CSON_FILE" > "$JSON_FILE"
+  fi
+done;
+
 # Copy non-coffee files into bundle
-rsync --archive --recursive --exclude="src/**/*.coffee" src static vendor spec benchmark "$RESOUCES_PATH"
+rsync --archive --recursive --exclude="src/**/*.coffee" --exclude="src/**/*.cson" src static vendor spec benchmark themes "$RESOUCES_PATH"

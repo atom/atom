@@ -161,6 +161,7 @@ module.exports =
       '.jpeg'
       '.jpg'
       '.png'
+      '.tiff'
     ], ext)
 
   isPdfExtension: (ext) ->

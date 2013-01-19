@@ -3,6 +3,9 @@
   font-size: 16px;
 }
 
+body {
+  background: #eee;
+}
 
 .jasmine_reporter a:visited, .jasmine_reporter a {
   color: #303;
