@@ -27,7 +27,8 @@ class TreeView extends ScrollView
     @instance.serialize()
 
   @content: (rootView) ->
-    @ol class: 'tree-view tool-panel', tabindex: -1
+    @ol class: 'tree-view tool-panel', tabindex: -1, =>
+      @div class: 'tree-view-resizer', outlet: 'resizer'
 
   @deserialize: (state, rootView) ->
     treeView = new TreeView(rootView)
@@ -35,6 +36,7 @@ class TreeView extends ScrollView
     treeView.selectEntryForPath(state.selectedPath)
     treeView.focusAfterAttach = state.hasFocus
     treeView.scrollTopAfterAttach = state.scrollTop
+    treeView.width(state.width)
     treeView.attach() if state.attached
     treeView
 
@@ -46,6 +48,7 @@ class TreeView extends ScrollView
   initialize: (@rootView) ->
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
+    @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
     @command 'core:move-up', => @moveUp()
     @command 'core:move-down', => @moveDown()
     @command 'core:close', => @detach(); false
@@ -79,6 +82,7 @@ class TreeView extends ScrollView
     hasFocus: @hasFocus()
     attached: @hasParent()
     scrollTop: @scrollTop()
+    width: @width()
 
   deactivate: ->
     @root?.unwatchEntries()
@@ -118,6 +122,20 @@ class TreeView extends ScrollView
           entry.toggleExpansion()
 
     false
+
+  resizeStarted: (e) =>
+    $(document.body).on('mousemove', @resizeTreeView)
+    $(document.body).on('mouseup', @resizeStopped)
+    @css(overflow: 'hidden')
+
+  resizeStopped: (e) =>
+    $(document.body).off('mousemove', @resizeTreeView)
+    $(document.body).off('mouseup', @resizeStopped)
+    @css(overflow: 'auto')
+
+  resizeTreeView: (e) =>
+    @css(width: e.pageX)
+    @resizer.css(left: e.pageX)
 
   updateRoot: ->
     @root?.remove()
