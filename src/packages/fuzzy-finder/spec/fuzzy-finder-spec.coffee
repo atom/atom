@@ -304,6 +304,31 @@ describe 'FuzzyFinder', ->
         expect(finder).not.toBeVisible()
         expect(openedPath).toBe "sample.txt"
 
+    it "displays error when the word under the cursor doesn't match any files", ->
+      editor.setText("moogoogaipan")
+      editor.setCursorBufferPosition([0,5])
+
+      rootView.trigger 'fuzzy-finder:find-under-cursor'
+
+      waitsFor ->
+        finder.is(':visible')
+
+      runs ->
+        expect(finder.find('.error').text().length).toBeGreaterThan 0
+
+    it "displays error when there is no word under the cursor", ->
+      editor.setText("&&&&&&&&&&&&&&& sample")
+      editor.setCursorBufferPosition([0,5])
+
+      rootView.trigger 'fuzzy-finder:find-under-cursor'
+
+      waitsFor ->
+        finder.is(':visible')
+
+      runs ->
+        expect(finder.find('.error').text().length).toBeGreaterThan 0
+
+
   describe "opening a path into a split", ->
     beforeEach ->
       rootView.attachToDom()
