@@ -169,8 +169,10 @@ class Cursor
       stop()
     endOfWordPosition or currentBufferPosition
 
-  getCurrentWordBufferRange: ->
-    new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))
+  getCurrentWordBufferRange: (options={}) ->
+    startOptions = _.extend(_.clone(options), allowPrevious: false)
+    endOptions = _.extend(_.clone(options), allowNext: false)
+    new Range(@getBeginningOfCurrentWordBufferPosition(startOptions), @getEndOfCurrentWordBufferPosition(endOptions))
 
   getCurrentLineBufferRange: (options) ->
     @editSession.bufferRangeForBufferRow(@getBufferRow(), options)
@@ -194,13 +196,6 @@ class Cursor
 
   getCurrentWordPrefix: ->
     @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
-
-  getCurrentWord: (options = {}) ->
-    match = @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(options),
-    @getEndOfCurrentWordBufferPosition(options)])
-
-    if match?.length > 2
-      match.substring(1, match.length-1)
 
   isAtBeginningOfLine: ->
     @getBufferPosition().column == 0
