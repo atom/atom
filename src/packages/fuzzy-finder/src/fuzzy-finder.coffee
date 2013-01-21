@@ -102,15 +102,15 @@ class FuzzyFinder extends SelectList
     else
       return unless @rootView.project.getPath()?
       @allowActiveEditorChange = false
-      theWord = @rootView.getActiveEditor()
-        .getCursor().getCurrentWord(wordRegex: @filenameRegex)
-      if theWord?
-        @populateProjectPaths(filter: theWord, done: (paths) =>
+      cursor = @rootView.getActiveEditor().getCursor()
+      currentWord = cursor.getCurrentWord(wordRegex: @filenameRegex)
+      if currentWord?
+        @populateProjectPaths(filter: currentWord, done: (paths) =>
           if paths?.length == 1
             @rootView.open(paths[0])
           else if paths?.length
             @attach()
-            @miniEditor.setText(''+theWord))
+            @miniEditor.setText('' + currentWord))
 
   populateProjectPaths: (options = {}) ->
     if @projectPaths?.length > 0
