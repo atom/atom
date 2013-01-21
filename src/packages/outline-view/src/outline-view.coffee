@@ -1,4 +1,4 @@
-{View, $$} = require 'space-pen'
+{$$} = require 'space-pen'
 SelectList = require 'select-list'
 TagGenerator = require 'outline-view/src/tag-generator'
 TagReader = require 'outline-view/src/tag-reader'
@@ -30,7 +30,7 @@ class OutlineView extends SelectList
           if position
             text = "Line #{position.row + 1}"
           else
-            text =  fs.base(file)
+            text = fs.base(file)
           @div text, class: 'function-details'
         @div class: 'clear-float'
 

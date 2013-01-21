@@ -35,10 +35,7 @@ class AtomPackage extends Package
       keymaps.map (relativePath) =>
         fs.resolve(@keymapsDirPath, relativePath, ['cson', 'json', ''])
     else
-      if fs.exists(@keymapsDirPath)
-        fs.list(@keymapsDirPath)
-      else
-        []
+      fs.list(@keymapsDirPath)
 
   loadStylesheets: ->
     for stylesheetPath in @getStylesheetPaths()
@@ -46,7 +43,4 @@ class AtomPackage extends Package
 
   getStylesheetPaths: ->
     stylesheetDirPath = fs.join(@path, 'stylesheets')
-    if fs.exists stylesheetDirPath
-      fs.list stylesheetDirPath
-    else
-      []
+    fs.list(stylesheetDirPath)

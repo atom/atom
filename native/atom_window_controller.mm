@@ -41,6 +41,8 @@
   if (!background) {
     [self setShouldCascadeWindows:NO];
     [self setWindowFrameAutosaveName:@"AtomWindow"];
+    NSColor *background = [NSColor colorWithCalibratedRed:(51.0/255.0) green:(51.0/255.0f) blue:(51.0/255.0f) alpha:1.0];
+    [self.window setBackgroundColor:background];
     [self showWindow:self];
   }
 
@@ -116,6 +118,7 @@
     [urlString appendFormat:@"&pathToOpen=%@", [self encodeUrlParam:_pathToOpen]];
 
   _cefClient = new AtomCefClient();
+  [self.webView setHidden:YES];
   [self addBrowserToView:self.webView url:[urlString UTF8String] cefHandler:_cefClient];
 }
 
@@ -180,9 +183,9 @@
   if (_cefClient && _cefClient->GetBrowser()) {
     _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("shutdown"));
   }
-  
+
   if (_pidToKillOnClose) kill([_pidToKillOnClose intValue], SIGQUIT);
-  
+
   [self autorelease];
   return YES;
 }

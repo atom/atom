@@ -73,6 +73,9 @@ $.fn.command = (args...) ->
   @document(documentation)
   @on(args...)
 
+$.fn.iconSize = (size) ->
+  @width(size).height(size).css('font-size', size)
+
 $.Event.prototype.abortKeyBinding = ->
 $.Event.prototype.currentTargetView = -> $(this.currentTarget).view()
 $.Event.prototype.targetView = -> $(this.target).view()

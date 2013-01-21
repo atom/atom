@@ -10,6 +10,11 @@
   -webkit-box-shadow: 0 0 5px 5px #222;
   padding: 5px;
   z-index: 99;
+  cursor: pointer;
+}
+
+.select-list .editor {
+  margin-bottom: 5px;
 }
 
 .select-list ol {

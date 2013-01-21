@@ -199,6 +199,15 @@ describe "Editor", ->
         expect(editor.remove).not.toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
+      it "doesn't trigger an alert if the buffer is opened in multiple sessions", ->
+        spyOn(editor, 'remove').andCallThrough()
+        spyOn(atom, 'confirm')
+        editor.insertText("I AM CHANGED!")
+        editor.splitLeft()
+        editor.trigger "core:close"
+        expect(editor.remove).toHaveBeenCalled()
+        expect(atom.confirm).not.toHaveBeenCalled()
+
   describe ".edit(editSession)", ->
     otherEditSession = null
 
