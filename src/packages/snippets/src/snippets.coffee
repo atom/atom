@@ -19,11 +19,18 @@ module.exports =
     for pack in atom.getPackages()
       pack.loadSnippets()
 
-    for snippetsPath in fs.list(@userSnippetsDir)
-      @load(snippetsPath)
+    @loadDirectory(@userSnippetsDir) if fs.exists(@userSnippetsDir)
+
+  loadDirectory: (snippetsDirPath) ->
+    for snippetsPath in fs.list(snippetsDirPath) when fs.base(snippetsPath).indexOf('.') isnt 0
+      snippets.load(snippetsPath)
 
   load: (snippetsPath) ->
-    @add(fs.readObject(snippetsPath))
+    try
+      snippets = fs.readObject(snippetsPath)
+    catch e
+      console.warn "Error reading snippets file '#{snippetsPath}'"
+    @add(snippets)
 
   add: (snippetsBySelector) ->
     for selector, snippetsByName of snippetsBySelector
