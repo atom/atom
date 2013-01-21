@@ -207,11 +207,16 @@ describe "Snippets extension", ->
         expect(editor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
 
   describe "snippet loading", ->
-    it "loads snippets from all atom packages with a snippets directory", ->
+    it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
+      spyOn(console, 'warn')
       jasmine.unspy(AtomPackage.prototype, 'loadSnippets')
       snippets.loadAll()
 
       expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
+
+      # warn about junk-file, but don't even try to parse a hidden file
+      expect(console.warn).toHaveBeenCalled()
+      expect(console.warn.calls.length).toBe 1
 
     it "loads snippets from all TextMate packages with snippets", ->
       jasmine.unspy(TextMatePackage.prototype, 'loadSnippets')
