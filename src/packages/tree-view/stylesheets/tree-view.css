@@ -8,11 +8,20 @@
   border-right: 2px solid #191919;
   min-width: 100px;
   z-index: 2;
-  padding-left: 12px;
+}
+
+.tree-view .tree-view-resizer {
+  float: right;
+  height: 100%;
+  width: 10px;
+  background: transparent;
+  cursor: col-resize;
 }
 
 .tree-view .entry {
   text-shadow: 0 -1px 0 #000;
+  text-wrap: none;
+  white-space: nowrap;
 }
 
 .tree-view .entries {

@@ -6,10 +6,13 @@ fs = require 'fs'
 
 module.exports =
 class FuzzyFinder extends SelectList
+  filenameRegex: /[\w\.\-\/\\]+/
+
   @activate: (rootView) ->
     @instance = new FuzzyFinder(rootView)
     rootView.command 'fuzzy-finder:toggle-file-finder', => @instance.toggleFileFinder()
     rootView.command 'fuzzy-finder:toggle-buffer-finder', => @instance.toggleBufferFinder()
+    rootView.command 'fuzzy-finder:find-under-cursor', => @instance.findUnderCursor()
 
   @viewClass: ->
     [super, 'fuzzy-finder'].join(' ')
@@ -93,9 +96,39 @@ class FuzzyFinder extends SelectList
       @populateOpenBufferPaths()
       @attach() if @paths?.length
 
-  populateProjectPaths: ->
+  findUnderCursor: ->
+    if @hasParent()
+      @cancel()
+    else
+      return unless @rootView.project.getPath()?
+      @allowActiveEditorChange = false
+      editor = @rootView.getActiveEditor()
+      currentWord = editor.getWordUnderCursor(wordRegex: @filenameRegex)
+
+      if currentWord.length == 0
+        @attach()
+        @setError("The cursor is not over a filename")
+      else
+        @populateProjectPaths filter: currentWord, done: (paths) =>
+          if paths.length == 0
+            @attach()
+            @setError("No files match '#{currentWord}'")
+          else if paths.length == 1
+            @rootView.open(paths[0])
+          else
+            @attach()
+            @miniEditor.setText(currentWord)
+
+  populateProjectPaths: (options = {}) ->
     if @projectPaths?.length > 0
-      @setArray(@projectPaths)
+      listedItems =
+        if options.filter?
+          @projectPaths.filter (path) ->
+            path.indexOf(options.filter) >= 0
+        else
+          @projectPaths
+      @setArray(listedItems)
+      options.done(listedItems) if options.done?
     else
       @setLoading("Indexing...")
 
@@ -111,7 +144,15 @@ class FuzzyFinder extends SelectList
             return true
 
         @reloadProjectPaths = false
-        @setArray(@projectPaths)
+        listedItems =
+          if options.filter?
+            @projectPaths.filter (path) ->
+              path.indexOf(options.filter) >= 0
+          else
+            @projectPaths
+
+        @setArray(listedItems)
+        options.done(listedItems) if options.done?
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>
