@@ -198,7 +198,6 @@ class Cursor
   getCurrentWord: (options = {}) ->
     match = @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(options),
     @getEndOfCurrentWordBufferPosition(options)])
-    return match if options.includeDelimiter?
 
     if match?.length > 2
       match.substring(1, match.length-1)
