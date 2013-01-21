@@ -36,6 +36,7 @@ class TreeView extends ScrollView
     treeView.selectEntryForPath(state.selectedPath)
     treeView.focusAfterAttach = state.hasFocus
     treeView.scrollTopAfterAttach = state.scrollTop
+    treeView.width(state.width)
     treeView.attach() if state.attached
     treeView
 
@@ -81,6 +82,7 @@ class TreeView extends ScrollView
     hasFocus: @hasFocus()
     attached: @hasParent()
     scrollTop: @scrollTop()
+    width: @width()
 
   deactivate: ->
     @root?.unwatchEntries()
