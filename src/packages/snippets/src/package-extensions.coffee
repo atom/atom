@@ -4,9 +4,7 @@ fs = require 'fs'
 
 AtomPackage.prototype.loadSnippets = ->
   snippetsDirPath = fs.join(@path, 'snippets')
-  if fs.exists(snippetsDirPath)
-    for snippetsPath in fs.list(snippetsDirPath)
-      snippets.load(snippetsPath)
+  snippets.loadDirectory(snippetsDirPath) if fs.exists(snippetsDirPath)
 
 TextMatePackage.prototype.loadSnippets = ->
   snippetsDirPath = fs.join(@path, 'Snippets')
