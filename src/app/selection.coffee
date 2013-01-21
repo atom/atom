@@ -307,6 +307,10 @@ class Selection
       if matchLength = buffer.lineForRow(row).match(leadingTabRegex)?[0].length
         buffer.delete [[row, 0], [row, matchLength]]
 
+  autoIndentSelectedRows: ->
+    [start, end] = @getBufferRowRange()
+    @editSession.autoIndentBufferRows(start, end)
+
   toggleLineComments: ->
     @modifySelection =>
       @editSession.toggleLineCommentsForBufferRows(@getBufferRowRange()...)

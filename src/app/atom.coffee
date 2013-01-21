@@ -75,6 +75,9 @@ _.extend atom,
   focus: ->
     @sendMessageToBrowserProcess('focus')
 
+  show: ->
+    @sendMessageToBrowserProcess('show')
+
   exit: (status) ->
     @sendMessageToBrowserProcess('exit', [status])
 

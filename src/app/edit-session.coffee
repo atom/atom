@@ -142,6 +142,8 @@ class EditSession
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
+  isModified: -> @buffer.isModified()
+  hasEditors: -> @buffer.hasEditors()
 
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
@@ -205,6 +207,9 @@ class EditSession
 
   toggleLineCommentsInSelection: ->
     @mutateSelectedText (selection) -> selection.toggleLineComments()
+
+  autoIndentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
   cutToEndOfLine: ->
     maintainPasteboard = false
