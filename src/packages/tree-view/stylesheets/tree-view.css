@@ -11,9 +11,7 @@
 }
 
 .tree-view .tree-view-resizer {
-  position: fixed;
   float: right;
-  left: 200px;
   height: 100%;
   width: 10px;
   background: transparent;
