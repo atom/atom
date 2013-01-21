@@ -209,6 +209,7 @@ class Editor extends View
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
   getCurrentParagraphBufferRange: -> @activeEditSession.getCurrentParagraphBufferRange()
+  getWordUnderCursor: (options) -> @activeEditSession.getWordUnderCursor(options)
 
   getSelection: (index) -> @activeEditSession.getSelection(index)
   getSelections: -> @activeEditSession.getSelections()

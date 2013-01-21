@@ -103,17 +103,16 @@ class FuzzyFinder extends SelectList
       return unless @rootView.project.getPath()?
       @allowActiveEditorChange = false
       editor = @rootView.getActiveEditor()
-      range = editor.getCursor().getCurrentWordBufferRange(wordRegex: @filenameRegex)
-      currentWord = editor.getTextInRange(range)
+      currentWord = editor.getWordUnderCursor(wordRegex: @filenameRegex)
 
       if currentWord.length == 0
         @attach()
-        @setError('The cursor is not over a filename')
+        @setError("The cursor is not over a filename")
       else
         @populateProjectPaths filter: currentWord, done: (paths) =>
           if paths.length == 0
             @attach()
-            @setError('No files match \'currentWord\'')
+            @setError("No files match '#{currentWord}'")
           else if paths.length == 1
             @rootView.open(paths[0])
           else
