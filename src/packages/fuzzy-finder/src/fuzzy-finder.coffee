@@ -6,7 +6,7 @@ fs = require 'fs'
 
 module.exports =
 class FuzzyFinder extends SelectList
-  filenameRegex: /([^\w\.\-\/\\])/
+  filenameRegex: /[\w\.\-\/\\]+/
 
   @activate: (rootView) ->
     @instance = new FuzzyFinder(rootView)
