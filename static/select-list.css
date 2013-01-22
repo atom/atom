@@ -1,0 +1,24 @@
+.select-list {
+  background-color: #444;
+  color: #eee;
+  -webkit-box-shadow: 0 0 5px 5px #222;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.select-list .editor {
+  margin-bottom: 5px;
+}
+
+.select-list li:hover {
+  background-color: #555;
+}
+
+.select-list ol .selected {
+  background: green;
+}
+
+.select-list .error {
+  padding-top: 5px;
+  font-weight: bold;
+}
