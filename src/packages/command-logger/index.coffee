@@ -1,6 +1,9 @@
-AtomPackage = require 'atom-package'
-CommandLoggerView = require './src/command-logger-view'
+DeferredAtomPackage = require 'deferred-atom-package'
 
 module.exports =
-class CommandLogger extends AtomPackage
-  activate: (rootView) -> CommandLoggerView.activate(rootView)
+class CommandLogger extends DeferredAtomPackage
+  attachEvents: ['command-logger:toggle']
+
+  instanceClass: 'command-logger/src/command-logger-view'
+
+  onAttachEvent: (event, instance) -> instance.toggle()

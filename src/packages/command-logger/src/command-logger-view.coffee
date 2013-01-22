@@ -34,7 +34,6 @@ class CommandLoggerView extends ScrollView
   initialize: (@rootView, @eventLog={}) ->
     super
 
-    @rootView.command 'command-logger:toggle', => @toggle()
     @rootView.command 'command-logger:clear-data', => @eventLog = {}
     @command 'core:cancel', => @detach()
 

@@ -8,7 +8,7 @@ describe "OutlineView", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures'))
-    atom.loadPackage("outline-view")
+    atom.loadPackage("outline-view").getInstance()
     outlineView = OutlineView.instance
     rootView.attachToDom()
     setArraySpy = spyOn(outlineView, 'setArray').andCallThrough()

@@ -16,15 +16,6 @@ class CommandPanelView extends View
     else
       @instance = new CommandPanelView(rootView)
 
-  @deactivate: ->
-    @instance.destroy()
-
-  @serialize: ->
-    text: @instance.miniEditor.getText()
-    visible: @instance.hasParent()
-    miniEditorFocused: @instance.miniEditor.isFocused
-    history: @instance.history[-@instance.maxSerializedHistorySize..]
-
   @deserialize: (state, rootView) ->
     commandPanel = new CommandPanelView(rootView, state.history)
     commandPanel.attach(state.text, focus: false) if state.visible
@@ -53,21 +44,20 @@ class CommandPanelView extends View
     @command 'tool-panel:unfocus', => @rootView.focus()
     @command 'core:close', => @detach(); false
     @command 'core:confirm', => @execute()
-
-    @rootView.command 'command-panel:toggle', => @toggle()
-    @rootView.command 'command-panel:toggle-preview', => @togglePreview()
-    @rootView.command 'command-panel:find-in-file', => @attach("/")
-    @rootView.command 'command-panel:find-in-project', => @attach("Xx/")
-    @rootView.command 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
-    @rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
-    @rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
-
     @command 'core:move-up', => @navigateBackwardInHistory()
     @command 'core:move-down', => @navigateForwardInHistory()
 
     @previewList.hide()
     @errorMessages.hide()
     @prompt.iconSize(@miniEditor.fontSize)
+
+  serialize: ->
+    text: @miniEditor.getText()
+    visible: @hasParent()
+    miniEditorFocused: @miniEditor.isFocused
+    history: @history[-@maxSerializedHistorySize..]
+
+  deactivate: -> @destroy()
 
   destroy: ->
     @previewList.destroy()
@@ -93,7 +83,6 @@ class CommandPanelView extends View
         @miniEditor.focus()
 
   attach: (text='', options={}) ->
-    console.trace 'attached', @rootView
     @errorMessages.hide()
 
     focus = options.focus ? true

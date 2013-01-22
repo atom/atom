@@ -10,9 +10,6 @@ class FuzzyFinderView extends SelectList
 
   @activate: (rootView) ->
     @instance = new FuzzyFinderView(rootView)
-    rootView.command 'fuzzy-finder:toggle-file-finder', => @instance.toggleFileFinder()
-    rootView.command 'fuzzy-finder:toggle-buffer-finder', => @instance.toggleBufferFinder()
-    rootView.command 'fuzzy-finder:find-under-cursor', => @instance.findUnderCursor()
 
   @viewClass: ->
     [super, 'fuzzy-finder'].join(' ')

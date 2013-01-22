@@ -7,7 +7,7 @@ describe "MarkdownPreview", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/markdown'))
-    atom.loadPackage("markdown-preview")
+    atom.loadPackage("markdown-preview").getInstance()
     markdownPreview = MarkdownPreview.instance
 
   afterEach ->

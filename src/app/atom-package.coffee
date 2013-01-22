@@ -5,6 +5,7 @@ module.exports =
 class AtomPackage extends Package
   metadata: null
   keymapsDirPath: null
+  autoloadStylesheets: true
 
   constructor: (@name) ->
     super
@@ -14,7 +15,7 @@ class AtomPackage extends Package
     try
       @loadMetadata()
       @loadKeymaps()
-      @loadStylesheets()
+      @loadStylesheets() if @autoloadStylesheets
       rootView.activatePackage(@name, this) unless @isDirectory
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack

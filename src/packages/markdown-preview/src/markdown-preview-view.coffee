@@ -14,7 +14,6 @@ class MarkdownPreviewView extends ScrollView
 
   initialize: (@rootView) ->
     super
-    @rootView.command 'markdown-preview:toggle', => @toggle()
     @command 'core:cancel', => @detach()
 
   toggle: ->

@@ -7,7 +7,6 @@ module.exports =
 class CommandPaletteView extends SelectList
   @activate: (rootView) ->
     @instance = new CommandPaletteView(rootView)
-    rootView.command 'command-palette:toggle', => @instance.attach()
 
   @viewClass: ->
     "#{super} command-palette"

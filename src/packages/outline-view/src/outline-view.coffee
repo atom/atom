@@ -11,9 +11,6 @@ class OutlineView extends SelectList
 
   @activate: (rootView) ->
     @instance = new OutlineView(rootView)
-    rootView.command 'outline-view:toggle-file-outline', => @instance.toggleFileOutline()
-    rootView.command 'outline-view:toggle-project-outline', => @instance.toggleProjectOutline()
-    rootView.command 'outline-view:jump-to-declaration', => @instance.jumpToDeclaration()
 
   @viewClass: -> "#{super} outline-view"
 

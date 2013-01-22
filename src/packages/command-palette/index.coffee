@@ -1,6 +1,10 @@
-AtomPackage = require 'atom-package'
-CommandPaletteView = require './src/command-palette-view'
+DeferredAtomPackage = require 'deferred-atom-package'
 
 module.exports =
-class CommandPalette extends AtomPackage
-  activate: (rootView) -> CommandPaletteView.activate(rootView)
+class CommandPalette extends DeferredAtomPackage
+
+  attachEvents: ['command-palette:toggle']
+
+  instanceClass: 'command-palette/src/command-palette-view'
+
+  onAttachEvent: (event, instance) -> instance.attach()

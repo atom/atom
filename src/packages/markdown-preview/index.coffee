@@ -1,6 +1,9 @@
-AtomPackage = require 'atom-package'
-MarkdownPreviewView = require './src/markdown-preview-view'
+DeferredAtomPackage = require 'deferred-atom-package'
 
 module.exports =
-class MarkdownPreview extends AtomPackage
-  activate: (rootView) -> MarkdownPreviewView.activate(rootView)
+class MarkdownPreview extends DeferredAtomPackage
+  attachEvents: ['markdown-preview:toggle']
+
+  instanceClass: 'markdown-preview/src/markdown-preview-view'
+
+  onAttachEvent: (event, instance) -> instance.toggle()
