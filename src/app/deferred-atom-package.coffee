@@ -10,8 +10,8 @@ class DeferredAtomPackage extends AtomPackage
 
   activate: (@rootView, @state) ->
     @instance = null
-    for event in @attachEvents
-      @rootView.command event, (e) => @onAttachEvent(e, @getInstance())
+    for event in @loadEvents
+      @rootView.command event, (e) => @onLoadEvent(e, @getInstance())
     this
 
   deactivate: -> @instance?.deactivate?()

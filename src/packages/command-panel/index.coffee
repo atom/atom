@@ -3,7 +3,7 @@ DeferredAtomPackage = require 'deferred-atom-package'
 module.exports =
 class CommandPanel extends DeferredAtomPackage
 
-  attachEvents: [
+  loadEvents: [
     'command-panel:toggle'
     'command-panel:toggle-preview'
     'command-panel:find-in-file'
@@ -15,7 +15,7 @@ class CommandPanel extends DeferredAtomPackage
 
   instanceClass: 'command-panel/src/command-panel-view'
 
-  onAttachEvent: (event, instance) ->
+  onLoadEvent: (event, instance) ->
     switch event.type
       when 'command-panel:toggle'
         instance.toggle()

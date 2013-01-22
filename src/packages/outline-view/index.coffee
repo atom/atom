@@ -3,7 +3,7 @@ DeferredAtomPackage = require 'deferred-atom-package'
 module.exports =
 class Outline extends DeferredAtomPackage
 
-  attachEvents: [
+  loadEvents: [
     'outline-view:toggle-file-outline'
     'outline-view:toggle-project-outline'
     'outline-view:jump-to-declaration'
@@ -11,7 +11,7 @@ class Outline extends DeferredAtomPackage
 
   instanceClass: 'outline-view/src/outline-view'
 
-  onAttachEvent: (event, instance) ->
+  onLoadEvent: (event, instance) ->
     switch event.type
       when 'outline-view:toggle-file-outline'
         instance.toggleFileOutline()

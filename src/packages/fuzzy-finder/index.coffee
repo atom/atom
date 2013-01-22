@@ -3,7 +3,7 @@ DeferredAtomPackage = require 'deferred-atom-package'
 module.exports =
 class FuzzyFinder extends DeferredAtomPackage
 
-  attachEvents: [
+  loadEvents: [
     'fuzzy-finder:toggle-file-finder'
     'fuzzy-finder:toggle-buffer-finder'
     'fuzzy-finder:find-under-cursor'
@@ -11,7 +11,7 @@ class FuzzyFinder extends DeferredAtomPackage
 
   instanceClass: 'fuzzy-finder/src/fuzzy-finder-view'
 
-  onAttachEvent: (event, instance) ->
+  onLoadEvent: (event, instance) ->
     switch event.type
       when 'fuzzy-finder:toggle-file-finder'
         instance.toggleFileFinder()
