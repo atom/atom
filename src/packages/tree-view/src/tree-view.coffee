@@ -27,7 +27,8 @@ class TreeView extends ScrollView
     @instance.serialize()
 
   @content: (rootView) ->
-    @ol class: 'tree-view tool-panel', tabindex: -1, =>
+    @div class: 'tree-view-wrapper', =>
+      @ol class: 'tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
       @div class: 'tree-view-resizer', outlet: 'resizer'
 
   @deserialize: (state, rootView) ->
@@ -37,7 +38,6 @@ class TreeView extends ScrollView
     treeView.focusAfterAttach = state.hasFocus
     treeView.scrollTopAfterAttach = state.scrollTop
     treeView.width(state.width)
-    treeView.resizer.css(left: state.width)
     treeView.attach() if state.attached
     treeView
 
@@ -141,7 +141,7 @@ class TreeView extends ScrollView
     @root?.remove()
     if rootDirectory = @rootView.project.getRootDirectory()
       @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: @rootView.project)
-      @append(@root)
+      @treeViewList.append(@root)
     else
       @root = null
 

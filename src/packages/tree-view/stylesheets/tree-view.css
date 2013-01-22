@@ -1,22 +1,26 @@
-.tree-view {
+.tree-view-wrapper {
   position: relative;
   height: 100%;
-  overflow: auto;
   cursor: default;
   -webkit-user-select: none;
   min-width: 100px;
   z-index: 2;
 }
 
-.tree-view .tree-view-resizer {
+.tree-view {
+  cursor: default;
+  -webkit-user-select: none;
+  overflow: auto;
+  height: 100%;
+}
+
+.tree-view-wrapper .tree-view-resizer {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   width: 10px;
-  background: transparent;
   cursor: col-resize;
-  position: fixed;
   z-index: 3;
 }
 
