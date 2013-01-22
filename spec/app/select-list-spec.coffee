@@ -95,14 +95,14 @@ describe "SelectList", ->
 
       miniEditor.trigger 'core:move-down'
       miniEditor.trigger 'core:move-down'
-      expect(list.scrollBottom()).toBe itemHeight * 2
+      expect(list.scrollBottom()).toBe itemHeight * 3
 
       miniEditor.trigger 'core:move-down'
-      expect(list.scrollBottom()).toBe itemHeight * 2
+      expect(list.scrollBottom()).toBe itemHeight * 4
 
       miniEditor.trigger 'core:move-up'
       miniEditor.trigger 'core:move-up'
-      expect(list.scrollBottom()).toBe itemHeight * 2
+      expect(list.scrollBottom()).toBe itemHeight * 3
 
   describe "the core:confirm event", ->
     describe "when there is an item selected (because the list in not empty)", ->
