@@ -9,6 +9,7 @@ cp -R ../../src $INSTALLDIR
 cp -R ../../static $INSTALLDIR
 cp -R ../../vendor $INSTALLDIR
 cp -R ../../bundles $INSTALLDIR
+cp -R ../../themes $INSTALLDIR
 mkdir -p $INSTALLDIR/native/v8_extensions
 cp -t $INSTALLDIR/native/v8_extensions ../v8_extensions/*.js
 coffee -c -o $INSTALLDIR/src/stdlib ../../src/stdlib/require.coffee
