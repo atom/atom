@@ -87,8 +87,12 @@
     NSString *path = [NSString stringWithUTF8String:cleanArgv[0]];
     path = [self standardizePathToOpen:path withArguments:arguments];
     [arguments setObject:path forKey:@"path"];
+  } else {
+    NSString *executedFromPath = [arguments objectForKey:@"executed-from"];
+    if (executedFromPath) {
+      [arguments setObject:executedFromPath forKey:@"path"];
+    }
   }
-
 
   return arguments;
 }
