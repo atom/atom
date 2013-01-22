@@ -143,7 +143,7 @@ module.exports =
       if extension == ""
         return path if @exists(path)
       else
-        pathWithExtension = path + "." + extension
+        pathWithExtension = path + "." + extension.replace(/^\./, "")
         return pathWithExtension if @exists(pathWithExtension)
     undefined
 
