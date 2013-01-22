@@ -22,7 +22,7 @@ module.exports =
 class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath, vendoredThemesDirPath]
-  packageDirPaths: [userPackagesDirPath, bundledPackagesDirPath, vendoredPackagesDirPath]
+  packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
   defaultSettings: null
   settings: null
 
