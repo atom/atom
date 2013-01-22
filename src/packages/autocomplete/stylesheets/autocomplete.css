@@ -1,0 +1,9 @@
+.select-list.autocomplete {
+  box-sizing: content-box;
+}
+
+.autocomplete ol {
+  position: relative;
+  overflow-y: scroll;
+  max-height: 200px;
+}
