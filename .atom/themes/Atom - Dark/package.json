@@ -3,8 +3,6 @@
     "atom.css",
     "editor.css",
     "grammar-view.css",
-    "linux.css",
-    "mac.css",
     "select-list.css",
     "vim-mode.css",
     "tree-view.css",
