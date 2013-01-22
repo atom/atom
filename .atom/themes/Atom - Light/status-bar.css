@@ -1,13 +1,10 @@
 .status-bar {
-  background-color: #303030;
-  border-top: 1px solid #454545;
+  background-color: #e5e5e5;
+  border-top: 1px solid #959595;
   padding: 4px 10px 3px;
   font-size: 11px;
   line-height: 14px;
-  color: #969696;
-  position: relative;
-  -webkit-user-select: none;
-  cursor: default;
+  color: #333;
 }
 
 .status-bar .cursor-position,
@@ -17,10 +14,6 @@
 
 .status-bar .grammar-name {
   cursor: pointer;
-}
-
-.status-bar .git-branch {
-  float: right;
 }
 
 .status-bar .branch-label {

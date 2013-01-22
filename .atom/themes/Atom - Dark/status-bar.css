@@ -5,9 +5,6 @@
   font-size: 11px;
   line-height: 14px;
   color: #969696;
-  position: relative;
-  -webkit-user-select: none;
-  cursor: default;
 }
 
 .status-bar .cursor-position,
@@ -17,10 +14,6 @@
 
 .status-bar .grammar-name {
   cursor: pointer;
-}
-
-.status-bar .git-branch {
-  float: right;
 }
 
 .status-bar .branch-label {
