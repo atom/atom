@@ -1,9 +1,9 @@
 .select-list {
   position: absolute;
-  width: 80%;
+  width: 600px;
   top: 0;
   left: 50%;
-  margin-left: -40%;
+  margin-left: -300px;
   box-sizing: border-box;
   z-index: 99;
 }

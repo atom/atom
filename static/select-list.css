@@ -1,7 +1,10 @@
 .select-list {
-  background-color: #444;
-  color: #eee;
-  -webkit-box-shadow: 0 0 5px 5px #222;
+  background-color: #484848;
+  border: 1px solid #444;
+  color: #d2d2d2;
+  box-shadow: 0 0 10px #000;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
   padding: 5px;
   cursor: pointer;
 }
@@ -15,7 +18,7 @@
 }
 
 .select-list ol .selected {
-  background: green;
+  background-image: -webkit-linear-gradient(#7e7e7e, #737373);
 }
 
 .select-list .error {
