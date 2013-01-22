@@ -1,0 +1,8 @@
+.grammar-view {
+  width: 50%;
+  margin-left: -25%;
+}
+
+.grammar-view ol {
+  max-height: 300px;
+}
