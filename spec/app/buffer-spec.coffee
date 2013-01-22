@@ -128,6 +128,22 @@ describe 'Buffer', ->
         runs ->
           expect(buffer.isModified()).toBeTruthy()
 
+      it "fires a single contents-conflicted event", ->
+        buffer.insert([0, 0], "a change")
+        buffer.save()
+        buffer.insert([0, 0], "a second change")
+
+        handler = jasmine.createSpy('fileChange')
+        fs.write(path, "second")
+        buffer.on 'contents-conflicted', handler
+
+        expect(handler.callCount).toBe 0
+        waitsFor ->
+          handler.callCount > 0
+
+        runs ->
+          expect(handler.callCount).toBe 1
+
   describe "when the buffer's file is deleted (via another process)", ->
     [path, bufferToDelete] = []
 

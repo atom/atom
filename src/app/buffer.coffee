@@ -242,7 +242,6 @@ class Buffer
     @setPath(path)
     @cachedDiskContents = @getText()
     @file.write(@getText())
-    @subscribeToFile()
     @trigger 'saved'
 
   isModified: ->
