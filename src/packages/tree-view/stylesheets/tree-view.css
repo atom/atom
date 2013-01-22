@@ -16,6 +16,7 @@
   width: 10px;
   background: transparent;
   cursor: col-resize;
+  position: fixed;
 }
 
 .tree-view .entry {

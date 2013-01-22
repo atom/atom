@@ -37,6 +37,7 @@ class TreeView extends ScrollView
     treeView.focusAfterAttach = state.hasFocus
     treeView.scrollTopAfterAttach = state.scrollTop
     treeView.width(state.width)
+    treeView.resizer.css(left: state.width)
     treeView.attach() if state.attached
     treeView
 
