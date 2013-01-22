@@ -7,8 +7,8 @@
 }
 
 .editor .gutter .line-number {
-  padding-right: 1.5em;
-  min-width: 50px;
+  padding-right: 1.3em;
+  min-width: 35px;
   box-sizing: border-box;
   text-align: right;
 }
