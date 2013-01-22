@@ -2,6 +2,7 @@
   background: #e3e3e3;
   border-bottom: 4px solid #e5e5e5;
   font: caption;
+  box-shadow: inset 0 -1px 0 #959595;
 }
 
 .tab {
@@ -85,10 +86,6 @@
   box-shadow: -2px 2px 0 #e5e5e5;
 }
 .tab.active:first-child:before {
-  display: none;
-}
-
-.tab.active:last-child:after {
   display: none;
 }
 
