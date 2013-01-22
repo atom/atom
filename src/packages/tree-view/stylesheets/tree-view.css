@@ -1,61 +1,37 @@
 .tree-view {
   position: relative;
   height: 100%;
-  background: #1e1e1e;
   overflow: auto;
   cursor: default;
   -webkit-user-select: none;
-  border-right: 2px solid #191919;
   min-width: 100px;
   z-index: 2;
 }
 
 .tree-view .tree-view-resizer {
-  float: right;
-  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
   width: 10px;
   background: transparent;
   cursor: col-resize;
   position: fixed;
+  z-index: 3;
 }
 
 .tree-view .entry {
-  text-shadow: 0 -1px 0 #000;
   text-wrap: none;
   white-space: nowrap;
 }
 
-.tree-view .entries {
-  margin-left: 12px;
-}
-
-.tree-view .entries .file .name {
-  margin-left: 15px;
-}
-
-.tree-view .directory.selected > .header > .name,
-.tree-view .selected > .name {
-  color: #d2d2d2;
-}
-
 .tree-view .selected > .highlight {
-  background-image: -webkit-linear-gradient(#4e4e4e, #434343);
   position: absolute;
   left: 0;
   right: 0;
   height: 24px;
   margin-top:-24px;
   z-index: -1;
-}
-
-.tree-view:focus .selected > .highlight {
-  background-image: -webkit-linear-gradient(#7e7e7e, #737373);
-}
-
-.tree-view:focus .directory.selected > .header > .name,
-.tree-view:focus .selected > .name {
-  color: #fff;
-  text-shadow: 0 -1px 0 #7E4521;
 }
 
 .tree-view .entry.file .name {
@@ -66,147 +42,10 @@
   display: inline-block;
 }
 
-.tree-view .directory .header {
-  color: #bebebe;
-}
-
-.tree-view .file {
-  color: #7d7d7d;
-}
-
-.tree-view .entry:hover,
-.tree-view .directory .header:hover .name,
-.tree-view .directory .header:hover .disclosure-arrow  {
-  color: #ebebeb;
-}
-
-.tree-view .file .name,
-.tree-view .directory .header {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-right: 10px;
-}
-
-.tree-view .ignored {
-  color: #555;
-}
-
-.tree-view .modified {
-  color: #f78a46;
-}
-
-.tree-view .new {
-  color: #5293d8;
-}
-
 .tree-view-dialog {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #333;
-  border-top: 1px solid #555;
-  -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
   z-index: 99;
-  padding: 5px;
-}
-
-.tree-view-dialog .prompt {
-  padding-bottom: 3px;
-  font-size: 12px;
-  line-height: 16px;
-  color: #aaa;
-}
-
-.tree-view-dialog .prompt span {
-  position: relative;
-  top: -1px;
-}
-
-.tree-view-dialog .prompt:before {
-  font-family: 'Octicons Regular';
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  margin-right: 3px;
-  -webkit-font-smoothing: antialiased;
-}
-
-.tree-view-dialog .prompt.add:before {
-  content: "\f086";
-}
-
-.tree-view-dialog .prompt.move:before {
-  content: "\f03e";
-}
-
-.tree-view .directory .header .name,
-.tree-view .file .name {
-  position: relative;
-  padding-left: 21px;
-}
-
-.tree-view .directory .header .name:before,
-.tree-view .file .name:before {
-  font-family: 'Octicons Regular';
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  margin-right: 5px;
-  -webkit-font-smoothing: antialiased;
-  position: absolute;
-  left: 0;
-}
-
-.tree-view .disclosure-arrow:before {
-  font-family: 'Octicons Regular';
-  font-size: 12px;
-  width: 12px;
-  height: 12px;
-  line-height: 16px;
-  margin-right: 3px;
-  -webkit-font-smoothing: antialiased;
-}
-
-.tree-view .directory .header .directory-icon:before {
-  content: "\f016";
-  top: -5px;
-}
-
-.tree-view .directory .header .repository-icon:before {
-  content: "\f001";
-  top: -4px;
-}
-
-.tree-view .directory .header .submodule-icon:before {
-  content: "\f017";
-  top: -5px;
-}
-
-.tree-view .file .text-icon:before {
-  content: "\f011";
-  top: -2px;
-}
-
-.tree-view .file .image-icon:before {
-  content: "\f012";
-  top: -2px;
-}
-
-.tree-view .file .compressed-icon:before {
-  content: "\f013";
-  top: -2px;
-}
-
-.tree-view .file .pdf-icon:before {
-  content: "\f014";
-  top: -2px;
-}
-
-.tree-view .directory > .header .disclosure-arrow:before {
-  content: "\f05a";
-}
-
-.tree-view .directory.expanded > .header .disclosure-arrow:before {
-  content: "\f05b";
 }

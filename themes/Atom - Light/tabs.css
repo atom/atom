@@ -1,0 +1,120 @@
+.tabs {
+  background: #e3e3e3;
+  border-bottom: 4px solid #e5e5e5;
+  font: caption;
+  box-shadow: inset 0 -1px 0 #959595;
+}
+
+.tab {
+  cursor: default;
+  padding: 2px 21px 2px 9px;
+  background-image: -webkit-linear-gradient(#e0e0e0, #bfbfbf);
+  border-top: none;
+  border-right: 1px solid #959595;
+  border-bottom: 1px solid #959595;
+  box-shadow: inset 0 0 5px #eee, 0 1px 0 #eee, inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
+  color: #323232;
+}
+
+.tab:hover {
+  background-image: -webkit-linear-gradient(#e2e2e2, #e0e0e0);
+}
+
+.tab .close-icon {
+  color: rgba(0,0,0,0.3);
+}
+
+.tab.file-modified .close-icon {
+  border-color: #aaa;
+}
+
+.tab.active,
+.tab.active:hover {
+  color: #010101;
+}
+
+.tab.active:first-child,
+.tab.active:first-child:hover {
+  box-shadow: none;
+}
+
+.tab.file-modified.active .close-icon {
+  border-color: #e6e6e6;
+}
+
+.tab:hover .close-icon {
+  color: #c8c8c8;
+  border-color: #c8c8c8;
+}
+
+.tab.file-modified .close-icon {
+  border: 3px solid #777;
+  border-radius: 10px;
+}
+
+.tab.file-modified .close-icon:before {
+  content: "";
+}
+
+.tab.active,
+.tab.active:hover {
+  border-bottom: 0 none;
+  box-shadow: inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
+  background-image: -webkit-linear-gradient(#fefefe, #e7e6e7);
+}
+
+.tab.active:before,
+.tab.active:after {
+  position: absolute;
+  bottom: 0;
+  width: 4px;
+  height: 4px;
+  content: " ";
+  z-index: 3;
+  border: 1px solid #959595;
+}
+.tab.active:before {
+  border-bottom-right-radius: 4px;
+  border-width: 0 1px 1px 0;
+  box-shadow: 2px 2px 0 #e5e5e5;
+  left: -5px;
+}
+.tab.active:after {
+  right: -5px;
+  border-bottom-left-radius: 4px;
+  border-width: 0 0 1px 1px;
+  box-shadow: -2px 2px 0 #e5e5e5;
+}
+.tab.active:first-child:before {
+  display: none;
+}
+
+.tab:hover {
+  background-image: -webkit-linear-gradient(#e2e2e2, #e0e0e0);
+}
+
+.tab .file-name {
+  font-size: 11px;
+  text-shadow: 0 1px 0 #e0e0e0;
+}
+
+.tab .close-icon {
+  font-family: 'Octicons Regular';
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  display: block;
+  cursor: pointer;
+  position: absolute;
+  right: 4px;
+  top: -1px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tab .close-icon:before {
+  content: "\f081";
+}
+
+.tab .close-icon:hover {
+  color: #aaa;
+}

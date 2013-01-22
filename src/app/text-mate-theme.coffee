@@ -35,10 +35,10 @@ class TextMateTheme extends Theme
   getRulesets: -> @rulesets
 
   buildGlobalSettingsRulesets: ({settings}) ->
-    { background, foreground, caret, selection } = settings
+    { background, foreground, caret, selection, lineHighlight } = settings
 
     @rulesets.push
-      selector: '.editor'
+      selector: '.editor, .editor .gutter'
       properties:
         'background-color': @translateColor(background)
         'color': @translateColor(foreground)
@@ -52,6 +52,11 @@ class TextMateTheme extends Theme
       selector: '.editor.focused .selection .region'
       properties:
         'background-color': @translateColor(selection)
+
+    @rulesets.push
+      selector: '.editor.focused .line-number.cursor-line-no-selection, .editor.focused .line.cursor-line'
+      properties:
+        'background-color': @translateColor(lineHighlight)
 
   buildScopeSelectorRulesets: (scopeSelectorSettings) ->
     for { name, scope, settings } in scopeSelectorSettings

@@ -136,7 +136,6 @@ class TreeView extends ScrollView
 
   resizeTreeView: (e) =>
     @css(width: e.pageX)
-    @resizer.css(left: e.pageX)
 
   updateRoot: ->
     @root?.remove()
