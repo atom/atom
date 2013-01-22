@@ -9,7 +9,7 @@ originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
 _.extend atom,
   exitWhenDone: window.location.params.exitWhenDone
-
+  loadedThemes: []
   pendingBrowserProcessCallbacks: {}
 
   loadPackages: ->
@@ -44,7 +44,11 @@ _.extend atom,
     @loadTheme(themeName) for themeName in themeNames
 
   loadTheme: (name) ->
-    Theme.load(name)
+    @loadedThemes.push Theme.load(name)
+
+  getAtomThemeStylesheets: ->
+    themeNames = config.get("core.themes") ? ['Atom - Dark', 'IR_Black']
+    themeNames = [themeNames] unless _.isArray(themeNames)
 
   open: (args...) ->
     @sendMessageToBrowserProcess('open', args)

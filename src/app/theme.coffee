@@ -21,7 +21,6 @@ class Theme
       if TextMateTheme.testPath(path)
         new TextMateTheme(path)
       else
-        require.paths.unshift path
         new AtomTheme(path)
 
     theme.load()
@@ -32,7 +31,7 @@ class Theme
 
   load: ->
     for stylesheetPath, stylesheetContent of @stylesheets
-      applyStylesheet(stylesheetPath, stylesheetContent)
+      applyStylesheet(stylesheetPath, stylesheetContent, 'userTheme')
 
   deactivate: ->
     for stylesheetPath, stylesheetContent of @stylesheets
