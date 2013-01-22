@@ -1,9 +1,9 @@
 RootView = require 'root-view'
-CommandPanel = require 'command-panel'
+CommandPanelView = require 'command-panel/src/command-panel-view'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [rootView, editor, buffer, commandPanel, project] = []
+  [rootView, editor, buffer, commandPanel, project, CommandPanel] = []
 
   beforeEach ->
     rootView = new RootView
@@ -12,8 +12,8 @@ describe "CommandPanel", ->
     project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
-    atom.loadPackage('command-panel')
-    commandPanel = CommandPanel.instance
+    CommandPanel = atom.loadPackage('command-panel')
+    commandPanel = CommandPanelView.instance
     commandPanel.history = []
     commandPanel.historyIndex = 0
 

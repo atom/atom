@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-OutlineView = require 'outline-view'
+OutlineView = require 'outline-view/src/outline-view'
 TagGenerator = require 'outline-view/src/tag-generator'
 fs = require 'fs'
 

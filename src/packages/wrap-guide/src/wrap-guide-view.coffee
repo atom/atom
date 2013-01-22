@@ -3,14 +3,14 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 module.exports =
-class WrapGuide extends View
+class WrapGuideView extends View
   @activate: (rootView, state) ->
     rootView.eachEditor (editor) =>
       @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
     if underlayer = editor.pane()?.find('.underlayer')
-      underlayer.append(new WrapGuide(rootView, editor))
+      underlayer.append(new WrapGuideView(rootView, editor))
 
   @content: ->
     @div class: 'wrap-guide'

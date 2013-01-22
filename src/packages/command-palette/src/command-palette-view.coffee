@@ -4,9 +4,9 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 module.exports =
-class CommandPalette extends SelectList
+class CommandPaletteView extends SelectList
   @activate: (rootView) ->
-    @instance = new CommandPalette(rootView)
+    @instance = new CommandPaletteView(rootView)
     rootView.command 'command-palette:toggle', => @instance.attach()
 
   @viewClass: ->

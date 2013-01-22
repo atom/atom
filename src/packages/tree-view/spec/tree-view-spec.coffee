@@ -1,6 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
-TreeView = require 'tree-view'
+TreeView = require 'tree-view/src/tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
 Native = require 'native'

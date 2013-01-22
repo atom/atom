@@ -9,12 +9,12 @@ Editor = require 'editor'
 _ = require 'underscore'
 
 module.exports =
-class CommandPanel extends View
+class CommandPanelView extends View
   @activate: (rootView, state) ->
     if state?
-      @instance = CommandPanel.deserialize(state, rootView)
+      @instance = @deserialize(state, rootView)
     else
-      @instance = new CommandPanel(rootView)
+      @instance = new CommandPanelView(rootView)
 
   @deactivate: ->
     @instance.destroy()
@@ -26,7 +26,7 @@ class CommandPanel extends View
     history: @instance.history[-@instance.maxSerializedHistorySize..]
 
   @deserialize: (state, rootView) ->
-    commandPanel = new CommandPanel(rootView, state.history)
+    commandPanel = new CommandPanelView(rootView, state.history)
     commandPanel.attach(state.text, focus: false) if state.visible
     commandPanel.miniEditor.focus() if state.miniEditorFocused
     commandPanel
@@ -93,6 +93,7 @@ class CommandPanel extends View
         @miniEditor.focus()
 
   attach: (text='', options={}) ->
+    console.trace 'attached', @rootView
     @errorMessages.hide()
 
     focus = options.focus ? true

@@ -4,9 +4,9 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 module.exports =
-class CommandLogger extends ScrollView
+class CommandLoggerView extends ScrollView
   @activate: (rootView, state) ->
-    @instance = new CommandLogger(rootView, state?.eventLog)
+    @instance = new CommandLoggerView(rootView, state?.eventLog)
 
   @content: (rootView) ->
     @div class: 'command-logger', tabindex: -1, =>

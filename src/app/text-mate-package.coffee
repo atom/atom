@@ -32,6 +32,7 @@ class TextMatePackage extends Package
         syntax.addProperties(selector, properties)
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack
+    this
 
   getGrammars: ->
     return @grammars if @grammars

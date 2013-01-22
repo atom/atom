@@ -1,1 +1,6 @@
-module.exports = require 'status-bar/src/status-bar'
+AtomPackage = require 'atom-package'
+StatusBarView = require './src/status-bar-view'
+
+module.exports =
+class StatusBar extends AtomPackage
+  activate: (rootView) -> StatusBarView.activate(rootView)

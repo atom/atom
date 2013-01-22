@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-CommandPalette = require 'command-palette'
+CommandPalette = require 'command-palette/src/command-palette-view'
 $ = require 'jquery'
 _ = require 'underscore'
 

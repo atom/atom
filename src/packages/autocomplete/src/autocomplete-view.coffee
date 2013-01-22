@@ -3,10 +3,10 @@ Range = require 'range'
 SelectList = require 'select-list'
 
 module.exports =
-class Autocomplete extends SelectList
+class AutocompleteView extends SelectList
   @activate: (rootView) ->
     rootView.eachEditor (editor) ->
-      new Autocomplete(editor) if editor.attached and not editor.mini
+      new AutocompleteView(editor) if editor.attached and not editor.mini
 
   @viewClass: -> "autocomplete #{super}"
 

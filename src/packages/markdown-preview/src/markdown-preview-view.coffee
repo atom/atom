@@ -4,7 +4,7 @@ $ = require 'jquery'
 {$$$} = require 'space-pen'
 
 module.exports =
-class MarkdownPreview extends ScrollView
+class MarkdownPreviewView extends ScrollView
   @activate: (rootView, state) ->
     @instance = new this(rootView)
 

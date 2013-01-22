@@ -3,14 +3,14 @@ _ = require 'underscore'
 $ = require 'jquery'
 
 module.exports =
-class StatusBar extends View
+class StatusBarView extends View
   @activate: (rootView) ->
     rootView.eachEditor (editor) =>
       @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
     if pane = editor.pane()
-      pane.append(new StatusBar(rootView, editor))
+      pane.append(new StatusBarView(rootView, editor))
 
   @content: ->
     @div class: 'status-bar', =>

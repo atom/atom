@@ -1,6 +1,6 @@
 $ = require 'jquery'
 RootView = require 'root-view'
-MarkdownPreview = require 'markdown-preview'
+MarkdownPreview = require 'markdown-preview/src/markdown-preview-view'
 
 describe "MarkdownPreview", ->
   [rootView, markdownPreview] = []

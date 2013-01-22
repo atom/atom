@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-CommandLogger = require 'command-logger'
+CommandLogger = require 'command-logger/src/command-logger-view'
 
 describe "CommandLogger", ->
   [rootView, commandLogger, editor] = []

@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-FuzzyFinder = require 'fuzzy-finder'
+FuzzyFinder = require 'fuzzy-finder/src/fuzzy-finder-view'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
