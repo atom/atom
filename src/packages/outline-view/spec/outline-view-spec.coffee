@@ -1,6 +1,7 @@
 RootView = require 'root-view'
 OutlineView = require 'outline-view'
 TagGenerator = require 'outline-view/src/tag-generator'
+fs = require 'fs'
 
 describe "OutlineView", ->
   [rootView, outlineView, setArraySpy] = []
@@ -151,6 +152,21 @@ describe "OutlineView", ->
       outlineView.confirmed(outlineView.array[0])
       expect(rootView.getActiveEditor().getPath()).toBe rootView.project.resolve("tagged-duplicate.js")
       expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,4]
+
+    describe "when the tag is in a file that doesn't exist", ->
+      beforeEach ->
+        fs.move(rootView.project.resolve("tagged-duplicate.js"), rootView.project.resolve("tagged-duplicate-renamed.js"))
+
+      afterEach ->
+        fs.move(rootView.project.resolve("tagged-duplicate-renamed.js"), rootView.project.resolve("tagged-duplicate.js"))
+
+      it "doesn't display the tag", ->
+        rootView.open("tagged.js")
+        editor = rootView.getActiveEditor()
+        editor.setCursorBufferPosition([8,14])
+        editor.trigger 'outline-view:jump-to-declaration'
+        expect(outlineView.list.children('li').length).toBe 1
+        expect(outlineView.list.children('li:first').find('.function-name')).toHaveText 'tagged.js'
 
   describe "project outline", ->
     it "displays all tags", ->

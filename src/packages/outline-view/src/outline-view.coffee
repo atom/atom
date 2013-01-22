@@ -102,7 +102,9 @@ class OutlineView extends SelectList
   getTagLine: (tag) ->
     pattern = $.trim(tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '')) # Remove leading /^ and trailing $/
     return unless pattern
-    for line, index in fs.read(@rootView.project.resolve(tag.file)).split('\n')
+    file = @rootView.project.resolve(tag.file)
+    return unless fs.isFile(file)
+    for line, index in fs.read(file).split('\n')
       return new Point(index, 0) if pattern is $.trim(line)
 
   jumpToDeclaration: ->
