@@ -12,7 +12,7 @@
 }
 
 .tree-view .entries .file .name {
-  margin-left: 15px;
+  margin-left: 20px;
 }
 
 .tree-view .directory.selected > .header > .name,
