@@ -11,11 +11,14 @@
 }
 
 .tree-view .tree-view-resizer {
-  float: right;
-  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
   width: 10px;
   background: transparent;
   cursor: col-resize;
+  z-index: 3;
 }
 
 .tree-view .entry {
