@@ -17,9 +17,6 @@ class TreeView extends ScrollView
     else
       @instance = new TreeView(rootView)
 
-      if rootView.project.getPath() and not rootView.pathToOpenIsFile
-        @instance.attach()
-
   @deactivate: ->
     @instance.deactivate()
 
@@ -65,8 +62,7 @@ class TreeView extends ScrollView
         @selectEntryForPath(@selectedPath) if @selectedPath
       else
         @selectActiveFile()
-    @rootView.command 'tree-view:toggle', => @toggle()
-    @rootView.command 'tree-view:reveal-active-file', => @revealActiveFile()
+
     @rootView.on 'root-view:active-path-changed', => @selectActiveFile()
     @rootView.project.on 'path-changed', => @updateRoot()
     @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()

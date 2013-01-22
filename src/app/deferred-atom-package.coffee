@@ -16,7 +16,11 @@ class DeferredAtomPackage extends AtomPackage
 
   deactivate: -> @instance?.deactivate?()
 
-  serialize: -> @instance?.serialize?()
+  serialize: ->
+    if @instance
+      @instance.serialize?()
+    else
+      @state
 
   getInstance: ->
     unless @instance

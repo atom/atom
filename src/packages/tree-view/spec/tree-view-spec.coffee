@@ -13,8 +13,7 @@ describe "TreeView", ->
     rootView = new RootView(require.resolve('fixtures/tree-view'))
     project = rootView.project
 
-    atom.loadPackage("tree-view")
-    treeView = TreeView.instance
+    treeView = atom.loadPackage("tree-view").getInstance()
     treeView.root = treeView.find('ol > li:first').view()
     sampleJs = treeView.find('.file:contains(tree-view.js)')
     sampleTxt = treeView.find('.file:contains(tree-view.txt)')
@@ -51,8 +50,7 @@ describe "TreeView", ->
         rootView.deactivate()
 
         rootView = new RootView
-        atom.loadPackage 'tree-view'
-        treeView = TreeView.instance
+        treeView = atom.loadPackage("tree-view").getInstance()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -78,8 +76,7 @@ describe "TreeView", ->
         rootView.deactivate()
 
         rootView = new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
-        atom.loadPackage 'tree-view'
-        treeView = TreeView.instance
+        treeView = atom.loadPackage("tree-view").getInstance()
 
       it "does not attach to the root view but does create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
