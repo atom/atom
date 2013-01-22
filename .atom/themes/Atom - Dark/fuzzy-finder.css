@@ -1,6 +1,5 @@
 .fuzzy-finder ol {
   overflow: hidden;
-  margin-bottom: 5px;
   -webkit-user-select: none;
   cursor: default;
 }
@@ -39,8 +38,4 @@
 
 .fuzzy-finder .file.pdf-name:before {
   content: "\f014";
-}
-
-.fuzzy-finder ol li {
-  border-bottom: 1px solid rgba(255, 255, 255, .05);
 }

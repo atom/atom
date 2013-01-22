@@ -8,7 +8,7 @@
   cursor: default;
   padding: 2px 21px 2px 9px;
   background-image: -webkit-linear-gradient(#e0e0e0, #bfbfbf);
-  border-top: 1px solid #6a6a6a;
+  border-top: none;
   border-right: 1px solid #959595;
   border-bottom: 1px solid #959595;
   box-shadow: inset 0 0 5px #eee, 0 1px 0 #eee, inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
@@ -57,7 +57,6 @@
 
 .tab.active,
 .tab.active:hover {
-  border-top: 1px solid #6a6a6a;
   border-bottom: 0 none;
   box-shadow: inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
   background-image: -webkit-linear-gradient(#fefefe, #e7e6e7);

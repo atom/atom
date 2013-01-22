@@ -55,6 +55,10 @@
   padding-right: 10px;
 }
 
+.tree-view .directory .header {
+  padding-left: 5px;
+}
+
 .tree-view .ignored {
   color: #555;
 }

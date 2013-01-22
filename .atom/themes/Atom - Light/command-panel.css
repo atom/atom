@@ -1,31 +1,28 @@
 .command-panel {
-  background-color: #303030;
-  border: 1px solid #252525;
+  background-color: #f4f4f4;
+  border-top: 1px solid #979797;
   color: #ededed;
-  padding: 5px;
+  padding: 10px;
 }
 
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;
-  margin-bottom: 3px;
+  margin-bottom: 10px;
   position: relative;
-  background-color: #000000;
-  color: #ededed;
+  background-color: #e7e7e7;
+  color: #222;
   cursor: default;
+  border: 1px solid #989898;
 }
 
 .command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
-  background-color: rgba(255, 255, 255, .13);
-}
-
-.command-panel .preview-list:focus li.selected {
-  background-color: rgba(255, 255, 255, .2);
+  background-color: rgba(255, 255, 255, .6);
 }
 
 .command-panel .preview-list .path {
   padding-left: 5px;
-  color: #00a693;
+  color: #3D5075;
 }
 
 .command-panel .preview-list .path:before {
@@ -47,7 +44,7 @@
 
 .command-panel .preview-list .line-number {
   padding-left: 3px;
-  color: rgba(255, 255, 255, .3);
+  color: #3D5075;
   margin-right: 1ex;
   text-align: right;
   display: inline-block;
@@ -58,7 +55,7 @@
 }
 
 .command-panel .preview-list .preview .match {
-  background-color: rgba(255, 255, 255, .2);
+  background-color: #c8d4d7;
   -webkit-border-radius: 2px;
   padding: 1px;
 }
@@ -72,7 +69,7 @@
   content: '\f078';
   font-family: 'Octicons Regular';
   position: relative;
-  top: -5px;
+  top: -4px;
   left: -5px;
   -webkit-font-smoothing: antialiased;
 }
