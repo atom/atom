@@ -38,6 +38,7 @@ class Tabs extends View
   setActiveTab: (index) ->
     @find(".tab.active").removeClass('active')
     @find(".tab:eq(#{index})").addClass('active')
+    @find(".tab:eq(#{index})").attr('draggable', true)
 
   removeTabAtIndex: (index) ->
     @find(".tab:eq(#{index})").remove()

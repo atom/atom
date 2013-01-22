@@ -4,74 +4,74 @@
   font: caption;
 }
 
-.tabs {
-  text-align: center;
-  height: 26px;
-  overflow: hidden;
-  font-size: 12px;
-  position: relative;
-}
-.tabs div {
-  border: 1px solid #AAA;
-  background: #D1D1D1;
-  background: -webkit-linear-gradient(top, #ECECEC 50%, #D1D1D1 100%);
-  background: linear-gradient(top, #ECECEC 50%, #D1D1D1 100%);
-  display: inline-block;
-  position: relative;
-  z-index: 0;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 #FFF;
-  text-shadow: 0 1px #FFF;
-  margin: 0 -5px;
-  padding: 0 20px;
-}
-.tabs span.file-name {
-  color: #555;
-  text-decoration: none;
-}
-.tabs div.tab.active {
-  background: #FFF;
-  color: #333;
-  z-index: 2;
-  border-bottom-color: #FFF;
-}
-.tabs:before {
-  position: absolute;
-  content: " ";
-  width: 100%;
-  bottom: 0;
-  left: 0;
-  border-bottom: 1px solid #AAA;
+/* Tab Structure */
+
+.tabs .tab{
+  border-top-right-radius: 20px 60px;
+  border-top-left-radius: 20px 60px;
+  border: 1px solid transparent;
+  margin-left: -25px;
   z-index: 1;
 }
-.tabs div:before,
-.tabs div:after {
-  border: 1px solid #AAA;
+
+.tabs .tab:first-child{
+  margin-left: 0;
+}
+
+.tabs .active{
+  z-index: 2;
+}
+
+.left-mask, .right-mask{
+  width: 10px;
+  height: 3px;
+  overflow: hidden;
   position: absolute;
-  bottom: -1px;
-  width: 5px;
-  height: 5px;
-  content: " ";
+  top: 20px;
 }
-.tabs div:before {
-  left: -6px;
-  border-bottom-right-radius: 6px;
-  border-width: 0 1px 1px 0;
-  box-shadow: 2px 2px 0 #D1D1D1;
+
+.active .left-mask, .active .right-mask{
+  height: 4px;
 }
-.tabs div:after {
-  right: -6px;
-  border-bottom-left-radius: 6px;
-  border-width: 0 0 1px 1px;
-  box-shadow: -2px 2px 0 #D1D1D1;
+
+.left-mask{
+  left: -1px;
 }
-.tabs div.tab.active:before {
-  box-shadow: 2px 2px 0 #FFF;
+
+.right-mask{
+  right: -1px;
 }
-.tabs div.tab.active:after {
-  box-shadow: -2px 2px 0 #FFF;
+
+.left-mask span, .right-mask span{
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #fff;
+  border-radius: 10px;
+
 }
+
+.left-mask span{
+  margin: -10px -9px;
+}
+
+.right-mask span{
+  margin: -10px 0px;
+}
+
+.tabs .tab a{
+  display: block;
+  float: left;
+  line-height: 25px;
+  padding-left: 40px;
+  font-family: sans-serif;
+  font-size: 13px;
+  color: #444;
+  text-decoration: none;
+}
+
 
 .tab {
   cursor: default;
