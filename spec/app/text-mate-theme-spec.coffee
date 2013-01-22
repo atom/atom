@@ -21,7 +21,7 @@ describe "TextMateTheme", ->
 
     it "returns rulesets representing the theme's global style settings", ->
       expect(rulesets[0]).toEqual
-        selector: '.editor'
+        selector: '.editor, .editor .gutter'
         properties:
           'background-color': '#141414'
           'color': '#F8F8F8'
@@ -37,7 +37,7 @@ describe "TextMateTheme", ->
           'background-color': "rgba(221, 240, 255, 0.2)"
 
     it "returns an array of objects representing the theme's scope selectors", ->
-      expect(rulesets[11]).toEqual
+      expect(rulesets[12]).toEqual
         comment: "Invalid – Deprecated"
         selector: ".invalid.deprecated"
         properties:
@@ -45,7 +45,7 @@ describe "TextMateTheme", ->
           # 'font-style': 'italic'
           'text-decoration': 'underline'
 
-      expect(rulesets[12]).toEqual
+      expect(rulesets[13]).toEqual
         comment: "Invalid – Illegal"
         selector: ".invalid.illegal"
         properties:
