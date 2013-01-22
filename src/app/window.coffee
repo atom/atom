@@ -72,10 +72,7 @@ windowAdditions =
   requireStylesheet: (path) ->
     if fullPath = require.resolve(path)
       window.applyStylesheet(fullPath, fs.read(fullPath))
-    for theme in atom.loadedThemes
-      for themePath, css of theme.stylesheets
-        matched = true if themePath.match(path)
-    unless fullPath || matched
+    unless fullPath
       throw new Error("Could not find a file at path '#{path}'")
 
   removeStylesheet: (path) ->
