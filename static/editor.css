@@ -6,7 +6,6 @@
   -webkit-box-flex: 1;
   position: relative;
   z-index: 0;
-  font-family: Inconsolata, Monaco, Courier;
 }
 
 .editor.mini {
@@ -17,7 +16,6 @@
   position: absolute;
   height: 100%;
   overflow: hidden;
-  color: rgba(255, 255, 255, .3);
   text-align: right;
 }
 
@@ -25,26 +23,8 @@
   position: relative;
 }
 
-.editor .gutter .line-number {
-  padding-left: 0.4em;
-  padding-right: 0.8em;
-}
-
-.editor.focused .line-number.cursor-line {
-  color: rgba(255, 255, 255, .6);
-}
-
-.editor.focused .line-number.cursor-line-no-selection,
-.editor.focused .line.cursor-line {
-  background-color: rgba(255, 255, 255, .20);
-}
-
 .editor.mini .gutter {
   display: none;
-}
-
-.editor .gutter.drop-shadow {
-  -webkit-box-shadow: -2px 0px 10px 2px #222;
 }
 
 .editor .vertical-scrollbar {
@@ -123,27 +103,4 @@
   position: absolute;
   pointer-events: none;
   z-index: -1;
-}
-
-@-webkit-keyframes highlight {
-  from { background-color: rgba(100, 255, 100, 0.7); }
-  to { background-color: null; }
-}
-
-.editor .highlighted.selection .region {
-  -webkit-animation-name: highlight;
-  -webkit-animation-duration: 1s;
-  -webkit-animation-iteration-count: 1;
-}
-
-.editor .fold {
-  background-color: #444;
-}
-
-.editor .fold.selected {
-  background-color: #244;
-}
-
-.editor .invisible {
-  opacity: 0.2;
 }

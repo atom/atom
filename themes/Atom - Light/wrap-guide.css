@@ -1,0 +1,8 @@
+.wrap-guide {
+  height: 100%;
+  width: 1px;
+  background: rgba(150, 150, 150, .30);
+  z-index: 100;
+  position: absolute;
+  top: 0px;
+}

@@ -1,68 +1,9 @@
 .status-bar {
-  background-color: #303030;
-  border-top: 1px solid #454545;
-  padding: 4px 10px 3px;
-  font-size: 11px;
-  line-height: 14px;
-  color: #969696;
   position: relative;
   -webkit-user-select: none;
   cursor: default;
 }
 
-.status-bar .cursor-position,
-.status-bar .grammar-name {
-  padding-left: 10px;
-}
-
-.status-bar .grammar-name {
-  cursor: pointer;
-}
-
 .status-bar .git-branch {
   float: right;
-}
-
-.status-bar .branch-label {
-  vertical-align: baseline;
-}
-
-.status-bar .git-status.octicons {
-  display: none;
-  padding-left: 10px;
-  margin-top:-2px;
-}
-
-.status-bar .octicons:before {
-  font-family: 'Octicons Regular';
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-  line-height: 14px;
-  -webkit-font-smoothing: antialiased;
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 5px;
-}
-
-.status-bar .branch-icon:before {
-  content: "\f020";
-}
-
-.status-bar .git-status.octicons.modified-status-icon {
-  color: #f78a46;
-  display: inline-block;
-}
-
-.status-bar .modified-status-icon:before {
-  content: "\f26d";
-}
-
-.status-bar .git-status.octicons.new-status-icon {
-  color: #5293d8;
-  display: inline-block;
-}
-
-.status-bar .new-status-icon:before {
-  content: "\f26b";
 }
