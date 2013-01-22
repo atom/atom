@@ -1,0 +1,31 @@
+.tabs {
+  -webkit-user-select: none;
+}
+
+.tab {
+  display: table-cell;
+  position: relative;
+  width:175px;
+  min-width: 40px;
+  box-sizing: border-box;
+  height: 24px;
+}
+
+.tab.file-modified .close-icon {
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  right: 5px;
+}
+
+.tab .file-name {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  position: absolute;
+  left: 9px;
+  top:4px;
+  bottom:4px;
+  right: 21px;
+}

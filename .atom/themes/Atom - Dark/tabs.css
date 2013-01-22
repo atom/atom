@@ -2,24 +2,16 @@
   background: #333333;
   border-bottom: 4px solid #424242;
   font: caption;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 .tab {
   cursor: default;
   padding: 2px 21px 2px 9px;
   background-image: -webkit-linear-gradient(#444, #3d3d3d);
-  display: table-cell;
-  position: relative;
-  width:175px;
   border-top: 1px solid #383838;
   border-right: 1px solid #2e2e2e;
   border-bottom: 1px solid #2e2e2e;
   box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a, inset 1px 0 0 #4a4a4a;
-  min-width: 40px;
-  box-sizing: border-box;
-  height: 24px;
 }
 
 .tab,
@@ -48,11 +40,7 @@
 
 .tab.file-modified .close-icon {
   border: 3px solid #777;
-  top: 6px;
   border-radius: 10px;
-  width: 5px;
-  height: 5px;
-  right: 5px;
 }
 
 .tab.file-modified .close-icon:before {
@@ -102,6 +90,10 @@
   display: none;
 }
 
+.tab.active:last-child:after {
+  display: none;
+}
+
 .tab:hover {
   color: #c8c8c8;
   background-image: -webkit-linear-gradient(#474747, #444444);
@@ -109,16 +101,7 @@
 
 .tab .file-name {
   font-size: 11px;
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   text-shadow: 0 -1px 1px black;
-  position: absolute;
-  left: 9px;
-  top:4px;
-  bottom:4px;
-  right: 21px;
 }
 
 .tab .close-icon {
