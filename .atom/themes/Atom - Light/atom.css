@@ -1,31 +1,7 @@
-html, body {
-  font: caption;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
+html, body,
 #root-view {
-  height: 100%;
-  overflow: hidden;
-  position: relative;
+  font: caption;
   background-color: #333333;
-}
-
-#root-view #horizontal {
-  display: -webkit-box;
-  height: 100%;
-}
-
-#root-view #vertical {
-  -webkit-box-flex: 1;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-}
-
-#root-view #panes {
-  -webkit-box-flex: 1;
-  position: relative;
 }
 
 #root-view #panes:before {
@@ -37,35 +13,6 @@ html, body {
   font-size: 100vmin;
   line-height: 100vmin;
   text-align: center;
-}
-
-#root-view #panes .column {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  overflow-y: hidden;
-}
-
-#root-view #panes .row {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  overflow-x: hidden;
-}
-
-#root-view #panes .pane {
-  position: absolute;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  box-sizing: border-box;
 }
 
 #root-view #panes .row > * + * {

@@ -1,14 +1,6 @@
 .tree-view {
-  position: relative;
-  height: 100%;
   background: #e2e7ed;
-  overflow: auto;
-  cursor: default;
-  -webkit-user-select: none;
   border-right: 2px solid #bdbdbd;
-  min-width: 100px;
-  z-index: 2;
-  padding-left: 12px;
 }
 
 .tree-view .entry {
@@ -24,19 +16,12 @@
 }
 
 .tree-view .directory.selected > .header > .name,
-.tree-view .selected > .name,
-.tree-view .selected > .disclosure-arrow {
+.tree-view .selected > .name {
   color: #262626;
 }
 
 .tree-view .selected > .highlight {
   background-image: -webkit-linear-gradient(#c7cbd2, #aeb3bb);
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 24px;
-  margin-top:-24px;
-  z-index: -1;
 }
 
 .tree-view:focus .selected > .highlight {
@@ -49,15 +34,6 @@
 .tree-view:focus .selected > .name:before {
   color: #fff;
   text-shadow: 0 1px 0 #000;
-}
-
-.tree-view .entry.file .name {
-  display: block;
-}
-
-.tree-view .disclosure-arrow {
-  display: inline-block;
-  text-shadow: none;
 }
 
 .tree-view .directory .header {
@@ -98,14 +74,9 @@
 }
 
 .tree-view-dialog {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   background-color: #333;
   border-top: 1px solid #555;
   -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
-  z-index: 99;
   padding: 5px;
 }
 
