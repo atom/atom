@@ -6,22 +6,11 @@
   height: auto;
 }
 
-.editor .gutter {
-  color: rgba(255, 255, 255, .3);
-}
-
 .editor .gutter .line-number {
-  padding-left: 0.4em;
-  padding-right: 0.8em;
-}
-
-.editor.focused .line-number.cursor-line {
-  color: rgba(255, 255, 255, .6);
-}
-
-.editor.focused .line-number.cursor-line-no-selection,
-.editor.focused .line.cursor-line {
-  background-color: rgba(255, 255, 255, .20);
+  padding-right: 1.5em;
+  min-width: 50px;
+  box-sizing: border-box;
+  text-align: right;
 }
 
 .editor .gutter.drop-shadow {
