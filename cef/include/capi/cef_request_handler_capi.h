@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -132,9 +132,8 @@ typedef struct _cef_request_handler_t {
   // Called on the IO thread when the browser needs credentials from the user.
   // |isProxy| indicates whether the host is a proxy server. |host| contains the
   // hostname and |port| contains the port number. Return true (1) to continue
-  // the request and call cef_auth_callback_t::Complete() when the
-  // authentication information is available. Return false (0) to cancel the
-  // request.
+  // the request and call cef_auth_callback_t::cont() when the authentication
+  // information is available. Return false (0) to cancel the request.
   ///
   int (CEF_CALLBACK *get_auth_credentials)(struct _cef_request_handler_t* self,
       struct _cef_browser_t* browser, struct _cef_frame_t* frame, int isProxy,
@@ -145,9 +144,9 @@ typedef struct _cef_request_handler_t {
   // Called on the IO thread when JavaScript requests a specific storage quota
   // size via the webkitStorageInfo.requestQuota function. |origin_url| is the
   // origin of the page making the request. |new_size| is the requested quota
-  // size in bytes. Return true (1) and call cef_quota_callback_t::Complete()
-  // either in this function or at a later time to grant or deny the request.
-  // Return false (0) to cancel the request.
+  // size in bytes. Return true (1) and call cef_quota_callback_t::cont() either
+  // in this function or at a later time to grant or deny the request. Return
+  // false (0) to cancel the request.
   ///
   int (CEF_CALLBACK *on_quota_request)(struct _cef_request_handler_t* self,
       struct _cef_browser_t* browser, const cef_string_t* origin_url,

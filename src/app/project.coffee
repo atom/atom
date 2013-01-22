@@ -83,7 +83,7 @@ class Project
     @ignoreRepositoryPath(path)
 
   ignoreRepositoryPath: (path) ->
-    config.get("core.hideGitIgnoredFiles") and @repo.isPathIgnored(fs.join(@getPath(), path))
+    config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(fs.join(@getPath(), path))
 
   resolve: (filePath) ->
     filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'

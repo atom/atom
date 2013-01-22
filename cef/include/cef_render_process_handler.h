@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -44,19 +44,26 @@
 #include "include/cef_frame.h"
 #include "include/cef_process_message.h"
 #include "include/cef_v8.h"
+#include "include/cef_values.h"
 
 ///
 // Class used to implement render process callbacks. The methods of this class
-// will always be called on the render process main thread.
+// will be called on the render process main thread (TID_RENDERER) unless
+// otherwise indicated.
 ///
 /*--cef(source=client)--*/
 class CefRenderProcessHandler : public virtual CefBase {
  public:
+  typedef cef_navigation_type_t NavigationType;
+
   ///
-  // Called after the render process main thread has been created.
+  // Called after the render process main thread has been created. |extra_info|
+  // is a read-only value originating from
+  // CefBrowserProcessHandler::OnRenderProcessThreadCreated(). Do not keep a
+  // reference to |extra_info| outside of this method.
   ///
   /*--cef()--*/
-  virtual void OnRenderThreadCreated() {}
+  virtual void OnRenderThreadCreated(CefRefPtr<CefListValue> extra_info) {}
 
   ///
   // Called after WebKit has been initialized.
@@ -65,7 +72,9 @@ class CefRenderProcessHandler : public virtual CefBase {
   virtual void OnWebKitInitialized() {}
 
   ///
-  // Called after a browser has been created.
+  // Called after a browser has been created. When browsing cross-origin a new
+  // browser will be created before the old browser with the same identifier is
+  // destroyed.
   ///
   /*--cef()--*/
   virtual void OnBrowserCreated(CefRefPtr<CefBrowser> browser) {}
@@ -77,9 +86,23 @@ class CefRenderProcessHandler : public virtual CefBase {
   virtual void OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) {}
 
   ///
+  // Called before browser navigation. Return true to cancel the navigation or
+  // false to allow the navigation to proceed. The |request| object cannot be
+  // modified in this callback.
+  ///
+  /*--cef()--*/
+  virtual bool OnBeforeNavigation(CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefFrame> frame,
+                                  CefRefPtr<CefRequest> request,
+                                  NavigationType navigation_type,
+                                  bool is_redirect) { return false; }
+
+  ///
   // Called immediately after the V8 context for a frame has been created. To
   // retrieve the JavaScript 'window' object use the CefV8Context::GetGlobal()
-  // method.
+  // method. V8 handles can only be accessed from the thread on which they are
+  // created. A task runner for posting tasks on the associated thread can be
+  // retrieved via the CefV8Context::GetTaskRunner() method.
   ///
   /*--cef()--*/
   virtual void OnContextCreated(CefRefPtr<CefBrowser> browser,
@@ -94,6 +117,55 @@ class CefRenderProcessHandler : public virtual CefBase {
   virtual void OnContextReleased(CefRefPtr<CefBrowser> browser,
                                  CefRefPtr<CefFrame> frame,
                                  CefRefPtr<CefV8Context> context) {}
+
+  ///
+  // Called for global uncaught exceptions in a frame. Execution of this
+  // callback is disabled by default. To enable set
+  // CefSettings.uncaught_exception_stack_size > 0.
+  ///
+  /*--cef()--*/
+  virtual void OnUncaughtException(CefRefPtr<CefBrowser> browser,
+                                   CefRefPtr<CefFrame> frame,
+                                   CefRefPtr<CefV8Context> context,
+                                   CefRefPtr<CefV8Exception> exception,
+                                   CefRefPtr<CefV8StackTrace> stackTrace) {}
+
+  ///
+  // Called on the WebWorker thread immediately after the V8 context for a new
+  // WebWorker has been created. To retrieve the JavaScript 'self' object use
+  // the CefV8Context::GetGlobal() method. V8 handles can only be accessed from
+  // the thread on which they are created. A task runner for posting tasks on
+  // the associated thread can be retrieved via the
+  // CefV8Context::GetTaskRunner() method.
+  ///
+  /*--cef()--*/
+  virtual void OnWorkerContextCreated(int worker_id,
+                                      const CefString& url,
+                                      CefRefPtr<CefV8Context> context) {}
+
+  ///
+  // Called on the WebWorker thread immediately before the V8 context for a
+  // WebWorker is released. No references to the context should be kept after
+  // this method is called. Any tasks posted or pending on the WebWorker
+  // thread after this method is called may not be executed.
+  ///
+  /*--cef()--*/
+  virtual void OnWorkerContextReleased(int worker_id,
+                                       const CefString& url,
+                                       CefRefPtr<CefV8Context> context) {}
+
+  ///
+  // Called on the WebWorker thread for global uncaught exceptions in a
+  // WebWorker. Execution of this callback is disabled by default. To enable set
+  // CefSettings.uncaught_exception_stack_size > 0.
+  ///
+  /*--cef()--*/
+  virtual void OnWorkerUncaughtException(
+      int worker_id,
+      const CefString& url,
+      CefRefPtr<CefV8Context> context,
+      CefRefPtr<CefV8Exception> exception,
+      CefRefPtr<CefV8StackTrace> stackTrace) {}
 
   ///
   // Called when a new node in the the browser gets focus. The |node| value may

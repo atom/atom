@@ -138,7 +138,7 @@ class CefRequestHandler : public virtual CefBase {
   // Called on the IO thread when the browser needs credentials from the user.
   // |isProxy| indicates whether the host is a proxy server. |host| contains the
   // hostname and |port| contains the port number. Return true to continue the
-  // request and call CefAuthCallback::Complete() when the authentication
+  // request and call CefAuthCallback::Continue() when the authentication
   // information is available. Return false to cancel the request.
   ///
   /*--cef(optional_param=realm)--*/
@@ -157,7 +157,7 @@ class CefRequestHandler : public virtual CefBase {
   // Called on the IO thread when JavaScript requests a specific storage quota
   // size via the webkitStorageInfo.requestQuota function. |origin_url| is the
   // origin of the page making the request. |new_size| is the requested quota
-  // size in bytes. Return true and call CefQuotaCallback::Complete() either in
+  // size in bytes. Return true and call CefQuotaCallback::Continue() either in
   // this function or at a later time to grant or deny the request. Return false
   // to cancel the request.
   ///

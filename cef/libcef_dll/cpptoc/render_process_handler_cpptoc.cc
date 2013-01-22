@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -14,22 +14,32 @@
 #include "libcef_dll/ctocpp/browser_ctocpp.h"
 #include "libcef_dll/ctocpp/domnode_ctocpp.h"
 #include "libcef_dll/ctocpp/frame_ctocpp.h"
+#include "libcef_dll/ctocpp/list_value_ctocpp.h"
 #include "libcef_dll/ctocpp/process_message_ctocpp.h"
+#include "libcef_dll/ctocpp/request_ctocpp.h"
 #include "libcef_dll/ctocpp/v8context_ctocpp.h"
+#include "libcef_dll/ctocpp/v8exception_ctocpp.h"
+#include "libcef_dll/ctocpp/v8stack_trace_ctocpp.h"
 
 
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
 void CEF_CALLBACK render_process_handler_on_render_thread_created(
-    struct _cef_render_process_handler_t* self) {
+    struct _cef_render_process_handler_t* self,
+    struct _cef_list_value_t* extra_info) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
   if (!self)
     return;
+  // Verify param: extra_info; type: refptr_diff
+  DCHECK(extra_info);
+  if (!extra_info)
+    return;
 
   // Execute
-  CefRenderProcessHandlerCppToC::Get(self)->OnRenderThreadCreated();
+  CefRenderProcessHandlerCppToC::Get(self)->OnRenderThreadCreated(
+      CefListValueCToCpp::Wrap(extra_info));
 }
 
 void CEF_CALLBACK render_process_handler_on_web_kit_initialized(
@@ -76,6 +86,40 @@ void CEF_CALLBACK render_process_handler_on_browser_destroyed(
   // Execute
   CefRenderProcessHandlerCppToC::Get(self)->OnBrowserDestroyed(
       CefBrowserCToCpp::Wrap(browser));
+}
+
+int CEF_CALLBACK render_process_handler_on_before_navigation(
+    struct _cef_render_process_handler_t* self, cef_browser_t* browser,
+    cef_frame_t* frame, struct _cef_request_t* request,
+    enum cef_navigation_type_t navigation_type, int is_redirect) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return 0;
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser);
+  if (!browser)
+    return 0;
+  // Verify param: frame; type: refptr_diff
+  DCHECK(frame);
+  if (!frame)
+    return 0;
+  // Verify param: request; type: refptr_diff
+  DCHECK(request);
+  if (!request)
+    return 0;
+
+  // Execute
+  bool _retval = CefRenderProcessHandlerCppToC::Get(self)->OnBeforeNavigation(
+      CefBrowserCToCpp::Wrap(browser),
+      CefFrameCToCpp::Wrap(frame),
+      CefRequestCToCpp::Wrap(request),
+      navigation_type,
+      is_redirect?true:false);
+
+  // Return type: bool
+  return _retval;
 }
 
 void CEF_CALLBACK render_process_handler_on_context_created(
@@ -132,6 +176,130 @@ void CEF_CALLBACK render_process_handler_on_context_released(
       CefBrowserCToCpp::Wrap(browser),
       CefFrameCToCpp::Wrap(frame),
       CefV8ContextCToCpp::Wrap(context));
+}
+
+void CEF_CALLBACK render_process_handler_on_uncaught_exception(
+    struct _cef_render_process_handler_t* self, cef_browser_t* browser,
+    cef_frame_t* frame, struct _cef_v8context_t* context,
+    struct _cef_v8exception_t* exception,
+    struct _cef_v8stack_trace_t* stackTrace) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return;
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser);
+  if (!browser)
+    return;
+  // Verify param: frame; type: refptr_diff
+  DCHECK(frame);
+  if (!frame)
+    return;
+  // Verify param: context; type: refptr_diff
+  DCHECK(context);
+  if (!context)
+    return;
+  // Verify param: exception; type: refptr_diff
+  DCHECK(exception);
+  if (!exception)
+    return;
+  // Verify param: stackTrace; type: refptr_diff
+  DCHECK(stackTrace);
+  if (!stackTrace)
+    return;
+
+  // Execute
+  CefRenderProcessHandlerCppToC::Get(self)->OnUncaughtException(
+      CefBrowserCToCpp::Wrap(browser),
+      CefFrameCToCpp::Wrap(frame),
+      CefV8ContextCToCpp::Wrap(context),
+      CefV8ExceptionCToCpp::Wrap(exception),
+      CefV8StackTraceCToCpp::Wrap(stackTrace));
+}
+
+void CEF_CALLBACK render_process_handler_on_worker_context_created(
+    struct _cef_render_process_handler_t* self, int worker_id,
+    const cef_string_t* url, struct _cef_v8context_t* context) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return;
+  // Verify param: url; type: string_byref_const
+  DCHECK(url);
+  if (!url)
+    return;
+  // Verify param: context; type: refptr_diff
+  DCHECK(context);
+  if (!context)
+    return;
+
+  // Execute
+  CefRenderProcessHandlerCppToC::Get(self)->OnWorkerContextCreated(
+      worker_id,
+      CefString(url),
+      CefV8ContextCToCpp::Wrap(context));
+}
+
+void CEF_CALLBACK render_process_handler_on_worker_context_released(
+    struct _cef_render_process_handler_t* self, int worker_id,
+    const cef_string_t* url, struct _cef_v8context_t* context) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return;
+  // Verify param: url; type: string_byref_const
+  DCHECK(url);
+  if (!url)
+    return;
+  // Verify param: context; type: refptr_diff
+  DCHECK(context);
+  if (!context)
+    return;
+
+  // Execute
+  CefRenderProcessHandlerCppToC::Get(self)->OnWorkerContextReleased(
+      worker_id,
+      CefString(url),
+      CefV8ContextCToCpp::Wrap(context));
+}
+
+void CEF_CALLBACK render_process_handler_on_worker_uncaught_exception(
+    struct _cef_render_process_handler_t* self, int worker_id,
+    const cef_string_t* url, struct _cef_v8context_t* context,
+    struct _cef_v8exception_t* exception,
+    struct _cef_v8stack_trace_t* stackTrace) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return;
+  // Verify param: url; type: string_byref_const
+  DCHECK(url);
+  if (!url)
+    return;
+  // Verify param: context; type: refptr_diff
+  DCHECK(context);
+  if (!context)
+    return;
+  // Verify param: exception; type: refptr_diff
+  DCHECK(exception);
+  if (!exception)
+    return;
+  // Verify param: stackTrace; type: refptr_diff
+  DCHECK(stackTrace);
+  if (!stackTrace)
+    return;
+
+  // Execute
+  CefRenderProcessHandlerCppToC::Get(self)->OnWorkerUncaughtException(
+      worker_id,
+      CefString(url),
+      CefV8ContextCToCpp::Wrap(context),
+      CefV8ExceptionCToCpp::Wrap(exception),
+      CefV8StackTraceCToCpp::Wrap(stackTrace));
 }
 
 void CEF_CALLBACK render_process_handler_on_focused_node_changed(
@@ -198,10 +366,20 @@ CefRenderProcessHandlerCppToC::CefRenderProcessHandlerCppToC(
       render_process_handler_on_browser_created;
   struct_.struct_.on_browser_destroyed =
       render_process_handler_on_browser_destroyed;
+  struct_.struct_.on_before_navigation =
+      render_process_handler_on_before_navigation;
   struct_.struct_.on_context_created =
       render_process_handler_on_context_created;
   struct_.struct_.on_context_released =
       render_process_handler_on_context_released;
+  struct_.struct_.on_uncaught_exception =
+      render_process_handler_on_uncaught_exception;
+  struct_.struct_.on_worker_context_created =
+      render_process_handler_on_worker_context_created;
+  struct_.struct_.on_worker_context_released =
+      render_process_handler_on_worker_context_released;
+  struct_.struct_.on_worker_uncaught_exception =
+      render_process_handler_on_worker_uncaught_exception;
   struct_.struct_.on_focused_node_changed =
       render_process_handler_on_focused_node_changed;
   struct_.struct_.on_process_message_received =

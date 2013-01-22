@@ -6,6 +6,7 @@
 #include "include/cef_task.h"
 #include "include/cef_runnable.h"
 #include "include/cef_trace.h"
+#include "cef_types.h"
 #include "native/atom_cef_client.h"
 #include "cef_v8.h"
 
@@ -124,21 +125,21 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                const CefKeyEvent& event,
                                CefEventHandle os_event) {
-  if (event.modifiers == KEY_META && event.unmodified_character == 'r') {
+  if (event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'r') {
     browser->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
   }
-  if (m_HandlePasteboardCommands && event.modifiers == KEY_META && event.unmodified_character == 'x') {
+  if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'x') {
     browser->GetFocusedFrame()->Cut();
   }
-  if (m_HandlePasteboardCommands && event.modifiers == KEY_META && event.unmodified_character == 'c') {
+  if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'c') {
     browser->GetFocusedFrame()->Copy();
   }
-  if (m_HandlePasteboardCommands && event.modifiers == KEY_META && event.unmodified_character == 'v') {
+  if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'v') {
     browser->GetFocusedFrame()->Paste();
   }
-  else if (event.modifiers == (KEY_META | KEY_ALT) && event.unmodified_character == 'i') {
+  else if (event.modifiers == (EVENTFLAG_COMMAND_DOWN | EVENTFLAG_ALT_DOWN) && event.unmodified_character == 'i') {
     ToggleDevTools(browser);
-  } else if (event.modifiers == KEY_META && event.unmodified_character == '`') {
+  } else if (event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == '`') {
     FocusNextWindow();
   }
   else {

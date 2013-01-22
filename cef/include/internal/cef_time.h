@@ -69,6 +69,18 @@ CEF_EXPORT int cef_time_from_timet(time_t time, cef_time_t* cef_time);
 CEF_EXPORT int cef_time_to_doublet(const cef_time_t* cef_time, double* time);
 CEF_EXPORT int cef_time_from_doublet(double time, cef_time_t* cef_time);
 
+///
+// Retrieve the current system time.
+//
+CEF_EXPORT int cef_time_now(cef_time_t* cef_time);
+
+///
+// Retrieve the delta in milliseconds between two time values.
+//
+CEF_EXPORT int cef_time_delta(const cef_time_t* cef_time1,
+                              const cef_time_t* cef_time2,
+                              long long* delta);
+
 #ifdef __cplusplus
 }
 #endif

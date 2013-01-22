@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -34,6 +34,7 @@ class CefV8StackTraceCToCpp
   virtual ~CefV8StackTraceCToCpp() {}
 
   // CefV8StackTrace methods
+  virtual bool IsValid() OVERRIDE;
   virtual int GetFrameCount() OVERRIDE;
   virtual CefRefPtr<CefV8StackFrame> GetFrame(int index) OVERRIDE;
 };

@@ -183,7 +183,7 @@ class TreeView extends ScrollView
     if selectedEntry
       if selectedEntry.is('.expanded.directory')
         return if @selectEntry(selectedEntry.find('.entry:first'))
-      until @selectEntry(selectedEntry.next())
+      until @selectEntry(selectedEntry.next('.entry'))
         selectedEntry = selectedEntry.parents('.entry:first')
         break unless selectedEntry.length
     else
@@ -194,7 +194,7 @@ class TreeView extends ScrollView
   moveUp: ->
     selectedEntry = @selectedEntry()
     if selectedEntry
-      if previousEntry = @selectEntry(selectedEntry.prev())
+      if previousEntry = @selectEntry(selectedEntry.prev('.entry'))
         if previousEntry.is('.expanded.directory')
           @selectEntry(previousEntry.find('.entry:last'))
       else

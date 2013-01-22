@@ -498,6 +498,9 @@ class EditSession
   getCurrentParagraphBufferRange: ->
     @getCursor().getCurrentParagraphBufferRange()
 
+  getWordUnderCursor: (options) ->
+    @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
+
   moveCursorUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount)
 
