@@ -1,30 +1,10 @@
 .tree-view {
-  position: relative;
-  height: 100%;
   background: #1e1e1e;
-  overflow: auto;
-  cursor: default;
-  -webkit-user-select: none;
   border-right: 2px solid #191919;
-  min-width: 100px;
-  z-index: 2;
-}
-
-.tree-view .tree-view-resizer {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 10px;
-  background: transparent;
-  cursor: col-resize;
-  z-index: 3;
 }
 
 .tree-view .entry {
   text-shadow: 0 -1px 0 #000;
-  text-wrap: none;
-  white-space: nowrap;
 }
 
 .tree-view .entries {
@@ -42,12 +22,6 @@
 
 .tree-view .selected > .highlight {
   background-image: -webkit-linear-gradient(#4e4e4e, #434343);
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 24px;
-  margin-top:-24px;
-  z-index: -1;
 }
 
 .tree-view:focus .selected > .highlight {
@@ -58,14 +32,6 @@
 .tree-view:focus .selected > .name {
   color: #fff;
   text-shadow: 0 -1px 0 #7E4521;
-}
-
-.tree-view .entry.file .name {
-  display: block;
-}
-
-.tree-view .disclosure-arrow {
-  display: inline-block;
 }
 
 .tree-view .directory .header {
@@ -102,14 +68,9 @@
 }
 
 .tree-view-dialog {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   background-color: #333;
   border-top: 1px solid #555;
   -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
-  z-index: 99;
   padding: 5px;
 }
 

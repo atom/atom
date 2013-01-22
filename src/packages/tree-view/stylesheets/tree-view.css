@@ -1,0 +1,50 @@
+.tree-view {
+  position: relative;
+  height: 100%;
+  overflow: auto;
+  cursor: default;
+  -webkit-user-select: none;
+  min-width: 100px;
+  z-index: 2;
+}
+
+.tree-view .tree-view-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  background: transparent;
+  cursor: col-resize;
+  z-index: 3;
+}
+
+.tree-view .entry {
+  text-wrap: none;
+  white-space: nowrap;
+}
+
+.tree-view .selected > .highlight {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24px;
+  margin-top:-24px;
+  z-index: -1;
+}
+
+.tree-view .entry.file .name {
+  display: block;
+}
+
+.tree-view .disclosure-arrow {
+  display: inline-block;
+}
+
+.tree-view-dialog {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
