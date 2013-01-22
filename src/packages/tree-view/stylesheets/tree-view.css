@@ -8,6 +8,7 @@
 }
 
 .tree-view {
+  position: relative;
   cursor: default;
   -webkit-user-select: none;
   overflow: auto;
@@ -29,13 +30,18 @@
   white-space: nowrap;
 }
 
+.tree-view .entry > .header,
+.tree-view .entry > .name {
+  z-index: 1;
+  position: relative;
+}
+
 .tree-view .selected > .highlight {
   position: absolute;
   left: 0;
   right: 0;
   height: 24px;
   margin-top:-24px;
-  z-index: -1;
 }
 
 .tree-view .entry.file .name {

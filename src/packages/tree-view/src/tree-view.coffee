@@ -74,15 +74,15 @@ class TreeView extends ScrollView
     @selectEntry(@root) if @root
 
   afterAttach: (onDom) ->
-    @focus() if @focusAfterAttach
-    @scrollTop(@scrollTopAfterAttach) if @scrollTopAfterAttach > 0
+    @treeViewList.focus() if @focusAfterAttach
+    @treeViewList.scrollTop(@scrollTopAfterAttach) if @scrollTopAfterAttach > 0
 
   serialize: ->
     directoryExpansionStates: @root?.serializeEntryExpansionStates()
     selectedPath: @selectedEntry()?.getPath()
     hasFocus: @hasFocus()
     attached: @hasParent()
-    scrollTop: @scrollTop()
+    scrollTop: @treeViewList.scrollTop()
     width: @width()
 
   deactivate: ->
@@ -93,14 +93,14 @@ class TreeView extends ScrollView
       @detach()
     else
       if @hasParent()
-        @focus()
+        @treeViewList.focus()
       else
         @attach()
 
   attach: ->
     return unless rootView.project.getPath()
     @rootView.horizontal.prepend(this)
-    @focus()
+    @treeViewList.focus()
 
   detach: ->
     @scrollTopAfterAttach = @scrollTop()
@@ -108,7 +108,7 @@ class TreeView extends ScrollView
     @rootView.focus()
 
   hasFocus: ->
-    @is(':focus')
+    @treeViewList.is(':focus')
 
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()
@@ -174,7 +174,7 @@ class TreeView extends ScrollView
       else
         bestMatchEntry
 
-    @find(".entry").toArray().reduce(fn, @root)
+    @treeViewList.find(".entry").toArray().reduce(fn, @root)
 
   selectEntryForPath: (path) ->
     @selectEntry(@entryForPath(path))
@@ -295,32 +295,34 @@ class TreeView extends ScrollView
     @rootView.append(dialog)
 
   selectedEntry: ->
-    @find('.selected')?.view()
+    @treeViewList.find('.selected')?.view()
 
   selectEntry: (entry) ->
     return false unless entry.get(0)
     entry = entry.view() unless entry instanceof View
     @selectedPath = entry.getPath()
-    @find('.selected').removeClass('selected')
+    @treeViewList.find('.selected').removeClass('selected')
     entry.addClass('selected')
 
   scrollToEntry: (entry) ->
     displayElement = if entry instanceof DirectoryView then entry.header else entry
 
-    top = @scrollTop() + displayElement.position().top
+    top = @treeViewList.scrollTop() + displayElement.position().top
     bottom = top + displayElement.outerHeight()
 
-    if bottom > @scrollBottom()
-      @scrollBottom(bottom)
-    if top < @scrollTop()
-      @scrollTop(top)
+    if bottom > @treeViewList.scrollBottom()
+      @treeViewList.scrollBottom(bottom)
+    if top < @treeViewList.scrollTop()
+      @treeViewList.scrollTop(top)
 
   scrollToBottom: ->
     super()
 
     @selectEntry(@root.find('.entry:last')) if @root
+    @scrollToEntry(@root.find('.entry:last')) if @root
 
   scrollToTop: ->
     super()
 
     @selectEntry(@root) if @root
+    @scrollToEntry(@root) if @root
