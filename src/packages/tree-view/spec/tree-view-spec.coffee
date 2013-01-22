@@ -507,7 +507,7 @@ describe "TreeView", ->
 
         entryCount = treeView.find(".entry").length
         _.times entryCount, -> treeView.moveDown()
-        expect(treeView.scrollBottom() + 2).toBe treeView.prop('scrollHeight')
+        expect(treeView.scrollBottom()).toBe treeView.prop('scrollHeight')
 
         _.times entryCount, -> treeView.moveUp()
         expect(treeView.scrollTop()).toBe 0
