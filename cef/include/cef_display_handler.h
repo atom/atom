@@ -78,6 +78,8 @@ class CefDisplayHandler : public virtual CefBase {
   // text that will be displayed in the tooltip. To handle the display of the
   // tooltip yourself return true. Otherwise, you can optionally modify |text|
   // and then return false to allow the browser to display the tooltip.
+  // When window rendering is disabled the application is responsible for
+  // drawing tooltips and the return value is ignored.
   ///
   /*--cef(optional_param=text)--*/
   virtual bool OnTooltip(CefRefPtr<CefBrowser> browser,

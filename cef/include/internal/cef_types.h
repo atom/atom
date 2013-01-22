@@ -130,7 +130,8 @@ enum cef_log_severity_t {
 
 ///
 // Initialization settings. Specify NULL or 0 to get the recommended default
-// values.
+// values. Many of these and other settings can also configured using command-
+// line flags.
 ///
 typedef struct _cef_settings_t {
   ///
@@ -209,6 +210,11 @@ typedef struct _cef_settings_t {
   cef_log_severity_t log_severity;
 
   ///
+  // Enable DCHECK in release mode to ease debugging.
+  ///
+  bool release_dcheck_enabled;
+
+  ///
   // Custom flags that will be used when initializing the V8 JavaScript engine.
   // The consequences of using custom flags may not be well tested.
   ///
@@ -252,12 +258,40 @@ typedef struct _cef_settings_t {
   // Chrome browser window.
   ///
   int remote_debugging_port;
+
+  ///
+  // The number of stack trace frames to capture for uncaught exceptions.
+  // Specify a positive value to enable the CefV8ContextHandler::
+  // OnUncaughtException() callback. Specify 0 (default value) and
+  // OnUncaughtException() will not be called.
+  ///
+  int uncaught_exception_stack_size;
+
+  ///
+  // By default CEF V8 references will be invalidated (the IsValid() method will
+  // return false) after the owning context has been released. This reduces the
+  // need for external record keeping and avoids crashes due to the use of V8
+  // references after the associated context has been released.
+  //
+  // CEF currently offers two context safety implementations with different
+  // performance characteristics. The default implementation (value of 0) uses a
+  // map of hash values and should provide better performance in situations with
+  // a small number contexts. The alternate implementation (value of 1) uses a
+  // hidden value attached to each context and should provide better performance
+  // in situations with a large number of contexts.
+  //
+  // If you need better performance in the creation of V8 references and you
+  // plan to manually track context lifespan you can disable context safety by
+  // specifying a value of -1.
+  ///
+  int context_safety_implementation;
 } cef_settings_t;
 
 ///
 // Browser initialization settings. Specify NULL or 0 to get the recommended
 // default values. The consequences of using custom values may not be well
-// tested.
+// tested. Many of these and other settings can also configured using command-
+// line flags.
 ///
 typedef struct _cef_browser_settings_t {
   ///
@@ -453,16 +487,6 @@ typedef struct _cef_browser_settings_t {
   bool accelerated_2d_canvas_disabled;
 
   ///
-  // Set to true (1) to enable accelerated painting.
-  ///
-  bool accelerated_painting_enabled;
-
-  ///
-  // Set to true (1) to enable accelerated filters.
-  ///
-  bool accelerated_filters_enabled;
-
-  ///
   // Set to true (1) to disable accelerated plugins.
   ///
   bool accelerated_plugins_disabled;
@@ -471,11 +495,6 @@ typedef struct _cef_browser_settings_t {
   // Set to true (1) to disable developer tools (WebKit inspector).
   ///
   bool developer_tools_disabled;
-
-  ///
-  // Set to true (1) to enable fullscreen mode.
-  ///
-  bool fullscreen_enabled;
 } cef_browser_settings_t;
 
 ///
@@ -738,28 +757,28 @@ enum cef_urlrequest_flags_t {
   // Default behavior.
   ///
   UR_FLAG_NONE                      = 0,
-  
+
   ///
   // If set the cache will be skipped when handling the request.
   ///
   UR_FLAG_SKIP_CACHE                = 1 << 0,
-  
+
   ///
   // If set user name, password, and cookies may be sent with the request.
   ///
   UR_FLAG_ALLOW_CACHED_CREDENTIALS  = 1 << 1,
-  
+
   ///
   // If set cookies may be sent with the request and saved from the response.
   // UR_FLAG_ALLOW_CACHED_CREDENTIALS must also be set.
   ///
   UR_FLAG_ALLOW_COOKIES             = 1 << 2,
-  
+
   ///
   // If set upload progress events will be generated when a request has a body.
   ///
   UR_FLAG_REPORT_UPLOAD_PROGRESS    = 1 << 3,
-  
+
   ///
   // If set load timing info will be collected for the request.
   ///
@@ -791,23 +810,23 @@ enum cef_urlrequest_status_t {
   // Unknown status.
   ///
   UR_UNKNOWN = 0,
-  
+
   ///
   // Request succeeded.
   ///
   UR_SUCCESS,
-  
+
   ///
   // An IO request is pending, and the caller will be informed when it is
   // completed.
   ///
   UR_IO_PENDING,
-  
+
   ///
   // Request was canceled programatically.
   ///
   UR_CANCELED,
-  
+
   ///
   // Request failed for some reason.
   ///
@@ -948,11 +967,49 @@ enum cef_menu_id_t {
 };
 
 ///
+// Mouse button types.
+///
+enum cef_mouse_button_type_t {
+  MBT_LEFT   = 0,
+  MBT_MIDDLE,
+  MBT_RIGHT,
+};
+
+///
+// Structure representing mouse event information.
+///
+typedef struct _cef_mouse_event_t {
+  ///
+  // X coordinate relative to the left side of the view.
+  ///
+  int x;
+
+  ///
+  // Y coordinate relative to the top side of the view.
+  ///
+  int y;
+
+  ///
+  // Bit flags describing any pressed modifier keys. See
+  // cef_event_flags_t for values.
+  ///
+  uint32 modifiers;
+} cef_mouse_event_t;
+
+///
+// Paint element types.
+///
+enum cef_paint_element_type_t {
+  PET_VIEW  = 0,
+  PET_POPUP,
+};
+
+///
 // Supported event bit flags.
 ///
 enum cef_event_flags_t {
   EVENTFLAG_NONE                = 0,
-  EVENTFLAG_CAPS_LOCK_DOWN      = 1 << 0,
+  EVENTFLAG_CAPS_LOCK_ON        = 1 << 0,
   EVENTFLAG_SHIFT_DOWN          = 1 << 1,
   EVENTFLAG_CONTROL_DOWN        = 1 << 2,
   EVENTFLAG_ALT_DOWN            = 1 << 3,
@@ -961,8 +1018,10 @@ enum cef_event_flags_t {
   EVENTFLAG_RIGHT_MOUSE_BUTTON  = 1 << 6,
   // Mac OS-X command key.
   EVENTFLAG_COMMAND_DOWN        = 1 << 7,
-  // Windows extended key (see WM_KEYDOWN doc).
-  EVENTFLAG_EXTENDED            = 1 << 8,
+  EVENTFLAG_NUM_LOCK_ON         = 1 << 8,
+  EVENTFLAG_IS_KEY_PAD          = 1 << 9,
+  EVENTFLAG_IS_LEFT             = 1 << 10,
+  EVENTFLAG_IS_RIGHT            = 1 << 11,
 };
 
 ///
@@ -1084,17 +1143,6 @@ enum cef_key_event_type_t {
 };
 
 ///
-// Key event modifiers.
-///
-enum cef_key_event_modifiers_t {
-  KEY_SHIFT  = 1 << 0,
-  KEY_CTRL   = 1 << 1,
-  KEY_ALT    = 1 << 2,
-  KEY_META   = 1 << 3,
-  KEY_KEYPAD = 1 << 4,  // Only used on Mac OS-X
-};
-
-///
 // Structure representing keyboard event information.
 ///
 typedef struct _cef_key_event_t {
@@ -1102,12 +1150,12 @@ typedef struct _cef_key_event_t {
   // The type of keyboard event.
   ///
   cef_key_event_type_t type;
-  
+
   ///
   // Bit flags describing any pressed modifier keys. See
-  // cef_key_event_modifiers_t for values.
+  // cef_event_flags_t for values.
   ///
-  int modifiers;
+  uint32 modifiers;
 
   ///
   // The Windows key code for the key event. This value is used by the DOM
@@ -1159,6 +1207,18 @@ enum cef_focus_source_t {
   // The source is a system-generated focus event.
   ///
   FOCUS_SOURCE_SYSTEM,
+};
+
+///
+// Navigation types.
+///
+enum cef_navigation_type_t {
+  NAVIGATION_LINK_CLICKED = 0,
+  NAVIGATION_FORM_SUBMITTED,
+  NAVIGATION_BACK_FORWARD,
+  NAVIGATION_RELOAD,
+  NAVIGATION_FORM_RESUBMITTED,
+  NAVIGATION_OTHER,
 };
 
 ///

@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Marshall A. Greenblatt. Portions Copyright (c)
+// Copyright (c) 2013 Marshall A. Greenblatt. Portions Copyright (c)
 // 2006-2011 Google Inc. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -145,7 +145,7 @@ class CefRunnableMethod : public CefTask {
       traits_.ReleaseCallee(obj);
   }
 
-  virtual void Execute(CefThreadId threadId) {
+  virtual void Execute() {
     if (obj_)
       DispatchToMethod(obj_, meth_, params_);
   }
@@ -253,7 +253,7 @@ class CefRunnableFunction : public CefTask {
   ~CefRunnableFunction() {
   }
 
-  virtual void Execute(CefThreadId threadId) {
+  virtual void Execute() {
     if (function_)
       DispatchToFunction(function_, params_);
   }

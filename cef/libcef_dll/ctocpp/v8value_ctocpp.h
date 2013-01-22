@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -33,6 +33,7 @@ class CefV8ValueCToCpp
   virtual ~CefV8ValueCToCpp() {}
 
   // CefV8Value methods
+  virtual bool IsValid() OVERRIDE;
   virtual bool IsUndefined() OVERRIDE;
   virtual bool IsNull() OVERRIDE;
   virtual bool IsBool() OVERRIDE;

@@ -41,6 +41,7 @@
 #include "include/cef_base.h"
 #include "include/cef_command_line.h"
 #include "include/cef_proxy_handler.h"
+#include "include/cef_values.h"
 
 ///
 // Class used to implement browser process callbacks. The methods of this class
@@ -67,13 +68,26 @@ class CefBrowserProcessHandler : public virtual CefBase {
   virtual void OnContextInitialized() {}
 
   ///
-  // Called on the browser process IO thread before a child process is launched.
-  // Provides an opportunity to modify the child process command line.
+  // Called before a child process is launched. Will be called on the browser
+  // process UI thread when launching a render process and on the browser
+  // process IO thread when launching a GPU or plugin process. Provides an
+  // opportunity to modify the child process command line. Do not keep a
+  // reference to |command_line| outside of this method.
   ///
   /*--cef()--*/
   virtual void OnBeforeChildProcessLaunch(
-      CefRefPtr<CefCommandLine> command_line) {
-  }
+      CefRefPtr<CefCommandLine> command_line) {}
+
+  ///
+  // Called on the browser process IO thread after the main thread has been
+  // created for a new render process. Provides an opportunity to specify extra
+  // information that will be passed to
+  // CefRenderProcessHandler::OnRenderThreadCreated() in the render process. Do
+  // not keep a reference to |extra_info| outside of this method.
+  ///
+  /*--cef()--*/
+  virtual void OnRenderProcessThreadCreated(
+      CefRefPtr<CefListValue> extra_info) {}
 };
 
 #endif  // CEF_INCLUDE_CEF_BROWSER_PROCESS_HANDLER_H_

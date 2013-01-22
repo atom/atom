@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -50,7 +50,6 @@ class CefDownloadItemCToCpp
   virtual CefString GetSuggestedFileName() OVERRIDE;
   virtual CefString GetContentDisposition() OVERRIDE;
   virtual CefString GetMimeType() OVERRIDE;
-  virtual CefString GetReferrerCharset() OVERRIDE;
 };
 
 #endif  // USING_CEF_SHARED
