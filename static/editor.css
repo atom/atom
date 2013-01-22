@@ -1,0 +1,106 @@
+.editor {
+  height: 100%;
+  overflow: hidden;
+  cursor: default;
+  -webkit-user-select: none;
+  -webkit-box-flex: 1;
+  position: relative;
+  z-index: 0;
+}
+
+.editor.mini {
+  height: auto;
+}
+
+.editor .gutter {
+  position: absolute;
+  height: 100%;
+  overflow: hidden;
+  text-align: right;
+}
+
+.editor .gutter .line-numbers {
+  position: relative;
+}
+
+.editor.mini .gutter {
+  display: none;
+}
+
+.editor .vertical-scrollbar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 15px;
+  overflow-y: auto;
+  z-index: 1;
+}
+
+.editor .scroll-view {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-box-flex: 1;
+}
+
+.editor.mini .scroll-view {
+  overflow: hidden;
+}
+
+.editor.soft-wrap .scroll-view {
+  overflow-x: hidden;
+}
+
+
+.editor .underlayer, .editor .lines, .editor .overlayer {
+  width: 100%;
+  height: 100%;
+}
+
+.editor .underlayer {
+  z-index: 0;
+  position: absolute;
+}
+
+.editor .lines {
+  position: relative;
+  z-index: 1;
+}
+
+.editor .overlayer {
+  z-index: 2;
+  position: absolute;
+}
+
+.editor .line span {
+  vertical-align: top;
+}
+
+.editor .cursor {
+  position: absolute;
+  border-left: 2px solid;
+}
+
+.editor:not(.focused) .cursor,
+.editor.focused .cursor.blink-off {
+  visibility: hidden;
+}
+
+.editor .hidden-input {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+
+.editor .selection .region {
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
