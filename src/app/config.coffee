@@ -10,7 +10,9 @@ configDirPath = fs.absolute("~/.atom")
 configJsonPath = fs.join(configDirPath, "config.json")
 userInitScriptPath = fs.join(configDirPath, "atom.coffee")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
-bundledVendorPackagesDirPath = fs.join(resourcePath, "vendor/packages")
+bundledThemesDirPath = fs.join(resourcePath, "themes")
+vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
+vendoredThemesDirPath = fs.join(resourcePath, "vendor/themes")
 userThemesDirPath = fs.join(configDirPath, "themes")
 userPackagesDirPath = fs.join(configDirPath, "packages")
 
@@ -19,8 +21,8 @@ require.paths.unshift userPackagesDirPath
 module.exports =
 class Config
   configDirPath: configDirPath
-  themeDirPaths: [userThemesDirPath]
-  packageDirPaths: [userPackagesDirPath, bundledVendorPackagesDirPath, bundledPackagesDirPath]
+  themeDirPaths: [userThemesDirPath, bundledThemesDirPath, vendoredThemesDirPath]
+  packageDirPaths: [userPackagesDirPath, bundledPackagesDirPath, vendoredPackagesDirPath]
   defaultSettings: null
   settings: null
 
