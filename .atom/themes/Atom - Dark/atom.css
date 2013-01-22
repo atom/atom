@@ -1,9 +1,6 @@
-html, body {
-  font: caption;
-  background-color: #333333;
-}
-
+html, body,
 #root-view {
+  font: caption;
   background-color: #333333;
 }
 
