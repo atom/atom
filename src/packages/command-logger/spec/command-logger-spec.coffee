@@ -26,9 +26,13 @@ describe "CommandLogger", ->
       editor.trigger 'core:backspace'
       lastRun = commandLogger.eventLog['core:backspace'].lastRun
       expect(lastRun).toBeGreaterThan 0
-      advanceClock(100)
-      editor.trigger 'core:backspace'
-      expect(commandLogger.eventLog['core:backspace'].lastRun).toBeGreaterThan lastRun
+      start = new Date().getTime()
+      waitsFor ->
+        new Date().getTime() > start
+
+      runs ->
+        editor.trigger 'core:backspace'
+        expect(commandLogger.eventLog['core:backspace'].lastRun).toBeGreaterThan lastRun
 
   describe "when the data is cleared", ->
     it "removes all triggered events from the log", ->
