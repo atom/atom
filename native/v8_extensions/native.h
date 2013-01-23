@@ -6,8 +6,8 @@ namespace v8_extensions {
 
 class Native : public CefV8Handler {
 public:
-  Native();
 
+  static void CreateContextBinding(CefRefPtr<CefV8Context> context);
   virtual bool Execute(const CefString& name,
                                       CefRefPtr<CefV8Value> object,
                                       const CefV8ValueList& arguments,
@@ -18,6 +18,10 @@ public:
   IMPLEMENT_REFCOUNTING(Native);
 
 private:
+  Native();
+  Native(Native const&);
+  static CefRefPtr<CefV8Handler> GetInstance();
+  void operator=(Native const&);
   std::string windowState;
 };
 

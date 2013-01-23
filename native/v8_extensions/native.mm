@@ -13,26 +13,41 @@
 
 namespace v8_extensions {
 
-NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
-  std::string cc_value = value->GetStringValue().ToString();
-  return [NSString stringWithUTF8String:cc_value.c_str()];
-}
+using namespace std;
 
-void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception> exception, NSString *message) {
-  CefV8ValueList arguments;
-
-  message = [message stringByAppendingFormat:@"\n%s", exception->GetMessage().ToString().c_str()];
-  arguments.push_back(CefV8Value::CreateString(std::string([message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
-
-  CefRefPtr<CefV8Value> console = global->GetValue("console");
-  console->GetValue("error")->ExecuteFunction(console, arguments);
-}
+NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value);
+void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception> exception, NSString *message);
 
 Native::Native() : CefV8Handler() {
   NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/native.js"];
   NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
   windowState = "{}";
-  CefRegisterExtension("v8/native", [extensionCode UTF8String], this);
+}
+
+void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
+  const char* methodNames[] = {
+    "exists", "read", "write", "absolute", "getAllFilePathsAsync", "traverseTree", "isDirectory",
+    "isFile", "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
+    "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload", "lastModified",
+    "md5ForPath", "exec", "getPlatform", "setWindowState", "getWindowState"
+  };
+
+  CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
+  int arrayLength = sizeof(methodNames) / sizeof(const char *);
+  for (int i = 0; i < arrayLength; i++) {
+    const char *functionName = methodNames[i];
+    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, GetInstance());
+    nativeObject->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
+  }
+
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
+  global->SetValue("$native", nativeObject, V8_PROPERTY_ATTRIBUTE_NONE);
+}
+
+CefRefPtr<CefV8Handler> Native::GetInstance() {
+  static Native instance;
+  static CefRefPtr<CefV8Handler> instancePtr = CefRefPtr<CefV8Handler>(&instance);
+  return instancePtr;
 }
 
 bool Native::Execute(const CefString& name,
@@ -499,5 +514,20 @@ bool Native::Execute(const CefString& name,
 
   return false;
 };
+
+NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
+  std::string cc_value = value->GetStringValue().ToString();
+  return [NSString stringWithUTF8String:cc_value.c_str()];
+}
+
+void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception> exception, NSString *message) {
+  CefV8ValueList arguments;
+
+  message = [message stringByAppendingFormat:@"\n%s", exception->GetMessage().ToString().c_str()];
+  arguments.push_back(CefV8Value::CreateString(std::string([message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+
+  CefRefPtr<CefV8Value> console = global->GetValue("console");
+  console->GetValue("error")->ExecuteFunction(console, arguments);
+}
 
 } // namespace v8_extensions
