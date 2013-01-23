@@ -2007,3 +2007,10 @@ describe "EditSession", ->
         expect(editSession.lineForBufferRow(2)).toBe "    0"
         expect(editSession.lineForBufferRow(3)).toBe "      2"
         expect(editSession.lineForBufferRow(4)).toBe "        4"
+
+  describe ".autoDecreaseIndentForRow()", ->
+      it "doesn't outdent the first and only row", ->
+        editSession.selectAll()
+        editSession.insertText("}")
+        editSession.autoDecreaseIndentForRow(0)
+        expect(editSession.lineForBufferRow(0)).toBe "}"

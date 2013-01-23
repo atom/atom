@@ -189,6 +189,7 @@ class LanguageMode
 
     currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    return unless precedingRow?
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentLevel = @editSession.indentationForBufferRow(precedingRow)
