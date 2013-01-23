@@ -29,6 +29,30 @@ void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browse
   [PathWatcher removePathWatcherForContext:context];
 }
 
+
+
+void AtomCefRenderProcessHandler::OnWorkerContextCreated(int worker_id,
+                                                         const CefString& url,
+                                                         CefRefPtr<CefV8Context> context) {
+  v8_extensions::Native::CreateContextBinding(context);
+}
+
+void AtomCefRenderProcessHandler::OnWorkerContextReleased(int worker_id,
+                                                          const CefString& url,
+                                                          CefRefPtr<CefV8Context> context) {
+  NSLog(@"Web worker context released");
+}
+
+void AtomCefRenderProcessHandler::OnWorkerUncaughtException(int worker_id,
+                                                            const CefString& url,
+                                                            CefRefPtr<CefV8Context> context,
+                                                            CefRefPtr<CefV8Exception> exception,
+                                                            CefRefPtr<CefV8StackTrace> stackTrace) {
+
+  std::string message = exception->GetMessage().ToString();
+  NSLog(@"Exception throw in worker thread %s", message.c_str());
+}
+
 bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                                            CefProcessId source_process,
                                                            CefRefPtr<CefProcessMessage> message) {
