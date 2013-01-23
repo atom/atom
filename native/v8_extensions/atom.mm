@@ -7,9 +7,20 @@
 
 namespace v8_extensions {
   Atom::Atom() : CefV8Handler() {
-    NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/atom.js"];
-    NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
-    CefRegisterExtension("v8/atom", [extensionCode UTF8String], this);
+  }
+
+  void Atom::CreateContextBinding(CefRefPtr<CefV8Context> context) {
+    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction("sendMessageToBrowserProcess", GetInstance());
+    CefRefPtr<CefV8Value> atomObject = CefV8Value::CreateObject(NULL);
+    atomObject->SetValue("sendMessageToBrowserProcess", function, V8_PROPERTY_ATTRIBUTE_NONE);
+    CefRefPtr<CefV8Value> global = context->GetGlobal();
+    global->SetValue("atom", atomObject, V8_PROPERTY_ATTRIBUTE_NONE);
+  }
+
+  CefRefPtr<CefV8Handler> Atom::GetInstance() {
+    static Atom instance;
+    static CefRefPtr<CefV8Handler> instancePtr = CefRefPtr<CefV8Handler>(&instance);
+    return instancePtr;
   }
 
   bool Atom::Execute(const CefString& name,
