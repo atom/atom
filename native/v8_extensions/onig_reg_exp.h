@@ -20,7 +20,6 @@ namespace v8_extensions {
     OnigRegExp();
     OnigRegExp(OnigRegExp const&);
     void operator=(OnigRegExp const&);
-    std::string windowState;
   };
 
 }
