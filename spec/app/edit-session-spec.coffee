@@ -2014,3 +2014,9 @@ describe "EditSession", ->
         editSession.insertText("}")
         editSession.autoDecreaseIndentForRow(0)
         expect(editSession.lineForBufferRow(0)).toBe "}"
+
+      it "doesn't outdent a row that is already fully outdented", ->
+        editSession.selectAll()
+        editSession.insertText("var i;\n}")
+        editSession.autoDecreaseIndentForRow(1)
+        expect(editSession.lineForBufferRow(1)).toBe "}"

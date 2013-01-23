@@ -188,13 +188,14 @@ class LanguageMode
     return unless decreaseIndentRegex.test(line)
 
     currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
+    return if currentIndentLevel is 0
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
     return unless precedingRow?
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentLevel = @editSession.indentationForBufferRow(precedingRow)
     desiredIndentLevel -= 1 unless increaseIndentRegex.test(precedingLine)
-    if desiredIndentLevel < currentIndentLevel
+    if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   tokenizeLine: (line, stack, firstLine) ->
