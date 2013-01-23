@@ -341,7 +341,7 @@ describe "CommandPanel", ->
         expect(commandPanel.errorMessages).not.toBeVisible()
 
 
-    describe "when the command contains an escaped charachter", ->
+    describe "when the command contains an escaped character", ->
       it "executes the command with the escaped character (instead of as a backslash followed by the character)", ->
         rootView.trigger 'command-panel:toggle'
 

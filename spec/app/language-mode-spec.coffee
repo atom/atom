@@ -23,12 +23,12 @@ describe "LanguageMode", ->
       beforeEach ->
         editSession.buffer.setText("")
 
-      describe "when more than one charachter is inserted", ->
+      describe "when more than one character is inserted", ->
         it "does not insert a matching bracket", ->
           editSession.insertText("woah(")
           expect(editSession.buffer.getText()).toBe "woah("
 
-      describe "when there is a word charachter after the cursor", ->
+      describe "when there is a word character after the cursor", ->
         it "does not insert a matching bracket", ->
           editSession.buffer.setText("ab")
           editSession.setCursorBufferPosition([0, 1])
@@ -47,7 +47,7 @@ describe "LanguageMode", ->
 
           expect(editSession.buffer.getText()).toBe "())\na)b\n[)]\n1)2"
 
-      describe "when there is a non-word characher after the cursor", ->
+      describe "when there is a non-word character after the cursor", ->
         it "inserts a closing bracket after an opening bracket is inserted", ->
           editSession.buffer.setText("}")
           editSession.setCursorBufferPosition([0, 0])
@@ -146,7 +146,7 @@ describe "LanguageMode", ->
             expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
 
       describe "when inserting a quote", ->
-        describe "when a word charachter is before the cursor", ->
+        describe "when a word character is before the cursor", ->
           it "does not automatically insert closing quote", ->
             editSession.buffer.setText("abc")
             editSession.setCursorBufferPosition([0, 3])
@@ -158,7 +158,7 @@ describe "LanguageMode", ->
             editSession.insertText '\''
             expect(buffer.lineForRow(0)).toBe "abc\'"
 
-        describe "when a non word charachter is before the cursor", ->
+        describe "when a non word character is before the cursor", ->
           it "automatically insert closing quote", ->
             editSession.buffer.setText("ab@")
             editSession.setCursorBufferPosition([0, 3])
