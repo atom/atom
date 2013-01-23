@@ -9,24 +9,15 @@ Editor = require 'editor'
 _ = require 'underscore'
 
 module.exports =
-class CommandPanel extends View
+class CommandPanelView extends View
   @activate: (rootView, state) ->
     if state?
-      @instance = CommandPanel.deserialize(state, rootView)
+      @instance = @deserialize(state, rootView)
     else
-      @instance = new CommandPanel(rootView)
-
-  @deactivate: ->
-    @instance.destroy()
-
-  @serialize: ->
-    text: @instance.miniEditor.getText()
-    visible: @instance.hasParent()
-    miniEditorFocused: @instance.miniEditor.isFocused
-    history: @instance.history[-@instance.maxSerializedHistorySize..]
+      @instance = new CommandPanelView(rootView)
 
   @deserialize: (state, rootView) ->
-    commandPanel = new CommandPanel(rootView, state.history)
+    commandPanel = new CommandPanelView(rootView, state.history)
     commandPanel.attach(state.text, focus: false) if state.visible
     commandPanel.miniEditor.focus() if state.miniEditorFocused
     commandPanel
@@ -53,21 +44,20 @@ class CommandPanel extends View
     @command 'tool-panel:unfocus', => @rootView.focus()
     @command 'core:close', => @detach(); false
     @command 'core:confirm', => @execute()
-
-    @rootView.command 'command-panel:toggle', => @toggle()
-    @rootView.command 'command-panel:toggle-preview', => @togglePreview()
-    @rootView.command 'command-panel:find-in-file', => @attach("/")
-    @rootView.command 'command-panel:find-in-project', => @attach("Xx/")
-    @rootView.command 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
-    @rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
-    @rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
-
     @command 'core:move-up', => @navigateBackwardInHistory()
     @command 'core:move-down', => @navigateForwardInHistory()
 
     @previewList.hide()
     @errorMessages.hide()
     @prompt.iconSize(@miniEditor.fontSize)
+
+  serialize: ->
+    text: @miniEditor.getText()
+    visible: @hasParent()
+    miniEditorFocused: @miniEditor.isFocused
+    history: @history[-@maxSerializedHistorySize..]
+
+  deactivate: -> @destroy()
 
   destroy: ->
     @previewList.destroy()

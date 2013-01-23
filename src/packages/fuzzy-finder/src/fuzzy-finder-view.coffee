@@ -5,14 +5,11 @@ $ = require 'jquery'
 fs = require 'fs'
 
 module.exports =
-class FuzzyFinder extends SelectList
+class FuzzyFinderView extends SelectList
   filenameRegex: /[\w\.\-\/\\]+/
 
   @activate: (rootView) ->
-    @instance = new FuzzyFinder(rootView)
-    rootView.command 'fuzzy-finder:toggle-file-finder', => @instance.toggleFileFinder()
-    rootView.command 'fuzzy-finder:toggle-buffer-finder', => @instance.toggleBufferFinder()
-    rootView.command 'fuzzy-finder:find-under-cursor', => @instance.findUnderCursor()
+    @instance = new FuzzyFinderView(rootView)
 
   @viewClass: ->
     [super, 'fuzzy-finder'].join(' ')

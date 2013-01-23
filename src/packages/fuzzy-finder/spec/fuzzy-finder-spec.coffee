@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-FuzzyFinder = require 'fuzzy-finder'
+FuzzyFinder = require 'fuzzy-finder/src/fuzzy-finder-view'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
@@ -10,7 +10,7 @@ describe 'FuzzyFinder', ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    atom.loadPackage("fuzzy-finder")
+    atom.loadPackage("fuzzy-finder").getInstance()
     finder = FuzzyFinder.instance
 
   afterEach ->

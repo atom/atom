@@ -4,7 +4,7 @@ $ = require 'jquery'
 {$$$} = require 'space-pen'
 
 module.exports =
-class MarkdownPreview extends ScrollView
+class MarkdownPreviewView extends ScrollView
   @activate: (rootView, state) ->
     @instance = new this(rootView)
 
@@ -14,7 +14,6 @@ class MarkdownPreview extends ScrollView
 
   initialize: (@rootView) ->
     super
-    @rootView.command 'markdown-preview:toggle', => @toggle()
     @command 'core:cancel', => @detach()
 
   toggle: ->

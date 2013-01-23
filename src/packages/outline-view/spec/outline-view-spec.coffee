@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-OutlineView = require 'outline-view'
+OutlineView = require 'outline-view/src/outline-view'
 TagGenerator = require 'outline-view/src/tag-generator'
 fs = require 'fs'
 
@@ -8,7 +8,7 @@ describe "OutlineView", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures'))
-    atom.loadPackage("outline-view")
+    atom.loadPackage("outline-view").getInstance()
     outlineView = OutlineView.instance
     rootView.attachToDom()
     setArraySpy = spyOn(outlineView, 'setArray').andCallThrough()

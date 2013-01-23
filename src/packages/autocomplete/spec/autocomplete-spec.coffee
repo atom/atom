@@ -1,5 +1,5 @@
 $ = require 'jquery'
-Autocomplete = require 'autocomplete'
+Autocomplete = require 'autocomplete/src/autocomplete-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 RootView = require 'root-view'

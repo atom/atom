@@ -16,7 +16,7 @@ _.extend atom,
     pack.load() for pack in @getPackages()
 
   getPackages: ->
-    @getPackageNames().map (name) -> Package.build(name)
+    @getPackageNames().map((name) -> Package.build(name)).filter (pack) -> pack?
 
   loadTextMatePackages: ->
     pack.load() for pack in @getTextMatePackages()
@@ -25,7 +25,7 @@ _.extend atom,
     @getPackages().filter (pack) -> pack instanceof TextMatePackage
 
   loadPackage: (name) ->
-    Package.build(name).load()
+    Package.build(name)?.load()
 
   getPackageNames: ->
     disabledPackages = config.get("core.disabledPackages") ? []
