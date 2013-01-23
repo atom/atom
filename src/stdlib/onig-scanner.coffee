@@ -1,4 +1,5 @@
-class window.OnigScanner
+module.exports =
+class OnigScanner
   constructor: (sources) ->
     scanner = $onigScanner.buildScanner(sources)
     scanner.constructor = OnigScanner
