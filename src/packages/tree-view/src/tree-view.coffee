@@ -163,6 +163,7 @@ class TreeView extends ScrollView
         entry.expand()
       else
         @selectEntry(entry)
+        @scrollToEntry(entry)
 
   entryForPath: (path) ->
     fn = (bestMatchEntry, element) ->
