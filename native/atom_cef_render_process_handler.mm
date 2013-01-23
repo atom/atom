@@ -10,7 +10,6 @@
 #include <iostream>
 
 void AtomCefRenderProcessHandler::OnWebKitInitialized() {
-  new v8_extensions::Atom();
   new v8_extensions::OnigRegExp();
   new v8_extensions::OnigScanner();
   new v8_extensions::Git();
@@ -20,6 +19,7 @@ void AtomCefRenderProcessHandler::OnWebKitInitialized() {
 void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser,
                                                    CefRefPtr<CefFrame> frame,
                                                    CefRefPtr<CefV8Context> context) {
+  v8_extensions::Atom::CreateContextBinding(context);
   v8_extensions::Native::CreateContextBinding(context);
 }
 
