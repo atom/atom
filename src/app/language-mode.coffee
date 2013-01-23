@@ -47,6 +47,20 @@ class LanguageMode
         @bracketAnchorRanges.push @editSession.addAnchorRange(range)
         false
 
+    _.adviseBefore @editSession, 'backspace', =>
+      return if @editSession.hasMultipleCursors()
+      return unless @editSession.getSelection().isEmpty()
+
+      cursorBufferPosition = @editSession.getCursorBufferPosition()
+      previousCharacter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      if @pairedCharacters[previousCharacter] is nextCharacter
+        @editSession.transact =>
+          @editSession.moveCursorLeft()
+          @editSession.delete()
+          @editSession.delete()
+        false
+
   reloadGrammar: ->
     path = @buffer.getPath()
     pathContents = @buffer.cachedDiskContents

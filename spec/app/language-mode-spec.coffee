@@ -174,6 +174,15 @@ describe "LanguageMode", ->
             expect(buffer.lineForRow(0)).toBe "\"\""
             expect(editSession.getCursorBufferPosition()).toEqual [0, 1]
 
+    describe "bracket deletion", ->
+      it "deletes the end bracket when it directly proceeds a begin bracket that is being backspaced", ->
+        buffer.setText("")
+        editSession.setCursorBufferPosition([0, 0])
+        editSession.insertText '{'
+        expect(buffer.lineForRow(0)).toBe "{}"
+        editSession.backspace()
+        expect(buffer.lineForRow(0)).toBe ""
+
   describe "javascript", ->
     beforeEach ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
