@@ -1,4 +1,5 @@
-class window.GitRepository
+module.exports =
+class GitRepository
   constructor: (path) ->
     unless repo = $git.getRepository(path)
       throw new Error("No Git repository found searching path: " + path)

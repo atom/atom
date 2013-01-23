@@ -1,6 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 Subscriber = require 'subscriber'
+GitRepository = require 'git-repository'
 
 module.exports =
 class Git
