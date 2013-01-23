@@ -3,9 +3,7 @@
 
 Native = require 'native'
 fs = require 'fs'
-_ = require 'underscore'
 $ = require 'jquery'
-{CoffeeScript} = require 'coffee-script'
 Config = require 'config'
 Syntax = require 'syntax'
 RootView = require 'root-view'
