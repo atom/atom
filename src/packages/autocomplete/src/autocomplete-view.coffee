@@ -74,10 +74,10 @@ class AutocompleteView extends SelectList
     @editor.setCursorBufferPosition([position.row, position.column + match.suffix.length])
 
   cancelled: ->
+    super
+
     @editor.abort()
     @editor.setSelectedBufferRange(@originalSelectionBufferRange)
-
-    @miniEditor.setText('')
     @editor.rootView()?.focus() if @miniEditor.isFocused
 
   attach: ->

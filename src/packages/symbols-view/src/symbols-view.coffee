@@ -88,9 +88,6 @@ class SymbolsView extends SelectList
     editor.setCursorBufferPosition(position)
     editor.moveCursorToFirstCharacterOfLine()
 
-  cancelled: ->
-    @miniEditor.setText('')
-
   attach: ->
     super
 

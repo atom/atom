@@ -35,9 +35,6 @@ class GrammarView extends SelectList
     grammars.unshift(@autoDetect)
     @setArray(grammars)
 
-  cancelled: ->
-    @miniEditor.setText('')
-
   confirmed: (grammar) ->
     @cancel()
     if grammar is @autoDetect

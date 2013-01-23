@@ -35,7 +35,6 @@ class CommandPaletteView extends SelectList
 
     @setArray(events)
     @appendTo(@rootView)
-    @miniEditor.setText('')
     @miniEditor.focus()
 
   itemForElement: ({eventName, eventDescription}) ->
@@ -52,5 +51,3 @@ class CommandPaletteView extends SelectList
   confirmed: ({eventName}) ->
     @cancel()
     @previouslyFocusedElement.trigger(eventName)
-
-  cancelled: ->

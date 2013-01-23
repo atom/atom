@@ -72,9 +72,6 @@ class FuzzyFinderView extends SelectList
       @setError('Selected path does not exist')
       setTimeout((=> @setError()), 2000)
 
-  cancelled: ->
-    @miniEditor.setText('')
-
   toggleFileFinder: ->
     if @hasParent()
       @cancel()

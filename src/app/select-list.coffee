@@ -130,6 +130,9 @@ class SelectList extends View
   restoreFocus: ->
     @previouslyFocusedElement?.focus()
 
+  cancelled: ->
+    @miniEditor.setText('')
+
   cancel: ->
     @list.empty()
     @cancelling = true
