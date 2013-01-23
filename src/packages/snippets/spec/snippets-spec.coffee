@@ -77,6 +77,13 @@ describe "Snippets extension", ->
           expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
           expect(editor.getCursorScreenPosition()).toEqual [0, 14]
 
+        it "inserts a real tab the next time a tab is pressed after the snippet is expanded", ->
+          editor.insertText("t1")
+          editor.trigger keydownEvent('tab', target: editor[0])
+          expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
+          editor.trigger keydownEvent('tab', target: editor[0])
+          expect(buffer.lineForRow(0)).toBe "this is a test  var quicksort = function () {"
+
       describe "when the snippet contains tab stops", ->
         it "places the cursor at the first tab-stop, and moves the cursor in response to 'next-tab-stop' events", ->
           anchorCountBefore = editor.activeEditSession.getAnchors().length
