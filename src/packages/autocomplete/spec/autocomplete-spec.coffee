@@ -11,6 +11,7 @@ describe "Autocomplete", ->
 
   beforeEach ->
     editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
+    atom.loadPackage('autocomplete')
     autocomplete = new Autocomplete(editor)
     miniEditor = autocomplete.miniEditor
 
