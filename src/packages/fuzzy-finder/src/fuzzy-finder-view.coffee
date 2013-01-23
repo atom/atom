@@ -74,7 +74,6 @@ class FuzzyFinderView extends SelectList
 
   cancelled: ->
     @miniEditor.setText('')
-    @rootView.focus() if @miniEditor.isFocused
 
   toggleFileFinder: ->
     if @hasParent()
@@ -157,5 +156,7 @@ class FuzzyFinderView extends SelectList
     @setArray(@paths)
 
   attach: ->
+    super
+
     @rootView.append(this)
     @miniEditor.focus()

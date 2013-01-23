@@ -37,7 +37,6 @@ class GrammarView extends SelectList
 
   cancelled: ->
     @miniEditor.setText('')
-    @editor.rootView()?.focus() if @miniEditor.isFocused
 
   confirmed: (grammar) ->
     @cancel()
@@ -48,5 +47,7 @@ class GrammarView extends SelectList
     @editor.reloadGrammar()
 
   attach: ->
+    super
+
     @editor.rootView()?.append(this)
     @miniEditor.focus()

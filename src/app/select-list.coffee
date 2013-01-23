@@ -121,10 +121,21 @@ class SelectList extends View
     else
       @cancel()
 
+  attach: ->
+    @storeFocusedElement()
+
+  storeFocusedElement: ->
+    @previouslyFocusedElement = $(':focus')
+
+  restoreFocus: ->
+    @previouslyFocusedElement?.focus()
+
   cancel: ->
     @list.empty()
     @cancelling = true
+    miniEditorFocused = @miniEditor.isFocused
     @cancelled()
     @detach()
+    @restoreFocus() if miniEditorFocused
     @cancelling = false
     clearTimeout(@scheduleTimeout)

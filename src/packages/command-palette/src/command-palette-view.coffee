@@ -23,7 +23,8 @@ class CommandPaletteView extends SelectList
     super
 
   attach: ->
-    @previouslyFocusedElement = $(':focus')
+    super
+
     @keyBindings = _.losslessInvert(keymap.bindingsForElement(@previouslyFocusedElement))
 
     events = []
@@ -53,4 +54,3 @@ class CommandPaletteView extends SelectList
     @previouslyFocusedElement.trigger(eventName)
 
   cancelled: ->
-    @previouslyFocusedElement.focus() if @miniEditor.isFocused

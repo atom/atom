@@ -187,21 +187,38 @@ describe 'FuzzyFinder', ->
 
   describe "common behavior between file and buffer finder", ->
     describe "when the fuzzy finder is cancelled", ->
-      it "detaches the finder and focuses the previously focused element", ->
-        rootView.attachToDom()
-        activeEditor = rootView.getActiveEditor()
-        activeEditor.focus()
+      describe "when an editor is open", ->
+        it "detaches the finder and focuses the previously focused element", ->
+          rootView.attachToDom()
+          activeEditor = rootView.getActiveEditor()
+          activeEditor.focus()
 
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
-        expect(finder.hasParent()).toBeTruthy()
-        expect(activeEditor.isFocused).toBeFalsy()
-        expect(finder.miniEditor.isFocused).toBeTruthy()
+          rootView.trigger 'fuzzy-finder:toggle-file-finder'
+          expect(finder.hasParent()).toBeTruthy()
+          expect(activeEditor.isFocused).toBeFalsy()
+          expect(finder.miniEditor.isFocused).toBeTruthy()
 
-        finder.cancel()
+          finder.cancel()
 
-        expect(finder.hasParent()).toBeFalsy()
-        expect(activeEditor.isFocused).toBeTruthy()
-        expect(finder.miniEditor.isFocused).toBeFalsy()
+          expect(finder.hasParent()).toBeFalsy()
+          expect(activeEditor.isFocused).toBeTruthy()
+          expect(finder.miniEditor.isFocused).toBeFalsy()
+
+      describe "when no editors are open", ->
+        it "detaches the finder and focuses the previously focused element", ->
+          rootView.attachToDom()
+          rootView.getActiveEditor().destroyActiveEditSession()
+
+          rootView.trigger 'fuzzy-finder:toggle-file-finder'
+          expect(finder.hasParent()).toBeTruthy()
+          expect(rootView.isFocused).toBeFalsy()
+          expect(finder.miniEditor.isFocused).toBeTruthy()
+
+          finder.cancel()
+
+          expect(finder.hasParent()).toBeFalsy()
+          expect($(document.activeElement).view()).toBe rootView
+          expect(finder.miniEditor.isFocused).toBeFalsy()
 
   describe "cached file paths", ->
     it "caches file paths after first time", ->

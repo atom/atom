@@ -90,9 +90,10 @@ class SymbolsView extends SelectList
 
   cancelled: ->
     @miniEditor.setText('')
-    @rootView.focus() if @miniEditor.isFocused
 
   attach: ->
+    super
+
     @rootView.append(this)
     @miniEditor.focus()
 
