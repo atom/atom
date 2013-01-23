@@ -52,7 +52,7 @@
       ],
       'include_dirs': [ '.', 'cef', 'git2' ],
       'mac_framework_dirs': [ 'native/frameworks' ],
-      'libraries': [ 'native/frameworks/CocoaOniguruma.framework' ],
+      'libraries': [ 'native/frameworks/CocoaOniguruma.framework', 'native/frameworks/Sparkle.framework'],
       'sources': [
         '<@(includes_common)',
         '<@(includes_wrapper)',
@@ -71,6 +71,7 @@
       'mac_bundle_resources': [
         'native/mac/atom.icns',
         'native/mac/file.icns',
+        'native/mac/speakeasy.pem',
         'native/mac/English.lproj/MainMenu.xib',
         'native/mac/English.lproj/AtomWindow.xib',
       ],
@@ -139,6 +140,7 @@
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks',
               'files': [
                 'native/frameworks/CocoaOniguruma.framework',
+                'native/frameworks/Sparkle.framework',
               ],
             },
             {
