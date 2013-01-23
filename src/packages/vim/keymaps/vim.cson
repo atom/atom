@@ -1,0 +1,6 @@
+'.vim.command-mode .editor input':
+  ':': 'vim:ex-mode',
+  'i': 'vim:insert-mode'
+
+'.vim.ex-mode .editor input':
+  'enter': 'vim:execute'

@@ -1,5 +1,6 @@
 {View, $$} = require 'space-pen'
 $ = require 'jquery'
+Editor = require 'editor'
 
 module.exports =
 class Vim extends View
@@ -12,23 +13,41 @@ class Vim extends View
       pane.append(new Vim(rootView, editor))
 
   @content: ->
-    @div class: 'vim', =>
-      @span class: 'text', outlet: 'commandLine'
+    @div class: 'vim command-mode', outlet: 'vim', =>
+      @div class: 'prompt-and-editor', =>
+        @div class: 'prompt', outlet: 'prompt'
+        @subview 'miniEditor', new Editor(mini: true)
+
+  @commands:
+    'i': "vim:insert-mode"
 
   initialize: (@rootView, @editor) ->
     @editor.vim = this
-    @mode = "command"
-    @updateCommandLine()
-    @editor.command "vim:insert-mode", (e) =>
-      @mode = "insert"
-      @updateCommandLine()
-    @editor.command "vim:command-mode", (e) =>
-      @mode = "command"
-      @updateCommandLine()
+    @enterCommandMode()
+
+    @editor.command "vim:insert-mode", (e) => @enterInsertMode()
+    @editor.command "vim:command-mode", (e) => @enterCommandMode()
+
+    @command 'vim:insert-mode', => @enterInsertMode()
+    @command 'vim:unfocus', => @rootView.focus()
+    @command 'core:close', => @discardCommand()
+    @command 'vim:execute', => @executeCommand()
+    @command 'vim:ex-mode', => @enterExMode()
+
     @subscribe $(window), 'focus', => @updateCommandLine()
+    @miniEditor.setFontSize "11"
+
+  resetMode: ->
+    @mode = "command"
+    @vim.addClassName("command-mode")
+    @vim.removeClassName("ex-mode")
 
   updateCommandLine: ->
     @updateCommandLineText()
+
+  discardCommand: ->
+    @miniEditor.setText("")
+    @resetMode()
 
   inInsertMode: ->
     @mode is "insert"
@@ -36,8 +55,47 @@ class Vim extends View
   inCommandMode: ->
     @mode is "command"
 
+  inExMode: ->
+    @mode is "ex"
+
+  enterInsertMode: ->
+    @resetMode()
+    @mode = "insert"
+    @editor.focus()
+    @updateCommandLine()
+
+  enterCommandMode: ->
+    @resetMode()
+    @miniEditor.focus()
+    @updateCommandLine()
+
+  enterExMode: ->
+    @resetMode()
+    @mode = "ex"
+    @vim.addClassName("ex-mode")
+    @vim.removeClassName("command-mode")
+    @updateCommandLine()
+
   updateCommandLineText: ->
     if @inInsertMode()
-      @commandLine.text("--INSERT--")
+      @prompt.text("--INSERT--")
+    else if @inExMode()
+      @prompt.text(":")
     else
-      @commandLine.text(":")
+      @prompt.text(">")
+
+  addInput: (input) ->
+    @runCommand input
+    @updateCommandLine()
+
+  executeCommand: () ->
+    @runCommand @miniEditor.getText()
+    @discardCommand()
+
+  runCommand: (input) ->
+    window.console.log "Running command #{input}"
+    for c in input
+      if command = Vim.commands[c]
+        @editor.trigger command
+        true
+    false

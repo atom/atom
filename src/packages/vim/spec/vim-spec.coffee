@@ -12,7 +12,6 @@ fdescribe "Vim package", ->
     Vim.activate(rootView)
     editor = rootView.getActiveEditor()
     vim = rootView.find('.vim').view()
-    spyOn(window.console, 'log')
 
   afterEach ->
     rootView.deactivate()
@@ -25,10 +24,18 @@ fdescribe "Vim package", ->
       expect(rootView.find('.pane').length).toBe 2
       expect(rootView.panes.find('.pane > .vim').length).toBe 2
 
+
   describe "command mode", ->
     it "enters command mode", ->
       editor.trigger 'vim:command-mode'
       expect(editor.vim.inCommandMode()).toBe true
+
+    describe "transition to insert mode", ->
+      beforeEach ->
+        editor.trigger 'vim:command-mode'
+      it "i key", ->
+        editor.vim.miniEditor.setText("i")
+        expect(editor.vim.inInsertMode()).toBe true
 
   describe "insert mode", ->
     it "enters insert mode", ->
