@@ -23,15 +23,15 @@ class LanguageMode
       return true if @editSession.hasMultipleCursors()
 
       cursorBufferPosition = @editSession.getCursorBufferPosition()
-      previousCharachter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
-      nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      previousCharacter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
-      hasWordAfterCursor = /\w/.test(nextCharachter)
-      hasWordBeforeCursor = /\w/.test(previousCharachter)
+      hasWordAfterCursor = /\w/.test(nextCharacter)
+      hasWordBeforeCursor = /\w/.test(previousCharacter)
 
       autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and hasWordBeforeCursor)
       skipOverExistingClosingBracket = false
-      if @isClosingBracket(text) and nextCharachter == text
+      if @isClosingBracket(text) and nextCharacter == text
         if bracketAnchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
           skipOverExistingClosingBracket = true
 
