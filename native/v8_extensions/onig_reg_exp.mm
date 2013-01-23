@@ -38,21 +38,39 @@ public:
 
     return resultArray;
   }
-  
+
   CefRefPtr<CefV8Value> Test(CefRefPtr<CefV8Value> string, CefRefPtr<CefV8Value> index) {
     OnigResult *result = [m_regex search:stringFromCefV8Value(string) start:index->GetIntValue()];
     return CefV8Value::CreateBool(result);
   }
-  
+
   OnigRegexp *m_regex;
 
   IMPLEMENT_REFCOUNTING(OnigRegexpUserData);
 };
 
 OnigRegExp::OnigRegExp() : CefV8Handler() {
-  NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/onig_reg_exp.js"];
-  NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
-  CefRegisterExtension("v8/onig-reg-exp", [extensionCode UTF8String], this);
+}
+
+void OnigRegExp::CreateContextBinding(CefRefPtr<CefV8Context> context) {
+  const char* methodNames[] = { "search", "test", "buildOnigRegExp" };
+
+  CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
+  int arrayLength = sizeof(methodNames) / sizeof(const char *);
+  for (int i = 0; i < arrayLength; i++) {
+    const char *functionName = methodNames[i];
+    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, GetInstance());
+    nativeObject->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
+  }
+
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
+  global->SetValue("$onigRegExp", nativeObject, V8_PROPERTY_ATTRIBUTE_NONE);
+}
+
+CefRefPtr<CefV8Handler> OnigRegExp::GetInstance() {
+  static OnigRegExp instance;
+  static CefRefPtr<CefV8Handler> instancePtr = CefRefPtr<CefV8Handler>(&instance);
+  return instancePtr;
 }
 
 bool OnigRegExp::Execute(const CefString& name,
@@ -73,7 +91,7 @@ bool OnigRegExp::Execute(const CefString& name,
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
     OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
     retval = userData->Test(string, index);
-    return true;    
+    return true;
   }
   else if (name == "buildOnigRegExp") {
     CefRefPtr<CefV8Value> pattern = arguments[0];

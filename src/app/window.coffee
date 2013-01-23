@@ -11,6 +11,7 @@ Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
+require 'onig-reg-exp'
 
 windowAdditions =
   rootViewParentSelector: 'body'
