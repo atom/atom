@@ -2,19 +2,25 @@
 #include "include/cef_v8.h"
 
 namespace v8_extensions {
-  
+
   class OnigScanner : public CefV8Handler {
   public:
-    OnigScanner();
-
+    static void CreateContextBinding(CefRefPtr<CefV8Context> context);
     virtual bool Execute(const CefString& name,
                          CefRefPtr<CefV8Value> object,
                          const CefV8ValueList& arguments,
                          CefRefPtr<CefV8Value>& retval,
                          CefString& exception) OVERRIDE;
-    
+
     // Provide the reference counting implementation for this class.
     IMPLEMENT_REFCOUNTING(OnigRegExp);
+
+    private:
+      static CefRefPtr<CefV8Handler> GetInstance();
+      OnigScanner();
+      OnigScanner(OnigScanner const&);
+      void operator=(OnigScanner const&);
+      std::string windowState;
   };
-  
+
 }
