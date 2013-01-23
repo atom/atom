@@ -744,7 +744,7 @@ describe "Editor", ->
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [12, 0])
 
         # moving changes selection
-        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -10)
+        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -15)
         expect(editor.scrollTop()).toBe 4 * editor.lineHeight
 
         # if cursor stays off screen, we keep moving / scrolling up
