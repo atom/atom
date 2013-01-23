@@ -12,6 +12,7 @@ require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
 require 'onig-reg-exp'
+require 'onig-scanner'
 
 windowAdditions =
   rootViewParentSelector: 'body'
