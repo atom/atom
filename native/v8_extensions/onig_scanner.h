@@ -20,7 +20,6 @@ namespace v8_extensions {
       OnigScanner();
       OnigScanner(OnigScanner const&);
       void operator=(OnigScanner const&);
-      std::string windowState;
   };
 
 }
