@@ -1,6 +1,5 @@
 RootView = require 'root-view'
 {$$} = require 'space-pen'
-Package = require 'package'
 
 describe "the `atom` global", ->
   describe ".loadPackage(name)", ->
