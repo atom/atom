@@ -12,7 +12,6 @@
 void AtomCefRenderProcessHandler::OnWebKitInitialized() {
   new v8_extensions::OnigRegExp();
   new v8_extensions::OnigScanner();
-  new v8_extensions::Git();
   new v8_extensions::Tags();
 }
 
@@ -21,6 +20,7 @@ void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser
                                                    CefRefPtr<CefV8Context> context) {
   v8_extensions::Atom::CreateContextBinding(context);
   v8_extensions::Native::CreateContextBinding(context);
+  v8_extensions::Git::CreateContextBinding(context);
 }
 
 void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browser,
