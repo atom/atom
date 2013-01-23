@@ -1,18 +1,18 @@
 {$$} = require 'space-pen'
 SelectList = require 'select-list'
-TagGenerator = require 'outline-view/src/tag-generator'
-TagReader = require 'outline-view/src/tag-reader'
+TagGenerator = require 'symbols-view/src/tag-generator'
+TagReader = require 'symbols-view/src/tag-reader'
 Point = require 'point'
 fs = require 'fs'
 $ = require 'jquery'
 
 module.exports =
-class OutlineView extends SelectList
+class SymbolsView extends SelectList
 
   @activate: (rootView) ->
-    @instance = new OutlineView(rootView)
+    @instance = new SymbolsView(rootView)
 
-  @viewClass: -> "#{super} outline-view"
+  @viewClass: -> "#{super} symbols-view"
 
   filterKey: 'name'
 
@@ -31,14 +31,14 @@ class OutlineView extends SelectList
           @div text, class: 'function-details'
         @div class: 'clear-float'
 
-  toggleFileOutline: ->
+  toggleFileSymbols: ->
     if @hasParent()
       @cancel()
     else
-      @populateFileOutline()
+      @populateFileSymbols()
       @attach()
 
-  populateFileOutline: ->
+  populateFileSymbols: ->
     tags = []
     callback = (tag) -> tags.push tag
     path = @rootView.getActiveEditor().getPath()
@@ -53,14 +53,14 @@ class OutlineView extends SelectList
         @setError("No symbols found")
         setTimeout (=> @detach()), 2000
 
-  toggleProjectOutline: ->
+  toggleProjectSymbols: ->
     if @hasParent()
       @cancel()
     else
-      @populateProjectOutline()
+      @populateProjectSymbols()
       @attach()
 
-  populateProjectOutline: ->
+  populateProjectSymbols: ->
     @setLoading("Loading symbols...")
     TagReader.getAllTags(@rootView.project).done (tags) =>
       if tags.length > 0

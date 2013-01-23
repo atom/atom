@@ -1,29 +1,29 @@
-.outline-view {
+.symbols-view {
   width: 50%;
   margin-left: -25%;
 }
 
-.outline-view ol {
+.symbols-view ol {
   max-height: 300px;
 }
 
-.outline-view ol li {
+.symbols-view ol li {
   padding: 2px;
   border-bottom: 1px solid rgba(255, 255, 255, .05);
 }
 
-.outline-view ol .function-name {
+.symbols-view ol .function-name {
   float: left;
   display: inline-block;
   margin-right: .5em;
   margin: 4px 0;
 }
 
-.outline-view li .right {
+.symbols-view li .right {
   float: right;
 }
 
-.outline-view ol .function-details {
+.symbols-view ol .function-details {
   display: inline-block;
   margin: 4px 0;
   margin-right: .5em;
