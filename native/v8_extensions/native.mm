@@ -19,8 +19,6 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value);
 void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception> exception, NSString *message);
 
 Native::Native() : CefV8Handler() {
-  NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/native.js"];
-  NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
   windowState = "{}";
 }
 
