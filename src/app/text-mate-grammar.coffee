@@ -2,6 +2,8 @@ _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
 Token = require 'token'
+OnigRegExp = require 'onig-reg-exp'
+OnigScanner = require 'onig-scanner'
 
 module.exports =
 class TextMateGrammar

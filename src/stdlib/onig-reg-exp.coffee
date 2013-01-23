@@ -1,4 +1,5 @@
-class window.OnigRegExp
+module.exports =
+class OnigRegExp
   constructor: (source) ->
     regexp = $onigRegExp.buildOnigRegExp(source);
     regexp.constructor = OnigRegExp
