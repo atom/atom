@@ -3,7 +3,7 @@
   height: 100%;
   cursor: default;
   -webkit-user-select: none;
-  min-width: 100px;
+  min-width: 50px;
   z-index: 2;
 }
 
@@ -34,6 +34,7 @@
 .tree-view .entry > .name {
   z-index: 1;
   position: relative;
+  display: inline-block;
 }
 
 .tree-view .selected > .highlight {
@@ -41,11 +42,6 @@
   left: 0;
   right: 0;
   height: 24px;
-  margin-top:-24px;
-}
-
-.tree-view .entry.file .name {
-  display: block;
 }
 
 .tree-view .disclosure-arrow {
