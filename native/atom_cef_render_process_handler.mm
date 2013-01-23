@@ -24,8 +24,8 @@ void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser
 }
 
 void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browser,
-                               CefRefPtr<CefFrame> frame,
-                               CefRefPtr<CefV8Context> context) {
+                                                    CefRefPtr<CefFrame> frame,
+                                                    CefRefPtr<CefV8Context> context) {
   [PathWatcher removePathWatcherForContext:context];
 }
 
