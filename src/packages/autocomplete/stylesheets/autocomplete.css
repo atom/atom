@@ -1,5 +1,6 @@
 .select-list.autocomplete {
   box-sizing: content-box;
+  margin-left: 0px;
 }
 
 .autocomplete ol {
