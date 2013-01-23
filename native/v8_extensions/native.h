@@ -1,10 +1,9 @@
 #include "include/cef_base.h"
 #include "include/cef_v8.h"
 
-
 namespace v8_extensions {
 
-class Native : public CefV8Handler {
+  class Native : public CefV8Handler {
   public:
     static void CreateContextBinding(CefRefPtr<CefV8Context> context);
     virtual bool Execute(const CefString& name,
@@ -23,4 +22,5 @@ class Native : public CefV8Handler {
     void operator=(Native const&);
     std::string windowState;
   };
+
 }
