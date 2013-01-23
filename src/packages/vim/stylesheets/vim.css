@@ -1,0 +1,14 @@
+.vim {
+  background-color: #303030;
+  border-top: 1px solid #454545;
+  padding: 4px 10px 3px;
+  font-size: 11px;
+  line-height: 14px;
+  color: #969696;
+  position: relative;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+.vim .text {
+}
