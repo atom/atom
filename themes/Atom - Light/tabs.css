@@ -24,10 +24,6 @@
   color: rgba(0,0,0,0.3);
 }
 
-.tab.file-modified .close-icon {
-  border-color: #aaa;
-}
-
 .tab.active,
 .tab.active:hover {
   color: #010101;
@@ -39,7 +35,7 @@
 }
 
 .tab.file-modified.active .close-icon {
-  border-color: #e6e6e6;
+  border-color: #aaa;
 }
 
 .tab:hover .close-icon {
