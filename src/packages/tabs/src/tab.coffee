@@ -4,12 +4,8 @@ module.exports =
 class Tab extends View
   @content: (editSession) ->
     @div class: 'tab', =>
-      @div class: 'left-mask', =>
-        @span class: 'left-inner-mask'
       @span class: 'file-name', outlet: 'fileName'
       @span class: 'close-icon'
-      @div class: 'right-mask', =>
-        @span class: 'right-inner-mask'
 
   initialize: (@editSession) ->
     @buffer = @editSession.buffer

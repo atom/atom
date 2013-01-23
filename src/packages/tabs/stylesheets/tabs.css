@@ -7,9 +7,8 @@
 /* Tab Structure */
 
 .tabs .tab{
-  border-top-right-radius: 20px 60px;
-  border-top-left-radius: 20px 60px;
-  border: 1px solid transparent;
+  border-top-right-radius: 100px 220px;
+  border-top-left-radius: 100px 220px;
   margin-left: -25px;
   z-index: 1;
 }
@@ -22,57 +21,6 @@
   z-index: 2;
 }
 
-.left-mask, .right-mask{
-  width: 10px;
-  height: 3px;
-  overflow: hidden;
-  position: absolute;
-  top: 20px;
-}
-
-.active .left-mask, .active .right-mask{
-  height: 4px;
-}
-
-.left-mask{
-  left: -1px;
-}
-
-.right-mask{
-  right: -1px;
-}
-
-.left-mask span, .right-mask span{
-  display: block;
-  width: 9px;
-  height: 9px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #fff;
-  border-radius: 10px;
-
-}
-
-.left-mask span{
-  margin: -10px -9px;
-}
-
-.right-mask span{
-  margin: -10px 0px;
-}
-
-.tabs .tab a{
-  display: block;
-  float: left;
-  line-height: 25px;
-  padding-left: 40px;
-  font-family: sans-serif;
-  font-size: 13px;
-  color: #444;
-  text-decoration: none;
-}
-
-
 .tab {
   cursor: default;
   padding: 2px 21px 2px 9px;
@@ -82,7 +30,6 @@
   width:175px;
   border-top: 1px solid #383838;
   border-right: 1px solid #2e2e2e;
-  border-bottom: 1px solid #2e2e2e;
   box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a, inset 1px 0 0 #4a4a4a;
   min-width: 40px;
   box-sizing: border-box;
