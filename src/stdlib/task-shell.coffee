@@ -7,7 +7,7 @@ console.warn = ->
     details: arguments
 console.log = ->
   self.postMessage
-    type: 'warn'
+    type: 'log'
     details: arguments
 
 self.addEventListener 'message', (event) ->
