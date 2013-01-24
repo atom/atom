@@ -1,13 +1,12 @@
 module.exports =
 class Task
 
-  constructor: (path) ->
-    @path = require.getPath(path)
+  constructor: (@path) ->
 
   onProgress: (event) ->
 
   start: ->
-    worker = new Worker(@path)
+    worker = new Worker(require.getPath('task-shell'))
     worker.onmessage = (event) =>
       switch event.data.type
         when 'warn'
@@ -24,3 +23,4 @@ class Task
       type: 'start'
       resourcePath: window.resourcePath
       requirePath: require.getPath('require')
+      taskPath: @path
