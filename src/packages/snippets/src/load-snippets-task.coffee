@@ -24,19 +24,5 @@ class LoadSnippetsTask extends Task
     @callWorkerMethod(method, @packageBeingLoaded.path)
 
   snippetsLoaded: (snippets) ->
-    if @packageBeingLoaded instanceof TextMatePackage
-      snippets = @translateTextmateSnippets(snippets)
     @snippets.add(snippet) for snippet in snippets
     @loadNextPackageSnippets()
-
-  translateTextmateSnippets: (tmSnippets) ->
-    atomSnippets = {}
-    for { scope, name, content, tabTrigger } in tmSnippets
-      if scope
-        scope = TextMatePackage.cssSelectorFromScopeSelector(scope)
-      else
-        scope = '*'
-
-      snippetsForScope = (atomSnippets[scope] ?= {})
-      snippetsForScope[name] = { prefix: tabTrigger, body: content }
-    [atomSnippets]
