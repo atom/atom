@@ -1,14 +1,14 @@
-eval("window = {};")
-eval("attachEvent = function(){};")
-eval("console = {};")
-console.warn = ->
-  self.postMessage
-    type: 'warn'
-    details: arguments
-console.log = ->
-  self.postMessage
-    type: 'log'
-    details: arguments
+self.window = {}
+self.attachEvent = ->
+self.console =
+  warn: ->
+    self.postMessage
+      type: 'warn'
+      details: arguments
+  log: ->
+    self.postMessage
+      type: 'log'
+      details: arguments
 
 self.addEventListener 'message', (event) ->
   switch event.data.type
