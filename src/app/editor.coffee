@@ -16,7 +16,6 @@ class Editor extends View
   @configDefaults:
     fontFamily: "Inconsolata, Monaco, Courier"
     fontSize: 20
-    lineHeight: 1.5
     showInvisibles: false
     autosave: false
     autoIndent: true
@@ -309,7 +308,7 @@ class Editor extends View
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
 
   getPageRows: ->
-    Math.max(1, Math.ceil(@scrollView[0].clientHeight / @rowHeight))
+    Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
 
   setShowInvisibles: (showInvisibles) ->
     return if showInvisibles == @showInvisibles
@@ -343,7 +342,6 @@ class Editor extends View
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
-    @observeConfig 'editor.lineHeight', (lineHeight) => @setLineHeight(lineHeight)
 
   handleEvents: ->
     @on 'focus', =>
@@ -577,7 +575,7 @@ class Editor extends View
       @scrollTop() + @scrollView.height()
 
   scrollToBottom: ->
-    @scrollBottom(@screenLineCount() * @rowHeight)
+    @scrollBottom(@screenLineCount() * @lineHeight)
 
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForBufferPosition(bufferPosition), options)
@@ -599,12 +597,12 @@ class Editor extends View
       unless scrollTop < pixelPosition.top < scrollBottom
         @scrollTop(pixelPosition.top - (scrollViewHeight / 2))
     else
-      linesInView = @scrollView.height() / @rowHeight
+      linesInView = @scrollView.height() / @lineHeight
       maxScrollMargin = Math.floor((linesInView - 1) / 2)
       scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
-      margin = scrollMargin * @rowHeight
+      margin = scrollMargin * @lineHeight
       desiredTop = pixelPosition.top - margin
-      desiredBottom = pixelPosition.top + @rowHeight + margin
+      desiredBottom = pixelPosition.top + @lineHeight + margin
       if desiredBottom > scrollBottom
         @scrollTop(desiredBottom - scrollViewHeight)
       else if desiredTop < scrollTop
@@ -697,13 +695,6 @@ class Editor extends View
       @redraw()
 
   getFontFamily: -> @fontFamily
-
-  setLineHeight: (@lineHeight) ->
-    if lineHeight?
-      @css('line-height', "#{lineHeight}em")
-      @redraw()
-
-  getLineHeight: -> @lineHeight
 
   redraw: ->
     return unless @attached
@@ -806,16 +797,16 @@ class Editor extends View
 
     lineRect = fragment[0].getBoundingClientRect()
     charRect = fragment.find('span')[0].getBoundingClientRect()
-    @rowHeight = lineRect.height
+    @lineHeight = lineRect.height
     @charWidth = charRect.width
     @charHeight = charRect.height
-    @height(@rowHeight) if @mini
+    @height(@lineHeight) if @mini
     fragment.remove()
 
   updateLayerDimensions: ->
     @gutter.calculateWidth()
 
-    height = @rowHeight * @screenLineCount()
+    height = @lineHeight * @screenLineCount()
     unless @layerHeight == height
       @renderedLines.height(height)
       @underlayer.css('min-height', height)
@@ -1023,19 +1014,19 @@ class Editor extends View
         row++
 
   updatePaddingOfRenderedLines: ->
-    paddingTop = @firstRenderedScreenRow * @rowHeight
+    paddingTop = @firstRenderedScreenRow * @lineHeight
     @renderedLines.css('padding-top', paddingTop)
     @gutter.lineNumbers.css('padding-top', paddingTop)
 
-    paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @rowHeight
+    paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
   getFirstVisibleScreenRow: ->
-    Math.floor(@scrollTop() / @rowHeight)
+    Math.floor(@scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    Math.max(0, Math.ceil((@scrollTop() + @scrollView.height()) / @rowHeight) - 1)
+    Math.max(0, Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1)
 
   isScreenRowVisible: (row) ->
     @getFirstVisibleScreenRow() <= row <= @getLastVisibleScreenRow()
@@ -1134,7 +1125,7 @@ class Editor extends View
 
   pixelPositionForScreenPosition: (position) ->
     position = Point.fromObject(position)
-    { top: position.row * @rowHeight, left: position.column * @charWidth }
+    { top: position.row * @lineHeight, left: position.column * @charWidth }
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
@@ -1142,7 +1133,7 @@ class Editor extends View
     {top: top + offset.top, left: left + offset.left}
 
   screenPositionFromPixelPosition: ({top, left}) ->
-    screenPosition = new Point(Math.floor(top / @rowHeight), Math.floor(left / @charWidth))
+    screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
 
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
