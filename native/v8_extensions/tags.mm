@@ -13,18 +13,12 @@ namespace v8_extensions {
     int arrayLength = sizeof(methodNames) / sizeof(const char *);
     for (int i = 0; i < arrayLength; i++) {
       const char *functionName = methodNames[i];
-      CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, GetInstance());
+      CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, this);
       nativeObject->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
     }
 
     CefRefPtr<CefV8Value> global = context->GetGlobal();
     global->SetValue("$tags", nativeObject, V8_PROPERTY_ATTRIBUTE_NONE);
-  }
-
-  CefRefPtr<CefV8Handler> Tags::GetInstance() {
-    static Tags instance;
-    static CefRefPtr<CefV8Handler> instancePtr = CefRefPtr<CefV8Handler>(&instance);
-    return instancePtr;
   }
 
   CefRefPtr<CefV8Value> Tags::ParseEntry(tagEntry entry) {

@@ -4,7 +4,8 @@
 namespace v8_extensions {
   class Atom : public CefV8Handler {
   public:
-    static void CreateContextBinding(CefRefPtr<CefV8Context> context);
+    Atom();
+    void CreateContextBinding(CefRefPtr<CefV8Context> context);
     virtual bool Execute(const CefString& name,
                           CefRefPtr<CefV8Value> object,
                           const CefV8ValueList& arguments,
@@ -15,8 +16,6 @@ namespace v8_extensions {
     IMPLEMENT_REFCOUNTING(Atom);
 
   private:
-    static CefRefPtr<CefV8Handler> GetInstance();
-    Atom();
     Atom(Atom const&);
     void operator=(Atom const&);
   };

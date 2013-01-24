@@ -15,12 +15,13 @@ void AtomCefRenderProcessHandler::OnWebKitInitialized() {
 void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser,
                                                    CefRefPtr<CefFrame> frame,
                                                    CefRefPtr<CefV8Context> context) {
-  v8_extensions::Atom::CreateContextBinding(context);
-  v8_extensions::Native::CreateContextBinding(context);
-  v8_extensions::Git::CreateContextBinding(context);
-  v8_extensions::OnigRegExp::CreateContextBinding(context);
-  v8_extensions::OnigScanner::CreateContextBinding(context);
-  v8_extensions::Tags::CreateContextBinding(context);
+  // these objects are deleted when the context removes all references to them
+  (new v8_extensions::Atom())->CreateContextBinding(context);
+  (new v8_extensions::Native())->CreateContextBinding(context);
+  (new v8_extensions::Git())->CreateContextBinding(context);
+  (new v8_extensions::OnigRegExp())->CreateContextBinding(context);
+  (new v8_extensions::OnigScanner())->CreateContextBinding(context);
+  (new v8_extensions::Tags())->CreateContextBinding(context);
 }
 
 void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browser,
@@ -32,7 +33,6 @@ void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browse
 void AtomCefRenderProcessHandler::OnWorkerContextCreated(int worker_id,
                                                          const CefString& url,
                                                          CefRefPtr<CefV8Context> context) {
-  v8_extensions::Native::CreateContextBinding(context);
 }
 
 void AtomCefRenderProcessHandler::OnWorkerContextReleased(int worker_id,
