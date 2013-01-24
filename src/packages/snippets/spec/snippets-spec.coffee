@@ -1,6 +1,6 @@
 Snippets = require 'snippets'
 Snippet = require 'snippets/src/snippet'
-SnippetsTask = require 'snippets/src/snippets-task'
+LoadSnippetsTask = require 'snippets/src/load-snippets-task'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
@@ -11,7 +11,7 @@ describe "Snippets extension", ->
   [buffer, editor] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    spyOn(SnippetsTask.prototype, 'start')
+    spyOn(LoadSnippetsTask.prototype, 'start')
     atom.loadPackage("snippets")
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
@@ -214,7 +214,7 @@ describe "Snippets extension", ->
   describe "snippet loading", ->
     it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
       spyOn(console, 'warn').andCallThrough()
-      jasmine.unspy(SnippetsTask.prototype, 'start')
+      jasmine.unspy(LoadSnippetsTask.prototype, 'start')
       snippets.loaded = false
       snippets.loadAll()
 
@@ -228,7 +228,7 @@ describe "Snippets extension", ->
         expect(console.warn.calls.length).toBeGreaterThan 0
 
     it "loads snippets from all TextMate packages with snippets", ->
-      jasmine.unspy(SnippetsTask.prototype, 'start')
+      jasmine.unspy(LoadSnippetsTask.prototype, 'start')
       snippets.loaded = false
       snippets.loadAll()
 

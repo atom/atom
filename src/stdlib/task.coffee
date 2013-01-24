@@ -1,26 +1,32 @@
 module.exports =
 class Task
-
   constructor: (@path) ->
 
-  onProgress: (event) ->
-
   start: ->
-    worker = new Worker(require.getPath('task-shell'))
-    worker.onmessage = (event) =>
-      switch event.data.type
-        when 'warn'
-          console.warn(event.data.details...)
-          return
-        when 'log'
-          console.log(event.data.details...)
-          return
+    @worker = new Worker(require.getPath('task-shell'))
+    @worker.onmessage = ({data}) =>
+      if data.method and this[data.method]
+        this[data.method](data.args...)
+      else
+        @onMessage(data)
+    @startWorker()
 
-      reply = @onProgress(event)
-      worker.postMessage(reply) if reply
+  log: -> console.log(arguments...)
+  warn: -> console.warn(arguments...)
+  error: -> console.error(arguments...)
 
-    worker.postMessage
-      type: 'start'
+  startWorker: ->
+    @callWorkerMethod 'start'
       resourcePath: window.resourcePath
       requirePath: require.getPath('require')
-      taskPath: @path
+      handlerPath: @path
+
+  started: ->
+
+  onMessage: (message) ->
+
+  callWorkerMethod: (method, args...) ->
+    @postMessage({method, args})
+
+  postMessage: (data) ->
+    @worker.postMessage(data)

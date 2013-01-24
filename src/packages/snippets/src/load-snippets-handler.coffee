@@ -1,15 +1,13 @@
+fs = require 'fs'
+
 module.exports =
-  loadTextmateSnippets: ({path}) ->
-    fs = require 'fs'
+  loadTextmateSnippets: (path) ->
     snippetsDirPath = fs.join(path, 'Snippets')
     snippets = fs.list(snippetsDirPath).map (snippetPath) ->
       fs.readPlist(snippetPath)
-    self.postMessage
-      type: 'loadSnippets'
-      snippets: snippets
+    @snippetsLoaded(snippets)
 
-  loadAtomSnippets: ({path}) ->
-    fs = require 'fs'
+  loadAtomSnippets: (path) ->
     snippetsDirPath = fs.join(path, 'snippets')
     snippets = []
     for snippetsPath in fs.list(snippetsDirPath)
@@ -18,6 +16,6 @@ module.exports =
         snippets.push(fs.readObject(snippetsPath))
       catch e
         console.warn "Error reading snippets file '#{snippetsPath}'"
-    self.postMessage
-      type: 'loadSnippets'
-      snippets: snippets
+    @snippetsLoaded(snippets)
+
+  snippetsLoaded: (snippets) -> callTaskMethod('snippetsLoaded', snippets)
