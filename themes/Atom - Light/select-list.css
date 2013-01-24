@@ -41,6 +41,7 @@
 }
 
 .select-list .error {
-  padding-top: 5px;
   font-weight: bold;
+  color: white;
+  text-shadow: 0 1px 0 #4E0000;
 }

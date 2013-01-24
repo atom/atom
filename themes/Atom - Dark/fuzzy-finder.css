@@ -6,6 +6,7 @@
 
 .fuzzy-finder ol:empty {
   margin-bottom: 0;
+  border: none;
 }
 
 .fuzzy-finder .directory {
