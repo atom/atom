@@ -11,6 +11,11 @@
   min-width: 35px;
   box-sizing: border-box;
   text-align: right;
+  opacity: 0.5;
+}
+
+.editor .gutter .line-number.cursor-line {
+  opacity: 1;
 }
 
 .editor .gutter.drop-shadow {
