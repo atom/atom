@@ -26,6 +26,10 @@ class LanguageMode
       previousCharacter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
       nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
+      if @isOpeningBracket(text) and not @editSession.getSelection().isEmpty()
+        @wrapSelectionInBrackets(text)
+        return false
+
       hasWordAfterCursor = /\w/.test(nextCharacter)
       hasWordBeforeCursor = /\w/.test(previousCharacter)
 
@@ -60,6 +64,18 @@ class LanguageMode
           @editSession.delete()
           @editSession.delete()
         false
+
+  wrapSelectionInBrackets: (bracket) ->
+    pair = @pairedCharacters[bracket]
+    @editSession.mutateSelectedText (selection) =>
+      return if selection.isEmpty()
+
+      range = selection.getBufferRange()
+      options = reverse: selection.isReversed()
+      wrappedText = "#{bracket}#{selection.getText()}#{pair}"
+      selection.insertText(wrappedText)
+      newRange = [range.start.add([0, 1]), range.end.add([0, 1])]
+      selection.setBufferRange(newRange, options)
 
   reloadGrammar: ->
     path = @buffer.getPath()
