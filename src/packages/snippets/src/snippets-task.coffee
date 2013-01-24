@@ -1,4 +1,4 @@
-Task = require 'Task'
+Task = require 'task'
 TextMatePackage = require 'text-mate-package'
 
 module.exports =
