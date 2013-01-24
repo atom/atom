@@ -72,8 +72,7 @@ class LanguageMode
 
       range = selection.getBufferRange()
       options = reverse: selection.isReversed()
-      wrappedText = "#{bracket}#{selection.getText()}#{pair}"
-      selection.insertText(wrappedText)
+      selection.insertText("#{bracket}#{selection.getText()}#{pair}")
       selectionStart = range.start.add([0, 1])
       if range.start.row is range.end.row
         selectionEnd = range.end.add([0, 1])
