@@ -708,7 +708,7 @@ class Editor extends View
       "Your changes will be lost if you don't save them"
       "Save", => @save(session, callback),
       "Cancel", null
-      "Don't save", callback
+      "Don't Save", callback
     )
 
   remove: (selector, keepData) ->

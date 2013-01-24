@@ -26,6 +26,7 @@ class Tabs extends View
 
     @on 'click', '.tab', (e) =>
       @editor.setActiveEditSessionIndex($(e.target).closest('.tab').index())
+      @editor.focus()
 
     @on 'click', '.tab .close-icon', (e) =>
       index = $(e.target).closest('.tab').index()
