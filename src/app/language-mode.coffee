@@ -74,8 +74,12 @@ class LanguageMode
       options = reverse: selection.isReversed()
       wrappedText = "#{bracket}#{selection.getText()}#{pair}"
       selection.insertText(wrappedText)
-      newRange = [range.start.add([0, 1]), range.end.add([0, 1])]
-      selection.setBufferRange(newRange, options)
+      selectionStart = range.start.add([0, 1])
+      if range.start.row is range.end.row
+        selectionEnd = range.end.add([0, 1])
+      else
+        selectionEnd = range.end
+      selection.setBufferRange([selectionStart, selectionEnd], options)
 
   reloadGrammar: ->
     path = @buffer.getPath()

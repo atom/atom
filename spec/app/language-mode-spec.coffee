@@ -145,7 +145,7 @@ describe "LanguageMode", ->
             expect(buffer.lineForRow(0)).toBe '"ok"'
             expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
 
-      describe "when there is text selected", ->
+      describe "when there is text selected on a single line", ->
         it "wraps the selection with brackets", ->
           editSession.insertText 'text'
           editSession.moveCursorToBottom()
@@ -154,6 +154,17 @@ describe "LanguageMode", ->
           editSession.insertText '('
           expect('(text)').toBe buffer.getText()
           expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [0, 5]]
+          expect(editSession.getSelection().isReversed()).toBeTruthy()
+
+      describe "when there is text selected on multiple lines", ->
+        it "wraps the selection with brackets", ->
+          editSession.insertText 'text\nabcd'
+          editSession.moveCursorToBottom()
+          editSession.selectToTop()
+          editSession.selectAll()
+          editSession.insertText '('
+          expect('(text\nabcd)').toBe buffer.getText()
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [1, 4]]
           expect(editSession.getSelection().isReversed()).toBeTruthy()
 
       describe "when inserting a quote", ->
