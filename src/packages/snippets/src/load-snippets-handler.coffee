@@ -1,11 +1,14 @@
 fs = require 'fs'
+TextMatePackage = require 'text-mate-package'
 
 module.exports =
+  snippetsLoaded: (snippets) -> callTaskMethod('snippetsLoaded', snippets)
+
   loadTextmateSnippets: (path) ->
     snippetsDirPath = fs.join(path, 'Snippets')
     snippets = fs.list(snippetsDirPath).map (snippetPath) ->
       fs.readPlist(snippetPath)
-    @snippetsLoaded(snippets)
+    @snippetsLoaded(@translateTextmateSnippets(snippets))
 
   loadAtomSnippets: (path) ->
     snippetsDirPath = fs.join(path, 'snippets')
@@ -18,4 +21,14 @@ module.exports =
         console.warn "Error reading snippets file '#{snippetsPath}'"
     @snippetsLoaded(snippets)
 
-  snippetsLoaded: (snippets) -> callTaskMethod('snippetsLoaded', snippets)
+  translateTextmateSnippets: (tmSnippets) ->
+    atomSnippets = {}
+    for { scope, name, content, tabTrigger } in tmSnippets
+      if scope
+        scope = TextMatePackage.cssSelectorFromScopeSelector(scope)
+      else
+        scope = '*'
+
+      snippetsForScope = (atomSnippets[scope] ?= {})
+      snippetsForScope[name] = { prefix: tabTrigger, body: content }
+    [atomSnippets]
