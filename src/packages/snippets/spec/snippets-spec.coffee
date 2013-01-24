@@ -6,8 +6,6 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 _ = require 'underscore'
 fs = require 'fs'
-AtomPackage = require 'atom-package'
-TextMatePackage = require 'text-mate-package'
 
 describe "Snippets extension", ->
   [buffer, editor] = []
