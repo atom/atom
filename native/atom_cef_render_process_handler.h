@@ -31,6 +31,7 @@ class AtomCefRenderProcessHandler : public CefRenderProcessHandler {
   void Reload(CefRefPtr<CefBrowser> browser);
   void Shutdown(CefRefPtr<CefBrowser> browser);
   bool CallMessageReceivedHandler(CefRefPtr<CefV8Context> context, CefRefPtr<CefProcessMessage> message);
+  void InjectExtensionsIntoV8Context(CefRefPtr<CefV8Context> context);
 
   IMPLEMENT_REFCOUNTING(AtomCefRenderProcessHandler);
 };
