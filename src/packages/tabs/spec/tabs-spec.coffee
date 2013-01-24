@@ -75,6 +75,14 @@ describe "Tabs", ->
       tabs.find('.tab:eq(1)').click()
       expect(editor.getActiveEditSessionIndex()).toBe 1
 
+    it "focuses the associated editor", ->
+      rootView.attachToDom()
+      expect(editor).toMatchSelector ":has(:focus)"
+      editor.splitRight()
+      expect(editor).not.toMatchSelector ":has(:focus)"
+      tabs.find('.tab:eq(0)').click()
+      expect(editor).toMatchSelector ":has(:focus)"
+
   describe "when a file name associated with a tab changes", ->
     [buffer, oldPath, newPath] = []
 
