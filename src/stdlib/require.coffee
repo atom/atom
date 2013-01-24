@@ -30,12 +30,12 @@ require = (path, cb) ->
 
   if __moduleExists file
     if not __modules.loaded[file.toLowerCase()]?
-      console.warn "Circular require: #{__filename} required #{file}"
+      console.warn "Circular require: #{window.__filename} required #{file}"
     return __modules[file]
   else if __modules.loaded[file.toLowerCase()]
     console.warn "Multiple requires (different cases) for #{file}"
 
-  [ previousFilename, window.__filename ] = [ __filename, file ]
+  [ previousFilename, window.__filename ] = [ window.__filename, file ]
   __modules[file] = {} # Fix for circular references
   __modules[file] = (exts[ext] or (file) -> __read file) file
   window.__filename = previousFilename
@@ -43,10 +43,10 @@ require = (path, cb) ->
 
 define = (cb) ->
   __defines.push ->
-    exports = __modules[__filename] or {}
+    exports = __modules[window.__filename] or {}
     module  = exports: exports
     cb.call exports, require, exports, module
-    __modules.loaded[__filename.toLowerCase()] = true
+    __modules.loaded[window.__filename.toLowerCase()] = true
     module.exports or exports
 
 exts =
@@ -57,6 +57,19 @@ exts =
   coffee: (file) ->
     exts.js(file, __coffeeCache(file))
 
+getPath = (path) ->
+  path = resolve(path)
+  parts = path.split '.'
+  return path unless parts[parts.length - 1] is 'coffee'
+
+  tmpPath = "/tmp/atom-compiled-scripts"
+  cachePath = [tmpPath, $native.md5ForPath(path)].join("/")
+  if not __exists(cachePath)
+    {CoffeeScript} = require 'coffee-script'
+    compiled = CoffeeScript.compile(__read(path), filename: path)
+    $native.write(cachePath, compiled)
+  cachePath
+
 resolve = (name, {verifyExistence}={}) ->
   verifyExistence ?= true
   file = name
@@ -65,11 +78,11 @@ resolve = (name, {verifyExistence}={}) ->
     file = parts[parts.length-1]
 
   if file[0..1] is './'
-    prefix = __filename.split('/')[0..-2].join '/'
+    prefix = window.__filename.split('/')[0..-2].join '/'
     file = file.replace './', "#{prefix}/"
 
   if file[0..2] is '../'
-    prefix = __filename.split('/')[0..-3].join '/'
+    prefix = window.__filename.split('/')[0..-3].join '/'
     file = file.replace '../', "#{prefix}/"
 
   if file[0] isnt '/'
@@ -157,6 +170,7 @@ this.nakedLoad = nakedLoad
 this.define  = define
 
 this.require.paths = paths
+this.require.getPath = getPath
 this.require.exts  = exts
 
 this.require.resolve   = resolve

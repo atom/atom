@@ -1,5 +1,6 @@
 Snippets = require 'snippets'
 Snippet = require 'snippets/src/snippet'
+SnippetsTask = require 'snippets/src/snippets-task'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
@@ -12,8 +13,7 @@ describe "Snippets extension", ->
   [buffer, editor] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    spyOn(AtomPackage.prototype, 'loadSnippets')
-    spyOn(TextMatePackage.prototype, 'loadSnippets')
+    spyOn(SnippetsTask.prototype, 'start')
     atom.loadPackage("snippets")
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
@@ -216,28 +216,36 @@ describe "Snippets extension", ->
   describe "snippet loading", ->
     it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
       spyOn(console, 'warn').andCallThrough()
-      jasmine.unspy(AtomPackage.prototype, 'loadSnippets')
+      jasmine.unspy(SnippetsTask.prototype, 'start')
+      snippets.loaded = false
       snippets.loadAll()
 
-      expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
+      waitsFor((-> snippets.loaded), "Waiting for all snippets to load", 5000)
 
-      # warn about junk-file, but don't even try to parse a hidden file
-      expect(console.warn).toHaveBeenCalled()
-      expect(console.warn.calls.length).toBeGreaterThan 0
+      runs ->
+        expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
+
+        # warn about junk-file, but don't even try to parse a hidden file
+        expect(console.warn).toHaveBeenCalled()
+        expect(console.warn.calls.length).toBeGreaterThan 0
 
     it "loads snippets from all TextMate packages with snippets", ->
-      jasmine.unspy(TextMatePackage.prototype, 'loadSnippets')
+      jasmine.unspy(SnippetsTask.prototype, 'start')
+      snippets.loaded = false
       snippets.loadAll()
 
-      snippet = syntax.getProperty(['.source.js'], 'snippets.fun')
-      expect(snippet.constructor).toBe Snippet
-      expect(snippet.prefix).toBe 'fun'
-      expect(snippet.name).toBe 'Function'
-      expect(snippet.body).toBe """
-        function function_name (argument) {
-        \t// body...
-        }
-      """
+      waitsFor((-> snippets.loaded), "Waiting for all snippets to load", 5000)
+
+      runs ->
+        snippet = syntax.getProperty(['.source.js'], 'snippets.fun')
+        expect(snippet.constructor).toBe Snippet
+        expect(snippet.prefix).toBe 'fun'
+        expect(snippet.name).toBe 'Function'
+        expect(snippet.body).toBe """
+          function function_name (argument) {
+          \t// body...
+          }
+        """
 
   describe "Snippets parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
