@@ -8,8 +8,10 @@
 #import "path_watcher.h"
 
 #import <iostream>
-
 #include <fts.h>
+
+static std::string windowState = "{}";
+static NSLock *windowStateLock = [[NSLock alloc] init];
 
 namespace v8_extensions {
   using namespace std;
@@ -18,7 +20,6 @@ namespace v8_extensions {
   void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception> exception, NSString *message);
 
   Native::Native() : CefV8Handler() {
-    windowState = "{}";
   }
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
@@ -33,18 +34,12 @@ namespace v8_extensions {
     int arrayLength = sizeof(methodNames) / sizeof(const char *);
     for (int i = 0; i < arrayLength; i++) {
       const char *functionName = methodNames[i];
-      CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, GetInstance());
+      CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, this);
       nativeObject->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
     }
 
     CefRefPtr<CefV8Value> global = context->GetGlobal();
     global->SetValue("$native", nativeObject, V8_PROPERTY_ATTRIBUTE_NONE);
-  }
-
-  CefRefPtr<CefV8Handler> Native::GetInstance() {
-    static Native instance;
-    static CefRefPtr<CefV8Handler> instancePtr = CefRefPtr<CefV8Handler>(&instance);
-    return instancePtr;
   }
 
   bool Native::Execute(const CefString& name,
@@ -500,12 +495,16 @@ namespace v8_extensions {
     }
 
     else if (name == "setWindowState") {
+      [windowStateLock lock];
       windowState = arguments[0]->GetStringValue().ToString();
+      [windowStateLock unlock];
       return true;
     }
 
     else if (name == "getWindowState") {
+      [windowStateLock lock];
       retval = CefV8Value::CreateString(windowState);
+      [windowStateLock unlock];
       return true;
     }
 

@@ -139,18 +139,12 @@ void OnigScanner::CreateContextBinding(CefRefPtr<CefV8Context> context) {
   int arrayLength = sizeof(methodNames) / sizeof(const char *);
   for (int i = 0; i < arrayLength; i++) {
     const char *functionName = methodNames[i];
-    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, GetInstance());
+    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, this);
     nativeObject->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
   }
 
   CefRefPtr<CefV8Value> global = context->GetGlobal();
   global->SetValue("$onigScanner", nativeObject, V8_PROPERTY_ATTRIBUTE_NONE);
-}
-
-CefRefPtr<CefV8Handler> OnigScanner::GetInstance() {
-  static OnigScanner instance;
-  static CefRefPtr<CefV8Handler> instancePtr = CefRefPtr<CefV8Handler>(&instance);
-  return instancePtr;
 }
 
 bool OnigScanner::Execute(const CefString& name,

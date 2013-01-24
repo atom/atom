@@ -5,7 +5,8 @@ namespace v8_extensions {
 
   class OnigScanner : public CefV8Handler {
   public:
-    static void CreateContextBinding(CefRefPtr<CefV8Context> context);
+    OnigScanner();
+    void CreateContextBinding(CefRefPtr<CefV8Context> context);
     virtual bool Execute(const CefString& name,
                          CefRefPtr<CefV8Value> object,
                          const CefV8ValueList& arguments,
@@ -16,8 +17,6 @@ namespace v8_extensions {
     IMPLEMENT_REFCOUNTING(OnigRegExp);
 
     private:
-      static CefRefPtr<CefV8Handler> GetInstance();
-      OnigScanner();
       OnigScanner(OnigScanner const&);
       void operator=(OnigScanner const&);
   };

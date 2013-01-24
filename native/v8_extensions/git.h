@@ -4,7 +4,8 @@
 namespace v8_extensions {
   class Git : public CefV8Handler {
   public:
-    static void CreateContextBinding(CefRefPtr<CefV8Context> context);
+    Git();
+    void CreateContextBinding(CefRefPtr<CefV8Context> context);
     virtual bool Execute(const CefString& name,
                          CefRefPtr<CefV8Value> object,
                          const CefV8ValueList& arguments,
@@ -15,8 +16,6 @@ namespace v8_extensions {
     IMPLEMENT_REFCOUNTING(Git);
 
   private:
-    static CefRefPtr<CefV8Handler> GetInstance();
-    Git();
     Git(Git const&);
     void operator=(Git const&);
   };
