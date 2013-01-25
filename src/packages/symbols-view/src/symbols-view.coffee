@@ -102,7 +102,7 @@ class SymbolsView extends SelectList
     for line, index in fs.read(file).split('\n')
       return new Point(index, 0) if pattern is $.trim(line)
 
-  jumpToDeclaration: ->
+  goToDeclaration: ->
     editor = @rootView.getActiveEditor()
     matches = TagReader.find(editor)
     return unless matches.length

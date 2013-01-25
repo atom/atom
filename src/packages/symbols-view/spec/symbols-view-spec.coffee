@@ -126,26 +126,26 @@ describe "SymbolsView", ->
         generator.generate().done ->
           expect(tags.length).toBe 0
 
-  describe "jump to declaration", ->
+  describe "go to declaration", ->
     it "doesn't move the cursor when no declaration is found", ->
       rootView.open("tagged.js")
       editor = rootView.getActiveEditor()
       editor.setCursorBufferPosition([0,2])
-      editor.trigger 'symbols-view:jump-to-declaration'
+      editor.trigger 'symbols-view:go-to-declaration'
       expect(editor.getCursorBufferPosition()).toEqual [0,2]
 
     it "moves the cursor to the declaration", ->
       rootView.open("tagged.js")
       editor = rootView.getActiveEditor()
       editor.setCursorBufferPosition([6,24])
-      editor.trigger 'symbols-view:jump-to-declaration'
+      editor.trigger 'symbols-view:go-to-declaration'
       expect(editor.getCursorBufferPosition()).toEqual [2,0]
 
     it "displays matches when more than one exists and opens the selected match", ->
       rootView.open("tagged.js")
       editor = rootView.getActiveEditor()
       editor.setCursorBufferPosition([8,14])
-      editor.trigger 'symbols-view:jump-to-declaration'
+      editor.trigger 'symbols-view:go-to-declaration'
       expect(symbolsView.list.children('li').length).toBe 2
       expect(symbolsView).toBeVisible()
       symbolsView.confirmed(symbolsView.array[0])
@@ -163,7 +163,7 @@ describe "SymbolsView", ->
         rootView.open("tagged.js")
         editor = rootView.getActiveEditor()
         editor.setCursorBufferPosition([8,14])
-        editor.trigger 'symbols-view:jump-to-declaration'
+        editor.trigger 'symbols-view:go-to-declaration'
         expect(symbolsView.list.children('li').length).toBe 1
         expect(symbolsView.list.children('li:first').find('.function-name')).toHaveText 'tagged.js'
 
