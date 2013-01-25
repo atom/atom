@@ -228,6 +228,7 @@ describe "Snippets extension", ->
         expect(console.warn.calls.length).toBeGreaterThan 0
 
     it "loads snippets from all TextMate packages with snippets", ->
+      spyOn(console, 'warn').andCallThrough()
       jasmine.unspy(LoadSnippetsTask.prototype, 'start')
       snippets.loaded = false
       snippets.loadAll()
@@ -244,6 +245,10 @@ describe "Snippets extension", ->
           \t// body...
           }
         """
+
+        # warn about junk-file, but don't even try to parse a hidden file
+        expect(console.warn).toHaveBeenCalled()
+        expect(console.warn.calls.length).toBeGreaterThan 0
 
   describe "Snippets parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->

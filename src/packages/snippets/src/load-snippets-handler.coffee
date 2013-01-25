@@ -6,8 +6,21 @@ module.exports =
 
   loadTextmateSnippets: (path) ->
     snippetsDirPath = fs.join(path, 'Snippets')
-    snippets = fs.list(snippetsDirPath).map (snippetPath) ->
-      fs.readPlist(snippetPath)
+    snippets = []
+
+    for snippetsPath in fs.list(snippetsDirPath)
+      logWarning = ->
+        console.warn "Error reading TextMate snippets file '#{snippetsPath}'"
+
+      continue if fs.base(snippetsPath).indexOf('.') is 0
+      try
+        if object = fs.readPlist(snippetsPath)
+          snippets.push(object) if object
+        else
+          logWarning()
+      catch e
+        logWarning()
+
     @snippetsLoaded(@translateTextmateSnippets(snippets))
 
   loadAtomSnippets: (path) ->
