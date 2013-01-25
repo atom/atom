@@ -203,6 +203,9 @@ class RootView extends View
   activeKeybindings: ->
     keymap.bindingsForElement(document.activeElement)
 
+  getProject: ->
+    @project or null
+
   getTitle: ->
     @title or "untitled"
 
