@@ -60,6 +60,11 @@
   display: inline-block;
 }
 
+.command-panel .preview-list .path-match-number {
+  padding-left: 8px;
+  color: rgba(255, 255, 255, .3);
+}
+
 .command-panel .preview-list .preview {
   word-break: break-all;
 }

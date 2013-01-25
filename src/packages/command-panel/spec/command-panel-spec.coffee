@@ -299,7 +299,7 @@ describe "CommandPanel", ->
         expect(commandPanel.previewList).toBeVisible()
         expect(commandPanel.previewList).toMatchSelector ':focus'
         previewItem = commandPanel.previewList.find("li:contains(sample.js):first")
-        expect(previewItem.text()).toBe "sample.js"
+        expect(previewItem.text()).toBe "sample.js(1)"
         expect(previewItem.next().find('.preview').text()).toBe "var quicksort = function () {"
         expect(previewItem.next().find('.preview > .match').text()).toBe "quicksort"
 

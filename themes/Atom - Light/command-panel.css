@@ -57,6 +57,11 @@
   display: inline-block;
 }
 
+.command-panel .preview-list .path-match-number {
+  padding-left: 8px;
+  color: #3D5075;
+}
+
 .command-panel .preview-list .preview {
   word-break: break-all;
 }
