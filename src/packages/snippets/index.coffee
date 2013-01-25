@@ -2,7 +2,7 @@ AtomPackage = require 'atom-package'
 fs = require 'fs'
 SnippetExpansion = require './src/snippet-expansion'
 Snippet = require './src/snippet'
-SnippetsTask = require './src/load-snippets-task'
+LoadSnippetsTask = require './src/load-snippets-task'
 
 module.exports =
 class Snippets extends AtomPackage
@@ -16,7 +16,7 @@ class Snippets extends AtomPackage
     @rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
 
   loadAll: ->
-    new SnippetsTask(this).start()
+    new LoadSnippetsTask(this).start()
 
   loadDirectory: (snippetsDirPath) ->
     for snippetsPath in fs.list(snippetsDirPath) when fs.base(snippetsPath).indexOf('.') isnt 0
