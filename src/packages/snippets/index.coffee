@@ -1,17 +1,14 @@
 AtomPackage = require 'atom-package'
 fs = require 'fs'
-PEG = require 'pegjs'
-_ = require 'underscore'
 SnippetExpansion = require './src/snippet-expansion'
 Snippet = require './src/snippet'
-require './src/package-extensions'
+SnippetsTask = require './src/load-snippets-task'
 
 module.exports =
 class Snippets extends AtomPackage
 
   snippetsByExtension: {}
-  parser: PEG.buildParser(fs.read(require.resolve 'snippets/snippets.pegjs'), trackLineAndColumn: true)
-  userSnippetsDir: fs.join(config.configDirPath, 'snippets')
+  loaded: false
 
   activate: (@rootView) ->
     window.snippets = this
@@ -19,10 +16,7 @@ class Snippets extends AtomPackage
     @rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
 
   loadAll: ->
-    for pack in atom.getPackages()
-      pack.loadSnippets()
-
-    @loadDirectory(@userSnippetsDir) if fs.exists(@userSnippetsDir)
+    new SnippetsTask(this).start()
 
   loadDirectory: (snippetsDirPath) ->
     for snippetsPath in fs.list(snippetsDirPath) when fs.base(snippetsPath).indexOf('.') isnt 0
@@ -39,8 +33,7 @@ class Snippets extends AtomPackage
     for selector, snippetsByName of snippetsBySelector
       snippetsByPrefix = {}
       for name, attributes of snippetsByName
-        { prefix, body } = attributes
-        bodyTree = @parser.parse(body)
+        { prefix, body, bodyTree } = attributes
         snippet = new Snippet({name, prefix, bodyTree})
         snippetsByPrefix[snippet.prefix] = snippet
       syntax.addProperties(selector, snippets: snippetsByPrefix)
