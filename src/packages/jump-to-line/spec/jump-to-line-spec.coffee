@@ -36,12 +36,16 @@ describe 'JumpToLine', ->
 
     describe "when no line number has been entered", ->
       it "closes the view and does not update the cursor position", ->
+        editor.trigger 'editor:jump-to-line'
+        expect(jumpToLine.hasParent()).toBeTruthy()
         jumpToLine.miniEditor.trigger 'core:confirm'
         expect(jumpToLine.hasParent()).toBeFalsy()
         expect(editor.getCursorBufferPosition()).toEqual [1, 0]
 
   describe "when core:cancel is triggered", ->
     it "closes the view and does not update the cursor position", ->
+      editor.trigger 'editor:jump-to-line'
+      expect(jumpToLine.hasParent()).toBeTruthy()
       jumpToLine.miniEditor.trigger 'core:cancel'
       expect(jumpToLine.hasParent()).toBeFalsy()
       expect(editor.getCursorBufferPosition()).toEqual [1, 0]
