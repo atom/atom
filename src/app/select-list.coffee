@@ -62,6 +62,8 @@ class SelectList extends View
       @loading.text(message).show()
 
   populateList: ->
+    return unless @array?
+
     filterQuery = @miniEditor.getText()
     if filterQuery.length
       filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
@@ -121,10 +123,24 @@ class SelectList extends View
     else
       @cancel()
 
+  attach: ->
+    @storeFocusedElement()
+
+  storeFocusedElement: ->
+    @previouslyFocusedElement = $(':focus')
+
+  restoreFocus: ->
+    @previouslyFocusedElement?.focus()
+
+  cancelled: ->
+    @miniEditor.setText('')
+
   cancel: ->
     @list.empty()
     @cancelling = true
+    miniEditorFocused = @miniEditor.isFocused
     @cancelled()
     @detach()
+    @restoreFocus() if miniEditorFocused
     @cancelling = false
     clearTimeout(@scheduleTimeout)

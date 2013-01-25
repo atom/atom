@@ -1,0 +1,27 @@
+.go-to-line {
+  position: absolute;
+  width: 200px;
+  top: 0;
+  left: 50%;
+  margin-left: -100px;
+  box-sizing: border-box;
+  z-index: 99;
+  background-color: #484848;
+  border: 1px solid #444;
+  color: #d2d2d2;
+  box-shadow: 0 0 10px #000;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.go-to-line .editor {
+  box-sizing: border-box;
+  padding: 5px;
+}
+
+.go-to-line .message {
+  padding-top: 2px;
+  font-size: 11px;
+}

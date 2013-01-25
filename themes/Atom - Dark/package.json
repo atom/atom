@@ -1,0 +1,21 @@
+{
+  "stylesheets":[
+    "atom.css",
+    "editor.css",
+    "grammar-view.css",
+    "select-list.css",
+    "tree-view.css",
+    "tabs.css",
+    "wrap-guide.css",
+    "status-bar.css",
+    "symbols-view.css",
+    "markdown-preview.css",
+    "fuzzy-finder.css",
+    "command-panel.css",
+    "command-palette.css",
+    "command-logger.css",
+    "autocomplete.css",
+    "gists.css",
+    "go-to-line.css"
+  ]
+}

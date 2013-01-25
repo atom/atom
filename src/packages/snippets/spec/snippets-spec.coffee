@@ -77,6 +77,13 @@ describe "Snippets extension", ->
           expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
           expect(editor.getCursorScreenPosition()).toEqual [0, 14]
 
+        it "inserts a real tab the next time a tab is pressed after the snippet is expanded", ->
+          editor.insertText("t1")
+          editor.trigger keydownEvent('tab', target: editor[0])
+          expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
+          editor.trigger keydownEvent('tab', target: editor[0])
+          expect(buffer.lineForRow(0)).toBe "this is a test  var quicksort = function () {"
+
       describe "when the snippet contains tab stops", ->
         it "places the cursor at the first tab-stop, and moves the cursor in response to 'next-tab-stop' events", ->
           anchorCountBefore = editor.activeEditSession.getAnchors().length
@@ -207,11 +214,16 @@ describe "Snippets extension", ->
         expect(editor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
 
   describe "snippet loading", ->
-    it "loads snippets from all atom packages with a snippets directory", ->
+    it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
+      spyOn(console, 'warn').andCallThrough()
       jasmine.unspy(AtomPackage.prototype, 'loadSnippets')
       snippets.loadAll()
 
       expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
+
+      # warn about junk-file, but don't even try to parse a hidden file
+      expect(console.warn).toHaveBeenCalled()
+      expect(console.warn.calls.length).toBeGreaterThan 0
 
     it "loads snippets from all TextMate packages with snippets", ->
       jasmine.unspy(TextMatePackage.prototype, 'loadSnippets')
@@ -229,7 +241,7 @@ describe "Snippets extension", ->
 
   describe "Snippets parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
-      bodyTree = Snippets.parser.parse """
+      bodyTree = snippets.parser.parse """
         the quick brown $1fox ${2:jumped ${3:over}
         }the ${4:lazy} dog
       """

@@ -128,6 +128,22 @@ describe 'Buffer', ->
         runs ->
           expect(buffer.isModified()).toBeTruthy()
 
+      it "fires a single contents-conflicted event", ->
+        buffer.insert([0, 0], "a change")
+        buffer.save()
+        buffer.insert([0, 0], "a second change")
+
+        handler = jasmine.createSpy('fileChange')
+        fs.write(path, "second")
+        buffer.on 'contents-conflicted', handler
+
+        expect(handler.callCount).toBe 0
+        waitsFor ->
+          handler.callCount > 0
+
+        runs ->
+          expect(handler.callCount).toBe 1
+
   describe "when the buffer's file is deleted (via another process)", ->
     [path, bufferToDelete] = []
 
@@ -625,7 +641,7 @@ describe 'Buffer', ->
         expect(ranges[1]).toEqual [[6,6], [6,13]]
 
   describe ".characterIndexForPosition(position)", ->
-    it "returns the total number of charachters that precede the given position", ->
+    it "returns the total number of characters that precede the given position", ->
       expect(buffer.characterIndexForPosition([0, 0])).toBe 0
       expect(buffer.characterIndexForPosition([0, 1])).toBe 1
       expect(buffer.characterIndexForPosition([0, 29])).toBe 29
@@ -634,7 +650,7 @@ describe 'Buffer', ->
       expect(buffer.characterIndexForPosition([12, 2])).toBe 408
 
   describe ".positionForCharacterIndex(position)", ->
-    it "returns the position based on charachter index", ->
+    it "returns the position based on character index", ->
       expect(buffer.positionForCharacterIndex(0)).toEqual [0, 0]
       expect(buffer.positionForCharacterIndex(1)).toEqual [0, 1]
       expect(buffer.positionForCharacterIndex(29)).toEqual [0, 29]

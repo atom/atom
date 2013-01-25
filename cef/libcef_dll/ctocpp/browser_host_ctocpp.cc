@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -24,11 +24,7 @@ bool CefBrowserHost::CreateBrowser(const CefWindowInfo& windowInfo,
     const CefBrowserSettings& settings) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
-  // Verify param: client; type: refptr_diff
-  DCHECK(client.get());
-  if (!client.get())
-    return false;
-  // Unverified params: url
+  // Unverified params: client, url
 
   // Execute
   int _retval = cef_browser_host_create_browser(
@@ -46,11 +42,7 @@ CefRefPtr<CefBrowser> CefBrowserHost::CreateBrowserSync(
     const CefString& url, const CefBrowserSettings& settings) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
-  // Verify param: client; type: refptr_diff
-  DCHECK(client.get());
-  if (!client.get())
-    return NULL;
-  // Unverified params: url
+  // Unverified params: client, url
 
   // Execute
   cef_browser_t* _retval = cef_browser_host_create_browser_sync(
@@ -221,6 +213,116 @@ void CefBrowserHostCToCpp::RunFileDialog(FileDialogMode mode,
   // Restore param:accept_types; type: string_vec_byref_const
   if (accept_typesList)
     cef_string_list_free(accept_typesList);
+}
+
+bool CefBrowserHostCToCpp::IsWindowRenderingDisabled() {
+  if (CEF_MEMBER_MISSING(struct_, is_window_rendering_disabled))
+    return false;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  int _retval = struct_->is_window_rendering_disabled(struct_);
+
+  // Return type: bool
+  return _retval?true:false;
+}
+
+void CefBrowserHostCToCpp::WasResized() {
+  if (CEF_MEMBER_MISSING(struct_, was_resized))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  struct_->was_resized(struct_);
+}
+
+void CefBrowserHostCToCpp::Invalidate(const CefRect& dirtyRect,
+    PaintElementType type) {
+  if (CEF_MEMBER_MISSING(struct_, invalidate))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  struct_->invalidate(struct_,
+      &dirtyRect,
+      type);
+}
+
+void CefBrowserHostCToCpp::SendKeyEvent(const CefKeyEvent& event) {
+  if (CEF_MEMBER_MISSING(struct_, send_key_event))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  struct_->send_key_event(struct_,
+      &event);
+}
+
+void CefBrowserHostCToCpp::SendMouseClickEvent(const CefMouseEvent& event,
+    MouseButtonType type, bool mouseUp, int clickCount) {
+  if (CEF_MEMBER_MISSING(struct_, send_mouse_click_event))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  struct_->send_mouse_click_event(struct_,
+      &event,
+      type,
+      mouseUp,
+      clickCount);
+}
+
+void CefBrowserHostCToCpp::SendMouseMoveEvent(const CefMouseEvent& event,
+    bool mouseLeave) {
+  if (CEF_MEMBER_MISSING(struct_, send_mouse_move_event))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  struct_->send_mouse_move_event(struct_,
+      &event,
+      mouseLeave);
+}
+
+void CefBrowserHostCToCpp::SendMouseWheelEvent(const CefMouseEvent& event,
+    int deltaX, int deltaY) {
+  if (CEF_MEMBER_MISSING(struct_, send_mouse_wheel_event))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  struct_->send_mouse_wheel_event(struct_,
+      &event,
+      deltaX,
+      deltaY);
+}
+
+void CefBrowserHostCToCpp::SendFocusEvent(bool setFocus) {
+  if (CEF_MEMBER_MISSING(struct_, send_focus_event))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  struct_->send_focus_event(struct_,
+      setFocus);
+}
+
+void CefBrowserHostCToCpp::SendCaptureLostEvent() {
+  if (CEF_MEMBER_MISSING(struct_, send_capture_lost_event))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  struct_->send_capture_lost_event(struct_);
 }
 
 

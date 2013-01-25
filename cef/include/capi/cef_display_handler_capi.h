@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -80,7 +80,8 @@ typedef struct _cef_display_handler_t {
   // text that will be displayed in the tooltip. To handle the display of the
   // tooltip yourself return true (1). Otherwise, you can optionally modify
   // |text| and then return false (0) to allow the browser to display the
-  // tooltip.
+  // tooltip. When window rendering is disabled the application is responsible
+  // for drawing tooltips and the return value is ignored.
   ///
   int (CEF_CALLBACK *on_tooltip)(struct _cef_display_handler_t* self,
       struct _cef_browser_t* browser, cef_string_t* text);

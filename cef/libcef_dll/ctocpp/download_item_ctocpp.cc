@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -226,21 +226,6 @@ CefString CefDownloadItemCToCpp::GetMimeType() {
 
   // Execute
   cef_string_userfree_t _retval = struct_->get_mime_type(struct_);
-
-  // Return type: string
-  CefString _retvalStr;
-  _retvalStr.AttachToUserFree(_retval);
-  return _retvalStr;
-}
-
-CefString CefDownloadItemCToCpp::GetReferrerCharset() {
-  if (CEF_MEMBER_MISSING(struct_, get_referrer_charset))
-    return CefString();
-
-  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
-
-  // Execute
-  cef_string_userfree_t _retval = struct_->get_referrer_charset(struct_);
 
   // Return type: string
   CefString _retvalStr;

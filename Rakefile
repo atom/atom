@@ -82,7 +82,8 @@ task "create-dot-atom" do
   `mkdir "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
-  `cp -r "#{dot_atom_template_path}/themes" "#{DOT_ATOM_PATH}"`
+  `cp -r "#{ATOM_SRC_PATH}/themes" "#{DOT_ATOM_PATH}"`
+  `cp "#{ATOM_SRC_PATH}/vendor/themes/IR_Black.tmTheme" "#{DOT_ATOM_PATH}/themes"`
 end
 
 desc "Clone default bundles into vendor/bundles directory"

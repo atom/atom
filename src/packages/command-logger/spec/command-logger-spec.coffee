@@ -1,12 +1,12 @@
 RootView = require 'root-view'
-CommandLogger = require 'command-logger'
+CommandLogger = require 'command-logger/src/command-logger-view'
 
 describe "CommandLogger", ->
   [rootView, commandLogger, editor] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage 'command-logger'
+    atom.loadPackage('command-logger').getInstance()
     editor = rootView.getActiveEditor()
     commandLogger = CommandLogger.instance
 
@@ -26,9 +26,13 @@ describe "CommandLogger", ->
       editor.trigger 'core:backspace'
       lastRun = commandLogger.eventLog['core:backspace'].lastRun
       expect(lastRun).toBeGreaterThan 0
-      advanceClock(100)
-      editor.trigger 'core:backspace'
-      expect(commandLogger.eventLog['core:backspace'].lastRun).toBeGreaterThan lastRun
+      start = new Date().getTime()
+      waitsFor ->
+        new Date().getTime() > start
+
+      runs ->
+        editor.trigger 'core:backspace'
+        expect(commandLogger.eventLog['core:backspace'].lastRun).toBeGreaterThan lastRun
 
   describe "when the data is cleared", ->
     it "removes all triggered events from the log", ->

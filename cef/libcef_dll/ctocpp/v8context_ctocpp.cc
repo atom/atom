@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -12,6 +12,7 @@
 
 #include "libcef_dll/ctocpp/browser_ctocpp.h"
 #include "libcef_dll/ctocpp/frame_ctocpp.h"
+#include "libcef_dll/ctocpp/task_runner_ctocpp.h"
 #include "libcef_dll/ctocpp/v8context_ctocpp.h"
 #include "libcef_dll/ctocpp/v8exception_ctocpp.h"
 #include "libcef_dll/ctocpp/v8value_ctocpp.h"
@@ -51,6 +52,32 @@ bool CefV8Context::InContext() {
 
 
 // VIRTUAL METHODS - Body may be edited by hand.
+
+CefRefPtr<CefTaskRunner> CefV8ContextCToCpp::GetTaskRunner() {
+  if (CEF_MEMBER_MISSING(struct_, get_task_runner))
+    return NULL;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  cef_task_runner_t* _retval = struct_->get_task_runner(struct_);
+
+  // Return type: refptr_same
+  return CefTaskRunnerCToCpp::Wrap(_retval);
+}
+
+bool CefV8ContextCToCpp::IsValid() {
+  if (CEF_MEMBER_MISSING(struct_, is_valid))
+    return false;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  int _retval = struct_->is_valid(struct_);
+
+  // Return type: bool
+  return _retval?true:false;
+}
 
 CefRefPtr<CefBrowser> CefV8ContextCToCpp::GetBrowser() {
   if (CEF_MEMBER_MISSING(struct_, get_browser))

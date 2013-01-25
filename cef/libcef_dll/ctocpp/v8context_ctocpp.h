@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -32,6 +32,8 @@ class CefV8ContextCToCpp
   virtual ~CefV8ContextCToCpp() {}
 
   // CefV8Context methods
+  virtual CefRefPtr<CefTaskRunner> GetTaskRunner() OVERRIDE;
+  virtual bool IsValid() OVERRIDE;
   virtual CefRefPtr<CefBrowser> GetBrowser() OVERRIDE;
   virtual CefRefPtr<CefFrame> GetFrame() OVERRIDE;
   virtual CefRefPtr<CefV8Value> GetGlobal() OVERRIDE;

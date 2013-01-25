@@ -41,7 +41,7 @@
   if (!background) {
     [self setShouldCascadeWindows:NO];
     [self setWindowFrameAutosaveName:@"AtomWindow"];
-    NSColor *background = [NSColor colorWithCalibratedRed:(51.0/255.0) green:(51.0/255.0f) blue:(51.0/255.0f) alpha:1.0];
+    NSColor *background = [NSColor colorWithDeviceRed:(51.0/255.0) green:(51.0/255.0f) blue:(51.0/255.0f) alpha:1.0];
     [self.window setBackgroundColor:background];
     [self showWindow:self];
   }
@@ -223,11 +223,11 @@
   settings.accelerated_layers_disabled = false;
   settings.accelerated_video_disabled = false;
   settings.accelerated_2d_canvas_disabled = false;
-  settings.accelerated_painting_enabled = true;
-  settings.accelerated_filters_enabled = true;
+//   settings.accelerated_painting_enabled = true;
+//   settings.accelerated_filters_enabled = true;
   settings.accelerated_plugins_disabled = false;
   settings.developer_tools_disabled = false;
-  settings.fullscreen_enabled = true;
+//   settings.fullscreen_enabled = true;
 }
 
 @end

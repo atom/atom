@@ -1,5 +1,5 @@
 $ = require 'jquery'
-Autocomplete = require 'autocomplete'
+Autocomplete = require 'autocomplete/src/autocomplete-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 RootView = require 'root-view'
@@ -11,6 +11,7 @@ describe "Autocomplete", ->
 
   beforeEach ->
     editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
+    atom.loadPackage('autocomplete')
     autocomplete = new Autocomplete(editor)
     miniEditor = autocomplete.miniEditor
 

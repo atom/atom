@@ -9,14 +9,14 @@ originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
 _.extend atom,
   exitWhenDone: window.location.params.exitWhenDone
-
+  loadedThemes: []
   pendingBrowserProcessCallbacks: {}
 
   loadPackages: ->
     pack.load() for pack in @getPackages()
 
   getPackages: ->
-    @getPackageNames().map (name) -> Package.build(name)
+    @getPackageNames().map((name) -> Package.build(name)).filter (pack) -> pack?
 
   loadTextMatePackages: ->
     pack.load() for pack in @getTextMatePackages()
@@ -25,7 +25,7 @@ _.extend atom,
     @getPackages().filter (pack) -> pack instanceof TextMatePackage
 
   loadPackage: (name) ->
-    Package.build(name).load()
+    Package.build(name)?.load()
 
   getPackageNames: ->
     disabledPackages = config.get("core.disabledPackages") ? []
@@ -39,12 +39,16 @@ _.extend atom,
       .filter (name) -> not _.contains(disabledPackages, name)
 
   loadThemes: ->
-    themeNames = config.get("core.themes") ? ['IR_Black']
+    themeNames = config.get("core.themes") ? ['Atom - Dark', 'IR_Black']
     themeNames = [themeNames] unless _.isArray(themeNames)
     @loadTheme(themeName) for themeName in themeNames
 
   loadTheme: (name) ->
-    Theme.load(name)
+    @loadedThemes.push Theme.load(name)
+
+  getAtomThemeStylesheets: ->
+    themeNames = config.get("core.themes") ? ['Atom - Dark', 'IR_Black']
+    themeNames = [themeNames] unless _.isArray(themeNames)
 
   open: (args...) ->
     @sendMessageToBrowserProcess('open', args)

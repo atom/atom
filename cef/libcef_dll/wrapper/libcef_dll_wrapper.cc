@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -51,6 +51,7 @@
 #include "libcef_dll/cpptoc/load_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/proxy_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/read_handler_cpptoc.h"
+#include "libcef_dll/cpptoc/render_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/render_process_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/request_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/resource_bundle_handler_cpptoc.h"
@@ -92,6 +93,7 @@
 #include "libcef_dll/ctocpp/scheme_registrar_ctocpp.h"
 #include "libcef_dll/ctocpp/stream_reader_ctocpp.h"
 #include "libcef_dll/ctocpp/stream_writer_ctocpp.h"
+#include "libcef_dll/ctocpp/task_runner_ctocpp.h"
 #include "libcef_dll/ctocpp/urlrequest_ctocpp.h"
 #include "libcef_dll/ctocpp/v8context_ctocpp.h"
 #include "libcef_dll/ctocpp/v8exception_ctocpp.h"
@@ -200,6 +202,7 @@ CEF_GLOBAL void CefShutdown() {
   DCHECK_EQ(CefProxyHandlerCppToC::DebugObjCt, 0);
   DCHECK_EQ(CefQuotaCallbackCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefReadHandlerCppToC::DebugObjCt, 0);
+  DCHECK_EQ(CefRenderHandlerCppToC::DebugObjCt, 0);
   DCHECK_EQ(CefRenderProcessHandlerCppToC::DebugObjCt, 0);
   DCHECK_EQ(CefRequestHandlerCppToC::DebugObjCt, 0);
   DCHECK_EQ(CefResourceBundleHandlerCppToC::DebugObjCt, 0);
@@ -211,6 +214,7 @@ CEF_GLOBAL void CefShutdown() {
   DCHECK_EQ(CefStreamWriterCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefStringVisitorCppToC::DebugObjCt, 0);
   DCHECK_EQ(CefTaskCppToC::DebugObjCt, 0);
+  DCHECK_EQ(CefTaskRunnerCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefTraceClientCppToC::DebugObjCt, 0);
   DCHECK_EQ(CefURLRequestCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefURLRequestClientCppToC::DebugObjCt, 0);

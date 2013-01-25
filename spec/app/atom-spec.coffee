@@ -16,7 +16,7 @@ describe "the `atom` global", ->
     it "requires and activates the package's main module if it exists", ->
       spyOn(rootView, 'activatePackage').andCallThrough()
       atom.loadPackage("package-with-module")
-      expect(rootView.activatePackage).toHaveBeenCalledWith('package-with-module', extension)
+      expect(rootView.activatePackage).toHaveBeenCalled()
 
     it "logs warning instead of throwing an exception if a package fails to load", ->
       spyOn(console, "warn")

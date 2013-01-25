@@ -34,7 +34,9 @@ class PreviewList extends ScrollView
       operation.index = index for operation, index in operations
       operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
       for path, ops of operationsByPath
-        @li path, class: 'path'
+        @li class: 'path', =>
+          @span path
+          @span "(#{ops.length})", class: 'path-match-number'
         for operation in ops
           {prefix, suffix, match, range} = operation.preview()
           @li 'data-index': operation.index, class: 'operation', =>
@@ -56,16 +58,10 @@ class PreviewList extends ScrollView
     lineNumbers.width(maxWidth)
 
   selectNextOperation: ->
-    if @selectedOperationIndex is @operations.length - 1
-      @setSelectedOperationIndex(0)
-    else
-      @setSelectedOperationIndex(@selectedOperationIndex + 1)
+    @setSelectedOperationIndex(@selectedOperationIndex + 1)
 
   selectPreviousOperation: ->
-    if @selectedOperationIndex is 0
-      @setSelectedOperationIndex(@operations.length - 1)
-    else
-      @setSelectedOperationIndex(@selectedOperationIndex - 1)
+    @setSelectedOperationIndex(@selectedOperationIndex - 1)
 
   setSelectedOperationIndex: (index, scrollToOperation=true) ->
     index = Math.max(0, index)
@@ -89,6 +85,9 @@ class PreviewList extends ScrollView
     editSession.setSelectedBufferRange(bufferRange, autoscroll: true) if bufferRange
     @rootView.focus()
     false
+
+  getPathCount: ->
+    _.keys(_.groupBy(@operations, (operation) -> operation.getPath())).length
 
   getOperations: ->
     new Array(@operations...)

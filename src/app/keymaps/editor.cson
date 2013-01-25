@@ -36,4 +36,4 @@
   'meta-U': 'editor:lower-case'
   'alt-meta-w': 'editor:close-other-edit-sessions'
   'meta-P': 'editor:close-all-edit-sessions'
-  'meta-l': 'editor:select-grammar'
+  'meta-L': 'editor:select-grammar'

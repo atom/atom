@@ -4,6 +4,7 @@
 #import "native/atom_window_controller.h"
 #import "native/atom_cef_app.h"
 #import <getopt.h>
+#import <Sparkle/Sparkle.h>
 
 @implementation AtomApplication
 
@@ -87,8 +88,12 @@
     NSString *path = [NSString stringWithUTF8String:cleanArgv[0]];
     path = [self standardizePathToOpen:path withArguments:arguments];
     [arguments setObject:path forKey:@"path"];
+  } else {
+    NSString *executedFromPath = [arguments objectForKey:@"executed-from"];
+    if (executedFromPath) {
+      [arguments setObject:executedFromPath forKey:@"path"];
+    }
   }
-
 
   return arguments;
 }
@@ -217,6 +222,11 @@
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
+  SUUpdater.sharedUpdater.delegate = self;
+  SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
+  SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
+  [SUUpdater.sharedUpdater checkForUpdatesInBackground];
+
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
   if ([self.arguments objectForKey:@"benchmark"]) {
     [self runBenchmarksThenExit:true];
@@ -254,6 +264,28 @@
   else {
     [super sendEvent:event];
   }
+}
+
+#pragma mark SUUpdaterDelegate
+
+- (void)updaterDidNotFindUpdate:(SUUpdater *)update {
+  NSLog(@"No update found");
+}
+
+- (void)updater:(SUUpdater *)updater didFindValidUpdate:(SUAppcastItem *)update {
+  NSLog(@"Found Update");
+}
+
+- (void)updater:(SUUpdater *)updater willExtractUpdate:(SUAppcastItem *)update {
+  NSLog(@"Extract update");
+}
+
+- (void)updater:(SUUpdater *)updater willInstallUpdateOnQuit:(SUAppcastItem *)update immediateInstallationInvocation:(NSInvocation *)invocation {
+  NSLog(@"Install Update");
+}
+
+- (void)updater:(SUUpdater *)updater didCancelInstallUpdateOnQuit:(SUAppcastItem *)update {
+  NSLog(@"Cancel Update Install");
 }
 
 @end

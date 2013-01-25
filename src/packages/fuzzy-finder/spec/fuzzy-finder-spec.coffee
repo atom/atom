@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-FuzzyFinder = require 'fuzzy-finder'
+FuzzyFinder = require 'fuzzy-finder/src/fuzzy-finder-view'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
@@ -10,7 +10,7 @@ describe 'FuzzyFinder', ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    atom.loadPackage("fuzzy-finder")
+    atom.loadPackage("fuzzy-finder").getInstance()
     finder = FuzzyFinder.instance
 
   afterEach ->
@@ -187,21 +187,38 @@ describe 'FuzzyFinder', ->
 
   describe "common behavior between file and buffer finder", ->
     describe "when the fuzzy finder is cancelled", ->
-      it "detaches the finder and focuses the previously focused element", ->
-        rootView.attachToDom()
-        activeEditor = rootView.getActiveEditor()
-        activeEditor.focus()
+      describe "when an editor is open", ->
+        it "detaches the finder and focuses the previously focused element", ->
+          rootView.attachToDom()
+          activeEditor = rootView.getActiveEditor()
+          activeEditor.focus()
 
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
-        expect(finder.hasParent()).toBeTruthy()
-        expect(activeEditor.isFocused).toBeFalsy()
-        expect(finder.miniEditor.isFocused).toBeTruthy()
+          rootView.trigger 'fuzzy-finder:toggle-file-finder'
+          expect(finder.hasParent()).toBeTruthy()
+          expect(activeEditor.isFocused).toBeFalsy()
+          expect(finder.miniEditor.isFocused).toBeTruthy()
 
-        finder.cancel()
+          finder.cancel()
 
-        expect(finder.hasParent()).toBeFalsy()
-        expect(activeEditor.isFocused).toBeTruthy()
-        expect(finder.miniEditor.isFocused).toBeFalsy()
+          expect(finder.hasParent()).toBeFalsy()
+          expect(activeEditor.isFocused).toBeTruthy()
+          expect(finder.miniEditor.isFocused).toBeFalsy()
+
+      describe "when no editors are open", ->
+        it "detaches the finder and focuses the previously focused element", ->
+          rootView.attachToDom()
+          rootView.getActiveEditor().destroyActiveEditSession()
+
+          rootView.trigger 'fuzzy-finder:toggle-file-finder'
+          expect(finder.hasParent()).toBeTruthy()
+          expect(rootView.isFocused).toBeFalsy()
+          expect(finder.miniEditor.isFocused).toBeTruthy()
+
+          finder.cancel()
+
+          expect(finder.hasParent()).toBeFalsy()
+          expect($(document.activeElement).view()).toBe rootView
+          expect(finder.miniEditor.isFocused).toBeFalsy()
 
   describe "cached file paths", ->
     it "caches file paths after first time", ->
@@ -269,6 +286,65 @@ describe 'FuzzyFinder', ->
 
       runs ->
         expect(finder.list.find("li:contains(tree-view.js)")).not.toExist()
+
+  describe "fuzzy find by content under cursor", ->
+    editor = null
+
+    beforeEach ->
+      editor = rootView.getActiveEditor()
+      rootView.attachToDom()
+      spyOn(rootView.project, "getFilePaths").andCallThrough()
+
+    it "opens the fuzzy finder window when there are multiple matches", ->
+      editor.setText("sample")
+      rootView.trigger 'fuzzy-finder:find-under-cursor'
+
+      waitsFor ->
+        finder.list.children('li').length > 0
+
+      runs ->
+        expect(finder).toBeVisible()
+        expect(rootView.find('.fuzzy-finder input:focus')).toExist()
+
+    it "opens a file directly when there is a single match", ->
+      editor.setText("sample.txt")
+      rootView.trigger 'fuzzy-finder:find-under-cursor'
+
+      openedPath = null
+      spyOn(rootView, "open").andCallFake (path) ->
+        openedPath = path
+
+      waitsFor ->
+        openedPath != null
+
+      runs ->
+        expect(finder).not.toBeVisible()
+        expect(openedPath).toBe "sample.txt"
+
+    it "displays error when the word under the cursor doesn't match any files", ->
+      editor.setText("moogoogaipan")
+      editor.setCursorBufferPosition([0,5])
+
+      rootView.trigger 'fuzzy-finder:find-under-cursor'
+
+      waitsFor ->
+        finder.is(':visible')
+
+      runs ->
+        expect(finder.find('.error').text().length).toBeGreaterThan 0
+
+    it "displays error when there is no word under the cursor", ->
+      editor.setText("&&&&&&&&&&&&&&& sample")
+      editor.setCursorBufferPosition([0,5])
+
+      rootView.trigger 'fuzzy-finder:find-under-cursor'
+
+      waitsFor ->
+        finder.is(':visible')
+
+      runs ->
+        expect(finder.find('.error').text().length).toBeGreaterThan 0
+
 
   describe "opening a path into a split", ->
     beforeEach ->

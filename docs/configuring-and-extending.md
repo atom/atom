@@ -79,16 +79,30 @@ ConfigObserver = require 'config-observer'
 _.extend MyClass.prototype, ConfigObserver
 ```
 
-# Themes (Not Yet Implemented)
+# Themes
 
 ## Selecting A Theme
+
+Atom comes bundles with two themes "Atom - Dark" and "Atom - Light". You can
+select a theme in your core preferences pane.
 
 Because Atom themes are based on CSS, it's possible to have multiple themes
 active at the same time. For example, you might select a theme for the UI, and
 another theme for syntax highlighting. You select your theme(s) in the core
 preferences pane, by selecting themes from the available list and dragging them
 in your preferred order. You can also edit the selected themes manually with the
-`config.core.themes` array.
+`config.core.themes` array. For example.
+
+```js
+{
+  "core": {
+    "themes": ["Atom - Light", "Mac Classic"]
+  },
+  "editor": {
+    "fontSize": 15
+  }
+}
+```
 
 ## Installing A Theme
 
@@ -140,15 +154,16 @@ matches the name of the original with an additional filename extension:
 
 ```text
 ~/.atom/themes/
-  midnight.less
-  midnight.terminal.less
-  midnight.tree-view.less
+  midnight/midnight.less
+  midnight/packages/terminal.less
+  midnight/packages/tree-view.less
 ```
 
 In the example above, when the `midnight` theme is loaded, its `terminal` and
 `tree-view` extensions will be loaded with it. If you author a theme extension,
 consider sending its author a pull request to have it included in the theme's
-core.
+core. Package theme extensions, do not need to be in `package.json` because they
+will be loaded when needed by the package.
 
 ## TextMate Compatibility
 

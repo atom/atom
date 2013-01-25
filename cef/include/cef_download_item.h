@@ -143,12 +143,6 @@ class CefDownloadItem : public virtual CefBase {
   ///
   /*--cef()--*/
   virtual CefString GetMimeType() =0;
-
-  ///
-  // Returns the referrer character set.
-  ///
-  /*--cef()--*/
-  virtual CefString GetReferrerCharset() =0;
 };
 
 #endif  // CEF_INCLUDE_CEF_DOWNLOAD_ITEM_H_

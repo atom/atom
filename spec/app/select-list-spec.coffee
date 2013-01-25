@@ -59,6 +59,17 @@ describe "SelectList", ->
       expect(selectList.error).not.toBeVisible()
       expect(selectList).not.toHaveClass("error")
 
+    it "displays no elements until the array has been set on the list", ->
+      selectList.array = null
+      selectList.list.empty()
+      miniEditor.insertText('la')
+      window.advanceClock(selectList.inputThrottle)
+
+      expect(list.find('li').length).toBe 0
+      expect(selectList).not.toHaveClass("error")
+      selectList.setArray(array)
+      expect(list.find('li').length).toBe 2
+
   describe "when core:move-up / core:move-down are triggered on the miniEditor", ->
     it "selects the previous / next item in the list, or wraps around to the other side", ->
       expect(list.find('li:first')).toHaveClass 'selected'
