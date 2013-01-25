@@ -15,6 +15,7 @@
     "command-palette.css",
     "command-logger.css",
     "autocomplete.css",
-    "gists.css"
+    "gists.css",
+    "jump-to-line.css"
   ]
 }
