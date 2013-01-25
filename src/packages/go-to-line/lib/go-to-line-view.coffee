@@ -4,12 +4,12 @@ $ = require 'jquery'
 Point = require 'point'
 
 module.exports =
-class JumpToLineView extends View
+class GoToLineView extends View
 
-  @activate: (rootView) -> new JumpToLineView(rootView)
+  @activate: (rootView) -> new GoToLineView(rootView)
 
   @content: ->
-    @div class: 'jump-to-line', =>
+    @div class: 'go-to-line', =>
       @subview 'miniEditor', new Editor(mini: true)
       @div class: 'message', outlet: 'message'
 
