@@ -4,7 +4,7 @@ PEG = require 'pegjs'
 _ = require 'underscore'
 SnippetExpansion = require './src/snippet-expansion'
 Snippet = require './src/snippet'
-SnippetsTask = require './src/snippets-task'
+SnippetsTask = require './src/load-snippets-task'
 
 module.exports =
 class Snippets extends AtomPackage
