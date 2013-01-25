@@ -48,5 +48,5 @@ class JumpToLineView extends View
   attach: ->
     @previouslyFocusedElement = $(':focus')
     @rootView.append(this)
-    @message.text("Enter a line number 1-#{@editor.getLineCount()}")
+    @message.text("Enter a line number 1-#{@rootView.getActiveEditor().getLineCount()}")
     @miniEditor.focus()
