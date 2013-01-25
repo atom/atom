@@ -14,9 +14,9 @@ class JumpToLineView extends View
       @div class: 'message', outlet: 'message'
 
   initialize: (@rootView) ->
-    @miniEditor.on 'focusout', => @detach() if @hasParent()
+    @miniEditor.on 'focusout', => @detach()
     @on 'core:confirm', => @confirm()
-    @on 'core:cancel', => @detach() if @hasParent()
+    @on 'core:cancel', => @detach()
 
     @miniEditor.preempt 'textInput', (e) =>
       false unless e.originalEvent.data.match(/[0-9]/)
@@ -28,6 +28,8 @@ class JumpToLineView extends View
       @attach()
 
   detach: ->
+    return unless @hasParent()
+
     @miniEditor.setText('')
     @previouslyFocusedElement?.focus()
 
