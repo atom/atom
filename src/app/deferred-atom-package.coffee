@@ -1,4 +1,5 @@
 AtomPackage = require 'atom-package'
+_ = require 'underscore'
 
 module.exports =
 class DeferredAtomPackage extends AtomPackage
@@ -10,8 +11,13 @@ class DeferredAtomPackage extends AtomPackage
 
   activate: (@rootView, @state) ->
     @instance = null
-    for event in @loadEvents
-      @rootView.command event, (e) => @onLoadEvent(e, @getInstance())
+    onLoadEvent = (e) => @onLoadEvent(e, @getInstance())
+    if _.isArray(@loadEvents)
+      for event in @loadEvents
+        @rootView.command(event, onLoadEvent)
+    else
+      for event, selector of @loadEvents
+        @rootView.command(event, selector, onLoadEvent)
     this
 
   deactivate: -> @instance?.deactivate?()

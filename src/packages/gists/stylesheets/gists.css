@@ -7,13 +7,21 @@
   padding-left: 5px;
   padding-right: 10px;
   -webkit-box-shadow: 0px 0px 5px 5px #222;
-  color: #FFF;
+  color: #BBB;
   background-color: #444;
 }
 
-.gist-notification span {
-  position: relative;
-  top: -8px;
+.gist-notification .message-area {
+  float: right;
+  padding-top: 11px;
+}
+
+.gist-notification .message {
+  font-size: 13px;
+}
+
+.gist-notification .clipboard {
+  font-size: 11px;
 }
 
 .gist-notification:before {

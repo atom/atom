@@ -2,9 +2,11 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 
 module.exports =
-  activate: (rootView) ->
-    rootView.command 'gist:create', '.editor', (e) =>
-      @createGist(e.currentTargetView())
+class Gists
+
+  @activate: (rootView) -> new Gists(rootView)
+
+  constructor: (@rootView) ->
 
   createGist: (editor) ->
     gist = { public: false, files: {} }
@@ -17,10 +19,13 @@ module.exports =
       dataType: 'json'
       contentType: 'application/json; charset=UTF-8'
       data: JSON.stringify(gist)
-      success: (response) ->
+      success: (response) =>
         pasteboard.write(response.html_url)
         notification = $$ ->
           @div class: 'gist-notification', =>
-            @span "Gist #{response.id} created"
-        rootView.append(notification.hide())
-        notification.fadeIn().delay(1800).fadeOut(complete: -> $(this).remove())
+            @div class: 'message-area', =>
+              @span "Gist #{response.id} created", class: 'message'
+              @br()
+              @span "The url is on your clipboard", class: 'clipboard'
+        @rootView.append(notification.hide())
+        notification.fadeIn().delay(2000).fadeOut(complete: -> $(this).remove())

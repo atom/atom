@@ -7,7 +7,7 @@ describe "Gists package", ->
 
   beforeEach ->
     rootView = new RootView(fixturesProject.resolve('sample.js'))
-    atom.loadPackage('gists')
+    atom.loadPackage('gists').getInstance()
     editor = rootView.getActiveEditor()
     spyOn($, 'ajax')
 
@@ -45,7 +45,7 @@ describe "Gists package", ->
 
         it "flashes that the Gist was created", ->
           expect(rootView.find('.gist-notification')).toExist()
-          expect(rootView.find('.gist-notification').text()).toBe 'Gist 1 created'
+          expect(rootView.find('.gist-notification .message').text()).toBe 'Gist 1 created'
           advanceClock(2000)
           expect(rootView.find('.gist-notification')).not.toExist()
 
