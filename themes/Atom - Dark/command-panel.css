@@ -15,6 +15,13 @@
   cursor: default;
 }
 
+.command-panel .preview-count {
+  font-size: 11px;
+  color: #969696;
+  text-align: right;
+  padding-bottom: 1px;
+}
+
 .command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
   background-color: rgba(255, 255, 255, .13);
 }

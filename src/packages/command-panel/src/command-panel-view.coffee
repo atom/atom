@@ -24,6 +24,7 @@ class CommandPanelView extends View
 
   @content: (rootView) ->
     @div class: 'command-panel tool-panel', =>
+      @div outlet: 'previewCount', class: 'preview-count'
       @subview 'previewList', new PreviewList(rootView)
       @ul class: 'error-messages', outlet: 'errorMessages'
       @div class: 'prompt-and-editor', =>
@@ -48,6 +49,7 @@ class CommandPanelView extends View
     @command 'core:move-down', => @navigateForwardInHistory()
 
     @previewList.hide()
+    @previewCount.hide()
     @errorMessages.hide()
     @prompt.iconSize(@miniEditor.fontSize)
 
@@ -73,12 +75,14 @@ class CommandPanelView extends View
   togglePreview: ->
     if @previewList.is(':focus')
       @previewList.hide()
+      @previewCount.hide()
       @detach()
       @rootView.focus()
     else
       @attach() unless @hasParent()
       if @previewList.hasOperations()
         @previewList.show().focus()
+        @previewCount.show()
       else
         @miniEditor.focus()
 
@@ -94,6 +98,7 @@ class CommandPanelView extends View
   detach: ->
     @rootView.focus()
     @previewList.hide()
+    @previewCount.hide()
     super
 
   escapedCommand: ->
@@ -115,6 +120,7 @@ class CommandPanelView extends View
         else if operationsToPreview?.length
           @previewList.populate(operationsToPreview)
           @previewList.focus()
+          @previewCount.text("#{_.pluralize(operationsToPreview.length, 'match', 'matches')} in #{_.pluralize(@previewList.getPathCount(), 'file')}").show()
         else
           @detach()
     catch error

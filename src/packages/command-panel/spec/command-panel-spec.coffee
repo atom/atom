@@ -180,17 +180,19 @@ describe "CommandPanel", ->
           expect(commandPanel.hasParent()).toBeTruthy()
 
         describe "when the mini editor is focused", ->
-          it "retains focus on the mini editor and does not show the preview list", ->
+          it "retains focus on the mini editor and does not show the preview list or preview count", ->
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
             rootView.trigger 'command-panel:toggle-preview'
             expect(commandPanel.previewList).toBeHidden()
+            expect(commandPanel.previewCount).toBeHidden()
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
         describe "when the mini editor is not focused", ->
-          it "focuses the mini editor and does not show the preview list", ->
+          it "focuses the mini editor and does not show the preview list or preview count", ->
             rootView.focus()
             rootView.trigger 'command-panel:toggle-preview'
             expect(commandPanel.previewList).toBeHidden()
+            expect(commandPanel.previewCount).toBeHidden()
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
       describe "when the command panel is not visible", ->
@@ -376,6 +378,10 @@ describe "CommandPanel", ->
       previewList = commandPanel.previewList
       rootView.trigger 'command-panel:toggle'
       waitsForPromise -> commandPanel.execute('X x/sort/')
+
+    it "displays the number of files and operations", ->
+      rootView.attachToDom()
+      expect(commandPanel.previewCount.text()).toBe '17 matches in 4 files'
 
     describe "when move-down and move-up are triggered on the preview list", ->
       it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->

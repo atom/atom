@@ -84,6 +84,9 @@ class PreviewList extends ScrollView
     @rootView.focus()
     false
 
+  getPathCount: ->
+    _.keys(_.groupBy(@operations, (operation) -> operation.getPath())).length
+
   getOperations: ->
     new Array(@operations...)
 
