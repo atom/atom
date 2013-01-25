@@ -13,6 +13,12 @@ describe 'JumpToLine', ->
   afterEach ->
     rootView.remove()
 
+  describe "when editor:jump-to-line is triggered", ->
+    it "attaches to the root view", ->
+      expect(jumpToLine.hasParent()).toBeFalsy()
+      editor.trigger 'editor:jump-to-line'
+      expect(jumpToLine.hasParent()).toBeTruthy()
+
   describe "when entering a line number", ->
     it "only allows 0-9 to be entered in the mini editor", ->
       expect(jumpToLine.miniEditor.getText()).toBe ''
