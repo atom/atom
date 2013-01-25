@@ -7,13 +7,13 @@ OnigScanner = require 'onig-scanner'
 
 module.exports =
 class TextMateGrammar
-  @loadFromPath: (path) ->
-    grammar = null
+  @readFromPath: (path) ->
+    grammarContent = null
     plist.parseString fs.read(path), (e, data) ->
       throw new Error(e) if e
-      grammar = new TextMateGrammar(data[0])
-    throw new Error("Failed to load grammar at path `#{path}`") unless grammar
-    grammar
+      grammarContent = data[0]
+    throw new Error("Failed to load grammar at path `#{path}`") unless grammarContent
+    grammarContent
 
   name: null
   fileTypes: null
