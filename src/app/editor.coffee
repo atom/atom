@@ -182,6 +182,7 @@ class Editor extends View
         'editor:close-other-edit-sessions': @destroyInactiveEditSessions
         'editor:close-all-edit-sessions': @destroyAllEditSessions
         'editor:select-grammar': @selectGrammar
+        'editor:copy-path': @copyPathToPasteboard
 
     documentation = {}
     for name, method of editorBindings
@@ -1154,3 +1155,7 @@ class Editor extends View
 
     @insertText(text, select: true)
     true
+
+  copyPathToPasteboard: ->
+    path = @getPath()
+    pasteboard.write(path) if path?

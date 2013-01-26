@@ -2212,3 +2212,8 @@ describe "Editor", ->
       edited = editor.replaceSelectedText(replacer)
       expect(replaced).toBe true
       expect(edited).toBe false
+
+  describe "when editor:copy-path is triggered", ->
+    it "copies the absolute path to the editor's file to the pasteboard", ->
+      editor.trigger 'editor:copy-path'
+      expect(pasteboard.read()[0]).toBe editor.getPath()

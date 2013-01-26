@@ -37,3 +37,4 @@
   'alt-meta-w': 'editor:close-other-edit-sessions'
   'meta-P': 'editor:close-all-edit-sessions'
   'meta-L': 'editor:select-grammar'
+  'ctrl-C': 'editor:copy-path'
