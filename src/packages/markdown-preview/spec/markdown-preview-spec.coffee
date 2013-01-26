@@ -1,13 +1,13 @@
 $ = require 'jquery'
 RootView = require 'root-view'
-MarkdownPreview = require 'markdown-preview'
+MarkdownPreview = require 'markdown-preview/src/markdown-preview-view'
 
 describe "MarkdownPreview", ->
   [rootView, markdownPreview] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/markdown'))
-    atom.loadPackage("markdown-preview")
+    atom.loadPackage("markdown-preview").getInstance()
     markdownPreview = MarkdownPreview.instance
 
   afterEach ->

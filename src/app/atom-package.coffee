@@ -5,6 +5,7 @@ module.exports =
 class AtomPackage extends Package
   metadata: null
   keymapsDirPath: null
+  autoloadStylesheets: true
 
   constructor: (@name) ->
     super
@@ -12,15 +13,13 @@ class AtomPackage extends Package
 
   load: ->
     try
-      if @requireModule
-        @module = require(@path)
-        @module.name = @name
       @loadMetadata()
       @loadKeymaps()
-      @loadStylesheets()
-      rootView.activatePackage(@name, @module) if @module
+      @loadStylesheets() if @autoloadStylesheets
+      rootView.activatePackage(@name, this) unless @isDirectory
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack
+    this
 
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, "package"), ['cson', 'json'])

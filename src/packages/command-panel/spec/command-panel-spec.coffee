@@ -1,9 +1,9 @@
 RootView = require 'root-view'
-CommandPanel = require 'command-panel'
+CommandPanelView = require 'command-panel/src/command-panel-view'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [rootView, editor, buffer, commandPanel, project] = []
+  [rootView, editor, buffer, commandPanel, project, CommandPanel] = []
 
   beforeEach ->
     rootView = new RootView
@@ -12,8 +12,8 @@ describe "CommandPanel", ->
     project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
-    atom.loadPackage('command-panel')
-    commandPanel = CommandPanel.instance
+    CommandPanel = atom.loadPackage('command-panel')
+    commandPanel = CommandPanel.getInstance()
     commandPanel.history = []
     commandPanel.historyIndex = 0
 
@@ -36,7 +36,7 @@ describe "CommandPanel", ->
       rootView.deactivate()
       rootView2.attachToDom()
 
-      commandPanel = rootView2.activatePackage('command-panel', CommandPanel)
+      commandPanel = rootView2.activatePackage('command-panel', CommandPanel).getInstance()
       expect(rootView2.find('.command-panel')).toExist()
       expect(commandPanel.miniEditor.getText()).toBe 'abc'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
@@ -49,7 +49,7 @@ describe "CommandPanel", ->
       rootView3 = RootView.deserialize(rootView2.serialize())
       rootView2.deactivate()
       rootView3.attachToDom()
-      commandPanel = rootView3.activatePackage('command-panel', CommandPanel)
+      commandPanel = rootView3.activatePackage('command-panel', CommandPanel).getInstance()
 
       expect(commandPanel.miniEditor.isFocused).toBeFalsy()
       rootView3.deactivate()
@@ -71,7 +71,7 @@ describe "CommandPanel", ->
       rootView.deactivate()
       rootView2.attachToDom()
 
-      commandPanel = rootView2.activatePackage('command-panel', CommandPanel)
+      commandPanel = rootView2.activatePackage('command-panel', CommandPanel).getInstance()
       expect(commandPanel.history.length).toBe(2)
       expect(commandPanel.history[0]).toBe('/test2')
       expect(commandPanel.history[1]).toBe('/test3')
@@ -180,17 +180,19 @@ describe "CommandPanel", ->
           expect(commandPanel.hasParent()).toBeTruthy()
 
         describe "when the mini editor is focused", ->
-          it "retains focus on the mini editor and does not show the preview list", ->
+          it "retains focus on the mini editor and does not show the preview list or preview count", ->
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
             rootView.trigger 'command-panel:toggle-preview'
             expect(commandPanel.previewList).toBeHidden()
+            expect(commandPanel.previewCount).toBeHidden()
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
         describe "when the mini editor is not focused", ->
-          it "focuses the mini editor and does not show the preview list", ->
+          it "focuses the mini editor and does not show the preview list or preview count", ->
             rootView.focus()
             rootView.trigger 'command-panel:toggle-preview'
             expect(commandPanel.previewList).toBeHidden()
+            expect(commandPanel.previewCount).toBeHidden()
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
       describe "when the command panel is not visible", ->
@@ -297,7 +299,7 @@ describe "CommandPanel", ->
         expect(commandPanel.previewList).toBeVisible()
         expect(commandPanel.previewList).toMatchSelector ':focus'
         previewItem = commandPanel.previewList.find("li:contains(sample.js):first")
-        expect(previewItem.text()).toBe "sample.js"
+        expect(previewItem.text()).toBe "sample.js(1)"
         expect(previewItem.next().find('.preview').text()).toBe "var quicksort = function () {"
         expect(previewItem.next().find('.preview > .match').text()).toBe "quicksort"
 
@@ -341,7 +343,7 @@ describe "CommandPanel", ->
         expect(commandPanel.errorMessages).not.toBeVisible()
 
 
-    describe "when the command contains an escaped charachter", ->
+    describe "when the command contains an escaped character", ->
       it "executes the command with the escaped character (instead of as a backslash followed by the character)", ->
         rootView.trigger 'command-panel:toggle'
 
@@ -377,6 +379,10 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:toggle'
       waitsForPromise -> commandPanel.execute('X x/sort/')
 
+    it "displays the number of files and operations", ->
+      rootView.attachToDom()
+      expect(commandPanel.previewCount.text()).toBe '17 matches in 4 files'
+
     describe "when move-down and move-up are triggered on the preview list", ->
       it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->
         rootView.attachToDom()
@@ -405,28 +411,15 @@ describe "CommandPanel", ->
         previewList.trigger 'core:move-down'
         expect(previewList.scrollTop()).toBe 0
 
-      it "wraps around when the list is at the beginning or end", ->
-        rootView.attachToDom()
-        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
-        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
-
-        previewList.trigger 'core:move-up'
-        expect(previewList.find('li.operation:last')).toHaveClass 'selected'
-        expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
-
-        previewList.trigger 'core:move-down'
-        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
-        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
-
       it "doesn't bubble up the event and the command panel text doesn't change", ->
         rootView.attachToDom()
         commandPanel.miniEditor.setText "command"
         previewList.focus()
         previewList.trigger 'core:move-up'
-        expect(previewList.find('li.operation:last')).toHaveClass 'selected'
+        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
         expect(commandPanel.miniEditor.getText()).toBe 'command'
         previewList.trigger 'core:move-down'
-        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
+        expect(previewList.find('li.operation:eq(1)')).toHaveClass 'selected'
         expect(commandPanel.miniEditor.getText()).toBe 'command'
 
     describe "when move-to-top and move-to-bottom are triggered on the preview list", ->

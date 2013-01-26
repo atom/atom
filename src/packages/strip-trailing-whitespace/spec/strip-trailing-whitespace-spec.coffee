@@ -1,4 +1,3 @@
-StripTrailingWhitespace = require 'strip-trailing-whitespace'
 RootView = require 'root-view'
 fs = require 'fs'
 
@@ -10,7 +9,7 @@ describe "StripTrailingWhitespace", ->
     fs.write(path, "")
     rootView = new RootView(path)
 
-    StripTrailingWhitespace.activate(rootView)
+    atom.loadPackage('strip-trailing-whitespace')
     rootView.focus()
     editor = rootView.getActiveEditor()
 

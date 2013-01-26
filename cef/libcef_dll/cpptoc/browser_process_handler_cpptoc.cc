@@ -1,4 +1,4 @@
-// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -13,6 +13,7 @@
 #include "libcef_dll/cpptoc/browser_process_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/proxy_handler_cpptoc.h"
 #include "libcef_dll/ctocpp/command_line_ctocpp.h"
+#include "libcef_dll/ctocpp/list_value_ctocpp.h"
 
 
 // MEMBER FUNCTIONS - Body may be edited by hand.
@@ -63,6 +64,24 @@ void CEF_CALLBACK browser_process_handler_on_before_child_process_launch(
       CefCommandLineCToCpp::Wrap(command_line));
 }
 
+void CEF_CALLBACK browser_process_handler_on_render_process_thread_created(
+    struct _cef_browser_process_handler_t* self,
+    struct _cef_list_value_t* extra_info) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return;
+  // Verify param: extra_info; type: refptr_diff
+  DCHECK(extra_info);
+  if (!extra_info)
+    return;
+
+  // Execute
+  CefBrowserProcessHandlerCppToC::Get(self)->OnRenderProcessThreadCreated(
+      CefListValueCToCpp::Wrap(extra_info));
+}
+
 
 // CONSTRUCTOR - Do not edit by hand.
 
@@ -75,6 +94,8 @@ CefBrowserProcessHandlerCppToC::CefBrowserProcessHandlerCppToC(
       browser_process_handler_on_context_initialized;
   struct_.struct_.on_before_child_process_launch =
       browser_process_handler_on_before_child_process_launch;
+  struct_.struct_.on_render_process_thread_created =
+      browser_process_handler_on_render_process_thread_created;
 }
 
 #ifndef NDEBUG

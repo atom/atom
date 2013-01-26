@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2013 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -105,8 +105,11 @@ CEF_EXPORT int cef_register_extension(const cef_string_t* extension_name,
     const cef_string_t* javascript_code, struct _cef_v8handler_t* handler);
 
 ///
-// Structure that encapsulates a V8 context handle. The functions of this
-// structure may only be called on the render process main thread.
+// Structure representing a V8 context handle. V8 handles can only be accessed
+// from the thread on which they are created. Valid threads for creating a V8
+// handle include the render process main thread (TID_RENDERER) and WebWorker
+// threads. A task runner for posting tasks on the associated thread can be
+// retrieved via the cef_v8context_t::get_task_runner() function.
 ///
 typedef struct _cef_v8context_t {
   ///
@@ -115,13 +118,30 @@ typedef struct _cef_v8context_t {
   cef_base_t base;
 
   ///
-  // Returns the browser for this context.
+  // Returns the task runner associated with this context. V8 handles can only
+  // be accessed from the thread on which they are created. This function can be
+  // called on any render process thread.
+  ///
+  struct _cef_task_runner_t* (CEF_CALLBACK *get_task_runner)(
+      struct _cef_v8context_t* self);
+
+  ///
+  // Returns true (1) if the underlying handle is valid and it can be accessed
+  // on the current thread. Do not call any other functions if this function
+  // returns false (0).
+  ///
+  int (CEF_CALLBACK *is_valid)(struct _cef_v8context_t* self);
+
+  ///
+  // Returns the browser for this context. This function will return an NULL
+  // reference for WebWorker contexts.
   ///
   struct _cef_browser_t* (CEF_CALLBACK *get_browser)(
       struct _cef_v8context_t* self);
 
   ///
-  // Returns the frame for this context.
+  // Returns the frame for this context. This function will return an NULL
+  // reference for WebWorker contexts.
   ///
   struct _cef_frame_t* (CEF_CALLBACK *get_frame)(struct _cef_v8context_t* self);
 
@@ -184,8 +204,8 @@ CEF_EXPORT int cef_v8context_in_context();
 
 ///
 // Structure that should be implemented to handle V8 function calls. The
-// functions of this structure will always be called on the render process main
-// thread.
+// functions of this structure will be called on the thread associated with the
+// V8 function.
 ///
 typedef struct _cef_v8handler_t {
   ///
@@ -210,8 +230,8 @@ typedef struct _cef_v8handler_t {
 ///
 // Structure that should be implemented to handle V8 accessor calls. Accessor
 // identifiers are registered by calling cef_v8value_t::set_value_byaccessor().
-// The functions of this structure will always be called on the render process
-// main thread.
+// The functions of this structure will be called on the thread associated with
+// the V8 accessor.
 ///
 typedef struct _cef_v8accessor_t {
   ///
@@ -244,7 +264,8 @@ typedef struct _cef_v8accessor_t {
 
 
 ///
-// Structure representing a V8 exception.
+// Structure representing a V8 exception. The functions of this structure may be
+// called on any render process thread.
 ///
 typedef struct _cef_v8exception_t {
   ///
@@ -307,14 +328,24 @@ typedef struct _cef_v8exception_t {
 
 
 ///
-// Structure representing a V8 value. The functions of this structure may only
-// be called on the render process main thread.
+// Structure representing a V8 value handle. V8 handles can only be accessed
+// from the thread on which they are created. Valid threads for creating a V8
+// handle include the render process main thread (TID_RENDERER) and WebWorker
+// threads. A task runner for posting tasks on the associated thread can be
+// retrieved via the cef_v8context_t::get_task_runner() function.
 ///
 typedef struct _cef_v8value_t {
   ///
   // Base structure.
   ///
   cef_base_t base;
+
+  ///
+  // Returns true (1) if the underlying handle is valid and it can be accessed
+  // on the current thread. Do not call any other functions if this function
+  // returns false (0).
+  ///
+  int (CEF_CALLBACK *is_valid)(struct _cef_v8value_t* self);
 
   ///
   // True if the value type is undefined.
@@ -701,14 +732,24 @@ CEF_EXPORT cef_v8value_t* cef_v8value_create_function(const cef_string_t* name,
 
 
 ///
-// Structure representing a V8 stack trace. The functions of this structure may
-// only be called on the render process main thread.
+// Structure representing a V8 stack trace handle. V8 handles can only be
+// accessed from the thread on which they are created. Valid threads for
+// creating a V8 handle include the render process main thread (TID_RENDERER)
+// and WebWorker threads. A task runner for posting tasks on the associated
+// thread can be retrieved via the cef_v8context_t::get_task_runner() function.
 ///
 typedef struct _cef_v8stack_trace_t {
   ///
   // Base structure.
   ///
   cef_base_t base;
+
+  ///
+  // Returns true (1) if the underlying handle is valid and it can be accessed
+  // on the current thread. Do not call any other functions if this function
+  // returns false (0).
+  ///
+  int (CEF_CALLBACK *is_valid)(struct _cef_v8stack_trace_t* self);
 
   ///
   // Returns the number of stack frames.
@@ -731,14 +772,24 @@ CEF_EXPORT cef_v8stack_trace_t* cef_v8stack_trace_get_current(int frame_limit);
 
 
 ///
-// Structure representing a V8 stack frame. The functions of this structure may
-// only be called on the render process main thread.
+// Structure representing a V8 stack frame handle. V8 handles can only be
+// accessed from the thread on which they are created. Valid threads for
+// creating a V8 handle include the render process main thread (TID_RENDERER)
+// and WebWorker threads. A task runner for posting tasks on the associated
+// thread can be retrieved via the cef_v8context_t::get_task_runner() function.
 ///
 typedef struct _cef_v8stack_frame_t {
   ///
   // Base structure.
   ///
   cef_base_t base;
+
+  ///
+  // Returns true (1) if the underlying handle is valid and it can be accessed
+  // on the current thread. Do not call any other functions if this function
+  // returns false (0).
+  ///
+  int (CEF_CALLBACK *is_valid)(struct _cef_v8stack_frame_t* self);
 
   ///
   // Returns the name of the resource script that contains the function.

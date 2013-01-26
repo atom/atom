@@ -1,6 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
-TreeView = require 'tree-view'
+TreeView = require 'tree-view/src/tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
 Native = require 'native'
@@ -13,9 +13,8 @@ describe "TreeView", ->
     rootView = new RootView(require.resolve('fixtures/tree-view'))
     project = rootView.project
 
-    atom.loadPackage("tree-view")
-    treeView = TreeView.instance
-    treeView.root = treeView.find('> li:first').view()
+    treeView = atom.loadPackage("tree-view").getInstance()
+    treeView.root = treeView.find('ol > li:first').view()
     sampleJs = treeView.find('.file:contains(tree-view.js)')
     sampleTxt = treeView.find('.file:contains(tree-view.txt)')
 
@@ -51,8 +50,7 @@ describe "TreeView", ->
         rootView.deactivate()
 
         rootView = new RootView
-        atom.loadPackage 'tree-view'
-        treeView = TreeView.instance
+        treeView = atom.loadPackage("tree-view").getInstance()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -78,8 +76,7 @@ describe "TreeView", ->
         rootView.deactivate()
 
         rootView = new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
-        atom.loadPackage 'tree-view'
-        treeView = TreeView.instance
+        treeView = atom.loadPackage("tree-view").getInstance()
 
       it "does not attach to the root view but does create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -108,7 +105,7 @@ describe "TreeView", ->
     it "restores the focus state of the tree view", ->
       rootView.attachToDom()
       treeView.focus()
-      expect(treeView).toMatchSelector ':focus'
+      expect(treeView.find(".tree-view")).toMatchSelector ':focus'
 
       newRootView = RootView.deserialize(rootView.serialize())
       rootView.deactivate() # Deactivates previous TreeView
@@ -117,7 +114,7 @@ describe "TreeView", ->
       newRootView.activatePackage('tree-view', TreeView)
 
       newTreeView = newRootView.find(".tree-view").view()
-      expect(newTreeView).toMatchSelector ':focus'
+      expect(newTreeView.find(".tree-view")).toMatchSelector ':focus'
 
     it "restores the scroll top when toggled", ->
       rootView.height(5)
@@ -154,14 +151,14 @@ describe "TreeView", ->
           rootView.focus()
           rootView.trigger 'tree-view:toggle'
           expect(treeView).toBeVisible()
-          expect(treeView).toMatchSelector(':focus')
+          expect(treeView.find(".tree-view")).toMatchSelector(':focus')
 
     describe "when the tree view is hidden", ->
       it "shows and focuses the tree view", ->
         treeView.detach()
         rootView.trigger 'tree-view:toggle'
         expect(treeView.hasParent()).toBeTruthy()
-        expect(treeView).toMatchSelector(':focus')
+        expect(treeView.find(".tree-view")).toMatchSelector(':focus')
 
   describe "when tree-view:reveal-current-file is triggered on the root view", ->
     beforeEach ->
@@ -196,10 +193,10 @@ describe "TreeView", ->
       rootView.open() # When we trigger 'tool-panel:unfocus' below, we want an editor to become focused
       rootView.attachToDom()
       treeView.focus()
-      expect(treeView).toMatchSelector(':focus')
+      expect(treeView.find(".tree-view")).toMatchSelector(':focus')
       treeView.trigger 'tool-panel:unfocus'
       expect(treeView).toBeVisible()
-      expect(treeView).not.toMatchSelector(':focus')
+      expect(treeView.find(".tree-view")).not.toMatchSelector(':focus')
       expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
   describe "when core:close is triggered on the tree view", ->
@@ -434,7 +431,7 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
 
@@ -458,11 +455,11 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.trigger 'core:move-to-bottom'
-        expect(treeView.scrollBottom()).toBe treeView.prop('scrollHeight')
+        expect(treeView.scrollBottom()).toBe treeView.find(".tree-view").prop('scrollHeight')
 
       it "selects the last entry", ->
         expect(treeView.root).toHaveClass 'selected'
@@ -474,7 +471,7 @@ describe "TreeView", ->
         treeView.height(5)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.scrollToBottom()
@@ -489,7 +486,7 @@ describe "TreeView", ->
         treeView.height(5)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.trigger 'core:page-down'
@@ -500,14 +497,14 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
 
         treeView.moveDown()
         expect(treeView.scrollTop()).toBe 0
 
         entryCount = treeView.find(".entry").length
         _.times entryCount, -> treeView.moveDown()
-        expect(treeView.scrollBottom() + 2).toBe treeView.prop('scrollHeight')
+        expect(treeView.scrollBottom()).toBe treeView.find(".tree-view").prop('scrollHeight')
 
         _.times entryCount, -> treeView.moveUp()
         expect(treeView.scrollTop()).toBe 0
@@ -687,7 +684,7 @@ describe "TreeView", ->
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveEditor().getPath()).not.toBe newPath
-              expect(treeView).toMatchSelector(':focus')
+              expect(treeView.find(".tree-view")).toMatchSelector(':focus')
               expect(rootView.getActiveEditor().isFocused).toBeFalsy()
               expect(dirView.find('.directory.selected:contains(new)').length).toBe(1)
 
@@ -700,7 +697,7 @@ describe "TreeView", ->
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveEditor().getPath()).not.toBe newPath
-              expect(treeView).toMatchSelector(':focus')
+              expect(treeView.find(".tree-view")).toMatchSelector(':focus')
               expect(rootView.getActiveEditor().isFocused).toBeFalsy()
               expect(dirView.find('.directory.selected:contains(new2)').length).toBe(1)
 
@@ -721,7 +718,7 @@ describe "TreeView", ->
             treeView.attachToDom()
             addDialog.trigger 'core:cancel'
             expect(addDialog.parent()).not.toExist()
-            expect(treeView).toMatchSelector(':focus')
+            expect(treeView.find(".tree-view")).toMatchSelector(':focus')
 
         describe "when the add dialog's editor loses focus", ->
           it "removes the dialog and focuses root view", ->
@@ -835,7 +832,7 @@ describe "TreeView", ->
             treeView.attachToDom()
             moveDialog.trigger 'core:cancel'
             expect(moveDialog.parent()).not.toExist()
-            expect(treeView).toMatchSelector(':focus')
+            expect(treeView.find(".tree-view")).toMatchSelector(':focus')
 
         describe "when the move dialog's editor loses focus", ->
           it "removes the dialog and focuses root view", ->

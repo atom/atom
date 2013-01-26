@@ -12,12 +12,13 @@ class SnippetExpansion
     startPosition = @editSession.getCursorBufferPosition()
     @editSession.transact =>
       @editSession.insertText(snippet.body, autoIndent: false)
-      editSession.pushOperation
-        do: =>
-          @subscribe @editSession, 'cursor-moved.snippet-expansion', (e) => @cursorMoved(e)
-          @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
-          @editSession.snippetExpansion = this
-        undo: => @destroy()
+      if snippet.tabStops.length > 0
+        editSession.pushOperation
+          do: =>
+            @subscribe @editSession, 'cursor-moved.snippet-expansion', (e) => @cursorMoved(e)
+            @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
+            @editSession.snippetExpansion = this
+          undo: => @destroy()
       @indentSubsequentLines(startPosition.row, snippet) if snippet.lineCount > 1
 
   cursorMoved: ({oldBufferPosition, newBufferPosition}) ->
@@ -29,8 +30,6 @@ class SnippetExpansion
     @destroy() unless _.intersect(oldTabStops, newTabStops).length
 
   placeTabStopAnchorRanges: (startPosition, tabStopRanges) ->
-    return unless @snippet.tabStops.length > 0
-
     @tabStopAnchorRanges = tabStopRanges.map ({start, end}) =>
       anchorRange = @editSession.addAnchorRange([startPosition.add(start), startPosition.add(end)])
       @subscribe anchorRange, 'destroyed', =>

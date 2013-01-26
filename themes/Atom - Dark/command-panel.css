@@ -1,0 +1,101 @@
+.command-panel {
+  background-color: #303030;
+  border: 1px solid #252525;
+  color: #ededed;
+  padding: 5px;
+}
+
+.command-panel .preview-list {
+  max-height: 300px;
+  overflow: auto;
+  margin-bottom: 3px;
+  position: relative;
+  background-color: #000000;
+  color: #ededed;
+  cursor: default;
+}
+
+.command-panel .preview-count {
+  font-size: 11px;
+  color: #969696;
+  text-align: right;
+  padding-bottom: 1px;
+}
+
+.command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
+  background-color: rgba(255, 255, 255, .13);
+}
+
+.command-panel .preview-list:focus li.selected {
+  background-color: rgba(255, 255, 255, .2);
+}
+
+.command-panel .preview-list .path {
+  padding-left: 5px;
+  color: #00a693;
+}
+
+.command-panel .preview-list .path:before {
+  font-family: 'Octicons Regular';
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  -webkit-font-smoothing: antialiased;
+  content: "\f011";
+  position: relative;
+  top: 1px;
+}
+
+.command-panel .preview-list .operation {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.command-panel .preview-list .line-number {
+  padding-left: 3px;
+  color: rgba(255, 255, 255, .3);
+  margin-right: 1ex;
+  text-align: right;
+  display: inline-block;
+}
+
+.command-panel .preview-list .path-match-number {
+  padding-left: 8px;
+  color: rgba(255, 255, 255, .3);
+}
+
+.command-panel .preview-list .preview {
+  word-break: break-all;
+}
+
+.command-panel .preview-list .preview .match {
+  background-color: rgba(255, 255, 255, .2);
+  -webkit-border-radius: 2px;
+  padding: 1px;
+}
+
+.command-panel .prompt-and-editor {
+  display: -webkit-box;
+}
+
+.command-panel .prompt-and-editor .prompt:before {
+  color: #969696;
+  content: '\f078';
+  font-family: 'Octicons Regular';
+  position: relative;
+  top: -5px;
+  left: -5px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.command-panel .prompt-and-editor .editor {
+  position: relative;
+  left: -4px;
+  margin-right: -4px;
+}
+
+.error-messages {
+  padding: 5px 1em;
+  color: white;
+}

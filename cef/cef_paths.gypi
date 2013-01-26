@@ -1,4 +1,4 @@
-# Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
+# Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 # reserved. Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file.
 #
@@ -39,6 +39,7 @@
       'cef/include/cef_process_message.h',
       'cef/include/cef_process_util.h',
       'cef/include/cef_proxy_handler.h',
+      'cef/include/cef_render_handler.h',
       'cef/include/cef_render_process_handler.h',
       'cef/include/cef_request.h',
       'cef/include/cef_request_handler.h',
@@ -86,6 +87,7 @@
       'cef/include/capi/cef_process_message_capi.h',
       'cef/include/capi/cef_process_util_capi.h',
       'cef/include/capi/cef_proxy_handler_capi.h',
+      'cef/include/capi/cef_render_handler_capi.h',
       'cef/include/capi/cef_render_process_handler_capi.h',
       'cef/include/capi/cef_request_capi.h',
       'cef/include/capi/cef_request_handler_capi.h',
@@ -194,6 +196,8 @@
       'cef/libcef_dll/cpptoc/quota_callback_cpptoc.h',
       'cef/libcef_dll/ctocpp/read_handler_ctocpp.cc',
       'cef/libcef_dll/ctocpp/read_handler_ctocpp.h',
+      'cef/libcef_dll/ctocpp/render_handler_ctocpp.cc',
+      'cef/libcef_dll/ctocpp/render_handler_ctocpp.h',
       'cef/libcef_dll/ctocpp/render_process_handler_ctocpp.cc',
       'cef/libcef_dll/ctocpp/render_process_handler_ctocpp.h',
       'cef/libcef_dll/cpptoc/request_cpptoc.cc',
@@ -220,6 +224,8 @@
       'cef/libcef_dll/ctocpp/string_visitor_ctocpp.h',
       'cef/libcef_dll/ctocpp/task_ctocpp.cc',
       'cef/libcef_dll/ctocpp/task_ctocpp.h',
+      'cef/libcef_dll/cpptoc/task_runner_cpptoc.cc',
+      'cef/libcef_dll/cpptoc/task_runner_cpptoc.h',
       'cef/libcef_dll/ctocpp/trace_client_ctocpp.cc',
       'cef/libcef_dll/ctocpp/trace_client_ctocpp.h',
       'cef/libcef_dll/cpptoc/urlrequest_cpptoc.cc',
@@ -342,6 +348,8 @@
       'cef/libcef_dll/ctocpp/quota_callback_ctocpp.h',
       'cef/libcef_dll/cpptoc/read_handler_cpptoc.cc',
       'cef/libcef_dll/cpptoc/read_handler_cpptoc.h',
+      'cef/libcef_dll/cpptoc/render_handler_cpptoc.cc',
+      'cef/libcef_dll/cpptoc/render_handler_cpptoc.h',
       'cef/libcef_dll/cpptoc/render_process_handler_cpptoc.cc',
       'cef/libcef_dll/cpptoc/render_process_handler_cpptoc.h',
       'cef/libcef_dll/ctocpp/request_ctocpp.cc',
@@ -368,6 +376,8 @@
       'cef/libcef_dll/cpptoc/string_visitor_cpptoc.h',
       'cef/libcef_dll/cpptoc/task_cpptoc.cc',
       'cef/libcef_dll/cpptoc/task_cpptoc.h',
+      'cef/libcef_dll/ctocpp/task_runner_ctocpp.cc',
+      'cef/libcef_dll/ctocpp/task_runner_ctocpp.h',
       'cef/libcef_dll/cpptoc/trace_client_cpptoc.cc',
       'cef/libcef_dll/cpptoc/trace_client_cpptoc.h',
       'cef/libcef_dll/ctocpp/urlrequest_ctocpp.cc',

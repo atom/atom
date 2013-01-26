@@ -3,9 +3,7 @@
 
 Native = require 'native'
 fs = require 'fs'
-_ = require 'underscore'
 $ = require 'jquery'
-{CoffeeScript} = require 'coffee-script'
 Config = require 'config'
 Syntax = require 'syntax'
 RootView = require 'root-view'
@@ -70,18 +68,23 @@ windowAdditions =
     $("head style[id='#{id}']")
 
   requireStylesheet: (path) ->
-    unless fullPath = require.resolve(path)
+    if fullPath = require.resolve(path)
+      window.applyStylesheet(fullPath, fs.read(fullPath))
+    unless fullPath
       throw new Error("Could not find a file at path '#{path}'")
-    window.applyStylesheet(fullPath, fs.read(fullPath))
 
   removeStylesheet: (path) ->
     unless fullPath = require.resolve(path)
       throw new Error("Could not find a file at path '#{path}'")
     window.stylesheetElementForId(fullPath).remove()
 
-  applyStylesheet: (id, text) ->
+  applyStylesheet: (id, text, ttype = 'bundled') ->
     unless window.stylesheetElementForId(id).length
-      $('head').append "<style id='#{id}'>#{text}</style>"
+      if $("head style.#{ttype}").length
+        $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
+      else
+        $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
+
 
   reload: ->
     if rootView?.getModifiedBuffers().length > 0

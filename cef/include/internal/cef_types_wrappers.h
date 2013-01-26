@@ -199,6 +199,25 @@ struct CefKeyEventTraits {
 ///
 typedef CefStructBase<CefKeyEventTraits> CefKeyEvent;
 
+struct CefMouseEventTraits {
+  typedef cef_mouse_event_t struct_type;
+
+  static inline void init(struct_type* s) {}
+
+  static inline void clear(struct_type* s) {}
+
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
+    target->x = src->x;
+    target->y = src->y;
+    target->modifiers = src->modifiers;
+  }
+};
+
+///
+// Class representing a mouse event.
+///
+typedef CefStructBase<CefMouseEventTraits> CefMouseEvent;
 
 struct CefPopupFeaturesTraits {
   typedef cef_popup_features_t struct_type;
@@ -288,6 +307,7 @@ struct CefSettingsTraits {
     cef_string_set(src->log_file.str, src->log_file.length, &target->log_file,
         copy);
     target->log_severity = src->log_severity;
+    target->release_dcheck_enabled = src->release_dcheck_enabled;
     cef_string_set(src->javascript_flags.str, src->javascript_flags.length,
         &target->javascript_flags, copy);
 
@@ -300,6 +320,8 @@ struct CefSettingsTraits {
         &target->locales_dir_path, copy);
     target->pack_loading_disabled = src->pack_loading_disabled;
     target->remote_debugging_port = src->remote_debugging_port;
+    target->uncaught_exception_stack_size = src->uncaught_exception_stack_size;
+    target->context_safety_implementation = src->context_safety_implementation;
   }
 };
 
@@ -396,11 +418,8 @@ struct CefBrowserSettingsTraits {
     target->accelerated_video_disabled = src->accelerated_video_disabled;
     target->accelerated_2d_canvas_disabled =
         src->accelerated_2d_canvas_disabled;
-    target->accelerated_painting_enabled = src->accelerated_painting_enabled;
-    target->accelerated_filters_enabled = src->accelerated_filters_enabled;
     target->accelerated_plugins_disabled = src->accelerated_plugins_disabled;
     target->developer_tools_disabled = src->developer_tools_disabled;
-    target->fullscreen_enabled = src->fullscreen_enabled;
   }
 };
 
@@ -493,6 +512,18 @@ class CefTime : public CefStructBase<CefTimeTraits> {
     double time = 0;
     cef_time_to_doublet(this, &time);
     return time;
+  }
+
+  // Set this object to now.
+  void Now() {
+    cef_time_now(this);
+  }
+
+  // Return the delta between this object and |other| in milliseconds.
+  long long Delta(const CefTime& other) {
+    long long delta = 0;
+    cef_time_delta(this, &other, &delta);
+    return delta;
   }
 };
 

@@ -92,9 +92,8 @@ class Buffer
 
     @file?.off()
     @file = new File(path)
-    if @file.exists()
-      @file.read()
-      @subscribeToFile()
+    @file.read() if @file.exists()
+    @subscribeToFile()
 
     @trigger "path-changed", this
 
@@ -242,7 +241,6 @@ class Buffer
     @setPath(path)
     @cachedDiskContents = @getText()
     @file.write(@getText())
-    @subscribeToFile()
     @trigger 'saved'
 
   isModified: ->
