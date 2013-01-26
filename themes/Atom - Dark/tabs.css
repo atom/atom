@@ -61,7 +61,7 @@
 .tab.active:hover {
   border-top: 1px solid #4a4a4a;
   box-shadow: inset -1px 0 0 #595959, inset 1px 0 0 #595959;
-  border-bottom: 0 none;
+  border-bottom-color: #424242;
   background-image: -webkit-linear-gradient(#555555, #424242);
 }
 

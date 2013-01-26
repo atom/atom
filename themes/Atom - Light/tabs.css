@@ -54,7 +54,7 @@
 
 .tab.active,
 .tab.active:hover {
-  border-bottom: 0 none;
+  border-bottom-color: #e5e5e5;
   box-shadow: inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
   background-image: -webkit-linear-gradient(#fefefe, #e7e6e7);
 }
@@ -62,7 +62,7 @@
 .tab.active:before,
 .tab.active:after {
   position: absolute;
-  bottom: 0;
+  bottom: -1px;
   width: 4px;
   height: 4px;
   content: " ";
