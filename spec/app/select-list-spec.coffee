@@ -166,7 +166,7 @@ describe "SelectList", ->
       expect(selectList.detach).toHaveBeenCalled()
 
   describe "the core:move-to-top event", ->
-    it "scrolls to the bottom and selects the last element", ->
+    it "scrolls to the top and selects the first element", ->
       selectList.trigger 'core:move-down'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
       selectList.trigger 'core:move-to-top'
