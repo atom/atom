@@ -1,3 +1,6 @@
+'#root-view':
+  'meta-T': 'editor:undo-close-session'
+
 '.editor':
   'meta-s': 'editor:save'
   'meta-S': 'editor:save-as'

@@ -151,6 +151,13 @@ describe "Editor", ->
       expect(otherEditSession.buffer.subscriptionCount()).toBe 0
 
   describe "when 'close' is triggered", ->
+    it "adds a closed session path to the array", ->
+      editor.edit(rootView.project.buildEditSessionForPath())
+      editSession = editor.activeEditSession
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 1
+
     it "closes the active edit session and loads next edit session", ->
       editor.edit(rootView.project.buildEditSessionForPath())
       editSession = editor.activeEditSession
@@ -2664,3 +2671,15 @@ describe "Editor", ->
       editor.moveEditSessionToEditor(0, rightEditor, 0)
       expect(rightEditor.editSessions[0].getPath()).toBe jsPath
       expect(rightEditor.editSessions[1].getPath()).toBe txtPath
+
+  describe "when editor:undo-close-session is triggered", ->
+    it "opens the closed session back up", ->
+      rootView.open('sample.txt')
+      expect(editor.getPath()).toBe require.resolve('fixtures/sample.txt')
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.getPath()).toBe require.resolve('fixtures/sample.js')
+      expect(editor.closedEditSessions.length).toBe 1
+      editor.trigger 'editor:undo-close-session'
+      expect(editor.getPath()).toBe require.resolve('fixtures/sample.txt')
+      expect(editor.closedEditSessions.length).toBe 0

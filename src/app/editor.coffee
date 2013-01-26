@@ -48,6 +48,7 @@ class Editor extends View
   lineCache: null
   isFocused: false
   activeEditSession: null
+  closedEditSessions: null
   editSessions: null
   attached: false
   lineOverdraw: 10
@@ -74,6 +75,7 @@ class Editor extends View
     @cursorViews = []
     @selectionViews = []
     @editSessions = []
+    @closedEditSessions = []
     @pendingChanges = []
     @newCursors = []
     @newSelections = []
@@ -187,6 +189,7 @@ class Editor extends View
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
         'editor:duplicate-line': @duplicateLine
+        'editor:undo-close-session': @undoDestroySession
 
     documentation = {}
     for name, method of editorBindings
@@ -470,6 +473,9 @@ class Editor extends View
 
   getBuffer: -> @activeEditSession.buffer
 
+  undoDestroySession: ->
+    @rootView().open(@closedEditSessions.pop(), true) unless @closedEditSessions.length == 0
+
   destroyActiveEditSession: ->
     @destroyEditSessionIndex(@getActiveEditSessionIndex())
 
@@ -477,7 +483,9 @@ class Editor extends View
     return if @mini
 
     editSession = @editSessions[index]
-    destroySession = ->
+    destroySession = =>
+      path = editSession.getPath()
+      @closedEditSessions.push(path) unless @closedEditSessions.indexOf(path) > -1
       editSession.destroy()
       callback?(index)
 
