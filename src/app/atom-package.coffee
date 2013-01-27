@@ -16,7 +16,7 @@ class AtomPackage extends Package
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets() if @autoloadStylesheets
-      rootView.activatePackage(@name, this) unless @isDirectory
+      rootView?.activatePackage(@name, this) unless @isDirectory
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack
     this
