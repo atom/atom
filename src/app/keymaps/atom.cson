@@ -27,6 +27,7 @@
   'meta-+': 'window:increase-font-size'
   'meta--': 'window:decrease-font-size'
   'ctrl-w w': 'window:focus-next-pane'
+  'ctrl-tab': 'window:focus-next-pane'
 
   'alt-meta-i': 'toggle-dev-tools'
 
