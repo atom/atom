@@ -109,8 +109,7 @@ class Buffer
     @cachedMemoryContents ?= @getTextInRange(@getRange())
 
   setText: (text) ->
-    @lineEndings = []
-    @change(@getRange(), text)
+    @change(@getRange(), text, normalizeLineEndings: false)
 
   getRange: ->
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
@@ -206,9 +205,9 @@ class Buffer
   delete: (range) ->
     @change(range, '')
 
-  change: (oldRange, newText) ->
+  change: (oldRange, newText, options) ->
     oldRange = Range.fromObject(oldRange)
-    operation = new BufferChangeOperation({buffer: this, oldRange, newText})
+    operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
     range = @pushOperation(operation)
     range
 

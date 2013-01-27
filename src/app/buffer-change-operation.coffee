@@ -9,7 +9,8 @@ class BufferChangeOperation
   newRange: null
   newText: null
 
-  constructor: ({@buffer, @oldRange, @newText}) ->
+  constructor: ({@buffer, @oldRange, @newText, @options}) ->
+    @options ?= {}
 
   do: ->
     @oldText = @buffer.getTextInRange(@oldRange)
@@ -52,7 +53,9 @@ class BufferChangeOperation
 
     startRow = oldRange.start.row
     endRow = oldRange.end.row
-    if suggestedLineEnding = @buffer.suggestedLineEndingForRow(startRow)
+
+    normalizeLineEndings = @options.normalizeLineEndings ? true
+    if normalizeLineEndings and suggestedLineEnding = @buffer.suggestedLineEndingForRow(startRow)
       lineEndings[index] = suggestedLineEnding for index in [0..lastLineIndex]
     @buffer.lines[startRow..endRow] = lines
     @buffer.lineEndings[startRow..endRow] = lineEndings
