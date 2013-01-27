@@ -250,9 +250,9 @@ describe "Snippets extension", ->
         expect(console.warn).toHaveBeenCalled()
         expect(console.warn.calls.length).toBeGreaterThan 0
 
-  describe "Snippets parser", ->
+  describe "Snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
-      bodyTree = snippets.parser.parse """
+      bodyTree = snippets.getBodyParser().parse """
         the quick brown $1fox ${2:jumped ${3:over}
         }the ${4:lazy} dog
       """

@@ -1,8 +1,14 @@
 fs = require 'fs'
 TextMatePackage = require 'text-mate-package'
+SnippetBodyParser = require './snippet-body-parser'
 
 module.exports =
-  snippetsLoaded: (snippets) -> callTaskMethod('snippetsLoaded', snippets)
+  snippetsLoaded: (snippets) ->
+    for snippet in snippets
+      for selector, snippetsByName of snippet
+        for name, attributes of snippetsByName
+          attributes.bodyTree = SnippetBodyParser.parse(attributes.body)
+    callTaskMethod('snippetsLoaded', snippets)
 
   loadTextmateSnippets: (path) ->
     snippetsDirPath = fs.join(path, 'Snippets')
