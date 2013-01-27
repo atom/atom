@@ -1,17 +1,8 @@
 fs = require 'fs'
 TextMatePackage = require 'text-mate-package'
-PEG = require 'pegjs'
 
 module.exports =
-
-  parser: PEG.buildParser(fs.read(require.resolve 'snippets/snippets.pegjs'), trackLineAndColumn: true)
-
-  snippetsLoaded: (snippets) ->
-    for snippet in snippets
-      for selector, snippetsByName of snippet
-        for name, attributes of snippetsByName
-          attributes.bodyTree = @parser.parse(attributes.body)
-    callTaskMethod('snippetsLoaded', snippets)
+  snippetsLoaded: (snippets) -> callTaskMethod('snippetsLoaded', snippets)
 
   loadTextmateSnippets: (path) ->
     snippetsDirPath = fs.join(path, 'Snippets')
