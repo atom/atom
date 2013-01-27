@@ -19,6 +19,7 @@ describe "the `atom` global", ->
       expect(rootView.activatePackage).toHaveBeenCalled()
 
     it "logs warning instead of throwing an exception if a package fails to load", ->
+      config.set("core.disabledPackages", [])
       spyOn(console, "warn")
       expect(-> atom.loadPackage("package-that-throws-an-exception")).not.toThrow()
       expect(console.warn).toHaveBeenCalled()
