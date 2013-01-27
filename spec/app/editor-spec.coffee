@@ -1609,7 +1609,7 @@ describe "Editor", ->
        editor.attachToDom()
 
        expect(config.get("editor.showInvisibles")).toBeFalsy()
-       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return\n"
+       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
 
        config.set("editor.showInvisibles", true)
        cr = editor.invisibles?.cr

@@ -80,8 +80,5 @@ class Token
         if hasTrailingWhitespace
           html = html.replace /[ ]+$/, (match) ->
             "<span class='invisible'>#{match.replace(/./g, invisibles.space)}</span>"
-      if invisibles.cr
-        html = html.replace /\r$/, (match) ->
-          "<span class='invisible'>#{invisibles.cr}</span>"
 
     html
