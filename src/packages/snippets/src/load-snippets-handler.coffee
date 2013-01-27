@@ -10,7 +10,7 @@ module.exports =
           attributes.bodyTree = SnippetBodyParser.parse(attributes.body)
     callTaskMethod('snippetsLoaded', snippets)
 
-  loadTextmateSnippets: (path) ->
+  loadTextMateSnippets: (path) ->
     snippetsDirPath = fs.join(path, 'Snippets')
     snippets = []
 

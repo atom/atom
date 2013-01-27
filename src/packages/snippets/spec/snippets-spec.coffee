@@ -212,9 +212,14 @@ describe "Snippets extension", ->
         expect(editor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
 
   describe "snippet loading", ->
-    it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
-      spyOn(console, 'warn').andCallThrough()
+    beforeEach ->
       jasmine.unspy(LoadSnippetsTask.prototype, 'start')
+      spyOn(LoadSnippetsTask.prototype, 'loadAtomSnippets').andCallFake -> @snippetsLoaded({})
+      spyOn(LoadSnippetsTask.prototype, 'loadTextMateSnippets').andCallFake -> @snippetsLoaded({})
+
+    it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
+      jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
+      spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
 
@@ -225,11 +230,11 @@ describe "Snippets extension", ->
 
         # warn about junk-file, but don't even try to parse a hidden file
         expect(console.warn).toHaveBeenCalled()
-        expect(console.warn.calls.length).toBeGreaterThan 0
+        expect(console.warn.calls.length).toBe 1
 
     it "loads snippets from all TextMate packages with snippets", ->
-      spyOn(console, 'warn').andCallThrough()
-      jasmine.unspy(LoadSnippetsTask.prototype, 'start')
+      jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
+      spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
 
@@ -248,7 +253,7 @@ describe "Snippets extension", ->
 
         # warn about junk-file, but don't even try to parse a hidden file
         expect(console.warn).toHaveBeenCalled()
-        expect(console.warn.calls.length).toBeGreaterThan 0
+        expect(console.warn.calls.length).toBe 1
 
   describe "Snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->

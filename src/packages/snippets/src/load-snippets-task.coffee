@@ -18,10 +18,15 @@ class LoadSnippetsTask extends Task
 
     @packageBeingLoaded = @packages.shift()
     if @packageBeingLoaded instanceof TextMatePackage
-      method = 'loadTextmateSnippets'
+      @loadTextMateSnippets(@packageBeingLoaded.path)
     else
-      method = 'loadAtomSnippets'
-    @callWorkerMethod(method, @packageBeingLoaded.path)
+      @loadAtomSnippets(@packageBeingLoaded.path)
+
+  loadAtomSnippets: (path) ->
+    @callWorkerMethod('loadAtomSnippets', path)
+
+  loadTextMateSnippets: (path) ->
+    @callWorkerMethod('loadTextMateSnippets', path)
 
   snippetsLoaded: (snippets) ->
     @snippets.add(snippet) for snippet in snippets
