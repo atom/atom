@@ -9,7 +9,6 @@ class Cursor
   screenPosition: null
   bufferPosition: null
   goalColumn: null
-  wordRegex: /(\w+)|([^\w\n]+)/g
   visible: true
   needsAutoscroll: false
 
@@ -150,7 +149,7 @@ class Cursor
     previousLinesRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = currentBufferPosition
-    @editSession.backwardsScanInRange (options.wordRegex || @wordRegex), previousLinesRange, (match, matchRange, { stop }) =>
+    @editSession.backwardsScanInRange (options.wordRegex ? config.get("editor.wordRegex")), previousLinesRange, (match, matchRange, { stop }) =>
       if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = matchRange.start
       stop()
@@ -162,7 +161,7 @@ class Cursor
     range = [currentBufferPosition, @editSession.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInRange (options.wordRegex || @wordRegex), range, (match, matchRange, { stop }) =>
+    @editSession.scanInRange (options.wordRegex ? config.get("editor.wordRegex")), range, (match, matchRange, { stop }) =>
       endOfWordPosition = matchRange.end
       if not allowNext and matchRange.start.isGreaterThan(currentBufferPosition)
         endOfWordPosition = currentBufferPosition
