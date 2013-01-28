@@ -6,7 +6,7 @@ class Symbols extends DeferredAtomPackage
   loadEvents: [
     'symbols-view:toggle-file-symbols'
     'symbols-view:toggle-project-symbols'
-    'symbols-view:jump-to-declaration'
+    'symbols-view:go-to-declaration'
   ]
 
   instanceClass: 'symbols-view/src/symbols-view'
@@ -17,5 +17,5 @@ class Symbols extends DeferredAtomPackage
         instance.toggleFileSymbols()
       when 'symbols-view:toggle-project-symbols'
         instance.toggleProjectSymbols()
-      when 'symbols-view:jump-to-declaration'
-        instance.jumpToDeclaration()
+      when 'symbols-view:go-to-declaration'
+        instance.goToDeclaration()

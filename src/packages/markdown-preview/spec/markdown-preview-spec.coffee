@@ -57,3 +57,16 @@ describe "MarkdownPreview", ->
        expect(markdownPreviewView).toExist()
        markdownPreviewView.trigger('core:cancel')
        expect(rootView.find('.markdown-preview')).not.toExist()
+
+   describe "when focus is lost", ->
+     it "removes the markdown preview view", ->
+       rootView.open('file.md')
+       editor = rootView.getActiveEditor()
+       expect(rootView.find('.markdown-preview')).not.toExist()
+       spyOn(markdownPreview, 'loadHtml')
+       editor.trigger('markdown-preview:toggle')
+
+       markdownPreviewView = rootView.find('.markdown-preview')
+       expect(markdownPreviewView).toExist()
+       markdownPreviewView.blur()
+       expect(rootView.find('.markdown-preview')).not.toExist()

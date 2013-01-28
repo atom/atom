@@ -19,6 +19,7 @@ class Buffer
   cachedMemoryContents: null
   conflict: false
   lines: null
+  lineEndings: null
   file: null
   anchors: null
   anchorRanges: null
@@ -29,6 +30,7 @@ class Buffer
     @anchors = []
     @anchorRanges = []
     @lines = ['']
+    @lineEndings = []
 
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
@@ -104,10 +106,10 @@ class Buffer
       null
 
   getText: ->
-    @cachedMemoryContents ?= @lines.join('\n')
+    @cachedMemoryContents ?= @getTextInRange(@getRange())
 
   setText: (text) ->
-    @change(@getRange(), text)
+    @change(@getRange(), text, normalizeLineEndings: false)
 
   getRange: ->
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
@@ -118,18 +120,26 @@ class Buffer
       return @lines[range.start.row][range.start.column...range.end.column]
 
     multipleLines = []
-    multipleLines.push @lines[range.start.row][range.start.column..] # first line
+    multipleLines.push @lineForRow(range.start.row)[range.start.column..] # first line
+    multipleLines.push @lineEndingForRow(range.start.row)
     for row in [range.start.row + 1...range.end.row]
-      multipleLines.push @lines[row] # middle lines
-    multipleLines.push @lines[range.end.row][0...range.end.column] # last line
+      multipleLines.push @lineForRow(row) # middle lines
+      multipleLines.push @lineEndingForRow(row)
+    multipleLines.push @lineForRow(range.end.row)[0...range.end.column] # last line
 
-    return multipleLines.join '\n'
+    return multipleLines.join ''
 
   getLines: ->
     @lines
 
   lineForRow: (row) ->
     @lines[row]
+
+  lineEndingForRow: (row) ->
+    @lineEndings[row] unless row is @getLastRow()
+
+  suggestedLineEndingForRow: (row) ->
+    @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
 
   lineLengthForRow: (row) ->
     @lines[row].length
@@ -195,9 +205,9 @@ class Buffer
   delete: (range) ->
     @change(range, '')
 
-  change: (oldRange, newText) ->
+  change: (oldRange, newText, options) ->
     oldRange = Range.fromObject(oldRange)
-    operation = new BufferChangeOperation({buffer: this, oldRange, newText})
+    operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
     range = @pushOperation(operation)
     range
 
@@ -213,11 +223,6 @@ class Buffer
   prefixAndSuffixForRange: (range) ->
     prefix: @lines[range.start.row][0...range.start.column]
     suffix: @lines[range.end.row][range.end.column..]
-
-  replaceLines: (startRow, endRow, newLines) ->
-    @lines[startRow..endRow] = newLines
-    @cachedMemoryContents = null
-    @conflict = false if @conflict and !@isModified()
 
   pushOperation: (operation, editSession) ->
     if @undoManager

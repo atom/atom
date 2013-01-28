@@ -833,3 +833,51 @@ describe 'Buffer', ->
       expect(buffer.getText()).toBe "a"
       buffer.append("b\nc");
       expect(buffer.getText()).toBe "ab\nc"
+
+  describe "line ending support", ->
+    describe ".lineEndingForRow(line)", ->
+      it "return the line ending for each buffer line", ->
+        buffer.setText("a\r\nb\nc")
+        expect(buffer.lineEndingForRow(0)).toBe '\r\n'
+        expect(buffer.lineEndingForRow(1)).toBe '\n'
+        expect(buffer.lineEndingForRow(2)).toBeUndefined()
+
+    describe ".lineForRow(line)", ->
+      it "returns the line text without the line ending for both lf and crlf lines", ->
+        buffer.setText("a\r\nb\nc")
+        expect(buffer.lineForRow(0)).toBe 'a'
+        expect(buffer.lineForRow(1)).toBe 'b'
+        expect(buffer.lineForRow(2)).toBe 'c'
+
+    describe ".getText()", ->
+      it "returns the text with the corrent line endings for each row", ->
+        buffer.setText("a\r\nb\nc")
+        expect(buffer.getText()).toBe "a\r\nb\nc"
+        buffer.setText("a\r\nb\nc\n")
+        expect(buffer.getText()).toBe "a\r\nb\nc\n"
+
+    describe "when editing a line", ->
+      it "preserves the existing line ending", ->
+        buffer.setText("a\r\nb\nc")
+        buffer.insert([0, 1], "1")
+        expect(buffer.getText()).toBe "a1\r\nb\nc"
+
+    describe "when inserting text with multiple lines", ->
+      describe "when the current line has a line ending", ->
+        it "uses the same line ending as the line where the text is inserted", ->
+          buffer.setText("a\r\n")
+          buffer.insert([0,1], "hello\n1\n\n2")
+          expect(buffer.getText()).toBe "ahello\r\n1\r\n\r\n2\r\n"
+
+      describe "when the current line has no line ending (because it's the last line of the buffer)", ->
+        describe "when the buffer contains only a single line", ->
+          it "honors the line endings in the inserted text", ->
+            buffer.setText("initialtext")
+            buffer.append("hello\n1\r\n2\n")
+            expect(buffer.getText()).toBe "initialtexthello\n1\r\n2\n"
+
+        describe "when the buffer contains a preceding line", ->
+          it "uses the line ending of the preceding line", ->
+            buffer.setText("\ninitialtext")
+            buffer.append("hello\n1\r\n2\n")
+            expect(buffer.getText()).toBe "\ninitialtexthello\n1\n2\n"

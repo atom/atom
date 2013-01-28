@@ -1,6 +1,6 @@
 '.editor':
   'meta-j': 'symbols-view:toggle-file-symbols'
-  'meta-.': 'symbols-view:jump-to-declaration'
+  'meta-.': 'symbols-view:go-to-declaration'
 
 'body':
   'meta-J': 'symbols-view:toggle-project-symbols'

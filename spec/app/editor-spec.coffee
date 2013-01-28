@@ -1604,6 +1604,20 @@ describe "Editor", ->
         expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
         expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
 
+     it "displays trailing carriage return using a visible non-empty value", ->
+       editor.setText "a line that ends with a carriage return\r\n"
+       editor.attachToDom()
+
+       expect(config.get("editor.showInvisibles")).toBeFalsy()
+       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
+
+       config.set("editor.showInvisibles", true)
+       cr = editor.invisibles?.cr
+       expect(cr).toBeTruthy()
+       eol = editor.invisibles?.eol
+       expect(eol).toBeTruthy()
+       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
@@ -2212,3 +2226,8 @@ describe "Editor", ->
       edited = editor.replaceSelectedText(replacer)
       expect(replaced).toBe true
       expect(edited).toBe false
+
+  describe "when editor:copy-path is triggered", ->
+    it "copies the absolute path to the editor's file to the pasteboard", ->
+      editor.trigger 'editor:copy-path'
+      expect(pasteboard.read()[0]).toBe editor.getPath()

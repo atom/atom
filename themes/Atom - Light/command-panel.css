@@ -16,6 +16,13 @@
   border: 1px solid #989898;
 }
 
+.command-panel .preview-count {
+  font-size: 11px;
+  color: #333;
+  text-align: right;
+  padding-bottom: 1px;
+}
+
 .command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
   background-color: rgba(255, 255, 255, .6);
 }
@@ -48,6 +55,11 @@
   margin-right: 1ex;
   text-align: right;
   display: inline-block;
+}
+
+.command-panel .preview-list .path-match-number {
+  padding-left: 8px;
+  color: #3D5075;
 }
 
 .command-panel .preview-list .preview {

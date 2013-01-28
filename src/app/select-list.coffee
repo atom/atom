@@ -26,6 +26,12 @@ class SelectList extends View
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
     @on 'core:move-down', => @selectNextItem()
+    @on 'core:move-to-top', =>
+      @selectItem(@list.find('li:first'))
+      @list.scrollToTop()
+    @on 'core:move-to-bottom', =>
+      @selectItem(@list.find('li:last'))
+      @list.scrollToBottom()
     @on 'core:confirm', => @confirmSelection()
     @on 'core:cancel', => @cancel()
 
@@ -62,6 +68,8 @@ class SelectList extends View
       @loading.text(message).show()
 
   populateList: ->
+    return unless @array?
+
     filterQuery = @miniEditor.getText()
     if filterQuery.length
       filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
