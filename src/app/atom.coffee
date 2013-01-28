@@ -3,6 +3,7 @@ _ = require 'underscore'
 Package = require 'package'
 TextMatePackage = require 'text-mate-package'
 Theme = require 'theme'
+LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
@@ -13,7 +14,15 @@ _.extend atom,
   pendingBrowserProcessCallbacks: {}
 
   loadPackages: ->
-    pack.load() for pack in @getPackages()
+    {packages, asyncTextMatePackages} = _.groupBy @getPackages(), (pack) ->
+      if pack instanceof TextMatePackage and pack.name isnt 'text.tmbundle'
+        'asyncTextMatePackages'
+      else
+        'packages'
+
+    pack.load() for pack in packages
+    if asyncTextMatePackages.length
+      new LoadTextMatePackagesTask(asyncTextMatePackages).start()
 
   getPackages: ->
     @getPackageNames().map((name) -> Package.build(name)).filter (pack) -> pack?

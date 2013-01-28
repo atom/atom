@@ -2,7 +2,6 @@
 # http://ringojs.org/api/v0.8/fs/
 
 _ = require 'underscore'
-$ = require 'jquery'
 
 module.exports =
   # Make the given path absolute by resolving it against the

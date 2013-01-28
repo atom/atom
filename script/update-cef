@@ -1,7 +1,7 @@
 #!/bin/sh
 
 usage() {
-  echo 'usage: `basename $0` 'chromium-dir' [cef-release-branch] 1>&2'
+  echo 'usage: update-cef chromium-dir [cef-release-branch] 1>&2'
   echo
   echo 'chromium-dir is the root of the chromium directory (i.e. ~/code/chromium)'
   echo 'CEF release branches can be found at http://code.google.com/p/chromiumembedded/wiki/BranchesAndBuilding'
@@ -14,9 +14,13 @@ fi
 
 ATOM_ROOT=$(cd $(dirname $0); pwd -P)/..
 CHROMIUM_DIR=$1
-CEF_DIR=$CHROMIUM_DIR/src/cef/
+CEF_DIR=$CHROMIUM_DIR/src/cef
 CEF_RELEASE_BRANCH=${2:-1271}
-CEF_BINARY_PATH=$(echo "$CEF_DIR"/binary_distrib/cef_binary_*_macosx/) # Expand the path
+CEF_REVISION=$(svnversion $CEF_DIR)
+CEF_BINARY_PATH=$(echo ${CEF_DIR}/binary_distrib/cef_binary_3.${CEF_RELEASE_BRANCH}.${CEF_REVISION}_macosx/) # Expand the path
+
+echo "CEF_RELEASE_BRANCH=$CEF_RELEASE_BRANCH"
+echo "CEF_BINARY_PATH=$CEF_BINARY_PATH"
 
 # Update and compile CEF
 CEF_AUTOMATE_SCRIPT_PATH=/tmp/cef-update
