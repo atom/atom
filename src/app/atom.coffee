@@ -25,7 +25,9 @@ _.extend atom,
       new LoadTextMatePackagesTask(asyncTextMatePackages).start()
 
   getPackages: ->
-    @getPackageNames().map((name) -> Package.build(name)).filter (pack) -> pack?
+    @packages ?= @getPackageNames().map((name) -> Package.build(name))
+                                   .filter((pack) -> pack?)
+    new Array(@packages...)
 
   loadTextMatePackages: ->
     pack.load() for pack in @getTextMatePackages()

@@ -250,6 +250,7 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
+      atom.packages = null
       jasmine.unspy(LoadSnippetsTask.prototype, 'start')
       spyOn(LoadSnippetsTask.prototype, 'loadAtomSnippets').andCallFake -> @snippetsLoaded({})
       spyOn(LoadSnippetsTask.prototype, 'loadTextMateSnippets').andCallFake -> @snippetsLoaded({})
