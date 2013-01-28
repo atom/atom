@@ -51,7 +51,7 @@ define = (cb) ->
 exts =
   js: (file, code) ->
     code or= __read file
-    eval("define(function(require, exports, module) { 'use strict';" + code + "})\n//@ sourceURL=" + file)
+    eval("define(function(require, exports, module) { 'use strict';#{code}})\n//@ sourceURL=#{file}")
     __defines.pop()?.call()
   coffee: (file, retry=true) ->
     cacheFilePath = getCacheFilePath(file)
