@@ -8,12 +8,13 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Snippets extension", ->
-  [buffer, editor] = []
+  [buffer, editor, editSession] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     spyOn(LoadSnippetsTask.prototype, 'start')
     atom.loadPackage("snippets")
     editor = rootView.getActiveEditor()
+    editSession = rootView.getActiveEditSession()
     buffer = editor.getBuffer()
     rootView.simulateDomAttachment()
     rootView.enableKeymap()
@@ -42,7 +43,7 @@ describe "Snippets extension", ->
             prefix: "t3"
             body: """
               line 1
-                line 2$1
+              \tline 2$1
 
             """
 
@@ -162,7 +163,24 @@ describe "Snippets extension", ->
             editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])
             expect(editor.getCursorBufferPosition()).toEqual [4, 15]
 
-      describe "when a the start of the snippet is indented", ->
+      describe "when the snippet contains hard tabs", ->
+        describe "when the edit session is in soft-tabs mode", ->
+          it "translates hard tabs in the snippet to the appropriate number of spaces", ->
+            expect(editSession.softTabs).toBeTruthy()
+            editor.insertText("t3")
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(buffer.lineForRow(1)).toBe "  line 2"
+            expect(editSession.getCursorBufferPosition()).toEqual [1, 8]
+
+        describe "when the edit session is in hard-tabs mode", ->
+          it "inserts hard tabs in the snippet directly", ->
+            editSession.setSoftTabs(false)
+            editor.insertText("t3")
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(buffer.lineForRow(1)).toBe "\tline 2"
+            expect(editSession.getCursorBufferPosition()).toEqual [1, 7]
+
+      describe "when the snippet prefix is indented", ->
         describe "when the snippet spans a single line", ->
           it "does not indent the next line", ->
             editor.setCursorScreenPosition([2, Infinity])
@@ -172,6 +190,7 @@ describe "Snippets extension", ->
 
         describe "when the snippet spans multiple lines", ->
           it "indents the subsequent lines of the snippet to be even with the start of the first line", ->
+            expect(editSession.softTabs).toBeTruthy()
             editor.setCursorScreenPosition([2, Infinity])
             editor.insertText ' t3'
             editor.trigger 'snippets:expand'
@@ -202,9 +221,10 @@ describe "Snippets extension", ->
     describe "when a snippet expansion is undone and redone", ->
       it "recreates the snippet's tab stops", ->
         editor.insertText '    t6\n'
-        editor.setCursorBufferPosition [0, 6]
+        editor.setCursorBufferPosition [0, Infinity]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "    first line"
+        expect(editor.getCursorBufferPosition()).toEqual [0, 14]
         editor.undo()
         editor.redo()
         expect(editor.getCursorBufferPosition()).toEqual [0, 14]

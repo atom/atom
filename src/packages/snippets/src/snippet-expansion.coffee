@@ -11,7 +11,7 @@ class SnippetExpansion
     @editSession.selectToBeginningOfWord()
     startPosition = @editSession.getCursorBufferPosition()
     @editSession.transact =>
-      @editSession.insertText(snippet.body, autoIndent: false)
+      [newRange] = @editSession.insertText(snippet.body, autoIndent: false)
       if snippet.tabStops.length > 0
         editSession.pushOperation
           do: =>
@@ -19,6 +19,7 @@ class SnippetExpansion
             @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
             @editSession.snippetExpansion = this
           undo: => @destroy()
+        @editSession.normalizeTabsInBufferRange(newRange)
       @indentSubsequentLines(startPosition.row, snippet) if snippet.lineCount > 1
 
   cursorMoved: ({oldBufferPosition, newBufferPosition}) ->

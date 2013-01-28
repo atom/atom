@@ -185,6 +185,8 @@ class Selection
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
+    newBufferRange
+
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
