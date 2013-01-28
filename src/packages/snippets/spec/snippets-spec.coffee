@@ -66,6 +66,15 @@ describe "Snippets extension", ->
                 ${2:placeholder ending second line}
             """
 
+          "contains empty lines":
+            prefix: "t7"
+            body: """
+              first line $1
+
+
+              fourth line after blanks $2
+            """
+
     describe "when the letters preceding the cursor trigger a snippet", ->
       describe "when the snippet contains no tab stops", ->
         it "replaces the prefix with the snippet text and places the cursor at its end", ->
@@ -139,6 +148,14 @@ describe "Snippets extension", ->
             editor.insertText("foo")
             editor.trigger keydownEvent('tab', target: editor[0])
             expect(editor.getSelectedBufferRange()).toEqual [[0, 5], [0, 10]]
+
+        describe "when tab stops are separated by blank lines", ->
+          it "correctly places the tab stops (regression)", ->
+            buffer.setText('')
+            editor.insertText 't7'
+            editor.trigger 'snippets:expand'
+            editor.trigger 'snippets:next-tab-stop'
+            expect(editSession.getCursorBufferPosition()).toEqual [3, 25]
 
         describe "when the cursor is moved beyond the bounds of a tab stop", ->
           it "terminates the snippet", ->
