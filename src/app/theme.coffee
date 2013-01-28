@@ -1,5 +1,4 @@
 fs = require 'fs'
-_ = require 'underscore'
 
 module.exports =
 class Theme
