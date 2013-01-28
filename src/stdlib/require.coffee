@@ -25,8 +25,7 @@ require = (path, cb) ->
   unless file = resolve(path)
     throw new Error("Require can't find file at path '#{path}'")
 
-  parts = file.split '.'
-  ext   = parts[parts.length-1]
+  ext = file.split('.').pop()
 
   if __moduleExists file
     if not __modules.loaded[file.toLowerCase()]?
@@ -80,8 +79,7 @@ exts =
 
 getPath = (path) ->
   path = resolve(path)
-  parts = path.split '.'
-  return path unless parts[parts.length - 1] is 'coffee'
+  return path unless path.split('.').pop() is 'coffee'
 
   cacheFilePath = getCacheFilePath(path)
   unless __exists(cacheFilePath)
@@ -97,8 +95,7 @@ resolve = (name, {verifyExistence}={}) ->
   verifyExistence ?= true
   file = name
   if /!/.test file
-    parts = file.split '!'
-    file = parts[parts.length-1]
+    file = file.split('!').pop()
 
   if file[0..1] is './'
     prefix = window.__filename.split('/')[0..-2].join '/'
