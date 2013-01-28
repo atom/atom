@@ -6,7 +6,7 @@ require 'erb'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-project" do
-  command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
+  command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
