@@ -15,4 +15,4 @@
 install_name_tool -id @executable_path/libgit2.0.17.0.dylib git2/frameworks/libgit2.0.17.0.dylib
 
 # Verify @executable_path is in the output of:
-# otool -L git2/frameworks/libgit2.0.17.0.dylib
+otool -L git2/frameworks/libgit2.0.17.0.dylib
