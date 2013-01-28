@@ -59,16 +59,12 @@ describe "the `atom` global", ->
 
   describe ".loadPackages()", ->
     beforeEach ->
-      window.rootView = new RootView
       spyOn(syntax, 'addGrammar')
-
-    afterEach ->
-      delete window.rootView
 
     it "terminates the worker when all packages have been loaded", ->
       spyOn(Worker.prototype, 'terminate').andCallThrough()
       eventHandler = jasmine.createSpy('eventHandler')
-      rootView.on 'grammars-loaded', eventHandler
+      syntax.on 'grammars-loaded', eventHandler
       disabledPackages = config.get("core.disabledPackages")
       disabledPackages.push('textmate-package.tmbundle')
       config.set "core.disabledPackages", disabledPackages

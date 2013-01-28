@@ -12,7 +12,7 @@ class LoadTextMatePackagesTask extends Task
   loadNextPackage: ->
     unless @packages.length
       @terminate()
-      rootView.trigger 'grammars-loaded'
+      syntax.trigger 'grammars-loaded'
       return
 
     @package = @packages.shift()

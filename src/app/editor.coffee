@@ -404,7 +404,7 @@ class Editor extends View
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
 
-      rootView?.on 'grammars-loaded', =>
+      syntax.on 'grammars-loaded', =>
         @reloadGrammar()
         for session in @editSessions
           session.reloadGrammar() unless session is @activeEditSession
