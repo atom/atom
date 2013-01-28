@@ -38,7 +38,6 @@ class SnippetExpansion
       anchorRange
     @setTabStopIndex(0)
 
-
   indentSubsequentLines: (startRow, snippet) ->
     initialIndent = @editSession.lineForBufferRow(startRow).match(/^\s*/)[0]
     for row in [startRow + 1...startRow + snippet.lineCount]
