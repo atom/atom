@@ -1076,10 +1076,10 @@ class Editor extends View
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    if invisibles and not @mini
+    if invisibles and not @mini and not screenLine.isSoftWrapped()
       if invisibles.cr and screenLine.lineEnding is '\r\n'
         line.push("<span class='invisible'>#{invisibles.cr}</span>")
-      if invisibles.eol and not screenLine.isSoftWrapped()
+      if invisibles.eol
         line.push("<span class='invisible'>#{invisibles.eol}</span>")
 
     line.push('</pre>')

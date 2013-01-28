@@ -1632,6 +1632,21 @@ describe "Editor", ->
          expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
          expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
 
+       it "displays trailing carriage return using a visible non-empty value", ->
+         editor.setSoftWrapColumn(6)
+         editor.setText "a line that\r\n"
+         editor.attachToDom()
+         config.set "editor.showInvisibles", true
+         space = editor.invisibles?.space
+         expect(space).toBeTruthy()
+         cr = editor.invisibles?.cr
+         expect(cr).toBeTruthy()
+         eol = editor.invisibles?.eol
+         expect(eol).toBeTruthy()
+         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+         expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
+         expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)

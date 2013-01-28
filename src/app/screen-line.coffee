@@ -74,11 +74,13 @@ class ScreenLine
       bufferRows: 0
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
+      lineEnding: @lineEnding
     )
     rightFragment = new ScreenLine(
       tokens: rightTokens
       startBufferColumn: @startBufferColumn + column
       ruleStack: @ruleStack
+      lineEnding: @lineEnding
     )
     [leftFragment, rightFragment]
 
