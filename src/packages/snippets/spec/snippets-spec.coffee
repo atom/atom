@@ -255,6 +255,18 @@ describe "Snippets extension", ->
         expect(console.warn).toHaveBeenCalled()
         expect(console.warn.calls.length).toBe 1
 
+    it "terminates the worker when loading completes", ->
+      jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
+      spyOn(Worker.prototype, 'terminate').andCallThrough()
+      snippets.loaded = false
+      snippets.loadAll()
+
+      waitsFor "all snippets to load", 5000, -> snippets.loaded
+
+      runs ->
+        expect(Worker.prototype.terminate).toHaveBeenCalled()
+        expect(Worker.prototype.terminate.calls.length).toBe 1
+
   describe "Snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
       bodyTree = snippets.getBodyParser().parse """

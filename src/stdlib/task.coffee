@@ -30,3 +30,6 @@ class Task
 
   postMessage: (data) ->
     @worker.postMessage(data)
+
+  terminate: ->
+    @worker.terminate()
