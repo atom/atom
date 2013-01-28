@@ -11,11 +11,15 @@ class LoadTextMatePackagesTask extends Task
 
   loadNextPackage: ->
     unless @packages.length
+      @terminate()
       rootView.trigger 'grammars-loaded'
       return
 
     @package = @packages.shift()
-    @callWorkerMethod('loadPackage', @package.name)
+    @loadPackage(@package.name)
+
+  loadPackage: (name) ->
+    @callWorkerMethod('loadPackage', name)
 
   packageLoaded: (grammars) ->
     @package.loadGrammars(grammars)
