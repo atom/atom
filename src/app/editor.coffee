@@ -1079,7 +1079,7 @@ class Editor extends View
     if invisibles and not @mini
       if invisibles.cr and screenLine.lineEnding is '\r\n'
         line.push("<span class='invisible'>#{invisibles.cr}</span>")
-      if invisibles.eol
+      if invisibles.eol and not screenLine.isSoftWrapped()
         line.push("<span class='invisible'>#{invisibles.eol}</span>")
 
     line.push('</pre>')

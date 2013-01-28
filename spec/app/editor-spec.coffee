@@ -1618,6 +1618,20 @@ describe "Editor", ->
        expect(eol).toBeTruthy()
        expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
 
+
+     describe "when wrapping is on", ->
+       it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
+         editor.setSoftWrapColumn(6)
+         editor.setText "a line that wraps"
+         editor.attachToDom()
+         config.set "editor.showInvisibles", true
+         space = editor.invisibles?.space
+         expect(space).toBeTruthy()
+         eol = editor.invisibles?.eol
+         expect(eol).toBeTruthy()
+         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+         expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
