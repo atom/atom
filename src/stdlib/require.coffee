@@ -55,9 +55,7 @@ exts =
     eval("define(function(require, exports, module) { 'use strict';" + code + "})\n//@ sourceURL=" + file)
     __defines.pop()?.call()
   coffee: (file, retry=true) ->
-    tmpPath = "/tmp/atom-compiled-scripts"
-    cacheFilePath = [tmpPath, $native.md5ForPath(file)].join("/")
-
+    cacheFilePath = getCacheFilePath(file)
     if __exists(cacheFilePath)
       compiled = __read(cacheFilePath)
       writeToCache = false
@@ -85,13 +83,15 @@ getPath = (path) ->
   parts = path.split '.'
   return path unless parts[parts.length - 1] is 'coffee'
 
-  tmpPath = "/tmp/atom-compiled-scripts"
-  cachePath = [tmpPath, $native.md5ForPath(path)].join("/")
-  if not __exists(cachePath)
+  cacheFilePath = getCacheFilePath(path)
+  unless __exists(cacheFilePath)
     {CoffeeScript} = require 'coffee-script'
     compiled = CoffeeScript.compile(__read(path), filename: path)
-    $native.write(cachePath, compiled)
-  cachePath
+    $native.write(cacheFilePath, compiled)
+  cacheFilePath
+
+getCacheFilePath = (path) ->
+  "/tmp/atom-compiled-scripts/#{$native.md5ForPath(path)}"
 
 resolve = (name, {verifyExistence}={}) ->
   verifyExistence ?= true
