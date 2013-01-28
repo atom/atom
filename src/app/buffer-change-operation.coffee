@@ -33,7 +33,7 @@ class BufferChangeOperation
     lineEndings = []
     for line, index in lines
       if _.endsWith(line, '\r')
-        lines[index] = line[0..-2]
+        lines[index] = line[...-1]
         lineEndings[index] = '\r\n'
       else
         lineEndings[index] = '\n'
