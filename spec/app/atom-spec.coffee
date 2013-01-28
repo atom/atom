@@ -56,3 +56,22 @@ describe "the `atom` global", ->
       expect(stylesheetElementForId(stylesheetPath).length).toBe 0
       atom.loadPackage("package-with-module")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 1
+
+  describe ".loadPackages()", ->
+    beforeEach ->
+      window.rootView = new RootView
+
+    it "terminates the worker when all packages have been loaded", ->
+      spyOn(Worker.prototype, 'terminate').andCallThrough()
+      eventHandler = jasmine.createSpy('eventHandler')
+      rootView.on 'grammars-loaded', eventHandler
+      disabledPackages = config.get("core.disabledPackages")
+      disabledPackages.push('textmate-package.tmbundle')
+      config.set "core.disabledPackages", disabledPackages
+      atom.loadPackages()
+
+      waitsFor "all packages to load", 5000, -> eventHandler.callCount > 0
+
+      runs ->
+        expect(Worker.prototype.terminate).toHaveBeenCalled()
+        expect(Worker.prototype.terminate.calls.length).toBe 1

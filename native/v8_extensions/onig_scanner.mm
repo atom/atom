@@ -130,11 +130,22 @@ class OnigScannerUserData : public CefBase {
 };
 
 OnigScanner::OnigScanner() : CefV8Handler() {
-  NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/onig_scanner.js"];
-  NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
-  CefRegisterExtension("v8/onig-scanner", [extensionCode UTF8String], this);
 }
 
+void OnigScanner::CreateContextBinding(CefRefPtr<CefV8Context> context) {
+  const char* methodNames[] = { "findNextMatch", "buildScanner" };
+
+  CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
+  int arrayLength = sizeof(methodNames) / sizeof(const char *);
+  for (int i = 0; i < arrayLength; i++) {
+    const char *functionName = methodNames[i];
+    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, this);
+    nativeObject->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
+  }
+
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
+  global->SetValue("$onigScanner", nativeObject, V8_PROPERTY_ATTRIBUTE_NONE);
+}
 
 bool OnigScanner::Execute(const CefString& name,
                          CefRefPtr<CefV8Value> object,

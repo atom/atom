@@ -4,21 +4,23 @@
 
 namespace v8_extensions {
 
-class Tags : public CefV8Handler {
-public:
-  Tags();
+  class Tags : public CefV8Handler {
+  public:
+    Tags();
+    void CreateContextBinding(CefRefPtr<CefV8Context> context);
+    virtual bool Execute(const CefString& name,
+                         CefRefPtr<CefV8Value> object,
+                         const CefV8ValueList& arguments,
+                         CefRefPtr<CefV8Value>& retval,
+                         CefString& exception) OVERRIDE;
 
-  virtual bool Execute(const CefString& name,
-                       CefRefPtr<CefV8Value> object,
-                       const CefV8ValueList& arguments,
-                       CefRefPtr<CefV8Value>& retval,
-                       CefString& exception) OVERRIDE;
+    // Provide the reference counting implementation for this class.
+    IMPLEMENT_REFCOUNTING(Tags);
 
-  // Provide the reference counting implementation for this class.
-  IMPLEMENT_REFCOUNTING(Tags);
-
-private:
-  CefRefPtr<CefV8Value> ParseEntry(tagEntry entry);
-};
+  private:
+    Tags(Tags const&);
+    void operator=(Tags const&);
+    CefRefPtr<CefV8Value> ParseEntry(tagEntry entry);
+  };
 
 }

@@ -1,3 +1,5 @@
+OnigRegExp = require 'onig-reg-exp'
+
 describe "OnigRegExp", ->
   describe ".search(string, index)", ->
     it "returns an array of the match and all capture groups", ->
