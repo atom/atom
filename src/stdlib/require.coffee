@@ -54,8 +54,31 @@ exts =
     code or= __read file
     eval("define(function(require, exports, module) { 'use strict';" + code + "})\n//@ sourceURL=" + file)
     __defines.pop()?.call()
-  coffee: (file) ->
-    exts.js(file, __coffeeCache(file))
+  coffee: (file, retry=true) ->
+    tmpPath = "/tmp/atom-compiled-scripts"
+    cacheFilePath = [tmpPath, $native.md5ForPath(file)].join("/")
+
+    if __exists(cacheFilePath)
+      compiled = __read(cacheFilePath)
+      writeToCache = false
+    else
+      {CoffeeScript} = require 'coffee-script'
+      compiled = CoffeeScript.compile(__read(file), filename: file)
+      writeToCache = true
+
+    try
+      evaluated = exts.js(file, compiled)
+      $native.write(cacheFilePath, compiled) if writeToCache
+      evaluated
+    catch e
+      if retry
+        # Attempt a second compile to work around mysterious CEF/CoffeeScript
+        # timing issue where the CoffeeScript compiler generates invalid
+        # JavaScript such as [object Object].
+        console.warn "Error evaluating #{file}. Trying again...", e.stack
+        exts.coffee(file, false)
+      else
+        throw e
 
 getPath = (path) ->
   path = resolve(path)
@@ -142,18 +165,6 @@ __exists = (path) ->
 
 __isFile = (path) ->
   $native.isFile path
-
-__coffeeCache = (filePath) ->
-  {CoffeeScript} = require 'coffee-script'
-  tmpPath = "/tmp/atom-compiled-scripts"
-  cacheFilePath = [tmpPath, $native.md5ForPath(filePath)].join("/")
-
-  if __exists(cacheFilePath)
-    __read(cacheFilePath)
-  else
-    compiled = CoffeeScript.compile(__read(filePath), filename: filePath)
-    $native.write(cacheFilePath, compiled)
-    compiled
 
 __read = (path) ->
   try
