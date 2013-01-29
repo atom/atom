@@ -39,6 +39,17 @@ class EditorStatsView extends ScrollView
     @rootView.on 'keyup', @track
     @rootView.on 'mousedown', @track
 
+  append: ->
+    w = @.width()
+    h = @.height()
+    [pt, pl, pb, pr] = [0,0,0,0]
+
+    d3.select(@.get(0)).append('svg')
+      .attr('width', w)
+      .attr('height', h)
+    .append('g')
+      .attr('transform', "translate(#{pl},#{pt})")
+
   track: =>
     date = new Date
     times = time date
@@ -57,6 +68,7 @@ class EditorStatsView extends ScrollView
   attach: ->
     @rootView.append @
     @focus()
+    @append()
 
   detach: =>
     super()
