@@ -26,6 +26,7 @@ class TextMateGrammar
     @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
+    @fileTypes ?= []
 
     for name, data of repository
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
