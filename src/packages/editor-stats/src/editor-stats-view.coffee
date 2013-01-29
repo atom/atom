@@ -37,7 +37,11 @@ class EditorStatsView extends ScrollView
 
   track: =>
     date = new Date
-    @eventlog[time(date)] += 1
+    times = time date
+    @eventlog[times] ||= 0
+    @eventlog[times] += 1
+
+    @eventlog.shift() if @eventlog.length > 60
     console.log @eventlog
 
   toggle: ->
