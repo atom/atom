@@ -57,6 +57,23 @@ class EditorStatsView extends ScrollView
     h = @.height()
     [pt, pl, pb, pr] = [0,0,0,0]
 
+    data = d3.entries @eventlog
+    max  = d3.max data, (d) -> d.value
+
+    x.rangeRoundBands [0, w - pl - pr], 0.1
+    y.domain([0, max]).range [h, 0]
+
+    vis = d3.select('svg g')
+
+    bars = vis.selectAll('g.bar')
+      .data(data)
+    .enter().append('g')
+      .attr('transform', (d, i) -> "translate(#{x(i)}, 0)")
+
+    bars.append('rect')
+      .attr('width', x.rangeBand())
+      .attr('height', (d, i) -> y(d.value))
+
 
   track: =>
     date = new Date
