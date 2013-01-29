@@ -25,6 +25,8 @@ class EditorStatsView extends ScrollView
   initialize: (@rootView, @eventLog = {}) ->
     super
 
+    @command 'core:cancel', @detach
+
     date = new Date()
     future = new Date(date.getTime() + 36e5)
     @eventlog[time(date)] = 0
