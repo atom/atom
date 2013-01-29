@@ -2260,3 +2260,93 @@ describe "Editor", ->
     it "copies the absolute path to the editor's file to the pasteboard", ->
       editor.trigger 'editor:copy-path'
       expect(pasteboard.read()[0]).toBe editor.getPath()
+
+  describe "when editor:move-line-up is triggered", ->
+    describe "when there is no selection", ->
+      it "moves the line where the cursor is up", ->
+        editor.setCursorBufferPosition([1,0])
+        editor.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
+      it "moves the cursor to the new row and the same column", ->
+        editor.setCursorBufferPosition([1,2])
+        editor.trigger 'editor:move-line-up'
+        expect(editor.getCursorBufferPosition()).toEqual [0,2]
+
+    describe "where there is a selection", ->
+      describe "when the selection falls inside the line", ->
+        it "maintains the selection", ->
+          editor.setSelectedBufferRange([[1, 2], [1, 5]])
+          expect(editor.getSelectedText()).toBe 'var'
+          editor.trigger 'editor:move-line-up'
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 2], [0, 5]]
+          expect(editor.getSelectedText()).toBe 'var'
+
+      describe "where there are multiple lines selected", ->
+        it "moves the selected lines up", ->
+          editor.setSelectedBufferRange([[2, 0], [3, Infinity]])
+          editor.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+          expect(buffer.lineForRow(1)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(2)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(3)).toBe '  var sort = function(items) {'
+
+        it "maintains the selection", ->
+          editor.setSelectedBufferRange([[2, 0], [3, 62]])
+          editor.trigger 'editor:move-line-up'
+          expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [2, 62]]
+
+      describe "when the last line is selected", ->
+        it "moves the selected line up", ->
+          editor.setSelectedBufferRange([[12, 0], [12, Infinity]])
+          editor.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(11)).toBe '};'
+          expect(buffer.lineForRow(12)).toBe '  return sort(Array.apply(this, arguments));'
+
+      describe "when the last two lines are selected", ->
+        it "moves the selected lines up", ->
+          editor.setSelectedBufferRange([[11, 0], [12, Infinity]])
+          editor.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(10)).toBe '  return sort(Array.apply(this, arguments));'
+          expect(buffer.lineForRow(11)).toBe '};'
+          expect(buffer.lineForRow(12)).toBe ''
+
+    describe "when the cursor is on the first line", ->
+      it "does not move the line", ->
+        editor.setCursorBufferPosition([0,0])
+        originalText = editor.getText()
+        editor.trigger 'editor:move-line-up'
+        expect(editor.getText()).toBe originalText
+
+    describe "when the cursor is on the trailing newline", ->
+      it "does not move the line", ->
+        editor.moveCursorToBottom()
+        editor.insertNewline()
+        editor.moveCursorToBottom()
+        originalText = editor.getText()
+        editor.trigger 'editor:move-line-up'
+        expect(editor.getText()).toBe originalText
+
+    describe "when the cursor is on a folded line", ->
+      it "moves all lines in the fold up and preserves the fold", ->
+        editor.setCursorBufferPosition([4, 0])
+        editor.foldCurrentRow()
+        editor.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
+        expect(buffer.lineForRow(7)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+        expect(editor.getSelectedBufferRange()).toEqual [[3, 0], [3, 0]]
+        expect(editor.isFoldedAtScreenRow(3)).toBeTruthy()
+
+    describe "when a fold is selected", ->
+      it "moves the selected lines up and preserves the fold", ->
+        editor.setCursorBufferPosition([4, 0])
+        editor.foldCurrentRow()
+        editor.setCursorBufferPosition([3, 4])
+        editor.selectDown()
+        expect(editor.isFoldedAtScreenRow(4)).toBeTruthy()
+        editor.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(2)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
+        expect(editor.getSelectedBufferRange()).toEqual [[2, 4], [3,0]]
+        expect(editor.isFoldedAtScreenRow(3)).toBeTruthy()

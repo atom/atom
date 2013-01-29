@@ -334,6 +334,39 @@ class EditSession
   toggleLineCommentsForBufferRows: (start, end) ->
     @languageMode.toggleLineCommentsForBufferRows(start, end)
 
+  moveLineUp: ->
+    selection = @getSelectedBufferRange()
+    return if selection.start.row is 0
+    lastRow = @buffer.getLastRow()
+    return if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
+
+    @transact =>
+      for row in [selection.start.row..selection.end.row]
+        screenPosition = @screenPositionForBufferPosition([row, 0])
+        isRowFolded = @isFoldedAtScreenRow(screenPosition.row)
+        if isRowFolded
+          bufferRange = @bufferRangeForScreenRange([[screenPosition.row, 0], [screenPosition.row + 1, 0]])
+          startRow = bufferRange.start.row
+          endRow = bufferRange.end.row - 1
+        else
+          startRow = row
+          endRow = row
+
+        endPosition = Point.min([endRow + 1, 0], @buffer.getEofPosition())
+        lines = @buffer.getTextInRange([[startRow, 0], endPosition])
+        if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
+          lines = "#{lines}\n"
+        @buffer.deleteRows(startRow, endRow)
+        @buffer.insert([startRow - 1, 0], lines)
+        @foldBufferRow(startRow - 1) if isRowFolded
+
+      newStartPosition = [selection.start.row - 1, selection.start.column]
+      if selection.isEmpty()
+        @setCursorBufferPosition(newStartPosition)
+      else
+        newEndPosition = [selection.end.row - 1, selection.end.column]
+        @setSelectedBufferRange([newStartPosition, newEndPosition], preserveFolds: true)
+
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
 

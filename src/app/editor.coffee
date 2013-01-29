@@ -183,6 +183,7 @@ class Editor extends View
         'editor:close-all-edit-sessions': @destroyAllEditSessions
         'editor:select-grammar': @selectGrammar
         'editor:copy-path': @copyPathToPasteboard
+        'editor:move-line-up': @moveLineUp
 
     documentation = {}
     for name, method of editorBindings
@@ -204,6 +205,7 @@ class Editor extends View
   moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
+  moveLineUp: -> @activeEditSession.moveLineUp()
   setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
