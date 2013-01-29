@@ -1,14 +1,12 @@
 $ = require 'jquery'
 RootView = require 'root-view'
-MarkdownPreview = require 'markdown-preview'
+MarkdownPreview = require 'markdown-preview/src/markdown-preview-view'
 
 describe "MarkdownPreview", ->
   [rootView, markdownPreview] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/markdown'))
-    atom.loadPackage("markdown-preview")
-    markdownPreview = MarkdownPreview.instance
 
   afterEach ->
     rootView.deactivate()
@@ -17,6 +15,7 @@ describe "MarkdownPreview", ->
     it "toggles on/off a preview for a .md file", ->
       rootView.open('file.md')
       editor = rootView.getActiveEditor()
+      markdownPreview = atom.loadPackage("markdown-preview").getInstance()
       expect(rootView.find('.markdown-preview')).not.toExist()
       spyOn(markdownPreview, 'loadHtml')
       editor.trigger('markdown-preview:toggle')
@@ -30,6 +29,7 @@ describe "MarkdownPreview", ->
     it "displays a preview for a .markdown file", ->
       rootView.open('file.markdown')
       editor = rootView.getActiveEditor()
+      markdownPreview = atom.loadPackage("markdown-preview").getInstance()
       expect(rootView.find('.markdown-preview')).not.toExist()
       spyOn(markdownPreview, 'loadHtml')
       editor.trigger('markdown-preview:toggle')
@@ -39,6 +39,7 @@ describe "MarkdownPreview", ->
     it "does not display a preview for non-markdown file", ->
       rootView.open('file.js')
       editor = rootView.getActiveEditor()
+      markdownPreview = atom.loadPackage("markdown-preview").getInstance()
       expect(rootView.find('.markdown-preview')).not.toExist()
       spyOn(markdownPreview, 'loadHtml')
       editor.trigger('markdown-preview:toggle')
@@ -49,6 +50,7 @@ describe "MarkdownPreview", ->
      it "removes markdown preview", ->
        rootView.open('file.md')
        editor = rootView.getActiveEditor()
+       markdownPreview = atom.loadPackage("markdown-preview").getInstance()
        expect(rootView.find('.markdown-preview')).not.toExist()
        spyOn(markdownPreview, 'loadHtml')
        editor.trigger('markdown-preview:toggle')
@@ -56,4 +58,18 @@ describe "MarkdownPreview", ->
        markdownPreviewView = rootView.find('.markdown-preview')?.view()
        expect(markdownPreviewView).toExist()
        markdownPreviewView.trigger('core:cancel')
+       expect(rootView.find('.markdown-preview')).not.toExist()
+
+   describe "when the editor receives focus", ->
+     it "removes the markdown preview view", ->
+       rootView.open('file.md')
+       editor = rootView.getActiveEditor()
+       markdownPreview = atom.loadPackage("markdown-preview").getInstance()
+       expect(rootView.find('.markdown-preview')).not.toExist()
+       spyOn(markdownPreview, 'loadHtml')
+       editor.trigger('markdown-preview:toggle')
+
+       markdownPreviewView = rootView.find('.markdown-preview')
+       expect(markdownPreviewView).toExist()
+       editor.focus()
        expect(rootView.find('.markdown-preview')).not.toExist()

@@ -17,9 +17,6 @@ class TreeView extends ScrollView
     else
       @instance = new TreeView(rootView)
 
-      if rootView.project.getPath() and not rootView.pathToOpenIsFile
-        @instance.attach()
-
   @deactivate: ->
     @instance.deactivate()
 
@@ -27,7 +24,8 @@ class TreeView extends ScrollView
     @instance.serialize()
 
   @content: (rootView) ->
-    @ol class: 'tree-view tool-panel', tabindex: -1, =>
+    @div class: 'tree-view-wrapper', =>
+      @ol class: 'tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
       @div class: 'tree-view-resizer', outlet: 'resizer'
 
   @deserialize: (state, rootView) ->
@@ -64,8 +62,7 @@ class TreeView extends ScrollView
         @selectEntryForPath(@selectedPath) if @selectedPath
       else
         @selectActiveFile()
-    @rootView.command 'tree-view:toggle', => @toggle()
-    @rootView.command 'tree-view:reveal-active-file', => @revealActiveFile()
+
     @rootView.on 'root-view:active-path-changed', => @selectActiveFile()
     @rootView.project.on 'path-changed', => @updateRoot()
     @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()
@@ -106,8 +103,11 @@ class TreeView extends ScrollView
     super
     @rootView.focus()
 
+  focus: ->
+    @treeViewList.focus()
+
   hasFocus: ->
-    @is(':focus')
+    @treeViewList.is(':focus')
 
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()
@@ -135,13 +135,12 @@ class TreeView extends ScrollView
 
   resizeTreeView: (e) =>
     @css(width: e.pageX)
-    @resizer.css(left: e.pageX)
 
   updateRoot: ->
     @root?.remove()
     if rootDirectory = @rootView.project.getRootDirectory()
       @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: @rootView.project)
-      @append(@root)
+      @treeViewList.append(@root)
     else
       @root = null
 
@@ -164,6 +163,7 @@ class TreeView extends ScrollView
         entry.expand()
       else
         @selectEntry(entry)
+        @scrollToEntry(entry)
 
   entryForPath: (path) ->
     fn = (bestMatchEntry, element) ->
@@ -174,7 +174,7 @@ class TreeView extends ScrollView
       else
         bestMatchEntry
 
-    @find(".entry").toArray().reduce(fn, @root)
+    @treeViewList.find(".entry").toArray().reduce(fn, @root)
 
   selectEntryForPath: (path) ->
     @selectEntry(@entryForPath(path))
@@ -201,7 +201,7 @@ class TreeView extends ScrollView
       else
         @selectEntry(selectedEntry.parents('.directory').first())
     else
-      @selectEntry(@find('.entry').last())
+      @selectEntry(@treeViewList.find('.entry').last())
 
     @scrollToEntry(@selectedEntry())
 
@@ -295,32 +295,43 @@ class TreeView extends ScrollView
     @rootView.append(dialog)
 
   selectedEntry: ->
-    @find('.selected')?.view()
+    @treeViewList.find('.selected')?.view()
 
   selectEntry: (entry) ->
     return false unless entry.get(0)
     entry = entry.view() unless entry instanceof View
     @selectedPath = entry.getPath()
-    @find('.selected').removeClass('selected')
+    @treeViewList.find('.selected').removeClass('selected')
     entry.addClass('selected')
+
+  scrollTop: (top) ->
+    if top
+      @treeViewList.scrollTop(top)
+    else
+      @treeViewList.scrollTop()
+
+  scrollBottom: (bottom) ->
+    if bottom
+      @treeViewList.scrollBottom(bottom)
+    else
+      @treeViewList.scrollBottom()
 
   scrollToEntry: (entry) ->
     displayElement = if entry instanceof DirectoryView then entry.header else entry
-
     top = @scrollTop() + displayElement.position().top
     bottom = top + displayElement.outerHeight()
-
     if bottom > @scrollBottom()
-      @scrollBottom(bottom)
+      @treeViewList.scrollBottom(bottom)
     if top < @scrollTop()
-      @scrollTop(top)
+      @treeViewList.scrollTop(top)
 
   scrollToBottom: ->
     super()
 
     @selectEntry(@root.find('.entry:last')) if @root
+    @scrollToEntry(@root.find('.entry:last')) if @root
 
   scrollToTop: ->
     super()
-
     @selectEntry(@root) if @root
+    @treeViewList.scrollTop(0)

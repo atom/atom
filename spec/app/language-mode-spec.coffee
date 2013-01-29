@@ -23,12 +23,12 @@ describe "LanguageMode", ->
       beforeEach ->
         editSession.buffer.setText("")
 
-      describe "when more than one charachter is inserted", ->
+      describe "when more than one character is inserted", ->
         it "does not insert a matching bracket", ->
           editSession.insertText("woah(")
           expect(editSession.buffer.getText()).toBe "woah("
 
-      describe "when there is a word charachter after the cursor", ->
+      describe "when there is a word character after the cursor", ->
         it "does not insert a matching bracket", ->
           editSession.buffer.setText("ab")
           editSession.setCursorBufferPosition([0, 1])
@@ -47,7 +47,7 @@ describe "LanguageMode", ->
 
           expect(editSession.buffer.getText()).toBe "())\na)b\n[)]\n1)2"
 
-      describe "when there is a non-word characher after the cursor", ->
+      describe "when there is a non-word character after the cursor", ->
         it "inserts a closing bracket after an opening bracket is inserted", ->
           editSession.buffer.setText("}")
           editSession.setCursorBufferPosition([0, 0])
@@ -145,8 +145,30 @@ describe "LanguageMode", ->
             expect(buffer.lineForRow(0)).toBe '"ok"'
             expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
 
+      describe "when there is text selected on a single line", ->
+        it "wraps the selection with brackets", ->
+          editSession.insertText 'text'
+          editSession.moveCursorToBottom()
+          editSession.selectToTop()
+          editSession.selectAll()
+          editSession.insertText '('
+          expect('(text)').toBe buffer.getText()
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [0, 5]]
+          expect(editSession.getSelection().isReversed()).toBeTruthy()
+
+      describe "when there is text selected on multiple lines", ->
+        it "wraps the selection with brackets", ->
+          editSession.insertText 'text\nabcd'
+          editSession.moveCursorToBottom()
+          editSession.selectToTop()
+          editSession.selectAll()
+          editSession.insertText '('
+          expect('(text\nabcd)').toBe buffer.getText()
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [1, 4]]
+          expect(editSession.getSelection().isReversed()).toBeTruthy()
+
       describe "when inserting a quote", ->
-        describe "when a word charachter is before the cursor", ->
+        describe "when a word character is before the cursor", ->
           it "does not automatically insert closing quote", ->
             editSession.buffer.setText("abc")
             editSession.setCursorBufferPosition([0, 3])
@@ -158,7 +180,7 @@ describe "LanguageMode", ->
             editSession.insertText '\''
             expect(buffer.lineForRow(0)).toBe "abc\'"
 
-        describe "when a non word charachter is before the cursor", ->
+        describe "when a non word character is before the cursor", ->
           it "automatically insert closing quote", ->
             editSession.buffer.setText("ab@")
             editSession.setCursorBufferPosition([0, 3])
@@ -173,6 +195,15 @@ describe "LanguageMode", ->
             editSession.insertText '"'
             expect(buffer.lineForRow(0)).toBe "\"\""
             expect(editSession.getCursorBufferPosition()).toEqual [0, 1]
+
+    describe "bracket deletion", ->
+      it "deletes the end bracket when it directly proceeds a begin bracket that is being backspaced", ->
+        buffer.setText("")
+        editSession.setCursorBufferPosition([0, 0])
+        editSession.insertText '{'
+        expect(buffer.lineForRow(0)).toBe "{}"
+        editSession.backspace()
+        expect(buffer.lineForRow(0)).toBe ""
 
   describe "javascript", ->
     beforeEach ->
@@ -277,16 +308,16 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(3)).toBe "  font-weight: bold !important;"
 
       it "uncomments lines with leading whitespace", ->
-        buffer.replaceLines(2, 2, "  /*width: 110%;*/")
+        buffer.change([[2, 0], [2, Infinity]], "  /*width: 110%;*/")
         languageMode.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe "  width: 110%;"
 
       it "uncomments lines with trailing whitespace", ->
-        buffer.replaceLines(2, 2, "/*width: 110%;*/  ")
+        buffer.change([[2, 0], [2, Infinity]], "/*width: 110%;*/  ")
         languageMode.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe "width: 110%;  "
 
       it "uncomments lines with leading and trailing whitespace", ->
-        buffer.replaceLines(2, 2, "   /*width: 110%;*/ ")
+        buffer.change([[2, 0], [2, Infinity]], "   /*width: 110%;*/ ")
         languageMode.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(2)).toBe "   width: 110%; "

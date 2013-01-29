@@ -1,6 +1,7 @@
 Range = require 'range'
 _ = require 'underscore'
 require 'underscore-extensions'
+OnigRegExp = require 'onig-reg-exp'
 
 module.exports =
 class LanguageMode
@@ -23,15 +24,19 @@ class LanguageMode
       return true if @editSession.hasMultipleCursors()
 
       cursorBufferPosition = @editSession.getCursorBufferPosition()
-      previousCharachter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
-      nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      previousCharacter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
-      hasWordAfterCursor = /\w/.test(nextCharachter)
-      hasWordBeforeCursor = /\w/.test(previousCharachter)
+      if @isOpeningBracket(text) and not @editSession.getSelection().isEmpty()
+        @wrapSelectionInBrackets(text)
+        return false
+
+      hasWordAfterCursor = /\w/.test(nextCharacter)
+      hasWordBeforeCursor = /\w/.test(previousCharacter)
 
       autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and hasWordBeforeCursor)
       skipOverExistingClosingBracket = false
-      if @isClosingBracket(text) and nextCharachter == text
+      if @isClosingBracket(text) and nextCharacter == text
         if bracketAnchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
           skipOverExistingClosingBracket = true
 
@@ -46,6 +51,35 @@ class LanguageMode
         range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
         @bracketAnchorRanges.push @editSession.addAnchorRange(range)
         false
+
+    _.adviseBefore @editSession, 'backspace', =>
+      return if @editSession.hasMultipleCursors()
+      return unless @editSession.getSelection().isEmpty()
+
+      cursorBufferPosition = @editSession.getCursorBufferPosition()
+      previousCharacter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
+      nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      if @pairedCharacters[previousCharacter] is nextCharacter
+        @editSession.transact =>
+          @editSession.moveCursorLeft()
+          @editSession.delete()
+          @editSession.delete()
+        false
+
+  wrapSelectionInBrackets: (bracket) ->
+    pair = @pairedCharacters[bracket]
+    @editSession.mutateSelectedText (selection) =>
+      return if selection.isEmpty()
+
+      range = selection.getBufferRange()
+      options = reverse: selection.isReversed()
+      selection.insertText("#{bracket}#{selection.getText()}#{pair}")
+      selectionStart = range.start.add([0, 1])
+      if range.start.row is range.end.row
+        selectionEnd = range.end.add([0, 1])
+      else
+        selectionEnd = range.end
+      selection.setBufferRange([selectionStart, selectionEnd], options)
 
   reloadGrammar: ->
     path = @buffer.getPath()
@@ -188,12 +222,14 @@ class LanguageMode
     return unless decreaseIndentRegex.test(line)
 
     currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
+    return if currentIndentLevel is 0
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    return unless precedingRow?
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentLevel = @editSession.indentationForBufferRow(precedingRow)
     desiredIndentLevel -= 1 unless increaseIndentRegex.test(precedingLine)
-    if desiredIndentLevel < currentIndentLevel
+    if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   tokenizeLine: (line, stack, firstLine) ->

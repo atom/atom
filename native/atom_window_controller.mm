@@ -41,7 +41,7 @@
   if (!background) {
     [self setShouldCascadeWindows:NO];
     [self setWindowFrameAutosaveName:@"AtomWindow"];
-    NSColor *background = [NSColor colorWithCalibratedRed:(51.0/255.0) green:(51.0/255.0f) blue:(51.0/255.0f) alpha:1.0];
+    NSColor *background = [NSColor colorWithDeviceRed:(51.0/255.0) green:(51.0/255.0f) blue:(51.0/255.0f) alpha:1.0];
     [self.window setBackgroundColor:background];
     [self showWindow:self];
   }

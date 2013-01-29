@@ -211,6 +211,10 @@ class EditSession
   autoIndentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
+  normalizeTabsInBufferRange: (bufferRange) ->
+    return unless @softTabs
+    @scanInRange /\t/, bufferRange, (match, range, {replace}) => replace(@getTabText())
+
   cutToEndOfLine: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
@@ -251,8 +255,9 @@ class EditSession
       undo: (editSession) ->
         editSession?.setSelectedBufferRanges(oldSelectedRanges)
     if fn
-      fn()
+      result = fn()
       @commit() if isNewTransaction
+      result
 
   commit: ->
     newSelectedRanges = @getSelectedBufferRanges()

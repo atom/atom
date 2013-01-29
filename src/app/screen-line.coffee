@@ -2,7 +2,7 @@ _ = require 'underscore'
 
 module.exports =
 class ScreenLine
-  constructor: ({tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold, tabLength}) ->
+  constructor: ({tokens, @lineEnding, @ruleStack, @bufferRows, @startBufferColumn, @fold, tabLength}) ->
     @tokens = @breakOutAtomicTokens(tokens, tabLength)
     @bufferRows ?= 1
     @startBufferColumn ?= 0
@@ -74,11 +74,13 @@ class ScreenLine
       bufferRows: 0
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
+      lineEnding: @lineEnding
     )
     rightFragment = new ScreenLine(
       tokens: rightTokens
       startBufferColumn: @startBufferColumn + column
       ruleStack: @ruleStack
+      lineEnding: @lineEnding
     )
     [leftFragment, rightFragment]
 

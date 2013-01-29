@@ -2,7 +2,6 @@
 # http://ringojs.org/api/v0.8/fs/
 
 _ = require 'underscore'
-$ = require 'jquery'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -143,7 +142,7 @@ module.exports =
       if extension == ""
         return path if @exists(path)
       else
-        pathWithExtension = path + "." + extension
+        pathWithExtension = path + "." + extension.replace(/^\./, "")
         return pathWithExtension if @exists(pathWithExtension)
     undefined
 

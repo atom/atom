@@ -25,17 +25,16 @@ require = (path, cb) ->
   unless file = resolve(path)
     throw new Error("Require can't find file at path '#{path}'")
 
-  parts = file.split '.'
-  ext   = parts[parts.length-1]
+  ext = file.split('.').pop()
 
   if __moduleExists file
     if not __modules.loaded[file.toLowerCase()]?
-      console.warn "Circular require: #{__filename} required #{file}"
+      console.warn "Circular require: #{window.__filename} required #{file}"
     return __modules[file]
   else if __modules.loaded[file.toLowerCase()]
     console.warn "Multiple requires (different cases) for #{file}"
 
-  [ previousFilename, window.__filename ] = [ __filename, file ]
+  [ previousFilename, window.__filename ] = [ window.__filename, file ]
   __modules[file] = {} # Fix for circular references
   __modules[file] = (exts[ext] or (file) -> __read file) file
   window.__filename = previousFilename
@@ -43,33 +42,67 @@ require = (path, cb) ->
 
 define = (cb) ->
   __defines.push ->
-    exports = __modules[__filename] or {}
+    exports = __modules[window.__filename] or {}
     module  = exports: exports
     cb.call exports, require, exports, module
-    __modules.loaded[__filename.toLowerCase()] = true
+    __modules.loaded[window.__filename.toLowerCase()] = true
     module.exports or exports
 
 exts =
   js: (file, code) ->
     code or= __read file
-    eval("define(function(require, exports, module) { 'use strict';" + code + "})\n//@ sourceURL=" + file)
+    eval("define(function(require, exports, module) { 'use strict';#{code}})\n//@ sourceURL=#{file}")
     __defines.pop()?.call()
-  coffee: (file) ->
-    exts.js(file, __coffeeCache(file))
+  coffee: (file, retry=true) ->
+    cacheFilePath = getCacheFilePath(file)
+    if __exists(cacheFilePath)
+      compiled = __read(cacheFilePath)
+      writeToCache = false
+    else
+      {CoffeeScript} = require 'coffee-script'
+      compiled = CoffeeScript.compile(__read(file), filename: file)
+      writeToCache = true
+
+    try
+      evaluated = exts.js(file, compiled)
+      $native.write(cacheFilePath, compiled) if writeToCache
+      evaluated
+    catch e
+      if retry
+        # Attempt a second compile to work around mysterious CEF/CoffeeScript
+        # timing issue where the CoffeeScript compiler generates invalid
+        # JavaScript such as [object Object].
+        console.warn "Error evaluating #{file}. Trying again...", e.stack
+        exts.coffee(file, false)
+      else
+        throw e
+
+getPath = (path) ->
+  path = resolve(path)
+  return path unless path.split('.').pop() is 'coffee'
+
+  cacheFilePath = getCacheFilePath(path)
+  unless __exists(cacheFilePath)
+    {CoffeeScript} = require 'coffee-script'
+    compiled = CoffeeScript.compile(__read(path), filename: path)
+    $native.write(cacheFilePath, compiled)
+  cacheFilePath
+
+getCacheFilePath = (path) ->
+  "/tmp/atom-compiled-scripts/#{$native.md5ForPath(path)}"
 
 resolve = (name, {verifyExistence}={}) ->
   verifyExistence ?= true
   file = name
   if /!/.test file
-    parts = file.split '!'
-    file = parts[parts.length-1]
+    file = file.split('!').pop()
 
   if file[0..1] is './'
-    prefix = __filename.split('/')[0..-2].join '/'
+    prefix = window.__filename.split('/')[0..-2].join '/'
     file = file.replace './', "#{prefix}/"
 
   if file[0..2] is '../'
-    prefix = __filename.split('/')[0..-3].join '/'
+    prefix = window.__filename.split('/')[0..-3].join '/'
     file = file.replace '../', "#{prefix}/"
 
   if file[0] isnt '/'
@@ -130,18 +163,6 @@ __exists = (path) ->
 __isFile = (path) ->
   $native.isFile path
 
-__coffeeCache = (filePath) ->
-  {CoffeeScript} = require 'coffee-script'
-  tmpPath = "/tmp/atom-compiled-scripts"
-  cacheFilePath = [tmpPath, $native.md5ForPath(filePath)].join("/")
-
-  if __exists(cacheFilePath)
-    __read(cacheFilePath)
-  else
-    compiled = CoffeeScript.compile(__read(filePath), filename: filePath)
-    $native.write(cacheFilePath, compiled)
-    compiled
-
 __read = (path) ->
   try
     $native.read(path)
@@ -157,6 +178,7 @@ this.nakedLoad = nakedLoad
 this.define  = define
 
 this.require.paths = paths
+this.require.getPath = getPath
 this.require.exts  = exts
 
 this.require.resolve   = resolve

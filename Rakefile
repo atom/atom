@@ -6,7 +6,7 @@ require 'erb'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-project" do
-  command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
+  command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -82,7 +82,8 @@ task "create-dot-atom" do
   `mkdir "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
-  `cp -r "#{dot_atom_template_path}/themes" "#{DOT_ATOM_PATH}"`
+  `cp -r "#{ATOM_SRC_PATH}/themes" "#{DOT_ATOM_PATH}"`
+  `cp "#{ATOM_SRC_PATH}/vendor/themes/IR_Black.tmTheme" "#{DOT_ATOM_PATH}/themes"`
 end
 
 desc "Clone default bundles into vendor/bundles directory"
@@ -112,7 +113,7 @@ end
 desc "Run the specs"
 task :test => ["clean", "clone-default-bundles"] do
   `pkill Atom`
-  Rake::Task["run"].invoke("--test")
+  Rake::Task["run"].invoke("--test --resource-path=#{ATOM_SRC_PATH}")
 end
 
 desc "Run the benchmarks"

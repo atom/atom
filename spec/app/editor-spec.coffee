@@ -558,7 +558,7 @@ describe "Editor", ->
         rootView.attachToDom()
         config.set("editor.fontSize", 16 * 4)
         expect(editor.gutter.css('font-size')).toBe "#{16 * 4}px"
-        expect(editor.gutter.width()).toBe(141)
+        expect(editor.gutter.width()).toBe(64)
 
       it "updates lines if there are unrendered lines", ->
         editor.attachToDom(heightInLines: 5)
@@ -744,7 +744,7 @@ describe "Editor", ->
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [12, 0])
 
         # moving changes selection
-        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -10)
+        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -15)
         expect(editor.scrollTop()).toBe 4 * editor.lineHeight
 
         # if cursor stays off screen, we keep moving / scrolling up
@@ -1604,6 +1604,49 @@ describe "Editor", ->
         expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
         expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
 
+     it "displays trailing carriage return using a visible non-empty value", ->
+       editor.setText "a line that ends with a carriage return\r\n"
+       editor.attachToDom()
+
+       expect(config.get("editor.showInvisibles")).toBeFalsy()
+       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
+
+       config.set("editor.showInvisibles", true)
+       cr = editor.invisibles?.cr
+       expect(cr).toBeTruthy()
+       eol = editor.invisibles?.eol
+       expect(eol).toBeTruthy()
+       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
+
+
+     describe "when wrapping is on", ->
+       it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
+         editor.setSoftWrapColumn(6)
+         editor.setText "a line that wraps"
+         editor.attachToDom()
+         config.set "editor.showInvisibles", true
+         space = editor.invisibles?.space
+         expect(space).toBeTruthy()
+         eol = editor.invisibles?.eol
+         expect(eol).toBeTruthy()
+         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+         expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
+
+       it "displays trailing carriage return using a visible non-empty value", ->
+         editor.setSoftWrapColumn(6)
+         editor.setText "a line that\r\n"
+         editor.attachToDom()
+         config.set "editor.showInvisibles", true
+         space = editor.invisibles?.space
+         expect(space).toBeTruthy()
+         cr = editor.invisibles?.cr
+         expect(cr).toBeTruthy()
+         eol = editor.invisibles?.eol
+         expect(eol).toBeTruthy()
+         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+         expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
+         expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
@@ -2212,3 +2255,8 @@ describe "Editor", ->
       edited = editor.replaceSelectedText(replacer)
       expect(replaced).toBe true
       expect(edited).toBe false
+
+  describe "when editor:copy-path is triggered", ->
+    it "copies the absolute path to the editor's file to the pasteboard", ->
+      editor.trigger 'editor:copy-path'
+      expect(pasteboard.read()[0]).toBe editor.getPath()

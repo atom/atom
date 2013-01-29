@@ -182,6 +182,7 @@ class Editor extends View
         'editor:close-other-edit-sessions': @destroyInactiveEditSessions
         'editor:close-all-edit-sessions': @destroyAllEditSessions
         'editor:select-grammar': @selectGrammar
+        'editor:copy-path': @copyPathToPasteboard
 
     documentation = {}
     for name, method of editorBindings
@@ -310,9 +311,10 @@ class Editor extends View
 
   setInvisibles: (@invisibles={}) ->
     _.defaults @invisibles,
-      eol: '\u00ac',
-      space: '\u2022',
+      eol: '\u00ac'
+      space: '\u2022'
       tab: '\u00bb'
+      cr: '\u00a4'
     @resetDisplay()
 
   checkoutHead: -> @getBuffer().checkoutHead()
@@ -401,6 +403,11 @@ class Editor extends View
     unless @mini
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
+
+      syntax.on 'grammars-loaded', =>
+        @reloadGrammar()
+        for session in @editSessions
+          session.reloadGrammar() unless session is @activeEditSession
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
@@ -1074,8 +1081,11 @@ class Editor extends View
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    if not @mini and invisibles?.eol
-      line.push("<span class='invisible'>#{invisibles.eol}</span>")
+    if invisibles and not @mini and not screenLine.isSoftWrapped()
+      if invisibles.cr and screenLine.lineEnding is '\r\n'
+        line.push("<span class='invisible'>#{invisibles.cr}</span>")
+      if invisibles.eol
+        line.push("<span class='invisible'>#{invisibles.eol}</span>")
 
     line.push('</pre>')
     line.join('')
@@ -1154,3 +1164,7 @@ class Editor extends View
 
     @insertText(text, select: true)
     true
+
+  copyPathToPasteboard: ->
+    path = @getPath()
+    pasteboard.write(path) if path?

@@ -16,9 +16,10 @@ describe "the `atom` global", ->
     it "requires and activates the package's main module if it exists", ->
       spyOn(rootView, 'activatePackage').andCallThrough()
       atom.loadPackage("package-with-module")
-      expect(rootView.activatePackage).toHaveBeenCalledWith('package-with-module', extension)
+      expect(rootView.activatePackage).toHaveBeenCalled()
 
     it "logs warning instead of throwing an exception if a package fails to load", ->
+      config.set("core.disabledPackages", [])
       spyOn(console, "warn")
       expect(-> atom.loadPackage("package-that-throws-an-exception")).not.toThrow()
       expect(console.warn).toHaveBeenCalled()
@@ -55,3 +56,22 @@ describe "the `atom` global", ->
       expect(stylesheetElementForId(stylesheetPath).length).toBe 0
       atom.loadPackage("package-with-module")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 1
+
+  describe ".loadPackages()", ->
+    beforeEach ->
+      spyOn(syntax, 'addGrammar')
+
+    it "terminates the worker when all packages have been loaded", ->
+      spyOn(Worker.prototype, 'terminate').andCallThrough()
+      eventHandler = jasmine.createSpy('eventHandler')
+      syntax.on 'grammars-loaded', eventHandler
+      disabledPackages = config.get("core.disabledPackages")
+      disabledPackages.push('textmate-package.tmbundle')
+      config.set "core.disabledPackages", disabledPackages
+      atom.loadPackages()
+
+      waitsFor "all packages to load", 5000, -> eventHandler.callCount > 0
+
+      runs ->
+        expect(Worker.prototype.terminate).toHaveBeenCalled()
+        expect(Worker.prototype.terminate.calls.length).toBe 1

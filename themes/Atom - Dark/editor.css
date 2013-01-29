@@ -1,0 +1,46 @@
+.editor {
+  font-family: Inconsolata, Monaco, Courier;
+}
+
+.editor.mini {
+  height: auto;
+}
+
+.editor .gutter .line-number {
+  padding-right: 1.3em;
+  min-width: 35px;
+  box-sizing: border-box;
+  text-align: right;
+  opacity: 0.6;
+}
+
+.editor .gutter .line-number.cursor-line {
+  opacity: 1;
+}
+
+.editor .gutter.drop-shadow {
+  -webkit-box-shadow: -2px 0px 10px 2px #222;
+}
+
+@-webkit-keyframes highlight {
+  from { background-color: rgba(100, 255, 100, 0.7); }
+  to { background-color: null; }
+}
+
+.editor .highlighted.selection .region {
+  -webkit-animation-name: highlight;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: 1;
+}
+
+.editor .fold {
+  background-color: #444;
+}
+
+.editor .fold.selected {
+  background-color: #244;
+}
+
+.editor .invisible {
+  opacity: 0.2;
+}
