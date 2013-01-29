@@ -1,0 +1,9 @@
+.editor-stats {
+  position: absolute;
+  height: 200px;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+  z-index: 99;
+  background: #1d1f21;
+}
