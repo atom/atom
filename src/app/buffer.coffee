@@ -115,7 +115,7 @@ class Buffer
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
   getTextInRange: (range) ->
-    range = @clipRange(Range.fromObject(range))
+    range = @clipRange(range)
     if range.start.row == range.end.row
       return @lineForRow(range.start.row)[range.start.column...range.end.column]
 
