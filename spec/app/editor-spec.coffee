@@ -2338,7 +2338,7 @@ describe "Editor", ->
         expect(editor.getSelectedBufferRange()).toEqual [[3, 0], [3, 0]]
         expect(editor.isFoldedAtScreenRow(3)).toBeTruthy()
 
-    describe "when a fold is selected", ->
+    describe "when the selection contains a folded and unfolded line", ->
       it "moves the selected lines up and preserves the fold", ->
         editor.setCursorBufferPosition([4, 0])
         editor.foldCurrentRow()
@@ -2348,5 +2348,90 @@ describe "Editor", ->
         editor.trigger 'editor:move-line-up'
         expect(buffer.lineForRow(2)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
         expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
-        expect(editor.getSelectedBufferRange()).toEqual [[2, 4], [3,0]]
+        expect(editor.getSelectedBufferRange()).toEqual [[2, 4], [3, 0]]
         expect(editor.isFoldedAtScreenRow(3)).toBeTruthy()
+
+  describe "when editor:move-line-down is triggered", ->
+    describe "when there is no selection", ->
+      it "moves the line where the cursor is down", ->
+        editor.setCursorBufferPosition([0, 0])
+        editor.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
+      it "moves the cursor to the new row and the same column", ->
+        editor.setCursorBufferPosition([0, 2])
+        editor.trigger 'editor:move-line-down'
+        expect(editor.getCursorBufferPosition()).toEqual [1, 2]
+
+    describe "when the cursor is on the last line", ->
+      it "does not move the line", ->
+        editor.moveCursorToBottom()
+        editor.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(12)).toBe '};'
+        expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 2]]
+
+    describe "when the cursor is on the second to last line", ->
+      it "moves the line down", ->
+        editor.setCursorBufferPosition([11, 0])
+        editor.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(11)).toBe '};'
+        expect(buffer.lineForRow(12)).toBe '  return sort(Array.apply(this, arguments));'
+        expect(buffer.lineForRow(13)).toBeUndefined()
+
+    describe "when the cursor is on the second to last line and the last line is empty", ->
+      it "does not move the line", ->
+        editor.moveCursorToBottom()
+        editor.insertNewline()
+        editor.setCursorBufferPosition([12, 2])
+        editor.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(12)).toBe '};'
+        expect(buffer.lineForRow(13)).toBe ''
+        expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 2]]
+
+    describe "where there is a selection", ->
+      describe "when the selection falls inside the line", ->
+        it "maintains the selection", ->
+          editor.setSelectedBufferRange([[1, 2], [1, 5]])
+          expect(editor.getSelectedText()).toBe 'var'
+          editor.trigger 'editor:move-line-down'
+          expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [2, 5]]
+          expect(editor.getSelectedText()).toBe 'var'
+
+      describe "where there are multiple lines selected", ->
+        it "moves the selected lines down", ->
+          editor.setSelectedBufferRange([[2, 0], [3, Infinity]])
+          editor.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(2)).toBe '    while(items.length > 0) {'
+          expect(buffer.lineForRow(3)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe '      current = items.shift();'
+
+        it "maintains the selection", ->
+          editor.setSelectedBufferRange([[2, 0], [3, 62]])
+          editor.trigger 'editor:move-line-down'
+          expect(editor.getSelectedBufferRange()).toEqual [[3, 0], [4, 62]]
+
+      describe "when the cursor is on a folded line", ->
+        it "moves all lines in the fold down and preserves the fold", ->
+          editor.setCursorBufferPosition([4, 0])
+          editor.foldCurrentRow()
+          editor.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(4)).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+          expect(buffer.lineForRow(5)).toBe '    while(items.length > 0) {'
+          expect(editor.getSelectedBufferRange()).toEqual [[5, 0], [5, 0]]
+          expect(editor.isFoldedAtScreenRow(5)).toBeTruthy()
+
+      describe "when the selection contains a folded and unfolded line", ->
+        it "moves the selected lines down and preserves the fold", ->
+          editor.setCursorBufferPosition([4, 0])
+          editor.foldCurrentRow()
+          editor.setCursorBufferPosition([3, 4])
+          editor.selectDown()
+          expect(editor.isFoldedAtScreenRow(4)).toBeTruthy()
+          editor.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(3)).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+          expect(buffer.lineForRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe '    while(items.length > 0) {'
+          expect(editor.getSelectedBufferRange()).toEqual [[4, 4], [5, 0]]
+          expect(editor.isFoldedAtScreenRow(5)).toBeTruthy()
