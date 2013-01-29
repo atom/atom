@@ -84,7 +84,7 @@
   content: '\f078';
   font-family: 'Octicons Regular';
   position: relative;
-  top: -5px;
+  top: 0;
   left: -5px;
   -webkit-font-smoothing: antialiased;
 }

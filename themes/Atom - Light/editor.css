@@ -4,6 +4,19 @@
 
 .editor.mini {
   height: auto;
+  line-height: 25px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(180, 180, 180, 0.3);
+  border-right: 1px solid rgba(180, 180, 180, 0.3);
+  background-color: #aaa;
+  color: #333;
+}
+
+.editor.mini .cursor {
+  background: #333;
+  width: 2px;
+  line-height: 20px;
+  margin-top: 2px;
 }
 
 .editor .gutter .line-number {

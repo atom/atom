@@ -29,6 +29,10 @@
 }
 
 .command-palette ol .event-name {
-  background: rgba(0, 0, 0, .2);
+  background: rgba(0, 0, 0, .3);
   color: #fff;
+}
+
+.command-palette ol .key-binding {
+  background: #fff;
 }
