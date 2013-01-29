@@ -20,8 +20,10 @@ self.callTaskMethod = (method, args...) ->
 # The worker's initial handler replaces itself when `start` is invoked
 self.handler =
   start: ({resourcePath, requirePath, handlerPath}) ->
+    self.resourcePath = resourcePath
     window.resourcePath = resourcePath
     importScripts(requirePath)
+    require 'config'
     self.handler = require(handlerPath)
     callTaskMethod 'started'
 
