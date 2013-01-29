@@ -58,7 +58,7 @@ class EditorStatsView extends ScrollView
     @rootView.append @
     @focus()
 
-  detach: ->
+  detach: =>
     super()
     @rootView.focus()
 
