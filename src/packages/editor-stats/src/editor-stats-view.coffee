@@ -50,6 +50,12 @@ class EditorStatsView extends ScrollView
     .append('g')
       .attr('transform', "translate(#{pl},#{pt})")
 
+  draw: ->
+    w = @.width()
+    h = @.height()
+    [pt, pl, pb, pr] = [0,0,0,0]
+
+
   track: =>
     date = new Date
     times = time date
@@ -57,7 +63,7 @@ class EditorStatsView extends ScrollView
     @eventlog[times] += 1
 
     @eventlog.shift() if @eventlog.length > 60
-    console.log @eventlog
+    @draw()
 
   toggle: ->
     if @hasParent()
