@@ -69,9 +69,8 @@ class SelectionView extends View
   needsAutoscroll: ->
     @selection.needsAutoscroll
 
-  autoscrolled: ->
-    @selection.autoscrolled()
-    @highlight()
+  clearAutoscroll: ->
+    @selection.clearAutoscroll()
 
   highlight: ->
     @unhighlight()

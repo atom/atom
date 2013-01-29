@@ -11,12 +11,12 @@ class Cursor
   goalColumn: null
   wordRegex: /(\w+)|([^\w\n]+)/g
   visible: true
-  needsAutoscroll: false
+  needsAutoscroll: null
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
     @anchor = @editSession.addAnchor(strong: true)
     @anchor.on 'moved', (e) =>
-      @needsAutoscroll = (e.autoscroll ? true) and @isLastCursor()
+      @needsAutoscroll ?= @isLastCursor()
       @trigger 'moved', e
       @editSession.trigger 'cursor-moved', e
 
@@ -29,9 +29,10 @@ class Cursor
     @editSession.removeCursor(this)
     @trigger 'destroyed'
 
-  setScreenPosition: (screenPosition, options) ->
+  setScreenPosition: (screenPosition, options={}) ->
     @goalColumn = null
     @clearSelection()
+    @needsAutoscroll = (options.autoscroll ? true) and @isLastCursor()
     @anchor.setScreenPosition(screenPosition, options)
 
   getScreenPosition: ->
@@ -40,9 +41,10 @@ class Cursor
   getScreenRow: ->
     @anchor.getScreenRow()
 
-  setBufferPosition: (bufferPosition, options) ->
+  setBufferPosition: (bufferPosition, options={}) ->
     @goalColumn = null
     @clearSelection()
+    @needsAutoscroll = options.autoscroll ? @isLastCursor()
     @anchor.setBufferPosition(bufferPosition, options)
 
   getBufferPosition: ->
@@ -59,8 +61,8 @@ class Cursor
   isLastCursor: ->
     this == @editSession.getCursor()
 
-  autoscrolled: ->
-    @needsAutoscroll = false
+  clearAutoscroll: ->
+    @needsAutoscroll = null
 
   clearSelection: ->
     if @selection

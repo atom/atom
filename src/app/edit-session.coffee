@@ -470,8 +470,8 @@ class EditSession
     _.any @getSelections(), (selection) ->
       selection.intersectsBufferRange(bufferRange)
 
-  setCursorScreenPosition: (position) ->
-    @moveCursors (cursor) -> cursor.setScreenPosition(position)
+  setCursorScreenPosition: (position, options) ->
+    @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
   getCursorScreenPosition: ->
     @getCursor().getScreenPosition()

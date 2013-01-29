@@ -55,8 +55,8 @@ class CursorView extends View
   needsAutoscroll: ->
     @cursor.needsAutoscroll
 
-  autoscrolled: ->
-    @cursor.autoscrolled()
+  clearAutoscroll: ->
+    @cursor.clearAutoscroll()
 
   getPixelPosition: ->
     @editor.pixelPositionForScreenPosition(@getScreenPosition())

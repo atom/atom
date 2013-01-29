@@ -8,6 +8,7 @@ class Selection
   anchor: null
   wordwise: false
   initialScreenRange: null
+  needsAutoscroll: null
 
   constructor: ({@cursor, @editSession}) ->
     @cursor.selection = this
@@ -42,8 +43,8 @@ class Selection
   isSingleScreenLine: ->
     @getScreenRange().isSingleLine()
 
-  autoscrolled: ->
-    @needsAutoscroll = false
+  clearAutoscroll: ->
+    @needsAutoscroll = null
 
   getScreenRange: ->
     if @anchor

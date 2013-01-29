@@ -204,7 +204,7 @@ class Editor extends View
   moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
-  setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
+  setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
@@ -874,13 +874,16 @@ class Editor extends View
       do (cursorView) -> cursorView.resetBlinking()
 
   autoscroll: (options={}) ->
-    for cursorView in @getCursorViews() when cursorView.needsAutoscroll()
-      @scrollToPixelPosition(cursorView.getPixelPosition()) unless options.suppressAutoScroll
-      cursorView.autoscrolled()
+    for cursorView in @getCursorViews()
+      if !options.suppressAutoScroll and cursorView.needsAutoscroll()
+        @scrollToPixelPosition(cursorView.getPixelPosition())
+      cursorView.clearAutoscroll()
 
-    for selectionView in @getSelectionViews() when selectionView.needsAutoscroll()
-      @scrollToPixelPosition(selectionView.getCenterPixelPosition(), center: true)
-      selectionView.autoscrolled()
+    for selectionView in @getSelectionViews()
+      if !options.suppressAutoScroll and selectionView.needsAutoscroll()
+        @scrollToPixelPosition(selectionView.getCenterPixelPosition(), center: true)
+        selectionView.highlight()
+      selectionView.clearAutoscroll()
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()

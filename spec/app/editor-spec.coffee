@@ -943,7 +943,7 @@ describe "Editor", ->
         expect(editor.scrollTop()).toBe 0
         expect(editor.scrollView.scrollTop()).toBe 0
 
-        # does auto-scroll when the selection is cleared
+        # does autoscroll when the selection is cleared
         editor.moveCursorDown()
         expect(editor.scrollTop()).toBeGreaterThan(0)
 
@@ -1006,8 +1006,8 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(cursorView).toBeVisible()
 
-      describe "auto-scrolling", ->
-        it "only auto-scrolls when the last cursor is moved", ->
+      describe "autoscrolling", ->
+        it "only autoscrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])
           editor.addCursorAtBufferPosition([6,50])
           [cursor1, cursor2] = editor.getCursors()
@@ -1017,6 +1017,17 @@ describe "Editor", ->
           expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
 
           cursor2.setScreenPosition([11, 11])
+          expect(editor.scrollToPixelPosition).toHaveBeenCalled()
+
+        it "does not autoscroll if the 'autoscroll' option is false", ->
+          editor.setCursorBufferPosition([11,0])
+
+          spyOn(editor, 'scrollToPixelPosition')
+          editor.setCursorScreenPosition([10, 10], autoscroll: false)
+          expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
+
+          # autoscrolls on a subsequent change, however
+          buffer.insert([9, 0], '\n\n')
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
 
         describe "when the last cursor exceeds the upper or lower scroll margins", ->

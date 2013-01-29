@@ -74,12 +74,11 @@ class Anchor
         oldBufferPosition: oldBufferPosition
         newBufferPosition: @bufferPosition
         bufferChange: options.bufferChange
-        autoscroll: options.autoscroll
 
   refreshScreenPosition: (options={}) ->
     return unless @editSession
     screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
-    @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false, autoscroll: options.autoscroll)
+    @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
 
   destroy: ->
     return if @destroyed
