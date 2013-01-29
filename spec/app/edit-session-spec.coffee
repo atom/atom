@@ -16,7 +16,7 @@ describe "EditSession", ->
   afterEach ->
     fixturesProject.destroy()
 
-  describe "cursor", ->
+  fdescribe "cursor", ->
     describe ".getCursor()", ->
       it "returns the most recently created cursor", ->
         editSession.addCursorAtScreenPosition([1, 0])
@@ -276,17 +276,17 @@ describe "EditSession", ->
         editSession.moveCursorToBeginningOfWord()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 4]
-        expect(cursor2.getBufferPosition()).toEqual [1, 10]
+        expect(cursor2.getBufferPosition()).toEqual [1, 11]
         expect(cursor3.getBufferPosition()).toEqual [2, 39]
 
       it "does not fail at position [0, 0]", ->
         editSession.setCursorBufferPosition([0, 0])
         editSession.moveCursorToBeginningOfWord()
 
-      it "works when the preceding line is blank", ->
-        editSession.setCursorBufferPosition([10, 0])
+      it "works when the previous line is blank", ->
+        editSession.setCursorBufferPosition([11, 0])
         editSession.moveCursorToBeginningOfWord()
-        expect(editSession.getCursorBufferPosition()).toEqual [9, 0]
+        expect(editSession.getCursorBufferPosition()).toEqual [10, 0]
 
     describe ".moveCursorToEndOfWord()", ->
       it "moves the cursor to the end of the word", ->

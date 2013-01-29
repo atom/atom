@@ -20,6 +20,7 @@ class Editor extends View
     autoIndent: true
     autoIndentOnPaste: false
     wordRegex: /(\w+)|([^\w\n]+)/g
+    wordSeparators: "./\()\"’-:,.;<>~!@#$%^&*|+=[]{}`~?"
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>

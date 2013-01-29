@@ -149,10 +149,14 @@ class Cursor
     previousLinesRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = currentBufferPosition
-    @editSession.backwardsScanInRange (options.wordRegex ? config.get("editor.wordRegex")), previousLinesRange, (match, matchRange, { stop }) =>
+
+    wordSeparators = config.get("editor.wordSeparators")
+    wordSeparatorsRegex = new RegExp("^[\t ]*\n|[^\\s#{_.escapeRegExp(wordSeparators)}]+|[#{_.escapeRegExp(wordSeparators)}]+", "m")
+    @editSession.backwardsScanInRange (options.wordRegex ? wordSeparatorsRegex), previousLinesRange, (match, matchRange, { stop }) =>
       if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = matchRange.start
       stop()
+
     beginningOfWordPosition
 
   getEndOfCurrentWordBufferPosition: (options = {}) ->
