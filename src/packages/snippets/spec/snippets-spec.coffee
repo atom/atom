@@ -47,14 +47,6 @@ describe "Snippets extension", ->
 
             """
 
-          "tab stop placeholders":
-            prefix: "t4"
-            body: """
-              go here ${1:first
-              think a while}, and then here ${2:second}
-
-            """
-
           "nested tab stops":
             prefix: "t5"
             body: '${1:"${2:key}"}: ${3:value}'
@@ -127,16 +119,6 @@ describe "Snippets extension", ->
           editor.trigger keydownEvent('tab', target: editor[0])
           expect(buffer.lineForRow(2)).toBe "go here next:(abc) and finally go here:(  )"
           expect(editor.activeEditSession.getAnchors().length).toBe anchorCountBefore
-
-        describe "when the tab stops have placeholder text", ->
-          it "auto-fills the placeholder text and highlights it when navigating to that tab stop", ->
-            editor.insertText 't4'
-            editor.trigger 'snippets:expand'
-            expect(buffer.lineForRow(0)).toBe 'go here first'
-            expect(buffer.lineForRow(1)).toBe 'think a while, and then here second'
-            expect(editor.getSelectedBufferRange()).toEqual [[0, 8], [1, 13]]
-            editor.trigger keydownEvent('tab', target: editor[0])
-            expect(editor.getSelectedBufferRange()).toEqual [[1, 29], [1, 35]]
 
         describe "when tab stops are nested", ->
           it "destroys the inner tab stop if the outer tab stop is modified", ->
@@ -305,7 +287,7 @@ describe "Snippets extension", ->
         expect(Worker.prototype.terminate).toHaveBeenCalled()
         expect(Worker.prototype.terminate.calls.length).toBe 1
 
-  describe "Snippet body parser", ->
+  describe "snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
       bodyTree = snippets.getBodyParser().parse """
         the quick brown $1fox ${2:jumped ${3:over}
@@ -327,4 +309,17 @@ describe "Snippets extension", ->
         "the "
         { index: 4, content: ["lazy"] },
         " dog"
+      ]
+
+    it "removes interpolated variables in placeholder text (we don't currently support it)", ->
+      bodyTree = snippets.getBodyParser().parse """
+        module ${1:ActiveRecord::${TM_FILENAME/(?:\\A|_)([A-Za-z0-9]+)(?:\\.rb)?/(?2::\\u$1)/g}}
+      """
+
+      expect(bodyTree).toEqual [
+        "module ",
+        {
+          "index": 1,
+          "content": ["ActiveRecord::", ""]
+        }
       ]
