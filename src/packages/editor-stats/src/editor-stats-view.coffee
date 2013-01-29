@@ -12,6 +12,8 @@ class EditorStatsView extends ScrollView
     "#{hour}:#{minute}"
 
   d3 = require 'd3.v3'
+  x  = d3.scale.ordinal().domain d3.range(60)
+  y  = d3.scale.linear()
 
   @activate: (rootView, state) ->
     @instance = new EditorStatsView(rootView, state?.eventLog)
