@@ -11,6 +11,8 @@ class EditorStatsView extends ScrollView
     minute = date.getMinutes()
     "#{hour}:#{minute}"
 
+  d3 = require 'd3.v3'
+
   @activate: (rootView, state) ->
     @instance = new EditorStatsView(rootView, state?.eventLog)
 
