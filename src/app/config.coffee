@@ -1,10 +1,6 @@
 fs = require 'fs'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
-{$$} = require 'space-pen'
-jQuery = require 'jquery'
-Specificity = require 'specificity'
-Theme = require 'theme'
 
 configDirPath = fs.absolute("~/.atom")
 configJsonPath = fs.join(configDirPath, "config.json")
