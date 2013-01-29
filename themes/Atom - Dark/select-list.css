@@ -1,6 +1,6 @@
 .select-list {
-  background-color: #484848;
-  border: 1px solid #444;
+  background-color: #303030;
+  border: 1px solid #404040;
   color: #d2d2d2;
   box-shadow: 0 0 10px #000;
   border-bottom-left-radius: 3px;
@@ -15,7 +15,7 @@
 
 .select-list ol li {
   background-color: #292929;
-  border-bottom: 1px solid #212121;
+  border-bottom: 1px solid #1e1e1e;
   padding: 5px;
 }
 
