@@ -312,7 +312,7 @@ class Editor extends View
   setInvisibles: (@invisibles={}) ->
     _.defaults @invisibles,
       eol: '\u00ac'
-      space: '\u2022'
+      space: '\u00b7'
       tab: '\u00bb'
       cr: '\u00a4'
     @resetDisplay()
