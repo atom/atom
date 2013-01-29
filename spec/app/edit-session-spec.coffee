@@ -16,7 +16,7 @@ describe "EditSession", ->
   afterEach ->
     fixturesProject.destroy()
 
-  fdescribe "cursor", ->
+  describe "cursor", ->
     describe ".getCursor()", ->
       it "returns the most recently created cursor", ->
         editSession.addCursorAtScreenPosition([1, 0])
@@ -266,7 +266,7 @@ describe "EditSession", ->
           editSession.moveCursorToFirstCharacterOfLine()
           expect(editSession.getCursorBufferPosition()).toEqual [10, 0]
 
-    describe ".moveCursorToBeginningOfWord()", ->
+    fdescribe ".moveCursorToBeginningOfWord()", ->
       it "moves the cursor to the beginning of the word", ->
         editSession.setCursorBufferPosition [0, 8]
         editSession.addCursorAtBufferPosition [1, 12]
@@ -283,12 +283,17 @@ describe "EditSession", ->
         editSession.setCursorBufferPosition([0, 0])
         editSession.moveCursorToBeginningOfWord()
 
-      it "works when the previous line is blank", ->
+      it "treats lines with only whitespace as a word", ->
         editSession.setCursorBufferPosition([11, 0])
         editSession.moveCursorToBeginningOfWord()
         expect(editSession.getCursorBufferPosition()).toEqual [10, 0]
 
-    describe ".moveCursorToEndOfWord()", ->
+      it "works when the current line is blank", ->
+        editSession.setCursorBufferPosition([10, 0])
+        editSession.moveCursorToBeginningOfWord()
+        expect(editSession.getCursorBufferPosition()).toEqual [9, 2]
+
+    fdescribe ".moveCursorToEndOfWord()", ->
       it "moves the cursor to the end of the word", ->
         editSession.setCursorBufferPosition [0, 6]
         editSession.addCursorAtBufferPosition [1, 10]
@@ -298,14 +303,25 @@ describe "EditSession", ->
         editSession.moveCursorToEndOfWord()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 13]
-        expect(cursor2.getBufferPosition()).toEqual [1, 13]
-        expect(cursor3.getBufferPosition()).toEqual [3, 4]
+        expect(cursor2.getBufferPosition()).toEqual [1, 12]
+        expect(cursor3.getBufferPosition()).toEqual [3, 7]
 
       it "does not blow up when there is no next word", ->
         editSession.setCursorBufferPosition [Infinity, Infinity]
         endPosition = editSession.getCursorBufferPosition()
         editSession.moveCursorToEndOfWord()
         expect(editSession.getCursorBufferPosition()).toEqual endPosition
+
+      it "treats lines with only whitespace as a word", ->
+        editSession.setCursorBufferPosition([9, 4])
+        editSession.moveCursorToEndOfWord()
+        expect(editSession.getCursorBufferPosition()).toEqual [10, 0]
+
+      it "works when the current line is blank", ->
+        editSession.setCursorBufferPosition([10, 0])
+        editSession.moveCursorToEndOfWord()
+        expect(editSession.getCursorBufferPosition()).toEqual [11, 8]
+
 
     describe ".getCurrentParagraphBufferRange()", ->
       it "returns the buffer range of the current paragraph, delimited by blank lines or the beginning / end of the file", ->
