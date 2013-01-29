@@ -115,7 +115,7 @@ class Buffer
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
   getTextInRange: (range) ->
-    range = Range.fromObject(range)
+    range = @clipRange(Range.fromObject(range))
     if range.start.row == range.end.row
       return @lineForRow(range.start.row)[range.start.column...range.end.column]
 
@@ -219,6 +219,10 @@ class Buffer
     column = Math.min(@lineLengthForRow(row), column)
 
     new Point(row, column)
+
+  clipRange: (range) ->
+    range = Range.fromObject(range)
+    new Range(@clipPosition(range.start), @clipPosition(range.end))
 
   prefixAndSuffixForRange: (range) ->
     prefix: @lines[range.start.row][0...range.start.column]
