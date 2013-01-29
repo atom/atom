@@ -5,7 +5,7 @@ _ = require 'underscore'
 
 module.exports =
 class EditorStatsView extends ScrollView
-  hours = 2
+  hours = 6
 
   time = (date) ->
     date.setTime(date.getTime() + 6e4)
@@ -63,7 +63,7 @@ class EditorStatsView extends ScrollView
     bars = vis.selectAll('rect.bar')
       .data(data)
     .enter().append('rect')
-      .attr('x', (d, i) -> console.log x(0); x(i))
+      .attr('x', (d, i) -> x i)
       .attr('y', (d) -> y d.value)
       .attr('width', x.rangeBand())
       .attr('class', 'bar')
@@ -76,7 +76,7 @@ class EditorStatsView extends ScrollView
 
       bars.data(newdata).transition()
         .attr('height', (d, i) ->  h - y(d.value))
-        .attr('y', (d, i) -> y(d.value))
+        .attr('y', (d, i) -> y d.value)
 
     setInterval update, 5000
 
