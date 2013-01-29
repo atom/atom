@@ -117,7 +117,7 @@ class Buffer
   getTextInRange: (range) ->
     range = Range.fromObject(range)
     if range.start.row == range.end.row
-      return @lines[range.start.row][range.start.column...range.end.column]
+      return @lineForRow(range.start.row)[range.start.column...range.end.column]
 
     multipleLines = []
     multipleLines.push @lineForRow(range.start.row)[range.start.column..] # first line
