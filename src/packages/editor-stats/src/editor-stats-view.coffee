@@ -38,19 +38,8 @@ class EditorStatsView extends ScrollView
     while date <= future
       @eventlog[time(date)] = 0
 
-    @rootView.on 'keyup', @track
-    @rootView.on 'mousedown', @track
-
-  append: ->
-    w = @.width()
-    h = @.height()
-    [pt, pl, pb, pr] = [0,0,0,0]
-
-    d3.select(@.get(0)).append('svg')
-      .attr('width', w)
-      .attr('height', h)
-    .append('g')
-      .attr('transform', "translate(#{pl},#{pt})")
+    @rootView.on 'keydown', @track
+    @rootView.on 'mouseup', @track
 
   draw: ->
     w = @.width()
@@ -63,17 +52,32 @@ class EditorStatsView extends ScrollView
     x.rangeRoundBands [0, w - pl - pr], 0.1
     y.domain([0, max]).range [h, 0]
 
-    vis = d3.select('svg g')
+    vis = d3.select(@.get(0)).append('svg')
+      .attr('width', w)
+      .attr('height', h)
+    .append('g')
+      .attr('transform', "translate(#{pl},#{pt})")
 
-    bars = vis.selectAll('g.bar')
+    bars = vis.selectAll('rect.bar')
       .data(data)
-    .enter().append('g')
-      .attr('transform', (d, i) -> "translate(#{x(i)}, 0)")
-
-    bars.append('rect')
+    .enter().append('rect')
+      .attr('x', (d, i) => x i)
+      .attr('y', (d) -> y d.value)
+      .attr('height', (d) -> h - y(d.value))
       .attr('width', x.rangeBand())
-      .attr('height', (d, i) -> y(d.value))
 
+    update = =>
+      newdata = d3.entries @eventlog
+      max  = d3.max newdata, (d) -> d.value
+
+      x.rangeRoundBands [0, w - pl - pr], 0.1
+      y.domain([0, max]).range [h, 0]
+
+      bars.data(newdata).transition()
+        .attr('height', (d, i) ->  h - y(d.value))
+        .attr('y', (d, i) -> y(d.value))
+
+    setInterval update, 5000
 
   track: =>
     date = new Date
@@ -81,8 +85,7 @@ class EditorStatsView extends ScrollView
     @eventlog[times] ||= 0
     @eventlog[times] += 1
 
-    @eventlog.shift() if @eventlog.length > 60
-    @draw()
+    @eventlog.shift() if @eventlog.length > 59
 
   toggle: ->
     if @hasParent()
@@ -93,7 +96,7 @@ class EditorStatsView extends ScrollView
   attach: ->
     @rootView.append @
     @focus()
-    @append()
+    @draw()
 
   detach: =>
     super()
