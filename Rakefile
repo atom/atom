@@ -113,7 +113,7 @@ end
 desc "Run the specs"
 task :test => ["clean", "clone-default-bundles"] do
   `pkill Atom`
-  Rake::Task["run"].invoke("--test")
+  Rake::Task["run"].invoke("--test --resource-path=#{ATOM_SRC_PATH}")
 end
 
 desc "Run the benchmarks"
