@@ -15,8 +15,9 @@ class MarkdownPreviewView extends ScrollView
   initialize: (@rootView) ->
     super
 
+    @editor = @rootView.getActiveEditor()
+    @subscribe @editor, 'focus', => @detach() unless @detaching
     @command 'core:cancel', => @detach() unless @detaching
-    @on 'focusout', => @detach() unless @detaching
 
   toggle: ->
     if @hasParent()
@@ -38,10 +39,10 @@ class MarkdownPreviewView extends ScrollView
     @detaching = false
 
   getActivePath: ->
-    @rootView.getActiveEditor()?.getPath()
+    @editor.getPath()
 
   getActiveText: ->
-    @rootView.getActiveEditor()?.getText()
+    @editor.getText()
 
   getErrorHtml: (error) ->
     $$$ ->
