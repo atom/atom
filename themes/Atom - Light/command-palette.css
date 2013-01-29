@@ -32,3 +32,7 @@
   background: rgba(0, 0, 0, .3);
   color: #fff;
 }
+
+.command-palette ol .key-binding {
+  background: #fff;
+}
