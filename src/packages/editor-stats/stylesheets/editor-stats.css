@@ -1,14 +1,27 @@
 .editor-stats {
-  position: absolute;
   height: 50px;
   width: 100%;
-  bottom: 0;
-  left: 0;
-  z-index: 99;
   background: #1d1f21;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .editor-stats rect.bar {
-  fill: rgba(255, 255, 255, 0.1);
+  fill: rgba(255, 255, 255, 0.2);
+  shape-rendering: crispedges;
+}
+
+.editor-stats text {
+  font-size: 10px;
+  fill: rgba(255, 255, 255, 0.2);
+}
+
+.editor-stats line {
+  stroke: #ccc;
+  stroke-opacity: 0.05;
+  stroke-width: 1px;
+  shape-rendering: crispedges;
+}
+
+.editor-stats path.domain {
+  fill: none;
 }
