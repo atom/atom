@@ -275,7 +275,7 @@ class Buffer
   getAnchorPoints: ->
     _.values(@validAnchorPointsById)
 
-  addAnchorPoint: (position, options) ->
+  createAnchorPoint: (position, options) ->
     id = @nextAnchorPointId++
     params = _.extend({buffer: this, id, position}, options)
     @validAnchorPointsById[id] = new AnchorPoint(params)

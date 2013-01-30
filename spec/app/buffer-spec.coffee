@@ -669,9 +669,9 @@ describe 'Buffer', ->
   fdescribe "anchor points", ->
     [anchor1Id, anchor2Id, anchor3Id] = []
     beforeEach ->
-      anchor1Id = buffer.addAnchorPoint([4, 23])
-      anchor2Id = buffer.addAnchorPoint([4, 23], ignoreSameLocationInserts: true)
-      anchor3Id = buffer.addAnchorPoint([4, 23], surviveSurroundingChanges: true)
+      anchor1Id = buffer.createAnchorPoint([4, 23])
+      anchor2Id = buffer.createAnchorPoint([4, 23], ignoreSameLocationInserts: true)
+      anchor3Id = buffer.createAnchorPoint([4, 23], surviveSurroundingChanges: true)
 
     describe "when the buffer changes due to a new operation", ->
       describe "when the change precedes the anchor point", ->
@@ -728,11 +728,11 @@ describe 'Buffer', ->
       it "restores invalidated anchor points when undoing/redoing in the other direction", ->
         buffer.change([[4, 21], [4, 24]], "foo")
         expect(buffer.getAnchorPoint(anchor1Id)).toBeUndefined()
-        anchor4Id = buffer.addAnchorPoint([4, 23])
+        anchor4Id = buffer.createAnchorPoint([4, 23])
         buffer.undo()
         expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
         expect(buffer.getAnchorPoint(anchor4Id)).toBeUndefined()
-        anchor5Id = buffer.addAnchorPoint([4, 23])
+        anchor5Id = buffer.createAnchorPoint([4, 23])
         buffer.redo()
         expect(buffer.getAnchorPoint(anchor4Id)).toEqual [4, 23]
         expect(buffer.getAnchorPoint(anchor5Id)).toBeUndefined()
