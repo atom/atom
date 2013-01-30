@@ -119,6 +119,7 @@ class EditorStatsView extends ScrollView
 
   detach: =>
     super()
+    @.remove()
     @rootView.focus()
 
   serialize: ->

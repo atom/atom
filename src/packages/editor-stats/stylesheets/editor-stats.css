@@ -10,6 +10,10 @@
   shape-rendering: crispedges;
 }
 
+.editor-stats rect.bar.max {
+  fill: rgba(0, 163, 255, 1);
+}
+
 .editor-stats text {
   font-size: 10px;
   fill: rgba(255, 255, 255, 0.2);
