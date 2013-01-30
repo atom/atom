@@ -155,16 +155,16 @@ class Cursor
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
     previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
-    previousLinesRange = [[previousNonBlankRow, 0], currentBufferPosition]
+    range = [[previousNonBlankRow, 0], currentBufferPosition]
 
-    beginningOfWordPosition = currentBufferPosition
-
-    @editSession.backwardsScanInRange (options.wordRegex ? @wordRegExp()), previousLinesRange, (match, matchRange, { stop }) =>
+    beginningOfWordPosition = null
+    @editSession.backwardsScanInRange (options.wordRegex ? @wordRegExp()), range, (match, matchRange, { stop }) =>
       if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = matchRange.start
-      stop() unless beginningOfWordPosition.isEqual(currentBufferPosition)
+      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
 
-    beginningOfWordPosition
+    beginningOfWordPosition or currentBufferPosition
 
   getEndOfCurrentWordBufferPosition: (options = {}) ->
     allowNext = options.allowNext ? true
@@ -172,14 +172,13 @@ class Cursor
     range = [currentBufferPosition, @editSession.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInRange (options.wordRegex ? @wordRegExp()),
-    range, (match, matchRange, { stop }) =>
+    @editSession.scanInRange (options.wordRegex ? @wordRegExp()), range, (match, matchRange, { stop }) =>
       endOfWordPosition = matchRange.end
-      return if endOfWordPosition.isEqual(currentBufferPosition)
-
-      if not allowNext and matchRange.start.isGreaterThan(currentBufferPosition)
+      if matchRange.start.isGreaterThan(currentBufferPosition) and not allowNext
         endOfWordPosition = currentBufferPosition
-      stop()
+      if not endOfWordPosition.isEqual(currentBufferPosition)
+        stop()
+
     endOfWordPosition or currentBufferPosition
 
   getCurrentWordBufferRange: (options={}) ->
