@@ -19,6 +19,7 @@ class Editor extends View
     autosave: false
     autoIndent: true
     autoIndentOnPaste: false
+    nonWordCharacters: "./\\()\"’-_:,.;<>~!@#$%^&*|+=[]{}`~?"
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>

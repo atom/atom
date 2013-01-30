@@ -96,7 +96,10 @@ class Selection
     @screenRangeChanged()
 
   selectWord: ->
-    @setBufferRange(@cursor.getCurrentWordBufferRange())
+    options = {}
+    options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
+
+    @setBufferRange(@cursor.getCurrentWordBufferRange(options))
     @wordwise = true
     @initialScreenRange = @getScreenRange()
 
