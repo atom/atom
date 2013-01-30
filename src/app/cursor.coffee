@@ -58,6 +58,11 @@ class Cursor
   isLastCursor: ->
     this == @editSession.getCursor()
 
+  isSurroundedByWhitespace: ->
+    {row, column} = @getBufferPosition()
+    range = [[row, column + 1], [row, Math.max(0, column - 1)]]
+    /^\s+$/.test @editSession.getTextInBufferRange(range)
+
   autoscrolled: ->
     @needsAutoscroll = false
 
