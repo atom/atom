@@ -3,24 +3,27 @@ Point = require 'point'
 
 module.exports =
 class AnchorPoint
-  bufferPosition: null
-  screenPosition: null
+  position: null
   ignoreSameLocationInserts: false
   surviveSurroundingChanges: false
 
-  constructor: ({@id, @editSession, bufferPosition, @ignoreSameLocationInserts, @surviveSurroundingChanges}) ->
-    @setBufferPosition(bufferPosition)
+  constructor: ({@id, @buffer, position, @ignoreSameLocationInserts, @surviveSurroundingChanges}) ->
+    @setPosition(position)
+
+  tryToInvalidate: (oldRange) ->
+    if oldRange.containsPoint(@getPosition(), exclusive: true)
+      position = @getPosition()
+      if @surviveSurroundingChanges
+        @setPosition(oldRange.start)
+      else
+        @invalidate()
+      [@id, position]
 
   handleBufferChange: (e) ->
     { oldRange, newRange } = e
-    position = @getBufferPosition()
+    position = @getPosition()
 
-    if oldRange.containsPoint(position, exclusive: true)
-      if @surviveSurroundingChanges
-        @setBufferPosition(oldRange.start)
-      else
-        @invalidate()
-      return
+    return if oldRange.containsPoint(position, exclusive: true)
     return if @ignoreSameLocationInserts and position.isEqual(oldRange.start)
     return if position.isLessThan(oldRange.end)
 
@@ -32,48 +35,16 @@ class AnchorPoint
       newColumn = position.column
       newRow += position.row - oldRange.end.row
 
-    @setBufferPosition([newRow, newColumn])
+    @setPosition([newRow, newColumn])
 
-  setBufferPosition: (position, options={}) ->
-    @bufferPosition = Point.fromObject(position)
+  setPosition: (position, options={}) ->
+    @position = Point.fromObject(position)
     clip = options.clip ? true
-    @bufferPosition = @editSession.clipBufferPosition(@bufferPosition) if clip
-    @refreshScreenPosition(options)
+    @position = @buffer.clipPosition(@position) if clip
 
-  getBufferPosition: ->
-    @bufferPosition
+  getPosition: ->
+    @position
 
-  setScreenPosition: (position, options={}) ->
-    oldScreenPosition = @screenPosition
-    oldBufferPosition = @bufferPosition
-    @screenPosition = Point.fromObject(position)
-    clip = options.clip ? true
-    assignBufferPosition = options.assignBufferPosition ? true
-
-    @screenPosition = @editSession.clipScreenPosition(@screenPosition, options) if clip
-    @bufferPosition = @editSession.bufferPositionForScreenPosition(@screenPosition, options) if assignBufferPosition
-
-    Object.freeze @screenPosition
-    Object.freeze @bufferPosition
-
-#     unless @screenPosition.isEqual(oldScreenPosition)
-#       @trigger 'moved',
-#         oldScreenPosition: oldScreenPosition
-#         newScreenPosition: @screenPosition
-#         oldBufferPosition: oldBufferPosition
-#         newBufferPosition: @bufferPosition
-#         bufferChange: options.bufferChange
-
-  getScreenPosition: ->
-    @screenPosition
-
-  getScreenRow: ->
-    @screenPosition.row
-
-  refreshScreenPosition: (options={}) ->
-    return unless @editSession
-    screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
-    @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
-
-  invalidate: ->
-    @editSession.removeAnchorPoint(@id)
+  invalidate: (preserve) ->
+    delete @buffer.validAnchorPointsById[@id]
+    @buffer.invalidAnchorPointsById[@id] = this

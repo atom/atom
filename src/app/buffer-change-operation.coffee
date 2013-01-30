@@ -8,25 +8,35 @@ class BufferChangeOperation
   oldText: null
   newRange: null
   newText: null
+  anchorPointsToRestoreOnUndo: null
+  anchorPointsToRestoreOnRedo: null
 
   constructor: ({@buffer, @oldRange, @newText, @options}) ->
     @options ?= {}
 
+
+
   do: ->
     @oldText = @buffer.getTextInRange(@oldRange)
     @newRange = @calculateNewRange(@oldRange, @newText)
+    @anchorPointsToRestoreOnUndo = @invalidateAnchorPoints(@oldRange)
     @changeBuffer
       oldRange: @oldRange
       newRange: @newRange
       oldText: @oldText
       newText: @newText
 
+  redo: ->
+    @restoreAnchorPoints(@anchorPointsToRestoreOnRedo)
+
   undo: ->
+    @anchorPointsToRestoreOnRedo = @invalidateAnchorPoints(@newRange)
     @changeBuffer
       oldRange: @newRange
       newRange: @oldRange
       oldText: @newText
       newText: @oldText
+    @restoreAnchorPoints(@anchorPointsToRestoreOnUndo)
 
   splitLines: (text) ->
     lines = text.split('\n')
@@ -39,9 +49,18 @@ class BufferChangeOperation
         lineEndings[index] = '\n'
     {lines, lineEndings}
 
+  invalidateAnchorPoints: (oldRange) ->
+    _.compact(@buffer.getAnchorPoints().map (pt) -> pt.tryToInvalidate(oldRange))
+
+  restoreAnchorPoints: (anchorPoints) ->
+    for [id, position] in anchorPoints
+      if existingAnchorPoint = @buffer.validAnchorPointsById[id]
+        existingAnchorPoint.setPosition(position)
+      else
+        @buffer.validAnchorPointsById[id] = @buffer.invalidAnchorPointsById[id]
+
   changeBuffer: ({ oldRange, newRange, newText, oldText }) ->
     { prefix, suffix } = @buffer.prefixAndSuffixForRange(oldRange)
-
     {lines, lineEndings} = @splitLines(newText)
     lastLineIndex = lines.length - 1
 
@@ -66,6 +85,7 @@ class BufferChangeOperation
     @buffer.trigger 'changed', event
     @buffer.scheduleStoppedChangingEvent()
     @buffer.updateAnchors(event)
+    @buffer.updateAnchorPoints(event)
     newRange
 
   calculateNewRange: (oldRange, newText) ->

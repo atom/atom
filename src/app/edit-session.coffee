@@ -355,25 +355,6 @@ class EditSession
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
 
-  updateAnchorPoints: (bufferChange) ->
-    return unless bufferChange
-    anchorPoint.handleBufferChange(bufferChange) for anchorPoint in @getAnchorPoints()
-
-  getAnchorPoints: ->
-    _.values(@anchorPointsById)
-
-  addAnchorPointAtBufferPosition: (bufferPosition, options) ->
-    id = @nextAnchorPointId++
-    params = _.extend({editSession: this, id, bufferPosition}, options)
-    @anchorPointsById[id] = new AnchorPoint(params)
-    id
-
-  getAnchorPointBufferPosition: (id) ->
-    @anchorPointsById[id]?.getBufferPosition()
-
-  removeAnchorPoint: (id) ->
-    delete @anchorPointsById[id]
-
   getAnchors: ->
     new Array(@anchors...)
 

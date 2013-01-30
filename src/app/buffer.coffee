@@ -8,6 +8,7 @@ UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 Anchor = require 'anchor'
 AnchorRange = require 'anchor-range'
+AnchorPoint = require 'anchor-point'
 
 module.exports =
 class Buffer
@@ -21,12 +22,17 @@ class Buffer
   lines: null
   lineEndings: null
   file: null
+  validAnchorPointsById: null
+  invalidAnchorPointsById: null
   anchors: null
   anchorRanges: null
   refcount: 0
 
   constructor: (path, @project) ->
     @id = @constructor.idCounter++
+    @nextAnchorPointId = 1
+    @validAnchorPointsById = {}
+    @invalidAnchorPointsById = {}
     @anchors = []
     @anchorRanges = []
     @lines = ['']
@@ -257,6 +263,22 @@ class Buffer
   isInConflict: -> @conflict
 
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
+
+  updateAnchorPoints: (bufferChange) ->
+    return unless bufferChange
+    anchorPoint.handleBufferChange(bufferChange) for anchorPoint in @getAnchorPoints()
+
+  getAnchorPoints: ->
+    _.values(@validAnchorPointsById)
+
+  addAnchorPoint: (position, options) ->
+    id = @nextAnchorPointId++
+    params = _.extend({buffer: this, id, position}, options)
+    @validAnchorPointsById[id] = new AnchorPoint(params)
+    id
+
+  getAnchorPoint: (id) ->
+    @validAnchorPointsById[id]?.getPosition()
 
   getAnchors: -> new Array(@anchors...)
 

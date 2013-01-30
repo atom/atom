@@ -658,6 +658,64 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
 
+  fdescribe "anchor points", ->
+    [anchor1Id, anchor2Id, anchor3Id] = []
+    beforeEach ->
+      anchor1Id = buffer.addAnchorPoint([4, 23])
+      anchor2Id = buffer.addAnchorPoint([4, 23], ignoreSameLocationInserts: true)
+      anchor3Id = buffer.addAnchorPoint([4, 23], surviveSurroundingChanges: true)
+
+    describe "when the buffer changes", ->
+      describe "when the change precedes the anchor point", ->
+        it "moves the anchor", ->
+          buffer.insert([4, 5], '...')
+          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 26]
+          buffer.delete([[4, 5], [4, 8]])
+          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          buffer.insert([0, 0], '\nhi\n')
+          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [6, 23]
+
+          # undo works
+          buffer.undo()
+          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          buffer.undo()
+          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 26]
+
+      describe "when the change follows the anchor point", ->
+        it "does not move the anchor", ->
+          buffer.insert([6, 5], '...')
+          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          buffer.delete([[6, 5], [6, 8]])
+          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          buffer.insert([10, 0], '\nhi\n')
+          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+
+      describe "when the change is an insertion at the same location as the anchor point", ->
+        describe "if the anchor ignores same location inserts", ->
+          it "treats the insertion as being to the right of the anchor and does not move it", ->
+            buffer.insert([4, 23], '...')
+            expect(buffer.getAnchorPoint(anchor2Id)).toEqual [4, 23]
+
+        describe "if the anchor observes same location inserts", ->
+          it "treats the insertion as being to the left of the anchor and moves it accordingly", ->
+            buffer.insert([4, 23], '...')
+            expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 26]
+
+      describe "when the change surrounds the anchor point", ->
+        describe "when the anchor survives surrounding changes", ->
+          it "preserves the anchor", ->
+            buffer.delete([[4, 20], [4, 26]])
+            expect(buffer.getAnchorPoint(anchor3Id)).toEqual [4, 20]
+            buffer.undo()
+            expect(buffer.getAnchorPoint(anchor3Id)).toEqual [4, 23]
+
+        describe "when the anchor does not survive surrounding changes", ->
+          it "invalidates the anchor but re-validates it on undo", ->
+            buffer.delete([[4, 20], [4, 26]])
+            expect(buffer.getAnchorPoint(anchor1Id)).toBeUndefined()
+            buffer.undo()
+            expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+
   describe "anchors", ->
     [anchor, destroyHandler] = []
 
