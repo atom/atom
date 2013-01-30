@@ -57,7 +57,7 @@ class Cursor
 
   wordRegExp: ->
     nonWordCharacters = config.get("editor.nonWordCharacters")
-    new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(nonWordCharacters)}]+|[#{_.escapeRegExp(nonWordCharacters)}]+", "mg")
+    new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(nonWordCharacters)}]+|[#{_.escapeRegExp(nonWordCharacters)}]+", "g")
 
   isLastCursor: ->
     this == @editSession.getCursor()
