@@ -1059,8 +1059,6 @@ class Editor extends View
 
     if fold = screenLine.fold
       lineAttributes = { class: 'fold line', 'fold-id': fold.id }
-      if @activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
-        lineAttributes.class += ' selected'
     else
       lineAttributes = { class: 'line' }
 
@@ -1092,6 +1090,8 @@ class Editor extends View
         line.push("<span class='invisible'>#{invisibles.cr}</span>")
       if invisibles.eol
         line.push("<span class='invisible'>#{invisibles.eol}</span>")
+
+    line.push("<span class='fold-marker'/>") if fold
 
     line.push('</pre>')
     line.join('')

@@ -1903,15 +1903,17 @@ describe "Editor", ->
       editor.attachToDom()
 
     describe "when a fold-selection event is triggered", ->
-      it "folds the lines covered by the selection into a single line with a fold class", ->
+      it "folds the lines covered by the selection into a single line with a fold class and marker", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'editor:fold-selection'
 
         expect(editor.renderedLines.find('.line:eq(4)')).toHaveClass('fold')
+        expect(editor.renderedLines.find('.line:eq(4) > .fold-marker')).toExist()
         expect(editor.renderedLines.find('.line:eq(5)').text()).toBe '8'
 
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [5, 0]
+
 
     describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
@@ -1921,6 +1923,7 @@ describe "Editor", ->
         editor.find('.fold.line').mousedown()
 
         expect(editor.find('.fold')).not.toExist()
+        expect(editor.find('.fold-marker')).not.toExist()
         expect(editor.renderedLines.find('.line:eq(4)').text()).toMatch /4-+/
         expect(editor.renderedLines.find('.line:eq(5)').text()).toMatch /5/
 
