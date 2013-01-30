@@ -57,7 +57,6 @@ class EditSession
     @preserveCursorPositionOnBufferReload()
 
     @subscribe @displayBuffer, "changed", (e) =>
-      @updateAnchorPoints(e.bufferChange)
       @refreshAnchorScreenPositions() unless e.bufferDelta
       @trigger 'screen-lines-changed', e
 
