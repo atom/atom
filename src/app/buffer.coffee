@@ -194,7 +194,7 @@ class Buffer
       startPoint = [start, 0]
       endPoint = [end + 1, 0]
 
-    @change(new Range(startPoint, endPoint), '')
+    @delete(new Range(startPoint, endPoint))
 
   append: (text) ->
     @insert(@getEofPosition(), text)
