@@ -173,10 +173,9 @@ class Cursor
 
     endOfWordPosition = null
     @editSession.scanInRange (options.wordRegex ? @wordRegExp()), range, (match, matchRange, { stop }) =>
-      endOfWordPosition = matchRange.end
-      if matchRange.start.isGreaterThan(currentBufferPosition) and not allowNext
-        endOfWordPosition = currentBufferPosition
-      if not endOfWordPosition.isEqual(currentBufferPosition)
+      if matchRange.start.isLessThanOrEqual(currentBufferPosition) or allowNext
+        endOfWordPosition = matchRange.end
+      if not endOfWordPosition?.isEqual(currentBufferPosition)
         stop()
 
     endOfWordPosition or currentBufferPosition

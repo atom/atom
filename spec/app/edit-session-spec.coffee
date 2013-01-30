@@ -570,10 +570,15 @@ describe "EditSession", ->
           expect(editSession.getSelectedText()).toBe 'quicksort'
 
       describe "when the cursor is between two words", ->
-        it "selects the nearest word", ->
+        it "selects the word the cursor is on", ->
           editSession.setCursorScreenPosition([0, 4])
           editSession.selectWord()
           expect(editSession.getSelectedText()).toBe 'quicksort'
+
+          editSession.setCursorScreenPosition([0, 3])
+          editSession.selectWord()
+          expect(editSession.getSelectedText()).toBe 'var'
+
 
       describe "when the cursor is inside a region of whitespace", ->
         it "selects the whitespace region", ->
