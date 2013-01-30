@@ -14,8 +14,6 @@ class BufferChangeOperation
   constructor: ({@buffer, @oldRange, @newText, @options}) ->
     @options ?= {}
 
-
-
   do: ->
     @oldText = @buffer.getTextInRange(@oldRange)
     @newRange = @calculateNewRange(@oldRange, @newText)
