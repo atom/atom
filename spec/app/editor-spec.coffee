@@ -1730,6 +1730,11 @@ describe "Editor", ->
         fold.destroy()
         expect(editor.gutter.find('.line-number').length).toBe 13
 
+      it "styles folded line numbers", ->
+        editor.createFold(3, 5)
+        expect(editor.gutter.find('.line-number.fold').length).toBe 1
+        expect(editor.gutter.find('.line-number.fold:eq(0)').text()).toBe '4'
+
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->
         editor.attachToDom()

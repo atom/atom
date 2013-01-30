@@ -46,8 +46,17 @@
   -webkit-animation-iteration-count: 1;
 }
 
-.editor .fold {
+.editor .line.fold {
   background-color: #444;
+}
+
+.editor .gutter .line-number.fold {
+  color: #FBA0E3;
+  opacity: .75;
+}
+
+.editor .gutter .line-number.fold.cursor-line {
+  opacity: 1;
 }
 
 .editor .fold.selected {

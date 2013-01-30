@@ -307,6 +307,10 @@ class EditSession
     fold.destroy()
     @setCursorBufferPosition([fold.startRow, 0])
 
+  isFoldedAtBufferRow: (bufferRow) ->
+    screenRow = @screenPositionForBufferPosition([bufferRow]).row
+    @isFoldedAtScreenRow(screenRow)
+
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow)?.fold?
 
