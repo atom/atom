@@ -19,8 +19,7 @@ class Editor extends View
     autosave: false
     autoIndent: true
     autoIndentOnPaste: false
-    wordRegex: /(\w+)|([^\w\n]+)/g
-    wordSeparators: "./\()\"’-:,.;<>~!@#$%^&*|+=[]{}`~?"
+    nonWordCharacters: "./\()\"’-:,.;<>~!@#$%^&*|+=[]{}`~?"
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>

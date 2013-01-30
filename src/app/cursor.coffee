@@ -147,9 +147,9 @@ class Cursor
     if position = @getEndOfCurrentWordBufferPosition()
       @setBufferPosition(position)
 
-  wordSeparatorsRegExp: ->
-    wordSeparators = config.get("editor.wordSeparators")
-    new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(wordSeparators)}]+|[#{_.escapeRegExp(wordSeparators)}]+", "mg")
+  wordRegExp: ->
+    nonWordCharacters = config.get("editor.nonWordCharacters")
+    new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(nonWordCharacters)}]+|[#{_.escapeRegExp(nonWordCharacters)}]+", "mg")
 
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
@@ -159,7 +159,7 @@ class Cursor
 
     beginningOfWordPosition = currentBufferPosition
 
-    @editSession.backwardsScanInRange (options.wordRegex ? @wordSeparatorsRegExp()), previousLinesRange, (match, matchRange, { stop }) =>
+    @editSession.backwardsScanInRange (options.wordRegex ? @wordRegExp()), previousLinesRange, (match, matchRange, { stop }) =>
       if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = matchRange.start
       stop() unless beginningOfWordPosition.isEqual(currentBufferPosition)
@@ -172,7 +172,7 @@ class Cursor
     range = [currentBufferPosition, @editSession.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInRange (options.wordRegex ? @wordSeparatorsRegExp()),
+    @editSession.scanInRange (options.wordRegex ? @wordRegExp()),
     range, (match, matchRange, { stop }) =>
       endOfWordPosition = matchRange.end
       return if endOfWordPosition.isEqual(currentBufferPosition)
