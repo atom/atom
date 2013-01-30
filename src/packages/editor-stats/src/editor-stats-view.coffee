@@ -5,7 +5,7 @@ _ = require 'underscore'
 
 module.exports =
 class EditorStatsView extends ScrollView
-  hours = 2
+  hours = 4
 
   time = (date) ->
     date.setTime(date.getTime() + 6e4)
@@ -13,6 +13,7 @@ class EditorStatsView extends ScrollView
     minute = date.getMinutes()
     "#{hour}:#{minute}"
 
+  startDate = new Date
   d3 = require 'd3.v3'
   x  = d3.scale.ordinal().domain d3.range(hours * 60)
   y  = d3.scale.linear()
@@ -37,7 +38,7 @@ class EditorStatsView extends ScrollView
     @command 'core:cancel', @detach
     @statusBar = @rootView.find '.status-bar'
 
-    date = new Date()
+    date = new Date(startDate)
     future = new Date(date.getTime() + (36e5 * hours))
     @eventlog[time(date)] = 0
 
@@ -48,7 +49,7 @@ class EditorStatsView extends ScrollView
     @rootView.on 'mouseup', @track
 
   draw: ->
-    w = @statusBar.width()
+    w = @statusBar.outerWidth()
     h = @.height()
     [pt, pl, pb, pr] = [15,0,0,0]
 
@@ -56,7 +57,7 @@ class EditorStatsView extends ScrollView
 
     x.rangeRoundBands [0, w - pl - pr], 0.2
     y.range [h, 0]
-    xaxis.tickSize(-h - pt - pb, 50)
+    xaxis.tickSize(-h + pt + pb, 50)
 
     vis = d3.select(@.get(0)).append('svg')
       .attr('width', w)
@@ -67,6 +68,13 @@ class EditorStatsView extends ScrollView
     vis.append('g')
       .attr('class', 'x axis')
       .call(xaxis)
+    .selectAll('g')
+      .style('display', (d, i) ->
+        if i % 15 == 0 || i % 5 == 0
+          'block'
+        else
+          'none'
+      ).classed('minor', (d, i) -> i % 5 == 0 && i % 15 != 0)
 
     bars = vis.selectAll('rect.bar')
       .data(data)

@@ -13,6 +13,11 @@
 .editor-stats text {
   font-size: 10px;
   fill: rgba(255, 255, 255, 0.2);
+  font-family: Courier;
+}
+
+.editor-stats .minor text {
+  display: none;
 }
 
 .editor-stats line {
