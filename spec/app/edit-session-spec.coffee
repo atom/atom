@@ -1792,6 +1792,12 @@ describe "EditSession", ->
             buffer.insert([0, 0], '\nhi\n')
             expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [6, 23]
 
+            # undo works
+            editSession.undo()
+            expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 23]
+            editSession.undo()
+            expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 26]
+
         describe "when the change follows the anchor point", ->
           it "does not move the anchor", ->
             buffer.insert([6, 5], '...')
@@ -1813,16 +1819,19 @@ describe "EditSession", ->
               expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 26]
 
         describe "when the change surrounds the anchor point", ->
-          beforeEach ->
-            buffer.delete([[4, 20], [4, 26]])
-
           describe "when the anchor survives surrounding changes", ->
-            it "moves the anchor to the start of the change, but does not invalidate it", ->
+            it "preserves the anchor, moving it to the start of the change, but restores its location on undo", ->
+              buffer.delete([[4, 20], [4, 26]])
               expect(editSession.getAnchorPointBufferPosition(anchor3Id)).toEqual [4, 20]
+              editSession.undo()
+              expect(editSession.getAnchorPointBufferPosition(anchor3Id)).toEqual [4, 23]
 
           describe "when the anchor does not survive surrounding changes", ->
-            it "invalidates the anchor", ->
+            it "invalidates the anchor but re-validates it on undo", ->
+              buffer.delete([[4, 20], [4, 26]])
               expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toBeUndefined()
+              editSession.undo()
+              expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 23]
 
   describe ".clipBufferPosition(bufferPosition)", ->
     it "clips the given position to a valid position", ->
