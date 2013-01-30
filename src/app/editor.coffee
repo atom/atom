@@ -683,9 +683,14 @@ class Editor extends View
     @save() if @getPath()?
 
   setFontSize: (@fontSize) ->
-    if fontSize?
-      @css('font-size', fontSize + 'px')
-      @redraw()
+    headTag = $("head")
+    styleTag = headTag.find("style.font-size")
+    if styleTag.length == 0
+      styleTag = $$ -> @style class: 'font-size'
+      headTag.append styleTag
+
+    styleTag.text(".editor {font-size: #{@fontSize}px}")
+    @redraw()
 
   getFontSize: -> @fontSize
 

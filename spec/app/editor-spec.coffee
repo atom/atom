@@ -551,13 +551,26 @@ describe "Editor", ->
         expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
 
   describe "font size", ->
-    it "sets the initial font size based on the value from config", ->
-      config.set("editor.fontSize", 20)
-      newEditor = editor.splitRight()
-      expect(editor.css('font-size')).toBe '20px'
-      expect(newEditor.css('font-size')).toBe '20px'
+    beforeEach ->
+      expect(editor.css('font-size')).not.toBe "20px"
 
-    describe "when the font size changes on the view", ->
+    it "sets the initial font size based on the value from config", ->
+      expect($("head style.font-size")).toExist()
+      expect($("head style.font-size").text()).toMatch "{font-size: #{config.get('editor.fontSize')}px}"
+
+    describe "when the font size changes", ->
+      it "updates the font family on new and existing editors", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        config.set("editor.fontSize", 20)
+        newEditor = editor.splitRight()
+
+        expect($("head style.font-size").text()).toMatch "{font-size: 20px}"
+        expect(editor.css('font-size')).toBe '20px'
+        expect(newEditor.css('font-size')).toBe '20px'
+
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
         rootView.attachToDom()
         rootView.height(200)
