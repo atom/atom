@@ -5,7 +5,7 @@ _ = require 'underscore'
 
 module.exports =
 class EditorStatsView extends ScrollView
-  hours = 6
+  hours = 2
 
   time = (date) ->
     date.setTime(date.getTime() + 6e4)
@@ -16,6 +16,9 @@ class EditorStatsView extends ScrollView
   d3 = require 'd3.v3'
   x  = d3.scale.ordinal().domain d3.range(hours * 60)
   y  = d3.scale.linear()
+
+  xaxis = d3.svg.axis().scale(x)
+    .orient('top')
 
   @activate: (rootView, state) ->
     @instance = new EditorStatsView(rootView, state?.eventLog)
@@ -32,6 +35,7 @@ class EditorStatsView extends ScrollView
     super
 
     @command 'core:cancel', @detach
+    @statusBar = @rootView.find '.status-bar'
 
     date = new Date()
     future = new Date(date.getTime() + (36e5 * hours))
@@ -40,25 +44,29 @@ class EditorStatsView extends ScrollView
     while date < future
       @eventlog[time(date)] = 0
 
-    console.log @eventlog
     @rootView.on 'keydown', @track
     @rootView.on 'mouseup', @track
 
   draw: ->
-    w = @.width()
+    w = @statusBar.width()
     h = @.height()
-    [pt, pl, pb, pr] = [5,0,0,0]
+    [pt, pl, pb, pr] = [15,0,0,0]
 
     data = d3.entries @eventlog
 
-    x.rangeRoundBands [0, w - pl - pr], 0.1
+    x.rangeRoundBands [0, w - pl - pr], 0.2
     y.range [h, 0]
+    xaxis.tickSize(-h - pt - pb, 50)
 
     vis = d3.select(@.get(0)).append('svg')
       .attr('width', w)
       .attr('height', h)
     .append('g')
       .attr('transform', "translate(#{pl},#{pt})")
+
+    vis.append('g')
+      .attr('class', 'x axis')
+      .call(xaxis)
 
     bars = vis.selectAll('rect.bar')
       .data(data)
@@ -94,7 +102,7 @@ class EditorStatsView extends ScrollView
       @attach()
 
   attach: ->
-    @rootView.append @
+    @.insertBefore @statusBar
     @focus()
     @draw()
 
