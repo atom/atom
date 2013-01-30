@@ -1775,24 +1775,54 @@ describe "EditSession", ->
   describe "anchors", ->
     [anchor, destroyHandler] = []
 
-    beforeEach ->
-      destroyHandler = jasmine.createSpy("destroyHandler")
-      anchor = editSession.addAnchorAtBufferPosition([4, 25])
-      anchor.on 'destroyed', destroyHandler
+    fdescribe "anchor points", ->
+      [anchor1Id, anchor2Id, anchor3Id] = []
+      beforeEach ->
+        anchor1Id = editSession.addAnchorPointAtBufferPosition([4, 23])
+        anchor2Id = editSession.addAnchorPointAtBufferPosition([4, 23], ignoreSameLocationInserts: true)
+        anchor3Id = editSession.addAnchorPointAtBufferPosition([4, 23], surviveSurroundingChanges: true)
 
-    describe "when a buffer change precedes an anchor", ->
-      it "moves the anchor in accordance with the change", ->
-        editSession.setSelectedBufferRange([[3, 0], [4, 10]])
-        editSession.delete()
-        expect(anchor.getBufferPosition()).toEqual [3, 15]
-        expect(destroyHandler).not.toHaveBeenCalled()
+      describe "when the buffer changes", ->
+        describe "when the change precedes the anchor point", ->
+          it "moves the anchor", ->
+            buffer.insert([4, 5], '...')
+            expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 26]
+            buffer.delete([[4, 5], [4, 8]])
+            expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 23]
+            buffer.insert([0, 0], '\nhi\n')
+            expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [6, 23]
 
-    describe "when a buffer change surrounds an anchor", ->
-      it "destroys the anchor", ->
-        editSession.setSelectedBufferRange([[3, 0], [5, 0]])
-        editSession.delete()
-        expect(destroyHandler).toHaveBeenCalled()
-        expect(editSession.getAnchors().indexOf(anchor)).toBe -1
+        describe "when the change follows the anchor point", ->
+          it "does not move the anchor", ->
+            buffer.insert([6, 5], '...')
+            expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 23]
+            buffer.delete([[6, 5], [6, 8]])
+            expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 23]
+            buffer.insert([10, 0], '\nhi\n')
+            expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 23]
+
+        describe "when the change is an insertion at the same location as the anchor point", ->
+          describe "if the anchor ignores same location inserts", ->
+            it "treats the insertion as being to the right of the anchor and does not move it", ->
+              buffer.insert([4, 23], '...')
+              expect(editSession.getAnchorPointBufferPosition(anchor2Id)).toEqual [4, 23]
+
+          describe "if the anchor observes same location inserts", ->
+            it "treats the insertion as being to the left of the anchor and moves it accordingly", ->
+              buffer.insert([4, 23], '...')
+              expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toEqual [4, 26]
+
+        describe "when the change surrounds the anchor point", ->
+          beforeEach ->
+            buffer.delete([[4, 20], [4, 26]])
+
+          describe "when the anchor survives surrounding changes", ->
+            it "moves the anchor to the start of the change, but does not invalidate it", ->
+              expect(editSession.getAnchorPointBufferPosition(anchor3Id)).toEqual [4, 20]
+
+          describe "when the anchor does not survive surrounding changes", ->
+            it "invalidates the anchor", ->
+              expect(editSession.getAnchorPointBufferPosition(anchor1Id)).toBeUndefined()
 
   describe ".clipBufferPosition(bufferPosition)", ->
     it "clips the given position to a valid position", ->

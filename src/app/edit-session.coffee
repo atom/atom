@@ -9,6 +9,7 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
 AnchorRange = require 'anchor-range'
+AnchorPoint = require 'anchor-point'
 _ = require 'underscore'
 fs = require 'fs'
 
@@ -40,6 +41,8 @@ class EditSession
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
+    @nextAnchorPointId = 1
+    @anchorPointsById = {}
     @anchors = []
     @anchorRanges = []
     @cursors = []
@@ -54,6 +57,7 @@ class EditSession
     @preserveCursorPositionOnBufferReload()
 
     @subscribe @displayBuffer, "changed", (e) =>
+      @updateAnchorPoints(e.bufferChange)
       @refreshAnchorScreenPositions() unless e.bufferDelta
       @trigger 'screen-lines-changed', e
 
@@ -350,6 +354,25 @@ class EditSession
 
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
+
+  updateAnchorPoints: (bufferChange) ->
+    return unless bufferChange
+    anchorPoint.handleBufferChange(bufferChange) for anchorPoint in @getAnchorPoints()
+
+  getAnchorPoints: ->
+    _.values(@anchorPointsById)
+
+  addAnchorPointAtBufferPosition: (bufferPosition, options) ->
+    id = @nextAnchorPointId++
+    params = _.extend({editSession: this, id, bufferPosition}, options)
+    @anchorPointsById[id] = new AnchorPoint(params)
+    id
+
+  getAnchorPointBufferPosition: (id) ->
+    @anchorPointsById[id]?.getBufferPosition()
+
+  removeAnchorPoint: (id) ->
+    delete @anchorPointsById[id]
 
   getAnchors: ->
     new Array(@anchors...)
