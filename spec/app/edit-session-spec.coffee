@@ -1866,7 +1866,7 @@ describe "EditSession", ->
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
 
-  describe ".tranpose()", ->
+  describe ".transpose()", ->
     it "swaps two characters", ->
       editSession.buffer.setText("abc")
       editSession.setCursorScreenPosition([0, 1])
