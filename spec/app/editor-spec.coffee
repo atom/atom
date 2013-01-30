@@ -516,6 +516,30 @@ describe "Editor", ->
       editor.getBuffer().saveAs(path)
       expect(editor.getGrammar().name).toBe 'Plain Text'
 
+  describe "font family", ->
+    beforeEach ->
+      expect(editor.css('font-family')).not.toBe 'monaco'
+
+    it "sets the initial font family based on the value from config", ->
+      config.set("editor.fontFamily", "monaco")
+      newEditor = editor.splitRight()
+      expect(editor.css('font-family')).toBe 'monaco'
+      expect(newEditor.css('font-family')).toBe 'monaco'
+
+    describe "when the font family changes on the view", ->
+      it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        lineHeightBefore = editor.lineHeight
+        charWidthBefore = editor.charWidth
+        editor.setCursorScreenPosition [5, 6]
+        config.set("editor.fontFamily", "monaco")
+        expect(editor.charWidth).not.toBe charWidthBefore
+        expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
+        expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
+
   describe "font size", ->
     it "sets the initial font size based on the value from config", ->
       config.set("editor.fontSize", 20)
