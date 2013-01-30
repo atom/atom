@@ -8,8 +8,8 @@ class BufferChangeOperation
   oldText: null
   newRange: null
   newText: null
-  anchorPointsToRestoreOnUndo: null
-  anchorPointsToRestoreOnRedo: null
+  markersToRestoreOnUndo: null
+  markersToRestoreOnRedo: null
 
   constructor: ({@buffer, @oldRange, @newText, @options}) ->
     @options ?= {}
@@ -17,7 +17,7 @@ class BufferChangeOperation
   do: ->
     @oldText = @buffer.getTextInRange(@oldRange)
     @newRange = @calculateNewRange(@oldRange, @newText)
-    @anchorPointsToRestoreOnUndo = @invalidateAnchorPoints(@oldRange)
+    @markersToRestoreOnUndo = @invalidateMarkers(@oldRange)
     @changeBuffer
       oldRange: @oldRange
       newRange: @newRange
@@ -25,16 +25,16 @@ class BufferChangeOperation
       newText: @newText
 
   redo: ->
-    @restoreAnchorPoints(@anchorPointsToRestoreOnRedo)
+    @restoreMarkers(@markersToRestoreOnRedo)
 
   undo: ->
-    @anchorPointsToRestoreOnRedo = @invalidateAnchorPoints(@newRange)
+    @markersToRestoreOnRedo = @invalidateMarkers(@newRange)
     @changeBuffer
       oldRange: @newRange
       newRange: @oldRange
       oldText: @newText
       newText: @oldText
-    @restoreAnchorPoints(@anchorPointsToRestoreOnUndo)
+    @restoreMarkers(@markersToRestoreOnUndo)
 
   splitLines: (text) ->
     lines = text.split('\n')
@@ -46,16 +46,6 @@ class BufferChangeOperation
       else
         lineEndings[index] = '\n'
     {lines, lineEndings}
-
-  invalidateAnchorPoints: (oldRange) ->
-    _.compact(@buffer.getAnchorPoints().map (pt) -> pt.tryToInvalidate(oldRange))
-
-  restoreAnchorPoints: (anchorPoints) ->
-    for [id, position] in anchorPoints
-      if existingAnchorPoint = @buffer.validAnchorPointsById[id]
-        existingAnchorPoint.setPosition(position)
-      else
-        @buffer.validAnchorPointsById[id] = @buffer.invalidAnchorPointsById[id]
 
   changeBuffer: ({ oldRange, newRange, newText, oldText }) ->
     { prefix, suffix } = @buffer.prefixAndSuffixForRange(oldRange)
@@ -83,7 +73,7 @@ class BufferChangeOperation
     @buffer.trigger 'changed', event
     @buffer.scheduleStoppedChangingEvent()
     @buffer.updateAnchors(event)
-    @buffer.updateAnchorPoints(event)
+    @updateMarkers(event)
     newRange
 
   calculateNewRange: (oldRange, newText) ->
@@ -96,3 +86,17 @@ class BufferChangeOperation
       newRange.end.row += lastLineIndex
       newRange.end.column = lines[lastLineIndex].length
     newRange
+
+  invalidateMarkers: (oldRange) ->
+    _.compact(@buffer.getMarkers().map (marker) -> marker.tryToInvalidate(oldRange))
+
+  updateMarkers: (bufferChange) ->
+    marker.handleBufferChange(bufferChange) for marker in @buffer.getMarkers()
+
+  restoreMarkers: (markersToRestore) ->
+    for [id, previousRange] in markersToRestore
+      if existingMarker = @buffer.validMarkers[id]
+        existingMarker.setRange(previousRange)
+      else
+        @buffer.validMarkers[id] = @buffer.invalidMarkers[id]
+

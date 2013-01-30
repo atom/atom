@@ -9,7 +9,6 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
 AnchorRange = require 'anchor-range'
-AnchorPoint = require 'anchor-point'
 _ = require 'underscore'
 fs = require 'fs'
 

@@ -8,7 +8,7 @@ UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 Anchor = require 'anchor'
 AnchorRange = require 'anchor-range'
-AnchorPoint = require 'anchor-point'
+BufferMarker = require 'buffer-marker'
 
 module.exports =
 class Buffer
@@ -22,17 +22,17 @@ class Buffer
   lines: null
   lineEndings: null
   file: null
-  validAnchorPointsById: null
-  invalidAnchorPointsById: null
+  validMarkers: null
+  invalidMarkers: null
   anchors: null
   anchorRanges: null
   refcount: 0
 
   constructor: (path, @project) ->
     @id = @constructor.idCounter++
-    @nextAnchorPointId = 1
-    @validAnchorPointsById = {}
-    @invalidAnchorPointsById = {}
+    @nextMarkerId = 1
+    @validMarkers = {}
+    @invalidMarkers = {}
     @anchors = []
     @anchorRanges = []
     @lines = ['']
@@ -268,21 +268,23 @@ class Buffer
 
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
-  updateAnchorPoints: (bufferChange) ->
-    return unless bufferChange
-    anchorPoint.handleBufferChange(bufferChange) for anchorPoint in @getAnchorPoints()
+  getMarkers: ->
+    _.values(@validMarkers)
 
-  getAnchorPoints: ->
-    _.values(@validAnchorPointsById)
+  createMarker: (range, options) ->
+    marker = new BufferMarker(_.extend({
+      id: @nextMarkerId++
+      buffer: this
+      range: range
+    }, options))
+    @validMarkers[marker.id] = marker
+    marker.id
 
-  createAnchorPoint: (position, options) ->
-    id = @nextAnchorPointId++
-    params = _.extend({buffer: this, id, position}, options)
-    @validAnchorPointsById[id] = new AnchorPoint(params)
-    id
+  getMarkerPosition: (id) ->
+    @validMarkers[id]?.getPosition()
 
-  getAnchorPoint: (id) ->
-    @validAnchorPointsById[id]?.getPosition()
+  getMarkerRange: (id) ->
+    @validMarkers[id]?.getRange()
 
   getAnchors: -> new Array(@anchors...)
 

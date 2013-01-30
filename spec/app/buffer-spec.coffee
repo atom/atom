@@ -666,78 +666,106 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
 
-  fdescribe "anchor points", ->
-    [anchor1Id, anchor2Id, anchor3Id] = []
+  fdescribe "markers", ->
+    [marker1, marker2, marker3] = []
     beforeEach ->
-      anchor1Id = buffer.createAnchorPoint([4, 23])
-      anchor2Id = buffer.createAnchorPoint([4, 23], ignoreSameLocationInserts: true)
-      anchor3Id = buffer.createAnchorPoint([4, 23], surviveSurroundingChanges: true)
+      marker1 = buffer.createMarker([[4, 20], [4, 23]])
+      marker2 = buffer.createMarker([[4, 20], [4, 23]], stayValid: true)
 
     describe "when the buffer changes due to a new operation", ->
-      describe "when the change precedes the anchor point", ->
-        it "moves the anchor", ->
+      describe "when the change precedes the marker range", ->
+        it "moves the marker", ->
           buffer.insert([4, 5], '...')
-          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 26]
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 23], [4, 26]]
           buffer.delete([[4, 5], [4, 8]])
-          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
           buffer.insert([0, 0], '\nhi\n')
-          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [6, 23]
+          expect(buffer.getMarkerRange(marker1)).toEqual [[6, 20], [6, 23]]
 
           # undo works
           buffer.undo()
-          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
           buffer.undo()
-          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 26]
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 23], [4, 26]]
 
-      describe "when the change follows the anchor point", ->
-        it "does not move the anchor", ->
+      describe "when the change follows the marker range", ->
+        it "does not move the marker", ->
           buffer.insert([6, 5], '...')
-          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
           buffer.delete([[6, 5], [6, 8]])
-          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
           buffer.insert([10, 0], '\nhi\n')
-          expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
-      describe "when the change is an insertion at the same location as the anchor point", ->
-        describe "if the anchor ignores same location inserts", ->
-          it "treats the insertion as being to the right of the anchor and does not move it", ->
-            buffer.insert([4, 23], '...')
-            expect(buffer.getAnchorPoint(anchor2Id)).toEqual [4, 23]
+      describe "when the change is an insertion at the start of the marker range", ->
+        it "does not move the start point, but does move the end point", ->
+          buffer.insert([4, 20], '...')
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 26]]
 
-        describe "if the anchor observes same location inserts", ->
-          it "treats the insertion as being to the left of the anchor and moves it accordingly", ->
-            buffer.insert([4, 23], '...')
-            expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 26]
+      describe "when the change is an insertion at the end of the marker range", ->
+        it "moves the end point", ->
+          buffer.insert([4, 23], '...')
+          expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 26]]
 
-      describe "when the change surrounds the anchor point", ->
-        describe "when the anchor survives surrounding changes", ->
-          it "preserves the anchor", ->
-            buffer.delete([[4, 20], [4, 26]])
-            expect(buffer.getAnchorPoint(anchor3Id)).toEqual [4, 20]
+      describe "when the change surrounds the marker range", ->
+        describe "when the marker was created with stayValid: false (the default)", ->
+          it "invalidates the marker", ->
+            buffer.delete([[4, 15], [4, 25]])
+            expect(buffer.getMarkerRange(marker1)).toBeUndefined()
             buffer.undo()
-            expect(buffer.getAnchorPoint(anchor3Id)).toEqual [4, 23]
+            expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
-        describe "when the anchor does not survive surrounding changes", ->
-          it "invalidates the anchor but re-validates it on undo", ->
-            buffer.delete([[4, 20], [4, 26]])
-            expect(buffer.getAnchorPoint(anchor1Id)).toBeUndefined()
+        describe "when the marker was created with stayValid: true", ->
+          it "does not invalidate the marker, but sets it to an empty range at the end of the change", ->
+            buffer.change([[4, 15], [4, 25]], "...")
+            expect(buffer.getMarkerRange(marker2)).toEqual [[4, 18], [4, 18]]
             buffer.undo()
-            expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
+            expect(buffer.getMarkerRange(marker2)).toEqual [[4, 20], [4, 23]]
+
+      describe "when the change straddles the start of the marker range", ->
+        describe "when the marker was created with stayValid: false (the default)", ->
+          it "invalidates the marker", ->
+            buffer.delete([[4, 15], [4, 22]])
+            expect(buffer.getMarkerRange(marker1)).toBeUndefined()
+            buffer.undo()
+            expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
+
+        describe "when the marker was created with stayValid: true", ->
+          it "moves the start of the marker range to the end of the change", ->
+            buffer.delete([[4, 15], [4, 22]])
+            expect(buffer.getMarkerRange(marker2)).toEqual [[4, 15], [4, 16]]
+            buffer.undo()
+            expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
+
+      describe "when the change straddles the end of the marker range", ->
+        describe "when the marker was created with stayValid: false (the default)", ->
+          it "invalidates the marker", ->
+            buffer.delete([[4, 22], [4, 25]])
+            expect(buffer.getMarkerRange(marker1)).toBeUndefined()
+            buffer.undo()
+            expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
+
+        describe "when the marker was created with stayValid: true", ->
+          it "moves the end of the marker range to the start of the change", ->
+            buffer.delete([[4, 22], [4, 25]])
+            expect(buffer.getMarkerRange(marker2)).toEqual [[4, 20], [4, 22]]
+            buffer.undo()
+            expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
     describe "when the buffer changes due to the undo or redo of a previous operation", ->
-      it "restores invalidated anchor points when undoing/redoing in the other direction", ->
+      it "restores invalidated markers when undoing/redoing in the other direction", ->
         buffer.change([[4, 21], [4, 24]], "foo")
-        expect(buffer.getAnchorPoint(anchor1Id)).toBeUndefined()
-        anchor4Id = buffer.createAnchorPoint([4, 23])
+        expect(buffer.getMarkerRange(marker1)).toBeUndefined()
+        marker3 = buffer.createMarker([[4, 20], [4, 23]])
         buffer.undo()
-        expect(buffer.getAnchorPoint(anchor1Id)).toEqual [4, 23]
-        expect(buffer.getAnchorPoint(anchor4Id)).toBeUndefined()
-        anchor5Id = buffer.createAnchorPoint([4, 23])
+        expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
+        expect(buffer.getMarkerRange(marker3)).toBeUndefined()
+        marker4 = buffer.createMarker([[4, 20], [4, 23]])
         buffer.redo()
-        expect(buffer.getAnchorPoint(anchor4Id)).toEqual [4, 23]
-        expect(buffer.getAnchorPoint(anchor5Id)).toBeUndefined()
+        expect(buffer.getMarkerRange(marker3)).toEqual [[4, 20], [4, 23]]
+        expect(buffer.getMarkerRange(marker4)).toBeUndefined()
         buffer.undo()
-        expect(buffer.getAnchorPoint(anchor5Id)).toEqual [4, 23]
+        expect(buffer.getMarkerRange(marker4)).toEqual [[4, 20], [4, 23]]
 
   describe "anchors", ->
     [anchor, destroyHandler] = []
@@ -872,7 +900,6 @@ describe 'Buffer', ->
         runs ->
           expect(contentsModifiedHandler).toHaveBeenCalledWith(differsFromDisk:true)
           bufferToDelete.destroy()
-
 
     describe "when the buffer text has been changed", ->
       it "triggers the contents-modified event 'stoppedChangingDelay' ms after the last buffer change", ->
