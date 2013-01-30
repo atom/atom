@@ -369,9 +369,7 @@ class EditSession
 
       @foldBufferRow(foldedRow) for foldedRow in foldedRows
 
-      newStartPosition = [selection.start.row - 1, selection.start.column]
-      newEndPosition = [selection.end.row - 1, selection.end.column]
-      @setSelectedBufferRange([newStartPosition, newEndPosition], preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([-1]), preserveFolds: true)
 
   moveLineDown: ->
     selection = @getSelectedBufferRange()
@@ -408,9 +406,7 @@ class EditSession
 
       @foldBufferRow(foldedRow) for foldedRow in foldedRows
 
-      newStartPosition = [selection.start.row + 1, selection.start.column]
-      newEndPosition = [selection.end.row + 1, selection.end.column]
-      @setSelectedBufferRange([newStartPosition, newEndPosition], preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
 
 
   mutateSelectedText: (fn) ->

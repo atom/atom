@@ -34,6 +34,10 @@ class Point
 
     new Point(row, column)
 
+  translate: (other) ->
+    other = Point.fromObject(other)
+    new Point(@row + other.row, @column + other.column)
+
   splitAt: (column) ->
     if @row == 0
       rightColumn = @column - column
