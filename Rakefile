@@ -80,7 +80,7 @@ task "create-dot-atom" do
 
   `rm -rf "#{DOT_ATOM_PATH}"`
   `mkdir "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
+  `cp "#{dot_atom_template_path}/user.coffee" "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
   `cp -r "#{ATOM_SRC_PATH}/themes" "#{DOT_ATOM_PATH}"`
   `cp "#{ATOM_SRC_PATH}/vendor/themes/IR_Black.tmTheme" "#{DOT_ATOM_PATH}/themes"`
