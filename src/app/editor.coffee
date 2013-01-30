@@ -690,9 +690,14 @@ class Editor extends View
   getFontSize: -> @fontSize
 
   setFontFamily: (@fontFamily) ->
-    if fontFamily?
-      @css('font-family', fontFamily)
-      @redraw()
+    headTag = $("head")
+    styleTag = headTag.find("style.font-family")
+    if styleTag.length == 0
+      styleTag = $$ -> @style class: 'font-family'
+      headTag.append styleTag
+
+    styleTag.text(".editor {font-family: #{@fontFamily}}")
+    @redraw()
 
   getFontFamily: -> @fontFamily
 

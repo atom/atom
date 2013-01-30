@@ -518,15 +518,25 @@ describe "Editor", ->
 
   describe "font family", ->
     beforeEach ->
-      expect(editor.css('font-family')).not.toBe 'monaco'
+      expect(editor.css('font-family')).not.toBe 'Courier'
 
     it "sets the initial font family based on the value from config", ->
-      config.set("editor.fontFamily", "monaco")
-      newEditor = editor.splitRight()
-      expect(editor.css('font-family')).toBe 'monaco'
-      expect(newEditor.css('font-family')).toBe 'monaco'
+      expect($("head style.font-family")).toExist()
+      expect($("head style.font-family").text()).toMatch "{font-family: #{config.get('editor.fontFamily')}}"
 
-    describe "when the font family changes on the view", ->
+    describe "when the font family changes", ->
+      it "updates the font family on new and existing editors", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        config.set("editor.fontFamily", "Courier")
+        newEditor = editor.splitRight()
+
+        expect($("head style.font-family").text()).toMatch "{font-family: Courier}"
+        expect(editor.css('font-family')).toBe 'Courier'
+        expect(newEditor.css('font-family')).toBe 'Courier'
+
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
         rootView.attachToDom()
         rootView.height(200)
@@ -534,8 +544,8 @@ describe "Editor", ->
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
+        config.set("editor.fontFamily", "Courier")
         editor.setCursorScreenPosition [5, 6]
-        config.set("editor.fontFamily", "monaco")
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
         expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
