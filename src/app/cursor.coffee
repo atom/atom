@@ -55,6 +55,10 @@ class Cursor
 
   isVisible: -> @visible
 
+  wordRegExp: ->
+    nonWordCharacters = config.get("editor.nonWordCharacters")
+    new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(nonWordCharacters)}]+|[#{_.escapeRegExp(nonWordCharacters)}]+", "mg")
+
   isLastCursor: ->
     this == @editSession.getCursor()
 
@@ -146,10 +150,6 @@ class Cursor
   moveToEndOfWord: ->
     if position = @getEndOfCurrentWordBufferPosition()
       @setBufferPosition(position)
-
-  wordRegExp: ->
-    nonWordCharacters = config.get("editor.nonWordCharacters")
-    new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(nonWordCharacters)}]+|[#{_.escapeRegExp(nonWordCharacters)}]+", "mg")
 
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
