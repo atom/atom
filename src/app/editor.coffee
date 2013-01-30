@@ -682,29 +682,30 @@ class Editor extends View
   autosave: ->
     @save() if @getPath()?
 
-  setFontSize: (@fontSize) ->
+  setFontSize: (fontSize) ->
     headTag = $("head")
     styleTag = headTag.find("style.font-size")
     if styleTag.length == 0
       styleTag = $$ -> @style class: 'font-size'
       headTag.append styleTag
 
-    styleTag.text(".editor {font-size: #{@fontSize}px}")
+    styleTag.text(".editor {font-size: #{fontSize}px}")
     @redraw()
 
-  getFontSize: -> @fontSize
+  getFontSize: ->
+    parseInt(@css("font-size"))
 
-  setFontFamily: (@fontFamily) ->
+  setFontFamily: (fontFamily) ->
     headTag = $("head")
     styleTag = headTag.find("style.font-family")
     if styleTag.length == 0
       styleTag = $$ -> @style class: 'font-family'
       headTag.append styleTag
 
-    styleTag.text(".editor {font-family: #{@fontFamily}}")
+    styleTag.text(".editor {font-family: #{fontFamily}}")
     @redraw()
 
-  getFontFamily: -> @fontFamily
+  getFontFamily: -> @css("font-family")
 
   redraw: ->
     return unless @attached
