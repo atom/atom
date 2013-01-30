@@ -311,6 +311,10 @@ class EditSession
     fold.destroy()
     @setCursorBufferPosition([fold.startRow, 0])
 
+  isFoldedAtBufferRow: (bufferRow) ->
+    screenRow = @screenPositionForBufferPosition([bufferRow]).row
+    @isFoldedAtScreenRow(screenRow)
+
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow)?.fold?
 
@@ -337,6 +341,81 @@ class EditSession
 
   toggleLineCommentsForBufferRows: (start, end) ->
     @languageMode.toggleLineCommentsForBufferRows(start, end)
+
+  moveLineUp: ->
+    selection = @getSelectedBufferRange()
+    return if selection.start.row is 0
+    lastRow = @buffer.getLastRow()
+    return if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
+
+    @transact =>
+      foldedRows = []
+      rows = [selection.start.row..selection.end.row]
+      if selection.start.row isnt selection.end.row and selection.end.column is 0
+        rows.pop() unless @isFoldedAtScreenRow(@screenPositionForBufferPosition(selection.end).row)
+      for row in rows
+        screenRow = @screenPositionForBufferPosition([row]).row
+        if @isFoldedAtScreenRow(screenRow)
+          bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+          startRow = bufferRange.start.row
+          endRow = bufferRange.end.row - 1
+          foldedRows.push(endRow - 1)
+        else
+          startRow = row
+          endRow = row
+
+        endPosition = Point.min([endRow + 1], @buffer.getEofPosition())
+        lines = @buffer.getTextInRange([[startRow], endPosition])
+        if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
+          lines = "#{lines}\n"
+        @buffer.deleteRows(startRow, endRow)
+        @buffer.insert([startRow - 1], lines)
+
+      @foldBufferRow(foldedRow) for foldedRow in foldedRows
+
+      newStartPosition = [selection.start.row - 1, selection.start.column]
+      newEndPosition = [selection.end.row - 1, selection.end.column]
+      @setSelectedBufferRange([newStartPosition, newEndPosition], preserveFolds: true)
+
+  moveLineDown: ->
+    selection = @getSelectedBufferRange()
+    lastRow = @buffer.getLastRow()
+    return if selection.end.row is lastRow
+    return if selection.end.row is lastRow - 1 and @buffer.getLastLine() is ''
+
+    @transact =>
+      foldedRows = []
+      rows = [selection.end.row..selection.start.row]
+      if selection.start.row isnt selection.end.row and selection.end.column is 0
+        rows.shift() unless @isFoldedAtScreenRow(@screenPositionForBufferPosition(selection.end).row)
+      for row in rows
+        screenRow = @screenPositionForBufferPosition([row]).row
+        if @isFoldedAtScreenRow(screenRow)
+          bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+          startRow = bufferRange.start.row
+          endRow = bufferRange.end.row - 1
+          foldedRows.push(endRow + 1)
+        else
+          startRow = row
+          endRow = row
+
+        if endRow + 1 is lastRow
+          endPosition = [endRow, @buffer.lineLengthForRow(endRow)]
+        else
+          endPosition = [endRow + 1]
+        lines = @buffer.getTextInRange([[startRow], endPosition])
+        @buffer.deleteRows(startRow, endRow)
+        insertPosition = Point.min([startRow + 1], @buffer.getEofPosition())
+        if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
+          lines = "\n#{lines}"
+        @buffer.insert(insertPosition, lines)
+
+      @foldBufferRow(foldedRow) for foldedRow in foldedRows
+
+      newStartPosition = [selection.start.row + 1, selection.start.column]
+      newEndPosition = [selection.end.row + 1, selection.end.column]
+      @setSelectedBufferRange([newStartPosition, newEndPosition], preserveFolds: true)
+
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()

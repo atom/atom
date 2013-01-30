@@ -121,9 +121,9 @@ class Buffer
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
   getTextInRange: (range) ->
-    range = Range.fromObject(range)
+    range = @clipRange(range)
     if range.start.row == range.end.row
-      return @lines[range.start.row][range.start.column...range.end.column]
+      return @lineForRow(range.start.row)[range.start.column...range.end.column]
 
     multipleLines = []
     multipleLines.push @lineForRow(range.start.row)[range.start.column..] # first line
@@ -200,7 +200,7 @@ class Buffer
       startPoint = [start, 0]
       endPoint = [end + 1, 0]
 
-    @change(new Range(startPoint, endPoint), '')
+    @delete(new Range(startPoint, endPoint))
 
   append: (text) ->
     @insert(@getEofPosition(), text)
@@ -225,6 +225,10 @@ class Buffer
     column = Math.min(@lineLengthForRow(row), column)
 
     new Point(row, column)
+
+  clipRange: (range) ->
+    range = Range.fromObject(range)
+    new Range(@clipPosition(range.start), @clipPosition(range.end))
 
   prefixAndSuffixForRange: (range) ->
     prefix: @lines[range.start.row][0...range.start.column]

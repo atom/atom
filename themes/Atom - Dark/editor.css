@@ -43,12 +43,24 @@
   -webkit-animation-iteration-count: 1;
 }
 
-.editor .fold {
-  background-color: #444;
+.editor .gutter .line-number.fold {
+  color: #fba0e3;
+  opacity: .8;
 }
 
-.editor .fold.selected {
-  background-color: #244;
+.editor .gutter .line-number.fold.cursor-line {
+  opacity: 1;
+}
+
+.editor .fold-marker:before {
+  content: '\f25e';
+  font-family: 'Octicons Regular';
+  display: inline-block;
+  margin-left: .5em;
+  margin-top: .1em;
+  line-height: .8em;
+  -webkit-font-smoothing: antialiased;
+  color: #fba0e3;
 }
 
 .editor .invisible {

@@ -465,6 +465,14 @@ describe 'Buffer', ->
         range = [[2,10], [4,10]]
         expect(buffer.getTextInRange(range)).toBe "ems.length <= 1) return items;\n    var pivot = items.shift(), current, left = [], right = [];\n    while("
 
+    describe "when the range starts before the start of the buffer", ->
+      it "clips the range to the start of the buffer", ->
+        expect(buffer.getTextInRange([[-Infinity, -Infinity], [0, Infinity]])).toBe buffer.lineForRow(0)
+
+    describe "when the range ends after the end of the buffer", ->
+      it "clips the range to the end of the buffer", ->
+        expect(buffer.getTextInRange([[12], [13, Infinity]])).toBe buffer.lineForRow(12)
+
   describe ".scanInRange(range, regex, fn)", ->
     describe "when given a regex with a ignore case flag", ->
       it "does a case-insensitive search", ->
