@@ -20,6 +20,9 @@ class EditorStatsView extends ScrollView
 
   xaxis = d3.svg.axis().scale(x)
     .orient('top')
+    .tickFormat (d) ->
+      d = new Date(startDate.getTime() + (d * 6e4))
+      "#{d.getHours()}:#{d.getMinutes()}"
 
   @activate: (rootView, state) ->
     @instance = new EditorStatsView(rootView, state?.eventLog)
