@@ -118,3 +118,21 @@ describe "Tabs", ->
       tabs.find('.tab .close-icon:eq(1)').click()
       expect(editor.getActiveEditSessionIndex()).toBe 0
       expect(editor.activeEditSession).toBe firstSession
+
+  describe "when two tabs have the same file name", ->
+    [tempPath] = []
+
+    beforeEach ->
+      tempPath = '/tmp/sample.js'
+      fs.write(tempPath, 'sample')
+
+    afterEach ->
+      fs.remove(tempPath) if fs.exists(tempPath)
+
+    it "displays the parent folder name after the file name", ->
+      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js'
+      rootView.open(tempPath)
+      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js - fixtures'
+      expect(tabs.find('.tab:last .file-name').text()).toBe 'sample.js - tmp'
+      editor.destroyActiveEditSession()
+      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js'
