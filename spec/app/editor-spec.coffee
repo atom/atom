@@ -2351,6 +2351,15 @@ describe "Editor", ->
         expect(editor.getSelectedBufferRange()).toEqual [[2, 4], [3, 0]]
         expect(editor.isFoldedAtScreenRow(3)).toBeTruthy()
 
+    describe "when an entire line is selected including the newline", ->
+      it "moves the selected line up", ->
+        editor.setCursorBufferPosition([1])
+        editor.selectToEndOfLine()
+        editor.selectRight()
+        editor.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
   describe "when editor:move-line-down is triggered", ->
     describe "when there is no selection", ->
       it "moves the line where the cursor is down", ->
@@ -2435,3 +2444,12 @@ describe "Editor", ->
           expect(buffer.lineForRow(5)).toBe '    while(items.length > 0) {'
           expect(editor.getSelectedBufferRange()).toEqual [[4, 4], [5, 0]]
           expect(editor.isFoldedAtScreenRow(5)).toBeTruthy()
+
+      describe "when an entire line is selected including the newline", ->
+        it "moves the selected line down", ->
+          editor.setCursorBufferPosition([1])
+          editor.selectToEndOfLine()
+          editor.selectRight()
+          editor.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(1)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(2)).toBe '  var sort = function(items) {'

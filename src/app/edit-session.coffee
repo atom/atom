@@ -342,7 +342,10 @@ class EditSession
 
     @transact =>
       foldedRows = []
-      for row in [selection.start.row..selection.end.row]
+      rows = [selection.start.row..selection.end.row]
+      if selection.start.row isnt selection.end.row and selection.end.column is 0
+        rows.pop() unless @isFoldedAtScreenRow(@screenPositionForBufferPosition(selection.end).row)
+      for row in rows
         screenRow = @screenPositionForBufferPosition([row]).row
         if @isFoldedAtScreenRow(screenRow)
           bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
@@ -374,7 +377,10 @@ class EditSession
 
     @transact =>
       foldedRows = []
-      for row in [selection.end.row..selection.start.row]
+      rows = [selection.end.row..selection.start.row]
+      if selection.start.row isnt selection.end.row and selection.end.column is 0
+        rows.shift() unless @isFoldedAtScreenRow(@screenPositionForBufferPosition(selection.end).row)
+      for row in rows
         screenRow = @screenPositionForBufferPosition([row]).row
         if @isFoldedAtScreenRow(screenRow)
           bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
