@@ -38,3 +38,4 @@ class Tab extends View
       fileNameText = 'untitled'
 
     @fileName.text(fileNameText)
+    @fileName.attr('title', @editSession.getPath())
