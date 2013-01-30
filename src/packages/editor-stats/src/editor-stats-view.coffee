@@ -22,7 +22,9 @@ class EditorStatsView extends ScrollView
     .orient('top')
     .tickFormat (d) ->
       d = new Date(startDate.getTime() + (d * 6e4))
-      "#{d.getHours()}:#{d.getMinutes()}"
+      mins = d.getMinutes()
+      mins = "0#{mins}" if mins < 9
+      "#{d.getHours()}:#{mins}"
 
   @activate: (rootView, state) ->
     @instance = new EditorStatsView(rootView, state?.eventLog)
