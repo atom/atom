@@ -36,8 +36,8 @@ class Fold
       @displayBuffer.unregisterFold(@startRow, this)
       return
 
-    @updateStartRow(event)
-    @updateEndRow(event)
+    @startRow += @getRowDelta(event, @startRow)
+    @endRow += @getRowDelta(event, @endRow)
 
     if @startRow != oldStartRow
       @displayBuffer.unregisterFold(oldStartRow, this)
@@ -49,26 +49,12 @@ class Fold
   isContainedByFold: (fold) ->
     @isContainedByRange(fold.getBufferRange())
 
-  updateStartRow: (event) ->
+  getRowDelta: (event, row) ->
     { newRange, oldRange } = event
 
-    if oldRange.end.row < @startRow
-      delta = newRange.end.row - oldRange.end.row
-    else if newRange.end.row < @startRow
-      delta = newRange.end.row - @startRow
+    if oldRange.end.row <= row
+      newRange.end.row - oldRange.end.row
+    else if newRange.end.row < row
+      newRange.end.row - row
     else
-      delta = 0
-
-    @startRow += delta
-
-  updateEndRow: (event) ->
-    { newRange, oldRange } = event
-
-    if oldRange.end.row <= @endRow
-      delta = newRange.end.row - oldRange.end.row
-    else if newRange.end.row <= @endRow
-      delta = newRange.end.row - @endRow
-    else
-      delta = 0
-
-    @endRow += delta
+      0
