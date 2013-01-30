@@ -97,6 +97,8 @@ class EditorStatsView extends ScrollView
         .attr('height', (d, i) ->  h - y(d.value))
         .attr('y', (d, i) -> y d.value)
 
+      bars.classed('max', (d, i) -> d.value == max)
+
     setInterval update, 5000
 
   track: =>
