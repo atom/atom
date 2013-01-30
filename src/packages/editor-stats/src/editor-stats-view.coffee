@@ -35,7 +35,7 @@ class EditorStatsView extends ScrollView
   @serialize: ->
     @instance.serialize()
 
-  eventlog: [],
+  eventLog: [],
 
   initialize: (@rootView, @eventLog = {}) ->
     super
@@ -45,10 +45,10 @@ class EditorStatsView extends ScrollView
 
     date = new Date(startDate)
     future = new Date(date.getTime() + (36e5 * hours))
-    @eventlog[time(date)] = 0
+    @eventLog[time(date)] = 0
 
     while date < future
-      @eventlog[time(date)] = 0
+      @eventLog[time(date)] = 0
 
     @rootView.on 'keydown', @track
     @rootView.on 'mouseup', @track
@@ -58,7 +58,7 @@ class EditorStatsView extends ScrollView
     h = @.height()
     [pt, pl, pb, pr] = [15,0,0,0]
 
-    data = d3.entries @eventlog
+    data = d3.entries @eventLog
 
     x.rangeRoundBands [0, w - pl - pr], 0.2
     y.range [h, 0]
@@ -90,7 +90,7 @@ class EditorStatsView extends ScrollView
       .attr('class', 'bar')
 
     update = =>
-      newdata = d3.entries @eventlog
+      newdata = d3.entries @eventLog
       max  = d3.max newdata, (d) -> d.value
 
       y.domain [0, max]
@@ -106,9 +106,9 @@ class EditorStatsView extends ScrollView
   track: =>
     date = new Date
     times = time date
-    @eventlog[times] ||= 0
-    @eventlog[times] += 1
-    @eventlog.shift() if @eventlog.length > (hours * 60)
+    @eventLog[times] ||= 0
+    @eventLog[times] += 1
+    @eventLog.shift() if @eventLog.length > (hours * 60)
 
   toggle: ->
     if @hasParent()
