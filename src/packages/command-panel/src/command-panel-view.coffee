@@ -51,7 +51,7 @@ class CommandPanelView extends View
     @previewList.hide()
     @previewCount.hide()
     @errorMessages.hide()
-    @prompt.iconSize(@miniEditor.fontSize)
+    @prompt.iconSize(@miniEditor.getFontSize())
 
   serialize: ->
     text: @miniEditor.getText()

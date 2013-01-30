@@ -14,6 +14,7 @@ _ = require 'underscore'
 module.exports =
 class Editor extends View
   @configDefaults:
+    fontFamily: "Inconsolata, Monaco, Courier"
     fontSize: 20
     showInvisibles: false
     autosave: false
@@ -341,6 +342,7 @@ class Editor extends View
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
+    @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
 
   handleEvents: ->
     @on 'focus', =>
@@ -681,16 +683,37 @@ class Editor extends View
   autosave: ->
     @save() if @getPath()?
 
-  setFontSize: (@fontSize) ->
-    if fontSize?
-      @css('font-size', fontSize + 'px')
-      return unless @attached
-      @calculateDimensions()
-      @updatePaddingOfRenderedLines()
-      @updateLayerDimensions()
-      @requestDisplayUpdate()
+  setFontSize: (fontSize) ->
+    headTag = $("head")
+    styleTag = headTag.find("style.font-size")
+    if styleTag.length == 0
+      styleTag = $$ -> @style class: 'font-size'
+      headTag.append styleTag
 
-  getFontSize: -> @fontSize
+    styleTag.text(".editor {font-size: #{fontSize}px}")
+    @redraw()
+
+  getFontSize: ->
+    parseInt(@css("font-size"))
+
+  setFontFamily: (fontFamily) ->
+    headTag = $("head")
+    styleTag = headTag.find("style.font-family")
+    if styleTag.length == 0
+      styleTag = $$ -> @style class: 'font-family'
+      headTag.append styleTag
+
+    styleTag.text(".editor {font-family: #{fontFamily}}")
+    @redraw()
+
+  getFontFamily: -> @css("font-family")
+
+  redraw: ->
+    return unless @attached
+    @calculateDimensions()
+    @updatePaddingOfRenderedLines()
+    @updateLayerDimensions()
+    @requestDisplayUpdate()
 
   newSplitEditor: (editSession) ->
     new Editor { editSession: editSession ? @activeEditSession.copy() }
