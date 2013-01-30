@@ -56,10 +56,11 @@
 }
 
 .editor .fold-marker:before {
-  content: '\f25e';
+  content: '\f060';
+  -webkit-transform: rotate(90deg);
   font-family: 'Octicons Regular';
   display: inline-block;
-  margin-left: .5em;
+  margin-left: .3em;
   margin-top: .1em;
   line-height: .8em;
   -webkit-font-smoothing: antialiased;
