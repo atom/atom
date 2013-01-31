@@ -438,13 +438,13 @@ describe "CommandPanel", ->
         expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
 
     describe "when core:confirm is triggered on the preview list", ->
-      it "opens the operation's buffer, selects and scrolls to the search result, and focuses the active editor", ->
+      it "opens the operation's buffer, selects and scrolls to the search result, and refocuses the preview list", ->
         rootView.height(200)
         rootView.attachToDom()
 
         waitsForPromise -> commandPanel.execute('X x/apply/') # use apply because it is at the end of the file
         runs ->
-          spyOn(rootView, 'focus')
+          spyOn(previewList, 'focus')
           executeHandler = jasmine.createSpy('executeHandler')
           commandPanel.on 'core:confirm', executeHandler
 
@@ -458,13 +458,13 @@ describe "CommandPanel", ->
           expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
           expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
           expect(editor.isScreenRowVisible(editor.getCursorScreenRow())).toBeTruthy()
-          expect(rootView.focus).toHaveBeenCalled()
+          expect(previewList.focus).toHaveBeenCalled()
 
           expect(executeHandler).not.toHaveBeenCalled()
 
     describe "when an operation in the preview list is clicked", ->
-      it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
-        spyOn(rootView, 'focus')
+      it "opens the operation's buffer, selects the search result, and refocuses the preview list", ->
+        spyOn(previewList, 'focus')
         operation = previewList.getOperations()[4]
 
         previewList.find('li.operation:eq(4) span').mousedown()
@@ -473,4 +473,4 @@ describe "CommandPanel", ->
         editSession = rootView.getActiveEditSession()
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
-        expect(rootView.focus).toHaveBeenCalled()
+        expect(previewList.focus).toHaveBeenCalled()
