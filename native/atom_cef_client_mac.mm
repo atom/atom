@@ -23,6 +23,24 @@ void AtomCefClient::FocusNextWindow() {
   }
 }
 
+void AtomCefClient::FocusPreviousWindow() {
+  NSArray *windows = [NSApp windows];
+  int count = [windows count];
+  int start = [windows indexOfObject:[NSApp keyWindow]];
+
+  int i = start;
+  while (true) {
+    i = i - 1;
+    if (i == 0) i = count -1;
+    if (i == start) break;
+    NSWindow *window = [windows objectAtIndex:i];
+    if ([window isVisible] && ![window isExcludedFromWindowsMenu]) {
+      [window makeKeyAndOrderFront:nil];
+      break;
+    }
+  }
+}
+
 void AtomCefClient::Open(std::string path) {
   NSString *pathString = [NSString stringWithCString:path.c_str() encoding:NSUTF8StringEncoding];
   [(AtomApplication *)[AtomApplication sharedApplication] open:pathString];

@@ -1,2 +1,2 @@
-window.keymap.bindKeys '.editor'
+'.editor':
   'tab': 'snippets:expand'

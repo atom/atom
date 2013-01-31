@@ -1,0 +1,17 @@
+#!/bin/sh
+
+usage() {
+  echo "usage: $0 sha name email"
+  exit 1
+}
+
+if [ ! $3 ]; then
+  usage
+fi
+
+git filter-branch -f --env-filter "
+export GIT_AUTHOR_NAME='$2'
+export GIT_AUTHOR_EMAIL='$3'
+export GIT_COMMITTER_NAME='$2'
+export GIT_COMMITTER_EMAIL='$3'
+" -- $1..HEAD
