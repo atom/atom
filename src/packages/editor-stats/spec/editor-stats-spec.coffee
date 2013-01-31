@@ -2,7 +2,7 @@ $ = require 'jquery'
 RootView = require 'root-view'
 EditorStats = require 'editor-stats/src/editor-stats-view'
 
-describe "EditorStats", ->
+fdescribe "EditorStats", ->
   [rootView, editorStats, editor, date, time] = []
 
   simulateKeyUp = (key) ->

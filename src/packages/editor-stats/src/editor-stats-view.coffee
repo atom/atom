@@ -1,7 +1,4 @@
-{$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
-$ = require 'jquery'
-_ = require 'underscore'
 d3 = require 'd3.v3'
 
 module.exports =
