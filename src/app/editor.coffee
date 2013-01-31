@@ -14,7 +14,6 @@ _ = require 'underscore'
 module.exports =
 class Editor extends View
   @configDefaults:
-    fontFamily: "Inconsolata, Monaco, Courier"
     fontSize: 20
     showInvisibles: false
     autosave: false
@@ -697,6 +696,7 @@ class Editor extends View
     parseInt(@css("font-size"))
 
   setFontFamily: (fontFamily) ->
+    return if fontFamily == undefined
     headTag = $("head")
     styleTag = headTag.find("style.font-family")
     if styleTag.length == 0
