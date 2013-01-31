@@ -66,6 +66,17 @@
   visibility: visible;
 }
 
+.editor .fold-marker:after {
+  content: '\2026';
+  opacity: .8;
+  color: #fba0e3;
+  padding-left: .2em;
+}
+
+.editor .line.cursor-line .fold-marker {
+  opacity: 1;
+}
+
 .editor .invisible {
   opacity: 0.2;
 }
