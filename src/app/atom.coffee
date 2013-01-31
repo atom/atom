@@ -7,8 +7,6 @@ LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
-configDirPath = fs.absolute("~/.atom")
-userStylePath = fs.join(configDirPath, "user.css")
 
 _.extend atom,
   exitWhenDone: window.location.params.exitWhenDone
@@ -55,14 +53,15 @@ _.extend atom,
     themeNames = config.get("core.themes") ? ['Atom - Dark', 'IR_Black']
     themeNames = [themeNames] unless _.isArray(themeNames)
     @loadTheme(themeName) for themeName in themeNames
-    @loadUserStyles()
+    @loadUserStylesheet()
 
   loadTheme: (name) ->
     @loadedThemes.push Theme.load(name)
 
-  loadUserStyles: ->
-    if fs.exists(userStylePath)
-      applyStylesheet(userStylePath, fs.read(userStylePath), 'userTheme')
+  loadUserStylesheet: ->
+    userStylesheetPath = fs.join(config.configDirPath, 'user.css')
+    if fs.isFile(userStylesheetPath)
+      applyStylesheet(userStylesheetPath, fs.read(userStylesheetPath), 'userTheme')
 
   getAtomThemeStylesheets: ->
     themeNames = config.get("core.themes") ? ['Atom - Dark', 'IR_Black']
