@@ -59,11 +59,16 @@ module.exports =
 
   # Returns an array with all the names of files contained
   # in the directory path.
-  list: (rootPath) ->
+  list: (rootPath, extensions) ->
     paths = []
-    onPath = (path) =>
-      paths.push(@join(rootPath, path))
-      false
+    if extensions
+      onPath = (path) =>
+        paths.push(@join(rootPath, path)) if _.contains(extensions, @extension(path))
+        false
+    else
+      onPath = (path) =>
+        paths.push(@join(rootPath, path))
+        false
     @traverseTree(rootPath, onPath, onPath)
     paths
 
