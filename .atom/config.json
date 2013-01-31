@@ -1,0 +1,11 @@
+{
+  "editor": {
+
+  },
+  "core": {
+    "themes": [
+      "Atom - Dark",
+      "IR_Black"
+    ]
+  }
+}
