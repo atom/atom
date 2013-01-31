@@ -271,17 +271,26 @@ class Buffer
   getMarkers: ->
     _.values(@validMarkers)
 
-  markRange: (range, options) ->
-    marker = new BufferMarker(_.extend({
+  markRange: (range, options={}) ->
+    marker = new BufferMarker(_.defaults({
       id: @nextMarkerId++
       buffer: this
-      range: range
+      range
     }, options))
     @validMarkers[marker.id] = marker
     marker.id
 
+  markPosition: (position, options) ->
+    @markRange([position, position], _.defaults({noTail: true}, options))
+
   getMarkerPosition: (id) ->
-    @validMarkers[id]?.getPosition()
+    @getMarkerHeadPosition(id)
+
+  getMarkerHeadPosition: (id) ->
+    @validMarkers[id]?.getHeadPosition()
+
+  getMarkerTailPosition: (id) ->
+    @validMarkers[id]?.getTailPosition()
 
   getMarkerRange: (id) ->
     @validMarkers[id]?.getRange()

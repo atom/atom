@@ -8,16 +8,23 @@ class BufferMarker
   tailPosition: null
   stayValid: false
 
-  constructor: ({@id, @buffer, range, @stayValid}) ->
-    @setRange(range)
+  constructor: ({@id, @buffer, range, @stayValid, noTail}) ->
+    @setRange(range, {noTail})
 
-  setRange: (range) ->
+  setRange: (range, options={}) ->
     range = @buffer.clipRange(range)
-    @tailPosition = range.start
+    @tailPosition = range.start unless options.noTail
     @headPosition = range.end
 
   getRange: ->
-    new Range(@tailPosition, @headPosition)
+    if @tailPosition
+      new Range(@tailPosition, @headPosition)
+    else
+      new Range(@headPosition, @headPosition)
+
+  getHeadPosition: -> @headPosition
+
+  getTailPosition: -> @tailPosition
 
   getStartPosition: ->
     @getRange().start
