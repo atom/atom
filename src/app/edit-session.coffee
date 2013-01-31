@@ -434,6 +434,18 @@ class EditSession
   getAnchorRanges: ->
     new Array(@anchorRanges...)
 
+  markScreenPosition: (args...) ->
+    @displayBuffer.markScreenPosition(args...)
+
+  markBufferPosition: (args...) ->
+    @displayBuffer.markBufferPosition(args...)
+
+  getMarkerBufferRange: (marker) ->
+    @displayBuffer.getMarkerBufferRange(marker)
+
+  getMarkerScreenRange: (marker) ->
+    @displayBuffer.getMarkerScreenRange(marker)
+
   addAnchor: (options={}) ->
     anchor = @buffer.addAnchor(_.extend({editSession: this}, options))
     @anchors.push(anchor)
@@ -470,31 +482,35 @@ class EditSession
     _.last(@cursors)
 
   addCursorAtScreenPosition: (screenPosition) ->
-    @addCursor(new Cursor(editSession: this, screenPosition: screenPosition))
+    marker = @markScreenPosition(screenPosition, stayValid: true)
+    @addSelection(marker).cursor
 
   addCursorAtBufferPosition: (bufferPosition) ->
-    @addCursor(new Cursor(editSession: this, bufferPosition: bufferPosition))
+    marker = @markBufferPosition(screenPosition, stayValid: true)
+    @addSelection(marker).cursor
 
-  addCursor: (cursor=new Cursor(editSession: this, screenPosition: [0,0])) ->
+  addCursor: (marker) ->
+    cursor = new Cursor(editSession: this, marker: marker)
     @cursors.push(cursor)
     @trigger 'cursor-added', cursor
-    @addSelectionForCursor(cursor)
     cursor
 
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 
-  addSelectionForCursor: (cursor) ->
-    selection = new Selection(editSession: this, cursor: cursor)
+  addSelection: (marker, options={}) ->
+    unless options.preserveFolds
+      @destroyFoldsIntersectingBufferRange(@getMarkerBufferRange(marker))
+    cursor = @addCursor(marker)
+    selection = new Selection({editSession: this, marker, cursor})
     @selections.push(selection)
+    @mergeIntersectingSelections()
     @trigger 'selection-added', selection
     selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    bufferRange = Range.fromObject(bufferRange)
-    @destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
-    @addCursor().selection.setBufferRange(bufferRange, options)
-    @mergeIntersectingSelections()
+    marker = @markBufferRange(bufferRange, _.defaults({stayValid: true}, options))
+    @addSelection(marker)
 
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)

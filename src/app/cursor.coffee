@@ -1,6 +1,5 @@
 Point = require 'point'
 Range = require 'range'
-Anchor = require 'anchor'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
@@ -12,19 +11,15 @@ class Cursor
   visible: true
   needsAutoscroll: null
 
-  constructor: ({@editSession, screenPosition, bufferPosition}) ->
-    @anchor = @editSession.addAnchor(strong: true)
-    @anchor.on 'moved', (e) =>
-      @needsAutoscroll ?= @isLastCursor()
-      @trigger 'moved', e
-      @editSession.trigger 'cursor-moved', e
-
-    @setScreenPosition(screenPosition) if screenPosition
-    @setBufferPosition(bufferPosition) if bufferPosition
+  constructor: ({@editSession, @marker}) ->
+#     @editSession.observeMarkerHeadScreenPosition @marker, (screenPosition) ->
+#       @needsAutoscroll ?= @isLastCursor()
+#       @trigger 'moved', e
+#       @editSession.trigger 'cursor-moved', e
     @needsAutoscroll = true
 
   destroy: ->
-    @anchor.destroy()
+    @editSession.destroyMarker(@marker)
     @editSession.removeCursor(this)
     @trigger 'destroyed'
 
@@ -32,22 +27,19 @@ class Cursor
     @goalColumn = null
     @clearSelection()
     @needsAutoscroll = (options.autoscroll ? true) and @isLastCursor()
-    @anchor.setScreenPosition(screenPosition, options)
+    @editSession.setMarkerHeadScreenPosition(@marker, screenPosition, options)
 
   getScreenPosition: ->
-    @anchor.getScreenPosition()
-
-  getScreenRow: ->
-    @anchor.getScreenRow()
+    @editSession.getMarkerHeadScreenPosition(@marker)
 
   setBufferPosition: (bufferPosition, options={}) ->
     @goalColumn = null
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
-    @anchor.setBufferPosition(bufferPosition, options)
+    @editSession.setMarkerHeadBufferPosition(@marker, screenPosition, options)
 
   getBufferPosition: ->
-    @anchor.getBufferPosition()
+    @editSession.getMarkerHeadBufferPosition(@marker)
 
   setVisible: (visible) ->
     if @visible != visible
@@ -90,9 +82,6 @@ class Cursor
 
   getCurrentBufferLine: ->
     @editSession.lineForBufferRow(@getBufferRow())
-
-  refreshScreenPosition: ->
-    @anchor.refreshScreenPosition()
 
   moveUp: (rowCount = 1) ->
     { row, column } = @getScreenPosition()
