@@ -4,7 +4,7 @@ EventEmitter = require 'event-emitter'
 
 configDirPath = fs.absolute("~/.atom")
 configJsonPath = fs.join(configDirPath, "config.json")
-userInitScriptPath = fs.join(configDirPath, "atom.coffee")
+userInitScriptPath = fs.join(configDirPath, "user.coffee")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
 bundledThemesDirPath = fs.join(resourcePath, "themes")
 vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
