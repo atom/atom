@@ -580,10 +580,33 @@ describe "DisplayBuffer", ->
     it "returns the length of the longest screen line", ->
       expect(displayBuffer.maxLineLength()).toBe 65
 
-  describe "markers", ->
-    it "allows markers to be worked with in terms of both screen and buffer coordinates", ->
-      displayBuffer.foldBufferRow(4)
-      marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-      marker2 = displayBuffer.markBufferRange([[8, 4], [8, 10]])
-      expect(displayBuffer.getMarkerBufferRange(marker1)).toEqual [[8, 4], [8, 10]]
-      expect(displayBuffer.getMarkerScreenRange(marker2)).toEqual [[5, 4], [5, 10]]
+  fdescribe "markers", ->
+    describe "creation and manipulation", ->
+      beforeEach ->
+        displayBuffer.foldBufferRow(4)
+
+      it "allows markers to be created in terms of both screen and buffer coordinates", ->
+        marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        marker2 = displayBuffer.markBufferRange([[8, 4], [8, 10]])
+        expect(displayBuffer.getMarkerBufferRange(marker1)).toEqual [[8, 4], [8, 10]]
+        expect(displayBuffer.getMarkerScreenRange(marker2)).toEqual [[5, 4], [5, 10]]
+
+      it "allows marker head and tail positions to be manipulated in both screen and buffer coordinates", ->
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])
+        displayBuffer.setMarkerTailBufferPosition(marker, [5, 4])
+        expect(displayBuffer.isMarkerReversed(marker)).toBeFalsy()
+        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
+
+        displayBuffer.setMarkerHeadBufferPosition(marker, [5, 4])
+        displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])
+        expect(displayBuffer.isMarkerReversed(marker)).toBeTruthy()
+        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
+
+
+
+
+
+
+
+
