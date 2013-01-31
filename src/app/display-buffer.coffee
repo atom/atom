@@ -290,6 +290,18 @@ class DisplayBuffer
   rangeForAllLines: ->
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
 
+  markScreenRange: (screenRange) ->
+    @markBufferRange(@bufferRangeForScreenRange(screenRange))
+
+  markBufferRange: (bufferRange) ->
+    @buffer.markRange(bufferRange)
+
+  getMarkerScreenRange: (id) ->
+    @screenRangeForBufferRange(@getMarkerBufferRange(id))
+
+  getMarkerBufferRange: (id) ->
+    @buffer.getMarkerRange(id)
+
   destroy: ->
     @tokenizedBuffer.destroy()
 

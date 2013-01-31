@@ -579,3 +579,11 @@ describe "DisplayBuffer", ->
   describe ".maxLineLength()", ->
     it "returns the length of the longest screen line", ->
       expect(displayBuffer.maxLineLength()).toBe 65
+
+  describe "markers", ->
+    it "allows markers to be worked with in terms of both screen and buffer coordinates", ->
+      displayBuffer.foldBufferRow(4)
+      marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+      marker2 = displayBuffer.markBufferRange([[8, 4], [8, 10]])
+      expect(displayBuffer.getMarkerBufferRange(marker1)).toEqual [[8, 4], [8, 10]]
+      expect(displayBuffer.getMarkerScreenRange(marker2)).toEqual [[5, 4], [5, 10]]
