@@ -23,8 +23,7 @@ describe "the `syntax` global", ->
       expect(syntax.grammarForFilePath("/tmp/.git/config").name).toBe "Git Config"
 
     it "uses plain text if no grammar can be found", ->
-      filePath = require.resolve("this-is-not-a-real-file")
-      expect(syntax.grammarForFilePath(filePath).name).toBe "Plain Text"
+      expect(syntax.grammarForFilePath("this-is-not-a-real-file").name).toBe "Plain Text"
 
   describe ".getProperty(scopeDescriptor)", ->
     it "returns the property with the most specific scope selector", ->
