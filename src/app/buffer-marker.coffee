@@ -6,19 +6,21 @@ module.exports =
 class BufferMarker
   headPosition: null
   tailPosition: null
+  headPositionObservers: null
   stayValid: false
 
   constructor: ({@id, @buffer, range, @stayValid, noTail, reverse}) ->
+    @headPositionObservers = []
     @setRange(range, {noTail, reverse})
 
   setRange: (range, options={}) ->
-    range = @buffer.clipRange(range)
+    range = Range.fromObject(range)
     if options.reverse
-      @tailPosition = range.end unless options.noTail
-      @headPosition = range.start
+      @setTailPosition(range.end) unless options.noTail
+      @setHeadPosition(range.start)
     else
-      @tailPosition = range.start unless options.noTail
-      @headPosition = range.end
+      @setTailPosition(range.start) unless options.noTail
+      @setHeadPosition(range.end)
 
   isReversed: ->
     @tailPosition? and @headPosition.isLessThan(@tailPosition)
@@ -36,6 +38,8 @@ class BufferMarker
   setHeadPosition: (headPosition, options={}) ->
     @headPosition = Point.fromObject(headPosition)
     @headPosition = @buffer.clipPosition(@headPosition) if options.clip ? true
+    observer(@headPosition) for observer in @headPositionObservers
+    @headPosition
 
   setTailPosition: (tailPosition, options={}) ->
     @tailPosition = Point.fromObject(tailPosition)
@@ -46,6 +50,9 @@ class BufferMarker
 
   getEndPosition: ->
     @getRange().end
+
+  observeHeadPosition: (callback) ->
+    @headPositionObservers.push(callback)
 
   tryToInvalidate: (oldRange) ->
     containsStart = oldRange.containsPoint(@getStartPosition(), exclusive: true)
@@ -66,8 +73,8 @@ class BufferMarker
       [@id]
 
   handleBufferChange: (bufferChange) ->
-    @setTailPosition(@updatePosition(@tailPosition, bufferChange, true), clip: false)
     @setHeadPosition(@updatePosition(@headPosition, bufferChange, false), clip: false)
+    @setTailPosition(@updatePosition(@tailPosition, bufferChange, true), clip: false) if @tailPosition
 
   updatePosition: (position, bufferChange, isFirstPoint) ->
     { oldRange, newRange } = bufferChange

@@ -581,10 +581,10 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.maxLineLength()).toBe 65
 
   fdescribe "markers", ->
-    describe "creation and manipulation", ->
-      beforeEach ->
-        displayBuffer.foldBufferRow(4)
+    beforeEach ->
+      displayBuffer.foldBufferRow(4)
 
+    describe "creation and manipulation", ->
       it "allows markers to be created in terms of both screen and buffer coordinates", ->
         marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
         marker2 = displayBuffer.markBufferRange([[8, 4], [8, 10]])
@@ -603,10 +603,49 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.isMarkerReversed(marker)).toBeTruthy()
         expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
 
+    describe "observation", ->
+      describe ".observeMarkerHeadScreenPosition(marker, callback)", ->
+        it "calls the callback whenever the markers head's screen position changes", ->
+          marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+          observeHandler = jasmine.createSpy("observeHandler")
+          displayBuffer.observeMarkerHeadScreenPosition(marker, observeHandler)
+          displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual [8, 20]
+          observeHandler.reset()
 
+          buffer.insert([11, 0], '...')
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual [8, 23]
+          observeHandler.reset()
 
+          displayBuffer.unfoldBufferRow(4)
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual [11, 23]
+          observeHandler.reset()
 
+          displayBuffer.foldBufferRow(4)
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual [8, 23]
 
+        it "does not call the callback for screen changes that don't change the position of the marker", ->
+          marker = displayBuffer.markScreenPosition([3, 4])
+          observeHandler = jasmine.createSpy("observeHandler")
+          displayBuffer.observeMarkerHeadScreenPosition(marker, observeHandler)
 
+          buffer.insert([3, 0], '...')
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual [3, 7]
+          observeHandler.reset()
 
+          displayBuffer.unfoldBufferRow(4)
+          expect(observeHandler).not.toHaveBeenCalled()
 
+          fold = displayBuffer.createFold(0, 2)
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual [1, 7]
+          observeHandler.reset()
+
+          fold.destroy()
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual [3, 7]

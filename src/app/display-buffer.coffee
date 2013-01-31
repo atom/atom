@@ -16,6 +16,8 @@ class DisplayBuffer
   tokenizedBuffer: null
   activeFolds: null
   foldsById: null
+  markerScreenPositionObservers: null
+  markerScreenPositions: null
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
@@ -24,6 +26,9 @@ class DisplayBuffer
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
     @foldsById = {}
+    @markerScreenPositionObservers = {}
+    @markerScreenPositions = {}
+
     @buildLineMap()
     @tokenizedBuffer.on 'changed', (e) => @handleTokenizedBufferChange(e)
 
@@ -33,13 +38,17 @@ class DisplayBuffer
     @lineMap = new LineMap
     @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
+  triggerChanged: (eventProperties) ->
+    @notifyMarkerScreenPositionObservers() unless eventProperties.bufferChange
+    @trigger 'changed', eventProperties
+
   setSoftWrapColumn: (@softWrapColumn) ->
     start = 0
     end = @getLastRow()
     @buildLineMap()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @trigger 'changed', { start, end, screenDelta, bufferDelta }
+    @triggerChanged({ start, end, screenDelta, bufferDelta })
 
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
@@ -95,7 +104,7 @@ class DisplayBuffer
       end = oldScreenRange.end.row
       screenDelta = newScreenRange.end.row - oldScreenRange.end.row
       bufferDelta = 0
-      @trigger 'changed', { start, end, screenDelta, bufferDelta }
+      @triggerChanged({ start, end, screenDelta, bufferDelta })
 
     fold
 
@@ -124,7 +133,8 @@ class DisplayBuffer
       screenDelta = newScreenRange.end.row - oldScreenRange.end.row
       bufferDelta = 0
 
-      @trigger 'changed', { start, end, screenDelta, bufferDelta }
+      @notifyMarkerScreenPositionObservers()
+      @triggerChanged({ start, end, screenDelta, bufferDelta })
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     for row, folds of @activeFolds
@@ -225,7 +235,7 @@ class DisplayBuffer
     @lineMap.replaceScreenRows(start, end, newScreenLines)
     screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
 
-    @trigger 'changed', { start, end, screenDelta, bufferDelta, bufferChange }
+    @triggerChanged({ start, end, screenDelta, bufferDelta, bufferChange })
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
@@ -340,6 +350,24 @@ class DisplayBuffer
 
   isMarkerReversed: (id) ->
     @buffer.isMarkerReversed(id)
+
+  observeMarkerHeadScreenPosition: (id, callback) ->
+    @markerScreenPositionObservers[id] ?= { head: [], tail: [] }
+    @cacheMarkerScreenPositions(id) unless @markerScreenPositions[id]
+    @markerScreenPositionObservers[id].head.push(callback)
+    @buffer.observeMarkerHeadPosition id, (bufferPosition) =>
+      @cacheMarkerScreenPositions(id)
+      callback(@screenPositionForBufferPosition(bufferPosition))
+
+  cacheMarkerScreenPositions: (id) ->
+    @markerScreenPositions[id] = { head: @getMarkerHeadScreenPosition(id), tail: @getMarkerTailScreenPosition }
+
+  notifyMarkerScreenPositionObservers: ->
+    for id, { head } of @markerScreenPositions
+      currentHeadPosition = @getMarkerHeadScreenPosition(id)
+      unless currentHeadPosition.isEqual(head)
+        @cacheMarkerScreenPositions(id)
+        observer(currentHeadPosition) for observer in @markerScreenPositionObservers[id].head
 
   destroy: ->
     @tokenizedBuffer.destroy()

@@ -440,11 +440,20 @@ class EditSession
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
-  getMarkerBufferRange: (marker) ->
-    @displayBuffer.getMarkerBufferRange(marker)
+  getMarkerBufferRange: (args...) ->
+    @displayBuffer.getMarkerBufferRange(args...)
 
-  getMarkerScreenRange: (marker) ->
-    @displayBuffer.getMarkerScreenRange(marker)
+  getMarkerScreenRange: (args...) ->
+    @displayBuffer.getMarkerScreenRange(args...)
+
+  getMarkerBufferPosition: (args...) ->
+    @displayBuffer.getMarkerBufferPosition(args...)
+
+  getMarkerHeadBufferPosition: (args...) ->
+    @displayBuffer.getMarkerHeadBufferPosition(args...)
+
+  getMarkerTailBufferPosition: (args...) ->
+    @displayBuffer.getMarkerTailBufferPosition(args...)
 
   addAnchor: (options={}) ->
     anchor = @buffer.addAnchor(_.extend({editSession: this}, options))

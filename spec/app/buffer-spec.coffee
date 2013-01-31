@@ -705,6 +705,17 @@ describe 'Buffer', ->
         buffer.setMarkerTailPosition(marker, [Infinity, Infinity])
         expect(buffer.getMarkerRange(marker)).toEqual([[0, 0], [12, 2]])
 
+    describe "marker observation", ->
+      describe ".observeMarkerHeadPosition(marker, callback)", ->
+        it "calls the given callback whenever the marker's head position changes", ->
+          marker = buffer.markRange([[4, 20], [4, 23]])
+          observeHandler = jasmine.createSpy("observeHandler")
+          buffer.observeMarkerHeadPosition(marker, observeHandler)
+
+          buffer.setMarkerHeadPosition(marker, [6, 2])
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual [6, 2]
+
     describe "marker updates due to buffer changes", ->
       [marker1, marker2] = []
 

@@ -307,6 +307,9 @@ class Buffer
   isMarkerReversed: (id) ->
     @validMarkers[id]?.isReversed()
 
+  observeMarkerHeadPosition: (id, callback) ->
+    @validMarkers[id]?.observeHeadPosition(callback)
+
   getAnchors: -> new Array(@anchors...)
 
   addAnchor: (options) ->
