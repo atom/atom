@@ -94,7 +94,7 @@ task "create-dot-atom" do
 
   `cp "#{dot_atom_template_path}/user.coffee" "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/user.css" "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
+  `cp -r "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
   `cp -r "#{ATOM_SRC_PATH}/themes" "#{DOT_ATOM_PATH}"`
   `cp "#{ATOM_SRC_PATH}/vendor/themes/IR_Black.tmTheme" "#{DOT_ATOM_PATH}/themes"`
 end
