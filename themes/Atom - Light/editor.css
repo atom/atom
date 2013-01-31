@@ -21,7 +21,7 @@
 }
 
 .editor .gutter .line-number {
-  padding-right: 1.3em;
+  padding-right: .5em;
   min-width: 35px;
   box-sizing: border-box;
   text-align: right;
@@ -56,16 +56,17 @@
   opacity: 1;
 }
 
-.editor .fold-marker:before {
-  content: '\f060';
-  -webkit-transform: rotate(90deg);
+.editor .gutter .line-number:after {
+  font-size: 0.8em;
+  content: '\f078';
   font-family: 'Octicons Regular';
-  display: inline-block;
-  margin-left: .3em;
-  margin-top: .1em;
-  line-height: .8em;
   -webkit-font-smoothing: antialiased;
   color: #fba0e3;
+  visibility: hidden;
+}
+
+.editor .gutter .line-number.fold:after {
+  visibility: visible;
 }
 
 .editor .invisible {
