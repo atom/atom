@@ -686,6 +686,25 @@ describe 'Buffer', ->
         expect(buffer.getMarkerHeadPosition(marker)).toEqual [4, 20]
         expect(buffer.getMarkerTailPosition(marker)).toEqual [4, 23]
 
+    describe "marker manipulation", ->
+      marker = null
+      beforeEach ->
+        marker = buffer.markRange([[4, 20], [4, 23]])
+
+      it "allows a markers head and tail positions to be changed", ->
+        buffer.setMarkerHeadPosition(marker, [5, 3])
+        expect(buffer.getMarkerRange(marker)).toEqual [[4, 20], [5, 3]]
+
+        buffer.setMarkerTailPosition(marker, [6, 3])
+        expect(buffer.getMarkerRange(marker)).toEqual [[5, 3], [6, 3]]
+        expect(buffer.isMarkerReversed(marker)).toBeTruthy()
+
+      it "clips head and tail positions to ensure they are in bounds", ->
+        buffer.setMarkerHeadPosition(marker, [-100, -5])
+        expect(buffer.getMarkerRange(marker)).toEqual([[0, 0], [4, 20]])
+        buffer.setMarkerTailPosition(marker, [Infinity, Infinity])
+        expect(buffer.getMarkerRange(marker)).toEqual([[0, 0], [12, 2]])
+
     describe "marker updates due to buffer changes", ->
       [marker1, marker2] = []
 

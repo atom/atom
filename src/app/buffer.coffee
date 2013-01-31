@@ -283,14 +283,23 @@ class Buffer
   markPosition: (position, options) ->
     @markRange([position, position], _.defaults({noTail: true}, options))
 
-  getMarkerPosition: (id) ->
-    @getMarkerHeadPosition(id)
+  getMarkerPosition: (args...) ->
+    @getMarkerHeadPosition(args...)
+
+  setMarkerPosition: (args...) ->
+    @setMarkerHeadPosition(args...)
 
   getMarkerHeadPosition: (id) ->
     @validMarkers[id]?.getHeadPosition()
 
+  setMarkerHeadPosition: (id, position, options) ->
+    @validMarkers[id]?.setHeadPosition(position)
+
   getMarkerTailPosition: (id) ->
     @validMarkers[id]?.getTailPosition()
+
+  setMarkerTailPosition: (id, position, options) ->
+    @validMarkers[id]?.setTailPosition(position)
 
   getMarkerRange: (id) ->
     @validMarkers[id]?.getRange()

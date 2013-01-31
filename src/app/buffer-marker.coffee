@@ -33,6 +33,14 @@ class BufferMarker
 
   getTailPosition: -> @tailPosition
 
+  setHeadPosition: (headPosition, options={}) ->
+    @headPosition = Point.fromObject(headPosition)
+    @headPosition = @buffer.clipPosition(@headPosition) if options.clip ? true
+
+  setTailPosition: (tailPosition, options={}) ->
+    @tailPosition = Point.fromObject(tailPosition)
+    @tailPosition = @buffer.clipPosition(@tailPosition) if options.clip ? true
+
   getStartPosition: ->
     @getRange().start
 
@@ -78,17 +86,6 @@ class BufferMarker
       newRow += position.row - oldRange.end.row
 
     [newRow, newColumn]
-
-  setTailPosition: (tailPosition, options={}) ->
-    @tailPosition = Point.fromObject(tailPosition)
-    @tailPosition = @buffer.clipPosition(@tailPosition) if options.clip ? true
-
-  setHeadPosition: (headPosition, options={}) ->
-    @headPosition = Point.fromObject(headPosition)
-    @headPosition = @buffer.clipPosition(@headPosition) if options.clip ? true
-
-  getPosition: ->
-    @position
 
   invalidate: (preserve) ->
     delete @buffer.validMarkers[@id]
