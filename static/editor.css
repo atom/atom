@@ -104,7 +104,3 @@
   pointer-events: none;
   z-index: -1;
 }
-
-.editor .line {
-  white-space: nowrap;
-}
