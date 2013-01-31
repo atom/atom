@@ -43,4 +43,3 @@ fdescribe "EditorStats", ->
       expect(editorStats.eventLog[time]).toBe 1
       simulateClick()
       expect(editorStats.eventLog[time]).toBe 2
-
