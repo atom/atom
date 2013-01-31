@@ -118,7 +118,6 @@ class EditorStatsView extends ScrollView
 
   attach: ->
     @.insertBefore @statusBar
-    @focus()
     @draw()
 
   detach: =>
