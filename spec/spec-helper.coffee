@@ -85,7 +85,7 @@ jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].originalValue?
   object[methodName] = object[methodName].originalValue
 
-jasmine.getEnv().defaultTimeoutInterval = 500
+jasmine.getEnv().defaultTimeoutInterval = 1000
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
