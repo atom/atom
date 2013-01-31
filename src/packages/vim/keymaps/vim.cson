@@ -1,3 +1,6 @@
+'body':
+  'esc': 'vim:command-mode'
+
 '.vim.command-mode .editor input':
   ':': 'vim:ex-mode',
   'i': 'vim:insert-mode'
