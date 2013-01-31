@@ -1,5 +1,6 @@
 .editor {
   font-family: Inconsolata, Monaco, Courier;
+  line-height: 1.3;
 }
 
 .editor.mini {
