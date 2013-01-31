@@ -350,7 +350,7 @@ class EditSession
       foldedRows = []
       rows = [selection.start.row..selection.end.row]
       if selection.start.row isnt selection.end.row and selection.end.column is 0
-        rows.pop() unless @isFoldedAtScreenRow(@screenPositionForBufferPosition(selection.end).row)
+        rows.pop() unless @isFoldedAtBufferRow(selection.end.row)
       for row in rows
         screenRow = @screenPositionForBufferPosition([row]).row
         if @isFoldedAtScreenRow(screenRow)
@@ -371,9 +371,7 @@ class EditSession
 
       @foldBufferRow(foldedRow) for foldedRow in foldedRows
 
-      newStartPosition = [selection.start.row - 1, selection.start.column]
-      newEndPosition = [selection.end.row - 1, selection.end.column]
-      @setSelectedBufferRange([newStartPosition, newEndPosition], preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([-1]), preserveFolds: true)
 
   moveLineDown: ->
     selection = @getSelectedBufferRange()
@@ -385,7 +383,7 @@ class EditSession
       foldedRows = []
       rows = [selection.end.row..selection.start.row]
       if selection.start.row isnt selection.end.row and selection.end.column is 0
-        rows.shift() unless @isFoldedAtScreenRow(@screenPositionForBufferPosition(selection.end).row)
+        rows.shift() unless @isFoldedAtBufferRow(selection.end.row)
       for row in rows
         screenRow = @screenPositionForBufferPosition([row]).row
         if @isFoldedAtScreenRow(screenRow)
@@ -410,9 +408,7 @@ class EditSession
 
       @foldBufferRow(foldedRow) for foldedRow in foldedRows
 
-      newStartPosition = [selection.start.row + 1, selection.start.column]
-      newEndPosition = [selection.end.row + 1, selection.end.column]
-      @setSelectedBufferRange([newStartPosition, newEndPosition], preserveFolds: true)
+      @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
 
 
   mutateSelectedText: (fn) ->

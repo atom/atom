@@ -34,7 +34,7 @@ class Tabs extends View
       false
 
   addTabForEditSession: (editSession) ->
-    @append(new Tab(editSession))
+    @append(new Tab(editSession, @editor))
 
   setActiveTab: (index) ->
     @find(".tab.active").removeClass('active')

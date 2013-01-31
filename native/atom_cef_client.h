@@ -105,6 +105,7 @@ class AtomCefClient : public CefClient,
   bool m_HandlePasteboardCommands = false;
 
   void FocusNextWindow();
+  void FocusPreviousWindow();
   void Open(std::string path);
   void Open();
   void OpenUnstable(std::string path);

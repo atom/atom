@@ -18,9 +18,9 @@ my-package/
   index.coffee
 ```
 
-**NOTE: NPM behavior is partially implemented until we get a working Node.js
+**NOTE:** NPM behavior is partially implemented until we get a working Node.js
 API built into Atom. The goal is to make Atom packages be a superset of NPM
-packages**
+packages
 
 #### package.json
 

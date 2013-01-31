@@ -516,14 +516,61 @@ describe "Editor", ->
       editor.getBuffer().saveAs(path)
       expect(editor.getGrammar().name).toBe 'Plain Text'
 
-  describe "font size", ->
-    it "sets the initial font size based on the value from config", ->
-      config.set("editor.fontSize", 20)
-      newEditor = editor.splitRight()
-      expect(editor.css('font-size')).toBe '20px'
-      expect(newEditor.css('font-size')).toBe '20px'
+  describe "font family", ->
+    beforeEach ->
+      expect(editor.css('font-family')).not.toBe 'Courier'
 
-    describe "when the font size changes on the view", ->
+    it "sets the initial font family based on the value from config", ->
+      expect($("head style.font-family")).toExist()
+      expect($("head style.font-family").text()).toMatch "{font-family: #{config.get('editor.fontFamily')}}"
+
+    describe "when the font family changes", ->
+      it "updates the font family on new and existing editors", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        config.set("editor.fontFamily", "Courier")
+        newEditor = editor.splitRight()
+
+        expect($("head style.font-family").text()).toMatch "{font-family: Courier}"
+        expect(editor.css('font-family')).toBe 'Courier'
+        expect(newEditor.css('font-family')).toBe 'Courier'
+
+      it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        lineHeightBefore = editor.lineHeight
+        charWidthBefore = editor.charWidth
+        config.set("editor.fontFamily", "Courier")
+        editor.setCursorScreenPosition [5, 6]
+        expect(editor.charWidth).not.toBe charWidthBefore
+        expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
+        expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
+
+  describe "font size", ->
+    beforeEach ->
+      expect(editor.css('font-size')).not.toBe "20px"
+
+    it "sets the initial font size based on the value from config", ->
+      expect($("head style.font-size")).toExist()
+      expect($("head style.font-size").text()).toMatch "{font-size: #{config.get('editor.fontSize')}px}"
+
+    describe "when the font size changes", ->
+      it "updates the font family on new and existing editors", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        config.set("editor.fontSize", 20)
+        newEditor = editor.splitRight()
+
+        expect($("head style.font-size").text()).toMatch "{font-size: 20px}"
+        expect(editor.css('font-size')).toBe '20px'
+        expect(newEditor.css('font-size')).toBe '20px'
+
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
         rootView.attachToDom()
         rootView.height(200)
