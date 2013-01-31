@@ -53,6 +53,8 @@ class BufferMarker
 
   observeHeadPosition: (callback) ->
     @headPositionObservers.push(callback)
+    cancel: =>
+      _.remove(@headPositionObservers, callback)
 
   tryToInvalidate: (oldRange) ->
     containsStart = oldRange.containsPoint(@getStartPosition(), exclusive: true)

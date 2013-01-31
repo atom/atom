@@ -355,9 +355,17 @@ class DisplayBuffer
     @markerScreenPositionObservers[id] ?= { head: [], tail: [] }
     @cacheMarkerScreenPositions(id) unless @markerScreenPositions[id]
     @markerScreenPositionObservers[id].head.push(callback)
-    @buffer.observeMarkerHeadPosition id, (bufferPosition) =>
+    subscription = @buffer.observeMarkerHeadPosition id, (bufferPosition) =>
       @cacheMarkerScreenPositions(id)
       callback(@screenPositionForBufferPosition(bufferPosition))
+
+    cancel: =>
+      subscription.cancel()
+      { head, tail } = @markerScreenPositionObservers[id]
+      _.remove(head, callback)
+      unless head.length + tail.length
+        delete @markerScreenPositionObservers[id]
+        delete @markerScreenPositions[id]
 
   cacheMarkerScreenPositions: (id) ->
     @markerScreenPositions[id] = { head: @getMarkerHeadScreenPosition(id), tail: @getMarkerTailScreenPosition }
