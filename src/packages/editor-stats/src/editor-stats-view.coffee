@@ -32,7 +32,7 @@ class EditorStatsView extends ScrollView
   @serialize: ->
     @instance.serialize()
 
-  eventLog: [],
+  eventLog: []
 
   initialize: (@rootView, @eventLog = {}) ->
     super
@@ -117,7 +117,7 @@ class EditorStatsView extends ScrollView
     @.insertBefore @statusBar
     @draw()
 
-  detach: =>
+  detach: ->
     super
     @rootView.focus()
 
