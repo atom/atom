@@ -285,7 +285,8 @@ describe "Snippets extension", ->
       waitsFor "all snippets to load", 5000, -> snippets.loaded
 
       runs ->
-        expect(console.warn).toHaveBeenCalledWith("Error reading snippets file '/Users/corey/github/atom/spec/fixtures/packages/package-with-snippets/snippets/junk-file'")
+        expect(console.warn).toHaveBeenCalled()
+        expect(console.warn.argsForCall[0]).toMatch /Error reading snippets file '.*?\/spec\/fixtures\/packages\/package-with-snippets\/snippets\/junk-file'/
         expect(Worker.prototype.terminate).toHaveBeenCalled()
         expect(Worker.prototype.terminate.calls.length).toBe 1
 
