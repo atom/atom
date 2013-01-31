@@ -669,8 +669,8 @@ describe 'Buffer', ->
   fdescribe "markers", ->
     [marker1, marker2, marker3] = []
     beforeEach ->
-      marker1 = buffer.createMarker([[4, 20], [4, 23]])
-      marker2 = buffer.createMarker([[4, 20], [4, 23]], stayValid: true)
+      marker1 = buffer.markRange([[4, 20], [4, 23]])
+      marker2 = buffer.markRange([[4, 20], [4, 23]], stayValid: true)
 
     describe "when the buffer changes due to a new operation", ->
       describe "when the change precedes the marker range", ->
@@ -756,11 +756,11 @@ describe 'Buffer', ->
       it "restores invalidated markers when undoing/redoing in the other direction", ->
         buffer.change([[4, 21], [4, 24]], "foo")
         expect(buffer.getMarkerRange(marker1)).toBeUndefined()
-        marker3 = buffer.createMarker([[4, 20], [4, 23]])
+        marker3 = buffer.markRange([[4, 20], [4, 23]])
         buffer.undo()
         expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
         expect(buffer.getMarkerRange(marker3)).toBeUndefined()
-        marker4 = buffer.createMarker([[4, 20], [4, 23]])
+        marker4 = buffer.markRange([[4, 20], [4, 23]])
         buffer.redo()
         expect(buffer.getMarkerRange(marker3)).toEqual [[4, 20], [4, 23]]
         expect(buffer.getMarkerRange(marker4)).toBeUndefined()

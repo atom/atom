@@ -271,7 +271,7 @@ class Buffer
   getMarkers: ->
     _.values(@validMarkers)
 
-  createMarker: (range, options) ->
+  markRange: (range, options) ->
     marker = new BufferMarker(_.extend({
       id: @nextMarkerId++
       buffer: this
