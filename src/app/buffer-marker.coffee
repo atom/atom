@@ -8,13 +8,20 @@ class BufferMarker
   tailPosition: null
   stayValid: false
 
-  constructor: ({@id, @buffer, range, @stayValid, noTail}) ->
-    @setRange(range, {noTail})
+  constructor: ({@id, @buffer, range, @stayValid, noTail, reverse}) ->
+    @setRange(range, {noTail, reverse})
 
   setRange: (range, options={}) ->
     range = @buffer.clipRange(range)
-    @tailPosition = range.start unless options.noTail
-    @headPosition = range.end
+    if options.reverse
+      @tailPosition = range.end unless options.noTail
+      @headPosition = range.start
+    else
+      @tailPosition = range.start unless options.noTail
+      @headPosition = range.end
+
+  isReversed: ->
+    @tailPosition? and @headPosition.isLessThan(@tailPosition)
 
   getRange: ->
     if @tailPosition

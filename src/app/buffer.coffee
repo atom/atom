@@ -295,6 +295,9 @@ class Buffer
   getMarkerRange: (id) ->
     @validMarkers[id]?.getRange()
 
+  isMarkerReversed: (id) ->
+    @validMarkers[id]?.isReversed()
+
   getAnchors: -> new Array(@anchors...)
 
   addAnchor: (options) ->

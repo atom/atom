@@ -679,6 +679,13 @@ describe 'Buffer', ->
         expect(buffer.getMarkerPosition(marker2)).toEqual [4, 20]
         expect(buffer.getMarkerTailPosition(marker2)).toBeNull()
 
+      it "allows markers to be created in a reversed orientation", ->
+        marker = buffer.markRange([[4, 20], [4, 23]], reverse: true)
+        expect(buffer.isMarkerReversed(marker)).toBeTruthy()
+        expect(buffer.getMarkerRange(marker)).toEqual [[4, 20], [4, 23]]
+        expect(buffer.getMarkerHeadPosition(marker)).toEqual [4, 20]
+        expect(buffer.getMarkerTailPosition(marker)).toEqual [4, 23]
+
     describe "marker updates due to buffer changes", ->
       [marker1, marker2] = []
 
