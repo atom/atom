@@ -76,12 +76,12 @@ describe "EditSession", ->
 
       describe "when the cursor is on the first line", ->
         it "moves the cursor to the beginning of the line, but retains the goal column", ->
-          editSession.setCursorScreenPosition(row: 0, column: 4)
+          editSession.setCursorScreenPosition([0, 4])
           editSession.moveCursorUp()
-          expect(editSession.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          expect(editSession.getCursorScreenPosition()).toEqual([0, 0])
 
           editSession.moveCursorDown()
-          expect(editSession.getCursorScreenPosition()).toEqual(row: 1, column: 4)
+          expect(editSession.getCursorScreenPosition()).toEqual([1, 4])
 
       it "merges cursors when they overlap", ->
         editSession.addCursorAtScreenPosition([1, 0])
@@ -185,9 +185,9 @@ describe "EditSession", ->
       describe "when the cursor is on the last column of a line", ->
         describe "when there is a subsequent line", ->
           it "wraps to the beginning of the next line", ->
-            editSession.setCursorScreenPosition(row: 0, column: buffer.lineForRow(0).length)
+            editSession.setCursorScreenPosition([0, buffer.lineForRow(0).length])
             editSession.moveCursorRight()
-            expect(editSession.getCursorScreenPosition()).toEqual(row: 1, column: 0)
+            expect(editSession.getCursorScreenPosition()).toEqual [1, 0]
 
         describe "when the cursor is on the last line", ->
           it "remains in the same position", ->

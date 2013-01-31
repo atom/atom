@@ -584,7 +584,7 @@ describe "DisplayBuffer", ->
     beforeEach ->
       displayBuffer.foldBufferRow(4)
 
-    describe "creation and manipulation", ->
+    describe "marker creation and manipulation", ->
       it "allows markers to be created in terms of both screen and buffer coordinates", ->
         marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
         marker2 = displayBuffer.markBufferRange([[8, 4], [8, 10]])
@@ -603,7 +603,15 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.isMarkerReversed(marker)).toBeTruthy()
         expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
 
-    describe "observation", ->
+      it "clips screen positions before assigning them", ->
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        displayBuffer.setMarkerHeadScreenPosition(marker, [-5, -4])
+        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[0, 0], [8, 4]]
+
+        displayBuffer.setMarkerTailScreenPosition(marker, [-5, -4])
+        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[0, 0], [0, 0]]
+
+    describe "marker observation", ->
       observeHandler = null
 
       beforeEach ->
@@ -662,3 +670,12 @@ describe "DisplayBuffer", ->
 
           displayBuffer.unfoldBufferRow(4)
           expect(observeHandler).not.toHaveBeenCalled()
+
+    describe "marker destruction", ->
+      it "allows markers to be destroyed", ->
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        displayBuffer.destroyMarker(marker)
+        expect(displayBuffer.getMarkerBufferRange(marker)).toBeUndefined()
+
+
+

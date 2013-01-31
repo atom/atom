@@ -12,10 +12,10 @@ class Cursor
   needsAutoscroll: null
 
   constructor: ({@editSession, @marker}) ->
-#     @editSession.observeMarkerHeadScreenPosition @marker, (screenPosition) ->
-#       @needsAutoscroll ?= @isLastCursor()
-#       @trigger 'moved', e
-#       @editSession.trigger 'cursor-moved', e
+    @editSession.observeMarkerHeadScreenPosition @marker, (screenPosition) =>
+      @needsAutoscroll ?= @isLastCursor()
+      @trigger 'moved', screenPosition
+      @editSession.trigger 'cursor-moved', screenPosition
     @needsAutoscroll = true
 
   destroy: ->
@@ -36,7 +36,7 @@ class Cursor
     @goalColumn = null
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
-    @editSession.setMarkerHeadBufferPosition(@marker, screenPosition, options)
+    @editSession.setMarkerHeadBufferPosition(@marker, bufferPosition, options)
 
   getBufferPosition: ->
     @editSession.getMarkerHeadBufferPosition(@marker)

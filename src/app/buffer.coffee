@@ -283,6 +283,10 @@ class Buffer
   markPosition: (position, options) ->
     @markRange([position, position], _.defaults({noTail: true}, options))
 
+  destroyMarker: (id) ->
+    delete @validMarkers[id]
+    delete @invalidMarkers[id]
+
   getMarkerPosition: (args...) ->
     @getMarkerHeadPosition(args...)
 

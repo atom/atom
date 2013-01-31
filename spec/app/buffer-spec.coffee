@@ -727,6 +727,30 @@ describe 'Buffer', ->
           buffer.setMarkerHeadPosition(marker, [6, 2])
           expect(observeHandler).not.toHaveBeenCalled()
 
+    describe "marker destruction", ->
+      marker = null
+
+      beforeEach ->
+        marker = buffer.markRange([[4, 20], [4, 23]])
+
+      it "allows a marker to be destroyed", ->
+        buffer.destroyMarker(marker)
+        expect(buffer.getMarkerRange(marker)).toBeUndefined()
+
+      it "does not restore invalidated markers that have been destroyed", ->
+        buffer.delete([[4, 15], [4, 25]])
+        expect(buffer.getMarkerRange(marker)).toBeUndefined()
+        buffer.destroyMarker(marker)
+        buffer.undo()
+        expect(buffer.getMarkerRange(marker)).toBeUndefined()
+
+        # even "stayValid" markers get destroyed properly
+        marker2 = buffer.markRange([[4, 20], [4, 23]], stayValid: true)
+        buffer.delete([[4, 15], [4, 25]])
+        buffer.destroyMarker(marker2)
+        buffer.undo()
+        expect(buffer.getMarkerRange(marker2)).toBeUndefined()
+
     describe "marker updates due to buffer changes", ->
       [marker1, marker2] = []
 

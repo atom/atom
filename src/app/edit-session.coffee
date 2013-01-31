@@ -440,20 +440,47 @@ class EditSession
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
+  destroyMarker: (args...) ->
+    @displayBuffer.destroyMarker(args...)
+
   getMarkerBufferRange: (args...) ->
     @displayBuffer.getMarkerBufferRange(args...)
 
   getMarkerScreenRange: (args...) ->
     @displayBuffer.getMarkerScreenRange(args...)
 
+  getMarkerScreenPosition: (args...) ->
+    @displayBuffer.getMarkerScreenPosition(args...)
+
   getMarkerBufferPosition: (args...) ->
     @displayBuffer.getMarkerBufferPosition(args...)
+
+  getMarkerHeadScreenPosition: (args...) ->
+    @displayBuffer.getMarkerHeadScreenPosition(args...)
+
+  setMarkerHeadScreenPosition: (args...) ->
+    @displayBuffer.setMarkerHeadScreenPosition(args...)
 
   getMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.getMarkerHeadBufferPosition(args...)
 
+  setMarkerHeadBufferPosition: (args...) ->
+    @displayBuffer.setMarkerHeadBufferPosition(args...)
+
+  getMarkerTailScreenPosition: (args...) ->
+    @displayBuffer.getMarkerTailScreenPosition(args...)
+
+  setMarkerTailScreenPosition: (args...) ->
+    @displayBuffer.setMarkerTailScreenPosition(args...)
+
   getMarkerTailBufferPosition: (args...) ->
     @displayBuffer.getMarkerTailBufferPosition(args...)
+
+  setMarkerTailBufferPosition: (args...) ->
+    @displayBuffer.setMarkerTailBufferPosition(args...)
+
+  observeMarkerHeadScreenPosition: (args...) ->
+    @displayBuffer.observeMarkerHeadScreenPosition(args...)
 
   addAnchor: (options={}) ->
     anchor = @buffer.addAnchor(_.extend({editSession: this}, options))
@@ -495,7 +522,7 @@ class EditSession
     @addSelection(marker).cursor
 
   addCursorAtBufferPosition: (bufferPosition) ->
-    marker = @markBufferPosition(screenPosition, stayValid: true)
+    marker = @markBufferPosition(bufferPosition, stayValid: true)
     @addSelection(marker).cursor
 
   addCursor: (marker) ->

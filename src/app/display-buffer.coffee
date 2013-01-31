@@ -312,6 +312,11 @@ class DisplayBuffer
   markBufferPosition: (bufferPosition) ->
     @buffer.markPosition(bufferPosition)
 
+  destroyMarker: (id) ->
+    @buffer.destroyMarker(id)
+    delete @markerScreenPositionObservers[id]
+    delete @markerScreenPositions[id]
+
   getMarkerScreenRange: (id) ->
     @screenRangeForBufferRange(@getMarkerBufferRange(id))
 
@@ -328,6 +333,7 @@ class DisplayBuffer
     @screenPositionForBufferPosition(@getMarkerHeadBufferPosition(id))
 
   setMarkerHeadScreenPosition: (id, screenPosition, options) ->
+    screenPosition = @clipScreenPosition(screenPosition, options)
     @setMarkerHeadBufferPosition(id, @bufferPositionForScreenPosition(screenPosition, options))
 
   getMarkerHeadBufferPosition: (id) ->
@@ -340,6 +346,7 @@ class DisplayBuffer
     @screenPositionForBufferPosition(@getMarkerTailBufferPosition(id))
 
   setMarkerTailScreenPosition: (id, screenPosition, options) ->
+    screenPosition = @clipScreenPosition(screenPosition, options)
     @setMarkerTailBufferPosition(id, @bufferPositionForScreenPosition(screenPosition, options))
 
   getMarkerTailBufferPosition: (id) ->

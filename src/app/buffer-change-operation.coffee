@@ -95,8 +95,8 @@ class BufferChangeOperation
 
   restoreMarkers: (markersToRestore) ->
     for [id, previousRange] in markersToRestore
-      if existingMarker = @buffer.validMarkers[id]
-        existingMarker.setRange(previousRange)
-      else
-        @buffer.validMarkers[id] = @buffer.invalidMarkers[id]
+      if validMarker = @buffer.validMarkers[id]
+        validMarker.setRange(previousRange)
+      else if invalidMarker = @buffer.invalidMarkers[id]
+        @buffer.validMarkers[id] = invalidMarker
 
