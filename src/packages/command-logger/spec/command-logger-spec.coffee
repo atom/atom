@@ -6,9 +6,8 @@ describe "CommandLogger", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage('command-logger').getInstance()
+    commandLogger = atom.loadPackage('command-logger')
     editor = rootView.getActiveEditor()
-    commandLogger = CommandLogger.instance
 
   afterEach ->
     rootView.deactivate()
@@ -44,9 +43,11 @@ describe "CommandLogger", ->
 
   describe "when an event is ignored", ->
     it "does not create a node for that event", ->
-      commandLogger.ignoredEvents.push 'editor:delete-line'
+      commandLoggerView = commandLogger.getInstance()
+      commandLoggerView.ignoredEvents.push 'editor:delete-line'
       editor.trigger 'editor:delete-line'
-      nodes = commandLogger.createNodes()
+      commandLoggerView.eventLog = commandLogger.eventLog
+      nodes = commandLoggerView.createNodes()
       for node in nodes
         continue unless node.name is 'Editor'
         for child in node.children

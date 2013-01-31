@@ -520,9 +520,8 @@ describe "Editor", ->
     beforeEach ->
       expect(editor.css('font-family')).not.toBe 'Courier'
 
-    it "sets the initial font family based on the value from config", ->
-      expect($("head style.font-family")).toExist()
-      expect($("head style.font-family").text()).toMatch "{font-family: #{config.get('editor.fontFamily')}}"
+    it "when there is no config in fontFamily don't set it", ->
+      expect($("head style.font-family")).not.toExist()
 
     describe "when the font family changes", ->
       it "updates the font family on new and existing editors", ->
@@ -544,7 +543,7 @@ describe "Editor", ->
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "Courier")
+        config.set("editor.fontFamily", "Inconsolata")
         editor.setCursorScreenPosition [5, 6]
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
