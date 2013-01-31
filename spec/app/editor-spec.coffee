@@ -552,6 +552,7 @@ describe "Editor", ->
   describe "font size", ->
     beforeEach ->
       expect(editor.css('font-size')).not.toBe "20px"
+      expect(editor.css('font-size')).not.toBe "10px"
 
     it "sets the initial font size based on the value from config", ->
       expect($("head style.font-size")).toExist()
@@ -613,6 +614,23 @@ describe "Editor", ->
 
         config.set("editor.fontSize", 10)
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
+
+      describe "when the editor is detached", ->
+        it "updates the font-size correctly and recalculates the dimensions by placing the rendered lines on the DOM", ->
+          rootView.attachToDom()
+          rootView.height(200)
+          rootView.width(200)
+
+          newEditor = editor.splitRight()
+          newEditorParent = newEditor.parent()
+          newEditor.detach()
+          config.set("editor.fontSize", 10)
+          newEditorParent.append(newEditor)
+
+          expect(newEditor.lineHeight).toBe editor.lineHeight
+          expect(newEditor.charWidth).toBe editor.charWidth
+          expect(newEditor.getCursorView().position()).toEqual editor.getCursorView().position()
+          expect(newEditor.verticalScrollbarContent.height()).toBe editor.verticalScrollbarContent.height()
 
   describe "mouse events", ->
     beforeEach ->
