@@ -2,7 +2,7 @@ $ = require 'jquery'
 RootView = require 'root-view'
 EditorStats = require 'editor-stats/src/editor-stats-view'
 
-fdescribe "EditorStats", ->
+describe "EditorStats", ->
   [rootView, editorStats, editor, date, time] = []
 
   simulateKeyUp = (key) ->
@@ -43,4 +43,3 @@ fdescribe "EditorStats", ->
       expect(editorStats.eventLog[time]).toBe 1
       simulateClick()
       expect(editorStats.eventLog[time]).toBe 2
-

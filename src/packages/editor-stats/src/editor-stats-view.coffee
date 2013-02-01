@@ -1,7 +1,5 @@
-{$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
-$ = require 'jquery'
-_ = require 'underscore'
+d3 = require 'd3.v3'
 
 module.exports =
 class EditorStatsView extends ScrollView
@@ -14,7 +12,6 @@ class EditorStatsView extends ScrollView
     "#{hour}:#{minute}"
 
   startDate = new Date
-  d3 = require 'd3.v3'
   x  = d3.scale.ordinal().domain d3.range(hours * 60)
   y  = d3.scale.linear()
 
@@ -36,7 +33,7 @@ class EditorStatsView extends ScrollView
   @serialize: ->
     @instance.serialize()
 
-  eventLog: [],
+  eventLog: []
 
   initialize: (@rootView, @eventLog = {}) ->
     super
@@ -125,5 +122,4 @@ class EditorStatsView extends ScrollView
 
   detach: =>
     super()
-    @remove()
     @rootView.focus()

@@ -1,5 +1,2 @@
-'body, .editor-stats':
-  'meta-alt-s': 'editor-stats:toggle'
-
-'.editor-stats':
+'body':
   'meta-alt-s': 'editor-stats:toggle'
