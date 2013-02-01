@@ -16,11 +16,6 @@
   cursor: pointer;
 }
 
-.go-to-line .editor {
-  box-sizing: border-box;
-  padding: 5px;
-}
-
 .go-to-line .message {
   padding-top: 2px;
   font-size: 11px;
