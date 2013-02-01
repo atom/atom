@@ -8,7 +8,7 @@ class AutocompleteView extends SelectList
     rootView.eachEditor (editor) ->
       new AutocompleteView(editor) if editor.attached and not editor.mini
 
-  @viewClass: -> "autocomplete #{super}"
+  @viewClass: -> "autocomplete #{super} popover-list"
 
   editor: null
   currentBuffer: null
