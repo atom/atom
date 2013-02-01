@@ -12,7 +12,7 @@
 }
 
 .editor.focused .line-number.cursor-line-no-selection, .editor.focused .line.cursor-line {
-  background-color: #eee;
+  background-color: rgb(255, 255, 204);
 }
 
 .comment {
