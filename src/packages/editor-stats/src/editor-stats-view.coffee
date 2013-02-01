@@ -14,8 +14,6 @@ class EditorStatsView extends ScrollView
     super
 
     @command 'core:cancel', @detach
-    @statusBar = @rootView.find('.status-bar')
-    @css 'background', @statusBar.css('background-color')
 
   draw: ->
     @x ?= d3.scale.ordinal().domain d3.range(@stats.hours * 60)
