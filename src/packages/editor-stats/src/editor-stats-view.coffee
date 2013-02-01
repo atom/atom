@@ -72,11 +72,11 @@ class EditorStatsView extends ScrollView
     @updateInterval = setInterval((=> @update()), 5000)
 
   update: ->
-    newdata = d3.entries @stats.eventLog
-    max  = d3.max newdata, (d) -> d.value
+    newData = d3.entries @stats.eventLog
+    max  = d3.max newData, (d) -> d.value
     @y.domain [0, max]
     h = @height()
-    @bars.data(newdata).transition()
+    @bars.data(newData).transition()
       .attr('height', (d, i) =>  h - @y(d.value) - @pt - @pb)
       .attr('y', (d, i) => @y(d.value))
     @bars.classed('max', (d, i) -> d.value == max)
