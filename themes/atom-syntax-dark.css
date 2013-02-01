@@ -1,80 +1,104 @@
 .editor, .editor .gutter {
-  background-color: #141414;
-  color: #F8F8F8;
+  background-color: #000000;
+  color: #EDEDED;
 }
 
 .editor.focused .cursor {
-  border-color: #A7A7A7;
+  border-color: #FFFFFF;
 }
 
 .editor.focused .selection .region {
-  background-color: rgba(221, 240, 255, 0.2);
+  background-color: #333333;
 }
 
 .editor.focused .line-number.cursor-line-no-selection, .editor.focused .line.cursor-line {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgba(255, 255, 255, 0.14);
 }
 
 .comment {
-  color: #5F5A60;
-}
-
-.constant {
-  color: #CF6A4C;
+  color: #7C7C7C;
 }
 
 .entity {
-  color: #9B703F;
+  color: #FFD2A7;
 }
 
 .keyword {
-  color: #CDA869;
+  color: #96CBFE;
 }
 
-.storage {
-  color: #F9EE98;
+.keyword.control {
+  color: #96CBFE;
 }
 
-.string {
-  color: #8F9D6A;
+.keyword.operator {
+  color: #EDEDED;
+}
+
+.entity.name.type {
+  text-decoration: underline;
+  color: #FFFFB6;
 }
 
 .support {
-  color: #9B859D;
+  color: #FFFFB6;
+}
+
+.storage {
+  color: #CFCB90;
+}
+
+.storage.modifier {
+  color: #96CBFE;
+}
+
+.constant {
+  color: #99CC99;
+}
+
+.string {
+  color: #A8FF60;
+}
+
+.constant.numeric {
+  color: #FF73FD;
+}
+
+.punctuation {
 }
 
 .variable {
-  color: #7587A6;
+  color: #C6C5FE;
 }
 
 .invalid.deprecated {
   text-decoration: underline;
-  color: #D2A8A1;
+  color: #FD5FF1;
 }
 
 .invalid.illegal {
-  color: #F8F8F8;
+  color: #FD5FF1;
   background-color: rgba(86, 45, 86, 0.75);
 }
 
 .text .source {
-  background-color: rgba(176, 179, 186, 0.08);
-}
-
-.text.html.ruby .source {
-  background-color: rgba(177, 179, 186, 0.13);
+  background-color: rgba(177, 179, 186, 0.03);
 }
 
 .entity.other.inherited-class {
   color: #9B5C2E;
 }
 
-.string .source {
-  color: #DAEFA3;
+.source .string .source {
+  color: #EDEDED;
+}
+
+.source .string .source .punctuation.section.embedded {
+  color: #00A0A0;
 }
 
 .string .constant {
-  color: #DDF2A4;
+  color: #00A0A0;
 }
 
 .string.regexp {
@@ -82,7 +106,16 @@
 }
 
 .string.regexp .constant.character.escape, .string.regexp .source.ruby.embedded, .string.regexp .string.regexp.arbitrary-repitition {
-  color: #CF7D34;
+  color: #FF8000;
+}
+
+.string.regexp.group {
+  color: #C6A24F;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.string.regexp.character-class {
+  color: #B18A3D;
 }
 
 .string .variable {
@@ -94,7 +127,7 @@
 }
 
 .support.constant {
-  color: #CF6A4C;
+  color: #FFD2A7;
 }
 
 .meta.preprocessor.c {
@@ -105,20 +138,33 @@
   color: #AFC4DB;
 }
 
-.meta.tag.sgml.doctype, .meta.tag.sgml.doctype .entity, .meta.tag.sgml.doctype .string, .meta.tag.preprocessor.xml, .meta.tag.preprocessor.xml .entity, .meta.tag.preprocessor.xml .string {
+.meta.cast {
+  color: #676767;
+}
+
+.meta.sgml.html .meta.doctype, .meta.sgml.html .meta.doctype .entity, .meta.sgml.html .meta.doctype .string, .meta.xml-processing, .meta.xml-processing .entity, .meta.xml-processing .string {
   color: #494949;
 }
 
-.declaration.tag, .declaration.tag .entity, .meta.tag, .meta.tag .entity {
-  color: #AC885B;
+.meta.tag, .meta.tag .entity {
+  color: #96CBFE;
 }
 
-.declaration.tag.inline, .declaration.tag.inline .entity, .source .entity.name.tag, .source .entity.other.attribute-name, .meta.tag.inline, .meta.tag.inline .entity {
-  color: #E0C589;
+.source .entity.name.tag, .source .entity.other.attribute-name, .meta.tag.inline, .meta.tag.inline .entity {
+  color: #96CBFE;
+}
+
+.entity.other.attribute-name {
+  color: #FFD7B1;
+}
+
+.entity.name.tag.namespace, .entity.other.attribute-name.namespace {
+  color: #E18964;
 }
 
 .meta.selector.css .entity.name.tag {
-  color: #CDA869;
+  text-decoration: underline;
+  color: #96CBFE;
 }
 
 .meta.selector.css .entity.other.attribute-name.tag.pseudo-class {
@@ -130,11 +176,11 @@
 }
 
 .meta.selector.css .entity.other.attribute-name.class {
-  color: #9B703F;
+  color: #62B1FE;
 }
 
 .support.type.property-name.css {
-  color: #C5AF75;
+  color: #EDEDED;
 }
 
 .meta.property-group .support.constant.property-value.css, .meta.property-value .support.constant.property-value.css {
@@ -146,14 +192,14 @@
 }
 
 .meta.property-value .support.constant.named-color.css, .meta.property-value .constant {
-  color: #CA7840;
+  color: #87C38A;
 }
 
 .meta.constructor.argument.css {
   color: #8F9D6A;
 }
 
-.meta.diff, .meta.diff.header, .meta.separator {
+.meta.diff, .meta.diff.header {
   color: #F8F8F8;
   background-color: #0E2231;
 }
@@ -173,10 +219,51 @@
   background-color: #253B22;
 }
 
-.markup.list {
-  color: #F9EE98;
+.markup.italic {
+  color: #E9C062;
 }
 
-.markup.heading {
-  color: #CF6A4C;
+.markup.bold {
+  color: #E9C062;
+}
+
+.markup.underline {
+  text-decoration: underline;
+  color: #E18964;
+}
+
+.markup.quote {
+  color: #E1D4B9;
+  background-color: rgba(254, 224, 156, 0.07);
+}
+
+.markup.heading, .markup.heading .entity {
+  color: #FEDCC5;
+  background-color: #632D04;
+}
+
+.markup.list {
+  color: #E1D4B9;
+}
+
+.markup.raw {
+  color: #578BB3;
+  background-color: rgba(177, 179, 186, 0.03);
+}
+
+.markup .comment {
+  color: #F67B37;
+}
+
+.meta.separator {
+  color: #60A633;
+  background-color: #242424;
+}
+
+.meta.line.entry.logfile, .meta.line.exit.logfile {
+  background-color: rgba(238, 238, 238, 0.16);
+}
+
+.meta.line.error.logfile {
+  background-color: #751012;
 }
