@@ -32,7 +32,7 @@ class EditorStatsView extends ScrollView
     @xaxis ?= d3.svg.axis().scale(@x).orient('top').tickFormat (d) =>
                d = new Date(@stats.startDate.getTime() + (d * 6e4))
                mins = d.getMinutes()
-               mins = "0#{mins}" if mins < 9
+               mins = "0#{mins}" if mins <= 9
                "#{d.getHours()}:#{mins}"
     @xaxis.tickSize(-h + pt + pb, 50)
 
