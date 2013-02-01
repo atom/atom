@@ -16,11 +16,15 @@ html, body,
 }
 
 #root-view #panes .row > * + * {
-  border-left: 5px solid #515151;
+  -webkit-box-shadow:
+    -2px 0 rgba(0, 0, 0, 0.3),
+    -1px 0 rgba(255, 255, 255, 0.2);
 }
 
 #root-view #panes .column > * + * {
-  border-top: 5px solid #515151;
+  -webkit-box-shadow:
+    0 -2px rgba(0, 0, 0, 0.3),
+    0 -1px rgba(255, 255, 255, 0.2);
 }
 
 .error {
