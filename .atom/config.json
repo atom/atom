@@ -1,0 +1,11 @@
+{
+  "editor": {
+    "fontSize": 16
+  },
+  "core": {
+    "themes": [
+      "Atom - Dark",
+      "IR_Black"
+    ]
+  }
+}
