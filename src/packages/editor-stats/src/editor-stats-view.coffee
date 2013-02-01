@@ -36,8 +36,7 @@ class EditorStatsView extends ScrollView
     super
 
     @command 'core:cancel', @detach
-    @statusBar = @rootView.find '.status-bar'
-    @panes = @rootView.find('#panes')
+    @statusBar = @rootView.find('.status-bar')
     @css 'background', @statusBar.css('background')
 
     date = new Date(startDate)
@@ -51,9 +50,9 @@ class EditorStatsView extends ScrollView
     @rootView.on 'mouseup', @track
 
   draw: ->
-    w = @statusBar.width()
+    w = @rootView.vertical.width()
     h = @.height()
-    [pt, pl, pb, pr] = [15,10,0,10]
+    [pt, pl, pb, pr] = [15,10,0,25]
 
     data = d3.entries @eventLog
 
@@ -114,7 +113,7 @@ class EditorStatsView extends ScrollView
       @attach()
 
   attach: ->
-    @panes.append(@)
+    @rootView.vertical.append(@)
     @draw()
 
   detach: =>
