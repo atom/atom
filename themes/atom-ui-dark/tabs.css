@@ -2,7 +2,8 @@
   background: #333333;
   border-bottom: 4px solid #424242;
   font: caption;
-  box-shadow: inset 0 -1px 0 #2e2e2e;
+  box-shadow: inset 0 -1px 0 #2e2e2e, 0 1px 0 #191919;
+  margin-bottom: 1px;
 }
 
 .tab {
