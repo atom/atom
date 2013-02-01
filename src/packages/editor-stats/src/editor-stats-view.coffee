@@ -43,12 +43,12 @@ class EditorStatsView extends ScrollView
       .attr('class', 'x axis')
       .call(@xaxis)
     .selectAll('g')
-      .style('display', (d, i) ->
+      .classed('minor', (d, i) -> i % 5 == 0 && i % 15 != 0)
+      .style 'display', (d, i) ->
         if i % 15 == 0 || i % 5 == 0 || i == data.length - 1
           'block'
         else
           'none'
-      ).classed('minor', (d, i) -> i % 5 == 0 && i % 15 != 0)
 
     bars = vis.selectAll('rect.bar')
       .data(data)
