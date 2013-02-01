@@ -215,12 +215,9 @@ jasmine.AtomReporter.ReporterView = function(dom) {
   };
 
   this.specStarted = function(spec) {
-    if (isUndefined(this.resultsMenu)) {
-      this.createResultsMenu();
-      dom.alert.appendChild(this.resultsMenu);
+    if (this.currentSpecMenuItem) {
+      this.currentSpecMenuItem.innerHTML = spec.getFullName()
     }
-
-    this.currentSpecMenuItem.innerHTML = spec.getFullName()
   }
 
   this.specComplete = function(spec) {
@@ -259,6 +256,11 @@ jasmine.AtomReporter.ReporterView = function(dom) {
   };
 
   this.refresh = function() {
+    if (isUndefined(this.resultsMenu)) {
+      this.createResultsMenu();
+      dom.alert.appendChild(this.resultsMenu);
+    }
+
     // summary info
     this.summaryMenuItem.innerHTML = "" + specPluralizedFor(this.runningSpecCount);
     this.detailsMenuItem.innerHTML = "" + this.failedCount + " failing";
