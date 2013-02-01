@@ -122,8 +122,13 @@
   background-color: #8FBE00;
 }
 
-.meta.structure.dictionary.json .string.quoted.double.json {
-  color: #CFCFC2;
+.meta.structure.dictionary.json > .string.quoted.double.json,
+.meta.structure.dictionary.json > .string.quoted.double.json .punctuation.string {
+  color: #000080;
+}
+
+.meta.structure.dictionary.value.json > .string.quoted.double.json {
+  color: #d14;
 }
 
 .meta.diff, .meta.diff.header {
