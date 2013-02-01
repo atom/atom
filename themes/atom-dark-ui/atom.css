@@ -4,17 +4,6 @@ html, body,
   background-color: #333333;
 }
 
-#root-view #panes:before {
-  display: block;
-  content: "\f208";
-  font-family: 'Octicons Regular';
-  color: #303030;
-  -webkit-font-smoothing: antialiased;
-  font-size: 100vmin;
-  line-height: 100vmin;
-  text-align: center;
-}
-
 #root-view #panes .row > * + * {
   -webkit-box-shadow:
     -2px 0 rgba(0, 0, 0, 0.3),
