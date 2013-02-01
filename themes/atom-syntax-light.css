@@ -4,7 +4,7 @@
 }
 
 .editor.focused .cursor {
-  border-color: #615649;
+  border-color: #000;
 }
 
 .editor.focused .selection .region {
