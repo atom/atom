@@ -16,7 +16,8 @@
 }
 
 .comment {
-  color: #b8b6b1;
+  color: #999988;
+  font-style: italic;
 }
 
 .string {
@@ -35,12 +36,26 @@
   color: #606aa1;
 }
 
+.constant.symbol {
+  color: #990073;
+}
+
 .variable {
   color: #008080;
 }
 
+/* Keywords */
 .keyword {
   color: #222;
+  font-weight: bold;
+}
+
+.keyword.unit {
+  color: #445588;
+}
+
+.keyword.special-method {
+  color: #0086B3;
 }
 
 .storage {
@@ -75,6 +90,7 @@
 
 .entity.other.attribute-name {
   color: #458;
+  font-weight: bold;
 }
 
 .support.function {
@@ -85,8 +101,12 @@
   color: #458;
 }
 
-.support.type, .support.class {
+.support.type {
   color: #458;
+}
+
+.support.class {
+  color: #008080;
 }
 
 .support.other.variable {
@@ -108,6 +128,11 @@
 
 .meta.diff, .meta.diff.header {
   color: #75715E;
+}
+
+.meta.function span {
+  color: #990000;
+  font-weight: bold;
 }
 
 .markup.deleted {
