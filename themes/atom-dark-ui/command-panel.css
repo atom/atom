@@ -1,18 +1,21 @@
 .command-panel {
   background-color: #303030;
   border: 1px solid #252525;
-  color: #ededed;
+  color: #dedede;
   padding: 5px;
 }
 
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;
-  margin-bottom: 3px;
+  margin: 0 1px 5px 10px;
   position: relative;
-  background-color: #000000;
-  color: #ededed;
+  background-color: #1e1e1e;
+  color: #C5C8C6;
   cursor: default;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(180, 180, 180, 0.2);
+  border-right: 1px solid rgba(180, 180, 180, 0.2);
 }
 
 .command-panel .preview-count {
@@ -32,7 +35,7 @@
 
 .command-panel .preview-list .path {
   padding-left: 5px;
-  color: #00a693;
+  color: #fff;
 }
 
 .command-panel .preview-list .path:before {
@@ -73,6 +76,7 @@
   background-color: rgba(255, 255, 255, .2);
   -webkit-border-radius: 2px;
   padding: 1px;
+  color: yellow;
 }
 
 .command-panel .prompt-and-editor {
