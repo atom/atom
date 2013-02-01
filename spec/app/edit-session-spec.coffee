@@ -2,7 +2,7 @@ Project = require 'project'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-describe "EditSession", ->
+fdescribe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
   convertToHardTabs = (buffer) ->
@@ -1635,7 +1635,7 @@ describe "EditSession", ->
         expect(buffer.lineForRow(7)).toBe "    }"
 
       it "preserves selection emptiness", ->
-        editSession.setSelectedBufferRange([[4, 0], [4, 0]])
+        editSession.setCursorBufferPosition([4, 0])
         editSession.toggleLineCommentsInSelection()
         expect(editSession.getSelection().isEmpty()).toBeTruthy()
 
@@ -1647,7 +1647,7 @@ describe "EditSession", ->
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
 
       it "uncomments when the line lacks the trailing whitespace in the comment regex", ->
-        editSession.setSelectedBufferRange([[10, 0], [10, 0]])
+        editSession.setCursorBufferPosition([10, 0])
         editSession.toggleLineCommentsInSelection()
 
         expect(buffer.lineForRow(10)).toBe "// "
@@ -1660,7 +1660,7 @@ describe "EditSession", ->
         expect(editSession.getSelectedBufferRange()).toEqual [[10, 0], [10, 0]]
 
       it "uncomments when the line has leading whitespace", ->
-        editSession.setSelectedBufferRange([[10, 0], [10, 0]])
+        editSession.setCursorBufferPosition([10, 0])
         editSession.toggleLineCommentsInSelection()
 
         expect(buffer.lineForRow(10)).toBe "// "
@@ -1763,18 +1763,18 @@ describe "EditSession", ->
         expect(cursor2.getScreenPosition()).toEqual [0, 8]
         expect(cursor3.getScreenPosition()).toEqual [1, 0]
 
-      it "does not destroy cursor or selection anchors when a change encompasses them", ->
+      it "does not destroy cursors or selections when a change encompasses them", ->
         cursor = editSession.getCursor()
         cursor.setBufferPosition [3, 3]
         editSession.buffer.delete([[3, 1], [3, 5]])
         expect(cursor.getBufferPosition()).toEqual [3, 1]
-        expect(editSession.getAnchors().indexOf(cursor.anchor)).not.toBe -1
+        expect(editSession.getCursors().indexOf(cursor)).not.toBe -1
 
         selection = editSession.getLastSelection()
         selection.setBufferRange [[3, 5], [3, 10]]
         editSession.buffer.delete [[3, 3], [3, 8]]
         expect(selection.getBufferRange()).toEqual [[3, 3], [3, 5]]
-        expect(editSession.getAnchors().indexOf(selection.anchor)).not.toBe -1
+        expect(editSession.getSelections().indexOf(selection)).not.toBe -1
 
       it "merges cursors when the change causes them to overlap", ->
         editSession.setCursorScreenPosition([0, 0])

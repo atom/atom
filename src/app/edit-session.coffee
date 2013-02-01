@@ -51,7 +51,7 @@ class EditSession
     @buffer.retain()
     @subscribe @buffer, "path-changed", => @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
-    @subscribe @buffer, "anchors-updated", => @mergeCursors()
+    @subscribe @buffer, "markers-updated", => @mergeCursors()
 
     @preserveCursorPositionOnBufferReload()
 
@@ -434,6 +434,12 @@ class EditSession
   getAnchorRanges: ->
     new Array(@anchorRanges...)
 
+  markScreenRange: (args...) ->
+    @displayBuffer.markScreenRange(args...)
+
+  markBufferRange: (args...) ->
+    @displayBuffer.markBufferRange(args...)
+
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
@@ -443,11 +449,17 @@ class EditSession
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
+  getMarkerScreenRange: (args...) ->
+    @displayBuffer.getMarkerScreenRange(args...)
+
+  setMarkerScreenRange: (args...) ->
+    @displayBuffer.setMarkerScreenRange(args...)
+
   getMarkerBufferRange: (args...) ->
     @displayBuffer.getMarkerBufferRange(args...)
 
-  getMarkerScreenRange: (args...) ->
-    @displayBuffer.getMarkerScreenRange(args...)
+  setMarkerBufferRange: (args...) ->
+    @displayBuffer.setMarkerBufferRange(args...)
 
   getMarkerScreenPosition: (args...) ->
     @displayBuffer.getMarkerScreenPosition(args...)
@@ -481,6 +493,15 @@ class EditSession
 
   observeMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.observeMarkerHeadScreenPosition(args...)
+
+  placeMarkerTail: (args...) ->
+    @displayBuffer.placeMarkerTail(args...)
+
+  clearMarkerTail: (args...) ->
+    @displayBuffer.clearMarkerTail(args...)
+
+  isMarkerReversed: (args...) ->
+    @displayBuffer.isMarkerReversed(args...)
 
   addAnchor: (options={}) ->
     anchor = @buffer.addAnchor(_.extend({editSession: this}, options))
@@ -545,7 +566,8 @@ class EditSession
     selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    marker = @markBufferRange(bufferRange, _.defaults({stayValid: true}, options))
+    options = _.defaults({stayValid: true}, options)
+    marker = @markBufferRange(bufferRange, options)
     @addSelection(marker)
 
   setSelectedBufferRange: (bufferRange, options) ->
@@ -741,7 +763,7 @@ class EditSession
 
   mergeCursors: ->
     positions = []
-    for cursor in new Array(@getCursors()...)
+    for cursor in @getCursors()
       position = cursor.getBufferPosition().toString()
       if position in positions
         cursor.destroy()

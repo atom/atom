@@ -51,6 +51,12 @@ class BufferMarker
   getEndPosition: ->
     @getRange().end
 
+  placeTail: ->
+    @setTailPosition(@headPosition) unless @tailPosition
+
+  clearTail: ->
+    @tailPosition = null
+
   observeHeadPosition: (callback) ->
     @headPositionObservers.push(callback)
     cancel: =>

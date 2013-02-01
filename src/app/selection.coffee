@@ -5,12 +5,11 @@ _ = require 'underscore'
 
 module.exports =
 class Selection
-  anchor: null
   wordwise: false
   initialScreenRange: null
   needsAutoscroll: null
 
-  constructor: ({@cursor, @editSession}) ->
+  constructor: ({@cursor, @marker, @editSession}) ->
     @cursor.selection = this
 
     @cursor.on 'moved.selection', ({bufferChange}) =>
@@ -24,7 +23,6 @@ class Selection
     if @cursor
       @cursor.off('.selection')
       @cursor.destroy()
-    @anchor?.destroy()
     @editSession.removeSelection(this)
     @trigger 'destroyed'
 
@@ -38,7 +36,7 @@ class Selection
     @getBufferRange().isEmpty()
 
   isReversed: ->
-    not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchor.getBufferPosition())
+    @editSession.isMarkerReversed(@marker)
 
   isSingleScreenLine: ->
     @getScreenRange().isSingleLine()
@@ -47,33 +45,21 @@ class Selection
     @needsAutoscroll = null
 
   getScreenRange: ->
-    if @anchor
-      new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())
-    else
-      new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
+    @editSession.getMarkerScreenRange(@marker)
 
   setScreenRange: (screenRange, options) ->
-    bufferRange = editSession.bufferRangeForScreenRange(screenRange)
-    @setBufferRange(bufferRange, options)
+    @setBufferRange(@editSession.bufferRangeForScreenRange(screenRange), options)
 
   getBufferRange: ->
-    if @anchor
-      new Range(@anchor.getBufferPosition(), @cursor.getBufferPosition())
-    else
-      new Range(@cursor.getBufferPosition(), @cursor.getBufferPosition())
+    @editSession.getMarkerBufferRange(@marker)
 
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
-    { start, end } = bufferRange
-    [start, end] = [end, start] if options.reverse ? @isReversed()
-
     @needsAutoscroll = options.autoscroll
-
+    options.reverse ?= @isReversed()
     @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
-    @placeAnchor() unless @anchor
     @modifySelection =>
-      @anchor.setBufferPosition(start, autoscroll: false)
-      @cursor.setBufferPosition(end, autoscroll: false)
+      @editSession.setMarkerBufferRange(@marker, bufferRange, options)
 
   getBufferRowRange: ->
     range = @getBufferRange()
@@ -91,9 +77,7 @@ class Selection
     @editSession.buffer.getTextInRange(@getBufferRange())
 
   clear: ->
-    return unless @anchor
-    @anchor.destroy()
-    @anchor = null
+    @editSession.clearMarkerTail(@marker)
     @screenRangeChanged()
 
   selectWord: ->
@@ -122,11 +106,9 @@ class Selection
     @modifySelection =>
       if @initialScreenRange
         if position.isLessThan(@initialScreenRange.start)
-          @anchor.setScreenPosition(@initialScreenRange.end)
-          @cursor.setScreenPosition(position)
+          @editSession.setMarkerScreenRange(@marker, [position, @initialScreenRange.end], reverse: true)
         else
-          @anchor.setScreenPosition(@initialScreenRange.start)
-          @cursor.setScreenPosition(position)
+          @editSession.setMarkerScreenRange(@marker, [@initialScreenRange.start, position])
       else
         @cursor.setScreenPosition(position)
 
@@ -318,8 +300,7 @@ class Selection
     @editSession.autoIndentBufferRows(start, end)
 
   toggleLineComments: ->
-    @modifySelection =>
-      @editSession.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
+    @editSession.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
   cutToEndOfLine: (maintainPasteboard) ->
     @selectToEndOfLine() if @isEmpty()
@@ -353,18 +334,16 @@ class Selection
 
   modifySelection: (fn) ->
     @retainSelection = true
-    @placeAnchor() unless @anchor
-    @anchor.pauseEvents()
-    @cursor.pauseEvents()
+    @editSession.placeMarkerTail(@marker)
+#     @anchor.pauseEvents()
+#     @cursor.pauseEvents()
     fn()
-    @anchor.resumeEvents()
-    @cursor.resumeEvents()
+#     @anchor.resumeEvents()
+#     @cursor.resumeEvents()
     @retainSelection = false
 
-  placeAnchor: ->
-    @anchor = @editSession.addAnchor(strong: true)
-    @anchor.setScreenPosition(@cursor.getScreenPosition())
-    @anchor.on 'moved.selection', => @screenRangeChanged()
+#   placeAnchor: ->
+#     @anchor.on 'moved.selection', => @screenRangeChanged()
 
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)

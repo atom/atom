@@ -92,6 +92,7 @@ class BufferChangeOperation
 
   updateMarkers: (bufferChange) ->
     marker.handleBufferChange(bufferChange) for marker in @buffer.getMarkers()
+    @buffer.trigger 'markers-updated'
 
   restoreMarkers: (markersToRestore) ->
     for [id, previousRange] in markersToRestore

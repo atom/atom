@@ -308,6 +308,15 @@ class Buffer
   getMarkerRange: (id) ->
     @validMarkers[id]?.getRange()
 
+  setMarkerRange: (id, range, options) ->
+    @validMarkers[id]?.setRange(range, options)
+
+  placeMarkerTail: (id) ->
+    @validMarkers[id]?.placeTail()
+
+  clearMarkerTail: (id) ->
+    @validMarkers[id]?.clearTail()
+
   isMarkerReversed: (id) ->
     @validMarkers[id]?.isReversed()
 

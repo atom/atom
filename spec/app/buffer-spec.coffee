@@ -691,7 +691,7 @@ describe 'Buffer', ->
       beforeEach ->
         marker = buffer.markRange([[4, 20], [4, 23]])
 
-      it "allows a markers head and tail positions to be changed", ->
+      it "allows a marker's head and tail positions to be changed", ->
         buffer.setMarkerHeadPosition(marker, [5, 3])
         expect(buffer.getMarkerRange(marker)).toEqual [[4, 20], [5, 3]]
 
@@ -704,6 +704,14 @@ describe 'Buffer', ->
         expect(buffer.getMarkerRange(marker)).toEqual([[0, 0], [4, 20]])
         buffer.setMarkerTailPosition(marker, [Infinity, Infinity])
         expect(buffer.getMarkerRange(marker)).toEqual([[0, 0], [12, 2]])
+
+      it "allows a marker's tail to be placed and cleared", ->
+        buffer.clearMarkerTail(marker)
+        expect(buffer.getMarkerRange(marker)).toEqual [[4, 23], [4, 23]]
+        buffer.placeMarkerTail(marker)
+        buffer.setMarkerHeadPosition(marker, [2, 0])
+        expect(buffer.getMarkerRange(marker)).toEqual [[2, 0], [4, 23]]
+        expect(buffer.isMarkerReversed(marker)).toBeTruthy()
 
     describe "marker observation", ->
       describe ".observeMarkerHeadPosition(marker, callback)", ->

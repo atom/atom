@@ -303,14 +303,14 @@ class DisplayBuffer
   markScreenRange: (screenRange) ->
     @markBufferRange(@bufferRangeForScreenRange(screenRange))
 
-  markBufferRange: (bufferRange) ->
-    @buffer.markRange(bufferRange)
+  markBufferRange: (args...) ->
+    @buffer.markRange(args...)
 
-  markScreenPosition: (screenPosition) ->
-    @markBufferPosition(@bufferPositionForScreenPosition(screenPosition))
+  markScreenPosition: (screenPosition, options) ->
+    @markBufferPosition(@bufferPositionForScreenPosition(screenPosition), options)
 
-  markBufferPosition: (bufferPosition) ->
-    @buffer.markPosition(bufferPosition)
+  markBufferPosition: (bufferPosition, options) ->
+    @buffer.markPosition(bufferPosition, options)
 
   destroyMarker: (id) ->
     @buffer.destroyMarker(id)
@@ -320,8 +320,14 @@ class DisplayBuffer
   getMarkerScreenRange: (id) ->
     @screenRangeForBufferRange(@getMarkerBufferRange(id))
 
+  setMarkerScreenRange: (id, screenRange, options) ->
+    @setMarkerBufferRange(id, @bufferRangeForScreenRange(screenRange), options)
+
   getMarkerBufferRange: (id) ->
     @buffer.getMarkerRange(id)
+
+  setMarkerBufferRange: (id, bufferRange, options) ->
+    @buffer.setMarkerRange(id, bufferRange, options)
 
   getMarkerScreenPosition: (id) ->
     @getMarkerHeadScreenPosition(id)
@@ -354,6 +360,12 @@ class DisplayBuffer
 
   setMarkerTailBufferPosition: (id, bufferPosition) ->
     @buffer.setMarkerTailPosition(id, bufferPosition)
+
+  placeMarkerTail: (id) ->
+    @buffer.placeMarkerTail(id)
+
+  clearMarkerTail: (id) ->
+    @buffer.clearMarkerTail(id)
 
   isMarkerReversed: (id) ->
     @buffer.isMarkerReversed(id)
