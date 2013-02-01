@@ -30,7 +30,8 @@ class EditorStatsView extends ScrollView
     @instance = new EditorStatsView(rootView, state?.eventLog)
 
   @content: (rootView) ->
-    @div class: 'editor-stats', tabindex: -1
+    @div class: 'editor-stats-wrapper', tabindex: -1, =>
+      @div class: 'editor-stats', outlet: 'editorStats'
 
   @serialize: ->
     @instance.serialize()
@@ -42,6 +43,7 @@ class EditorStatsView extends ScrollView
 
     @command 'core:cancel', @detach
     @statusBar = @rootView.find '.status-bar'
+    @css 'background', @statusBar.css('background')
 
     date = new Date(startDate)
     future = new Date(date.getTime() + (36e5 * hours))
@@ -54,17 +56,17 @@ class EditorStatsView extends ScrollView
     @rootView.on 'mouseup', @track
 
   draw: ->
-    w = @statusBar.outerWidth()
+    w = @statusBar.width()
     h = @.height()
-    [pt, pl, pb, pr] = [15,0,0,0]
+    [pt, pl, pb, pr] = [15,10,0,10]
 
     data = d3.entries @eventLog
 
-    x.rangeRoundBands [0, w - pl - pr], 0.2
+    x.rangeBands [0, w - pl - pr], 0.2
     y.range [h, 0]
     xaxis.tickSize(-h + pt + pb, 50)
 
-    vis = d3.select(@.get(0)).append('svg')
+    vis = d3.select(@editorStats.get(0)).append('svg')
       .attr('width', w)
       .attr('height', h)
     .append('g')
@@ -75,7 +77,7 @@ class EditorStatsView extends ScrollView
       .call(xaxis)
     .selectAll('g')
       .style('display', (d, i) ->
-        if i % 15 == 0 || i % 5 == 0
+        if i % 15 == 0 || i % 5 == 0 || i == data.length - 1
           'block'
         else
           'none'
@@ -85,7 +87,7 @@ class EditorStatsView extends ScrollView
       .data(data)
     .enter().append('rect')
       .attr('x', (d, i) -> x i)
-      .attr('y', (d) -> y d.value)
+      .attr('y', (d) -> y(d.value))
       .attr('width', x.rangeBand())
       .attr('class', 'bar')
 
@@ -96,8 +98,8 @@ class EditorStatsView extends ScrollView
       y.domain [0, max]
 
       bars.data(newdata).transition()
-        .attr('height', (d, i) ->  h - y(d.value))
-        .attr('y', (d, i) -> y d.value)
+        .attr('height', (d, i) ->  h - y(d.value) - 17)
+        .attr('y', (d, i) -> y(d.value))
 
       bars.classed('max', (d, i) -> d.value == max)
 
@@ -117,7 +119,7 @@ class EditorStatsView extends ScrollView
       @attach()
 
   attach: ->
-    @.insertBefore @statusBar
+    @insertAfter @statusBar
     @focus()
     @draw()
 
