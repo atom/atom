@@ -37,6 +37,7 @@ class EditorStatsView extends ScrollView
 
     @command 'core:cancel', @detach
     @statusBar = @rootView.find '.status-bar'
+    @panes = @rootView.find('#panes')
     @css 'background', @statusBar.css('background')
 
     date = new Date(startDate)
@@ -92,7 +93,7 @@ class EditorStatsView extends ScrollView
       y.domain [0, max]
 
       bars.data(newdata).transition()
-        .attr('height', (d, i) ->  h - y(d.value) - 17)
+        .attr('height', (d, i) ->  h - y(d.value))
         .attr('y', (d, i) -> y(d.value))
 
       bars.classed('max', (d, i) -> d.value == max)
@@ -113,7 +114,7 @@ class EditorStatsView extends ScrollView
       @attach()
 
   attach: ->
-    @insertAfter @statusBar
+    @panes.append(@)
     @draw()
 
   detach: =>
