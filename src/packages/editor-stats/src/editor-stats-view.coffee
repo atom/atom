@@ -37,7 +37,7 @@ class EditorStatsView extends ScrollView
 
     @command 'core:cancel', @detach
     @statusBar = @rootView.find('.status-bar')
-    @css 'background', @statusBar.css('background')
+    @css 'background', @statusBar.css('background-color')
 
     date = new Date(startDate)
     future = new Date(date.getTime() + (36e5 * hours))

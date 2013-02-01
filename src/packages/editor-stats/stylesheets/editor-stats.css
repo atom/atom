@@ -2,6 +2,7 @@
   padding: 5px;
   box-sizing: border-box;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 9999;
 }
 
 .editor-stats {
