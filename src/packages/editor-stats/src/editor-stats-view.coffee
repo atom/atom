@@ -12,10 +12,18 @@ class EditorStatsView extends ScrollView
     @div class: 'editor-stats-wrapper', tabindex: -1, =>
       @div class: 'editor-stats', outlet: 'editorStats'
 
+  pt: 15
+  pl: 10
+  pb: 3
+  pr: 25
+
   initialize: (@rootView) ->
     super
 
-    @subscribe $(window), 'resize', _.debounce((=> @draw()), 300)
+    resizer = =>
+      @draw()
+      @update()
+    @subscribe $(window), 'resize', _.debounce(resizer, 300)
 
   draw: ->
     @editorStats.empty()
@@ -23,15 +31,13 @@ class EditorStatsView extends ScrollView
     @y ?= d3.scale.linear()
     w = @rootView.vertical.width()
     h = @height()
-    [pt, pl, pb, pr] = [15, 10, 3, 25]
-
     data = d3.entries @stats.eventLog
 
-    @x.rangeBands [0, w - pl - pr], 0.2
-    @y.range [h - pt - pb, 0]
+    @x.rangeBands [0, w - @pl - @pr], 0.2
+    @y.range [h - @pt - @pb, 0]
 
     @xaxis ?= d3.svg.axis().scale(@x).orient('top')
-      .tickSize(-h + pt + pb)
+      .tickSize(-h + @pt + @pb)
       .tickFormat (d) =>
         d = new Date(@stats.startDate.getTime() + (d * 6e4))
         mins = d.getMinutes()
@@ -42,7 +48,7 @@ class EditorStatsView extends ScrollView
       .attr('width', w)
       .attr('height', h)
     .append('g')
-      .attr('transform', "translate(#{pl},#{pt})")
+      .attr('transform', "translate(#{@pl},#{@pt})")
 
     vis.append('g')
       .attr('class', 'x axis')
@@ -55,7 +61,7 @@ class EditorStatsView extends ScrollView
         else
           'none'
 
-    bars = vis.selectAll('rect.bar')
+    @bars = vis.selectAll('rect.bar')
       .data(data)
     .enter().append('rect')
       .attr('x', (d, i) => @x i)
@@ -63,19 +69,17 @@ class EditorStatsView extends ScrollView
       .attr('width', @x.rangeBand())
       .attr('class', 'bar')
 
-    update = =>
-      newdata = d3.entries @stats.eventLog
-      max  = d3.max newdata, (d) -> d.value
+    @updateInterval = setInterval((=> @update()), 5000)
 
-      @y.domain [0, max]
-
-      bars.data(newdata).transition()
-        .attr('height', (d, i) =>  h - @y(d.value) - pt - pb)
-        .attr('y', (d, i) => @y(d.value))
-
-      bars.classed('max', (d, i) -> d.value == max)
-
-    @updateInterval = setInterval update, 5000
+  update: ->
+    newdata = d3.entries @stats.eventLog
+    max  = d3.max newdata, (d) -> d.value
+    @y.domain [0, max]
+    h = @height()
+    @bars.data(newdata).transition()
+      .attr('height', (d, i) =>  h - @y(d.value) - @pt - @pb)
+      .attr('y', (d, i) => @y(d.value))
+    @bars.classed('max', (d, i) -> d.value == max)
 
   toggle: (@stats) ->
     if @hasParent()
