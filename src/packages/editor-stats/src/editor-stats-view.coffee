@@ -14,6 +14,7 @@ class EditorStatsView extends ScrollView
     super
 
   draw: ->
+    @editorStats.empty()
     @x ?= d3.scale.ordinal().domain d3.range(@stats.hours * 60)
     @y ?= d3.scale.linear()
     w = @rootView.vertical.width()
@@ -70,7 +71,7 @@ class EditorStatsView extends ScrollView
 
       bars.classed('max', (d, i) -> d.value == max)
 
-    setInterval update, 5000
+    @updateInterval = setInterval update, 5000
 
   toggle: (@stats) ->
     if @hasParent()
@@ -84,4 +85,5 @@ class EditorStatsView extends ScrollView
 
   detach: ->
     super()
+    clearInterval(@updateInterval)
     @rootView.focus()
