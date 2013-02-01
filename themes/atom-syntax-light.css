@@ -15,157 +15,154 @@
   background-color: rgba(255, 255, 134, 0.34);
 }
 
-.comment {
+.editor .comment {
   color: #999988;
   font-style: italic;
 }
 
-.string {
+.editor .string {
   color: #D14;
 }
 
-.constant.numeric {
+.editor .constant.numeric {
   color: #D14;
 }
 
-.constant.language {
+.editor .constant.language {
   color: #606aa1;
 }
 
-.constant.character, .constant.other {
+.editor .constant.character, .editor .constant.other {
   color: #606aa1;
 }
 
-.constant.symbol {
+.editor .constant.symbol {
   color: #990073;
 }
 
-.variable {
+.editor .variable {
   color: #008080;
 }
 
 /* Keywords */
-.keyword {
+.editor .keyword {
   color: #222;
   font-weight: bold;
 }
 
-.keyword.unit {
+.editor .keyword.unit {
   color: #445588;
 }
 
-.keyword.special-method {
+.editor .keyword.special-method {
   color: #0086B3;
 }
 
-.storage {
+.editor .storage {
   color: #222;
 }
 
-.storage.type {
+.editor .storage.type {
   color: #222;
 }
 
-.entity.name.class {
+.editor .entity.name.class {
   text-decoration: underline;
   color: #606aa1;
 }
 
-.entity.other.inherited-class {
+.editor .entity.other.inherited-class {
   text-decoration: underline;
   color: #606aa1;
 }
 
-.entity.name.function {
+.editor .entity.name.function {
   color: #900;
 }
 
-.variable.parameter {
+.editor .variable.parameter {
   color: #606aa1;
 }
 
-.entity.name.tag {
+.editor .entity.name.tag {
   color: #008080;
 }
 
-.entity.other.attribute-name {
+.editor .entity.other.attribute-name {
   color: #458;
   font-weight: bold;
 }
 
-.support.function {
+.editor .support.function {
   color: #458;
 }
 
-.support.constant {
+.editor .support.constant {
   color: #458;
 }
 
-.support.type {
+.editor .support.type {
   color: #458;
 }
 
-.support.class {
+.editor .support.class {
   color: #008080;
 }
 
-.support.other.variable {
-}
-
-.invalid {
+.editor .invalid {
   color: #F8F8F0;
   background-color: #00A8C6;
 }
 
-.invalid.deprecated {
+.editor .invalid.deprecated {
   color: #F8F8F0;
   background-color: #8FBE00;
 }
 
-.meta.structure.dictionary.json > .string.quoted.double.json,
-.meta.structure.dictionary.json > .string.quoted.double.json .punctuation.string {
+.editor .meta.structure.dictionary.json > .string.quoted.double.json,
+.editor .meta.structure.dictionary.json > .string.quoted.double.json .punctuation.string {
   color: #000080;
 }
 
-.meta.structure.dictionary.value.json > .string.quoted.double.json {
+.editor .meta.structure.dictionary.value.json > .string.quoted.double.json {
   color: #d14;
 }
 
-.meta.diff, .meta.diff.header {
+.editor .meta.diff, .editor .meta.diff.header {
   color: #75715E;
 }
 
-.meta.function span {
+.editor .meta.function span {
   color: #990000;
   font-weight: bold;
 }
 
-.markup.deleted {
+.editor .markup.deleted {
   color: #00A8C6;
 }
 
-.markup.inserted {
+.editor .markup.inserted {
   color: #A6E22E;
 }
 
-.markup.changed {
+.editor .markup.changed {
   color: #E6DB74;
 }
 
-.constant.numeric.line-number.find-in-files .- .match {
+.editor .constant.numeric.line-number.find-in-files .- .match {
   color: rgba(143, 190, 0, 0.63);
 }
 
-.entity.name.filename.find-in-files {
+.editor .entity.name.filename.find-in-files {
   color: #E6DB74;
 }
 
 /* CSS Styles */
-.css.support.property-name {
+.editor .css.support.property-name {
   font-weight: bold;
   color: #333;
 }
 
-.css.constant {
+.editor .css.constant {
   color: #099;
 }
