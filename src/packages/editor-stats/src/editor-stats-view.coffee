@@ -3,34 +3,12 @@ d3 = require 'd3.v3'
 
 module.exports =
 class EditorStatsView extends ScrollView
-  hours = 6
-
-  time = (date) ->
-    date.setTime(date.getTime() + 6e4)
-    hour = date.getHours()
-    minute = date.getMinutes()
-    "#{hour}:#{minute}"
-
-  startDate = new Date
-  x  = d3.scale.ordinal().domain d3.range(hours * 60)
-  y  = d3.scale.linear()
-
-  xaxis = d3.svg.axis().scale(x)
-    .orient('top')
-    .tickFormat (d) ->
-      d = new Date(startDate.getTime() + (d * 6e4))
-      mins = d.getMinutes()
-      mins = "0#{mins}" if mins < 9
-      "#{d.getHours()}:#{mins}"
-
   @activate: (rootView, state) ->
     @instance = new EditorStatsView(rootView)
 
   @content: (rootView) ->
     @div class: 'editor-stats-wrapper', tabindex: -1, =>
       @div class: 'editor-stats', outlet: 'editorStats'
-
-  eventLog: []
 
   initialize: (@rootView) ->
     super
@@ -39,26 +17,24 @@ class EditorStatsView extends ScrollView
     @statusBar = @rootView.find('.status-bar')
     @css 'background', @statusBar.css('background-color')
 
-    date = new Date(startDate)
-    future = new Date(date.getTime() + (36e5 * hours))
-    @eventLog[time(date)] = 0
-
-    while date < future
-      @eventLog[time(date)] = 0
-
-    @rootView.on 'keydown', @track
-    @rootView.on 'mouseup', @track
-
   draw: ->
+    @x ?= d3.scale.ordinal().domain d3.range(@stats.hours * 60)
+    @y ?= d3.scale.linear()
     w = @rootView.vertical.width()
-    h = @.height()
+    h = @height()
     [pt, pl, pb, pr] = [15, 10, 3, 25]
 
-    data = d3.entries @eventLog
+    data = d3.entries @stats.eventLog
 
-    x.rangeBands [0, w - pl - pr], 0.2
-    y.range [h - pt - pb, 0]
-    xaxis.tickSize(-h + pt + pb, 50)
+    @x.rangeBands [0, w - pl - pr], 0.2
+    @y.range [h - pt - pb, 0]
+
+    @xaxis ?= d3.svg.axis().scale(@x).orient('top').tickFormat (d) =>
+               d = new Date(@stats.startDate.getTime() + (d * 6e4))
+               mins = d.getMinutes()
+               mins = "0#{mins}" if mins < 9
+               "#{d.getHours()}:#{mins}"
+    @xaxis.tickSize(-h + pt + pb, 50)
 
     vis = d3.select(@editorStats.get(0)).append('svg')
       .attr('width', w)
@@ -68,7 +44,7 @@ class EditorStatsView extends ScrollView
 
     vis.append('g')
       .attr('class', 'x axis')
-      .call(xaxis)
+      .call(@xaxis)
     .selectAll('g')
       .style('display', (d, i) ->
         if i % 15 == 0 || i % 5 == 0 || i == data.length - 1
@@ -80,33 +56,26 @@ class EditorStatsView extends ScrollView
     bars = vis.selectAll('rect.bar')
       .data(data)
     .enter().append('rect')
-      .attr('x', (d, i) -> x i)
-      .attr('y', (d) -> y(d.value))
-      .attr('width', x.rangeBand())
+      .attr('x', (d, i) => @x i)
+      .attr('y', (d) => @y(d.value))
+      .attr('width', @x.rangeBand())
       .attr('class', 'bar')
 
     update = =>
-      newdata = d3.entries @eventLog
+      newdata = d3.entries @stats.eventLog
       max  = d3.max newdata, (d) -> d.value
 
-      y.domain [0, max]
+      @y.domain [0, max]
 
       bars.data(newdata).transition()
-        .attr('height', (d, i) ->  h - y(d.value) - pt - pb)
-        .attr('y', (d, i) -> y(d.value))
+        .attr('height', (d, i) =>  h - @y(d.value) - pt - pb)
+        .attr('y', (d, i) => @y(d.value))
 
       bars.classed('max', (d, i) -> d.value == max)
 
     setInterval update, 5000
 
-  track: =>
-    date = new Date
-    times = time date
-    @eventLog[times] ||= 0
-    @eventLog[times] += 1
-    @eventLog.shift() if @eventLog.length > (hours * 60)
-
-  toggle: ->
+  toggle: (@stats) ->
     if @hasParent()
       @detach()
     else
@@ -116,6 +85,6 @@ class EditorStatsView extends ScrollView
     @rootView.vertical.append(@)
     @draw()
 
-  detach: =>
+  detach: ->
     super()
     @rootView.focus()
