@@ -3,7 +3,7 @@ d3 = require 'd3.v3'
 
 module.exports =
 class EditorStatsView extends ScrollView
-  hours = 4
+  hours = 6
 
   time = (date) ->
     date.setTime(date.getTime() + 6e4)
@@ -52,12 +52,12 @@ class EditorStatsView extends ScrollView
   draw: ->
     w = @rootView.vertical.width()
     h = @.height()
-    [pt, pl, pb, pr] = [15,10,0,25]
+    [pt, pl, pb, pr] = [15, 10, 3, 25]
 
     data = d3.entries @eventLog
 
     x.rangeBands [0, w - pl - pr], 0.2
-    y.range [h, 0]
+    y.range [h - pt - pb, 0]
     xaxis.tickSize(-h + pt + pb, 50)
 
     vis = d3.select(@editorStats.get(0)).append('svg')
@@ -92,7 +92,7 @@ class EditorStatsView extends ScrollView
       y.domain [0, max]
 
       bars.data(newdata).transition()
-        .attr('height', (d, i) ->  h - y(d.value))
+        .attr('height', (d, i) ->  h - y(d.value) - pt - pb)
         .attr('y', (d, i) -> y(d.value))
 
       bars.classed('max', (d, i) -> d.value == max)
