@@ -1,26 +1,19 @@
 html, body,
 #root-view {
   font: caption;
-  background-color: #333333;
-}
-
-#root-view #panes:before {
-  display: block;
-  content: "\f208";
-  font-family: 'Octicons Regular';
-  color: #303030;
-  -webkit-font-smoothing: antialiased;
-  font-size: 100vmin;
-  line-height: 100vmin;
-  text-align: center;
+  background-color: #f4f4f4;
 }
 
 #root-view #panes .row > * + * {
-  border-left: 5px solid #515151;
+  -webkit-box-shadow:
+    -2px 0 rgba(0, 0, 0, 0.3),
+    -1px 0 rgba(255, 255, 255, 0.2);
 }
 
 #root-view #panes .column > * + * {
-  border-top: 5px solid #515151;
+  -webkit-box-shadow:
+    0 -2px rgba(0, 0, 0, 0.3),
+    0 -1px rgba(255, 255, 255, 0.2);
 }
 
 .error {

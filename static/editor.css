@@ -82,7 +82,7 @@
 
 .editor .cursor {
   position: absolute;
-  border-left: 2px solid;
+  border-left: 1px solid;
 }
 
 .editor:not(.focused) .cursor,
