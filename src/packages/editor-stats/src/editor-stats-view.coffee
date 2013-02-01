@@ -24,18 +24,15 @@ class EditorStatsView extends ScrollView
       "#{d.getHours()}:#{mins}"
 
   @activate: (rootView, state) ->
-    @instance = new EditorStatsView(rootView, state?.eventLog)
+    @instance = new EditorStatsView(rootView)
 
   @content: (rootView) ->
     @div class: 'editor-stats-wrapper', tabindex: -1, =>
       @div class: 'editor-stats', outlet: 'editorStats'
 
-  @serialize: ->
-    @instance.serialize()
-
   eventLog: []
 
-  initialize: (@rootView, @eventLog = {}) ->
+  initialize: (@rootView) ->
     super
 
     @command 'core:cancel', @detach
