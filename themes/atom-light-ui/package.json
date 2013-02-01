@@ -14,7 +14,7 @@
     "command-panel.css",
     "command-palette.css",
     "command-logger.css",
-    "autocomplete.css",
+    "popover-list.css",
     "gists.css",
     "go-to-line.css"
   ]
