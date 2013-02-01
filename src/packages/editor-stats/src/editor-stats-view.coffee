@@ -65,6 +65,7 @@ class EditorStatsView extends ScrollView
       .data(data)
     .enter().append('rect')
       .attr('x', (d, i) => @x i)
+      .attr('height', (d, i) => h - @y(d.value) - @pt - @pb)
       .attr('y', (d) => @y(d.value))
       .attr('width', @x.rangeBand())
       .attr('class', 'bar')
