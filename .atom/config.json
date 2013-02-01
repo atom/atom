@@ -4,8 +4,8 @@
   },
   "core": {
     "themes": [
-      "Atom - Dark",
-      "IR_Black"
+      "atom-dark-ui",
+      "atom-dark-syntax"
     ]
   }
 }
