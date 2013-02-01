@@ -13,8 +13,6 @@ class EditorStatsView extends ScrollView
   initialize: (@rootView) ->
     super
 
-    @command 'core:cancel', @detach
-
   draw: ->
     @x ?= d3.scale.ordinal().domain d3.range(@stats.hours * 60)
     @y ?= d3.scale.linear()
