@@ -36,28 +36,12 @@ var fffit = function(description, specDefinitions) {
   fit(description, specDefinitions, 3);
 };
 
-var fSpecFilter = function(specOrSuite) {
+jasmine.AtomReporter.prototype.fSpecFilter = function(specOrSuite) {
   globalFocusPriority = jasmine.getEnv().focusPriority;
   if (!globalFocusPriority) return true;
   if (specOrSuite.focusPriority >= globalFocusPriority) return true;
 
   var parent = specOrSuite.parentSuite || specOrSuite.suite;
   if (!parent) return false;
-  return fSpecFilter(parent);
-}
-
-jasmine.AtomReporter.prototype.specFilter = function(spec) {
-  var paramMap = {};
-  var params = this.getLocation().search.substring(1).split('&');
-  for (var i = 0; i < params.length; i++) {
-    var p = params[i].split('=');
-    paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
-  }
-
-  if (!paramMap.spec && !jasmine.getEnv().focusPriority) {
-    return true;
-  }
-
-  return (spec.getFullName().indexOf(paramMap.spec) === 0) || fSpecFilter(spec);
+  return this.fSpecFilter(parent);
 };
-

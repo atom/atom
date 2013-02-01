@@ -45,9 +45,5 @@ jasmine.ConsoleReporter.prototype.reportSpecResults = function(spec) {
 };
 
 jasmine.ConsoleReporter.prototype.specFilter = function(spec) {
-  if (!jasmine.getEnv().focusPriority) {
-    return true;
-  }
-
-  return fSpecFilter(spec);
+  return true;
 };
