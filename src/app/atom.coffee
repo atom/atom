@@ -50,7 +50,7 @@ _.extend atom,
       .filter (name) -> not _.contains(disabledPackages, name)
 
   loadThemes: ->
-    themeNames = config.get("core.themes") ? ['Atom - Dark', 'GitHub_Dark']
+    themeNames = config.get("core.themes") ? ['atom-dark', 'github-dark']
     themeNames = [themeNames] unless _.isArray(themeNames)
     @loadTheme(themeName) for themeName in themeNames
     @loadUserStylesheet()
