@@ -3,7 +3,7 @@ RootView = require 'root-view'
 EditorStats = require 'editor-stats/src/editor-stats-view'
 
 describe "EditorStats", ->
-  [rootView, editorStats, editor, date, time] = []
+  [rootView, editorStats, time] = []
 
   simulateKeyUp = (key) ->
     e = $.Event "keydown", keyCode: key.charCodeAt(0)
@@ -27,7 +27,6 @@ describe "EditorStats", ->
     editorStatsPackage.getInstance()
     editorStats = editorStatsPackage.stats
     editorStats.clear()
-    editor = rootView.getActiveEditor()
 
   afterEach ->
     rootView.deactivate()
