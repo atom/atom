@@ -1,6 +1,6 @@
 .editor, .editor .gutter {
-  background-color: #141414;
-  color: #EDEDED;
+  background-color: #1d1f21;
+  color: #c5c8c6;
 }
 
 .editor.focused .cursor {
