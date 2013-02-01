@@ -125,6 +125,3 @@ class EditorStatsView extends ScrollView
     super()
     @remove()
     @rootView.focus()
-
-  serialize: ->
-    eventLog: @eventLog
