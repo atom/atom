@@ -761,7 +761,7 @@ describe "TreeView", ->
 
           expect(addDialog.miniEditor.getText().length).toBe 0
 
-    fdescribe "tree-view:move", ->
+    describe "tree-view:move", ->
       describe "when a file is selected", ->
         moveDialog = null
 
