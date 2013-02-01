@@ -18,7 +18,7 @@ class EditSession
     if fs.exists(state.buffer)
       session = project.buildEditSessionForPath(state.buffer)
     else
-      console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists"
+      console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
       session = project.buildEditSessionForPath(null)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)

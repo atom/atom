@@ -34,6 +34,7 @@ class CommandLoggerView extends ScrollView
     super
 
     @command 'core:cancel', => @detach()
+    @on 'blur', => @detach() unless document.activeElement is this[0]
 
   toggle: (@eventLog={}) ->
     if @hasParent()
@@ -180,8 +181,11 @@ class CommandLoggerView extends ScrollView
     @focus()
 
   detach: ->
-    super()
+    return if @detaching
+    @detaching = true
+    super
     @rootView.focus()
+    @detaching = false
 
   serialize: ->
     eventLog: @eventLog

@@ -277,6 +277,7 @@ describe "Snippets extension", ->
 
     it "terminates the worker when loading completes", ->
       jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
+      spyOn(console, "warn")
       spyOn(Worker.prototype, 'terminate').andCallThrough()
       snippets.loaded = false
       snippets.loadAll()
@@ -284,6 +285,8 @@ describe "Snippets extension", ->
       waitsFor "all snippets to load", 5000, -> snippets.loaded
 
       runs ->
+        expect(console.warn).toHaveBeenCalled()
+        expect(console.warn.argsForCall[0]).toMatch /Error reading snippets file '.*?\/spec\/fixtures\/packages\/package-with-snippets\/snippets\/junk-file'/
         expect(Worker.prototype.terminate).toHaveBeenCalled()
         expect(Worker.prototype.terminate.calls.length).toBe 1
 

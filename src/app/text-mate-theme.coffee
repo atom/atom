@@ -75,8 +75,8 @@ class TextMateTheme extends Theme
 
     if fontStyle
       fontStyles = fontStyle.split(/\s+/)
-      # properties['font-weight'] = 'bold' if _.contains(fontStyles, 'bold')
-      # properties['font-style'] = 'italic' if _.contains(fontStyles, 'italic')
+      properties['font-weight'] = 'bold' if _.contains(fontStyles, 'bold')
+      properties['font-style'] = 'italic' if _.contains(fontStyles, 'italic')
       properties['text-decoration'] = 'underline' if _.contains(fontStyles, 'underline')
 
     properties['color'] = @translateColor(foreground) if foreground
