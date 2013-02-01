@@ -32,9 +32,10 @@ class EditorStatsView extends ScrollView
     w = @rootView.vertical.width()
     h = @height()
     data = d3.entries @stats.eventLog
+    max  = d3.max data, (d) -> d.value
 
     @x.rangeBands [0, w - @pl - @pr], 0.2
-    @y.range [h - @pt - @pb, 0]
+    @y.domain([0, max]).range [h - @pt - @pb, 0]
 
     @xaxis ?= d3.svg.axis().scale(@x).orient('top')
       .tickSize(-h + @pt + @pb)
