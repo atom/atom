@@ -1,0 +1,262 @@
+.editor, .editor .gutter {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+.editor.focused .cursor {
+  border-color: #A7A7A7;
+}
+
+.editor.focused .selection .region {
+  background-color: #E0E0ED;
+}
+
+.editor.focused .line-number.cursor-line-no-selection, .editor.focused .line.cursor-line {
+  background-color: #D7D7D7;
+}
+
+.comment {
+  color: #898989;
+}
+
+.entity {
+  color: #A15001;
+}
+
+.keyword {
+  color: #016692;
+}
+
+.entity.name.type {
+  text-decoration: underline;
+  color: #646409;
+}
+
+.support {
+  color: #646409;
+}
+
+.storage {
+  color: #877611;
+}
+
+.storage.modifier {
+  color: #014A69;
+}
+
+.constant {
+  color: #333366;
+}
+
+.string {
+  color: #009F78;
+}
+
+.constant.numeric {
+  color: #8C008A;
+}
+
+.punctuation {
+}
+
+.variable {
+  color: #696989;
+}
+
+.invalid.deprecated {
+  text-decoration: underline;
+  color: #A00294;
+}
+
+.invalid.illegal {
+  color: #A00294;
+  background-color: rgba(223, 104, 217, 0.75);
+}
+
+.text .source {
+  background-color: rgba(177, 179, 186, 0.03);
+}
+
+.entity.other.inherited-class {
+  color: #D19264;
+}
+
+.source .string .source {
+  color: #000000;
+}
+
+.source .string .source .punctuation.section.embedded {
+  color: #00FF00;
+}
+
+.string .constant {
+  color: #00FF00;
+}
+
+.string.regexp {
+  color: #9D7416;
+}
+
+.string.regexp .constant.character.escape, .string.regexp .source.ruby.embedded, .string.regexp .string.regexp.arbitrary-repitition {
+  color: #FF8000;
+}
+
+.string.regexp.group {
+  color: #B08C39;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.string.regexp.character-class {
+  color: #C29B4E;
+}
+
+.string .variable {
+  color: #756565;
+}
+
+.support.function {
+  color: #7A7025;
+}
+
+.support.constant {
+  color: #582B00;
+}
+
+.meta.preprocessor.c {
+  color: #765757;
+}
+
+.meta.preprocessor.c .keyword {
+  color: #502424;
+}
+
+.meta.cast {
+  color: #010101;
+}
+
+.meta.sgml.html .meta.doctype, .meta.sgml.html .meta.doctype .entity, .meta.sgml.html .meta.doctype .string, .meta.xml-processing, .meta.xml-processing .entity, .meta.xml-processing .string {
+  color: #010101;
+}
+
+.meta.tag, .meta.tag .entity {
+  color: #0067C2;
+}
+
+.source .entity.name.tag, .source .entity.other.attribute-name, .meta.tag.inline, .meta.tag.inline .entity {
+  color: #00528B;
+}
+
+.entity.other.attribute-name {
+  color: #BC4D00;
+}
+
+.entity.name.tag.namespace, .entity.other.attribute-name.namespace {
+  color: #9B431E;
+}
+
+.meta.selector.css .entity.name.tag {
+  text-decoration: underline;
+  color: #0067C2;
+}
+
+.meta.selector.css .entity.other.attribute-name.tag.pseudo-class {
+  color: #628795;
+}
+
+.meta.selector.css .entity.other.attribute-name.id {
+  color: #667587;
+}
+
+.meta.selector.css .entity.other.attribute-name.class {
+  color: #2A85CF;
+}
+
+.support.type.property-name.css {
+  color: #000000;
+}
+
+.meta.property-group .support.constant.property-value.css, .meta.property-value .support.constant.property-value.css {
+  color: #675C06;
+}
+
+.meta.preprocessor.at-rule .keyword.control.at-rule {
+  color: #795A5A;
+}
+
+.meta.property-value .support.constant.named-color.css, .meta.property-value .constant {
+  color: #3C785D;
+}
+
+.meta.constructor.argument.css {
+  color: #628795;
+}
+
+.meta.diff, .meta.diff.header {
+  color: #FFFFFF;
+  background-color: #0E2231;
+}
+
+.markup.deleted {
+  color: #FFFFFF;
+  background-color: #420E09;
+}
+
+.markup.changed {
+  color: #FFFFFF;
+  background-color: #4A410D;
+}
+
+.markup.inserted {
+  color: #FFFFFF;
+  background-color: #253B22;
+}
+
+.markup.italic {
+  color: #9D7416;
+}
+
+.markup.bold {
+  color: #9D7416;
+}
+
+.markup.underline {
+  text-decoration: underline;
+  color: #9B431E;
+}
+
+.markup.quote {
+  color: #46391E;
+  background-color: rgba(254, 224, 156, 0.07);
+}
+
+.markup.heading, .markup.heading .entity {
+  color: #D95B06;
+  background-color: #632D04;
+}
+
+.markup.list {
+  color: #46391E;
+}
+
+.markup.raw {
+  color: #7C4CA8;
+  background-color: rgba(177, 179, 186, 0.03);
+}
+
+.markup .comment {
+  color: #C84D09;
+}
+
+.meta.separator {
+  color: #746DFF;
+  background-color: #242424;
+}
+
+.meta.line.entry.logfile, .meta.line.exit.logfile {
+  background-color: rgba(238, 238, 238, 0.16);
+}
+
+.meta.line.error.logfile {
+  color: #FFFFFF;
+  background-color: #751012;
+}

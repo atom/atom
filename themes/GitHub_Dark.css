@@ -1,0 +1,182 @@
+.editor, .editor .gutter {
+  background-color: #141414;
+  color: #F8F8F8;
+}
+
+.editor.focused .cursor {
+  border-color: #A7A7A7;
+}
+
+.editor.focused .selection .region {
+  background-color: rgba(221, 240, 255, 0.2);
+}
+
+.editor.focused .line-number.cursor-line-no-selection, .editor.focused .line.cursor-line {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.comment {
+  color: #5F5A60;
+}
+
+.constant {
+  color: #CF6A4C;
+}
+
+.entity {
+  color: #9B703F;
+}
+
+.keyword {
+  color: #CDA869;
+}
+
+.storage {
+  color: #F9EE98;
+}
+
+.string {
+  color: #8F9D6A;
+}
+
+.support {
+  color: #9B859D;
+}
+
+.variable {
+  color: #7587A6;
+}
+
+.invalid.deprecated {
+  text-decoration: underline;
+  color: #D2A8A1;
+}
+
+.invalid.illegal {
+  color: #F8F8F8;
+  background-color: rgba(86, 45, 86, 0.75);
+}
+
+.text .source {
+  background-color: rgba(176, 179, 186, 0.08);
+}
+
+.text.html.ruby .source {
+  background-color: rgba(177, 179, 186, 0.13);
+}
+
+.entity.other.inherited-class {
+  color: #9B5C2E;
+}
+
+.string .source {
+  color: #DAEFA3;
+}
+
+.string .constant {
+  color: #DDF2A4;
+}
+
+.string.regexp {
+  color: #E9C062;
+}
+
+.string.regexp .constant.character.escape, .string.regexp .source.ruby.embedded, .string.regexp .string.regexp.arbitrary-repitition {
+  color: #CF7D34;
+}
+
+.string .variable {
+  color: #8A9A95;
+}
+
+.support.function {
+  color: #DAD085;
+}
+
+.support.constant {
+  color: #CF6A4C;
+}
+
+.meta.preprocessor.c {
+  color: #8996A8;
+}
+
+.meta.preprocessor.c .keyword {
+  color: #AFC4DB;
+}
+
+.meta.tag.sgml.doctype, .meta.tag.sgml.doctype .entity, .meta.tag.sgml.doctype .string, .meta.tag.preprocessor.xml, .meta.tag.preprocessor.xml .entity, .meta.tag.preprocessor.xml .string {
+  color: #494949;
+}
+
+.declaration.tag, .declaration.tag .entity, .meta.tag, .meta.tag .entity {
+  color: #AC885B;
+}
+
+.declaration.tag.inline, .declaration.tag.inline .entity, .source .entity.name.tag, .source .entity.other.attribute-name, .meta.tag.inline, .meta.tag.inline .entity {
+  color: #E0C589;
+}
+
+.meta.selector.css .entity.name.tag {
+  color: #CDA869;
+}
+
+.meta.selector.css .entity.other.attribute-name.tag.pseudo-class {
+  color: #8F9D6A;
+}
+
+.meta.selector.css .entity.other.attribute-name.id {
+  color: #8B98AB;
+}
+
+.meta.selector.css .entity.other.attribute-name.class {
+  color: #9B703F;
+}
+
+.support.type.property-name.css {
+  color: #C5AF75;
+}
+
+.meta.property-group .support.constant.property-value.css, .meta.property-value .support.constant.property-value.css {
+  color: #F9EE98;
+}
+
+.meta.preprocessor.at-rule .keyword.control.at-rule {
+  color: #8693A5;
+}
+
+.meta.property-value .support.constant.named-color.css, .meta.property-value .constant {
+  color: #CA7840;
+}
+
+.meta.constructor.argument.css {
+  color: #8F9D6A;
+}
+
+.meta.diff, .meta.diff.header, .meta.separator {
+  color: #F8F8F8;
+  background-color: #0E2231;
+}
+
+.markup.deleted {
+  color: #F8F8F8;
+  background-color: #420E09;
+}
+
+.markup.changed {
+  color: #F8F8F8;
+  background-color: #4A410D;
+}
+
+.markup.inserted {
+  color: #F8F8F8;
+  background-color: #253B22;
+}
+
+.markup.list {
+  color: #F9EE98;
+}
+
+.markup.heading {
+  color: #CF6A4C;
+}
