@@ -19,6 +19,7 @@ class Editor extends View
     autosave: false
     autoIndent: true
     autoIndentOnPaste: false
+    nonWordCharacters: "./\\()\"'-_:,.;<>~!@#$%^&*|+=[]{}`~?"
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
@@ -183,6 +184,8 @@ class Editor extends View
         'editor:close-all-edit-sessions': @destroyAllEditSessions
         'editor:select-grammar': @selectGrammar
         'editor:copy-path': @copyPathToPasteboard
+        'editor:move-line-up': @moveLineUp
+        'editor:move-line-down': @moveLineDown
 
     documentation = {}
     for name, method of editorBindings
@@ -204,6 +207,8 @@ class Editor extends View
   moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
+  moveLineUp: -> @activeEditSession.moveLineUp()
+  moveLineDown: -> @activeEditSession.moveLineDown()
   setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
@@ -271,6 +276,7 @@ class Editor extends View
   destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
+  isFoldedAtBufferRow: (bufferRow) -> @activeEditSession.isFoldedAtBufferRow(bufferRow)
 
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
@@ -312,7 +318,7 @@ class Editor extends View
   setInvisibles: (@invisibles={}) ->
     _.defaults @invisibles,
       eol: '\u00ac'
-      space: '\u2022'
+      space: '\u00b7'
       tab: '\u00bb'
       cr: '\u00a4'
     @resetDisplay()
@@ -335,6 +341,7 @@ class Editor extends View
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
+    @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
 
   handleEvents: ->
     @on 'focus', =>
@@ -675,16 +682,38 @@ class Editor extends View
   autosave: ->
     @save() if @getPath()?
 
-  setFontSize: (@fontSize) ->
-    if fontSize?
-      @css('font-size', fontSize + 'px')
-      return unless @attached
-      @calculateDimensions()
-      @updatePaddingOfRenderedLines()
-      @updateLayerDimensions()
-      @requestDisplayUpdate()
+  setFontSize: (fontSize) ->
+    headTag = $("head")
+    styleTag = headTag.find("style.font-size")
+    if styleTag.length == 0
+      styleTag = $$ -> @style class: 'font-size'
+      headTag.append styleTag
 
-  getFontSize: -> @fontSize
+    styleTag.text(".editor {font-size: #{fontSize}px}")
+    @redraw()
+
+  getFontSize: ->
+    parseInt(@css("font-size"))
+
+  setFontFamily: (fontFamily) ->
+    return if fontFamily == undefined
+    headTag = $("head")
+    styleTag = headTag.find("style.font-family")
+    if styleTag.length == 0
+      styleTag = $$ -> @style class: 'font-family'
+      headTag.append styleTag
+
+    styleTag.text(".editor {font-family: #{fontFamily}}")
+    @redraw()
+
+  getFontFamily: -> @css("font-family")
+
+  redraw: ->
+    return unless @attached
+    @calculateDimensions()
+    @updatePaddingOfRenderedLines()
+    @updateLayerDimensions()
+    @requestDisplayUpdate()
 
   newSplitEditor: (editSession) ->
     new Editor { editSession: editSession ? @activeEditSession.copy() }
@@ -775,6 +804,10 @@ class Editor extends View
     @overlayer.append(view)
 
   calculateDimensions: ->
+    if not @isOnDom()
+      detachedEditorParent = _.last(@parents()) ? this
+      $(document.body).append(detachedEditorParent)
+
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)
 
@@ -785,6 +818,8 @@ class Editor extends View
     @charHeight = charRect.height
     @height(@lineHeight) if @mini
     fragment.remove()
+
+    $(detachedEditorParent).detach()
 
   updateLayerDimensions: ->
     @gutter.calculateWidth()
@@ -1053,8 +1088,6 @@ class Editor extends View
 
     if fold = screenLine.fold
       lineAttributes = { class: 'fold line', 'fold-id': fold.id }
-      if @activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
-        lineAttributes.class += ' selected'
     else
       lineAttributes = { class: 'line' }
 
@@ -1086,6 +1119,8 @@ class Editor extends View
         line.push("<span class='invisible'>#{invisibles.cr}</span>")
       if invisibles.eol
         line.push("<span class='invisible'>#{invisibles.eol}</span>")
+
+    line.push("<span class='fold-marker'/>") if fold
 
     line.push('</pre>')
     line.join('')

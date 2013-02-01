@@ -567,9 +567,9 @@ describe "RootView", ->
     editor = null
     beforeEach ->
       editor = rootView.getActiveEditor()
+      editor.attachToDom()
 
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
-      editor = rootView.getActiveEditor()
       fontSizeBefore = editor.getFontSize()
       rootView.trigger 'window:increase-font-size'
       expect(editor.getFontSize()).toBe fontSizeBefore + 1

@@ -516,14 +516,61 @@ describe "Editor", ->
       editor.getBuffer().saveAs(path)
       expect(editor.getGrammar().name).toBe 'Plain Text'
 
-  describe "font size", ->
-    it "sets the initial font size based on the value from config", ->
-      config.set("editor.fontSize", 20)
-      newEditor = editor.splitRight()
-      expect(editor.css('font-size')).toBe '20px'
-      expect(newEditor.css('font-size')).toBe '20px'
+  describe "font family", ->
+    beforeEach ->
+      expect(editor.css('font-family')).not.toBe 'Courier'
 
-    describe "when the font size changes on the view", ->
+    it "when there is no config in fontFamily don't set it", ->
+      expect($("head style.font-family")).not.toExist()
+
+    describe "when the font family changes", ->
+      it "updates the font family on new and existing editors", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        config.set("editor.fontFamily", "Courier")
+        newEditor = editor.splitRight()
+
+        expect($("head style.font-family").text()).toMatch "{font-family: Courier}"
+        expect(editor.css('font-family')).toBe 'Courier'
+        expect(newEditor.css('font-family')).toBe 'Courier'
+
+      it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        lineHeightBefore = editor.lineHeight
+        charWidthBefore = editor.charWidth
+        config.set("editor.fontFamily", "Inconsolata")
+        editor.setCursorScreenPosition [5, 6]
+        expect(editor.charWidth).not.toBe charWidthBefore
+        expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
+        expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
+
+  describe "font size", ->
+    beforeEach ->
+      expect(editor.css('font-size')).not.toBe "20px"
+      expect(editor.css('font-size')).not.toBe "10px"
+
+    it "sets the initial font size based on the value from config", ->
+      expect($("head style.font-size")).toExist()
+      expect($("head style.font-size").text()).toMatch "{font-size: #{config.get('editor.fontSize')}px}"
+
+    describe "when the font size changes", ->
+      it "updates the font family on new and existing editors", ->
+        rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
+
+        config.set("editor.fontSize", 20)
+        newEditor = editor.splitRight()
+
+        expect($("head style.font-size").text()).toMatch "{font-size: 20px}"
+        expect(editor.css('font-size')).toBe '20px'
+        expect(newEditor.css('font-size')).toBe '20px'
+
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
         rootView.attachToDom()
         rootView.height(200)
@@ -567,6 +614,23 @@ describe "Editor", ->
 
         config.set("editor.fontSize", 10)
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
+
+      describe "when the editor is detached", ->
+        it "updates the font-size correctly and recalculates the dimensions by placing the rendered lines on the DOM", ->
+          rootView.attachToDom()
+          rootView.height(200)
+          rootView.width(200)
+
+          newEditor = editor.splitRight()
+          newEditorParent = newEditor.parent()
+          newEditor.detach()
+          config.set("editor.fontSize", 10)
+          newEditorParent.append(newEditor)
+
+          expect(newEditor.lineHeight).toBe editor.lineHeight
+          expect(newEditor.charWidth).toBe editor.charWidth
+          expect(newEditor.getCursorView().position()).toEqual editor.getCursorView().position()
+          expect(newEditor.verticalScrollbarContent.height()).toBe editor.verticalScrollbarContent.height()
 
   describe "mouse events", ->
     beforeEach ->
@@ -1730,6 +1794,11 @@ describe "Editor", ->
         fold.destroy()
         expect(editor.gutter.find('.line-number').length).toBe 13
 
+      it "styles folded line numbers", ->
+        editor.createFold(3, 5)
+        expect(editor.gutter.find('.line-number.fold').length).toBe 1
+        expect(editor.gutter.find('.line-number.fold:eq(0)').text()).toBe '4'
+
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->
         editor.attachToDom()
@@ -1898,15 +1967,17 @@ describe "Editor", ->
       editor.attachToDom()
 
     describe "when a fold-selection event is triggered", ->
-      it "folds the lines covered by the selection into a single line with a fold class", ->
+      it "folds the lines covered by the selection into a single line with a fold class and marker", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'editor:fold-selection'
 
         expect(editor.renderedLines.find('.line:eq(4)')).toHaveClass('fold')
+        expect(editor.renderedLines.find('.line:eq(4) > .fold-marker')).toExist()
         expect(editor.renderedLines.find('.line:eq(5)').text()).toBe '8'
 
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [5, 0]
+
 
     describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
@@ -1916,6 +1987,7 @@ describe "Editor", ->
         editor.find('.fold.line').mousedown()
 
         expect(editor.find('.fold')).not.toExist()
+        expect(editor.find('.fold-marker')).not.toExist()
         expect(editor.renderedLines.find('.line:eq(4)').text()).toMatch /4-+/
         expect(editor.renderedLines.find('.line:eq(5)').text()).toMatch /5/
 
@@ -2260,3 +2332,196 @@ describe "Editor", ->
     it "copies the absolute path to the editor's file to the pasteboard", ->
       editor.trigger 'editor:copy-path'
       expect(pasteboard.read()[0]).toBe editor.getPath()
+
+  describe "when editor:move-line-up is triggered", ->
+    describe "when there is no selection", ->
+      it "moves the line where the cursor is up", ->
+        editor.setCursorBufferPosition([1,0])
+        editor.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
+      it "moves the cursor to the new row and the same column", ->
+        editor.setCursorBufferPosition([1,2])
+        editor.trigger 'editor:move-line-up'
+        expect(editor.getCursorBufferPosition()).toEqual [0,2]
+
+    describe "where there is a selection", ->
+      describe "when the selection falls inside the line", ->
+        it "maintains the selection", ->
+          editor.setSelectedBufferRange([[1, 2], [1, 5]])
+          expect(editor.getSelectedText()).toBe 'var'
+          editor.trigger 'editor:move-line-up'
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 2], [0, 5]]
+          expect(editor.getSelectedText()).toBe 'var'
+
+      describe "where there are multiple lines selected", ->
+        it "moves the selected lines up", ->
+          editor.setSelectedBufferRange([[2, 0], [3, Infinity]])
+          editor.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+          expect(buffer.lineForRow(1)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(2)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(3)).toBe '  var sort = function(items) {'
+
+        it "maintains the selection", ->
+          editor.setSelectedBufferRange([[2, 0], [3, 62]])
+          editor.trigger 'editor:move-line-up'
+          expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [2, 62]]
+
+      describe "when the last line is selected", ->
+        it "moves the selected line up", ->
+          editor.setSelectedBufferRange([[12, 0], [12, Infinity]])
+          editor.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(11)).toBe '};'
+          expect(buffer.lineForRow(12)).toBe '  return sort(Array.apply(this, arguments));'
+
+      describe "when the last two lines are selected", ->
+        it "moves the selected lines up", ->
+          editor.setSelectedBufferRange([[11, 0], [12, Infinity]])
+          editor.trigger 'editor:move-line-up'
+          expect(buffer.lineForRow(10)).toBe '  return sort(Array.apply(this, arguments));'
+          expect(buffer.lineForRow(11)).toBe '};'
+          expect(buffer.lineForRow(12)).toBe ''
+
+    describe "when the cursor is on the first line", ->
+      it "does not move the line", ->
+        editor.setCursorBufferPosition([0,0])
+        originalText = editor.getText()
+        editor.trigger 'editor:move-line-up'
+        expect(editor.getText()).toBe originalText
+
+    describe "when the cursor is on the trailing newline", ->
+      it "does not move the line", ->
+        editor.moveCursorToBottom()
+        editor.insertNewline()
+        editor.moveCursorToBottom()
+        originalText = editor.getText()
+        editor.trigger 'editor:move-line-up'
+        expect(editor.getText()).toBe originalText
+
+    describe "when the cursor is on a folded line", ->
+      it "moves all lines in the fold up and preserves the fold", ->
+        editor.setCursorBufferPosition([4, 0])
+        editor.foldCurrentRow()
+        editor.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
+        expect(buffer.lineForRow(7)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+        expect(editor.getSelectedBufferRange()).toEqual [[3, 0], [3, 0]]
+        expect(editor.isFoldedAtScreenRow(3)).toBeTruthy()
+
+    describe "when the selection contains a folded and unfolded line", ->
+      it "moves the selected lines up and preserves the fold", ->
+        editor.setCursorBufferPosition([4, 0])
+        editor.foldCurrentRow()
+        editor.setCursorBufferPosition([3, 4])
+        editor.selectDown()
+        expect(editor.isFoldedAtScreenRow(4)).toBeTruthy()
+        editor.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(2)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
+        expect(editor.getSelectedBufferRange()).toEqual [[2, 4], [3, 0]]
+        expect(editor.isFoldedAtScreenRow(3)).toBeTruthy()
+
+    describe "when an entire line is selected including the newline", ->
+      it "moves the selected line up", ->
+        editor.setCursorBufferPosition([1])
+        editor.selectToEndOfLine()
+        editor.selectRight()
+        editor.trigger 'editor:move-line-up'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
+  describe "when editor:move-line-down is triggered", ->
+    describe "when there is no selection", ->
+      it "moves the line where the cursor is down", ->
+        editor.setCursorBufferPosition([0, 0])
+        editor.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(0)).toBe '  var sort = function(items) {'
+        expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+
+      it "moves the cursor to the new row and the same column", ->
+        editor.setCursorBufferPosition([0, 2])
+        editor.trigger 'editor:move-line-down'
+        expect(editor.getCursorBufferPosition()).toEqual [1, 2]
+
+    describe "when the cursor is on the last line", ->
+      it "does not move the line", ->
+        editor.moveCursorToBottom()
+        editor.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(12)).toBe '};'
+        expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 2]]
+
+    describe "when the cursor is on the second to last line", ->
+      it "moves the line down", ->
+        editor.setCursorBufferPosition([11, 0])
+        editor.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(11)).toBe '};'
+        expect(buffer.lineForRow(12)).toBe '  return sort(Array.apply(this, arguments));'
+        expect(buffer.lineForRow(13)).toBeUndefined()
+
+    describe "when the cursor is on the second to last line and the last line is empty", ->
+      it "does not move the line", ->
+        editor.moveCursorToBottom()
+        editor.insertNewline()
+        editor.setCursorBufferPosition([12, 2])
+        editor.trigger 'editor:move-line-down'
+        expect(buffer.lineForRow(12)).toBe '};'
+        expect(buffer.lineForRow(13)).toBe ''
+        expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 2]]
+
+    describe "where there is a selection", ->
+      describe "when the selection falls inside the line", ->
+        it "maintains the selection", ->
+          editor.setSelectedBufferRange([[1, 2], [1, 5]])
+          expect(editor.getSelectedText()).toBe 'var'
+          editor.trigger 'editor:move-line-down'
+          expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [2, 5]]
+          expect(editor.getSelectedText()).toBe 'var'
+
+      describe "where there are multiple lines selected", ->
+        it "moves the selected lines down", ->
+          editor.setSelectedBufferRange([[2, 0], [3, Infinity]])
+          editor.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(2)).toBe '    while(items.length > 0) {'
+          expect(buffer.lineForRow(3)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe '      current = items.shift();'
+
+        it "maintains the selection", ->
+          editor.setSelectedBufferRange([[2, 0], [3, 62]])
+          editor.trigger 'editor:move-line-down'
+          expect(editor.getSelectedBufferRange()).toEqual [[3, 0], [4, 62]]
+
+      describe "when the cursor is on a folded line", ->
+        it "moves all lines in the fold down and preserves the fold", ->
+          editor.setCursorBufferPosition([4, 0])
+          editor.foldCurrentRow()
+          editor.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(4)).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+          expect(buffer.lineForRow(5)).toBe '    while(items.length > 0) {'
+          expect(editor.getSelectedBufferRange()).toEqual [[5, 0], [5, 0]]
+          expect(editor.isFoldedAtScreenRow(5)).toBeTruthy()
+
+      describe "when the selection contains a folded and unfolded line", ->
+        it "moves the selected lines down and preserves the fold", ->
+          editor.setCursorBufferPosition([4, 0])
+          editor.foldCurrentRow()
+          editor.setCursorBufferPosition([3, 4])
+          editor.selectDown()
+          expect(editor.isFoldedAtScreenRow(4)).toBeTruthy()
+          editor.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(3)).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+          expect(buffer.lineForRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe '    while(items.length > 0) {'
+          expect(editor.getSelectedBufferRange()).toEqual [[4, 4], [5, 0]]
+          expect(editor.isFoldedAtScreenRow(5)).toBeTruthy()
+
+      describe "when an entire line is selected including the newline", ->
+        it "moves the selected line down", ->
+          editor.setCursorBufferPosition([1])
+          editor.selectToEndOfLine()
+          editor.selectRight()
+          editor.trigger 'editor:move-line-down'
+          expect(buffer.lineForRow(1)).toBe '    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(2)).toBe '  var sort = function(items) {'

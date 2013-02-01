@@ -1,5 +1,6 @@
 .editor {
   font-family: Inconsolata, Monaco, Courier;
+  line-height: 1.3;
 }
 
 .editor.mini {
@@ -17,7 +18,7 @@
 }
 
 .editor .gutter .line-number {
-  padding-right: 1.3em;
+  padding-right: .5em;
   min-width: 35px;
   box-sizing: border-box;
   text-align: right;
@@ -43,12 +44,37 @@
   -webkit-animation-iteration-count: 1;
 }
 
-.editor .fold {
-  background-color: #444;
+.editor .gutter .line-number.fold {
+  color: #fba0e3;
+  opacity: .8;
 }
 
-.editor .fold.selected {
-  background-color: #244;
+.editor .gutter .line-number.fold.cursor-line {
+  opacity: 1;
+}
+
+.editor .gutter .line-number:after {
+  font-size: 0.8em;
+  content: '\f078';
+  font-family: 'Octicons Regular';
+  -webkit-font-smoothing: antialiased;
+  color: #fba0e3;
+  visibility: hidden;
+}
+
+.editor .gutter .line-number.fold:after {
+  visibility: visible;
+}
+
+.editor .fold-marker:after {
+  content: '\2026';
+  opacity: .8;
+  color: #fba0e3;
+  padding-left: .2em;
+}
+
+.editor .line.cursor-line .fold-marker {
+  opacity: 1;
 }
 
 .editor .invisible {

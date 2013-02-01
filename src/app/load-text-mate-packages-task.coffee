@@ -1,4 +1,4 @@
-Task = require 'Task'
+Task = require 'task'
 
 module.exports =
 class LoadTextMatePackagesTask extends Task

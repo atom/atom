@@ -1,12 +1,11 @@
 {$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
-$ = require 'jquery'
 _ = require 'underscore'
 
 module.exports =
 class CommandLoggerView extends ScrollView
   @activate: (rootView, state) ->
-    @instance = new CommandLoggerView(rootView, state?.eventLog)
+    @instance = new CommandLoggerView(rootView)
 
   @content: (rootView) ->
     @div class: 'command-logger', tabindex: -1, =>
@@ -31,29 +30,13 @@ class CommandLoggerView extends ScrollView
     'tree-view:directory-modified'
   ]
 
-  initialize: (@rootView, @eventLog={}) ->
+  initialize: (@rootView) ->
     super
 
-    @rootView.command 'command-logger:clear-data', => @eventLog = {}
     @command 'core:cancel', => @detach()
+    @on 'blur', => @detach() unless document.activeElement is this[0]
 
-    registerEvent = (eventName) =>
-      eventNameLog = @eventLog[eventName]
-      unless eventNameLog
-        eventNameLog =
-          count: 0
-          name: eventName
-        @eventLog[eventName] = eventNameLog
-      eventNameLog.count++
-      eventNameLog.lastRun = new Date().getTime()
-
-    originalTrigger = $.fn.trigger
-    $.fn.trigger = (eventName) ->
-      eventName = eventName.type if eventName.type
-      registerEvent(eventName) if $(this).events()[eventName]
-      originalTrigger.apply(this, arguments)
-
-  toggle: ->
+  toggle: (@eventLog={}) ->
     if @hasParent()
       @detach()
     else
@@ -198,8 +181,11 @@ class CommandLoggerView extends ScrollView
     @focus()
 
   detach: ->
-    super()
+    return if @detaching
+    @detaching = true
+    super
     @rootView.focus()
+    @detaching = false
 
   serialize: ->
     eventLog: @eventLog

@@ -21,7 +21,7 @@ Requirements
 Atom is installed! Type `atom [path]` from the commmand line or find it in `/Applications/Atom.app`
 
 ## Your ~/.atom Directory
-A basic ~/.atom directory is installed when you run `rake install`. Take a look at ~/.atom/atom.coffee for more information.
+A basic ~/.atom directory is installed when you run `rake install`. Take a look at ~/.atom/user.coffee for more information.
 
 ## Basic Keyboard shortcuts
 Atom doesn't have much in the way of menus yet. Use these keyboard shortcuts to
@@ -53,7 +53,7 @@ Most default OS X keybindings also work.
 
 ## Init Script
 
-Atom will require `~/.atom/atom.coffee` whenever a window is opened or reloaded if it is present in your
+Atom will require `~/.atom/user.coffee` whenever a window is opened or reloaded if it is present in your
 home directory. This is a rudimentary jumping off point for your own customizations.
 
 ## Command Panel

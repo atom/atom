@@ -38,3 +38,5 @@
   'meta-P': 'editor:close-all-edit-sessions'
   'meta-L': 'editor:select-grammar'
   'ctrl-C': 'editor:copy-path'
+  'ctrl-meta-up': 'editor:move-line-up'
+  'ctrl-meta-down': 'editor:move-line-down'

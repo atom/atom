@@ -55,8 +55,8 @@ Or you can use `observeConfig` to track changes from a view object.
 ```coffeescript
 class MyView extends View
   initialize: ->
-    @observeConfig 'editor.lineHeight', (lineHeight) =>
-      @adjustLineHeight(lineHeight)
+    @observeConfig 'editor.fontSize', () =>
+      @adjustFontSize()
 ```
 
 The `observeConfig` method will call the given callback immediately with the

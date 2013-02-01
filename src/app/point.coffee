@@ -11,6 +11,14 @@ class Point
 
       new Point(row, column)
 
+  @min: (point1, point2) ->
+    point1 = @fromObject(point1)
+    point2 = @fromObject(point2)
+    if point1.isLessThanOrEqual(point2)
+      point1
+    else
+      point2
+
   constructor: (@row=0, @column=0) ->
 
   copy: ->
@@ -25,6 +33,10 @@ class Point
       column = other.column
 
     new Point(row, column)
+
+  translate: (other) ->
+    other = Point.fromObject(other)
+    new Point(@row + other.row, @column + other.column)
 
   splitAt: (column) ->
     if @row == 0

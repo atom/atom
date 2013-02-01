@@ -25,6 +25,9 @@ $.fn.pageUp = ->
 $.fn.pageDown = ->
   @scrollTop(@scrollTop() + @height())
 
+$.fn.isOnDom = ->
+  @closest(document.body).length is 1
+
 $.fn.containsElement = (element) ->
   (element[0].compareDocumentPosition(this[0]) & 8) == 8
 
