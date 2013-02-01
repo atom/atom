@@ -159,3 +159,13 @@
 .entity.name.filename.find-in-files {
   color: #E6DB74;
 }
+
+/* CSS Styles */
+.css.support.property-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.css.constant {
+  color: #099;
+}
