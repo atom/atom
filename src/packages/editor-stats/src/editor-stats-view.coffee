@@ -69,6 +69,7 @@ class EditorStatsView extends ScrollView
       .attr('width', @x.rangeBand())
       .attr('class', 'bar')
 
+    setTimeout((=> @update()), 100)
     @updateInterval = setInterval((=> @update()), 5000)
 
   update: ->
