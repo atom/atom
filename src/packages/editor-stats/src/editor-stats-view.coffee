@@ -1,5 +1,7 @@
 ScrollView = require 'scroll-view'
 d3 = require 'd3.v3'
+_ = require 'underscore'
+$ = require 'jquery'
 
 module.exports =
 class EditorStatsView extends ScrollView
@@ -12,6 +14,8 @@ class EditorStatsView extends ScrollView
 
   initialize: (@rootView) ->
     super
+
+    @subscribe $(window), 'resize', _.debounce((=> @draw()), 300)
 
   draw: ->
     @editorStats.empty()
