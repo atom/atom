@@ -8,7 +8,7 @@
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;
-  margin: 0 0 5px 10px;
+  margin: 0 1px 5px 10px;
   position: relative;
   background-color: #1e1e1e;
   color: #C5C8C6;
