@@ -44,17 +44,17 @@ class TextMateTheme extends Theme
         'color': @translateColor(foreground)
 
     @rulesets.push
-      selector: '.editor.focused .cursor'
+      selector: '.editor.is-focused .cursor'
       properties:
         'border-color': @translateColor(caret)
 
     @rulesets.push
-      selector: '.editor.focused .selection .region'
+      selector: '.editor.is-focused .selection .region'
       properties:
         'background-color': @translateColor(selection)
 
     @rulesets.push
-      selector: '.editor.focused .line-number.cursor-line-no-selection, .editor.focused .line.cursor-line'
+      selector: '.editor.is-focused .line-number.cursor-line-no-selection, .editor.is-focused .line.cursor-line'
       properties:
         'background-color': @translateColor(lineHighlight)
 

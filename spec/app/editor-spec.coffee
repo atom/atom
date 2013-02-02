@@ -111,11 +111,11 @@ describe "Editor", ->
       editor.isFocused = false
       editor.hiddenInput.focus()
       expect(editor.isFocused).toBeTruthy()
-      expect(editor).toHaveClass('focused')
+      expect(editor).toHaveClass('is-focused')
 
       editor.hiddenInput.focusout()
       expect(editor.isFocused).toBeFalsy()
-      expect(editor).not.toHaveClass('focused')
+      expect(editor).not.toHaveClass('is-focused')
 
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
