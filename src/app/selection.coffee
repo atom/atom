@@ -1,5 +1,4 @@
 Range = require 'range'
-Anchor = require 'anchor'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
@@ -335,16 +334,12 @@ class Selection
 
   modifySelection: (fn) ->
     @retainSelection = true
-    @editSession.placeMarkerTail(@marker)
-#     @anchor.pauseEvents()
-#     @cursor.pauseEvents()
+    @placeTail()
     fn()
-#     @anchor.resumeEvents()
-#     @cursor.resumeEvents()
     @retainSelection = false
 
-#   placeAnchor: ->
-#     @anchor.on 'moved.selection', => @screenRangeChanged()
+  placeTail: ->
+    @editSession.placeMarkerTail(@marker)
 
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)

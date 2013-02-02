@@ -40,7 +40,7 @@ describe "Selection", ->
         expect(buffer.lineForRow(0)).toBe "v;"
         expect(selection.isEmpty()).toBeTruthy()
 
-    describe "when the cursor precedes the anchor", ->
+    describe "when the cursor precedes the tail", ->
       it "deletes selected text and clears the selection", ->
         selection.cursor.setScreenPosition [0,13]
         selection.selectToScreenPosition [0,4]
@@ -50,7 +50,7 @@ describe "Selection", ->
         expect(selection.isEmpty()).toBeTruthy()
 
   describe ".isReversed()", ->
-    it "returns true if the cursor precedes the anchor", ->
+    it "returns true if the cursor precedes the tail", ->
       selection.cursor.setScreenPosition([0, 20])
       selection.selectToScreenPosition([0, 10])
       expect(selection.isReversed()).toBeTruthy()
@@ -58,7 +58,7 @@ describe "Selection", ->
       selection.selectToScreenPosition([0, 25])
       expect(selection.isReversed()).toBeFalsy()
 
-  describe "when only the selection's anchor is moved (regression)", ->
+  describe "when only the selection's tail is moved (regression)", ->
     it "emits the 'screen-range-changed' event", ->
       selection.setBufferRange([[2, 0], [2, 10]], reverse: true)
       changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
