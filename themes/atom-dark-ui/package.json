@@ -6,6 +6,7 @@
     "select-list.css",
     "tree-view.css",
     "tabs.css",
+    "overlay.css",
     "wrap-guide.css",
     "status-bar.css",
     "symbols-view.css",

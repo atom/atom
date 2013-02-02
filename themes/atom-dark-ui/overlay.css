@@ -1,0 +1,20 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 400px;
+  margin-left: -200px;
+  background: #1e1e1e;
+  color: #eee;
+  padding: 10px;
+  z-index: 9999;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+}
+
+.overlay.mini {
+  width: 200px;
+  margin-left: -100px;
+}
