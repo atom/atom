@@ -1086,7 +1086,7 @@ class Editor extends View
     if fold = screenLine.fold
       lineAttributes = { class: 'fold line', 'fold-id': fold.id }
     else
-    lineAttributes = { class: 'line' }
+      lineAttributes = { class: 'line' }
 
     attributePairs = []
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
@@ -1117,7 +1117,7 @@ class Editor extends View
       if invisibles.eol
         line.push("<span class='invisible'>#{invisibles.eol}</span>")
 
-    # line.push("<span class='fold-marker'/>") if fold
+    line.push("<span class='fold-marker'/>") if fold
 
     line.push('</pre>')
     line.join('')
