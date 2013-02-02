@@ -1,7 +1,7 @@
 DisplayBuffer = require 'display-buffer'
 Buffer = require 'buffer'
 
-describe "DisplayBuffer", ->
+fdescribe "DisplayBuffer", ->
   [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
@@ -117,6 +117,12 @@ describe "DisplayBuffer", ->
         # following a wrapped line
         expect(displayBuffer.screenPositionForBufferPosition([4, 5])).toEqual([5, 5])
         expect(displayBuffer.bufferPositionForScreenPosition([5, 5])).toEqual([4, 5])
+
+        # clip screen position inputs before translating
+        expect(displayBuffer.bufferPositionForScreenPosition([-5, -5])).toEqual([0, 0])
+        expect(displayBuffer.bufferPositionForScreenPosition([Infinity, Infinity])).toEqual([12, 2])
+        expect(displayBuffer.bufferPositionForScreenPosition([3, -5])).toEqual([3, 0])
+        expect(displayBuffer.bufferPositionForScreenPosition([3, Infinity])).toEqual([3, 50])
 
     describe ".setSoftWrapColumn(length)", ->
       it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
@@ -477,6 +483,10 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
         expect(displayBuffer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
 
+        # clip screen positions before translating
+        expect(displayBuffer.bufferPositionForScreenPosition([-5, -5])).toEqual([0, 0])
+        expect(displayBuffer.bufferPositionForScreenPosition([Infinity, Infinity])).toEqual([200, 0])
+
     describe ".destroyFoldsContainingBufferRow(row)", ->
       it "destroys all folds containing the given row", ->
           displayBuffer.createFold(2, 4)
@@ -580,7 +590,7 @@ describe "DisplayBuffer", ->
     it "returns the length of the longest screen line", ->
       expect(displayBuffer.maxLineLength()).toBe 65
 
-  fdescribe "markers", ->
+  describe "markers", ->
     beforeEach ->
       displayBuffer.foldBufferRow(4)
 
@@ -602,14 +612,6 @@ describe "DisplayBuffer", ->
         displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])
         expect(displayBuffer.isMarkerReversed(marker)).toBeTruthy()
         expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
-
-      it "clips screen positions before assigning them", ->
-        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        displayBuffer.setMarkerHeadScreenPosition(marker, [-5, -4])
-        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[0, 0], [8, 4]]
-
-        displayBuffer.setMarkerTailScreenPosition(marker, [-5, -4])
-        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[0, 0], [0, 0]]
 
     describe "marker observation", ->
       observeHandler = null
