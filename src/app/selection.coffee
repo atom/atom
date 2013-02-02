@@ -59,6 +59,7 @@ class Selection
     options.reverse ?= @isReversed()
     @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
+      @cursor.needsAutoscroll = false if options.autoscroll?
       @editSession.setMarkerBufferRange(@marker, bufferRange, options)
 
   getBufferRowRange: ->
