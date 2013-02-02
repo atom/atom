@@ -14,8 +14,9 @@ class FuzzyFinder extends DeferredAtomPackage
   activate: (rootView) ->
     super
 
-    callback = (paths) => @projectPaths = paths
-    new LoadPathsTask(rootView, callback).start()
+    if rootView.project.getPath()?
+      callback = (paths) => @projectPaths = paths
+      new LoadPathsTask(rootView, callback).start()
 
   onLoadEvent: (event, instance) ->
     if @projectPaths? and not @instance.projectPaths?
