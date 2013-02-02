@@ -38,7 +38,7 @@ class BufferMarker
   setHeadPosition: (headPosition, options={}) ->
     @headPosition = Point.fromObject(headPosition)
     @headPosition = @buffer.clipPosition(@headPosition) if options.clip ? true
-    observer(@headPosition) for observer in @headPositionObservers
+    observer(@headPosition, !!options.bufferChanged) for observer in @headPositionObservers
     @headPosition
 
   setTailPosition: (tailPosition, options={}) ->
@@ -81,8 +81,8 @@ class BufferMarker
       [@id]
 
   handleBufferChange: (bufferChange) ->
-    @setHeadPosition(@updatePosition(@headPosition, bufferChange, false), clip: false)
-    @setTailPosition(@updatePosition(@tailPosition, bufferChange, true), clip: false) if @tailPosition
+    @setHeadPosition(@updatePosition(@headPosition, bufferChange, false), clip: false, bufferChanged: true)
+    @setTailPosition(@updatePosition(@tailPosition, bufferChange, true), clip: false, bufferChanged: true) if @tailPosition
 
   updatePosition: (position, bufferChange, isFirstPoint) ->
     { oldRange, newRange } = bufferChange

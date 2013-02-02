@@ -620,27 +620,27 @@ fdescribe "DisplayBuffer", ->
         observeHandler = jasmine.createSpy("observeHandler")
 
       describe ".observeMarkerHeadScreenPosition(marker, callback)", ->
-        it "calls the callback whenever the markers head's screen position changes", ->
+        it "calls the callback whenever the markers head's screen position changes with the new position and whether it was precipitated by a buffer change", ->
           marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
           displayBuffer.observeMarkerHeadScreenPosition(marker, observeHandler)
           displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0][0]).toEqual [8, 20]
+          expect(observeHandler.argsForCall[0]).toEqual [[8, 20], false]
           observeHandler.reset()
 
           buffer.insert([11, 0], '...')
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0][0]).toEqual [8, 23]
+          expect(observeHandler.argsForCall[0]).toEqual [[8, 23], true]
           observeHandler.reset()
 
           displayBuffer.unfoldBufferRow(4)
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0][0]).toEqual [11, 23]
+          expect(observeHandler.argsForCall[0]).toEqual [[11, 23], false]
           observeHandler.reset()
 
           displayBuffer.foldBufferRow(4)
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0][0]).toEqual [8, 23]
+          expect(observeHandler.argsForCall[0]).toEqual [[8, 23], false]
 
         it "does not call the callback for screen changes that don't change the position of the marker", ->
           marker = displayBuffer.markScreenPosition([3, 4])

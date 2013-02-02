@@ -720,13 +720,17 @@ describe 'Buffer', ->
         beforeEach ->
           observeHandler = jasmine.createSpy("observeHandler")
 
-        it "calls the given callback whenever the marker's head position changes", ->
+        it "calls the given callback whenever the marker's head position changes with the position and whether or not the move was caused by a buffer change", ->
           marker = buffer.markRange([[4, 20], [4, 23]])
           buffer.observeMarkerHeadPosition(marker, observeHandler)
 
           buffer.setMarkerHeadPosition(marker, [6, 2])
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0][0]).toEqual [6, 2]
+          expect(observeHandler.argsForCall[0]).toEqual [[6, 2], false]
+          observeHandler.reset()
+
+          buffer.insert([6, 0], '...')
+          expect(observeHandler.argsForCall[0]).toEqual [[6, 5], true]
 
         it "allows the observation subscription to be cancelled", ->
           marker = buffer.markRange([[4, 20], [4, 23]])
