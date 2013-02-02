@@ -2,7 +2,7 @@ Project = require 'project'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-fdescribe "EditSession", ->
+describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
   convertToHardTabs = (buffer) ->

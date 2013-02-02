@@ -9,7 +9,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-fdescribe "Editor", ->
+describe "Editor", ->
   [rootView, project, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->

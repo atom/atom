@@ -666,7 +666,7 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
 
-  fdescribe "markers", ->
+  describe "markers", ->
     describe "marker creation", ->
       it "allows markers to be created with ranges and positions", ->
         marker1 = buffer.markRange([[4, 20], [4, 23]])

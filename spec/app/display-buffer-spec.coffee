@@ -1,7 +1,7 @@
 DisplayBuffer = require 'display-buffer'
 Buffer = require 'buffer'
 
-fdescribe "DisplayBuffer", ->
+describe "DisplayBuffer", ->
   [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
