@@ -14,7 +14,18 @@
   border-radius: 3px;
 }
 
+.overlay .message {
+  padding-top: 5px;
+  font-size: 11px;
+}
+
 .overlay.mini {
   width: 200px;
   margin-left: -100px;
+}
+
+.overlay.from-top {
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
