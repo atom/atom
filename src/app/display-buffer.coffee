@@ -223,11 +223,9 @@ class DisplayBuffer
       @handleBufferChange(bufferChange)
       bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
 
-
     tokenizedBufferStart = @bufferRowForScreenRow(@screenRowForBufferRow(tokenizedBufferChange.start))
     tokenizedBufferEnd = tokenizedBufferChange.end
     tokenizedBufferDelta = tokenizedBufferChange.delta
-
 
     start = @screenRowForBufferRow(tokenizedBufferStart)
     end = @lastScreenRowForBufferRow(tokenizedBufferEnd)
@@ -235,7 +233,7 @@ class DisplayBuffer
     @lineMap.replaceScreenRows(start, end, newScreenLines)
     screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
 
-    @triggerChanged({ start, end, screenDelta, bufferDelta, bufferChange })
+    @triggerChanged({ start, end, screenDelta, bufferDelta })
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
