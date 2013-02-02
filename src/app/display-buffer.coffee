@@ -316,7 +316,7 @@ class DisplayBuffer
     delete @markerScreenPositions[id]
 
   getMarkerScreenRange: (id) ->
-    @screenRangeForBufferRange(@getMarkerBufferRange(id))
+    @screenRangeForBufferRange(@getMarkerBufferRange(id), wrapAtSoftNewlines: true)
 
   setMarkerScreenRange: (id, screenRange, options) ->
     @setMarkerBufferRange(id, @bufferRangeForScreenRange(screenRange), options)
@@ -334,7 +334,7 @@ class DisplayBuffer
     @getMarkerHeadBufferPosition(id)
 
   getMarkerHeadScreenPosition: (id) ->
-    @screenPositionForBufferPosition(@getMarkerHeadBufferPosition(id))
+    @screenPositionForBufferPosition(@getMarkerHeadBufferPosition(id), wrapAtSoftNewlines: true)
 
   setMarkerHeadScreenPosition: (id, screenPosition, options) ->
     screenPosition = @clipScreenPosition(screenPosition, options)
@@ -347,7 +347,7 @@ class DisplayBuffer
     @buffer.setMarkerHeadPosition(id, bufferPosition)
 
   getMarkerTailScreenPosition: (id) ->
-    @screenPositionForBufferPosition(@getMarkerTailBufferPosition(id))
+    @screenPositionForBufferPosition(@getMarkerTailBufferPosition(id), wrapAtSoftNewlines: true)
 
   setMarkerTailScreenPosition: (id, screenPosition, options) ->
     screenPosition = @clipScreenPosition(screenPosition, options)
@@ -374,7 +374,7 @@ class DisplayBuffer
     @markerScreenPositionObservers[id].head.push(callback)
     subscription = @buffer.observeMarkerHeadPosition id, (bufferPosition) =>
       @cacheMarkerScreenPositions(id)
-      callback(@screenPositionForBufferPosition(bufferPosition))
+      callback(@getMarkerHeadScreenPosition(id))
 
     cancel: =>
       subscription.cancel()
