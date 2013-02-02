@@ -1085,7 +1085,7 @@ fdescribe "Editor", ->
           expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
 
           # autoscrolls on a subsequent change, however
-          buffer.insert([9, 0], '\n\n')
+          editor.setCursorScreenPosition([10, 10])
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
 
         describe "when the last cursor exceeds the upper or lower scroll margins", ->
@@ -1762,12 +1762,6 @@ fdescribe "Editor", ->
 
         expect(editor.gutter.find('.line-number:first').text()).toBe '2'
         expect(editor.gutter.find('.line-number:last').text()).toBe '11'
-
-    describe "when the insertion of lines causes the editor to scroll", ->
-      it "renders line numbers correctly", ->
-        oneHundredLines = [0..100].join("\n")
-        editor.insertText(oneHundredLines)
-        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 6 + editor.lineOverdraw * 2
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
