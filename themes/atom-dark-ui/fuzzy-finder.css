@@ -1,14 +1,3 @@
-.fuzzy-finder ol {
-  overflow: hidden;
-  -webkit-user-select: none;
-  cursor: default;
-}
-
-.fuzzy-finder ol:empty {
-  margin-bottom: 0;
-  border: none;
-}
-
 .fuzzy-finder .directory {
   color: #b2b2b2;
   padding-left: .5em;

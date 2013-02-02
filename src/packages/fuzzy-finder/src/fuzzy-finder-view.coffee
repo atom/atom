@@ -12,7 +12,7 @@ class FuzzyFinderView extends SelectList
     @instance = new FuzzyFinderView(rootView)
 
   @viewClass: ->
-    [super, 'fuzzy-finder'].join(' ')
+    [super, 'fuzzy-finder', 'overlay', 'from-top'].join(' ')
 
   allowActiveEditorChange: null
   maxItems: 10
