@@ -68,10 +68,7 @@ describe "Selection", ->
       expect(changeScreenRangeHandler).toHaveBeenCalled()
 
   describe "when the selection is destroyed", ->
-    it "destroys its cursor and its anchor's cursor", ->
+    it "destroys its marker", ->
       selection.setBufferRange([[2, 0], [2, 10]])
-
       selection.destroy()
-
-      expect(editSession.getAnchors().indexOf(selection.anchor)).toBe -1
-      expect(editSession.getAnchors().indexOf(selection.cursor.anchor)).toBe -1
+      expect(editSession.getMarkerBufferRange(selection.marker)).toBeUndefined()
