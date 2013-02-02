@@ -1,4 +1,3 @@
-$ = require 'jquery'
 _ = require 'underscore'
 Subscriber = require 'subscriber'
 GitRepository = require 'git-repository'
@@ -6,9 +5,9 @@ GitRepository = require 'git-repository'
 module.exports =
 class Git
 
-  @open: (path) ->
+  @open: (path, options) ->
     try
-      new Git(path)
+      new Git(path, options)
     catch e
       null
 
@@ -24,9 +23,12 @@ class Git
     working_dir_typechange: 1 << 10
     ignore: 1 << 14
 
-  constructor: (path) ->
+  constructor: (path, options={}) ->
     @repo = new GitRepository(path)
-    @subscribe $(window), 'focus', => @refreshIndex()
+    refreshIndexOnFocus = options.refreshIndexOnFocus ? true
+    if refreshIndexOnFocus
+      $ = require 'jquery'
+      @subscribe $(window), 'focus', => @refreshIndex()
 
   getRepo: ->
     unless @repo?
