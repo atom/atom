@@ -16,7 +16,6 @@
     "command-palette.css",
     "command-logger.css",
     "popover-list.css",
-    "gists.css",
-    "go-to-line.css"
+    "gists.css"
   ]
 }
