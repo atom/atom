@@ -1,16 +1,10 @@
-.select-list {
-  background-color: #303030;
-  border: 1px solid #404040;
-  color: #d2d2d2;
-  box-shadow: 0 0 10px #000;
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-  padding: 5px;
-  cursor: pointer;
-}
-
 .select-list ol {
   border: 1px solid #212121;
+}
+
+.select-list ol:empty {
+  margin-bottom: 0;
+  border: none;
 }
 
 .select-list ol li {
