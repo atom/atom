@@ -9,7 +9,7 @@ class CommandPaletteView extends SelectList
     @instance = new CommandPaletteView(rootView)
 
   @viewClass: ->
-    "#{super} command-palette"
+    "#{super} command-palette overlay from-top"
 
   filterKey: 'eventDescription'
 

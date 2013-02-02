@@ -13,6 +13,10 @@
   padding: 5px;
 }
 
+.select-list li .right {
+  float: right;
+}
+
 .select-list ol li:last-child {
   border-bottom: none;
 }
