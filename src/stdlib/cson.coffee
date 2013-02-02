@@ -67,8 +67,7 @@ module.exports =
 
   stringify: (object) ->
     throw new Error("Cannot stringify undefined object") if object is undefined
-    if _.isFunction(object)
-      throw new Error("Cannot stringify function: #{object}")
+    throw new Error("Cannot stringify function: #{object}") if _.isFunction(object)
 
     return @stringifyString(object) if _.isString(object)
     return @stringifyBoolean(object) if _.isBoolean(object)
