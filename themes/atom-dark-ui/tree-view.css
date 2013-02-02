@@ -1,5 +1,10 @@
-.tree-view {
+.is-focused .tree-view {
   background: #1e1e1e;
+  border-right: 1px solid #191919;
+}
+
+.tree-view {
+  background: #2e2e2e;
   border-right: 1px solid #191919;
 }
 
@@ -20,8 +25,13 @@
   color: #d2d2d2;
 }
 
-.tree-view .selected > .highlight {
+.is-focused .tree-view .selected > .highlight {
   background-image: -webkit-linear-gradient(#4e4e4e, #434343);
+}
+
+.tree-view .selected > .highlight {
+  background-image: none;
+  background-color: #6e6e6e;
 }
 
 .tree-view:focus .selected > .highlight {

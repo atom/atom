@@ -9,8 +9,8 @@ gutter.
 You can change the background color using the following CSS:
 
 ```css
-.editor.focused .line.cursor-line,
-.editor.focused .line-number.cursor-line {
+.editor.is-focused .line.cursor-line,
+.editor.is-focused .line-number.cursor-line {
   background-color: green;
 }
 ```
@@ -18,7 +18,7 @@ You can change the background color using the following CSS:
 You can change the line number foreground color using the following CSS:
 
 ```css
-.editor.focused .line-number.cursor-line {
+.editor.is-focused .line-number.cursor-line {
   color: blue;
 }
 ```
