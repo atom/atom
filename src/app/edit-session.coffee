@@ -40,8 +40,6 @@ class EditSession
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
-    @nextAnchorPointId = 1
-    @anchorPointsById = {}
     @anchors = []
     @anchorRanges = []
     @cursors = []
