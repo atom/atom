@@ -20,11 +20,11 @@ class Selection
       @destroy()
 
   destroy: ->
-    if @cursor
-      @cursor.off('.selection')
-      @cursor.destroy()
+    return if @destroyed
+    @destroyed = true
     @editSession.removeSelection(this)
     @trigger 'destroyed'
+    @cursor?.destroy()
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
