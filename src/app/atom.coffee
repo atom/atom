@@ -50,15 +50,21 @@ _.extend atom,
       .filter (name) -> not _.contains(disabledPackages, name)
 
   loadThemes: ->
-    themeNames = config.get("core.themes") ? ['Atom - Dark', 'IR_Black']
+    themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
     themeNames = [themeNames] unless _.isArray(themeNames)
     @loadTheme(themeName) for themeName in themeNames
+    @loadUserStylesheet()
 
   loadTheme: (name) ->
     @loadedThemes.push Theme.load(name)
 
+  loadUserStylesheet: ->
+    userStylesheetPath = fs.join(config.configDirPath, 'user.css')
+    if fs.isFile(userStylesheetPath)
+      applyStylesheet(userStylesheetPath, fs.read(userStylesheetPath), 'userTheme')
+
   getAtomThemeStylesheets: ->
-    themeNames = config.get("core.themes") ? ['Atom - Dark', 'IR_Black']
+    themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
     themeNames = [themeNames] unless _.isArray(themeNames)
 
   open: (args...) ->

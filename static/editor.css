@@ -56,7 +56,6 @@
   overflow-x: hidden;
 }
 
-
 .editor .underlayer, .editor .lines, .editor .overlayer {
   width: 100%;
   height: 100%;
@@ -83,11 +82,11 @@
 
 .editor .cursor {
   position: absolute;
-  border-left: 2px solid;
+  border-left: 1px solid;
 }
 
-.editor:not(.focused) .cursor,
-.editor.focused .cursor.blink-off {
+.editor:not(.is-focused) .cursor,
+.editor.is-focused .cursor.blink-off {
   visibility: hidden;
 }
 

@@ -14,7 +14,6 @@ _ = require 'underscore'
 module.exports =
 class Editor extends View
   @configDefaults:
-    fontFamily: "Inconsolata, Monaco, Courier"
     fontSize: 20
     showInvisibles: false
     autosave: false
@@ -352,11 +351,11 @@ class Editor extends View
     @hiddenInput.on 'focus', =>
       @rootView()?.editorFocused(this)
       @isFocused = true
-      @addClass 'focused'
+      @addClass 'is-focused'
 
     @hiddenInput.on 'focusout', =>
       @isFocused = false
-      @removeClass 'focused'
+      @removeClass 'is-focused'
       @autosave() if config.get "editor.autosave"
 
     @underlayer.on 'click', (e) =>
@@ -697,6 +696,7 @@ class Editor extends View
     parseInt(@css("font-size"))
 
   setFontFamily: (fontFamily) ->
+    return if fontFamily == undefined
     headTag = $("head")
     styleTag = headTag.find("style.font-family")
     if styleTag.length == 0
@@ -804,6 +804,10 @@ class Editor extends View
     @overlayer.append(view)
 
   calculateDimensions: ->
+    if not @isOnDom()
+      detachedEditorParent = _.last(@parents()) ? this
+      $(document.body).append(detachedEditorParent)
+
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)
 
@@ -814,6 +818,8 @@ class Editor extends View
     @charHeight = charRect.height
     @height(@lineHeight) if @mini
     fragment.remove()
+
+    $(detachedEditorParent).detach()
 
   updateLayerDimensions: ->
     @gutter.calculateWidth()

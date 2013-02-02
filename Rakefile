@@ -76,14 +76,26 @@ task "create-dot-atom" do
 
   dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
   replace_dot_atom = false
-  next if File.exists?(DOT_ATOM_PATH)
+
+  if File.exists?(DOT_ATOM_PATH)
+    user_config = "#{DOT_ATOM_PATH}/user.coffee"
+    old_user_config = "#{DOT_ATOM_PATH}/atom.coffee"
+
+    if File.exists?(old_user_config)
+      `mv #{old_user_config} #{user_config}`
+      puts "\033[32mRenamed #{old_user_config} to #{user_config}\033[0m"
+    end
+
+    next
+  end
 
   `rm -rf "#{DOT_ATOM_PATH}"`
   `mkdir "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
+
+  `cp "#{dot_atom_template_path}/user.coffee" "#{DOT_ATOM_PATH}"`
+  `cp "#{dot_atom_template_path}/user.css" "#{DOT_ATOM_PATH}"`
+  `cp -r "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
   `cp -r "#{ATOM_SRC_PATH}/themes" "#{DOT_ATOM_PATH}"`
-  `cp "#{ATOM_SRC_PATH}/vendor/themes/IR_Black.tmTheme" "#{DOT_ATOM_PATH}/themes"`
 end
 
 desc "Clone default bundles into vendor/bundles directory"

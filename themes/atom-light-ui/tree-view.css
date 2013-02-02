@@ -1,10 +1,15 @@
+.is-focused .tree-view {
+  background: #dde3e8;
+  border-right: 1px solid #989898;
+}
+
 .tree-view {
-  background: #1e1e1e;
-  border-right: 2px solid #191919;
+  background: #f3f3f3;
+  border-right: 1px solid #c5c5c5;
 }
 
 .tree-view .entry {
-  text-shadow: 0 -1px 0 #000;
+  text-shadow: 0 1px 0 #fff;
 }
 
 .tree-view .entries {
@@ -17,35 +22,77 @@
 
 .tree-view .directory.selected > .header > .name,
 .tree-view .selected > .name {
-  color: #d2d2d2;
+  color: #262626;
+}
+
+.is-focused .tree-view .selected > .highlight {
+  box-sizing: border-box;
+  border-top: 1px solid #97a4a7;
+  border-bottom: 1px solid #97a4a7;
+  box-shadow: 0 -1px 0 #dde4e6, 0 1px 0 #dde4e6;
+  background-image: -webkit-linear-gradient(#cad5d8, #bcccce);
 }
 
 .tree-view .selected > .highlight {
-  background-image: -webkit-linear-gradient(#4e4e4e, #434343);
+  box-sizing: border-box;
+  border-top: 1px solid #97a4a7;
+  border-bottom: 1px solid #97a4a7;
+  background-image: none;
+  background-color: #DFDFDF;
+}
+
+.is-focused .tree-view:focus .selected > .highlight {
+  border-top: 1px solid #3D4552;
+  border-bottom: 1px solid #3D4552;
+  background-image: -webkit-linear-gradient(#7e868d, #69717b);
 }
 
 .tree-view:focus .selected > .highlight {
-  background-image: -webkit-linear-gradient(#7e7e7e, #737373);
+  border-top: 1px solid #3D4552;
+  border-bottom: 1px solid #3D4552;
+  background-image: none;
+  background-color: #69717b;
 }
 
 .tree-view:focus .directory.selected > .header > .name,
-.tree-view:focus .selected > .name {
+.tree-view:focus .selected > .name,
+.tree-view:focus .directory.selected > .header > .name:before,
+.tree-view:focus .selected > .name:before {
   color: #fff;
-  text-shadow: 0 -1px 0 #7E4521;
+  text-shadow: 0 1px 0 #000;
 }
 
 .tree-view .directory .header {
-  color: #bebebe;
+  color: #262626;
 }
 
 .tree-view .file {
-  color: #7d7d7d;
+  color: #262626;
+}
+
+.is-focused .tree-view .name:before {
+  color: #7e8692;
+}
+
+.tree-view .name:before {
+  color: #7e7e7e;
 }
 
 .tree-view .entry:hover,
 .tree-view .directory .header:hover .name,
 .tree-view .directory .header:hover .disclosure-arrow  {
-  color: #ebebeb;
+  color: #4e5666;
+}
+
+.tree-view .directory .header .disclosure-arrow,
+.tree-view .directory .header:hover .disclosure-arrow  {
+  text-shadow: none;
+  color: #4e5666;
+}
+
+.tree-view:focus .directory .header .disclosure-arrow,
+.tree-view:focus .directory .header:hover .disclosure-arrow  {
+  color: #3D4552;
 }
 
 .tree-view .file .name,
@@ -72,9 +119,8 @@
 }
 
 .tree-view-dialog {
-  background-color: #333;
-  border-top: 1px solid #555;
-  -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
+  background-color: #e7e7e7;
+  border-top: 1px solid #989898;
   padding: 5px;
 }
 
@@ -82,7 +128,7 @@
   padding-bottom: 3px;
   font-size: 12px;
   line-height: 16px;
-  color: #aaa;
+  color: #333;
 }
 
 .tree-view-dialog .prompt span {

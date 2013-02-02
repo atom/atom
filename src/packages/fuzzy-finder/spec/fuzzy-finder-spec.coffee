@@ -1,5 +1,6 @@
 RootView = require 'root-view'
 FuzzyFinder = require 'fuzzy-finder/src/fuzzy-finder-view'
+LoadPathsTask = require 'fuzzy-finder/src/load-paths-task'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
@@ -48,14 +49,13 @@ describe 'FuzzyFinder', ->
           expect(finder.find(".loading")).toBeVisible()
           expect(finder.find(".loading")).toHaveText "Indexing..."
 
-          waitsForPromise ->
-            rootView.project.getFilePaths().done (foundPaths) -> paths = foundPaths
-
-          waitsFor ->
-            finder.list.children('li').length > 0
+          waitsFor "all project paths to load", 5000, ->
+            if finder.projectPaths?.length > 0
+              paths = finder.projectPaths
+              true
 
           runs ->
-            expect(finder.list.children('li').length).toBe paths.length, finder.maxResults
+            expect(finder.list.children('li').length).toBe paths.length
             for path in paths
               expect(finder.list.find("li:contains(#{fs.base(path)})")).toExist()
             expect(finder.list.children().first()).toHaveClass 'selected'
@@ -222,15 +222,15 @@ describe 'FuzzyFinder', ->
 
   describe "cached file paths", ->
     it "caches file paths after first time", ->
-      spyOn(rootView.project, "getFilePaths").andCallThrough()
+      spyOn(LoadPathsTask.prototype, "start").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
         finder.list.children('li').length > 0
 
       runs ->
-        expect(rootView.project.getFilePaths).toHaveBeenCalled()
-        rootView.project.getFilePaths.reset()
+        expect(finder.loadPathsTask.start).toHaveBeenCalled()
+        finder.loadPathsTask.start.reset()
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
@@ -238,45 +238,44 @@ describe 'FuzzyFinder', ->
         finder.list.children('li').length > 0
 
       runs ->
-        expect(rootView.project.getFilePaths).not.toHaveBeenCalled()
+        expect(finder.loadPathsTask.start).not.toHaveBeenCalled()
 
     it "doesn't cache buffer paths", ->
-      spyOn(rootView.project, "getFilePaths").andCallThrough()
+      spyOn(rootView, "getOpenBufferPaths").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
       waitsFor ->
         finder.list.children('li').length > 0
 
       runs ->
-        expect(rootView.project.getFilePaths).not.toHaveBeenCalled()
-        rootView.project.getFilePaths.reset()
+        expect(rootView.getOpenBufferPaths).toHaveBeenCalled()
+        rootView.getOpenBufferPaths.reset()
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
       waitsFor ->
         finder.list.children('li').length > 0
 
       runs ->
-        expect(rootView.project.getFilePaths).toHaveBeenCalled()
+        expect(rootView.getOpenBufferPaths).toHaveBeenCalled()
 
     it "busts the cache when the window gains focus", ->
-      spyOn(rootView.project, "getFilePaths").andCallThrough()
+      spyOn(LoadPathsTask.prototype, "start").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
         finder.list.children('li').length > 0
 
       runs ->
-        expect(rootView.project.getFilePaths).toHaveBeenCalled()
-        rootView.project.getFilePaths.reset()
+        expect(finder.loadPathsTask.start).toHaveBeenCalled()
+        finder.loadPathsTask.start.reset()
         $(window).trigger 'focus'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
-        expect(rootView.project.getFilePaths).toHaveBeenCalled()
+        expect(finder.loadPathsTask.start).toHaveBeenCalled()
 
   describe "path ignoring", ->
     it "ignores paths that match entries in config.fuzzyFinder.ignoredNames", ->
-      spyOn(rootView.project, "getFilePaths").andCallThrough()
       config.set("fuzzyFinder.ignoredNames", ["tree-view.js"])
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
       finder.maxItems = Infinity
@@ -293,7 +292,6 @@ describe 'FuzzyFinder', ->
     beforeEach ->
       editor = rootView.getActiveEditor()
       rootView.attachToDom()
-      spyOn(rootView.project, "getFilePaths").andCallThrough()
 
     it "opens the fuzzy finder window when there are multiple matches", ->
       editor.setText("sample")

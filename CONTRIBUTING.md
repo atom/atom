@@ -15,6 +15,8 @@
     styleguides
   * Include thoughtfully worded [Jasmine](http://pivotal.github.com/jasmine/)
     specs
+  * Style new elements in both the light and dark default themes when
+    appropriate
   * New packages go in `src/packages/`
   * Add 3rd-party packages by submoduling in `vendor/packages/`
   * Commit messages are in the present tense

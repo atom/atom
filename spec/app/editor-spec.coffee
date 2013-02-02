@@ -111,11 +111,11 @@ describe "Editor", ->
       editor.isFocused = false
       editor.hiddenInput.focus()
       expect(editor.isFocused).toBeTruthy()
-      expect(editor).toHaveClass('focused')
+      expect(editor).toHaveClass('is-focused')
 
       editor.hiddenInput.focusout()
       expect(editor.isFocused).toBeFalsy()
-      expect(editor).not.toHaveClass('focused')
+      expect(editor).not.toHaveClass('is-focused')
 
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
@@ -520,9 +520,8 @@ describe "Editor", ->
     beforeEach ->
       expect(editor.css('font-family')).not.toBe 'Courier'
 
-    it "sets the initial font family based on the value from config", ->
-      expect($("head style.font-family")).toExist()
-      expect($("head style.font-family").text()).toMatch "{font-family: #{config.get('editor.fontFamily')}}"
+    it "when there is no config in fontFamily don't set it", ->
+      expect($("head style.font-family")).not.toExist()
 
     describe "when the font family changes", ->
       it "updates the font family on new and existing editors", ->
@@ -544,7 +543,7 @@ describe "Editor", ->
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "Courier")
+        config.set("editor.fontFamily", "Inconsolata")
         editor.setCursorScreenPosition [5, 6]
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
@@ -553,6 +552,7 @@ describe "Editor", ->
   describe "font size", ->
     beforeEach ->
       expect(editor.css('font-size')).not.toBe "20px"
+      expect(editor.css('font-size')).not.toBe "10px"
 
     it "sets the initial font size based on the value from config", ->
       expect($("head style.font-size")).toExist()
@@ -614,6 +614,23 @@ describe "Editor", ->
 
         config.set("editor.fontSize", 10)
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
+
+      describe "when the editor is detached", ->
+        it "updates the font-size correctly and recalculates the dimensions by placing the rendered lines on the DOM", ->
+          rootView.attachToDom()
+          rootView.height(200)
+          rootView.width(200)
+
+          newEditor = editor.splitRight()
+          newEditorParent = newEditor.parent()
+          newEditor.detach()
+          config.set("editor.fontSize", 10)
+          newEditorParent.append(newEditor)
+
+          expect(newEditor.lineHeight).toBe editor.lineHeight
+          expect(newEditor.charWidth).toBe editor.charWidth
+          expect(newEditor.getCursorView().position()).toEqual editor.getCursorView().position()
+          expect(newEditor.verticalScrollbarContent.height()).toBe editor.verticalScrollbarContent.height()
 
   describe "mouse events", ->
     beforeEach ->

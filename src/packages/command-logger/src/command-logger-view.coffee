@@ -34,6 +34,7 @@ class CommandLoggerView extends ScrollView
     super
 
     @command 'core:cancel', => @detach()
+    @on 'blur', => @detach() unless document.activeElement is this[0]
 
   toggle: (@eventLog={}) ->
     if @hasParent()
@@ -143,10 +144,10 @@ class CommandLoggerView extends ScrollView
             .append('div')
             .style('width', "#{w}px")
             .style('height', "#{h}px")
-            .append('svg:svg')
+            .append('svg')
             .attr('width', w)
             .attr('height', h)
-            .append('svg:g')
+            .append('g')
             .attr('transform', 'translate(.5,.5)')
 
     nodes = treemap.nodes(root).filter((d) -> not d.children)
@@ -154,17 +155,17 @@ class CommandLoggerView extends ScrollView
     cell = svg.selectAll('g')
               .data(nodes)
               .enter()
-              .append('svg:g')
+              .append('g')
               .attr('class', 'node')
               .attr('transform', (d) -> "translate(#{d.x},#{d.y})")
               .on('click', (d) -> if node is d.parent then zoom(root) else zoom(d.parent))
 
-    cell.append('svg:rect')
+    cell.append('rect')
         .attr('width', (d) -> d.dx - 1)
         .attr('height', (d) -> d.dy - 1)
         .style('fill', (d) -> color(d.parent.name))
 
-    cell.append('svg:foreignObject')
+    cell.append('foreignObject')
         .attr('width', (d) -> d.dx - 1)
         .attr('height', (d) -> d.dy - 1)
         .attr('class', 'foreign-object')
@@ -180,8 +181,11 @@ class CommandLoggerView extends ScrollView
     @focus()
 
   detach: ->
-    super()
+    return if @detaching
+    @detaching = true
+    super
     @rootView.focus()
+    @detaching = false
 
   serialize: ->
     eventLog: @eventLog

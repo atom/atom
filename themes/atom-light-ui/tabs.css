@@ -2,13 +2,26 @@
   background: #e3e3e3;
   border-bottom: 4px solid #e5e5e5;
   font: caption;
-  box-shadow: inset 0 -1px 0 #959595;
+  box-shadow: inset 0 -1px 0 #959595, 0 1px 0 #989898;
+  margin-bottom: 1px;
+}
+
+.is-focused .tab {
+  cursor: default;
+  padding: 2px 21px 2px 9px;
+  background-image: -webkit-linear-gradient(#e0e0e0, #bfbfbf);
+  border-top: none;
+  border-right: 1px solid #959595;
+  border-bottom: 1px solid #959595;
+  box-shadow: inset 0 0 5px #eee, 0 1px 0 #eee, inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
+  color: #323232;
 }
 
 .tab {
   cursor: default;
   padding: 2px 21px 2px 9px;
-  background-image: -webkit-linear-gradient(#e0e0e0, #bfbfbf);
+  background-image: none;
+  background-color: #e0e0e0);
   border-top: none;
   border-right: 1px solid #959595;
   border-bottom: 1px solid #959595;

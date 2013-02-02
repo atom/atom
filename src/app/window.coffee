@@ -28,6 +28,7 @@ windowAdditions =
 
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
+    $(window).on 'focus blur', => $("body").toggleClass("is-focused")
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that

@@ -1,10 +1,15 @@
+.is-focused .tree-view {
+  background: #1e1e1e;
+  border-right: 1px solid #191919;
+}
+
 .tree-view {
-  background: #dde3e8;
-  border-right: 1px solid #989898;
+  background: #2e2e2e;
+  border-right: 1px solid #191919;
 }
 
 .tree-view .entry {
-  text-shadow: 0 1px 0 #fff;
+  text-shadow: 0 -1px 0 #000;
 }
 
 .tree-view .entries {
@@ -17,58 +22,40 @@
 
 .tree-view .directory.selected > .header > .name,
 .tree-view .selected > .name {
-  color: #262626;
+  color: #d2d2d2;
+}
+
+.is-focused .tree-view .selected > .highlight {
+  background-image: -webkit-linear-gradient(#4e4e4e, #434343);
 }
 
 .tree-view .selected > .highlight {
-  box-sizing: border-box;
-  border-top: 1px solid #97a4a7;
-  border-bottom: 1px solid #97a4a7;
-  box-shadow: 0 -1px 0 #dde4e6, 0 1px 0 #dde4e6;
-  background-image: -webkit-linear-gradient(#cad5d8, #bcccce);
+  background-image: none;
+  background-color: #6e6e6e;
 }
 
 .tree-view:focus .selected > .highlight {
-  border-top: 1px solid #3D4552;
-  border-bottom: 1px solid #3D4552;
-  background-image: -webkit-linear-gradient(#7e868d, #69717b);
+  background-image: -webkit-linear-gradient(#7e7e7e, #737373);
 }
 
 .tree-view:focus .directory.selected > .header > .name,
-.tree-view:focus .selected > .name,
-.tree-view:focus .directory.selected > .header > .name:before,
-.tree-view:focus .selected > .name:before {
+.tree-view:focus .selected > .name {
   color: #fff;
-  text-shadow: 0 1px 0 #000;
+  text-shadow: 0 -1px 0 #7E4521;
 }
 
 .tree-view .directory .header {
-  color: #262626;
+  color: #bebebe;
 }
 
 .tree-view .file {
-  color: #262626;
-}
-
-.tree-view .name:before {
-  color: #7e8692;
+  color: #7d7d7d;
 }
 
 .tree-view .entry:hover,
 .tree-view .directory .header:hover .name,
 .tree-view .directory .header:hover .disclosure-arrow  {
-  color: #4e5666;
-}
-
-.tree-view .directory .header .disclosure-arrow,
-.tree-view .directory .header:hover .disclosure-arrow  {
-  text-shadow: none;
-  color: #4e5666;
-}
-
-.tree-view:focus .directory .header .disclosure-arrow,
-.tree-view:focus .directory .header:hover .disclosure-arrow  {
-  color: #3D4552;
+  color: #ebebeb;
 }
 
 .tree-view .file .name,
@@ -95,8 +82,9 @@
 }
 
 .tree-view-dialog {
-  background-color: #e7e7e7;
-  border-top: 1px solid #989898;
+  background-color: #333;
+  border-top: 1px solid #555;
+  -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
   padding: 5px;
 }
 
@@ -104,7 +92,7 @@
   padding-bottom: 3px;
   font-size: 12px;
   line-height: 16px;
-  color: #333;
+  color: #aaa;
 }
 
 .tree-view-dialog .prompt span {

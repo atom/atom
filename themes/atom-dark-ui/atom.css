@@ -1,15 +1,19 @@
 html, body,
 #root-view {
   font: caption;
-  background-color: #f4f4f4;
+  background-color: #333333;
 }
 
 #root-view #panes .row > * + * {
-  border-left: 1px solid #989898;
+  -webkit-box-shadow:
+    -2px 0 rgba(0, 0, 0, 0.3),
+    -1px 0 rgba(255, 255, 255, 0.2);
 }
 
 #root-view #panes .column > * + * {
-  border-top: 1px solid #989898;
+  -webkit-box-shadow:
+    0 -2px rgba(0, 0, 0, 0.3),
+    0 -1px rgba(255, 255, 255, 0.2);
 }
 
 .error {

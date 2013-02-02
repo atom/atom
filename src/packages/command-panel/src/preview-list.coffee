@@ -83,7 +83,7 @@ class PreviewList extends ScrollView
     editSession = @rootView.open(operation.getPath())
     bufferRange = operation.execute(editSession)
     editSession.setSelectedBufferRange(bufferRange, autoscroll: true) if bufferRange
-    @rootView.focus()
+    @focus()
     false
 
   getPathCount: ->
