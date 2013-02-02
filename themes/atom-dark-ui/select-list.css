@@ -1,5 +1,6 @@
 .select-list ol {
   border: 1px solid #212121;
+  max-height: 300px;
 }
 
 .select-list ol:empty {
