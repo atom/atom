@@ -1,6 +1,6 @@
 CSON = require 'cson'
 
-fdescribe "CSON", ->
+describe "CSON", ->
   describe "@stringify(object)", ->
     describe "when the object is undefined", ->
       it "throws an exception", ->
@@ -16,7 +16,7 @@ fdescribe "CSON", ->
 
     describe "when formatting an undefined key", ->
       it "does not include the key in the formatted CSON", ->
-        expect(CSON.stringify(b: 1, c: undefined)).toBe "'b': 1\n"
+        expect(CSON.stringify(b: 1, c: undefined)).toBe "'b': 1"
 
     describe "when formatting an empty object", ->
       it "returns the empty string", ->
@@ -24,33 +24,37 @@ fdescribe "CSON", ->
 
     describe "when formatting a string", ->
       it "returns formatted CSON", ->
-        expect(CSON.stringify(a: 'b')).toBe "'a': 'b'\n"
+        expect(CSON.stringify(a: 'b')).toBe "'a': 'b'"
 
       it "escapes single quotes", ->
-        expect(CSON.stringify(a: "'b'")).toBe "'a': '\\\'b\\\''\n"
+        expect(CSON.stringify(a: "'b'")).toBe "'a': '\\\'b\\\''"
 
       it "doesn't escape double quotes", ->
-        expect(CSON.stringify(a: '"b"')).toBe "'a': '\"b\"'\n"
+        expect(CSON.stringify(a: '"b"')).toBe "'a': '\"b\"'"
 
     describe "when formatting a boolean", ->
       it "returns formatted CSON", ->
-        expect(CSON.stringify(a: true)).toBe "'a': true\n"
-        expect(CSON.stringify(a: false)).toBe "'a': false\n"
+        expect(CSON.stringify(a: true)).toBe "'a': true"
+        expect(CSON.stringify(a: false)).toBe "'a': false"
 
     describe "when formatting a number", ->
       it "returns formatted CSON", ->
-        expect(CSON.stringify(a: 14)).toBe "'a': 14\n"
-        expect(CSON.stringify(a: 1.23)).toBe "'a': 1.23\n"
+        expect(CSON.stringify(a: 14)).toBe "'a': 14"
+        expect(CSON.stringify(a: 1.23)).toBe "'a': 1.23"
 
     describe "when formatting null", ->
       it "returns formatted CSON", ->
-        expect(CSON.stringify(a: null)).toBe "'a': null\n"
+        expect(CSON.stringify(a: null)).toBe "'a': null"
 
     describe "when formatting an array", ->
+      describe "when the array is empty", ->
+        it "puts the array on a single line", ->
+          expect(CSON.stringify([])).toBe "[]"
+
       it "returns formatted CSON", ->
-        expect(CSON.stringify(a: ['b'])).toBe "'a': [\n  'b'\n]\n"
-        expect(CSON.stringify(a: ['b', 4])).toBe "'a': [\n  'b'\n  4\n]\n"
+        expect(CSON.stringify(a: ['b'])).toBe "'a': [\n  'b'\n]"
+        expect(CSON.stringify(a: ['b', 4])).toBe "'a': [\n  'b'\n  4\n]"
 
     describe "when formatting an object", ->
       it "returns formatted CSON", ->
-        expect(CSON.stringify(a: {b: 'c'})).toBe "'a':\n  'b': 'c'\n"
+        expect(CSON.stringify(a: {b: 'c'})).toBe "'a':\n  'b': 'c'"

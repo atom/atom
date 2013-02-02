@@ -17,6 +17,8 @@ module.exports =
   stringifyNull: -> 'null'
 
   stringifyArray: (array, indentLevel=0) ->
+    return '[]' if array.length is 0
+
     cson = '[\n'
     for value in array
       cson += @stringifyIndent(indentLevel + 2)
@@ -72,13 +74,7 @@ module.exports =
     return @stringifyBoolean(object) if _.isBoolean(object)
     return @stringifyNumber(object) if _.isNumber(object)
     return @stringifyNull(object) if _.isNull(object)
-    if _.isArray(object)
-      cson = @stringifyArray(object)
-      cson = "#{cson}\n" if cson
-      return cson
-    if _.isObject(object)
-      cson = @stringifyObject(object)
-      cson = "#{cson}\n" if cson
-      return cson
+    return @stringifyArray(object) if _.isArray(object)
+    return @stringifyObject(object) if _.isObject(object)
 
     throw new Error("Unrecognized type to stringify: #{object}")
