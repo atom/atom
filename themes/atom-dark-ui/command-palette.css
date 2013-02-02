@@ -5,7 +5,7 @@
   margin: 4px 0;
 }
 
-.command-palette ol .event-name, .command-palette ol .key-binding {
+.command-palette ol .key-binding {
   display: inline-block;
   margin: 4px 0;
   margin-right: .5em;

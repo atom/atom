@@ -13,6 +13,16 @@
   padding: 5px;
 }
 
+.select-list li .label {
+  display: inline-block;
+  margin: 4px 0;
+  margin-right: .5em;
+  font-size: 90%;
+  color: #ddd;
+  -webkit-border-radius: 3px;
+  padding: 0 4px;
+}
+
 .select-list li .right {
   float: right;
 }

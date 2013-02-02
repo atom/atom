@@ -43,7 +43,7 @@ class CommandPaletteView extends SelectList
       @li class: 'event', 'data-event-name': eventName, =>
         @div eventDescription, class: 'event-description'
         @div class: 'right', =>
-          @div eventName, class: 'event-name'
+          @div eventName, class: 'label'
           for binding in keyBindings[eventName] ? []
             @div binding, class: 'key-binding'
         @div class: 'clear-float'
