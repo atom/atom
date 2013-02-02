@@ -21,7 +21,7 @@ class FuzzyFinder extends DeferredAtomPackage
   onLoadEvent: (event, instance) ->
     if @projectPaths? and not @instance.projectPaths?
       @instance.projectPaths = @projectPaths
-      @instance.reloadProjectPaths = false;
+      @instance.reloadProjectPaths = false
 
     switch event.type
       when 'fuzzy-finder:toggle-file-finder'
