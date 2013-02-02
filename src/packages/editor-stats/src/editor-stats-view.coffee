@@ -21,6 +21,7 @@ class EditorStatsView extends ScrollView
     super
 
     resizer = =>
+      return unless @isOnDom()
       @draw()
       @update()
     @subscribe $(window), 'resize', _.debounce(resizer, 300)
@@ -71,9 +72,10 @@ class EditorStatsView extends ScrollView
       .attr('width', @x.rangeBand())
       .attr('class', 'bar')
 
-    setTimeout((=> @update()), 100)
     clearInterval(@updateInterval)
-    @updateInterval = setInterval((=> @update()), 5000)
+    updater = => @update() if @isOnDom()
+    setTimeout(updater, 100)
+    @updateInterval = setInterval(updater, 5000)
 
   update: ->
     newData = d3.entries @stats.eventLog
