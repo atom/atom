@@ -65,14 +65,14 @@ window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
 $('html,body').css('overflow', 'auto')
 
+jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+jasmine.getEnv().defaultTimeoutInterval = 1000
+
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()
   $native.unwatchAllPaths()
   if watchedPaths.length > 0
     throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
-
-# Use underscore's definition of equality for toEqual assertions
-jasmine.Env.prototype.equals_ = _.isEqual
 
 emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
 jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
@@ -84,8 +84,6 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
 jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].originalValue?
   object[methodName] = object[methodName].originalValue
-
-jasmine.getEnv().defaultTimeoutInterval = 1000
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
