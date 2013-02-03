@@ -45,8 +45,7 @@ class CommandPaletteView extends SelectList
         @div class: 'right', =>
           @div eventName, class: 'label'
           for binding in keyBindings[eventName] ? []
-            @div binding, class: 'key-binding'
-        @div class: 'clear-float'
+            @kbd binding, class: 'key-binding'
 
   confirmed: ({eventName}) ->
     @cancel()
