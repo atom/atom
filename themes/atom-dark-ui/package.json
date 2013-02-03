@@ -13,6 +13,6 @@
     "command-panel.css",
     "command-logger.css",
     "popover-list.css",
-    "gists.css"
+    "notification.css"
   ]
 }
