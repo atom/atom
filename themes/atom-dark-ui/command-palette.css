@@ -5,20 +5,6 @@
   margin: 4px 0;
 }
 
-.command-palette ol .key-binding {
-  display: inline-block;
-  margin: 4px 0;
-  margin-right: .5em;
-  font-size: 90%;
-  color: #ddd;
-  -webkit-border-radius: 3px;
-  padding: 0 4px;
-}
-
 .command-palette ol .event-name {
   background: rgba(0, 0, 0, .2);
-}
-
-.command-palette ol .key-binding {
-  background: rgba(255, 255, 255, .1);
 }
