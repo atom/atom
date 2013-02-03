@@ -6,13 +6,11 @@
     "select-list.css",
     "tree-view.css",
     "tabs.css",
-    "overlay.css",
     "status-bar.css",
     "markdown-preview.css",
     "fuzzy-finder.css",
     "command-panel.css",
     "command-logger.css",
-    "popover-list.css",
     "notification.css"
   ]
 }
