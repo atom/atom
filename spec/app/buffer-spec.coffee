@@ -726,11 +726,11 @@ describe 'Buffer', ->
 
           buffer.setMarkerHeadPosition(marker, [6, 2])
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0]).toEqual [[6, 2], false]
+          expect(observeHandler.argsForCall[0][0]).toEqual { oldPosition: [4, 23], newPosition: [6, 2], bufferChanged: false }
           observeHandler.reset()
 
           buffer.insert([6, 0], '...')
-          expect(observeHandler.argsForCall[0]).toEqual [[6, 5], true]
+          expect(observeHandler.argsForCall[0][0]).toEqual { oldPosition: [6, 2], newPosition: [6, 5], bufferChanged: true }
 
         it "allows the observation subscription to be cancelled", ->
           marker = buffer.markRange([[4, 20], [4, 23]])

@@ -372,9 +372,14 @@ class DisplayBuffer
     @markerScreenPositionObservers[id] ?= { head: [], tail: [] }
     @cacheMarkerScreenPositions(id) unless @markerScreenPositions[id]
     @markerScreenPositionObservers[id].head.push(callback)
-    subscription = @buffer.observeMarkerHeadPosition id, (bufferPosition, bufferChanged) =>
+    subscription = @buffer.observeMarkerHeadPosition id, (e) =>
+      bufferChanged = e.bufferChanged
+      oldBufferPosition = e.oldPosition
+      newBufferPosition = e.newPosition
+      oldScreenPosition = @markerScreenPositions[id].head
       @cacheMarkerScreenPositions(id)
-      callback(@getMarkerHeadScreenPosition(id), bufferChanged)
+      newScreenPosition = @getMarkerHeadScreenPosition(id)
+      callback({ oldBufferPosition, newBufferPosition, oldScreenPosition, newScreenPosition, bufferChanged })
 
     cancel: =>
       subscription.cancel()
@@ -391,8 +396,13 @@ class DisplayBuffer
     for id, { head } of @markerScreenPositions
       currentHeadPosition = @getMarkerHeadScreenPosition(id)
       unless currentHeadPosition.isEqual(head)
+        bufferChanged = false
+        oldBufferPosition = newBufferPosition = @buffer.getMarkerHeadPosition(id)
+        oldScreenPosition = @markerScreenPositions[id].head
         @cacheMarkerScreenPositions(id)
-        observer(currentHeadPosition, false) for observer in @markerScreenPositionObservers[id].head
+        newScreenPosition = @getMarkerHeadScreenPosition(id)
+        for observer in @markerScreenPositionObservers[id].head
+          observer({oldScreenPosition, newScreenPosition, oldBufferPosition, newBufferPosition, bufferChanged})
 
   destroy: ->
     @tokenizedBuffer.destroy()

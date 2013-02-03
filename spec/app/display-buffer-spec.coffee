@@ -625,22 +625,46 @@ describe "DisplayBuffer", ->
           displayBuffer.observeMarkerHeadScreenPosition(marker, observeHandler)
           displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0]).toEqual [[8, 20], false]
+          expect(observeHandler.argsForCall[0][0]).toEqual {
+            oldScreenPosition: [5, 10]
+            newScreenPosition: [8, 20]
+            oldBufferPosition: [8, 10]
+            newBufferPosition: [11, 20]
+            bufferChanged: false
+          }
           observeHandler.reset()
 
           buffer.insert([11, 0], '...')
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0]).toEqual [[8, 23], true]
+          expect(observeHandler.argsForCall[0][0]).toEqual {
+            oldScreenPosition: [8, 20]
+            newScreenPosition: [8, 23]
+            oldBufferPosition: [11, 20]
+            newBufferPosition: [11, 23]
+            bufferChanged: true
+          }
           observeHandler.reset()
 
           displayBuffer.unfoldBufferRow(4)
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0]).toEqual [[11, 23], false]
+          expect(observeHandler.argsForCall[0][0]).toEqual {
+            oldScreenPosition: [8, 23]
+            newScreenPosition: [11, 23]
+            oldBufferPosition: [11, 23]
+            newBufferPosition: [11, 23]
+            bufferChanged: false
+          }
           observeHandler.reset()
 
           displayBuffer.foldBufferRow(4)
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0]).toEqual [[8, 23], false]
+          expect(observeHandler.argsForCall[0][0]).toEqual {
+            oldScreenPosition: [11, 23]
+            newScreenPosition: [8, 23]
+            oldBufferPosition: [11, 23]
+            newBufferPosition: [11, 23]
+            bufferChanged: false
+          }
 
         it "does not call the callback for screen changes that don't change the position of the marker", ->
           marker = displayBuffer.markScreenPosition([3, 4])
@@ -648,7 +672,13 @@ describe "DisplayBuffer", ->
 
           buffer.insert([3, 0], '...')
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0][0]).toEqual [3, 7]
+          expect(observeHandler.argsForCall[0][0]).toEqual {
+            oldScreenPosition: [3, 4]
+            newScreenPosition: [3, 7]
+            oldBufferPosition: [3, 4]
+            newBufferPosition: [3, 7]
+            bufferChanged: true
+          }
           observeHandler.reset()
 
           displayBuffer.unfoldBufferRow(4)
@@ -656,12 +686,24 @@ describe "DisplayBuffer", ->
 
           fold = displayBuffer.createFold(0, 2)
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0][0]).toEqual [1, 7]
+          expect(observeHandler.argsForCall[0][0]).toEqual {
+            oldScreenPosition: [3, 7]
+            newScreenPosition: [1, 7]
+            oldBufferPosition: [3, 7]
+            newBufferPosition: [3, 7]
+            bufferChanged: false
+          }
           observeHandler.reset()
 
           fold.destroy()
           expect(observeHandler).toHaveBeenCalled()
-          expect(observeHandler.argsForCall[0][0]).toEqual [3, 7]
+          expect(observeHandler.argsForCall[0][0]).toEqual {
+            oldScreenPosition: [1, 7]
+            newScreenPosition: [3, 7]
+            oldBufferPosition: [3, 7]
+            newBufferPosition: [3, 7]
+            bufferChanged: false
+          }
 
         it "allows observation subscriptions to be cancelled", ->
           marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
