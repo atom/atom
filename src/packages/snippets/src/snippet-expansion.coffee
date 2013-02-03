@@ -22,12 +22,10 @@ class SnippetExpansion
         @editSession.normalizeTabsInBufferRange(newRange)
       @indentSubsequentLines(startPosition.row, snippet) if snippet.lineCount > 1
 
-  cursorMoved: ({oldBufferPosition, newBufferPosition}) ->
-    return if @settingTabStop
-
+  cursorMoved: ({oldBufferPosition, newBufferPosition, bufferChanged}) ->
+    return if @settingTabStop or bufferChanged
     oldTabStops = @tabStopsForBufferPosition(oldBufferPosition)
     newTabStops = @tabStopsForBufferPosition(newBufferPosition)
-
     @destroy() unless _.intersect(oldTabStops, newTabStops).length
 
   placeTabStopAnchorRanges: (startPosition, tabStopRanges) ->
