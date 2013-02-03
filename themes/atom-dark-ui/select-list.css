@@ -11,7 +11,7 @@
 .select-list ol li {
   background-color: #292929;
   border-bottom: 1px solid #1e1e1e;
-  padding: 5px;
+  padding: 10px;
 }
 
 .select-list ol li:after {
@@ -29,10 +29,12 @@
 
 .select-list li .right {
   float: right;
+  font-size: 11px;
+  font-family: courier;
+  color: #999;
 }
 
 .select-list .key-binding {
-  float: right;
   background: -webkit-linear-gradient(
     rgba(100, 100, 100, 0.5),
     rgba(70,70,70, 0.5));
