@@ -114,6 +114,7 @@ requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
 requireStylesheet 'overlay.css'
 requireStylesheet 'popover-list.css'
+requireStylesheet 'notification.css'
 
 if nativeStylesheetPath = require.resolve("#{platform}.css")
   requireStylesheet(nativeStylesheetPath)

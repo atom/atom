@@ -10,7 +10,6 @@
     "markdown-preview.css",
     "fuzzy-finder.css",
     "command-panel.css",
-    "command-logger.css",
-    "notification.css"
+    "command-logger.css"
   ]
 }
