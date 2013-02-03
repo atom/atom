@@ -1,6 +1,8 @@
 .fuzzy-finder .directory {
-  color: #b2b2b2;
-  padding-left: .5em;
+  color: rgba(255, 255, 255, 0.4);
+  word-break: break-word;
+  display: block;
+  margin-left: 28px;
 }
 
 .fuzzy-finder .file:before {
