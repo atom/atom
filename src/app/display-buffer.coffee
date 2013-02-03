@@ -7,6 +7,7 @@ Range = require 'range'
 Fold = require 'fold'
 ScreenLine = require 'screen-line'
 Token = require 'token'
+DisplayBufferMarker = require 'display-buffer-marker'
 
 module.exports =
 class DisplayBuffer
@@ -16,8 +17,7 @@ class DisplayBuffer
   tokenizedBuffer: null
   activeFolds: null
   foldsById: null
-  markerScreenPositionObservers: null
-  markerScreenPositions: null
+  markers: null
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
@@ -26,9 +26,7 @@ class DisplayBuffer
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
     @foldsById = {}
-    @markerScreenPositionObservers = {}
-    @markerScreenPositions = {}
-
+    @markers = {}
     @buildLineMap()
     @tokenizedBuffer.on 'changed', (e) => @handleTokenizedBufferChange(e)
 
@@ -38,8 +36,8 @@ class DisplayBuffer
     @lineMap = new LineMap
     @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
-  triggerChanged: (eventProperties) ->
-    @notifyMarkerScreenPositionObservers() unless eventProperties.bufferChange
+  triggerChanged: (eventProperties, refreshMarkers=true) ->
+    @refreshMarkerScreenPositions() if refreshMarkers
     @trigger 'changed', eventProperties
 
   setSoftWrapColumn: (@softWrapColumn) ->
@@ -133,7 +131,7 @@ class DisplayBuffer
       screenDelta = newScreenRange.end.row - oldScreenRange.end.row
       bufferDelta = 0
 
-      @notifyMarkerScreenPositionObservers()
+      @refreshMarkerScreenPositions()
       @triggerChanged({ start, end, screenDelta, bufferDelta })
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
@@ -233,7 +231,7 @@ class DisplayBuffer
     @lineMap.replaceScreenRows(start, end, newScreenLines)
     screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
 
-    @triggerChanged({ start, end, screenDelta, bufferDelta })
+    @triggerChanged({ start, end, screenDelta, bufferDelta }, false)
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
@@ -298,6 +296,12 @@ class DisplayBuffer
   rangeForAllLines: ->
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
 
+  getMarker: (id) ->
+    @markers[id] ? new DisplayBufferMarker({id, displayBuffer: this})
+
+  getMarkers: ->
+    _.values(@markers)
+
   markScreenRange: (screenRange) ->
     @markBufferRange(@bufferRangeForScreenRange(screenRange))
 
@@ -312,20 +316,19 @@ class DisplayBuffer
 
   destroyMarker: (id) ->
     @buffer.destroyMarker(id)
-    delete @markerScreenPositionObservers[id]
-    delete @markerScreenPositions[id]
+    delete @markers[id]
 
   getMarkerScreenRange: (id) ->
-    @screenRangeForBufferRange(@getMarkerBufferRange(id), wrapAtSoftNewlines: true)
+    @getMarker(id).getScreenRange()
 
   setMarkerScreenRange: (id, screenRange, options) ->
-    @setMarkerBufferRange(id, @bufferRangeForScreenRange(screenRange), options)
+    @getMarker(id).setScreenRange(screenRange, options)
 
   getMarkerBufferRange: (id) ->
-    @buffer.getMarkerRange(id)
+    @getMarker(id).getBufferRange()
 
   setMarkerBufferRange: (id, bufferRange, options) ->
-    @buffer.setMarkerRange(id, bufferRange, options)
+    @getMarker(id).setBufferRange(bufferRange, options)
 
   getMarkerScreenPosition: (id) ->
     @getMarkerHeadScreenPosition(id)
@@ -334,75 +337,44 @@ class DisplayBuffer
     @getMarkerHeadBufferPosition(id)
 
   getMarkerHeadScreenPosition: (id) ->
-    @screenPositionForBufferPosition(@getMarkerHeadBufferPosition(id), wrapAtSoftNewlines: true)
+    @getMarker(id).getHeadScreenPosition()
 
   setMarkerHeadScreenPosition: (id, screenPosition, options) ->
-    screenPosition = @clipScreenPosition(screenPosition, options)
-    @setMarkerHeadBufferPosition(id, @bufferPositionForScreenPosition(screenPosition, options))
+    @getMarker(id).setHeadScreenPosition(screenPosition, options)
 
   getMarkerHeadBufferPosition: (id) ->
-    @buffer.getMarkerHeadPosition(id)
+    @getMarker(id).getHeadBufferPosition()
 
   setMarkerHeadBufferPosition: (id, bufferPosition) ->
-    @buffer.setMarkerHeadPosition(id, bufferPosition)
+    @getMarker(id).setHeadBufferPosition(bufferPosition)
 
   getMarkerTailScreenPosition: (id) ->
-    @screenPositionForBufferPosition(@getMarkerTailBufferPosition(id), wrapAtSoftNewlines: true)
+    @getMarker(id).getTailScreenPosition()
 
   setMarkerTailScreenPosition: (id, screenPosition, options) ->
-    screenPosition = @clipScreenPosition(screenPosition, options)
-    @setMarkerTailBufferPosition(id, @bufferPositionForScreenPosition(screenPosition, options))
+    @getMarker(id).setTailScreenPosition(screenPosition, options)
 
   getMarkerTailBufferPosition: (id) ->
-    @buffer.getMarkerTailPosition(id)
+    @getMarker(id).getTailBufferPosition()
 
   setMarkerTailBufferPosition: (id, bufferPosition) ->
-    @buffer.setMarkerTailPosition(id, bufferPosition)
+    @getMarker(id).setTailBufferPosition(bufferPosition)
 
   placeMarkerTail: (id) ->
-    @buffer.placeMarkerTail(id)
+    @getMarker(id).placeTail()
 
   clearMarkerTail: (id) ->
-    @buffer.clearMarkerTail(id)
+    @getMarker(id).clearTail()
 
   isMarkerReversed: (id) ->
     @buffer.isMarkerReversed(id)
 
   observeMarkerHeadScreenPosition: (id, callback) ->
-    @markerScreenPositionObservers[id] ?= { head: [], tail: [] }
-    @cacheMarkerScreenPositions(id) unless @markerScreenPositions[id]
-    @markerScreenPositionObservers[id].head.push(callback)
-    subscription = @buffer.observeMarkerHeadPosition id, (e) =>
-      bufferChanged = e.bufferChanged
-      oldBufferPosition = e.oldPosition
-      newBufferPosition = e.newPosition
-      oldScreenPosition = @markerScreenPositions[id].head
-      @cacheMarkerScreenPositions(id)
-      newScreenPosition = @getMarkerHeadScreenPosition(id)
-      callback({ oldBufferPosition, newBufferPosition, oldScreenPosition, newScreenPosition, bufferChanged })
+    @getMarker(id).observeHeadPosition(callback)
 
-    cancel: =>
-      subscription.cancel()
-      { head, tail } = @markerScreenPositionObservers[id]
-      _.remove(head, callback)
-      unless head.length + tail.length
-        delete @markerScreenPositionObservers[id]
-        delete @markerScreenPositions[id]
-
-  cacheMarkerScreenPositions: (id) ->
-    @markerScreenPositions[id] = { head: @getMarkerHeadScreenPosition(id), tail: @getMarkerTailScreenPosition }
-
-  notifyMarkerScreenPositionObservers: ->
-    for id, { head } of @markerScreenPositions
-      currentHeadPosition = @getMarkerHeadScreenPosition(id)
-      unless currentHeadPosition.isEqual(head)
-        bufferChanged = false
-        oldBufferPosition = newBufferPosition = @buffer.getMarkerHeadPosition(id)
-        oldScreenPosition = @markerScreenPositions[id].head
-        @cacheMarkerScreenPositions(id)
-        newScreenPosition = @getMarkerHeadScreenPosition(id)
-        for observer in @markerScreenPositionObservers[id].head
-          observer({oldScreenPosition, newScreenPosition, oldBufferPosition, newBufferPosition, bufferChanged})
+  refreshMarkerScreenPositions: ->
+    for marker in @getMarkers()
+      marker.refreshHeadScreenPosition(bufferChanged: false)
 
   destroy: ->
     @tokenizedBuffer.destroy()
