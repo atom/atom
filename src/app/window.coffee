@@ -29,7 +29,7 @@ windowAdditions =
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
     $(window).on 'focus', => $("body").addClass("is-focused")
-    $(window).on 'focusout', => $("body").removeClass("is-focused")
+    $(window).on 'blur', => $("body").removeClass("is-focused")
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
