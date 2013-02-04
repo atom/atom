@@ -188,6 +188,14 @@ module.exports =
     else
       JSON.parse(contents)
 
+  writeObject: (path, object) ->
+    if @extension(path) is '.cson'
+      CSON = require 'cson'
+      content = CSON.stringify(object)
+    else
+      content = JSON.stringify(object, undefined, 2)
+    @write(path, "#{content}\n")
+
   readPlist: (path) ->
     plist = require 'plist'
     object = null

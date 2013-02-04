@@ -22,17 +22,36 @@ describe "Config", ->
       spyOn(fs, 'write')
       jasmine.unspy config, 'save'
 
-    it "writes any non-default properties to the config.json in the user's .atom directory", ->
-      config.set("a.b.c", 1)
-      config.set("a.b.d", 2)
-      config.set("x.y.z", 3)
-      config.setDefaults("a.b", e: 4, f: 5)
+    describe "when ~/.atom/config.json exists", ->
+      it "writes any non-default properties to ~/.atom/config.json", ->
+        config.configFilePath = fs.join(config.configDirPath, "config.json")
+        config.set("a.b.c", 1)
+        config.set("a.b.d", 2)
+        config.set("x.y.z", 3)
+        config.setDefaults("a.b", e: 4, f: 5)
 
-      fs.write.reset()
-      config.save()
+        fs.write.reset()
+        config.save()
 
-      writtenConfig = JSON.parse(fs.write.argsForCall[0][1])
-      expect(writtenConfig).toEqual config.settings
+        expect(fs.write.argsForCall[0][0]).toBe(fs.join(config.configDirPath, "config.json"))
+        writtenConfig = JSON.parse(fs.write.argsForCall[0][1])
+        expect(writtenConfig).toEqual config.settings
+
+    describe "when ~/.atom/config.json doesn't exist", ->
+      it "writes any non-default properties to ~/.atom/config.cson", ->
+        config.configFilePath = fs.join(config.configDirPath, "config.cson")
+        config.set("a.b.c", 1)
+        config.set("a.b.d", 2)
+        config.set("x.y.z", 3)
+        config.setDefaults("a.b", e: 4, f: 5)
+
+        fs.write.reset()
+        config.save()
+
+        expect(fs.write.argsForCall[0][0]).toBe(fs.join(config.configDirPath, "config.cson"))
+        {CoffeeScript} = require 'coffee-script'
+        writtenConfig = CoffeeScript.eval(fs.write.argsForCall[0][1], bare: true)
+        expect(writtenConfig).toEqual config.settings
 
   describe ".setDefaults(keyPath, defaults)", ->
     it "assigns any previously-unassigned keys to the object at the key path", ->
