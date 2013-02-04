@@ -34,3 +34,11 @@
 .select-list .directory {
   color: #777;
 }
+
+.select-list ol .selected .label {
+  color: #fff;
+}
+
+.select-list ol .selected .directory {
+  color: #ccc;
+}
