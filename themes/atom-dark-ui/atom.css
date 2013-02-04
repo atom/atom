@@ -21,13 +21,6 @@ html, body,
   -webkit-transition: background 300ms ease-out;
 }
 
-.clear-float {
-  clear: both;
-}
-
-@font-face {
-  font-family: 'Octicons Regular';
-  src: url("octicons-regular-webfont.woff") format("woff");
-  font-weight: normal;
-  font-style: normal;
+.wrap-guide {
+  background: rgba(150, 150, 150, 0.1);
 }

@@ -1,0 +1,83 @@
+.command-panel {
+  padding: 5px;
+}
+
+.command-panel .preview-list {
+  max-height: 300px;
+  overflow: auto;
+  margin: 0 1px 5px 10px;
+  position: relative;
+  cursor: default;
+}
+
+.command-panel .preview-count {
+  font-size: 11px;
+  text-align: right;
+  padding-bottom: 1px;
+}
+
+.command-panel .preview-list .path {
+  padding-left: 5px;
+}
+
+.command-panel .preview-list .path:before {
+  font-family: 'Octicons Regular';
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  -webkit-font-smoothing: antialiased;
+  content: "\f011";
+  position: relative;
+  top: 1px;
+}
+
+.command-panel .preview-list .operation {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.command-panel .preview-list .line-number {
+  padding-left: 3px;
+  margin-right: 1ex;
+  text-align: right;
+  display: inline-block;
+}
+
+.command-panel .preview-list .path-match-number {
+  padding-left: 8px;
+}
+
+.command-panel .preview-list .preview {
+  word-break: break-all;
+}
+
+.command-panel .preview-list .preview .match {
+  -webkit-border-radius: 2px;
+  padding: 1px;
+}
+
+.command-panel .prompt-and-editor .prompt:before {
+  color: #969696;
+  content: '\f078';
+  font-family: 'Octicons Regular';
+  position: relative;
+  top: 0;
+  left: -5px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.command-panel .prompt-and-editor .editor {
+  position: relative;
+  left: -4px;
+  margin-right: -4px;
+}
+
+.command-panel .prompt-and-editor {
+  display: -webkit-box;
+}
+
+.error-messages {
+  padding: 5px 1em;
+  color: white;
+}

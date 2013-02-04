@@ -1,30 +1,26 @@
-.select-list {
-  background-color: #303030;
-  border: 1px solid #404040;
-  color: #d2d2d2;
-  box-shadow: 0 0 10px #000;
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-  padding: 5px;
-  cursor: pointer;
-}
-
-.select-list ol {
-  border: 1px solid #212121;
-}
-
 .select-list ol li {
   background-color: #292929;
   border-bottom: 1px solid #1e1e1e;
-  padding: 5px;
 }
 
-.select-list ol li:last-child {
-  border-bottom: none;
+.select-list li .label {
+  color: #ddd;
 }
 
-.select-list .editor {
-  margin-bottom: 5px;
+.select-list li .right {
+  color: #999;
+  display: inline-block;
+  margin-top: -3px;
+}
+
+.select-list .key-binding {
+  background: -webkit-linear-gradient(
+    rgba(100, 100, 100, 0.5),
+    rgba(70,70,70, 0.5));
+  color: #ccc;
+  -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+  display: inline-block;
+  line-height: 100%;
 }
 
 .select-list li:hover {
@@ -35,8 +31,14 @@
   background-image: -webkit-linear-gradient(#7e7e7e, #737373);
 }
 
-.select-list .error {
-  font-weight: bold;
-  color: white;
-  text-shadow: 0 1px 0 #4E0000;
+.select-list .directory {
+  color: #777;
+}
+
+.select-list ol .selected .label {
+  color: #fff;
+}
+
+.select-list ol .selected .directory {
+  color: #ccc;
 }

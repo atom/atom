@@ -4,7 +4,7 @@ SelectList = require 'select-list'
 module.exports =
 class GrammarView extends SelectList
 
-  @viewClass: -> "#{super} grammar-view"
+  @viewClass: -> "#{super} grammar-view from-top overlay"
 
   filterKey: 'name'
 
@@ -12,7 +12,6 @@ class GrammarView extends SelectList
     @currentGrammar = @editor.getGrammar()
     @path = @editor.getPath()
     @autoDetect = name: 'Auto Detect'
-    requireStylesheet 'grammar-view.css'
     @command 'editor:select-grammar', =>
       @cancel()
       false

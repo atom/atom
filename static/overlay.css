@@ -1,0 +1,35 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 500px;
+  margin-left: -250px;
+  background: #303030;
+  color: #eee;
+  padding: 10px;
+  z-index: 9999;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+}
+
+.overlay .editor.mini {
+  margin-bottom: 10px;
+}
+
+.overlay .message {
+  padding-top: 5px;
+  font-size: 11px;
+}
+
+.overlay.mini {
+  width: 200px;
+  margin-left: -100px;
+}
+
+.overlay.from-top {
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
