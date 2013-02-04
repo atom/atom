@@ -73,6 +73,10 @@
   margin-right: -4px;
 }
 
+.command-panel .prompt-and-editor {
+  display: -webkit-box;
+}
+
 .error-messages {
   padding: 5px 1em;
   color: white;

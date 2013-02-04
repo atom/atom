@@ -44,7 +44,3 @@
   background-color: rgba(255, 255, 255, .2);
   color: yellow;
 }
-
-.command-panel .prompt-and-editor {
-  display: -webkit-box;
-}
