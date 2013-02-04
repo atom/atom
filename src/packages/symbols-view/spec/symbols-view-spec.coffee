@@ -16,7 +16,7 @@ describe "SymbolsView", ->
     rootView.deactivate()
     setArraySpy.reset()
 
-  fdescribe "when tags can be generated for a file", ->
+  describe "when tags can be generated for a file", ->
     it "initially displays all JavaScript functions with line numbers", ->
       rootView.open('sample.js')
       expect(rootView.find('.symbols-view')).not.toExist()
@@ -165,7 +165,7 @@ describe "SymbolsView", ->
         editor.setCursorBufferPosition([8,14])
         editor.trigger 'symbols-view:go-to-declaration'
         expect(symbolsView.list.children('li').length).toBe 1
-        expect(symbolsView.list.children('li:first').find('.function-name')).toHaveText 'tagged.js'
+        expect(symbolsView.list.children('li:first').find('.label')).toHaveText 'tagged.js'
 
   describe "project symbols", ->
     it "displays all tags", ->
@@ -181,9 +181,9 @@ describe "SymbolsView", ->
         expect(symbolsView.find('.loading')).toBeEmpty()
         expect(rootView.find('.symbols-view')).toExist()
         expect(symbolsView.list.children('li').length).toBe 4
-        expect(symbolsView.list.children('li:first').find('.function-name')).toHaveText 'callMeMaybe'
+        expect(symbolsView.list.children('li:first').find('.label')).toHaveText 'callMeMaybe'
         expect(symbolsView.list.children('li:first').find('.function-details')).toHaveText 'tagged.js'
-        expect(symbolsView.list.children('li:last').find('.function-name')).toHaveText 'thisIsCrazy'
+        expect(symbolsView.list.children('li:last').find('.label')).toHaveText 'thisIsCrazy'
         expect(symbolsView.list.children('li:last').find('.function-details')).toHaveText 'tagged.js'
         expect(symbolsView).not.toHaveClass "error"
         expect(symbolsView.error).not.toBeVisible()
