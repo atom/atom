@@ -369,7 +369,7 @@ class DisplayBuffer
   isMarkerReversed: (id) ->
     @buffer.isMarkerReversed(id)
 
-  observeMarkerHeadScreenPosition: (id, callback) ->
+  observeMarkerHeadPosition: (id, callback) ->
     @getMarker(id).observeHeadPosition(callback)
 
   refreshMarkerScreenPositions: ->

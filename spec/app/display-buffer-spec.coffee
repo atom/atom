@@ -619,10 +619,10 @@ describe "DisplayBuffer", ->
       beforeEach ->
         observeHandler = jasmine.createSpy("observeHandler")
 
-      describe ".observeMarkerHeadScreenPosition(marker, callback)", ->
+      describe ".observeMarkerHeadPosition(marker, callback)", ->
         it "calls the callback whenever the markers head's screen position changes with the new position and whether it was precipitated by a buffer change", ->
           marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-          displayBuffer.observeMarkerHeadScreenPosition(marker, observeHandler)
+          displayBuffer.observeMarkerHeadPosition(marker, observeHandler)
           displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
           expect(observeHandler).toHaveBeenCalled()
           expect(observeHandler.argsForCall[0][0]).toEqual {
@@ -668,7 +668,7 @@ describe "DisplayBuffer", ->
 
         it "does not call the callback for screen changes that don't change the position of the marker", ->
           marker = displayBuffer.markScreenPosition([3, 4])
-          displayBuffer.observeMarkerHeadScreenPosition(marker, observeHandler)
+          displayBuffer.observeMarkerHeadPosition(marker, observeHandler)
 
           buffer.insert([3, 0], '...')
           expect(observeHandler).toHaveBeenCalled()
@@ -707,7 +707,7 @@ describe "DisplayBuffer", ->
 
         it "allows observation subscriptions to be cancelled", ->
           marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-          subscription = displayBuffer.observeMarkerHeadScreenPosition(marker, observeHandler)
+          subscription = displayBuffer.observeMarkerHeadPosition(marker, observeHandler)
           subscription.cancel()
           buffer.insert([11, 0], '...')
           expect(observeHandler).not.toHaveBeenCalled()

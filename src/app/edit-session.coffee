@@ -489,8 +489,8 @@ class EditSession
   setMarkerTailBufferPosition: (args...) ->
     @displayBuffer.setMarkerTailBufferPosition(args...)
 
-  observeMarkerHeadScreenPosition: (args...) ->
-    @displayBuffer.observeMarkerHeadScreenPosition(args...)
+  observeMarkerHeadPosition: (args...) ->
+    @displayBuffer.observeMarkerHeadPosition(args...)
 
   placeMarkerTail: (args...) ->
     @displayBuffer.placeMarkerTail(args...)
