@@ -323,6 +323,9 @@ class Buffer
   observeMarkerHeadPosition: (id, callback) ->
     @validMarkers[id]?.observeHeadPosition(callback)
 
+  observeMarkerRange: (id, callback) ->
+    @validMarkers[id]?.observeRange(callback)
+
   getAnchors: -> new Array(@anchors...)
 
   addAnchor: (options) ->

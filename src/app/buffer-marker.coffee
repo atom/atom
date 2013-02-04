@@ -7,10 +7,13 @@ class BufferMarker
   headPosition: null
   tailPosition: null
   headPositionObservers: null
+  rangeObservers: null
+  disableRangeChanged: false
   stayValid: false
 
   constructor: ({@id, @buffer, range, @stayValid, noTail, reverse}) ->
     @headPositionObservers = []
+    @rangeObservers = []
     @setRange(range, {noTail, reverse})
 
   setRange: (range, options={}) ->
@@ -37,16 +40,38 @@ class BufferMarker
 
   setHeadPosition: (headPosition, options={}) ->
     oldPosition = @headPosition
+    oldRange = @getRange()
     @headPosition = Point.fromObject(headPosition)
     @headPosition = @buffer.clipPosition(@headPosition) if options.clip ? true
     newPosition = @headPosition
+    newRange = @getRange()
     bufferChanged = !!options.bufferChanged
-    observer({oldPosition, newPosition, bufferChanged}) for observer in @headPositionObservers
+    unless newPosition.isEqual(oldPosition)
+      @headPositionChanged({oldPosition, newPosition, bufferChanged})
+      @rangeChanged({oldRange, newRange, bufferChanged})
     @headPosition
 
+  headPositionChanged: ({oldPosition, newPosition, bufferChanged}) ->
+    observer({oldPosition, newPosition, bufferChanged}) for observer in @getHeadPositionObservers()
+
+  getHeadPositionObservers: ->
+    new Array(@headPositionObservers...)
+
+  rangeChanged: ({oldRange, newRange, bufferChanged}) ->
+    unless @disableRangeChanged
+      observer({oldRange, newRange, bufferChanged}) for observer in @getRangeObservers()
+
+  getRangeObservers: ->
+    new Array(@rangeObservers...)
+
   setTailPosition: (tailPosition, options={}) ->
+    oldRange = @getRange()
     @tailPosition = Point.fromObject(tailPosition)
     @tailPosition = @buffer.clipPosition(@tailPosition) if options.clip ? true
+    newRange = @getRange()
+    bufferChanged = !!options.bufferChanged
+    @rangeChanged({oldRange, newRange, bufferChanged}) unless newRange.isEqual(oldRange)
+    @tailPosition
 
   getStartPosition: ->
     @getRange().start
@@ -62,8 +87,17 @@ class BufferMarker
 
   observeHeadPosition: (callback) ->
     @headPositionObservers.push(callback)
-    cancel: =>
-      _.remove(@headPositionObservers, callback)
+    cancel: => @unobserveHeadPosition(callback)
+
+  unobserveHeadPosition: (callback) ->
+    _.remove(@headPositionObservers, callback)
+
+  observeRange: (callback) ->
+    @rangeObservers.push(callback)
+    cancel: => @unobserveRange(callback)
+
+  unobserveRange: (callback) ->
+    _.remove(@rangeObservers, callback)
 
   tryToInvalidate: (oldRange) ->
     containsStart = oldRange.containsPoint(@getStartPosition(), exclusive: true)
@@ -84,8 +118,13 @@ class BufferMarker
       [@id]
 
   handleBufferChange: (bufferChange) ->
+    @disableRangeChanged = true
+    oldRange = @getRange()
     @setHeadPosition(@updatePosition(@headPosition, bufferChange, false), clip: false, bufferChanged: true)
     @setTailPosition(@updatePosition(@tailPosition, bufferChange, true), clip: false, bufferChanged: true) if @tailPosition
+    newRange = @getRange()
+    @disableRangeChanged = false
+    @rangeChanged({oldRange, newRange, bufferChanged: true}) unless newRange.isEqual(oldRange)
 
   updatePosition: (position, bufferChange, isFirstPoint) ->
     { oldRange, newRange } = bufferChange

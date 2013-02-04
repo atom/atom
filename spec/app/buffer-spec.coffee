@@ -739,6 +739,37 @@ describe 'Buffer', ->
           buffer.setMarkerHeadPosition(marker, [6, 2])
           expect(observeHandler).not.toHaveBeenCalled()
 
+      describe ".observeMarkerRange(marker, callback)", ->
+        [observeHandler, marker] = []
+
+        beforeEach ->
+          observeHandler = jasmine.createSpy("observeHandler")
+          marker = buffer.markRange([[4, 20], [4, 23]])
+          buffer.observeMarkerRange(marker, observeHandler)
+
+        it "calls the callback when the marker's head position changes", ->
+          buffer.setMarkerHeadPosition(marker, [6, 2])
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual { oldRange: [[4, 20], [4, 23]], newRange: [[4, 20], [6, 2]], bufferChanged: false }
+          observeHandler.reset()
+
+          buffer.insert([6, 0], '...')
+          expect(observeHandler.argsForCall[0][0]).toEqual { oldRange: [[4, 20], [6, 2]], newRange: [[4, 20], [6, 5]], bufferChanged: true }
+
+        it "calls the given callback when the marker's tail position changes", ->
+          buffer.setMarkerTailPosition(marker, [6, 2])
+          expect(observeHandler).toHaveBeenCalled()
+          expect(observeHandler.argsForCall[0][0]).toEqual { oldRange: [[4, 20], [4, 23]], newRange: [[4, 23], [6, 2]], bufferChanged: false }
+          observeHandler.reset()
+
+          buffer.insert([6, 0], '...')
+          expect(observeHandler.argsForCall[0][0]).toEqual { oldRange: [[4, 23], [6, 2]], newRange: [[4, 23], [6, 5]], bufferChanged: true }
+
+        it "only calls the callback once when both the marker's head and tail positions change due to the same operation", ->
+          buffer.insert([4, 0], '...')
+          expect(observeHandler.callCount).toBe 1
+          expect(observeHandler.argsForCall[0][0]).toEqual { oldRange: [[4, 20], [4, 23]], newRange: [[4, 23], [4, 26]], bufferChanged: true }
+
     describe "marker destruction", ->
       marker = null
 
