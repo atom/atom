@@ -1,8 +1,8 @@
 .fuzzy-finder .directory {
   color: rgba(255, 255, 255, 0.4);
   word-break: break-word;
-  display: block;
-  margin-left: 28px;
+  margin-left: 5px;
+  line-height: 150%;
 }
 
 .fuzzy-finder .file:before {
