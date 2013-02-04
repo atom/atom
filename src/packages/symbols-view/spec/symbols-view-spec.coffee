@@ -16,7 +16,7 @@ describe "SymbolsView", ->
     rootView.deactivate()
     setArraySpy.reset()
 
-  describe "when tags can be generated for a file", ->
+  fdescribe "when tags can be generated for a file", ->
     it "initially displays all JavaScript functions with line numbers", ->
       rootView.open('sample.js')
       expect(rootView.find('.symbols-view')).not.toExist()
@@ -30,9 +30,9 @@ describe "SymbolsView", ->
         expect(symbolsView.find('.loading')).toBeEmpty()
         expect(rootView.find('.symbols-view')).toExist()
         expect(symbolsView.list.children('li').length).toBe 2
-        expect(symbolsView.list.children('li:first').find('.function-name')).toHaveText 'quicksort'
+        expect(symbolsView.list.children('li:first').find('.label')).toHaveText 'quicksort'
         expect(symbolsView.list.children('li:first').find('.function-details')).toHaveText 'Line 1'
-        expect(symbolsView.list.children('li:last').find('.function-name')).toHaveText 'quicksort.sort'
+        expect(symbolsView.list.children('li:last').find('.label')).toHaveText 'quicksort.sort'
         expect(symbolsView.list.children('li:last').find('.function-details')).toHaveText 'Line 2'
         expect(symbolsView).not.toHaveClass "error"
         expect(symbolsView.error).not.toBeVisible()
