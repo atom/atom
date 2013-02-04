@@ -13,6 +13,14 @@ describe "Window", ->
     atom.setRootViewStateForPath(rootView.project.getPath(), null)
     $(window).off 'beforeunload'
 
+  describe "window is loaded", ->
+    it "has .is-focused on the body tag", ->
+      expect($("body").hasClass("is-focused")).toBe true
+
+    it "doesn't have .is-focused on the window blur event", ->
+      $(window).blur()
+      expect($("body").hasClass("is-focused")).toBe false
+
   describe ".close()", ->
     it "is triggered by the 'core:close' event", ->
       spyOn window, 'close'

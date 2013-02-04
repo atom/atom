@@ -3,6 +3,7 @@ SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
 fs = require 'fs'
+LoadPathsTask = require 'fuzzy-finder/src/load-paths-task'
 
 module.exports =
 class FuzzyFinderView extends SelectList
@@ -126,16 +127,9 @@ class FuzzyFinderView extends SelectList
       @setLoading("Indexing...")
 
     if @reloadProjectPaths
-      @rootView.project.getFilePaths().done (paths) =>
-        ignoredNames = config.get("fuzzyFinder.ignoredNames") or []
-        ignoredNames = ignoredNames.concat(config.get("core.ignoredNames") or [])
+      @loadPathsTask?.terminate()
+      callback = (paths) =>
         @projectPaths = paths
-        if ignoredNames
-          @projectPaths = @projectPaths.filter (path) ->
-            for segment in path.split("/")
-              return false if _.contains(ignoredNames, segment)
-            return true
-
         @reloadProjectPaths = false
         listedItems =
           if options.filter?
@@ -146,6 +140,8 @@ class FuzzyFinderView extends SelectList
 
         @setArray(listedItems)
         options.done(listedItems) if options.done?
+      @loadPathsTask = new LoadPathsTask(@rootView, callback)
+      @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>
