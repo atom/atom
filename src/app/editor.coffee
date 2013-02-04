@@ -277,6 +277,7 @@ class Editor extends View
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
   isFoldedAtBufferRow: (bufferRow) -> @activeEditSession.isFoldedAtBufferRow(bufferRow)
+  isFoldedAtCursorRow: -> @activeEditSession.isFoldedAtCursorRow()
 
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
