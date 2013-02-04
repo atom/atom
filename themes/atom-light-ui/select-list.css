@@ -3,10 +3,6 @@
   border: 1px solid #c6c6c6;
   color: #323232;
   box-shadow: 0 0 10px #555;
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-  padding: 5px;
-  cursor: pointer;
 }
 
 .select-list ol {
@@ -16,15 +12,6 @@
 .select-list ol li {
   background-color: #f5f5f5;
   border-bottom: 1px solid #ccc;
-  padding: 5px;
-}
-
-.select-list ol li:last-child {
-  border-bottom: none;
-}
-
-.select-list .editor {
-  margin-bottom: 5px;
 }
 
 .select-list li:hover {
@@ -33,10 +20,4 @@
 
 .select-list ol .selected {
   background-color: #e0e0e0;
-}
-
-.select-list .error {
-  font-weight: bold;
-  color: white;
-  text-shadow: 0 1px 0 #4E0000;
 }
