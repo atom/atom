@@ -14,6 +14,10 @@
   border-radius: 3px;
 }
 
+.overlay .editor.mini {
+  margin-bottom: 10px;
+}
+
 .overlay .message {
   padding-top: 5px;
   font-size: 11px;
