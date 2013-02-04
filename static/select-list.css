@@ -2,6 +2,7 @@
   border: 1px solid #212121;
   max-height: 300px;
   position: relative;
+  overflow: hidden;
 }
 
 .select-list ol:empty {
@@ -26,7 +27,7 @@
 }
 
 .select-list li .right {
-  color: #999;
+  float: right;
 }
 
 .select-list .key-binding {
