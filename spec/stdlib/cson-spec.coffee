@@ -58,6 +58,10 @@ describe "CSON", ->
         expect(CSON.stringify(a: ['b'])).toBe "'a': [\n  'b'\n]"
         expect(CSON.stringify(a: ['b', 4])).toBe "'a': [\n  'b'\n  4\n]"
 
+      describe "when the array has an undefined value", ->
+        it "formats the undefined value as null", ->
+          expect(CSON.stringify(['a', undefined, 'b'])).toBe "[\n  'a'\n  null\n  'b'\n]"
+
     describe "when formatting an object", ->
       describe "when the object is empty", ->
         it "returns the empty string", ->
