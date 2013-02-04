@@ -17,8 +17,8 @@ fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
-# Load TextMate bundles, which specs rely on (but not other packages)
-atom.loadTextMatePackages()
+# Specs rely on TextMate bundles (but not atom packages)
+pack.load() for pack in atom.getTextMatePackages()
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))

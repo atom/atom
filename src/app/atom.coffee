@@ -29,9 +29,6 @@ _.extend atom,
                                    .filter((pack) -> pack?)
     new Array(@packages...)
 
-  loadTextMatePackages: ->
-    pack.load() for pack in @getTextMatePackages()
-
   getTextMatePackages: ->
     @getPackages().filter (pack) -> pack instanceof TextMatePackage
 
