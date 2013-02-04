@@ -19,9 +19,9 @@ class FuzzyFinder extends DeferredAtomPackage
       new LoadPathsTask(rootView, callback).start()
 
   onLoadEvent: (event, instance) ->
-    if @projectPaths? and not @instance.projectPaths?
-      @instance.projectPaths = @projectPaths
-      @instance.reloadProjectPaths = false
+    if @projectPaths? and not instance.projectPaths?
+      instance.projectPaths = @projectPaths
+      instance.reloadProjectPaths = false
 
     switch event.type
       when 'fuzzy-finder:toggle-file-finder'
