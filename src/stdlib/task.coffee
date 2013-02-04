@@ -17,7 +17,10 @@ class Task
 
   startWorker: ->
     @callWorkerMethod 'start'
-      resourcePath: window.resourcePath
+      globals:
+        resourcePath: window.resourcePath
+        navigator:
+          userAgent: navigator.userAgent
       requirePath: require.getPath('require')
       handlerPath: @path
 
