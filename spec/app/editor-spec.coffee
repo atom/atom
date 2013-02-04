@@ -605,7 +605,7 @@ describe "Editor", ->
         rootView.attachToDom()
         config.set("editor.fontSize", 16 * 4)
         expect(editor.gutter.css('font-size')).toBe "#{16 * 4}px"
-        expect(editor.gutter.width()).toBe(64)
+        expect(editor.gutter.width()).toBe(64 + editor.gutter.calculateLineNumberPadding())
 
       it "updates lines if there are unrendered lines", ->
         editor.attachToDom(heightInLines: 5)
