@@ -49,7 +49,7 @@ class FuzzyFinderView extends SelectList
           typeClass = 'text-name'
         @span fs.base(path), class: "file label #{typeClass}"
         if folder = fs.directory(path)
-          @span "#{folder}/", class: 'directory'
+          @span " - #{folder}/", class: 'directory'
 
   openPath: (path) ->
     @rootView.open(path, {@allowActiveEditorChange}) if path

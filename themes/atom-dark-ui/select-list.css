@@ -26,3 +26,7 @@
 .select-list ol .selected {
   background-image: -webkit-linear-gradient(#7e7e7e, #737373);
 }
+
+.select-list .directory {
+  color: #777;
+}
