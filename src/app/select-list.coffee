@@ -109,7 +109,7 @@ class SelectList extends View
   scrollToItem: (item) ->
     scrollTop = @list.scrollTop()
     desiredTop = item.position().top + scrollTop
-    desiredBottom = desiredTop + item.height()
+    desiredBottom = desiredTop + item.outerHeight()
 
     if desiredTop < scrollTop
       @list.scrollTop(desiredTop)

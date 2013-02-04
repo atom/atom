@@ -1,0 +1,48 @@
+.status-bar {
+  padding: 4px 10px 3px;
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.status-bar .cursor-position,
+.status-bar .grammar-name {
+  padding-left: 10px;
+}
+
+.status-bar .grammar-name {
+  cursor: pointer;
+}
+
+.status-bar .branch-label {
+  vertical-align: baseline;
+}
+
+.status-bar .git-status.octicons {
+  display: none;
+  padding-left: 10px;
+  margin-top:-2px;
+}
+
+.status-bar .octicons:before {
+  font-family: 'Octicons Regular';
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.status-bar .branch-icon:before {
+  content: "\f020";
+}
+
+.status-bar .modified-status-icon:before {
+  content: "\f26d";
+}
+
+.status-bar .new-status-icon:before {
+  content: "\f26b";
+}

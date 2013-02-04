@@ -114,6 +114,14 @@ window.startup()
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
+requireStylesheet 'tabs.css'
+requireStylesheet 'tree-view.css'
+requireStylesheet 'status-bar.css'
+requireStylesheet 'command-panel.css'
+requireStylesheet 'fuzzy-finder.css'
+requireStylesheet 'overlay.css'
+requireStylesheet 'popover-list.css'
+requireStylesheet 'notification.css'
 
 if nativeStylesheetPath = require.resolve("#{platform}.css")
   requireStylesheet(nativeStylesheetPath)

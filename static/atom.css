@@ -54,3 +54,10 @@ html, body {
   right: 0;
   box-sizing: border-box;
 }
+
+@font-face {
+  font-family: 'Octicons Regular';
+  src: url("octicons-regular-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}

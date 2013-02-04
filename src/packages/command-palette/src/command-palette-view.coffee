@@ -9,7 +9,7 @@ class CommandPaletteView extends SelectList
     @instance = new CommandPaletteView(rootView)
 
   @viewClass: ->
-    "#{super} command-palette"
+    "#{super} command-palette overlay from-top"
 
   filterKey: 'eventDescription'
 
@@ -41,12 +41,10 @@ class CommandPaletteView extends SelectList
     keyBindings = @keyBindings
     $$ ->
       @li class: 'event', 'data-event-name': eventName, =>
-        @div eventDescription, class: 'event-description'
+        @span eventDescription, class: 'label', title: eventName
         @div class: 'right', =>
-          @div eventName, class: 'event-name'
           for binding in keyBindings[eventName] ? []
-            @div binding, class: 'key-binding'
-        @div class: 'clear-float'
+            @kbd binding, class: 'key-binding'
 
   confirmed: ({eventName}) ->
     @cancel()

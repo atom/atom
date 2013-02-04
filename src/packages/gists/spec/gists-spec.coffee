@@ -44,8 +44,8 @@ describe "Gists package", ->
           expect(pasteboard.read()[0]).toBe 'https://gist.github.com/1'
 
         it "flashes that the Gist was created", ->
-          expect(rootView.find('.gist-notification')).toExist()
-          expect(rootView.find('.gist-notification .message').text()).toBe 'Gist 1 created'
+          expect(rootView.find('.notification')).toExist()
+          expect(rootView.find('.notification .title').text()).toBe 'Gist 1 created'
           advanceClock(2000)
           expect(rootView.find('.gist-notification')).not.toExist()
 

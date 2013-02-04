@@ -12,7 +12,7 @@ class SymbolsView extends SelectList
   @activate: (rootView) ->
     @instance = new SymbolsView(rootView)
 
-  @viewClass: -> "#{super} symbols-view"
+  @viewClass: -> "#{super} symbols-view overlay from-top"
 
   filterKey: 'name'
 
@@ -22,14 +22,13 @@ class SymbolsView extends SelectList
   itemForElement: ({position, name, file}) ->
     $$ ->
       @li =>
-        @div name, class: 'function-name'
+        @div name, class: 'label'
         @div class: 'right', =>
           if position
             text = "Line #{position.row + 1}"
           else
             text = fs.base(file)
           @div text, class: 'function-details'
-        @div class: 'clear-float'
 
   toggleFileSymbols: ->
     if @hasParent()
