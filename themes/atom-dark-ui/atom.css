@@ -24,7 +24,3 @@ html, body,
 .wrap-guide {
   background: rgba(150, 150, 150, 0.1);
 }
-
-.clear-float {
-  clear: both;
-}

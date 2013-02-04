@@ -29,7 +29,6 @@ class SymbolsView extends SelectList
           else
             text = fs.base(file)
           @div text, class: 'function-details'
-        @div class: 'clear-float'
 
   toggleFileSymbols: ->
     if @hasParent()

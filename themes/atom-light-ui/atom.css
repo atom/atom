@@ -20,7 +20,3 @@ html, body,
   background: #991212 !important;
   -webkit-transition: background 300ms ease-out;
 }
-
-.clear-float {
-  clear: both;
-}
