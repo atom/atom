@@ -1,8 +1,7 @@
 .select-list ol {
   border: 1px solid #212121;
-  max-height: 300px;
+  max-height: 390px;
   position: relative;
-  overflow: hidden;
 }
 
 .select-list ol:empty {
@@ -11,7 +10,7 @@
 }
 
 .select-list ol li {
-  padding: 10px;
+  padding: 5px;
 }
 
 .select-list ol li:after {
