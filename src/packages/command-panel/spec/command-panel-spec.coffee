@@ -408,7 +408,7 @@ describe "CommandPanel", ->
 
         expect(previewList.scrollBottom()).toBeCloseTo previewList.prop('scrollHeight'), -1
 
-        previewList.trigger 'core:move-down'
+        _.times previewList.getOperations().length, -> previewList.trigger 'core:move-up'
         expect(previewList.scrollTop()).toBe 0
 
       it "doesn't bubble up the event and the command panel text doesn't change", ->
