@@ -106,7 +106,6 @@ class AutocompleteView extends SelectList
 
   setPosition: ->
     { left, top } = @editor.pixelPositionForScreenPosition(@originalCursorPosition)
-
     height = @outerHeight()
     potentialTop = top + @editor.lineHeight
     potentialBottom = potentialTop - @editor.scrollTop() + height
