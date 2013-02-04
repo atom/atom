@@ -26,7 +26,7 @@ class Config
       core: _.clone(require('root-view').configDefaults)
       editor: _.clone(require('editor').configDefaults)
     @settings = {}
-    @configFilePath = fs.resolveExtension(fs.join(configDirPath, 'config'), ['json', 'cson'])
+    @configFilePath = fs.resolve(configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= fs.join(configDirPath, 'config.cson')
 
   load: ->
