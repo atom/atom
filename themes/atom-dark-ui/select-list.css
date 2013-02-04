@@ -9,6 +9,8 @@
 
 .select-list li .right {
   color: #999;
+  display: inline-block;
+  margin-top: -3px;
 }
 
 .select-list .key-binding {
@@ -18,6 +20,7 @@
   color: #ccc;
   -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1);
   display: inline-block;
+  line-height: 100%;
 }
 
 .select-list li:hover {
