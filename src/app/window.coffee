@@ -112,6 +112,7 @@ window.startup()
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
+requireStylesheet 'tabs.css'
 requireStylesheet 'tree-view.css'
 requireStylesheet 'command-panel.css'
 requireStylesheet 'overlay.css'
