@@ -5,8 +5,6 @@
 }
 
 .is-focused .tab {
-  cursor: default;
-  padding: 2px 21px 2px 9px;
   background-image: -webkit-linear-gradient(#444, #3d3d3d);
   border-top: 1px solid #383838;
   border-right: 1px solid #2e2e2e;
@@ -27,8 +25,6 @@
 }
 
 .tab {
-  cursor: default;
-  padding: 2px 21px 2px 9px;
   background-color: #555;
   background-image: none;
   border-top: 1px solid #383838;
@@ -88,16 +84,13 @@
   border: 1px solid #595959;
 }
 
-
 .is-focused .tab.active:before {
   border-bottom-right-radius: 4px;
   border-width: 0 1px 1px 0;
   box-shadow: 2px 2px 0 #424242;
-  left: -4px;
 }
 
 .is-focused .tab.active:after {
-  right: -4px;
   border-bottom-left-radius: 4px;
   border-width: 0 0 1px 1px;
   box-shadow: -2px 2px 0 #424242;
