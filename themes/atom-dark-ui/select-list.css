@@ -17,6 +17,7 @@
     rgba(70,70,70, 0.5));
   color: #ccc;
   -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+  display: inline-block;
 }
 
 .select-list li:hover {

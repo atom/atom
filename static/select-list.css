@@ -2,6 +2,7 @@
   border: 1px solid #212121;
   max-height: 390px;
   position: relative;
+  overflow: hidden;
 }
 
 .select-list ol:empty {
