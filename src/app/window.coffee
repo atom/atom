@@ -113,6 +113,7 @@ window.startup()
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
 requireStylesheet 'tree-view.css'
+requireStylesheet 'command-panel.css'
 requireStylesheet 'overlay.css'
 requireStylesheet 'popover-list.css'
 requireStylesheet 'notification.css'
