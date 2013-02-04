@@ -2,7 +2,6 @@
   "stylesheets":[
     "atom.css",
     "editor.css",
-    "grammar-view.css",
     "select-list.css",
     "tree-view.css",
     "tabs.css",
