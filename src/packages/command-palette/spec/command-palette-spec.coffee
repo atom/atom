@@ -16,7 +16,7 @@ describe "CommandPalette", ->
   afterEach ->
     rootView.remove()
 
-  fdescribe "when command-palette:toggle is triggered on the root view", ->
+  describe "when command-palette:toggle is triggered on the root view", ->
     it "shows a list of all valid command descriptions, names, and keybindings for the previously focused element", ->
       keyBindings = _.losslessInvert(keymap.bindingsForElement(rootView.getActiveEditor()))
       for eventName, description of rootView.getActiveEditor().events()
