@@ -65,3 +65,18 @@ describe "CSON", ->
 
       it "returns formatted CSON", ->
         expect(CSON.stringify(a: {b: 'c'})).toBe "'a':\n  'b': 'c'"
+
+  describe "when converting back to an object", ->
+    it "produces the original object", ->
+      object =
+        showInvisibles: true
+        fontSize: 20
+        core:
+          themes: ['a', 'b']
+        stripTrailingWhitespace:
+          singleTrailingNewline: true
+
+      cson = CSON.stringify(object)
+      {CoffeeScript} = require 'coffee-script'
+      evaledObject = CoffeeScript.eval(cson, bare: true)
+      expect(evaledObject).toEqual object
