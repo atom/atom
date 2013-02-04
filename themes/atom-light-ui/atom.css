@@ -20,3 +20,7 @@ html, body,
   background: #991212 !important;
   -webkit-transition: background 300ms ease-out;
 }
+
+.wrap-guide {
+  background: rgba(150, 150, 150, 0.1);
+}
