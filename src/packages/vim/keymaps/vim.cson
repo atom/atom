@@ -1,9 +1,9 @@
 'body':
-  'esc': 'vim:command-mode'
+  'escape': 'vim:command-mode'
 
-'.vim.command-mode .editor input':
-  ':': 'vim:ex-mode',
+'.vim.command-mode .editor':
+  ':': 'vim:ex-mode'
   'i': 'vim:insert-mode'
 
-'.vim.ex-mode .editor input':
+'.vim.ex-mode .editor':
   'enter': 'vim:execute'

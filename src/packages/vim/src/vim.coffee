@@ -23,6 +23,7 @@ class Vim extends View
 
   initialize: (@rootView, @editor) ->
     @editor.vim = this
+    @vim = $(this).find(".vim")
     @enterCommandMode()
 
     @editor.command "vim:insert-mode", (e) => @enterInsertMode()
@@ -39,8 +40,8 @@ class Vim extends View
 
   resetMode: ->
     @mode = "command"
-    @vim.addClassName("command-mode")
-    @vim.removeClassName("ex-mode")
+    @vim.addClass("command-mode")
+    @vim.removeClass("ex-mode")
 
   updateCommandLine: ->
     @updateCommandLineText()
@@ -72,8 +73,9 @@ class Vim extends View
   enterExMode: ->
     @resetMode()
     @mode = "ex"
-    @vim.addClassName("ex-mode")
-    @vim.removeClassName("command-mode")
+    window.console.log 'entered ex-mode'
+    @vim.addClass("ex-mode")
+    @vim.removeClass("command-mode")
     @updateCommandLine()
 
   updateCommandLineText: ->
