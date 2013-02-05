@@ -356,8 +356,8 @@ class Editor extends View
 
     @hiddenInput.on 'focusout', =>
       @isFocused = false
-      @removeClass 'is-focused'
       @autosave() if config.get "editor.autosave"
+      @removeClass 'is-focused'
 
     @underlayer.on 'click', (e) =>
       return unless e.target is @underlayer[0]
