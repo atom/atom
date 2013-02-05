@@ -8,9 +8,21 @@
   color: #323232;
 }
 
+.is-blurred .tab.active {
+  border-bottom: 1px solid #e5e5e5;
+  box-shadow: inset 0 0 5px #eee, inset -1px 0 0 #e0e0e0, inset 1px 0 0 #e0e0e0;
+}
+
 .is-blurred .tree-view {
   background: #f3f3f3;
   border-right: 1px solid #c5c5c5;
+}
+
+.is-blurred .tree-view:focus .selected > .highlight {
+  border-top: 1px solid #3D4552;
+  border-bottom: 1px solid #3D4552;
+  background-image: none;
+  background-color: #69717b;
 }
 
 .is-blurred .tree-view:focus .selected > .highlight {
