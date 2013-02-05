@@ -10,5 +10,6 @@
     "command-panel.css",
     "command-logger.css",
     "blurred.css"
+    "bracket-matcher.css"
   ]
 }
