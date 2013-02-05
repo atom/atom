@@ -186,6 +186,7 @@ class Editor extends View
         'editor:copy-path': @copyPathToPasteboard
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
+        'editor:duplicate-line': @duplicateLine
 
     documentation = {}
     for name, method of editorBindings
@@ -209,6 +210,7 @@ class Editor extends View
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
   moveLineUp: -> @activeEditSession.moveLineUp()
   moveLineDown: -> @activeEditSession.moveLineDown()
+  duplicateLine: -> @activeEditSession.duplicateLine()
   setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()

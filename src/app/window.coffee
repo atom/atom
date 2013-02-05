@@ -28,12 +28,9 @@ windowAdditions =
 
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
-
-    $(window).on 'focus', ->
-      $('body').removeClass 'is-blurred'
-
-    $(window).on 'blur', ->
-      $('body').addClass 'is-blurred'
+    $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
+    $(window).on 'focus', -> $("body").removeClass('is-blurred')
+    $(window).on 'blur',  -> $("body").addClass('is-blurred')
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
