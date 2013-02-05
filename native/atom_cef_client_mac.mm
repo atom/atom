@@ -118,6 +118,10 @@ void AtomCefClient::Show(CefRefPtr<CefBrowser> browser) {
   [windowController.webView setHidden:NO];
 }
 
+void AtomCefClient::ToggleFullScreen(CefRefPtr<CefBrowser> browser) {
+  [[browser->GetHost()->GetWindowHandle() window] toggleFullScreen:nil];
+}
+
 void AtomCefClient::ShowSaveDialog(int replyId, CefRefPtr<CefBrowser> browser) {
   CefRefPtr<CefProcessMessage> replyMessage = CefProcessMessage::Create("reply");
   CefRefPtr<CefListValue> replyArguments = replyMessage->GetArgumentList();

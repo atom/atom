@@ -111,6 +111,9 @@ _.extend atom,
   endTracing: ->
     @sendMessageToBrowserProcess('endTracing')
 
+  toggleFullScreen: ->
+    @sendMessageToBrowserProcess('toggleFullScreen')
+
   getRootViewStateForPath: (path) ->
     if json = localStorage[path]
       JSON.parse(json)

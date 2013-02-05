@@ -28,6 +28,7 @@ windowAdditions =
 
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
+    $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
     $(window).on 'focus', -> $("body").removeClass('is-blurred')
     $(window).on 'blur',  -> $("body").addClass('is-blurred')
 
