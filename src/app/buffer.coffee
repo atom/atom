@@ -218,13 +218,15 @@ class Buffer
     range
 
   clipPosition: (position) ->
-    { row, column } = Point.fromObject(position)
-    row = 0 if row < 0
-    column = 0 if column < 0
-    row = Math.min(@getLastRow(), row)
-    column = Math.min(@lineLengthForRow(row), column)
-
-    new Point(row, column)
+    position = Point.fromObject(position)
+    eofPosition = @getEofPosition()
+    if position.isGreaterThan(eofPosition)
+      eofPosition
+    else
+      row = Math.max(position.row, 0)
+      column = Math.max(position.column, 0)
+      column = Math.min(@lineLengthForRow(row), column)
+      new Point(row, column)
 
   clipRange: (range) ->
     range = Range.fromObject(range)

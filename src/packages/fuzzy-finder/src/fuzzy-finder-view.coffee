@@ -39,7 +39,9 @@ class FuzzyFinderView extends SelectList
     $$ ->
       @li =>
         ext = fs.extension(path)
-        if fs.isCompressedExtension(ext)
+        if fs.isReadme(path)
+          typeClass = 'readme-name'
+        else if fs.isCompressedExtension(ext)
           typeClass = 'compressed-name'
         else if fs.isImageExtension(ext)
           typeClass = 'image-name'

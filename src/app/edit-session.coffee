@@ -307,6 +307,9 @@ class EditSession
     fold.destroy()
     @setCursorBufferPosition([fold.startRow, 0])
 
+  isFoldedAtCursorRow: ->
+    @isFoldedAtScreenRow(@getCursorScreenRow())
+
   isFoldedAtBufferRow: (bufferRow) ->
     screenRow = @screenPositionForBufferPosition([bufferRow]).row
     @isFoldedAtScreenRow(screenRow)
@@ -408,6 +411,28 @@ class EditSession
 
       @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
 
+  duplicateLine: ->
+    return unless @getSelection().isEmpty()
+
+    @transact =>
+      cursorPosition = @getCursorBufferPosition()
+      cursorRowFolded = @isFoldedAtCursorRow()
+      if cursorRowFolded
+        screenRow = @screenPositionForBufferPosition(cursorPosition).row
+        bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+      else
+        bufferRange = new Range([cursorPosition.row], [cursorPosition.row + 1])
+
+      insertPosition = new Point(bufferRange.end.row)
+      if insertPosition.row >= @buffer.getLastRow()
+        @unfoldCurrentRow() if cursorRowFolded
+        @buffer.append("\n#{@getTextInBufferRange(bufferRange)}")
+        @foldCurrentRow() if cursorRowFolded
+      else
+        @buffer.insert(insertPosition, @getTextInBufferRange(bufferRange))
+
+      @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
+      @foldCurrentRow() if cursorRowFolded
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()

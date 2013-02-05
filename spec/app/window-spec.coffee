@@ -5,6 +5,7 @@ describe "Window", ->
   [rootView] = []
 
   beforeEach ->
+    window.setUpEventHandlers()
     window.attachRootView(require.resolve('fixtures'))
     rootView = window.rootView
 
@@ -13,13 +14,24 @@ describe "Window", ->
     atom.setRootViewStateForPath(rootView.project.getPath(), null)
     $(window).off 'beforeunload'
 
-  describe "window is loaded", ->
-    it "has .is-focused on the body tag", ->
-      expect($("body").hasClass("is-focused")).toBe true
+  describe "when the window is loaded", ->
+    it "doesn't have .is-blurred on the body tag", ->
+      expect($("body")).not.toHaveClass("is-blurred")
 
-    it "doesn't have .is-focused on the window blur event", ->
-      $(window).blur()
-      expect($("body").hasClass("is-focused")).toBe false
+  describe "when the window is blurred", ->
+    beforeEach ->
+      $(window).trigger 'blur'
+
+    afterEach ->
+      $('body').removeClass('is-blurred')
+
+    it "adds the .is-blurred class on the body", ->
+      expect($("body")).toHaveClass("is-blurred")
+
+    describe "when the window is focused again", ->
+      it "removes the .is-blurred class from the body", ->
+        $(window).trigger 'focus'
+        expect($("body")).not.toHaveClass("is-blurred")
 
   describe ".close()", ->
     it "is triggered by the 'core:close' event", ->

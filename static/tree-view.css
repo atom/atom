@@ -112,6 +112,11 @@
   top: -2px;
 }
 
+.tree-view .file .readme-icon:before {
+  content: "\f007";
+  top: -2px;
+}
+
 .tree-view .directory > .header .disclosure-arrow:before {
   content: "\f05a";
 }

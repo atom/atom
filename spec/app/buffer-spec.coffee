@@ -1159,3 +1159,17 @@ describe 'Buffer', ->
             buffer.setText("\ninitialtext")
             buffer.append("hello\n1\r\n2\n")
             expect(buffer.getText()).toBe "\ninitialtexthello\n1\n2\n"
+
+  describe ".clipPosition(position)", ->
+    describe "when the position is before the start of the buffer", ->
+      it "returns the first position in the buffer", ->
+        expect(buffer.clipPosition([-1,0])).toEqual [0,0]
+        expect(buffer.clipPosition([0,-1])).toEqual [0,0]
+        expect(buffer.clipPosition([-1,-1])).toEqual [0,0]
+
+    describe "when the position is after the end of the buffer", ->
+      it "returns the last position in the buffer", ->
+        buffer.setText('some text')
+        expect(buffer.clipPosition([1, 0])).toEqual [0,9]
+        expect(buffer.clipPosition([0,10])).toEqual [0,9]
+        expect(buffer.clipPosition([10,Infinity])).toEqual [0,9]

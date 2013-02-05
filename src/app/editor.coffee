@@ -186,6 +186,7 @@ class Editor extends View
         'editor:copy-path': @copyPathToPasteboard
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
+        'editor:duplicate-line': @duplicateLine
 
     documentation = {}
     for name, method of editorBindings
@@ -210,6 +211,7 @@ class Editor extends View
   moveLineUp: -> @activeEditSession.moveLineUp()
   moveLineDown: -> @activeEditSession.moveLineDown()
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
+  duplicateLine: -> @activeEditSession.duplicateLine()
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
@@ -277,6 +279,7 @@ class Editor extends View
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
   isFoldedAtBufferRow: (bufferRow) -> @activeEditSession.isFoldedAtBufferRow(bufferRow)
+  isFoldedAtCursorRow: -> @activeEditSession.isFoldedAtCursorRow()
 
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
@@ -355,8 +358,8 @@ class Editor extends View
 
     @hiddenInput.on 'focusout', =>
       @isFocused = false
-      @removeClass 'is-focused'
       @autosave() if config.get "editor.autosave"
+      @removeClass 'is-focused'
 
     @underlayer.on 'click', (e) =>
       return unless e.target is @underlayer[0]

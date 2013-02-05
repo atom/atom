@@ -29,6 +29,10 @@
   font-family: Consolas, "Liberation Mono", Courier, monospace;
 }
 
+.markdown-body a {
+  color: #4183c4;
+}
+
 .markdown-body ol > li {
   list-style-type: decimal;
 }

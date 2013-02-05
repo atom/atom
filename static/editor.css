@@ -76,6 +76,10 @@
   opacity: 1;
 }
 
+.editor.is-blurred .line.cursor-line {
+  background: rgba(0, 0, 0, 0);
+}
+
 .editor .invisible {
   opacity: 0.2;
 }
@@ -138,9 +142,13 @@
   border-left: 1px solid;
 }
 
-.editor:not(.is-focused) .cursor,
+.editor .cursor,
 .editor.is-focused .cursor.blink-off {
   visibility: hidden;
+}
+
+.editor.is-focused .cursor {
+  visibility: visible;
 }
 
 .editor .hidden-input {

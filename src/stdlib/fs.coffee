@@ -180,6 +180,12 @@ module.exports =
       '.ron'
     ], ext, true) >= 0
 
+
+  isReadme: (path) ->
+    extension = @extension(path)
+    base = @base(path, extension).toLowerCase()
+    base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
+
   readObject: (path) ->
     contents = @read(path)
     if @extension(path) is '.cson'

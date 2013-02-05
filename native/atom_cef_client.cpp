@@ -80,6 +80,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "show") {
     Show(browser);
   }
+  else if (name == "toggleFullScreen") {
+    ToggleFullScreen(browser);
+  }
   else {
     return false;
   }

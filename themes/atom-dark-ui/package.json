@@ -8,6 +8,8 @@
     "status-bar.css",
     "markdown-preview.css",
     "command-panel.css",
-    "command-logger.css"
+    "command-logger.css",
+    "blurred.css",
+    "bracket-matcher.css"
   ]
 }

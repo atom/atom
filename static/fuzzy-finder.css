@@ -31,3 +31,7 @@
 .fuzzy-finder .file.pdf-name:before {
   content: "\f014";
 }
+
+.fuzzy-finder .file.readme-name:before {
+  content: "\f007";
+}

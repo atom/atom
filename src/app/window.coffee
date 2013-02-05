@@ -25,11 +25,14 @@ windowAdditions =
     @syntax = new Syntax
     @setUpKeymap()
     @pasteboard = new Pasteboard
+    @setUpEventHandlers()
 
+  setUpEventHandlers: ->
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
-    $(window).on 'focus', => $("body").addClass("is-focused")
-    $(window).on 'blur', => $("body").removeClass("is-focused")
+    $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
+    $(window).on 'focus', -> $("body").removeClass('is-blurred')
+    $(window).on 'blur',  -> $("body").addClass('is-blurred')
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
@@ -51,8 +54,8 @@ windowAdditions =
       atom.setWindowState('pathToOpen', @rootView.project.getPath())
       @rootView.deactivate()
       @rootView = null
-    $(window).unbind('focus')
-    $(window).unbind('blur')
+    $(window).off('focus')
+    $(window).off('blur')
     $(window).off('before')
 
   setUpKeymap: ->
