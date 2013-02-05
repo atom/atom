@@ -6,24 +6,24 @@ module.exports =
 class BufferMarker
   headPosition: null
   tailPosition: null
-  headPositionObservers: null
-  rangeObservers: null
-  disableRangeChanged: false
+  observers: null
+  suppressObserverNotification: false
   stayValid: false
 
   constructor: ({@id, @buffer, range, @stayValid, noTail, reverse}) ->
     @headPositionObservers = []
-    @rangeObservers = []
+    @observers = []
     @setRange(range, {noTail, reverse})
 
   setRange: (range, options={}) ->
-    range = Range.fromObject(range)
-    if options.reverse
-      @setTailPosition(range.end) unless options.noTail
-      @setHeadPosition(range.start)
-    else
-      @setTailPosition(range.start) unless options.noTail
-      @setHeadPosition(range.end)
+    @consolidateObserverNotifications false, =>
+      range = Range.fromObject(range)
+      if options.reverse
+        @setTailPosition(range.end) unless options.noTail
+        @setHeadPosition(range.start)
+      else
+        @setTailPosition(range.start) unless options.noTail
+        @setHeadPosition(range.end)
 
   isReversed: ->
     @tailPosition? and @headPosition.isLessThan(@tailPosition)
@@ -38,39 +38,24 @@ class BufferMarker
 
   getTailPosition: -> @tailPosition
 
-  setHeadPosition: (headPosition, options={}) ->
-    oldPosition = @headPosition
-    oldRange = @getRange()
-    @headPosition = Point.fromObject(headPosition)
-    @headPosition = @buffer.clipPosition(@headPosition) if options.clip ? true
-    newPosition = @headPosition
-    newRange = @getRange()
+  setHeadPosition: (newHeadPosition, options={}) ->
+    oldHeadPosition = @getHeadPosition()
+    newHeadPosition = Point.fromObject(newHeadPosition)
+    newHeadPosition = @buffer.clipPosition(newHeadPosition) if options.clip ? true
+    return if newHeadPosition.isEqual(@headPosition)
+    @headPosition = newHeadPosition
     bufferChanged = !!options.bufferChanged
-    unless newPosition.isEqual(oldPosition)
-      @headPositionChanged({oldPosition, newPosition, bufferChanged})
-      @rangeChanged({oldRange, newRange, bufferChanged})
+    @notifyObservers({oldHeadPosition, newHeadPosition, bufferChanged})
     @headPosition
 
-  headPositionChanged: ({oldPosition, newPosition, bufferChanged}) ->
-    observer({oldPosition, newPosition, bufferChanged}) for observer in @getHeadPositionObservers()
-
-  getHeadPositionObservers: ->
-    new Array(@headPositionObservers...)
-
-  rangeChanged: ({oldRange, newRange, bufferChanged}) ->
-    unless @disableRangeChanged
-      observer({oldRange, newRange, bufferChanged}) for observer in @getRangeObservers()
-
-  getRangeObservers: ->
-    new Array(@rangeObservers...)
-
-  setTailPosition: (tailPosition, options={}) ->
-    oldRange = @getRange()
-    @tailPosition = Point.fromObject(tailPosition)
-    @tailPosition = @buffer.clipPosition(@tailPosition) if options.clip ? true
-    newRange = @getRange()
+  setTailPosition: (newTailPosition, options={}) ->
+    oldTailPosition = @getTailPosition()
+    newTailPosition = Point.fromObject(newTailPosition)
+    newTailPosition = @buffer.clipPosition(newTailPosition) if options.clip ? true
+    return if newTailPosition.isEqual(@tailPosition)
+    @tailPosition = newTailPosition
     bufferChanged = !!options.bufferChanged
-    @rangeChanged({oldRange, newRange, bufferChanged}) unless newRange.isEqual(oldRange)
+    @notifyObservers({oldTailPosition, newTailPosition, bufferChanged})
     @tailPosition
 
   getStartPosition: ->
@@ -83,21 +68,9 @@ class BufferMarker
     @setTailPosition(@headPosition) unless @tailPosition
 
   clearTail: ->
-    @tailPosition = null
-
-  observeHeadPosition: (callback) ->
-    @headPositionObservers.push(callback)
-    cancel: => @unobserveHeadPosition(callback)
-
-  unobserveHeadPosition: (callback) ->
-    _.remove(@headPositionObservers, callback)
-
-  observeRange: (callback) ->
-    @rangeObservers.push(callback)
-    cancel: => @unobserveRange(callback)
-
-  unobserveRange: (callback) ->
-    _.remove(@rangeObservers, callback)
+    oldTailPosition = @getTailPosition()
+    @tailPosition = newTailPosition = null
+    @notifyObservers({oldTailPosition, newTailPosition, bufferChanged: false})
 
   tryToInvalidate: (oldRange) ->
     containsStart = oldRange.containsPoint(@getStartPosition(), exclusive: true)
@@ -118,13 +91,9 @@ class BufferMarker
       [@id]
 
   handleBufferChange: (bufferChange) ->
-    @disableRangeChanged = true
-    oldRange = @getRange()
-    @setHeadPosition(@updatePosition(@headPosition, bufferChange, false), clip: false, bufferChanged: true)
-    @setTailPosition(@updatePosition(@tailPosition, bufferChange, true), clip: false, bufferChanged: true) if @tailPosition
-    newRange = @getRange()
-    @disableRangeChanged = false
-    @rangeChanged({oldRange, newRange, bufferChanged: true}) unless newRange.isEqual(oldRange)
+    @consolidateObserverNotifications true, =>
+      @setHeadPosition(@updatePosition(@headPosition, bufferChange, false), clip: false, bufferChanged: true)
+      @setTailPosition(@updatePosition(@tailPosition, bufferChange, true), clip: false, bufferChanged: true) if @tailPosition
 
   updatePosition: (position, bufferChange, isFirstPoint) ->
     { oldRange, newRange } = bufferChange
@@ -143,6 +112,36 @@ class BufferMarker
       newRow += position.row - oldRange.end.row
 
     [newRow, newColumn]
+
+  observe: (callback) ->
+    @observers.push(callback)
+    cancel: => @unobserve(callback)
+
+  unobserve: (callback) ->
+    _.remove(@observers, callback)
+
+  notifyObservers: ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}) ->
+    return if @suppressObserverNotification
+    return if _.isEqual(newHeadPosition, oldHeadPosition) and _.isEqual(newTailPosition, oldTailPosition)
+    oldHeadPosition ?= @getHeadPosition()
+    newHeadPosition ?= @getHeadPosition()
+    oldTailPosition ?= @getTailPosition()
+    newTailPosition ?= @getTailPosition()
+    for observer in @getObservers()
+      observer({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged})
+
+  getObservers: ->
+    new Array(@observers...)
+
+  consolidateObserverNotifications: (bufferChanged, fn) ->
+    @suppressObserverNotification = true
+    oldHeadPosition = @getHeadPosition()
+    oldTailPosition = @getTailPosition()
+    fn()
+    newHeadPosition = @getHeadPosition()
+    newTailPosition = @getTailPosition()
+    @suppressObserverNotification = false
+    @notifyObservers({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged})
 
   invalidate: (preserve) ->
     delete @buffer.validMarkers[@id]
