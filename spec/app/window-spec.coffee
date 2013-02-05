@@ -14,12 +14,12 @@ describe "Window", ->
     $(window).off 'beforeunload'
 
   describe "window is loaded", ->
-    it "has .is-focused on the body tag", ->
-      expect($("body").hasClass("is-focused")).toBe true
+    it "doesn't have .is-blurred on the body tag", ->
+      expect($("body").hasClass("is-blurred")).toBe false
 
-    it "doesn't have .is-focused on the window blur event", ->
+    it "does have .is-blurred on the window blur event", ->
       $(window).blur()
-      expect($("body").hasClass("is-focused")).toBe false
+      expect($("body").hasClass("is-blurred")).toBe true
 
   describe ".close()", ->
     it "is triggered by the 'core:close' event", ->

@@ -3,15 +3,15 @@
   color: #c5c8c6;
 }
 
-.editor.is-focused .cursor {
+.editor .cursor {
   border-color: #FFFFFF;
 }
 
-.editor.is-focused .selection .region {
+.editor .selection .region {
   background-color: #333333;
 }
 
-.editor.is-focused .line-number.cursor-line-no-selection, .editor.is-focused .line.cursor-line {
+.editor .line-number.cursor-line-no-selection, .editor .line.cursor-line {
   background-color: rgba(255, 255, 255, 0.14);
 }
 
