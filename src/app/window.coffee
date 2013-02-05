@@ -29,11 +29,11 @@ windowAdditions =
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
 
-    $(window).on 'window:focus', onFocus
-    $(window).on 'window:blur', onBlur
+    $(window).on 'focus', ->
+      $('body').removeClass 'is-blurred'
 
-    $(window).on 'focus', -> $(@).trigger 'window:focus'
-    $(window).on 'blur',  -> $(@).trigger 'window:blur'
+    $(window).on 'blur', ->
+      $('body').addClass 'is-blurred'
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
@@ -105,12 +105,6 @@ windowAdditions =
 
   onerror: ->
     atom.showDevTools()
-
-  onFocus: (event) =>
-    $('body').removeClass 'is-blurred'
-
-  onBlur: (event) =>
-    $('body').addClass 'is-blurred'
 
   measure: (description, fn) ->
     start = new Date().getTime()
