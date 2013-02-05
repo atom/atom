@@ -1,10 +1,6 @@
-DeferredAtomPackage = require 'deferred-atom-package'
+AtomPackage = require 'atom-package'
+VimView = require './src/vim'
 
 module.exports =
-class Tree extends DeferredAtomPackage
-
-  loadEvents: [
-    'vim:activate'
-  ]
-
-  instanceClass: 'vim/src/vim'
+class Vim extends AtomPackage
+  activate: (rootView) -> VimView.activate(rootView)

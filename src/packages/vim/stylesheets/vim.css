@@ -2,7 +2,6 @@
   background-color: #303030;
   border-top: 1px solid #454545;
   padding: 4px 10px 3px;
-/*  line-height: 14px;*/
   color: #969696;
   position: relative;
   -webkit-user-select: none;
@@ -13,21 +12,11 @@
   display: -webkit-box;
 }
 
-/*.vim .prompt-and-editor .prompt:before {
-  color: #969696;
-  content: '\f078';
-  font-family: 'Octicons Regular';
-  position: relative;
-  top: -5px;
-  left: -5px;
-  -webkit-font-smoothing: antialiased;
-}*/
-
 .vim .prompt-and-editor .editor {
   position: relative;
   padding: 0px;
   margin: 0px;
   top: 5px;
-/*  left: -5px;*/
-/*  background-color: #303030;*/
+  border: none;
+  background-color: #303030;
 }

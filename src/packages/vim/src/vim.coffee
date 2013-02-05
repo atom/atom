@@ -13,18 +13,18 @@ class Vim extends View
       pane.append(new Vim(rootView, editor))
 
   @content: ->
-    @div class: 'vim command-mode', outlet: 'vim', =>
+    @div class: 'vim', =>
       @div class: 'prompt-and-editor', =>
         @div class: 'prompt', outlet: 'prompt'
         @subview 'miniEditor', new Editor(mini: true)
 
   @commands:
-    'i': "vim:insert-mode"
+    'q': "core:close"
 
   initialize: (@rootView, @editor) ->
     @editor.vim = this
-    @vim = $(this).find(".vim")
-    @enterCommandMode()
+    @vim = $(this)
+    @enterInsertMode()
 
     @editor.command "vim:insert-mode", (e) => @enterInsertMode()
     @editor.command "vim:command-mode", (e) => @enterCommandMode()
@@ -40,8 +40,7 @@ class Vim extends View
 
   resetMode: ->
     @mode = "command"
-    @vim.addClass("command-mode")
-    @vim.removeClass("ex-mode")
+    @editor.addClass("command-mode")
 
   updateCommandLine: ->
     @updateCommandLineText()
@@ -61,21 +60,19 @@ class Vim extends View
 
   enterInsertMode: ->
     @resetMode()
+    @editor.removeClass("command-mode")
     @mode = "insert"
     @editor.focus()
     @updateCommandLine()
 
   enterCommandMode: ->
     @resetMode()
-    @miniEditor.focus()
     @updateCommandLine()
 
   enterExMode: ->
     @resetMode()
+    @miniEditor.focus()
     @mode = "ex"
-    window.console.log 'entered ex-mode'
-    @vim.addClass("ex-mode")
-    @vim.removeClass("command-mode")
     @updateCommandLine()
 
   updateCommandLineText: ->
@@ -95,7 +92,6 @@ class Vim extends View
     @discardCommand()
 
   runCommand: (input) ->
-    window.console.log "Running command #{input}"
     for c in input
       if command = Vim.commands[c]
         @editor.trigger command
