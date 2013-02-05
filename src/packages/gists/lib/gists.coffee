@@ -22,10 +22,10 @@ class Gists
       success: (response) =>
         pasteboard.write(response.html_url)
         notification = $$ ->
-          @div class: 'gist-notification', =>
-            @div class: 'message-area', =>
-              @span "Gist #{response.id} created", class: 'message'
-              @br()
-              @span "The url is on your clipboard", class: 'clipboard'
+          @div class: 'notification', =>
+            @span class: 'icon icon-gist mega-icon'
+            @div class: 'content', =>
+              @h3 "Gist #{response.id} created", class: 'title'
+              @p "The url is on your clipboard", class: 'message'
         @rootView.append(notification.hide())
         notification.fadeIn().delay(2000).fadeOut(complete: -> $(this).remove())

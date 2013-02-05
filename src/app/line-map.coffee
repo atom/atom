@@ -133,6 +133,7 @@ class LineMap
     new Range(start, end)
 
   bufferRangeForScreenRange: (screenRange) ->
+    screenRange = Range.fromObject(screenRange)
     start = @bufferPositionForScreenPosition(screenRange.start)
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
@@ -141,4 +142,3 @@ class LineMap
     for row in [start..end]
       line = @lineForScreenRow(row).text
       console.log row, line, line.length
-

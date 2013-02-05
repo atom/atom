@@ -35,6 +35,7 @@ beforeEach ->
   spyOn(config, 'save')
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
+  config.set "core.disabledPackages", ["package-that-throws-an-exception"]
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
@@ -84,7 +85,7 @@ jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].originalValue?
   object[methodName] = object[methodName].originalValue
 
-jasmine.getEnv().defaultTimeoutInterval = 500
+jasmine.getEnv().defaultTimeoutInterval = 1000
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key

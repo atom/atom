@@ -1,0 +1,46 @@
+.command-panel {
+  background-color: #303030;
+  border: 1px solid #252525;
+  color: #dedede;
+}
+
+.command-panel .preview-list {
+  background-color: #1e1e1e;
+  color: #C5C8C6;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(180, 180, 180, 0.2);
+  border-right: 1px solid rgba(180, 180, 180, 0.2);
+}
+
+.command-panel .preview-count {
+  color: #969696;
+}
+
+.command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
+  background-color: rgba(255, 255, 255, .13);
+}
+
+.command-panel .preview-list:focus li.selected {
+  background-color: rgba(255, 255, 255, .2);
+}
+
+.command-panel .preview-list .path {
+  color: #fff;
+}
+
+.command-panel .preview-list .line-number {
+  color: rgba(255, 255, 255, .3);
+}
+
+.command-panel .preview-list .path-match-number {
+  color: rgba(255, 255, 255, .3);
+}
+
+.command-panel .preview-list .preview {
+  word-break: break-all;
+}
+
+.command-panel .preview-list .preview .match {
+  background-color: rgba(255, 255, 255, .2);
+  color: yellow;
+}

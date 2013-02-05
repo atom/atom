@@ -1,0 +1,25 @@
+.editor.mini {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(180, 180, 180, 0.2);
+  border-right: 1px solid rgba(180, 180, 180, 0.2);
+}
+
+.editor .gutter.drop-shadow {
+  -webkit-box-shadow: -2px 0px 10px 2px #222;
+}
+
+@-webkit-keyframes highlight {
+  from { background-color: rgba(100, 255, 100, 0.7); }
+  to { background-color: null; }
+}
+
+.editor .highlighted.selection .region {
+  -webkit-animation-name: highlight;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: 1;
+}
+
+.editor .gutter .line-number.fold {
+  color: #fba0e3;
+  opacity: .8;
+}

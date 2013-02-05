@@ -3,6 +3,7 @@ jQuery = require 'jquery'
 Specificity = require 'specificity'
 {$$} = require 'space-pen'
 fs = require 'fs'
+EventEmitter = require 'event-emitter'
 
 module.exports =
 class Syntax
@@ -104,3 +105,5 @@ class Syntax
       deepestChild[0]
     else
       element[0]
+
+_.extend(Syntax.prototype, EventEmitter)

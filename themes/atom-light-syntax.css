@@ -1,0 +1,168 @@
+.editor, .editor .gutter {
+  background-color: #FFFFFF;
+  color: #555;
+}
+
+.editor.is-focused .cursor {
+  border-color: #000;
+}
+
+.editor.is-focused .selection .region {
+  background-color: #afc4da;
+}
+
+.editor.is-focused .line-number.cursor-line-no-selection, .editor.is-focused .line.cursor-line {
+  background-color: rgba(255, 255, 134, 0.34);
+}
+
+.editor .comment {
+  color: #999988;
+  font-style: italic;
+}
+
+.editor .string {
+  color: #D14;
+}
+
+.editor .constant.numeric {
+  color: #D14;
+}
+
+.editor .constant.language {
+  color: #606aa1;
+}
+
+.editor .constant.character, .editor .constant.other {
+  color: #606aa1;
+}
+
+.editor .constant.symbol {
+  color: #990073;
+}
+
+.editor .variable {
+  color: #008080;
+}
+
+/* Keywords */
+.editor .keyword {
+  color: #222;
+  font-weight: bold;
+}
+
+.editor .keyword.unit {
+  color: #445588;
+}
+
+.editor .keyword.special-method {
+  color: #0086B3;
+}
+
+.editor .storage {
+  color: #222;
+}
+
+.editor .storage.type {
+  color: #222;
+}
+
+.editor .entity.name.class {
+  text-decoration: underline;
+  color: #606aa1;
+}
+
+.editor .entity.other.inherited-class {
+  text-decoration: underline;
+  color: #606aa1;
+}
+
+.editor .entity.name.function {
+  color: #900;
+}
+
+.editor .variable.parameter {
+  color: #606aa1;
+}
+
+.editor .entity.name.tag {
+  color: #008080;
+}
+
+.editor .entity.other.attribute-name {
+  color: #458;
+  font-weight: bold;
+}
+
+.editor .support.function {
+  color: #458;
+}
+
+.editor .support.constant {
+  color: #458;
+}
+
+.editor .support.type {
+  color: #458;
+}
+
+.editor .support.class {
+  color: #008080;
+}
+
+.editor .invalid {
+  color: #F8F8F0;
+  background-color: #00A8C6;
+}
+
+.editor .invalid.deprecated {
+  color: #F8F8F0;
+  background-color: #8FBE00;
+}
+
+.editor .meta.structure.dictionary.json > .string.quoted.double.json,
+.editor .meta.structure.dictionary.json > .string.quoted.double.json .punctuation.string {
+  color: #000080;
+}
+
+.editor .meta.structure.dictionary.value.json > .string.quoted.double.json {
+  color: #d14;
+}
+
+.editor .meta.diff, .editor .meta.diff.header {
+  color: #75715E;
+}
+
+.editor .meta.function span {
+  color: #990000;
+  font-weight: bold;
+}
+
+.editor .markup.deleted {
+  color: #00A8C6;
+}
+
+.editor .markup.inserted {
+  color: #A6E22E;
+}
+
+.editor .markup.changed {
+  color: #E6DB74;
+}
+
+.editor .constant.numeric.line-number.find-in-files .- .match {
+  color: rgba(143, 190, 0, 0.63);
+}
+
+.editor .entity.name.filename.find-in-files {
+  color: #E6DB74;
+}
+
+/* CSS Styles */
+.editor .css.support.property-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.editor .css.constant {
+  color: #099;
+}

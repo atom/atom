@@ -19,6 +19,7 @@ class Buffer
   cachedMemoryContents: null
   conflict: false
   lines: null
+  lineEndings: null
   file: null
   anchors: null
   anchorRanges: null
@@ -29,6 +30,7 @@ class Buffer
     @anchors = []
     @anchorRanges = []
     @lines = ['']
+    @lineEndings = []
 
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
@@ -104,32 +106,40 @@ class Buffer
       null
 
   getText: ->
-    @cachedMemoryContents ?= @lines.join('\n')
+    @cachedMemoryContents ?= @getTextInRange(@getRange())
 
   setText: (text) ->
-    @change(@getRange(), text)
+    @change(@getRange(), text, normalizeLineEndings: false)
 
   getRange: ->
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
   getTextInRange: (range) ->
-    range = Range.fromObject(range)
+    range = @clipRange(range)
     if range.start.row == range.end.row
-      return @lines[range.start.row][range.start.column...range.end.column]
+      return @lineForRow(range.start.row)[range.start.column...range.end.column]
 
     multipleLines = []
-    multipleLines.push @lines[range.start.row][range.start.column..] # first line
+    multipleLines.push @lineForRow(range.start.row)[range.start.column..] # first line
+    multipleLines.push @lineEndingForRow(range.start.row)
     for row in [range.start.row + 1...range.end.row]
-      multipleLines.push @lines[row] # middle lines
-    multipleLines.push @lines[range.end.row][0...range.end.column] # last line
+      multipleLines.push @lineForRow(row) # middle lines
+      multipleLines.push @lineEndingForRow(row)
+    multipleLines.push @lineForRow(range.end.row)[0...range.end.column] # last line
 
-    return multipleLines.join '\n'
+    return multipleLines.join ''
 
   getLines: ->
     @lines
 
   lineForRow: (row) ->
     @lines[row]
+
+  lineEndingForRow: (row) ->
+    @lineEndings[row] unless row is @getLastRow()
+
+  suggestedLineEndingForRow: (row) ->
+    @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
 
   lineLengthForRow: (row) ->
     @lines[row].length
@@ -184,7 +194,7 @@ class Buffer
       startPoint = [start, 0]
       endPoint = [end + 1, 0]
 
-    @change(new Range(startPoint, endPoint), '')
+    @delete(new Range(startPoint, endPoint))
 
   append: (text) ->
     @insert(@getEofPosition(), text)
@@ -195,29 +205,30 @@ class Buffer
   delete: (range) ->
     @change(range, '')
 
-  change: (oldRange, newText) ->
+  change: (oldRange, newText, options) ->
     oldRange = Range.fromObject(oldRange)
-    operation = new BufferChangeOperation({buffer: this, oldRange, newText})
+    operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
     range = @pushOperation(operation)
     range
 
   clipPosition: (position) ->
-    { row, column } = Point.fromObject(position)
-    row = 0 if row < 0
-    column = 0 if column < 0
-    row = Math.min(@getLastRow(), row)
-    column = Math.min(@lineLengthForRow(row), column)
+    position = Point.fromObject(position)
+    eofPosition = @getEofPosition()
+    if position.isGreaterThan(eofPosition)
+      eofPosition
+    else
+      row = Math.max(position.row, 0)
+      column = Math.max(position.column, 0)
+      column = Math.min(@lineLengthForRow(row), column)
+      new Point(row, column)
 
-    new Point(row, column)
+  clipRange: (range) ->
+    range = Range.fromObject(range)
+    new Range(@clipPosition(range.start), @clipPosition(range.end))
 
   prefixAndSuffixForRange: (range) ->
     prefix: @lines[range.start.row][0...range.start.column]
     suffix: @lines[range.end.row][range.end.column..]
-
-  replaceLines: (startRow, endRow, newLines) ->
-    @lines[startRow..endRow] = newLines
-    @cachedMemoryContents = null
-    @conflict = false if @conflict and !@isModified()
 
   pushOperation: (operation, editSession) ->
     if @undoManager

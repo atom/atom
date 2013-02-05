@@ -9,7 +9,6 @@ class Cursor
   screenPosition: null
   bufferPosition: null
   goalColumn: null
-  wordRegex: /(\w+)|([^\w\n]+)/g
   visible: true
   needsAutoscroll: false
 
@@ -56,8 +55,17 @@ class Cursor
 
   isVisible: -> @visible
 
+  wordRegExp: ->
+    nonWordCharacters = config.get("editor.nonWordCharacters")
+    new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(nonWordCharacters)}]+|[#{_.escapeRegExp(nonWordCharacters)}]+", "g")
+
   isLastCursor: ->
     this == @editSession.getCursor()
+
+  isSurroundedByWhitespace: ->
+    {row, column} = @getBufferPosition()
+    range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
+    /^\s+$/.test @editSession.getTextInBufferRange(range)
 
   autoscrolled: ->
     @needsAutoscroll = false
@@ -147,14 +155,16 @@ class Cursor
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
     previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
-    previousLinesRange = [[previousNonBlankRow, 0], currentBufferPosition]
+    range = [[previousNonBlankRow, 0], currentBufferPosition]
 
-    beginningOfWordPosition = currentBufferPosition
-    @editSession.backwardsScanInRange (options.wordRegex || @wordRegex), previousLinesRange, (match, matchRange, { stop }) =>
+    beginningOfWordPosition = null
+    @editSession.backwardsScanInRange (options.wordRegex ? @wordRegExp()), range, (match, matchRange, { stop }) =>
       if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = matchRange.start
-      stop()
-    beginningOfWordPosition
+      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    beginningOfWordPosition or currentBufferPosition
 
   getEndOfCurrentWordBufferPosition: (options = {}) ->
     allowNext = options.allowNext ? true
@@ -162,11 +172,12 @@ class Cursor
     range = [currentBufferPosition, @editSession.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInRange (options.wordRegex || @wordRegex), range, (match, matchRange, { stop }) =>
-      endOfWordPosition = matchRange.end
-      if not allowNext and matchRange.start.isGreaterThan(currentBufferPosition)
-        endOfWordPosition = currentBufferPosition
-      stop()
+    @editSession.scanInRange (options.wordRegex ? @wordRegExp()), range, (match, matchRange, { stop }) =>
+      if matchRange.start.isLessThanOrEqual(currentBufferPosition) or allowNext
+        endOfWordPosition = matchRange.end
+      if not endOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
     endOfWordPosition or currentBufferPosition
 
   getCurrentWordBufferRange: (options={}) ->

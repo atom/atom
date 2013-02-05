@@ -48,6 +48,9 @@ class Range
   add: (point) ->
     new Range(@start.add(point), @end.add(point))
 
+  translate: (startPoint, endPoint=startPoint) ->
+    new Range(@start.translate(startPoint), @end.translate(endPoint))
+
   intersectsWith: (otherRange) ->
     if @start.isLessThanOrEqual(otherRange.start)
       @end.isGreaterThanOrEqual(otherRange.start)

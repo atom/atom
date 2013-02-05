@@ -96,7 +96,10 @@ class Selection
     @screenRangeChanged()
 
   selectWord: ->
-    @setBufferRange(@cursor.getCurrentWordBufferRange())
+    options = {}
+    options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
+
+    @setBufferRange(@cursor.getCurrentWordBufferRange(options))
     @wordwise = true
     @initialScreenRange = @getScreenRange()
 
@@ -184,6 +187,8 @@ class Selection
         @editSession.autoIndentBufferRow(newBufferRange.end.row)
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
+
+    newBufferRange
 
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()

@@ -128,3 +128,8 @@ describe "fs", ->
   describe ".md5ForPath(path)", ->
     it "returns the MD5 hash of the file at the given path", ->
       expect(fs.md5ForPath(require.resolve('fixtures/sample.js'))).toBe 'dd38087d0d7e3e4802a6d3f9b9745f2b'
+
+  describe ".list(path, extensions)", ->
+    it "returns the paths with the specified extensions", ->
+      path = require.resolve('fixtures/css.css')
+      expect(fs.list(require.resolve('fixtures'), ['.css'])).toEqual [path]

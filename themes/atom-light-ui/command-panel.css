@@ -1,0 +1,35 @@
+.command-panel {
+  background-color: #f4f4f4;
+  border-top: 1px solid #979797;
+  color: #ededed;
+}
+
+.command-panel .preview-list {
+  background-color: #e7e7e7;
+  color: #222;
+  border: 1px solid #989898;
+}
+
+.command-panel .preview-count {
+  color: #333;
+}
+
+.command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
+  background-color: rgba(255, 255, 255, .6);
+}
+
+.command-panel .preview-list .path {
+  color: #3D5075;
+}
+
+.command-panel .preview-list .line-number {
+  color: #3D5075;
+}
+
+.command-panel .preview-list .path-match-number {
+  color: #3D5075;
+}
+
+.command-panel .preview-list .preview .match {
+  background-color: #c8d4d7;
+}

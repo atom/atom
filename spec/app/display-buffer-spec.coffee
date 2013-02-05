@@ -495,6 +495,20 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
           expect(displayBuffer.lineForRow(10).fold).toBeDefined()
 
+  describe "when the line being deleted preceeds a fold", ->
+    describe "when the command is undone", ->
+      it "restores the line and preserves the fold", ->
+        editSession.setCursorBufferPosition([4])
+        editSession.foldCurrentRow()
+        expect(editSession.isFoldedAtScreenRow(4)).toBeTruthy()
+        editSession.setCursorBufferPosition([3])
+        editSession.deleteLine()
+        expect(editSession.isFoldedAtScreenRow(3)).toBeTruthy()
+        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
+        editSession.undo()
+        expect(editSession.isFoldedAtScreenRow(4)).toBeTruthy()
+        expect(buffer.lineForRow(3)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
       displayBuffer.setSoftWrapColumn(50)

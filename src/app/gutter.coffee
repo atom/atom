@@ -58,16 +58,19 @@ class Gutter extends View
     @renderLineNumbers(renderFrom, renderTo) if performUpdate
 
   renderLineNumbers: (startScreenRow, endScreenRow) ->
-    rows = @editor().bufferRowsForScreenRows(startScreenRow, endScreenRow)
+    editor = @editor()
+    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
-    cursorScreenRow = @editor().getCursorScreenPosition().row
+    cursorScreenRow = editor.getCursorScreenPosition().row
     @lineNumbers[0].innerHTML = $$$ ->
       for row in rows
         if row == lastScreenRow
           rowValue = '•'
         else
           rowValue = row + 1
-        @div {class: 'line-number'}, rowValue
+        classes = ['line-number']
+        classes.push('fold') if editor.isFoldedAtBufferRow(row)
+        @div rowValue, class: classes.join(' ')
         lastScreenRow = row
 
     @calculateWidth()

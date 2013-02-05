@@ -32,3 +32,8 @@ describe "Range", ->
       expect(new Range([2, 1], [3, 10]).union(new Range([1, 1], [2, 10]))).toEqual [[1, 1], [3, 10]]
       expect(new Range([2, 1], [3, 10]).union(new Range([2, 5], [3, 1]))).toEqual [[2, 1], [3, 10]]
       expect(new Range([2, 5], [3, 1]).union(new Range([2, 1], [3, 10]))).toEqual [[2, 1], [3, 10]]
+
+  describe ".translate(startPoint, endPoint)", ->
+    it "returns a range translates by the specified start and end points", ->
+      expect(new Range([1, 1], [2, 10]).translate([1])).toEqual [[2, 1], [3, 10]]
+      expect(new Range([1, 1], [2, 10]).translate([1,2], [3,4])).toEqual [[2, 3], [5, 14]]

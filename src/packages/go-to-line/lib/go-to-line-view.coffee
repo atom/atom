@@ -9,7 +9,7 @@ class GoToLineView extends View
   @activate: (rootView) -> new GoToLineView(rootView)
 
   @content: ->
-    @div class: 'go-to-line', =>
+    @div class: 'go-to-line overlay from-top mini', =>
       @subview 'miniEditor', new Editor(mini: true)
       @div class: 'message', outlet: 'message'
 

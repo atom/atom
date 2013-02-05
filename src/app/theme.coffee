@@ -1,5 +1,4 @@
-fs = require("fs")
-_ = require 'underscore'
+fs = require 'fs'
 
 module.exports =
 class Theme
@@ -12,7 +11,7 @@ class Theme
     if fs.exists(name)
       path = name
     else
-      path = fs.resolve(config.themeDirPaths..., name, ['', '.tmTheme'])
+      path = fs.resolve(config.themeDirPaths..., name, ['', '.tmTheme', '.css'])
 
     throw new Error("No theme exists named '#{name}'") unless path
 

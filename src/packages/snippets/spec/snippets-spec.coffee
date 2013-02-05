@@ -1,21 +1,20 @@
 Snippets = require 'snippets'
 Snippet = require 'snippets/src/snippet'
+LoadSnippetsTask = require 'snippets/src/load-snippets-task'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 _ = require 'underscore'
 fs = require 'fs'
-AtomPackage = require 'atom-package'
-TextMatePackage = require 'text-mate-package'
 
 describe "Snippets extension", ->
-  [buffer, editor] = []
+  [buffer, editor, editSession] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    spyOn(AtomPackage.prototype, 'loadSnippets')
-    spyOn(TextMatePackage.prototype, 'loadSnippets')
+    spyOn(LoadSnippetsTask.prototype, 'start')
     atom.loadPackage("snippets")
     editor = rootView.getActiveEditor()
+    editSession = rootView.getActiveEditSession()
     buffer = editor.getBuffer()
     rootView.simulateDomAttachment()
     rootView.enableKeymap()
@@ -44,15 +43,7 @@ describe "Snippets extension", ->
             prefix: "t3"
             body: """
               line 1
-                line 2$1
-
-            """
-
-          "tab stop placeholders":
-            prefix: "t4"
-            body: """
-              go here ${1:first
-              think a while}, and then here ${2:second}
+              \tline 2$1
 
             """
 
@@ -65,6 +56,15 @@ describe "Snippets extension", ->
             body: """
               first line$1
                 ${2:placeholder ending second line}
+            """
+
+          "contains empty lines":
+            prefix: "t7"
+            body: """
+              first line $1
+
+
+              fourth line after blanks $2
             """
 
     describe "when the letters preceding the cursor trigger a snippet", ->
@@ -120,16 +120,6 @@ describe "Snippets extension", ->
           expect(buffer.lineForRow(2)).toBe "go here next:(abc) and finally go here:(  )"
           expect(editor.activeEditSession.getAnchors().length).toBe anchorCountBefore
 
-        describe "when the tab stops have placeholder text", ->
-          it "auto-fills the placeholder text and highlights it when navigating to that tab stop", ->
-            editor.insertText 't4'
-            editor.trigger 'snippets:expand'
-            expect(buffer.lineForRow(0)).toBe 'go here first'
-            expect(buffer.lineForRow(1)).toBe 'think a while, and then here second'
-            expect(editor.getSelectedBufferRange()).toEqual [[0, 8], [1, 13]]
-            editor.trigger keydownEvent('tab', target: editor[0])
-            expect(editor.getSelectedBufferRange()).toEqual [[1, 29], [1, 35]]
-
         describe "when tab stops are nested", ->
           it "destroys the inner tab stop if the outer tab stop is modified", ->
             buffer.setText('')
@@ -140,6 +130,14 @@ describe "Snippets extension", ->
             editor.insertText("foo")
             editor.trigger keydownEvent('tab', target: editor[0])
             expect(editor.getSelectedBufferRange()).toEqual [[0, 5], [0, 10]]
+
+        describe "when tab stops are separated by blank lines", ->
+          it "correctly places the tab stops (regression)", ->
+            buffer.setText('')
+            editor.insertText 't7'
+            editor.trigger 'snippets:expand'
+            editor.trigger 'snippets:next-tab-stop'
+            expect(editSession.getCursorBufferPosition()).toEqual [3, 25]
 
         describe "when the cursor is moved beyond the bounds of a tab stop", ->
           it "terminates the snippet", ->
@@ -164,7 +162,24 @@ describe "Snippets extension", ->
             editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])
             expect(editor.getCursorBufferPosition()).toEqual [4, 15]
 
-      describe "when a the start of the snippet is indented", ->
+      describe "when the snippet contains hard tabs", ->
+        describe "when the edit session is in soft-tabs mode", ->
+          it "translates hard tabs in the snippet to the appropriate number of spaces", ->
+            expect(editSession.softTabs).toBeTruthy()
+            editor.insertText("t3")
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(buffer.lineForRow(1)).toBe "  line 2"
+            expect(editSession.getCursorBufferPosition()).toEqual [1, 8]
+
+        describe "when the edit session is in hard-tabs mode", ->
+          it "inserts hard tabs in the snippet directly", ->
+            editSession.setSoftTabs(false)
+            editor.insertText("t3")
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(buffer.lineForRow(1)).toBe "\tline 2"
+            expect(editSession.getCursorBufferPosition()).toEqual [1, 7]
+
+      describe "when the snippet prefix is indented", ->
         describe "when the snippet spans a single line", ->
           it "does not indent the next line", ->
             editor.setCursorScreenPosition([2, Infinity])
@@ -174,6 +189,7 @@ describe "Snippets extension", ->
 
         describe "when the snippet spans multiple lines", ->
           it "indents the subsequent lines of the snippet to be even with the start of the first line", ->
+            expect(editSession.softTabs).toBeTruthy()
             editor.setCursorScreenPosition([2, Infinity])
             editor.insertText ' t3'
             editor.trigger 'snippets:expand'
@@ -204,9 +220,10 @@ describe "Snippets extension", ->
     describe "when a snippet expansion is undone and redone", ->
       it "recreates the snippet's tab stops", ->
         editor.insertText '    t6\n'
-        editor.setCursorBufferPosition [0, 6]
+        editor.setCursorBufferPosition [0, Infinity]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "    first line"
+        expect(editor.getCursorBufferPosition()).toEqual [0, 14]
         editor.undo()
         editor.redo()
         expect(editor.getCursorBufferPosition()).toEqual [0, 14]
@@ -214,34 +231,68 @@ describe "Snippets extension", ->
         expect(editor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
 
   describe "snippet loading", ->
+    beforeEach ->
+      atom.packages = null
+      jasmine.unspy(LoadSnippetsTask.prototype, 'start')
+      spyOn(LoadSnippetsTask.prototype, 'loadAtomSnippets').andCallFake -> @snippetsLoaded({})
+      spyOn(LoadSnippetsTask.prototype, 'loadTextMateSnippets').andCallFake -> @snippetsLoaded({})
+
     it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
-      spyOn(console, 'warn').andCallThrough()
-      jasmine.unspy(AtomPackage.prototype, 'loadSnippets')
+      jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
+      spyOn(console, 'warn')
+      snippets.loaded = false
       snippets.loadAll()
 
-      expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
+      waitsFor "all snippets to load", 5000, -> snippets.loaded
 
-      # warn about junk-file, but don't even try to parse a hidden file
-      expect(console.warn).toHaveBeenCalled()
-      expect(console.warn.calls.length).toBeGreaterThan 0
+      runs ->
+        expect(syntax.getProperty(['.test'], 'snippets.test')?.constructor).toBe Snippet
+
+        # warn about junk-file, but don't even try to parse a hidden file
+        expect(console.warn).toHaveBeenCalled()
+        expect(console.warn.calls.length).toBe 1
 
     it "loads snippets from all TextMate packages with snippets", ->
-      jasmine.unspy(TextMatePackage.prototype, 'loadSnippets')
+      jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
+      spyOn(console, 'warn')
+      snippets.loaded = false
       snippets.loadAll()
 
-      snippet = syntax.getProperty(['.source.js'], 'snippets.fun')
-      expect(snippet.constructor).toBe Snippet
-      expect(snippet.prefix).toBe 'fun'
-      expect(snippet.name).toBe 'Function'
-      expect(snippet.body).toBe """
-        function function_name (argument) {
-        \t// body...
-        }
-      """
+      waitsFor "all snippets to load", 5000, -> snippets.loaded
 
-  describe "Snippets parser", ->
+      runs ->
+        snippet = syntax.getProperty(['.source.js'], 'snippets.fun')
+        expect(snippet.constructor).toBe Snippet
+        expect(snippet.prefix).toBe 'fun'
+        expect(snippet.name).toBe 'Function'
+        expect(snippet.body).toBe """
+          function function_name (argument) {
+          \t// body...
+          }
+        """
+
+        # warn about junk-file, but don't even try to parse a hidden file
+        expect(console.warn).toHaveBeenCalled()
+        expect(console.warn.calls.length).toBe 1
+
+    it "terminates the worker when loading completes", ->
+      jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
+      spyOn(console, "warn")
+      spyOn(Worker.prototype, 'terminate').andCallThrough()
+      snippets.loaded = false
+      snippets.loadAll()
+
+      waitsFor "all snippets to load", 5000, -> snippets.loaded
+
+      runs ->
+        expect(console.warn).toHaveBeenCalled()
+        expect(console.warn.argsForCall[0]).toMatch /Error reading snippets file '.*?\/spec\/fixtures\/packages\/package-with-snippets\/snippets\/junk-file'/
+        expect(Worker.prototype.terminate).toHaveBeenCalled()
+        expect(Worker.prototype.terminate.calls.length).toBe 1
+
+  describe "snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
-      bodyTree = snippets.parser.parse """
+      bodyTree = snippets.getBodyParser().parse """
         the quick brown $1fox ${2:jumped ${3:over}
         }the ${4:lazy} dog
       """
@@ -261,4 +312,17 @@ describe "Snippets extension", ->
         "the "
         { index: 4, content: ["lazy"] },
         " dog"
+      ]
+
+    it "removes interpolated variables in placeholder text (we don't currently support it)", ->
+      bodyTree = snippets.getBodyParser().parse """
+        module ${1:ActiveRecord::${TM_FILENAME/(?:\\A|_)([A-Za-z0-9]+)(?:\\.rb)?/(?2::\\u$1)/g}}
+      """
+
+      expect(bodyTree).toEqual [
+        "module ",
+        {
+          "index": 1,
+          "content": ["ActiveRecord::", ""]
+        }
       ]

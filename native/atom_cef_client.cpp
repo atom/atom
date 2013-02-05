@@ -80,6 +80,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "show") {
     Show(browser);
   }
+  else if (name == "toggleFullScreen") {
+    ToggleFullScreen(browser);
+  }
   else {
     return false;
   }
@@ -141,6 +144,8 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
     ToggleDevTools(browser);
   } else if (event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == '`') {
     FocusNextWindow();
+  } else if (event.modifiers == (EVENTFLAG_COMMAND_DOWN | EVENTFLAG_SHIFT_DOWN) && event.unmodified_character == '~') {
+    FocusPreviousWindow();
   }
   else {
     return false;

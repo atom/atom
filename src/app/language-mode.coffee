@@ -1,6 +1,7 @@
 Range = require 'range'
 _ = require 'underscore'
 require 'underscore-extensions'
+OnigRegExp = require 'onig-reg-exp'
 
 module.exports =
 class LanguageMode

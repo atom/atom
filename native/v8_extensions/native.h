@@ -1,24 +1,23 @@
 #include "include/cef_base.h"
 #include "include/cef_v8.h"
 
-
 namespace v8_extensions {
 
-class Native : public CefV8Handler {
-public:
-  Native();
+  class Native : public CefV8Handler {
+  public:
+    Native();
+    void CreateContextBinding(CefRefPtr<CefV8Context> context);
+    virtual bool Execute(const CefString& name,
+                                        CefRefPtr<CefV8Value> object,
+                                        const CefV8ValueList& arguments,
+                                        CefRefPtr<CefV8Value>& retval,
+                                        CefString& exception) OVERRIDE;
 
-  virtual bool Execute(const CefString& name,
-                                      CefRefPtr<CefV8Value> object,
-                                      const CefV8ValueList& arguments,
-                                      CefRefPtr<CefV8Value>& retval,
-                                      CefString& exception) OVERRIDE;
+    // Provide the reference counting implementation for this class.
+    IMPLEMENT_REFCOUNTING(Native);
 
-  // Provide the reference counting implementation for this class.
-  IMPLEMENT_REFCOUNTING(Native);
-
-private:
-  std::string windowState;
-};
-
+  private:
+    Native(Native const&);
+    void operator=(Native const&);
+  };
 }

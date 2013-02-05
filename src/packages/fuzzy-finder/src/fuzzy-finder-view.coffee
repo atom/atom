@@ -3,6 +3,7 @@ SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
 fs = require 'fs'
+LoadPathsTask = require 'fuzzy-finder/src/load-paths-task'
 
 module.exports =
 class FuzzyFinderView extends SelectList
@@ -12,7 +13,7 @@ class FuzzyFinderView extends SelectList
     @instance = new FuzzyFinderView(rootView)
 
   @viewClass: ->
-    [super, 'fuzzy-finder'].join(' ')
+    [super, 'fuzzy-finder', 'overlay', 'from-top'].join(' ')
 
   allowActiveEditorChange: null
   maxItems: 10
@@ -38,7 +39,9 @@ class FuzzyFinderView extends SelectList
     $$ ->
       @li =>
         ext = fs.extension(path)
-        if fs.isCompressedExtension(ext)
+        if fs.isReadme(path)
+          typeClass = 'readme-name'
+        else if fs.isCompressedExtension(ext)
           typeClass = 'compressed-name'
         else if fs.isImageExtension(ext)
           typeClass = 'image-name'
@@ -46,9 +49,9 @@ class FuzzyFinderView extends SelectList
           typeClass = 'pdf-name'
         else
           typeClass = 'text-name'
-        @span fs.base(path), class: "file #{typeClass}"
+        @span fs.base(path), class: "file label #{typeClass}"
         if folder = fs.directory(path)
-          @span "- #{folder}/", class: 'directory'
+          @span " - #{folder}/", class: 'directory'
 
   openPath: (path) ->
     @rootView.open(path, {@allowActiveEditorChange}) if path
@@ -126,16 +129,9 @@ class FuzzyFinderView extends SelectList
       @setLoading("Indexing...")
 
     if @reloadProjectPaths
-      @rootView.project.getFilePaths().done (paths) =>
-        ignoredNames = config.get("fuzzyFinder.ignoredNames") or []
-        ignoredNames = ignoredNames.concat(config.get("core.ignoredNames") or [])
+      @loadPathsTask?.terminate()
+      callback = (paths) =>
         @projectPaths = paths
-        if ignoredNames
-          @projectPaths = @projectPaths.filter (path) ->
-            for segment in path.split("/")
-              return false if _.contains(ignoredNames, segment)
-            return true
-
         @reloadProjectPaths = false
         listedItems =
           if options.filter?
@@ -146,6 +142,8 @@ class FuzzyFinderView extends SelectList
 
         @setArray(listedItems)
         options.done(listedItems) if options.done?
+      @loadPathsTask = new LoadPathsTask(@rootView, callback)
+      @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>

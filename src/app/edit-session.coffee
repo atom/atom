@@ -18,7 +18,7 @@ class EditSession
     if fs.exists(state.buffer)
       session = project.buildEditSessionForPath(state.buffer)
     else
-      console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists"
+      console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
       session = project.buildEditSessionForPath(null)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
@@ -211,6 +211,10 @@ class EditSession
   autoIndentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
+  normalizeTabsInBufferRange: (bufferRange) ->
+    return unless @softTabs
+    @scanInRange /\t/, bufferRange, (match, range, {replace}) => replace(@getTabText())
+
   cutToEndOfLine: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
@@ -251,8 +255,9 @@ class EditSession
       undo: (editSession) ->
         editSession?.setSelectedBufferRanges(oldSelectedRanges)
     if fn
-      fn()
+      result = fn()
       @commit() if isNewTransaction
+      result
 
   commit: ->
     newSelectedRanges = @getSelectedBufferRanges()
@@ -302,6 +307,13 @@ class EditSession
     fold.destroy()
     @setCursorBufferPosition([fold.startRow, 0])
 
+  isFoldedAtCursorRow: ->
+    @isFoldedAtScreenRow(@getCursorScreenRow())
+
+  isFoldedAtBufferRow: (bufferRow) ->
+    screenRow = @screenPositionForBufferPosition([bufferRow]).row
+    @isFoldedAtScreenRow(screenRow)
+
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow)?.fold?
 
@@ -328,6 +340,99 @@ class EditSession
 
   toggleLineCommentsForBufferRows: (start, end) ->
     @languageMode.toggleLineCommentsForBufferRows(start, end)
+
+  moveLineUp: ->
+    selection = @getSelectedBufferRange()
+    return if selection.start.row is 0
+    lastRow = @buffer.getLastRow()
+    return if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
+
+    @transact =>
+      foldedRows = []
+      rows = [selection.start.row..selection.end.row]
+      if selection.start.row isnt selection.end.row and selection.end.column is 0
+        rows.pop() unless @isFoldedAtBufferRow(selection.end.row)
+      for row in rows
+        screenRow = @screenPositionForBufferPosition([row]).row
+        if @isFoldedAtScreenRow(screenRow)
+          bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+          startRow = bufferRange.start.row
+          endRow = bufferRange.end.row - 1
+          foldedRows.push(endRow - 1)
+        else
+          startRow = row
+          endRow = row
+
+        endPosition = Point.min([endRow + 1], @buffer.getEofPosition())
+        lines = @buffer.getTextInRange([[startRow], endPosition])
+        if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
+          lines = "#{lines}\n"
+        @buffer.deleteRows(startRow, endRow)
+        @buffer.insert([startRow - 1], lines)
+
+      @foldBufferRow(foldedRow) for foldedRow in foldedRows
+
+      @setSelectedBufferRange(selection.translate([-1]), preserveFolds: true)
+
+  moveLineDown: ->
+    selection = @getSelectedBufferRange()
+    lastRow = @buffer.getLastRow()
+    return if selection.end.row is lastRow
+    return if selection.end.row is lastRow - 1 and @buffer.getLastLine() is ''
+
+    @transact =>
+      foldedRows = []
+      rows = [selection.end.row..selection.start.row]
+      if selection.start.row isnt selection.end.row and selection.end.column is 0
+        rows.shift() unless @isFoldedAtBufferRow(selection.end.row)
+      for row in rows
+        screenRow = @screenPositionForBufferPosition([row]).row
+        if @isFoldedAtScreenRow(screenRow)
+          bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+          startRow = bufferRange.start.row
+          endRow = bufferRange.end.row - 1
+          foldedRows.push(endRow + 1)
+        else
+          startRow = row
+          endRow = row
+
+        if endRow + 1 is lastRow
+          endPosition = [endRow, @buffer.lineLengthForRow(endRow)]
+        else
+          endPosition = [endRow + 1]
+        lines = @buffer.getTextInRange([[startRow], endPosition])
+        @buffer.deleteRows(startRow, endRow)
+        insertPosition = Point.min([startRow + 1], @buffer.getEofPosition())
+        if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
+          lines = "\n#{lines}"
+        @buffer.insert(insertPosition, lines)
+
+      @foldBufferRow(foldedRow) for foldedRow in foldedRows
+
+      @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
+
+  duplicateLine: ->
+    return unless @getSelection().isEmpty()
+
+    @transact =>
+      cursorPosition = @getCursorBufferPosition()
+      cursorRowFolded = @isFoldedAtCursorRow()
+      if cursorRowFolded
+        screenRow = @screenPositionForBufferPosition(cursorPosition).row
+        bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+      else
+        bufferRange = new Range([cursorPosition.row], [cursorPosition.row + 1])
+
+      insertPosition = new Point(bufferRange.end.row)
+      if insertPosition.row >= @buffer.getLastRow()
+        @unfoldCurrentRow() if cursorRowFolded
+        @buffer.append("\n#{@getTextInBufferRange(bufferRange)}")
+        @foldCurrentRow() if cursorRowFolded
+      else
+        @buffer.insert(insertPosition, @getTextInBufferRange(bufferRange))
+
+      @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
+      @foldCurrentRow() if cursorRowFolded
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()

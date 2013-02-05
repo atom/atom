@@ -1,0 +1,23 @@
+.select-list {
+  background-color: #e5e5e5;
+  border: 1px solid #c6c6c6;
+  color: #323232;
+  box-shadow: 0 0 10px #555;
+}
+
+.select-list ol {
+  border: 1px solid #d2d2d2;
+}
+
+.select-list ol li {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ccc;
+}
+
+.select-list li:hover {
+  background-color: #f9f9f9;
+}
+
+.select-list ol .selected {
+  background-color: #e0e0e0;
+}
