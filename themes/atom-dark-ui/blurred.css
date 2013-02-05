@@ -3,7 +3,7 @@
 }
 
 .is-blurred .tree-view * {
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 .is-blurred .tabs {

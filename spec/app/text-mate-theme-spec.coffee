@@ -27,12 +27,12 @@ describe "TextMateTheme", ->
           'color': '#F8F8F8'
 
       expect(rulesets[1]).toEqual
-        selector: '.editor .cursor'
+        selector: '.editor.is-focused .cursor'
         properties:
           'border-color': '#A7A7A7'
 
       expect(rulesets[2]).toEqual
-        selector: '.editor .selection .region'
+        selector: '.editor.is-focused .selection .region'
         properties:
           'background-color': "rgba(221, 240, 255, 0.2)"
 
