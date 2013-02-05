@@ -76,6 +76,10 @@
   opacity: 1;
 }
 
+.editor.is-blurred .line.cursor-line {
+  opacity: 0;
+}
+
 .editor .invisible {
   opacity: 0.2;
 }
@@ -155,4 +159,8 @@
   position: absolute;
   pointer-events: none;
   z-index: -1;
+}
+
+.editor.is-blurred .selection .region {
+  opacity: 0;
 }
