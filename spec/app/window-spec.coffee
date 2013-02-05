@@ -17,7 +17,7 @@ describe "Window", ->
     it "doesn't have .is-blurred on the body tag", ->
       expect($("body")).not.toHaveClass("is-blurred")
 
-  fdescribe "when the window is blurred", ->
+  describe "when the window is blurred", ->
     beforeEach ->
       $(window).trigger 'blur'
 
