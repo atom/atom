@@ -21,7 +21,8 @@ class BracketMatcher extends AtomPackage
     rootView.eachEditor (editor) => @subscribeToEditor(editor) if editor.attached
 
   subscribeToEditor: (editor) ->
-    editor.on 'cursor:moved', => @updateMatch(editor)
+    editor.on 'cursor:moved.bracket-matcher', => @updateMatch(editor)
+    editor.on 'editor:will-be-removed', => editor.off('.bracket-matcher')
 
   createView: (editor, bufferPosition) ->
     pixelPosition = editor.pixelPositionForBufferPosition(bufferPosition)
