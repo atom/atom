@@ -22,11 +22,31 @@ class BracketMatcher extends AtomPackage
 
   subscribeToEditor: (editor) ->
     editor.on 'cursor:moved.bracket-matcher', => @updateMatch(editor)
+    editor.command 'editor:go-to-matching-bracket', => @goToMatchingPair(editor)
     editor.on 'editor:will-be-removed', => editor.off('.bracket-matcher')
+
+  goToMatchingPair: (editor) ->
+    return unless @pairHighlighted
+    return unless underlayer = editor.pane()?.find('.underlayer')
+
+    position = editor.getCursorBufferPosition()
+    previousPosition = position.translate([0, -1])
+    startPosition = underlayer.find('.bracket-matcher:first').data('bufferPosition')
+    endPosition = underlayer.find('.bracket-matcher:last').data('bufferPosition')
+
+    if position.isEqual(startPosition)
+      editor.setCursorBufferPosition(endPosition.translate([0, 1]))
+    else if previousPosition.isEqual(startPosition)
+      editor.setCursorBufferPosition(endPosition)
+    else if position.isEqual(endPosition)
+      editor.setCursorBufferPosition(startPosition.translate([0, 1]))
+    else if previousPosition.isEqual(endPosition)
+      editor.setCursorBufferPosition(startPosition)
 
   createView: (editor, bufferPosition) ->
     pixelPosition = editor.pixelPositionForBufferPosition(bufferPosition)
     view = $$ -> @div class: 'bracket-matcher'
+    view.data('bufferPosition', bufferPosition)
     view.css('top', pixelPosition.top).css('left', pixelPosition.left)
     view.width(editor.charWidth).height(editor.charHeight)
 
@@ -90,6 +110,10 @@ class BracketMatcher extends AtomPackage
         matchPosition = @findMatchingStartPair(buffer, position, matchingPair, currentPair)
 
     if position? and matchPosition?
-      underlayer.append(@createView(editor, position))
-      underlayer.append(@createView(editor, matchPosition))
+      if position.isLessThan(matchPosition)
+        underlayer.append(@createView(editor, position))
+        underlayer.append(@createView(editor, matchPosition))
+      else
+        underlayer.append(@createView(editor, matchPosition))
+        underlayer.append(@createView(editor, position))
       @pairHighlighted = true
