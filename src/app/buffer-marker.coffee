@@ -36,7 +36,7 @@ class BufferMarker
 
   getHeadPosition: -> @headPosition
 
-  getTailPosition: -> @tailPosition
+  getTailPosition: -> @tailPosition ? @getHeadPosition()
 
   setHeadPosition: (newHeadPosition, options={}) ->
     oldHeadPosition = @getHeadPosition()
@@ -65,11 +65,12 @@ class BufferMarker
     @getRange().end
 
   placeTail: ->
-    @setTailPosition(@headPosition) unless @tailPosition
+    @setTailPosition(@getHeadPosition()) unless @tailPosition
 
   clearTail: ->
     oldTailPosition = @getTailPosition()
-    @tailPosition = newTailPosition = null
+    @tailPosition = null
+    newTailPosition = @getTailPosition()
     @notifyObservers({oldTailPosition, newTailPosition, bufferChanged: false})
 
   tryToInvalidate: (oldRange) ->

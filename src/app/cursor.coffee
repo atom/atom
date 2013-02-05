@@ -13,9 +13,18 @@ class Cursor
 
   constructor: ({@editSession, @marker}) ->
     @editSession.observeMarker @marker, (e) =>
+      @setVisible(@selection.isEmpty())
       @needsAutoscroll ?= @isLastCursor() and !e.bufferChanged
-      @trigger 'moved', e
-      @editSession.trigger 'cursor-moved', e
+
+      event =
+        oldBufferPosition: e.oldHeadBufferPosition
+        oldScreenPosition: e.oldHeadScreenPosition
+        newBufferPosition: e.newHeadBufferPosition
+        newScreenPosition: e.newHeadScreenPosition
+        bufferChanged: e.bufferChanged
+
+      @trigger 'moved', event
+      @editSession.trigger 'cursor-moved', event
     @needsAutoscroll = true
 
   destroy: ->
@@ -27,7 +36,10 @@ class Cursor
     @goalColumn = null
     @clearSelection()
     @needsAutoscroll = (options.autoscroll ? true) and @isLastCursor()
-    @editSession.setMarkerHeadScreenPosition(@marker, screenPosition, options)
+    if @getScreenPosition().isEqual(screenPosition)
+      @trigger 'autoscrolled' if @needsAutoscroll
+    else
+      @editSession.setMarkerHeadScreenPosition(@marker, screenPosition, options)
 
   getScreenPosition: ->
     @editSession.getMarkerHeadScreenPosition(@marker)
@@ -36,7 +48,10 @@ class Cursor
     @goalColumn = null
     @clearSelection()
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
-    @editSession.setMarkerHeadBufferPosition(@marker, bufferPosition, options)
+    if @getBufferPosition().isEqual(bufferPosition)
+      @trigger 'autoscrolled' if @needsAutoscroll
+    else
+      @editSession.setMarkerHeadBufferPosition(@marker, bufferPosition, options)
 
   getBufferPosition: ->
     @editSession.getMarkerHeadBufferPosition(@marker)
@@ -44,7 +59,7 @@ class Cursor
   setVisible: (visible) ->
     if @visible != visible
       @visible = visible
-      @needsAutoscroll = @visible and @isLastCursor()
+      @needsAutoscroll ?= true if @visible and @isLastCursor()
       @trigger 'visibility-changed', @visible
 
   isVisible: -> @visible

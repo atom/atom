@@ -46,6 +46,19 @@ describe "EditSession", ->
         expect(editSession.getCursors()).toEqual [cursor1]
         expect(editSession.getCursorScreenPosition()).toEqual [4, 7]
 
+      it "emits a cursor-moved event with the old and new positions in both coordinates", ->
+        cursorMovedHandler = jasmine.createSpy("cursorMovedHandler")
+        editSession.on 'cursor-moved', cursorMovedHandler
+        editSession.foldBufferRow(4)
+        editSession.setCursorScreenPosition([5, 1])
+        expect(cursorMovedHandler).toHaveBeenCalledWith(
+          oldBufferPosition: [0, 0]
+          oldScreenPosition: [0, 0]
+          newBufferPosition: [8, 0]
+          newScreenPosition: [5, 0]
+          bufferChanged: false
+        )
+
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
           editSession.setSoftWrapColumn(50)

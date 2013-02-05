@@ -1096,13 +1096,16 @@ describe "Editor", ->
 
         it "does not autoscroll if the 'autoscroll' option is false", ->
           editor.setCursorBufferPosition([11,0])
-
           spyOn(editor, 'scrollToPixelPosition')
           editor.setCursorScreenPosition([10, 10], autoscroll: false)
           expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
 
-          # autoscrolls on a subsequent change, however
-          editor.setCursorScreenPosition([10, 10])
+        it "autoscrolls to cursor if autoscroll is true, even if the position does not change", ->
+          spyOn(editor, 'scrollToPixelPosition')
+          editor.setCursorScreenPosition([4, 10], autoscroll: false)
+          editor.setCursorScreenPosition([4, 10])
+          expect(editor.scrollToPixelPosition).toHaveBeenCalled()
+          editor.setCursorBufferPosition([4, 10])
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
 
         describe "when the last cursor exceeds the upper or lower scroll margins", ->

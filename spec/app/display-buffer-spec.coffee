@@ -590,7 +590,7 @@ describe "DisplayBuffer", ->
     it "returns the length of the longest screen line", ->
       expect(displayBuffer.maxLineLength()).toBe 65
 
-  fdescribe "markers", ->
+  describe "markers", ->
     beforeEach ->
       displayBuffer.foldBufferRow(4)
 

@@ -666,7 +666,7 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
 
-  fdescribe "markers", ->
+  describe "markers", ->
     describe "marker creation", ->
       it "allows markers to be created with ranges and positions", ->
         marker1 = buffer.markRange([[4, 20], [4, 23]])
@@ -677,7 +677,7 @@ describe 'Buffer', ->
         marker2 = buffer.markPosition([4, 20])
         expect(buffer.getMarkerRange(marker2)).toEqual [[4, 20], [4, 20]]
         expect(buffer.getMarkerPosition(marker2)).toEqual [4, 20]
-        expect(buffer.getMarkerTailPosition(marker2)).toBeNull()
+        expect(buffer.getMarkerTailPosition(marker2)).toEqual [4, 20]
 
       it "allows markers to be created in a reversed orientation", ->
         marker = buffer.markRange([[4, 20], [4, 23]], reverse: true)
@@ -713,7 +713,7 @@ describe 'Buffer', ->
         expect(buffer.getMarkerRange(marker)).toEqual [[2, 0], [4, 23]]
         expect(buffer.isMarkerReversed(marker)).toBeTruthy()
 
-    fdescribe ".observeMarker(marker, callback)", ->
+    describe ".observeMarker(marker, callback)", ->
       [observeHandler, marker, subscription] = []
 
       beforeEach ->
@@ -771,7 +771,7 @@ describe 'Buffer', ->
           oldHeadPosition: [4, 23]
           newHeadPosition: [4, 23]
           oldTailPosition: [4, 20]
-          newTailPosition: null
+          newTailPosition: [4, 23]
           bufferChanged: false
         }
 

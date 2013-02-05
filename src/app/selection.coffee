@@ -68,7 +68,6 @@ class Selection
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @trigger 'screen-range-changed', screenRange
-    @cursor?.setVisible(screenRange.isEmpty())
 
   getText: ->
     @editSession.buffer.getTextInRange(@getBufferRange())
