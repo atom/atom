@@ -765,6 +765,10 @@ class EditSession
       true
     else
       false
+
+  markersForBufferPosition: (bufferPosition) ->
+    @buffer.markersForPosition(bufferPosition)
+
   mergeCursors: ->
     positions = []
     for cursor in @getCursors()

@@ -139,7 +139,7 @@ describe "Snippets extension", ->
             editor.trigger 'snippets:next-tab-stop'
             expect(editSession.getCursorBufferPosition()).toEqual [3, 25]
 
-        describe "when the cursor is moved beyond the bounds of a tab stop", ->
+        describe "when the cursor is moved beyond the bounds of the current tab stop", ->
           it "terminates the snippet", ->
             editor.setCursorScreenPosition([2, 0])
             editor.insertText('t2')

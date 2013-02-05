@@ -4,10 +4,11 @@ _ = require 'underscore'
 module.exports =
 class SnippetExpansion
   snippet: null
-  tabStopAnchorRanges: null
+  tabStopMarkers: null
   settingTabStop: false
 
   constructor: (@snippet, @editSession) ->
+
     @editSession.selectToBeginningOfWord()
     startPosition = @editSession.getCursorBufferPosition()
     @editSession.transact =>
@@ -16,7 +17,7 @@ class SnippetExpansion
         editSession.pushOperation
           do: =>
             @subscribe @editSession, 'cursor-moved.snippet-expansion', (e) => @cursorMoved(e)
-            @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
+            @placeTabStopMarkers(startPosition, snippet.tabStops)
             @editSession.snippetExpansion = this
           undo: => @destroy()
         @editSession.normalizeTabsInBufferRange(newRange)
@@ -28,12 +29,9 @@ class SnippetExpansion
     newTabStops = @tabStopsForBufferPosition(newBufferPosition)
     @destroy() unless _.intersect(oldTabStops, newTabStops).length
 
-  placeTabStopAnchorRanges: (startPosition, tabStopRanges) ->
-    @tabStopAnchorRanges = tabStopRanges.map ({start, end}) =>
-      anchorRange = @editSession.addAnchorRange([startPosition.add(start), startPosition.add(end)])
-      @subscribe anchorRange, 'destroyed', =>
-        _.remove(@tabStopAnchorRanges, anchorRange)
-      anchorRange
+  placeTabStopMarkers: (startPosition, tabStopRanges) ->
+    @tabStopMarkers = tabStopRanges.map ({start, end}) =>
+      @editSession.markBufferRange([startPosition.add(start), startPosition.add(end)])
     @setTabStopIndex(0)
 
   indentSubsequentLines: (startRow, snippet) ->
@@ -43,46 +41,35 @@ class SnippetExpansion
 
   goToNextTabStop: ->
     nextIndex = @tabStopIndex + 1
-    if @cursorIsInsideTabStops() and nextIndex < @tabStopAnchorRanges.length
-      @setTabStopIndex(nextIndex)
-      true
+    if nextIndex < @tabStopMarkers.length
+      if @setTabStopIndex(nextIndex)
+        true
+      else
+        @goToNextTabStop()
     else
       @destroy()
       false
 
   goToPreviousTabStop: ->
-    if @cursorIsInsideTabStops()
-      @setTabStopIndex(@tabStopIndex - 1) if @tabStopIndex > 0
-      true
-    else
-      @destroy()
-      false
-
-  ensureValidTabStops: ->
-    @tabStopAnchorRanges? and @destroyIfCursorIsOutsideTabStops()
+    @setTabStopIndex(@tabStopIndex - 1) if @tabStopIndex > 0
 
   setTabStopIndex: (@tabStopIndex) ->
     @settingTabStop = true
-    @editSession.setSelectedBufferRange(@tabStopAnchorRanges[@tabStopIndex].getBufferRange())
+    markerSelected = @editSession.selectMarker(@tabStopMarkers[@tabStopIndex])
     @settingTabStop = false
-
-  cursorIsInsideTabStops: ->
-    position = @editSession.getCursorBufferPosition()
-    for anchorRange in @tabStopAnchorRanges
-      return true if anchorRange.containsBufferPosition(position)
-    false
+    markerSelected
 
   tabStopsForBufferPosition: (bufferPosition) ->
-    _.intersection(@tabStopAnchorRanges, @editSession.anchorRangesForBufferPosition(bufferPosition))
+    _.intersection(@tabStopMarkers, @editSession.markersForBufferPosition(bufferPosition))
 
   destroy: ->
     @unsubscribe()
-    anchorRange.destroy() for anchorRange in @tabStopAnchorRanges
+    @editSession.destroyMarker(marker) for marker in @tabStopMarkers
     @editSession.snippetExpansion = null
 
   restore: (@editSession) ->
     @editSession.snippetExpansion = this
-    @tabStopAnchorRanges = @tabStopAnchorRanges.map (anchorRange) =>
-      @editSession.addAnchorRange(anchorRange.getBufferRange())
+#     @tabStopMarkers = @tabStopMarkers.map (anchorRange) =>
+#       @editSession.addAnchorRange(anchorRange.getBufferRange())
 
 _.extend(SnippetExpansion.prototype, Subscriber)
