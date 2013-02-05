@@ -759,6 +759,12 @@ class EditSession
   expandLastSelectionOverWord: ->
     @getLastSelection().expandOverWord()
 
+  selectMarker: (id) ->
+    if bufferRange = @getMarkerBufferRange(id)
+      @setSelectedBufferRange(bufferRange)
+      true
+    else
+      false
   mergeCursors: ->
     positions = []
     for cursor in @getCursors()
