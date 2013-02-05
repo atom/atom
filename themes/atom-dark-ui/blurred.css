@@ -1,0 +1,11 @@
+.is-blurred .tree-view {
+  background-color: #222;
+}
+
+.is-blurred .tree-view * {
+  opacity: 0.9;
+}
+
+.is-blurred .tabs {
+  opacity: 0.8;
+}
