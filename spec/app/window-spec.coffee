@@ -13,13 +13,24 @@ describe "Window", ->
     atom.setRootViewStateForPath(rootView.project.getPath(), null)
     $(window).off 'beforeunload'
 
-  describe "window is loaded", ->
+  describe "when the window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->
-      expect($("body").hasClass("is-blurred")).toBe false
+      expect($("body")).not.toHaveClass("is-blurred")
 
-    it "does have .is-blurred on the window blur event", ->
-      $(window).blur()
-      expect($("body").hasClass("is-blurred")).toBe true
+  fdescribe "when the window is blurred", ->
+    beforeEach ->
+      $(window).trigger 'blur'
+
+    afterEach ->
+      $('body').removeClass('is-blurred')
+
+    it "adds the .is-blurred class on the body", ->
+      expect($("body")).toHaveClass("is-blurred")
+
+    describe "when the window is focused again", ->
+      it "removes the .is-blurred class from the body", ->
+        $(window).trigger 'focus'
+        expect($("body")).not.toHaveClass("is-blurred")
 
   describe ".close()", ->
     it "is triggered by the 'core:close' event", ->
