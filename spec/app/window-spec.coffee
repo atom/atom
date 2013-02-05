@@ -15,10 +15,11 @@ describe "Window", ->
 
   describe "window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->
+      $(window).trigger 'window:focus'
       expect($("body").hasClass("is-blurred")).toBe false
 
     it "does have .is-blurred on the window blur event", ->
-      $(window).blur()
+      $(window).trigger 'window:blur'
       expect($("body").hasClass("is-blurred")).toBe true
 
   describe ".close()", ->
