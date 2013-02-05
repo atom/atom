@@ -1103,6 +1103,8 @@ describe "Editor", ->
           editor.setCursorScreenPosition([4, 10], autoscroll: false)
           editor.setCursorScreenPosition([4, 10])
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
+          editor.scrollToPixelPosition.reset()
+
           editor.setCursorBufferPosition([4, 10])
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
 
