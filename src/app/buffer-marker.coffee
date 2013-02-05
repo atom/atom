@@ -121,6 +121,9 @@ class BufferMarker
   unobserve: (callback) ->
     _.remove(@observers, callback)
 
+  containsPoint: (point) ->
+    @getRange().containsPoint(point)
+
   notifyObservers: ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}) ->
     return if @suppressObserverNotification
     return if _.isEqual(newHeadPosition, oldHeadPosition) and _.isEqual(newTailPosition, oldTailPosition)

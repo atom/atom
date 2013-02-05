@@ -928,6 +928,15 @@ describe 'Buffer', ->
           buffer.undo()
           expect(buffer.getMarkerRange(marker4)).toEqual [[4, 20], [4, 23]]
 
+    describe ".markersForPosition(position)", ->
+      it "returns all markers that intersect the given position", ->
+        m1 = buffer.markRange([[3, 4], [3, 10]])
+        m2 = buffer.markRange([[3, 4], [3, 5]])
+        m3 = buffer.markPosition([3, 5])
+        expect(_.difference(buffer.markersForPosition([3, 5]), [m1, m2, m3]).length).toBe 0
+        expect(_.difference(buffer.markersForPosition([3, 4]), [m1, m2]).length).toBe 0
+        expect(_.difference(buffer.markersForPosition([3, 10]), [m1]).length).toBe 0
+
   describe "anchors", ->
     [anchor, destroyHandler] = []
 

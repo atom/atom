@@ -273,7 +273,7 @@ class Buffer
 
   markRange: (range, options={}) ->
     marker = new BufferMarker(_.defaults({
-      id: @nextMarkerId++
+      id: (@nextMarkerId++).toString()
       buffer: this
       range
     }, options))
@@ -322,6 +322,13 @@ class Buffer
 
   observeMarker: (id, callback) ->
     @validMarkers[id]?.observe(callback)
+
+  markersForPosition: (bufferPosition) ->
+    bufferPosition = Point.fromObject(bufferPosition)
+    ids = []
+    for id, marker of @validMarkers
+      ids.push(id) if marker.containsPoint(bufferPosition)
+    ids
 
   getAnchors: -> new Array(@anchors...)
 
