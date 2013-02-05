@@ -22,7 +22,8 @@ class BracketMatcher extends AtomPackage
 
   subscribeToEditor: (editor) ->
     editor.on 'cursor:moved.bracket-matcher', => @updateMatch(editor)
-    editor.command 'editor:go-to-matching-bracket', => @goToMatchingPair(editor)
+    editor.command 'editor:go-to-matching-bracket.bracket-matcher', =>
+      @goToMatchingPair(editor)
     editor.on 'editor:will-be-removed', => editor.off('.bracket-matcher')
 
   goToMatchingPair: (editor) ->
