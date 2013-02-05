@@ -1,11 +1,21 @@
 .is-blurred .tree-view {
-  background-color: #222;
-}
-
-.is-blurred .tree-view * {
-  opacity: 0.95;
+  background-color: #2a2a2a;
 }
 
 .is-blurred .tabs {
   opacity: 0.8;
+  border-bottom-color: #525252;
+}
+
+.is-blurred .tab {
+  background-image: -webkit-linear-gradient(#444, #555);
+}
+
+.is-blurred .tab.active {
+  border: 1px solid #525252
+}
+
+.is-blurred .tab.active:before {
+  box-shadow: 2px 2px 0 #525252;
+  border-color: #696969;
 }
