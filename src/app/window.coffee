@@ -52,8 +52,8 @@ windowAdditions =
       atom.setWindowState('pathToOpen', @rootView.project.getPath())
       @rootView.deactivate()
       @rootView = null
-    $(window).unbind('focus')
-    $(window).unbind('blur')
+    $(window).off('focus')
+    $(window).off('blur')
     $(window).off('before')
 
   setUpKeymap: ->
