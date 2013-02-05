@@ -25,11 +25,12 @@
   background-color: #69717b;
 }
 
-.is-blurred .tree-view:focus .selected > .highlight {
-  border-top: 1px solid #3D4552;
-  border-bottom: 1px solid #3D4552;
+.is-blurred .tree-view .selected > .highlight {
+  box-sizing: border-box;
+  border-top: 1px solid #97a4a7;
+  border-bottom: 1px solid #97a4a7;
   background-image: none;
-  background-color: #69717b;
+  background-color: #DFDFDF;
 }
 
 .is-blurred .tree-view .name:before {
