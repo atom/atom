@@ -1,7 +1,13 @@
+Range = require 'range'
 _ = require 'underscore'
 
 module.exports =
 class DisplayBufferMarker
+  observers: null
+  bufferMarkerSubscription: null
+  previousHeadScreenPosition: null
+  previousTailScreenPosition: null
+
   constructor: ({@id, @displayBuffer}) ->
     @buffer = @displayBuffer.buffer
 
@@ -18,7 +24,7 @@ class DisplayBufferMarker
     @buffer.setMarkerRange(@id, bufferRange, options)
 
   getHeadScreenPosition: ->
-    @headScreenPosition ?= @displayBuffer.screenPositionForBufferPosition(@getHeadBufferPosition(), wrapAtSoftNewlines: true)
+    @displayBuffer.screenPositionForBufferPosition(@getHeadBufferPosition(), wrapAtSoftNewlines: true)
 
   setHeadScreenPosition: (screenPosition, options) ->
     screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
@@ -31,7 +37,8 @@ class DisplayBufferMarker
     @buffer.setMarkerHeadPosition(@id, bufferPosition)
 
   getTailScreenPosition: ->
-    @getMarker(@id).getTailScreenPosition()
+    if tailBufferPosition = @getTailBufferPosition()
+      @displayBuffer.screenPositionForBufferPosition(tailBufferPosition, wrapAtSoftNewlines: true)
 
   setTailScreenPosition: (screenPosition, options) ->
     screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
@@ -49,44 +56,60 @@ class DisplayBufferMarker
   clearTail: ->
     @buffer.clearMarkerTail(@id)
 
-  observeHeadPosition: (callback) ->
-    unless @headObservers
-      @observeBufferMarkerHeadPosition()
-      @displayBuffer.markers[@id] = this
-      @headObservers = []
-    @headObservers.push(callback)
-    cancel: => @unobserveHeadPosition(callback)
+  observe: (callback) ->
+    @observeBufferMarkerIfNeeded()
+    @observers.push(callback)
+    cancel: => @unobserve(callback)
 
-  unobserveHeadPosition: (callback) ->
-    _.remove(@headObservers, callback)
-    @unsubscribe() unless @headObservers.length
+  unobserve: (callback) ->
+    _.remove(@observers, callback)
+    @unobserveBufferMarkerIfNeeded()
 
-  observeBufferMarkerHeadPosition: ->
-    @getHeadScreenPosition()
-    @bufferMarkerHeadSubscription =
-      @buffer.observeMarkerHeadPosition @id, (e) =>
-        bufferChanged = e.bufferChanged
-        oldBufferPosition = e.oldPosition
-        newBufferPosition = e.newPosition
-        @refreshHeadScreenPosition({bufferChanged, oldBufferPosition, newBufferPosition})
+  observeBufferMarkerIfNeeded: ->
+    return if @observers
+    @observers = []
+    @previousHeadScreenPosition = @getHeadScreenPosition()
+    @previousTailScreenPosition = @getTailScreenPosition()
+    @bufferMarkerSubscription =
+      @buffer.observeMarker @id, ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}) =>
+        @notifyObservers
+          oldHeadBufferPosition: oldHeadPosition
+          newHeadBufferPosition: newHeadPosition
+          oldTailBufferPosition: oldTailPosition
+          newTailBufferPosition: newTailPosition
+          bufferChanged: bufferChanged
+    @displayBuffer.markers[@id] = this
 
-  refreshHeadScreenPosition: ({bufferChanged, oldBufferPosition, newBufferPosition}={}) ->
-    unless bufferChanged
-      oldBufferPosition ?= @getHeadBufferPosition()
-      newBufferPosition ?= oldBufferPosition
-    oldScreenPosition = @getHeadScreenPosition()
-    @headScreenPosition = null
-    newScreenPosition = @getHeadScreenPosition()
-
-    unless newScreenPosition.isEqual(oldScreenPosition)
-      @notifyHeadObservers({ oldBufferPosition, newBufferPosition, oldScreenPosition, newScreenPosition, bufferChanged })
-
-  notifyHeadObservers: (event) ->
-    observer(event) for observer in @getHeadObservers()
-
-  getHeadObservers: ->
-    new Array(@headObservers...)
-
-  unsubscribe: ->
-    @bufferMarkerHeadSubscription.cancel()
+  unobserveBufferMarkerIfNeeded: ->
+    return if @observers.length
+    @observers = null
+    @bufferMarkerSubscription.cancel()
     delete @displayBuffer.markers[@id]
+
+  notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged}) ->
+    oldHeadScreenPosition = @previousHeadScreenPosition
+    newHeadScreenPosition = @getHeadScreenPosition()
+    @previousHeadScreenPosition = newHeadScreenPosition
+
+    oldTailScreenPosition = @previousTailScreenPosition
+    newTailScreenPosition = @getTailScreenPosition()
+    @previousTailScreenPosition = newTailScreenPosition
+
+    return if _.isEqual(newHeadScreenPosition, oldHeadScreenPosition) and _.isEqual(newTailScreenPosition, oldTailScreenPosition)
+
+    oldHeadBufferPosition ?= @getHeadBufferPosition()
+    newHeadBufferPosition = @getHeadBufferPosition()
+    oldTailBufferPosition ?= @getTailBufferPosition()
+    newTailBufferPosition = @getTailBufferPosition()
+
+    for observer in @getObservers()
+      observer({
+        oldHeadScreenPosition, newHeadScreenPosition,
+        oldTailScreenPosition, newTailScreenPosition,
+        oldHeadBufferPosition, newHeadBufferPosition,
+        oldTailBufferPosition, newTailBufferPosition,
+        bufferChanged
+      })
+
+  getObservers: ->
+    new Array(@observers...)

@@ -10,10 +10,7 @@ class Selection
 
   constructor: ({@cursor, @marker, @editSession}) ->
     @cursor.selection = this
-
-    @cursor.on 'moved.selection', ({bufferChange}) =>
-      @screenRangeChanged() unless bufferChange
-
+    @editSession.observeMarker @marker, => @screenRangeChanged()
     @cursor.on 'destroyed.selection', =>
       @cursor = null
       @destroy()
@@ -78,7 +75,6 @@ class Selection
 
   clear: ->
     @editSession.clearMarkerTail(@marker)
-    @screenRangeChanged()
 
   selectWord: ->
     options = {}
