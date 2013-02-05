@@ -69,7 +69,5 @@ class SnippetExpansion
 
   restore: (@editSession) ->
     @editSession.snippetExpansion = this
-#     @tabStopMarkers = @tabStopMarkers.map (anchorRange) =>
-#       @editSession.addAnchorRange(anchorRange.getBufferRange())
 
 _.extend(SnippetExpansion.prototype, Subscriber)
