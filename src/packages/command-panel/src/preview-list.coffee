@@ -2,6 +2,7 @@ $ = require 'jquery'
 {$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
 _ = require 'underscore'
+fs = require 'fs'
 
 module.exports =
 class PreviewList extends ScrollView
@@ -34,7 +35,9 @@ class PreviewList extends ScrollView
       operation.index = index for operation, index in operations
       operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
       for path, ops of operationsByPath
-        @li class: 'path', =>
+        classes = ['path']
+        classes.push('readme') if fs.isReadme(path)
+        @li class: classes.join(' '), =>
           @span path
           @span "(#{ops.length})", class: 'path-match-number'
         for operation in ops
@@ -83,7 +86,7 @@ class PreviewList extends ScrollView
     editSession = @rootView.open(operation.getPath())
     bufferRange = operation.execute(editSession)
     editSession.setSelectedBufferRange(bufferRange, autoscroll: true) if bufferRange
-    @rootView.focus()
+    @focus()
     false
 
   getPathCount: ->

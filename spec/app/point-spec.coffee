@@ -25,3 +25,9 @@ describe "Point", ->
       expect(new Point(5, 0).compare(new Point(6, 1))).toBe -1
       expect(new Point(5, 5).compare(new Point(4, 1))).toBe 1
       expect(new Point(5, 5).compare(new Point(5, 3))).toBe 1
+
+  describe ".translate(other)", ->
+    it "returns a translated point", ->
+      expect(new Point(1,2).translate([2,4])).toEqual [3,6]
+      expect(new Point(1,2).translate([-1])).toEqual [0,2]
+      expect(new Point(1,2).translate([0,-2])).toEqual [1,0]

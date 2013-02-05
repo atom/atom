@@ -1,14 +1,9 @@
 fs = require 'fs'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
-{$$} = require 'space-pen'
-jQuery = require 'jquery'
-Specificity = require 'specificity'
-Theme = require 'theme'
 
 configDirPath = fs.absolute("~/.atom")
-configJsonPath = fs.join(configDirPath, "config.json")
-userInitScriptPath = fs.join(configDirPath, "atom.coffee")
+userInitScriptPath = fs.join(configDirPath, "user.coffee")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
 bundledThemesDirPath = fs.join(resourcePath, "themes")
 vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
@@ -31,6 +26,8 @@ class Config
       core: _.clone(require('root-view').configDefaults)
       editor: _.clone(require('editor').configDefaults)
     @settings = {}
+    @configFilePath = fs.resolve(configDirPath, 'config', ['json', 'cson'])
+    @configFilePath ?= fs.join(configDirPath, 'config.cson')
 
   load: ->
     @loadUserConfig()
@@ -39,8 +36,8 @@ class Config
     atom.loadPackages()
 
   loadUserConfig: ->
-    if fs.exists(configJsonPath)
-      userConfig = JSON.parse(fs.read(configJsonPath))
+    if fs.exists(@configFilePath)
+      userConfig = fs.readObject(@configFilePath)
       _.extend(@settings, userConfig)
 
   get: (keyPath) ->
@@ -81,7 +78,7 @@ class Config
     @trigger 'updated'
 
   save: ->
-    fs.write(configJsonPath, JSON.stringify(@settings, undefined, 2) + "\n")
+    fs.writeObject(@configFilePath, @settings)
 
   requireUserInitScript: ->
     try

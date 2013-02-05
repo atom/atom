@@ -105,6 +105,7 @@ class AtomCefClient : public CefClient,
   bool m_HandlePasteboardCommands = false;
 
   void FocusNextWindow();
+  void FocusPreviousWindow();
   void Open(std::string path);
   void Open();
   void OpenUnstable(std::string path);
@@ -123,6 +124,7 @@ class AtomCefClient : public CefClient,
   void Exit(int status);
   void Log(const char *message);
   void Show(CefRefPtr<CefBrowser> browser);
+  void ToggleFullScreen(CefRefPtr<CefBrowser> browser);
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);

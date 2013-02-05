@@ -69,6 +69,7 @@
   [self initWithBootstrapScript:@"window-bootstrap" background:YES alwaysUseBundleResourcePath:stable];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
+  [self.window setCollectionBehavior:NSWindowCollectionBehaviorStationary];
   return self;
 }
 

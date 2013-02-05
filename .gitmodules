@@ -43,3 +43,6 @@
 [submodule "vendor/packages/property-list.tmbundle"]
 	path = vendor/packages/property-list.tmbundle
 	url = https://github.com/textmate/property-list.tmbundle.git
+[submodule "vendor/packages/python.tmbundle"]
+	path = vendor/packages/python.tmbundle
+	url = https://github.com/textmate/python.tmbundle

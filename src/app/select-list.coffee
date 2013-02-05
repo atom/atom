@@ -26,6 +26,12 @@ class SelectList extends View
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
     @on 'core:move-down', => @selectNextItem()
+    @on 'core:move-to-top', =>
+      @selectItem(@list.find('li:first'))
+      @list.scrollToTop()
+    @on 'core:move-to-bottom', =>
+      @selectItem(@list.find('li:last'))
+      @list.scrollToBottom()
     @on 'core:confirm', => @confirmSelection()
     @on 'core:cancel', => @cancel()
 
@@ -103,7 +109,7 @@ class SelectList extends View
   scrollToItem: (item) ->
     scrollTop = @list.scrollTop()
     desiredTop = item.position().top + scrollTop
-    desiredBottom = desiredTop + item.height()
+    desiredBottom = desiredTop + item.outerHeight()
 
     if desiredTop < scrollTop
       @list.scrollTop(desiredTop)

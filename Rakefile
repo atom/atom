@@ -6,7 +6,7 @@ require 'erb'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-project" do
-  command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
+  command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -76,14 +76,26 @@ task "create-dot-atom" do
 
   dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
   replace_dot_atom = false
-  next if File.exists?(DOT_ATOM_PATH)
+
+  if File.exists?(DOT_ATOM_PATH)
+    user_config = "#{DOT_ATOM_PATH}/user.coffee"
+    old_user_config = "#{DOT_ATOM_PATH}/atom.coffee"
+
+    if File.exists?(old_user_config)
+      `mv #{old_user_config} #{user_config}`
+      puts "\033[32mRenamed #{old_user_config} to #{user_config}\033[0m"
+    end
+
+    next
+  end
 
   `rm -rf "#{DOT_ATOM_PATH}"`
   `mkdir "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
+
+  `cp "#{dot_atom_template_path}/user.coffee" "#{DOT_ATOM_PATH}"`
+  `cp "#{dot_atom_template_path}/user.css" "#{DOT_ATOM_PATH}"`
+  `cp -r "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
   `cp -r "#{ATOM_SRC_PATH}/themes" "#{DOT_ATOM_PATH}"`
-  `cp "#{ATOM_SRC_PATH}/vendor/themes/IR_Black.tmTheme" "#{DOT_ATOM_PATH}/themes"`
 end
 
 desc "Clone default bundles into vendor/bundles directory"
@@ -113,7 +125,7 @@ end
 desc "Run the specs"
 task :test => ["clean", "clone-default-bundles"] do
   `pkill Atom`
-  Rake::Task["run"].invoke("--test")
+  Rake::Task["run"].invoke("--test --resource-path=#{ATOM_SRC_PATH}")
 end
 
 desc "Run the benchmarks"

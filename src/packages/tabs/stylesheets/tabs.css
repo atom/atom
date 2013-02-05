@@ -1,14 +1,20 @@
 .tabs {
   -webkit-user-select: none;
+  display: -webkit-box;
+  -webkit-box-align: center;
 }
 
 .tab {
-  display: table-cell;
+  -webkit-box-flex: 2;
   position: relative;
-  width:175px;
+  width: 175px;
+  max-width: 175px;
   min-width: 40px;
   box-sizing: border-box;
-  height: 24px;
+}
+
+.tab.active {
+  -webkit-box-flex: 1;
 }
 
 .tab.file-modified .close-icon {
@@ -23,9 +29,5 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  position: absolute;
-  left: 9px;
-  top:4px;
-  bottom:4px;
-  right: 21px;
+  padding: 3px 5px;
 }

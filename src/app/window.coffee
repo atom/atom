@@ -25,9 +25,14 @@ windowAdditions =
     @syntax = new Syntax
     @setUpKeymap()
     @pasteboard = new Pasteboard
+    @setUpEventHandlers()
 
+  setUpEventHandlers: ->
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
+    $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
+    $(window).on 'focus', -> $("body").removeClass('is-blurred')
+    $(window).on 'blur',  -> $("body").addClass('is-blurred')
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
@@ -49,8 +54,8 @@ windowAdditions =
       atom.setWindowState('pathToOpen', @rootView.project.getPath())
       @rootView.deactivate()
       @rootView = null
-    $(window).unbind('focus')
-    $(window).unbind('blur')
+    $(window).off('focus')
+    $(window).off('blur')
     $(window).off('before')
 
   setUpKeymap: ->
@@ -112,6 +117,14 @@ window.startup()
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
+requireStylesheet 'tabs.css'
+requireStylesheet 'tree-view.css'
+requireStylesheet 'status-bar.css'
+requireStylesheet 'command-panel.css'
+requireStylesheet 'fuzzy-finder.css'
+requireStylesheet 'overlay.css'
+requireStylesheet 'popover-list.css'
+requireStylesheet 'notification.css'
 
 if nativeStylesheetPath = require.resolve("#{platform}.css")
   requireStylesheet(nativeStylesheetPath)

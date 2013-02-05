@@ -16,7 +16,7 @@ class AtomPackage extends Package
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets() if @autoloadStylesheets
-      rootView.activatePackage(@name, this) unless @isDirectory
+      rootView?.activatePackage(@name, this) unless @isDirectory
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack
     this
@@ -26,15 +26,12 @@ class AtomPackage extends Package
       @metadata = fs.readObject(metadataPath)
 
   loadKeymaps: ->
-    for keymapPath in @getKeymapPaths()
-      keymap.load(keymapPath)
-
-  getKeymapPaths: ->
     if keymaps = @metadata?.keymaps
-      keymaps.map (relativePath) =>
+      keymaps = keymaps.map (relativePath) =>
         fs.resolve(@keymapsDirPath, relativePath, ['cson', 'json', ''])
+      keymap.load(keymapPath) for keymapPath in keymaps
     else
-      fs.list(@keymapsDirPath)
+      keymap.loadDirectory(@keymapsDirPath)
 
   loadStylesheets: ->
     for stylesheetPath in @getStylesheetPaths()

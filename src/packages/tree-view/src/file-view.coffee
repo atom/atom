@@ -17,7 +17,9 @@ class FileView extends View
     @subscribe $(window), 'focus', => @updateStatus()
 
     extension = fs.extension(@getPath())
-    if fs.isCompressedExtension(extension)
+    if fs.isReadme(@getPath())
+      @fileName.addClass('readme-icon')
+    else if fs.isCompressedExtension(extension)
       @fileName.addClass('compressed-icon')
     else if fs.isImageExtension(extension)
       @fileName.addClass('image-icon')

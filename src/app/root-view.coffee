@@ -18,7 +18,7 @@ class RootView extends View
     disabledPackages: []
 
   @content: ->
-    @div id: 'root-view', tabindex: -1, =>
+    @div id: 'root-view', tabindex: 0, =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'

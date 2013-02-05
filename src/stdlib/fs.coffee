@@ -2,7 +2,6 @@
 # http://ringojs.org/api/v0.8/fs/
 
 _ = require 'underscore'
-$ = require 'jquery'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -60,11 +59,16 @@ module.exports =
 
   # Returns an array with all the names of files contained
   # in the directory path.
-  list: (rootPath) ->
+  list: (rootPath, extensions) ->
     paths = []
-    onPath = (path) =>
-      paths.push(@join(rootPath, path))
-      false
+    if extensions
+      onPath = (path) =>
+        paths.push(@join(rootPath, path)) if _.contains(extensions, @extension(path))
+        false
+    else
+      onPath = (path) =>
+        paths.push(@join(rootPath, path))
+        false
     @traverseTree(rootPath, onPath, onPath)
     paths
 
@@ -148,35 +152,39 @@ module.exports =
     undefined
 
   isCompressedExtension: (ext) ->
-    _.contains([
+    _.indexOf([
       '.gz'
       '.jar'
       '.tar'
       '.zip'
-    ], ext)
+    ], ext, true) >= 0
 
   isImageExtension: (ext) ->
-    _.contains([
+    _.indexOf([
       '.gif'
       '.jpeg'
       '.jpg'
       '.png'
       '.tiff'
-    ], ext)
+    ], ext, true) >= 0
 
   isPdfExtension: (ext) ->
-    _.contains([
-      '.pdf'
-    ], ext)
+    ext is '.pdf'
 
   isMarkdownExtension: (ext) ->
-    _.contains([
+    _.indexOf([
       '.markdown'
       '.md'
       '.mkd'
       '.mkdown'
       '.ron'
-    ], ext)
+    ], ext, true) >= 0
+
+
+  isReadme: (path) ->
+    extension = @extension(path)
+    base = @base(path, extension).toLowerCase()
+    base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
 
   readObject: (path) ->
     contents = @read(path)
@@ -185,6 +193,14 @@ module.exports =
       CoffeeScript.eval(contents, bare: true)
     else
       JSON.parse(contents)
+
+  writeObject: (path, object) ->
+    if @extension(path) is '.cson'
+      CSON = require 'cson'
+      content = CSON.stringify(object)
+    else
+      content = JSON.stringify(object, undefined, 2)
+    @write(path, "#{content}\n")
 
   readPlist: (path) ->
     plist = require 'plist'

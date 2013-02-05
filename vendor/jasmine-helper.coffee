@@ -8,9 +8,6 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   $ = require 'jquery'
   TimeReporter = require 'time-reporter'
 
-  $('body').append $$ ->
-    @div id: 'jasmine-content'
-
   reporter = if atom.exitWhenDone
     new jasmine.ConsoleReporter(document, logErrors)
   else
@@ -22,4 +19,8 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
 
   jasmineEnv.addReporter(new TimeReporter())
   jasmineEnv.specFilter = (spec) -> reporter.specFilter(spec)
+
+  $('body').append $$ ->
+    @div id: 'jasmine-content'
+
   jasmineEnv.execute()

@@ -22,28 +22,41 @@ class TextMatePackage extends Package
     super
     @preferencesPath = fs.join(@path, "Preferences")
     @syntaxesPath = fs.join(@path, "Syntaxes")
+    @grammars = []
 
   load: ->
     try
-      for grammar in @getGrammars()
-        syntax.addGrammar(grammar)
-
-      for { selector, properties } in @getScopedProperties()
-        syntax.addProperties(selector, properties)
+      @loadGrammars()
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack
     this
 
-  getGrammars: ->
-    return @grammars if @grammars
+  getGrammars: -> @grammars
+
+  readGrammars: ->
+    grammars = []
+    for grammarPath in fs.list(@syntaxesPath)
+      try
+        grammars.push(TextMateGrammar.readFromPath(grammarPath))
+      catch e
+        console.warn "Failed to load grammar at path '#{grammarPath}'", e.stack
+    grammars
+
+  addGrammar: (rawGrammar) ->
+    grammar = new TextMateGrammar(rawGrammar)
+    @grammars.push(grammar)
+    syntax.addGrammar(grammar)
+
+  loadGrammars: (rawGrammars) ->
+    rawGrammars = @readGrammars() unless rawGrammars?
+
     @grammars = []
-    if fs.exists(@syntaxesPath)
-      for grammarPath in fs.list(@syntaxesPath)
-        try
-          @grammars.push TextMateGrammar.loadFromPath(grammarPath)
-        catch e
-          console.warn "Failed to load grammar at path '#{grammarPath}'", e.stack
-    @grammars
+    @addGrammar(rawGrammar) for rawGrammar in rawGrammars
+    @loadScopedProperties()
+
+  loadScopedProperties: ->
+    for { selector, properties } in @getScopedProperties()
+      syntax.addProperties(selector, properties)
 
   getScopedProperties: ->
     scopedProperties = []

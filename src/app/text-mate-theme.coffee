@@ -44,17 +44,17 @@ class TextMateTheme extends Theme
         'color': @translateColor(foreground)
 
     @rulesets.push
-      selector: '.editor.focused .cursor'
+      selector: '.editor.is-focused .cursor'
       properties:
         'border-color': @translateColor(caret)
 
     @rulesets.push
-      selector: '.editor.focused .selection .region'
+      selector: '.editor.is-focused .selection .region'
       properties:
         'background-color': @translateColor(selection)
 
     @rulesets.push
-      selector: '.editor.focused .line-number.cursor-line-no-selection, .editor.focused .line.cursor-line'
+      selector: '.editor.is-focused .line-number.cursor-line-no-selection, .editor.is-focused .line.cursor-line'
       properties:
         'background-color': @translateColor(lineHighlight)
 
@@ -75,8 +75,8 @@ class TextMateTheme extends Theme
 
     if fontStyle
       fontStyles = fontStyle.split(/\s+/)
-      # properties['font-weight'] = 'bold' if _.contains(fontStyles, 'bold')
-      # properties['font-style'] = 'italic' if _.contains(fontStyles, 'italic')
+      properties['font-weight'] = 'bold' if _.contains(fontStyles, 'bold')
+      properties['font-style'] = 'italic' if _.contains(fontStyles, 'italic')
       properties['text-decoration'] = 'underline' if _.contains(fontStyles, 'underline')
 
     properties['color'] = @translateColor(foreground) if foreground

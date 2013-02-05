@@ -770,6 +770,9 @@ describe "TreeView", ->
           treeView.trigger "tree-view:move"
           moveDialog = rootView.find(".tree-view-dialog").view()
 
+        afterEach ->
+          waits 50 # The move specs cause too many false positives because of their async nature, so wait a little bit before we cleanup
+
         it "opens a move dialog with the file's current path (excluding extension) populated", ->
           extension = fs.extension(filePath)
           fileNameWithoutExtension = fs.base(filePath, extension)

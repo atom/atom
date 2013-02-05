@@ -8,7 +8,7 @@ class AutocompleteView extends SelectList
     rootView.eachEditor (editor) ->
       new AutocompleteView(editor) if editor.attached and not editor.mini
 
-  @viewClass: -> "autocomplete #{super}"
+  @viewClass: -> "autocomplete #{super} popover-list"
 
   editor: null
   currentBuffer: null
@@ -106,7 +106,6 @@ class AutocompleteView extends SelectList
 
   setPosition: ->
     { left, top } = @editor.pixelPositionForScreenPosition(@originalCursorPosition)
-
     height = @outerHeight()
     potentialTop = top + @editor.lineHeight
     potentialBottom = potentialTop - @editor.scrollTop() + height

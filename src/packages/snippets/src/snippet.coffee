@@ -30,7 +30,7 @@ class Snippet
           bodyText.push(segment)
           segmentLines = segment.split('\n')
           column += segmentLines.shift().length
-          while nextLine = segmentLines.shift()
+          while (nextLine = segmentLines.shift())?
             row += 1
             column = nextLine.length
 

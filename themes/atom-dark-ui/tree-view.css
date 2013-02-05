@@ -1,0 +1,63 @@
+.tree-view {
+  background: #1e1e1e;
+  border-right: 1px solid #191919;
+}
+
+.tree-view .entry {
+  text-shadow: 0 -1px 0 #000;
+}
+
+.tree-view .directory.selected > .header > .name,
+.tree-view .selected > .name {
+  color: #d2d2d2;
+}
+
+.tree-view .selected > .highlight {
+  background-image: -webkit-linear-gradient(#4e4e4e, #434343);
+}
+
+.tree-view:focus .selected > .highlight {
+  background-image: -webkit-linear-gradient(#7e7e7e, #737373);
+}
+
+.tree-view:focus .directory.selected > .header > .name,
+.tree-view:focus .selected > .name {
+  color: #fff;
+  text-shadow: 0 -1px 0 #7E4521;
+}
+
+.tree-view .directory .header {
+  color: #bebebe;
+}
+
+.tree-view .file {
+  color: #7d7d7d;
+}
+
+.tree-view .entry:hover,
+.tree-view .directory .header:hover .name,
+.tree-view .directory .header:hover .disclosure-arrow  {
+  color: #ebebeb;
+}
+
+.tree-view .ignored {
+  color: #555;
+}
+
+.tree-view .modified {
+  color: #f78a46;
+}
+
+.tree-view .new {
+  color: #5293d8;
+}
+
+.tree-view-dialog {
+  background-color: #333;
+  border-top: 1px solid #555;
+  -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
+}
+
+.tree-view-dialog .prompt {
+  color: #aaa;
+}
