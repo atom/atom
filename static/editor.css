@@ -77,7 +77,7 @@
 }
 
 .editor.is-blurred .line.cursor-line {
-  opacity: 0;
+  background: rgba(0, 0, 0, 0);
 }
 
 .editor .invisible {
@@ -142,9 +142,13 @@
   border-left: 1px solid;
 }
 
-.is-blurred .cursor,
-.editor .cursor.blink-off {
+.editor .cursor,
+.editor.is-focused .cursor.blink-off {
   visibility: hidden;
+}
+
+.editor.is-focused .cursor {
+  visibility: visible;
 }
 
 .editor .hidden-input {
@@ -159,8 +163,4 @@
   position: absolute;
   pointer-events: none;
   z-index: -1;
-}
-
-.editor.is-blurred .selection .region {
-  opacity: 0;
 }

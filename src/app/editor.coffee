@@ -351,12 +351,12 @@ class Editor extends View
     @hiddenInput.on 'focus', =>
       @rootView()?.editorFocused(this)
       @isFocused = true
-      @removeClass 'is-blurred'
+      @addClass 'is-focused'
 
     @hiddenInput.on 'focusout', =>
       @isFocused = false
       @autosave() if config.get "editor.autosave"
-      @addClass 'is-blurred'
+      @removeClass 'is-focused'
 
     @underlayer.on 'click', (e) =>
       return unless e.target is @underlayer[0]
