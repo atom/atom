@@ -46,19 +46,6 @@ describe "EditSession", ->
         expect(editSession.getCursors()).toEqual [cursor1]
         expect(editSession.getCursorScreenPosition()).toEqual [4, 7]
 
-      it "emits a cursor-moved event with the old and new positions in both coordinates", ->
-        cursorMovedHandler = jasmine.createSpy("cursorMovedHandler")
-        editSession.on 'cursor-moved', cursorMovedHandler
-        editSession.foldBufferRow(4)
-        editSession.setCursorScreenPosition([5, 1])
-        expect(cursorMovedHandler).toHaveBeenCalledWith(
-          oldBufferPosition: [0, 0]
-          oldScreenPosition: [0, 0]
-          newBufferPosition: [8, 0]
-          newScreenPosition: [5, 0]
-          bufferChanged: false
-        )
-
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
           editSession.setSoftWrapColumn(50)
@@ -335,7 +322,6 @@ describe "EditSession", ->
         editSession.moveCursorToEndOfWord()
         expect(editSession.getCursorBufferPosition()).toEqual [11, 8]
 
-
     describe ".getCurrentParagraphBufferRange()", ->
       it "returns the buffer range of the current paragraph, delimited by blank lines or the beginning / end of the file", ->
         buffer.setText """
@@ -365,6 +351,31 @@ describe "EditSession", ->
         # between paragraphs
         editSession.setCursorBufferPosition([3, 1])
         expect(editSession.getCurrentParagraphBufferRange()).toBeUndefined()
+
+    describe "cursor-moved events", ->
+      cursorMovedHandler = null
+
+      beforeEach ->
+        editSession.foldBufferRow(4)
+        editSession.setSelectedBufferRange([[8, 1], [9, 0]])
+        cursorMovedHandler = jasmine.createSpy("cursorMovedHandler")
+        editSession.on 'cursor-moved', cursorMovedHandler
+
+      describe "when the position of the cursor changes", ->
+        it "emits a cursor-moved event", ->
+          buffer.insert([9, 0], '...')
+          expect(cursorMovedHandler).toHaveBeenCalledWith(
+            oldBufferPosition: [9, 0]
+            oldScreenPosition: [6, 0]
+            newBufferPosition: [9, 3]
+            newScreenPosition: [6, 3]
+            bufferChanged: true
+          )
+
+      describe "when the position of the associated selection's tail changes, but not the cursor's position", ->
+        it "does not emit a cursor-moved event", ->
+          buffer.insert([8, 0], '...')
+          expect(cursorMovedHandler).not.toHaveBeenCalled()
 
   describe "selection", ->
     selection = null
