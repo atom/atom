@@ -49,7 +49,7 @@ class BracketMatcher extends AtomPackage
     view = $$ -> @div class: 'bracket-matcher'
     view.data('bufferPosition', bufferPosition)
     view.css('top', pixelPosition.top).css('left', pixelPosition.left)
-    view.width(editor.charWidth).height(editor.charHeight)
+    view.width(editor.charWidth).height(editor.lineHeight)
 
   findCurrentPair: (editor, buffer, matches) ->
     position = editor.getCursorBufferPosition()
