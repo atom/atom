@@ -107,7 +107,6 @@ windowAdditions =
     atom.showDevTools()
 
   onFocus: (event) =>
-    console.log 'focused'
     $('body').removeClass 'is-blurred'
 
   onBlur: (event) =>
