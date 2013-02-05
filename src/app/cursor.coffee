@@ -39,28 +39,25 @@ class Cursor
     @trigger 'destroyed'
 
   setScreenPosition: (screenPosition, options={}) ->
-    @goalColumn = null
-    @clearSelection()
-    @needsAutoscroll = (options.autoscroll ? true) and @isLastCursor()
-    if @getScreenPosition().isEqual(screenPosition)
-      @trigger 'autoscrolled' if @needsAutoscroll
-    else
+    @changePosition options, =>
       @editSession.setMarkerHeadScreenPosition(@marker, screenPosition, options)
 
   getScreenPosition: ->
     @editSession.getMarkerHeadScreenPosition(@marker)
 
   setBufferPosition: (bufferPosition, options={}) ->
-    @goalColumn = null
-    @clearSelection()
-    @needsAutoscroll = options.autoscroll ? @isLastCursor()
-    if @getBufferPosition().isEqual(bufferPosition)
-      @trigger 'autoscrolled' if @needsAutoscroll
-    else
+    @changePosition options, =>
       @editSession.setMarkerHeadBufferPosition(@marker, bufferPosition, options)
 
   getBufferPosition: ->
     @editSession.getMarkerHeadBufferPosition(@marker)
+
+  changePosition: (options, fn) ->
+    @goalColumn = null
+    @clearSelection()
+    @needsAutoscroll = options.autoscroll ? @isLastCursor()
+    unless fn()
+      @trigger 'autoscrolled' if @needsAutoscroll
 
   setVisible: (visible) ->
     if @visible != visible
