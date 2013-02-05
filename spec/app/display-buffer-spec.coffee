@@ -613,6 +613,17 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.isMarkerReversed(marker)).toBeTruthy()
         expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
 
+      it "returns whether a position changed when it is assigned", ->
+        marker = displayBuffer.markScreenRange([[0, 0], [0, 0]])
+        expect(displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])).toBeTruthy()
+        expect(displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])).toBeFalsy()
+        expect(displayBuffer.setMarkerHeadBufferPosition(marker, [1, 0])).toBeTruthy()
+        expect(displayBuffer.setMarkerHeadBufferPosition(marker, [1, 0])).toBeFalsy()
+        expect(displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])).toBeTruthy()
+        expect(displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])).toBeFalsy()
+        expect(displayBuffer.setMarkerTailBufferPosition(marker, [1, 0])).toBeTruthy()
+        expect(displayBuffer.setMarkerTailBufferPosition(marker, [1, 0])).toBeFalsy()
+
     describe ".observeMarker(marker, callback)", ->
       [observeHandler, marker, subscription] = []
 

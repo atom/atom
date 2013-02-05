@@ -713,6 +713,13 @@ describe 'Buffer', ->
         expect(buffer.getMarkerRange(marker)).toEqual [[2, 0], [4, 23]]
         expect(buffer.isMarkerReversed(marker)).toBeTruthy()
 
+      it "returns whether the position changed", ->
+        expect(buffer.setMarkerHeadPosition(marker, [5, 3])).toBeTruthy()
+        expect(buffer.setMarkerHeadPosition(marker, [5, 3])).toBeFalsy()
+
+        expect(buffer.setMarkerTailPosition(marker, [6, 3])).toBeTruthy()
+        expect(buffer.setMarkerTailPosition(marker, [6, 3])).toBeFalsy()
+
     describe ".observeMarker(marker, callback)", ->
       [observeHandler, marker, subscription] = []
 
