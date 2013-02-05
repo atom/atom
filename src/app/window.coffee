@@ -25,7 +25,9 @@ windowAdditions =
     @syntax = new Syntax
     @setUpKeymap()
     @pasteboard = new Pasteboard
+    @setUpEventHandlers()
 
+  setUpEventHandlers: ->
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
     $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()

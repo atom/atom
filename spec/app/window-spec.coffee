@@ -5,6 +5,7 @@ describe "Window", ->
   [rootView] = []
 
   beforeEach ->
+    window.setUpEventHandlers()
     window.attachRootView(require.resolve('fixtures'))
     rootView = window.rootView
 
