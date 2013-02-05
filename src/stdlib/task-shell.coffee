@@ -12,6 +12,19 @@ self.console =
   log: -> callTaskMethod 'log', arguments...
   error: -> callTaskMethod 'error', arguments...
 
+window.document =
+  createElement: ->
+    setAttribute: ->
+    getElementsByTagName: -> []
+    appendChild: ->
+  documentElement:
+    insertBefore: ->
+    removeChild: ->
+  getElementById: -> {}
+  createComment: -> {}
+  createDocumentFragment: -> {}
+self.document = window.document
+
 # `callTaskMethod` can be used to invoke method's on the parent `Task` object
 # back in the window thread.
 self.callTaskMethod = (method, args...) ->
@@ -19,9 +32,10 @@ self.callTaskMethod = (method, args...) ->
 
 # The worker's initial handler replaces itself when `start` is invoked
 self.handler =
-  start: ({resourcePath, requirePath, handlerPath}) ->
-    self.resourcePath = resourcePath
-    window.resourcePath = resourcePath
+  start: ({resourcePath, globals, requirePath, handlerPath}) ->
+    for key, value of globals
+      self[key] = value
+      window[key] = value
     importScripts(requirePath)
     require 'config'
     self.handler = require(handlerPath)

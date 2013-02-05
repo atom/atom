@@ -23,8 +23,8 @@ describe "CommandPalette", ->
         eventLi = palette.list.children("[data-event-name='#{eventName}']")
         if description
           expect(eventLi).toExist()
-          expect(eventLi.find('.event-name')).toHaveText(eventName)
-          expect(eventLi.find('.event-description')).toHaveText(description)
+          expect(eventLi.find('.label')).toHaveText(description)
+          expect(eventLi.find('.label').attr('title')).toBe(eventName)
           for binding in keyBindings[eventName] ? []
             expect(eventLi.find(".key-binding:contains(#{binding})")).toExist()
         else
@@ -39,8 +39,8 @@ describe "CommandPalette", ->
         description = editorEvents[eventName] unless description
         if description
           expect(eventLi).toExist()
-          expect(eventLi.find('.event-name')).toHaveText(eventName)
-          expect(eventLi.find('.event-description')).toHaveText(description)
+          expect(eventLi.find('.label')).toHaveText(description)
+          expect(eventLi.find('.label').attr('title')).toBe(eventName)
         else
           expect(eventLi).not.toExist()
 

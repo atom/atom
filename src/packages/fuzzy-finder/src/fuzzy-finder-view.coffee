@@ -13,7 +13,7 @@ class FuzzyFinderView extends SelectList
     @instance = new FuzzyFinderView(rootView)
 
   @viewClass: ->
-    [super, 'fuzzy-finder'].join(' ')
+    [super, 'fuzzy-finder', 'overlay', 'from-top'].join(' ')
 
   allowActiveEditorChange: null
   maxItems: 10
@@ -47,9 +47,9 @@ class FuzzyFinderView extends SelectList
           typeClass = 'pdf-name'
         else
           typeClass = 'text-name'
-        @span fs.base(path), class: "file #{typeClass}"
+        @span fs.base(path), class: "file label #{typeClass}"
         if folder = fs.directory(path)
-          @span "- #{folder}/", class: 'directory'
+          @span " - #{folder}/", class: 'directory'
 
   openPath: (path) ->
     @rootView.open(path, {@allowActiveEditorChange}) if path

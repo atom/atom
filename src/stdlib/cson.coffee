@@ -28,7 +28,7 @@ module.exports =
         cson += @stringifyBoolean(value)
       else if _.isNumber(value)
         cson += @stringifyNumber(value)
-      else if _.isNull(value)
+      else if _.isNull(value) or value is undefined
         cson += @stringifyNull(value)
       else if _.isArray(value)
         cson += @stringifyArray(value, indentLevel + 2)

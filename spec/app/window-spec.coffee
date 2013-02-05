@@ -17,8 +17,8 @@ describe "Window", ->
     it "has .is-focused on the body tag", ->
       expect($("body").hasClass("is-focused")).toBe true
 
-    it "doesn't have .is-focused on the window focousout event", ->
-      $(window).focusout()
+    it "doesn't have .is-focused on the window blur event", ->
+      $(window).blur()
       expect($("body").hasClass("is-focused")).toBe false
 
   describe ".close()", ->

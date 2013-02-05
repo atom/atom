@@ -1,0 +1,66 @@
+.tabs {
+  font: caption;
+  margin-bottom: 1px;
+}
+
+.tab {
+  cursor: default;
+  padding: 2px 21px 2px 9px;
+}
+
+.tab.file-modified .close-icon {
+  border-radius: 10px;
+}
+
+.tab.file-modified .close-icon:before {
+  content: "";
+}
+
+.tab.active:before,
+.tab.active:after {
+  position: absolute;
+  bottom: -1px;
+  width: 4px;
+  height: 4px;
+  content: " ";
+  z-index: 3;
+}
+
+.tab.active:before {
+  left: -4px;
+}
+
+.tab.active:after {
+  right: -4px;
+  border-width: 0 0 1px 1px;
+}
+
+.tab.active:first-child:before {
+  display: none;
+}
+
+.tab .file-name {
+  font-size: 11px;
+  text-shadow: 0 -1px 1px black;
+}
+
+.tab .close-icon {
+  font-family: 'Octicons Regular';
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  display: block;
+  cursor: pointer;
+  position: absolute;
+  right: 4px;
+  top: -1px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tab .close-icon:before {
+  content: "\f081";
+}
+
+.tab .close-icon:hover {
+  color: white;
+}

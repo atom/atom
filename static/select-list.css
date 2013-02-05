@@ -1,19 +1,45 @@
-.select-list {
-  position: absolute;
-  width: 600px;
-  top: 0;
-  left: 50%;
-  margin-left: -300px;
-  box-sizing: border-box;
-  z-index: 99;
-}
-
-.select-list .editor {
-  box-sizing: border-box;
-  padding: 5px;
-}
-
 .select-list ol {
+  border: 1px solid #212121;
   position: relative;
   overflow-y: auto;
+  max-height: 312px;
+  margin: 0;
+  background: red;
+  padding: 0;
+  line-height: 100%;
+}
+
+.select-list ol:empty {
+  border: none;
+}
+
+.select-list ol li {
+  padding: 10px;
+  box-sizing: border-box;
+  display: block;
+}
+
+.select-list li .label {
+  display: inline-block;
+}
+
+.select-list li .right {
+  float: right;
+}
+
+.select-list .key-binding {
+  border-radius: 2px;
+  margin-left: 5px;
+  padding: 3px;
+  font-size: 11px;
+}
+
+.select-list ol li:last-child {
+  border-bottom: none;
+}
+
+.select-list .error {
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 1px 0 #4E0000;
 }

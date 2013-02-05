@@ -38,6 +38,10 @@ describe "Tabs", ->
       expect(editor.getActiveEditSessionIndex()).toBe 1
       expect(tabs.find('.tab:eq(1)')).toHaveClass 'active'
 
+    it "sets the title on each tab to be the full path of the edit session", ->
+      expect(tabs.find('.tab:eq(0) .file-name').attr('title')).toBe editor.editSessions[0].getPath()
+      expect(tabs.find('.tab:eq(1) .file-name').attr('title')).toBe editor.editSessions[1].getPath()
+
   describe "when the active edit session changes", ->
     it "highlights the tab for the newly-active edit session", ->
       editor.setActiveEditSessionIndex(0)
@@ -59,6 +63,11 @@ describe "Tabs", ->
         rootView.open()
         expect(tabs.find('.tab').length).toBe 3
         expect(tabs.find('.tab:eq(2) .file-name').text()).toBe 'untitled'
+
+      it "removes the tab's title", ->
+        rootView.open()
+        expect(tabs.find('.tab').length).toBe 3
+        expect(tabs.find('.tab:eq(2) .file-name').attr('title')).toBeUndefined()
 
   describe "when an edit session is removed", ->
     it "removes the tab for the removed edit session", ->

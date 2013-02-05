@@ -29,7 +29,7 @@ windowAdditions =
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
     $(window).on 'focus', => $("body").addClass("is-focused")
-    $(window).on 'focusout', => $("body").removeClass("is-focused")
+    $(window).on 'blur', => $("body").removeClass("is-focused")
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
@@ -114,6 +114,14 @@ window.startup()
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
+requireStylesheet 'tabs.css'
+requireStylesheet 'tree-view.css'
+requireStylesheet 'status-bar.css'
+requireStylesheet 'command-panel.css'
+requireStylesheet 'fuzzy-finder.css'
+requireStylesheet 'overlay.css'
+requireStylesheet 'popover-list.css'
+requireStylesheet 'notification.css'
 
 if nativeStylesheetPath = require.resolve("#{platform}.css")
   requireStylesheet(nativeStylesheetPath)

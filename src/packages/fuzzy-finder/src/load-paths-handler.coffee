@@ -3,14 +3,13 @@ _ = require 'underscore'
 Git = require 'git'
 
 module.exports =
-  loadPaths: (rootPath, ignoredNames, ignoreGitIgnoredFiles) ->
+  loadPaths: (rootPath, ignoredNames, excludeGitIgnoredPaths) ->
     paths = []
-    repo = Git.open(rootPath, refreshIndexOnFocus: false) if ignoreGitIgnoredFiles
+    repo = Git.open(rootPath, refreshIndexOnFocus: false) if excludeGitIgnoredPaths
     isIgnored = (path) ->
       for segment in path.split('/')
         return true if _.contains(ignoredNames, segment)
-      return true if repo?.isPathIgnored(fs.join(rootPath, path))
-      false
+      repo?.isPathIgnored(fs.join(rootPath, path))
     onFile = (path) ->
       paths.push(path) unless isIgnored(path)
     onDirectory = (path) ->

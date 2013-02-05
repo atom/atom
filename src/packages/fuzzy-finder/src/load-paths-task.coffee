@@ -6,11 +6,11 @@ class LoadPathsTask extends Task
     super('fuzzy-finder/src/load-paths-handler')
 
   started: ->
-    ignoredNames = config.get("fuzzyFinder.ignoredNames") ? []
-    ignoredNames = ignoredNames.concat(config.get("core.ignoredNames") ? [])
-    ignoreGitIgnoredFiles = config.get("core.hideGitIgnoredFiles")
+    ignoredNames = config.get('fuzzyFinder.ignoredNames') ? []
+    ignoredNames = ignoredNames.concat(config.get('core.ignoredNames') ? [])
+    excludeGitIgnoredPaths = config.get('core.hideGitIgnoredFiles')
     rootPath = @rootView.project.getPath()
-    @callWorkerMethod('loadPaths', rootPath, ignoredNames, ignoreGitIgnoredFiles)
+    @callWorkerMethod('loadPaths', rootPath, ignoredNames, excludeGitIgnoredPaths)
 
   pathsLoaded: (paths) ->
     @terminate()

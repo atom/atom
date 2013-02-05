@@ -152,35 +152,33 @@ module.exports =
     undefined
 
   isCompressedExtension: (ext) ->
-    _.contains([
+    _.indexOf([
       '.gz'
       '.jar'
       '.tar'
       '.zip'
-    ], ext)
+    ], ext, true) >= 0
 
   isImageExtension: (ext) ->
-    _.contains([
+    _.indexOf([
       '.gif'
       '.jpeg'
       '.jpg'
       '.png'
       '.tiff'
-    ], ext)
+    ], ext, true) >= 0
 
   isPdfExtension: (ext) ->
-    _.contains([
-      '.pdf'
-    ], ext)
+    ext is '.pdf'
 
   isMarkdownExtension: (ext) ->
-    _.contains([
+    _.indexOf([
       '.markdown'
       '.md'
       '.mkd'
       '.mkdown'
       '.ron'
-    ], ext)
+    ], ext, true) >= 0
 
   readObject: (path) ->
     contents = @read(path)
@@ -189,6 +187,14 @@ module.exports =
       CoffeeScript.eval(contents, bare: true)
     else
       JSON.parse(contents)
+
+  writeObject: (path, object) ->
+    if @extension(path) is '.cson'
+      CSON = require 'cson'
+      content = CSON.stringify(object)
+    else
+      content = JSON.stringify(object, undefined, 2)
+    @write(path, "#{content}\n")
 
   readPlist: (path) ->
     plist = require 'plist'
