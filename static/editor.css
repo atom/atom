@@ -138,8 +138,8 @@
   border-left: 1px solid;
 }
 
-.editor:not(.is-focused) .cursor,
-.editor.is-focused .cursor.blink-off {
+.is-blurred .cursor,
+.editor .cursor.blink-off {
   visibility: hidden;
 }
 
