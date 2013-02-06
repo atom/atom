@@ -6,10 +6,8 @@
     "tree-view.css",
     "tabs.css",
     "status-bar.css",
-    "markdown-preview.css",
     "command-panel.css",
     "command-logger.css",
-    "blurred.css",
-    "bracket-matcher.css"
+    "blurred.css"
   ]
 }

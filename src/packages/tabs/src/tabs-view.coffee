@@ -13,7 +13,7 @@ class Tabs extends View
       pane.prepend(new Tabs(editor))
 
   @content: ->
-    @div class: 'tabs'
+    @ul class: 'tabs'
 
   initialize: (@editor) ->
     for editSession, index in @editor.editSessions

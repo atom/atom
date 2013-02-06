@@ -1,4 +1,4 @@
-# Modified from 248eef5762e395c7d496510dbd06a20b65f89f45
+# Modified from f6ef4ba2ffdc27b6c9a057560f1f527b1e0f3e8b
 $ = jQuery = require('jquery')
 
 elements =
@@ -58,7 +58,6 @@ class View extends jQuery
     fragment
 
   constructor: (args...) ->
-    # args[0] ?= {}
     [html, postProcessingSteps] = @constructor.buildHtml -> @content(args...)
     jQuery.fn.init.call(this, html)
     @constructor = jQuery # sadly, jQuery assumes this.constructor == jQuery in pushStack
@@ -198,7 +197,9 @@ for methodName in ['prependTo', 'appendTo', 'insertAfter', 'insertBefore']
 
 originalCleanData = jQuery.cleanData
 jQuery.cleanData = (elements) ->
-  $(element).view()?.afterRemove?() for element in elements
+  for element in elements
+    view = $(element).view()
+    view.afterRemove?() if view?[0] == element
   originalCleanData(elements)
 
 (exports ? this).View = View

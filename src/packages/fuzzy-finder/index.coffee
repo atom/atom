@@ -1,5 +1,4 @@
 DeferredAtomPackage = require 'deferred-atom-package'
-LoadPathsTask = require './src/load-paths-task'
 
 module.exports =
 class FuzzyFinder extends DeferredAtomPackage
@@ -16,6 +15,7 @@ class FuzzyFinder extends DeferredAtomPackage
 
     if rootView.project.getPath()?
       callback = (paths) => @projectPaths = paths
+      LoadPathsTask = require 'fuzzy-finder/src/load-paths-task'
       new LoadPathsTask(rootView, callback).start()
 
   onLoadEvent: (event, instance) ->
