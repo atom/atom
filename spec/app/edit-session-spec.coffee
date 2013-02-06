@@ -1042,6 +1042,7 @@ describe "EditSession", ->
             expect(line).toBe "  var ort = function(items) {"
             expect(editSession.getCursorScreenPosition()).toEqual {row: 1, column: 6}
             expect(changeScreenRangeHandler).toHaveBeenCalled()
+            expect(editSession.getCursor().isVisible()).toBeTruthy()
 
         describe "when the cursor is at the beginning of a line", ->
           it "joins it with the line above", ->

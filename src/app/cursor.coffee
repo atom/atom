@@ -13,13 +13,13 @@ class Cursor
 
   constructor: ({@editSession, @marker}) ->
     @editSession.observeMarker @marker, (e) =>
+      @setVisible(@selection.isEmpty())
+
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
       {bufferChanged} = e
-
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
-      @setVisible(@selection.isEmpty())
       @needsAutoscroll ?= @isLastCursor() and !bufferChanged
 
       movedEvent =
