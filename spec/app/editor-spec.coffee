@@ -69,7 +69,8 @@ describe "Editor", ->
 
       newEditor.height(editor.height())
       newEditor.width(editor.width())
-      rootView.remove()
+
+      editor.remove()
       newEditor.attachToDom()
       expect(newEditor.scrollTop()).toBe editor.scrollTop()
       expect(newEditor.scrollView.scrollLeft()).toBe 44

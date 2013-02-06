@@ -6,8 +6,6 @@ Range = require 'range'
 EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
-Anchor = require 'anchor'
-AnchorRange = require 'anchor-range'
 BufferMarker = require 'buffer-marker'
 
 module.exports =
@@ -24,8 +22,6 @@ class Buffer
   file: null
   validMarkers: null
   invalidMarkers: null
-  anchors: null
-  anchorRanges: null
   refcount: 0
 
   constructor: (path, @project) ->
@@ -33,8 +29,6 @@ class Buffer
     @nextMarkerId = 1
     @validMarkers = {}
     @invalidMarkers = {}
-    @anchors = []
-    @anchorRanges = []
     @lines = ['']
     @lineEndings = []
 
@@ -273,6 +267,9 @@ class Buffer
   getMarkers: ->
     _.values(@validMarkers)
 
+  getMarkerCount: ->
+    _.size(@validMarkers)
+
   markRange: (range, options={}) ->
     marker = new BufferMarker(_.defaults({
       id: (@nextMarkerId++).toString()
@@ -331,39 +328,6 @@ class Buffer
     for id, marker of @validMarkers
       ids.push(id) if marker.containsPoint(bufferPosition)
     ids
-
-  getAnchors: -> new Array(@anchors...)
-
-  addAnchor: (options) ->
-    anchor = new Anchor(this, options)
-    @anchors.push(anchor)
-    anchor
-
-  addAnchorAtPosition: (position, options) ->
-    anchor = @addAnchor(options)
-    anchor.setBufferPosition(position)
-    anchor
-
-  addAnchorRange: (range, editSession) ->
-    anchorRange = new AnchorRange(range, this, editSession)
-    @anchorRanges.push(anchorRange)
-    anchorRange
-
-  removeAnchor: (anchor) ->
-    _.remove(@anchors, anchor)
-
-  removeAnchorRange: (anchorRange) ->
-    _.remove(@anchorRanges, anchorRange)
-
-  anchorRangesForPosition: (position) ->
-    _.filter @anchorRanges, (anchorRange) -> anchorRange.containsBufferPosition(position)
-
-  updateAnchors: (change) ->
-    anchors = @getAnchors()
-    anchor.pauseEvents() for anchor in anchors
-    anchor.handleBufferChange(change) for anchor in anchors
-    anchor.resumeEvents() for anchor in anchors
-    @trigger 'anchors-updated'
 
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()

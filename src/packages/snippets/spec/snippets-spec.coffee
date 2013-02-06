@@ -86,7 +86,7 @@ describe "Snippets extension", ->
 
       describe "when the snippet contains tab stops", ->
         it "places the cursor at the first tab-stop, and moves the cursor in response to 'next-tab-stop' events", ->
-          anchorCountBefore = editor.activeEditSession.getAnchors().length
+          markerCountBefore = editor.activeEditSession.getMarkerCount()
           editor.setCursorScreenPosition([2, 0])
           editor.insertText('t2')
           editor.trigger keydownEvent('tab', target: editor[0])
@@ -118,7 +118,7 @@ describe "Snippets extension", ->
           editor.trigger keydownEvent('tab', target: editor[0])
           editor.trigger keydownEvent('tab', target: editor[0])
           expect(buffer.lineForRow(2)).toBe "go here next:(abc) and finally go here:(  )"
-          expect(editor.activeEditSession.getAnchors().length).toBe anchorCountBefore
+          expect(editor.activeEditSession.getMarkerCount()).toBe markerCountBefore
 
         describe "when tab stops are nested", ->
           it "destroys the inner tab stop if the outer tab stop is modified", ->

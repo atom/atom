@@ -1,6 +1,5 @@
 Point = require 'point'
 Buffer = require 'buffer'
-Anchor = require 'anchor'
 LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
@@ -8,7 +7,6 @@ Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
-AnchorRange = require 'anchor-range'
 _ = require 'underscore'
 fs = require 'fs'
 
@@ -29,8 +27,6 @@ class EditSession
   scrollLeft: 0
   languageMode: null
   displayBuffer: null
-  anchors: null
-  anchorRanges: null
   cursors: null
   selections: null
   softTabs: true
@@ -40,8 +36,6 @@ class EditSession
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
-    @anchors = []
-    @anchorRanges = []
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])
@@ -54,7 +48,6 @@ class EditSession
     @preserveCursorPositionOnBufferReload()
 
     @subscribe @displayBuffer, "changed", (e) =>
-      @refreshAnchorScreenPositions() unless e.bufferDelta
       @trigger 'screen-lines-changed', e
 
   destroy: ->
@@ -64,8 +57,6 @@ class EditSession
     @buffer.release()
     @displayBuffer.destroy()
     @project.removeEditSession(this)
-    anchor.destroy() for anchor in @getAnchors()
-    anchorRange.destroy() for anchorRange in @getAnchorRanges()
 
   serialize: ->
     buffer: @buffer.getPath()
@@ -451,12 +442,6 @@ class EditSession
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
 
-  getAnchors: ->
-    new Array(@anchors...)
-
-  getAnchorRanges: ->
-    new Array(@anchorRanges...)
-
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
@@ -471,6 +456,9 @@ class EditSession
 
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
+
+  getMarkerCount: ->
+    @buffer.getMarkerCount()
 
   getMarkerScreenRange: (args...) ->
     @displayBuffer.getMarkerScreenRange(args...)
@@ -525,33 +513,6 @@ class EditSession
 
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
-
-  addAnchor: (options={}) ->
-    anchor = @buffer.addAnchor(_.extend({editSession: this}, options))
-    @anchors.push(anchor)
-    anchor
-
-  addAnchorAtBufferPosition: (bufferPosition, options) ->
-    anchor = @addAnchor(options)
-    anchor.setBufferPosition(bufferPosition)
-    anchor
-
-  addAnchorRange: (range) ->
-    anchorRange = @buffer.addAnchorRange(range, this)
-    @anchorRanges.push(anchorRange)
-    anchorRange
-
-  removeAnchor: (anchor) ->
-    _.remove(@anchors, anchor)
-
-  refreshAnchorScreenPositions: ->
-    anchor.refreshScreenPosition() for anchor in @getAnchors()
-
-  removeAnchorRange: (anchorRange) ->
-    _.remove(@anchorRanges, anchorRange)
-
-  anchorRangesForBufferPosition: (bufferPosition) ->
-    _.intersect(@anchorRanges, @buffer.anchorRangesForPosition(bufferPosition))
 
   hasMultipleCursors: ->
     @getCursors().length > 1

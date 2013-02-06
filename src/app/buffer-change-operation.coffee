@@ -72,7 +72,6 @@ class BufferChangeOperation
     event = { oldRange, newRange, oldText, newText }
     @buffer.trigger 'changed', event
     @buffer.scheduleStoppedChangingEvent()
-    @buffer.updateAnchors(event)
     @updateMarkers(event)
     newRange
 

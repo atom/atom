@@ -1836,9 +1836,6 @@ describe "EditSession", ->
         editSession.foldAll()
         expect(editSession.getCursorBufferPosition()).toEqual([5,5])
 
-  describe "anchors", ->
-    [anchor, destroyHandler] = []
-
   describe ".deleteLine()", ->
     it "deletes the first line when the cursor is there", ->
       editSession.getCursor().moveToTop()
@@ -2059,3 +2056,9 @@ describe "EditSession", ->
         editSession.insertText("var i;\n}")
         editSession.autoDecreaseIndentForRow(1)
         expect(editSession.lineForBufferRow(1)).toBe "}"
+
+  xdescribe ".destroy()", ->
+    it "destroys all markers associated with the edit session", ->
+      expect(buffer.getMarkerCount()).toBeGreaterThan 0
+      editSession.destroy()
+      expect(buffer.getMarkerCount()).toBe 0

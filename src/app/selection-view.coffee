@@ -1,4 +1,3 @@
-Anchor = require 'anchor'
 Point = require 'point'
 Range = require 'range'
 {View, $$} = require 'space-pen'
