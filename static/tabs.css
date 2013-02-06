@@ -20,17 +20,6 @@
   -webkit-box-flex: 1;
 }
 
-.tab.file-modified .close-icon {
-  top: 6px;
-  width: 5px;
-  height: 5px;
-  right: 5px;
-}
-
-.tab.file-modified .close-icon:before {
-  content: "";
-}
-
 .tab.active:before,
 .tab.active:after {
   position: absolute;
@@ -66,14 +55,13 @@
 
 .tab .close-icon {
   font-family: 'Octicons Regular';
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-  display: block;
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
   cursor: pointer;
   position: absolute;
-  right: 4px;
-  top: -1px;
+  right: 5px;
+  top: 4px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -83,4 +71,15 @@
 
 .tab .close-icon:hover {
   color: white;
+}
+
+.tab.file-modified .close-icon {
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  right: 5px;
+}
+
+.tab.file-modified .close-icon:before {
+  content: "";
 }
