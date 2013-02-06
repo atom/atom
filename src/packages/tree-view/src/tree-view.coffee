@@ -4,7 +4,6 @@ Directory = require 'directory'
 DirectoryView = require 'tree-view/src/directory-view'
 FileView = require 'tree-view/src/file-view'
 Dialog = require 'tree-view/src/dialog'
-Native = require 'native'
 fs = require 'fs'
 $ = require 'jquery'
 _ = require 'underscore'
@@ -256,7 +255,7 @@ class TreeView extends ScrollView
     atom.confirm(
       "Are you sure you would like to delete the selected #{entryType}?",
       "You are deleting #{entry.getPath()}",
-      "Move to Trash", (=> Native.moveToTrash(entry.getPath())),
+      "Move to Trash", (=> $native.moveToTrash(entry.getPath())),
       "Cancel", null
       "Delete", (=> fs.remove(entry.getPath()))
     )
