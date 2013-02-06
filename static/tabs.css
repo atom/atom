@@ -52,10 +52,10 @@
 }
 
 .tab.file-modified .close-icon {
-  top: 11px;
+  top: 10px;
   width: 5px;
   height: 5px;
-  right: 5px;
+  right: 6px;
   border: 2px solid #66a6ff;
   border-radius: 12px;
 }
