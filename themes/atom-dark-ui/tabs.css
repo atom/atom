@@ -21,6 +21,10 @@
   padding: 5px 10px;
 }
 
+.tab:hover {
+  color: #fff;
+}
+
 .tab.active {
   background-image: -webkit-linear-gradient(#43484d, #303337);
   color: #fff;
@@ -31,4 +35,8 @@
     inset 1px 0 0 rgba(255, 255, 255, 0.1),
     inset -1px 0 0 rgba(255, 255, 255, 0.1),
     inset  0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.tab.active:hover .close-icon {
+  color: #fff;
 }

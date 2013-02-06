@@ -37,6 +37,7 @@
   height: 12px;
   cursor: pointer;
   position: absolute;
+  color: rgba(255, 255, 255, 0.5);
   right: 5px;
   top: 4px;
   -webkit-font-smoothing: antialiased;
@@ -47,7 +48,7 @@
 }
 
 .tab .close-icon:hover {
-  color: white;
+  color: #fff;
 }
 
 .tab.file-modified .close-icon {
@@ -55,7 +56,7 @@
   width: 5px;
   height: 5px;
   right: 5px;
-  border: 2px solid #fff;
+  border: 2px solid #66a6ff;
   border-radius: 12px;
 }
 
