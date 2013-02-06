@@ -14,6 +14,7 @@
   max-width: 175px;
   min-width: 40px;
   box-sizing: border-box;
+  text-shadow: 0 -1px 1px black;
 }
 
 .tab.active {
@@ -45,7 +46,6 @@
 
 .tab .file-name {
   font-size: 11px;
-  text-shadow: 0 -1px 1px black;
   display: block;
   overflow: hidden;
   white-space: nowrap;
@@ -74,10 +74,12 @@
 }
 
 .tab.file-modified .close-icon {
-  top: 6px;
+  top: 11px;
   width: 5px;
   height: 5px;
   right: 5px;
+  border: 2px solid #fff;
+  border-radius: 12px;
 }
 
 .tab.file-modified .close-icon:before {
