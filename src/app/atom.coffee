@@ -12,39 +12,43 @@ _.extend atom,
   exitWhenDone: window.location.params.exitWhenDone
   loadedThemes: []
   pendingBrowserProcessCallbacks: {}
-
-  loadPackages: ->
-    {packages, asyncTextMatePackages} = _.groupBy @getPackages(), (pack) ->
-      if pack instanceof TextMatePackage and pack.name isnt 'text.tmbundle'
-        'asyncTextMatePackages'
-      else
-        'packages'
-
-    pack.load() for pack in packages
-    if asyncTextMatePackages.length
-      new LoadTextMatePackagesTask(asyncTextMatePackages).start()
-
-  getPackages: ->
-    @packages ?= @getPackageNames().map((name) -> Package.build(name))
-                                   .filter((pack) -> pack?)
-    new Array(@packages...)
-
-  getTextMatePackages: ->
-    @getPackages().filter (pack) -> pack instanceof TextMatePackage
+  loadedPackages: []
 
   loadPackage: (name) ->
-    Package.build(name)?.load()
+    if pack = Package.build(name)
+      @loadedPackages.push(pack)
+      pack.load()
+      pack
+
+  loadTextMatePackages: ->
+    @loadPackage(name) for name in @getPackageNames() when TextMatePackage.testName(name)
+
+  loadPackages: ->
+    textMatePackages = []
+    for name in @getPackageNames()
+      pack = Package.build(name)
+      @loadedPackages.push(pack)
+      if pack instanceof TextMatePackage and pack.name isnt 'text.tmbundle'
+        textMatePackages.push(pack) if pack
+      else
+        pack.load()
+
+    new LoadTextMatePackagesTask(textMatePackages).start() if textMatePackages.length > 0
+
+  getLoadedPackages: ->
+    _.clone(@loadedPackages)
 
   getPackageNames: ->
     disabledPackages = config.get("core.disabledPackages") ? []
-    allPackageNames = []
+    packageNames = []
     for packageDirPath in config.packageDirPaths
-      packageNames = fs.list(packageDirPath)
-        .filter((packagePath) -> fs.isDirectory(packagePath))
-        .map((packagePath) -> fs.base(packagePath))
-      allPackageNames.push(packageNames...)
-    _.unique(allPackageNames)
-      .filter (name) -> not _.contains(disabledPackages, name)
+      for packagePath in fs.list(packageDirPath) when fs.isDirectory(packagePath)
+        packageName = fs.base(packagePath)
+        continue if packageName in disabledPackages
+        continue if packageName in packageNames
+        packageNames.push(packageName)
+
+    packageNames
 
   loadThemes: ->
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
