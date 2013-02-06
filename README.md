@@ -49,6 +49,8 @@ explore features.
 
 `cmd-alt-f` : fold selected lines
 
+`meta-l` : go to line
+
 Most default OS X keybindings also work.
 
 ## TreeView Keyboard shortcuts
