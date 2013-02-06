@@ -19,7 +19,7 @@ class Selection
     return if @destroyed
     @destroyed = true
     @editSession.removeSelection(this)
-    @trigger 'destroyed'
+    @trigger 'destroyed' unless @editSession.destroyed
     @cursor?.destroy()
 
   finalize: ->

@@ -39,8 +39,9 @@ describe "Editor", ->
     rootView.remove()
 
   describe "construction", ->
-    it "throws an error if no editor session is given", ->
+    it "throws an error if no editor session is given unless deserializing", ->
       expect(-> new Editor).toThrow()
+      expect(-> new Editor(deserializing: true)).not.toThrow()
 
   describe ".copy()", ->
     it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
@@ -70,7 +71,6 @@ describe "Editor", ->
       newEditor.height(editor.height())
       newEditor.width(editor.width())
 
-      editor.remove()
       newEditor.attachToDom()
       expect(newEditor.scrollTop()).toBe editor.scrollTop()
       expect(newEditor.scrollView.scrollLeft()).toBe 44

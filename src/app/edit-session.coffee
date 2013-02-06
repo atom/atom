@@ -55,8 +55,11 @@ class EditSession
     @destroyed = true
     @unsubscribe()
     @buffer.release()
+    selection.destroy() for selection in @getSelections()
     @displayBuffer.destroy()
-    @project.removeEditSession(this)
+    @project?.removeEditSession(this)
+    @trigger 'destroyed'
+    @off()
 
   serialize: ->
     buffer: @buffer.getPath()
