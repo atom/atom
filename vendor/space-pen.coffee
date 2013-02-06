@@ -1,4 +1,4 @@
-# Modified from f6ef4ba2ffdc27b6c9a057560f1f527b1e0f3e8b
+# Modified from d9b6b4a2fe3fdeca07bb82e14e412718540f89f3
 $ = jQuery = require('jquery')
 
 elements =
@@ -199,7 +199,7 @@ originalCleanData = jQuery.cleanData
 jQuery.cleanData = (elements) ->
   for element in elements
     view = $(element).view()
-    view.afterRemove?() if view?[0] == element
+    view.afterRemove?() if view and view?[0] == element
   originalCleanData(elements)
 
 (exports ? this).View = View
