@@ -1,15 +1,33 @@
 .tabs {
   font: caption;
   margin-bottom: 1px;
+  -webkit-user-select: none;
+  display: -webkit-box;
+  -webkit-box-align: center;
 }
 
 .tab {
   cursor: default;
   padding: 2px 21px 2px 9px;
+  -webkit-box-flex: 2;
+  position: relative;
+  width: 175px;
+  max-width: 175px;
+  min-width: 40px;
+  box-sizing: border-box;
 }
+
+.tab.active {
+  -webkit-box-flex: 1;
+}
+
 
 .tab.file-modified .close-icon {
   border-radius: 10px;
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  right: 5px;
 }
 
 .tab.file-modified .close-icon:before {
@@ -42,6 +60,11 @@
 .tab .file-name {
   font-size: 11px;
   text-shadow: 0 -1px 1px black;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 3px 5px;
 }
 
 .tab .close-icon {
