@@ -15,6 +15,12 @@
   background-color: rgba(255, 255, 255, 0.14);
 }
 
+.bracket-matcher {
+  border-bottom: 1px solid #f8de7e;
+  margin-top: -1px;
+  opacity: .7;
+}
+
 .comment {
   color: #7C7C7C;
 }

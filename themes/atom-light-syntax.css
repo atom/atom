@@ -20,6 +20,13 @@
   font-style: italic;
 }
 
+.bracket-matcher {
+  background-color: #C9C9C9;
+  opacity: .7;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
 .editor .string {
   color: #D14;
 }
