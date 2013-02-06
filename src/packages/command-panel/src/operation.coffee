@@ -4,20 +4,20 @@ module.exports =
 class Operation
   constructor: ({@project, @buffer, bufferRange, @newText, @preserveSelection, @errorMessage}) ->
     @buffer.retain()
-    @anchorRange = @buffer.addAnchorRange(bufferRange)
+    @marker = @buffer.markRange(bufferRange)
 
   getPath: ->
     @project.relativize(@buffer.getPath())
 
   getBufferRange: ->
-    @anchorRange.getBufferRange()
+    @buffer.getMarkerRange(@marker)
 
   execute: (editSession) ->
     @buffer.change(@getBufferRange(), @newText) if @newText
     @getBufferRange() unless @preserveSelection
 
   preview: ->
-    range = @anchorRange.getBufferRange()
+    range = @buffer.getMarkerRange(@marker)
     line = @buffer.lineForRow(range.start.row)
     prefix = line[0...range.start.column]
     match = line[range.start.column...range.end.column]
@@ -26,5 +26,5 @@ class Operation
     {prefix, suffix, match, range}
 
   destroy: ->
+    @buffer.destroyMarker(@marker)
     @buffer.release()
-    @anchorRange.destroy()
