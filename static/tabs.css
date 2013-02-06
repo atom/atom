@@ -1,59 +1,45 @@
 .tabs {
   font: caption;
-  margin-bottom: 1px;
+  -webkit-user-select: none;
+  display: -webkit-box;
+  -webkit-box-align: center;
 }
 
 .tab {
   cursor: default;
-  padding: 2px 21px 2px 9px;
+  -webkit-box-flex: 2;
+  position: relative;
+  width: 175px;
+  max-width: 175px;
+  min-width: 40px;
+  box-sizing: border-box;
+  text-shadow: -1px -1px 0 #000;
+  font-size: 11px;
+  padding: 5px 10px;
 }
 
-.tab.file-modified .close-icon {
-  border-radius: 10px;
-}
-
-.tab.file-modified .close-icon:before {
-  content: "";
-}
-
-.tab.active:before,
-.tab.active:after {
-  position: absolute;
-  bottom: -1px;
-  width: 4px;
-  height: 4px;
-  content: " ";
-  z-index: 3;
-}
-
-.tab.active:before {
-  left: -4px;
-}
-
-.tab.active:after {
-  right: -4px;
-  border-width: 0 0 1px 1px;
-}
-
-.tab.active:first-child:before {
-  display: none;
+.tab.active {
+  -webkit-box-flex: 1;
 }
 
 .tab .file-name {
-  font-size: 11px;
-  text-shadow: 0 -1px 1px black;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 3px 5px;
 }
 
 .tab .close-icon {
   font-family: 'Octicons Regular';
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-  display: block;
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
   cursor: pointer;
   position: absolute;
-  right: 4px;
-  top: -1px;
+  color: rgba(255, 255, 255, 0.5);
+  right: 5px;
+  top: 4px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -62,5 +48,31 @@
 }
 
 .tab .close-icon:hover {
-  color: white;
+  color: #fff;
+}
+
+.tab.file-modified .close-icon {
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  right: 6px;
+  border: 2px solid #66a6ff;
+  border-radius: 12px;
+}
+
+.tab.file-modified .close-icon:before {
+  content: "";
+}
+
+.tab.file-modified:hover .close-icon {
+  border: none;
+  width: 12px;
+  height: 12px;
+  right: 5px;
+  top: 4px;
+}
+
+.tab.file-modified:hover .close-icon:before {
+  content: "\f081";
+  color: #66a6ff;
 }
