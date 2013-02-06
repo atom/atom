@@ -21,29 +21,6 @@
   -webkit-box-flex: 1;
 }
 
-.tab.active:before,
-.tab.active:after {
-  position: absolute;
-  bottom: -1px;
-  width: 4px;
-  height: 4px;
-  content: " ";
-  z-index: 3;
-}
-
-.tab.active:before {
-  left: -4px;
-}
-
-.tab.active:after {
-  right: -4px;
-  border-width: 0 0 1px 1px;
-}
-
-.tab.active:first-child:before {
-  display: none;
-}
-
 .tab .file-name {
   font-size: 11px;
   display: block;
