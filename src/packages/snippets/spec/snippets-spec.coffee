@@ -12,7 +12,10 @@ describe "Snippets extension", ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     spyOn(LoadSnippetsTask.prototype, 'start')
+
+    atom.loadPackage("package-with-snippets")
     atom.loadPackage("snippets")
+
     editor = rootView.getActiveEditor()
     editSession = rootView.getActiveEditSession()
     buffer = editor.getBuffer()
@@ -20,7 +23,7 @@ describe "Snippets extension", ->
     rootView.enableKeymap()
 
   afterEach ->
-    rootView.remove()
+    rootView.deactivate()
     delete window.snippets
 
   describe "when 'tab' is triggered on the editor", ->
@@ -232,7 +235,6 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
-      atom.packages = null
       jasmine.unspy(LoadSnippetsTask.prototype, 'start')
       spyOn(LoadSnippetsTask.prototype, 'loadAtomSnippets').andCallFake -> @snippetsLoaded({})
       spyOn(LoadSnippetsTask.prototype, 'loadTextMateSnippets').andCallFake -> @snippetsLoaded({})
@@ -254,7 +256,6 @@ describe "Snippets extension", ->
 
     it "loads snippets from all TextMate packages with snippets", ->
       jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
-      spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
 
@@ -270,10 +271,6 @@ describe "Snippets extension", ->
           \t// body...
           }
         """
-
-        # warn about junk-file, but don't even try to parse a hidden file
-        expect(console.warn).toHaveBeenCalled()
-        expect(console.warn.calls.length).toBe 1
 
     it "terminates the worker when loading completes", ->
       jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')

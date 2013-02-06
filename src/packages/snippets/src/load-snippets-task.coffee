@@ -5,7 +5,7 @@ module.exports =
 class LoadSnippetsTask extends Task
   constructor: (@snippets) ->
     super('snippets/src/load-snippets-handler')
-    @packages = atom.getPackages()
+    @packages = atom.getLoadedPackages()
     @packages.push(path: config.configDirPath)
 
   started: ->
