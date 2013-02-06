@@ -1,13 +1,13 @@
 .tabs {
-  background: #cccccc;
+  background: #e1e1e1;
   border: none;
-  border-bottom: 4px solid #aaa;
+  border-bottom: 4px solid #ddd;
   box-shadow: inset 0 -1px 0 #666;
 }
 
 .tab {
   margin: 0 0 1px 0;
-  background-image: -webkit-linear-gradient(#bbb, #999);
+  background-image: -webkit-linear-gradient(#e7e7e7, #cfcfcf);
   color: #444;
   text-shadow: 1px 1px rgba(255, 255, 255, 0.1);
   box-shadow:
@@ -19,7 +19,7 @@
 }
 
 .tab.active {
-  background-image: -webkit-linear-gradient(#f7f7f7, #ccc);
+  background-image: -webkit-linear-gradient(#fefefe, #e7e6e7);
   color: #323232;
   text-shadow: 1px 1px rgba(255, 255, 255, 0.5);
   box-shadow:
