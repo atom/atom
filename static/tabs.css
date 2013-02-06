@@ -1,6 +1,5 @@
 .tabs {
   font: caption;
-  margin-bottom: 1px;
   -webkit-user-select: none;
   display: -webkit-box;
   -webkit-box-align: center;
@@ -21,9 +20,7 @@
   -webkit-box-flex: 1;
 }
 
-
 .tab.file-modified .close-icon {
-  border-radius: 10px;
   top: 6px;
   width: 5px;
   height: 5px;

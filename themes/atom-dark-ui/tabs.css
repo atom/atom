@@ -1,27 +1,41 @@
 .tabs {
-  background: #333333;
-  border-bottom: 4px solid #424242;
-  box-shadow: inset 0 -1px 0 #2e2e2e, 0 1px 0 #191919;
+  background: #161719;
+  border: none;
+  box-shadow: none;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .tab {
-  background-image: -webkit-linear-gradient(#444, #3d3d3d);
-  border-top: 1px solid #383838;
-  border-right: 1px solid #2e2e2e;
-  border-bottom: 1px solid #2e2e2e;
-  box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a, inset 1px 0 0 #4a4a4a;
+  margin-bottom: 1px;
+  background-image: -webkit-linear-gradient(#292c2f, #1d1f21);
+  margin-left: 1px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 1px 0 0 rgba(255, 255, 255, 0.05),
+    inset -1px 0 0 rgba(255, 255, 255, 0.05);
+  color: #ccc;
+  padding: 5px 20px;
 }
 
- .tab:first-child {
-  box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a;
+.tab.active {
+  background-image: -webkit-linear-gradient(#444, #222);
+  color: #fff;
+  padding-top: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(0, 0, 0, 0.2),
+    inset 1px 0 0 rgba(255, 255, 255, 0.1),
+    inset -1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+/*
+.tab:first-child {
+  box-shadow: inset 0 0 5px #383838,  inset -1px 0 0 #4a4a4a;
 }
 
 .tab.active,
 .tab.active:hover {
-  border-top: 1px solid #4a4a4a;
-  box-shadow: inset -1px 0 0 #595959, inset 1px 0 0 #595959;
-  border-bottom-color: #424242;
-  background-image: -webkit-linear-gradient(#555555, #424242);
+  background-image: -webkit-linear-gradient(#222426, #1d1f21);
 }
 
 .tab,
@@ -52,29 +66,13 @@
   border: 3px solid #777;
 }
 
-.tab.active:first-child,
-.tab.active:first-child:hover {
-  box-shadow: inset -1px 0 0 #595959;
-}
-
 .tab.active:before,
 .tab.active:after {
-  border: 1px solid #595959;
-}
-
-.tab.active:before {
-  border-bottom-right-radius: 4px;
-  border-width: 0 1px 1px 0;
-  box-shadow: 2px 2px 0 #424242;
-}
-
-.tab.active:after {
-  border-bottom-left-radius: 4px;
-  border-width: 0 0 1px 1px;
-  box-shadow: -2px 2px 0 #424242;
+  content: "";
+  bottom: 0;
 }
 
 .tab:hover {
   color: #c8c8c8;
   background-image: -webkit-linear-gradient(#474747, #444444);
-}
+}*/
