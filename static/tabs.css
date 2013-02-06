@@ -7,7 +7,6 @@
 
 .tab {
   cursor: default;
-  padding: 2px 21px 2px 9px;
   -webkit-box-flex: 2;
   position: relative;
   width: 175px;
@@ -16,6 +15,7 @@
   box-sizing: border-box;
   text-shadow: -1px -1px 0 #000;
   font-size: 11px;
+  padding: 5px 10px;
 }
 
 .tab.active {
