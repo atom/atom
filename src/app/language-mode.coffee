@@ -18,7 +18,7 @@ class LanguageMode
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @reloadGrammar()
-    @bracketAnchorRanges = []
+    @bracketMarkers = []
 
     _.adviseBefore @editSession, 'insertText', (text) =>
       return true if @editSession.hasMultipleCursors()
@@ -37,19 +37,19 @@ class LanguageMode
       autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and hasWordBeforeCursor)
       skipOverExistingClosingBracket = false
       if @isClosingBracket(text) and nextCharacter == text
-        if bracketAnchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
+        if bracketMarker = _.find(@bracketMarkers, (marker) => @editSession.getMarkerBufferRange(marker).end.isEqual(cursorBufferPosition))
           skipOverExistingClosingBracket = true
 
       if skipOverExistingClosingBracket
-        bracketAnchorRange.destroy()
-        _.remove(@bracketAnchorRanges, bracketAnchorRange)
+        @editSession.destroyMarker(bracketMarker)
+        _.remove(@bracketMarkers, bracketMarker)
         @editSession.moveCursorRight()
         false
       else if autoCompleteOpeningBracket
         @editSession.insertText(text + @pairedCharacters[text])
         @editSession.moveCursorLeft()
         range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
-        @bracketAnchorRanges.push @editSession.addAnchorRange(range)
+        @bracketMarkers.push @editSession.markBufferRange(range)
         false
 
     _.adviseBefore @editSession, 'backspace', =>
