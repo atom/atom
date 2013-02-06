@@ -51,6 +51,13 @@ explore features.
 
 Most default OS X keybindings also work.
 
+## TreeView Keyboard shortcuts
+With the treeview focused:
+
+`a` : Add a new file or directory.  Directories end with '/'.
+
+`m` : Rename a file or directory
+
 ## Init Script
 
 Atom will require `~/.atom/user.coffee` whenever a window is opened or reloaded if it is present in your
