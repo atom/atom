@@ -63,3 +63,16 @@
 .tab.file-modified .close-icon:before {
   content: "";
 }
+
+.tab.file-modified:hover .close-icon {
+  border: none;
+  width: 12px;
+  height: 12px;
+  right: 5px;
+  top: 4px;
+}
+
+.tab.file-modified:hover .close-icon:before {
+  content: "\f081";
+  color: #66a6ff;
+}
