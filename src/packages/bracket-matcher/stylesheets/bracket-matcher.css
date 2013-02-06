@@ -1,12 +1,4 @@
-@-webkit-keyframes bracketmatch {
-  from { border-bottom-color: transparent; }
-  to { border-bottom-color: lime; }
-}
-
 .bracket-matcher {
   border-bottom: 1px dotted lime;
   position: absolute;
-  -webkit-animation-name: bracketmatch;
-  -webkit-animation-duration: 0.15s;
-  -webkit-animation-iteration-count: 2;
 }
