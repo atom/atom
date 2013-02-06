@@ -14,7 +14,8 @@
   max-width: 175px;
   min-width: 40px;
   box-sizing: border-box;
-  text-shadow: 0 -1px 1px black;
+  text-shadow: -1px -1px 0 #000;
+  font-size: 11px;
 }
 
 .tab.active {
@@ -22,7 +23,6 @@
 }
 
 .tab .file-name {
-  font-size: 11px;
   display: block;
   overflow: hidden;
   white-space: nowrap;
