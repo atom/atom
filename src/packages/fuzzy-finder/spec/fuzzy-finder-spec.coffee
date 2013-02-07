@@ -6,7 +6,7 @@ $ = require 'jquery'
 fs = require 'fs'
 
 describe 'FuzzyFinder', ->
-  [rootView, finder] = []
+  [finder] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
