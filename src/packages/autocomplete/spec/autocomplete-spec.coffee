@@ -1,36 +1,32 @@
 $ = require 'jquery'
-Autocomplete = require 'autocomplete/src/autocomplete-view'
+AutocompleteView = require 'autocomplete/lib/autocomplete-view'
+Autocomplete = require 'autocomplete/lib/autocomplete'
 Buffer = require 'buffer'
 Editor = require 'editor'
 RootView = require 'root-view'
 
 describe "Autocomplete", ->
-  autocomplete = null
-  editor = null
-  miniEditor = null
-
   beforeEach ->
-    editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
-    atom.loadPackage('autocomplete')
-    autocomplete = new Autocomplete(editor)
-    miniEditor = autocomplete.miniEditor
+    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    rootView.simulateDomAttachment()
 
   afterEach ->
-    editor?.remove()
+    rootView.deactivate()
 
-  describe "@activate(rootView)", ->
+  describe "@activate()", ->
     it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
-      rootView = new RootView(require.resolve('fixtures/sample.js'))
-      rootView.simulateDomAttachment()
-      Autocomplete.activate(rootView)
+      spyOn(AutocompleteView.prototype, 'initialize').andCallThrough()
+      autocompletePackage = atom.loadPackage("autocomplete")
+      expect(AutocompleteView.prototype.initialize).not.toHaveBeenCalled()
+
       leftEditor = rootView.getActiveEditor()
       rightEditor = rootView.getActiveEditor().splitRight()
-
-      spyOn(Autocomplete.prototype, 'initialize')
 
       leftEditor.trigger 'autocomplete:attach'
       expect(leftEditor.find('.autocomplete')).toExist()
       expect(rightEditor.find('.autocomplete')).not.toExist()
+
+      expect(AutocompleteView.prototype.initialize).toHaveBeenCalled()
 
       autoCompleteView = leftEditor.find('.autocomplete').view()
       autoCompleteView.trigger 'core:cancel'
@@ -39,9 +35,19 @@ describe "Autocomplete", ->
       rightEditor.trigger 'autocomplete:attach'
       expect(rightEditor.find('.autocomplete')).toExist()
 
-      expect(Autocomplete.prototype.initialize).not.toHaveBeenCalled()
+describe "AutocompleteView", ->
+  autocomplete = null
+  editor = null
+  miniEditor = null
 
-      rootView.deactivate()
+  beforeEach ->
+    editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
+    atom.loadPackage('autocomplete')
+    autocomplete = new AutocompleteView(editor)
+    miniEditor = autocomplete.miniEditor
+
+  afterEach ->
+    editor?.remove()
 
   describe 'autocomplete:attach event', ->
     it "shows autocomplete view and focuses its mini-editor", ->

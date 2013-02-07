@@ -4,10 +4,6 @@ SelectList = require 'select-list'
 
 module.exports =
 class AutocompleteView extends SelectList
-  @activate: (rootView) ->
-    rootView.eachEditor (editor) ->
-      new AutocompleteView(editor) if editor.attached and not editor.mini
-
   @viewClass: -> "autocomplete #{super} popover-list"
 
   editor: null
@@ -21,7 +17,6 @@ class AutocompleteView extends SelectList
 
   initialize: (@editor) ->
     super
-
     @handleEvents()
     @setCurrentBuffer(@editor.getBuffer())
 
