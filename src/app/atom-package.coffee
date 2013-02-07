@@ -24,9 +24,10 @@ class AtomPackage extends Package
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, "package"), ['cson', 'json'])
       @metadata = fs.readObject(metadataPath)
+    @metadata ?= {}
 
   loadKeymaps: ->
-    if keymaps = @metadata?.keymaps
+    if keymaps = @metadata.keymaps
       keymaps = keymaps.map (relativePath) =>
         fs.resolve(@keymapsDirPath, relativePath, ['cson', 'json', ''])
       keymap.load(keymapPath) for keymapPath in keymaps
