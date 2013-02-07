@@ -2057,7 +2057,7 @@ describe "EditSession", ->
         editSession.autoDecreaseIndentForRow(1)
         expect(editSession.lineForBufferRow(1)).toBe "}"
 
-  xdescribe ".destroy()", ->
+  describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
       expect(buffer.getMarkerCount()).toBeGreaterThan 0
       editSession.destroy()

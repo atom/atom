@@ -16,8 +16,7 @@ describe "CommandInterpreter", ->
 
   afterEach ->
     editSession?.destroy()
-    # TODO: Restore this assertion when we stop leaking markers from edit session
-#     expect(buffer.getMarkerCount()).toBe 0
+    expect(buffer.getMarkerCount()).toBe 0
 
   describe "addresses", ->
     beforeEach ->
