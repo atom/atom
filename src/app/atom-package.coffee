@@ -29,17 +29,13 @@ class AtomPackage extends Package
     if _.isArray(activationEvents)
       activateHandler = =>
         @activatePackageMain()
-        for event in activationEvents
-          rootView.off event, activateHandler
-      for event in activationEvents
-        rootView.command event, activateHandler
+        rootView.off(event, activateHandler) for event in activationEvents
+      rootView.command(event, activateHandler) for event in activationEvents
     else
       activateHandler = =>
         @activatePackageMain()
-        for event, selector of activationEvents
-          rootView.off event, selector, activateHandler
-      for event, selector of activationEvents
-        rootView.command event, selector, activateHandler
+        rootView.off(event, selector, activateHandler) for event, selector of activationEvents
+      rootView.command(event, selector, activateHandler) for event, selector of activationEvents
 
   activatePackageMain: ->
     if packageMain = @getPackageMain()
