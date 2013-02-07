@@ -3,39 +3,29 @@ _ = require 'underscore'
 
 module.exports =
 class Package
-  @resolve: (name) ->
-    path = require.resolve(name, verifyExistence: false)
-    return path if path
-    throw new Error("No package found named '#{name}'")
-
-  @build: (name) ->
+  @build: (path) ->
     TextMatePackage = require 'text-mate-package'
     AtomPackage = require 'atom-package'
 
-    path = @resolve(name)
-    newStylePackage = _.find fs.list(path), (filePath) =>
-      /package\.[cj]son$/.test filePath
+    oldStylePackage = _.find fs.list(path), (filePath) =>
+      /index\.coffee$/.test filePath
 
-    if TextMatePackage.testName(name)
-      new TextMatePackage(name)
+    if TextMatePackage.testName(path)
+      new TextMatePackage(path)
     else
-      if newStylePackage or fs.isDirectory(path)
-        new AtomPackage(name)
+      if not oldStylePackage
+        new AtomPackage(path)
       else
         try
-          PackageClass = require name
-          new PackageClass(name) if typeof PackageClass is 'function'
+          PackageClass = require path
+          new PackageClass(path) if typeof PackageClass is 'function'
         catch e
-          console.warn "Failed to load package named '#{name}'", e.stack
+          console.warn "Failed to load package at '#{path}'", e.stack
 
   name: null
   path: null
-  isDirectory: false
-  module: null
 
-  constructor: (@name) ->
-    @path = Package.resolve(@name)
-    @isDirectory = fs.isDirectory(@path)
-    @path = fs.directory(@path) unless @isDirectory
+  constructor: (@path) ->
+    @name = fs.base(@path)
 
   activate: (rootView) ->

@@ -18,13 +18,18 @@ require.paths.unshift(fixturePackagesPath)
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 # Specs rely on TextMate bundles (but not atom packages)
-textMatePackages = atom.loadTextMatePackages()
+window.loadTextMatePackages = ->
+  TextMatePackage = require 'text-mate-package'
+  config.packageDirPaths.unshift(fixturePackagesPath)
+  window.textMatePackages = []
+  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
+    window.textMatePackages.push atom.loadPackage(fs.base(path))
+
+window.loadTextMatePackages()
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
-
-  atom.loadedPackages = _.clone(textMatePackages)
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)

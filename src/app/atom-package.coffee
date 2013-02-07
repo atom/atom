@@ -7,7 +7,7 @@ class AtomPackage extends Package
   keymapsDirPath: null
   autoloadStylesheets: true
 
-  constructor: (@name) ->
+  constructor: ->
     super
     @keymapsDirPath = fs.join(@path, 'keymaps')
 
@@ -16,7 +16,7 @@ class AtomPackage extends Package
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets() if @autoloadStylesheets
-      rootView?.activatePackage(@name, this) unless @isDirectory
+      rootView?.activatePackage(@name, this) if require.resolve(@path)
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack
     this

@@ -15,20 +15,16 @@ _.extend atom,
   loadedPackages: []
 
   loadPackage: (name) ->
-    if pack = Package.build(name)
-      @loadedPackages.push(pack)
-      pack.load()
-      pack
-
-  loadTextMatePackages: ->
-    @loadPackage(name) for name in @getPackageNames() when TextMatePackage.testName(name)
+    packagePath = _.find @getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
+    pack = Package.build(packagePath)
+    pack?.load()
 
   loadPackages: ->
     textMatePackages = []
-    for name in @getPackageNames()
-      pack = Package.build(name)
+    for path in @getPackagePaths()
+      pack = Package.build(path)
       @loadedPackages.push(pack)
-      if pack instanceof TextMatePackage and pack.name isnt 'text.tmbundle'
+      if pack instanceof TextMatePackage and fs.base(pack.path) isnt 'text.tmbundle'
         textMatePackages.push(pack) if pack
       else
         pack.load()
@@ -38,17 +34,17 @@ _.extend atom,
   getLoadedPackages: ->
     _.clone(@loadedPackages)
 
-  getPackageNames: ->
+  getPackagePaths: ->
     disabledPackages = config.get("core.disabledPackages") ? []
-    packageNames = []
+    packagePaths = []
     for packageDirPath in config.packageDirPaths
-      for packagePath in fs.list(packageDirPath) when fs.isDirectory(packagePath)
-        packageName = fs.base(packagePath)
-        continue if packageName in disabledPackages
-        continue if packageName in packageNames
-        packageNames.push(packageName)
+      for packagePath in fs.list(packageDirPath)
+        continue if not fs.isDirectory(packagePath)
+        continue if fs.base(packagePath) in disabledPackages
+        continue if packagePath in packagePaths
+        packagePaths.push(packagePath)
 
-    packageNames
+    packagePaths
 
   loadThemes: ->
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
