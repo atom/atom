@@ -4,7 +4,7 @@ SelectList = require 'select-list'
 module.exports =
 class GrammarView extends SelectList
 
-  @viewClass: -> "#{super} grammar-view from-top overlay"
+  @viewClass: -> "#{super} grammar-view from-top overlay mini"
 
   filterKey: 'name'
 
