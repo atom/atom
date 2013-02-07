@@ -27,29 +27,38 @@ A basic ~/.atom directory is installed when you run `rake install`. Take a look 
 Atom doesn't have much in the way of menus yet. Use these keyboard shortcuts to
 explore features.
 
-`cmd-o` : open file/directory
+`meta-o` : open file/directory
 
-`cmd-n` : new window
+`meta-n` : new window
 
-`cmd-t` : open fuzzy file finder
+`meta-t` : open fuzzy file finder
 
-`cmd-:` : open command prompt
+meta-:` : open command prompt
 
-`cmd-f` : open command prompt with /
+`meta-f` : open command prompt with /
 
-`cmd-g` : repeat the last search
+`meta-g` : repeat the last search
 
-`cmd-r` : reload the current window
+`meta-r` : reload the current window
 
-`cmd-alt-ctrl-s` : run specs
+`meta-alt-ctrl-s` : run specs
 
-`cmd-alt-arrows` : split screen in direction of arrow
+`meta-alt-arrows` : split screen in direction of arrow
 
-`cmd-alt-w` : toggle word wrap
+`meta-alt-w` : toggle word wrap
 
-`cmd-alt-f` : fold selected lines
+`meta-alt-f` : fold selected lines
+
+`meta-l` : go to line
 
 Most default OS X keybindings also work.
+
+## TreeView Keyboard shortcuts
+With the treeview focused:
+
+`a` : Add a new file or directory.  Directories end with '/'.
+
+`m` : Rename a file or directory
 
 ## Init Script
 
