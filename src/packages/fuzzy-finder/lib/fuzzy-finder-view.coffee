@@ -3,14 +3,11 @@ SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
 fs = require 'fs'
-LoadPathsTask = require 'fuzzy-finder/src/load-paths-task'
+LoadPathsTask = require './load-paths-task'
 
 module.exports =
 class FuzzyFinderView extends SelectList
   filenameRegex: /[\w\.\-\/\\]+/
-
-  @activate: (rootView) ->
-    @instance = new FuzzyFinderView(rootView)
 
   @viewClass: ->
     [super, 'fuzzy-finder', 'overlay', 'from-top'].join(' ')
@@ -20,7 +17,7 @@ class FuzzyFinderView extends SelectList
   projectPaths: null
   reloadProjectPaths: true
 
-  initialize: (@rootView) ->
+  initialize: ->
     super
 
     @subscribe $(window), 'focus', => @reloadProjectPaths = true
@@ -54,15 +51,15 @@ class FuzzyFinderView extends SelectList
           @span " - #{folder}/", class: 'directory'
 
   openPath: (path) ->
-    @rootView.open(path, {@allowActiveEditorChange}) if path
+    rootView.open(path, {@allowActiveEditorChange}) if path
 
   splitOpenPath: (fn) ->
     path = @getSelectedElement()
     return unless path
 
-    editor = @rootView.getActiveEditor()
+    editor = rootView.getActiveEditor()
     if editor
-      fn(editor, @rootView.project.buildEditSessionForPath(path))
+      fn(editor, rootView.project.buildEditSessionForPath(path))
     else
       @openPath(path)
 
@@ -79,7 +76,7 @@ class FuzzyFinderView extends SelectList
     if @hasParent()
       @cancel()
     else
-      return unless @rootView.project.getPath()?
+      return unless rootView.project.getPath()?
       @allowActiveEditorChange = false
       @populateProjectPaths()
       @attach()
@@ -96,9 +93,9 @@ class FuzzyFinderView extends SelectList
     if @hasParent()
       @cancel()
     else
-      return unless @rootView.project.getPath()?
+      return unless rootView.project.getPath()?
       @allowActiveEditorChange = false
-      editor = @rootView.getActiveEditor()
+      editor = rootView.getActiveEditor()
       currentWord = editor.getWordUnderCursor(wordRegex: @filenameRegex)
 
       if currentWord.length == 0
@@ -110,7 +107,7 @@ class FuzzyFinderView extends SelectList
             @attach()
             @setError("No files match '#{currentWord}'")
           else if paths.length == 1
-            @rootView.open(paths[0])
+            rootView.open(paths[0])
           else
             @attach()
             @miniEditor.setText(currentWord)
@@ -142,16 +139,16 @@ class FuzzyFinderView extends SelectList
 
         @setArray(listedItems)
         options.done(listedItems) if options.done?
-      @loadPathsTask = new LoadPathsTask(@rootView, callback)
+      @loadPathsTask = new LoadPathsTask(rootView, callback)
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
-    @paths = @rootView.getOpenBufferPaths().map (path) =>
-      @rootView.project.relativize(path)
+    @paths = rootView.getOpenBufferPaths().map (path) =>
+      rootView.project.relativize(path)
     @setArray(@paths)
 
   attach: ->
     super
 
-    @rootView.append(this)
+    rootView.append(this)
     @miniEditor.focus()

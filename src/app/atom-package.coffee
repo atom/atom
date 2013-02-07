@@ -64,8 +64,8 @@ class AtomPackage extends Package
       rootView.command(event, selector, activateHandler) for event, selector of activationEvents
 
   activatePackageMain: ->
-    if packageMain = @getPackageMain()
-      rootView?.activatePackage(@name, packageMain)
+    if @packageMain = @getPackageMain()
+      rootView?.activatePackage(@name, @packageMain)
 
   getPackageMain: ->
     mainPath = require.resolve(fs.join(@path, @metadata.main)) if @metadata.main

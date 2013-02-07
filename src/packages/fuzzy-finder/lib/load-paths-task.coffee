@@ -3,7 +3,7 @@ Task = require 'task'
 module.exports =
 class LoadPathsTask extends Task
   constructor: (@rootView, @callback)->
-    super('fuzzy-finder/src/load-paths-handler')
+    super('fuzzy-finder/lib/load-paths-handler')
 
   started: ->
     ignoredNames = config.get('fuzzyFinder.ignoredNames') ? []

@@ -1,6 +1,6 @@
 RootView = require 'root-view'
-FuzzyFinder = require 'fuzzy-finder/src/fuzzy-finder-view'
-LoadPathsTask = require 'fuzzy-finder/src/load-paths-task'
+FuzzyFinder = require 'fuzzy-finder/lib/fuzzy-finder-view'
+LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
@@ -11,11 +11,10 @@ describe 'FuzzyFinder', ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    atom.loadPackage("fuzzy-finder").getInstance()
-    finder = FuzzyFinder.instance
+    finder = atom.loadPackage("fuzzy-finder").packageMain.createView()
 
   afterEach ->
-    rootView.remove()
+    rootView.deactivate()
 
   describe "file-finder behavior", ->
     describe "toggling", ->
@@ -26,6 +25,7 @@ describe 'FuzzyFinder', ->
           rootView.find('.editor').trigger 'editor:split-right'
           [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
 
+          expect(rootView.find('.fuzzy-finder')).not.toExist()
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           expect(rootView.find('.fuzzy-finder')).toExist()
           expect(finder.miniEditor.isFocused).toBeTruthy()
