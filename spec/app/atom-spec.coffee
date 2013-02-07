@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 {$$} = require 'space-pen'
 
-fdescribe "the `atom` global", ->
+describe "the `atom` global", ->
   beforeEach ->
     new RootView
 
