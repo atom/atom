@@ -1,7 +1,4 @@
-AtomPackage = require 'atom-package'
-
 module.exports =
-class StripTrailingWhitespace extends AtomPackage
   activate: (rootView) ->
     rootView.eachBuffer (buffer) => @stripTrailingWhitespaceBeforeSave(buffer)
 

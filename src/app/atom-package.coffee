@@ -16,10 +16,18 @@ class AtomPackage extends Package
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets() if @autoloadStylesheets
-      rootView?.activatePackage(@name, this) if require.resolve(@path)
+      if packageMain = @getPackageMain()
+        rootView?.activatePackage(@name, packageMain)
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack
     this
+
+  getPackageMain: ->
+    mainPath = require.resolve(@metadata.main) if @metadata.main
+    if mainPath
+      require(mainPath)
+    else if require.resolve(@path)
+      this
 
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, "package"), ['cson', 'json'])
