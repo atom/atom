@@ -6,7 +6,7 @@ Point = require 'point'
 module.exports =
 class GoToLineView extends View
 
-  @activate: (rootView) -> new GoToLineView(rootView).attach()
+  @activate: (rootView) -> new GoToLineView(rootView)
 
   @content: ->
     @div class: 'go-to-line overlay from-top mini', =>

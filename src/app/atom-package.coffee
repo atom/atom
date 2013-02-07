@@ -1,6 +1,7 @@
 Package = require 'package'
 fs = require 'fs'
 _ = require 'underscore'
+$ = require 'jquery'
 
 module.exports =
 class AtomPackage extends Package
@@ -25,16 +26,40 @@ class AtomPackage extends Package
       console.warn "Failed to load package named '#{@name}'", e.stack
     this
 
-  subscribeToActivationEvents: (activationEvents) ->
+  disableEventHandlersOnBubblePath: (event) ->
+    bubblePathEventHandlers = []
+    element = $(event.target)
+    while element.length
+      if eventHandlers = element.data('events')?[event.type]
+        for eventHandler in eventHandlers
+          eventHandler.disabledHandler = eventHandler.handler
+          eventHandler.handler = ->
+          bubblePathEventHandlers.push(eventHandler)
+      element = element.parent()
+    bubblePathEventHandlers
+
+  restoreEventHandlersOnBubblePath: (eventHandlers) ->
+    for eventHandler in eventHandlers
+      eventHandler.handler = eventHandler.disabledHandler
+      delete eventHandler.disabledHandler
+
+  unsubscribeFromActivationEvents: (activationEvents, activateHandler) ->
     if _.isArray(activationEvents)
-      activateHandler = =>
-        @activatePackageMain()
-        rootView.off(event, activateHandler) for event in activationEvents
+      rootView.off(event, activateHandler) for event in activationEvents
+    else
+      rootView.off(event, selector, activateHandler) for event, selector of activationEvents
+
+  subscribeToActivationEvents: (activationEvents) ->
+    activateHandler = (event) =>
+      bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
+      @activatePackageMain()
+      $(event.target).trigger(event)
+      @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
+      @unsubscribeFromActivationEvents(activationEvents, activateHandler)
+
+    if _.isArray(activationEvents)
       rootView.command(event, activateHandler) for event in activationEvents
     else
-      activateHandler = =>
-        @activatePackageMain()
-        rootView.off(event, selector, activateHandler) for event, selector of activationEvents
       rootView.command(event, selector, activateHandler) for event, selector of activationEvents
 
   activatePackageMain: ->
@@ -42,7 +67,7 @@ class AtomPackage extends Package
       rootView?.activatePackage(@name, packageMain)
 
   getPackageMain: ->
-    mainPath = require.resolve(@metadata.main) if @metadata.main
+    mainPath = require.resolve(fs.join(@path, @metadata.main)) if @metadata.main
     if mainPath
       require(mainPath)
     else if require.resolve(@path)

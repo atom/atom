@@ -1,1 +1,1 @@
-'main': 'strip-trailing-whitespace/lib/strip-trailing-whitespace'
+'main': './lib/strip-trailing-whitespace'
