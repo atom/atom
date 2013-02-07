@@ -139,13 +139,18 @@ class FuzzyFinderView extends SelectList
 
         @setArray(listedItems)
         options.done(listedItems) if options.done?
-      @loadPathsTask = new LoadPathsTask(rootView, callback)
+      @loadPathsTask = new LoadPathsTask(callback)
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
     @paths = rootView.getOpenBufferPaths().map (path) =>
       rootView.project.relativize(path)
     @setArray(@paths)
+
+  detach: ->
+    super
+
+    @loadPathsTask?.terminate()
 
   attach: ->
     super

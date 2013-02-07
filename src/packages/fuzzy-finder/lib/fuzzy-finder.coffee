@@ -11,11 +11,14 @@ module.exports =
       @createView().findUnderCursor()
 
     if rootView.project.getPath()?
-      callback = (paths) => @projectPaths = paths
       LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
-      new LoadPathsTask(rootView, callback).start()
+      @loadPathsTask = new LoadPathsTask((paths) => @projectPaths = paths)
+      @loadPathsTask.start()
 
   deactivate: ->
+    @loadPathsTask?.terminate()
+    @fuzzyFinderView?.cancel()
+    @fuzzyFinderView = null
     @projectPaths = null
     @fuzzyFinderView = null
 

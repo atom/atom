@@ -1,10 +1,15 @@
 module.exports =
 class Task
+  terminated: false
+
   constructor: (@path) ->
 
   start: ->
+    throw new Error("Task already started") if @worker?
+
     @worker = new Worker(require.getPath('task-shell'))
     @worker.onmessage = ({data}) =>
+      return if @terminated
       if data.method and this[data.method]
         this[data.method](data.args...)
       else
@@ -35,4 +40,7 @@ class Task
     @worker.postMessage(data)
 
   terminate: ->
-    @worker.terminate()
+    unless @terminated
+      @terminated = true
+      @worker.terminate()
+      @worker = null
