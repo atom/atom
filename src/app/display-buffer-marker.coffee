@@ -5,8 +5,8 @@ module.exports =
 class DisplayBufferMarker
   observers: null
   bufferMarkerSubscription: null
-  previousHeadScreenPosition: null
-  previousTailScreenPosition: null
+  headScreenPosition: null
+  tailScreenPosition: null
 
   constructor: ({@id, @displayBuffer}) ->
     @buffer = @displayBuffer.buffer
@@ -24,7 +24,7 @@ class DisplayBufferMarker
     @buffer.setMarkerRange(@id, bufferRange, options)
 
   getHeadScreenPosition: ->
-    @displayBuffer.screenPositionForBufferPosition(@getHeadBufferPosition(), wrapAtSoftNewlines: true)
+    @headScreenPosition ?= @displayBuffer.screenPositionForBufferPosition(@getHeadBufferPosition(), wrapAtSoftNewlines: true)
 
   setHeadScreenPosition: (screenPosition, options) ->
     screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
@@ -37,8 +37,7 @@ class DisplayBufferMarker
     @buffer.setMarkerHeadPosition(@id, bufferPosition)
 
   getTailScreenPosition: ->
-    if tailBufferPosition = @getTailBufferPosition()
-      @displayBuffer.screenPositionForBufferPosition(tailBufferPosition, wrapAtSoftNewlines: true)
+    @tailScreenPosition ?= @displayBuffer.screenPositionForBufferPosition(@getTailBufferPosition(), wrapAtSoftNewlines: true)
 
   setTailScreenPosition: (screenPosition, options) ->
     screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
@@ -68,8 +67,8 @@ class DisplayBufferMarker
   observeBufferMarkerIfNeeded: ->
     return if @observers
     @observers = []
-    @previousHeadScreenPosition = @getHeadScreenPosition()
-    @previousTailScreenPosition = @getTailScreenPosition()
+    @getHeadScreenPosition() # memoize current value
+    @getTailScreenPosition() # memoize current value
     @bufferMarkerSubscription =
       @buffer.observeMarker @id, ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}) =>
         @notifyObservers
@@ -87,13 +86,13 @@ class DisplayBufferMarker
     delete @displayBuffer.markers[@id]
 
   notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged}) ->
-    oldHeadScreenPosition = @previousHeadScreenPosition
+    oldHeadScreenPosition = @getHeadScreenPosition()
+    @headScreenPosition = null
     newHeadScreenPosition = @getHeadScreenPosition()
-    @previousHeadScreenPosition = newHeadScreenPosition
 
-    oldTailScreenPosition = @previousTailScreenPosition
+    oldTailScreenPosition = @getTailScreenPosition()
+    @tailScreenPosition = null
     newTailScreenPosition = @getTailScreenPosition()
-    @previousTailScreenPosition = newTailScreenPosition
 
     return if _.isEqual(newHeadScreenPosition, oldHeadScreenPosition) and _.isEqual(newTailScreenPosition, oldTailScreenPosition)
 
