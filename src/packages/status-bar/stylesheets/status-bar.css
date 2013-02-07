@@ -1,9 +1,0 @@
-.status-bar {
-  position: relative;
-  -webkit-user-select: none;
-  cursor: default;
-}
-
-.status-bar .git-branch {
-  float: right;
-}
