@@ -1,0 +1,3 @@
+'activationEvents':
+  'editor:go-to-line': '.editor'
+'main': 'go-to-line/lib/go-to-line-view'

@@ -6,8 +6,11 @@ describe 'GoToLine', ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    goToLine = atom.loadPackage("go-to-line").getInstance()
+    atom.loadPackage("go-to-line")
     editor = rootView.getActiveEditor()
+    editor.trigger 'editor:go-to-line'
+    goToLine = rootView.find('.go-to-line').view()
+    editor.trigger 'editor:go-to-line'
     editor.setCursorBufferPosition([1,0])
 
   afterEach ->
