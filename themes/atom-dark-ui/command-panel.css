@@ -1,15 +1,15 @@
 .command-panel {
-  background-color: #303030;
-  border: 1px solid #252525;
+  background-color: #1b1c1e;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: #dedede;
 }
 
 .command-panel .preview-list {
-  background-color: #1e1e1e;
+  background-color: #19191b;
   color: #C5C8C6;
   border: 1px solid rgba(0, 0, 0, 0.5);
-  border-bottom: 1px solid rgba(180, 180, 180, 0.2);
-  border-right: 1px solid rgba(180, 180, 180, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .command-panel .preview-count {
