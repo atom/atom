@@ -109,6 +109,7 @@ task :clean do
   output = `xcodebuild clean`
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
+  `rm -rf /tmp/atom-compiled-scripts`
 end
 
 desc "Run Atom"
