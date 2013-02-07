@@ -1,12 +1,14 @@
 RootView = require 'root-view'
 {$$} = require 'space-pen'
 
-describe "the `atom` global", ->
+fdescribe "the `atom` global", ->
+  beforeEach ->
+    new RootView
+
   describe ".loadPackage(name)", ->
     [extension, stylesheetPath] = []
 
     beforeEach ->
-      rootView = new RootView
       extension = require "package-with-module"
       stylesheetPath = require.resolve("fixtures/packages/package-with-module/stylesheets/styles.css")
 
