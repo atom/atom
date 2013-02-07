@@ -1,4 +1,5 @@
 fs = require 'fs'
+_ = require 'underscore'
 
 module.exports =
 class Package
@@ -10,10 +11,15 @@ class Package
   @build: (name) ->
     TextMatePackage = require 'text-mate-package'
     AtomPackage = require 'atom-package'
+
+    path = @resolve(name)
+    newStylePackage = _.find fs.list(path), (filePath) =>
+      /package\.[cj]son$/.test filePath
+
     if TextMatePackage.testName(name)
       new TextMatePackage(name)
     else
-      if fs.isDirectory(@resolve(name))
+      if newStylePackage or fs.isDirectory(path)
         new AtomPackage(name)
       else
         try
