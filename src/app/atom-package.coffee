@@ -28,12 +28,13 @@ class AtomPackage extends Package
 
   disableEventHandlersOnBubblePath: (event) ->
     bubblePathEventHandlers = []
+    disabledHandler = ->
     element = $(event.target)
     while element.length
       if eventHandlers = element.data('events')?[event.type]
         for eventHandler in eventHandlers
           eventHandler.disabledHandler = eventHandler.handler
-          eventHandler.handler = ->
+          eventHandler.handler = disabledHandler
           bubblePathEventHandlers.push(eventHandler)
       element = element.parent()
     bubblePathEventHandlers
