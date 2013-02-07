@@ -25,7 +25,7 @@ _.extend atom,
       pack = Package.build(path)
       @loadedPackages.push(pack)
       if pack instanceof TextMatePackage and fs.base(pack.path) isnt 'text.tmbundle'
-        textMatePackages.push(pack) if pack
+        textMatePackages.push(pack)
       else
         pack.load()
 
