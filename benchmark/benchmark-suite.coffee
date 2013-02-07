@@ -17,9 +17,15 @@ describe "editor.", ->
     editor = rootView.getActiveEditor()
 
   afterEach ->
-    $(window).off 'beforeunload'
-    window.shutdown()
-    atom.setRootViewStateForPath(rootView.project.getPath(), null)
+    if editor.pendingDisplayUpdate
+      waitsFor "editor to finish rendering", (done) ->
+        editor.on 'editor:display-updated', done
+
+    runs ->
+      projectPath = rootView.project.getPath()
+      $(window).off 'beforeunload'
+      window.shutdown()
+      atom.setRootViewStateForPath(projectPath, null)
 
   describe "keymap.", ->
     event = null

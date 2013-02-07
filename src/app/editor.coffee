@@ -882,6 +882,7 @@ class Editor extends View
     @updateCursorViews()
     @updateSelectionViews()
     @autoscroll(options)
+    @trigger 'editor:display-updated'
 
   updateCursorViews: ->
     if @newCursors.length > 0
