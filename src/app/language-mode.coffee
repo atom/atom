@@ -37,7 +37,7 @@ class LanguageMode
       autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and hasWordBeforeCursor)
       skipOverExistingClosingBracket = false
       if @isClosingBracket(text) and nextCharacter == text
-        if bracketMarker = _.find(@bracketMarkers, (marker) => @editSession.getMarkerBufferRange(marker).end.isEqual(cursorBufferPosition))
+        if bracketMarker = _.find(@bracketMarkers, (marker) => @editSession.getMarkerBufferRange(marker)?.end.isEqual(cursorBufferPosition))
           skipOverExistingClosingBracket = true
 
       if skipOverExistingClosingBracket
