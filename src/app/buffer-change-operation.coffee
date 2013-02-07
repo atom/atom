@@ -8,6 +8,8 @@ class BufferChangeOperation
   oldText: null
   newRange: null
   newText: null
+  markersToRestoreOnUndo: null
+  markersToRestoreOnRedo: null
 
   constructor: ({@buffer, @oldRange, @newText, @options}) ->
     @options ?= {}
@@ -15,18 +17,24 @@ class BufferChangeOperation
   do: ->
     @oldText = @buffer.getTextInRange(@oldRange)
     @newRange = @calculateNewRange(@oldRange, @newText)
+    @markersToRestoreOnUndo = @invalidateMarkers(@oldRange)
     @changeBuffer
       oldRange: @oldRange
       newRange: @newRange
       oldText: @oldText
       newText: @newText
 
+  redo: ->
+    @restoreMarkers(@markersToRestoreOnRedo)
+
   undo: ->
+    @markersToRestoreOnRedo = @invalidateMarkers(@newRange)
     @changeBuffer
       oldRange: @newRange
       newRange: @oldRange
       oldText: @newText
       newText: @oldText
+    @restoreMarkers(@markersToRestoreOnUndo)
 
   splitLines: (text) ->
     lines = text.split('\n')
@@ -41,7 +49,6 @@ class BufferChangeOperation
 
   changeBuffer: ({ oldRange, newRange, newText, oldText }) ->
     { prefix, suffix } = @buffer.prefixAndSuffixForRange(oldRange)
-
     {lines, lineEndings} = @splitLines(newText)
     lastLineIndex = lines.length - 1
 
@@ -65,7 +72,7 @@ class BufferChangeOperation
     event = { oldRange, newRange, oldText, newText }
     @buffer.trigger 'changed', event
     @buffer.scheduleStoppedChangingEvent()
-    @buffer.updateAnchors(event)
+    @updateMarkers(event)
     newRange
 
   calculateNewRange: (oldRange, newText) ->
@@ -78,3 +85,18 @@ class BufferChangeOperation
       newRange.end.row += lastLineIndex
       newRange.end.column = lines[lastLineIndex].length
     newRange
+
+  invalidateMarkers: (oldRange) ->
+    _.compact(@buffer.getMarkers().map (marker) -> marker.tryToInvalidate(oldRange))
+
+  updateMarkers: (bufferChange) ->
+    marker.handleBufferChange(bufferChange) for marker in @buffer.getMarkers()
+    @buffer.trigger 'markers-updated'
+
+  restoreMarkers: (markersToRestore) ->
+    for [id, previousRange] in markersToRestore
+      if validMarker = @buffer.validMarkers[id]
+        validMarker.setRange(previousRange)
+      else if invalidMarker = @buffer.invalidMarkers[id]
+        @buffer.validMarkers[id] = invalidMarker
+
