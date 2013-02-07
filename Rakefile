@@ -25,7 +25,7 @@ task "bootstrap" do
 end
 
 desc "Creates symlink from `application_path() to /Applications/Atom and creates `atom` cli app"
-task :install => :build do
+task :install => [:clean, :build] do
   path = application_path()
   exit 1 if not path
 
