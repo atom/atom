@@ -8,12 +8,6 @@ class LanguageMode
   buffer = null
   grammar = null
   editSession = null
-  pairedCharacters:
-    '(': ')'
-    '[': ']'
-    '{': '}'
-    '"': '"'
-    "'": "'"
 
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
@@ -29,14 +23,6 @@ class LanguageMode
       @grammar = syntax.grammarForFilePath(path, pathContents)
     throw new Error("No grammar found for path: #{path}") unless @grammar
     previousGrammar isnt @grammar
-
-  getInvertedPairedCharacters: ->
-    return @invertedPairedCharacters if @invertedPairedCharacters
-
-    @invertedPairedCharacters = {}
-    for open, close of @pairedCharacters
-      @invertedPairedCharacters[close] = open
-    @invertedPairedCharacters
 
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
