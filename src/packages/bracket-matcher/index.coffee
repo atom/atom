@@ -5,19 +5,22 @@ Range = require 'range'
 
 module.exports =
 class BracketMatcher extends AtomPackage
-  startPairMatches:
+  pairedCharacters:
     '(': ')'
     '[': ']'
     '{': '}'
     '"': '"'
     "'": "'"
 
+  startPairMatches:
+    '(': ')'
+    '[': ']'
+    '{': '}'
+
   endPairMatches:
     ')': '('
     ']': '['
     '}': '{'
-    '"': '"'
-    "'": "'"
 
   pairHighlighted: false
 
@@ -153,7 +156,7 @@ class BracketMatcher extends AtomPackage
         editSession.moveCursorRight()
         false
       else if autoCompleteOpeningBracket
-        editSession.insertText(text + @startPairMatches[text])
+        editSession.insertText(text + @pairedCharacters[text])
         editSession.moveCursorLeft()
         range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
         @bracketMarkers.push editSession.markBufferRange(range)
@@ -166,7 +169,7 @@ class BracketMatcher extends AtomPackage
       cursorBufferPosition = editSession.getCursorBufferPosition()
       previousCharacter = editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
       nextCharacter = editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-      if @startPairMatches[previousCharacter] is nextCharacter
+      if @pairedCharacters[previousCharacter] is nextCharacter
         editSession.transact =>
           editSession.moveCursorLeft()
           editSession.delete()
@@ -174,7 +177,7 @@ class BracketMatcher extends AtomPackage
         false
 
   wrapSelectionInBrackets: (editSession, bracket) ->
-    pair = @startPairMatches[bracket]
+    pair = @pairedCharacters[bracket]
     editSession.mutateSelectedText (selection) =>
       return if selection.isEmpty()
 
@@ -191,8 +194,16 @@ class BracketMatcher extends AtomPackage
   isQuote: (string) ->
     /'|"/.test(string)
 
+  getInvertedPairedCharacters: ->
+    return @invertedPairedCharacters if @invertedPairedCharacters
+
+    @invertedPairedCharacters = {}
+    for open, close of @pairedCharacters
+      @invertedPairedCharacters[close] = open
+    @invertedPairedCharacters
+
   isOpeningBracket: (string) ->
-    @startPairMatches[string]?
+    @pairedCharacters[string]?
 
   isClosingBracket: (string) ->
-    @endPairMatches[string]?
+    @getInvertedPairedCharacters()[string]?
