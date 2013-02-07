@@ -1,8 +1,5 @@
-AtomPackage = require 'atom-package'
-
 module.exports =
-class Autoflow extends AtomPackage
-  activate: (rootView) ->
+  activate: ->
     rootView.command 'autoflow:reflow-paragraph', '.editor', (e) =>
       @reflowParagraph(e.currentTargetView())
 
