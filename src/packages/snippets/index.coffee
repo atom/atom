@@ -15,8 +15,12 @@ class Snippets extends AtomPackage
     @loadAll()
     @rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
 
+  deactivate: ->
+    @loadSnippetsTask?.terminate()
+
   loadAll: ->
-    new LoadSnippetsTask(this).start()
+    @loadSnippetsTask = new LoadSnippetsTask(this)
+    @loadSnippetsTask.start()
 
   loadDirectory: (snippetsDirPath) ->
     for snippetsPath in fs.list(snippetsDirPath) when fs.base(snippetsPath).indexOf('.') isnt 0
