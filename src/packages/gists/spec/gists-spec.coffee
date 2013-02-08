@@ -2,12 +2,11 @@ RootView = require 'root-view'
 $ = require 'jquery'
 
 describe "Gists package", ->
-
-  [rootView, editor] = []
+  [editor] = []
 
   beforeEach ->
     rootView = new RootView(fixturesProject.resolve('sample.js'))
-    atom.loadPackage('gists').getInstance()
+    atom.loadPackage('gists')
     editor = rootView.getActiveEditor()
     spyOn($, 'ajax')
 
