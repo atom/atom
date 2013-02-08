@@ -64,6 +64,7 @@ class AtomPackage extends Package
     mainPath = require.resolve(mainPath)
     if fs.isFile(mainPath)
       @packageMain = require(mainPath)
+      config.setDefaults(@name, @packageMain.configDefaults)
       rootView?.activatePackage(@name, this)
 
   loadMetadata: ->

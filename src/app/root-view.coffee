@@ -263,7 +263,6 @@ class RootView extends View
     @project.eachBuffer(callback)
 
   activatePackage: (name, pack) ->
-    config.setDefaults(name, pack.packageMain.configDefaults) if pack.packageMain.configDefaults?
     @packages[name] = pack
     pack.packageMain.activate(@packageStates[name])
 

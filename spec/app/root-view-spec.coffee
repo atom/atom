@@ -445,13 +445,6 @@ describe "RootView", ->
         expect(packageModule.activate).toHaveBeenCalledWith("it worked")
         newRootView.remove()
 
-      it "loads config defaults based on the `configDefaults` key", ->
-        expect(config.get('foo.bar')).toBeUndefined()
-        rootView.activatePackage('package', pack)
-        config.set("package.foo.bar", 1)
-        expect(config.get('package.foo.bar')).toBe 1
-        expect(config.get('package.foo.baz')).toBe 3
-
     describe ".deactivatePackage(packageName)", ->
       it "deactivates and removes the package module from the package module map", ->
         rootView.activatePackage('package', pack)
