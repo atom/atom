@@ -4,7 +4,7 @@ TextMatePackage = require 'text-mate-package'
 module.exports =
 class LoadSnippetsTask extends Task
   constructor: (@snippets) ->
-    super('snippets/src/load-snippets-handler')
+    super('snippets/lib/load-snippets-handler')
     @packages = atom.getLoadedPackages()
     @packages.push(path: config.configDirPath)
 

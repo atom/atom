@@ -1,19 +1,18 @@
 AtomPackage = require 'atom-package'
 fs = require 'fs'
 _ = require 'underscore'
-SnippetExpansion = require './src/snippet-expansion'
-Snippet = require './src/snippet'
-LoadSnippetsTask = require './src/load-snippets-task'
+SnippetExpansion = require './snippet-expansion'
+Snippet = require './snippet'
+LoadSnippetsTask = require './load-snippets-task'
 
 module.exports =
-class Snippets extends AtomPackage
   snippetsByExtension: {}
   loaded: false
 
-  activate: (@rootView) ->
+  activate: ->
     window.snippets = this
     @loadAll()
-    @rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
+    rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
 
   deactivate: ->
     @loadSnippetsTask?.terminate()
@@ -45,7 +44,7 @@ class Snippets extends AtomPackage
       syntax.addProperties(selector, snippets: snippetsByPrefix)
 
   getBodyParser: ->
-    require 'snippets/src/snippet-body-parser'
+    require 'snippets/lib/snippet-body-parser'
 
   enableSnippetsInEditor: (editor) ->
     editor.command 'snippets:expand', (e) =>
