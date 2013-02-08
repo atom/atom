@@ -1,14 +1,14 @@
 .tabs {
   font: caption;
-  -webkit-user-select: none;
   display: -webkit-box;
   -webkit-box-align: center;
 }
 
 .tab {
+  -webkit-user-select: none;
+  -webkit-user-drag: element;
   cursor: default;
   -webkit-box-flex: 2;
-  position: relative;
   width: 175px;
   max-width: 175px;
   min-width: 40px;
@@ -16,6 +16,7 @@
   text-shadow: -1px -1px 0 #000;
   font-size: 11px;
   padding: 5px 10px;
+  position: relative;
 }
 
 .tab.active {

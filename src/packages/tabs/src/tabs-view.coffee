@@ -33,6 +33,9 @@ class Tabs extends View
       @editor.destroyEditSessionIndex(index)
       false
 
+    @on 'dragstart', '.tab', (e) ->
+      console.log 'TAB DRAGGED', e
+
   addTabForEditSession: (editSession) ->
     @append(new Tab(editSession, @editor))
 
