@@ -5,19 +5,19 @@ $ = require 'jquery'
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
-  @activate: (rootView, state) ->
-    @instance = new this(rootView)
+  @activate: ->
+    @instance = new MarkdownPreviewView
 
-  @content: (rootView) ->
+  @content: ->
     @div class: 'markdown-preview', tabindex: -1, =>
       @div class: 'markdown-body', outlet: 'markdownBody'
 
-  initialize: (@rootView) ->
+  initialize: ->
     super
 
-    @editor = @rootView.getActiveEditor()
-    @subscribe @editor, 'focus', => @detach() unless @detaching
-    @command 'core:cancel', => @detach() unless @detaching
+    rootView.command 'markdown-preview:toggle', => @toggle()
+    @on 'blur', => @detach() unless document.activeElement is this[0]
+    @command 'core:cancel', => @detach()
 
   toggle: ->
     if @hasParent()
@@ -27,22 +27,23 @@ class MarkdownPreviewView extends ScrollView
 
   attach: ->
     return unless @isMarkdownFile(@getActivePath())
-    @rootView.append(this)
+    rootView.append(this)
     @markdownBody.html(@getLoadingHtml())
     @loadHtml()
     @focus()
 
   detach: ->
+    return if @detaching
     @detaching = true
     super
-    @rootView.focus()
+    rootView.focus()
     @detaching = false
 
   getActivePath: ->
-    @editor.getPath()
+    rootView.getActiveEditor()?.getPath()
 
   getActiveText: ->
-    @editor.getText()
+    rootView.getActiveEditor()?.getText()
 
   getErrorHtml: (error) ->
     $$$ ->
@@ -76,4 +77,4 @@ class MarkdownPreviewView extends ScrollView
     @markdownBody.html(html) if @hasParent()
 
   isMarkdownFile: (path) ->
-    fs.isMarkdownExtension(fs.extension(path))
+    path and fs.isMarkdownExtension(fs.extension(path))
