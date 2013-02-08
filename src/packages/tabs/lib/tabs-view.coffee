@@ -1,10 +1,10 @@
 $ = require 'jquery'
 {View} = require 'space-pen'
-Tab = require 'tabs/src/tab'
+Tab = require './tab'
 
 module.exports =
 class Tabs extends View
-  @activate: (rootView) ->
+  @activate: ->
     rootView.eachEditor (editor) =>
       @prependToEditorPane(rootView, editor) if editor.attached
 
