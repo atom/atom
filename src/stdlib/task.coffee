@@ -42,5 +42,5 @@ class Task
   terminate: ->
     unless @terminated
       @terminated = true
-      @worker.terminate()
+      @worker?.terminate()
       @worker = null
