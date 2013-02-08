@@ -1,7 +1,7 @@
 {$$} = require 'space-pen'
 SelectList = require 'select-list'
-TagGenerator = require 'symbols-view/src/tag-generator'
-TagReader = require 'symbols-view/src/tag-reader'
+TagGenerator = require './tag-generator'
+TagReader = require './tag-reader'
 Point = require 'point'
 fs = require 'fs'
 $ = require 'jquery'
@@ -9,15 +9,19 @@ $ = require 'jquery'
 module.exports =
 class SymbolsView extends SelectList
 
-  @activate: (rootView) ->
-    @instance = new SymbolsView(rootView)
+  @activate: ->
+    @instance = new SymbolsView
 
   @viewClass: -> "#{super} symbols-view overlay from-top"
 
   filterKey: 'name'
 
-  initialize: (@rootView) ->
+  initialize: ->
     super
+
+    rootView.command 'symbols-view:toggle-file-symbols', => @toggleFileSymbols()
+    rootView.command 'symbols-view:toggle-project-symbols', => @toggleProjectSymbols()
+    rootView.command 'symbols-view:go-to-declaration', => @goToDeclaration()
 
   itemForElement: ({position, name, file}) ->
     $$ ->
@@ -40,7 +44,8 @@ class SymbolsView extends SelectList
   populateFileSymbols: ->
     tags = []
     callback = (tag) -> tags.push tag
-    path = @rootView.getActiveEditor().getPath()
+    path = rootView.getActiveEditor().getPath()
+    @list.empty()
     @setLoading("Generating symbols...")
     new TagGenerator(path, callback).generate().done =>
       if tags.length > 0
@@ -60,8 +65,9 @@ class SymbolsView extends SelectList
       @attach()
 
   populateProjectSymbols: ->
+    @list.empty()
     @setLoading("Loading symbols...")
-    TagReader.getAllTags(@rootView.project).done (tags) =>
+    TagReader.getAllTags(rootView.project).done (tags) =>
       if tags.length > 0
         @miniEditor.show()
         @maxItems = 10
@@ -78,11 +84,11 @@ class SymbolsView extends SelectList
   openTag: (tag) ->
     position = tag.position
     position = @getTagLine(tag) unless position
-    @rootView.open(tag.file, {changeFocus: true, allowActiveEditorChange:true}) if tag.file
+    rootView.open(tag.file, {changeFocus: true, allowActiveEditorChange:true}) if tag.file
     @moveToPosition(position) if position
 
   moveToPosition: (position) ->
-    editor = @rootView.getActiveEditor()
+    editor = rootView.getActiveEditor()
     editor.scrollToBufferPosition(position, center: true)
     editor.setCursorBufferPosition(position)
     editor.moveCursorToFirstCharacterOfLine()
@@ -90,19 +96,19 @@ class SymbolsView extends SelectList
   attach: ->
     super
 
-    @rootView.append(this)
+    rootView.append(this)
     @miniEditor.focus()
 
   getTagLine: (tag) ->
     pattern = $.trim(tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '')) # Remove leading /^ and trailing $/
     return unless pattern
-    file = @rootView.project.resolve(tag.file)
+    file = rootView.project.resolve(tag.file)
     return unless fs.isFile(file)
     for line, index in fs.read(file).split('\n')
       return new Point(index, 0) if pattern is $.trim(line)
 
   goToDeclaration: ->
-    editor = @rootView.getActiveEditor()
+    editor = rootView.getActiveEditor()
     matches = TagReader.find(editor)
     return unless matches.length
 

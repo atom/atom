@@ -1,0 +1,6 @@
+'main': 'lib/symbols-view'
+'activationEvents': [
+  'symbols-view:toggle-file-symbols'
+  'symbols-view:toggle-project-symbols'
+  'symbols-view:go-to-declaration'
+]

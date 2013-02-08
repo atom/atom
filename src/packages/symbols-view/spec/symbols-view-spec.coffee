@@ -1,14 +1,18 @@
 RootView = require 'root-view'
-SymbolsView = require 'symbols-view/src/symbols-view'
-TagGenerator = require 'symbols-view/src/tag-generator'
+SymbolsView = require 'symbols-view/lib/symbols-view'
+TagGenerator = require 'symbols-view/lib/tag-generator'
 fs = require 'fs'
 
 describe "SymbolsView", ->
-  [rootView, symbolsView, setArraySpy] = []
+  [symbolsView, setArraySpy] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures'))
-    symbolsView = atom.loadPackage("symbols-view").getInstance()
+    atom.loadPackage("symbols-view")
+    rootView.trigger "symbols-view:toggle-project-symbols"
+    symbolsView = rootView.find('.symbols-view').view()
+    rootView.trigger "symbols-view:toggle-project-symbols"
+
     rootView.attachToDom()
     setArraySpy = spyOn(symbolsView, 'setArray').andCallThrough()
 
