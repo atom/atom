@@ -5,8 +5,8 @@ _ = require 'underscore'
 
 module.exports =
 class CommandPaletteView extends SelectList
-  @activate: (rootView) ->
-    @instance = new CommandPaletteView(rootView)
+  @activate: ->
+    new CommandPaletteView
 
   @viewClass: ->
     "#{super} command-palette overlay from-top"
@@ -16,11 +16,16 @@ class CommandPaletteView extends SelectList
   previouslyFocusedElement: null
   keyBindings: null
 
-  initialize: (@rootView) ->
-    @command 'command-palette:toggle', =>
-      @cancel()
-      false
+  initialize: ->
     super
+
+    rootView.command 'command-palette:toggle', => @toggle()
+
+  toggle: ->
+    if @hasParent()
+      @cancel()
+    else
+      @attach()
 
   attach: ->
     super
@@ -34,7 +39,7 @@ class CommandPaletteView extends SelectList
     events = _.sortBy events, (e) -> e.eventDescription
 
     @setArray(events)
-    @appendTo(@rootView)
+    @appendTo(rootView)
     @miniEditor.focus()
 
   itemForElement: ({eventName, eventDescription}) ->
