@@ -6,9 +6,7 @@ $ = require 'jquery'
 module.exports =
 class AtomPackage extends Package
   metadata: null
-
-  constructor: ->
-    super
+  packageMain: null
 
   load: ({activateImmediately}={}) ->
     try
