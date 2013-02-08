@@ -41,6 +41,7 @@ describe "AutocompleteView", ->
   miniEditor = null
 
   beforeEach ->
+    new RootView
     editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
     atom.loadPackage('autocomplete')
     autocomplete = new AutocompleteView(editor)
