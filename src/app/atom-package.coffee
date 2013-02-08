@@ -6,20 +6,17 @@ $ = require 'jquery'
 module.exports =
 class AtomPackage extends Package
   metadata: null
-  keymapsDirPath: null
 
   constructor: ->
     super
-    @keymapsDirPath = fs.join(@path, 'keymaps')
 
   load: ({activateImmediately}={}) ->
     try
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
-      activationEvents = @getActivationEvents()
-      if activationEvents and not activateImmediately
-        @subscribeToActivationEvents(activationEvents)
+      if @metadata.activationEvents and not activateImmediately
+        @subscribeToActivationEvents()
       else
         @activatePackageMain()
     catch e
@@ -44,24 +41,24 @@ class AtomPackage extends Package
       eventHandler.handler = eventHandler.disabledHandler
       delete eventHandler.disabledHandler
 
-  unsubscribeFromActivationEvents: (activationEvents, activateHandler) ->
-    if _.isArray(activationEvents)
-      rootView.off(event, activateHandler) for event in activationEvents
+  unsubscribeFromActivationEvents: (activateHandler) ->
+    if _.isArray(@metadata.activationEvents)
+      rootView.off(event, activateHandler) for event in @metadata.activationEvents
     else
-      rootView.off(event, selector, activateHandler) for event, selector of activationEvents
+      rootView.off(event, selector, activateHandler) for event, selector of @metadata.activationEvents
 
-  subscribeToActivationEvents: (activationEvents) ->
+  subscribeToActivationEvents: () ->
     activateHandler = (event) =>
       bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
       @activatePackageMain()
       $(event.target).trigger(event)
       @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
-      @unsubscribeFromActivationEvents(activationEvents, activateHandler)
+      @unsubscribeFromActivationEvents(activateHandler)
 
-    if _.isArray(activationEvents)
-      rootView.command(event, activateHandler) for event in activationEvents
+    if _.isArray(@metadata.activationEvents)
+      rootView.command(event, activateHandler) for event in @metadata.activationEvents
     else
-      rootView.command(event, selector, activateHandler) for event, selector of activationEvents
+      rootView.command(event, selector, activateHandler) for event, selector of @metadata.activationEvents
 
   activatePackageMain: ->
     mainPath = @path
@@ -71,25 +68,22 @@ class AtomPackage extends Package
       @packageMain = require(mainPath)
       rootView?.activatePackage(@name, @packageMain)
 
-  getActivationEvents: -> @metadata.activationEvents
-
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
       @metadata = fs.readObject(metadataPath)
     @metadata ?= {}
 
   loadKeymaps: ->
-    if keymaps = @metadata.keymaps
-      keymaps = keymaps.map (relativePath) =>
-        fs.resolve(@keymapsDirPath, relativePath, ['cson', 'json', ''])
-      keymap.load(keymapPath) for keymapPath in keymaps
+    keymapsDirPath = fs.join(@path, 'keymaps')
+
+    if @metadata.keymaps
+      for path in @metadata.keymaps
+        keymapPath = fs.resolve(keymapsDirPath, path, ['cson', 'json', ''])
+        keymap.load(keymapPath)
     else
-      keymap.loadDirectory(@keymapsDirPath)
+      keymap.loadDirectory(keymapsDirPath)
 
   loadStylesheets: ->
-    for stylesheetPath in @getStylesheetPaths()
-      requireStylesheet(stylesheetPath)
-
-  getStylesheetPaths: ->
     stylesheetDirPath = fs.join(@path, 'stylesheets')
-    fs.list(stylesheetDirPath)
+    for stylesheetPath in fs.list(stylesheetDirPath)
+      requireStylesheet(stylesheetPath)
