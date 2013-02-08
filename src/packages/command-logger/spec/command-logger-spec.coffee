@@ -1,12 +1,12 @@
 RootView = require 'root-view'
-CommandLogger = require 'command-logger/src/command-logger-view'
+CommandLogger = require 'command-logger/lib/command-logger-view'
 
 describe "CommandLogger", ->
-  [rootView, commandLogger, editor] = []
+  [commandLogger, editor] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
-    commandLogger = atom.loadPackage('command-logger')
+    new RootView(require.resolve('fixtures/sample.js'))
+    commandLogger = atom.loadPackage('command-logger').packageMain
     editor = rootView.getActiveEditor()
 
   afterEach ->
@@ -43,7 +43,7 @@ describe "CommandLogger", ->
 
   describe "when an event is ignored", ->
     it "does not create a node for that event", ->
-      commandLoggerView = commandLogger.getInstance()
+      commandLoggerView = commandLogger.createView()
       commandLoggerView.ignoredEvents.push 'editor:delete-line'
       editor.trigger 'editor:delete-line'
       commandLoggerView.eventLog = commandLogger.eventLog

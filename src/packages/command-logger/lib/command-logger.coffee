@@ -1,18 +1,14 @@
-DeferredAtomPackage = require 'deferred-atom-package'
 $ = require 'jquery'
 
 module.exports =
-class CommandLogger extends DeferredAtomPackage
-
-  loadEvents: ['command-logger:toggle']
-
-  instanceClass: 'command-logger/src/command-logger-view'
+  eventLog: null
+  commandLoggerView: null
+  originalTrigger: null
 
   activate: (rootView, state={})->
-    super
-
     @eventLog = state.eventLog ? {}
     rootView.command 'command-logger:clear-data', => @eventLog = {}
+    rootView.command 'command-logger:toggle', => @createView().toggle(@eventLog)
 
     registerTriggeredEvent = (eventName) =>
       eventNameLog = @eventLog[eventName]
@@ -23,10 +19,22 @@ class CommandLogger extends DeferredAtomPackage
         @eventLog[eventName] = eventNameLog
       eventNameLog.count++
       eventNameLog.lastRun = new Date().getTime()
-    originalTrigger = $.fn.trigger
+    trigger = $.fn.trigger
+    @originalTrigger = trigger
     $.fn.trigger = (eventName) ->
       eventName = eventName.type if eventName.type
       registerTriggeredEvent(eventName) if $(this).events()[eventName]
-      originalTrigger.apply(this, arguments)
+      trigger.apply(this, arguments)
 
-  onLoadEvent: (event, instance) -> instance.toggle(@eventLog)
+  deactivate: ->
+    $.fn.trigger = @originalTrigger if @originalTrigger?
+    @commandLoggerView = null
+    @eventLog = null
+
+  serialize: ->
+    {@eventLog}
+
+  createView: ->
+    unless @commandLoggerView
+      CommandLoggerView = require 'command-logger/lib/command-logger-view'
+      @commandLoggerView = new CommandLoggerView

@@ -4,17 +4,11 @@ _ = require 'underscore'
 
 module.exports =
 class CommandLoggerView extends ScrollView
-  @activate: (rootView, state) ->
-    @instance = new CommandLoggerView(rootView)
-
   @content: (rootView) ->
     @div class: 'command-logger', tabindex: -1, =>
       @h1 class: 'category-header', outlet: 'categoryHeader'
       @h1 class: 'category-summary', outlet: 'categorySummary'
       @div class: 'tree-map', outlet: 'treeMap'
-
-  @serialize: ->
-    @instance.serialize()
 
   eventLog: null
   ignoredEvents: [
@@ -30,7 +24,7 @@ class CommandLoggerView extends ScrollView
     'tree-view:directory-modified'
   ]
 
-  initialize: (@rootView) ->
+  initialize: ->
     super
 
     @command 'core:cancel', => @detach()
@@ -176,7 +170,7 @@ class CommandLoggerView extends ScrollView
     d3.select('.command-logger').on('click', -> zoom(root))
 
   attach: ->
-    @rootView.append(this)
+    rootView.append(this)
     @addTreeMap()
     @focus()
 
@@ -184,8 +178,5 @@ class CommandLoggerView extends ScrollView
     return if @detaching
     @detaching = true
     super
-    @rootView.focus()
+    rootView.focus()
     @detaching = false
-
-  serialize: ->
-    eventLog: @eventLog
