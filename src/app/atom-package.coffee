@@ -7,7 +7,6 @@ module.exports =
 class AtomPackage extends Package
   metadata: null
   keymapsDirPath: null
-  autoloadStylesheets: true
 
   constructor: ->
     super
@@ -17,7 +16,7 @@ class AtomPackage extends Package
     try
       @loadMetadata()
       @loadKeymaps()
-      @loadStylesheets() if @autoloadStylesheets
+      @loadStylesheets()
       activationEvents = @getActivationEvents()
       if activationEvents and not activateImmediately
         @subscribeToActivationEvents(activationEvents)
