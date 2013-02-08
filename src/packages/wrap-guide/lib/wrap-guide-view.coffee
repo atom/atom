@@ -4,20 +4,20 @@ _ = require 'underscore'
 
 module.exports =
 class WrapGuideView extends View
-  @activate: (rootView, state) ->
+  @activate: ->
     rootView.eachEditor (editor) =>
       @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
     if underlayer = editor.pane()?.find('.underlayer')
-      underlayer.append(new WrapGuideView(rootView, editor))
+      underlayer.append(new WrapGuideView(editor))
 
   @content: ->
     @div class: 'wrap-guide'
 
   defaultColumn: 80
 
-  initialize: (@rootView, @editor) =>
+  initialize: (@editor) =>
     @observeConfig 'editor.fontSize', => @updateGuide()
     @subscribe @editor, 'editor:path-changed', => @updateGuide()
     @subscribe @editor, 'editor:min-width-changed', => @updateGuide()
