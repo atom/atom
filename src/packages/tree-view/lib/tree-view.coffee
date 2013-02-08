@@ -1,34 +1,28 @@
 {View, $$} = require 'space-pen'
 ScrollView = require 'scroll-view'
 Directory = require 'directory'
-DirectoryView = require 'tree-view/src/directory-view'
-FileView = require 'tree-view/src/file-view'
-Dialog = require 'tree-view/src/dialog'
+DirectoryView = require './directory-view'
+FileView = require './file-view'
+Dialog = require './dialog'
 fs = require 'fs'
 $ = require 'jquery'
 _ = require 'underscore'
 
 module.exports =
 class TreeView extends ScrollView
-  @activate: (rootView, state) ->
+  @activate: (state) ->
     if state
-      @instance = TreeView.deserialize(state, rootView)
+      TreeView.deserialize(state)
     else
-      @instance = new TreeView(rootView)
-
-  @deactivate: ->
-    @instance.deactivate()
-
-  @serialize: ->
-    @instance.serialize()
+      new TreeView
 
   @content: (rootView) ->
     @div class: 'tree-view-wrapper', =>
       @ol class: 'tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
       @div class: 'tree-view-resizer', outlet: 'resizer'
 
-  @deserialize: (state, rootView) ->
-    treeView = new TreeView(rootView)
+  @deserialize: (state) ->
+    treeView = new TreeView
     treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
     treeView.selectEntryForPath(state.selectedPath)
     treeView.focusAfterAttach = state.hasFocus
@@ -42,7 +36,7 @@ class TreeView extends ScrollView
   scrollTopAfterAttach: -1
   selectedPath: null
 
-  initialize: (@rootView) ->
+  initialize: ->
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
     @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
@@ -55,15 +49,15 @@ class TreeView extends ScrollView
     @command 'tree-view:move', => @moveSelectedEntry()
     @command 'tree-view:add', => @add()
     @command 'tree-view:remove', => @removeSelectedEntry()
-    @command 'tool-panel:unfocus', => @rootView.focus()
+    @command 'tool-panel:unfocus', => rootView.focus()
     @command 'tree-view:directory-modified', =>
       if @hasFocus()
         @selectEntryForPath(@selectedPath) if @selectedPath
       else
         @selectActiveFile()
 
-    @rootView.on 'root-view:active-path-changed', => @selectActiveFile()
-    @rootView.project.on 'path-changed', => @updateRoot()
+    rootView.on 'root-view:active-path-changed', => @selectActiveFile()
+    rootView.project.on 'path-changed', => @updateRoot()
     @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()
 
     @selectEntry(@root) if @root
@@ -94,13 +88,13 @@ class TreeView extends ScrollView
 
   attach: ->
     return unless rootView.project.getPath()
-    @rootView.horizontal.prepend(this)
+    rootView.horizontal.prepend(this)
     @focus()
 
   detach: ->
     @scrollTopAfterAttach = @scrollTop()
     super
-    @rootView.focus()
+    rootView.focus()
 
   focus: ->
     @treeViewList.focus()
@@ -116,7 +110,7 @@ class TreeView extends ScrollView
         @openSelectedEntry(false) if entry instanceof FileView
       when 2
         if entry.is('.selected.file')
-          @rootView.getActiveEditor().focus()
+          rootView.getActiveEditor().focus()
         else if entry.is('.selected.directory')
           entry.toggleExpansion()
 
@@ -137,22 +131,22 @@ class TreeView extends ScrollView
 
   updateRoot: ->
     @root?.remove()
-    if rootDirectory = @rootView.project.getRootDirectory()
-      @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: @rootView.project)
+    if rootDirectory = rootView.project.getRootDirectory()
+      @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: rootView.project)
       @treeViewList.append(@root)
     else
       @root = null
 
   selectActiveFile: ->
-    activeFilePath = @rootView.getActiveEditor()?.getPath()
+    activeFilePath = rootView.getActiveEditor()?.getPath()
     @selectEntryForPath(activeFilePath) if activeFilePath
 
   revealActiveFile: ->
     @attach()
 
-    return unless activeFilePath = @rootView.getActiveEditor()?.getPath()
+    return unless activeFilePath = rootView.getActiveEditor()?.getPath()
 
-    project = @rootView.project
+    project = rootView.project
     activePathComponents = project.relativize(activeFilePath).split('/')
     currentPath = project.getPath().replace(/\/$/, '')
     for pathComponent in activePathComponents
@@ -219,7 +213,7 @@ class TreeView extends ScrollView
     if selectedEntry instanceof DirectoryView
       selectedEntry.view().toggleExpansion()
     else if selectedEntry instanceof FileView
-      @rootView.open(selectedEntry.getPath(), { changeFocus })
+      rootView.open(selectedEntry.getPath(), { changeFocus })
 
   moveSelectedEntry: ->
     entry = @selectedEntry()
@@ -232,11 +226,11 @@ class TreeView extends ScrollView
 
     dialog = new Dialog
       prompt: prompt
-      path: @rootView.project.relativize(oldPath)
+      path: rootView.project.relativize(oldPath)
       select: true
       iconClass: 'move'
       onConfirm: (newPath) =>
-        newPath = @rootView.project.resolve(newPath)
+        newPath = rootView.project.resolve(newPath)
         directoryPath = fs.directory(newPath)
         try
           fs.makeTree(directoryPath) unless fs.exists(directoryPath)
@@ -245,7 +239,7 @@ class TreeView extends ScrollView
         catch e
           dialog.showError("Error: #{e.message} Try a different path.")
 
-    @rootView.append(dialog)
+    rootView.append(dialog)
 
   removeSelectedEntry: ->
     entry = @selectedEntry()
@@ -264,7 +258,7 @@ class TreeView extends ScrollView
     selectedEntry = @selectedEntry() or @root
     selectedPath = selectedEntry.getPath()
     directoryPath = if fs.isFile(selectedPath) then fs.directory(selectedPath) else selectedPath
-    relativeDirectoryPath = @rootView.project.relativize(directoryPath)
+    relativeDirectoryPath = rootView.project.relativize(directoryPath)
     relativeDirectoryPath += '/' if relativeDirectoryPath.length > 0
 
     dialog = new Dialog
@@ -274,7 +268,7 @@ class TreeView extends ScrollView
       iconClass: 'add'
       onConfirm: (relativePath) =>
         endsWithDirectorySeparator = /\/$/.test(relativePath)
-        path = @rootView.project.resolve(relativePath)
+        path = rootView.project.resolve(relativePath)
         try
           if fs.exists(path)
             pathType = if fs.isFile(path) then "file" else "directory"
@@ -286,12 +280,12 @@ class TreeView extends ScrollView
             @selectEntryForPath(path)
           else
             fs.write(path, "")
-            @rootView.open(path)
+            rootView.open(path)
             dialog.close()
         catch e
           dialog.showError("Error: #{e.message} Try a different path.")
 
-    @rootView.append(dialog)
+    rootView.append(dialog)
 
   selectedEntry: ->
     @treeViewList.find('.selected')?.view()

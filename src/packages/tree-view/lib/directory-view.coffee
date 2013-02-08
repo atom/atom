@@ -1,5 +1,5 @@
 {View, $$} = require 'space-pen'
-FileView = require 'tree-view/src/file-view'
+FileView = require './file-view'
 Directory = require 'directory'
 $ = require 'jquery'
 Git = require 'git'
