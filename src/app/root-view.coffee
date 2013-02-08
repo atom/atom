@@ -33,7 +33,7 @@ class RootView extends View
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
 
-  packageModules: null
+  packages: null
   packageStates: null
   title: null
   pathToOpenIsFile: false
@@ -41,7 +41,7 @@ class RootView extends View
   initialize: (projectOrPathToOpen, { @packageStates, suppressOpen } = {}) ->
     window.rootView = this
     @packageStates ?= {}
-    @packageModules = {}
+    @packages = {}
     @viewClasses = {
       "Pane": Pane,
       "PaneRow": PaneRow,
@@ -118,33 +118,15 @@ class RootView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  serializePackages:  ->
-    packageStates = {}
-    for name, packageModule of @packageModules
-      try
-        packageStates[name] = packageModule.serialize?()
-      catch e
-        console?.error("Exception serializing '#{name}' package's module\n", e.stack)
-    packageStates
-
   registerViewClass: (viewClass) ->
     @viewClasses[viewClass.name] = viewClass
 
   deserializeView: (viewState) ->
     @viewClasses[viewState.viewClass]?.deserialize(viewState, this)
 
-  activatePackage: (name, packageModule) ->
-    config.setDefaults(name, packageModule.configDefaults) if packageModule.configDefaults?
-    @packageModules[name] = packageModule
-    packageModule.activate(@packageStates[name])
-
-  deactivatePackage: (name) ->
-    @packageModules[name].deactivate?()
-    delete @packageModules[name]
-
   deactivate: ->
     atom.setRootViewStateForPath(@project.getPath(), @serialize())
-    @deactivatePackage(name) for name of @packageModules
+    @deactivatePackage(name) for name of @packages
     @remove()
 
   open: (path, options = {}) ->
@@ -279,3 +261,21 @@ class RootView extends View
 
   eachBuffer: (callback) ->
     @project.eachBuffer(callback)
+
+  activatePackage: (name, pack) ->
+    config.setDefaults(name, pack.packageMain.configDefaults) if pack.packageMain.configDefaults?
+    @packages[name] = pack
+    pack.packageMain.activate(@packageStates[name])
+
+  deactivatePackage: (name) ->
+    @packages[name].packageMain.deactivate?()
+    delete @packages[name]
+
+  serializePackages:  ->
+    packageStates = {}
+    for name, pack of @packages
+      try
+        packageStates[name] = pack.packageMain.serialize?()
+      catch e
+        console?.error("Exception serializing '#{name}' package's module\n", e.stack)
+    packageStates

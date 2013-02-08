@@ -64,7 +64,7 @@ class AtomPackage extends Package
     mainPath = require.resolve(mainPath)
     if fs.isFile(mainPath)
       @packageMain = require(mainPath)
-      rootView?.activatePackage(@name, @packageMain)
+      rootView?.activatePackage(@name, this)
 
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
