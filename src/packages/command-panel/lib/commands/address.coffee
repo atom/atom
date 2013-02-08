@@ -1,5 +1,5 @@
-Command = require 'command-panel/src/commands/command'
-Operation = require 'command-panel/src/operation'
+Command = require './command'
+Operation = require 'command-panel/lib/operation'
 $ = require 'jquery'
 
 module.exports =

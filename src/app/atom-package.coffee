@@ -13,12 +13,13 @@ class AtomPackage extends Package
     super
     @keymapsDirPath = fs.join(@path, 'keymaps')
 
-  load: ->
+  load: ({activateImmediately}={}) ->
     try
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets() if @autoloadStylesheets
-      if activationEvents = @getActivationEvents()
+      activationEvents = @getActivationEvents()
+      if activationEvents and not activateImmediately
         @subscribeToActivationEvents(activationEvents)
       else
         @activatePackageMain()

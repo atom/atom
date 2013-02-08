@@ -1,7 +1,7 @@
 $ = require 'jquery'
 
 module.exports =
-  eventLog: null
+  eventLog: {}
   commandLoggerView: null
   originalTrigger: null
 
@@ -29,7 +29,7 @@ module.exports =
   deactivate: ->
     $.fn.trigger = @originalTrigger if @originalTrigger?
     @commandLoggerView = null
-    @eventLog = null
+    @eventLog = {}
 
   serialize: ->
     {@eventLog}

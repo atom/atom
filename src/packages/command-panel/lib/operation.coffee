@@ -1,5 +1,3 @@
-{$$$} = require 'space-pen'
-
 module.exports =
 class Operation
   constructor: ({@project, @buffer, bufferRange, @newText, @preserveSelection, @errorMessage}) ->

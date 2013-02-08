@@ -6,7 +6,7 @@ class CommandInterpreter
   constructor: (@project) ->
 
   eval: (string, activeEditSession) ->
-    @parser ?= PEG.buildParser(fs.read(require.resolve 'command-panel/commands.pegjs'))
+    @parser ?= PEG.buildParser(fs.read(require.resolve 'command-panel/lib/commands.pegjs'))
     compositeCommand = @parser.parse(string)
     @lastRelativeAddress = compositeCommand if compositeCommand.isRelativeAddress()
     compositeCommand.execute(@project, activeEditSession)

@@ -7,6 +7,7 @@ describe "CommandLogger", ->
   beforeEach ->
     new RootView(require.resolve('fixtures/sample.js'))
     commandLogger = atom.loadPackage('command-logger').packageMain
+    commandLogger.eventLog = {}
     editor = rootView.getActiveEditor()
 
   afterEach ->

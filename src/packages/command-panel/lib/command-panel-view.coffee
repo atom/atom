@@ -1,28 +1,15 @@
 {View, $$, $$$} = require 'space-pen'
-CommandInterpreter = require 'command-panel/src/command-interpreter'
-RegexAddress = require 'command-panel/src/commands/regex-address'
-CompositeCommand = require 'command-panel/src/commands/composite-command'
-PreviewList = require 'command-panel/src/preview-list'
+CommandInterpreter = require './command-interpreter'
+RegexAddress = require './commands/regex-address'
+CompositeCommand = require './commands/composite-command'
+PreviewList = require './preview-list'
 Editor = require 'editor'
 {SyntaxError} = require('pegjs').parser
-
 _ = require 'underscore'
 
 module.exports =
 class CommandPanelView extends View
-  @activate: (rootView, state) ->
-    if state?
-      @instance = @deserialize(state, rootView)
-    else
-      @instance = new CommandPanelView(rootView)
-
-  @deserialize: (state, rootView) ->
-    commandPanel = new CommandPanelView(rootView, state.history)
-    commandPanel.attach(state.text, focus: false) if state.visible
-    commandPanel.miniEditor.focus() if state.miniEditorFocused
-    commandPanel
-
-  @content: (rootView) ->
+  @content: ->
     @div class: 'command-panel tool-panel', =>
       @div outlet: 'previewCount', class: 'preview-count'
       @subview 'previewList', new PreviewList(rootView)
@@ -36,30 +23,34 @@ class CommandPanelView extends View
   historyIndex: 0
   maxSerializedHistorySize: 100
 
-  initialize: (@rootView, @history) ->
-    @commandInterpreter = new CommandInterpreter(@rootView.project)
+  initialize: (state={}) ->
+    @commandInterpreter = new CommandInterpreter(rootView.project)
 
-    @history ?= []
-    @historyIndex = @history.length
-
-    @command 'tool-panel:unfocus', => @rootView.focus()
+    @command 'tool-panel:unfocus', => rootView.focus()
     @command 'core:close', => @detach(); false
     @command 'core:confirm', => @execute()
     @command 'core:move-up', => @navigateBackwardInHistory()
     @command 'core:move-down', => @navigateForwardInHistory()
+
+    rootView.command 'command-panel:toggle', => @toggle()
+    rootView.command 'command-panel:toggle-preview', => @togglePreview()
+    rootView.command 'command-panel:find-in-file', => @attach('/')
+    rootView.command 'command-panel:find-in-project', => @attach('Xx/')
+    rootView.command 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
+    rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
+    rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
     @previewList.hide()
     @previewCount.hide()
     @errorMessages.hide()
     @prompt.iconSize(@miniEditor.getFontSize())
 
+    @history = state.history ? []
+    @historyIndex = @history.length
+
   serialize: ->
     text: @miniEditor.getText()
-    visible: @hasParent()
-    miniEditorFocused: @miniEditor.isFocused
     history: @history[-@maxSerializedHistorySize..]
-
-  deactivate: -> @destroy()
 
   destroy: ->
     @previewList.destroy()
@@ -67,7 +58,7 @@ class CommandPanelView extends View
   toggle: ->
     if @miniEditor.isFocused
       @detach()
-      @rootView.focus()
+      rootView.focus()
     else
       @attach() unless @hasParent()
       @miniEditor.focus()
@@ -77,7 +68,7 @@ class CommandPanelView extends View
       @previewList.hide()
       @previewCount.hide()
       @detach()
-      @rootView.focus()
+      rootView.focus()
     else
       @attach() unless @hasParent()
       if @previewList.hasOperations()
@@ -90,13 +81,13 @@ class CommandPanelView extends View
     @errorMessages.hide()
 
     focus = options.focus ? true
-    @rootView.vertical.append(this)
+    rootView.vertical.append(this)
     @miniEditor.focus() if focus
     @miniEditor.setText(text)
     @miniEditor.setCursorBufferPosition([0, Infinity])
 
   detach: ->
-    @rootView.focus()
+    rootView.focus()
     @previewList.hide()
     @previewCount.hide()
     super
@@ -108,7 +99,7 @@ class CommandPanelView extends View
     @errorMessages.empty()
 
     try
-      @commandInterpreter.eval(command, @rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
+      @commandInterpreter.eval(command, rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
         @history.push(command)
         @historyIndex = @history.length
 
@@ -141,12 +132,12 @@ class CommandPanelView extends View
     @miniEditor.setText(@history[@historyIndex] or '')
 
   repeatRelativeAddress: ->
-    @commandInterpreter.repeatRelativeAddress(@rootView.getActiveEditSession())
+    @commandInterpreter.repeatRelativeAddress(rootView.getActiveEditSession())
 
   repeatRelativeAddressInReverse: ->
-    @commandInterpreter.repeatRelativeAddressInReverse(@rootView.getActiveEditSession())
+    @commandInterpreter.repeatRelativeAddressInReverse(rootView.getActiveEditSession())
 
   setSelectionAsLastRelativeAddress: ->
-    selection = @rootView.getActiveEditor().getSelectedText()
+    selection = rootView.getActiveEditor().getSelectedText()
     regex = _.escapeRegExp(selection)
     @commandInterpreter.lastRelativeAddress = new CompositeCommand([new RegexAddress(regex)])

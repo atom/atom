@@ -1,5 +1,4 @@
-Address = require 'command-panel/src/commands/address'
-Range = require 'range'
+Address = require './address'
 
 module.exports =
 class DefaultAddressRange extends Address

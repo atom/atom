@@ -14,10 +14,10 @@ _.extend atom,
   pendingBrowserProcessCallbacks: {}
   loadedPackages: []
 
-  loadPackage: (name) ->
+  loadPackage: (name, options) ->
     packagePath = _.find @getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
     pack = Package.build(packagePath)
-    pack?.load()
+    pack?.load(options)
 
   loadPackages: ->
     textMatePackages = []
