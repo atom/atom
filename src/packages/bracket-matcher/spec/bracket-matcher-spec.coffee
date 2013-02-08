@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 
 describe "bracket matching", ->
-  [rootView, editor, editSession, buffer] = []
+  [editor, editSession, buffer] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))

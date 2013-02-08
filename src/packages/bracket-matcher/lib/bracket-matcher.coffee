@@ -1,10 +1,8 @@
-AtomPackage = require 'atom-package'
 _ = require 'underscore'
 {$$} = require 'space-pen'
 Range = require 'range'
 
 module.exports =
-class BracketMatcher extends AtomPackage
   pairedCharacters:
     '(': ')'
     '[': ']'
@@ -24,7 +22,7 @@ class BracketMatcher extends AtomPackage
 
   pairHighlighted: false
 
-  activate: (rootView) ->
+  activate: ->
     rootView.eachEditor (editor) => @subscribeToEditor(editor) if editor.attached
     rootView.eachEditSession (editSession) => @subscribeToEditSession(editSession)
 
