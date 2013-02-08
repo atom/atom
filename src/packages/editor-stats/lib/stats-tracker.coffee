@@ -1,5 +1,5 @@
 module.exports =
-class Stats
+class StatsTracker
   startDate: new Date
   hours: 6
   eventLog: []
@@ -11,6 +11,9 @@ class Stats
 
     while date < future
       @eventLog[@time(date)] = 0
+
+    rootView.on 'keydown', => @track()
+    rootView.on 'mouseup', => @track()
 
   clear: ->
     @eventLog = []

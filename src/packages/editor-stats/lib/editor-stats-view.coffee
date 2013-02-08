@@ -5,10 +5,10 @@ $ = require 'jquery'
 
 module.exports =
 class EditorStatsView extends ScrollView
-  @activate: (rootView, state) ->
-    @instance = new EditorStatsView(rootView)
+  @activate: ->
+    new EditorStatsView
 
-  @content: (rootView) ->
+  @content: ->
     @div class: 'editor-stats-wrapper', tabindex: -1, =>
       @div class: 'editor-stats', outlet: 'editorStats'
 
@@ -17,7 +17,7 @@ class EditorStatsView extends ScrollView
   pb: 3
   pr: 25
 
-  initialize: (@rootView) ->
+  initialize: ->
     super
 
     resizer = =>
@@ -30,7 +30,7 @@ class EditorStatsView extends ScrollView
     @editorStats.empty()
     @x ?= d3.scale.ordinal().domain d3.range(@stats.hours * 60)
     @y ?= d3.scale.linear()
-    w = @rootView.vertical.width()
+    w = rootView.vertical.width()
     h = @height()
     data = d3.entries @stats.eventLog
     max  = d3.max data, (d) -> d.value
@@ -94,10 +94,10 @@ class EditorStatsView extends ScrollView
       @attach()
 
   attach: ->
-    @rootView.vertical.append(@)
+    rootView.vertical.append(this)
     @draw()
 
   detach: ->
-    super()
+    super
     clearInterval(@updateInterval)
-    @rootView.focus()
+    rootView.focus()
