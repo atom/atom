@@ -78,7 +78,7 @@ class AtomPackage extends Package
   getActivationEvents: -> @metadata.activationEvents
 
   loadMetadata: ->
-    if metadataPath = fs.resolveExtension(fs.join(@path, "package"), ['cson', 'json'])
+    if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
       @metadata = fs.readObject(metadataPath)
     @metadata ?= {}
 
