@@ -205,7 +205,7 @@ describe 'FuzzyFinder', ->
           expect(finder.miniEditor.isFocused).toBeFalsy()
 
       describe "when no editors are open", ->
-        it "detaches the finder and focuses the previously focused element", ->
+        it "detaches the finder and surrenders focus to the body", ->
           rootView.attachToDom()
           rootView.getActiveEditor().destroyActiveEditSession()
 
@@ -217,7 +217,7 @@ describe 'FuzzyFinder', ->
           finder.cancel()
 
           expect(finder.hasParent()).toBeFalsy()
-          expect($(document.activeElement).view()).toBe rootView
+          expect(document.activeElement).toBe $('body')[0]
           expect(finder.miniEditor.isFocused).toBeFalsy()
 
   describe "cached file paths", ->

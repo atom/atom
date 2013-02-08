@@ -99,6 +99,7 @@ class Keymap
         b.specificity - a.specificity
 
   triggerCommandEvent: (keyEvent, commandName) ->
+    keyEvent.target = rootView[0] if keyEvent.target == document.body and window.rootView
     commandEvent = $.Event(commandName)
     commandEvent.keyEvent = keyEvent
     aborted = false
