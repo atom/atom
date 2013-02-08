@@ -1,16 +1,14 @@
 RootView = require 'root-view'
+GoToLineView = require 'go-to-line/lib/go-to-line-view'
 
 describe 'GoToLine', ->
-  [rootView, goToLine, editor] = []
+  [goToLine, editor] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    atom.loadPackage("go-to-line")
     editor = rootView.getActiveEditor()
-    editor.trigger 'editor:go-to-line'
-    goToLine = rootView.find('.go-to-line').view()
-    editor.trigger 'editor:go-to-line'
+    goToLine = GoToLineView.activate()
     editor.setCursorBufferPosition([1,0])
 
   afterEach ->
