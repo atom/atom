@@ -73,6 +73,7 @@ class Keymap
     return true unless bindingSetsForFirstKeystroke?
 
     currentNode = $(event.target)
+    currentNode = rootView if currentNode is $('body')[0]
     while currentNode.length
       candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
       for bindingSet in candidateBindingSets
