@@ -260,6 +260,7 @@ describe "Snippets extension", ->
 
     it "loads snippets from all TextMate packages with snippets", ->
       jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
+      spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
 
@@ -275,6 +276,10 @@ describe "Snippets extension", ->
           \t// body...
           }
         """
+
+        # warn about invalid.plist
+        expect(console.warn).toHaveBeenCalled()
+        expect(console.warn.calls.length).toBe 1
 
     it "terminates the worker when loading completes", ->
       jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
