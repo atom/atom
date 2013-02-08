@@ -1,11 +1,13 @@
 fs = require 'fs'
 _ = require 'underscore'
-Git = require 'git'
 
 module.exports =
   loadPaths: (rootPath, ignoredNames, excludeGitIgnoredPaths) ->
+    if excludeGitIgnoredPaths
+      Git = require 'git'
+      repo = Git.open(rootPath, refreshIndexOnFocus: false)
+
     paths = []
-    repo = Git.open(rootPath, refreshIndexOnFocus: false) if excludeGitIgnoredPaths
     isIgnored = (path) ->
       for segment in path.split('/')
         return true if _.contains(ignoredNames, segment)
@@ -15,5 +17,7 @@ module.exports =
     onDirectory = (path) ->
       not isIgnored(path)
     fs.traverseTree(rootPath, onFile, onDirectory)
+
     repo?.destroy()
+
     callTaskMethod('pathsLoaded', paths)
