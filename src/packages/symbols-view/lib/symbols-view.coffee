@@ -10,7 +10,7 @@ module.exports =
 class SymbolsView extends SelectList
 
   @activate: ->
-    @instance = new SymbolsView
+    new SymbolsView
 
   @viewClass: -> "#{super} symbols-view overlay from-top"
 

@@ -9,12 +9,9 @@ describe "SymbolsView", ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures'))
     atom.loadPackage("symbols-view")
-    rootView.trigger "symbols-view:toggle-project-symbols"
-    symbolsView = rootView.find('.symbols-view').view()
-    rootView.trigger "symbols-view:toggle-project-symbols"
 
     rootView.attachToDom()
-    setArraySpy = spyOn(symbolsView, 'setArray').andCallThrough()
+    setArraySpy = spyOn(SymbolsView.prototype, 'setArray').andCallThrough()
 
   afterEach ->
     rootView.deactivate()
@@ -23,8 +20,8 @@ describe "SymbolsView", ->
   describe "when tags can be generated for a file", ->
     it "initially displays all JavaScript functions with line numbers", ->
       rootView.open('sample.js')
-      expect(rootView.find('.symbols-view')).not.toExist()
       rootView.getActiveEditor().trigger "symbols-view:toggle-file-symbols"
+      symbolsView = rootView.find('.symbols-view').view()
       expect(symbolsView.find('.loading')).toHaveText 'Generating symbols...'
 
       waitsFor ->
@@ -43,8 +40,8 @@ describe "SymbolsView", ->
 
     it "displays error when no tags match text in mini-editor", ->
       rootView.open('sample.js')
-      expect(rootView.find('.symbols-view')).not.toExist()
       rootView.getActiveEditor().trigger "symbols-view:toggle-file-symbols"
+      symbolsView = rootView.find('.symbols-view').view()
 
       waitsFor ->
         setArraySpy.callCount > 0
@@ -70,8 +67,8 @@ describe "SymbolsView", ->
   describe "when tags can't be generated for a file", ->
     it "shows an error message when no matching tags are found", ->
       rootView.open('sample.txt')
-      expect(rootView.find('.symbols-view')).not.toExist()
       rootView.getActiveEditor().trigger "symbols-view:toggle-file-symbols"
+      symbolsView = rootView.find('.symbols-view').view()
       setErrorSpy = spyOn(symbolsView, "setError").andCallThrough()
 
       waitsFor ->
@@ -99,6 +96,7 @@ describe "SymbolsView", ->
       rootView.open('sample.js')
       expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,0]
       expect(rootView.find('.symbols-view')).not.toExist()
+      symbolsView = SymbolsView.activate()
       symbolsView.setArray(tags)
       symbolsView.attach()
       expect(rootView.find('.symbols-view')).toExist()
@@ -150,6 +148,7 @@ describe "SymbolsView", ->
       editor = rootView.getActiveEditor()
       editor.setCursorBufferPosition([8,14])
       editor.trigger 'symbols-view:go-to-declaration'
+      symbolsView = rootView.find('.symbols-view').view()
       expect(symbolsView.list.children('li').length).toBe 2
       expect(symbolsView).toBeVisible()
       symbolsView.confirmed(symbolsView.array[0])
@@ -168,6 +167,7 @@ describe "SymbolsView", ->
         editor = rootView.getActiveEditor()
         editor.setCursorBufferPosition([8,14])
         editor.trigger 'symbols-view:go-to-declaration'
+        symbolsView = rootView.find('.symbols-view').view()
         expect(symbolsView.list.children('li').length).toBe 1
         expect(symbolsView.list.children('li:first').find('.label')).toHaveText 'tagged.js'
 
@@ -176,6 +176,7 @@ describe "SymbolsView", ->
       rootView.open("tagged.js")
       expect(rootView.find('.symbols-view')).not.toExist()
       rootView.trigger "symbols-view:toggle-project-symbols"
+      symbolsView = rootView.find('.symbols-view').view()
       expect(symbolsView.find('.loading')).toHaveText 'Loading symbols...'
 
       waitsFor ->
