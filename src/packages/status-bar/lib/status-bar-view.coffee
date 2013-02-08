@@ -4,7 +4,7 @@ $ = require 'jquery'
 
 module.exports =
 class StatusBarView extends View
-  @activate: (rootView) ->
+  @activate: ->
     rootView.eachEditor (editor) =>
       @appendToEditorPane(rootView, editor) if editor.attached
 
@@ -24,7 +24,7 @@ class StatusBarView extends View
       @span class: 'cursor-position', outlet: 'cursorPosition'
       @span class: 'grammar-name', outlet: 'grammarName'
 
-  initialize: (@rootView, @editor) ->
+  initialize: (rootView, @editor) ->
     @updatePathText()
     @editor.on 'editor:path-changed', =>
       @subscribeToBuffer()
@@ -99,7 +99,7 @@ class StatusBarView extends View
 
   updatePathText: ->
     if path = @editor.getPath()
-      @currentPath.text(@rootView.project.relativize(path))
+      @currentPath.text(rootView.project.relativize(path))
     else
       @currentPath.text('untitled')
 
