@@ -5,6 +5,9 @@ describe "the `atom` global", ->
   beforeEach ->
     new RootView
 
+  afterEach ->
+    rootView.deactivate()
+
   describe ".loadPackage(name)", ->
     [extension, stylesheetPath] = []
 
@@ -72,6 +75,7 @@ describe "the `atom` global", ->
       syntax.on 'grammars-loaded', eventHandler
       disabledPackages = config.get("core.disabledPackages")
       disabledPackages.push('textmate-package.tmbundle')
+      disabledPackages.push('package-with-snippets')
       config.set "core.disabledPackages", disabledPackages
       atom.loadPackages()
 
