@@ -274,6 +274,8 @@ class RootView extends View
     callback(editor) for editor in @getEditors()
     @on 'editor:attached', (e, editor) -> callback(editor)
 
+  eachEditSession: (callback) ->
+    @project.eachEditSession(callback)
+
   eachBuffer: (callback) ->
-    callback(buffer) for buffer in @project.getBuffers()
-    @project.on 'buffer-created', (buffer) -> callback(buffer)
+    @project.eachBuffer(callback)

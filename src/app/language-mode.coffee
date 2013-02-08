@@ -8,78 +8,10 @@ class LanguageMode
   buffer = null
   grammar = null
   editSession = null
-  pairedCharacters:
-    '(': ')'
-    '[': ']'
-    '{': '}'
-    '"': '"'
-    "'": "'"
 
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @reloadGrammar()
-    @bracketMarkers = []
-
-    _.adviseBefore @editSession, 'insertText', (text) =>
-      return true if @editSession.hasMultipleCursors()
-
-      cursorBufferPosition = @editSession.getCursorBufferPosition()
-      previousCharacter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
-      nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-
-      if @isOpeningBracket(text) and not @editSession.getSelection().isEmpty()
-        @wrapSelectionInBrackets(text)
-        return false
-
-      hasWordAfterCursor = /\w/.test(nextCharacter)
-      hasWordBeforeCursor = /\w/.test(previousCharacter)
-
-      autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and hasWordBeforeCursor)
-      skipOverExistingClosingBracket = false
-      if @isClosingBracket(text) and nextCharacter == text
-        if bracketMarker = _.find(@bracketMarkers, (marker) => @editSession.getMarkerBufferRange(marker)?.end.isEqual(cursorBufferPosition))
-          skipOverExistingClosingBracket = true
-
-      if skipOverExistingClosingBracket
-        @editSession.destroyMarker(bracketMarker)
-        _.remove(@bracketMarkers, bracketMarker)
-        @editSession.moveCursorRight()
-        false
-      else if autoCompleteOpeningBracket
-        @editSession.insertText(text + @pairedCharacters[text])
-        @editSession.moveCursorLeft()
-        range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
-        @bracketMarkers.push @editSession.markBufferRange(range)
-        false
-
-    _.adviseBefore @editSession, 'backspace', =>
-      return if @editSession.hasMultipleCursors()
-      return unless @editSession.getSelection().isEmpty()
-
-      cursorBufferPosition = @editSession.getCursorBufferPosition()
-      previousCharacter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
-      nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-      if @pairedCharacters[previousCharacter] is nextCharacter
-        @editSession.transact =>
-          @editSession.moveCursorLeft()
-          @editSession.delete()
-          @editSession.delete()
-        false
-
-  wrapSelectionInBrackets: (bracket) ->
-    pair = @pairedCharacters[bracket]
-    @editSession.mutateSelectedText (selection) =>
-      return if selection.isEmpty()
-
-      range = selection.getBufferRange()
-      options = reverse: selection.isReversed()
-      selection.insertText("#{bracket}#{selection.getText()}#{pair}")
-      selectionStart = range.start.add([0, 1])
-      if range.start.row is range.end.row
-        selectionEnd = range.end.add([0, 1])
-      else
-        selectionEnd = range.end
-      selection.setBufferRange([selectionStart, selectionEnd], options)
 
   reloadGrammar: ->
     path = @buffer.getPath()
@@ -91,23 +23,6 @@ class LanguageMode
       @grammar = syntax.grammarForFilePath(path, pathContents)
     throw new Error("No grammar found for path: #{path}") unless @grammar
     previousGrammar isnt @grammar
-
-  isQuote: (string) ->
-    /'|"/.test(string)
-
-  isOpeningBracket: (string) ->
-    @pairedCharacters[string]?
-
-  isClosingBracket: (string) ->
-    @getInvertedPairedCharacters()[string]?
-
-  getInvertedPairedCharacters: ->
-    return @invertedPairedCharacters if @invertedPairedCharacters
-
-    @invertedPairedCharacters = {}
-    for open, close of @pairedCharacters
-      @invertedPairedCharacters[close] = open
-    @invertedPairedCharacters
 
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
