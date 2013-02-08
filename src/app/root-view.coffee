@@ -136,7 +136,7 @@ class RootView extends View
   activatePackage: (name, packageModule) ->
     config.setDefaults(name, packageModule.configDefaults) if packageModule.configDefaults?
     @packageModules[name] = packageModule
-    packageModule.activate(this, @packageStates[name])
+    packageModule.activate(@packageStates[name])
 
   deactivatePackage: (name) ->
     @packageModules[name].deactivate?()

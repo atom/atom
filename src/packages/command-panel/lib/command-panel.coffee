@@ -3,7 +3,7 @@ CommandPanelView = require './command-panel-view'
 module.exports =
   commandPanelView: null
 
-  activate: (rootView, @state) ->
+  activate: (@state) ->
     @commandPanelView = new CommandPanelView(@state)
 
   deactivate: ->

@@ -1,7 +1,7 @@
 module.exports =
   treeView: null
 
-  activate: (rootView, @state) ->
+  activate: (@state) ->
     if state
       @createView().attach() if state.attached
     else if rootView.project.getPath() and not rootView.pathToOpenIsFile

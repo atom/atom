@@ -10,7 +10,7 @@ describe "StatusBar", ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.simulateDomAttachment()
-    StatusBar.activate(rootView)
+    StatusBar.activate()
     editor = rootView.getActiveEditor()
     statusBar = rootView.find('.status-bar').view()
     buffer = editor.getBuffer()
@@ -38,7 +38,7 @@ describe "StatusBar", ->
         rootView = new RootView
         rootView.open()
         rootView.simulateDomAttachment()
-        StatusBar.activate(rootView)
+        StatusBar.activate()
         statusBar = rootView.find('.status-bar').view()
         expect(statusBar.currentPath.text()).toBe 'untitled'
         expect(statusBar.cursorPosition.text()).toBe '1,1'

@@ -1,5 +1,5 @@
 module.exports =
-  activate: (rootView) ->
+  activate: ->
     rootView.eachBuffer (buffer) => @stripTrailingWhitespaceBeforeSave(buffer)
 
   stripTrailingWhitespaceBeforeSave: (buffer) ->

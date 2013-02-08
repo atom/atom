@@ -431,7 +431,7 @@ describe "RootView", ->
     describe ".activatePackage(name, packageModule)", ->
       it "calls activate on the package module", ->
         rootView.activatePackage('package', packageModule)
-        expect(packageModule.activate).toHaveBeenCalledWith(rootView, undefined)
+        expect(packageModule.activate).toHaveBeenCalledWith(undefined)
 
       it "calls activate on the package module with its previous state", ->
         rootView.activatePackage('package', packageModule)
@@ -439,7 +439,7 @@ describe "RootView", ->
 
         newRootView = RootView.deserialize(rootView.serialize())
         newRootView.activatePackage('package', packageModule)
-        expect(packageModule.activate).toHaveBeenCalledWith(newRootView, "it worked")
+        expect(packageModule.activate).toHaveBeenCalledWith("it worked")
         newRootView.remove()
 
       it "loads config defaults based on the `configDefaults` key", ->

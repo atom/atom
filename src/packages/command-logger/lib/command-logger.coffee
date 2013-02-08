@@ -5,7 +5,7 @@ module.exports =
   commandLoggerView: null
   originalTrigger: null
 
-  activate: (rootView, state={})->
+  activate: (state={})->
     @eventLog = state.eventLog ? {}
     rootView.command 'command-logger:clear-data', => @eventLog = {}
     rootView.command 'command-logger:toggle', => @createView().toggle(@eventLog)
