@@ -742,15 +742,18 @@ class Editor extends View
   setFontFamily: (fontFamily) ->
     return if fontFamily == undefined
     headTag = $("head")
-    styleTag = headTag.find("style.font-family")
+    styleTag = headTag.find("style.editor-font-family")
     if styleTag.length == 0
-      styleTag = $$ -> @style class: 'font-family'
+      styleTag = $$ -> @style class: 'editor-font-family'
       headTag.append styleTag
 
     styleTag.text(".editor {font-family: #{fontFamily}}")
     @redraw()
 
   getFontFamily: -> @css("font-family")
+
+  clearFontFamily: ->
+    $('head style.editor-font-family').remove()
 
   redraw: ->
     return unless @hasParent()

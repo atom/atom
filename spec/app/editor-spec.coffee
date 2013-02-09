@@ -541,6 +541,9 @@ describe "Editor", ->
       expect($("head style.font-family")).not.toExist()
 
     describe "when the font family changes", ->
+      afterEach ->
+        editor.clearFontFamily()
+
       it "updates the font family on new and existing editors", ->
         rootView.attachToDom()
         rootView.height(200)
@@ -549,7 +552,7 @@ describe "Editor", ->
         config.set("editor.fontFamily", "Courier")
         newEditor = editor.splitRight()
 
-        expect($("head style.font-family").text()).toMatch "{font-family: Courier}"
+        expect($("head style.editor-font-family").text()).toMatch "{font-family: Courier}"
         expect(editor.css('font-family')).toBe 'Courier'
         expect(newEditor.css('font-family')).toBe 'Courier'
 
@@ -560,7 +563,7 @@ describe "Editor", ->
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "Inconsolata")
+        config.set("editor.fontFamily", "Courier")
         editor.setCursorScreenPosition [5, 6]
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
