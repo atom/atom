@@ -13,6 +13,25 @@ _.extend atom,
   loadedThemes: []
   pendingBrowserProcessCallbacks: {}
   loadedPackages: []
+  activatedAtomPackages: []
+  atomPackageStates: {}
+
+  activateAtomPackage: (pack) ->
+    @activatedAtomPackages.push(pack)
+    pack.packageMain.activate(@atomPackageStates[pack.name])
+
+  deactivateAtomPackages: ->
+    pack.packageMain.deactivate?() for pack in @activatedAtomPackages
+    @activatedAtomPackages = []
+
+  serializeAtomPackages: ->
+    packageStates = {}
+    for pack in @activatedAtomPackages
+      try
+        packageStates[pack.name] = pack.packageMain.serialize?()
+      catch e
+        console?.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
+    packageStates
 
   loadPackage: (name, options) ->
     packagePath = _.find @getPackagePaths(), (packagePath) -> fs.base(packagePath) == name

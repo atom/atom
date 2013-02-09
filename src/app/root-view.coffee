@@ -29,18 +29,18 @@ class RootView extends View
     else
       projectOrPathToOpen = projectPath # This will migrate people over to the new project serialization scheme. It should be removed eventually.
 
-    rootView = new RootView(projectOrPathToOpen , packageStates: packageStates, suppressOpen: true)
+    atom.atomPackageStates = packageStates ? {}
+
+    rootView = new RootView(projectOrPathToOpen , suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
 
   packages: null
-  packageStates: null
   title: null
   pathToOpenIsFile: false
 
-  initialize: (projectOrPathToOpen, { @packageStates, suppressOpen } = {}) ->
+  initialize: (projectOrPathToOpen, { suppressOpen } = {}) ->
     window.rootView = this
-    @packageStates ?= {}
     @packages = []
     @viewClasses = {
       "Pane": Pane,
@@ -263,18 +263,10 @@ class RootView extends View
     @project.eachBuffer(callback)
 
   activatePackage: (pack) ->
-    @packages.push(pack)
-    pack.packageMain.activate(@packageStates[pack.name])
+    atom.activateAtomPackage(pack)
 
   deactivatePackages: ->
-    pack.packageMain.deactivate?() for pack in @packages
-    @packages = []
+    atom.deactivateAtomPackages()
 
   serializePackages:  ->
-    packageStates = {}
-    for pack in @packages
-      try
-        packageStates[pack.name] = pack.packageMain.serialize?()
-      catch e
-        console?.error("Exception serializing '#{name}' package's module\n", e.stack)
-    packageStates
+    atom.serializeAtomPackages()
