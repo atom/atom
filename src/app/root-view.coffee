@@ -41,7 +41,7 @@ class RootView extends View
   initialize: (projectOrPathToOpen, { @packageStates, suppressOpen } = {}) ->
     window.rootView = this
     @packageStates ?= {}
-    @packages = {}
+    @packages = []
     @viewClasses = {
       "Pane": Pane,
       "PaneRow": PaneRow,
@@ -126,7 +126,7 @@ class RootView extends View
 
   deactivate: ->
     atom.setRootViewStateForPath(@project.getPath(), @serialize())
-    @deactivatePackage(name) for name of @packages
+    @deactivatePackages()
     @remove()
 
   open: (path, options = {}) ->
@@ -263,18 +263,18 @@ class RootView extends View
     @project.eachBuffer(callback)
 
   activatePackage: (name, pack) ->
-    @packages[name] = pack
-    pack.packageMain.activate(@packageStates[name])
+    @packages.push(pack)
+    pack.packageMain.activate(@packageStates[pack.name])
 
-  deactivatePackage: (name) ->
-    @packages[name].packageMain.deactivate?()
-    delete @packages[name]
+  deactivatePackages: ->
+    pack.packageMain.deactivate?() for pack in @packages
+    @packages = []
 
   serializePackages:  ->
     packageStates = {}
-    for name, pack of @packages
+    for pack in @packages
       try
-        packageStates[name] = pack.packageMain.serialize?()
+        packageStates[pack.name] = pack.packageMain.serialize?()
       catch e
         console?.error("Exception serializing '#{name}' package's module\n", e.stack)
     packageStates
