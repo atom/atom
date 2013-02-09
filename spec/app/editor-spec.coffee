@@ -1098,6 +1098,19 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(cursorView).toBeVisible()
 
+      describe "when the editor is using a variable-width font", ->
+        beforeEach ->
+          editor.setFontFamily('sans-serif')
+
+        afterEach ->
+          editor.clearFontFamily()
+
+        it "correctly positions the cursor", ->
+          editor.setCursorBufferPosition([3, 30])
+          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
+          editor.setCursorBufferPosition([3, Infinity])
+          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
+
       describe "autoscrolling", ->
         it "only autoscrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])

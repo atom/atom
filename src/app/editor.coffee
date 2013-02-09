@@ -1184,8 +1184,31 @@ class Editor extends View
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
   pixelPositionForScreenPosition: (position) ->
-    position = Point.fromObject(position)
-    { top: position.row * @lineHeight, left: position.column * @charWidth }
+    {row, column} = Point.fromObject(position)
+    [lineElement] = @buildLineElementsForScreenRows(row, row)
+    @renderedLines.append(lineElement)
+    left = @positionLeftForLineAndColumn(lineElement, column)
+    @renderedLines[0].removeChild(lineElement)
+    { top: row * @lineHeight, left: left }
+
+  positionLeftForLineAndColumn: (lineElement, column) ->
+    return 0 if column is 0
+
+    delta = 0
+    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+    while textNode = iterator.nextNode()
+      nextDelta = delta + textNode.textContent.length
+      if nextDelta >= column
+        offset = column - delta
+        break
+      delta = nextDelta
+
+    range = document.createRange()
+    range.setEnd(textNode, offset)
+    range.collapse()
+    leftPixels = range.getClientRects()[0].left - @scrollView.offset().left + @scrollView.scrollLeft()
+    range.detach()
+    leftPixels
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
