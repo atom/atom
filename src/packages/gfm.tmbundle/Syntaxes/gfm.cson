@@ -44,4 +44,10 @@
       '2':
         'name': 'markup.underline.gfm'
   }
+  {
+    'match': '^\\s*(\\*)\\s+'
+    'captures':
+      '1':
+        'name': 'constant.gfm'
+  }
 ]
