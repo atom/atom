@@ -482,13 +482,13 @@ describe "Editor", ->
       openHandler = jasmine.createSpy('openHandler')
       editor.on 'editor:attached', openHandler
 
-      editor.simulateDomAttachment()
+      editor.attachToDom()
       expect(openHandler).toHaveBeenCalled()
       [event, eventEditor] = openHandler.argsForCall[0]
       expect(eventEditor).toBe editor
 
       openHandler.reset()
-      editor.simulateDomAttachment()
+      editor.attachToDom()
       expect(openHandler).not.toHaveBeenCalled()
 
   describe "editor-path-changed event", ->
