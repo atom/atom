@@ -77,3 +77,12 @@
   content: "\f081";
   color: #66a6ff;
 }
+
+/* Drag and Drop */
+.tab.is-dragging {
+  -webkit-box-flex: 1;
+  color: red;
+}
+
+
+sdfsdf
