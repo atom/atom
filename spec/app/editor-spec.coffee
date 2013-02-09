@@ -633,7 +633,7 @@ describe "Editor", ->
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
 
       describe "when the editor is detached", ->
-        it "updates the font-size correctly and recalculates the dimensions by placing the rendered lines on the DOM", ->
+        it "redraws the editor according to the new font size when it is reattached", ->
           rootView.attachToDom()
           rootView.height(200)
           rootView.width(200)
