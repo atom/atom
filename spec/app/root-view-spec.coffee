@@ -155,13 +155,13 @@ describe "RootView", ->
     it "absorbs exceptions that are thrown by the package module's serialize methods", ->
       spyOn(console, 'error')
 
-      rootView.activatePackage "REMOVE THIS",
+      rootView.activatePackage
         name: "bad-egg"
         packageMain:
           activate: ->
           serialize: -> throw new Error("I'm broken")
 
-      rootView.activatePackage "REMOVE THIS",
+      rootView.activatePackage
         name: "good-egg"
         packageMain:
           activate: ->
@@ -436,28 +436,28 @@ describe "RootView", ->
 
     describe ".activatePackage(name, package)", ->
       it "calls activate on the package", ->
-        rootView.activatePackage('REMOVE ME', pack)
+        rootView.activatePackage(pack)
         expect(packageModule.activate).toHaveBeenCalledWith(undefined)
 
       it "calls activate on the package module with its previous state", ->
-        rootView.activatePackage('REMOVE ME', pack)
+        rootView.activatePackage(pack)
         packageModule.activate.reset()
 
         newRootView = RootView.deserialize(rootView.serialize())
-        newRootView.activatePackage('REMOVE ME', pack)
+        newRootView.activatePackage(pack)
         expect(packageModule.activate).toHaveBeenCalledWith("it worked")
         newRootView.remove()
 
     describe ".deactivatePackage(packageName)", ->
       it "deactivates and removes the package module from the package module map", ->
-        rootView.activatePackage('REMOVE ME', pack)
+        rootView.activatePackage(pack)
         spyOn(packageModule, "deactivate").andCallThrough()
         rootView.deactivatePackages()
         expect(packageModule.deactivate).toHaveBeenCalled()
         expect(rootView.packages.length).toBe 0
 
       it "is called when the rootView is deactivated to deactivate all packages", ->
-        rootView.activatePackage('package', pack)
+        rootView.activatePackage(pack)
         spyOn(packageModule, "deactivate").andCallThrough()
         rootView.deactivate()
         expect(packageModule.deactivate).toHaveBeenCalled()

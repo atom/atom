@@ -262,7 +262,7 @@ class RootView extends View
   eachBuffer: (callback) ->
     @project.eachBuffer(callback)
 
-  activatePackage: (name, pack) ->
+  activatePackage: (pack) ->
     @packages.push(pack)
     pack.packageMain.activate(@packageStates[pack.name])
 
