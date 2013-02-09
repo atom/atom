@@ -2,7 +2,9 @@
 $ = require 'jquery'
 
 module.exports =
-class SortableView extends View
+class SortableList extends View
+  @viewClass: -> 'sortable-list'
+
   initialize: ->
     @on 'dragstart', '.sortable', @onDragStart
     @on 'dragend',   '.sortable', @onDragEnd
@@ -14,32 +16,34 @@ class SortableView extends View
   onDragStart: (event) =>
     el = @sortableElement(event)
     el.addClass 'is-dragging'
-
     event.originalEvent.dataTransfer.setData 'index', el.index()
 
   onDragEnd: (event) =>
-    el = @sortableElement(event)
-    el.removeClass 'is-dragging'
+    @sortableElement(event).removeClass 'is-dragging'
 
   onDragEnter: (event) =>
     event.preventDefault()
 
   onDragOver: (event) =>
     event.preventDefault()
+    @sortableElement(event).addClass 'is-drop-target'
 
   onDragLeave: (event) =>
-    el = @sortableElement(event)
-    el.removeClass 'is-drop-target'
+    @sortableElement(event).removeClass 'is-drop-target'
 
   onDrop: (event) =>
     event.stopPropagation()
     el = @sortableElement(event)
-    idx = event.originalEvent.dataTransfer.getData('index')
-    dropped = el.parent().find(".sortable:eq(#{idx})")
+    dropped = @getDroppedElement(event)
     dropped.remove()
     dropped.insertBefore(el)
+
+    @find('.is-drop-target').removeClass 'is-drop-target'
+
+  getDroppedElement: (event) ->
+    idx = event.originalEvent.dataTransfer.getData('index')
+    @find ".sortable:eq(#{idx})"
 
   sortableElement: (event) ->
     el = $(event.target)
     if !el.hasClass('sortable') then el.closest('.sortable') else el
-
