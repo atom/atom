@@ -1,11 +1,9 @@
 $ = require 'jquery'
-{View} = require 'space-pen'
+SortableView = require 'sortable-view'
 Tab = require 'tabs/src/tab'
 
 module.exports =
-class Tabs extends View
-  dndType: 'text/x-atom-tab'
-
+class Tabs extends SortableView
   @activate: (rootView) ->
     rootView.eachEditor (editor) =>
       @prependToEditorPane(rootView, editor) if editor.attached
@@ -18,6 +16,8 @@ class Tabs extends View
     @ul class: 'tabs'
 
   initialize: (@editor) ->
+    super
+
     for editSession, index in @editor.editSessions
       @addTabForEditSession(editSession)
 
@@ -34,26 +34,6 @@ class Tabs extends View
       index = $(e.target).closest('.tab').index()
       @editor.destroyEditSessionIndex(index)
       false
-
-    @on 'dragstart', '.tab', @onDragStart
-    @on 'dragend',   '.tab', @onDragEnd
-    @on 'dragenter', '.tab', @onDragEnter
-    @on 'dragleave', '.tab', @onDragLeave
-
-  onDragStart: (event) =>
-    $(event.target).addClass 'is-dragging'
-
-  onDragEnd: (event) =>
-    $(event.target).removeClass 'is-dragging'
-
-  onDragEnter: (event) =>
-    el = $(event.target)
-    el = el.closest('.tab') if !el.hasClass('tab')
-    el.addClass 'is-drop-target'
-
-  onDragLeave: (event) =>
-    el = $(event.target)
-    el.removeClass 'is-drop-target' if el.hasClass 'tab'
 
   addTabForEditSession: (editSession) ->
     @append(new Tab(editSession, @editor))

@@ -80,9 +80,14 @@
 
 /* Drag and Drop */
 .tab.is-dragging {
-  -webkit-box-flex: 1;
+/*  -webkit-box-flex: 1;*/
   color: red;
 }
 
+.tab.is-drop-target {
 
-sdfsdf
+}
+
+.placeholder {
+/*  background-color: #0098ff;*/
+}

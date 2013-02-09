@@ -4,7 +4,7 @@ fs = require 'fs'
 module.exports =
 class Tab extends View
   @content: (editSession) ->
-    @li class: 'tab', =>
+    @li class: 'tab sortable', =>
       @span class: 'file-name', outlet: 'fileName'
       @span class: 'close-icon'
 
