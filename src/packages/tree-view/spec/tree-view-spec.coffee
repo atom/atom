@@ -1,18 +1,18 @@
 $ = require 'jquery'
 _ = require 'underscore'
-TreeView = require 'tree-view/src/tree-view'
+TreeView = require 'tree-view/lib/tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
 fs = require 'fs'
 
 describe "TreeView", ->
-  [rootView, project, treeView, sampleJs, sampleTxt] = []
+  [project, treeView, sampleJs, sampleTxt] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/tree-view'))
+    new RootView(require.resolve('fixtures/tree-view'))
     project = rootView.project
 
-    treeView = atom.loadPackage("tree-view").getInstance()
+    treeView = atom.loadPackage("tree-view").packageMain.createView()
     treeView.root = treeView.find('ol > li:first').view()
     sampleJs = treeView.find('.file:contains(tree-view.js)')
     sampleTxt = treeView.find('.file:contains(tree-view.txt)')
@@ -20,7 +20,7 @@ describe "TreeView", ->
     expect(treeView.root.directory.subscriptionCount()).toBeGreaterThan 0
 
   afterEach ->
-    rootView?.deactivate()
+    rootView.deactivate()
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
@@ -48,8 +48,8 @@ describe "TreeView", ->
       beforeEach ->
         rootView.deactivate()
 
-        rootView = new RootView
-        treeView = atom.loadPackage("tree-view").getInstance()
+        new RootView
+        treeView = atom.loadPackage("tree-view").packageMain.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -74,8 +74,8 @@ describe "TreeView", ->
       beforeEach ->
         rootView.deactivate()
 
-        rootView = new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
-        treeView = atom.loadPackage("tree-view").getInstance()
+        new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
+        treeView = atom.loadPackage("tree-view").packageMain.createView()
 
       it "does not attach to the root view but does create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -90,10 +90,11 @@ describe "TreeView", ->
     it "restores expanded directories and selected file when deserialized", ->
       treeView.find('.directory:contains(dir1)').click()
       sampleJs.click()
+      oldRootView = rootView
       newRootView = RootView.deserialize(rootView.serialize())
-      rootView.deactivate() # Deactivates previous TreeView
+      oldRootView.deactivate() # Deactivates previous TreeView
 
-      newRootView.activatePackage('tree-view', TreeView)
+      atom.loadPackage('tree-view')
 
       newTreeView = newRootView.find(".tree-view").view()
 
@@ -106,11 +107,12 @@ describe "TreeView", ->
       treeView.focus()
       expect(treeView.find(".tree-view")).toMatchSelector ':focus'
 
+      oldRootView = rootView
       newRootView = RootView.deserialize(rootView.serialize())
-      rootView.deactivate() # Deactivates previous TreeView
+      oldRootView.deactivate() # Deactivates previous TreeView
 
       newRootView.attachToDom()
-      newRootView.activatePackage('tree-view', TreeView)
+      atom.loadPackage('tree-view')
 
       newTreeView = newRootView.find(".tree-view").view()
       expect(newTreeView.find(".tree-view")).toMatchSelector ':focus'
@@ -604,7 +606,7 @@ describe "TreeView", ->
       fs.makeDirectory(dirPath)
       fs.write(filePath, "doesn't matter")
 
-      rootView = new RootView(rootDirPath)
+      new RootView(rootDirPath)
       project = rootView.project
       atom.loadPackage('tree-view')
       treeView = rootView.find(".tree-view").view()
@@ -614,7 +616,6 @@ describe "TreeView", ->
 
     afterEach ->
       rootView.deactivate()
-      rootView = null
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
 
     describe "tree-view:add", ->

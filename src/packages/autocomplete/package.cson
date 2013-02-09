@@ -1,0 +1,3 @@
+'main': 'lib/autocomplete'
+'activationEvents':
+  'autocomplete:attach': '.editor'

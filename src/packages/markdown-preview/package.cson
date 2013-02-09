@@ -1,0 +1,3 @@
+'main': 'lib/markdown-preview-view'
+'activationEvents':
+  'markdown-preview:toggle': '.editor'

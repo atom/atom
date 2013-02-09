@@ -17,12 +17,20 @@ fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
-# Load TextMate bundles, which specs rely on (but not other packages)
-atom.loadTextMatePackages()
+# Specs rely on TextMate bundles (but not atom packages)
+window.loadTextMatePackages = ->
+  TextMatePackage = require 'text-mate-package'
+  config.packageDirPaths.unshift(fixturePackagesPath)
+  window.textMatePackages = []
+  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
+    window.textMatePackages.push atom.loadPackage(fs.base(path))
+
+window.loadTextMatePackages()
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
+  atom.atomPackageStates = {}
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
@@ -30,7 +38,6 @@ beforeEach ->
 
   # reset config before each spec; don't load or save from/to `config.json`
   window.config = new Config()
-  config.packageDirPaths.unshift(fixturePackagesPath)
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.set "editor.fontSize", 16

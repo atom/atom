@@ -1,0 +1,3 @@
+'main': 'lib/gists'
+'activationEvents':
+  'gist:create': '.editor'

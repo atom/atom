@@ -1,17 +1,17 @@
 RootView = require 'root-view'
-CommandPalette = require 'command-palette/src/command-palette-view'
+CommandPalette = require 'command-palette/lib/command-palette-view'
 $ = require 'jquery'
 _ = require 'underscore'
 
 describe "CommandPalette", ->
-  [rootView, palette] = []
+  [palette] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage("command-palette").getInstance()
-    palette = CommandPalette.instance
+    atom.loadPackage("command-palette")
     rootView.attachToDom().focus()
     rootView.trigger 'command-palette:toggle'
+    palette = rootView.find('.command-palette').view()
 
   afterEach ->
     rootView.remove()
