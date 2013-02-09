@@ -1,0 +1,47 @@
+'name': 'GitHub Markdown'
+'scopeName': 'source.gfm'
+'fileTypes': [
+  'markdown'
+  'md'
+  'mkd'
+  'mkdown'
+  'ron'
+]
+'patterns': [
+  {
+    'match': '\\*\\*.*\\*\\*'
+    'name': 'markup.bold.gfm'
+  }
+  {
+    'match': '\\*.*\\*'
+    'name': 'markup.italic.gfm'
+  }
+  {
+    'match': '^#{1,6}\\s+.+$'
+    'name': 'markup.heading.gfm'
+  }
+  {
+    'match': '\\:[^\\:]+\\:'
+    'name': 'variable.emoji.gfm'
+  }
+  {
+    'begin': '^```.*$'
+    'end': '^```$'
+    'patterns': [
+      'match': '.*'
+      'name': 'markup.raw.gfm'
+    ]
+  }
+  {
+    'match': '`[^`]+`'
+    'name': 'markup.raw.gfm'
+  }
+  {
+    'match': '\\!?\\[([^\\]]*)\\]\\(([^\\)]+)\\)'
+    'captures':
+      '1':
+        'name': 'entity.gfm'
+      '2':
+        'name': 'markup.underline.gfm'
+  }
+]
