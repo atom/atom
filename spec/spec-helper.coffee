@@ -30,6 +30,7 @@ window.loadTextMatePackages()
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
+  atom.atomPackageStates = {}
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)

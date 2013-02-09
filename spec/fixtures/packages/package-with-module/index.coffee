@@ -4,3 +4,5 @@ module.exports =
 
   activate: ->
     @activateCalled = true
+
+  deactivate: ->

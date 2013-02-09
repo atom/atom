@@ -68,7 +68,7 @@ class RootView extends View
   serialize: ->
     projectState: @project?.serialize()
     panesViewState: @panes.children().view()?.serialize()
-    packageStates: @serializePackages()
+    packageStates: atom.serializeAtomPackages()
 
   handleFocus: (e) ->
     if @getActiveEditor()
@@ -126,7 +126,7 @@ class RootView extends View
 
   deactivate: ->
     atom.setRootViewStateForPath(@project.getPath(), @serialize())
-    @deactivatePackages()
+    atom.deactivateAtomPackages()
     @remove()
 
   open: (path, options = {}) ->
@@ -261,12 +261,3 @@ class RootView extends View
 
   eachBuffer: (callback) ->
     @project.eachBuffer(callback)
-
-  activatePackage: (pack) ->
-    atom.activateAtomPackage(pack)
-
-  deactivatePackages: ->
-    atom.deactivateAtomPackages()
-
-  serializePackages:  ->
-    atom.serializeAtomPackages()

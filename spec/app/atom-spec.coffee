@@ -19,9 +19,9 @@ describe "the `atom` global", ->
       removeStylesheet(stylesheetPath)
 
     it "requires and activates the package's main module if it exists", ->
-      spyOn(rootView, 'activatePackage').andCallThrough()
+      spyOn(atom, 'activateAtomPackage').andCallThrough()
       atom.loadPackage("package-with-module")
-      expect(rootView.activatePackage).toHaveBeenCalled()
+      expect(atom.activateAtomPackage).toHaveBeenCalled()
 
     it "logs warning instead of throwing an exception if a package fails to load", ->
       config.set("core.disabledPackages", [])
@@ -84,3 +84,61 @@ describe "the `atom` global", ->
       runs ->
         expect(Worker.prototype.terminate).toHaveBeenCalled()
         expect(Worker.prototype.terminate.calls.length).toBe 1
+
+  describe "package lifecycle", ->
+    [pack, packageModule] = []
+
+    beforeEach ->
+      pack =
+        name: "package"
+        packageMain:
+          activate: jasmine.createSpy("activate")
+          deactivate: ->
+          serialize: -> "it worked"
+
+      packageModule = pack.packageMain
+
+    describe ".activateAtomPackage(package)", ->
+      it "calls activate on the package", ->
+        atom.activateAtomPackage(pack)
+        expect(packageModule.activate).toHaveBeenCalledWith(undefined)
+
+      it "calls activate on the package module with its previous state", ->
+        atom.activateAtomPackage(pack)
+        packageModule.activate.reset()
+
+        serializedState = rootView.serialize()
+        rootView.deactivate()
+        RootView.deserialize(serializedState)
+
+        atom.activateAtomPackage(pack)
+        expect(packageModule.activate).toHaveBeenCalledWith("it worked")
+
+    describe ".deactivateAtomPackages()", ->
+      it "deactivates and removes the package module from the package module map", ->
+        atom.activateAtomPackage(pack)
+        spyOn(packageModule, "deactivate").andCallThrough()
+        atom.deactivateAtomPackages()
+        expect(packageModule.deactivate).toHaveBeenCalled()
+        expect(rootView.packages.length).toBe 0
+
+    describe ".serializeAtomPackages()", ->
+      it "absorbs exceptions that are thrown by the package module's serialize methods", ->
+        spyOn(console, 'error')
+
+        atom.activateAtomPackage
+          name: "bad-egg"
+          packageMain:
+            activate: ->
+            serialize: -> throw new Error("I'm broken")
+
+        atom.activateAtomPackage
+          name: "good-egg"
+          packageMain:
+            activate: ->
+            serialize: -> "I still get called"
+
+        packageStates = atom.serializeAtomPackages()
+        expect(packageStates['good-egg']).toBe "I still get called"
+        expect(packageStates['bad-egg']).toBeUndefined()
+        expect(console.error).toHaveBeenCalled()
