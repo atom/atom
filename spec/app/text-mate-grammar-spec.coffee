@@ -267,5 +267,5 @@ describe "TextMateGrammar", ->
       grammar = pack.grammars[0]
       expect(grammar).toBeTruthy()
       expect(grammar.scopeName).toBe "source.alot"
-      {tokens, ruleStack} = grammar.tokenizeLine("this is alot of code")
+      {tokens} = grammar.tokenizeLine("this is alot of code")
       expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
