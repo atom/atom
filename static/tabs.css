@@ -80,12 +80,20 @@
 
 /* Drag and Drop */
 .tab.is-dragging {
-/*  -webkit-box-flex: 1;*/
-  color: red;
+
 }
 
-.tab.is-drop-target {
-
+.tab.is-drop-target:before {
+  position: absolute;
+  top: 0;
+  left: -2px;
+  content: "";
+  z-index: 999;
+  display: inline-block;
+  width: 1px;
+  height: 30px;
+  display: inline-block;
+  background: #0098ff;
 }
 
 .placeholder {

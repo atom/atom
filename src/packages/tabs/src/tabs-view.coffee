@@ -1,9 +1,9 @@
 $ = require 'jquery'
-SortableView = require 'sortable-view'
+SortableList = require 'sortable-list'
 Tab = require 'tabs/src/tab'
 
 module.exports =
-class Tabs extends SortableView
+class Tabs extends SortableList
   @activate: (rootView) ->
     rootView.eachEditor (editor) =>
       @prependToEditorPane(rootView, editor) if editor.attached
@@ -13,7 +13,7 @@ class Tabs extends SortableView
       pane.prepend(new Tabs(editor))
 
   @content: ->
-    @ul class: 'tabs'
+    @ul class: "tabs #{@viewClass()}"
 
   initialize: (@editor) ->
     super
@@ -44,3 +44,16 @@ class Tabs extends SortableView
 
   removeTabAtIndex: (index) ->
     @find(".tab:eq(#{index})").remove()
+
+  onDrop: (event) =>
+    super
+    sessions = @editor.editSessions
+    el = @sortableElement(event)
+    previousIndex = event.originalEvent.dataTransfer.getData('index')
+    currentIndex  = el.index() - 1
+
+    sessions.splice(currentIndex, 0, sessions.splice(previousIndex, 1)[0])
+
+    @setActiveTab(currentIndex)
+    @editor.setActiveEditSessionIndex(currentIndex)
+    @editor.focus()
