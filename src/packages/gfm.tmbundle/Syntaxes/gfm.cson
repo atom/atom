@@ -39,15 +39,12 @@
   {
     'match': '\\!?\\[([^\\]]*)\\]\\(([^\\)]+)\\)'
     'captures':
-      '1':
-        'name': 'entity.gfm'
-      '2':
-        'name': 'markup.underline.gfm'
+      '1': 'name': 'entity.gfm'
+      '2': 'name': 'markup.underline.gfm'
   }
   {
     'match': '^\\s*(\\*)\\s+'
     'captures':
-      '1':
-        'name': 'constant.gfm'
+      '1': 'name': 'constant.gfm'
   }
 ]
