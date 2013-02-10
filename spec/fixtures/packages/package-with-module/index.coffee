@@ -1,6 +1,8 @@
-AtomPackage = require 'atom-package'
-
 module.exports =
-class MyPackage extends AtomPackage
+  configDefaults:
+    numbers: { one: 1, two: 2 }
+
   activate: ->
     @activateCalled = true
+
+  deactivate: ->

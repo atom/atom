@@ -118,6 +118,10 @@ class Project
   getEditSessions: ->
     new Array(@editSessions...)
 
+  eachEditSession: (callback) ->
+    callback(editSession) for editSession in @getEditSessions()
+    @on 'edit-session-created', (editSession) -> callback(editSession)
+
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
 
@@ -125,8 +129,11 @@ class Project
     buffers = []
     for editSession in @editSessions when not _.include(buffers, editSession.buffer)
       buffers.push editSession.buffer
-
     buffers
+
+  eachBuffer: (callback) ->
+    callback(buffer) for buffer in @getBuffers()
+    @on 'buffer-created', (buffer) -> callback(buffer)
 
   bufferForPath: (filePath) ->
     if filePath?

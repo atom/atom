@@ -50,6 +50,14 @@ describe "RootView", ->
         expect(rootView.getEditors()[0].getText()).toEqual ""
         expect(rootView.getTitle()).toBe 'untitled'
 
+  describe ".deactivate()", ->
+    it "deactivates all packages", ->
+      pack = atom.loadPackage("package-with-module")
+      atom.activateAtomPackage(pack)
+      spyOn(pack.packageMain, "deactivate").andCallThrough()
+      rootView.deactivate()
+      expect(pack.packageMain.deactivate).toHaveBeenCalled()
+
   describe "@deserialize()", ->
     viewState = null
 
@@ -150,25 +158,6 @@ describe "RootView", ->
         rootView = RootView.deserialize(viewState)
         expect(rootView.find('.pane').length).toBe 1
         expect(rootView.find('.pane').children().length).toBe 0
-
-  describe ".serialize()", ->
-    it "absorbs exceptions that are thrown by the package module's serialize methods", ->
-      spyOn(console, 'error')
-
-      rootView.activatePackage("bad-egg",
-        activate: ->
-        serialize: -> throw new Error("I'm broken")
-      )
-
-      rootView.activatePackage("good-egg"
-        activate: ->
-        serialize: -> "I still get called"
-      )
-
-      data = rootView.serialize()
-      expect(data.packageStates['good-egg']).toBe "I still get called"
-      expect(data.packageStates['bad-egg']).toBeUndefined()
-      expect(console.error).toHaveBeenCalled()
 
   describe "focus", ->
     describe "when there is an active editor", ->
@@ -417,54 +406,6 @@ describe "RootView", ->
         expect(view3.focus).toHaveBeenCalled()
         rootView.focusNextPane()
         expect(view1.focus).toHaveBeenCalled()
-
-  describe "packages", ->
-    packageModule = null
-
-    beforeEach ->
-      packageModule =
-        configDefaults: foo: { bar: 2, baz: 3 }
-        activate: jasmine.createSpy("activate")
-        deactivate: ->
-        serialize: -> "it worked"
-
-    describe ".activatePackage(name, packageModule)", ->
-      it "calls activate on the package module", ->
-        rootView.activatePackage('package', packageModule)
-        expect(packageModule.activate).toHaveBeenCalledWith(rootView, undefined)
-
-      it "calls activate on the package module with its previous state", ->
-        rootView.activatePackage('package', packageModule)
-        packageModule.activate.reset()
-
-        newRootView = RootView.deserialize(rootView.serialize())
-        newRootView.activatePackage('package', packageModule)
-        expect(packageModule.activate).toHaveBeenCalledWith(newRootView, "it worked")
-        newRootView.remove()
-
-      it "loads config defaults based on the `configDefaults` key", ->
-        expect(config.get('foo.bar')).toBeUndefined()
-        rootView.activatePackage('package', packageModule)
-        config.set("package.foo.bar", 1)
-        expect(config.get('package.foo.bar')).toBe 1
-        expect(config.get('package.foo.baz')).toBe 3
-
-    describe ".deactivatePackage(packageName)", ->
-      it "deactivates and removes the package module from the package module map", ->
-        rootView.activatePackage('package', packageModule)
-        expect(rootView.packageModules['package']).toBeTruthy()
-        spyOn(packageModule, "deactivate").andCallThrough()
-        rootView.deactivatePackage('package')
-        expect(packageModule.deactivate).toHaveBeenCalled()
-        expect(rootView.packageModules['package']).toBeFalsy()
-
-      it "is called when the rootView is deactivated to deactivate all packages", ->
-        rootView.activatePackage('package', packageModule)
-        spyOn(rootView, "deactivatePackage").andCallThrough()
-        spyOn(packageModule, "deactivate").andCallThrough()
-        rootView.deactivate()
-        expect(rootView.deactivatePackage).toHaveBeenCalled()
-        expect(packageModule.deactivate).toHaveBeenCalled()
 
   describe "keymap wiring", ->
     commandHandler = null

@@ -1,21 +1,20 @@
 RootView = require 'root-view'
-FuzzyFinder = require 'fuzzy-finder/src/fuzzy-finder-view'
-LoadPathsTask = require 'fuzzy-finder/src/load-paths-task'
+FuzzyFinder = require 'fuzzy-finder/lib/fuzzy-finder-view'
+LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
 
 describe 'FuzzyFinder', ->
-  [rootView, finder] = []
+  [finderView] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    atom.loadPackage("fuzzy-finder").getInstance()
-    finder = FuzzyFinder.instance
+    finderView = atom.loadPackage("fuzzy-finder").packageMain.createView()
 
   afterEach ->
-    rootView.remove()
+    rootView.deactivate()
 
   describe "file-finder behavior", ->
     describe "toggling", ->
@@ -26,12 +25,13 @@ describe 'FuzzyFinder', ->
           rootView.find('.editor').trigger 'editor:split-right'
           [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
 
+          expect(rootView.find('.fuzzy-finder')).not.toExist()
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           expect(rootView.find('.fuzzy-finder')).toExist()
-          expect(finder.miniEditor.isFocused).toBeTruthy()
+          expect(finderView.miniEditor.isFocused).toBeTruthy()
           expect(editor1.isFocused).toBeFalsy()
           expect(editor2.isFocused).toBeFalsy()
-          finder.miniEditor.insertText('this should not show up next time we toggle')
+          finderView.miniEditor.insertText('this should not show up next time we toggle')
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           expect(editor1.isFocused).toBeFalsy()
@@ -39,27 +39,27 @@ describe 'FuzzyFinder', ->
           expect(rootView.find('.fuzzy-finder')).not.toExist()
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          expect(finder.miniEditor.getText()).toBe ''
+          expect(finderView.miniEditor.getText()).toBe ''
 
         it "shows all relative file paths for the current project and selects the first", ->
           rootView.attachToDom()
-          finder.maxItems = Infinity
+          finderView.maxItems = Infinity
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           paths = null
-          expect(finder.find(".loading")).toBeVisible()
-          expect(finder.find(".loading")).toHaveText "Indexing..."
+          expect(finderView.find(".loading")).toBeVisible()
+          expect(finderView.find(".loading")).toHaveText "Indexing..."
 
           waitsFor "all project paths to load", 5000, ->
-            if finder.projectPaths?.length > 0
-              paths = finder.projectPaths
+            if finderView.projectPaths?.length > 0
+              paths = finderView.projectPaths
               true
 
           runs ->
-            expect(finder.list.children('li').length).toBe paths.length
+            expect(finderView.list.children('li').length).toBe paths.length
             for path in paths
-              expect(finder.list.find("li:contains(#{fs.base(path)})")).toExist()
-            expect(finder.list.children().first()).toHaveClass 'selected'
-            expect(finder.find(".loading")).not.toBeVisible()
+              expect(finderView.list.find("li:contains(#{fs.base(path)})")).toExist()
+            expect(finderView.list.children().first()).toHaveClass 'selected'
+            expect(finderView.find(".loading")).not.toBeVisible()
 
       describe "when root view's project has no path", ->
         beforeEach ->
@@ -78,10 +78,10 @@ describe 'FuzzyFinder', ->
         expect(rootView.getActiveEditor()).toBe editor2
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
-        finder.confirmed('dir/a')
+        finderView.confirmed('dir/a')
         expectedPath = fixturesProject.resolve('dir/a')
 
-        expect(finder.hasParent()).toBeFalsy()
+        expect(finderView.hasParent()).toBeFalsy()
         expect(editor1.getPath()).not.toBe expectedPath
         expect(editor2.getPath()).toBe expectedPath
         expect(editor2.isFocused).toBeTruthy()
@@ -91,12 +91,12 @@ describe 'FuzzyFinder', ->
           rootView.attachToDom()
           path = rootView.getActiveEditor().getPath()
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          finder.confirmed('dir/this/is/not/a/file.txt')
-          expect(finder.hasParent()).toBeTruthy()
+          finderView.confirmed('dir/this/is/not/a/file.txt')
+          expect(finderView.hasParent()).toBeTruthy()
           expect(rootView.getActiveEditor().getPath()).toBe path
-          expect(finder.find('.error').text().length).toBeGreaterThan 0
+          expect(finderView.find('.error').text().length).toBeGreaterThan 0
           advanceClock(2000)
-          expect(finder.find('.error').text().length).toBe 0
+          expect(finderView.find('.error').text().length).toBe 0
 
   describe "buffer-finder behavior", ->
     describe "toggling", ->
@@ -113,7 +113,7 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(rootView.find('.fuzzy-finder')).toExist()
           expect(rootView.find('.fuzzy-finder input:focus')).toExist()
-          finder.miniEditor.insertText('this should not show up next time we toggle')
+          finderView.miniEditor.insertText('this should not show up next time we toggle')
 
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(editor1.isFocused).toBeFalsy()
@@ -121,14 +121,14 @@ describe 'FuzzyFinder', ->
           expect(rootView.find('.fuzzy-finder')).not.toExist()
 
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-          expect(finder.miniEditor.getText()).toBe ''
+          expect(finderView.miniEditor.getText()).toBe ''
 
         it "lists the paths of the current open buffers", ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-          expect(finder.list.children('li').length).toBe 2
-          expect(finder.list.find("li:contains(sample.js)")).toExist()
-          expect(finder.list.find("li:contains(sample.txt)")).toExist()
-          expect(finder.list.children().first()).toHaveClass 'selected'
+          expect(finderView.list.children('li').length).toBe 2
+          expect(finderView.list.find("li:contains(sample.js)")).toExist()
+          expect(finderView.list.find("li:contains(sample.txt)")).toExist()
+          expect(finderView.list.children().first()).toHaveClass 'selected'
 
       describe "when the active editor only contains edit sessions for anonymous buffers", ->
         it "does not open", ->
@@ -162,9 +162,9 @@ describe 'FuzzyFinder', ->
       describe "when there is an edit session for the confirmed path in the active editor", ->
         it "switches the active editor to the edit session for the selected path", ->
           expectedPath = fixturesProject.resolve('sample.txt')
-          finder.confirmed('sample.txt')
+          finderView.confirmed('sample.txt')
 
-          expect(finder.hasParent()).toBeFalsy()
+          expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).not.toBe expectedPath
           expect(editor2.getPath()).toBe expectedPath
           expect(editor2.isFocused).toBeTruthy()
@@ -178,9 +178,9 @@ describe 'FuzzyFinder', ->
           expect(rootView.getActiveEditor()).toBe editor1
 
           expectedPath = fixturesProject.resolve('sample.txt')
-          finder.confirmed('sample.txt')
+          finderView.confirmed('sample.txt')
 
-          expect(finder.hasParent()).toBeFalsy()
+          expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).not.toBe expectedPath
           expect(editor2.getPath()).toBe expectedPath
           expect(editor2.isFocused).toBeTruthy()
@@ -194,31 +194,31 @@ describe 'FuzzyFinder', ->
           activeEditor.focus()
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          expect(finder.hasParent()).toBeTruthy()
+          expect(finderView.hasParent()).toBeTruthy()
           expect(activeEditor.isFocused).toBeFalsy()
-          expect(finder.miniEditor.isFocused).toBeTruthy()
+          expect(finderView.miniEditor.isFocused).toBeTruthy()
 
-          finder.cancel()
+          finderView.cancel()
 
-          expect(finder.hasParent()).toBeFalsy()
+          expect(finderView.hasParent()).toBeFalsy()
           expect(activeEditor.isFocused).toBeTruthy()
-          expect(finder.miniEditor.isFocused).toBeFalsy()
+          expect(finderView.miniEditor.isFocused).toBeFalsy()
 
       describe "when no editors are open", ->
-        it "detaches the finder and surrenders focus to the body", ->
+        it "detaches the finder and focuses the previously focused element", ->
           rootView.attachToDom()
           rootView.getActiveEditor().destroyActiveEditSession()
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          expect(finder.hasParent()).toBeTruthy()
+          expect(finderView.hasParent()).toBeTruthy()
           expect(rootView.isFocused).toBeFalsy()
-          expect(finder.miniEditor.isFocused).toBeTruthy()
+          expect(finderView.miniEditor.isFocused).toBeTruthy()
 
-          finder.cancel()
+          finderView.cancel()
 
-          expect(finder.hasParent()).toBeFalsy()
-          expect(document.activeElement).toBe $('body')[0]
-          expect(finder.miniEditor.isFocused).toBeFalsy()
+          expect(finderView.hasParent()).toBeFalsy()
+          expect($(document.activeElement).view()).toBe rootView
+          expect(finderView.miniEditor.isFocused).toBeFalsy()
 
   describe "cached file paths", ->
     it "caches file paths after first time", ->
@@ -226,26 +226,26 @@ describe 'FuzzyFinder', ->
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
-        finder.list.children('li').length > 0
+        finderView.list.children('li').length > 0
 
       runs ->
-        expect(finder.loadPathsTask.start).toHaveBeenCalled()
-        finder.loadPathsTask.start.reset()
+        expect(finderView.loadPathsTask.start).toHaveBeenCalled()
+        finderView.loadPathsTask.start.reset()
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
-        finder.list.children('li').length > 0
+        finderView.list.children('li').length > 0
 
       runs ->
-        expect(finder.loadPathsTask.start).not.toHaveBeenCalled()
+        expect(finderView.loadPathsTask.start).not.toHaveBeenCalled()
 
     it "doesn't cache buffer paths", ->
       spyOn(rootView, "getOpenBufferPaths").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
       waitsFor ->
-        finder.list.children('li').length > 0
+        finderView.list.children('li').length > 0
 
       runs ->
         expect(rootView.getOpenBufferPaths).toHaveBeenCalled()
@@ -254,7 +254,7 @@ describe 'FuzzyFinder', ->
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
       waitsFor ->
-        finder.list.children('li').length > 0
+        finderView.list.children('li').length > 0
 
       runs ->
         expect(rootView.getOpenBufferPaths).toHaveBeenCalled()
@@ -264,27 +264,27 @@ describe 'FuzzyFinder', ->
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
-        finder.list.children('li').length > 0
+        finderView.list.children('li').length > 0
 
       runs ->
-        expect(finder.loadPathsTask.start).toHaveBeenCalled()
-        finder.loadPathsTask.start.reset()
+        expect(finderView.loadPathsTask.start).toHaveBeenCalled()
+        finderView.loadPathsTask.start.reset()
         $(window).trigger 'focus'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
-        expect(finder.loadPathsTask.start).toHaveBeenCalled()
+        expect(finderView.loadPathsTask.start).toHaveBeenCalled()
 
   describe "path ignoring", ->
     it "ignores paths that match entries in config.fuzzyFinder.ignoredNames", ->
       config.set("fuzzyFinder.ignoredNames", ["tree-view.js"])
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
-      finder.maxItems = Infinity
+      finderView.maxItems = Infinity
 
       waitsFor ->
-        finder.list.children('li').length > 0
+        finderView.list.children('li').length > 0
 
       runs ->
-        expect(finder.list.find("li:contains(tree-view.js)")).not.toExist()
+        expect(finderView.list.find("li:contains(tree-view.js)")).not.toExist()
 
   describe "fuzzy find by content under cursor", ->
     editor = null
@@ -298,10 +298,10 @@ describe 'FuzzyFinder', ->
       rootView.trigger 'fuzzy-finder:find-under-cursor'
 
       waitsFor ->
-        finder.list.children('li').length > 0
+        finderView.list.children('li').length > 0
 
       runs ->
-        expect(finder).toBeVisible()
+        expect(finderView).toBeVisible()
         expect(rootView.find('.fuzzy-finder input:focus')).toExist()
 
     it "opens a file directly when there is a single match", ->
@@ -316,7 +316,7 @@ describe 'FuzzyFinder', ->
         openedPath != null
 
       runs ->
-        expect(finder).not.toBeVisible()
+        expect(finderView).not.toBeVisible()
         expect(openedPath).toBe "sample.txt"
 
     it "displays error when the word under the cursor doesn't match any files", ->
@@ -326,10 +326,10 @@ describe 'FuzzyFinder', ->
       rootView.trigger 'fuzzy-finder:find-under-cursor'
 
       waitsFor ->
-        finder.is(':visible')
+        finderView.is(':visible')
 
       runs ->
-        expect(finder.find('.error').text().length).toBeGreaterThan 0
+        expect(finderView.find('.error').text().length).toBeGreaterThan 0
 
     it "displays error when there is no word under the cursor", ->
       editor.setText("&&&&&&&&&&&&&&& sample")
@@ -338,10 +338,10 @@ describe 'FuzzyFinder', ->
       rootView.trigger 'fuzzy-finder:find-under-cursor'
 
       waitsFor ->
-        finder.is(':visible')
+        finderView.is(':visible')
 
       runs ->
-        expect(finder.find('.error').text().length).toBeGreaterThan 0
+        expect(finderView.find('.error').text().length).toBeGreaterThan 0
 
 
   describe "opening a path into a split", ->
@@ -354,7 +354,7 @@ describe 'FuzzyFinder', ->
         spyOn(editor, "splitLeft").andCallThrough()
         expect(rootView.find('.editor').length).toBe 1
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-        finder.miniEditor.trigger 'editor:split-left'
+        finderView.miniEditor.trigger 'editor:split-left'
         expect(rootView.find('.editor').length).toBe 2
         expect(editor.splitLeft).toHaveBeenCalled()
         expect(rootView.getActiveEditor()).not.toBe editor
@@ -365,7 +365,7 @@ describe 'FuzzyFinder', ->
         spyOn(editor, "splitRight").andCallThrough()
         expect(rootView.find('.editor').length).toBe 1
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-        finder.miniEditor.trigger 'editor:split-right'
+        finderView.miniEditor.trigger 'editor:split-right'
         expect(rootView.find('.editor').length).toBe 2
         expect(editor.splitRight).toHaveBeenCalled()
         expect(rootView.getActiveEditor()).not.toBe editor
@@ -376,7 +376,7 @@ describe 'FuzzyFinder', ->
         spyOn(editor, "splitDown").andCallThrough()
         expect(rootView.find('.editor').length).toBe 1
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-        finder.miniEditor.trigger 'editor:split-down'
+        finderView.miniEditor.trigger 'editor:split-down'
         expect(rootView.find('.editor').length).toBe 2
         expect(editor.splitDown).toHaveBeenCalled()
         expect(rootView.getActiveEditor()).not.toBe editor
@@ -387,7 +387,7 @@ describe 'FuzzyFinder', ->
         spyOn(editor, "splitUp").andCallThrough()
         expect(rootView.find('.editor').length).toBe 1
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-        finder.miniEditor.trigger 'editor:split-up'
+        finderView.miniEditor.trigger 'editor:split-up'
         expect(rootView.find('.editor').length).toBe 2
         expect(editor.splitUp).toHaveBeenCalled()
         expect(rootView.getActiveEditor()).not.toBe editor

@@ -37,8 +37,8 @@ windowAdditions =
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
   attachRootView: (pathToOpen) ->
-    if rootViewState = atom.getRootViewStateForPath(pathToOpen)
-      RootView.deserialize(rootViewState)
+    if pathState = atom.getRootViewStateForPath(pathToOpen)
+      RootView.deserialize(pathState)
     else
       new RootView(pathToOpen)
 

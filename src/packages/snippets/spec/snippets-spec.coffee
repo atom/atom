@@ -1,6 +1,5 @@
-Snippets = require 'snippets'
-Snippet = require 'snippets/src/snippet'
-LoadSnippetsTask = require 'snippets/src/load-snippets-task'
+Snippet = require 'snippets/lib/snippet'
+LoadSnippetsTask = require 'snippets/lib/load-snippets-task'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
@@ -12,7 +11,14 @@ describe "Snippets extension", ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     spyOn(LoadSnippetsTask.prototype, 'start')
+
+    packageWithSnippets = atom.loadPackage("package-with-snippets")
+
+    spyOn(atom, "getLoadedPackages").andCallFake ->
+      window.textMatePackages.concat([packageWithSnippets])
+
     atom.loadPackage("snippets")
+
     editor = rootView.getActiveEditor()
     editSession = rootView.getActiveEditSession()
     buffer = editor.getBuffer()
@@ -20,7 +26,7 @@ describe "Snippets extension", ->
     rootView.enableKeymap()
 
   afterEach ->
-    rootView.remove()
+    rootView.deactivate()
     delete window.snippets
 
   describe "when 'tab' is triggered on the editor", ->
@@ -232,7 +238,6 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
-      atom.packages = null
       jasmine.unspy(LoadSnippetsTask.prototype, 'start')
       spyOn(LoadSnippetsTask.prototype, 'loadAtomSnippets').andCallFake -> @snippetsLoaded({})
       spyOn(LoadSnippetsTask.prototype, 'loadTextMateSnippets').andCallFake -> @snippetsLoaded({})
@@ -271,7 +276,7 @@ describe "Snippets extension", ->
           }
         """
 
-        # warn about junk-file, but don't even try to parse a hidden file
+        # warn about invalid.plist
         expect(console.warn).toHaveBeenCalled()
         expect(console.warn.calls.length).toBe 1
 
