@@ -108,18 +108,18 @@ describe "GitHub Flavored Markdown grammar", ->
 
     {tokens} = grammar.tokenizeLine("  * Item 1")
     expect(tokens[0]).toEqual value: "  ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: "*", scopes: ["source.gfm", "constant.gfm"]
+    expect(tokens[1]).toEqual value: "*", scopes: ["source.gfm", "string.gfm"]
     expect(tokens[2]).toEqual value: " ", scopes: ["source.gfm"]
     expect(tokens[3]).toEqual value: "Item 1", scopes: ["source.gfm"]
 
     {tokens} = grammar.tokenizeLine("  + Item 2")
     expect(tokens[0]).toEqual value: "  ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: "+", scopes: ["source.gfm", "constant.gfm"]
+    expect(tokens[1]).toEqual value: "+", scopes: ["source.gfm", "string.gfm"]
     expect(tokens[2]).toEqual value: " ", scopes: ["source.gfm"]
     expect(tokens[3]).toEqual value: "Item 2", scopes: ["source.gfm"]
 
     {tokens} = grammar.tokenizeLine("  - Item 3")
     expect(tokens[0]).toEqual value: "  ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: "-", scopes: ["source.gfm", "constant.gfm"]
+    expect(tokens[1]).toEqual value: "-", scopes: ["source.gfm", "string.gfm"]
     expect(tokens[2]).toEqual value: " ", scopes: ["source.gfm"]
     expect(tokens[3]).toEqual value: "Item 3", scopes: ["source.gfm"]
