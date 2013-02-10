@@ -74,7 +74,7 @@ describe "GitHub Flavored Markdown grammar", ->
   it "tokenizies an :emoji:", ->
     {tokens} = grammar.tokenizeLine("this is :no_good:")
     expect(tokens[0]).toEqual value: "this is ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: ":no_good:", scopes: ["source.gfm", "variable.emoji.gfm"]
+    expect(tokens[1]).toEqual value: ":no_good:", scopes: ["source.gfm", "string.emoji.gfm"]
 
     {tokens} = grammar.tokenizeLine("this is :no good:")
     expect(tokens[0]).toEqual value: "this is :no good:", scopes: ["source.gfm"]
@@ -108,18 +108,18 @@ describe "GitHub Flavored Markdown grammar", ->
 
     {tokens} = grammar.tokenizeLine("  * Item 1")
     expect(tokens[0]).toEqual value: "  ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: "*", scopes: ["source.gfm", "string.gfm"]
+    expect(tokens[1]).toEqual value: "*", scopes: ["source.gfm", "variable.list.gfm"]
     expect(tokens[2]).toEqual value: " ", scopes: ["source.gfm"]
     expect(tokens[3]).toEqual value: "Item 1", scopes: ["source.gfm"]
 
     {tokens} = grammar.tokenizeLine("  + Item 2")
     expect(tokens[0]).toEqual value: "  ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: "+", scopes: ["source.gfm", "string.gfm"]
+    expect(tokens[1]).toEqual value: "+", scopes: ["source.gfm", "variable.list.gfm"]
     expect(tokens[2]).toEqual value: " ", scopes: ["source.gfm"]
     expect(tokens[3]).toEqual value: "Item 2", scopes: ["source.gfm"]
 
     {tokens} = grammar.tokenizeLine("  - Item 3")
     expect(tokens[0]).toEqual value: "  ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: "-", scopes: ["source.gfm", "string.gfm"]
+    expect(tokens[1]).toEqual value: "-", scopes: ["source.gfm", "variable.list.gfm"]
     expect(tokens[2]).toEqual value: " ", scopes: ["source.gfm"]
     expect(tokens[3]).toEqual value: "Item 3", scopes: ["source.gfm"]

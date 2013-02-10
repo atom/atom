@@ -34,7 +34,7 @@
   }
   {
     'match': '\\:[^\\:\\s]+\\:'
-    'name': 'variable.emoji.gfm'
+    'name': 'string.emoji.gfm'
   }
   {
     'begin': '^```.*$'
@@ -61,6 +61,6 @@
   {
     'match': '^\\s*([\\*\\+-])[ \\t]+'
     'captures':
-      '1': 'name': 'string.gfm'
+      '1': 'name': 'variable.list.gfm'
   }
 ]
