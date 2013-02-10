@@ -277,3 +277,11 @@ class RootView extends View
   eachBuffer: (callback) ->
     callback(buffer) for buffer in @project.getBuffers()
     @project.on 'buffer-created', (buffer) -> callback(buffer)
+
+  indexOfPane: (pane) ->
+    index = -1
+    for p, idx in @panes.find('.pane')
+      if pane.is(p)
+        index = idx
+        break
+    index
