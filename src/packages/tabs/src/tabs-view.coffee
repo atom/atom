@@ -45,15 +45,39 @@ class Tabs extends SortableList
   removeTabAtIndex: (index) ->
     @find(".tab:eq(#{index})").remove()
 
+  onDragStart: (event) =>
+    super
+    pane = $(event.target).closest('.pane')
+    event.originalEvent.dataTransfer.setData 'from-pane-index', pane.index()
+
   onDrop: (event) =>
     super
-    sessions = @editor.editSessions
-    el = @sortableElement(event)
-    previousIndex = event.originalEvent.dataTransfer.getData('index')
-    currentIndex  = el.index() - 1
+    transfer = event.originalEvent.dataTransfer
+    previousDraggedTabIndex = transfer.getData 'sortable-index'
 
-    sessions.splice(currentIndex, 0, sessions.splice(previousIndex, 1)[0])
+    fromPaneIndex = ~~transfer.getData 'from-pane-index'
+    toPaneIndex   = ~~$(event.target).closest('.pane').index()
+    fromPane      = rootView.find ".pane:nth-child(#{fromPaneIndex + 1})"
+    fromEditor    = fromPane.find('.editor').view()
 
-    @setActiveTab(currentIndex)
-    @editor.setActiveEditSessionIndex(currentIndex)
-    @editor.focus()
+    if fromPaneIndex == toPaneIndex
+      toPane   = fromPane
+      toEditor = fromEditor
+    else
+      toPane = rootView.find ".pane:nth-child(#{toPaneIndex + 1})"
+      toEditor = toPane.find('.editor').view()
+
+    droppedNearTab = @getSortableElement(event)
+    draggedTab     = fromPane.find(".#{Tabs.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
+
+    draggedTab.remove()
+    draggedTab.insertBefore(droppedNearTab)
+
+    currentDraggedTabIndex = draggedTab.index()
+
+    toEditor.editSessions.splice(currentDraggedTabIndex, 0, fromEditor.editSessions.splice(previousDraggedTabIndex, 1)[0])
+
+    @setActiveTab(currentDraggedTabIndex)
+    fromEditor.setActiveEditSessionIndex(0)
+    toEditor.setActiveEditSessionIndex(currentDraggedTabIndex)
+    toEditor.focus()
