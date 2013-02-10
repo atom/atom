@@ -16,7 +16,7 @@ class SortableList extends View
   onDragStart: (event) =>
     el = @getSortableElement(event)
     el.addClass 'is-dragging'
-    event.originalEvent.dataTransfer.setData 'index', el.index()
+    event.originalEvent.dataTransfer.setData 'sortable-index', el.index()
 
   onDragEnd: (event) =>
     @getSortableElement(event).removeClass 'is-dragging'
@@ -41,7 +41,7 @@ class SortableList extends View
     @find('.is-drop-target').removeClass 'is-drop-target'
 
   getDroppedElement: (event) ->
-    idx = event.originalEvent.dataTransfer.getData('index')
+    idx = event.originalEvent.dataTransfer.getData 'sortable-index'
     @find ".sortable:eq(#{idx})"
 
   getSortableElement: (event) ->
