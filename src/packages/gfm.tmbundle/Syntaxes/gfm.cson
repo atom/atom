@@ -9,20 +9,24 @@
 ]
 'patterns': [
   {
-    'match': '\\*\\*[^\\*]+\\*\\*'
-    'name': 'markup.bold.gfm'
+    'match': '(?:^|\\s)(\\*\\*[^\\*]+\\*\\*)'
+    'captures':
+      '1': 'name': 'markup.bold.gfm'
   }
   {
-    'match': '__[^_]+__'
-    'name': 'markup.bold.gfm'
+    'match': '(?:^|\\s)(__[^_]+__)'
+    'captures':
+      '1': 'name': 'markup.bold.gfm'
   }
   {
-    'match': '\\*[^\\*]+\\*'
-    'name': 'markup.italic.gfm'
+    'match': '(?:^|\\s)(\\*[^\\*]+\\*)'
+    'captures':
+      '1': 'name': 'markup.italic.gfm'
   }
   {
-    'match': '_[^_]+_'
-    'name': 'markup.italic.gfm'
+    'match': '(?:^|\\s)(_[^_]+_)'
+    'captures':
+      '1': 'name': 'markup.italic.gfm'
   }
   {
     'match': '^#{1,6}\\s+.+$'
