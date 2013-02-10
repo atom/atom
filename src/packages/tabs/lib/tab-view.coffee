@@ -51,12 +51,14 @@ class TabView extends SortableList
 
   onDragStart: (event) =>
     super
+
     pane = $(event.target).closest('.pane')
     paneIndex = rootView.indexOfPane(pane)
     event.originalEvent.dataTransfer.setData 'from-pane-index', paneIndex
 
   onDrop: (event) =>
     super
+
     transfer = event.originalEvent.dataTransfer
     previousDraggedTabIndex = transfer.getData 'sortable-index'
 
@@ -84,5 +86,5 @@ class TabView extends SortableList
     toEditor.setActiveEditSessionIndex(currentDraggedTabIndex)
     toEditor.focus()
 
-    if fromPaneIndex != toPaneIndex
+    if fromPaneIndex != toPaneIndex && !draggedTab.hasClass('active')
       fromEditor.setActiveEditSessionIndex(0)
