@@ -11,8 +11,7 @@ class AtomTheme extends Theme
     if /\.css$/.test(@path)
       @loadStylesheet @path
     else
-      json = fs.read(fs.join(@path, "package.json"))
-      for stylesheetName in JSON.parse(json).stylesheets
-        stylesheetPath = fs.join(@path, stylesheetName)
-        @loadStylesheet stylesheetPath
+      metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
+      stylesheetNames = fs.readObject(metadataPath).stylesheets
+      @loadStylesheet(fs.join(@path, name)) for name in stylesheetNames
     super

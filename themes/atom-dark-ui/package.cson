@@ -1,0 +1,11 @@
+'stylesheets': [
+  'atom.css'
+  'editor.css'
+  'select-list.css'
+  'tree-view.css'
+  'tabs.css'
+  'status-bar.css'
+  'command-panel.css'
+  'command-logger.css'
+  'blurred.css'
+]
