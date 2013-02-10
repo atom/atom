@@ -13,7 +13,15 @@
     'name': 'markup.bold.gfm'
   }
   {
+    'match': '__[^_]+__'
+    'name': 'markup.bold.gfm'
+  }
+  {
     'match': '\\*[^\\*]+\\*'
+    'name': 'markup.italic.gfm'
+  }
+  {
+    'match': '_[^_]+_'
     'name': 'markup.italic.gfm'
   }
   {

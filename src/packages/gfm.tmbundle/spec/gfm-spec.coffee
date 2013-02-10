@@ -22,6 +22,15 @@ describe "GitHub Flavored Markdown grammar", ->
     expect(tokens[1]).toEqual value: "**bold**", scopes: ["source.gfm", "markup.bold.gfm"]
     expect(tokens[2]).toEqual value: " text", scopes: ["source.gfm"]
 
+  it "tokenizes __bold__ text", ->
+    {tokens} = grammar.tokenizeLine("____")
+    expect(tokens[0]).toEqual value: "____", scopes: ["source.gfm"]
+
+    {tokens} = grammar.tokenizeLine("this is __bold__ text")
+    expect(tokens[0]).toEqual value: "this is ", scopes: ["source.gfm"]
+    expect(tokens[1]).toEqual value: "__bold__", scopes: ["source.gfm", "markup.bold.gfm"]
+    expect(tokens[2]).toEqual value: " text", scopes: ["source.gfm"]
+
   it "tokenizes *italic* text", ->
     {tokens} = grammar.tokenizeLine("**")
     expect(tokens[0]).toEqual value: "**", scopes: ["source.gfm"]
@@ -29,6 +38,15 @@ describe "GitHub Flavored Markdown grammar", ->
     {tokens} = grammar.tokenizeLine("this is *italic* text")
     expect(tokens[0]).toEqual value: "this is ", scopes: ["source.gfm"]
     expect(tokens[1]).toEqual value: "*italic*", scopes: ["source.gfm", "markup.italic.gfm"]
+    expect(tokens[2]).toEqual value: " text", scopes: ["source.gfm"]
+
+  it "tokenizes _italic_ text", ->
+    {tokens} = grammar.tokenizeLine("__")
+    expect(tokens[0]).toEqual value: "__", scopes: ["source.gfm"]
+
+    {tokens} = grammar.tokenizeLine("this is _italic_ text")
+    expect(tokens[0]).toEqual value: "this is ", scopes: ["source.gfm"]
+    expect(tokens[1]).toEqual value: "_italic_", scopes: ["source.gfm", "markup.italic.gfm"]
     expect(tokens[2]).toEqual value: " text", scopes: ["source.gfm"]
 
   it "tokenizes a ## Heading", ->
