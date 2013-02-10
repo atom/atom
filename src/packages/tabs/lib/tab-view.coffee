@@ -3,14 +3,14 @@ SortableList = require 'sortable-list'
 Tab = require 'tabs/lib/tab'
 
 module.exports =
-class Tabs extends SortableList
+class TabView extends SortableList
   @activate: ->
     rootView.eachEditor (editor) =>
       @prependToEditorPane(rootView, editor) if editor.attached
 
   @prependToEditorPane: (rootView, editor) ->
     if pane = editor.pane()
-      pane.prepend(new Tabs(editor))
+      pane.prepend(new TabView(editor))
 
   @content: ->
     @ul class: "tabs #{@viewClass()}"
@@ -73,15 +73,16 @@ class Tabs extends SortableList
       toEditor = toPane.find('.editor').view()
 
     droppedNearTab = @getSortableElement(event)
-    draggedTab     = fromPane.find(".#{Tabs.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
+    draggedTab     = fromPane.find(".#{TabView.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
 
     draggedTab.remove()
     draggedTab.insertAfter(droppedNearTab)
-
     currentDraggedTabIndex = draggedTab.index()
     toEditor.editSessions.splice(currentDraggedTabIndex, 0, fromEditor.editSessions.splice(previousDraggedTabIndex, 1)[0])
 
     @setActiveTab(currentDraggedTabIndex)
-    fromEditor.setActiveEditSessionIndex(0) if fromPaneIndex != toPaneIndex
     toEditor.setActiveEditSessionIndex(currentDraggedTabIndex)
     toEditor.focus()
+
+    if fromPaneIndex != toPaneIndex
+      fromEditor.setActiveEditSessionIndex(0)

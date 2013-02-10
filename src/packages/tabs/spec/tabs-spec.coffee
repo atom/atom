@@ -3,7 +3,7 @@ _ = require 'underscore'
 RootView = require 'root-view'
 fs = require 'fs'
 
-describe "Tabs", ->
+describe "TabView", ->
   [editor, buffer, tabs] = []
 
   beforeEach ->
