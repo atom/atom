@@ -14,6 +14,8 @@ class SortableList extends View
     @on 'drop',      '.sortable', @onDrop
 
   onDragStart: (event) =>
+    return false if !@shouldAllowDrag()
+
     el = @getSortableElement(event)
     el.addClass 'is-dragging'
     event.originalEvent.dataTransfer.setData 'sortable-index', el.index()
@@ -32,8 +34,15 @@ class SortableList extends View
     @getSortableElement(event).removeClass 'is-drop-target'
 
   onDrop: (event) =>
+    return false if !@shouldAllowDrop()
     event.stopPropagation()
     @find('.is-drop-target').removeClass 'is-drop-target'
+
+  shouldAllowDrag: ->
+    true
+
+  shouldAllowDrop: ->
+    true
 
   getDroppedElement: (event) ->
     idx = event.originalEvent.dataTransfer.getData 'sortable-index'
