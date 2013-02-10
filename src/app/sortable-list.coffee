@@ -14,22 +14,22 @@ class SortableList extends View
     @on 'drop',      '.sortable', @onDrop
 
   onDragStart: (event) =>
-    el = @sortableElement(event)
+    el = @getSortableElement(event)
     el.addClass 'is-dragging'
     event.originalEvent.dataTransfer.setData 'index', el.index()
 
   onDragEnd: (event) =>
-    @sortableElement(event).removeClass 'is-dragging'
+    @getSortableElement(event).removeClass 'is-dragging'
 
   onDragEnter: (event) =>
     event.preventDefault()
 
   onDragOver: (event) =>
     event.preventDefault()
-    @sortableElement(event).addClass 'is-drop-target'
+    @getSortableElement(event).addClass 'is-drop-target'
 
   onDragLeave: (event) =>
-    @sortableElement(event).removeClass 'is-drop-target'
+    @getSortableElement(event).removeClass 'is-drop-target'
 
   onDrop: (event) =>
     event.stopPropagation()
@@ -44,6 +44,6 @@ class SortableList extends View
     idx = event.originalEvent.dataTransfer.getData('index')
     @find ".sortable:eq(#{idx})"
 
-  sortableElement: (event) ->
+  getSortableElement: (event) ->
     el = $(event.target)
     if !el.hasClass('sortable') then el.closest('.sortable') else el
