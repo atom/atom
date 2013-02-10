@@ -33,11 +33,6 @@ class SortableList extends View
 
   onDrop: (event) =>
     event.stopPropagation()
-    el = @sortableElement(event)
-    dropped = @getDroppedElement(event)
-    dropped.remove()
-    dropped.insertBefore(el)
-
     @find('.is-drop-target').removeClass 'is-drop-target'
 
   getDroppedElement: (event) ->
