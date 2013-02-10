@@ -43,7 +43,7 @@
       '2': 'name': 'markup.underline.gfm'
   }
   {
-    'match': '^\\s*(\\*)\\s+'
+    'match': '^\\s*(\\*)[ \\t]+'
     'captures':
       '1': 'name': 'constant.gfm'
   }
