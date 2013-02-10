@@ -29,7 +29,7 @@
     'name': 'markup.heading.gfm'
   }
   {
-    'match': '\\:[^\\:]+\\:'
+    'match': '\\:[^\\:\\s]+\\:'
     'name': 'variable.emoji.gfm'
   }
   {
