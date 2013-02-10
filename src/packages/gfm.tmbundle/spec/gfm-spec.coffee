@@ -14,12 +14,18 @@ describe "GitHub Flavored Markdown grammar", ->
     expect(grammar.scopeName).toBe "source.gfm"
 
   it "tokenizes **bold** text", ->
+    {tokens} = grammar.tokenizeLine("****")
+    expect(tokens[0]).toEqual value: "****", scopes: ["source.gfm"]
+
     {tokens} = grammar.tokenizeLine("this is **bold** text")
     expect(tokens[0]).toEqual value: "this is ", scopes: ["source.gfm"]
     expect(tokens[1]).toEqual value: "**bold**", scopes: ["source.gfm", "markup.bold.gfm"]
     expect(tokens[2]).toEqual value: " text", scopes: ["source.gfm"]
 
   it "tokenizes *italic* text", ->
+    {tokens} = grammar.tokenizeLine("**")
+    expect(tokens[0]).toEqual value: "**", scopes: ["source.gfm"]
+
     {tokens} = grammar.tokenizeLine("this is *italic* text")
     expect(tokens[0]).toEqual value: "this is ", scopes: ["source.gfm"]
     expect(tokens[1]).toEqual value: "*italic*", scopes: ["source.gfm", "markup.italic.gfm"]

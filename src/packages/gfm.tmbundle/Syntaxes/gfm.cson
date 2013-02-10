@@ -9,11 +9,11 @@
 ]
 'patterns': [
   {
-    'match': '\\*\\*.*\\*\\*'
+    'match': '\\*\\*[^\\*]+\\*\\*'
     'name': 'markup.bold.gfm'
   }
   {
-    'match': '\\*.*\\*'
+    'match': '\\*[^\\*]+\\*'
     'name': 'markup.italic.gfm'
   }
   {
