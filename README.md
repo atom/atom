@@ -33,7 +33,7 @@ explore features.
 
 `meta-t` : open fuzzy file finder
 
-meta-:` : open command prompt
+`meta-:` : open command prompt
 
 `meta-f` : open command prompt with /
 
