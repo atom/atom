@@ -48,7 +48,8 @@ class Tabs extends SortableList
   onDragStart: (event) =>
     super
     pane = $(event.target).closest('.pane')
-    event.originalEvent.dataTransfer.setData 'from-pane-index', pane.index()
+    paneIndex = rootView.indexOfPane(pane)
+    event.originalEvent.dataTransfer.setData 'from-pane-index', paneIndex
 
   onDrop: (event) =>
     super
@@ -56,22 +57,22 @@ class Tabs extends SortableList
     previousDraggedTabIndex = transfer.getData 'sortable-index'
 
     fromPaneIndex = ~~transfer.getData 'from-pane-index'
-    toPaneIndex   = ~~$(event.target).closest('.pane').index()
-    fromPane      = rootView.find ".pane:nth-child(#{fromPaneIndex + 1})"
+    toPaneIndex   = rootView.indexOfPane($(event.target).closest('.pane'))
+    fromPane      = $(rootView.find('.pane')[fromPaneIndex])
     fromEditor    = fromPane.find('.editor').view()
 
     if fromPaneIndex == toPaneIndex
       toPane   = fromPane
       toEditor = fromEditor
     else
-      toPane = rootView.find ".pane:nth-child(#{toPaneIndex + 1})"
+      toPane = $(rootView.find('.pane')[toPaneIndex])
       toEditor = toPane.find('.editor').view()
 
     droppedNearTab = @getSortableElement(event)
     draggedTab     = fromPane.find(".#{Tabs.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
 
     draggedTab.remove()
-    draggedTab.insertBefore(droppedNearTab)
+    draggedTab.insertAfter(droppedNearTab)
 
     currentDraggedTabIndex = draggedTab.index()
 
