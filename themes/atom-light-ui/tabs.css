@@ -18,7 +18,8 @@
     inset -2px 0 0 rgba(255, 255, 255, 0.1); /* right hightlight */
 }
 
-.tab.active {
+.tab.active,
+.tab:hover.active {
   background-image: -webkit-linear-gradient(#fefefe, #e7e6e7);
   color: #323232;
   text-shadow: 1px 1px rgba(255, 255, 255, 0.5);
@@ -32,12 +33,12 @@
   background-image: -webkit-linear-gradient(#e2e2e2, #ddd);
 }
 
-.tab.active {
-  color: #010101;
-}
-
 .tab .close-icon {
   color: #323232;
+}
+
+.tab .close-icon:hover {
+  color: #989898;
 }
 
 .tab.file-modified .close-icon {
