@@ -26,7 +26,11 @@
   }
   {
     'begin': '^```.*$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
     'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
     'patterns': [
       'match': '.*'
       'name': 'markup.raw.gfm'
