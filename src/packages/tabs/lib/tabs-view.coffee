@@ -47,7 +47,7 @@ class Tabs extends SortableList
 
   shouldAllowDrag: ->
     panes = rootView.find('.pane')
-    panes.length == 1 && panes.find('.sortable').length > 0
+    !(panes.length == 1 && panes.find('.sortable').length == 1)
 
   onDragStart: (event) =>
     super
@@ -79,11 +79,9 @@ class Tabs extends SortableList
     draggedTab.insertAfter(droppedNearTab)
 
     currentDraggedTabIndex = draggedTab.index()
-    #console.log ".#{Tabs.viewClass()} .sortable:eq(#{previousDraggedTabIndex})"
     toEditor.editSessions.splice(currentDraggedTabIndex, 0, fromEditor.editSessions.splice(previousDraggedTabIndex, 1)[0])
 
     @setActiveTab(currentDraggedTabIndex)
-    console.log fromPaneIndex, toPaneIndex, currentDraggedTabIndex
     fromEditor.setActiveEditSessionIndex(0) if fromPaneIndex != toPaneIndex
     toEditor.setActiveEditSessionIndex(currentDraggedTabIndex)
     toEditor.focus()
