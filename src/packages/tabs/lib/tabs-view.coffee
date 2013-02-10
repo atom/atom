@@ -1,9 +1,9 @@
 $ = require 'jquery'
 SortableList = require 'sortable-list'
-Tab = require 'tabs/src/tab'
+Tab = require 'tabs/lib/tab'
 
 module.exports =
-class Tabs extends View
+class Tabs extends SortableList
   @activate: ->
     rootView.eachEditor (editor) =>
       @prependToEditorPane(rootView, editor) if editor.attached
