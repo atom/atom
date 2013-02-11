@@ -5,6 +5,7 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 _ = require 'underscore'
 fs = require 'fs'
+Package = require 'package'
 
 describe "Snippets extension", ->
   [buffer, editor, editSession] = []
@@ -294,6 +295,22 @@ describe "Snippets extension", ->
         expect(console.warn.argsForCall[0]).toMatch /Error reading snippets file '.*?\/spec\/fixtures\/packages\/package-with-snippets\/snippets\/junk-file'/
         expect(Worker.prototype.terminate).toHaveBeenCalled()
         expect(Worker.prototype.terminate.calls.length).toBe 1
+
+    it "loads CSON snippets from TextMate packages", ->
+      jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
+      snippets.loaded = false
+      task = new LoadSnippetsTask(snippets)
+      task.packages = [Package.build(fixturesProject.resolve('packages/package-with-a-cson-grammar.tmbundle'))]
+      task.start()
+
+      waitsFor "CSON snippets to load", 5000, -> snippets.loaded
+
+      runs ->
+        snippet = syntax.getProperty(['.source.alot'], 'snippets.really')
+        expect(snippet).toBeTruthy()
+        expect(snippet.prefix).toBe 'really'
+        expect(snippet.name).toBe 'Really'
+        expect(snippet.body).toBe "I really like  alot"
 
   describe "snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
