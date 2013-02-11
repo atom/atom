@@ -22,6 +22,10 @@ class FuzzyFinderView extends SelectList
 
     @subscribe $(window), 'focus', => @reloadProjectPaths = true
     @observeConfig 'fuzzy-finder.ignoredNames', => @reloadProjectPaths = true
+    rootView.eachEditor (editor) ->
+      editor.activeEditSession.lastOpened = (new Date) - 1
+      editor.on 'editor:active-edit-session-changed', (e, editSession, index) ->
+        editSession.lastOpened = (new Date) - 1
 
     @miniEditor.command 'editor:split-left', =>
       @splitOpenPath (editor, session) -> editor.splitLeft(session)
@@ -143,8 +147,19 @@ class FuzzyFinderView extends SelectList
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
-    @paths = rootView.getOpenBufferPaths().map (path) =>
-      rootView.project.relativize(path)
+    editSessions = []
+    rootView.eachEditSession (editSession) ->
+      editSessions.push editSession
+
+    editSessions = _.sortBy editSessions, (editSession) =>
+      if editSession is rootView.getActiveEditSession()
+        0
+      else
+        -(editSession.lastOpened or 1)
+
+    @paths = _.map editSessions, (editSession) =>
+      rootView.project.relativize editSession.buffer.getPath()
+
     @setArray(@paths)
 
   detach: ->

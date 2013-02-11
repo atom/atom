@@ -123,11 +123,26 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(finderView.miniEditor.getText()).toBe ''
 
-        it "lists the paths of the current open buffers", ->
+        it "lists the paths of the current open buffers by most recently modified", ->
+          rootView.attachToDom()
+          rootView.open 'sample-with-tabs.coffee'
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-          expect(finderView.list.children('li').length).toBe 2
+          children = finderView.list.children('li')
+          expect(children.get(0).outerText).toBe "sample.txt"
+          expect(children.get(1).outerText).toBe "sample.js"
+          expect(children.get(2).outerText).toBe "sample-with-tabs.coffee"
+
+          rootView.open 'sample.txt'
+          rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+          children = finderView.list.children('li')
+          expect(children.get(0).outerText).toBe "sample-with-tabs.coffee"
+          expect(children.get(1).outerText).toBe "sample.js"
+          expect(children.get(2).outerText).toBe "sample.txt"
+
+          expect(finderView.list.children('li').length).toBe 3
           expect(finderView.list.find("li:contains(sample.js)")).toExist()
           expect(finderView.list.find("li:contains(sample.txt)")).toExist()
+          expect(finderView.list.find("li:contains(sample-with-tabs.coffee)")).toExist()
           expect(finderView.list.children().first()).toHaveClass 'selected'
 
       describe "when the active editor only contains edit sessions for anonymous buffers", ->
