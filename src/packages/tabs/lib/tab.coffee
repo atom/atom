@@ -41,4 +41,4 @@ class Tab extends View
     @fileName.attr('title', @editSession.getPath())
 
   representedPath: ->
-    @buffer.file.path
+    @buffer.getPath()
