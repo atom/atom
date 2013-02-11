@@ -71,4 +71,10 @@
     'captures':
       '1': 'name': 'variable.list.gfm'
   }
+  {
+    'match': '^\\s*(>)(.*)'
+    'captures':
+      '1': 'name': 'support.quote.gfm'
+      '2': 'name': 'comment.quote.gfm'
+  }
 ]

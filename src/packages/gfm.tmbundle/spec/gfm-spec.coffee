@@ -127,3 +127,8 @@ describe "GitHub Flavored Markdown grammar", ->
     expect(tokens[1]).toEqual value: "-", scopes: ["source.gfm", "variable.list.gfm"]
     expect(tokens[2]).toEqual value: " ", scopes: ["source.gfm"]
     expect(tokens[3]).toEqual value: "Item 3", scopes: ["source.gfm"]
+
+  it "tokenizes > quoted text", ->
+    {tokens} = grammar.tokenizeLine("> Quotation")
+    expect(tokens[0]).toEqual value: ">", scopes: ["source.gfm", "support.quote.gfm"]
+    expect(tokens[1]).toEqual value: " Quotation", scopes: ["source.gfm", "comment.quote.gfm"]
