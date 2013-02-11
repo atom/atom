@@ -7,7 +7,7 @@ describe "TabView", ->
   [editor, buffer, tabs] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    new RootView(require.resolve('fixtures/sample.js'))
     rootView.open('sample.txt')
     rootView.simulateDomAttachment()
     atom.loadPackage("tabs")
