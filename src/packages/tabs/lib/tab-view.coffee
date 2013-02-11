@@ -1,6 +1,6 @@
 $ = require 'jquery'
 SortableList = require 'sortable-list'
-Tab = require 'tabs/lib/tab'
+Tab = require './tab'
 
 module.exports =
 class TabView extends SortableList
