@@ -63,9 +63,9 @@ exts =
       compiled = CoffeeScript.compile(__read(file), filename: file)
       writeToCache = true
 
-      evaluated = exts.js(file, compiled)
-      $native.write(cacheFilePath, compiled) if writeToCache
-      evaluated
+    evaluated = exts.js(file, compiled)
+    $native.write(cacheFilePath, compiled) if writeToCache
+    evaluated
 
 getPath = (path) ->
   path = resolve(path)
