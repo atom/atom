@@ -37,6 +37,14 @@
     'name': 'string.emoji.gfm'
   }
   {
+    'match': '^\\s*[\\*]{3,}\\s*$'
+    'name': 'comment.hr.gfm'
+  }
+  {
+    'match': '^\\s*[-]{3,}\\s*$'
+    'name': 'comment.hr.gfm'
+  }
+  {
     'begin': '^```.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
