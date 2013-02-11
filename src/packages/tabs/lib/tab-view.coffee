@@ -82,7 +82,9 @@ class TabView extends SortableList
     currentDraggedTabIndex = draggedTab.index()
     toEditor.editSessions.splice(currentDraggedTabIndex, 0, fromEditor.editSessions.splice(previousDraggedTabIndex, 1)[0])
 
-    if fromPaneIndex != toPaneIndex && draggedTab.hasClass('active')
+    if fromPane.find('.tab').length == 0
+      fromPane.view().remove()
+    else if fromPaneIndex != toPaneIndex && draggedTab.hasClass('active')
       fromEditor.setActiveEditSessionIndex(0)
 
     @setActiveTab(currentDraggedTabIndex)
