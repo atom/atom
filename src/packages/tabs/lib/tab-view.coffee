@@ -18,8 +18,7 @@ class TabView extends SortableList
   initialize: (@editor) ->
     super
 
-    for editSession, index in @editor.editSessions
-      @addTabForEditSession(editSession)
+    @addTabForEditSession(editSession) for editSession in @editor.editSessions
 
     @setActiveTab(@editor.getActiveEditSessionIndex())
     @editor.on 'editor:active-edit-session-changed', (e, editSession, index) => @setActiveTab(index)
