@@ -76,6 +76,7 @@ class TabView extends SortableList
 
     droppedNearTab = @getSortableElement(event)
     draggedTab     = fromPane.find(".#{TabView.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
+    return if draggedTab[0] is droppedNearTab[0]
 
     draggedTab.remove()
     draggedTab.insertAfter(droppedNearTab)
