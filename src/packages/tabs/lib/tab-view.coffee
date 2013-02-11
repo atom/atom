@@ -45,7 +45,7 @@ class TabView extends SortableList
   removeTabAtIndex: (index) ->
     @find(".tab:eq(#{index})").remove()
 
-  shouldAllowDrag: ->
+  shouldAllowDrag: (event) ->
     panes = rootView.find('.pane')
     !(panes.length == 1 && panes.find('.sortable').length == 1)
 

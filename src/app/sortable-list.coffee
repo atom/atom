@@ -14,7 +14,7 @@ class SortableList extends View
     @on 'drop',      '.sortable', @onDrop
 
   onDragStart: (event) =>
-    return false if !@shouldAllowDrag()
+    return false if !@shouldAllowDrag(event)
 
     el = @getSortableElement(event)
     el.addClass 'is-dragging'
@@ -34,14 +34,14 @@ class SortableList extends View
     @getSortableElement(event).removeClass 'is-drop-target'
 
   onDrop: (event) =>
-    return false if !@shouldAllowDrop()
+    return false if !@shouldAllowDrop(event)
     event.stopPropagation()
     @find('.is-drop-target').removeClass 'is-drop-target'
 
-  shouldAllowDrag: ->
+  shouldAllowDrag: (event) ->
     true
 
-  shouldAllowDrop: ->
+  shouldAllowDrop: (event) ->
     true
 
   getDroppedElement: (event) ->
