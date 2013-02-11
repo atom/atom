@@ -485,6 +485,11 @@ namespace v8_extensions {
         };
       }
 
+      CefRefPtr<CefV8Value> currentWorkingDirectory = options->GetValue("cwd");
+      if (!currentWorkingDirectory->IsUndefined() && !currentWorkingDirectory->IsNull()) {
+        [task setCurrentDirectoryPath:stringFromCefV8Value(currentWorkingDirectory)];
+      }
+
       [task launch];
 
       return true;

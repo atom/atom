@@ -17,8 +17,9 @@
 AtomCefClient::AtomCefClient(){
 }
 
-AtomCefClient::AtomCefClient(bool handlePasteboardCommands) {
+AtomCefClient::AtomCefClient(bool handlePasteboardCommands, bool ignoreTitleChanges) {
   m_HandlePasteboardCommands = handlePasteboardCommands;
+  m_IgnoreTitleChanges = ignoreTitleChanges;
 }
 
 AtomCefClient::~AtomCefClient() {

@@ -17,12 +17,20 @@ fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
-# Load TextMate bundles, which specs rely on (but not other packages)
-atom.loadTextMatePackages()
+# Specs rely on TextMate bundles (but not atom packages)
+window.loadTextMatePackages = ->
+  TextMatePackage = require 'text-mate-package'
+  config.packageDirPaths.unshift(fixturePackagesPath)
+  window.textMatePackages = []
+  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
+    window.textMatePackages.push atom.loadPackage(fs.base(path))
+
+window.loadTextMatePackages()
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
+  atom.atomPackageStates = {}
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
@@ -30,7 +38,6 @@ beforeEach ->
 
   # reset config before each spec; don't load or save from/to `config.json`
   window.config = new Config()
-  config.packageDirPaths.unshift(fixturePackagesPath)
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.set "editor.fontSize", 16
@@ -63,16 +70,18 @@ afterEach ->
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
+$(document).on 'toggle-dev-tools', (e) ->
+  atom.toggleDevTools() if $('#root-view').length is 0
 $('html,body').css('overflow', 'auto')
+
+jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+jasmine.getEnv().defaultTimeoutInterval = 1000
 
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()
   $native.unwatchAllPaths()
   if watchedPaths.length > 0
     throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
-
-# Use underscore's definition of equality for toEqual assertions
-jasmine.Env.prototype.equals_ = _.isEqual
 
 emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
 jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
@@ -84,8 +93,6 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
 jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].originalValue?
   object[methodName] = object[methodName].originalValue
-
-jasmine.getEnv().defaultTimeoutInterval = 1000
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key

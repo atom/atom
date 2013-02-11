@@ -1,11 +1,10 @@
 $ = require 'jquery'
 _ = require 'underscore'
 RootView = require 'root-view'
-Tabs = require 'tabs'
 fs = require 'fs'
 
 describe "Tabs", ->
-  [rootView, editor, buffer, tabs] = []
+  [editor, buffer, tabs] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))

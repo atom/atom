@@ -29,19 +29,19 @@ class RootView extends View
     else
       projectOrPathToOpen = projectPath # This will migrate people over to the new project serialization scheme. It should be removed eventually.
 
-    rootView = new RootView(projectOrPathToOpen , packageStates: packageStates, suppressOpen: true)
+    atom.atomPackageStates = packageStates ? {}
+
+    rootView = new RootView(projectOrPathToOpen , suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
 
-  packageModules: null
-  packageStates: null
+  packages: null
   title: null
   pathToOpenIsFile: false
 
-  initialize: (projectOrPathToOpen, { @packageStates, suppressOpen } = {}) ->
+  initialize: (projectOrPathToOpen, { suppressOpen } = {}) ->
     window.rootView = this
-    @packageStates ?= {}
-    @packageModules = {}
+    @packages = []
     @viewClasses = {
       "Pane": Pane,
       "PaneRow": PaneRow,
@@ -68,7 +68,7 @@ class RootView extends View
   serialize: ->
     projectState: @project?.serialize()
     panesViewState: @panes.children().view()?.serialize()
-    packageStates: @serializePackages()
+    packageStates: atom.serializeAtomPackages()
 
   handleFocus: (e) ->
     if @getActiveEditor()
@@ -118,33 +118,15 @@ class RootView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  serializePackages:  ->
-    packageStates = {}
-    for name, packageModule of @packageModules
-      try
-        packageStates[name] = packageModule.serialize?()
-      catch e
-        console?.error("Exception serializing '#{name}' package's module\n", e.stack)
-    packageStates
-
   registerViewClass: (viewClass) ->
     @viewClasses[viewClass.name] = viewClass
 
   deserializeView: (viewState) ->
     @viewClasses[viewState.viewClass]?.deserialize(viewState, this)
 
-  activatePackage: (name, packageModule) ->
-    config.setDefaults(name, packageModule.configDefaults) if packageModule.configDefaults?
-    @packageModules[name] = packageModule
-    packageModule.activate(this, @packageStates[name])
-
-  deactivatePackage: (name) ->
-    @packageModules[name].deactivate?()
-    delete @packageModules[name]
-
   deactivate: ->
     atom.setRootViewStateForPath(@project.getPath(), @serialize())
-    @deactivatePackage(name) for name of @packageModules
+    atom.deactivateAtomPackages()
     @remove()
 
   open: (path, options = {}) ->
@@ -274,6 +256,8 @@ class RootView extends View
     callback(editor) for editor in @getEditors()
     @on 'editor:attached', (e, editor) -> callback(editor)
 
+  eachEditSession: (callback) ->
+    @project.eachEditSession(callback)
+
   eachBuffer: (callback) ->
-    callback(buffer) for buffer in @project.getBuffers()
-    @project.on 'buffer-created', (buffer) -> callback(buffer)
+    @project.eachBuffer(callback)

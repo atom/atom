@@ -10,7 +10,7 @@ require 'window'
 requireStylesheet "jasmine.css"
 
 # Load TextMate bundles, which specs rely on (but not other packages)
-atom.loadPackages(atom.getAvailableTextMateBundles())
+atom.loadTextMatePackages()
 
 beforeEach ->
   # reset config after each benchmark; don't load or save from/to `config.json`

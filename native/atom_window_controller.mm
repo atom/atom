@@ -146,7 +146,7 @@
     [_splitView addSubview:_devToolsView];
     [_splitView adjustSubviews];
 
-    _cefDevToolsClient = new AtomCefClient(true);
+    _cefDevToolsClient = new AtomCefClient(true, true);
     std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
     [self addBrowserToView:_devToolsView url:devtools_url.c_str() cefHandler:_cefDevToolsClient];
   }

@@ -1,0 +1,4 @@
+'name': 'italic text'
+'scope': 'source.gfm'
+'tabTrigger': 'i'
+'content': '*$1*$0'

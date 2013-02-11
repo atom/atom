@@ -63,19 +63,9 @@ exts =
       compiled = CoffeeScript.compile(__read(file), filename: file)
       writeToCache = true
 
-    try
-      evaluated = exts.js(file, compiled)
-      $native.write(cacheFilePath, compiled) if writeToCache
-      evaluated
-    catch e
-      if retry
-        # Attempt a second compile to work around mysterious CEF/CoffeeScript
-        # timing issue where the CoffeeScript compiler generates invalid
-        # JavaScript such as [object Object].
-        console.warn "Error evaluating #{file}. Trying again...", e.stack
-        exts.coffee(file, false)
-      else
-        throw e
+    evaluated = exts.js(file, compiled)
+    $native.write(cacheFilePath, compiled) if writeToCache
+    evaluated
 
 getPath = (path) ->
   path = resolve(path)

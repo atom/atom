@@ -28,7 +28,7 @@ class TextMatePackage extends Package
     try
       @loadGrammars()
     catch e
-      console.warn "Failed to load package named '#{@name}'", e.stack
+      console.warn "Failed to load package at '#{@path}'", e.stack
     this
 
   getGrammars: -> @grammars

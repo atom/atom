@@ -1,7 +1,6 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
-Native = require 'native'
 fs = require 'fs'
 $ = require 'jquery'
 Config = require 'config'
@@ -38,8 +37,8 @@ windowAdditions =
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
   attachRootView: (pathToOpen) ->
-    if rootViewState = atom.getRootViewStateForPath(pathToOpen)
-      RootView.deserialize(rootViewState)
+    if pathState = atom.getRootViewStateForPath(pathToOpen)
+      RootView.deserialize(pathState)
     else
       new RootView(pathToOpen)
 
@@ -96,11 +95,11 @@ windowAdditions =
       atom.confirm(
         "There are unsaved buffers, reload anyway?",
         "You will lose all unsaved changes if you reload",
-        "Reload", (-> Native.reload()),
+        "Reload", (-> $native.reload()),
         "Cancel"
       )
     else
-      Native.reload()
+      $native.reload()
 
   onerror: ->
     atom.showDevTools()

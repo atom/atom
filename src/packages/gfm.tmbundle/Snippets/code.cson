@@ -1,0 +1,4 @@
+'name': 'code block'
+'scope': 'source.gfm'
+'tabTrigger': 'code'
+'content': '```$1\n$2\n```$0'

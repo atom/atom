@@ -3,12 +3,15 @@ $ = require 'jquery'
 
 module.exports =
 class Gists
+  @activate: -> new Gists
 
-  @activate: (rootView) -> new Gists(rootView)
-
-  constructor: (@rootView) ->
+  constructor: ->
+    rootView.command 'gist:create', '.editor', => @createGist()
 
   createGist: (editor) ->
+    editor = rootView.getActiveEditor()
+    return unless editor?
+
     gist = { public: false, files: {} }
     gist.files[editor.getBuffer().getBaseName()] =
       content: editor.getSelectedText() or editor.getText()
@@ -27,5 +30,5 @@ class Gists
             @div class: 'content', =>
               @h3 "Gist #{response.id} created", class: 'title'
               @p "The url is on your clipboard", class: 'message'
-        @rootView.append(notification.hide())
+        rootView.append(notification.hide())
         notification.fadeIn().delay(2000).fadeOut(complete: -> $(this).remove())
