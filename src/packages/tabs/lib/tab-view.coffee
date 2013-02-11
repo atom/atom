@@ -45,10 +45,8 @@ class TabView extends SortableList
     @find(".tab:eq(#{index})").remove()
 
   containsTab: (tab) ->
-    unique = true
-    path   = $(tab).view().buffer.file.path
-    paths  = $.makeArray(@find('.tab')).map (e) ->
-      $(e).view().buffer.file.path
+    path   = $(tab).view().representedPath()
+    paths  = $.makeArray(@find('.tab')).map (e) -> $(e).view().representedPath()
 
     return paths.some (tabpath) -> tabpath == path
 
