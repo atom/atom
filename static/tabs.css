@@ -90,12 +90,8 @@
   content: "";
   z-index: 999;
   display: inline-block;
-  width: 1px;
+  width: 2px;
   height: 30px;
   display: inline-block;
   background: #0098ff;
-}
-
-.placeholder {
-/*  background-color: #0098ff;*/
 }
