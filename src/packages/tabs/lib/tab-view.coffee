@@ -44,6 +44,14 @@ class TabView extends SortableList
   removeTabAtIndex: (index) ->
     @find(".tab:eq(#{index})").remove()
 
+  containsTab: (tab) ->
+    unique = true
+    path   = $(tab).view().buffer.file.path
+    paths  = $.makeArray(@find('.tab')).map (e) ->
+      $(e).view().buffer.file.path
+
+    return paths.some (tabpath) -> tabpath == path
+
   shouldAllowDrag: (event) ->
     panes = rootView.find('.pane')
     !(panes.length == 1 && panes.find('.sortable').length == 1)
@@ -75,7 +83,8 @@ class TabView extends SortableList
 
     droppedNearTab = @getSortableElement(event)
     draggedTab     = fromPane.find(".#{TabView.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
-    return if draggedTab[0] is droppedNearTab[0]
+
+    return if draggedTab[0] is droppedNearTab[0] or @containsTab(draggedTab)
 
     draggedTab.remove()
     draggedTab.insertAfter(droppedNearTab)
