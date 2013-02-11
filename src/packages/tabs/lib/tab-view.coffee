@@ -6,9 +6,9 @@ module.exports =
 class TabView extends SortableList
   @activate: ->
     rootView.eachEditor (editor) =>
-      @prependToEditorPane(rootView, editor) if editor.attached
+      @prependToEditorPane(editor) if editor.attached
 
-  @prependToEditorPane: (rootView, editor) ->
+  @prependToEditorPane: (editor) ->
     if pane = editor.pane()
       pane.prepend(new TabView(editor))
 
