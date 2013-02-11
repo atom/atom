@@ -95,3 +95,16 @@
   display: inline-block;
   background: #0098ff;
 }
+
+.tab.is-drop-target:before {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #0098ff;
+  right: -4px;
+  top: 30px;
+  border-radius: 4px;
+  z-index: 9999;
+  border: 1px solid transparent;
+}
