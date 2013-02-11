@@ -55,7 +55,7 @@ class SymbolsView extends SelectList
       else
         @miniEditor.hide()
         @setError("No symbols found")
-        setTimeout (=> @detach()), 2000
+        setTimeout (=> @cancel()), 2000
 
   toggleProjectSymbols: ->
     if @hasParent()
@@ -75,7 +75,7 @@ class SymbolsView extends SelectList
       else
         @miniEditor.hide()
         @setError("No symbols found")
-        setTimeout (=> @detach()), 2000
+        setTimeout (=> @cancel()), 2000
 
   confirmed : (tag) ->
     @cancel()
