@@ -733,8 +733,7 @@ class Editor extends View
     if @isOnDom()
       @redraw()
     else
-      @redrawOnReattach = true
-
+      @redrawOnReattach = @attached
 
   getFontSize: ->
     parseInt(@css("font-size"))
