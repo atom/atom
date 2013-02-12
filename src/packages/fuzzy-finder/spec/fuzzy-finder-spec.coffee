@@ -209,7 +209,7 @@ describe 'FuzzyFinder', ->
           rootView.attachToDom()
           rootView.getActiveEditor().destroyActiveEditSession()
 
-          inputView = $$ -> @input id: "div-view"
+          inputView = $$ -> @input()
           rootView.append(inputView)
           inputView.focus()
 
