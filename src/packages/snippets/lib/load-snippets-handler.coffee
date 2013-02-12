@@ -20,7 +20,9 @@ module.exports =
 
       continue if fs.base(snippetsPath).indexOf('.') is 0
       try
-        if fs.extension(snippetsPath) is '.cson' and object = fs.readObject(snippetsPath)
+        extension = fs.extension(snippetsPath)
+        objectExtension = extension is '.cson' or extension is '.json'
+        if objectExtension and object = fs.readObject(snippetsPath)
           snippets.push(object)
         else if object = fs.readPlist(snippetsPath)
           snippets.push(object)
