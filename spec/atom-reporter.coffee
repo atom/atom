@@ -92,7 +92,9 @@ class AtomReporter extends View
     rootSuite = rootSuite.parentSuite while rootSuite.parentSuite
     @message.text rootSuite.description
 
-    @time.text ((new Date().getTime() - @startedAt.getTime()) / 1000) + "s"
+    time = "#{Math.round((new Date().getTime() - @startedAt.getTime()) / 10)}"
+    time = "0#{time}" if time.length < 3
+    @time.text "#{time[0...-2]}.#{time[-2..]}s"
 
   addSpecs: (specs) ->
     for spec in specs
