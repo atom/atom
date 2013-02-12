@@ -24,6 +24,14 @@ class TabView extends SortableList
     @editor.on 'editor:active-edit-session-changed', (e, editSession, index) => @setActiveTab(index)
     @editor.on 'editor:edit-session-added', (e, editSession) => @addTabForEditSession(editSession)
     @editor.on 'editor:edit-session-removed', (e, editSession, index) => @removeTabAtIndex(index)
+    @editor.on 'editor:edit-session-order-changed', (e, editSession, fromIndex, toIndex) =>
+      fromTab = @find(".tab:eq(#{fromIndex})")
+      toTab = @find(".tab:eq(#{toIndex})")
+      fromTab.detach()
+      if fromIndex < toIndex
+        fromTab.insertAfter(toTab)
+      else
+        fromTab.insertBefore(toTab)
 
     @on 'click', '.tab', (e) =>
       @editor.setActiveEditSessionIndex($(e.target).closest('.tab').index())

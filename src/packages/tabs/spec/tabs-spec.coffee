@@ -144,3 +144,16 @@ describe "TabView", ->
       expect(tabs.find('.tab:last .file-name').text()).toBe 'sample.js - tmp'
       editor.destroyActiveEditSession()
       expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js'
+
+  describe "when an editor:edit-session-order-changed event is triggered", ->
+    it "updates the order of the tabs to match the new edit session order", ->
+      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
+      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+
+      editor.moveEditSessionAtIndex(0, 1)
+      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
+      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
+
+      editor.moveEditSessionAtIndex(1, 0)
+      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
+      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
