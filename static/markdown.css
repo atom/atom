@@ -13,3 +13,7 @@
 .gfm .italic {
   font-style: italic;
 }
+
+.gfm .comment.quote {
+  font-style: italic;
+}

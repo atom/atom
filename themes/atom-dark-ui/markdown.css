@@ -10,7 +10,8 @@
   color: #555;
 }
 
-.gfm .variable.list {
+.gfm .variable.list,
+.gfm .support.quote {
   color: #555;
 }
 
