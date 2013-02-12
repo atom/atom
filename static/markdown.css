@@ -1,0 +1,25 @@
+.source.gfm {
+  color: #ccc;
+  -webkit-font-smoothing: antialiased;
+}
+
+.gfm .markup.heading {
+  color: #eee;
+  font-weight: bold;
+}
+
+.gfm .link {
+  color: #666;
+}
+
+.gfm .bold {
+  font-weight: bold;
+}
+
+.gfm .italic {
+  font-style: italic;
+}
+
+.gfm .variable.list {
+  color: #666;
+}
