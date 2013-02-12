@@ -549,6 +549,9 @@ class Editor extends View
       "Cancel"
     )
 
+  transferEditSessionAtIndex: (fromIndex, toIndex, toEditor) ->
+    toEditor.editSessions.splice(toIndex, 0, @editSessions.splice(fromIndex, 1)[0])
+
   activateEditSessionForPath: (path) ->
     for editSession, index in @editSessions
       if editSession.buffer.getPath() == path

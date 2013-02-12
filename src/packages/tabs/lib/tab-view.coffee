@@ -89,7 +89,7 @@ class TabView extends SortableList
     draggedTab.remove()
     draggedTab.insertAfter(droppedNearTab)
     currentDraggedTabIndex = draggedTab.index()
-    toEditor.editSessions.splice(currentDraggedTabIndex, 0, fromEditor.editSessions.splice(previousDraggedTabIndex, 1)[0])
+    fromEditor.transferEditSessionAtIndex(previousDraggedTabIndex, currentDraggedTabIndex, toEditor)
 
     if !fromPane.find('.tab').length
       fromPane.view().remove()
