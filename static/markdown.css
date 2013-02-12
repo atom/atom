@@ -1,0 +1,15 @@
+.source.gfm {
+  -webkit-font-smoothing: antialiased;
+}
+
+.gfm .markup.heading {
+  font-weight: bold;
+}
+
+.gfm .bold {
+  font-weight: bold;
+}
+
+.gfm .italic {
+  font-style: italic;
+}

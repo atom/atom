@@ -124,6 +124,7 @@ requireStylesheet 'fuzzy-finder.css'
 requireStylesheet 'overlay.css'
 requireStylesheet 'popover-list.css'
 requireStylesheet 'notification.css'
+requireStylesheet 'markdown.css'
 
 if nativeStylesheetPath = require.resolve("#{platform}.css")
   requireStylesheet(nativeStylesheetPath)

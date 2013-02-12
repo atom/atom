@@ -62,6 +62,7 @@
   }
   {
     'match': '\\!?\\[([^\\]]*)\\]\\(([^\\)]+)\\)'
+    'name': 'link'
     'captures':
       '1': 'name': 'entity.gfm'
       '2': 'name': 'markup.underline.gfm'
