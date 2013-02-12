@@ -2641,3 +2641,26 @@ describe "Editor", ->
         expect(editor.activeEditSession.getPath()).toBe txtPath
         editor.moveEditSessionToIndex(1, 0)
         expect(editor.activeEditSession.getPath()).toBe txtPath
+
+  describe ".moveEditSessionToEditor(fromIndex, toEditor, toIndex)", ->
+    it "closes the edit session in the source editor", ->
+      jsPath = editor.getPath()
+      rootView.open("sample.txt")
+      txtPath = editor.getPath()
+      rightEditor = editor.splitRight()
+      expect(editor.editSessions[0].getPath()).toBe jsPath
+      expect(editor.editSessions[1].getPath()).toBe txtPath
+      editor.moveEditSessionToEditor(0, rightEditor, 1)
+      expect(editor.editSessions[0].getPath()).toBe txtPath
+      expect(editor.editSessions[1]).toBeUndefined()
+
+    it "opens the edit session in the destination editor at the target index", ->
+      jsPath = editor.getPath()
+      rootView.open("sample.txt")
+      txtPath = editor.getPath()
+      rightEditor = editor.splitRight()
+      expect(rightEditor.editSessions[0].getPath()).toBe txtPath
+      expect(rightEditor.editSessions[1]).toBeUndefined()
+      editor.moveEditSessionToEditor(0, rightEditor, 0)
+      expect(rightEditor.editSessions[0].getPath()).toBe jsPath
+      expect(rightEditor.editSessions[1].getPath()).toBe txtPath
