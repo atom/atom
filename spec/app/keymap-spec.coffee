@@ -1,5 +1,6 @@
 Keymap = require 'keymap'
 $ = require 'jquery'
+RootView = require 'root-view'
 
 describe "Keymap", ->
   fragment = null
@@ -23,8 +24,8 @@ describe "Keymap", ->
       keymap.bindKeys '.command-mode', 'x': 'deleteChar'
       keymap.bindKeys '.insert-mode', 'x': 'insertChar'
 
-      deleteCharHandler = jasmine.createSpy 'deleteCharHandler'
-      insertCharHandler = jasmine.createSpy 'insertCharHandler'
+      deleteCharHandler = jasmine.createSpy('deleteCharHandler')
+      insertCharHandler = jasmine.createSpy('insertCharHandler')
       fragment.on 'deleteChar', deleteCharHandler
       fragment.on 'insertChar', insertCharHandler
 
@@ -148,6 +149,19 @@ describe "Keymap", ->
 
             keymap.handleKeyEvent(keydownEvent('y', target: target))
             expect(bazHandler).toHaveBeenCalled()
+
+      describe "when the event's target is the document body", ->
+        it "triggers the mapped event on the rootView", ->
+          rootView = new RootView
+          keymap.bindKeys 'body', 'x': 'foo'
+          fooHandler = jasmine.createSpy("fooHandler")
+          rootView.on 'foo', fooHandler
+
+          result = keymap.handleKeyEvent(keydownEvent('x', target: document.body))
+          expect(result).toBe(false)
+          expect(fooHandler).toHaveBeenCalled()
+          expect(deleteCharHandler).not.toHaveBeenCalled()
+          expect(insertCharHandler).not.toHaveBeenCalled()
 
     describe "when at least one binding partially matches the event's keystroke", ->
       [quitHandler, closeOtherWindowsHandler] = []

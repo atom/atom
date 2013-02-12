@@ -1,14 +1,14 @@
 .tabs {
   font: caption;
-  -webkit-user-select: none;
   display: -webkit-box;
   -webkit-box-align: center;
 }
 
 .tab {
+  -webkit-user-select: none;
+  -webkit-user-drag: element;
   cursor: default;
   -webkit-box-flex: 2;
-  position: relative;
   width: 175px;
   max-width: 175px;
   min-width: 40px;
@@ -16,6 +16,7 @@
   text-shadow: -1px -1px 0 #000;
   font-size: 11px;
   padding: 5px 10px;
+  position: relative;
 }
 
 .tab.active {
@@ -75,4 +76,35 @@
 .tab.file-modified:hover .close-icon:before {
   content: "\f081";
   color: #66a6ff;
+}
+
+/* Drag and Drop */
+.tab.is-dragging {
+
+}
+
+.tab.is-drop-target:after {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  content: "";
+  z-index: 999;
+  display: inline-block;
+  width: 2px;
+  height: 30px;
+  display: inline-block;
+  background: #0098ff;
+}
+
+.tab.is-drop-target:before {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #0098ff;
+  right: -4px;
+  top: 30px;
+  border-radius: 4px;
+  z-index: 9999;
+  border: 1px solid transparent;
 }

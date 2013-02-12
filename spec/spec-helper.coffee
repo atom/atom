@@ -102,9 +102,8 @@ window.keyIdentifierForKey = (key) ->
     "U+00" + charCode.toString(16)
 
 window.keydownEvent = (key, properties={}) ->
-  event = $.Event "keydown", _.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
-  # event.keystroke = (new Keymap).keystrokeStringForEvent(event)
-  event
+  properties = $.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
+  $.Event("keydown", properties)
 
 window.mouseEvent = (type, properties) ->
   if properties.point

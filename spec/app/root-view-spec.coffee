@@ -190,11 +190,11 @@ describe "RootView", ->
           expect(rootView.find('#two')).not.toMatchSelector(':focus')
 
       describe "when there are no visible focusable elements", ->
-        it "retains focus itself", ->
+        it "surrenders focus to the body", ->
           rootView.remove()
           rootView = new RootView(require.resolve 'fixtures')
           rootView.attachToDom()
-          expect(rootView).toMatchSelector(':focus')
+          expect(document.activeElement).toBe $('body')[0]
 
   describe "panes", ->
     [pane1, newPaneContent] = []
