@@ -80,5 +80,16 @@ class Token
         if hasTrailingWhitespace
           html = html.replace /[ ]+$/, (match) ->
             "<span class='invisible trailing-whitespace'>#{match.replace(/./g, invisibles.space)}</span>"
+    else
+      if @isHardTab
+        html = html.replace /^./, (match) ->
+          "<span class='hard-tab'>#{match}</span>"
+      else
+        if hasLeadingWhitespace
+          html = html.replace /^[ ]+/, (match) ->
+            "<span class='leading-whitespace'>#{match}</span>"
+        if hasTrailingWhitespace
+          html = html.replace /[ ]+$/, (match) ->
+            "<span class='trailing-whitespace'>#{match}</span>"
 
     html

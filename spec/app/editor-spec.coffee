@@ -1270,7 +1270,27 @@ describe "Editor", ->
         expect(span0.children('span:eq(2)').text()).toBe "{"
 
         line12 = editor.renderedLines.find('.line:eq(11)')
-        expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
+        expect(line12.find('span:eq(2)')).toMatchSelector '.keyword'
+
+      it "wraps hard tabs in a span", ->
+        editor.setText('\t<- hard tab')
+        line0 = editor.renderedLines.find('.line:first')
+        span0_0 = line0.children('span:eq(0)').children('span:eq(0)')
+        expect(span0_0).toMatchSelector '.hard-tab'
+        expect(span0_0.text()).toBe ' '
+
+      it "wraps leading whitespace in a span", ->
+        line1 = editor.renderedLines.find('.line:eq(1)')
+        span0_0 = line1.children('span:eq(0)').children('span:eq(0)')
+        expect(span0_0).toMatchSelector '.leading-whitespace'
+        expect(span0_0.text()).toBe '  '
+
+      it "wraps trailing whitespace in a span", ->
+        editor.setText('trailing whitespace ->   ')
+        line0 = editor.renderedLines.find('.line:first')
+        span0_last = line0.children('span:eq(0)').children('span:last')
+        expect(span0_last).toMatchSelector '.trailing-whitespace'
+        expect(span0_last.text()).toBe '   '
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
