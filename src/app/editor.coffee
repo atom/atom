@@ -1208,7 +1208,6 @@ class Editor extends View
 
   positionLeftForLineAndColumn: (lineElement, column) ->
     return 0 if column is 0
-
     delta = 0
     iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
     while textNode = iterator.nextNode()
