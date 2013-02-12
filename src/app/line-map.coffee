@@ -111,7 +111,7 @@ class LineMap
     [screenRow, screenLines]
 
   bufferPositionForScreenPosition: (screenPosition, options) ->
-    { row, column } = Point.fromObject(screenPosition)
+    { row, column } = @clipScreenPosition(Point.fromObject(screenPosition))
     [bufferRow, screenLine] = @bufferRowAndScreenLineForScreenRow(row)
     bufferColumn = screenLine.bufferColumnForScreenColumn(column)
     new Point(bufferRow, bufferColumn)

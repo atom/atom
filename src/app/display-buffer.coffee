@@ -7,6 +7,7 @@ Range = require 'range'
 Fold = require 'fold'
 ScreenLine = require 'screen-line'
 Token = require 'token'
+DisplayBufferMarker = require 'display-buffer-marker'
 
 module.exports =
 class DisplayBuffer
@@ -16,6 +17,7 @@ class DisplayBuffer
   tokenizedBuffer: null
   activeFolds: null
   foldsById: null
+  markers: null
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
@@ -24,6 +26,7 @@ class DisplayBuffer
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
     @foldsById = {}
+    @markers = {}
     @buildLineMap()
     @tokenizedBuffer.on 'changed', (e) => @handleTokenizedBufferChange(e)
 
@@ -33,13 +36,17 @@ class DisplayBuffer
     @lineMap = new LineMap
     @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
+  triggerChanged: (eventProperties, refreshMarkers=true) ->
+    @refreshMarkerScreenPositions() if refreshMarkers
+    @trigger 'changed', eventProperties
+
   setSoftWrapColumn: (@softWrapColumn) ->
     start = 0
     end = @getLastRow()
     @buildLineMap()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @trigger 'changed', { start, end, screenDelta, bufferDelta }
+    @triggerChanged({ start, end, screenDelta, bufferDelta })
 
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
@@ -95,7 +102,7 @@ class DisplayBuffer
       end = oldScreenRange.end.row
       screenDelta = newScreenRange.end.row - oldScreenRange.end.row
       bufferDelta = 0
-      @trigger 'changed', { start, end, screenDelta, bufferDelta }
+      @triggerChanged({ start, end, screenDelta, bufferDelta })
 
     fold
 
@@ -124,7 +131,8 @@ class DisplayBuffer
       screenDelta = newScreenRange.end.row - oldScreenRange.end.row
       bufferDelta = 0
 
-      @trigger 'changed', { start, end, screenDelta, bufferDelta }
+      @refreshMarkerScreenPositions()
+      @triggerChanged({ start, end, screenDelta, bufferDelta })
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     for row, folds of @activeFolds
@@ -213,11 +221,9 @@ class DisplayBuffer
       @handleBufferChange(bufferChange)
       bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
 
-
     tokenizedBufferStart = @bufferRowForScreenRow(@screenRowForBufferRow(tokenizedBufferChange.start))
     tokenizedBufferEnd = tokenizedBufferChange.end
     tokenizedBufferDelta = tokenizedBufferChange.delta
-
 
     start = @screenRowForBufferRow(tokenizedBufferStart)
     end = @lastScreenRowForBufferRow(tokenizedBufferEnd)
@@ -225,7 +231,7 @@ class DisplayBuffer
     @lineMap.replaceScreenRows(start, end, newScreenLines)
     screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
 
-    @trigger 'changed', { start, end, screenDelta, bufferDelta }
+    @triggerChanged({ start, end, screenDelta, bufferDelta }, false)
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
@@ -289,6 +295,86 @@ class DisplayBuffer
 
   rangeForAllLines: ->
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
+
+  getMarker: (id) ->
+    @markers[id] ? new DisplayBufferMarker({id, displayBuffer: this})
+
+  getMarkers: ->
+    _.values(@markers)
+
+  markScreenRange: (screenRange) ->
+    @markBufferRange(@bufferRangeForScreenRange(screenRange))
+
+  markBufferRange: (args...) ->
+    @buffer.markRange(args...)
+
+  markScreenPosition: (screenPosition, options) ->
+    @markBufferPosition(@bufferPositionForScreenPosition(screenPosition), options)
+
+  markBufferPosition: (bufferPosition, options) ->
+    @buffer.markPosition(bufferPosition, options)
+
+  destroyMarker: (id) ->
+    @buffer.destroyMarker(id)
+    delete @markers[id]
+
+  getMarkerScreenRange: (id) ->
+    @getMarker(id).getScreenRange()
+
+  setMarkerScreenRange: (id, screenRange, options) ->
+    @getMarker(id).setScreenRange(screenRange, options)
+
+  getMarkerBufferRange: (id) ->
+    @getMarker(id).getBufferRange()
+
+  setMarkerBufferRange: (id, bufferRange, options) ->
+    @getMarker(id).setBufferRange(bufferRange, options)
+
+  getMarkerScreenPosition: (id) ->
+    @getMarkerHeadScreenPosition(id)
+
+  getMarkerBufferPosition: (id) ->
+    @getMarkerHeadBufferPosition(id)
+
+  getMarkerHeadScreenPosition: (id) ->
+    @getMarker(id).getHeadScreenPosition()
+
+  setMarkerHeadScreenPosition: (id, screenPosition, options) ->
+    @getMarker(id).setHeadScreenPosition(screenPosition, options)
+
+  getMarkerHeadBufferPosition: (id) ->
+    @getMarker(id).getHeadBufferPosition()
+
+  setMarkerHeadBufferPosition: (id, bufferPosition) ->
+    @getMarker(id).setHeadBufferPosition(bufferPosition)
+
+  getMarkerTailScreenPosition: (id) ->
+    @getMarker(id).getTailScreenPosition()
+
+  setMarkerTailScreenPosition: (id, screenPosition, options) ->
+    @getMarker(id).setTailScreenPosition(screenPosition, options)
+
+  getMarkerTailBufferPosition: (id) ->
+    @getMarker(id).getTailBufferPosition()
+
+  setMarkerTailBufferPosition: (id, bufferPosition) ->
+    @getMarker(id).setTailBufferPosition(bufferPosition)
+
+  placeMarkerTail: (id) ->
+    @getMarker(id).placeTail()
+
+  clearMarkerTail: (id) ->
+    @getMarker(id).clearTail()
+
+  isMarkerReversed: (id) ->
+    @buffer.isMarkerReversed(id)
+
+  observeMarker: (id, callback) ->
+    @getMarker(id).observe(callback)
+
+  refreshMarkerScreenPositions: ->
+    for marker in @getMarkers()
+      marker.notifyObservers(bufferChanged: false)
 
   destroy: ->
     @tokenizedBuffer.destroy()

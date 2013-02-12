@@ -118,6 +118,12 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.screenPositionForBufferPosition([4, 5])).toEqual([5, 5])
         expect(displayBuffer.bufferPositionForScreenPosition([5, 5])).toEqual([4, 5])
 
+        # clip screen position inputs before translating
+        expect(displayBuffer.bufferPositionForScreenPosition([-5, -5])).toEqual([0, 0])
+        expect(displayBuffer.bufferPositionForScreenPosition([Infinity, Infinity])).toEqual([12, 2])
+        expect(displayBuffer.bufferPositionForScreenPosition([3, -5])).toEqual([3, 0])
+        expect(displayBuffer.bufferPositionForScreenPosition([3, Infinity])).toEqual([3, 50])
+
     describe ".setSoftWrapColumn(length)", ->
       it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
         displayBuffer.setSoftWrapColumn(40)
@@ -477,6 +483,10 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
         expect(displayBuffer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
 
+        # clip screen positions before translating
+        expect(displayBuffer.bufferPositionForScreenPosition([-5, -5])).toEqual([0, 0])
+        expect(displayBuffer.bufferPositionForScreenPosition([Infinity, Infinity])).toEqual([200, 0])
+
     describe ".destroyFoldsContainingBufferRow(row)", ->
       it "destroys all folds containing the given row", ->
           displayBuffer.createFold(2, 4)
@@ -579,3 +589,154 @@ describe "DisplayBuffer", ->
   describe ".maxLineLength()", ->
     it "returns the length of the longest screen line", ->
       expect(displayBuffer.maxLineLength()).toBe 65
+
+  describe "markers", ->
+    beforeEach ->
+      displayBuffer.foldBufferRow(4)
+
+    describe "marker creation and manipulation", ->
+      it "allows markers to be created in terms of both screen and buffer coordinates", ->
+        marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        marker2 = displayBuffer.markBufferRange([[8, 4], [8, 10]])
+        expect(displayBuffer.getMarkerBufferRange(marker1)).toEqual [[8, 4], [8, 10]]
+        expect(displayBuffer.getMarkerScreenRange(marker2)).toEqual [[5, 4], [5, 10]]
+
+      it "allows marker head and tail positions to be manipulated in both screen and buffer coordinates", ->
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])
+        displayBuffer.setMarkerTailBufferPosition(marker, [5, 4])
+        expect(displayBuffer.isMarkerReversed(marker)).toBeFalsy()
+        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
+
+        displayBuffer.setMarkerHeadBufferPosition(marker, [5, 4])
+        displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])
+        expect(displayBuffer.isMarkerReversed(marker)).toBeTruthy()
+        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
+
+      it "returns whether a position changed when it is assigned", ->
+        marker = displayBuffer.markScreenRange([[0, 0], [0, 0]])
+        expect(displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])).toBeTruthy()
+        expect(displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])).toBeFalsy()
+        expect(displayBuffer.setMarkerHeadBufferPosition(marker, [1, 0])).toBeTruthy()
+        expect(displayBuffer.setMarkerHeadBufferPosition(marker, [1, 0])).toBeFalsy()
+        expect(displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])).toBeTruthy()
+        expect(displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])).toBeFalsy()
+        expect(displayBuffer.setMarkerTailBufferPosition(marker, [1, 0])).toBeTruthy()
+        expect(displayBuffer.setMarkerTailBufferPosition(marker, [1, 0])).toBeFalsy()
+
+    describe ".observeMarker(marker, callback)", ->
+      [observeHandler, marker, subscription] = []
+
+      beforeEach ->
+        observeHandler = jasmine.createSpy("observeHandler")
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        subscription = displayBuffer.observeMarker(marker, observeHandler)
+
+      it "calls the callback whenever the markers head's screen position changes in the buffer or on screen", ->
+        displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldHeadScreenPosition: [5, 10]
+          oldHeadBufferPosition: [8, 10]
+          newHeadScreenPosition: [8, 20]
+          newHeadBufferPosition: [11, 20]
+          oldTailScreenPosition: [5, 4]
+          oldTailBufferPosition: [8, 4]
+          newTailScreenPosition: [5, 4]
+          newTailBufferPosition: [8, 4]
+          bufferChanged: false
+        }
+        observeHandler.reset()
+
+        buffer.insert([11, 0], '...')
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldHeadScreenPosition: [8, 20]
+          oldHeadBufferPosition: [11, 20]
+          newHeadScreenPosition: [8, 23]
+          newHeadBufferPosition: [11, 23]
+          oldTailScreenPosition: [5, 4]
+          oldTailBufferPosition: [8, 4]
+          newTailScreenPosition: [5, 4]
+          newTailBufferPosition: [8, 4]
+          bufferChanged: true
+        }
+        observeHandler.reset()
+
+        displayBuffer.unfoldBufferRow(4)
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldHeadScreenPosition: [8, 23]
+          oldHeadBufferPosition: [11, 23]
+          newHeadScreenPosition: [11, 23]
+          newHeadBufferPosition: [11, 23]
+          oldTailScreenPosition: [5, 4]
+          oldTailBufferPosition: [8, 4]
+          newTailScreenPosition: [8, 4]
+          newTailBufferPosition: [8, 4]
+          bufferChanged: false
+        }
+        observeHandler.reset()
+
+        displayBuffer.foldBufferRow(4)
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldHeadScreenPosition: [11, 23]
+          oldHeadBufferPosition: [11, 23]
+          newHeadScreenPosition: [8, 23]
+          newHeadBufferPosition: [11, 23]
+          oldTailScreenPosition: [8, 4]
+          oldTailBufferPosition: [8, 4]
+          newTailScreenPosition: [5, 4]
+          newTailBufferPosition: [8, 4]
+          bufferChanged: false
+        }
+
+      it "calls the callback whenever the marker tail's position changes in the buffer or on screen", ->
+        displayBuffer.setMarkerTailScreenPosition(marker, [8, 20])
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldHeadScreenPosition: [5, 10]
+          oldHeadBufferPosition: [8, 10]
+          newHeadScreenPosition: [5, 10]
+          newHeadBufferPosition: [8, 10]
+          oldTailScreenPosition: [5, 4]
+          oldTailBufferPosition: [8, 4]
+          newTailScreenPosition: [8, 20]
+          newTailBufferPosition: [11, 20]
+          bufferChanged: false
+        }
+        observeHandler.reset()
+
+        buffer.insert([11, 0], '...')
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldHeadScreenPosition: [5, 10]
+          oldHeadBufferPosition: [8, 10]
+          newHeadScreenPosition: [5, 10]
+          newHeadBufferPosition: [8, 10]
+          oldTailScreenPosition: [8, 20]
+          oldTailBufferPosition: [11, 20]
+          newTailScreenPosition: [8, 23]
+          newTailBufferPosition: [11, 23]
+          bufferChanged: true
+        }
+
+      it "does not call the callback for screen changes that don't change the position of the marker", ->
+        displayBuffer.createFold(10, 11)
+        expect(observeHandler).not.toHaveBeenCalled()
+
+      it "allows observation subscriptions to be cancelled", ->
+        subscription.cancel()
+        displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
+        displayBuffer.unfoldBufferRow(4)
+        expect(observeHandler).not.toHaveBeenCalled()
+
+    describe "marker destruction", ->
+      it "allows markers to be destroyed", ->
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        displayBuffer.destroyMarker(marker)
+        expect(displayBuffer.getMarkerBufferRange(marker)).toBeUndefined()
+
+
+

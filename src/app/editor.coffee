@@ -6,7 +6,6 @@ Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
-Native = require 'native'
 fs = require 'fs'
 $ = require 'jquery'
 _ = require 'underscore'
@@ -20,6 +19,8 @@ class Editor extends View
     autoIndent: true
     autoIndentOnPaste: false
     nonWordCharacters: "./\\()\"'-_:,.;<>~!@#$%^&*|+=[]{}`~?"
+
+  @nextEditorId: 1
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
@@ -55,15 +56,17 @@ class Editor extends View
   newSelections: null
 
   @deserialize: (state, rootView) ->
+    editor = new Editor(mini: state.mini, deserializing: true)
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
-    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini)
-    editor.editSessions = editSessions
+    editor.pushEditSession(editSession) for editSession in editSessions
+    editor.setActiveEditSessionIndex(state.activeEditSessionIndex)
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({editSession, @mini} = {}) ->
+  initialize: ({editSession, @mini, deserializing} = {}) ->
     requireStylesheet 'editor.css'
 
+    @id = Editor.nextEditorId++
     @lineCache = []
     @configure()
     @bindKeys()
@@ -76,19 +79,16 @@ class Editor extends View
     @newSelections = []
 
     if editSession?
-      @editSessions.push editSession
-      @setActiveEditSessionIndex(0)
+      @edit(editSession)
     else if @mini
-      editSession = new EditSession
+      @edit(new EditSession
         buffer: new Buffer()
         softWrap: false
         tabLength: 2
         softTabs: true
-
-      @editSessions.push editSession
-      @setActiveEditSessionIndex(0)
-    else
-      throw new Error("Editor initialization requires an editSession")
+      )
+    else if not deserializing
+      throw new Error("Editor must be constructed with an 'editSession' or 'mini: true' param")
 
   serialize: ->
     @saveScrollPositionForActiveEditSession()
@@ -210,8 +210,8 @@ class Editor extends View
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
   moveLineUp: -> @activeEditSession.moveLineUp()
   moveLineDown: -> @activeEditSession.moveLineDown()
+  setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   duplicateLine: -> @activeEditSession.duplicateLine()
-  setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
@@ -432,10 +432,10 @@ class Editor extends View
         @selectToScreenPosition(@screenPositionFromMouseEvent(event))
         lastMoveEvent = event
 
-    $(document).on 'mousemove', moveHandler
+    $(document).on "mousemove.editor-#{@id}", moveHandler
     interval = setInterval(moveHandler, 20)
 
-    $(document).one 'mouseup', =>
+    $(document).one "mouseup.editor-#{@id}", =>
       clearInterval(interval)
       $(document).off 'mousemove', moveHandler
       reverse = @activeEditSession.getLastSelection().isReversed()
@@ -449,7 +449,7 @@ class Editor extends View
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
-    @subscribe $(window), "resize", => @requestDisplayUpdate()
+    @subscribe $(window), "resize.editor-#{@id}", => @requestDisplayUpdate()
     @focus() if @isFocused
 
     @resetDisplay()
@@ -458,13 +458,15 @@ class Editor extends View
 
   edit: (editSession) ->
     index = @editSessions.indexOf(editSession)
-
-    if index == -1
-      index = @editSessions.length
-      @editSessions.push(editSession)
-      @trigger 'editor:edit-session-added', [editSession, index]
-
+    index = @pushEditSession(editSession) if index == -1
     @setActiveEditSessionIndex(index)
+
+  pushEditSession: (editSession) ->
+    index = @editSessions.length
+    @editSessions.push(editSession)
+    editSession.on 'destroyed', => @editSessionDestroyed(editSession)
+    @trigger 'editor:edit-session-added', [editSession, index]
+    index
 
   getBuffer: -> @activeEditSession.buffer
 
@@ -475,23 +477,18 @@ class Editor extends View
     return if @mini
 
     editSession = @editSessions[index]
-    destroySession = =>
-      if index is @getActiveEditSessionIndex() and @editSessions.length > 1
-        @loadPreviousEditSession()
-      _.remove(@editSessions, editSession)
+    destroySession = ->
       editSession.destroy()
-      @trigger 'editor:edit-session-removed', [editSession, index]
-      @remove() if @editSessions.length is 0
-      callback(index) if callback
+      callback?(index)
 
     if editSession.isModified() and not editSession.hasEditors()
       @promptToSaveDirtySession(editSession, destroySession)
     else
-      destroySession(editSession)
+      destroySession()
 
   destroyInactiveEditSessions: ->
     destroyIndex = (index) =>
-      index++ if @activeEditSession is @editSessions[index]
+      index++ if index is @getActiveEditSessionIndex()
       @destroyEditSessionIndex(index, destroyIndex) if @editSessions[index]
     destroyIndex(0)
 
@@ -499,6 +496,13 @@ class Editor extends View
     destroyIndex = (index) =>
       @destroyEditSessionIndex(index, destroyIndex) if @editSessions[index]
     destroyIndex(0)
+
+  editSessionDestroyed: (editSession) ->
+    index = @editSessions.indexOf(editSession)
+    @loadPreviousEditSession() if index is @getActiveEditSessionIndex() and @editSessions.length > 1
+    _.remove(@editSessions, editSession)
+    @trigger 'editor:edit-session-removed', [editSession, index]
+    @remove() if @editSessions.length is 0
 
   loadNextEditSession: ->
     nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
@@ -664,7 +668,7 @@ class Editor extends View
     if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
       @_setSoftWrapColumn = => @setSoftWrapColumn()
-      $(window).on "resize", @_setSoftWrapColumn
+      $(window).on "resize.editor-#{@id}", @_setSoftWrapColumn
     else
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
@@ -751,14 +755,16 @@ class Editor extends View
     )
 
   remove: (selector, keepData) ->
-    return super if keepData
-
+    return super if keepData or @removed
     @trigger 'editor:will-be-removed'
-
-    @destroyEditSessions()
-
     if @pane() then @pane().remove() else super
     rootView?.focus()
+
+  afterRemove: ->
+    @removed = true
+    @destroyEditSessions()
+    $(window).off(".editor-#{@id}")
+    $(document).off(".editor-#{@id}")
 
   getEditSessions: ->
     new Array(@editSessions...)
@@ -883,6 +889,7 @@ class Editor extends View
     @updateCursorViews()
     @updateSelectionViews()
     @autoscroll(options)
+    @trigger 'editor:display-updated'
 
   updateCursorViews: ->
     if @newCursors.length > 0
@@ -912,13 +919,16 @@ class Editor extends View
       do (cursorView) -> cursorView.resetBlinking()
 
   autoscroll: (options={}) ->
-    for cursorView in @getCursorViews() when cursorView.needsAutoscroll()
-      @scrollToPixelPosition(cursorView.getPixelPosition()) unless options.suppressAutoScroll
-      cursorView.autoscrolled()
+    for cursorView in @getCursorViews()
+      if !options.suppressAutoScroll and cursorView.needsAutoscroll()
+        @scrollToPixelPosition(cursorView.getPixelPosition())
+      cursorView.clearAutoscroll()
 
-    for selectionView in @getSelectionViews() when selectionView.needsAutoscroll()
-      @scrollToPixelPosition(selectionView.getCenterPixelPosition(), center: true)
-      selectionView.autoscrolled()
+    for selectionView in @getSelectionViews()
+      if !options.suppressAutoScroll and selectionView.needsAutoscroll()
+        @scrollToPixelPosition(selectionView.getCenterPixelPosition(), center: true)
+        selectionView.highlight()
+      selectionView.clearAutoscroll()
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()

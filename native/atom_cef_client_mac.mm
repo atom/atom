@@ -99,6 +99,8 @@ void AtomCefClient::Confirm(int replyId,
 
 
 void AtomCefClient::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) {
+  if (m_IgnoreTitleChanges) return;
+
   NSWindow *window = [browser->GetHost()->GetWindowHandle() window];
   [window setTitle:[NSString stringWithUTF8String:title.ToString().c_str()]];
 }

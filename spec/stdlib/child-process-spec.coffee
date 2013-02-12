@@ -127,3 +127,18 @@ describe 'Child Processes', ->
 
         runs ->
           expect(output.length).toBeGreaterThan 1
+
+    describe "when the cwd option is set", ->
+      it "runs the task from the specified current working directory", ->
+        output = []
+
+        waitsForPromise ->
+          options =
+            cwd: fixturesProject.getPath()
+            stdout: (data) -> output.push(data)
+            stderr: (data) ->
+
+          ChildProcess.exec("pwd", options)
+
+        runs ->
+          expect(output.join('')).toBe "#{fixturesProject.getPath()}\n"

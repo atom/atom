@@ -1,0 +1,2 @@
+'main': 'lib/command-palette-view'
+'activationEvents': ['command-palette:toggle']

@@ -76,12 +76,12 @@ describe "EditSession", ->
 
       describe "when the cursor is on the first line", ->
         it "moves the cursor to the beginning of the line, but retains the goal column", ->
-          editSession.setCursorScreenPosition(row: 0, column: 4)
+          editSession.setCursorScreenPosition([0, 4])
           editSession.moveCursorUp()
-          expect(editSession.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          expect(editSession.getCursorScreenPosition()).toEqual([0, 0])
 
           editSession.moveCursorDown()
-          expect(editSession.getCursorScreenPosition()).toEqual(row: 1, column: 4)
+          expect(editSession.getCursorScreenPosition()).toEqual([1, 4])
 
       it "merges cursors when they overlap", ->
         editSession.addCursorAtScreenPosition([1, 0])
@@ -185,9 +185,9 @@ describe "EditSession", ->
       describe "when the cursor is on the last column of a line", ->
         describe "when there is a subsequent line", ->
           it "wraps to the beginning of the next line", ->
-            editSession.setCursorScreenPosition(row: 0, column: buffer.lineForRow(0).length)
+            editSession.setCursorScreenPosition([0, buffer.lineForRow(0).length])
             editSession.moveCursorRight()
-            expect(editSession.getCursorScreenPosition()).toEqual(row: 1, column: 0)
+            expect(editSession.getCursorScreenPosition()).toEqual [1, 0]
 
         describe "when the cursor is on the last line", ->
           it "remains in the same position", ->
@@ -322,7 +322,6 @@ describe "EditSession", ->
         editSession.moveCursorToEndOfWord()
         expect(editSession.getCursorBufferPosition()).toEqual [11, 8]
 
-
     describe ".getCurrentParagraphBufferRange()", ->
       it "returns the buffer range of the current paragraph, delimited by blank lines or the beginning / end of the file", ->
         buffer.setText """
@@ -352,6 +351,31 @@ describe "EditSession", ->
         # between paragraphs
         editSession.setCursorBufferPosition([3, 1])
         expect(editSession.getCurrentParagraphBufferRange()).toBeUndefined()
+
+    describe "cursor-moved events", ->
+      cursorMovedHandler = null
+
+      beforeEach ->
+        editSession.foldBufferRow(4)
+        editSession.setSelectedBufferRange([[8, 1], [9, 0]])
+        cursorMovedHandler = jasmine.createSpy("cursorMovedHandler")
+        editSession.on 'cursor-moved', cursorMovedHandler
+
+      describe "when the position of the cursor changes", ->
+        it "emits a cursor-moved event", ->
+          buffer.insert([9, 0], '...')
+          expect(cursorMovedHandler).toHaveBeenCalledWith(
+            oldBufferPosition: [9, 0]
+            oldScreenPosition: [6, 0]
+            newBufferPosition: [9, 3]
+            newScreenPosition: [6, 3]
+            bufferChanged: true
+          )
+
+      describe "when the position of the associated selection's tail changes, but not the cursor's position", ->
+        it "does not emit a cursor-moved event", ->
+          buffer.insert([8, 0], '...')
+          expect(cursorMovedHandler).not.toHaveBeenCalled()
 
   describe "selection", ->
     selection = null
@@ -637,6 +661,19 @@ describe "EditSession", ->
           editSession.createFold(1, 4)
           editSession.setSelectedBufferRanges([[[2, 2], [3, 3]]], preserveFolds: true)
           expect(editSession.lineForScreenRow(1).fold).toBeDefined()
+
+    describe ".selectMarker(marker)", ->
+      describe "when the marker exists", ->
+        it "selects the marker's range and returns true", ->
+          marker = editSession.markBufferRange([[0, 1], [3, 3]])
+          expect(editSession.selectMarker(marker)).toBeTruthy()
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 3]]
+
+      describe "when the marker does not exist", ->
+        it "does not select the marker's range and returns false", ->
+          rangeBefore = editSession.getSelectedBufferRange()
+          expect(editSession.selectMarker('bogus')).toBeFalsy()
+          expect(editSession.getSelectedBufferRange()).toEqual rangeBefore
 
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
@@ -1005,6 +1042,7 @@ describe "EditSession", ->
             expect(line).toBe "  var ort = function(items) {"
             expect(editSession.getCursorScreenPosition()).toEqual {row: 1, column: 6}
             expect(changeScreenRangeHandler).toHaveBeenCalled()
+            expect(editSession.getCursor().isVisible()).toBeTruthy()
 
         describe "when the cursor is at the beginning of a line", ->
           it "joins it with the line above", ->
@@ -1635,7 +1673,7 @@ describe "EditSession", ->
         expect(buffer.lineForRow(7)).toBe "    }"
 
       it "preserves selection emptiness", ->
-        editSession.setSelectedBufferRange([[4, 0], [4, 0]])
+        editSession.setCursorBufferPosition([4, 0])
         editSession.toggleLineCommentsInSelection()
         expect(editSession.getSelection().isEmpty()).toBeTruthy()
 
@@ -1647,7 +1685,7 @@ describe "EditSession", ->
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
 
       it "uncomments when the line lacks the trailing whitespace in the comment regex", ->
-        editSession.setSelectedBufferRange([[10, 0], [10, 0]])
+        editSession.setCursorBufferPosition([10, 0])
         editSession.toggleLineCommentsInSelection()
 
         expect(buffer.lineForRow(10)).toBe "// "
@@ -1660,7 +1698,7 @@ describe "EditSession", ->
         expect(editSession.getSelectedBufferRange()).toEqual [[10, 0], [10, 0]]
 
       it "uncomments when the line has leading whitespace", ->
-        editSession.setSelectedBufferRange([[10, 0], [10, 0]])
+        editSession.setCursorBufferPosition([10, 0])
         editSession.toggleLineCommentsInSelection()
 
         expect(buffer.lineForRow(10)).toBe "// "
@@ -1763,18 +1801,18 @@ describe "EditSession", ->
         expect(cursor2.getScreenPosition()).toEqual [0, 8]
         expect(cursor3.getScreenPosition()).toEqual [1, 0]
 
-      it "does not destroy cursor or selection anchors when a change encompasses them", ->
+      it "does not destroy cursors or selections when a change encompasses them", ->
         cursor = editSession.getCursor()
         cursor.setBufferPosition [3, 3]
         editSession.buffer.delete([[3, 1], [3, 5]])
         expect(cursor.getBufferPosition()).toEqual [3, 1]
-        expect(editSession.getAnchors().indexOf(cursor.anchor)).not.toBe -1
+        expect(editSession.getCursors().indexOf(cursor)).not.toBe -1
 
         selection = editSession.getLastSelection()
         selection.setBufferRange [[3, 5], [3, 10]]
         editSession.buffer.delete [[3, 3], [3, 8]]
         expect(selection.getBufferRange()).toEqual [[3, 3], [3, 5]]
-        expect(editSession.getAnchors().indexOf(selection.anchor)).not.toBe -1
+        expect(editSession.getSelections().indexOf(selection)).not.toBe -1
 
       it "merges cursors when the change causes them to overlap", ->
         editSession.setCursorScreenPosition([0, 0])
@@ -1797,34 +1835,6 @@ describe "EditSession", ->
         editSession.setCursorBufferPosition([5,5])
         editSession.foldAll()
         expect(editSession.getCursorBufferPosition()).toEqual([5,5])
-
-  describe "anchors", ->
-    [anchor, destroyHandler] = []
-
-    beforeEach ->
-      destroyHandler = jasmine.createSpy("destroyHandler")
-      anchor = editSession.addAnchorAtBufferPosition([4, 25])
-      anchor.on 'destroyed', destroyHandler
-
-    describe "when a buffer change precedes an anchor", ->
-      it "moves the anchor in accordance with the change", ->
-        editSession.setSelectedBufferRange([[3, 0], [4, 10]])
-        editSession.delete()
-        expect(anchor.getBufferPosition()).toEqual [3, 15]
-        expect(destroyHandler).not.toHaveBeenCalled()
-
-    describe "when a buffer change surrounds an anchor", ->
-      it "destroys the anchor", ->
-        editSession.setSelectedBufferRange([[3, 0], [5, 0]])
-        editSession.delete()
-        expect(destroyHandler).toHaveBeenCalled()
-        expect(editSession.getAnchors().indexOf(anchor)).toBe -1
-
-  describe ".clipBufferPosition(bufferPosition)", ->
-    it "clips the given position to a valid position", ->
-      expect(editSession.clipBufferPosition([-1, -1])).toEqual [0,0]
-      expect(editSession.clipBufferPosition([Infinity, Infinity])).toEqual [12,2]
-      expect(editSession.clipBufferPosition([8, 57])).toEqual [8, 56]
 
   describe ".deleteLine()", ->
     it "deletes the first line when the cursor is there", ->
@@ -1891,7 +1901,7 @@ describe "EditSession", ->
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
 
-  describe ".tranpose()", ->
+  describe ".transpose()", ->
     it "swaps two characters", ->
       editSession.buffer.setText("abc")
       editSession.setCursorScreenPosition([0, 1])
@@ -2046,3 +2056,9 @@ describe "EditSession", ->
         editSession.insertText("var i;\n}")
         editSession.autoDecreaseIndentForRow(1)
         expect(editSession.lineForBufferRow(1)).toBe "}"
+
+  describe ".destroy()", ->
+    it "destroys all markers associated with the edit session", ->
+      expect(buffer.getMarkerCount()).toBeGreaterThan 0
+      editSession.destroy()
+      expect(buffer.getMarkerCount()).toBe 0

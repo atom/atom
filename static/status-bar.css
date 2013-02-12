@@ -1,16 +1,25 @@
 .status-bar {
-  padding: 4px 10px 3px;
+  padding: 5px 10px;
   font-size: 11px;
   line-height: 14px;
+  position: relative;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+.status-bar .git-branch {
+  float: right;
 }
 
 .status-bar .cursor-position,
 .status-bar .grammar-name {
-  padding-left: 10px;
+  margin-left: 10px;
 }
 
 .status-bar .grammar-name {
   cursor: pointer;
+  border: 1px solid transparent;
+  padding: 1px 2px;
 }
 
 .status-bar .branch-label {

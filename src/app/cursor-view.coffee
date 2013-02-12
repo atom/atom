@@ -1,5 +1,4 @@
 {View} = require 'space-pen'
-Anchor = require 'anchor'
 Point = require 'point'
 Range = require 'range'
 _ = require 'underscore'
@@ -18,18 +17,18 @@ class CursorView extends View
   shouldPauseBlinking: false
 
   initialize: (@cursor, @editor) ->
-    @cursor.on 'moved.cursor-view', ({ autoscroll }) =>
+    @cursor.on 'moved.cursor-view', =>
       @needsUpdate = true
       @shouldPauseBlinking = true
-      @editor.requestDisplayUpdate()
 
     @cursor.on 'visibility-changed.cursor-view', (visible) =>
       @needsUpdate = true
+
+    @cursor.on 'autoscrolled.cursor-view', =>
       @editor.requestDisplayUpdate()
 
     @cursor.on 'destroyed.cursor-view', =>
       @needsRemoval = true
-      @editor.requestDisplayUpdate()
 
   remove: ->
     @editor.removeCursorView(this)
@@ -55,8 +54,8 @@ class CursorView extends View
   needsAutoscroll: ->
     @cursor.needsAutoscroll
 
-  autoscrolled: ->
-    @cursor.autoscrolled()
+  clearAutoscroll: ->
+    @cursor.clearAutoscroll()
 
   getPixelPosition: ->
     @editor.pixelPositionForScreenPosition(@getScreenPosition())
