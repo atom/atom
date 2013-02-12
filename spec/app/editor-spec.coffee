@@ -2590,27 +2590,54 @@ describe "Editor", ->
           expect(editor.getCursorBufferPosition()).toEqual [14, 0]
 
   describe ".moveEditSessionToIndex(fromIndex, toIndex)", ->
-    it "updates the edit session order", ->
-      jsPath = editor.getPath()
-      rootView.open("sample.txt")
-      txtPath = editor.getPath()
-      expect(editor.editSessions[0].getPath()).toBe jsPath
-      expect(editor.editSessions[1].getPath()).toBe txtPath
-      editor.moveEditSessionToIndex(0, 1)
-      expect(editor.editSessions[0].getPath()).toBe txtPath
-      expect(editor.editSessions[1].getPath()).toBe jsPath
+    describe "when the edit session moves to a later index", ->
+      it "updates the edit session order", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.editSessions[0].getPath()).toBe jsPath
+        expect(editor.editSessions[1].getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(0, 1)
+        expect(editor.editSessions[0].getPath()).toBe txtPath
+        expect(editor.editSessions[1].getPath()).toBe jsPath
 
-    it "fires an editor:edit-session-order-changed event", ->
-      eventHandler = jasmine.createSpy("eventHandler")
-      rootView.open("sample.txt")
-      editor.on "editor:edit-session-order-changed", eventHandler
-      editor.moveEditSessionToIndex(0, 1)
-      expect(eventHandler).toHaveBeenCalled()
+      it "fires an editor:edit-session-order-changed event", ->
+        eventHandler = jasmine.createSpy("eventHandler")
+        rootView.open("sample.txt")
+        editor.on "editor:edit-session-order-changed", eventHandler
+        editor.moveEditSessionToIndex(0, 1)
+        expect(eventHandler).toHaveBeenCalled()
 
-    it "sets the moved session as the editor's active session", ->
-      jsPath = editor.getPath()
-      rootView.open("sample.txt")
-      txtPath = editor.getPath()
-      expect(editor.activeEditSession.getPath()).toBe txtPath
-      editor.moveEditSessionToIndex(0, 1)
-      expect(editor.activeEditSession.getPath()).toBe jsPath
+      it "sets the moved session as the editor's active session", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.activeEditSession.getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(0, 1)
+        expect(editor.activeEditSession.getPath()).toBe jsPath
+
+    describe "when the edit session moves to an earlier index", ->
+      it "updates the edit session order", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.editSessions[0].getPath()).toBe jsPath
+        expect(editor.editSessions[1].getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(1, 0)
+        expect(editor.editSessions[0].getPath()).toBe txtPath
+        expect(editor.editSessions[1].getPath()).toBe jsPath
+
+      it "fires an editor:edit-session-order-changed event", ->
+        eventHandler = jasmine.createSpy("eventHandler")
+        rootView.open("sample.txt")
+        editor.on "editor:edit-session-order-changed", eventHandler
+        editor.moveEditSessionToIndex(1, 0)
+        expect(eventHandler).toHaveBeenCalled()
+
+      it "sets the moved session as the editor's active session", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.activeEditSession.getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(1, 0)
+        expect(editor.activeEditSession.getPath()).toBe txtPath
