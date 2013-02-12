@@ -186,6 +186,10 @@ module.exports =
     base = @base(path, extension).toLowerCase()
     base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
 
+  isObjectPath: (path) ->
+    extension = @extension(path)
+    extension is '.cson' or extension is '.json'
+
   readObject: (path) ->
     contents = @read(path)
     if @extension(path) is '.cson'

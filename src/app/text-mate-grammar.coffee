@@ -9,8 +9,7 @@ module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
     grammarContent = null
-    extension = fs.extension(path)
-    if extension is '.cson' or extension is '.json'
+    if fs.isObjectPath(path)
       grammarContent = fs.readObject(path)
     else
       plist.parseString fs.read(path), (e, data) ->
