@@ -1191,6 +1191,7 @@ class Editor extends View
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
   pixelPositionForScreenPosition: (position) ->
+    return { top: 0, left: 0 } unless @isOnDom()
     {row, column} = Point.fromObject(position)
     [lineElement] = @buildLineElementsForScreenRows(row, row)
     @renderedLines.append(lineElement)
