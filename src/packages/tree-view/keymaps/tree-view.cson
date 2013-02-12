@@ -1,4 +1,4 @@
-'#root-view':
+'body':
   'meta-\\': 'tree-view:toggle'
   'meta-|': 'tree-view:reveal-active-file'
 

@@ -73,6 +73,7 @@ class Keymap
     return true unless bindingSetsForFirstKeystroke?
 
     currentNode = $(event.target)
+    currentNode = rootView if currentNode is $('body')[0]
     while currentNode.length
       candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
       for bindingSet in candidateBindingSets
@@ -99,6 +100,7 @@ class Keymap
         b.specificity - a.specificity
 
   triggerCommandEvent: (keyEvent, commandName) ->
+    keyEvent.target = rootView[0] if keyEvent.target == document.body and window.rootView
     commandEvent = $.Event(commandName)
     commandEvent.keyEvent = keyEvent
     aborted = false
