@@ -24,20 +24,7 @@ class AtomReporter extends View
   @timeoutId: 0
 
   reportRunnerStarting: (runner) ->
-    $(document).on "mouseover", ".spec-summary", ({srcElement}) =>
-      element = $(srcElement)
-      description = element.data("description")
-      return unless description
-
-      clearTimeout @timeoutId if @timeoutId?
-      @specPopup.show()
-      @specPopup.text description
-      {left, top} = element.offset()
-      left += 20
-      top += 20
-      @specPopup.offset({left, top})
-      @timeoutId = setTimeout((=> @specPopup.hide()), 3000)
-
+    @handleEvents()
     @startedAt = new Date()
     specs = runner.specs()
     @totalSpecCount = specs.length
@@ -72,6 +59,26 @@ class AtomReporter extends View
       false
     else
       @specFilter(parent)
+
+  handleEvents: ->
+    $(document).on "mouseover", ".spec-summary", ({currentTarget}) =>
+      element = $(currentTarget)
+      description = element.data("description")
+      return unless description
+
+      clearTimeout @timeoutId if @timeoutId?
+      @specPopup.show()
+      @specPopup.text description
+      {left, top} = element.offset()
+      left += 20
+      top += 20
+      @specPopup.offset({left, top})
+      @timeoutId = setTimeout((=> @specPopup.hide()), 3000)
+
+    $(document).on "click", ".suite", ({currentTarget}) =>
+      element = $(currentTarget)
+      element.find(".spec").toggle()
+      false
 
   updateStatusView: (spec) ->
     if @failedCount > 0
