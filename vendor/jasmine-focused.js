@@ -35,13 +35,3 @@ var ffit = function(description, specDefinitions) {
 var fffit = function(description, specDefinitions) {
   fit(description, specDefinitions, 3);
 };
-
-jasmine.AtomReporter.prototype.fSpecFilter = function(specOrSuite) {
-  globalFocusPriority = jasmine.getEnv().focusPriority;
-  if (!globalFocusPriority) return true;
-  if (specOrSuite.focusPriority >= globalFocusPriority) return true;
-
-  var parent = specOrSuite.parentSuite || specOrSuite.suite;
-  if (!parent) return false;
-  return this.fSpecFilter(parent);
-};

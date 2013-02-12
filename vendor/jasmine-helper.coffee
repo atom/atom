@@ -1,9 +1,10 @@
 module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   {$$} = require 'space-pen'
   nakedLoad 'jasmine'
-  nakedLoad 'jasmine-atom-reporter'
   nakedLoad 'jasmine-console-reporter'
   nakedLoad 'jasmine-focused'
+
+  AtomReporter = require 'atom-reporter'
 
   $ = require 'jquery'
   TimeReporter = require 'time-reporter'
@@ -11,7 +12,8 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   reporter = if atom.exitWhenDone
     new jasmine.ConsoleReporter(document, logErrors)
   else
-    new jasmine.AtomReporter(document)
+    new AtomReporter()
+
 
   require specSuite
   jasmineEnv = jasmine.getEnv()
