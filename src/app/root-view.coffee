@@ -35,13 +35,11 @@ class RootView extends View
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
 
-  packages: null
   title: null
   pathToOpenIsFile: false
 
   initialize: (projectOrPathToOpen, { suppressOpen } = {}) ->
     window.rootView = this
-    @packages = []
     @viewClasses = {
       "Pane": Pane,
       "PaneRow": PaneRow,

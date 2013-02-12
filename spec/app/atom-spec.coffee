@@ -117,10 +117,11 @@ describe "the `atom` global", ->
     describe ".deactivateAtomPackages()", ->
       it "deactivates and removes the package module from the package module map", ->
         atom.activateAtomPackage(pack)
+        expect(atom.activatedAtomPackages.length).toBe 1
         spyOn(packageModule, "deactivate").andCallThrough()
         atom.deactivateAtomPackages()
         expect(packageModule.deactivate).toHaveBeenCalled()
-        expect(rootView.packages.length).toBe 0
+        expect(atom.activatedAtomPackages.length).toBe 0
 
     describe ".serializeAtomPackages()", ->
       it "absorbs exceptions that are thrown by the package module's serialize methods", ->
