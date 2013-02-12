@@ -79,7 +79,10 @@ class TabView extends SortableList
     fromPane      = $(rootView.find('.pane')[fromPaneIndex])
     fromEditor    = fromPane.find('.editor').view()
     draggedTab    = fromPane.find(".#{TabView.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
-    return if draggedTab.is(droppedNearTab)
+
+    if draggedTab.is(droppedNearTab)
+      fromEditor.focus()
+      return
 
     if fromPaneIndex == toPaneIndex
       droppedNearTab = @getSortableElement(event)
@@ -90,6 +93,8 @@ class TabView extends SortableList
       fromEditor.focus()
     else
       toEditor = rootView.find(".pane:eq(#{toPaneIndex}) > .editor").view()
-      unless @containsEditSession(toEditor, fromEditor.editSessions[draggedTab.index()])
+      if @containsEditSession(toEditor, fromEditor.editSessions[draggedTab.index()])
+        fromEditor.focus()
+      else
         fromEditor.moveEditSessionToEditor(draggedTab.index(), toEditor, droppedNearTab.index() + 1)
         toEditor.focus()
