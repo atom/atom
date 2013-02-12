@@ -36,7 +36,7 @@ class PreviewList extends ScrollView
       operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
       for path, ops of operationsByPath
         classes = ['path']
-        classes.push('readme') if fs.isReadme(path)
+        classes.push('readme') if fs.isReadmePath(path)
         @li class: classes.join(' '), =>
           @span path
           @span "(#{ops.length})", class: 'path-match-number'

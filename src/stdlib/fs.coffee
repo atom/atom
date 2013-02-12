@@ -181,7 +181,7 @@ module.exports =
     ], ext, true) >= 0
 
 
-  isReadme: (path) ->
+  isReadmePath: (path) ->
     extension = @extension(path)
     base = @base(path, extension).toLowerCase()
     base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
