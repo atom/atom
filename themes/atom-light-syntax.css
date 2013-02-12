@@ -143,18 +143,6 @@
   font-weight: bold;
 }
 
-.editor .markup.deleted {
-  color: #00A8C6;
-}
-
-.editor .markup.inserted {
-  color: #A6E22E;
-}
-
-.editor .markup.changed {
-  color: #E6DB74;
-}
-
 .editor .constant.numeric.line-number.find-in-files .- .match {
   color: rgba(143, 190, 0, 0.63);
 }
