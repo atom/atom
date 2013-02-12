@@ -44,11 +44,9 @@ class TabView extends SortableList
   removeTabAtIndex: (index) ->
     @find(".tab:eq(#{index})").remove()
 
-  containsTab: (tab) ->
-    path   = $(tab).view().representedPath()
-    paths  = $.makeArray(@find('.tab')).map (e) -> $(e).view().representedPath()
-
-    return paths.some (tabpath) -> tabpath == path
+  containsEditSession: (editor, editSession) ->
+    for session in editor.editSessions
+      return true if editSession.getPath() is session.getPath()
 
   shouldAllowDrag: (event) ->
     panes = rootView.find('.pane')
@@ -84,7 +82,7 @@ class TabView extends SortableList
 
     return if draggedTab.is(droppedNearTab)
     if fromPaneIndex != toPaneIndex
-      return if toPane.find('.sortable-list').view().containsTab(draggedTab)
+      return if @containsEditSession(toEditor, fromEditor.editSessions[draggedTab.index()])
 
     draggedTab.remove()
     draggedTab.insertAfter(droppedNearTab)
