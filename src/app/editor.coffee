@@ -1101,6 +1101,9 @@ class Editor extends View
     @pendingChanges.push(change)
     @requestDisplayUpdate()
 
+  buildLineElementForScreenRow: (screenRow) ->
+    @buildLineElementsForScreenRows(screenRow, screenRow)[0]
+
   buildLineElementsForScreenRows: (startRow, endRow) ->
     div = document.createElement('div')
     div.innerHTML = @buildLinesHtml(@activeEditSession.linesForScreenRows(startRow, endRow))
@@ -1192,11 +1195,16 @@ class Editor extends View
   pixelPositionForScreenPosition: (position) ->
     return { top: 0, left: 0 } unless @isOnDom()
     {row, column} = Point.fromObject(position)
-    [lineElement] = @buildLineElementsForScreenRows(row, row)
-    @renderedLines.append(lineElement)
+    actualRow = Math.floor(row)
+
+    lineElement = existingLineElement = @lineElementForScreenRow(actualRow)[0]
+    unless existingLineElement
+      lineElement = @buildLineElementForScreenRow(actualRow)
+      @renderedLines.append(lineElement)
     left = @positionLeftForLineAndColumn(lineElement, column)
-    @renderedLines[0].removeChild(lineElement)
-    { top: row * @lineHeight, left: left }
+    unless existingLineElement
+      @renderedLines[0].removeChild(lineElement)
+    { top: row * @lineHeight, left }
 
   positionLeftForLineAndColumn: (lineElement, column) ->
     return 0 if column is 0
