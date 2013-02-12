@@ -6,8 +6,7 @@ Range = require 'range'
 EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
-Anchor = require 'anchor'
-AnchorRange = require 'anchor-range'
+BufferMarker = require 'buffer-marker'
 
 module.exports =
 class Buffer
@@ -21,14 +20,15 @@ class Buffer
   lines: null
   lineEndings: null
   file: null
-  anchors: null
-  anchorRanges: null
+  validMarkers: null
+  invalidMarkers: null
   refcount: 0
 
   constructor: (path, @project) ->
     @id = @constructor.idCounter++
-    @anchors = []
-    @anchorRanges = []
+    @nextMarkerId = 1
+    @validMarkers = {}
+    @invalidMarkers = {}
     @lines = ['']
     @lineEndings = []
 
@@ -212,13 +212,15 @@ class Buffer
     range
 
   clipPosition: (position) ->
-    { row, column } = Point.fromObject(position)
-    row = 0 if row < 0
-    column = 0 if column < 0
-    row = Math.min(@getLastRow(), row)
-    column = Math.min(@lineLengthForRow(row), column)
-
-    new Point(row, column)
+    position = Point.fromObject(position)
+    eofPosition = @getEofPosition()
+    if position.isGreaterThan(eofPosition)
+      eofPosition
+    else
+      row = Math.max(position.row, 0)
+      column = Math.max(position.column, 0)
+      column = Math.min(@lineLengthForRow(row), column)
+      new Point(row, column)
 
   clipRange: (range) ->
     range = Range.fromObject(range)
@@ -262,38 +264,70 @@ class Buffer
 
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
-  getAnchors: -> new Array(@anchors...)
+  getMarkers: ->
+    _.values(@validMarkers)
 
-  addAnchor: (options) ->
-    anchor = new Anchor(this, options)
-    @anchors.push(anchor)
-    anchor
+  getMarkerCount: ->
+    _.size(@validMarkers)
 
-  addAnchorAtPosition: (position, options) ->
-    anchor = @addAnchor(options)
-    anchor.setBufferPosition(position)
-    anchor
+  markRange: (range, options={}) ->
+    marker = new BufferMarker(_.defaults({
+      id: (@nextMarkerId++).toString()
+      buffer: this
+      range
+    }, options))
+    @validMarkers[marker.id] = marker
+    marker.id
 
-  addAnchorRange: (range, editSession) ->
-    anchorRange = new AnchorRange(range, this, editSession)
-    @anchorRanges.push(anchorRange)
-    anchorRange
+  markPosition: (position, options) ->
+    @markRange([position, position], _.defaults({noTail: true}, options))
 
-  removeAnchor: (anchor) ->
-    _.remove(@anchors, anchor)
+  destroyMarker: (id) ->
+    delete @validMarkers[id]
+    delete @invalidMarkers[id]
 
-  removeAnchorRange: (anchorRange) ->
-    _.remove(@anchorRanges, anchorRange)
+  getMarkerPosition: (args...) ->
+    @getMarkerHeadPosition(args...)
 
-  anchorRangesForPosition: (position) ->
-    _.filter @anchorRanges, (anchorRange) -> anchorRange.containsBufferPosition(position)
+  setMarkerPosition: (args...) ->
+    @setMarkerHeadPosition(args...)
 
-  updateAnchors: (change) ->
-    anchors = @getAnchors()
-    anchor.pauseEvents() for anchor in anchors
-    anchor.handleBufferChange(change) for anchor in anchors
-    anchor.resumeEvents() for anchor in anchors
-    @trigger 'anchors-updated'
+  getMarkerHeadPosition: (id) ->
+    @validMarkers[id]?.getHeadPosition()
+
+  setMarkerHeadPosition: (id, position, options) ->
+    @validMarkers[id]?.setHeadPosition(position)
+
+  getMarkerTailPosition: (id) ->
+    @validMarkers[id]?.getTailPosition()
+
+  setMarkerTailPosition: (id, position, options) ->
+    @validMarkers[id]?.setTailPosition(position)
+
+  getMarkerRange: (id) ->
+    @validMarkers[id]?.getRange()
+
+  setMarkerRange: (id, range, options) ->
+    @validMarkers[id]?.setRange(range, options)
+
+  placeMarkerTail: (id) ->
+    @validMarkers[id]?.placeTail()
+
+  clearMarkerTail: (id) ->
+    @validMarkers[id]?.clearTail()
+
+  isMarkerReversed: (id) ->
+    @validMarkers[id]?.isReversed()
+
+  observeMarker: (id, callback) ->
+    @validMarkers[id]?.observe(callback)
+
+  markersForPosition: (bufferPosition) ->
+    bufferPosition = Point.fromObject(bufferPosition)
+    ids = []
+    for id, marker of @validMarkers
+      ids.push(id) if marker.containsPoint(bufferPosition)
+    ids
 
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()

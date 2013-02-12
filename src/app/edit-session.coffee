@@ -1,6 +1,5 @@
 Point = require 'point'
 Buffer = require 'buffer'
-Anchor = require 'anchor'
 LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
@@ -8,7 +7,6 @@ Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
-AnchorRange = require 'anchor-range'
 _ = require 'underscore'
 fs = require 'fs'
 
@@ -29,8 +27,6 @@ class EditSession
   scrollLeft: 0
   languageMode: null
   displayBuffer: null
-  anchors: null
-  anchorRanges: null
   cursors: null
   selections: null
   softTabs: true
@@ -40,8 +36,6 @@ class EditSession
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
-    @anchors = []
-    @anchorRanges = []
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])
@@ -49,12 +43,11 @@ class EditSession
     @buffer.retain()
     @subscribe @buffer, "path-changed", => @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
-    @subscribe @buffer, "anchors-updated", => @mergeCursors()
+    @subscribe @buffer, "markers-updated", => @mergeCursors()
 
     @preserveCursorPositionOnBufferReload()
 
     @subscribe @displayBuffer, "changed", (e) =>
-      @refreshAnchorScreenPositions() unless e.bufferDelta
       @trigger 'screen-lines-changed', e
 
   destroy: ->
@@ -62,10 +55,11 @@ class EditSession
     @destroyed = true
     @unsubscribe()
     @buffer.release()
+    selection.destroy() for selection in @getSelections()
     @displayBuffer.destroy()
-    @project.removeEditSession(this)
-    anchor.destroy() for anchor in @getAnchors()
-    anchorRange.destroy() for anchorRange in @getAnchorRanges()
+    @project?.removeEditSession(this)
+    @trigger 'destroyed'
+    @off()
 
   serialize: ->
     buffer: @buffer.getPath()
@@ -411,6 +405,28 @@ class EditSession
 
       @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
 
+  duplicateLine: ->
+    return unless @getSelection().isEmpty()
+
+    @transact =>
+      cursorPosition = @getCursorBufferPosition()
+      cursorRowFolded = @isFoldedAtCursorRow()
+      if cursorRowFolded
+        screenRow = @screenPositionForBufferPosition(cursorPosition).row
+        bufferRange = @bufferRangeForScreenRange([[screenRow], [screenRow + 1]])
+      else
+        bufferRange = new Range([cursorPosition.row], [cursorPosition.row + 1])
+
+      insertPosition = new Point(bufferRange.end.row)
+      if insertPosition.row >= @buffer.getLastRow()
+        @unfoldCurrentRow() if cursorRowFolded
+        @buffer.append("\n#{@getTextInBufferRange(bufferRange)}")
+        @foldCurrentRow() if cursorRowFolded
+      else
+        @buffer.insert(insertPosition, @getTextInBufferRange(bufferRange))
+
+      @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
+      @foldCurrentRow() if cursorRowFolded
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
@@ -429,38 +445,77 @@ class EditSession
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
 
-  getAnchors: ->
-    new Array(@anchors...)
+  markScreenRange: (args...) ->
+    @displayBuffer.markScreenRange(args...)
 
-  getAnchorRanges: ->
-    new Array(@anchorRanges...)
+  markBufferRange: (args...) ->
+    @displayBuffer.markBufferRange(args...)
 
-  addAnchor: (options={}) ->
-    anchor = @buffer.addAnchor(_.extend({editSession: this}, options))
-    @anchors.push(anchor)
-    anchor
+  markScreenPosition: (args...) ->
+    @displayBuffer.markScreenPosition(args...)
 
-  addAnchorAtBufferPosition: (bufferPosition, options) ->
-    anchor = @addAnchor(options)
-    anchor.setBufferPosition(bufferPosition)
-    anchor
+  markBufferPosition: (args...) ->
+    @displayBuffer.markBufferPosition(args...)
 
-  addAnchorRange: (range) ->
-    anchorRange = @buffer.addAnchorRange(range, this)
-    @anchorRanges.push(anchorRange)
-    anchorRange
+  destroyMarker: (args...) ->
+    @displayBuffer.destroyMarker(args...)
 
-  removeAnchor: (anchor) ->
-    _.remove(@anchors, anchor)
+  getMarkerCount: ->
+    @buffer.getMarkerCount()
 
-  refreshAnchorScreenPositions: ->
-    anchor.refreshScreenPosition() for anchor in @getAnchors()
+  getMarkerScreenRange: (args...) ->
+    @displayBuffer.getMarkerScreenRange(args...)
 
-  removeAnchorRange: (anchorRange) ->
-    _.remove(@anchorRanges, anchorRange)
+  setMarkerScreenRange: (args...) ->
+    @displayBuffer.setMarkerScreenRange(args...)
 
-  anchorRangesForBufferPosition: (bufferPosition) ->
-    _.intersect(@anchorRanges, @buffer.anchorRangesForPosition(bufferPosition))
+  getMarkerBufferRange: (args...) ->
+    @displayBuffer.getMarkerBufferRange(args...)
+
+  setMarkerBufferRange: (args...) ->
+    @displayBuffer.setMarkerBufferRange(args...)
+
+  getMarkerScreenPosition: (args...) ->
+    @displayBuffer.getMarkerScreenPosition(args...)
+
+  getMarkerBufferPosition: (args...) ->
+    @displayBuffer.getMarkerBufferPosition(args...)
+
+  getMarkerHeadScreenPosition: (args...) ->
+    @displayBuffer.getMarkerHeadScreenPosition(args...)
+
+  setMarkerHeadScreenPosition: (args...) ->
+    @displayBuffer.setMarkerHeadScreenPosition(args...)
+
+  getMarkerHeadBufferPosition: (args...) ->
+    @displayBuffer.getMarkerHeadBufferPosition(args...)
+
+  setMarkerHeadBufferPosition: (args...) ->
+    @displayBuffer.setMarkerHeadBufferPosition(args...)
+
+  getMarkerTailScreenPosition: (args...) ->
+    @displayBuffer.getMarkerTailScreenPosition(args...)
+
+  setMarkerTailScreenPosition: (args...) ->
+    @displayBuffer.setMarkerTailScreenPosition(args...)
+
+  getMarkerTailBufferPosition: (args...) ->
+    @displayBuffer.getMarkerTailBufferPosition(args...)
+
+  setMarkerTailBufferPosition: (args...) ->
+    @displayBuffer.setMarkerTailBufferPosition(args...)
+
+  observeMarker: (args...) ->
+    @displayBuffer.observeMarker(args...)
+
+  placeMarkerTail: (args...) ->
+    @displayBuffer.placeMarkerTail(args...)
+
+  clearMarkerTail: (args...) ->
+    @displayBuffer.clearMarkerTail(args...)
+
+  isMarkerReversed: (args...) ->
+    @displayBuffer.isMarkerReversed(args...)
 
   hasMultipleCursors: ->
     @getCursors().length > 1
@@ -471,31 +526,36 @@ class EditSession
     _.last(@cursors)
 
   addCursorAtScreenPosition: (screenPosition) ->
-    @addCursor(new Cursor(editSession: this, screenPosition: screenPosition))
+    marker = @markScreenPosition(screenPosition, stayValid: true)
+    @addSelection(marker).cursor
 
   addCursorAtBufferPosition: (bufferPosition) ->
-    @addCursor(new Cursor(editSession: this, bufferPosition: bufferPosition))
+    marker = @markBufferPosition(bufferPosition, stayValid: true)
+    @addSelection(marker).cursor
 
-  addCursor: (cursor=new Cursor(editSession: this, screenPosition: [0,0])) ->
+  addCursor: (marker) ->
+    cursor = new Cursor(editSession: this, marker: marker)
     @cursors.push(cursor)
     @trigger 'cursor-added', cursor
-    @addSelectionForCursor(cursor)
     cursor
 
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 
-  addSelectionForCursor: (cursor) ->
-    selection = new Selection(editSession: this, cursor: cursor)
+  addSelection: (marker, options={}) ->
+    unless options.preserveFolds
+      @destroyFoldsIntersectingBufferRange(@getMarkerBufferRange(marker))
+    cursor = @addCursor(marker)
+    selection = new Selection({editSession: this, marker, cursor})
     @selections.push(selection)
+    @mergeIntersectingSelections()
     @trigger 'selection-added', selection
     selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    bufferRange = Range.fromObject(bufferRange)
-    @destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
-    @addCursor().selection.setBufferRange(bufferRange, options)
-    @mergeIntersectingSelections()
+    options = _.defaults({stayValid: true}, options)
+    marker = @markBufferRange(bufferRange, options)
+    @addSelection(marker)
 
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
@@ -548,8 +608,8 @@ class EditSession
     _.any @getSelections(), (selection) ->
       selection.intersectsBufferRange(bufferRange)
 
-  setCursorScreenPosition: (position) ->
-    @moveCursors (cursor) -> cursor.setScreenPosition(position)
+  setCursorScreenPosition: (position, options) ->
+    @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
   getCursorScreenPosition: ->
     @getCursor().getScreenPosition()
@@ -688,9 +748,19 @@ class EditSession
   expandLastSelectionOverWord: ->
     @getLastSelection().expandOverWord()
 
+  selectMarker: (id) ->
+    if bufferRange = @getMarkerBufferRange(id)
+      @setSelectedBufferRange(bufferRange)
+      true
+    else
+      false
+
+  markersForBufferPosition: (bufferPosition) ->
+    @buffer.markersForPosition(bufferPosition)
+
   mergeCursors: ->
     positions = []
-    for cursor in new Array(@getCursors()...)
+    for cursor in @getCursors()
       position = cursor.getBufferPosition().toString()
       if position in positions
         cursor.destroy()

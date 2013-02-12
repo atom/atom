@@ -17,8 +17,9 @@
 AtomCefClient::AtomCefClient(){
 }
 
-AtomCefClient::AtomCefClient(bool handlePasteboardCommands) {
+AtomCefClient::AtomCefClient(bool handlePasteboardCommands, bool ignoreTitleChanges) {
   m_HandlePasteboardCommands = handlePasteboardCommands;
+  m_IgnoreTitleChanges = ignoreTitleChanges;
 }
 
 AtomCefClient::~AtomCefClient() {
@@ -79,6 +80,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   }
   else if (name == "show") {
     Show(browser);
+  }
+  else if (name == "toggleFullScreen") {
+    ToggleFullScreen(browser);
   }
   else {
     return false;

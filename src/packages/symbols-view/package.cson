@@ -1,0 +1,5 @@
+'main': 'lib/symbols-view'
+'activationEvents':
+  'symbols-view:toggle-file-symbols': '.editor'
+  'symbols-view:toggle-project-symbols': null
+  'symbols-view:go-to-declaration': '.editor'

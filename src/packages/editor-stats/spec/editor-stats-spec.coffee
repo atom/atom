@@ -1,9 +1,9 @@
 $ = require 'jquery'
 RootView = require 'root-view'
-EditorStats = require 'editor-stats/src/editor-stats-view'
+EditorStats = require 'editor-stats/lib/editor-stats-view'
 
 describe "EditorStats", ->
-  [rootView, editorStats, time] = []
+  [editorStats, time] = []
 
   simulateKeyUp = (key) ->
     e = $.Event "keydown", keyCode: key.charCodeAt(0)
@@ -23,10 +23,7 @@ describe "EditorStats", ->
     mins = if mins == 60 then '01' else mins + 1
     time  = "#{hours}:#{mins}"
 
-    editorStatsPackage = atom.loadPackage('editor-stats')
-    editorStatsPackage.getInstance()
-    editorStats = editorStatsPackage.stats
-    editorStats.clear()
+    editorStats = atom.loadPackage('editor-stats').packageMain.stats
 
   afterEach ->
     rootView.deactivate()

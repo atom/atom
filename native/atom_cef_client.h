@@ -16,7 +16,7 @@ class AtomCefClient : public CefClient,
                       public CefRequestHandler {
  public:
   AtomCefClient();
-  AtomCefClient(bool handlePasteboardCommands);
+  AtomCefClient(bool handlePasteboardCommands, bool ignoreTitleChanges);
   virtual ~AtomCefClient();
 
   CefRefPtr<CefBrowser> GetBrowser() { return m_Browser; }
@@ -103,6 +103,7 @@ class AtomCefClient : public CefClient,
  protected:
   CefRefPtr<CefBrowser> m_Browser;
   bool m_HandlePasteboardCommands = false;
+  bool m_IgnoreTitleChanges = false;
 
   void FocusNextWindow();
   void FocusPreviousWindow();
@@ -124,6 +125,7 @@ class AtomCefClient : public CefClient,
   void Exit(int status);
   void Log(const char *message);
   void Show(CefRefPtr<CefBrowser> browser);
+  void ToggleFullScreen(CefRefPtr<CefBrowser> browser);
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);

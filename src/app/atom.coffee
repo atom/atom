@@ -12,42 +12,58 @@ _.extend atom,
   exitWhenDone: window.location.params.exitWhenDone
   loadedThemes: []
   pendingBrowserProcessCallbacks: {}
+  loadedPackages: []
+  activatedAtomPackages: []
+  atomPackageStates: {}
+
+  activateAtomPackage: (pack) ->
+    @activatedAtomPackages.push(pack)
+    pack.packageMain.activate(@atomPackageStates[pack.name])
+
+  deactivateAtomPackages: ->
+    pack.packageMain.deactivate?() for pack in @activatedAtomPackages
+    @activatedAtomPackages = []
+
+  serializeAtomPackages: ->
+    packageStates = {}
+    for pack in @activatedAtomPackages
+      try
+        packageStates[pack.name] = pack.packageMain.serialize?()
+      catch e
+        console?.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
+    packageStates
+
+  loadPackage: (name, options) ->
+    packagePath = _.find @getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
+    pack = Package.build(packagePath)
+    pack?.load(options)
 
   loadPackages: ->
-    {packages, asyncTextMatePackages} = _.groupBy @getPackages(), (pack) ->
-      if pack instanceof TextMatePackage and pack.name isnt 'text.tmbundle'
-        'asyncTextMatePackages'
+    textMatePackages = []
+    for path in @getPackagePaths()
+      pack = Package.build(path)
+      @loadedPackages.push(pack)
+      if pack instanceof TextMatePackage and fs.base(pack.path) isnt 'text.tmbundle'
+        textMatePackages.push(pack)
       else
-        'packages'
+        pack.load()
 
-    pack.load() for pack in packages
-    if asyncTextMatePackages.length
-      new LoadTextMatePackagesTask(asyncTextMatePackages).start()
+    new LoadTextMatePackagesTask(textMatePackages).start() if textMatePackages.length > 0
 
-  getPackages: ->
-    @packages ?= @getPackageNames().map((name) -> Package.build(name))
-                                   .filter((pack) -> pack?)
-    new Array(@packages...)
+  getLoadedPackages: ->
+    _.clone(@loadedPackages)
 
-  loadTextMatePackages: ->
-    pack.load() for pack in @getTextMatePackages()
-
-  getTextMatePackages: ->
-    @getPackages().filter (pack) -> pack instanceof TextMatePackage
-
-  loadPackage: (name) ->
-    Package.build(name)?.load()
-
-  getPackageNames: ->
+  getPackagePaths: ->
     disabledPackages = config.get("core.disabledPackages") ? []
-    allPackageNames = []
+    packagePaths = []
     for packageDirPath in config.packageDirPaths
-      packageNames = fs.list(packageDirPath)
-        .filter((packagePath) -> fs.isDirectory(packagePath))
-        .map((packagePath) -> fs.base(packagePath))
-      allPackageNames.push(packageNames...)
-    _.unique(allPackageNames)
-      .filter (name) -> not _.contains(disabledPackages, name)
+      for packagePath in fs.list(packageDirPath)
+        continue if not fs.isDirectory(packagePath)
+        continue if fs.base(packagePath) in disabledPackages
+        continue if packagePath in packagePaths
+        packagePaths.push(packagePath)
+
+    packagePaths
 
   loadThemes: ->
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
@@ -110,6 +126,9 @@ _.extend atom,
 
   endTracing: ->
     @sendMessageToBrowserProcess('endTracing')
+
+  toggleFullScreen: ->
+    @sendMessageToBrowserProcess('toggleFullScreen')
 
   getRootViewStateForPath: (path) ->
     if json = localStorage[path]

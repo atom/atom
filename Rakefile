@@ -25,7 +25,7 @@ task "bootstrap" do
 end
 
 desc "Creates symlink from `application_path() to /Applications/Atom and creates `atom` cli app"
-task :install => :build do
+task :install => [:clean, :build] do
   path = application_path()
   exit 1 if not path
 
@@ -109,6 +109,7 @@ task :clean do
   output = `xcodebuild clean`
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
+  `rm -rf /tmp/atom-compiled-scripts`
 end
 
 desc "Run Atom"

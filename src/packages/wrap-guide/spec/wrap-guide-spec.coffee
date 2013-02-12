@@ -2,10 +2,10 @@ $ = require 'jquery'
 RootView = require 'root-view'
 
 describe "WrapGuide", ->
-  [rootView, editor, wrapGuide] = []
+  [editor, wrapGuide] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    new RootView(require.resolve('fixtures/sample.js'))
     atom.loadPackage('wrap-guide')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()

@@ -1,7 +1,6 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
-Native = require 'native'
 fs = require 'fs'
 $ = require 'jquery'
 Config = require 'config'
@@ -25,18 +24,21 @@ windowAdditions =
     @syntax = new Syntax
     @setUpKeymap()
     @pasteboard = new Pasteboard
+    @setUpEventHandlers()
 
+  setUpEventHandlers: ->
     $(window).on 'core:close', => @close()
     $(window).command 'window:close', => @close()
-    $(window).on 'focus', => $("body").addClass("is-focused")
-    $(window).on 'blur', => $("body").removeClass("is-focused")
+    $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
+    $(window).on 'focus', -> $("body").removeClass('is-blurred')
+    $(window).on 'blur',  -> $("body").addClass('is-blurred')
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
   attachRootView: (pathToOpen) ->
-    if rootViewState = atom.getRootViewStateForPath(pathToOpen)
-      RootView.deserialize(rootViewState)
+    if pathState = atom.getRootViewStateForPath(pathToOpen)
+      RootView.deserialize(pathState)
     else
       new RootView(pathToOpen)
 
@@ -51,8 +53,8 @@ windowAdditions =
       atom.setWindowState('pathToOpen', @rootView.project.getPath())
       @rootView.deactivate()
       @rootView = null
-    $(window).unbind('focus')
-    $(window).unbind('blur')
+    $(window).off('focus')
+    $(window).off('blur')
     $(window).off('before')
 
   setUpKeymap: ->
@@ -93,11 +95,11 @@ windowAdditions =
       atom.confirm(
         "There are unsaved buffers, reload anyway?",
         "You will lose all unsaved changes if you reload",
-        "Reload", (-> Native.reload()),
+        "Reload", (-> $native.reload()),
         "Cancel"
       )
     else
-      Native.reload()
+      $native.reload()
 
   onerror: ->
     atom.showDevTools()

@@ -1,4 +1,3 @@
-Anchor = require 'anchor'
 Point = require 'point'
 Range = require 'range'
 {View, $$} = require 'space-pen'
@@ -69,9 +68,8 @@ class SelectionView extends View
   needsAutoscroll: ->
     @selection.needsAutoscroll
 
-  autoscrolled: ->
-    @selection.autoscrolled()
-    @highlight()
+  clearAutoscroll: ->
+    @selection.clearAutoscroll()
 
   highlight: ->
     @unhighlight()

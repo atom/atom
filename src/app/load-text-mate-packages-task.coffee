@@ -16,10 +16,10 @@ class LoadTextMatePackagesTask extends Task
       return
 
     @package = @packages.shift()
-    @loadPackage(@package.name)
+    @loadPackage(@package.path)
 
-  loadPackage: (name) ->
-    @callWorkerMethod('loadPackage', name)
+  loadPackage: (path) ->
+    @callWorkerMethod('loadPackage', path)
 
   packageLoaded: (grammars) ->
     @package.loadGrammars(grammars)

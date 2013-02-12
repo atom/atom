@@ -1,18 +1,25 @@
-Snippets = require 'snippets'
-Snippet = require 'snippets/src/snippet'
-LoadSnippetsTask = require 'snippets/src/load-snippets-task'
+Snippet = require 'snippets/lib/snippet'
+LoadSnippetsTask = require 'snippets/lib/load-snippets-task'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 _ = require 'underscore'
 fs = require 'fs'
+Package = require 'package'
 
 describe "Snippets extension", ->
   [buffer, editor, editSession] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     spyOn(LoadSnippetsTask.prototype, 'start')
+
+    packageWithSnippets = atom.loadPackage("package-with-snippets")
+
+    spyOn(atom, "getLoadedPackages").andCallFake ->
+      window.textMatePackages.concat([packageWithSnippets])
+
     atom.loadPackage("snippets")
+
     editor = rootView.getActiveEditor()
     editSession = rootView.getActiveEditSession()
     buffer = editor.getBuffer()
@@ -20,7 +27,7 @@ describe "Snippets extension", ->
     rootView.enableKeymap()
 
   afterEach ->
-    rootView.remove()
+    rootView.deactivate()
     delete window.snippets
 
   describe "when 'tab' is triggered on the editor", ->
@@ -86,7 +93,7 @@ describe "Snippets extension", ->
 
       describe "when the snippet contains tab stops", ->
         it "places the cursor at the first tab-stop, and moves the cursor in response to 'next-tab-stop' events", ->
-          anchorCountBefore = editor.activeEditSession.getAnchors().length
+          markerCountBefore = editor.activeEditSession.getMarkerCount()
           editor.setCursorScreenPosition([2, 0])
           editor.insertText('t2')
           editor.trigger keydownEvent('tab', target: editor[0])
@@ -118,7 +125,7 @@ describe "Snippets extension", ->
           editor.trigger keydownEvent('tab', target: editor[0])
           editor.trigger keydownEvent('tab', target: editor[0])
           expect(buffer.lineForRow(2)).toBe "go here next:(abc) and finally go here:(  )"
-          expect(editor.activeEditSession.getAnchors().length).toBe anchorCountBefore
+          expect(editor.activeEditSession.getMarkerCount()).toBe markerCountBefore
 
         describe "when tab stops are nested", ->
           it "destroys the inner tab stop if the outer tab stop is modified", ->
@@ -139,7 +146,7 @@ describe "Snippets extension", ->
             editor.trigger 'snippets:next-tab-stop'
             expect(editSession.getCursorBufferPosition()).toEqual [3, 25]
 
-        describe "when the cursor is moved beyond the bounds of a tab stop", ->
+        describe "when the cursor is moved beyond the bounds of the current tab stop", ->
           it "terminates the snippet", ->
             editor.setCursorScreenPosition([2, 0])
             editor.insertText('t2')
@@ -232,7 +239,6 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
-      atom.packages = null
       jasmine.unspy(LoadSnippetsTask.prototype, 'start')
       spyOn(LoadSnippetsTask.prototype, 'loadAtomSnippets').andCallFake -> @snippetsLoaded({})
       spyOn(LoadSnippetsTask.prototype, 'loadTextMateSnippets').andCallFake -> @snippetsLoaded({})
@@ -271,7 +277,7 @@ describe "Snippets extension", ->
           }
         """
 
-        # warn about junk-file, but don't even try to parse a hidden file
+        # warn about invalid.plist
         expect(console.warn).toHaveBeenCalled()
         expect(console.warn.calls.length).toBe 1
 
@@ -289,6 +295,22 @@ describe "Snippets extension", ->
         expect(console.warn.argsForCall[0]).toMatch /Error reading snippets file '.*?\/spec\/fixtures\/packages\/package-with-snippets\/snippets\/junk-file'/
         expect(Worker.prototype.terminate).toHaveBeenCalled()
         expect(Worker.prototype.terminate.calls.length).toBe 1
+
+    it "loads CSON snippets from TextMate packages", ->
+      jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
+      snippets.loaded = false
+      task = new LoadSnippetsTask(snippets)
+      task.packages = [Package.build(fixturesProject.resolve('packages/package-with-a-cson-grammar.tmbundle'))]
+      task.start()
+
+      waitsFor "CSON snippets to load", 5000, -> snippets.loaded
+
+      runs ->
+        snippet = syntax.getProperty(['.source.alot'], 'snippets.really')
+        expect(snippet).toBeTruthy()
+        expect(snippet.prefix).toBe 'really'
+        expect(snippet.name).toBe 'Really'
+        expect(snippet.body).toBe "I really like  alot"
 
   describe "snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->

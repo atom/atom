@@ -1,11 +1,12 @@
 .command-panel {
   padding: 5px;
+  position: relative;
 }
 
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;
-  margin: 0 1px 5px 10px;
+  margin: 10px 0 10px 10px;
   position: relative;
   cursor: default;
 }
@@ -13,7 +14,10 @@
 .command-panel .preview-count {
   font-size: 11px;
   text-align: right;
-  padding-bottom: 1px;
+  position: absolute;
+  right: 15px;
+  top: 24px;
+  z-index: 9999;
 }
 
 .command-panel .preview-list .path {
@@ -30,6 +34,10 @@
   content: "\f011";
   position: relative;
   top: 1px;
+}
+
+.command-panel .preview-list .path.readme:before {
+  content: "\f007";
 }
 
 .command-panel .preview-list .operation {

@@ -39,8 +39,9 @@ describe "Editor", ->
     rootView.remove()
 
   describe "construction", ->
-    it "throws an error if no editor session is given", ->
+    it "throws an error if no editor session is given unless deserializing", ->
       expect(-> new Editor).toThrow()
+      expect(-> new Editor(deserializing: true)).not.toThrow()
 
   describe ".copy()", ->
     it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
@@ -69,7 +70,7 @@ describe "Editor", ->
 
       newEditor.height(editor.height())
       newEditor.width(editor.width())
-      rootView.remove()
+
       newEditor.attachToDom()
       expect(newEditor.scrollTop()).toBe editor.scrollTop()
       expect(newEditor.scrollView.scrollLeft()).toBe 44
@@ -111,11 +112,9 @@ describe "Editor", ->
       editor.isFocused = false
       editor.hiddenInput.focus()
       expect(editor.isFocused).toBeTruthy()
-      expect(editor).toHaveClass('is-focused')
 
       editor.hiddenInput.focusout()
       expect(editor.isFocused).toBeFalsy()
-      expect(editor).not.toHaveClass('is-focused')
 
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
@@ -1007,41 +1006,52 @@ describe "Editor", ->
         expect(editor.scrollTop()).toBe 0
         expect(editor.scrollView.scrollTop()).toBe 0
 
-        # does auto-scroll when the selection is cleared
+        # does autoscroll when the selection is cleared
         editor.moveCursorDown()
         expect(editor.scrollTop()).toBeGreaterThan(0)
 
     describe "selection autoscrolling and highlighting when setting selected buffer range", ->
-      it "only if autoscroll is true, centers the viewport on the selection if its vertical center is currently offscreen", ->
+      beforeEach ->
         setEditorHeightInLines(editor, 4)
 
-        editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
-        expect(editor.scrollTop()).toBe 0
+      describe "if autoscroll is true", ->
+        it "centers the viewport on the selection if its vertical center is currently offscreen", ->
+          editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
+          expect(editor.scrollTop()).toBe 0
 
-        editor.setSelectedBufferRange([[6, 0], [8, 0]], autoscroll: true)
-        expect(editor.scrollTop()).toBe 5 * editor.lineHeight
+          editor.setSelectedBufferRange([[6, 0], [8, 0]], autoscroll: true)
+          expect(editor.scrollTop()).toBe 5 * editor.lineHeight
 
-        editor.setSelectedBufferRange([[0, 0], [1, 0]]) # autoscroll is false, the default
-        expect(editor.scrollTop()).toBe 5 * editor.lineHeight
+        it "highlights the selection if autoscroll is true", ->
+          editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
+          expect(editor.getSelectionView()).toHaveClass 'highlighted'
+          advanceClock(1000)
+          expect(editor.getSelectionView()).not.toHaveClass 'highlighted'
 
-      it "highlights the selection if autoscroll is true", ->
-        editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
-        expect(editor.getSelectionView()).toHaveClass 'highlighted'
-        advanceClock(1000)
-        expect(editor.getSelectionView()).not.toHaveClass 'highlighted'
+          editor.setSelectedBufferRange([[3, 0], [5, 0]], autoscroll: true)
+          expect(editor.getSelectionView()).toHaveClass 'highlighted'
 
-        editor.setSelectedBufferRange([[3, 0], [5, 0]], autoscroll: true)
-        expect(editor.getSelectionView()).toHaveClass 'highlighted'
+          advanceClock(500)
+          spyOn(editor.getSelectionView(), 'removeClass').andCallThrough()
+          editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
+          expect(editor.getSelectionView().removeClass).toHaveBeenCalledWith('highlighted')
+          expect(editor.getSelectionView()).toHaveClass 'highlighted'
 
-        advanceClock(500)
-        spyOn(editor.getSelectionView(), 'removeClass').andCallThrough()
-        editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
-        expect(editor.getSelectionView().removeClass).toHaveBeenCalledWith('highlighted')
-        expect(editor.getSelectionView()).toHaveClass 'highlighted'
+          advanceClock(500)
+          expect(editor.getSelectionView()).toHaveClass 'highlighted'
 
+      describe "if autoscroll is false", ->
+        it "does not scroll to the selection or the cursor", ->
+          editor.scrollToBottom()
+          scrollTopBefore = editor.scrollTop()
+          editor.setSelectedBufferRange([[0, 0], [1, 0]], autoscroll: false)
+          expect(editor.scrollTop()).toBe scrollTopBefore
 
-        advanceClock(500)
-        expect(editor.getSelectionView()).toHaveClass 'highlighted'
+      describe "if autoscroll is not specified", ->
+        it "autoscrolls to the cursor as normal", ->
+          editor.scrollToBottom()
+          editor.setSelectedBufferRange([[0, 0], [1, 0]])
+          expect(editor.scrollTop()).toBe 0
 
   describe "cursor rendering", ->
     describe "when the cursor moves", ->
@@ -1070,8 +1080,8 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(cursorView).toBeVisible()
 
-      describe "auto-scrolling", ->
-        it "only auto-scrolls when the last cursor is moved", ->
+      describe "autoscrolling", ->
+        it "only autoscrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])
           editor.addCursorAtBufferPosition([6,50])
           [cursor1, cursor2] = editor.getCursors()
@@ -1081,6 +1091,22 @@ describe "Editor", ->
           expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
 
           cursor2.setScreenPosition([11, 11])
+          expect(editor.scrollToPixelPosition).toHaveBeenCalled()
+
+        it "does not autoscroll if the 'autoscroll' option is false", ->
+          editor.setCursorBufferPosition([11,0])
+          spyOn(editor, 'scrollToPixelPosition')
+          editor.setCursorScreenPosition([10, 10], autoscroll: false)
+          expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
+
+        it "autoscrolls to cursor if autoscroll is true, even if the position does not change", ->
+          spyOn(editor, 'scrollToPixelPosition')
+          editor.setCursorScreenPosition([4, 10], autoscroll: false)
+          editor.setCursorScreenPosition([4, 10])
+          expect(editor.scrollToPixelPosition).toHaveBeenCalled()
+          editor.scrollToPixelPosition.reset()
+
+          editor.setCursorBufferPosition([4, 10])
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
 
         describe "when the last cursor exceeds the upper or lower scroll margins", ->
@@ -1757,12 +1783,6 @@ describe "Editor", ->
 
         expect(editor.gutter.find('.line-number:first').text()).toBe '2'
         expect(editor.gutter.find('.line-number:last').text()).toBe '11'
-
-    describe "when the insertion of lines causes the editor to scroll", ->
-      it "renders line numbers correctly", ->
-        oneHundredLines = [0..100].join("\n")
-        editor.insertText(oneHundredLines)
-        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 6 + editor.lineOverdraw * 2
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
@@ -2525,3 +2545,46 @@ describe "Editor", ->
           editor.trigger 'editor:move-line-down'
           expect(buffer.lineForRow(1)).toBe '    if (items.length <= 1) return items;'
           expect(buffer.lineForRow(2)).toBe '  var sort = function(items) {'
+
+  describe "when editor:duplicate-line is triggered", ->
+    describe "where there is no selection", ->
+      describe "when the cursor isn't on a folded line", ->
+        it "duplicates the current line below and moves the cursor down one row", ->
+          editor.setCursorBufferPosition([0, 5])
+          editor.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+          expect(buffer.lineForRow(1)).toBe 'var quicksort = function () {'
+          expect(editor.getCursorBufferPosition()).toEqual [1, 5]
+
+      describe "when the cursor is on a folded line", ->
+        it "duplicates the entire fold before and moves the cursor to the new fold", ->
+          editor.setCursorBufferPosition([4])
+          editor.foldCurrentRow()
+          editor.trigger 'editor:duplicate-line'
+          expect(editor.getCursorScreenPosition()).toEqual [5]
+          expect(editor.isFoldedAtScreenRow(4)).toBeTruthy()
+          expect(editor.isFoldedAtScreenRow(5)).toBeTruthy()
+          expect(buffer.lineForRow(8)).toBe '    while(items.length > 0) {'
+          expect(buffer.lineForRow(9)).toBe '      current = items.shift();'
+          expect(buffer.lineForRow(10)).toBe '      current < pivot ? left.push(current) : right.push(current);'
+          expect(buffer.lineForRow(11)).toBe '    }'
+
+      describe "when the cursor is on the last line and it doesn't have a trailing newline", ->
+        it "inserts a newline and the duplicated line", ->
+          editor.moveCursorToBottom()
+          editor.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(12)).toBe '};'
+          expect(buffer.lineForRow(13)).toBe '};'
+          expect(buffer.lineForRow(14)).toBeUndefined()
+          expect(editor.getCursorBufferPosition()).toEqual [13, 2]
+
+      describe "when the cursor in on the last line and it is only a newline", ->
+        it "duplicates the current line below and moves the cursor down one row", ->
+          editor.moveCursorToBottom()
+          editor.insertNewline()
+          editor.moveCursorToBottom()
+          editor.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(13)).toBe ''
+          expect(buffer.lineForRow(14)).toBe ''
+          expect(buffer.lineForRow(15)).toBeUndefined()
+          expect(editor.getCursorBufferPosition()).toEqual [14, 0]

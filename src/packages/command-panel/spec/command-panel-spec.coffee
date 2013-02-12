@@ -1,19 +1,19 @@
 RootView = require 'root-view'
-CommandPanelView = require 'command-panel/src/command-panel-view'
+CommandPanelView = require 'command-panel/lib/command-panel-view'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [rootView, editor, buffer, commandPanel, project, CommandPanel] = []
+  [editor, buffer, commandPanel, project, CommandPanel] = []
 
   beforeEach ->
-    rootView = new RootView
+    new RootView
     rootView.open(require.resolve 'fixtures/sample.js')
     rootView.enableKeymap()
     project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
-    CommandPanel = atom.loadPackage('command-panel')
-    commandPanel = CommandPanel.getInstance()
+    commandPanelMain = atom.loadPackage('command-panel', activateImmediately: true).packageMain
+    commandPanel = commandPanelMain.commandPanelView
     commandPanel.history = []
     commandPanel.historyIndex = 0
 
@@ -21,7 +21,7 @@ describe "CommandPanel", ->
     rootView.deactivate()
 
   describe "serialization", ->
-    it "preserves the command panel's mini-editor text, visibility, focus, and history across reloads", ->
+    it "preserves the command panel's history across reloads", ->
       rootView.attachToDom()
       rootView.trigger 'command-panel:toggle'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
@@ -31,28 +31,19 @@ describe "CommandPanel", ->
       expect(commandPanel.historyIndex).toBe(1)
       rootView.trigger 'command-panel:toggle'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
-      commandPanel.miniEditor.insertText 'abc'
-      rootView2 = RootView.deserialize(rootView.serialize())
-      rootView.deactivate()
-      rootView2.attachToDom()
 
-      commandPanel = rootView2.activatePackage('command-panel', CommandPanel).getInstance()
-      expect(rootView2.find('.command-panel')).toExist()
-      expect(commandPanel.miniEditor.getText()).toBe 'abc'
-      expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+      rootViewState = rootView.serialize()
+      rootView.deactivate()
+      RootView.deserialize(rootViewState).attachToDom()
+      atom.loadPackage('command-panel')
+
+      expect(rootView.find('.command-panel')).not.toExist()
+      rootView.trigger 'command-panel:toggle'
+      expect(rootView.find('.command-panel')).toExist()
+      commandPanel = rootView.find('.command-panel').view()
       expect(commandPanel.history.length).toBe(1)
       expect(commandPanel.history[0]).toBe('/.')
       expect(commandPanel.historyIndex).toBe(1)
-
-      rootView2.focus()
-      expect(commandPanel.miniEditor.isFocused).toBeFalsy()
-      rootView3 = RootView.deserialize(rootView2.serialize())
-      rootView2.deactivate()
-      rootView3.attachToDom()
-      commandPanel = rootView3.activatePackage('command-panel', CommandPanel).getInstance()
-
-      expect(commandPanel.miniEditor.isFocused).toBeFalsy()
-      rootView3.deactivate()
 
     it "only retains the configured max serialized history size", ->
       rootView.attachToDom()
@@ -67,17 +58,17 @@ describe "CommandPanel", ->
       expect(commandPanel.history[2]).toBe('/test3')
       expect(commandPanel.historyIndex).toBe(3)
 
-      rootView2 = RootView.deserialize(rootView.serialize())
+      rootViewState = rootView.serialize()
       rootView.deactivate()
-      rootView2.attachToDom()
+      RootView.deserialize(rootViewState).attachToDom()
+      atom.loadPackage('command-panel')
+      rootView.trigger 'command-panel:toggle'
 
-      commandPanel = rootView2.activatePackage('command-panel', CommandPanel).getInstance()
+      commandPanel = rootView.find('.command-panel').view()
       expect(commandPanel.history.length).toBe(2)
       expect(commandPanel.history[0]).toBe('/test2')
       expect(commandPanel.history[1]).toBe('/test3')
       expect(commandPanel.historyIndex).toBe(2)
-
-      rootView2.deactivate()
 
   describe "when core:close is triggered on the command panel", ->
     it "detaches the command panel, focuses the RootView and does not bubble the core:close event", ->

@@ -1,0 +1,4 @@
+'name': 'bold text'
+'scope': 'source.gfm'
+'tabTrigger': 'b'
+'content': '**$1**$0'
