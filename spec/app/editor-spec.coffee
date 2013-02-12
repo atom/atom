@@ -156,6 +156,9 @@ describe "Editor", ->
       editSession = editor.activeEditSession
       expect(editor.closedEditSessions.length).toBe 0
       editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.edit(rootView.project.buildEditSessionForPath(rootView.project.resolve('sample.txt')))
+      editor.trigger "core:close"
       expect(editor.closedEditSessions.length).toBe 1
 
     it "closes the active edit session and loads next edit session", ->

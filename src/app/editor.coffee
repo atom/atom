@@ -492,7 +492,7 @@ class Editor extends View
     editSession = @editSessions[index]
     destroySession = =>
       path = editSession.getPath()
-      @closedEditSessions.push({path, index})
+      @closedEditSessions.push({path, index}) if path
       editSession.destroy()
       callback?(index)
 
