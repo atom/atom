@@ -17,3 +17,7 @@
 .gfm .comment.quote {
   font-style: italic;
 }
+
+.gfm .raw {
+  -webkit-font-smoothing: subpixel-antialiased;
+}

@@ -18,3 +18,7 @@
 .gfm .link .entity {
   color: #ddd;
 }
+
+.gfm .raw {
+  color: #aaa;
+}
