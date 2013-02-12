@@ -84,8 +84,10 @@ class AtomReporter extends View
     if @failedCount > 0
       @status.addClass('failed') unless @status.hasClass('failed')
 
-    specCount = "#{@completeSpecCount}/#{@totalSpecCount}"
-    specCount += " (skipping #{@skippedCount})" if @skippedCount
+    if @skippedCount
+      specCount = "#{@completeSpecCount - @skippedCount}/#{@totalSpecCount - @skippedCount} (#{@skippedCount} skipped)"
+    else
+      specCount = "#{@completeSpecCount}/#{@totalSpecCount}"
     @specCount.text specCount
 
     rootSuite = spec.suite
