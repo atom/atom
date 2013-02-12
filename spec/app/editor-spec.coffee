@@ -1351,7 +1351,6 @@ describe "Editor", ->
         it "changes the max line length and repositions the cursor when the window size changes", ->
           editor.setCursorBufferPosition([3, 60])
           setEditorWidthInChars(editor, 40)
-          $(window).trigger 'resize'
           expect(editor.renderedLines.find('.line').length).toBe 19
           expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
           expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
