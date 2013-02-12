@@ -549,6 +549,12 @@ class Editor extends View
       "Cancel"
     )
 
+  moveEditSessionAtIndex: (fromIndex, toIndex) ->
+    editSession = @editSessions.splice(fromIndex, 1)
+    @editSessions.splice(toIndex, 0, editSession[0])
+    @trigger 'editor:edit-session-order-changed'
+    @setActiveEditSessionIndex(toIndex)
+
   transferEditSessionAtIndex: (fromIndex, toIndex, toEditor) ->
     toEditor.editSessions.splice(toIndex, 0, @editSessions.splice(fromIndex, 1)[0])
 
