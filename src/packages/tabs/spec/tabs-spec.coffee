@@ -180,3 +180,28 @@ describe "TabView", ->
 
         expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
         expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
+
+    describe "when a tab is dragged from one editor and dropped onto another editor", ->
+      it "moves the edit session and updates the order of the tabs", ->
+        leftTabs = tabs
+        editor.splitRight()
+        rightTabs = rootView.find('.tabs:last').view()
+
+        sortableElement = [leftTabs.find('.tab:eq(0)')]
+        spyOn(tabs, 'getSortableElement').andCallFake -> sortableElement[0]
+        event = $.Event()
+        event.target = leftTabs
+        event.originalEvent =
+          dataTransfer:
+            data: {}
+            setData: (key, value) -> @data[key] = value
+            getData: (key) -> @data[key]
+
+        tabs.onDragStart(event)
+
+        event.target = rightTabs
+        sortableElement = [rightTabs.find('.tab:eq(0)')]
+        tabs.onDrop(event)
+
+        expect(rightTabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
+        expect(rightTabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"

@@ -550,10 +550,18 @@ class Editor extends View
     )
 
   moveEditSessionAtIndex: (fromIndex, toIndex) ->
+    return if fromIndex is toIndex
     editSession = @editSessions.splice(fromIndex, 1)
     @editSessions.splice(toIndex, 0, editSession[0])
     @trigger 'editor:edit-session-order-changed', [editSession, fromIndex, toIndex]
     @setActiveEditSessionIndex(toIndex)
+
+  moveEditSessionToEditor: (fromIndex, toEditor, toIndex) ->
+    fromEditSession = @editSessions[fromIndex]
+    toEditSession = fromEditSession.copy()
+    @destroyEditSessionIndex(fromIndex)
+    toEditor.edit(toEditSession)
+    toEditor.moveEditSessionAtIndex(toEditor.getActiveEditSessionIndex(), toIndex)
 
   transferEditSessionAtIndex: (fromIndex, toIndex, toEditor) ->
     toEditor.editSessions.splice(toIndex, 0, @editSessions.splice(fromIndex, 1)[0])
