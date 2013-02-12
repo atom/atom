@@ -79,29 +79,34 @@ class TabView extends SortableList
     fromEditor    = fromPane.find('.editor').view()
 
     if fromPaneIndex == toPaneIndex
-      toPane   = fromPane
-      toEditor = fromEditor
+      droppedNearTab = @getSortableElement(event)
+      draggedTab = fromPane.find(".#{TabView.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
+      unless draggedTab.is(droppedNearTab)
+        fromIndex = draggedTab.index()
+        toIndex = droppedNearTab.index()
+        toIndex++ if fromIndex > toIndex
+        fromEditor.moveEditSessionAtIndex(fromIndex, toIndex)
     else
       toPane = $(rootView.find('.pane')[toPaneIndex])
       toEditor = toPane.find('.editor').view()
 
-    droppedNearTab = @getSortableElement(event)
-    draggedTab     = fromPane.find(".#{TabView.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
+      droppedNearTab = @getSortableElement(event)
+      draggedTab     = fromPane.find(".#{TabView.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
 
-    return if draggedTab.is(droppedNearTab)
-    if fromPaneIndex != toPaneIndex
-      return if @containsEditSession(toEditor, fromEditor.editSessions[draggedTab.index()])
+      return if draggedTab.is(droppedNearTab)
+      if fromPaneIndex != toPaneIndex
+        return if @containsEditSession(toEditor, fromEditor.editSessions[draggedTab.index()])
 
-    draggedTab.remove()
-    draggedTab.insertAfter(droppedNearTab)
-    currentDraggedTabIndex = draggedTab.index()
-    fromEditor.transferEditSessionAtIndex(previousDraggedTabIndex, currentDraggedTabIndex, toEditor)
+      draggedTab.remove()
+      draggedTab.insertAfter(droppedNearTab)
+      currentDraggedTabIndex = draggedTab.index()
+      fromEditor.transferEditSessionAtIndex(previousDraggedTabIndex, currentDraggedTabIndex, toEditor)
 
-    if !fromPane.find('.tab').length
-      fromPane.view().remove()
-    else if fromPaneIndex != toPaneIndex && draggedTab.hasClass('active')
-      fromEditor.setActiveEditSessionIndex(0)
+      if !fromPane.find('.tab').length
+        fromPane.view().remove()
+      else if fromPaneIndex != toPaneIndex && draggedTab.hasClass('active')
+        fromEditor.setActiveEditSessionIndex(0)
 
-    @setActiveTab(currentDraggedTabIndex)
-    toEditor.setActiveEditSessionIndex(currentDraggedTabIndex)
-    toEditor.focus()
+      @setActiveTab(currentDraggedTabIndex)
+      toEditor.setActiveEditSessionIndex(currentDraggedTabIndex)
+      toEditor.focus()

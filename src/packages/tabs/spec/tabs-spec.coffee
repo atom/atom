@@ -157,3 +157,26 @@ describe "TabView", ->
       editor.moveEditSessionAtIndex(1, 0)
       expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
       expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+
+  describe "dragging and dropping tabs", ->
+    describe "when a tab is dragged from and dropped onto the same editor", ->
+      it "moves the edit session and updates the order of the tabs", ->
+        expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
+        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+
+        sortableElement = [tabs.find('.tab:eq(0)')]
+        spyOn(tabs, 'getSortableElement').andCallFake -> sortableElement[0]
+        event = $.Event()
+        event.target = tabs[0]
+        event.originalEvent =
+          dataTransfer:
+            data: {}
+            setData: (key, value) -> @data[key] = value
+            getData: (key) -> @data[key]
+
+        tabs.onDragStart(event)
+        sortableElement = [tabs.find('.tab:eq(1)')]
+        tabs.onDrop(event)
+
+        expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
+        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
