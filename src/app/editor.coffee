@@ -549,7 +549,7 @@ class Editor extends View
       "Cancel"
     )
 
-  moveEditSessionAtIndex: (fromIndex, toIndex) ->
+  moveEditSessionToIndex: (fromIndex, toIndex) ->
     return if fromIndex is toIndex
     editSession = @editSessions.splice(fromIndex, 1)
     @editSessions.splice(toIndex, 0, editSession[0])
@@ -561,10 +561,7 @@ class Editor extends View
     toEditSession = fromEditSession.copy()
     @destroyEditSessionIndex(fromIndex)
     toEditor.edit(toEditSession)
-    toEditor.moveEditSessionAtIndex(toEditor.getActiveEditSessionIndex(), toIndex)
-
-  transferEditSessionAtIndex: (fromIndex, toIndex, toEditor) ->
-    toEditor.editSessions.splice(toIndex, 0, @editSessions.splice(fromIndex, 1)[0])
+    toEditor.moveEditSessionToIndex(toEditor.getActiveEditSessionIndex(), toIndex)
 
   activateEditSessionForPath: (path) ->
     for editSession, index in @editSessions

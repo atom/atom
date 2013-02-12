@@ -150,11 +150,11 @@ describe "TabView", ->
       expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
       expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
 
-      editor.moveEditSessionAtIndex(0, 1)
+      editor.moveEditSessionToIndex(0, 1)
       expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
       expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
 
-      editor.moveEditSessionAtIndex(1, 0)
+      editor.moveEditSessionToIndex(1, 0)
       expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
       expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
 
