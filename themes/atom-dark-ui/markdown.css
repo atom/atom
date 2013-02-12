@@ -1,0 +1,19 @@
+.source.gfm {
+  color: #999;
+}
+
+.gfm .markup.heading {
+  color: #eee;
+}
+
+.gfm .link {
+  color: #555;
+}
+
+.gfm .variable.list {
+  color: #555;
+}
+
+.gfm .link .entity {
+  color: #ddd;
+}
