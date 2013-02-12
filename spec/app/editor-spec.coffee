@@ -151,6 +151,16 @@ describe "Editor", ->
       expect(otherEditSession.buffer.subscriptionCount()).toBe 0
 
   describe "when 'close' is triggered", ->
+    it "adds a closed session path to the array", ->
+      editor.edit(rootView.project.buildEditSessionForPath())
+      editSession = editor.activeEditSession
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.edit(rootView.project.buildEditSessionForPath(rootView.project.resolve('sample.txt')))
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 1
+
     it "closes the active edit session and loads next edit session", ->
       editor.edit(rootView.project.buildEditSessionForPath())
       editSession = editor.activeEditSession
@@ -246,6 +256,14 @@ describe "Editor", ->
 
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
+
+    it "removes the opened session from the closed sessions array", ->
+      editor.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 1
+      editor.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+      expect(editor.closedEditSessions.length).toBe 0
 
   describe "switching edit sessions", ->
     [session0, session1, session2] = []
@@ -2664,3 +2682,25 @@ describe "Editor", ->
       editor.moveEditSessionToEditor(0, rightEditor, 0)
       expect(rightEditor.editSessions[0].getPath()).toBe jsPath
       expect(rightEditor.editSessions[1].getPath()).toBe txtPath
+
+  describe "when editor:undo-close-session is triggered", ->
+    describe "when an edit session is opened back up after it is closed", ->
+      it "is removed from the undo stack and not reopened when the event is triggered", ->
+        rootView.open('sample.txt')
+        expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+        editor.trigger "core:close"
+        expect(editor.closedEditSessions.length).toBe 1
+        rootView.open('sample.txt')
+        expect(editor.closedEditSessions.length).toBe 0
+        editor.trigger 'editor:undo-close-session'
+        expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+
+    it "opens the closed session back up at the previous index", ->
+      rootView.open('sample.txt')
+      editor.loadPreviousEditSession()
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
+      editor.trigger "core:close"
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+      editor.trigger 'editor:undo-close-session'
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
+      expect(editor.getActiveEditSessionIndex()).toBe 0
