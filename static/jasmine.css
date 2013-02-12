@@ -11,6 +11,7 @@ body { background-color: #eee; padding: 0; overflow-y: scroll; }
 
 #HTMLReporter { font-size: 11px; font-family: Monaco, monospace; line-height: 1.6em; color: #333333; }
 #HTMLReporter #jasmine_content { position: fixed; right: 100%; }
+
 #HTMLReporter .symbolSummary {
   background-color: #222;
   overflow: hidden;
@@ -18,22 +19,23 @@ body { background-color: #eee; padding: 0; overflow-y: scroll; }
 }
 
 #HTMLReporter .symbolSummary li {
-  display: block;
   float: left;
+  line-height: 10px
   height: 10px;
   width: 10px;
   font-size: 10px;
 }
 
-#HTMLReporter .symbolSummary li.passed:before { color: #63AD75; content: "\02022"; }
-#HTMLReporter .symbolSummary li.failed:before { color: #FF3F05; content: "\02022" }
-#HTMLReporter .symbolSummary li.skipped:before { color: #444; content: "\02022"; }
-#HTMLReporter .symbolSummary li.pending:before { color: #111; content: "\02022"; }
+#HTMLReporter .symbolSummary li.passed { color: #63AD75 }
+#HTMLReporter .symbolSummary li.failed { color: #FF3F05 }
+#HTMLReporter .symbolSummary li.skipped { color: #444 }
+#HTMLReporter .symbolSummary li.pending { color: #111 }
+
+#HTMLReporter .symbolSummary li:before { content: "\02022"; }
 
 #HTMLReporter .symbolSummary li:hover {
   font-size: 20px;
 }
-
 
 #HTMLReporter .status {
   font-size: 20px;
