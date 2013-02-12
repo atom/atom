@@ -2673,13 +2673,23 @@ describe "Editor", ->
       expect(rightEditor.editSessions[1].getPath()).toBe txtPath
 
   describe "when editor:undo-close-session is triggered", ->
-    it "opens the closed session back up", ->
+    describe "when an edit session is opened back up after it is closed", ->
+      it "is removed from the undo stack and not reopened when the event is triggered", ->
+        rootView.open('sample.txt')
+        expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+        editor.trigger "core:close"
+        expect(editor.closedEditSessions.length).toBe 1
+        rootView.open('sample.txt')
+        expect(editor.closedEditSessions.length).toBe 0
+        editor.trigger 'editor:undo-close-session'
+        expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+
+    it "opens the closed session back up at the previous index", ->
       rootView.open('sample.txt')
-      expect(editor.getPath()).toBe require.resolve('fixtures/sample.txt')
-      expect(editor.closedEditSessions.length).toBe 0
+      editor.loadPreviousEditSession()
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
       editor.trigger "core:close"
-      expect(editor.getPath()).toBe require.resolve('fixtures/sample.js')
-      expect(editor.closedEditSessions.length).toBe 1
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
       editor.trigger 'editor:undo-close-session'
-      expect(editor.getPath()).toBe require.resolve('fixtures/sample.txt')
-      expect(editor.closedEditSessions.length).toBe 0
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
+      expect(editor.getActiveEditSessionIndex()).toBe 0

@@ -467,6 +467,8 @@ class Editor extends View
   pushEditSession: (editSession) ->
     index = @editSessions.length
     @editSessions.push(editSession)
+    @closedEditSessions = @closedEditSessions.filter ({path})->
+      path isnt editSession.getPath()
     editSession.on 'destroyed', => @editSessionDestroyed(editSession)
     @trigger 'editor:edit-session-added', [editSession, index]
     index
@@ -474,7 +476,12 @@ class Editor extends View
   getBuffer: -> @activeEditSession.buffer
 
   undoDestroySession: ->
-    @rootView().open(@closedEditSessions.pop(), true) unless @closedEditSessions.length == 0
+    return unless @closedEditSessions.length > 0
+
+    {path, index} = @closedEditSessions.pop()
+    @rootView().open(path)
+    activeIndex = @getActiveEditSessionIndex()
+    @moveEditSessionToIndex(activeIndex, index) if index < activeIndex
 
   destroyActiveEditSession: ->
     @destroyEditSessionIndex(@getActiveEditSessionIndex())
@@ -485,7 +492,7 @@ class Editor extends View
     editSession = @editSessions[index]
     destroySession = =>
       path = editSession.getPath()
-      @closedEditSessions.push(path) unless @closedEditSessions.indexOf(path) > -1
+      @closedEditSessions.push({path, index})
       editSession.destroy()
       callback?(index)
 
