@@ -92,8 +92,6 @@ class TabView extends SortableList
       toPane = $(rootView.find('.pane')[toPaneIndex])
       toEditor = toPane.find('.editor').view()
 
-      if fromPaneIndex != toPaneIndex
-        return if @containsEditSession(toEditor, fromEditor.editSessions[draggedTab.index()])
-
-      fromEditor.moveEditSessionToEditor(draggedTab.index(), toEditor, droppedNearTab.index() + 1)
-      toEditor.focus()
+      unless @containsEditSession(toEditor, fromEditor.editSessions[draggedTab.index()])
+        fromEditor.moveEditSessionToEditor(draggedTab.index(), toEditor, droppedNearTab.index() + 1)
+        toEditor.focus()
