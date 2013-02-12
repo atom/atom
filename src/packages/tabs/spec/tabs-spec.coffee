@@ -160,7 +160,7 @@ describe "TabView", ->
 
   describe "dragging and dropping tabs", ->
     describe "when a tab is dragged from and dropped onto the same editor", ->
-      it "moves the edit session and updates the order of the tabs", ->
+      it "moves the edit session, updates the order of the tabs, and focuses the editor", ->
         expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
         expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
 
@@ -174,17 +174,19 @@ describe "TabView", ->
             setData: (key, value) -> @data[key] = value
             getData: (key) -> @data[key]
 
+        editor.hiddenInput.focusout()
         tabs.onDragStart(event)
         sortableElement = [tabs.find('.tab:eq(1)')]
         tabs.onDrop(event)
 
         expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
         expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
+        expect(editor.isFocused).toBeTruthy()
 
     describe "when a tab is dragged from one editor and dropped onto another editor", ->
-      it "moves the edit session and updates the order of the tabs", ->
+      it "moves the edit session, updates the order of the tabs, and focuses the destination editor", ->
         leftTabs = tabs
-        editor.splitRight()
+        rightEditor = editor.splitRight()
         rightTabs = rootView.find('.tabs:last').view()
 
         sortableElement = [leftTabs.find('.tab:eq(0)')]
@@ -197,6 +199,7 @@ describe "TabView", ->
             setData: (key, value) -> @data[key] = value
             getData: (key) -> @data[key]
 
+        rightEditor.hiddenInput.focusout()
         tabs.onDragStart(event)
 
         event.target = rightTabs
@@ -205,3 +208,4 @@ describe "TabView", ->
 
         expect(rightTabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
         expect(rightTabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
+        expect(rightEditor.isFocused).toBeTruthy()

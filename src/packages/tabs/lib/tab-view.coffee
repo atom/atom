@@ -87,6 +87,7 @@ class TabView extends SortableList
       toIndex = droppedNearTab.index()
       toIndex++ if fromIndex > toIndex
       fromEditor.moveEditSessionToIndex(fromIndex, toIndex)
+      fromEditor.focus()
     else
       toPane = $(rootView.find('.pane')[toPaneIndex])
       toEditor = toPane.find('.editor').view()
