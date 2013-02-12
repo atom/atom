@@ -254,6 +254,14 @@ describe "Editor", ->
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
 
+    it "removes the opened session from the closed sessions array", ->
+      editor.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 1
+      editor.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+      expect(editor.closedEditSessions.length).toBe 0
+
   describe "switching edit sessions", ->
     [session0, session1, session2] = []
 
