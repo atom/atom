@@ -6,6 +6,18 @@
   padding: 10px;
 }
 
+.command-panel .header {
+  background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  padding: 5px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.02);
+  margin-bottom: 0;
+  border-top-right-radius: 3px;
+  border-top-left-radius: 3px;
+}
+
 .command-panel .preview-list {
   background-color: #19191b;
   color: #6d736f;
@@ -15,10 +27,30 @@
 }
 
 .command-panel .preview-count {
+  display: inline-block;
+  margin-top: 5px;
   color: #969696;
-  background: #161719;
-  padding: 5px;
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.command-panel .expand-collapse {
+  color: #969696;
+}
+
+.command-panel .expand-collapse li {
+  background: -webkit-linear-gradient(#19191a, #1a1b1c);
+  margin-left: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 11px;
   border-radius: 3px;
+  box-shadow:
+    inset -1px -1px 0 rgba(255, 255, 255, 0.1),
+    inset 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+.command-panel .expand-collapse li:hover {
+  color: #fff;
 }
 
 .command-panel .preview-list li.selected,

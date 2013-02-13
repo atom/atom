@@ -25,13 +25,22 @@
   cursor: default;
 }
 
-.command-panel .preview-count {
-  font-size: 11px;
-  text-align: right;
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  z-index: 9999;
+.command-panel .header:after {
+  content: ".";
+  display: block;
+  visibility: hidden;
+  clear: both;
+  height: 0;
+}
+
+.command-panel .expand-collapse {
+  float: right;
+  display: inline-block;
+}
+
+.command-panel .expand-collapse li {
+  display: inline-block;
+  padding: 5px;
 }
 
 .command-panel .preview-list .path {
