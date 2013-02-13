@@ -36,3 +36,5 @@ class VimState
     right: "core:move-right"
     up: "core:move-up"
     down: "core:move-down"
+    'move-to-beginning-of-line': "core:move-to-beginning-of-line"
+    'move-to-end-of-line': "core:move-to-end-of-line"

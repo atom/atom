@@ -10,6 +10,7 @@ class EventMonitor
     @events.length
   lastEvent: () ->
     @events[@events.length - 1]
+  command: (name) ->
 
 fdescribe "Vim state", ->
 
@@ -52,8 +53,10 @@ fdescribe "Vim state", ->
       describe "right", ->
         it_sends_motion_event "right", "core:move-right"
       describe "first character", ->
+        it_sends_motion_event "move-to-beginning-of-line", "core:move-to-beginning-of-line"
       describe "first non-blank character", ->
       describe "end of line", ->
+        it_sends_motion_event "move-to-end-of-line", "core:move-to-end-of-line"
 
     describe "up-down", ->
       describe "up", ->
