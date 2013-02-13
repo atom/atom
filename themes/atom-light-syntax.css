@@ -160,3 +160,21 @@
 .editor .css.constant {
   color: #099;
 }
+
+
+/* Markdown */
+.editor .source.gfm {
+  color: #444;
+}
+
+.editor .gfm .markup.heading {
+  color: #111;
+}
+
+.editor .gfm .link {
+  color: #888;
+}
+
+.editor .gfm .variable.list {
+  color: #888;
+}

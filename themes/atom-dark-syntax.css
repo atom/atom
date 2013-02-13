@@ -222,3 +222,30 @@
 .meta.line.error.logfile {
   background-color: #751012;
 }
+
+/* Markdown Styles */
+
+.editor .source.gfm {
+  color: #999;
+}
+
+.editor .gfm .markup.heading {
+  color: #eee;
+}
+
+.editor .gfm .link {
+  color: #555;
+}
+
+.editor .gfm .variable.list,
+.editor .gfm .support.quote {
+  color: #555;
+}
+
+.editor .gfm .link .entity {
+  color: #ddd;
+}
+
+.editor .gfm .raw {
+  color: #aaa;
+}
