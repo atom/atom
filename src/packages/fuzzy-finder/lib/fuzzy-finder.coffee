@@ -30,7 +30,7 @@ module.exports =
     @fuzzyFinderView = null
 
   serialize: ->
-    @fuzzyFinderView?.getPaths()
+    @fuzzyFinderView?.getOpenedPaths()
 
   createView:  ->
     unless @fuzzyFinderView
