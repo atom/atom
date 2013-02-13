@@ -3,6 +3,20 @@
   position: relative;
 }
 
+.command-panel .is-loading {
+  display: block;
+  margin: 0 auto 10px auto;
+  width: 100px;
+  background-color: #111;
+  background-size: auto;
+  background-position: 5px 5px;
+  padding: 5px 5px 10px 30px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255,  0.1);
+  border-top: 1px solid rgba(0, 0, 0, 1);
+  border-left: 1px solid rgba(0, 0, 0, 1);
+}
+
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;
