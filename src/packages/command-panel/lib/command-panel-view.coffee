@@ -12,7 +12,12 @@ class CommandPanelView extends View
   @content: ->
     @div class: 'command-panel tool-panel', =>
       @div class: 'loading', outlet: 'loadingMessage'
-      @div outlet: 'previewCount', class: 'preview-count'
+      @div class: 'header', =>
+        @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
+          @li class: 'expand', 'Expand All'
+          @li class: 'collapse', 'Collapse All'
+        @span outlet: 'previewCount', class: 'preview-count'
+
       @subview 'previewList', new PreviewList(rootView)
       @ul class: 'error-messages', outlet: 'errorMessages'
       @div class: 'prompt-and-editor', =>
