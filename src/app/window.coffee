@@ -63,7 +63,6 @@ windowAdditions =
     @keymap = new Keymap()
     @keymap.bindDefaultKeys()
     @keymap.loadBundledKeymaps()
-    @keymap.loadUserKeymaps()
 
     @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
     $(document).on 'keydown', @_handleKeyEvent
