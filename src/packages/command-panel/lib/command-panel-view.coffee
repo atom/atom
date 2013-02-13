@@ -11,6 +11,7 @@ module.exports =
 class CommandPanelView extends View
   @content: ->
     @div class: 'command-panel tool-panel', =>
+      @div class: 'loading', outlet: 'loadingMessage'
       @div outlet: 'previewCount', class: 'preview-count'
       @subview 'previewList', new PreviewList(rootView)
       @ul class: 'error-messages', outlet: 'errorMessages'
@@ -77,6 +78,16 @@ class CommandPanelView extends View
       else
         @miniEditor.focus()
 
+  toggleLoading: ->
+    if @loadingMessage.hasClass 'is-loading'
+      @loadingMessage.removeClass 'is-loading'
+      @loadingMessage.html ''
+      @loadingMessage.hide()
+    else
+      @loadingMessage.addClass 'is-loading'
+      @loadingMessage.html 'Searching...'
+      @loadingMessage.show()
+
   attach: (text='', options={}) ->
     @errorMessages.hide()
 
@@ -96,10 +107,12 @@ class CommandPanelView extends View
     @miniEditor.getText()
 
   execute: (command=@escapedCommand())->
+    @toggleLoading()
     @errorMessages.empty()
 
     try
       @commandInterpreter.eval(command, rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
+        @toggleLoading()
         @history.push(command)
         @historyIndex = @history.length
 
