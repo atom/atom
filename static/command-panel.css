@@ -41,6 +41,8 @@
 .command-panel .expand-collapse li {
   display: inline-block;
   padding: 5px;
+  cursor: pointer;
+  font-size: 11px;
 }
 
 .command-panel .preview-list .path {

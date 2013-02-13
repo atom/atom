@@ -41,8 +41,6 @@
   background: -webkit-linear-gradient(#19191a, #1a1b1c);
   margin-left: 5px;
   padding: 5px 10px;
-  cursor: pointer;
-  font-size: 11px;
   border-radius: 3px;
   box-shadow:
     inset -1px -1px 0 rgba(255, 255, 255, 0.1),

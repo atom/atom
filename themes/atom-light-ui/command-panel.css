@@ -2,6 +2,21 @@
   background-color: #f4f4f4;
   border-top: 1px solid #979797;
   color: #ededed;
+  padding: 10px;
+}
+
+.command-panel .header {
+  padding: 5px;
+  background-image: -webkit-linear-gradient(#e7e7e7, #cfcfcf);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: none;
+  padding: 5px;
+  border-top-right-radius: 3px;
+  border-top-left-radius: 3px;
+}
+
+.command-panel .expand-collapse {
+  color: #333;
 }
 
 .command-panel .preview-list {
