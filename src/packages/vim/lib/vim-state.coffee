@@ -2,6 +2,9 @@ module.exports =
 class VimState
   constructor: (@target, @vim) ->
     @resetState()
+    for m,event of @motionEvents
+      do (m, event) =>
+        @target.command "vim:motion-#{m}", => @motion(m)
   motion: (type) ->
     event = @motionEvents[type]
     window.console.log "Performing motion #{type} with event #{event}"

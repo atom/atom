@@ -23,9 +23,9 @@ class VimView extends View
     'q': "core:close"
 
   initialize: (@rootView, @editor) ->
-    @state = new VimState(@editor, this)
     @editor.vim = this
     @vim = $(this)
+    @state = new VimState(@editor, this)
     @enterInsertMode()
 
     @editor.command "vim:insert-mode", (e) => @enterInsertMode()
@@ -38,20 +38,9 @@ class VimView extends View
     @command 'core:close', => @discardCommand()
     @command 'vim:execute', => @executeCommand()
 
-
-    @editor.command 'vim:motion-left', => @state.motion("left")
-    @editor.command 'vim:motion-right', => @state.motion("right")
-
-    @editor.command "vim:count-add-1", => @state.addCountDecimal(1)
-    @editor.command "vim:count-add-2", => @state.addCountDecimal(2)
-    @editor.command "vim:count-add-3", => @state.addCountDecimal(3)
-    @editor.command "vim:count-add-4", => @state.addCountDecimal(4)
-    @editor.command "vim:count-add-5", => @state.addCountDecimal(5)
-    @editor.command "vim:count-add-6", => @state.addCountDecimal(6)
-    @editor.command "vim:count-add-7", => @state.addCountDecimal(7)
-    @editor.command "vim:count-add-8", => @state.addCountDecimal(8)
-    @editor.command "vim:count-add-9", => @state.addCountDecimal(9)
-    @editor.command "vim:count-add-0", => @state.addCountDecimal(0)
+    for n in [0..9]
+      do (n) =>
+        @editor.command "vim:count-add-#{n}", => @state.addCountDecimal(n)
 
     @subscribe $(window), 'focus', => @updateCommandLine()
     @miniEditor.setFontSize "11"
