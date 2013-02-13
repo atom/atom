@@ -6,11 +6,7 @@ module.exports =
 class WrapGuideView extends View
   @activate: ->
     rootView.eachEditor (editor) =>
-      @appendToEditorPane(rootView, editor) if editor.attached
-
-  @appendToEditorPane: (rootView, editor) ->
-    if underlayer = editor.find('.underlayer')
-      underlayer.append(new WrapGuideView(editor))
+      editor.underlayer.append(new WrapGuideView(editor)) if editor.attached
 
   @content: ->
     @div class: 'wrap-guide'
