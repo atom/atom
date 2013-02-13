@@ -38,7 +38,7 @@ class WrapGuideView extends View
     if column > 0
       columnWidth = @editor.charWidth * column
       if columnWidth < @editor.layerMinWidth or columnWidth < @editor.width()
-        @css('left', "#{columnWidth}px").show()
+        @css('left', columnWidth).show()
       else
         @hide()
     else
