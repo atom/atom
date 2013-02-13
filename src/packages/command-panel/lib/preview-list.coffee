@@ -23,6 +23,8 @@ class PreviewList extends ScrollView
       @executeSelectedOperation()
 
     @on 'mousedown', 'li.path', @onPathSelected
+    @command 'command-panel:collapse-all', => @collapseAllPaths()
+    @command 'command-panel:expand-all', => @expandAllPaths()
 
   onPathSelected: (event) =>
     e = $(event.target)
