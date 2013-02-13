@@ -1,6 +1,7 @@
 RootView = require 'root-view'
 FuzzyFinder = require 'fuzzy-finder/lib/fuzzy-finder-view'
 LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
+_ = require 'underscore'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
@@ -144,6 +145,21 @@ describe 'FuzzyFinder', ->
           expect(finderView.list.find("li:contains(sample.txt)")).toExist()
           expect(finderView.list.find("li:contains(sample-with-tabs.coffee)")).toExist()
           expect(finderView.list.children().first()).toHaveClass 'selected'
+
+        it "serializes the list of paths and their last opened time", ->
+          rootView.open 'sample-with-tabs.coffee'
+          rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+          rootView.open 'sample.js'
+          rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+
+          states = rootView.serialize().packageStates
+          states = _.map states['fuzzy-finder'], (path, time) -> [ path, time ]
+          states = _.sortBy states, (path, time) -> -time
+
+          paths = [ 'sample-with-tabs.coffee', 'sample.txt', 'sample.js' ]
+          for [time, path] in states
+            expect(_.last path.split '/').toBe paths.shift()
+            expect(time).toBeGreaterThan 50000
 
       describe "when the active editor only contains edit sessions for anonymous buffers", ->
         it "does not open", ->
