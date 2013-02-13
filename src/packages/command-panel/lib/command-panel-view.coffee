@@ -46,6 +46,9 @@ class CommandPanelView extends View
     rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
     rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
+    @on 'click', '.expand', @onExpandAll
+    @on 'click', '.collapse', @onCollapseAll
+
     @previewList.hide()
     @previewCount.hide()
     @errorMessages.hide()
@@ -93,6 +96,12 @@ class CommandPanelView extends View
       @loadingMessage.html 'Searching...'
       @loadingMessage.show()
 
+  onExpandAll: (event) =>
+    @previewList.expandAllPaths()
+
+  onCollapseAll: (event) =>
+      @previewList.collapseAllPaths()
+
   attach: (text='', options={}) ->
     @errorMessages.hide()
 
@@ -118,6 +127,7 @@ class CommandPanelView extends View
     try
       @commandInterpreter.eval(command, rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
         @toggleLoading()
+        @expandCollapse.show()
         @history.push(command)
         @historyIndex = @history.length
 

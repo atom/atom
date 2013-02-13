@@ -35,7 +35,7 @@
 
 .command-panel .expand-collapse {
   float: right;
-  display: inline-block;
+  display: none;
 }
 
 .command-panel .expand-collapse li {
