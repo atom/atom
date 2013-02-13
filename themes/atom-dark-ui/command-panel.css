@@ -8,7 +8,7 @@
 
 .command-panel .preview-list {
   background-color: #19191b;
-  color: #C5C8C6;
+  color: #6d736f;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -22,23 +22,29 @@
 }
 
 .command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
-  background-color: rgba(255, 255, 255, .13);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .command-panel .preview-list:focus li.selected {
-  background-color: rgba(255, 255, 255, .2);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .command-panel .preview-list .path {
-  color: #fff;
+  color: #999;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.command-panel .preview-list .path:first-child {
+  border-top: none;
 }
 
 .command-panel .preview-list .line-number {
-  color: rgba(255, 255, 255, .3);
+  color: rgba(255, 255, 255, 0.3);
+  font-family: monospace;
 }
 
 .command-panel .preview-list .path-match-number {
-  color: rgba(255, 255, 255, .3);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .command-panel .preview-list .preview {
@@ -46,6 +52,6 @@
 }
 
 .command-panel .preview-list .preview .match {
-  background-color: rgba(255, 255, 255, .2);
-  color: yellow;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #cca300;
 }
