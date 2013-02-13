@@ -1,0 +1,2 @@
+'main': 'lib/##package-name##'
+'activationEvents': ['##package-name##:toggle']
