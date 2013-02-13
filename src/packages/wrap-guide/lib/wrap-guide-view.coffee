@@ -5,7 +5,7 @@ _ = require 'underscore'
 module.exports =
 class WrapGuideView extends View
   @activate: ->
-    rootView.eachEditor (editor) =>
+    rootView.eachEditor (editor) ->
       editor.underlayer.append(new WrapGuideView(editor)) if editor.attached
 
   @content: ->
