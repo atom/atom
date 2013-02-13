@@ -3,14 +3,14 @@ $ = require 'jquery'
 Editor = require 'editor'
 
 module.exports =
-class Vim extends View
-  @activate: (rootView) ->
+class VimView extends View
+  @activate: ->
     rootView.eachEditor (editor) =>
       @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
     if pane = editor.pane()
-      pane.append(new Vim(rootView, editor))
+      pane.append(new VimView(rootView, editor))
 
   @content: ->
     @div class: 'vim', =>
@@ -93,7 +93,7 @@ class Vim extends View
 
   runCommand: (input) ->
     for c in input
-      if command = Vim.commands[c]
+      if command = VimView.commands[c]
         @editor.trigger command
         true
     false
