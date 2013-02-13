@@ -1,4 +1,4 @@
-PackageGeneratorView = require 'package-generator/lib/package-generator-view'
+PackageGeneratorView = require './package-generator-view'
 
 module.exports =
   view: null
