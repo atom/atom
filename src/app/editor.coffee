@@ -55,6 +55,7 @@ class Editor extends View
   pendingChanges: null
   newCursors: null
   newSelections: null
+  redrawOnReattach: false
 
   @deserialize: (state, rootView) ->
     editor = new Editor(mini: state.mini, deserializing: true)
@@ -447,7 +448,9 @@ class Editor extends View
       @syncCursorAnimations()
 
   afterAttach: (onDom) ->
-    return if @attached or not onDom
+    return unless onDom
+    @redraw() if @redrawOnReattach
+    return if @attached
     @attached = true
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
@@ -726,7 +729,11 @@ class Editor extends View
       headTag.append styleTag
 
     styleTag.text(".editor {font-size: #{fontSize}px}")
-    @redraw()
+
+    if @isOnDom()
+      @redraw()
+    else
+      @redrawOnReattach = @attached
 
   getFontSize: ->
     parseInt(@css("font-size"))
@@ -734,9 +741,9 @@ class Editor extends View
   setFontFamily: (fontFamily) ->
     return if fontFamily == undefined
     headTag = $("head")
-    styleTag = headTag.find("style.font-family")
+    styleTag = headTag.find("style.editor-font-family")
     if styleTag.length == 0
-      styleTag = $$ -> @style class: 'font-family'
+      styleTag = $$ -> @style class: 'editor-font-family'
       headTag.append styleTag
 
     styleTag.text(".editor {font-family: #{fontFamily}}")
@@ -744,8 +751,13 @@ class Editor extends View
 
   getFontFamily: -> @css("font-family")
 
+  clearFontFamily: ->
+    $('head style.editor-font-family').remove()
+
   redraw: ->
+    return unless @hasParent()
     return unless @attached
+    @redrawOnReattach = false
     @calculateDimensions()
     @updatePaddingOfRenderedLines()
     @updateLayerDimensions()
@@ -842,10 +854,6 @@ class Editor extends View
     @overlayer.append(view)
 
   calculateDimensions: ->
-    if not @isOnDom()
-      detachedEditorParent = _.last(@parents()) ? this
-      $(document.body).append(detachedEditorParent)
-
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)
 
@@ -856,8 +864,6 @@ class Editor extends View
     @charHeight = charRect.height
     @height(@lineHeight) if @mini
     fragment.remove()
-
-    $(detachedEditorParent).detach()
 
   updateLayerDimensions: ->
     @gutter.calculateWidth()
@@ -1095,6 +1101,9 @@ class Editor extends View
     @pendingChanges.push(change)
     @requestDisplayUpdate()
 
+  buildLineElementForScreenRow: (screenRow) ->
+    @buildLineElementsForScreenRows(screenRow, screenRow)[0]
+
   buildLineElementsForScreenRows: (startRow, endRow) ->
     div = document.createElement('div')
     div.innerHTML = @buildLinesHtml(@activeEditSession.linesForScreenRows(startRow, endRow))
@@ -1184,8 +1193,36 @@ class Editor extends View
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
   pixelPositionForScreenPosition: (position) ->
-    position = Point.fromObject(position)
-    { top: position.row * @lineHeight, left: position.column * @charWidth }
+    return { top: 0, left: 0 } unless @isOnDom()
+    {row, column} = Point.fromObject(position)
+    actualRow = Math.floor(row)
+
+    lineElement = existingLineElement = @lineElementForScreenRow(actualRow)[0]
+    unless existingLineElement
+      lineElement = @buildLineElementForScreenRow(actualRow)
+      @renderedLines.append(lineElement)
+    left = @positionLeftForLineAndColumn(lineElement, column)
+    unless existingLineElement
+      @renderedLines[0].removeChild(lineElement)
+    { top: row * @lineHeight, left }
+
+  positionLeftForLineAndColumn: (lineElement, column) ->
+    return 0 if column is 0
+    delta = 0
+    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+    while textNode = iterator.nextNode()
+      nextDelta = delta + textNode.textContent.length
+      if nextDelta >= column
+        offset = column - delta
+        break
+      delta = nextDelta
+
+    range = document.createRange()
+    range.setEnd(textNode, offset)
+    range.collapse()
+    leftPixels = range.getClientRects()[0].left - @scrollView.offset().left + @scrollView.scrollLeft()
+    range.detach()
+    leftPixels
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)

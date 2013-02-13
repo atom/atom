@@ -482,13 +482,13 @@ describe "Editor", ->
       openHandler = jasmine.createSpy('openHandler')
       editor.on 'editor:attached', openHandler
 
-      editor.simulateDomAttachment()
+      editor.attachToDom()
       expect(openHandler).toHaveBeenCalled()
       [event, eventEditor] = openHandler.argsForCall[0]
       expect(eventEditor).toBe editor
 
       openHandler.reset()
-      editor.simulateDomAttachment()
+      editor.attachToDom()
       expect(openHandler).not.toHaveBeenCalled()
 
   describe "editor-path-changed event", ->
@@ -541,6 +541,9 @@ describe "Editor", ->
       expect($("head style.font-family")).not.toExist()
 
     describe "when the font family changes", ->
+      afterEach ->
+        editor.clearFontFamily()
+
       it "updates the font family on new and existing editors", ->
         rootView.attachToDom()
         rootView.height(200)
@@ -549,7 +552,7 @@ describe "Editor", ->
         config.set("editor.fontFamily", "Courier")
         newEditor = editor.splitRight()
 
-        expect($("head style.font-family").text()).toMatch "{font-family: Courier}"
+        expect($("head style.editor-font-family").text()).toMatch "{font-family: Courier}"
         expect(editor.css('font-family')).toBe 'Courier'
         expect(newEditor.css('font-family')).toBe 'Courier'
 
@@ -560,7 +563,7 @@ describe "Editor", ->
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "Inconsolata")
+        config.set("editor.fontFamily", "Courier")
         editor.setCursorScreenPosition [5, 6]
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
@@ -633,7 +636,7 @@ describe "Editor", ->
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
 
       describe "when the editor is detached", ->
-        it "updates the font-size correctly and recalculates the dimensions by placing the rendered lines on the DOM", ->
+        it "redraws the editor according to the new font size when it is reattached", ->
           rootView.attachToDom()
           rootView.height(200)
           rootView.width(200)
@@ -1098,6 +1101,19 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(cursorView).toBeVisible()
 
+      describe "when the editor is using a variable-width font", ->
+        beforeEach ->
+          editor.setFontFamily('sans-serif')
+
+        afterEach ->
+          editor.clearFontFamily()
+
+        it "correctly positions the cursor", ->
+          editor.setCursorBufferPosition([3, 30])
+          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
+          editor.setCursorBufferPosition([3, Infinity])
+          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
+
       describe "autoscrolling", ->
         it "only autoscrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])
@@ -1335,7 +1351,6 @@ describe "Editor", ->
         it "changes the max line length and repositions the cursor when the window size changes", ->
           editor.setCursorBufferPosition([3, 60])
           setEditorWidthInChars(editor, 40)
-          $(window).trigger 'resize'
           expect(editor.renderedLines.find('.line').length).toBe 19
           expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
           expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
