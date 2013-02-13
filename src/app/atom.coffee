@@ -18,7 +18,7 @@ _.extend atom,
 
   activateAtomPackage: (pack) ->
     @activatedAtomPackages.push(pack)
-    pack.packageMain.activate(@atomPackageStates[pack.name])
+    pack.packageMain.activate(@atomPackageStates[pack.name] ? {})
 
   deactivateAtomPackages: ->
     pack.packageMain.deactivate?() for pack in @activatedAtomPackages

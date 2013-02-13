@@ -101,7 +101,7 @@ describe "the `atom` global", ->
     describe ".activateAtomPackage(package)", ->
       it "calls activate on the package", ->
         atom.activateAtomPackage(pack)
-        expect(packageModule.activate).toHaveBeenCalledWith(undefined)
+        expect(packageModule.activate).toHaveBeenCalledWith({})
 
       it "calls activate on the package module with its previous state", ->
         atom.activateAtomPackage(pack)
