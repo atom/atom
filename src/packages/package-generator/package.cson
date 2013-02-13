@@ -1,1 +1,2 @@
 'main': 'lib/package-generator'
+'activationEvents': ['package-generator:generate']
