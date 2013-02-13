@@ -31,7 +31,7 @@
 
 .command-panel .preview-list .path {
   color: #999;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .command-panel .preview-list .path:first-child {

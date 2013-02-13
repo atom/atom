@@ -22,6 +22,16 @@ class PreviewList extends ScrollView
       @setSelectedOperationIndex(parseInt($(e.target).closest('li').data('index')))
       @executeSelectedOperation()
 
+    @on 'click', 'li.path', @onPathSelected
+
+  onPathSelected: (event) =>
+    e = $(event.target)
+    e = e.parent() if e.parent().hasClass 'path'
+    return unless e.hasClass 'path'
+    e.children('ul.matches').toggle 100, (e) ->
+      $(this).closest('li.path').toggleClass 'is-collapsed'
+
+
   destroy: ->
     @destroyOperations() if @operations
 
