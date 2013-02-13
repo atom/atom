@@ -54,9 +54,9 @@ semantics and those of stylesheets, but they should be negligible in practice.
 
 If you understand CSS, you can write an Atom theme easily. Your theme can style
 Atom's user interface, specify the appearance of syntax-highlighted code, or
-both. For making a syntax highlighting theme, refer to [section 12.4 of the
-TextMate Manual](http://manual.macromates.com/en/language_grammars.html) for a
-list of the common scopes used by TextMate grammars. You'll just need to
+both. For making a syntax highlighting theme, refer to
+[section 12.4 of the TextMate Manual](http://manual.macromates.com/en/language_grammars.html)
+for a list of the common scopes used by TextMate grammars. You'll just need to
 translate scope names to CSS classes. To theme Atom's user interface, take a
 look at the existing light and dark themes for an example. Pressing `alt-meta-i`
 and inspecting the Atom's markup directly can also be helpful.
