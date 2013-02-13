@@ -5,7 +5,7 @@ BUILD_DIR = 'atom-build'
 require 'erb'
 
 desc "Build Atom via `xcodebuild`"
-task :build => "create-project" do
+task :build => "create-xcode-project" do
   command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
@@ -15,7 +15,7 @@ task :build => "create-project" do
 end
 
 desc "Create xcode project from gyp file"
-task "create-project" => "bootstrap" do
+task "create-xcode-project" => "bootstrap" do
   `rm -rf atom.xcodeproj`
   `gyp --depth=. atom.gyp`
 end
