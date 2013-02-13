@@ -99,6 +99,7 @@ keys by calling `window.keymap.bindKeys` with a CSS selector and a hash of key-p
 ```coffeescript
 window.keymap.bindKeys '.editor'
   'ctrl-p': 'party-time'
+
   'ctrl-q': 'open-dialog-q'
 ```
 

@@ -51,10 +51,7 @@
     'end': '^```$'
     'endCaptures':
       '0': 'name': 'support.gfm'
-    'patterns': [
-      'match': '.*'
-      'name': 'markup.raw.gfm'
-    ]
+    'name': 'markup.raw.gfm'
   }
   {
     'match': '`[^`]+`'

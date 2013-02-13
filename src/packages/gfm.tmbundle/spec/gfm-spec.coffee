@@ -85,11 +85,11 @@ describe "GitHub Flavored Markdown grammar", ->
 
   it "tokenizes a ``` code block```", ->
     {tokens, ruleStack} = grammar.tokenizeLine("```coffeescript")
-    expect(tokens[0]).toEqual value: "```coffeescript", scopes: ["source.gfm", "support.gfm"]
+    expect(tokens[0]).toEqual value: "```coffeescript", scopes: ["source.gfm", "markup.raw.gfm", "support.gfm"]
     {tokens, ruleStack} = grammar.tokenizeLine("-> 'hello'", ruleStack)
     expect(tokens[0]).toEqual value: "-> 'hello'", scopes: ["source.gfm", "markup.raw.gfm"]
     {tokens} = grammar.tokenizeLine("```", ruleStack)
-    expect(tokens[0]).toEqual value: "```", scopes: ["source.gfm", "support.gfm"]
+    expect(tokens[0]).toEqual value: "```", scopes: ["source.gfm", "markup.raw.gfm", "support.gfm"]
 
   it "tokenizes inline `code` blocks", ->
     {tokens} = grammar.tokenizeLine("`this` is `code`")
