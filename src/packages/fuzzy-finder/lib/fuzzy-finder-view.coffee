@@ -147,9 +147,7 @@ class FuzzyFinderView extends SelectList
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
-    editSessions = []
-    rootView.eachEditSession (editSession) ->
-      editSessions.push editSession
+    editSessions = rootView.project.getEditSessions()
 
     editSessions = _.sortBy editSessions, (editSession) =>
       if editSession is rootView.getActiveEditSession()
