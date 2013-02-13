@@ -89,7 +89,6 @@ windowAdditions =
       else
         $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
-
   reload: ->
     if rootView?.getModifiedBuffers().length > 0
       atom.confirm(
