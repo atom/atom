@@ -1,7 +1,7 @@
 module.exports =
   treeView: null
 
-  activate: (@state={}) ->
+  activate: (@state) ->
     @createView() if @state.attached
     rootView.command 'tree-view:toggle', => @createView().toggle()
     rootView.command 'tree-view:reveal-active-file', => @createView().revealActiveFile()
