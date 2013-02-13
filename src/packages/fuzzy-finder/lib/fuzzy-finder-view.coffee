@@ -158,7 +158,7 @@ class FuzzyFinderView extends SelectList
         -(editSession.lastOpened or 1)
 
     @paths = _.map editSessions, (editSession) =>
-      rootView.project.relativize editSession.buffer.getPath()
+      rootView.project.relativize editSession.getPath()
 
     @setArray(@paths)
 
