@@ -151,6 +151,7 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           rootView.open 'sample.js'
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+          rootView.open()
 
           states = rootView.serialize().packageStates
           states = _.map states['fuzzy-finder'], (path, time) -> [ path, time ]

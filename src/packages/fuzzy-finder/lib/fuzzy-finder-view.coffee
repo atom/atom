@@ -164,7 +164,8 @@ class FuzzyFinderView extends SelectList
   getOpenedPaths: ->
     paths = {}
     for editSession in rootView.project.getEditSessions()
-      paths[editSession.getPath()] = editSession.lastOpened
+      path = editSession.getPath()
+      paths[path] = editSession.lastOpened if path?
     paths
 
   detach: ->
