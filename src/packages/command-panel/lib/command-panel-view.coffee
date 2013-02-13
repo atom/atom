@@ -115,6 +115,7 @@ class CommandPanelView extends View
     rootView.focus()
     @previewList.hide()
     @previewCount.hide()
+    @expandCollapse.hide()
     super
 
   escapedCommand: ->
