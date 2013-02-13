@@ -1,6 +1,6 @@
 .command-panel {
-  padding: 5px;
   position: relative;
+  padding: 0;
 }
 
 .command-panel .is-loading {
@@ -20,7 +20,7 @@
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;
-  margin: 10px 0 10px 10px;
+  margin: 0 0 10px 0;
   position: relative;
   cursor: default;
 }
@@ -81,7 +81,6 @@
 
 .command-panel .prompt-and-editor .editor {
   position: relative;
-  margin-right: -4px;
 }
 
 .command-panel .prompt-and-editor {

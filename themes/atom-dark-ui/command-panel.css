@@ -9,7 +9,7 @@
 .command-panel .preview-list {
   background-color: #19191b;
   color: #C5C8C6;
-  border: 1px solid rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
