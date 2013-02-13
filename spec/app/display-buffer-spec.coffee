@@ -732,11 +732,39 @@ describe "DisplayBuffer", ->
         displayBuffer.unfoldBufferRow(4)
         expect(observeHandler).not.toHaveBeenCalled()
 
+      it "updates the position of markers before emitting buffer change events, but does not notify their observers until the change event", ->
+        changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
+          # calls change handler first
+          expect(observeHandler).not.toHaveBeenCalled()
+          # but still updates the markers
+          expect(displayBuffer.getMarkerScreenRange(marker)).toEqual [[5, 7], [5, 13]]
+          expect(displayBuffer.getMarkerHeadScreenPosition(marker)).toEqual [5, 13]
+          expect(displayBuffer.getMarkerTailScreenPosition(marker)).toEqual [5, 7]
+
+        displayBuffer.on 'changed', changeHandler
+
+        buffer.insert([8, 1], "...")
+
+        expect(changeHandler).toHaveBeenCalled()
+        expect(observeHandler).toHaveBeenCalled()
+
+      it "updates the position of markers before emitting change events that aren't caused by a buffer change", ->
+        changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
+          # calls change handler first
+          expect(observeHandler).not.toHaveBeenCalled()
+          # but still updates the markers
+          expect(displayBuffer.getMarkerScreenRange(marker)).toEqual [[8, 4], [8, 10]]
+          expect(displayBuffer.getMarkerHeadScreenPosition(marker)).toEqual [8, 10]
+          expect(displayBuffer.getMarkerTailScreenPosition(marker)).toEqual [8, 4]
+        displayBuffer.on 'changed', changeHandler
+
+        displayBuffer.unfoldBufferRow(4)
+
+        expect(changeHandler).toHaveBeenCalled()
+        expect(observeHandler).toHaveBeenCalled()
+
     describe "marker destruction", ->
       it "allows markers to be destroyed", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
         displayBuffer.destroyMarker(marker)
         expect(displayBuffer.getMarkerBufferRange(marker)).toBeUndefined()
-
-
-

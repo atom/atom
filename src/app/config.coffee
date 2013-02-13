@@ -34,6 +34,7 @@ class Config
     @requireUserInitScript()
     atom.loadThemes()
     atom.loadPackages()
+    keymap.loadUserKeymaps()
 
   loadUserConfig: ->
     if fs.exists(@configFilePath)

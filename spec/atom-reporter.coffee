@@ -84,15 +84,19 @@ class AtomReporter extends View
     if @failedCount > 0
       @status.addClass('failed') unless @status.hasClass('failed')
 
-    specCount = "#{@completeSpecCount}/#{@totalSpecCount}"
-    specCount += " (skipping #{@skippedCount})" if @skippedCount
+    if @skippedCount
+      specCount = "#{@completeSpecCount - @skippedCount}/#{@totalSpecCount - @skippedCount} (#{@skippedCount} skipped)"
+    else
+      specCount = "#{@completeSpecCount}/#{@totalSpecCount}"
     @specCount.text specCount
 
     rootSuite = spec.suite
     rootSuite = rootSuite.parentSuite while rootSuite.parentSuite
     @message.text rootSuite.description
 
-    @time.text ((new Date().getTime() - @startedAt.getTime()) / 1000) + "s"
+    time = "#{Math.round((new Date().getTime() - @startedAt.getTime()) / 10)}"
+    time = "0#{time}" if time.length < 3
+    @time.text "#{time[0...-2]}.#{time[-2..]}s"
 
   addSpecs: (specs) ->
     for spec in specs

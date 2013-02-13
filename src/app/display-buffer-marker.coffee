@@ -1,9 +1,9 @@
 Range = require 'range'
 _ = require 'underscore'
+EventEmitter = require 'event-emitter'
 
 module.exports =
 class DisplayBufferMarker
-  observers: null
   bufferMarkerSubscription: null
   headScreenPosition: null
   tailScreenPosition: null
@@ -57,16 +57,15 @@ class DisplayBufferMarker
 
   observe: (callback) ->
     @observeBufferMarkerIfNeeded()
-    @observers.push(callback)
+    @on 'position-changed', callback
     cancel: => @unobserve(callback)
 
   unobserve: (callback) ->
-    _.remove(@observers, callback)
+    @off 'position-changed', callback
     @unobserveBufferMarkerIfNeeded()
 
   observeBufferMarkerIfNeeded: ->
-    return if @observers
-    @observers = []
+    return if @subscriptionCount()
     @getHeadScreenPosition() # memoize current value
     @getTailScreenPosition() # memoize current value
     @bufferMarkerSubscription =
@@ -80,8 +79,7 @@ class DisplayBufferMarker
     @displayBuffer.markers[@id] = this
 
   unobserveBufferMarkerIfNeeded: ->
-    return if @observers.length
-    @observers = null
+    return if @subscriptionCount()
     @bufferMarkerSubscription.cancel()
     delete @displayBuffer.markers[@id]
 
@@ -101,14 +99,12 @@ class DisplayBufferMarker
     oldTailBufferPosition ?= @getTailBufferPosition()
     newTailBufferPosition = @getTailBufferPosition()
 
-    for observer in @getObservers()
-      observer({
-        oldHeadScreenPosition, newHeadScreenPosition,
-        oldTailScreenPosition, newTailScreenPosition,
-        oldHeadBufferPosition, newHeadBufferPosition,
-        oldTailBufferPosition, newTailBufferPosition,
-        bufferChanged
-      })
+    @trigger 'position-changed', {
+      oldHeadScreenPosition, newHeadScreenPosition,
+      oldTailScreenPosition, newTailScreenPosition,
+      oldHeadBufferPosition, newHeadBufferPosition,
+      oldTailBufferPosition, newTailBufferPosition,
+      bufferChanged
+    }
 
-  getObservers: ->
-    new Array(@observers...)
+_.extend DisplayBufferMarker.prototype, EventEmitter

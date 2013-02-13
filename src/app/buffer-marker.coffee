@@ -1,18 +1,16 @@
 _ = require 'underscore'
 Point = require 'point'
 Range = require 'range'
+EventEmitter = require 'event-emitter'
 
 module.exports =
 class BufferMarker
   headPosition: null
   tailPosition: null
-  observers: null
   suppressObserverNotification: false
   stayValid: false
 
   constructor: ({@id, @buffer, range, @stayValid, noTail, reverse}) ->
-    @headPositionObservers = []
-    @observers = []
     @setRange(range, {noTail, reverse})
 
   setRange: (range, options={}) ->
@@ -115,11 +113,11 @@ class BufferMarker
     [newRow, newColumn]
 
   observe: (callback) ->
-    @observers.push(callback)
+    @on 'position-changed', callback
     cancel: => @unobserve(callback)
 
   unobserve: (callback) ->
-    _.remove(@observers, callback)
+    @off 'position-changed', callback
 
   containsPoint: (point) ->
     @getRange().containsPoint(point)
@@ -131,11 +129,7 @@ class BufferMarker
     newHeadPosition ?= @getHeadPosition()
     oldTailPosition ?= @getTailPosition()
     newTailPosition ?= @getTailPosition()
-    for observer in @getObservers()
-      observer({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged})
-
-  getObservers: ->
-    new Array(@observers...)
+    @trigger 'position-changed', {oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}
 
   consolidateObserverNotifications: (bufferChanged, fn) ->
     @suppressObserverNotification = true
@@ -150,3 +144,5 @@ class BufferMarker
   invalidate: (preserve) ->
     delete @buffer.validMarkers[@id]
     @buffer.invalidMarkers[@id] = this
+
+_.extend BufferMarker.prototype, EventEmitter

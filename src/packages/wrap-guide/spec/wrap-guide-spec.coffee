@@ -1,4 +1,3 @@
-$ = require 'jquery'
 RootView = require 'root-view'
 
 describe "WrapGuide", ->

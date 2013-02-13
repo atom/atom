@@ -63,7 +63,6 @@ windowAdditions =
     @keymap = new Keymap()
     @keymap.bindDefaultKeys()
     @keymap.loadBundledKeymaps()
-    @keymap.loadUserKeymaps()
 
     @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
     $(document).on 'keydown', @_handleKeyEvent
@@ -88,7 +87,6 @@ windowAdditions =
         $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
       else
         $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
-
 
   reload: ->
     if rootView?.getModifiedBuffers().length > 0
@@ -124,6 +122,7 @@ requireStylesheet 'fuzzy-finder.css'
 requireStylesheet 'overlay.css'
 requireStylesheet 'popover-list.css'
 requireStylesheet 'notification.css'
+requireStylesheet 'markdown.css'
 
 if nativeStylesheetPath = require.resolve("#{platform}.css")
   requireStylesheet(nativeStylesheetPath)

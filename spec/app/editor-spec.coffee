@@ -151,6 +151,16 @@ describe "Editor", ->
       expect(otherEditSession.buffer.subscriptionCount()).toBe 0
 
   describe "when 'close' is triggered", ->
+    it "adds a closed session path to the array", ->
+      editor.edit(rootView.project.buildEditSessionForPath())
+      editSession = editor.activeEditSession
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.edit(rootView.project.buildEditSessionForPath(rootView.project.resolve('sample.txt')))
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 1
+
     it "closes the active edit session and loads next edit session", ->
       editor.edit(rootView.project.buildEditSessionForPath())
       editSession = editor.activeEditSession
@@ -246,6 +256,14 @@ describe "Editor", ->
 
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
+
+    it "removes the opened session from the closed sessions array", ->
+      editor.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 1
+      editor.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+      expect(editor.closedEditSessions.length).toBe 0
 
   describe "switching edit sessions", ->
     [session0, session1, session2] = []
@@ -464,13 +482,13 @@ describe "Editor", ->
       openHandler = jasmine.createSpy('openHandler')
       editor.on 'editor:attached', openHandler
 
-      editor.simulateDomAttachment()
+      editor.attachToDom()
       expect(openHandler).toHaveBeenCalled()
       [event, eventEditor] = openHandler.argsForCall[0]
       expect(eventEditor).toBe editor
 
       openHandler.reset()
-      editor.simulateDomAttachment()
+      editor.attachToDom()
       expect(openHandler).not.toHaveBeenCalled()
 
   describe "editor-path-changed event", ->
@@ -523,6 +541,9 @@ describe "Editor", ->
       expect($("head style.font-family")).not.toExist()
 
     describe "when the font family changes", ->
+      afterEach ->
+        editor.clearFontFamily()
+
       it "updates the font family on new and existing editors", ->
         rootView.attachToDom()
         rootView.height(200)
@@ -531,7 +552,7 @@ describe "Editor", ->
         config.set("editor.fontFamily", "Courier")
         newEditor = editor.splitRight()
 
-        expect($("head style.font-family").text()).toMatch "{font-family: Courier}"
+        expect($("head style.editor-font-family").text()).toMatch "{font-family: Courier}"
         expect(editor.css('font-family')).toBe 'Courier'
         expect(newEditor.css('font-family')).toBe 'Courier'
 
@@ -542,7 +563,7 @@ describe "Editor", ->
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "Inconsolata")
+        config.set("editor.fontFamily", "Courier")
         editor.setCursorScreenPosition [5, 6]
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
@@ -615,7 +636,7 @@ describe "Editor", ->
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
 
       describe "when the editor is detached", ->
-        it "updates the font-size correctly and recalculates the dimensions by placing the rendered lines on the DOM", ->
+        it "redraws the editor according to the new font size when it is reattached", ->
           rootView.attachToDom()
           rootView.height(200)
           rootView.width(200)
@@ -1080,6 +1101,19 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(cursorView).toBeVisible()
 
+      describe "when the editor is using a variable-width font", ->
+        beforeEach ->
+          editor.setFontFamily('sans-serif')
+
+        afterEach ->
+          editor.clearFontFamily()
+
+        it "correctly positions the cursor", ->
+          editor.setCursorBufferPosition([3, 30])
+          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
+          editor.setCursorBufferPosition([3, Infinity])
+          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
+
       describe "autoscrolling", ->
         it "only autoscrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])
@@ -1252,7 +1286,27 @@ describe "Editor", ->
         expect(span0.children('span:eq(2)').text()).toBe "{"
 
         line12 = editor.renderedLines.find('.line:eq(11)')
-        expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
+        expect(line12.find('span:eq(2)')).toMatchSelector '.keyword'
+
+      it "wraps hard tabs in a span", ->
+        editor.setText('\t<- hard tab')
+        line0 = editor.renderedLines.find('.line:first')
+        span0_0 = line0.children('span:eq(0)').children('span:eq(0)')
+        expect(span0_0).toMatchSelector '.hard-tab'
+        expect(span0_0.text()).toBe ' '
+
+      it "wraps leading whitespace in a span", ->
+        line1 = editor.renderedLines.find('.line:eq(1)')
+        span0_0 = line1.children('span:eq(0)').children('span:eq(0)')
+        expect(span0_0).toMatchSelector '.leading-whitespace'
+        expect(span0_0.text()).toBe '  '
+
+      it "wraps trailing whitespace in a span", ->
+        editor.setText('trailing whitespace ->   ')
+        line0 = editor.renderedLines.find('.line:first')
+        span0_last = line0.children('span:eq(0)').children('span:last')
+        expect(span0_last).toMatchSelector '.trailing-whitespace'
+        expect(span0_last.text()).toBe '   '
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
@@ -1297,7 +1351,6 @@ describe "Editor", ->
         it "changes the max line length and repositions the cursor when the window size changes", ->
           editor.setCursorBufferPosition([3, 60])
           setEditorWidthInChars(editor, 40)
-          $(window).trigger 'resize'
           expect(editor.renderedLines.find('.line').length).toBe 19
           expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
           expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
@@ -2588,3 +2641,101 @@ describe "Editor", ->
           expect(buffer.lineForRow(14)).toBe ''
           expect(buffer.lineForRow(15)).toBeUndefined()
           expect(editor.getCursorBufferPosition()).toEqual [14, 0]
+
+  describe ".moveEditSessionToIndex(fromIndex, toIndex)", ->
+    describe "when the edit session moves to a later index", ->
+      it "updates the edit session order", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.editSessions[0].getPath()).toBe jsPath
+        expect(editor.editSessions[1].getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(0, 1)
+        expect(editor.editSessions[0].getPath()).toBe txtPath
+        expect(editor.editSessions[1].getPath()).toBe jsPath
+
+      it "fires an editor:edit-session-order-changed event", ->
+        eventHandler = jasmine.createSpy("eventHandler")
+        rootView.open("sample.txt")
+        editor.on "editor:edit-session-order-changed", eventHandler
+        editor.moveEditSessionToIndex(0, 1)
+        expect(eventHandler).toHaveBeenCalled()
+
+      it "sets the moved session as the editor's active session", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.activeEditSession.getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(0, 1)
+        expect(editor.activeEditSession.getPath()).toBe jsPath
+
+    describe "when the edit session moves to an earlier index", ->
+      it "updates the edit session order", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.editSessions[0].getPath()).toBe jsPath
+        expect(editor.editSessions[1].getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(1, 0)
+        expect(editor.editSessions[0].getPath()).toBe txtPath
+        expect(editor.editSessions[1].getPath()).toBe jsPath
+
+      it "fires an editor:edit-session-order-changed event", ->
+        eventHandler = jasmine.createSpy("eventHandler")
+        rootView.open("sample.txt")
+        editor.on "editor:edit-session-order-changed", eventHandler
+        editor.moveEditSessionToIndex(1, 0)
+        expect(eventHandler).toHaveBeenCalled()
+
+      it "sets the moved session as the editor's active session", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.activeEditSession.getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(1, 0)
+        expect(editor.activeEditSession.getPath()).toBe txtPath
+
+  describe ".moveEditSessionToEditor(fromIndex, toEditor, toIndex)", ->
+    it "closes the edit session in the source editor", ->
+      jsPath = editor.getPath()
+      rootView.open("sample.txt")
+      txtPath = editor.getPath()
+      rightEditor = editor.splitRight()
+      expect(editor.editSessions[0].getPath()).toBe jsPath
+      expect(editor.editSessions[1].getPath()).toBe txtPath
+      editor.moveEditSessionToEditor(0, rightEditor, 1)
+      expect(editor.editSessions[0].getPath()).toBe txtPath
+      expect(editor.editSessions[1]).toBeUndefined()
+
+    it "opens the edit session in the destination editor at the target index", ->
+      jsPath = editor.getPath()
+      rootView.open("sample.txt")
+      txtPath = editor.getPath()
+      rightEditor = editor.splitRight()
+      expect(rightEditor.editSessions[0].getPath()).toBe txtPath
+      expect(rightEditor.editSessions[1]).toBeUndefined()
+      editor.moveEditSessionToEditor(0, rightEditor, 0)
+      expect(rightEditor.editSessions[0].getPath()).toBe jsPath
+      expect(rightEditor.editSessions[1].getPath()).toBe txtPath
+
+  describe "when editor:undo-close-session is triggered", ->
+    describe "when an edit session is opened back up after it is closed", ->
+      it "is removed from the undo stack and not reopened when the event is triggered", ->
+        rootView.open('sample.txt')
+        expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+        editor.trigger "core:close"
+        expect(editor.closedEditSessions.length).toBe 1
+        rootView.open('sample.txt')
+        expect(editor.closedEditSessions.length).toBe 0
+        editor.trigger 'editor:undo-close-session'
+        expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+
+    it "opens the closed session back up at the previous index", ->
+      rootView.open('sample.txt')
+      editor.loadPreviousEditSession()
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
+      editor.trigger "core:close"
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+      editor.trigger 'editor:undo-close-session'
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
+      expect(editor.getActiveEditSessionIndex()).toBe 0

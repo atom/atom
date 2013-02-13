@@ -72,13 +72,24 @@ class Token
 
     if invisibles
       if @isHardTab and invisibles.tab
-        html = html.replace(/^./, "<span class='invisible'>#{invisibles.tab}</span>")
+        html = html.replace(/^./, "<span class='invisible hard-tab'>#{invisibles.tab}</span>")
       else if invisibles.space
         if hasLeadingWhitespace
           html = html.replace /^[ ]+/, (match) ->
-            "<span class='invisible'>#{match.replace(/./g, invisibles.space)}</span>"
+            "<span class='invisible leading-whitespace'>#{match.replace(/./g, invisibles.space)}</span>"
         if hasTrailingWhitespace
           html = html.replace /[ ]+$/, (match) ->
-            "<span class='invisible'>#{match.replace(/./g, invisibles.space)}</span>"
+            "<span class='invisible trailing-whitespace'>#{match.replace(/./g, invisibles.space)}</span>"
+    else
+      if @isHardTab
+        html = html.replace /^./, (match) ->
+          "<span class='hard-tab'>#{match}</span>"
+      else
+        if hasLeadingWhitespace
+          html = html.replace /^[ ]+/, (match) ->
+            "<span class='leading-whitespace'>#{match}</span>"
+        if hasTrailingWhitespace
+          html = html.replace /[ ]+$/, (match) ->
+            "<span class='trailing-whitespace'>#{match}</span>"
 
     html

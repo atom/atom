@@ -9,7 +9,7 @@ describe 'FuzzyFinder', ->
   [finderView] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
     finderView = atom.loadPackage("fuzzy-finder").packageMain.createView()
 
@@ -209,15 +209,18 @@ describe 'FuzzyFinder', ->
           rootView.attachToDom()
           rootView.getActiveEditor().destroyActiveEditSession()
 
+          inputView = $$ -> @input()
+          rootView.append(inputView)
+          inputView.focus()
+
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           expect(finderView.hasParent()).toBeTruthy()
-          expect(rootView.isFocused).toBeFalsy()
           expect(finderView.miniEditor.isFocused).toBeTruthy()
 
           finderView.cancel()
 
           expect(finderView.hasParent()).toBeFalsy()
-          expect($(document.activeElement).view()).toBe rootView
+          expect(document.activeElement).toBe inputView[0]
           expect(finderView.miniEditor.isFocused).toBeFalsy()
 
   describe "cached file paths", ->

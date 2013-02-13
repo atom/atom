@@ -18,7 +18,7 @@ class RootView extends View
     disabledPackages: []
 
   @content: ->
-    @div id: 'root-view', tabindex: 0, =>
+    @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'
@@ -35,13 +35,11 @@ class RootView extends View
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
 
-  packages: null
   title: null
   pathToOpenIsFile: false
 
   initialize: (projectOrPathToOpen, { suppressOpen } = {}) ->
     window.rootView = this
-    @packages = []
     @viewClasses = {
       "Pane": Pane,
       "PaneRow": PaneRow,
@@ -261,3 +259,11 @@ class RootView extends View
 
   eachBuffer: (callback) ->
     @project.eachBuffer(callback)
+
+  indexOfPane: (pane) ->
+    index = -1
+    for p, idx in @panes.find('.pane')
+      if pane.is(p)
+        index = idx
+        break
+    index
