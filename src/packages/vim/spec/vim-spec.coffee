@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-Vim = require 'vim'
+Vim = require 'vim/lib/vim-view'
 
 fdescribe "Vim package", ->
 
