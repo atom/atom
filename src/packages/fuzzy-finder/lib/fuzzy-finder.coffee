@@ -3,6 +3,7 @@ _ = require 'underscore'
 module.exports =
   projectPaths: null
   fuzzyFinderView: null
+  loadPathsTask: null
 
   activate: (state) ->
     rootView.command 'fuzzy-finder:toggle-file-finder', =>
@@ -24,6 +25,7 @@ module.exports =
 
   deactivate: ->
     @loadPathsTask?.terminate()
+    @loadPathsTask = null
     @fuzzyFinderView?.cancel()
     @fuzzyFinderView = null
     @projectPaths = null
