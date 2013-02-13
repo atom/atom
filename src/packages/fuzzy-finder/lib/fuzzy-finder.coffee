@@ -18,10 +18,8 @@ module.exports =
       @loadPathsTask = new LoadPathsTask((paths) => @projectPaths = paths)
       @loadPathsTask.start()
 
-    for path, lastOpened of state
-      session = _.detect rootView.project.getEditSessions(), (editSession) ->
-        editSession.getPath() is path
-      session?.lastOpened = lastOpened
+    for editSession in rootView.project.getEditSessions()
+      editSession.lastOpened = state[editSession.getPath()]
 
   deactivate: ->
     @loadPathsTask?.terminate()
