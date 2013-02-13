@@ -79,19 +79,8 @@
   padding: 1px;
 }
 
-.command-panel .prompt-and-editor .prompt:before {
-  color: #969696;
-  content: '\f078';
-  font-family: 'Octicons Regular';
-  position: relative;
-  top: 0;
-  left: -5px;
-  -webkit-font-smoothing: antialiased;
-}
-
 .command-panel .prompt-and-editor .editor {
   position: relative;
-  left: -4px;
   margin-right: -4px;
 }
 
