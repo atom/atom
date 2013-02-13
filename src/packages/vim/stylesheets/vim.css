@@ -20,3 +20,7 @@
   border: none;
   background-color: #303030;
 }
+
+.cursor {
+  opacity: 0.5;
+}

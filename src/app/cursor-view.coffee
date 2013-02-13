@@ -11,6 +11,7 @@ class CursorView extends View
   blinkPeriod: 800
   editor: null
   visible: true
+  width: 1
 
   needsUpdate: true
   needsRemoval: false
@@ -38,6 +39,7 @@ class CursorView extends View
   updateDisplay: ->
     screenPosition = @getScreenPosition()
     pixelPosition = @getPixelPosition()
+    pixelPosition.borderWidth = if @width == 1 then 1 else @width / 2
 
     unless _.isEqual(@lastPixelPosition, pixelPosition)
       changedPosition = true

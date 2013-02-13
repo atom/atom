@@ -1246,6 +1246,18 @@ describe "Editor", ->
               editor.setCursorScreenPosition([2, 5])
               expect(editor.scrollView.scrollLeft()).toBe 0
 
+    describe "cursor width", ->
+      beforeEach ->
+        editor.attachToDom()
+      it "is set to 1 by default", ->
+        cursorView = editor.getCursorView()
+        expect(cursorView.width).toBe 1
+      it "changes the width of the cursor", ->
+        cursorView = editor.getCursorView()
+        cursorView.width = 20
+        cursorView.updateDisplay()
+        expect(cursorView.css("width")).toBe "10px"
+
   describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->

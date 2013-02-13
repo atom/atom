@@ -51,6 +51,9 @@ class VimView extends View
     @editor.addClass("command-mode")
     @editor.focus()
 
+  cursor: () ->
+    @editor.getCursorView()
+
   stateChanged: (state) ->
     if state == "count"
       @editor.addClass("count")
@@ -79,12 +82,18 @@ class VimView extends View
 
   enterInsertMode: ->
     @resetMode()
+    cursor = @cursor()
+    cursor.width = 1
+    cursor.updateDisplay()
     @editor.removeClass("command-mode")
     @mode = "insert"
     @updateCommandLine()
 
   enterCommandMode: ->
     @resetMode()
+    cursor = @cursor()
+    cursor.width = @editor.getFontSize()
+    cursor.updateDisplay()
     @updateCommandLine()
 
   enterExMode: ->
