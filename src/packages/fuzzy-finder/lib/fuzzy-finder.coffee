@@ -27,7 +27,6 @@ module.exports =
     @fuzzyFinderView?.cancel()
     @fuzzyFinderView = null
     @projectPaths = null
-    @fuzzyFinderView = null
 
   serialize: ->
     @fuzzyFinderView?.getOpenedPaths()
