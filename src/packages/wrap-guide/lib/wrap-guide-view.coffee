@@ -13,7 +13,7 @@ class WrapGuideView extends View
 
   defaultColumn: 80
 
-  initialize: (@editor) =>
+  initialize: (@editor) ->
     @observeConfig 'editor.fontSize', => @updateGuide()
     @subscribe @editor, 'editor:path-changed', => @updateGuide()
     @subscribe @editor, 'editor:min-width-changed', => @updateGuide()
