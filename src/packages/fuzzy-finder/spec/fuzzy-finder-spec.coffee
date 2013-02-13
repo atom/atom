@@ -275,15 +275,15 @@ describe 'FuzzyFinder', ->
         expect(finderView.loadPathsTask.start).not.toHaveBeenCalled()
 
     it "doesn't cache buffer paths", ->
-      spyOn(rootView, "getOpenBufferPaths").andCallThrough()
+      spyOn(rootView.project, "getEditSessions").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
       waitsFor ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(rootView.getOpenBufferPaths).toHaveBeenCalled()
-        rootView.getOpenBufferPaths.reset()
+        expect(rootView.project.getEditSessions).toHaveBeenCalled()
+        rootView.project.getEditSessions.reset()
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
@@ -291,7 +291,7 @@ describe 'FuzzyFinder', ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(rootView.getOpenBufferPaths).toHaveBeenCalled()
+        expect(rootView.project.getEditSessions).toHaveBeenCalled()
 
     it "busts the cache when the window gains focus", ->
       spyOn(LoadPathsTask.prototype, "start").andCallThrough()
