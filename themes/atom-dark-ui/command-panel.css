@@ -21,7 +21,8 @@
   border-radius: 3px;
 }
 
-.command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
+.command-panel .preview-list li.selected,
+.command-panel .preview-list li.operation:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
@@ -32,6 +33,22 @@
 .command-panel .preview-list .path {
   color: #999;
   border-top: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.command-panel .preview-list .path:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.command-panel .preview-list .path:hover .path-name {
+  color: #fff;
+}
+
+.command-panel .preview-list .path:before {
+  color: #555;
+}
+
+.command-panel .preview-list .path:hover:before {
+  color: #fff;
 }
 
 .command-panel .preview-list .path:first-child {

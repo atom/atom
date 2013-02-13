@@ -36,9 +36,26 @@
 
 .command-panel .preview-list .path {
   padding-left: 5px;
+  position: relative;
 }
 
 .command-panel .preview-list .path:before {
+  font-family: 'Octicons Regular';
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  -webkit-font-smoothing: antialiased;
+  content: "\f05b";
+  position: relative;
+  top: 0;
+}
+
+.command-panel .preview-list .path.is-collapsed:before {
+  content: "\f05a";
+}
+
+.command-panel .preview-list .path-name:before {
   font-family: 'Octicons Regular';
   font-size: 16px;
   width: 16px;
@@ -50,7 +67,7 @@
   top: 1px;
 }
 
-.command-panel .preview-list .path.readme:before {
+.command-panel .preview-list .path.readme .path-name:before {
   content: "\f007";
 }
 

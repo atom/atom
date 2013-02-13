@@ -31,7 +31,6 @@ class PreviewList extends ScrollView
     e.children('ul.matches').toggle 100, (e) ->
       $(this).closest('li.path').toggleClass 'is-collapsed'
 
-
   destroy: ->
     @destroyOperations() if @operations
 
@@ -48,7 +47,7 @@ class PreviewList extends ScrollView
         classes = ['path']
         classes.push('readme') if fs.isReadmePath(path)
         @li class: classes.join(' '), =>
-          @span path
+          @span class: 'path-name', path
           @span "(#{ops.length})", class: 'path-match-number'
           @ul class: 'matches', =>
             for operation in ops
