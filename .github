@@ -1,3 +1,2 @@
 [docs]
 	title = The Guide to Atom
-	manifest = intro.md, features.md, configuring.md, keymaps.md, themes.md, user-stylesheet.md, packages/intro.md, packages/installing.md, packages/markdown-preview.md, packages/wrap-guide.md
