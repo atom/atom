@@ -10,33 +10,17 @@ _ = require 'underscore'
 
 module.exports =
 class TreeView extends ScrollView
-  @activate: (state) ->
-    if state
-      TreeView.deserialize(state)
-    else
-      new TreeView
-
   @content: (rootView) ->
     @div class: 'tree-view-wrapper', =>
       @ol class: 'tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
       @div class: 'tree-view-resizer', outlet: 'resizer'
-
-  @deserialize: (state) ->
-    treeView = new TreeView
-    treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
-    treeView.selectEntryForPath(state.selectedPath)
-    treeView.focusAfterAttach = state.hasFocus
-    treeView.scrollTopAfterAttach = state.scrollTop
-    treeView.width(state.width)
-    treeView.attach() if state.attached
-    treeView
 
   root: null
   focusAfterAttach: false
   scrollTopAfterAttach: -1
   selectedPath: null
 
-  initialize: ->
+  initialize: (state) ->
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
     @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
@@ -60,7 +44,14 @@ class TreeView extends ScrollView
     rootView.project.on 'path-changed', => @updateRoot()
     @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()
 
-    @selectEntry(@root) if @root
+    if @root
+      @selectEntry(@root)
+      @root.deserializeEntryExpansionStates(state.directoryExpansionStates)
+    @selectEntryForPath(state.selectedPath) if state.selectedPath
+    @focusAfterAttach = state.hasFocus
+    @scrollTopAfterAttach = state.scrollTop if state.scrollTop
+    @width(state.width) if state.width
+    @attach() if state.attached
 
   afterAttach: (onDom) ->
     @focus() if @focusAfterAttach
