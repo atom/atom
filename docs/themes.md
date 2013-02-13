@@ -2,55 +2,53 @@
 
 ## Selecting A Theme
 
-Atom comes bundles with two themes "Atom - Dark" and "Atom - Light". You can
-select a theme in your core preferences pane.
+Atom comes bundles with two themes "Atom - Dark" and "Atom - Light".
 
 Because Atom themes are based on CSS, it's possible to have multiple themes
-active at the same time. For example, you might select a theme for the UI, and
-another theme for syntax highlighting. You select your theme(s) in the core
-preferences pane, by selecting themes from the available list and dragging them
-in your preferred order. You can also edit the selected themes manually with the
-`config.core.themes` array. For example.
+active at the same time. For example, you'll usually select a theme for the UI
+and another theme for syntax highlighting.  You can select themes by specifying
+them in the `core.themes` array in your `config.cson`:
 
-```js
-{
-  "core": {
-    "themes": ["Atom - Light", "Mac Classic"]
-  },
-  "editor": {
-    "fontSize": 15
-  }
-}
+```coffee-script
+
+core:
+  themes: ["atom-light-ui", "atom-light-syntax"]
+  # or, if the sun is going down:
+  # themes: ["atom-dark-ui", "atom-dark-syntax"]
 ```
 
 ## Installing A Theme
 
 You install themes by placing them in the `~/.atom/themes` directory. The most
-basic theme is just a `.css` or `.less` file. More complex occupy their own
-folder, which can contain multiple stylesheets along with an optional
-`package.json` file with a manifest to control their load-order:
+basic theme is just a `.css` file. More complex themes occupy their own folder,
+which can contain multiple stylesheets along with an optional `package.cson`
+file containing a manifest to control their load-order:
 
 ```text
 ~/.atom/themes/
-  midnight.less
   rockstar.css
   rainbow/
     package.json
-    core.less
-    editor.less
-    tree-view.less
+    core.css
+    editor.css
+    tree-view.css
 ```
 
-package.json:
-```json
-{
-  "stylesheets": ["core.css", "editor.less", "tree-view.css"]
-}
+package.cson:
+```coffee-script
+stylesheets: ["core.css", "editor.less", "tree-view.css"]
 ```
 
-The package.json specifies which stylesheets to load and in what order with the
-`stylesheets` key. If no manifest is specified, all stylesheets are loaded in
-alphabetical order when the user selects the theme.
+The `package.cson` file specifies which stylesheets to load and in what order
+with the `stylesheets` key. If no manifest is specified, all stylesheets are
+loaded in alphabetical order when the user selects the theme.
+
+## TextMate Compatibility
+
+If you place a TextMate theme (either `.tmTheme` or `.plist`) in the `themes`
+directory, it will automatically be translated from TextMate's format to CSS
+so it works with Atom. There are a few slight differences between TextMate's
+semantics and those of stylesheets, but they should be negligible in practice.
 
 ## Authoring A Theme
 
@@ -59,17 +57,16 @@ Atom's user interface, specify the appearance of syntax-highlighted code, or
 both. For making a syntax highlighting theme, refer to [section 12.4 of the
 TextMate Manual](http://manual.macromates.com/en/language_grammars.html) for a
 list of the common scopes used by TextMate grammars. You'll just need to
-scope names to CSS classes. To theme Atom's user interface, refer to
-[Classnames for Extension and Theme Authors]() for information about the CSS
-classes used in Atom's core and the most common classes employed by
-extensions.
+translate scope names to CSS classes. To theme Atom's user interface, take a
+look at the existing light and dark themes for an example. Pressing `alt-meta-i`
+and inspecting the Atom's markup directly can also be helpful.
 
-## Theme Extensions
+## Theme Extensions (Not Yet Implemented)
 
-A theme will often cover the stock features of Atom, but may need to be extended
-to cover extensions that weren't covered by its original author. Theme extensions
-make this easy to organize. To make a theme extension, just add a theme that
-matches the name of the original with an additional filename extension:
+A theme may need to be extended to cover DOM elements that are introduced by a
+third-party Atom package. When a package is loaded, stylesheets with the same
+name as the package will automatically be loaded from the `packages` directory
+of active themes:
 
 ```text
 ~/.atom/themes/
@@ -78,15 +75,9 @@ matches the name of the original with an additional filename extension:
   midnight/packages/tree-view.less
 ```
 
-In the example above, when the `midnight` theme is loaded, its `terminal` and
-`tree-view` extensions will be loaded with it. If you author a theme extension,
-consider sending its author a pull request to have it included in the theme's
-core. Package theme extensions, do not need to be in `package.json` because they
-will be loaded when needed by the package.
-
-## TextMate Compatibility
-
-If you place a TextMate theme (either `.tmTheme` or `.plist`) in the `themes`
-directory, it will automatically be translated from TextMate's format to CSS
-so it works with Atom. There are a few slight differences between TextMate's
-semantics and those of stylesheets, but they should be negligible in practice.
+In the example above, if the `midnight` theme is active, its `terminal` and
+`tree-view` stylesheets will be loaded automatically if and when those packages
+are activated. If you author an extension to a theme consider sending its author
+a pull request to have it included in the theme by default. Package-specific
+theme stylesheets need not be listed in the theme's `package.json` because they
+will be loaded automatically when the package is loaded.
