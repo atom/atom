@@ -1,8 +1,7 @@
 module.exports =
 class VimState
-  constructor: (@target) ->
+  constructor: (@target, @vim) ->
     @resetState()
-
   motion: (type) ->
     event = @motionEvents[type]
     window.console.log "Performing motion #{type} with event #{event}"
@@ -10,8 +9,9 @@ class VimState
     @resetState()
   addCountDecimal: (n) ->
     @_count = 0 if @state != "count"
-    @state = "count"
+    @enterState "count"
     @_count = @_count * 10 + n if n?
+    @stateUpdated()
     @_count
   count: (n) ->
     @_count = n if n?
@@ -19,9 +19,13 @@ class VimState
   operation: (type) ->
 
   resetState: ->
-    @state = "idle"
+    @enterState "idle"
     @_count = 1
-
+  enterState: (state) ->
+    @state = state
+    @vim.stateChanged(@state) if @vim? and @vim.stateChanged?
+  stateUpdated: ->
+    @vim.stateUpdated(@state) if @vim? and @vim.stateUpdated?
   operations: {}
 
   motionEvents:

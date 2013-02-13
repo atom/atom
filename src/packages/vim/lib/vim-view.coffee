@@ -23,7 +23,7 @@ class VimView extends View
     'q': "core:close"
 
   initialize: (@rootView, @editor) ->
-    @state = new VimState(@editor)
+    @state = new VimState(@editor, this)
     @editor.vim = this
     @vim = $(this)
     @enterInsertMode()
@@ -31,15 +31,15 @@ class VimView extends View
     @editor.command "vim:insert-mode", (e) => @enterInsertMode()
     @editor.command "vim:command-mode", (e) => @enterCommandMode()
     @editor.command 'vim:ex-mode', => @enterExMode()
+    @editor.command 'vim:cancel-command', => @discardCommand()
 
     @command 'vim:insert-mode', => @enterInsertMode()
     @command 'vim:unfocus', => @rootView.focus()
     @command 'core:close', => @discardCommand()
     @command 'vim:execute', => @executeCommand()
 
-    @editor.command 'vim:motion-left', =>
-      window.console.log 'left'
-      @state.motion("left")
+
+    @editor.command 'vim:motion-left', => @state.motion("left")
     @editor.command 'vim:motion-right', => @state.motion("right")
 
     @editor.command "vim:count-add-1", => @state.addCountDecimal(1)
@@ -58,7 +58,19 @@ class VimView extends View
 
   resetMode: ->
     @mode = "command"
+    @state.resetState()
     @editor.addClass("command-mode")
+    @editor.focus()
+
+  stateChanged: (state) ->
+    if state == "count"
+      @editor.addClass("count")
+    else
+      @editor.removeClass("count")
+    @updateCommandLineText()
+  stateUpdated: (state) ->
+    if state == "count"
+      @updateCommandLineText()
 
   updateCommandLine: ->
     @updateCommandLineText()
@@ -80,7 +92,6 @@ class VimView extends View
     @resetMode()
     @editor.removeClass("command-mode")
     @mode = "insert"
-    @editor.focus()
     @updateCommandLine()
 
   enterCommandMode: ->
@@ -99,7 +110,10 @@ class VimView extends View
     else if @inExMode()
       @prompt.text(":")
     else
-      @prompt.text(">")
+      if @state? and @state.state == "count"
+        @prompt.text(@state.count())
+      else
+        @prompt.text(">")
 
   addInput: (input) ->
     @runCommand input
@@ -108,6 +122,7 @@ class VimView extends View
   executeCommand: () ->
     @runCommand @miniEditor.getText()
     @discardCommand()
+    @enterCommandMode()
 
   runCommand: (input) ->
     for c in input

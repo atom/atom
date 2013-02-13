@@ -21,6 +21,11 @@
   '$': 'vim:motion-move-to-end-of-line'
   'u': 'core:undo'
   'ctrl-r': 'core:redo'
+  'escape': 'vim:cancel-command'
+
+'.editor.command-mode.count':
+  '0': 'vim:count-add-0'
 
 '.vim .editor':
   'enter': 'vim:execute'
+  'escape': 'vim:command-mode'
