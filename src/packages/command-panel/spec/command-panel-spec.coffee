@@ -128,6 +128,9 @@ describe "CommandPanel", ->
           beforeEach ->
             expect(commandPanel.previewList).toBeVisible()
 
+          it  "shows the expand and collapse all buttons", ->
+            expect(commandPanel.find('.expand-collapse')).toBeVisible()
+
           describe "when the preview list is focused", ->
             it "hides the command panel", ->
               expect(commandPanel.previewList).toMatchSelector(':focus')
@@ -465,3 +468,12 @@ describe "CommandPanel", ->
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
         expect(previewList.focus).toHaveBeenCalled()
+
+     describe "when a path in the preview list is clicked", ->
+       it "shows and hides the matches for that path", ->
+         previewList.find('li.path:first-child').mousedown()
+         expect(previewList.find('li.path:first-child ul.matches')).toBeHidden()
+
+         previewList.find('li.path:first-child').mousedown()
+         expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
+
