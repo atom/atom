@@ -22,7 +22,7 @@ class PreviewList extends ScrollView
       @setSelectedOperationIndex(parseInt($(e.target).closest('li').data('index')))
       @executeSelectedOperation()
 
-    @on 'click', 'li.path', @onPathSelected
+    @on 'mousedown', 'li.path', @onPathSelected
 
   onPathSelected: (event) =>
     e = $(event.target)
