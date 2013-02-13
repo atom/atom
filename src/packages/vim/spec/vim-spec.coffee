@@ -30,12 +30,9 @@ fdescribe "Vim package", ->
       editor.trigger 'vim:command-mode'
       expect(editor.vim.inCommandMode()).toBe true
 
-    describe "transition to insert mode", ->
-      beforeEach ->
-        editor.trigger 'vim:command-mode'
-      it "i key", ->
-        editor.vim.miniEditor.setText("i")
-        expect(editor.vim.inInsertMode()).toBe true
+    it "enters ex mode", ->
+      editor.trigger 'vim:ex-mode'
+      expect(editor.vim.inCommandMode()).toBe false
 
   describe "insert mode", ->
     it "enters insert mode", ->
