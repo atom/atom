@@ -70,26 +70,26 @@ class Keymap
 
     firstKeystroke = event.keystrokes.split(' ')[0]
     bindingSetsForFirstKeystroke = @bindingSetsByFirstKeystroke[firstKeystroke]
-    return true unless bindingSetsForFirstKeystroke?
+    if bindingSetsForFirstKeystroke?
+      currentNode = $(event.target)
+      currentNode = rootView if currentNode is $('body')[0]
+      while currentNode.length
+        candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
+        for bindingSet in candidateBindingSets
+          command = bindingSet.commandForEvent(event)
+          if command
+            continue if @triggerCommandEvent(event, command)
+            return false
+          else if command == false
+            return false
 
-    currentNode = $(event.target)
-    currentNode = rootView if currentNode is $('body')[0]
-    while currentNode.length
-      candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
-      for bindingSet in candidateBindingSets
-        command = bindingSet.commandForEvent(event)
-        if command
-          continue if @triggerCommandEvent(event, command)
-          return false
-        else if command == false
-          return false
+          if bindingSet.matchesKeystrokePrefix(event)
+            @queuedKeystrokes = event.keystrokes
+            return false
+        currentNode = currentNode.parent()
 
-        if bindingSet.matchesKeystrokePrefix(event)
-          @queuedKeystrokes = event.keystrokes
-          return false
-      currentNode = currentNode.parent()
-
-    !isMultiKeystroke
+    return false if isMultiKeystroke
+    return false if firstKeystroke is 'tab'
 
   bindingSetsForNode: (node, candidateBindingSets = @bindingSets) ->
     bindingSets = candidateBindingSets.filter (set) -> node.is(set.selector)

@@ -35,8 +35,8 @@ describe "Keymap", ->
       expect(event.keystrokes).toBe 'alt-meta-x'
 
     describe "when no binding matches the event's keystroke", ->
-      it "returns true, so the event continues to propagate", ->
-        expect(keymap.handleKeyEvent(keydownEvent('0', target: fragment[0]))).toBeTruthy()
+      it "does not return false so the event continues to propagate", ->
+        expect(keymap.handleKeyEvent(keydownEvent('0', target: fragment[0]))).not.toBe false
 
     describe "when at least one binding fully matches the event's keystroke", ->
       describe "when the event's target node matches a selector with a matching binding", ->
@@ -176,8 +176,8 @@ describe "Keymap", ->
         fragment.on 'quit', quitHandler
         fragment.on 'close-other-windows', closeOtherWindowsHandler
 
-      it "only matches entire keystroke patters", ->
-        expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBeTruthy()
+      it "only matches entire keystroke patterns", ->
+        expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).not.toBe false
 
       describe "when the event's target node matches a selector with a partially matching multi-stroke binding", ->
         describe "when a second keystroke added to the first to match a multi-stroke binding completely", ->
@@ -197,12 +197,12 @@ describe "Keymap", ->
 
         describe "when a second keystroke added to the first doesn't match any bindings", ->
           it "clears the queued keystrokes without triggering any events", ->
-            expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
-            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBeFalsy()
+            expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBe false
+            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBe false
             expect(quitHandler).not.toHaveBeenCalled()
             expect(closeOtherWindowsHandler).not.toHaveBeenCalled()
 
-            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBeTruthy()
+            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).not.toBe false
 
       describe "when the event's target node descends from multiple nodes that match selectors with a partial binding match", ->
         it "allows any of the bindings to be triggered upon a second keystroke, favoring the most specific selector", ->
@@ -229,6 +229,10 @@ describe "Keymap", ->
 
       describe "when there is a complete binding with a more specific selector", ->
         it "favors the more specific complete match", ->
+
+    describe "when a tab keystroke does not match any bindings", ->
+      it "returns false to prevent the browser from transferring focus", ->
+        expect(keymap.handleKeyEvent(keydownEvent('U+0009', target: fragment[0]))).toBe false
 
   describe ".bindKeys(selector, hash)", ->
     it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
