@@ -9,7 +9,7 @@ class WrapGuideView extends View
       @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
-    if underlayer = editor.pane()?.find('.underlayer')
+    if underlayer = editor.find('.underlayer')
       underlayer.append(new WrapGuideView(editor))
 
   @content: ->
