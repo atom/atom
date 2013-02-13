@@ -1,10 +1,7 @@
 # Configuring Atom
 
-Atom provides a globally-available configuration database that both the core
-system and extensions look to for user- and language-specific settings. A simple
-use of the database is to set things like your font-size and whether you want
-Atom to hide files ignored by Git. You can assign these settings by editing
-`config.cson` in your `.atom` directory:
+Atom loads configuration settings from the `config.cson` file in your `~/.atom`
+directory, which contains CoffeeScript-style JSON:
 
 ```coffeescript
 core:
@@ -13,37 +10,42 @@ editor:
   fontSize: 18
 ```
 
-NOTE: Currently, we only support the `.json` extension. CSON support is an
-aspiration.
+Configuration is broken into namespaces, which are defined by the config hash's
+top-level keys. In addition to Atom's core components, each package may define
+its own namespace.
 
-## Writing Config Settings
+## Configuration Glossary
 
-As shown above, the config database is automatically populated from `config.cson`
-when Atom is started, but you can programmatically write to it in the following
-way:
-
-```coffeescript
-# basic key update
-config.set("editor.autosave", true)
-
-config.get("fuzzyFinder.ignoredPaths").push "vendor"
-config.update() # be sure to call `config.update` after the change
-```
-
-You can also use `setDefaults`, which will assign default values for keys that
-are always overridden by values assigned with `set`. Defaults are not written out
-to the the `config.json` file to prevent it from becoming cluttered.
-
-```coffeescript
-config.setDefaults("editor", fontSize: 18, showInvisibles: true)
-```
-
-See the *configuration key reference* (todo) for information on specific keys you
-can use to change Atom's behavior.
+- core
+  - disablePackages: An array of package names to disable
+  - hideGitIgnoredFiles: Whether files in the .gitignore should be hidden
+  - ignoredNames: File names to ignore across all of atom
+  - themes: An array of theme names to load, in cascading order
+- editor
+  - autoIndent: Enable/disable basic auto-indent (defaults to true)
+  - autoIndentOnPaste: Enable/disable auto-indented pasted text (defaults to false)
+  - autosave: Save a file when an editor loses focus
+  - nonWordCharacters: A string of non-word characters to define word boundaries
+  - fontSize
+  - fontFamily
+  - invisibles: Specify characters that Atom renders for invisibles in this hash
+    - tab: Hard tab characters
+    - cr: Carriage return (For Microsoft-style line endings)
+    - eol: `\n` characters
+    - space: Leading and trailing space characters
+  - preferredLineLength: Packages such as autoflow use this (defaults to 80)
+  - showInvisibles: Whether to render placeholders for invisible characters (defaults to false)
+- fuzzyFinder
+  - ignoredNames: Files to ignore *only* in the fuzzy-finder
+- stripTrailingWhitespace
+  - singleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
+- wrapGuide
+  - columns: Soon to be replaced by editor.preferredLineLength
 
 ## Reading Config Settings
 
-You can read a value from `config` with `config.get`:
+If you are writing a package that you want to make configurable, you'll need to
+read config settings. You can read a value from `config` with `config.get`:
 
 ```coffeescript
 # read a value with `config.get`
@@ -77,6 +79,30 @@ extending their prototype with the `ConfigObserver` mixin:
 ```coffeescript
 ConfigObserver = require 'config-observer'
 _.extend MyClass.prototype, ConfigObserver
+```
+
+## Writing Config Settings
+
+As shown above, the config database is automatically populated from `config.cson`
+when Atom is started, but you can programmatically write to it in the following
+way:
+
+```coffeescript
+# basic key update
+config.set("editor.autosave", true)
+
+# if you mutate a config key, you'll need to call `config.update` to inform
+# observers of the change
+config.get("fuzzyFinder.ignoredPaths").push "vendor"
+config.update()
+```
+
+You can also use `setDefaults`, which will assign default values for keys that
+are always overridden by values assigned with `set`. Defaults are not written out
+to the the `config.json` file to prevent it from becoming cluttered.
+
+```coffeescript
+config.setDefaults("editor", fontSize: 18, showInvisibles: true)
 ```
 
 # Themes
