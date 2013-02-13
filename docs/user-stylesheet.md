@@ -1,4 +1,4 @@
-## User Stylesheet
+# User Stylesheet
 
 If you want to apply quick-and-dirty personal styling changes without creating
 an entire theme that you intend to distribute, you can add styles to
