@@ -72,7 +72,8 @@ describe "CommandPanel", ->
 
   describe "when core:close is triggered on the command panel", ->
     it "detaches the command panel, focuses the RootView and does not bubble the core:close event", ->
-      commandPanel.attach()
+      commandPanel.attach('command')
+      expect(commandPanel.miniEditor.getText()).toBe 'command'
       rootViewCloseHandler = jasmine.createSpy('rootViewCloseHandler')
       rootView.on 'core:close', rootViewCloseHandler
       spyOn(rootView, 'focus')
@@ -82,10 +83,12 @@ describe "CommandPanel", ->
       expect(rootView.focus).toHaveBeenCalled()
       expect(rootViewCloseHandler).not.toHaveBeenCalled()
       expect(commandPanel.hasParent()).toBeFalsy()
+      expect(commandPanel.miniEditor.getText()).toBe ''
 
   describe "when core:cancel is triggered on the command panel's mini editor", ->
     it "detaches the command panel, focuses the RootView and does not bubble the core:cancel event", ->
-      commandPanel.attach()
+      commandPanel.attach('command')
+      expect(commandPanel.miniEditor.getText()).toBe 'command'
       rootViewCancelHandler = jasmine.createSpy('rootViewCancelHandler')
       rootView.on 'core:cancel', rootViewCancelHandler
       spyOn(rootView, 'focus')
@@ -95,6 +98,7 @@ describe "CommandPanel", ->
       expect(rootView.focus).toHaveBeenCalled()
       expect(rootViewCancelHandler).not.toHaveBeenCalled()
       expect(commandPanel.hasParent()).toBeFalsy()
+      expect(commandPanel.miniEditor.getText()).toBe ''
 
   describe "when command-panel:toggle is triggered on the root view", ->
     beforeEach ->
