@@ -44,6 +44,11 @@
   font-size: 11px;
 }
 
+.command-panel .preview-count,
+.command-panel .expand-collapse {
+  -webkit-user-select: none;
+}
+
 .command-panel .preview-list .path {
   padding-left: 5px;
   position: relative;
