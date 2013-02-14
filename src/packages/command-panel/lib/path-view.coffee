@@ -15,15 +15,19 @@ class PathView extends View
         for operation in operations
           @subview "operation#{operation.index}", new OperationView({operation, previewList})
 
-  initialize: ({previewList}) ->
+  initialize: ({@previewList}) ->
     @on 'mousedown', @onPathSelected
-    previewList.command 'command-panel:collapse-result', =>
-      @collapse(true) if @isSelected()
-    previewList.command 'command-panel:expand-result', =>
+    @previewList.command 'command-panel:collapse-result', =>
+      @collapse(true, true) if @isSelected()
+    @previewList.command 'command-panel:expand-result', =>
       @expand(true) if @isSelected()
 
   isSelected: ->
     @hasClass('selected') or @find('.selected').length
+
+  setSelected: ->
+    @previewList.find('.selected').removeClass('selected')
+    @addClass('selected')
 
   onPathSelected: (event) =>
     e = $(event.target)
@@ -43,9 +47,12 @@ class PathView extends View
       @matches.show()
       @removeClass 'is-collapsed'
 
-  collapse: (animate=false) ->
+  collapse: (animate=false, select=false) ->
     if animate
-      @matches.hide 100, => @addClass 'is-collapsed'
+      @matches.hide 100, =>
+        @addClass 'is-collapsed'
+        @setSelected() if select
     else
       @matches.hide()
       @addClass 'is-collapsed'
+      @setSelected() if select

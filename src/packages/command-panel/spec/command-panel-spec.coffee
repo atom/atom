@@ -480,10 +480,12 @@ describe "CommandPanel", ->
         expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
 
     describe "when command-panel:collapse-result and command-panel:expand-result are triggered", ->
-      it "collapses and expands the path of the selection", ->
+      it "collapses and selects the path, and then expands the selected path", ->
         rootView.attachToDom()
         expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
         previewList.trigger 'command-panel:collapse-result'
         expect(previewList.find('li.path:first-child ul.matches')).toBeHidden()
+        expect(previewList.find('li.path:first-child')).toHaveClass 'selected'
         previewList.trigger 'command-panel:expand-result'
         expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
+        expect(previewList.find('li.path:first-child')).toHaveClass 'selected'
