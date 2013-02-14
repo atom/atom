@@ -23,7 +23,6 @@ class PreviewList extends ScrollView
       @setSelectedOperationIndex(parseInt($(e.target).closest('li').data('index')))
       @executeSelectedOperation()
 
-    @on 'mousedown', 'li.path', @onPathSelected
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
     @command 'command-panel:collapse-result', @collapseSelectedPath
@@ -33,13 +32,6 @@ class PreviewList extends ScrollView
     return if e.hasClass 'is-collapsed'
     e.children('ul.matches').hide 100, (e) ->
       $(this).closest('li.path').addClass 'is-collapsed'
-
-  onPathSelected: (event) =>
-    e = $(event.target)
-    e = e.parent() if e.parent().hasClass 'path'
-    return unless e.hasClass 'path'
-    e.children('ul.matches').toggle 100, (e) ->
-      $(this).closest('li.path').toggleClass 'is-collapsed'
 
   expandAllPaths: ->
     @children().each (index, element) -> $(element).view().expand()
