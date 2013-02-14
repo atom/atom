@@ -1,4 +1,4 @@
-### Markdown Preview
+## Markdown Preview
 
 The `markdown-preview` extension displays the rendered HTML for the markdown
 in the current editor.

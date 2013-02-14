@@ -1,6 +1,6 @@
 # Packages
 
-### Package Layout
+## Package Layout
 
 A package can contain a variety of different resource types to change Atom's
 behavior. The basic package layout is as follows (not every package will
@@ -22,14 +22,14 @@ my-package/
 API built into Atom. The goal is to make Atom packages be a superset of NPM
 packages
 
-#### package.json
+### package.json
 
 Similar to npm packages, Atom packages can contain a `package.json` file in their
 top-level directory. This file contains metadata about the package, such as the
 path to its "main" module, library dependencies, and manifests specifying the
 order in which its resources should be loaded.
 
-#### Source Code
+### Source Code
 
 If you want to extend Atom's behavior, your package should contain a single
 top-level module, which you export from `index.coffee` or another file as
@@ -58,7 +58,7 @@ down. If your package is watching any files or holding external resources in any
 other way, release them here. If you're just subscribing to things on window
 you don't need to worry because that's getting torn down anyway.
 
-#### A Simple Package Layout:
+### A Simple Package Layout:
 
 ```text
 my-package/
@@ -90,11 +90,10 @@ to build out Atom's API organically based on the needs of package authors like
 you. See [Atom's built-in packages](https://github.com/github/atom/tree/master/src/packages)
 for examples of Atom's API in action.
 
-#### Config Settings
+### Stylesheets
 
-#### Stylesheets
 
-#### Keymaps (Not Implemented)
+### Keymaps
 
 Keymaps are placed in the `keymaps` subdirectory. By default, all keymaps will be
 loaded in alphabetical order unless there is a `keymaps` array in `package.json`
@@ -102,7 +101,7 @@ specifying which keymaps to load and in what order. It's a good idea to provide
 default keymaps for your extension. They can be customized by users later. See
 the **main keymaps documentation** (todo) for more information.
 
-#### Snippets (Not Implemented)
+### Snippets
 
 An extension can supply snippets in a `snippets` directory as `.cson` or `.json`
 files:
@@ -129,7 +128,7 @@ All files in the directory will be automatically loaded, unless the
 snippets loaded later take precedence over earlier snippets when two snippets
 match a scope with the same specificity.
 
-### Included Packages
+## Included Packages
 
 Atom comes with several built-in packages that add features to the default
 editor.
