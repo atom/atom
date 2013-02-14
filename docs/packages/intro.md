@@ -104,7 +104,8 @@ Keymaps are placed in the `keymaps` subdirectory. By default, all keymaps will b
 loaded in alphabetical order unless there is a `keymaps` array in `package.json`
 specifying which keymaps to load and in what order. It's a good idea to provide
 default keymaps for your extension. They can be customized by users later. See
-the **main keymaps documentation** (todo) for more information.
+the (main keymaps documentation)[#keymaps] for more information on how keymaps
+work.
 
 ### Snippets
 
