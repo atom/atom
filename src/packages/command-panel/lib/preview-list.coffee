@@ -107,7 +107,11 @@ class PreviewList extends ScrollView
     super()
 
     @find('.selected').removeClass('selected')
-    @find('.operation:last').addClass('selected')
+    lastPath = @find('.path:last')
+    if lastPath.hasClass('is-collapsed')
+      lastPath.addClass('selected')
+    else
+      lastPath.find('.operation:last').addClass('selected')
 
   scrollToTop: ->
     super()
