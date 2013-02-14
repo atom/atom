@@ -18,7 +18,7 @@ class PathView extends View
   initialize: ({@previewList}) ->
     @on 'mousedown', @onPathSelected
     @previewList.command 'command-panel:collapse-result', =>
-      @collapse(true, true) if @isSelected()
+      @collapse(true) if @isSelected()
     @previewList.command 'command-panel:expand-result', =>
       @expand(true) if @isSelected()
 
@@ -47,12 +47,12 @@ class PathView extends View
       @matches.show()
       @removeClass 'is-collapsed'
 
-  collapse: (animate=false, select=false) ->
+  collapse: (animate=false) ->
     if animate
       @matches.hide 100, =>
         @addClass 'is-collapsed'
-        @setSelected() if select
+        @setSelected() if @isSelected()
     else
       @matches.hide()
       @addClass 'is-collapsed'
-      @setSelected() if select
+      @setSelected() if @isSelected()
