@@ -465,6 +465,15 @@ describe "CommandPanel", ->
 
           expect(executeHandler).not.toHaveBeenCalled()
 
+      it "toggles the expansion state when a path is selected", ->
+        rootView.attachToDom()
+        previewList.trigger 'core:move-to-top'
+        expect(previewList.find('li.path:first')).toHaveClass 'selected'
+        expect(previewList.find('li.path:first')).not.toHaveClass 'is-collapsed'
+        previewList.trigger 'core:confirm'
+        expect(previewList.find('li.path:first')).toHaveClass 'selected'
+        expect(previewList.find('li.path:first')).toHaveClass 'is-collapsed'
+
     describe "when an operation in the preview list is clicked", ->
       it "opens the operation's buffer, selects the search result, and refocuses the preview list", ->
         spyOn(previewList, 'focus')

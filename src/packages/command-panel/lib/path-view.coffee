@@ -22,6 +22,10 @@ class PathView extends View
       @collapse(true) if @isSelected()
     @previewList.command 'command-panel:expand-result', =>
       @expand(true) if @isSelected()
+    @previewList.command 'core:confirm', =>
+      if @hasClass('selected')
+        @toggle(true)
+        false
 
   isSelected: ->
     @hasClass('selected') or @find('.selected').length
