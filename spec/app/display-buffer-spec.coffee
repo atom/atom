@@ -185,6 +185,22 @@ describe "DisplayBuffer", ->
           displayBuffer.foldBufferRow(1)
           expect(displayBuffer.lineForRow(0).fold).toBeDefined()
 
+      describe "when the bufferRow is in a multi-line comment", ->
+        it "searches upward and downward for surrounding comment lines and folds them as a single fold", ->
+          buffer.insert([1,0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
+          displayBuffer.foldBufferRow(1)
+          fold = displayBuffer.lineForRow(1).fold
+          expect(fold.startRow).toBe 1
+          expect(fold.endRow).toBe 3
+
+      describe "when the bufferRow is a single-line comment", ->
+        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
+          buffer.insert([1,0], "  //this is a single line comment\n")
+          displayBuffer.foldBufferRow(1)
+          fold = displayBuffer.lineForRow(0).fold
+          expect(fold.startRow).toBe 0
+          expect(fold.endRow).toBe 13
+
    describe ".unfoldBufferRow(bufferRow)", ->
       describe "when bufferRow can be unfolded", ->
         it "destroys a fold based on the syntactic region starting at the given row", ->
