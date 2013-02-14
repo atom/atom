@@ -10,11 +10,21 @@ class EventMonitor
     @events.length
   lastEvent: () ->
     @events[@events.length - 1]
+  hasEvent: (name) ->
+    for event in @events
+      return true if event == name
+    false
   command: (name) ->
+
+class MockVimView
+  constructor: () ->
+    @mode = "command"
+  enterInsertMode: () ->
+    @mode = "insert"
 
 fdescribe "Vim state", ->
 
-  [target, vim] = []
+  [target, vim, editor] = []
 
   it_sends_motion_event = (motion, event) =>
     it "sends event '#{event}'", =>
@@ -23,7 +33,8 @@ fdescribe "Vim state", ->
 
   beforeEach ->
     target = new EventMonitor
-    vim = new VimState(target)
+    editor = new MockVimView
+    vim = new VimState(target, editor)
 
   # http://vimdoc.sourceforge.net/htmldoc/motion.html
   describe "motions", ->
@@ -70,8 +81,32 @@ fdescribe "Vim state", ->
     describe "line", ->
 
   describe "operations", ->
+    it "performs event when motion is executed", ->
+      vim.operation("delete")
+      expect(target.count()).toBe(0)
+      vim.motion("left")
+      expect(target.count()).not.toBe(0)
+    it "performs operation on current line when operation is executed twice", ->
+      vim.operation("delete")
+      expect(target.count()).toBe(0)
+      vim.operation("delete")
+      expect(target.count()).not.toBe(0)
     describe "change", ->
+      it "removes text in the motion", ->
+        vim.operation("change")
+        vim.motion("move-to-end-of-line")
+        expect(target.hasEvent("editor:select-to-end-of-line")).toBe(true)
+        expect(target.hasEvent("core:delete")).toBe(true)
+      it "sends editor into insert mode", ->
+        vim.operation("change")
+        vim.motion("move-to-end-of-line")
+        expect(editor.mode).toBe("insert")
     describe "delete", ->
+      it "removes text in the motion", ->
+        vim.operation("delete")
+        vim.motion("move-to-end-of-line")
+        expect(target.hasEvent("editor:select-to-end-of-line")).toBe(true)
+        expect(target.hasEvent("core:delete")).toBe(true)
     describe "yank", ->
     describe "swap case", ->
     describe "filter through external program", ->

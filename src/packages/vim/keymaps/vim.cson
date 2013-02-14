@@ -20,6 +20,8 @@
   '0': 'vim:motion-move-to-beginning-of-line'
   '$': 'vim:motion-move-to-end-of-line'
   'u': 'core:undo'
+  'c': 'vim:operation-change'
+  'd': 'vim:operation-delete'
   'ctrl-r': 'core:redo'
   'escape': 'vim:cancel-command'
 
