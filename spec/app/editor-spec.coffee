@@ -1155,6 +1155,15 @@ describe "Editor", ->
           editor.setCursorBufferPosition([4, 10])
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
 
+        it "does not autoscroll the cursor based on a buffer change, unless the buffer change was initiated by the cursor", ->
+          lastVisibleRow = editor.getLastVisibleScreenRow()
+          editor.addCursorAtBufferPosition([lastVisibleRow, 0])
+          spyOn(editor, 'scrollToPixelPosition')
+          buffer.insert([lastVisibleRow, 0], "\n\n")
+          expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
+          editor.insertText('\n\n')
+          expect(editor.scrollToPixelPosition.callCount).toBe 1
+
         describe "when the last cursor exceeds the upper or lower scroll margins", ->
           describe "when the editor is taller than twice the vertical scroll margin", ->
             it "sets the scrollTop so the cursor remains within the scroll margin", ->
