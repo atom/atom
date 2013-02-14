@@ -25,13 +25,6 @@ class PreviewList extends ScrollView
 
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
-    @command 'command-panel:collapse-result', @collapseSelectedPath
-
-  collapseSelectedPath: (event) =>
-    e = $('.selected').closest('.path')
-    return if e.hasClass 'is-collapsed'
-    e.children('ul.matches').hide 100, (e) ->
-      $(this).closest('li.path').addClass 'is-collapsed'
 
   expandAllPaths: ->
     @children().each (index, element) -> $(element).view().expand()

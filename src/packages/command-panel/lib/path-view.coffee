@@ -17,17 +17,30 @@ class PathView extends View
 
   initialize: ->
     @on 'mousedown', @onPathSelected
+    rootView.command 'command-panel:collapse-result', (e) =>
+      @collapse(true) if @find('.selected').length
 
   onPathSelected: (event) =>
     e = $(event.target)
     e = e.parent() if e.parent().hasClass 'path'
-    if e.hasClass 'path'
-      @matches.toggle 100, => @toggleClass 'is-collapsed'
+    @toggle(true) if e.hasClass 'path'
 
-  expand: ->
-    @matches.show()
-    @removeClass 'is-collapsed'
+  toggle: (animate) ->
+    if @hasClass('is-collapsed')
+      @expand(animate)
+    else
+      @collapse(animate)
 
-  collapse: ->
-    @matches.hide()
-    @addClass 'is-collapsed'
+  expand: (animate=false) ->
+    if animate
+      @matches.show 100, => @removeClass 'is-collapsed'
+    else
+      @matches.show()
+      @removeClass 'is-collapsed'
+
+  collapse: (animate=false) ->
+    if animate
+      @matches.hide 100, => @addClass 'is-collapsed'
+    else
+      @matches.hide()
+      @addClass 'is-collapsed'
