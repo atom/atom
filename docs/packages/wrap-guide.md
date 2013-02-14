@@ -10,15 +10,13 @@ By default the wrap-guide is placed at the 80th column.
 You can customize where the column is placed using the `wrapGuide.columns`
 config option.
 
-```json
-{
-  "wrapGuide": {
-    "columns": [
-      { "pattern": "\.mm$", "column": 200 },
-      { "pattern": "\.cc$", "column": 120 }
-    ]
-  }
-}
+config.cson:
+```coffee-cript
+"wrap-guide":
+  columns: [
+    { pattern: "\.mm$", column: 200 },
+    { pattern: "\.cc$", column: 120 }
+  ]
 ```
 
 The above config example would place the guide at the 200th column for paths

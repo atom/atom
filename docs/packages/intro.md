@@ -126,13 +126,13 @@ files:
 ```
 
 A snippets file contains scope selectors at its top level. Each scope selector
-contains a hash of snippets keyed by their name. Each snippet specifies a `prefix`
-and a `body` key.
+contains a hash of snippets keyed by their name. Each snippet specifies a
+`prefix` and a `body` key.
 
 All files in the directory will be automatically loaded, unless the
-`package.json` supplies a `snippets` key as a manifest. As with all scoped items,
-snippets loaded later take precedence over earlier snippets when two snippets
-match a scope with the same specificity.
+`package.json` supplies a `snippets` key as a manifest. As with all scoped
+items, snippets loaded later take precedence over earlier snippets when two
+snippets match a scope with the same specificity.
 
 ## Included Packages
 
