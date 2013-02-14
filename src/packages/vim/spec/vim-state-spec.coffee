@@ -77,7 +77,9 @@ fdescribe "Vim state", ->
 
     describe "word", ->
       describe "forward", ->
+        it_sends_motion_event "next-word", "editor:move-to-next-word"
       describe "backward", ->
+        it_sends_motion_event "previous-word", "editor:previous-to-next-word"
     describe "line", ->
 
   describe "operations", ->

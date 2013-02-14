@@ -19,6 +19,8 @@
   'l': 'vim:motion-right'
   '0': 'vim:motion-move-to-beginning-of-line'
   '$': 'vim:motion-move-to-end-of-line'
+  'w': 'vim:motion-next-word'
+  'b': 'vim:motion-previous-word'
   'u': 'core:undo'
   'c': 'vim:operation-change'
   'd': 'vim:operation-delete'

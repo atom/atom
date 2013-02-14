@@ -77,6 +77,8 @@ class VimState
     line: "editor:move-line"
     'move-to-beginning-of-line': "editor:move-to-beginning-of-line"
     'move-to-end-of-line': "editor:move-to-end-of-line"
+    'next-word': "editor:move-to-next-word"
+    'previous-word': "editor:move-to-previous-word"
   operations:
     'move': ->
       @performMotion()
