@@ -672,6 +672,18 @@ describe "Editor", ->
           editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 50])
           expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
 
+      describe "when the editor is using a variable-width font", ->
+        beforeEach ->
+          editor.setFontFamily('sans-serif')
+
+        afterEach ->
+          editor.clearFontFamily()
+
+        it "positions the cursor to the clicked row and column", ->
+          {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
+          editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
+          expect(editor.getCursorScreenPosition()).toEqual [3, 30]
+
     describe "double-click", ->
       it "selects the word under the cursor, and expands the selection wordwise in either direction on a subsequent shift-click", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)

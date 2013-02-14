@@ -1229,14 +1229,30 @@ class Editor extends View
     offset = @renderedLines.offset()
     {top: top + offset.top, left: left + offset.left}
 
-  screenPositionFromPixelPosition: ({top, left}) ->
-    screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
-
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
-    @screenPositionFromPixelPosition
-      top: pageY - @scrollView.offset().top + @scrollTop()
-      left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
+
+    editorRelativeTop = pageY - @scrollView.offset().top + @scrollTop()
+    row = Math.floor(editorRelativeTop / @lineHeight)
+    column = 0
+
+    if lineElement = @lineElementForScreenRow(row)[0]
+      @overlayer.hide()
+      @css '-webkit-user-select', 'auto'
+      if range = document.caretRangeFromPoint(pageX, pageY)
+        clickedTextNode = range.endContainer
+        clickedOffset = range.endOffset
+        range.detach()
+      @css '-webkit-user-select', ''
+      @overlayer.show()
+
+      if clickedTextNode and lineElement
+        iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+        while (node = iterator.nextNode()) and node isnt clickedTextNode
+          column += node.textContent.length
+        column += clickedOffset
+
+    new Point(row, column)
 
   highlightCursorLine: ->
     return if @mini
