@@ -82,6 +82,8 @@
 
 .editor .invisible {
   opacity: 0.2;
+  font-weight: normal !important;
+  font-style: normal !important;
 }
 
 .editor .vertical-scrollbar {
