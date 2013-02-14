@@ -104,6 +104,7 @@ class ScreenLine
 
   isComment: ->
     for token in @tokens
+      continue if token.isOnlyWhitespace()
       continue if token.scopes.length is 1
       for scope in token.scopes
         return true if _.contains(scope.split('.'), 'comment')
