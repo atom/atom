@@ -19,4 +19,6 @@
 
 '.command-panel .preview-list':
   'left': 'command-panel:collapse-result'
+  'ctrl-[': 'command-panel:collapse-result'
   'right': 'command-panel:expand-result'
+  'ctrl-]': 'command-panel:expand-result'
