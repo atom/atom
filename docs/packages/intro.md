@@ -92,6 +92,11 @@ for examples of Atom's API in action.
 
 ### Stylesheets
 
+Stylesheets for your package should be placed in the `stylesheets` directory.
+Any stylesheets in this directory will be loaded and attached to the DOM when
+your package is activated. An optional `stylesheets` key in your `package.json`
+can list the stylesheets by name in order to specify a load order; otherwise
+stylesheets are loaded alphabetically.
 
 ### Keymaps
 
