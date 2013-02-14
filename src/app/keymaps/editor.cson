@@ -23,6 +23,8 @@
   'meta-]': 'editor:indent-selected-rows'
   'meta-{': 'editor:show-previous-buffer'
   'meta-}': 'editor:show-next-buffer'
+  'alt-meta-left': 'editor:show-previous-buffer'
+  'alt-meta-right': 'editor:show-next-buffer'
   'meta-1': 'editor:show-buffer-1'
   'meta-2': 'editor:show-buffer-2'
   'meta-3': 'editor:show-buffer-3'
