@@ -2,9 +2,9 @@ intro.md
 features.md
 configuring.md
 keymaps.md
-themes.md
 user-stylesheet.md
 user-init-script.md
+themes.md
 packages/intro.md
 packages/installing.md
 packages/markdown-preview.md
