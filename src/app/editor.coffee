@@ -910,7 +910,7 @@ class Editor extends View
     @newSelections = @activeEditSession.getSelections()
     @updateDisplay(suppressAutoScroll: true)
 
-  requestDisplayUpdate: ()->
+  requestDisplayUpdate: ->
     return if @pendingDisplayUpdate
     @pendingDisplayUpdate = true
     _.nextTick =>
