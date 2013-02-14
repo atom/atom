@@ -31,7 +31,7 @@ class PreviewList extends ScrollView
     e = $('.selected').closest('.path')
     return if e.hasClass 'is-collapsed'
     e.children('ul.matches').hide 100, (e) ->
-      $(this).closest('li.path').add 'is-collapsed'
+      $(this).closest('li.path').addClass 'is-collapsed'
 
   onPathSelected: (event) =>
     e = $(event.target)
