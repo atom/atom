@@ -18,9 +18,11 @@ class EventMonitor
 
 class MockVimView
   constructor: () ->
-    @mode = "command"
+    @enterCommandMode()
   enterInsertMode: () ->
     @mode = "insert"
+  enterCommandMode: () ->
+    @mode = "command"
 
 fdescribe "Vim state", ->
 
@@ -88,16 +90,22 @@ fdescribe "Vim state", ->
     describe "line", ->
 
   describe "operations", ->
-    it "performs event when motion is executed", ->
-      vim.operation("delete")
-      expect(target.count()).toBe(0)
-      vim.motion("left")
-      expect(target.count()).not.toBe(0)
-    it "performs operation on current line when operation is executed twice", ->
-      vim.operation("delete")
-      expect(target.count()).toBe(0)
-      vim.operation("delete")
-      expect(target.count()).not.toBe(0)
+    describe "execution", ->
+      it "performs event when motion is executed", ->
+        vim.operation("delete")
+        expect(target.count()).toBe(0)
+        vim.motion("left")
+        expect(target.count()).not.toBe(0)
+      it "performs operation on current line when operation is executed twice", ->
+        vim.operation("delete")
+        expect(target.count()).toBe(0)
+        vim.operation("delete")
+        expect(target.count()).not.toBe(0)
+      it "performs operation in visual mode", ->
+        editor.visual = true
+        vim.operation("delete")
+        expect(target.count()).not.toBe(0)
+
     describe "change", ->
       it "removes text in the motion", ->
         vim.operation("change")

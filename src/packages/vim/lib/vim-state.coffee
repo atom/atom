@@ -19,9 +19,9 @@ class VimOperation
   performEvent: (event) ->
     @target.trigger(event)
   performMotion: ->
-    @motion.perform(@target)
+    @motion.perform(@target) if @motion?
   performSelectMotion: ->
-    @motion.performSelect(@target)
+    @motion.performSelect(@target) if @motion?
 
 module.exports =
 class VimState
@@ -49,17 +49,24 @@ class VimState
   count: (n) ->
     @_count = n if n?
     @_count
+  visual: () ->
+    @vim.visual
   defaultOperation: () ->
-    if @vim.visual then 'select' else 'move'
+    if @visual() then 'select' else 'move'
   buildOperation: (type) ->
     type = @defaultOperation() if !@operations[type]?
     new VimOperation(type, @operations[type], @vim)
   operation: (type) ->
-    if @_operation.name != type
+    if @visual()
       @_operation = @buildOperation(type)
-    else
+      @_operation.perform(@target)
+      @resetState()
+      @vim.enterCommandMode()
+    else if @_operation.name == type
       @_operation.perform(@target, @defaultMotion())
       @resetState()
+    else
+      @_operation = @buildOperation(type)
   resetState: ->
     @enterState "idle"
     @_count = 1
