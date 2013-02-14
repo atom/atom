@@ -9,7 +9,7 @@ describe "StripTrailingWhitespace", ->
     fs.write(path, "")
     rootView = new RootView(path)
 
-    atom.loadPackage('strip-trailing-whitespace')
+    window.loadPackage('strip-trailing-whitespace')
     rootView.focus()
     editor = rootView.getActiveEditor()
 

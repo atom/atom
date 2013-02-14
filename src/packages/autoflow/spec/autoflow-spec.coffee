@@ -5,7 +5,7 @@ describe "Autoflow package", ->
 
   beforeEach ->
     rootView = new RootView
-    atom.loadPackage 'autoflow'
+    window.loadPackage 'autoflow'
     editor = rootView.getActiveEditor()
     config.set('editor.preferredLineLength', 30)
 

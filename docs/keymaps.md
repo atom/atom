@@ -1,0 +1,95 @@
+# Keymaps
+
+Atom keymaps work similarly to stylesheets. Just as stylesheets use selectors
+to apply styles to elements, Atom keymaps use selectors to associate keystrokes
+with events in specific contexts. Here's a small example, excerpted from Atom's
+built-in keymaps:
+
+```coffee-script
+'.editor':
+  'enter': 'editor:newline'
+
+".select-list .editor.mini":
+  'enter': 'core:confirm',
+```
+
+This keymap defines the meaning of `enter` in two different contexts. In a
+normal editor, pressing `enter` emits the `editor:newline` event, which causes
+the editor to insert a newline. But if the same keystroke occurs inside of a
+select list's mini-editor, it instead emits the `core:confirm` event based on
+the binding in the more-specific selector.
+
+## Structure of a Keymap File
+
+Keymap files are encoded as JSON or CSON files containing nested hashes. The
+top-level keys of a keymap are **CSS 3 selectors**, which specify a particular
+context in Atom's interface. Common selectors are `.editor`, which scopes
+bindings to just work when an editor is focused, and `body`, which scopes
+bindings globally.
+
+Beneath the selectors are hashes mapping **keystroke patterns** to
+**semantic events**. A keystroke pattern looks like the following examples.
+Note that the last example describes multiple keystrokes in succession:
+
+- `p`
+- `2`
+- `ctrl-p`
+- `ctrl-alt-meta-p`
+- `tab`
+- `escape`
+- `enter`
+- `ctrl-w w`
+
+A semantic event is the name of the custom event that will be triggered on the
+target of the keydown event when a key binding matches. You can use the command
+palette (bound to `meta-p`), to get a list of relevant events and their bindings
+in any focused context in Atom.
+
+## Loading Keymaps
+
+By default, any keymap files in your `~/.atom/keymaps` directory will be loaded
+in alphabetical order when Atom is started. They will always be loaded last,
+giving you the chance to override bindings that are defined by Atom's core
+keymaps or third-party packages.
+
+## Rules for Choosing a Binding
+
+A keymap's job is to translate a physical keystroke event (like `meta-D`) into a
+semantic event (like `editor:duplicate-line`). Whenever a keydown event occurs
+on a focused element, it bubbles up the DOM as usual. As soon as an element on
+the bubble path matches a key binding for the keystroke, the binding's semantic
+event is triggered on the original target of the keydown event. Just as with
+CSS, if multiple selectors match an element, the most specific selector is
+favored. If two selectors have the same specificity, the selector that occurs
+latest in the cascade is favored.
+
+Currently, there's no way to specify selector ordering within a single keymap,
+because JSON hashes do not preserve order. Rather than making the format more
+awkward in order to preserve order, we've opted to handle cases where order is
+critical by breaking the keymap into two separate files, such as
+`snippets-1.cson` and `snippets-2.cson`.
+
+## Overloading Bindings
+
+Occasionally, it makes sense to layer multiple actions on top of the same key
+binding. An example of this is the snippets package. You expand a snippet by
+pressing `tab` immediately following a snippet's prefix. But if the cursor is
+not following a valid snippet prefix, then we want tab to perform its normal
+action (probably inserting a tab character or the appropriate number of spaces).
+
+To achieve this, the snippets package makes use of the `abortKeyBinding` method
+on the event object that's triggered by the binding for `tab`.
+
+```coffee-script
+# pseudo-code
+editor.command 'snippets:expand', (e) =>
+  if @cursorFollowsValidPrefix()
+    @expandSnippet()
+  else
+    e.abortKeyBinding()
+```
+
+When the event handler observes that the cursor does not follow a valid prefix,
+it calls `e.abortKeyBinding()`, which tells the keymap system to continue
+searching up the cascade for another matching binding. In this case, the default
+implementation of `tab` ends up getting triggered.

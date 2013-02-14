@@ -1,24 +1,22 @@
-### Wrap Guide
+## Wrap Guide
 
 The `wrap-guide` extension places a vertical line in each editor at a certain
 column to guide your formatting so lines do not exceed a certain width.
 
 By default the wrap-guide is placed at the 80th column.
 
-#### Configuration
+### Configuration
 
 You can customize where the column is placed using the `wrapGuide.columns`
 config option.
 
-```json
-{
-  "wrapGuide": {
-    "columns": [
-      { "pattern": "\.mm$", "column": 200 },
-      { "pattern": "\.cc$", "column": 120 }
-    ]
-  }
-}
+config.cson:
+```coffee-cript
+"wrap-guide":
+  columns: [
+    { pattern: "\.mm$", column: 200 },
+    { pattern: "\.cc$", column: 120 }
+  ]
 ```
 
 The above config example would place the guide at the 200th column for paths

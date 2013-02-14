@@ -11,23 +11,24 @@ class WrapGuideView extends View
   @content: ->
     @div class: 'wrap-guide'
 
-  defaultColumn: 80
-
   initialize: (@editor) ->
     @observeConfig 'editor.fontSize', => @updateGuide()
     @subscribe @editor, 'editor:path-changed', => @updateGuide()
     @subscribe @editor, 'editor:min-width-changed', => @updateGuide()
     @subscribe $(window), 'resize', => @updateGuide()
 
+  getDefaultColumn: ->
+    config.get('editor.preferredLineLength') ? 80
+
   getGuideColumn: (path) ->
     customColumns = config.get('wrapGuide.columns')
-    return @defaultColumn unless _.isArray(customColumns)
+    return @getDefaultColumn() unless _.isArray(customColumns)
     for customColumn in customColumns
       continue unless _.isObject(customColumn)
       pattern = customColumn['pattern']
       continue unless pattern
       return parseInt(customColumn['column']) if new RegExp(pattern).test(path)
-    @defaultColumn
+    @getDefaultColumn()
 
   updateGuide: ->
     column = @getGuideColumn(@editor.getPath(), @defaultColumn)

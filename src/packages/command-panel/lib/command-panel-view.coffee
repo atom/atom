@@ -23,7 +23,7 @@ class CommandPanelView extends View
   historyIndex: 0
   maxSerializedHistorySize: 100
 
-  initialize: (state={}) ->
+  initialize: (state) ->
     @commandInterpreter = new CommandInterpreter(rootView.project)
 
     @command 'tool-panel:unfocus', => rootView.focus()

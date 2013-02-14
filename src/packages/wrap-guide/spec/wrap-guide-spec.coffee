@@ -5,11 +5,11 @@ describe "WrapGuide", ->
 
   beforeEach ->
     new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage('wrap-guide')
+    window.loadPackage('wrap-guide')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()
     wrapGuide = rootView.find('.wrap-guide').view()
-    editor.width(editor.charWidth * wrapGuide.defaultColumn * 2)
+    editor.width(editor.charWidth * wrapGuide.getDefaultColumn() * 2)
 
   afterEach ->
     rootView.deactivate()
@@ -24,7 +24,7 @@ describe "WrapGuide", ->
 
   describe "@updateGuide", ->
     it "positions the guide at the configured column", ->
-      width = editor.charWidth * wrapGuide.defaultColumn
+      width = editor.charWidth * wrapGuide.getDefaultColumn()
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
       expect(wrapGuide).toBeVisible()
@@ -48,7 +48,7 @@ describe "WrapGuide", ->
     it "uses the default column when no custom column matches the path", ->
       config.set('wrapGuide.columns', [{pattern: '\.jsp$', column: '100'}])
       wrapGuide.updateGuide()
-      width = editor.charWidth * wrapGuide.defaultColumn
+      width = editor.charWidth * wrapGuide.getDefaultColumn()
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
 

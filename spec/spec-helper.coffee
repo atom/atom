@@ -17,20 +17,11 @@ fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
-# Specs rely on TextMate bundles (but not atom packages)
-window.loadTextMatePackages = ->
-  TextMatePackage = require 'text-mate-package'
-  config.packageDirPaths.unshift(fixturePackagesPath)
-  window.textMatePackages = []
-  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
-    window.textMatePackages.push atom.loadPackage(fs.base(path))
-
-window.loadTextMatePackages()
-
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
   atom.atomPackageStates = {}
+  atom.loadedPackages = []
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
@@ -76,6 +67,24 @@ $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 jasmine.getEnv().defaultTimeoutInterval = 1000
+
+window.loadPackage = (name, options) ->
+  Package = require 'package'
+  packagePath = _.find atom.getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
+  if pack = Package.build(packagePath)
+    pack.load(options)
+    atom.loadedPackages.push(pack)
+  pack
+
+# Specs rely on TextMate bundles (but not atom packages)
+window.loadTextMatePackages = ->
+  TextMatePackage = require 'text-mate-package'
+  config.packageDirPaths.unshift(fixturePackagesPath)
+  window.textMatePackages = []
+  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
+    window.textMatePackages.push window.loadPackage(fs.base(path))
+
+window.loadTextMatePackages()
 
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()

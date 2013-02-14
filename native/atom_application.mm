@@ -25,10 +25,6 @@
 + (NSDictionary *)parseArguments:(char **)argv count:(int)argc {
   NSMutableDictionary *arguments = [[NSMutableDictionary alloc] init];
 
-  #ifdef RESOURCE_PATH
-    [arguments setObject:[NSString stringWithUTF8String:RESOURCE_PATH] forKey:@"resource-path"];
-  #endif
-
   // Remove non-posix (i.e. -long_argument_with_one_leading_hyphen) added by OS X from the command line
   int cleanArgc = argc;
   size_t argvSize = argc * sizeof(char *);
@@ -210,12 +206,6 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   if (!_filesOpened && [self shouldOpenFiles]) {
     NSString *path = [self.arguments objectForKey:@"path"];
-
-    // Just a hack to open the Atom src by default when we run from xcode
-    #ifdef RESOURCE_PATH
-    if (!path) path = [NSString stringWithUTF8String:RESOURCE_PATH];
-    #endif
-
     NSNumber *pid = [self.arguments objectForKey:@"wait"] ? [self.arguments objectForKey:@"pid"] : nil;
     [self open:path pidToKillWhenWindowCloses:pid];
   }

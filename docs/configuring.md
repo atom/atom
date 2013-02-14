@@ -1,4 +1,4 @@
-# Configuring Atom
+# Configuration Settings
 
 Atom loads configuration settings from the `config.cson` file in your `~/.atom`
 directory, which contains CoffeeScript-style JSON:
@@ -40,7 +40,8 @@ its own namespace.
 - stripTrailingWhitespace
   - singleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
 - wrapGuide
-  - columns: Soon to be replaced by editor.preferredLineLength
+  - columns: Array of hashes with a `pattern` and `column` key to match the
+             the path of the current editor to a column position.
 - vim
   - enabled: Enable vim-style editor mode. Set to true to enable (defaults to false)
 

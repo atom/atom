@@ -12,6 +12,11 @@ class AtomTheme extends Theme
       @loadStylesheet(@path)
     else
       metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
-      stylesheetNames = fs.readObject(metadataPath).stylesheets
-      @loadStylesheet(fs.join(@path, name)) for name in stylesheetNames
+      if fs.isFile(metadataPath)
+        stylesheetNames = fs.readObject(metadataPath)?.stylesheets
+        if stylesheetNames
+          @loadStylesheet(fs.join(@path, name)) for name in stylesheetNames
+      else
+        @loadStylesheet(stylesheetPath) for stylesheetPath in fs.list(@path, ['.css'])
+
     super

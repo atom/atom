@@ -5,7 +5,7 @@ BUILD_DIR = 'atom-build'
 require 'erb'
 
 desc "Build Atom via `xcodebuild`"
-task :build => "create-project" do
+task :build => "create-xcode-project" do
   command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
@@ -15,7 +15,7 @@ task :build => "create-project" do
 end
 
 desc "Create xcode project from gyp file"
-task "create-project" => "bootstrap" do
+task "create-xcode-project" => "bootstrap" do
   `rm -rf atom.xcodeproj`
   `gyp --depth=. atom.gyp`
 end
@@ -35,15 +35,8 @@ task :install => [:clean, :build] do
   `cp -r #{path} #{File.expand_path(dest)}`
 
   # Install cli atom
-  usr_bin_path = default_usr_bin_path = "/opt/github/bin"
+  usr_bin_path = "/opt/github/bin"
   cli_path = "#{usr_bin_path}/atom"
-  stable_cli_path = "#{usr_bin_path}/atom-stable"
-  `echo "use 'atom --stable' in place of atom-stable." > #{stable_cli_path}`
-
-  if !File.exists?(usr_bin_path)
-    $stderr.puts "ERROR: Failed to install atom cli tool at '#{usr_bin_path}'"
-    exit 1
-  end
 
   template = ERB.new CLI_SCRIPT
   namespace = OpenStruct.new(:application_path => dest, :resource_path => ATOM_SRC_PATH)
@@ -55,27 +48,12 @@ task :install => [:clean, :build] do
   Rake::Task["create-dot-atom"].invoke()
   Rake::Task["clone-default-bundles"].invoke()
 
-  puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `.atom` directory\033[0m"
+  puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `~/.atom` directory\033[0m"
 end
 
 desc "Creates .atom file if non exists"
 task "create-dot-atom" do
-  # Migration: If there is still a bundle path, rename it to packages
-  if File.exists?(DOT_ATOM_PATH) and File.exists?(File.join(DOT_ATOM_PATH, "bundles"))
-    if File.exists?(File.join(DOT_ATOM_PATH, "packages"))
-      `mv #{File.join(DOT_ATOM_PATH, "bundles", "*")} #{File.join(DOT_ATOM_PATH, "packages")}`
-      $stderr.puts "WARNING: Bundles from ~/.atom/bundles were moved to ~/.atom/packages"
-    else
-      `mv #{File.join(DOT_ATOM_PATH, "bundles")} #{File.join(DOT_ATOM_PATH, "packages")}`
-      $stderr.puts "WARNING: ~/.atom/bundles was moved to ~/.atom/packages"
-    end
-  end
-
-  # Migration: remove files that are no longer needed
-  `rm -rf #{File.join(DOT_ATOM_PATH, 'default-config.coffee')}`
-
-  dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
-  replace_dot_atom = false
+  dot_atom_template_path = ATOM_SRC_PATH + "/dot-atom"
 
   if File.exists?(DOT_ATOM_PATH)
     user_config = "#{DOT_ATOM_PATH}/user.coffee"
@@ -85,17 +63,11 @@ task "create-dot-atom" do
       `mv #{old_user_config} #{user_config}`
       puts "\033[32mRenamed #{old_user_config} to #{user_config}\033[0m"
     end
-
-    next
+  else
+    `mkdir "#{DOT_ATOM_PATH}"`
+    `cp -r "#{dot_atom_template_path}/" "#{DOT_ATOM_PATH}"/`
+    `cp -r "#{ATOM_SRC_PATH}/themes/" "#{DOT_ATOM_PATH}"/themes/`
   end
-
-  `rm -rf "#{DOT_ATOM_PATH}"`
-  `mkdir "#{DOT_ATOM_PATH}"`
-
-  `cp "#{dot_atom_template_path}/user.coffee" "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/user.css" "#{DOT_ATOM_PATH}"`
-  `cp -r "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
-  `cp -r "#{ATOM_SRC_PATH}/themes" "#{DOT_ATOM_PATH}"`
 end
 
 desc "Clone default bundles into vendor/bundles directory"
@@ -110,17 +82,6 @@ task :clean do
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
   `rm -rf /tmp/atom-compiled-scripts`
-end
-
-desc "Run Atom"
-task :run, [:atom_arg] => :build do |name, args|
-  if path = application_path()
-    cmd = "#{path}/Contents/MacOS/Atom #{args[:atom_arg]} 2> /dev/null"
-    system(cmd)
-    exit($?.exitstatus)
-  else
-    exit(1)
-  end
 end
 
 desc "Run the specs"

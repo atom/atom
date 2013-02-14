@@ -13,12 +13,12 @@ describe "Snippets extension", ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     spyOn(LoadSnippetsTask.prototype, 'start')
 
-    packageWithSnippets = atom.loadPackage("package-with-snippets")
+    packageWithSnippets = window.loadPackage("package-with-snippets")
 
     spyOn(atom, "getLoadedPackages").andCallFake ->
       window.textMatePackages.concat([packageWithSnippets])
 
-    atom.loadPackage("snippets")
+    window.loadPackage("snippets")
 
     editor = rootView.getActiveEditor()
     editSession = rootView.getActiveEditSession()

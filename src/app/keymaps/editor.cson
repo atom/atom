@@ -44,3 +44,8 @@
   'ctrl-meta-up': 'editor:move-line-up'
   'ctrl-meta-down': 'editor:move-line-down'
   'meta-D': 'editor:duplicate-line'
+
+'.editor.mini':
+  'enter': 'core:confirm',
+  'escape': 'core:cancel'
+  'meta-w': 'core:cancel'

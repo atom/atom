@@ -1,6 +1,7 @@
 RootView = require 'root-view'
 FuzzyFinder = require 'fuzzy-finder/lib/fuzzy-finder-view'
 LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
+_ = require 'underscore'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
@@ -11,7 +12,7 @@ describe 'FuzzyFinder', ->
   beforeEach ->
     new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    finderView = atom.loadPackage("fuzzy-finder").packageMain.createView()
+    finderView = window.loadPackage("fuzzy-finder").packageMain.createView()
 
   afterEach ->
     rootView.deactivate()
@@ -123,12 +124,43 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(finderView.miniEditor.getText()).toBe ''
 
-        it "lists the paths of the current open buffers", ->
+        it "lists the paths of the current open buffers by most recently modified", ->
+          rootView.attachToDom()
+          rootView.open 'sample-with-tabs.coffee'
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-          expect(finderView.list.children('li').length).toBe 2
+          children = finderView.list.children('li')
+          expect(children.get(0).outerText).toBe "sample.txt"
+          expect(children.get(1).outerText).toBe "sample.js"
+          expect(children.get(2).outerText).toBe "sample-with-tabs.coffee"
+
+          rootView.open 'sample.txt'
+          rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+          children = finderView.list.children('li')
+          expect(children.get(0).outerText).toBe "sample-with-tabs.coffee"
+          expect(children.get(1).outerText).toBe "sample.js"
+          expect(children.get(2).outerText).toBe "sample.txt"
+
+          expect(finderView.list.children('li').length).toBe 3
           expect(finderView.list.find("li:contains(sample.js)")).toExist()
           expect(finderView.list.find("li:contains(sample.txt)")).toExist()
+          expect(finderView.list.find("li:contains(sample-with-tabs.coffee)")).toExist()
           expect(finderView.list.children().first()).toHaveClass 'selected'
+
+        it "serializes the list of paths and their last opened time", ->
+          rootView.open 'sample-with-tabs.coffee'
+          rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+          rootView.open 'sample.js'
+          rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+          rootView.open()
+
+          states = rootView.serialize().packageStates
+          states = _.map states['fuzzy-finder'], (path, time) -> [ path, time ]
+          states = _.sortBy states, (path, time) -> -time
+
+          paths = [ 'sample-with-tabs.coffee', 'sample.txt', 'sample.js' ]
+          for [time, path] in states
+            expect(_.last path.split '/').toBe paths.shift()
+            expect(time).toBeGreaterThan 50000
 
       describe "when the active editor only contains edit sessions for anonymous buffers", ->
         it "does not open", ->
@@ -244,15 +276,15 @@ describe 'FuzzyFinder', ->
         expect(finderView.loadPathsTask.start).not.toHaveBeenCalled()
 
     it "doesn't cache buffer paths", ->
-      spyOn(rootView, "getOpenBufferPaths").andCallThrough()
+      spyOn(rootView.project, "getEditSessions").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
       waitsFor ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(rootView.getOpenBufferPaths).toHaveBeenCalled()
-        rootView.getOpenBufferPaths.reset()
+        expect(rootView.project.getEditSessions).toHaveBeenCalled()
+        rootView.project.getEditSessions.reset()
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
@@ -260,7 +292,7 @@ describe 'FuzzyFinder', ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(rootView.getOpenBufferPaths).toHaveBeenCalled()
+        expect(rootView.project.getEditSessions).toHaveBeenCalled()
 
     it "busts the cache when the window gains focus", ->
       spyOn(LoadPathsTask.prototype, "start").andCallThrough()
