@@ -42,7 +42,7 @@ class VimState
     @_operation.perform(@target, m)
     @resetState()
   defaultMotion: () ->
-    new VimMotion('line', @motionEvents['line'], 1)
+    new VimMotion('line', @motionEvents['line'], @_count)
   addCountDecimal: (n) ->
     @_count = 0 if @state != "count"
     @enterState "count"
@@ -86,6 +86,9 @@ class VimState
   aliases:
     'delete-character':
       motion: 'right'
+      operation: 'delete'
+    'delete-until-end-of-line':
+      motion: 'move-to-end-of-line'
       operation: 'delete'
   motionEvents:
     left: "core:move-left"
