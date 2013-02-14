@@ -97,7 +97,7 @@ task :test => ["clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
     `rm -rf path`
-    cmd = "#{path}/Contents/MacOS/Atom --test 2> /dev/null"
+    cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH} 2> /dev/null"
     system(cmd)
     exit($?.exitstatus)
   else
