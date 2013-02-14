@@ -31,7 +31,7 @@ describe "the `atom` global", ->
 
     describe "keymap loading", ->
       describe "when package.json does not contain a 'keymaps' manifest", ->
-        fit "loads all the .cson/.json files in the keymaps directory", ->
+        it "loads all the .cson/.json files in the keymaps directory", ->
           element1 = $$ -> @div class: 'test-1'
           element2 = $$ -> @div class: 'test-2'
           element3 = $$ -> @div class: 'test-3'
