@@ -86,60 +86,53 @@ describe "the `atom` global", ->
         expect(Worker.prototype.terminate.calls.length).toBe 1
 
   describe "package lifecycle", ->
-    [pack, packageModule] = []
-
-    beforeEach ->
-      pack =
-        name: "package"
-        packageMain:
-          activate: jasmine.createSpy("activate")
-          deactivate: ->
-          serialize: -> "it worked"
-
-      packageModule = pack.packageMain
-
-    describe ".activateAtomPackage(package)", ->
-      it "calls activate on the package", ->
-        atom.activateAtomPackage(pack)
-        expect(packageModule.activate).toHaveBeenCalledWith({})
-
-      it "calls activate on the package module with its previous state", ->
-        atom.activateAtomPackage(pack)
-        packageModule.activate.reset()
+    describe "activation", ->
+      it "calls activate on the package main with its previous state", ->
+        pack = window.loadPackage('package-with-module')
+        spyOn(pack.packageMain, 'activate')
 
         serializedState = rootView.serialize()
         rootView.deactivate()
         RootView.deserialize(serializedState)
+        window.loadPackage('package-with-module')
 
-        atom.activateAtomPackage(pack)
-        expect(packageModule.activate).toHaveBeenCalledWith("it worked")
+        expect(pack.packageMain.activate).toHaveBeenCalledWith(someNumber: 1)
 
-    describe ".deactivateAtomPackages()", ->
+    describe "deactivation", ->
       it "deactivates and removes the package module from the package module map", ->
-        atom.activateAtomPackage(pack)
+        pack = window.loadPackage('package-with-module')
         expect(atom.activatedAtomPackages.length).toBe 1
-        spyOn(packageModule, "deactivate").andCallThrough()
+        spyOn(pack.packageMain, "deactivate").andCallThrough()
         atom.deactivateAtomPackages()
-        expect(packageModule.deactivate).toHaveBeenCalled()
+        expect(pack.packageMain.deactivate).toHaveBeenCalled()
         expect(atom.activatedAtomPackages.length).toBe 0
 
-    describe ".serializeAtomPackages()", ->
+    describe "serialization", ->
+      it "uses previous serialization state on unactivated packages", ->
+        atom.atomPackageStates['package-with-activation-events'] = {previousData: 'exists'}
+        unactivatedPackage = window.loadPackage('package-with-activation-events')
+        activatedPackage = window.loadPackage('package-with-module')
+
+        expect(atom.serializeAtomPackages()).toEqual
+          'package-with-module':
+            'someNumber': 1
+          'package-with-activation-events':
+            'previousData': 'exists'
+
+        # ensure serialization occurs when the packageis activated
+        unactivatedPackage.activatePackageMain()
+        expect(atom.serializeAtomPackages()).toEqual
+          'package-with-module':
+            'someNumber': 1
+          'package-with-activation-events':
+            'previousData': 'overwritten'
+
       it "absorbs exceptions that are thrown by the package module's serialize methods", ->
         spyOn(console, 'error')
-
-        atom.activateAtomPackage
-          name: "bad-egg"
-          packageMain:
-            activate: ->
-            serialize: -> throw new Error("I'm broken")
-
-        atom.activateAtomPackage
-          name: "good-egg"
-          packageMain:
-            activate: ->
-            serialize: -> "I still get called"
+        window.loadPackage('package-with-module')
+        window.loadPackage('package-with-serialize-error', activateImmediately: true)
 
         packageStates = atom.serializeAtomPackages()
-        expect(packageStates['good-egg']).toBe "I still get called"
-        expect(packageStates['bad-egg']).toBeUndefined()
+        expect(packageStates['package-with-module']).toEqual someNumber: 1
+        expect(packageStates['package-with-serialize-error']).toBeUndefined()
         expect(console.error).toHaveBeenCalled()

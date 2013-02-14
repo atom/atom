@@ -4,3 +4,6 @@ module.exports =
   activate: ->
     rootView.getActiveEditor()?.command 'activation-event', =>
       @activationEventCallCount++
+
+  serialize: ->
+    previousData: 'overwritten'

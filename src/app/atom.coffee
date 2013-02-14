@@ -26,17 +26,15 @@ _.extend atom,
 
   serializeAtomPackages: ->
     packageStates = {}
-    for pack in @activatedAtomPackages
-      try
-        packageStates[pack.name] = pack.packageMain.serialize?()
-      catch e
-        console?.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
+    for pack in @loadedPackages
+      if pack in @activatedAtomPackages
+        try
+          packageStates[pack.name] = pack.packageMain.serialize?()
+        catch e
+          console?.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
+      else
+        packageStates[pack.name] = @atomPackageStates[pack.name]
     packageStates
-
-  loadPackage: (name, options) ->
-    packagePath = _.find @getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
-    pack = Package.build(packagePath)
-    pack?.load(options)
 
   loadPackages: ->
     textMatePackages = []
