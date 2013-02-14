@@ -1,6 +1,7 @@
 $ = require 'jquery'
 RootView = require 'root-view'
 MarkdownPreview = require 'markdown-preview/lib/markdown-preview-view'
+_ = require 'underscore'
 
 describe "MarkdownPreview", ->
   beforeEach ->
@@ -27,6 +28,18 @@ describe "MarkdownPreview", ->
     it "displays a preview for a .markdown file", ->
       rootView.open('file.markdown')
       editor = rootView.getActiveEditor()
+      expect(rootView.find('.markdown-preview')).not.toExist()
+      editor.trigger('markdown-preview:toggle')
+      expect(rootView.find('.markdown-preview')).toExist()
+      markdownPreviewView = rootView.find('.markdown-preview')?.view()
+      expect(markdownPreviewView.loadHtml).toHaveBeenCalled()
+
+    it "displays a preview for a file with the source.gfm grammar scope", ->
+      gfmGrammar = _.find syntax.grammars, (grammar) -> grammar.scopeName is 'source.gfm'
+      rootView.open('file.js')
+      editor = rootView.getActiveEditor()
+      rootView.project.addGrammarOverrideForPath(editor.getPath(), gfmGrammar)
+      editor.reloadGrammar()
       expect(rootView.find('.markdown-preview')).not.toExist()
       editor.trigger('markdown-preview:toggle')
       expect(rootView.find('.markdown-preview')).toExist()
