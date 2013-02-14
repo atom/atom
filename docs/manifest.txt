@@ -1,5 +1,4 @@
-intro.md
-features.md
+getting-started.md
 configuring.md
 keymaps.md
 user-stylesheet.md
