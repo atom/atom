@@ -84,3 +84,16 @@ You can split any editor pane horizontally or vertically by using `alt-command`
 plus the arrow in the direction you wand to split. Once you have a split pane,
 you can move focus between them with `ctrl-w w`. To close a pane, close all tabs
 inside it.
+
+## Folding
+
+You can fold everything with `ctrl-shift-[` and unfold everything with
+`ctrl-shift-]`. Or, you can fold / unfold by a single level with `ctrl-[` and
+`ctrl-]`. The user interaction around folds is still a bit rough, but we're
+planning to improve it soon.
+
+## Soft-Wrap
+
+If you want to toggle soft wrap, trigger the command from the command palette.
+Press `meta-p` to open the palette, then type "wrap" to find the correct
+command.
