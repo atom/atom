@@ -42,8 +42,8 @@ describe "the `atom` global", ->
 
           window.loadPackage("package-with-module")
 
-          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-2"
-          expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-3"
+          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
+          expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
           expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
       describe "when package.json contains a 'keymaps' manifest", ->
