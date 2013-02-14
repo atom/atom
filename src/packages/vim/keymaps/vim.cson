@@ -24,6 +24,7 @@
   'u': 'core:undo'
   'c': 'vim:operation-change'
   'd': 'vim:operation-delete'
+  'v': 'vim:visual-mode'
   'ctrl-r': 'core:redo'
   'escape': 'vim:cancel-command'
 

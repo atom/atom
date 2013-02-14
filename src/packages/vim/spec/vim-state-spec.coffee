@@ -58,6 +58,11 @@ fdescribe "Vim state", ->
           vim.motion("left")
           expect(target.count()).toBe(13)
 
+    describe "select in visual mode", ->
+      it "uses select operations", ->
+        editor.visual = true
+        expect(vim.defaultOperation()).toBe('select')
+
     describe "left-right", ->
       describe "left", ->
         it_sends_motion_event "left", "core:move-left"
@@ -79,7 +84,7 @@ fdescribe "Vim state", ->
       describe "forward", ->
         it_sends_motion_event "next-word", "editor:move-to-next-word"
       describe "backward", ->
-        it_sends_motion_event "previous-word", "editor:previous-to-next-word"
+        it_sends_motion_event "previous-word", "editor:move-to-previous-word"
     describe "line", ->
 
   describe "operations", ->

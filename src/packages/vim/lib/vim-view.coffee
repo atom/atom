@@ -25,12 +25,14 @@ class VimView extends View
   initialize: (@rootView, @editor) ->
     @editor.vim = this
     @vim = $(this)
+    @visual = false
     @state = new VimState(@editor, this)
     @enterInsertMode()
 
     @editor.command "vim:insert-mode", (e) => @enterInsertMode()
     @editor.command "vim:command-mode", (e) => @enterCommandMode()
     @editor.command 'vim:ex-mode', => @enterExMode()
+    @editor.command 'vim:visual-mode', => @enterVisualMode()
     @editor.command 'vim:cancel-command', => @discardCommand()
 
     @command 'vim:insert-mode', => @enterInsertMode()
@@ -50,6 +52,7 @@ class VimView extends View
     @state.resetState()
     @editor.addClass("command-mode")
     @editor.focus()
+    @visual = false
 
   cursor: () ->
     @editor.getCursorView()
@@ -77,6 +80,9 @@ class VimView extends View
   inCommandMode: ->
     @mode is "command"
 
+  inVisualMode: ->
+    @mode is "command" && @visual
+
   inExMode: ->
     @mode is "ex"
 
@@ -102,9 +108,17 @@ class VimView extends View
     @mode = "ex"
     @updateCommandLine()
 
+  enterVisualMode: ->
+    @enterCommandMode()
+    @visual = true
+    @state.resetState()
+    @updateCommandLine()
+
   updateCommandLineText: ->
     if @inInsertMode()
       @prompt.text("--INSERT--")
+    else if @inVisualMode()
+      @prompt.text("--VISUAL--")
     else if @inExMode()
       @prompt.text(":")
     else

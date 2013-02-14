@@ -18,11 +18,10 @@ class VimOperation
     window.console.log "Finished operation #{@name}"
   performEvent: (event) ->
     @target.trigger(event)
-  performMotion: (select) ->
-    if select? && select
-      @motion.performSelect(@target)
-    else
-      @motion.perform(@target)
+  performMotion: ->
+    @motion.perform(@target)
+  performSelectMotion: ->
+    @motion.performSelect(@target)
 
 module.exports =
 class VimState
@@ -50,8 +49,10 @@ class VimState
   count: (n) ->
     @_count = n if n?
     @_count
+  defaultOperation: () ->
+    if @vim.visual then 'select' else 'move'
   buildOperation: (type) ->
-    type = 'move' if !@operations[type]?
+    type = @defaultOperation() if !@operations[type]?
     new VimOperation(type, @operations[type], @vim)
   operation: (type) ->
     if @_operation.name != type
@@ -62,7 +63,7 @@ class VimState
   resetState: ->
     @enterState "idle"
     @_count = 1
-    @_operation = @buildOperation('move')
+    @_operation = @buildOperation(@defaultOperation())
   enterState: (state) ->
     @state = state
     @vim.stateChanged(@state) if @vim? and @vim.stateChanged?
@@ -82,10 +83,12 @@ class VimState
   operations:
     'move': ->
       @performMotion()
+    'select': ->
+      @performSelectMotion()
     'change': ->
-      @performMotion(true)
+      @performSelectMotion()
       @performEvent("core:delete")
       @vim.enterInsertMode()
     'delete': ->
-      @performMotion(true)
+      @performSelectMotion()
       @performEvent("core:delete")

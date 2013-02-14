@@ -34,6 +34,11 @@ fdescribe "Vim package", ->
       editor.trigger 'vim:ex-mode'
       expect(editor.vim.inCommandMode()).toBe false
 
+    it "enters visual mode", ->
+      editor.trigger 'vim:visual-mode'
+      expect(editor.vim.inCommandMode()).toBe true
+      expect(editor.vim.inVisualMode()).toBe true
+
   describe "insert mode", ->
     it "enters insert mode", ->
       editor.trigger 'vim:insert-mode'
