@@ -24,6 +24,7 @@
   '$': 'vim:motion-move-to-end-of-line'
   'w': 'vim:motion-next-word'
   'b': 'vim:motion-previous-word'
+  'x': 'vim:alias-delete-character'
   'u': 'core:undo'
   'c': 'vim:operation-change'
   'd': 'vim:operation-delete'

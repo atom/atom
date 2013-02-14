@@ -31,8 +31,11 @@ class VimState
       do (m, event) =>
         @target.command "vim:motion-#{m}", => @motion(m)
     for o,callback of @operations
-      do(o) =>
+      do (o) =>
         @target.command "vim:operation-#{o}", => @operation(o)
+    for a,options of @aliases
+      do (a) =>
+        @target.command "vim:alias-#{a}", => @alias(a)
   motion: (type) ->
     event = @motionEvents[type]
     m = new VimMotion(type, event, @_count)
@@ -76,7 +79,14 @@ class VimState
     @vim.stateChanged(@state) if @vim? and @vim.stateChanged?
   stateUpdated: ->
     @vim.stateUpdated(@state) if @vim? and @vim.stateUpdated?
-
+  alias: (name) ->
+    a = @aliases[name]
+    @operation(a.operation)
+    @motion(a.motion)
+  aliases:
+    'delete-character':
+      motion: 'right'
+      operation: 'delete'
   motionEvents:
     left: "core:move-left"
     right: "core:move-right"

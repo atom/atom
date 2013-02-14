@@ -127,3 +127,9 @@ fdescribe "Vim state", ->
     describe "filter through external program", ->
     describe "shift left", ->
     describe "shift right", ->
+
+  describe "aliases", ->
+    it 'performs an operation and motion with the current count', ->
+      vim.count(2)
+      vim.alias('delete-character')
+      expect(target.count()).not.toBe(0)
