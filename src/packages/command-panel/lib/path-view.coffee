@@ -10,6 +10,14 @@ class PathView extends View
     @li class: classes.join(' '), =>
       @span class: 'path-name', path
       @span "(#{operations.length})", class: 'path-match-number'
-      @ul class: 'matches', =>
+      @ul outlet: 'matches', class: 'matches', =>
         for operation in operations
           @subview "operation#{operation.index}", new OperationView({operation})
+
+  expand: ->
+    @matches.show()
+    @removeClass 'is-collapsed'
+
+  collapse: ->
+    @matches.hide()
+    @addClass 'is-collapsed'

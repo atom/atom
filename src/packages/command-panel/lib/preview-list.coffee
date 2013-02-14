@@ -42,12 +42,10 @@ class PreviewList extends ScrollView
       $(this).closest('li.path').toggleClass 'is-collapsed'
 
   expandAllPaths: ->
-    @find('ul.matches').show()
-    @find('.path').removeClass 'is-collapsed'
+    @children().each (index, element) -> $(element).view().expand()
 
   collapseAllPaths: ->
-    @find('ul.matches').hide()
-    @find('.path').addClass 'is-collapsed'
+    @children().each (index, element) -> $(element).view().collapse()
 
   destroy: ->
     @destroyOperations() if @operations
