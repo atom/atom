@@ -17,7 +17,7 @@ class PathView extends View
 
   initialize: ->
     @on 'mousedown', @onPathSelected
-    rootView.command 'command-panel:collapse-result', (e) =>
+    @subscribe rootView, 'command-panel:collapse-result', =>
       @collapse(true) if @find('.selected').length
 
   onPathSelected: (event) =>
