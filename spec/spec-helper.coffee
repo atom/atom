@@ -28,6 +28,7 @@ window.loadTextMatePackages = ->
 window.loadTextMatePackages()
 
 beforeEach ->
+  jQuery.fx.off = true
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
   atom.atomPackageStates = {}
