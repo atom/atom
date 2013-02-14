@@ -31,8 +31,11 @@ class VimView extends View
     @state = new VimState(@editor, this)
     @enterInsertMode()
 
-    @editor.command "vim:insert-mode", (e) => @enterInsertMode()
-    @editor.command "vim:command-mode", (e) => @enterCommandMode()
+    @editor.command "vim:insert-mode", => @enterInsertMode()
+    @editor.command "vim:insert-mode-append", => @enterInsertMode("append")
+    @editor.command "vim:insert-mode-next-line", => @enterInsertMode("next-line")
+    @editor.command "vim:insert-mode-previous-line", => @enterInsertMode("previous-line")
+    @editor.command "vim:command-mode", => @enterCommandMode()
     @editor.command 'vim:ex-mode', => @enterExMode()
     @editor.command 'vim:visual-mode', => @enterVisualMode()
     @editor.command 'vim:cancel-command', => @discardCommand()
@@ -88,8 +91,12 @@ class VimView extends View
   inExMode: ->
     @mode is "ex"
 
-  enterInsertMode: ->
+  enterInsertMode: (type) ->
     @resetMode()
+    switch type
+      when 'append' then @state.motion("right")
+      when 'next-line' then
+      when 'previous-line' then
     cursor = @cursor()
     cursor.width = 1
     cursor.updateDisplay()
