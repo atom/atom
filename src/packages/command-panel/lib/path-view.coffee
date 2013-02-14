@@ -18,11 +18,11 @@ class PathView extends View
 
   initialize: ({@previewList}) ->
     @pathDetails.on 'mousedown', => @toggle(true)
-    @previewList.command 'command-panel:collapse-result', =>
+    @subscribe @previewList, 'command-panel:collapse-result', =>
       @collapse(true) if @isSelected()
-    @previewList.command 'command-panel:expand-result', =>
+    @subscribe @previewList, 'command-panel:expand-result', =>
       @expand(true) if @isSelected()
-    @previewList.command 'core:confirm', =>
+    @subscribe @previewList, 'core:confirm', =>
       if @hasClass('selected')
         @toggle(true)
         false

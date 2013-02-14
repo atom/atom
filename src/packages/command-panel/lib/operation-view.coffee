@@ -12,7 +12,7 @@ class OperationView extends View
         @span suffix
 
   initialize: ({@previewList, @operation}) ->
-    @previewList.on 'core:confirm', =>
+    @subscribe @previewList, 'core:confirm', =>
       if @hasClass('selected')
         @executeOperation()
         false
