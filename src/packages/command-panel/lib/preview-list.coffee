@@ -7,7 +7,7 @@ fs = require 'fs'
 module.exports =
 class PreviewList extends ScrollView
   @content: ->
-    @ol class: 'preview-list', tabindex: -1, ->
+    @ol class: 'preview-list', tabindex: -1
 
   selectedOperationIndex: 0
   operations: null
