@@ -88,7 +88,7 @@ class VimState
       motion: 'right'
       operation: 'delete'
     'delete-until-end-of-line':
-      motion: 'move-to-end-of-line'
+      motion: 'end-of-line'
       operation: 'delete'
   motionEvents:
     left: "core:move-left"
@@ -96,10 +96,12 @@ class VimState
     up: "core:move-up"
     down: "core:move-down"
     line: "editor:move-line"
-    'move-to-beginning-of-line': "editor:move-to-beginning-of-line"
-    'move-to-end-of-line': "editor:move-to-end-of-line"
+    'beginning-of-line': "editor:move-to-beginning-of-line"
+    'end-of-line': "editor:move-to-end-of-line"
     'next-word': "editor:move-to-next-word"
     'previous-word': "editor:move-to-previous-word"
+    'beginning-of-word': 'editor:move-to-beginning-of-word'
+    'end-of-word': 'editor:move-to-end-of-word'
   operations:
     'move': ->
       @performMotion()

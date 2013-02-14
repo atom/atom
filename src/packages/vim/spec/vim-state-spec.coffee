@@ -71,10 +71,10 @@ fdescribe "Vim state", ->
       describe "right", ->
         it_sends_motion_event "right", "core:move-right"
       describe "first character", ->
-        it_sends_motion_event "move-to-beginning-of-line", "editor:move-to-beginning-of-line"
+        it_sends_motion_event "beginning-of-line", "editor:move-to-beginning-of-line"
       describe "first non-blank character", ->
       describe "end of line", ->
-        it_sends_motion_event "move-to-end-of-line", "editor:move-to-end-of-line"
+        it_sends_motion_event "end-of-line", "editor:move-to-end-of-line"
 
     describe "up-down", ->
       describe "up", ->
@@ -87,6 +87,10 @@ fdescribe "Vim state", ->
         it_sends_motion_event "next-word", "editor:move-to-next-word"
       describe "backward", ->
         it_sends_motion_event "previous-word", "editor:move-to-previous-word"
+      describe "beginning of word", ->
+        it_sends_motion_event "beginning-of-word", "editor:move-to-beginning-of-word"
+      describe "end of word", ->
+        it_sends_motion_event "end-of-word", "editor:move-to-end-of-word"
     describe "line", ->
 
   describe "operations", ->
@@ -109,17 +113,17 @@ fdescribe "Vim state", ->
     describe "change", ->
       it "removes text in the motion", ->
         vim.operation("change")
-        vim.motion("move-to-end-of-line")
+        vim.motion("end-of-line")
         expect(target.hasEvent("editor:select-to-end-of-line")).toBe(true)
         expect(target.hasEvent("core:delete")).toBe(true)
       it "sends editor into insert mode", ->
         vim.operation("change")
-        vim.motion("move-to-end-of-line")
+        vim.motion("end-of-line")
         expect(editor.mode).toBe("insert")
     describe "delete", ->
       it "removes text in the motion", ->
         vim.operation("delete")
-        vim.motion("move-to-end-of-line")
+        vim.motion("end-of-line")
         expect(target.hasEvent("editor:select-to-end-of-line")).toBe(true)
         expect(target.hasEvent("core:delete")).toBe(true)
     describe "yank", ->
