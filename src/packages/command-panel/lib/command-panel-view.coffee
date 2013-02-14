@@ -98,9 +98,11 @@ class CommandPanelView extends View
 
   onExpandAll: (event) =>
     @previewList.expandAllPaths()
+    @previewList.focus()
 
   onCollapseAll: (event) =>
-      @previewList.collapseAllPaths()
+    @previewList.collapseAllPaths()
+    @previewList.focus()
 
   attach: (text='', options={}) ->
     @errorMessages.hide()
