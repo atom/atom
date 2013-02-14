@@ -93,9 +93,16 @@ task :clean do
 end
 
 desc "Run the specs"
-task :test => ["clean", "clone-default-bundles"] do
+task :test => ["clone-default-bundles", "build"] do
   `pkill Atom`
-  Rake::Task["run"].invoke("--test --resource-path=#{ATOM_SRC_PATH}")
+  if path = application_path()
+    `rm -rf path`
+    cmd = "#{path}/Contents/MacOS/Atom --test 2> /dev/null"
+    system(cmd)
+    exit($?.exitstatus)
+  else
+    exit(1)
+  end
 end
 
 desc "Run the benchmarks"
