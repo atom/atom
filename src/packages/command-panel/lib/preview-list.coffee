@@ -13,7 +13,7 @@ class PreviewList extends ScrollView
 
   operations: null
 
-  initialize: (@rootView) ->
+  initialize: ->
     super
 
     @on 'core:move-down', => @selectNextOperation(); false
