@@ -2,12 +2,26 @@
   background-color: #f4f4f4;
   border-top: 1px solid #979797;
   color: #ededed;
+  padding: 10px;
+}
+
+.command-panel .header {
+  padding: 5px;
+  background-image: -webkit-linear-gradient(#e7e7e7, #cfcfcf);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  border-top-right-radius: 3px;
+  border-top-left-radius: 3px;
+}
+
+.command-panel .expand-collapse {
+  color: #333;
 }
 
 .command-panel .preview-list {
   background-color: #e7e7e7;
   color: #222;
-  border: 1px solid #989898;
+  border: 1px solid #ccc;
 }
 
 .command-panel .preview-count {
@@ -19,11 +33,24 @@
 }
 
 .command-panel .preview-list .path {
-  color: #3D5075;
+  color: #999;
+  border-top: 1px solid #ddd;
+}
+
+.command-panel .preview-list .path-name {
+  color: #555;
+}
+
+.command-panel .preview-list .path:before {
+  color: #555;
+}
+
+.command-panel .preview-list .path:hover:before {
+  color: #000;
 }
 
 .command-panel .preview-list .line-number {
-  color: #3D5075;
+  color: #999;
 }
 
 .command-panel .preview-list .path-match-number {
@@ -31,5 +58,10 @@
 }
 
 .command-panel .preview-list .preview .match {
-  background-color: #c8d4d7;
+  background-color: #bbb;
+  color: #333;
+}
+
+.command-panel .preview-list li.operation {
+  color: #777;
 }

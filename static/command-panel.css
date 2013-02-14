@@ -1,30 +1,77 @@
 .command-panel {
-  padding: 5px;
   position: relative;
+  padding: 0;
+}
+
+.command-panel .is-loading {
+  display: block;
+  margin: 0 auto 10px auto;
+  width: 100px;
+  background-color: #111;
+  background-size: auto;
+  background-position: 5px 5px;
+  padding: 5px 5px 10px 30px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255,  0.1);
+  border-top: 1px solid rgba(0, 0, 0, 1);
+  border-left: 1px solid rgba(0, 0, 0, 1);
 }
 
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;
-  margin: 10px 0 10px 10px;
+  margin: 0 0 10px 0;
   position: relative;
   cursor: default;
 }
 
-.command-panel .preview-count {
+.command-panel .header:after {
+  content: ".";
+  display: block;
+  visibility: hidden;
+  clear: both;
+  height: 0;
+}
+
+.command-panel .expand-collapse {
+  float: right;
+}
+
+.command-panel .expand-collapse li {
+  display: inline-block;
+  padding: 5px;
+  cursor: pointer;
   font-size: 11px;
-  text-align: right;
-  position: absolute;
-  right: 15px;
-  top: 24px;
-  z-index: 9999;
+}
+
+.command-panel .preview-count,
+.command-panel .expand-collapse {
+  -webkit-user-select: none;
 }
 
 .command-panel .preview-list .path {
   padding-left: 5px;
+  position: relative;
+  -webkit-user-select: none;
 }
 
-.command-panel .preview-list .path:before {
+.command-panel .preview-list .path-details:before {
+  font-family: 'Octicons Regular';
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  -webkit-font-smoothing: antialiased;
+  content: "\f05b";
+  position: relative;
+  top: 0;
+}
+
+.command-panel .preview-list .is-collapsed .path-details:before {
+  content: "\f05a";
+}
+
+.command-panel .preview-list .path-name:before {
   font-family: 'Octicons Regular';
   font-size: 16px;
   width: 16px;
@@ -36,13 +83,14 @@
   top: 1px;
 }
 
-.command-panel .preview-list .path.readme:before {
+.command-panel .preview-list .path.readme .path-name:before {
   content: "\f007";
 }
 
 .command-panel .preview-list .operation {
   padding-top: 2px;
   padding-bottom: 2px;
+  padding-left: 10px;
 }
 
 .command-panel .preview-list .line-number {
@@ -65,20 +113,8 @@
   padding: 1px;
 }
 
-.command-panel .prompt-and-editor .prompt:before {
-  color: #969696;
-  content: '\f078';
-  font-family: 'Octicons Regular';
-  position: relative;
-  top: 0;
-  left: -5px;
-  -webkit-font-smoothing: antialiased;
-}
-
 .command-panel .prompt-and-editor .editor {
   position: relative;
-  left: -4px;
-  margin-right: -4px;
 }
 
 .command-panel .prompt-and-editor {

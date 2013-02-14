@@ -128,6 +128,9 @@ describe "CommandPanel", ->
           beforeEach ->
             expect(commandPanel.previewList).toBeVisible()
 
+          it  "shows the expand and collapse all buttons", ->
+            expect(commandPanel.find('.expand-collapse')).toBeVisible()
+
           describe "when the preview list is focused", ->
             it "hides the command panel", ->
               expect(commandPanel.previewList).toMatchSelector(':focus')
@@ -171,19 +174,19 @@ describe "CommandPanel", ->
           expect(commandPanel.hasParent()).toBeTruthy()
 
         describe "when the mini editor is focused", ->
-          it "retains focus on the mini editor and does not show the preview list or preview count", ->
+          it "retains focus on the mini editor and does not show the preview list or preview header", ->
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
             rootView.trigger 'command-panel:toggle-preview'
             expect(commandPanel.previewList).toBeHidden()
-            expect(commandPanel.previewCount).toBeHidden()
+            expect(commandPanel.previewHeader).toBeHidden()
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
         describe "when the mini editor is not focused", ->
-          it "focuses the mini editor and does not show the preview list or preview count", ->
+          it "focuses the mini editor and does not show the preview list or preview header", ->
             rootView.focus()
             rootView.trigger 'command-panel:toggle-preview'
             expect(commandPanel.previewList).toBeHidden()
-            expect(commandPanel.previewCount).toBeHidden()
+            expect(commandPanel.previewHeader).toBeHidden()
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
       describe "when the command panel is not visible", ->
@@ -290,7 +293,7 @@ describe "CommandPanel", ->
         expect(commandPanel.previewList).toBeVisible()
         expect(commandPanel.previewList).toMatchSelector ':focus'
         previewItem = commandPanel.previewList.find("li:contains(sample.js):first")
-        expect(previewItem.text()).toBe "sample.js(1)"
+        expect(previewItem.find('.path-details').text()).toBe "sample.js(1)"
         expect(previewItem.next().find('.preview').text()).toBe "var quicksort = function () {"
         expect(previewItem.next().find('.preview > .match').text()).toBe "quicksort"
 
@@ -392,29 +395,38 @@ describe "CommandPanel", ->
         expect(previewList.find('li.operation:eq(1)')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[1]
 
-        _.times previewList.getOperations().length - 2, -> previewList.trigger 'core:move-down'
+        _.times previewList.getOperations().length + previewList.getPathCount(), -> previewList.trigger 'core:move-down'
 
         expect(previewList.find("li.operation:last")).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
 
         expect(previewList.scrollBottom()).toBeCloseTo previewList.prop('scrollHeight'), -1
 
-        _.times previewList.getOperations().length, -> previewList.trigger 'core:move-up'
+        _.times previewList.getOperations().length + previewList.getPathCount(), -> previewList.trigger 'core:move-up'
         expect(previewList.scrollTop()).toBe 0
 
       it "doesn't bubble up the event and the command panel text doesn't change", ->
         rootView.attachToDom()
         commandPanel.miniEditor.setText "command"
         previewList.focus()
-        previewList.trigger 'core:move-up'
-        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
-        expect(commandPanel.miniEditor.getText()).toBe 'command'
         previewList.trigger 'core:move-down'
         expect(previewList.find('li.operation:eq(1)')).toHaveClass 'selected'
         expect(commandPanel.miniEditor.getText()).toBe 'command'
+        previewList.trigger 'core:move-up'
+        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
+        expect(commandPanel.miniEditor.getText()).toBe 'command'
+
+      it "doesn't select collapsed operations", ->
+        rootView.attachToDom()
+        previewList.trigger 'command-panel:collapse-result'
+        expect(previewList.find('li.path:eq(0)')).toHaveClass 'selected'
+        previewList.trigger 'core:move-down'
+        expect(previewList.find('li.path:eq(1)')).toHaveClass 'selected'
+        previewList.trigger 'core:move-up'
+        expect(previewList.find('li.path:eq(0)')).toHaveClass 'selected'
 
     describe "when move-to-top and move-to-bottom are triggered on the preview list", ->
-      it "selects the first/last operation", ->
+      it "selects the first path or last operation", ->
         rootView.attachToDom()
         expect(previewList.getOperations().length).toBeGreaterThan 0
         expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
@@ -425,8 +437,8 @@ describe "CommandPanel", ->
         expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
 
         previewList.trigger 'core:move-to-top'
-        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
-        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
+        expect(previewList.find('li.path:eq(0)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBeUndefined()
 
     describe "when core:confirm is triggered on the preview list", ->
       it "opens the operation's buffer, selects and scrolls to the search result, and refocuses the preview list", ->
@@ -453,6 +465,15 @@ describe "CommandPanel", ->
 
           expect(executeHandler).not.toHaveBeenCalled()
 
+      it "toggles the expansion state when a path is selected", ->
+        rootView.attachToDom()
+        previewList.trigger 'core:move-to-top'
+        expect(previewList.find('li.path:first')).toHaveClass 'selected'
+        expect(previewList.find('li.path:first')).not.toHaveClass 'is-collapsed'
+        previewList.trigger 'core:confirm'
+        expect(previewList.find('li.path:first')).toHaveClass 'selected'
+        expect(previewList.find('li.path:first')).toHaveClass 'is-collapsed'
+
     describe "when an operation in the preview list is clicked", ->
       it "opens the operation's buffer, selects the search result, and refocuses the preview list", ->
         spyOn(previewList, 'focus')
@@ -465,3 +486,24 @@ describe "CommandPanel", ->
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
         expect(previewList.focus).toHaveBeenCalled()
+
+    describe "when a path in the preview list is clicked", ->
+      it "shows and hides the matches for that path", ->
+        rootView.attachToDom()
+        expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
+        previewList.find('li.path:first-child .path-details').mousedown()
+        expect(previewList.find('li.path:first-child ul.matches')).toBeHidden()
+
+        previewList.find('li.path:first-child .path-details').mousedown()
+        expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
+
+    describe "when command-panel:collapse-result and command-panel:expand-result are triggered", ->
+      it "collapses and selects the path, and then expands the selected path", ->
+        rootView.attachToDom()
+        expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
+        previewList.trigger 'command-panel:collapse-result'
+        expect(previewList.find('li.path:first-child ul.matches')).toBeHidden()
+        expect(previewList.find('li.path:first-child')).toHaveClass 'selected'
+        previewList.trigger 'command-panel:expand-result'
+        expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
+        expect(previewList.find('li.path:first-child')).toHaveClass 'selected'
