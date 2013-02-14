@@ -19,3 +19,4 @@
 
 '.command-panel .preview-list':
   'left': 'command-panel:collapse-result'
+  'right': 'command-panel:expand-result'

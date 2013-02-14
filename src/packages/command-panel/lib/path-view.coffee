@@ -18,7 +18,12 @@ class PathView extends View
   initialize: ({previewList}) ->
     @on 'mousedown', @onPathSelected
     previewList.command 'command-panel:collapse-result', =>
-      @collapse(true) if @find('.selected').length
+      @collapse(true) if @isSelected()
+    previewList.command 'command-panel:expand-result', =>
+      @expand(true) if @isSelected()
+
+  isSelected: ->
+    @hasClass('selected') or @find('.selected').length
 
   onPathSelected: (event) =>
     e = $(event.target)
