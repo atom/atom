@@ -416,6 +416,15 @@ describe "CommandPanel", ->
         expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
         expect(commandPanel.miniEditor.getText()).toBe 'command'
 
+      it "doesn't select collapsed operations", ->
+        rootView.attachToDom()
+        previewList.trigger 'command-panel:collapse-result'
+        expect(previewList.find('li.path:eq(0)')).toHaveClass 'selected'
+        previewList.trigger 'core:move-down'
+        expect(previewList.find('li.path:eq(1)')).toHaveClass 'selected'
+        previewList.trigger 'core:move-up'
+        expect(previewList.find('li.path:eq(0)')).toHaveClass 'selected'
+
     describe "when move-to-top and move-to-bottom are triggered on the preview list", ->
       it "selects the first path or last operation", ->
         rootView.attachToDom()

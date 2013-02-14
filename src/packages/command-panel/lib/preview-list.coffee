@@ -58,7 +58,10 @@ class PreviewList extends ScrollView
     selectedView = @find('.selected').view()
 
     if selectedView instanceof PathView
-      nextView = selectedView.find('.operation:first')
+      if selectedView.hasClass('is-collapsed')
+        nextView = selectedView.next().view()
+      else
+        nextView = selectedView.find('.operation:first')
     else
       nextView = selectedView.next().view() ? selectedView.closest('.path').next().view()
     if nextView?
@@ -70,7 +73,8 @@ class PreviewList extends ScrollView
     selectedView = @find('.selected').view()
 
     if selectedView instanceof PathView
-      previousView = selectedView.prev().find('.operation:last').view()
+      previousView = selectedView.prev()
+      previousView = previousView.find('.operation:last').view() unless previousView.hasClass('is-collapsed')
     else
       previousView = selectedView.prev().view() ? selectedView.closest('.path').view()
 
