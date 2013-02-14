@@ -1,5 +1,4 @@
 $ = require 'jquery'
-{$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
 _ = require 'underscore'
 fs = require 'fs'
