@@ -174,19 +174,19 @@ describe "CommandPanel", ->
           expect(commandPanel.hasParent()).toBeTruthy()
 
         describe "when the mini editor is focused", ->
-          it "retains focus on the mini editor and does not show the preview list or preview count", ->
+          it "retains focus on the mini editor and does not show the preview list or preview header", ->
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
             rootView.trigger 'command-panel:toggle-preview'
             expect(commandPanel.previewList).toBeHidden()
-            expect(commandPanel.previewCount).toBeHidden()
+            expect(commandPanel.previewHeader).toBeHidden()
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
         describe "when the mini editor is not focused", ->
-          it "focuses the mini editor and does not show the preview list or preview count", ->
+          it "focuses the mini editor and does not show the preview list or preview header", ->
             rootView.focus()
             rootView.trigger 'command-panel:toggle-preview'
             expect(commandPanel.previewList).toBeHidden()
-            expect(commandPanel.previewCount).toBeHidden()
+            expect(commandPanel.previewHeader).toBeHidden()
             expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
       describe "when the command panel is not visible", ->

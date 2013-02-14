@@ -12,7 +12,7 @@ class CommandPanelView extends View
   @content: ->
     @div class: 'command-panel tool-panel', =>
       @div class: 'loading', outlet: 'loadingMessage'
-      @div class: 'header', =>
+      @div class: 'header', outlet: 'previewHeader', =>
         @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
           @li class: 'expand', 'Expand All'
           @li class: 'collapse', 'Collapse All'
@@ -50,7 +50,7 @@ class CommandPanelView extends View
     @on 'click', '.collapse', @onCollapseAll
 
     @previewList.hide()
-    @previewCount.hide()
+    @previewHeader.hide()
     @errorMessages.hide()
     @prompt.iconSize(@miniEditor.getFontSize())
 
@@ -75,14 +75,14 @@ class CommandPanelView extends View
   togglePreview: ->
     if @previewList.is(':focus')
       @previewList.hide()
-      @previewCount.hide()
+      @previewHeader.hide()
       @detach()
       rootView.focus()
     else
       @attach() unless @hasParent()
       if @previewList.hasOperations()
         @previewList.show().focus()
-        @previewCount.show()
+        @previewHeader.show()
       else
         @miniEditor.focus()
 
@@ -114,8 +114,7 @@ class CommandPanelView extends View
   detach: ->
     rootView.focus()
     @previewList.hide()
-    @previewCount.hide()
-    @expandCollapse.hide()
+    @previewHeader.hide()
     super
 
   escapedCommand: ->
@@ -128,7 +127,6 @@ class CommandPanelView extends View
     try
       @commandInterpreter.eval(command, rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
         @toggleLoading()
-        @expandCollapse.show()
         @history.push(command)
         @historyIndex = @history.length
 
@@ -138,6 +136,7 @@ class CommandPanelView extends View
           @errorMessages.append $$ ->
             @li errorMessage for errorMessage in errorMessages
         else if operationsToPreview?.length
+          @previewHeader.show()
           @previewList.populate(operationsToPreview)
           @previewList.focus()
           @previewCount.text("#{_.pluralize(operationsToPreview.length, 'match', 'matches')} in #{_.pluralize(@previewList.getPathCount(), 'file')}").show()
