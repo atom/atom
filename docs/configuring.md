@@ -40,7 +40,8 @@ its own namespace.
 - stripTrailingWhitespace
   - singleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
 - wrapGuide
-  - columns: Soon to be replaced by editor.preferredLineLength
+  - columns: Array of hashes with a `pattern` and `column` key to match the
+             the path of the current editor to a column position.
 
 ## Reading Config Settings
 
