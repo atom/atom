@@ -51,8 +51,7 @@
   color: #fff;
 }
 
-.command-panel .preview-list li.selected,
-.command-panel .preview-list li.operation:hover {
+.command-panel .preview-list li.selected {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
@@ -63,10 +62,6 @@
 .command-panel .preview-list .path {
   color: #999;
   border-top: 1px solid rgba(255, 255, 255, 0.02);
-}
-
-.command-panel .preview-list .path:hover {
-  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .command-panel .preview-list .path:hover .path-name {
@@ -101,4 +96,12 @@
 .command-panel .preview-list .preview .match {
   background-color: rgba(255, 255, 255, 0.1);
   color: #cca300;
+}
+
+.command-panel .preview-list li.operation:hover,
+.command-panel li.operation.selected .preview {
+  color: #fff;
+}
+ {
+  color: #fff;
 }
