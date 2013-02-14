@@ -16,3 +16,6 @@
 '.command-panel':
   'ctrl-{': 'command-panel:collapse-all'
   'ctrl-}': 'command-panel:expand-all'
+
+'.command-panel .preview-list':
+  'left': 'command-panel:collapse-result'

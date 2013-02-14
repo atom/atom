@@ -478,3 +478,10 @@ describe "CommandPanel", ->
 
         previewList.find('li.path:first-child').mousedown()
         expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
+
+    describe "when command-panel:collapse-result is triggered", ->
+      it "collapses the path of the selected operation", ->
+        rootView.attachToDom()
+        expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
+        previewList.trigger 'command-panel:collapse-result'
+        expect(previewList.find('li.path:first-child ul.matches')).toBeHidden()
