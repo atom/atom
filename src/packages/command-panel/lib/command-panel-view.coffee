@@ -11,7 +11,13 @@ module.exports =
 class CommandPanelView extends View
   @content: ->
     @div class: 'command-panel tool-panel', =>
-      @div outlet: 'previewCount', class: 'preview-count'
+      @div class: 'loading', outlet: 'loadingMessage'
+      @div class: 'header', outlet: 'previewHeader', =>
+        @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
+          @li class: 'expand', 'Expand All'
+          @li class: 'collapse', 'Collapse All'
+        @span outlet: 'previewCount', class: 'preview-count'
+
       @subview 'previewList', new PreviewList(rootView)
       @ul class: 'error-messages', outlet: 'errorMessages'
       @div class: 'prompt-and-editor', =>
@@ -40,8 +46,11 @@ class CommandPanelView extends View
     rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
     rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
+    @on 'click', '.expand', @onExpandAll
+    @on 'click', '.collapse', @onCollapseAll
+
     @previewList.hide()
-    @previewCount.hide()
+    @previewHeader.hide()
     @errorMessages.hide()
     @prompt.iconSize(@miniEditor.getFontSize())
 
@@ -66,16 +75,34 @@ class CommandPanelView extends View
   togglePreview: ->
     if @previewList.is(':focus')
       @previewList.hide()
-      @previewCount.hide()
+      @previewHeader.hide()
       @detach()
       rootView.focus()
     else
       @attach() unless @hasParent()
       if @previewList.hasOperations()
         @previewList.show().focus()
-        @previewCount.show()
+        @previewHeader.show()
       else
         @miniEditor.focus()
+
+  toggleLoading: ->
+    if @loadingMessage.hasClass 'is-loading'
+      @loadingMessage.removeClass 'is-loading'
+      @loadingMessage.html ''
+      @loadingMessage.hide()
+    else
+      @loadingMessage.addClass 'is-loading'
+      @loadingMessage.html 'Searching...'
+      @loadingMessage.show()
+
+  onExpandAll: (event) =>
+    @previewList.expandAllPaths()
+    @previewList.focus()
+
+  onCollapseAll: (event) =>
+    @previewList.collapseAllPaths()
+    @previewList.focus()
 
   attach: (text='', options={}) ->
     @errorMessages.hide()
@@ -89,17 +116,19 @@ class CommandPanelView extends View
   detach: ->
     rootView.focus()
     @previewList.hide()
-    @previewCount.hide()
+    @previewHeader.hide()
     super
 
   escapedCommand: ->
     @miniEditor.getText()
 
   execute: (command=@escapedCommand())->
+    @toggleLoading()
     @errorMessages.empty()
 
     try
       @commandInterpreter.eval(command, rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
+        @toggleLoading()
         @history.push(command)
         @historyIndex = @history.length
 
@@ -109,6 +138,7 @@ class CommandPanelView extends View
           @errorMessages.append $$ ->
             @li errorMessage for errorMessage in errorMessages
         else if operationsToPreview?.length
+          @previewHeader.show()
           @previewList.populate(operationsToPreview)
           @previewList.focus()
           @previewCount.text("#{_.pluralize(operationsToPreview.length, 'match', 'matches')} in #{_.pluralize(@previewList.getPathCount(), 'file')}").show()
