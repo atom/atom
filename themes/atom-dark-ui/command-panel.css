@@ -60,7 +60,7 @@
 }
 
 .command-panel .preview-list .path {
-  color: #999;
+  color: #bbb;
   border-top: 1px solid rgba(255, 255, 255, 0.02);
 }
 
@@ -96,6 +96,10 @@
 .command-panel .preview-list .preview .match {
   background-color: rgba(255, 255, 255, 0.1);
   color: #cca300;
+}
+
+.command-panel .preview-list li.operation {
+  color: #777;
 }
 
 .command-panel .preview-list li.operation:hover,

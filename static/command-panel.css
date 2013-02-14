@@ -85,6 +85,7 @@
 .command-panel .preview-list .operation {
   padding-top: 2px;
   padding-bottom: 2px;
+  padding-left: 10px;
 }
 
 .command-panel .preview-list .line-number {
