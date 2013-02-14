@@ -26,3 +26,8 @@ class OperationView extends View
     bufferRange = @operation.execute(editSession)
     editSession.setSelectedBufferRange(bufferRange, autoscroll: true) if bufferRange
     @previewList.focus()
+
+  scrollTo: ->
+    top = @previewList.scrollTop() + @offset().top - @previewList.offset().top
+    bottom = top + @outerHeight()
+    @previewList.scrollTo(top, bottom)

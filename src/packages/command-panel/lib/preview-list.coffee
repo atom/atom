@@ -56,32 +56,32 @@ class PreviewList extends ScrollView
 
   selectNextOperation: ->
     selectedView = @find('.selected').view()
+    nextView = selectedView.next().view()
 
     if selectedView instanceof PathView
-      if selectedView.hasClass('is-collapsed')
-        nextView = selectedView.next().view()
-      else
-        nextView = selectedView.find('.operation:first')
+      nextView = selectedView.find('.operation:first').view() unless selectedView.hasClass('is-collapsed')
     else
-      nextView = selectedView.next().view() ? selectedView.closest('.path').next().view()
+      nextView ?= selectedView.closest('.path').next().view()
+
     if nextView?
       selectedView.removeClass('selected')
       nextView.addClass('selected')
-      @scrollToElement(nextView)
+      nextView.scrollTo()
 
   selectPreviousOperation: ->
     selectedView = @find('.selected').view()
+    previousView = selectedView.prev().view()
 
     if selectedView instanceof PathView
-      previousView = selectedView.prev()
-      previousView = previousView.find('.operation:last').view() unless previousView.hasClass('is-collapsed')
+      if previousView? and not previousView.hasClass('is-collapsed')
+        previousView = previousView.find('.operation:last').view()
     else
-      previousView = selectedView.prev().view() ? selectedView.closest('.path').view()
+      previousView ?= selectedView.closest('.path').view()
 
     if previousView?
       selectedView.removeClass('selected')
       previousView.addClass('selected')
-      @scrollToElement(previousView)
+      previousView.scrollTo()
 
   getPathCount: ->
     _.keys(_.groupBy(@operations, (operation) -> operation.getPath())).length
@@ -96,10 +96,7 @@ class PreviewList extends ScrollView
   getSelectedOperation: ->
     @find('.operation.selected').view()?.operation
 
-  scrollToElement: (element) ->
-    top = @scrollTop() + element.offset().top - @offset().top
-    bottom = top + element.outerHeight()
-
+  scrollTo: (top, bottom) ->
     @scrollBottom(bottom) if bottom > @scrollBottom()
     @scrollTop(top) if top < @scrollTop()
 

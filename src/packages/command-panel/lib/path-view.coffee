@@ -47,6 +47,11 @@ class PathView extends View
       @matches.show()
       @removeClass 'is-collapsed'
 
+  scrollTo: ->
+    top = @previewList.scrollTop() + @offset().top - @previewList.offset().top
+    bottom = top + @pathDetails.outerHeight()
+    @previewList.scrollTo(top, bottom)
+
   collapse: (animate=false) ->
     if animate
       @matches.hide 100, =>
