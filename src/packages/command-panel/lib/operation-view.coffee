@@ -10,3 +10,18 @@ class OperationView extends View
         @span prefix
         @span match, class: 'match'
         @span suffix
+
+  initialize: ({@previewList, @operation}) ->
+    @previewList.on 'core:confirm', =>
+      if @hasClass('selected')
+        @executeOperation()
+        false
+    @on 'mousedown', (e) =>
+      @executeOperation()
+      @addClass('selected')
+
+  executeOperation: ->
+    editSession = rootView.open(@operation.getPath())
+    bufferRange = @operation.execute(editSession)
+    editSession.setSelectedBufferRange(bufferRange, autoscroll: true) if bufferRange
+    @previewList.focus()

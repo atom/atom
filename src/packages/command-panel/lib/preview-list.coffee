@@ -15,13 +15,12 @@ class PreviewList extends ScrollView
 
   initialize: (@rootView) ->
     super
+
     @on 'core:move-down', => @selectNextOperation(); false
     @on 'core:move-up', => @selectPreviousOperation(); false
-    @on 'core:confirm', => @executeSelectedOperation()
 
     @on 'mousedown', 'li.operation', (e) =>
       @setSelectedOperationIndex(parseInt($(e.target).closest('li').data('index')))
-      @executeSelectedOperation()
 
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
@@ -45,7 +44,7 @@ class PreviewList extends ScrollView
     operation.index = index for operation, index in operations
     operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
     for path, operations of operationsByPath
-      @append new PathView({path, operations})
+      @append new PathView({path, operations, previewList: this})
 
     @setSelectedOperationIndex(0)
     @show()
@@ -78,14 +77,6 @@ class PreviewList extends ScrollView
         @scrollToElement(element)
 
     @selectedOperationIndex = index
-
-  executeSelectedOperation: ->
-    operation = @getSelectedOperation()
-    editSession = @rootView.open(operation.getPath())
-    bufferRange = operation.execute(editSession)
-    editSession.setSelectedBufferRange(bufferRange, autoscroll: true) if bufferRange
-    @focus()
-    false
 
   getPathCount: ->
     _.keys(_.groupBy(@operations, (operation) -> operation.getPath())).length
