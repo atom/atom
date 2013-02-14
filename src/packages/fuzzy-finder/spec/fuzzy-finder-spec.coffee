@@ -12,7 +12,7 @@ describe 'FuzzyFinder', ->
   beforeEach ->
     new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    finderView = atom.loadPackage("fuzzy-finder").packageMain.createView()
+    finderView = window.loadPackage("fuzzy-finder").packageMain.createView()
 
   afterEach ->
     rootView.deactivate()

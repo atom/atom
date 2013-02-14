@@ -5,7 +5,7 @@ describe "WrapGuide", ->
 
   beforeEach ->
     new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage('wrap-guide')
+    window.loadPackage('wrap-guide')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()
     wrapGuide = rootView.find('.wrap-guide').view()

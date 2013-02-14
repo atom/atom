@@ -10,7 +10,7 @@ fdescribe "##PackageName##View", ->
 
   beforeEach ->
     new RootView()
-    ##packageName## = atom.loadPackage('##packageName##', activateImmediately: true)
+    ##packageName## = window.loadPackage('##packageName##', activateImmediately: true)
 
   afterEach ->
     rootView.deactivate()

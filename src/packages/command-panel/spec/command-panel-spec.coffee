@@ -12,7 +12,7 @@ describe "CommandPanel", ->
     project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
-    commandPanelMain = atom.loadPackage('command-panel', activateImmediately: true).packageMain
+    commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).packageMain
     commandPanel = commandPanelMain.commandPanelView
     commandPanel.history = []
     commandPanel.historyIndex = 0
@@ -35,7 +35,7 @@ describe "CommandPanel", ->
       rootViewState = rootView.serialize()
       rootView.deactivate()
       RootView.deserialize(rootViewState).attachToDom()
-      atom.loadPackage('command-panel')
+      window.loadPackage('command-panel')
 
       expect(rootView.find('.command-panel')).not.toExist()
       rootView.trigger 'command-panel:toggle'
@@ -61,7 +61,7 @@ describe "CommandPanel", ->
       rootViewState = rootView.serialize()
       rootView.deactivate()
       RootView.deserialize(rootViewState).attachToDom()
-      atom.loadPackage('command-panel')
+      window.loadPackage('command-panel')
       rootView.trigger 'command-panel:toggle'
 
       commandPanel = rootView.find('.command-panel').view()

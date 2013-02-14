@@ -23,7 +23,7 @@ describe "EditorStats", ->
     mins = if mins == 60 then '01' else mins + 1
     time  = "#{hours}:#{mins}"
 
-    editorStats = atom.loadPackage('editor-stats').packageMain.stats
+    editorStats = window.loadPackage('editor-stats').packageMain.stats
 
   afterEach ->
     rootView.deactivate()

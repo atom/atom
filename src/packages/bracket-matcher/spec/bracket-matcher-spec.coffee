@@ -5,7 +5,7 @@ describe "bracket matching", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage('bracket-matcher')
+    window.loadPackage('bracket-matcher')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()
     editSession = editor.activeEditSession

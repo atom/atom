@@ -8,7 +8,7 @@ describe "SymbolsView", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures'))
-    atom.loadPackage("symbols-view")
+    window.loadPackage("symbols-view")
 
     rootView.attachToDom()
     setArraySpy = spyOn(SymbolsView.prototype, 'setArray').andCallThrough()

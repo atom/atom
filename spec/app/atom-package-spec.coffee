@@ -62,6 +62,6 @@ describe "AtomPackage", ->
   describe "when a package is activated", ->
     it "loads config defaults based on the `configDefaults` key", ->
       expect(config.get('package-with-module.numbers.one')).toBeUndefined()
-      atom.loadPackage("package-with-module")
+      window.loadPackage("package-with-module")
       expect(config.get('package-with-module.numbers.one')).toBe 1
       expect(config.get('package-with-module.numbers.two')).toBe 2

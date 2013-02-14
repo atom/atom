@@ -6,7 +6,7 @@ describe 'Package Generator', ->
 
   beforeEach ->
     new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage("package-generator")
+    window.loadPackage("package-generator")
 
   afterEach ->
     rootView.deactivate()

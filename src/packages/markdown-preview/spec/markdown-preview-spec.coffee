@@ -5,7 +5,7 @@ MarkdownPreview = require 'markdown-preview/lib/markdown-preview-view'
 describe "MarkdownPreview", ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/markdown'))
-    atom.loadPackage("markdown-preview")
+    window.loadPackage("markdown-preview")
     spyOn(MarkdownPreview.prototype, 'loadHtml')
 
   afterEach ->

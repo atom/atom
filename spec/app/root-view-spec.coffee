@@ -52,7 +52,7 @@ describe "RootView", ->
 
   describe ".deactivate()", ->
     it "deactivates all packages", ->
-      pack = atom.loadPackage("package-with-module")
+      pack = window.loadPackage("package-with-module")
       atom.activateAtomPackage(pack)
       spyOn(pack.packageMain, "deactivate").andCallThrough()
       rootView.deactivate()

@@ -12,7 +12,7 @@ describe "TreeView", ->
     new RootView(require.resolve('fixtures/tree-view'))
     project = rootView.project
 
-    atom.loadPackage("tree-view")
+    window.loadPackage("tree-view")
     rootView.trigger 'tree-view:toggle'
     treeView = rootView.find(".tree-view").view()
     treeView.root = treeView.find('ol > li:first').view()
@@ -50,7 +50,7 @@ describe "TreeView", ->
       beforeEach ->
         rootView.deactivate()
         new RootView()
-        treeView = atom.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").packageMain.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -75,7 +75,7 @@ describe "TreeView", ->
       it "does not attach to the root view but does create a root node when initialized", ->
         rootView.deactivate()
         new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
-        treeView = atom.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").packageMain.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
@@ -87,7 +87,7 @@ describe "TreeView", ->
       rootViewState = rootView.serialize()
       rootView.deactivate()
       RootView.deserialize(rootViewState)
-      atom.loadPackage("tree-view")
+      window.loadPackage("tree-view")
       treeView = rootView.find(".tree-view").view()
 
       expect(treeView).toExist()
@@ -104,7 +104,7 @@ describe "TreeView", ->
       RootView.deserialize(rootViewState)
 
       rootView.attachToDom()
-      atom.loadPackage("tree-view")
+      window.loadPackage("tree-view")
       treeView = rootView.find(".tree-view").view()
       expect(treeView.find(".tree-view")).toMatchSelector ':focus'
 
@@ -599,7 +599,7 @@ describe "TreeView", ->
 
       new RootView(rootDirPath)
       project = rootView.project
-      atom.loadPackage('tree-view')
+      window.loadPackage('tree-view')
       rootView.trigger 'tree-view:toggle'
       treeView = rootView.find(".tree-view").view()
       dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()

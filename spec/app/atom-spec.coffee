@@ -8,7 +8,7 @@ describe "the `atom` global", ->
   afterEach ->
     rootView.deactivate()
 
-  describe ".loadPackage(name)", ->
+  describe "when a package is built and loaded", ->
     [extension, stylesheetPath] = []
 
     beforeEach ->
@@ -20,13 +20,13 @@ describe "the `atom` global", ->
 
     it "requires and activates the package's main module if it exists", ->
       spyOn(atom, 'activateAtomPackage').andCallThrough()
-      atom.loadPackage("package-with-module")
+      window.loadPackage("package-with-module")
       expect(atom.activateAtomPackage).toHaveBeenCalled()
 
     it "logs warning instead of throwing an exception if a package fails to load", ->
       config.set("core.disabledPackages", [])
       spyOn(console, "warn")
-      expect(-> atom.loadPackage("package-that-throws-an-exception")).not.toThrow()
+      expect(-> window.loadPackage("package-that-throws-an-exception")).not.toThrow()
       expect(console.warn).toHaveBeenCalled()
 
     describe "keymap loading", ->
@@ -40,7 +40,7 @@ describe "the `atom` global", ->
           expect(keymap.bindingsForElement(element2)['ctrl-z']).toBeUndefined()
           expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
-          atom.loadPackage("package-with-module")
+          window.loadPackage("package-with-module")
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
           expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
@@ -53,7 +53,7 @@ describe "the `atom` global", ->
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
 
-          atom.loadPackage("package-with-keymaps-manifest")
+          window.loadPackage("package-with-keymaps-manifest")
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe 'keymap-1'
           expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
@@ -62,7 +62,7 @@ describe "the `atom` global", ->
     it "loads stylesheets associated with the package", ->
       stylesheetPath = require.resolve("fixtures/packages/package-with-module/stylesheets/styles.css")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 0
-      atom.loadPackage("package-with-module")
+      window.loadPackage("package-with-module")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 1
 
   describe ".loadPackages()", ->
