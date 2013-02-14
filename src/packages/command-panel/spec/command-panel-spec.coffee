@@ -83,6 +83,19 @@ describe "CommandPanel", ->
       expect(rootViewCloseHandler).not.toHaveBeenCalled()
       expect(commandPanel.hasParent()).toBeFalsy()
 
+  describe "when core:cancel is triggered on the command panel's mini editor", ->
+    it "detaches the command panel, focuses the RootView and does not bubble the core:cancel event", ->
+      commandPanel.attach()
+      rootViewCancelHandler = jasmine.createSpy('rootViewCancelHandler')
+      rootView.on 'core:cancel', rootViewCancelHandler
+      spyOn(rootView, 'focus')
+
+      commandPanel.miniEditor.trigger('core:cancel')
+
+      expect(rootView.focus).toHaveBeenCalled()
+      expect(rootViewCancelHandler).not.toHaveBeenCalled()
+      expect(commandPanel.hasParent()).toBeFalsy()
+
   describe "when command-panel:toggle is triggered on the root view", ->
     beforeEach ->
       rootView.attachToDom()

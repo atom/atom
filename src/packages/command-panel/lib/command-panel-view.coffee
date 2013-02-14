@@ -34,6 +34,7 @@ class CommandPanelView extends View
 
     @command 'tool-panel:unfocus', => rootView.focus()
     @command 'core:close', => @detach(); false
+    @command 'core:cancel', => @detach(); false
     @command 'core:confirm', => @execute()
     @command 'core:move-up', => @navigateBackwardInHistory()
     @command 'core:move-down', => @navigateForwardInHistory()
