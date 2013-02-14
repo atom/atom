@@ -3,6 +3,7 @@ $ = require 'jquery'
 ScrollView = require 'scroll-view'
 _ = require 'underscore'
 fs = require 'fs'
+PathView = require './path-view'
 
 module.exports =
 class PreviewList extends ScrollView
@@ -57,24 +58,11 @@ class PreviewList extends ScrollView
     @destroyOperations() if @operations
     @operations = operations
     @empty()
-    @html $$$ ->
-      operation.index = index for operation, index in operations
-      operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
-      for path, ops of operationsByPath
-        classes = ['path']
-        classes.push('readme') if fs.isReadmePath(path)
-        @li class: classes.join(' '), =>
-          @span class: 'path-name', path
-          @span "(#{ops.length})", class: 'path-match-number'
-          @ul class: 'matches', =>
-            for operation in ops
-              {prefix, suffix, match, range} = operation.preview()
-              @li 'data-index': operation.index, class: 'operation', =>
-                @span range.start.row + 1, class: 'line-number'
-                @span class: 'preview', =>
-                  @span prefix
-                  @span match, class: 'match'
-                  @span suffix
+
+    operation.index = index for operation, index in operations
+    operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
+    for path, operations of operationsByPath
+      @append new PathView({path, operations})
 
     @setSelectedOperationIndex(0)
     @show()
