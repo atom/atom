@@ -9,7 +9,7 @@ class PathView extends View
     classes = ['path']
     classes.push('readme') if fs.isReadmePath(path)
     @li class: classes.join(' '), =>
-      @div class: 'path-details', =>
+      @div outlet: 'pathDetails', class: 'path-details', =>
         @span class: 'path-name', path
         @span "(#{operations.length})", class: 'path-match-number'
       @ul outlet: 'matches', class: 'matches', =>
@@ -17,7 +17,7 @@ class PathView extends View
           @subview "operation#{operation.index}", new OperationView({operation, previewList})
 
   initialize: ({@previewList}) ->
-    @on 'mousedown', @onPathSelected
+    @pathDetails.on 'mousedown', => @toggle(true)
     @previewList.command 'command-panel:collapse-result', =>
       @collapse(true) if @isSelected()
     @previewList.command 'command-panel:expand-result', =>
@@ -33,11 +33,6 @@ class PathView extends View
   setSelected: ->
     @previewList.find('.selected').removeClass('selected')
     @addClass('selected')
-
-  onPathSelected: (event) =>
-    e = $(event.target)
-    e = e.parent() if e.parent().hasClass 'path'
-    @toggle(true) if e.hasClass 'path'
 
   toggle: (animate) ->
     if @hasClass('is-collapsed')
