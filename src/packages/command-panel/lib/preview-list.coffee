@@ -123,9 +123,7 @@ class PreviewList extends ScrollView
     @operations[@selectedOperationIndex]
 
   scrollToElement: (element) ->
-    top = @scrollTop() +
-      element.position().top +
-      element.closest('li.path').position().top
+    top = @scrollTop() + element.offset().top - @offset().top
     bottom = top + element.outerHeight()
 
     @scrollBottom(bottom) if bottom > @scrollBottom()
