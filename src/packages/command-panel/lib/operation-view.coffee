@@ -18,6 +18,7 @@ class OperationView extends View
         false
     @on 'mousedown', (e) =>
       @executeOperation()
+      @previewList.find('.selected').removeClass('selected')
       @addClass('selected')
 
   executeOperation: ->

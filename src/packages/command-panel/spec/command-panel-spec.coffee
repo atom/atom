@@ -395,29 +395,29 @@ describe "CommandPanel", ->
         expect(previewList.find('li.operation:eq(1)')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[1]
 
-        _.times previewList.getOperations().length - 2, -> previewList.trigger 'core:move-down'
+        _.times previewList.getOperations().length + previewList.getPathCount(), -> previewList.trigger 'core:move-down'
 
         expect(previewList.find("li.operation:last")).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
 
         expect(previewList.scrollBottom()).toBeCloseTo previewList.prop('scrollHeight'), -1
 
-        _.times previewList.getOperations().length, -> previewList.trigger 'core:move-up'
+        _.times previewList.getOperations().length + previewList.getPathCount(), -> previewList.trigger 'core:move-up'
         expect(previewList.scrollTop()).toBe 0
 
       it "doesn't bubble up the event and the command panel text doesn't change", ->
         rootView.attachToDom()
         commandPanel.miniEditor.setText "command"
         previewList.focus()
-        previewList.trigger 'core:move-up'
-        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
-        expect(commandPanel.miniEditor.getText()).toBe 'command'
         previewList.trigger 'core:move-down'
         expect(previewList.find('li.operation:eq(1)')).toHaveClass 'selected'
         expect(commandPanel.miniEditor.getText()).toBe 'command'
+        previewList.trigger 'core:move-up'
+        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
+        expect(commandPanel.miniEditor.getText()).toBe 'command'
 
     describe "when move-to-top and move-to-bottom are triggered on the preview list", ->
-      it "selects the first/last operation", ->
+      it "selects the first path or last operation", ->
         rootView.attachToDom()
         expect(previewList.getOperations().length).toBeGreaterThan 0
         expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
@@ -428,8 +428,8 @@ describe "CommandPanel", ->
         expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
 
         previewList.trigger 'core:move-to-top'
-        expect(previewList.find('li.operation:eq(0)')).toHaveClass 'selected'
-        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
+        expect(previewList.find('li.path:eq(0)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBeUndefined()
 
     describe "when core:confirm is triggered on the preview list", ->
       it "opens the operation's buffer, selects and scrolls to the search result, and refocuses the preview list", ->

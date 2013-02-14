@@ -4,13 +4,13 @@ ScrollView = require 'scroll-view'
 _ = require 'underscore'
 fs = require 'fs'
 PathView = require './path-view'
+OperationView = require './operation-view'
 
 module.exports =
 class PreviewList extends ScrollView
   @content: ->
     @ol class: 'preview-list', tabindex: -1
 
-  selectedOperationIndex: 0
   operations: null
 
   initialize: (@rootView) ->
@@ -18,9 +18,6 @@ class PreviewList extends ScrollView
 
     @on 'core:move-down', => @selectNextOperation(); false
     @on 'core:move-up', => @selectPreviousOperation(); false
-
-    @on 'mousedown', 'li.operation', (e) =>
-      @setSelectedOperationIndex(parseInt($(e.target).closest('li').data('index')))
 
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
@@ -46,8 +43,8 @@ class PreviewList extends ScrollView
     for path, operations of operationsByPath
       @append new PathView({path, operations, previewList: this})
 
-    @setSelectedOperationIndex(0)
     @show()
+    @find('.operation:first').addClass('selected')
     @setLineNumberWidth()
 
   setLineNumberWidth: ->
@@ -58,25 +55,29 @@ class PreviewList extends ScrollView
     lineNumbers.width(maxWidth)
 
   selectNextOperation: ->
-    @setSelectedOperationIndex(@selectedOperationIndex + 1)
+    selectedView = @find('.selected').view()
+
+    if selectedView instanceof PathView
+      nextView = selectedView.find('.operation:first')
+    else
+      nextView = selectedView.next().view() ? selectedView.closest('.path').next().view()
+    if nextView?
+      selectedView.removeClass('selected')
+      nextView.addClass('selected')
+      @scrollToElement(nextView)
 
   selectPreviousOperation: ->
-    @setSelectedOperationIndex(@selectedOperationIndex - 1)
+    selectedView = @find('.selected').view()
 
-  setSelectedOperationIndex: (index, scrollToOperation=true) ->
-    index = Math.max(0, index)
-    index = Math.min(@operations.length - 1, index)
-    @find('li.selected').removeClass('selected')
-    element = @find("ul.matches li.operation:eq(#{index})")
-    element.addClass('selected')
+    if selectedView instanceof PathView
+      previousView = selectedView.prev().find('.operation:last').view()
+    else
+      previousView = selectedView.prev().view() ? selectedView.closest('.path').view()
 
-    if scrollToOperation
-      if index is 0
-        @scrollToTop()
-      else
-        @scrollToElement(element)
-
-    @selectedOperationIndex = index
+    if previousView?
+      selectedView.removeClass('selected')
+      previousView.addClass('selected')
+      @scrollToElement(previousView)
 
   getPathCount: ->
     _.keys(_.groupBy(@operations, (operation) -> operation.getPath())).length
@@ -89,7 +90,7 @@ class PreviewList extends ScrollView
     @operations = null
 
   getSelectedOperation: ->
-    @operations[@selectedOperationIndex]
+    @find('.operation.selected').view()?.operation
 
   scrollToElement: (element) ->
     top = @scrollTop() + element.offset().top - @offset().top
@@ -101,9 +102,11 @@ class PreviewList extends ScrollView
   scrollToBottom: ->
     super()
 
-    @setSelectedOperationIndex(Infinity, false)
+    @find('.selected').removeClass('selected')
+    @find('.operation:last').addClass('selected')
 
   scrollToTop: ->
     super()
 
-    @setSelectedOperationIndex(0, false)
+    @find('.selected').removeClass('selected')
+    @find('.path:first').addClass('selected')
