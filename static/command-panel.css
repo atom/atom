@@ -50,7 +50,7 @@
   -webkit-user-select: none;
 }
 
-.command-panel .preview-list .path:before {
+.command-panel .preview-list .path-details:before {
   font-family: 'Octicons Regular';
   font-size: 12px;
   width: 12px;
@@ -62,7 +62,7 @@
   top: 0;
 }
 
-.command-panel .preview-list .path.is-collapsed:before {
+.command-panel .preview-list .is-collapsed .path-details:before {
   content: "\f05a";
 }
 

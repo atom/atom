@@ -51,11 +51,13 @@
   color: #fff;
 }
 
-.command-panel .preview-list li.selected {
+.command-panel .preview-list .path.selected .path-details,
+.command-panel .preview-list li.operation.selected {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-.command-panel .preview-list:focus li.selected {
+.command-panel .preview-list:focus .path.selected .path-details,
+.command-panel .preview-list:focus li.operation.selected {
   background-color: rgba(255, 255, 255, 0.05);
 }
 

@@ -9,8 +9,9 @@ class PathView extends View
     classes = ['path']
     classes.push('readme') if fs.isReadmePath(path)
     @li class: classes.join(' '), =>
-      @span class: 'path-name', path
-      @span "(#{operations.length})", class: 'path-match-number'
+      @div class: 'path-details', =>
+        @span class: 'path-name', path
+        @span "(#{operations.length})", class: 'path-match-number'
       @ul outlet: 'matches', class: 'matches', =>
         for operation in operations
           @subview "operation#{operation.index}", new OperationView({operation, previewList})
