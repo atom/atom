@@ -6,6 +6,7 @@ fdescribe "Vim package", ->
   [rootView, editor] = []
 
   beforeEach ->
+    config.set("vim.enabled", true)
     filePath = fixturesProject.resolve('sample.js')
     rootView = new RootView(filePath)
     rootView.simulateDomAttachment()

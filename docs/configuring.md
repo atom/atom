@@ -41,6 +41,8 @@ its own namespace.
   - singleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
 - wrapGuide
   - columns: Soon to be replaced by editor.preferredLineLength
+- vim
+  - enabled: Enable vim-style editor mode. Set to true to enable (defaults to false)
 
 ## Reading Config Settings
 

@@ -6,6 +6,7 @@ VimState = require './vim-state'
 module.exports =
 class VimView extends View
   @activate: ->
+    return if config.get("vim.enabled") != true
     rootView.eachEditor (editor) =>
       @appendToEditorPane(rootView, editor) if editor.attached
 
@@ -21,6 +22,7 @@ class VimView extends View
 
   @commands:
     'q': "core:close"
+    'w': "editor:save"
 
   initialize: (@rootView, @editor) ->
     @editor.vim = this
