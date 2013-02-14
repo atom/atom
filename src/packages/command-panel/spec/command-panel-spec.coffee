@@ -293,7 +293,7 @@ describe "CommandPanel", ->
         expect(commandPanel.previewList).toBeVisible()
         expect(commandPanel.previewList).toMatchSelector ':focus'
         previewItem = commandPanel.previewList.find("li:contains(sample.js):first")
-        expect(previewItem.find('> span').text()).toBe "sample.js(1)"
+        expect(previewItem.find('.path-details').text()).toBe "sample.js(1)"
         expect(previewItem.next().find('.preview').text()).toBe "var quicksort = function () {"
         expect(previewItem.next().find('.preview > .match').text()).toBe "quicksort"
 
@@ -491,10 +491,10 @@ describe "CommandPanel", ->
       it "shows and hides the matches for that path", ->
         rootView.attachToDom()
         expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
-        previewList.find('li.path:first-child').mousedown()
+        previewList.find('li.path:first-child .path-details').mousedown()
         expect(previewList.find('li.path:first-child ul.matches')).toBeHidden()
 
-        previewList.find('li.path:first-child').mousedown()
+        previewList.find('li.path:first-child .path-details').mousedown()
         expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
 
     describe "when command-panel:collapse-result and command-panel:expand-result are triggered", ->
