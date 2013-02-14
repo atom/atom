@@ -6,7 +6,7 @@ class AtomReporter extends View
   @content: ->
     @div id: 'HTMLReporter', class: 'jasmine_reporter', =>
       @div outlet: 'specPopup', class: "spec-popup"
-      @div outlet: "suites", class: 'cool'
+      @div outlet: "suites"
       @ul outlet: "symbolSummary", class: 'symbolSummary'
       @div outlet: "status", class: 'status', =>
         @div outlet: "time", class: 'time'
@@ -75,9 +75,11 @@ class AtomReporter extends View
       @specPopup.offset({left, top})
       @timeoutId = setTimeout((=> @specPopup.hide()), 3000)
 
-    $(document).on "click", ".suite", ({currentTarget}) =>
+    $(document).on "click", ".spec-toggle", ({currentTarget}) =>
       element = $(currentTarget)
-      element.find(".spec").toggle()
+      specFailures = element.parent().find('.spec-failures')
+      specFailures.toggle()
+      if specFailures.is(":visible") then element.text "\uf03d" else element.html "\uf03f"
       false
 
   updateStatusView: (spec) ->
@@ -130,7 +132,6 @@ class SuiteResultView extends View
     @div class: 'suite', =>
       @div outlet: 'description', class: 'description'
 
-
   suite: null
 
   initialize: (@suite) ->
@@ -152,8 +153,9 @@ class SuiteResultView extends View
 class SpecResultView extends View
   @content: ->
     @div class: 'spec', =>
+      @div "\uf03d", class: 'spec-toggle'
       @div outlet: 'description', class: 'description'
-
+      @div outlet: 'specFailures', class: 'spec-failures'
   spec: null
 
   initialize: (@spec) ->
@@ -161,8 +163,9 @@ class SpecResultView extends View
     @description.html @spec.description
 
     for result in @spec.results().getItems() when not result.passed()
-      @append $$ -> @div result.message, class: 'resultMessage fail'
-      @append $$ -> @div result.trace.stack, class: 'stackTrace' if result.trace.stack
+      @specFailures.append $$ ->
+        @div result.message, class: 'resultMessage fail'
+        @div result.trace.stack, class: 'stackTrace' if result.trace.stack
 
   attach: ->
     @parentSuiteView().append this

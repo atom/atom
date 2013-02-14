@@ -31,7 +31,7 @@ describe "the `atom` global", ->
 
     describe "keymap loading", ->
       describe "when package.json does not contain a 'keymaps' manifest", ->
-        it "loads all the .cson/.json files in the keymaps directory", ->
+        fit "loads all the .cson/.json files in the keymaps directory", ->
           element1 = $$ -> @div class: 'test-1'
           element2 = $$ -> @div class: 'test-2'
           element3 = $$ -> @div class: 'test-3'
@@ -42,8 +42,8 @@ describe "the `atom` global", ->
 
           window.loadPackage("package-with-module")
 
-          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
-          expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
+          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-2"
+          expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-3"
           expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
       describe "when package.json contains a 'keymaps' manifest", ->
