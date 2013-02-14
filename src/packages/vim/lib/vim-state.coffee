@@ -60,8 +60,8 @@ class VimState
     if @visual()
       @_operation = @buildOperation(type)
       @_operation.perform(@target)
-      @resetState()
       @vim.enterCommandMode()
+      @resetState()
     else if @_operation.name == type
       @_operation.perform(@target, @defaultMotion())
       @resetState()
