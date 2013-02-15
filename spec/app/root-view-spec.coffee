@@ -407,7 +407,7 @@ describe "RootView", ->
         rootView.focusNextPane()
         expect(view1.focus).toHaveBeenCalled()
 
-    fdescribe ".focusPreviousPane()", ->
+    describe ".focusPreviousPane()", ->
       it "focuses the wrapped view of the pane before the currently focused pane", ->
         class DummyView extends View
           @content: (number) -> @div(number, tabindex: -1)

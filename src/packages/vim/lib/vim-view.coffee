@@ -28,6 +28,12 @@ class VimView extends View
     @editor.vim = this
     @vim = $(this)
     @visual = false
+
+    @editor.preempt 'textInput', (e) =>
+      text = e.originalEvent.data
+      if @inInsertMode()
+        return true
+      false
     @state = new VimState(@editor, this)
     @enterInsertMode()
 
