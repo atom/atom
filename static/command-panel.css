@@ -17,6 +17,11 @@
   border-left: 1px solid rgba(0, 0, 0, 1);
 }
 
+.command-panel .preview-count {
+  display: inline-block;
+  margin-top: 5px;
+}
+
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;

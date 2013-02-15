@@ -27,8 +27,6 @@
 }
 
 .command-panel .preview-count {
-  display: inline-block;
-  margin-top: 5px;
   color: #969696;
   text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.05);
 }
