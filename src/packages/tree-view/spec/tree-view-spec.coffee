@@ -79,6 +79,14 @@ describe "TreeView", ->
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
+    describe "when the root view is opened to a directory", ->
+      it "attaches to the root view", ->
+        rootView.deactivate()
+        new RootView(require.resolve('fixtures/tree-view'))
+        treeView = window.loadPackage("tree-view").packageMain.createView()
+        expect(treeView.hasParent()).toBeTruthy()
+        expect(treeView.root).toExist()
+
   describe "serialization", ->
     it "restores expanded directories and selected file when deserialized", ->
       treeView.find('.directory:contains(dir1)').click()
