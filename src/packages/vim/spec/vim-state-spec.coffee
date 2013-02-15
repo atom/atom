@@ -1,4 +1,5 @@
 RootView = require 'root-view'
+Vim = require 'vim/lib/vim-view'
 VimState = require 'vim/lib/vim-state'
 
 class EventMonitor
@@ -39,6 +40,15 @@ fdescribe "Vim state", ->
     target = new EventMonitor
     editor = new MockVimView
     vim = new VimState(target, editor)
+
+  realEditor = () ->
+    config.set("vim.enabled", true)
+    filePath = fixturesProject.resolve('sample.js')
+    rootView = new RootView(filePath)
+    rootView.simulateDomAttachment()
+    Vim.activate(rootView)
+    realEditor = rootView.getActiveEditor()
+    editor.editor = realEditor
 
   # http://vimdoc.sourceforge.net/htmldoc/motion.html
   describe "motions", ->
@@ -135,6 +145,11 @@ fdescribe "Vim state", ->
         vim.input("a")
         expect(target.hasEvent("core:delete")).toBe(true)
         expect(editor.editor.insertText).toHaveBeenCalled()
+    describe "insert-line", ->
+      it "inserts a line below the cursor", ->
+        vim.operation("insert-line")
+        vim.motion("end-of-line")
+        expect(target.hasEvent("editor:newline")).toBe(true)
     describe "yank", ->
     describe "swap case", ->
     describe "filter through external program", ->

@@ -104,8 +104,8 @@ class VimView extends View
     @resetMode()
     switch type
       when 'append' then @state.motion("right")
-      when 'next-line' then @state.motion("insert-line-down")
-      when 'previous-line' then @state.motion("insert-line-up")
+      when 'next-line' then @state.alias("insert-line-down")
+      when 'previous-line' then @state.alias("insert-line-up")
     cursor = @cursor()
     cursor.width = 1
     cursor.updateDisplay()

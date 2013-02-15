@@ -89,6 +89,7 @@ class VimState
     a = @aliases[name]
     @operation(a.operation)
     @motion(a.motion)
+    @motion(a.afterMotion) if a.afterMotion?
   input: (text) ->
     @_operation.input = text
     @motion("right")
@@ -99,6 +100,13 @@ class VimState
     'delete-until-end-of-line':
       motion: 'end-of-line'
       operation: 'delete'
+    'insert-line-up':
+      motion: 'beginning-of-line'
+      operation: 'insert-line'
+      afterMotion: 'up'
+    'insert-line-down':
+      motion: 'end-of-line'
+      operation: 'insert-line'
   motionEvents:
     left: "core:move-left"
     right: "core:move-right"
@@ -127,4 +135,7 @@ class VimState
       @performSelectMotion()
       @performEvent("core:delete")
       @textInput(@input)
+    'insert-line': ->
+      @performMotion()
+      @performEvent("editor:newline")
   operationsWithInput: ['change-character']
