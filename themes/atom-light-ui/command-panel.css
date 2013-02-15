@@ -94,8 +94,5 @@
 
 .command-panel .preview-list li.operation:hover,
 .command-panel li.operation.selected .preview {
-  color: #fff;
-}
- {
-  color: #fff;
+  color: #333;
 }
