@@ -19,7 +19,7 @@
 }
 
 .command-panel .preview-list {
-  background-color: #e7e7e7;
+  background-color: #dbdbdb;
   color: #222;
   border: 1px solid #999;
 }
@@ -35,30 +35,34 @@
 }
 
 .command-panel .expand-collapse li {
-  background: -webkit-linear-gradient(#bbb, #aaa);
+  color: #555;
+  background: -webkit-linear-gradient(#cbcbcb, #b3b3b3);
+  box-shadow:
+    inset -1px -1px 0 rgba(255, 255, 255, 0.5),
+    inset 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 .command-panel .expand-collapse li:hover {
-  color: #fff;
+  color: #111;
 }
 
 .command-panel .preview-list .path.selected .path-details,
 .command-panel .preview-list li.operation.selected {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .command-panel .preview-list:focus .path.selected .path-details,
 .command-panel .preview-list:focus li.operation.selected {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .command-panel .preview-list .path {
-  color: #bbb;
-  border-top: 1px solid rgba(255, 255, 255, 0.02);
+  color: #333;
+  border-top: 1px solid #ccc;
 }
 
 .command-panel .preview-list .path:hover .path-name {
-  color: #fff;
+  color: #333;
 }
 
 .command-panel .preview-list .path:before {
@@ -66,7 +70,7 @@
 }
 
 .command-panel .preview-list .path:hover:before {
-  color: #fff;
+  color: #333;
 }
 
 .command-panel .preview-list .path:first-child {
@@ -74,12 +78,12 @@
 }
 
 .command-panel .preview-list .line-number {
-  color: rgba(255, 255, 255, 0.3);
+  color: #777;
   font-family: monospace;
 }
 
 .command-panel .preview-list .path-match-number {
-  color: rgba(255, 255, 255, 0.3);
+  color: #777;
 }
 
 .command-panel .preview-list .preview {
@@ -87,8 +91,8 @@
 }
 
 .command-panel .preview-list .preview .match {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #cca300;
+  background-color: #0086ca;
+  color: #fff;
 }
 
 .command-panel .preview-list li.operation {
