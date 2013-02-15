@@ -11,19 +11,19 @@ html, body {
 }
 
 #root-view #horizontal {
-  display: -webkit-box;
+  display: -webkit-flex;
   height: 100%;
 }
 
 #root-view #vertical {
-  -webkit-box-flex: 1;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
+  display: -webkit-flex;
+  -webkit-flex: 1;
+  -webkit-flex-flow: column;
 }
 
 #root-view #panes {
-  -webkit-box-flex: 1;
   position: relative;
+  -webkit-flex: 1;
 }
 
 #root-view #panes .column {
@@ -46,8 +46,8 @@ html, body {
 
 #root-view #panes .pane {
   position: absolute;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
+  display: -webkit-flex;
+  -webkit-flex-flow: column;
   top: 0;
   bottom: 0;
   left: 0;

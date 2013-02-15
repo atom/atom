@@ -1,6 +1,6 @@
 .tabs {
   font: caption;
-  display: -webkit-box;
+  display: -webkit-flex;
   -webkit-box-align: center;
 }
 
@@ -8,7 +8,7 @@
   -webkit-user-select: none;
   -webkit-user-drag: element;
   cursor: default;
-  -webkit-box-flex: 2;
+  -webkit-flex: 1;
   width: 175px;
   max-width: 175px;
   min-width: 40px;
@@ -20,7 +20,7 @@
 }
 
 .tab.active {
-  -webkit-box-flex: 1;
+  -webkit-flex: 2;
 }
 
 .tab .file-name {

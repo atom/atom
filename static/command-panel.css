@@ -118,7 +118,7 @@
 }
 
 .command-panel .prompt-and-editor {
-  display: -webkit-box;
+  display: -webkit-flex;
 }
 
 .error-messages {
