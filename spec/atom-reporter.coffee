@@ -1,5 +1,6 @@
 $ = require 'jquery'
 {View, $$} = require 'space-pen'
+_ = require 'underscore'
 
 module.exports =
 class AtomReporter extends View
@@ -68,6 +69,8 @@ class AtomReporter extends View
 
       clearTimeout @timeoutId if @timeoutId?
       @specPopup.show()
+      spec = _.find(window.timedSpecs, (spec) -> description is spec.name)
+      description = "#{description} #{spec.time}ms" if spec
       @specPopup.text description
       {left, top} = element.offset()
       left += 20
