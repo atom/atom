@@ -12,33 +12,50 @@
   padding: 5px;
   border-top-right-radius: 3px;
   border-top-left-radius: 3px;
+  border-bottom: none;
+}
+
+.command-panel .preview-list {
+  background-color: #e7e7e7;
+  color: #222;
+  border: 1px solid #999;
+}
+
+.command-panel .preview-count {
+  color: #333;
+  font-weight: bold;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .command-panel .expand-collapse {
   color: #333;
 }
 
-.command-panel .preview-list {
-  background-color: #e7e7e7;
-  color: #222;
-  border: 1px solid #ccc;
+.command-panel .expand-collapse li {
+  background: -webkit-linear-gradient(#bbb, #aaa);
 }
 
-.command-panel .preview-count {
-  color: #333;
+.command-panel .expand-collapse li:hover {
+  color: #fff;
 }
 
-.command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
-  background-color: rgba(255, 255, 255, .6);
+.command-panel .preview-list .path.selected .path-details,
+.command-panel .preview-list li.operation.selected {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.command-panel .preview-list:focus .path.selected .path-details,
+.command-panel .preview-list:focus li.operation.selected {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .command-panel .preview-list .path {
-  color: #999;
-  border-top: 1px solid #ddd;
+  color: #bbb;
+  border-top: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-.command-panel .preview-list .path-name {
-  color: #555;
+.command-panel .preview-list .path:hover .path-name {
+  color: #fff;
 }
 
 .command-panel .preview-list .path:before {
@@ -46,22 +63,39 @@
 }
 
 .command-panel .preview-list .path:hover:before {
-  color: #000;
+  color: #fff;
+}
+
+.command-panel .preview-list .path:first-child {
+  border-top: none;
 }
 
 .command-panel .preview-list .line-number {
-  color: #999;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: monospace;
 }
 
 .command-panel .preview-list .path-match-number {
-  color: #3D5075;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.command-panel .preview-list .preview {
+  word-break: break-all;
 }
 
 .command-panel .preview-list .preview .match {
-  background-color: #bbb;
-  color: #333;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #cca300;
 }
 
 .command-panel .preview-list li.operation {
   color: #777;
+}
+
+.command-panel .preview-list li.operation:hover,
+.command-panel li.operation.selected .preview {
+  color: #fff;
+}
+ {
+  color: #fff;
 }

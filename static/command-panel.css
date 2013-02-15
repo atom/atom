@@ -19,7 +19,8 @@
 
 .command-panel .preview-count {
   display: inline-block;
-  margin-top: 5px;
+  margin-top: 4px;
+  font-size: 11px;
 }
 
 .command-panel .preview-list {
@@ -44,9 +45,11 @@
 
 .command-panel .expand-collapse li {
   display: inline-block;
-  padding: 5px;
   cursor: pointer;
   font-size: 11px;
+  margin-left: 5px;
+  padding: 5px 10px;
+  border-radius: 3px;
 }
 
 .command-panel .preview-count,
