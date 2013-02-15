@@ -103,6 +103,7 @@ class RootView extends View
 
 
     @command 'window:focus-next-pane', => @focusNextPane()
+    @command 'window:focus-previous-pane', => @focusPreviousPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
       config.set("editor.showInvisibles", !config.get("editor.showInvisibles"))
@@ -228,6 +229,12 @@ class RootView extends View
     currentIndex = panes.toArray().indexOf(@getFocusedPane()[0])
     nextIndex = (currentIndex + 1) % panes.length
     panes.eq(nextIndex).view().wrappedView.focus()
+
+  focusPreviousPane: ->
+    panes = @panes.find('.pane')
+    currentIndex = panes.toArray().indexOf(@getFocusedPane()[0])
+    previousIndex = (currentIndex - 1) % panes.length
+    panes.eq(previousIndex).view().wrappedView.focus()
 
   getFocusedPane: ->
     @panes.find('.pane:has(:focus)')

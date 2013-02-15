@@ -407,6 +407,30 @@ describe "RootView", ->
         rootView.focusNextPane()
         expect(view1.focus).toHaveBeenCalled()
 
+    fdescribe ".focusPreviousPane()", ->
+      it "focuses the wrapped view of the pane before the currently focused pane", ->
+        class DummyView extends View
+          @content: (number) -> @div(number, tabindex: -1)
+
+        view1 = pane1.wrappedView
+        view2 = new DummyView(2)
+        view3 = new DummyView(3)
+        pane2 = pane1.splitDown(view2)
+        pane3 = pane2.splitRight(view3)
+        rootView.attachToDom()
+        view1.focus()
+
+        spyOn(view1, 'focus').andCallThrough()
+        spyOn(view2, 'focus').andCallThrough()
+        spyOn(view3, 'focus').andCallThrough()
+
+        rootView.focusPreviousPane()
+        expect(view3.focus).toHaveBeenCalled()
+        rootView.focusPreviousPane()
+        expect(view2.focus).toHaveBeenCalled()
+        rootView.focusPreviousPane()
+        expect(view1.focus).toHaveBeenCalled()
+
   describe "keymap wiring", ->
     commandHandler = null
     beforeEach ->
