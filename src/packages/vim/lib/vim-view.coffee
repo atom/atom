@@ -30,9 +30,9 @@ class VimView extends View
     @visual = false
 
     @editor.preempt 'textInput', (e) =>
+      return true if @inInsertMode()
       text = e.originalEvent.data
-      if @inInsertMode()
-        return true
+      @handleTextInput(text)
       false
     @state = new VimState(@editor, this)
     @enterInsertMode()
@@ -97,6 +97,9 @@ class VimView extends View
   inExMode: ->
     @mode is "ex"
 
+  awaitingInput: ->
+    @mode is "awaiting-input"
+
   enterInsertMode: (type) ->
     @resetMode()
     switch type
@@ -128,6 +131,17 @@ class VimView extends View
     @visual = true
     @state.resetState()
     @updateCommandLine()
+
+  enterAwaitInputMode: ->
+    # @enterCommandMode()
+    @editor.removeClass("command-mode")
+    @editor.addClass("awaiting-input")
+    @mode = "awaiting-input"
+
+  handleTextInput: (text) ->
+    @state.input(text)
+    if @awaitingInput()
+      @enterCommandMode()
 
   updateCommandLineText: ->
     if @inInsertMode()

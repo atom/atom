@@ -40,6 +40,16 @@ fdescribe "Vim package", ->
       expect(editor.vim.inCommandMode()).toBe true
       expect(editor.vim.inVisualMode()).toBe true
 
+    it "awaits input then resets to command mode", ->
+      editor.trigger 'vim:command-mode'
+      expect(editor.vim.inCommandMode()).toBe true
+      editor.vim.enterAwaitInputMode()
+      expect(editor.vim.inCommandMode()).toBe false
+      expect(editor.vim.awaitingInput()).toBe true
+      event = jQuery.Event("textInput", {originalEvent:{data: "a"}})
+      editor.trigger(event)
+      expect(editor.vim.inCommandMode()).toBe true
+
   describe "insert mode", ->
     it "enters insert mode", ->
       editor.trigger 'vim:insert-mode'

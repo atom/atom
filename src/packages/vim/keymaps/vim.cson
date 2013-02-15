@@ -43,6 +43,9 @@
 '.editor.command-mode.count':
   '0': 'vim:count-add-0'
 
+'.editor.awaiting-input':
+  'escape': 'vim:cancel-input'
+
 '.vim .editor':
   'enter': 'vim:execute'
   'escape': 'vim:command-mode'

@@ -1,3 +1,4 @@
+_ = require 'underscore'
 
 class VimMotion
   constructor: (@name, @event, @count) ->
@@ -22,6 +23,8 @@ class VimOperation
     @motion.perform(@target) if @motion?
   performSelectMotion: ->
     @motion.performSelect(@target) if @motion?
+  textInput: (text) ->
+    @vim.editor.insertText(text)
 
 module.exports =
 class VimState
@@ -65,6 +68,9 @@ class VimState
       @_operation.perform(@target)
       @vim.enterCommandMode()
       @resetState()
+    else if _.contains(@operationsWithInput, type)
+      @_operation = @buildOperation(type)
+      @vim.enterAwaitInputMode()
     else if @_operation.name == type
       @_operation.perform(@target, @defaultMotion())
       @resetState()
@@ -83,6 +89,9 @@ class VimState
     a = @aliases[name]
     @operation(a.operation)
     @motion(a.motion)
+  input: (text) ->
+    @_operation.input = text
+    @motion("right")
   aliases:
     'delete-character':
       motion: 'right'
@@ -114,3 +123,8 @@ class VimState
     'delete': ->
       @performSelectMotion()
       @performEvent("core:delete")
+    'change-character': ->
+      @performSelectMotion()
+      @performEvent("core:delete")
+      @textInput(@input)
+  operationsWithInput: ['change-character']
