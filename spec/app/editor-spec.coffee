@@ -2204,7 +2204,7 @@ describe "Editor", ->
       expect(editSession.save).toHaveBeenCalled()
 
   describe ".checkoutHead()", ->
-    [repo, path, originalPathText] = []
+    [path, originalPathText] = []
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
