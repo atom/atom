@@ -1,25 +1,6 @@
-# Keymaps
+## Keymaps In-Depth
 
-Atom keymaps work similarly to stylesheets. Just as stylesheets use selectors
-to apply styles to elements, Atom keymaps use selectors to associate keystrokes
-with events in specific contexts. Here's a small example, excerpted from Atom's
-built-in keymaps:
-
-```coffee-script
-'.editor':
-  'enter': 'editor:newline'
-
-".select-list .editor.mini":
-  'enter': 'core:confirm',
-```
-
-This keymap defines the meaning of `enter` in two different contexts. In a
-normal editor, pressing `enter` emits the `editor:newline` event, which causes
-the editor to insert a newline. But if the same keystroke occurs inside of a
-select list's mini-editor, it instead emits the `core:confirm` event based on
-the binding in the more-specific selector.
-
-## Structure of a Keymap File
+### Structure of a Keymap File
 
 Keymap files are encoded as JSON or CSON files containing nested hashes. The
 top-level keys of a keymap are **CSS 3 selectors**, which specify a particular
@@ -45,14 +26,7 @@ target of the keydown event when a key binding matches. You can use the command
 palette (bound to `meta-p`), to get a list of relevant events and their bindings
 in any focused context in Atom.
 
-## Loading Keymaps
-
-By default, any keymap files in your `~/.atom/keymaps` directory will be loaded
-in alphabetical order when Atom is started. They will always be loaded last,
-giving you the chance to override bindings that are defined by Atom's core
-keymaps or third-party packages.
-
-## Rules for Choosing a Binding
+### Rules for Mapping A Keydown Event to A Semantic Event
 
 A keymap's job is to translate a physical keystroke event (like `meta-D`) into a
 semantic event (like `editor:duplicate-line`). Whenever a keydown event occurs
@@ -69,7 +43,7 @@ awkward in order to preserve order, we've opted to handle cases where order is
 critical by breaking the keymap into two separate files, such as
 `snippets-1.cson` and `snippets-2.cson`.
 
-## Overloading Bindings
+### Overloading Key Bindings
 
 Occasionally, it makes sense to layer multiple actions on top of the same key
 binding. An example of this is the snippets package. You expand a snippet by

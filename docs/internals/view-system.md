@@ -1,6 +1,4 @@
-# A Guide to Atom's Internals
-
-## Views
+## Atom's View System
 
 ### SpacePen Basics
 
@@ -64,5 +62,3 @@ rootView.horizontal.prepend(new MyView)
 # place a view below the panes (or use .prepend() to place it above)
 rootView.vertical.append(new MyOtherView)
 ```
-
-## Models

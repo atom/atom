@@ -1,49 +1,6 @@
-# Configuration Settings
+## Configuration API
 
-Atom loads configuration settings from the `config.cson` file in your `~/.atom`
-directory, which contains CoffeeScript-style JSON:
-
-```coffeescript
-core:
-  hideGitIgnoredFiles: true
-editor:
-  fontSize: 18
-```
-
-Configuration is broken into namespaces, which are defined by the config hash's
-top-level keys. In addition to Atom's core components, each package may define
-its own namespace.
-
-## Configuration Glossary
-
-- core
-  - disablePackages: An array of package names to disable
-  - hideGitIgnoredFiles: Whether files in the .gitignore should be hidden
-  - ignoredNames: File names to ignore across all of atom
-  - themes: An array of theme names to load, in cascading order
-- editor
-  - autoIndent: Enable/disable basic auto-indent (defaults to true)
-  - autoIndentOnPaste: Enable/disable auto-indented pasted text (defaults to false)
-  - autosave: Save a file when an editor loses focus
-  - nonWordCharacters: A string of non-word characters to define word boundaries
-  - fontSize
-  - fontFamily
-  - invisibles: Specify characters that Atom renders for invisibles in this hash
-    - tab: Hard tab characters
-    - cr: Carriage return (For Microsoft-style line endings)
-    - eol: `\n` characters
-    - space: Leading and trailing space characters
-  - preferredLineLength: Packages such as autoflow use this (defaults to 80)
-  - showInvisibles: Whether to render placeholders for invisible characters (defaults to false)
-- fuzzyFinder
-  - ignoredNames: Files to ignore *only* in the fuzzy-finder
-- stripTrailingWhitespace
-  - singleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
-- wrapGuide
-  - columns: Array of hashes with a `pattern` and `column` key to match the
-             the path of the current editor to a column position.
-
-## Reading Config Settings
+### Reading Config Settings
 
 If you are writing a package that you want to make configurable, you'll need to
 read config settings. You can read a value from `config` with `config.get`:
@@ -82,7 +39,7 @@ ConfigObserver = require 'config-observer'
 _.extend MyClass.prototype, ConfigObserver
 ```
 
-## Writing Config Settings
+### Writing Config Settings
 
 As discussed above, the config database is automatically populated from
 `config.cson` when Atom is started, but you can programmatically write to it in
