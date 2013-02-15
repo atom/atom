@@ -2,9 +2,9 @@
 
 ![atom](http://f.cl.ly/items/3h1L1O333p1d0W3D2K3r/atom-sketch.jpg)
 
-## Building from source
+Check out our [documentation on the docs tab](https://github.com/github/atom/docs).
 
-*Be forwarned: Atom is pre-alpha software!*
+## Building from source
 
 Requirements
 
