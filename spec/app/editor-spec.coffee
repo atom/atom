@@ -10,7 +10,7 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  [rootView, project, buffer, editor, cachedLineHeight] = []
+  [project, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
@@ -21,7 +21,7 @@ describe "Editor", ->
     cachedLineHeight
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    new RootView(require.resolve('fixtures/sample.js'))
     project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
@@ -357,11 +357,11 @@ describe "Editor", ->
       tempFilePath = null
 
       beforeEach ->
-        rootView.remove()
+        rootView.deactivate()
 
         tempFilePath = '/tmp/atom-temp.txt'
         fs.write(tempFilePath, "")
-        rootView = new RootView(tempFilePath)
+        new RootView(tempFilePath)
         editor = rootView.getActiveEditor()
         project = rootView.project
 
