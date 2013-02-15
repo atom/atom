@@ -45,5 +45,5 @@ class GrammarView extends SelectList
   attach: ->
     super
 
-    @editor.rootView()?.append(this)
+    rootView.append(this)
     @miniEditor.focus()

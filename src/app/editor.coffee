@@ -57,7 +57,7 @@ class Editor extends View
   newSelections: null
   redrawOnReattach: false
 
-  @deserialize: (state, rootView) ->
+  @deserialize: (state) ->
     editor = new Editor(mini: state.mini, deserializing: true)
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
     editor.pushEditSession(editSession) for editSession in editSessions
@@ -101,7 +101,7 @@ class Editor extends View
     isFocused: @isFocused
 
   copy: ->
-    Editor.deserialize(@serialize(), @rootView())
+    Editor.deserialize(@serialize(), rootView)
 
   bindKeys: ->
     editorBindings =
@@ -356,7 +356,7 @@ class Editor extends View
       false
 
     @hiddenInput.on 'focus', =>
-      @rootView()?.editorFocused(this)
+      rootView?.editorFocused(this)
       @isFocused = true
       @addClass 'is-focused'
 
@@ -483,7 +483,7 @@ class Editor extends View
     return unless @closedEditSessions.length > 0
 
     {path, index} = @closedEditSessions.pop()
-    @rootView().open(path)
+    rootView.open(path)
     activeIndex = @getActiveEditSessionIndex()
     @moveEditSessionToIndex(activeIndex, index) if index < activeIndex
 
@@ -781,9 +781,6 @@ class Editor extends View
 
   pane: ->
     @parent('.pane').view()
-
-  rootView: ->
-    @parents('#root-view').view()
 
   promptToSaveDirtySession: (session, callback) ->
     path = session.getPath()
