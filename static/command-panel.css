@@ -58,7 +58,6 @@
 }
 
 .command-panel .preview-list .path {
-  padding-left: 5px;
   position: relative;
   -webkit-user-select: none;
 }
@@ -69,6 +68,7 @@
   width: 12px;
   height: 12px;
   margin-right: 5px;
+  margin-left: 5px;
   -webkit-font-smoothing: antialiased;
   content: "\f05b";
   position: relative;
@@ -102,7 +102,6 @@
 }
 
 .command-panel .preview-list .line-number {
-  padding-left: 3px;
   margin-right: 1ex;
   text-align: right;
   display: inline-block;
