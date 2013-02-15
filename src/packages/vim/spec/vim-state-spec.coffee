@@ -23,7 +23,9 @@ class MockVimView
     @mode = "insert"
   enterCommandMode: () ->
     @mode = "command"
-
+  enterAwaitInputMode: () ->
+  editor:
+    insertText:() ->
 fdescribe "Vim state", ->
 
   [target, vim, editor] = []
@@ -126,6 +128,13 @@ fdescribe "Vim state", ->
         vim.motion("end-of-line")
         expect(target.hasEvent("editor:select-to-end-of-line")).toBe(true)
         expect(target.hasEvent("core:delete")).toBe(true)
+    describe "change-character", ->
+      it "changes the character under the cursor to input", ->
+        spyOn(editor.editor, "insertText")
+        vim.operation("change-character")
+        vim.input("a")
+        expect(target.hasEvent("core:delete")).toBe(true)
+        expect(editor.editor.insertText).toHaveBeenCalled()
     describe "yank", ->
     describe "swap case", ->
     describe "filter through external program", ->
