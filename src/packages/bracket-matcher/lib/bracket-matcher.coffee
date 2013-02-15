@@ -50,12 +50,23 @@ module.exports =
     else if previousPosition.isEqual(endPosition)
       editor.setCursorBufferPosition(startPosition)
 
-  createView: (editor, bufferPosition) ->
-    pixelPosition = editor.pixelPositionForBufferPosition(bufferPosition)
+  addHighlightViews: (editor, bufferRange) ->
+    { start, end } = Range.fromObject(bufferRange)
+    startPixelPosition = editor.pixelPositionForBufferPosition(start)
+    endPixelPosition = editor.pixelPositionForBufferPosition(end)
+    @addHighlightViewAtPixelPosition(editor, bufferPosition: start, pixelPosition: startPixelPosition)
+    @addHighlightViewAtPixelPosition(editor, bufferPosition: end, pixelPosition: endPixelPosition)
+
+  addHighlightViewAtPixelPosition: (editor, {bufferPosition, pixelPosition}) ->
     view = $$ -> @div class: 'bracket-matcher'
     view.data('bufferPosition', bufferPosition)
-    view.css('top', pixelPosition.top).css('left', pixelPosition.left)
-    view.width(editor.charWidth).height(editor.lineHeight)
+    view.css(
+      top: pixelPosition.top
+      left: pixelPosition.left
+      width: editor.charWidth
+      height: editor.lineHeight
+    )
+    editor.underlayer.append(view)
 
   findCurrentPair: (editor, buffer, matches) ->
     position = editor.getCursorBufferPosition()
@@ -117,12 +128,7 @@ module.exports =
         matchPosition = @findMatchingStartPair(buffer, position, matchingPair, currentPair)
 
     if position? and matchPosition?
-      if position.isLessThan(matchPosition)
-        underlayer.append(@createView(editor, position))
-        underlayer.append(@createView(editor, matchPosition))
-      else
-        underlayer.append(@createView(editor, matchPosition))
-        underlayer.append(@createView(editor, position))
+      @addHighlightViews(editor, [position, matchPosition])
       @pairHighlighted = true
 
   subscribeToEditSession: (editSession) ->
