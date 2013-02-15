@@ -2,9 +2,13 @@ Git = require 'git'
 fs = require 'fs'
 
 describe "Git", ->
+  repo = null
 
   beforeEach ->
     fs.remove('/tmp/.git') if fs.isDirectory('/tmp/.git')
+
+  afterEach ->
+    repo.destroy() if repo?.repo?
 
   describe "@open(path)", ->
     it "returns null when no repository is found", ->
@@ -71,7 +75,7 @@ describe "Git", ->
         expect(repo.isPathModified(newPath)).toBeFalsy()
 
   describe ".isPathNew(path)", ->
-    [repo, path, newPath] = []
+    [path, newPath] = []
 
     beforeEach ->
       repo = new Git(require.resolve('fixtures/git/working-dir'))
@@ -90,7 +94,7 @@ describe "Git", ->
         expect(repo.isPathNew(path)).toBeFalsy()
 
   describe ".checkoutHead(path)", ->
-    [repo, path1, path2, originalPath1Text, originalPath2Text] = []
+    [path1, path2, originalPath1Text, originalPath2Text] = []
 
     beforeEach ->
       repo = new Git(require.resolve('fixtures/git/working-dir'))
@@ -129,7 +133,7 @@ describe "Git", ->
       expect(-> repo.getHead()).toThrow()
 
   describe ".getDiffStats(path)", ->
-    [repo, path, originalPathText] = []
+    [path, originalPathText] = []
 
     beforeEach ->
       repo = new Git(require.resolve('fixtures/git/working-dir'))
