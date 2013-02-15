@@ -19,7 +19,7 @@
 }
 
 .command-panel .preview-list {
-  background-color: #dbdbdb;
+  background-color: #e3e3e3;
   color: #222;
   border: 1px solid #999;
 }
@@ -53,7 +53,7 @@
 
 .command-panel .preview-list:focus .path.selected .path-details,
 .command-panel .preview-list:focus li.operation.selected {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 134, 0.34);
 }
 
 .command-panel .preview-list .path {
