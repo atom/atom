@@ -27,8 +27,6 @@
 }
 
 .command-panel .preview-count {
-  display: inline-block;
-  margin-top: 5px;
   color: #969696;
   text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.05);
 }
@@ -39,9 +37,6 @@
 
 .command-panel .expand-collapse li {
   background: -webkit-linear-gradient(#19191a, #1a1b1c);
-  margin-left: 5px;
-  padding: 5px 10px;
-  border-radius: 3px;
   box-shadow:
     inset -1px -1px 0 rgba(255, 255, 255, 0.1),
     inset 1px 1px rgba(0, 0, 0, 0.1);
@@ -106,8 +101,5 @@
 
 .command-panel .preview-list li.operation:hover,
 .command-panel li.operation.selected .preview {
-  color: #fff;
-}
- {
   color: #fff;
 }
