@@ -127,3 +127,19 @@ describe "Git", ->
       repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
       repo.destroy()
       expect(-> repo.getHead()).toThrow()
+
+  describe ".getDiffStats(path)", ->
+    [repo, path, originalPathText] = []
+
+    beforeEach ->
+      repo = new Git(require.resolve('fixtures/git/working-dir'))
+      path = require.resolve('fixtures/git/working-dir/file.txt')
+      originalPathText = fs.read(path)
+
+    afterEach ->
+      fs.write(path, originalPathText)
+
+    it "returns the number of lines added and deleted", ->
+      expect(repo.getDiffStats(path)).toEqual {added: 0, deleted: 0}
+      fs.write(path, "#{originalPathText} edited line")
+      expect(repo.getDiffStats(path)).toEqual {added: 1, deleted: 1}
