@@ -31,6 +31,13 @@ module.exports =
     editor.command 'editor:go-to-matching-bracket.bracket-matcher', =>
       @goToMatchingPair(editor)
     editor.on 'editor:will-be-removed', => editor.off('.bracket-matcher')
+    editor.startHighlightView = @addHighlightView(editor)
+    editor.endHighlightView = @addHighlightView(editor)
+
+  addHighlightView: (editor) ->
+    view = $$ -> @div class: 'bracket-matcher', style: 'display: none'
+    editor.underlayer.append(view)
+    view
 
   goToMatchingPair: (editor) ->
     return unless @pairHighlighted
@@ -50,23 +57,33 @@ module.exports =
     else if previousPosition.isEqual(endPosition)
       editor.setCursorBufferPosition(startPosition)
 
-  addHighlightViews: (editor, bufferRange) ->
+  moveHighlightViews: (editor, bufferRange) ->
     { start, end } = Range.fromObject(bufferRange)
     startPixelPosition = editor.pixelPositionForBufferPosition(start)
     endPixelPosition = editor.pixelPositionForBufferPosition(end)
-    @addHighlightViewAtPixelPosition(editor, bufferPosition: start, pixelPosition: startPixelPosition)
-    @addHighlightViewAtPixelPosition(editor, bufferPosition: end, pixelPosition: endPixelPosition)
+    @moveHighlightView
+      editor: editor
+      view: editor.startHighlightView
+      bufferPosition: start
+      pixelPosition: startPixelPosition
+    @moveHighlightView
+      editor: editor
+      view: editor.endHighlightView
+      bufferPosition: end
+      pixelPosition: endPixelPosition
 
-  addHighlightViewAtPixelPosition: (editor, {bufferPosition, pixelPosition}) ->
-    view = $$ -> @div class: 'bracket-matcher'
+  moveHighlightView: ({editor, view, bufferPosition, pixelPosition}) ->
     view.data('bufferPosition', bufferPosition)
-    view.css(
+    view.css
+      display: 'block'
       top: pixelPosition.top
       left: pixelPosition.left
       width: editor.charWidth
       height: editor.lineHeight
-    )
-    editor.underlayer.append(view)
+
+  hideHighlightViews: (editor) ->
+    editor.startHighlightView.hide()
+    editor.endHighlightView.hide()
 
   findCurrentPair: (editor, buffer, matches) ->
     position = editor.getCursorBufferPosition()
@@ -112,7 +129,7 @@ module.exports =
   updateMatch: (editor) ->
     return unless underlayer = editor.pane()?.find('.underlayer')
 
-    underlayer.find('.bracket-matcher').remove() if @pairHighlighted
+    @hideHighlightViews(editor) if @pairHighlighted
     @pairHighlighted = false
 
     return unless editor.getSelection().isEmpty()
@@ -128,7 +145,7 @@ module.exports =
         matchPosition = @findMatchingStartPair(buffer, position, matchingPair, currentPair)
 
     if position? and matchPosition?
-      @addHighlightViews(editor, [position, matchPosition])
+      @moveHighlightViews(editor, [position, matchPosition])
       @pairHighlighted = true
 
   subscribeToEditSession: (editSession) ->
