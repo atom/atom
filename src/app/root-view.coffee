@@ -95,7 +95,7 @@ class RootView extends View
     allowActiveEditorChange = options.allowActiveEditorChange ? false
 
     unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
-      editSession = project.buildEditSessionForPath(path)
+      editSession = project.buildEditSession(path)
       editor = new Editor({editSession})
       pane = new Pane(editor)
       @panes.append(pane)
@@ -121,7 +121,7 @@ class RootView extends View
             @makeEditorActive(editor, changeFocus)
             return editSession
 
-      editSession = project.buildEditSessionForPath(path)
+      editSession = project.buildEditSession(path)
       activeEditor.edit(editSession)
       editSession
 

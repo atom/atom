@@ -73,7 +73,7 @@ class FuzzyFinderView extends SelectList
 
     editor = rootView.getActiveEditor()
     if editor
-      fn(editor, project.buildEditSessionForPath(path))
+      fn(editor, project.buildEditSession(path))
     else
       @openPath(path)
 
