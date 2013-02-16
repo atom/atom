@@ -42,7 +42,7 @@ class Pane extends View
 
     pane = new Pane(view)
     this[side](pane)
-    rootView.adjustPaneDimensions()
+    rootView?.adjustPaneDimensions()
     view.focus?()
     pane
 
@@ -54,7 +54,7 @@ class Pane extends View
     if parentAxis.children().length == 1
       sibling = parentAxis.children().detach()
       parentAxis.replaceWith(sibling)
-    rootView.adjustPaneDimensions()
+    rootView?.adjustPaneDimensions()
 
   buildPaneAxis: (axis) ->
     switch axis
