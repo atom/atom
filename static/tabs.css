@@ -40,7 +40,7 @@
   position: absolute;
   color: rgba(255, 255, 255, 0.5);
   right: 8px;
-  top: 4px;
+  top: 5px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -53,7 +53,7 @@
 }
 
 .tab.file-modified .close-icon {
-  top: 10px;
+  top: 11px;
   width: 5px;
   height: 5px;
   right: 9px;
@@ -70,7 +70,7 @@
   width: 12px;
   height: 12px;
   right: 8px;
-  top: 4px;
+  top: 5px;
 }
 
 .tab.file-modified:hover .close-icon:before {
