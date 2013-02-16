@@ -16,10 +16,10 @@ class EditSession
 
   @deserialize: (state, project) ->
     if fs.exists(state.buffer)
-      session = project.buildEditSessionForPath(state.buffer)
+      session = project.buildEditSession(state.buffer)
     else
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
-      session = project.buildEditSessionForPath(null)
+      session = project.buildEditSession(null)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)

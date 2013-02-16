@@ -163,7 +163,7 @@ describe 'FuzzyFinder', ->
       describe "when the active editor only contains edit sessions for anonymous buffers", ->
         it "does not open", ->
           editor = rootView.getActiveEditor()
-          editor.edit(project.buildEditSessionForPath())
+          editor.edit(project.buildEditSession())
           editor.loadPreviousEditSession()
           editor.destroyActiveEditSession()
           expect(editor.getOpenBufferPaths().length).toBe 0

@@ -14,7 +14,7 @@ describe "Editor", ->
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
-    editorForMeasurement = new Editor(editSession: project.buildEditSessionForPath('sample.js'))
+    editorForMeasurement = new Editor(editSession: project.buildEditSession('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     editorForMeasurement.remove()
@@ -46,7 +46,7 @@ describe "Editor", ->
       rootView.height(8 * editor.lineHeight)
       rootView.width(50 * editor.charWidth)
 
-      editor.edit(project.buildEditSessionForPath('two-hundred.txt'))
+      editor.edit(project.buildEditSession('two-hundred.txt'))
       editor.setCursorScreenPosition([5, 1])
       editor.scrollTop(1.5 * editor.lineHeight)
       editor.scrollView.scrollLeft(44)
@@ -75,7 +75,7 @@ describe "Editor", ->
     it "does not blow up if no file exists for a previous edit session, but prints a warning", ->
       spyOn(console, 'warn')
       fs.write('/tmp/delete-me')
-      editor.edit(project.buildEditSessionForPath('/tmp/delete-me'))
+      editor.edit(project.buildEditSession('/tmp/delete-me'))
       fs.remove('/tmp/delete-me')
       newEditor = editor.copy()
       expect(console.warn).toHaveBeenCalled()
@@ -117,7 +117,7 @@ describe "Editor", ->
     it "triggers an alert", ->
       path = "/tmp/atom-changed-file.txt"
       fs.write(path, "")
-      editSession = project.buildEditSessionForPath(path)
+      editSession = project.buildEditSession(path)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
 
@@ -138,7 +138,7 @@ describe "Editor", ->
     it "removes subscriptions from all edit session buffers", ->
       editSession1 = editor.activeEditSession
       subscriberCount1 = editSession1.buffer.subscriptionCount()
-      editSession2 = project.buildEditSessionForPath(project.resolve('sample.txt'))
+      editSession2 = project.buildEditSession(project.resolve('sample.txt'))
       expect(subscriberCount1).toBeGreaterThan 1
 
       editor.edit(editSession2)
@@ -151,17 +151,17 @@ describe "Editor", ->
 
   describe "when 'close' is triggered", ->
     it "adds a closed session path to the array", ->
-      editor.edit(project.buildEditSessionForPath())
+      editor.edit(project.buildEditSession())
       editSession = editor.activeEditSession
       expect(editor.closedEditSessions.length).toBe 0
       editor.trigger "core:close"
       expect(editor.closedEditSessions.length).toBe 0
-      editor.edit(project.buildEditSessionForPath(project.resolve('sample.txt')))
+      editor.edit(project.buildEditSession(project.resolve('sample.txt')))
       editor.trigger "core:close"
       expect(editor.closedEditSessions.length).toBe 1
 
     it "closes the active edit session and loads next edit session", ->
-      editor.edit(project.buildEditSessionForPath())
+      editor.edit(project.buildEditSession())
       editSession = editor.activeEditSession
       spyOn(editSession.buffer, 'isModified').andReturn false
       spyOn(editSession, 'destroy').andCallThrough()
@@ -172,7 +172,7 @@ describe "Editor", ->
       expect(editor.getBuffer()).toBe buffer
 
     it "triggers the 'editor:edit-session-removed' event with the edit session and its former index", ->
-      editor.edit(project.buildEditSessionForPath())
+      editor.edit(project.buildEditSession())
       editSession = editor.activeEditSession
       index = editor.getActiveEditSessionIndex()
       spyOn(editSession.buffer, 'isModified').andReturn false
@@ -220,7 +220,7 @@ describe "Editor", ->
     otherEditSession = null
 
     beforeEach ->
-      otherEditSession = project.buildEditSessionForPath()
+      otherEditSession = project.buildEditSession()
 
     describe "when the edit session wasn't previously assigned to this editor", ->
       it "adds edit session to editor and triggers the 'editor:edit-session-added' event", ->
@@ -257,11 +257,11 @@ describe "Editor", ->
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
 
     it "removes the opened session from the closed sessions array", ->
-      editor.edit(project.buildEditSessionForPath('sample.txt'))
+      editor.edit(project.buildEditSession('sample.txt'))
       expect(editor.closedEditSessions.length).toBe 0
       editor.trigger "core:close"
       expect(editor.closedEditSessions.length).toBe 1
-      editor.edit(project.buildEditSessionForPath('sample.txt'))
+      editor.edit(project.buildEditSession('sample.txt'))
       expect(editor.closedEditSessions.length).toBe 0
 
   describe "switching edit sessions", ->
@@ -270,10 +270,10 @@ describe "Editor", ->
     beforeEach ->
       session0 = editor.activeEditSession
 
-      editor.edit(project.buildEditSessionForPath('sample.txt'))
+      editor.edit(project.buildEditSession('sample.txt'))
       session1 = editor.activeEditSession
 
-      editor.edit(project.buildEditSessionForPath('two-hundred.txt'))
+      editor.edit(project.buildEditSession('two-hundred.txt'))
       session2 = editor.activeEditSession
 
     describe ".setActiveEditSessionIndex(index)", ->
@@ -304,7 +304,7 @@ describe "Editor", ->
       it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
         path = "/tmp/atom-changed-file.txt"
         fs.write(path, "")
-        editSession = project.buildEditSessionForPath(path)
+        editSession = project.buildEditSession(path)
         editor.edit editSession
         editSession.insertText("a buffer change")
 
@@ -379,7 +379,7 @@ describe "Editor", ->
     describe "when the current buffer has no path", ->
       selectedFilePath = null
       beforeEach ->
-        editor.edit(project.buildEditSessionForPath())
+        editor.edit(project.buildEditSession())
 
         expect(editor.getPath()).toBeUndefined()
         editor.getBuffer().setText 'Save me to a new path'
@@ -459,7 +459,7 @@ describe "Editor", ->
         spyOn(editor, 'pane').andReturn(fakePane)
 
       it "calls the corresponding split method on the containing pane with a new editor containing a copy of the active edit session", ->
-        editor.edit project.buildEditSessionForPath("sample.txt")
+        editor.edit project.buildEditSession("sample.txt")
         editor.splitUp()
         expect(fakePane.splitUp).toHaveBeenCalled()
         [newEditor] = fakePane.splitUp.argsForCall[0]
@@ -506,7 +506,7 @@ describe "Editor", ->
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor:path-changed', eventHandler
-      editor.edit(project.buildEditSessionForPath(path))
+      editor.edit(project.buildEditSession(path))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -514,7 +514,7 @@ describe "Editor", ->
       oldBuffer = editor.getBuffer()
       editor.on 'editor:path-changed', eventHandler
 
-      editor.edit(project.buildEditSessionForPath(path))
+      editor.edit(project.buildEditSession(path))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
@@ -1375,7 +1375,7 @@ describe "Editor", ->
           expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
         it "does not wrap the lines of any newly assigned buffers", ->
-          otherEditSession = project.buildEditSessionForPath()
+          otherEditSession = project.buildEditSession()
           otherEditSession.buffer.setText([1..100].join(''))
           editor.edit(otherEditSession)
           expect(editor.renderedLines.find('.line').length).toBe(1)
@@ -1411,7 +1411,7 @@ describe "Editor", ->
           expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
         it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
-          otherEditor = new Editor(editSession: project.buildEditSessionForPath('sample.js'))
+          otherEditor = new Editor(editSession: project.buildEditSession('sample.js'))
           spyOn(otherEditor, 'setSoftWrapColumn')
 
           otherEditor.setSoftWrap(true)
@@ -1707,7 +1707,7 @@ describe "Editor", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editor.edit(project.buildEditSessionForPath('two-hundred.txt'))
+        editor.edit(project.buildEditSession('two-hundred.txt'))
         editor.attachToDom(heightInLines: 5.5)
 
         expect(editor.renderedLines.find('.line').length).toBe 8
@@ -1988,7 +1988,7 @@ describe "Editor", ->
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
-        editor.edit(fixturesProject.buildEditSessionForPath(null))
+        editor.edit(fixturesProject.buildEditSession(null))
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 
         editor.setActiveEditSessionIndex(0)
@@ -2122,7 +2122,7 @@ describe "Editor", ->
 
   describe "folding", ->
     beforeEach ->
-      editSession = project.buildEditSessionForPath('two-hundred.txt')
+      editSession = project.buildEditSession('two-hundred.txt')
       buffer = editSession.buffer
       editor.edit(editSession)
       editor.attachToDom()
@@ -2213,9 +2213,9 @@ describe "Editor", ->
 
   describe ".getOpenBufferPaths()", ->
     it "returns the paths of all non-anonymous buffers with edit sessions on this editor", ->
-      editor.edit(project.buildEditSessionForPath('sample.txt'))
-      editor.edit(project.buildEditSessionForPath('two-hundred.txt'))
-      editor.edit(project.buildEditSessionForPath())
+      editor.edit(project.buildEditSession('sample.txt'))
+      editor.edit(project.buildEditSession('two-hundred.txt'))
+      editor.edit(project.buildEditSession())
       paths = editor.getOpenBufferPaths().map (path) -> project.relativize(path)
       expect(paths).toEqual = ['sample.js', 'sample.txt', 'two-hundred.txt']
 

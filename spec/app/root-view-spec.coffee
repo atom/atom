@@ -43,10 +43,10 @@ describe "RootView", ->
           editor2 = editor1.splitRight()
           editor3 = editor2.splitRight()
           editor4 = editor2.splitDown()
-          editor2.edit(project.buildEditSessionForPath('b'))
-          editor3.edit(project.buildEditSessionForPath('../sample.js'))
+          editor2.edit(project.buildEditSession('b'))
+          editor3.edit(project.buildEditSession('../sample.js'))
           editor3.setCursorScreenPosition([2, 4])
-          editor4.edit(project.buildEditSessionForPath('../sample.txt'))
+          editor4.edit(project.buildEditSession('../sample.txt'))
           editor4.setCursorScreenPosition([0, 2])
           rootView.attachToDom()
           editor2.focus()
@@ -404,7 +404,7 @@ describe "RootView", ->
       editor2 = rootView.getActiveEditor().splitLeft()
 
       path = project.resolve('b')
-      editor2.edit(project.buildEditSessionForPath(path))
+      editor2.edit(project.buildEditSession(path))
       expect(pathChangeHandler).toHaveBeenCalled()
       expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{project.getPath()}"
 
@@ -584,7 +584,7 @@ describe "RootView", ->
       expect(buffer1.isModified()).toBe(true)
 
       editor2 = editor1.splitRight()
-      editor2.edit(project.buildEditSessionForPath('atom-temp2.txt'))
+      editor2.edit(project.buildEditSession('atom-temp2.txt'))
       buffer2 = editor2.activeEditSession.buffer
       expect(buffer2.getText()).toBe("file2")
       expect(buffer2.isModified()).toBe(false)
