@@ -48,6 +48,8 @@ class FuzzyFinderView extends SelectList
           typeClass = 'image-name'
         else if fs.isPdfExtension(ext)
           typeClass = 'pdf-name'
+        else if fs.isBinaryExtension(ext)
+          typeClass = 'binary-name'
         else
           typeClass = 'text-name'
         @span fs.base(path), class: "file label #{typeClass}"

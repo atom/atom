@@ -25,6 +25,8 @@ class FileView extends View
       @fileName.addClass('image-icon')
     else if fs.isPdfExtension(extension)
       @fileName.addClass('pdf-icon')
+    else if fs.isBinaryExtension(extension)
+      @fileName.addClass('binary-icon')
     else
       @fileName.addClass('text-icon')
 

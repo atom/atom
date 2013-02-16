@@ -180,6 +180,11 @@ module.exports =
       '.ron'
     ], ext, true) >= 0
 
+  isBinaryExtension: (ext) ->
+    _.indexOf([
+      '.DS_Store'
+      '.woff'
+    ], ext, true) >= 0
 
   isReadmePath: (path) ->
     extension = @extension(path)
