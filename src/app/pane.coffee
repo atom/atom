@@ -17,11 +17,10 @@ class Pane extends View
 
   adjustDimensions: -> # do nothing
 
-  horizontalGridUnits: ->
-    1
+  horizontalGridUnits: -> 1
 
-  verticalGridUnits: ->
-    1
+  verticalGridUnits: -> 1
+
 
   splitUp: (view) ->
     @split(view, 'column', 'before')
