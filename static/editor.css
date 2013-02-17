@@ -29,6 +29,7 @@
   height: 100%;
   overflow: hidden;
   text-align: right;
+  cursor: default;
 }
 
 .editor .gutter .line-number {
