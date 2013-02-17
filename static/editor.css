@@ -1,6 +1,6 @@
 .editor {
   overflow: hidden;
-  cursor: default;
+  cursor: text;
   -webkit-user-select: none;
   position: relative;
   z-index: 0;
