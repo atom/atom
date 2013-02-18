@@ -132,8 +132,8 @@
             {
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/Libraries/',
               'files': [
-                'cef/frameworks/libcef.dylib',
-                'cef/frameworks/ffmpegsumo.so',
+                'cef/Release/libcef.dylib',
+                'cef/Release/ffmpegsumo.so',
               ],
             },
             {
@@ -246,7 +246,7 @@
       ],
       'link_settings': {
         'libraries': [
-          'cef/frameworks/libcef.dylib',
+          'cef/Release/libcef.dylib',
         ],
       }
     },
