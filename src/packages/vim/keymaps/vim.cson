@@ -25,7 +25,7 @@
   'w': 'vim:motion-next-word'
   'b': 'vim:motion-previous-word'
   'e': 'vim:motion-end-of-word'
-  'G': 'vim:motion-go-to-line'
+  'G': 'vim:motion-go-to-line-bottom'
   'g g': 'vim:motion-go-to-line'
   'ctrl-d': 'vim:motion-down-screen'
   'ctrl-u': 'vim:motion-up-screen'
