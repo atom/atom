@@ -141,199 +141,18 @@ describe "RootView", ->
         it "surrenders focus to the body", ->
           expect(document.activeElement).toBe $('body')[0]
 
-  describe "panes", ->
+  fdescribe "panes", ->
     [pane1, newPaneContent] = []
 
     beforeEach ->
-      rootView.attachToDom()
-      rootView.width(800)
-      rootView.height(600)
       pane1 = rootView.find('.pane').view()
-      pane1.attr('id', 'pane-1')
-      newPaneContent = $("<div>New pane content</div>")
-      spyOn(newPaneContent, 'focus')
-
-    describe "vertical splits", ->
-      describe "when .splitRight(view) is called on a pane", ->
-        it "places a new pane to the right of the current pane in a .row div", ->
-          expect(rootView.panes.find('.row')).not.toExist()
-
-          pane2 = pane1.splitRight(newPaneContent)
-          expect(newPaneContent.focus).toHaveBeenCalled()
-
-          expect(rootView.panes.find('.row')).toExist()
-          expect(rootView.panes.find('.row .pane').length).toBe 2
-          [leftPane, rightPane] = rootView.panes.find('.row .pane').map -> $(this)
-          expect(rightPane[0]).toBe pane2[0]
-          expect(leftPane.attr('id')).toBe 'pane-1'
-          expect(rightPane.html()).toBe "<div>New pane content</div>"
-
-          expectedColumnWidth = Math.floor(rootView.panes.width() / 2)
-          expect(leftPane.outerWidth()).toBe expectedColumnWidth
-          expect(rightPane.position().left).toBe expectedColumnWidth
-          expect(rightPane.outerWidth()).toBe expectedColumnWidth
-
-          pane2.remove()
-
-          expect(rootView.panes.find('.row')).not.toExist()
-          expect(rootView.panes.find('.pane').length).toBe 1
-          expect(pane1.outerWidth()).toBe rootView.panes.width()
-
-      describe "when splitLeft(view) is called on a pane", ->
-        it "places a new pane to the left of the current pane in a .row div", ->
-          expect(rootView.find('.row')).not.toExist()
-
-          pane2 = pane1.splitLeft(newPaneContent)
-          expect(newPaneContent.focus).toHaveBeenCalled()
-
-          expect(rootView.find('.row')).toExist()
-          expect(rootView.find('.row .pane').length).toBe 2
-          [leftPane, rightPane] = rootView.find('.row .pane').map -> $(this)
-          expect(leftPane[0]).toBe pane2[0]
-          expect(rightPane.attr('id')).toBe 'pane-1'
-          expect(leftPane.html()).toBe "<div>New pane content</div>"
-
-          expectedColumnWidth = Math.floor(rootView.panes.width() / 2)
-          expect(leftPane.outerWidth()).toBe expectedColumnWidth
-          expect(rightPane.position().left).toBe expectedColumnWidth
-          expect(rightPane.outerWidth()).toBe expectedColumnWidth
-
-          pane2.remove()
-
-          expect(rootView.panes.find('.row')).not.toExist()
-          expect(rootView.panes.find('.pane').length).toBe 1
-          expect(pane1.outerWidth()).toBe rootView.panes.width()
-          expect(pane1.position().left).toBe 0
-
-    describe "horizontal splits", ->
-      describe "when splitUp(view) is called on a pane", ->
-        it "places a new pane above the current pane in a .column div", ->
-          expect(rootView.find('.column')).not.toExist()
-
-          pane2 = pane1.splitUp(newPaneContent)
-          expect(newPaneContent.focus).toHaveBeenCalled()
-
-          expect(rootView.find('.column')).toExist()
-          expect(rootView.find('.column .pane').length).toBe 2
-          [topPane, bottomPane] = rootView.find('.column .pane').map -> $(this)
-          expect(topPane[0]).toBe pane2[0]
-          expect(bottomPane.attr('id')).toBe 'pane-1'
-          expect(topPane.html()).toBe "<div>New pane content</div>"
-
-          expectedRowHeight = Math.floor(rootView.panes.height() / 2)
-          expect(topPane.outerHeight()).toBe expectedRowHeight
-          expect(bottomPane.position().top).toBe expectedRowHeight
-          expect(bottomPane.outerHeight()).toBe expectedRowHeight
-
-          pane2.remove()
-
-          expect(rootView.panes.find('.column')).not.toExist()
-          expect(rootView.panes.find('.pane').length).toBe 1
-          expect(pane1.outerHeight()).toBe rootView.panes.height()
-          expect(pane1.position().top).toBe 0
-
-      describe "when splitDown(view) is called on a pane", ->
-        it "places a new pane below the current pane in a .column div", ->
-          expect(rootView.find('.column')).not.toExist()
-
-          pane2 = pane1.splitDown(newPaneContent)
-          expect(newPaneContent.focus).toHaveBeenCalled()
-
-          expect(rootView.find('.column')).toExist()
-          expect(rootView.find('.column .pane').length).toBe 2
-          [topPane, bottomPane] = rootView.find('.column .pane').map -> $(this)
-          expect(bottomPane[0]).toBe pane2[0]
-          expect(topPane.attr('id')).toBe 'pane-1'
-          expect(bottomPane.html()).toBe "<div>New pane content</div>"
-
-          expectedRowHeight = Math.floor(rootView.panes.height() / 2)
-          expect(topPane.outerHeight()).toBe expectedRowHeight
-          expect(bottomPane.position().top).toBe expectedRowHeight
-          expect(bottomPane.outerHeight()).toBe expectedRowHeight
-
-          pane2.remove()
-
-          expect(rootView.panes.find('.column')).not.toExist()
-          expect(rootView.panes.find('.pane').length).toBe 1
-          expect(pane1.outerHeight()).toBe rootView.panes.height()
-
-    describe "layout of nested vertical and horizontal splits", ->
-      it "lays out rows and columns with a consistent width", ->
-        pane1.html("1")
-
-        pane1
-          .splitLeft("2")
-          .splitUp("3")
-          .splitLeft("4")
-          .splitDown("5")
-
-        row1 = rootView.panes.children(':eq(0)')
-        expect(row1.children().length).toBe 2
-        column1 = row1.children(':eq(0)').view()
-        pane1 = row1.children(':eq(1)').view()
-        expect(column1.outerWidth()).toBe Math.round(2/3 * rootView.panes.width())
-        expect(column1.outerHeight()).toBe rootView.height()
-        expect(pane1.outerWidth()).toBe Math.round(1/3 * rootView.panes.width())
-        expect(pane1.outerHeight()).toBe rootView.height()
-        expect(Math.round(pane1.position().left)).toBe column1.outerWidth()
-
-        expect(column1.children().length).toBe 2
-        row2 = column1.children(':eq(0)').view()
-        pane2 = column1.children(':eq(1)').view()
-        expect(row2.outerWidth()).toBe column1.outerWidth()
-        expect(row2.height()).toBe 2/3 * rootView.panes.height()
-        expect(pane2.outerWidth()).toBe column1.outerWidth()
-        expect(pane2.outerHeight()).toBe 1/3 * rootView.panes.height()
-        expect(pane2.position().top).toBe row2.height()
-
-        expect(row2.children().length).toBe 2
-        column3 = row2.children(':eq(0)').view()
-        pane3 = row2.children(':eq(1)').view()
-        expect(column3.outerWidth()).toBe Math.round(1/3 * rootView.panes.width())
-        expect(column3.outerHeight()).toBe row2.outerHeight()
-        # the built in rounding seems to be rounding x.5 down, but we need to go up. this sucks.
-        expect(Math.round(pane3.trueWidth())).toBe Math.round(1/3 * rootView.panes.width())
-        expect(pane3.height()).toBe row2.outerHeight()
-        expect(Math.round(pane3.position().left)).toBe column3.width()
-
-        expect(column3.children().length).toBe 2
-        pane4 = column3.children(':eq(0)').view()
-        pane5 = column3.children(':eq(1)').view()
-        expect(pane4.outerWidth()).toBe column3.width()
-        expect(pane4.outerHeight()).toBe 1/3 * rootView.panes.height()
-        expect(pane5.outerWidth()).toBe column3.width()
-        expect(pane5.position().top).toBe pane4.outerHeight()
-        expect(pane5.outerHeight()).toBe 1/3 * rootView.panes.height()
-
-        pane5.remove()
-
-        expect(column3.parent()).not.toExist()
-        expect(pane2.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
-        expect(pane3.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
-        expect(pane4.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
-
-        pane4.remove()
-        expect(row2.parent()).not.toExist()
-        expect(pane1.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
-        expect(pane2.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
-        expect(pane3.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
-
-        pane3.remove()
-        expect(column1.parent()).not.toExist()
-        expect(pane2.outerHeight()).toBe rootView.panes.height()
-
-        pane2.remove()
-        expect(row1.parent()).not.toExist()
-        expect(rootView.panes.children().length).toBe 1
-        expect(rootView.panes.children('.pane').length).toBe 1
-        expect(pane1.outerWidth()).toBe rootView.panes.width()
 
     describe ".focusNextPane()", ->
       it "focuses the wrapped view of the pane after the currently focused pane", ->
         class DummyView extends View
           @content: (number) -> @div(number, tabindex: -1)
 
-        view1 = pane1.wrappedView
+        view1 = pane1.find('.editor').view()
         view2 = new DummyView(2)
         view3 = new DummyView(3)
         pane2 = pane1.splitDown(view2)
@@ -351,6 +170,190 @@ describe "RootView", ->
         expect(view3.focus).toHaveBeenCalled()
         rootView.focusNextPane()
         expect(view1.focus).toHaveBeenCalled()
+
+    describe "pane layout", ->
+      beforeEach ->
+        rootView.attachToDom()
+        rootView.width(800)
+        rootView.height(600)
+        pane1.attr('id', 'pane-1')
+        newPaneContent = $("<div>New pane content</div>")
+        spyOn(newPaneContent, 'focus')
+
+      describe "vertical splits", ->
+        describe "when .splitRight(view) is called on a pane", ->
+          it "places a new pane to the right of the current pane in a .row div", ->
+            expect(rootView.panes.find('.row')).not.toExist()
+
+            pane2 = pane1.splitRight(newPaneContent)
+            expect(newPaneContent.focus).toHaveBeenCalled()
+
+            expect(rootView.panes.find('.row')).toExist()
+            expect(rootView.panes.find('.row .pane').length).toBe 2
+            [leftPane, rightPane] = rootView.panes.find('.row .pane').map -> $(this).view()
+            expect(rightPane[0]).toBe pane2[0]
+            expect(leftPane.attr('id')).toBe 'pane-1'
+            expect(rightPane.currentItem).toBe newPaneContent
+
+            expectedColumnWidth = Math.floor(rootView.panes.width() / 2)
+            expect(leftPane.outerWidth()).toBe expectedColumnWidth
+            expect(rightPane.position().left).toBe expectedColumnWidth
+            expect(rightPane.outerWidth()).toBe expectedColumnWidth
+
+            pane2.remove()
+
+            expect(rootView.panes.find('.row')).not.toExist()
+            expect(rootView.panes.find('.pane').length).toBe 1
+            expect(pane1.outerWidth()).toBe rootView.panes.width()
+
+        describe "when splitLeft(view) is called on a pane", ->
+          it "places a new pane to the left of the current pane in a .row div", ->
+            expect(rootView.find('.row')).not.toExist()
+
+            pane2 = pane1.splitLeft(newPaneContent)
+            expect(newPaneContent.focus).toHaveBeenCalled()
+
+            expect(rootView.find('.row')).toExist()
+            expect(rootView.find('.row .pane').length).toBe 2
+            [leftPane, rightPane] = rootView.find('.row .pane').map -> $(this).view()
+            expect(leftPane[0]).toBe pane2[0]
+            expect(rightPane.attr('id')).toBe 'pane-1'
+            expect(leftPane.currentItem).toBe
+
+            expectedColumnWidth = Math.floor(rootView.panes.width() / 2)
+            expect(leftPane.outerWidth()).toBe expectedColumnWidth
+            expect(rightPane.position().left).toBe expectedColumnWidth
+            expect(rightPane.outerWidth()).toBe expectedColumnWidth
+
+            pane2.remove()
+
+            expect(rootView.panes.find('.row')).not.toExist()
+            expect(rootView.panes.find('.pane').length).toBe 1
+            expect(pane1.outerWidth()).toBe rootView.panes.width()
+            expect(pane1.position().left).toBe 0
+
+      describe "horizontal splits", ->
+        describe "when splitUp(view) is called on a pane", ->
+          it "places a new pane above the current pane in a .column div", ->
+            expect(rootView.find('.column')).not.toExist()
+
+            pane2 = pane1.splitUp(newPaneContent)
+            expect(newPaneContent.focus).toHaveBeenCalled()
+
+            expect(rootView.find('.column')).toExist()
+            expect(rootView.find('.column .pane').length).toBe 2
+            [topPane, bottomPane] = rootView.find('.column .pane').map -> $(this).view()
+            expect(topPane[0]).toBe pane2[0]
+            expect(bottomPane.attr('id')).toBe 'pane-1'
+            expect(topPane.currentItem).toBe newPaneContent
+
+            expectedRowHeight = Math.floor(rootView.panes.height() / 2)
+            expect(topPane.outerHeight()).toBe expectedRowHeight
+            expect(bottomPane.position().top).toBe expectedRowHeight
+            expect(bottomPane.outerHeight()).toBe expectedRowHeight
+
+            pane2.remove()
+
+            expect(rootView.panes.find('.column')).not.toExist()
+            expect(rootView.panes.find('.pane').length).toBe 1
+            expect(pane1.outerHeight()).toBe rootView.panes.height()
+            expect(pane1.position().top).toBe 0
+
+        describe "when splitDown(view) is called on a pane", ->
+          it "places a new pane below the current pane in a .column div", ->
+            expect(rootView.find('.column')).not.toExist()
+
+            pane2 = pane1.splitDown(newPaneContent)
+            expect(newPaneContent.focus).toHaveBeenCalled()
+
+            expect(rootView.find('.column')).toExist()
+            expect(rootView.find('.column .pane').length).toBe 2
+            [topPane, bottomPane] = rootView.find('.column .pane').map -> $(this).view()
+            expect(bottomPane[0]).toBe pane2[0]
+            expect(topPane.attr('id')).toBe 'pane-1'
+            expect(bottomPane.currentItem).toBe newPaneContent
+
+            expectedRowHeight = Math.floor(rootView.panes.height() / 2)
+            expect(topPane.outerHeight()).toBe expectedRowHeight
+            expect(bottomPane.position().top).toBe expectedRowHeight
+            expect(bottomPane.outerHeight()).toBe expectedRowHeight
+
+            pane2.remove()
+
+            expect(rootView.panes.find('.column')).not.toExist()
+            expect(rootView.panes.find('.pane').length).toBe 1
+            expect(pane1.outerHeight()).toBe rootView.panes.height()
+
+      describe "layout of nested vertical and horizontal splits", ->
+        it "lays out rows and columns with a consistent width", ->
+          pane1.showItem($("1"))
+
+          pane1
+            .splitLeft($("2"))
+            .splitUp($("3"))
+            .splitLeft($("4"))
+            .splitDown($("5"))
+
+          row1 = rootView.panes.children(':eq(0)')
+          expect(row1.children().length).toBe 2
+          column1 = row1.children(':eq(0)').view()
+          pane1 = row1.children(':eq(1)').view()
+          expect(column1.outerWidth()).toBe Math.round(2/3 * rootView.panes.width())
+          expect(column1.outerHeight()).toBe rootView.height()
+          expect(pane1.outerWidth()).toBe Math.round(1/3 * rootView.panes.width())
+          expect(pane1.outerHeight()).toBe rootView.height()
+          expect(Math.round(pane1.position().left)).toBe column1.outerWidth()
+
+          expect(column1.children().length).toBe 2
+          row2 = column1.children(':eq(0)').view()
+          pane2 = column1.children(':eq(1)').view()
+          expect(row2.outerWidth()).toBe column1.outerWidth()
+          expect(row2.height()).toBe 2/3 * rootView.panes.height()
+          expect(pane2.outerWidth()).toBe column1.outerWidth()
+          expect(pane2.outerHeight()).toBe 1/3 * rootView.panes.height()
+          expect(pane2.position().top).toBe row2.height()
+
+          expect(row2.children().length).toBe 2
+          column3 = row2.children(':eq(0)').view()
+          pane3 = row2.children(':eq(1)').view()
+          expect(column3.outerWidth()).toBe Math.round(1/3 * rootView.panes.width())
+          expect(column3.outerHeight()).toBe row2.outerHeight()
+          # the built in rounding seems to be rounding x.5 down, but we need to go up. this sucks.
+          expect(Math.round(pane3.trueWidth())).toBe Math.round(1/3 * rootView.panes.width())
+          expect(pane3.height()).toBe row2.outerHeight()
+          expect(Math.round(pane3.position().left)).toBe column3.width()
+
+          expect(column3.children().length).toBe 2
+          pane4 = column3.children(':eq(0)').view()
+          pane5 = column3.children(':eq(1)').view()
+          expect(pane4.outerWidth()).toBe column3.width()
+          expect(pane4.outerHeight()).toBe 1/3 * rootView.panes.height()
+          expect(pane5.outerWidth()).toBe column3.width()
+          expect(pane5.position().top).toBe pane4.outerHeight()
+          expect(pane5.outerHeight()).toBe 1/3 * rootView.panes.height()
+
+          pane5.remove()
+
+          expect(column3.parent()).not.toExist()
+          expect(pane2.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
+          expect(pane3.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
+          expect(pane4.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
+
+          pane4.remove()
+          expect(row2.parent()).not.toExist()
+          expect(pane1.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
+          expect(pane2.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
+          expect(pane3.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
+
+          pane3.remove()
+          expect(column1.parent()).not.toExist()
+          expect(pane2.outerHeight()).toBe rootView.panes.height()
+
+          pane2.remove()
+          expect(row1.parent()).not.toExist()
+          expect(rootView.panes.children().length).toBe 1
+          expect(rootView.panes.children('.pane').length).toBe 1
+          expect(pane1.outerWidth()).toBe rootView.panes.width()
 
   describe "keymap wiring", ->
     commandHandler = null
