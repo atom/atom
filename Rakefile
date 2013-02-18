@@ -22,11 +22,7 @@ end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
 task "update-cef" => "bootstrap" do
-  output = `prebuilt-cef/script/download -f cef 2>&1`
-  if $?.exitstatus != 0
-    $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
-    exit($?.exitstatus)
-  end
+  exit 1 unless system %{prebuilt-cef/script/download -f cef}
   Dir.glob('cef/*.gypi').each do |filename|
     `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
   end
