@@ -91,39 +91,16 @@ class RootView extends View
     @remove()
 
   open: (path, options = {}) ->
-    changeFocus = options.changeFocus ? true
-    allowActiveEditorChange = options.allowActiveEditorChange ? false
-
-    unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
-      editSession = project.buildEditSession(path)
-      editor = new Editor({editSession})
-      pane = new Pane(editor)
-      @panes.append(pane)
-      if changeFocus
-        editor.focus()
+    if activePane = @getActivePane()
+      if existingItem = activePane.itemForPath(path)
+        activePane.showItem(existingItem)
       else
-        @makeEditorActive(editor, changeFocus)
+        activePane.showItem(project.buildEditSession(path))
+    else
+      activePane = new Pane(project.buildEditSession(path))
+      @panes.append(activePane)
 
-    editSession
-
-  openInExistingEditor: (path, allowActiveEditorChange, changeFocus) ->
-    if activeEditor = @getActiveEditor()
-      activeEditor.focus() if changeFocus
-
-      path = project.resolve(path) if path
-
-      if editSession = activeEditor.activateEditSessionForPath(path)
-        return editSession
-
-      if allowActiveEditorChange
-        for editor in @getEditors()
-          if editSession = editor.activateEditSessionForPath(path)
-            @makeEditorActive(editor, changeFocus)
-            return editSession
-
-      editSession = project.buildEditSession(path)
-      activeEditor.edit(editSession)
-      editSession
+    activePane.focus() if options.changeFocus
 
   editorFocused: (editor) ->
     @makeEditorActive(editor) if @panes.containsElement(editor)
@@ -177,6 +154,9 @@ class RootView extends View
   getOpenBufferPaths: ->
     _.uniq(_.flatten(@getEditors().map (editor) -> editor.getOpenBufferPaths()))
 
+  getActivePane: ->
+    @panes.find('.pane.active').view() ? @panes.find('.pane:first').view()
+
   getActiveEditor: ->
     if (editor = @panes.find('.editor.active')).length
       editor.view()
@@ -190,7 +170,7 @@ class RootView extends View
     panes = @panes.find('.pane')
     currentIndex = panes.toArray().indexOf(@getFocusedPane()[0])
     nextIndex = (currentIndex + 1) % panes.length
-    panes.eq(nextIndex).view().wrappedView.focus()
+    panes.eq(nextIndex).view().focus()
 
   getFocusedPane: ->
     @panes.find('.pane:has(:focus)')

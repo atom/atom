@@ -22,6 +22,7 @@ class Pane extends View
 
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
+    @on 'focus', => @viewForCurrentItem().focus()
 
   getItems: ->
     new Array(@items...)
@@ -86,6 +87,9 @@ class Pane extends View
         view = @viewsByClassName[viewClass.name] = new viewClass(item)
       view
 
+  viewForCurrentItem: ->
+    @viewForItem(@currentItem)
+
   serialize: ->
     deserializer: "Pane"
     wrappedView: @wrappedView?.serialize()
@@ -118,7 +122,7 @@ class Pane extends View
     pane = new Pane(view)
     this[side](pane)
     rootView?.adjustPaneDimensions()
-    view.focus?()
+    pane.focus()
     pane
 
   remove: (selector, keepData) ->
