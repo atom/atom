@@ -56,7 +56,7 @@ class EditSession
     require 'editor'
 
   destroy: ->
-    throw new Error("Edit session already destroyed") if @destroyed
+    return if @destroyed
     @destroyed = true
     @unsubscribe()
     @buffer.release()
