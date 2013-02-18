@@ -108,7 +108,7 @@ fdescribe "Vim state", ->
       it "moves cursor to line n", ->
         vim.count(2)
         vim.motion("go-to-line")
-        expect(target.hasEvent("editor:move-to-top")).toBe(true)
+        expect(target.hasEvent("core:move-to-top")).toBe(true)
         expect(target.hasEvent("core:move-down")).toBe(true)
 
   describe "operations", ->

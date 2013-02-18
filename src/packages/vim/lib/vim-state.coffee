@@ -122,7 +122,7 @@ class VimState
     'beginning-of-word': 'editor:move-to-beginning-of-word'
     'end-of-word': 'editor:move-to-end-of-word'
     'go-to-line': (n) ->
-      if n == 1 then "editor:move-to-top" else "core:move-down"
+      if n == 1 then "core:move-to-top" else "core:move-down"
   operations:
     'move': ->
       @performMotion()
