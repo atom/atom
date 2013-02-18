@@ -147,7 +147,7 @@ its own namespace.
 - core
   - disablePackages: An array of package names to disable
   - hideGitIgnoredFiles: Whether files in the .gitignore should be hidden
-  - ignoredNames: File names to ignore across all of atom
+  - ignoredNames: File names to ignore across all of atom (not fully implemented)
   - themes: An array of theme names to load, in cascading order
 - editor
   - autoIndent: Enable/disable basic auto-indent (defaults to true)
