@@ -1,5 +1,6 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
+_ = require 'underscore'
 PaneRow = require 'pane-row'
 PaneColumn = require 'pane-column'
 
@@ -21,6 +22,9 @@ class Pane extends View
 
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
+
+  getItems: ->
+    new Array(@items...)
 
   showNextItem: =>
     index = @getCurrentItemIndex()
@@ -50,6 +54,21 @@ class Pane extends View
     @currentItem = item
     view.show()
 
+  removeItem: (item) ->
+    @showNextItem() if item is @currentItem and @items.length > 1
+    _.remove(@items, item)
+    @cleanupItemView(item)
+
+  cleanupItemView: (item) ->
+    if item instanceof $
+      item.remove()
+    else
+      viewClass = item.getViewClass()
+      otherItemsForView = @items.filter (i) -> i.getViewClass?() is viewClass
+      unless otherItemsForView.length
+        @viewsByClassName[viewClass.name].remove()
+        delete @viewsByClassName[viewClass.name]
+
   viewForItem: (item) ->
     if item instanceof $
       item
@@ -57,9 +76,9 @@ class Pane extends View
       viewClass = item.getViewClass()
       if view = @viewsByClassName[viewClass.name]
         view.setModel(item)
-        view
       else
-        @viewsByClassName[viewClass.name] = new viewClass(item)
+        view = @viewsByClassName[viewClass.name] = new viewClass(item)
+      view
 
   serialize: ->
     deserializer: "Pane"
