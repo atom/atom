@@ -80,6 +80,10 @@ describe "Pane", ->
         pane.removeItem(editSession1)
         expect(pane.itemViews.find('.editor')).not.toExist()
 
+      it "calls destroy on the model", ->
+        pane.removeItem(editSession2)
+        expect(editSession2.destroyed).toBeTruthy()
+
   describe "pane:show-next-item and pane:show-preview-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
       expect(pane.currentItem).toBe view1
@@ -91,3 +95,9 @@ describe "Pane", ->
       expect(pane.currentItem).toBe editSession2
       pane.trigger 'pane:show-next-item'
       expect(pane.currentItem).toBe view1
+
+  describe ".remove()", ->
+    it "destroys all the pane's items", ->
+      pane.remove()
+      expect(editSession1.destroyed).toBeTruthy()
+      expect(editSession2.destroyed).toBeTruthy()

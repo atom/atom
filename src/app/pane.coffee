@@ -64,6 +64,7 @@ class Pane extends View
   removeItem: (item) ->
     @showNextItem() if item is @currentItem and @items.length > 1
     _.remove(@items, item)
+    item.destroy?()
     @cleanupItemView(item)
 
   cleanupItemView: (item) ->
@@ -134,6 +135,9 @@ class Pane extends View
       sibling = parentAxis.children().detach()
       parentAxis.replaceWith(sibling)
     rootView?.adjustPaneDimensions()
+
+  afterRemove: ->
+    item.destroy?() for item in @getItems()
 
   buildPaneAxis: (axis) ->
     switch axis
