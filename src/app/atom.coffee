@@ -163,3 +163,9 @@ _.extend atom,
       _.valueForKeyPath(windowState, keyPath)
     else
       windowState
+
+  update: ->
+    @sendMessageToBrowserProcess('update')
+
+  getUpdateStatus: (callback) ->
+    @sendMessageToBrowserProcess('getUpdateStatus', [], callback)

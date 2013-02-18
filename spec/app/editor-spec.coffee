@@ -10,7 +10,7 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  [rootView, project, buffer, editor, cachedLineHeight] = []
+  [project, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
@@ -21,7 +21,7 @@ describe "Editor", ->
     cachedLineHeight
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    new RootView(require.resolve('fixtures/sample.js'))
     project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
@@ -357,11 +357,11 @@ describe "Editor", ->
       tempFilePath = null
 
       beforeEach ->
-        rootView.remove()
+        rootView.deactivate()
 
         tempFilePath = '/tmp/atom-temp.txt'
         fs.write(tempFilePath, "")
-        rootView = new RootView(tempFilePath)
+        new RootView(tempFilePath)
         editor = rootView.getActiveEditor()
         project = rootView.project
 
@@ -671,6 +671,18 @@ describe "Editor", ->
           editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
           editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 50])
           expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
+
+      describe "when the editor is using a variable-width font", ->
+        beforeEach ->
+          editor.setFontFamily('sans-serif')
+
+        afterEach ->
+          editor.clearFontFamily()
+
+        it "positions the cursor to the clicked row and column", ->
+          {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
+          editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
+          expect(editor.getCursorScreenPosition()).toEqual [3, 30]
 
     describe "double-click", ->
       it "selects the word under the cursor, and expands the selection wordwise in either direction on a subsequent shift-click", ->
@@ -1142,6 +1154,15 @@ describe "Editor", ->
 
           editor.setCursorBufferPosition([4, 10])
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
+
+        it "does not autoscroll the cursor based on a buffer change, unless the buffer change was initiated by the cursor", ->
+          lastVisibleRow = editor.getLastVisibleScreenRow()
+          editor.addCursorAtBufferPosition([lastVisibleRow, 0])
+          spyOn(editor, 'scrollToPixelPosition')
+          buffer.insert([lastVisibleRow, 0], "\n\n")
+          expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
+          editor.insertText('\n\n')
+          expect(editor.scrollToPixelPosition.callCount).toBe 1
 
         describe "when the last cursor exceeds the upper or lower scroll margins", ->
           describe "when the editor is taller than twice the vertical scroll margin", ->
@@ -2195,7 +2216,7 @@ describe "Editor", ->
       expect(editSession.save).toHaveBeenCalled()
 
   describe ".checkoutHead()", ->
-    [repo, path, originalPathText] = []
+    [path, originalPathText] = []
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')

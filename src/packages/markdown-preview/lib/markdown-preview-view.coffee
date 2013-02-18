@@ -26,7 +26,7 @@ class MarkdownPreviewView extends ScrollView
       @attach()
 
   attach: ->
-    return unless @isMarkdownFile(@getActivePath())
+    return unless @isMarkdownEditor()
     rootView.append(this)
     @markdownBody.html(@getLoadingHtml())
     @loadHtml()
@@ -38,9 +38,6 @@ class MarkdownPreviewView extends ScrollView
     super
     rootView.focus()
     @detaching = false
-
-  getActivePath: ->
-    rootView.getActiveEditor()?.getPath()
 
   getActiveText: ->
     rootView.getActiveEditor()?.getText()
@@ -76,5 +73,8 @@ class MarkdownPreviewView extends ScrollView
   setHtml: (html) ->
     @markdownBody.html(html) if @hasParent()
 
-  isMarkdownFile: (path) ->
+  isMarkdownEditor: (path) ->
+    editor = rootView.getActiveEditor()
+    return unless editor?
+    return true if editor.getGrammar().scopeName is 'source.gfm'
     path and fs.isMarkdownExtension(fs.extension(path))

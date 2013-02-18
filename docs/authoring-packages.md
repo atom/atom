@@ -1,6 +1,4 @@
-# Packages
-
-## Package Layout
+# Authoring Packages
 
 A package can contain a variety of different resource types to change Atom's
 behavior. The basic package layout is as follows (not every package will
@@ -22,14 +20,14 @@ my-package/
 API built into Atom. The goal is to make Atom packages be a superset of NPM
 packages
 
-### package.json
+## package.json
 
 Similar to npm packages, Atom packages can contain a `package.json` file in their
 top-level directory. This file contains metadata about the package, such as the
 path to its "main" module, library dependencies, and manifests specifying the
 order in which its resources should be loaded.
 
-### Source Code
+## Source Code
 
 If you want to extend Atom's behavior, your package should contain a single
 top-level module, which you export from `index.coffee` or another file as
@@ -58,7 +56,7 @@ down. If your package is watching any files or holding external resources in any
 other way, release them here. If you're just subscribing to things on window
 you don't need to worry because that's getting torn down anyway.
 
-### A Simple Package Layout:
+## A Simple Package Layout:
 
 ```text
 my-package/
@@ -90,7 +88,7 @@ to build out Atom's API organically based on the needs of package authors like
 you. See [Atom's built-in packages](https://github.com/github/atom/tree/master/src/packages)
 for examples of Atom's API in action.
 
-### Stylesheets
+## Stylesheets
 
 Stylesheets for your package should be placed in the `stylesheets` directory.
 Any stylesheets in this directory will be loaded and attached to the DOM when
@@ -98,7 +96,7 @@ your package is activated. An optional `stylesheets` key in your `package.json`
 can list the stylesheets by name in order to specify a load order; otherwise
 stylesheets are loaded alphabetically.
 
-### Keymaps
+## Keymaps
 
 Keymaps are placed in the `keymaps` subdirectory. By default, all keymaps will be
 loaded in alphabetical order unless there is a `keymaps` array in `package.json`
@@ -107,7 +105,7 @@ default keymaps for your extension. They can be customized by users later. See
 the (main keymaps documentation)[#keymaps] for more information on how keymaps
 work.
 
-### Snippets
+## Snippets
 
 An extension can supply snippets in a `snippets` directory as `.cson` or `.json`
 files:
@@ -133,23 +131,3 @@ All files in the directory will be automatically loaded, unless the
 `package.json` supplies a `snippets` key as a manifest. As with all scoped
 items, snippets loaded later take precedence over earlier snippets when two
 snippets match a scope with the same specificity.
-
-## Included Packages
-
-Atom comes with several built-in packages that add features to the default
-editor.
-
-The current built-in packages are:
-
-  * Autocomplete
-  * Command Logger
-  * Command Palette
-  * Fuzzy finder
-  * [Markdown Preview](#markdown-preview)
-  * Outline View
-  * Snippets
-  * Status Bar
-  * Strip Trailing Whitespace
-  * Tabs
-  * Tree View
-  * [Wrap Guide](#wrap-guide)

@@ -1,4 +1,14 @@
-body { background-color: #eee; padding: 0; overflow-y: scroll; }
+@font-face {
+  font-family: 'Octicons Regular';
+  src: url("octicons-regular-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  background-color: #ddd;
+  padding: 0;
+}
 
 .spec-popup {
   position: absolute;
@@ -20,7 +30,7 @@ body { background-color: #eee; padding: 0; overflow-y: scroll; }
 
 #HTMLReporter .symbolSummary li {
   float: left;
-  line-height: 10px
+  line-height: 10px;
   height: 10px;
   width: 10px;
   font-size: 10px;
@@ -34,7 +44,7 @@ body { background-color: #eee; padding: 0; overflow-y: scroll; }
 #HTMLReporter .symbolSummary li:before { content: "\02022"; }
 
 #HTMLReporter .symbolSummary li:hover {
-  font-size: 20px;
+  color: white;
 }
 
 #HTMLReporter .status {
@@ -111,6 +121,25 @@ body { background-color: #eee; padding: 0; overflow-y: scroll; }
   color: white;
   font-size: 15px;
   padding-bottom: 10px
+}
+
+#HTMLReporter .results .spec .spec-toggle {
+  font-family: Octicons Regular;
+  color: white;
+  font-size: 20px;
+  float: right;
+  cursor: pointer;
+  text-shadow: 3px 3px #222;
+  opacity: 0;
+}
+
+#HTMLReporter .results .spec .spec-toggle:hover {
+  text-shadow: none;
+  padding-top: 3px;
+}
+
+#HTMLReporter .results .spec:hover .spec-toggle {
+  opacity: 1;
 }
 
 #HTMLReporter .resultMessage {

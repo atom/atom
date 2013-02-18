@@ -154,6 +154,7 @@ class Selection
     wasReversed = @isReversed()
     text = @normalizeIndent(text, options) if options.normalizeIndent
     @clear()
+    @cursor.needsAutoscroll = @cursor.isLastCursor()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     if options.select
       @setBufferRange(newBufferRange, reverse: wasReversed)

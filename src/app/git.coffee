@@ -49,7 +49,7 @@ class Git
     repoPath?.substring(0, repoPath.length - 6)
 
   getHead: ->
-    @getRepo().getHead() or ''
+    @getRepo().getHead() ? ''
 
   getPathStatus: (path) ->
     pathStatus = @getRepo().getStatus(@relativize(path))
@@ -96,7 +96,7 @@ class Git
     @getRepo().checkoutHead(@relativize(path))
 
   getDiffStats: (path) ->
-    @getRepo().getDiffStats(@relativize(path)) or added: 0, deleted: 0
+    @getRepo().getDiffStats(@relativize(path)) ? added: 0, deleted: 0
 
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))

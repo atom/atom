@@ -135,6 +135,7 @@
 - (void)dealloc {
   [_backgroundWindowController release];
   [_arguments release];
+  [_updateInvocation release];
   [super dealloc];
 }
 
@@ -236,11 +237,11 @@
 # pragma mark CefAppProtocol
 
 - (BOOL)isHandlingSendEvent {
-  return handlingSendEvent_;
+  return _handlingSendEvent;
 }
 
 - (void)setHandlingSendEvent:(BOOL)handlingSendEvent {
-  handlingSendEvent_ = handlingSendEvent;
+  _handlingSendEvent = handlingSendEvent;
 }
 
 - (void)sendEvent:(NSEvent*)event {
@@ -256,26 +257,35 @@
   }
 }
 
+- (NSString *)updateStatus {
+  return _updateStatus ? _updateStatus : @"idle";
+}
+
+- (void)installUpdate {
+  if (_updateInvocation) [_updateInvocation invoke];
+}
+
 #pragma mark SUUpdaterDelegate
 
 - (void)updaterDidNotFindUpdate:(SUUpdater *)update {
-  NSLog(@"No update found");
+  _updateStatus = @"current";
 }
 
 - (void)updater:(SUUpdater *)updater didFindValidUpdate:(SUAppcastItem *)update {
-  NSLog(@"Found Update");
+  _updateStatus = @"downloading";
 }
 
 - (void)updater:(SUUpdater *)updater willExtractUpdate:(SUAppcastItem *)update {
-  NSLog(@"Extract update");
+   _updateStatus = @"installing";
 }
 
 - (void)updater:(SUUpdater *)updater willInstallUpdateOnQuit:(SUAppcastItem *)update immediateInstallationInvocation:(NSInvocation *)invocation {
-  NSLog(@"Install Update");
+  _updateInvocation = invocation;
+  _updateStatus = @"ready";
 }
 
 - (void)updater:(SUUpdater *)updater didCancelInstallUpdateOnQuit:(SUAppcastItem *)update {
-  NSLog(@"Cancel Update Install");
+  _updateStatus = @"current";
 }
 
 @end

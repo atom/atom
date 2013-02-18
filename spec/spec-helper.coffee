@@ -18,6 +18,7 @@ require.paths.unshift(fixturePackagesPath)
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 beforeEach ->
+  jQuery.fx.off = true
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
   atom.atomPackageStates = {}

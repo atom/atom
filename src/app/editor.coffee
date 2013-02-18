@@ -57,7 +57,7 @@ class Editor extends View
   newSelections: null
   redrawOnReattach: false
 
-  @deserialize: (state, rootView) ->
+  @deserialize: (state) ->
     editor = new Editor(mini: state.mini, deserializing: true)
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
     editor.pushEditSession(editSession) for editSession in editSessions
@@ -101,7 +101,7 @@ class Editor extends View
     isFocused: @isFocused
 
   copy: ->
-    Editor.deserialize(@serialize(), @rootView())
+    Editor.deserialize(@serialize(), rootView)
 
   bindKeys: ->
     editorBindings =
@@ -358,7 +358,7 @@ class Editor extends View
       false
 
     @hiddenInput.on 'focus', =>
-      @rootView()?.editorFocused(this)
+      rootView?.editorFocused(this)
       @isFocused = true
       @addClass 'is-focused'
 
@@ -381,6 +381,7 @@ class Editor extends View
       @overlayer.show()
       e.target = clickedElement
       $(clickedElement).trigger(e)
+      false if @isFocused
 
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
       @destroyFold($(e.currentTarget).attr('fold-id'))
@@ -484,7 +485,7 @@ class Editor extends View
     return unless @closedEditSessions.length > 0
 
     {path, index} = @closedEditSessions.pop()
-    @rootView().open(path)
+    rootView.open(path)
     activeIndex = @getActiveEditSessionIndex()
     @moveEditSessionToIndex(activeIndex, index) if index < activeIndex
 
@@ -783,9 +784,6 @@ class Editor extends View
   pane: ->
     @parent('.pane').view()
 
-  rootView: ->
-    @parents('#root-view').view()
-
   promptToSaveDirtySession: (session, callback) ->
     path = session.getPath()
     filename = if path then fs.base(path) else "untitled buffer"
@@ -912,7 +910,7 @@ class Editor extends View
     @newSelections = @activeEditSession.getSelections()
     @updateDisplay(suppressAutoScroll: true)
 
-  requestDisplayUpdate: ()->
+  requestDisplayUpdate: ->
     return if @pendingDisplayUpdate
     @pendingDisplayUpdate = true
     _.nextTick =>
@@ -1231,14 +1229,30 @@ class Editor extends View
     offset = @renderedLines.offset()
     {top: top + offset.top, left: left + offset.left}
 
-  screenPositionFromPixelPosition: ({top, left}) ->
-    screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
-
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
-    @screenPositionFromPixelPosition
-      top: pageY - @scrollView.offset().top + @scrollTop()
-      left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
+
+    editorRelativeTop = pageY - @scrollView.offset().top + @scrollTop()
+    row = Math.floor(editorRelativeTop / @lineHeight)
+    column = 0
+
+    if lineElement = @lineElementForScreenRow(row)[0]
+      @overlayer.hide()
+      @css '-webkit-user-select', 'auto'
+      if range = document.caretRangeFromPoint(pageX, pageY)
+        clickedTextNode = range.endContainer
+        clickedOffset = range.endOffset
+        range.detach()
+      @css '-webkit-user-select', ''
+      @overlayer.show()
+
+      if clickedTextNode and lineElement
+        iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+        while (node = iterator.nextNode()) and node isnt clickedTextNode
+          column += node.textContent.length
+        column += clickedOffset
+
+    new Point(row, column)
 
   highlightCursorLine: ->
     return if @mini

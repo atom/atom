@@ -14,7 +14,7 @@ describe "EditorStats", ->
     rootView.trigger(e)
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    new RootView(require.resolve('fixtures/sample.js'))
 
     date = new Date()
     mins = date.getMinutes()

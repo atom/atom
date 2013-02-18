@@ -75,9 +75,26 @@ class DisplayBuffer
     for row in [@buffer.getLastRow()..0]
       @activeFolds[row]?.forEach (fold) => @destroyFold(fold)
 
+  rowRangeForCommentAtBufferRow: (row) ->
+    return unless @tokenizedBuffer.lineForScreenRow(row).isComment()
+
+    startRow = row
+    for currentRow in [row-1..0]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      startRow = currentRow
+    endRow = row
+    for currentRow in [row+1..@buffer.getLastRow()]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      endRow = currentRow
+    return [startRow, endRow] if startRow isnt endRow
+
   foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
-      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
+      rowRange = @rowRangeForCommentAtBufferRow(currentRow)
+      rowRange ?= @languageMode.rowRangeForFoldAtBufferRow(currentRow)
+      [startRow, endRow] = rowRange ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
       fold = @largestFoldStartingAtBufferRow(startRow)
       continue if fold

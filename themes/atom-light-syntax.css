@@ -3,6 +3,10 @@
   color: #555;
 }
 
+.editor .invisible {
+  color: #555 !important;
+}
+
 .editor.is-focused .cursor {
   border-color: #000;
 }
