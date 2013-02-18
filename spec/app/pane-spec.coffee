@@ -101,3 +101,8 @@ describe "Pane", ->
       pane.remove()
       expect(editSession1.destroyed).toBeTruthy()
       expect(editSession2.destroyed).toBeTruthy()
+
+  describe ".itemForPath(path)", ->
+    it "returns the item for which a call to .getPath() returns the given path", ->
+      expect(pane.itemForPath(editSession1.getPath())).toBe editSession1
+      expect(pane.itemForPath(editSession2.getPath())).toBe editSession2

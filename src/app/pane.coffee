@@ -67,6 +67,9 @@ class Pane extends View
     item.destroy?()
     @cleanupItemView(item)
 
+  itemForPath: (path) ->
+    _.detect @items, (item) -> item.getPath?() is path
+
   cleanupItemView: (item) ->
     if item instanceof $
       item.remove()
@@ -100,7 +103,6 @@ class Pane extends View
   horizontalGridUnits: -> 1
 
   verticalGridUnits: -> 1
-
 
   splitUp: (view) ->
     @split(view, 'column', 'before')
