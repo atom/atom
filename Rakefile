@@ -15,9 +15,17 @@ task :build => "create-xcode-project" do
 end
 
 desc "Create xcode project from gyp file"
-task "create-xcode-project" => "bootstrap" do
+task "create-xcode-project" => "update-cef" do
   `rm -rf atom.xcodeproj`
   `gyp --depth=. atom.gyp`
+end
+
+desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
+task "update-cef" => "bootstrap" do
+  exit 1 unless system %{prebuilt-cef/script/download -f cef}
+  Dir.glob('cef/*.gypi').each do |filename|
+    `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
+  end
 end
 
 task "bootstrap" do
