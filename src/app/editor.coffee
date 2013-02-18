@@ -66,7 +66,12 @@ class Editor extends View
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({editSession, @mini, deserializing} = {}) ->
+  initialize: (editSessionOrOptions) ->
+    if editSessionOrOptions instanceof EditSession
+      editSession = editSessionOrOptions
+    else
+      {editSession, @mini, deserializing} = (options ? {})
+
     requireStylesheet 'editor.css'
 
     @id = Editor.nextEditorId++
@@ -484,6 +489,9 @@ class Editor extends View
     index = @editSessions.indexOf(editSession)
     index = @pushEditSession(editSession) if index == -1
     @setActiveEditSessionIndex(index)
+
+  setModel: (editSession) ->
+    @edit(editSession)
 
   pushEditSession: (editSession) ->
     index = @editSessions.length

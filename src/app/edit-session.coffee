@@ -52,6 +52,9 @@ class EditSession
     @subscribe @displayBuffer, "changed", (e) =>
       @trigger 'screen-lines-changed', e
 
+  getViewClass: ->
+    require 'editor'
+
   destroy: ->
     throw new Error("Edit session already destroyed") if @destroyed
     @destroyed = true
