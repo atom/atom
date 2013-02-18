@@ -12,15 +12,42 @@ class Pane extends View
   @deserialize: ({wrappedView}) ->
     new Pane(deserialize(wrappedView))
 
+  currentItem: null
+  items: null
+
   initialize: (@items...) ->
     @viewsByClassName = {}
     @showItem(@items[0])
+
+    @command 'pane:show-next-item', @showNextItem
+    @command 'pane:show-previous-item', @showPreviousItem
+
+  showNextItem: =>
+    index = @getCurrentItemIndex()
+    if index < @items.length - 1
+      @showItemAtIndex(index + 1)
+    else
+      @showItemAtIndex(0)
+
+  showPreviousItem: =>
+    index = @getCurrentItemIndex()
+    if index > 0
+      @showItemAtIndex(index - 1)
+    else
+      @showItemAtIndex(@items.length - 1)
+
+  getCurrentItemIndex: ->
+    @items.indexOf(@currentItem)
+
+  showItemAtIndex: (index) ->
+    @showItem(@items[index])
 
   showItem: (item) ->
     @itemViews.children().hide()
     view = @viewForItem(item)
     unless view.parent().is(@itemViews)
       @itemViews.append(view)
+    @currentItem = item
     view.show()
 
   viewForItem: (item) ->
@@ -33,7 +60,6 @@ class Pane extends View
         view
       else
         @viewsByClassName[viewClass.name] = new viewClass(item)
-
 
   serialize: ->
     deserializer: "Pane"
