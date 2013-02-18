@@ -104,6 +104,12 @@ fdescribe "Vim state", ->
       describe "end of word", ->
         it_sends_motion_event "end-of-word", "editor:move-to-end-of-word"
     describe "line", ->
+    describe 'go to line', ->
+      it "moves cursor to line n", ->
+        vim.count(2)
+        vim.motion("go-to-line")
+        expect(target.hasEvent("editor:move-to-top")).toBe(true)
+        expect(target.hasEvent("core:move-down")).toBe(true)
 
   describe "operations", ->
     describe "execution", ->

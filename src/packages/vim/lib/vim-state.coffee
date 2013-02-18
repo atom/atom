@@ -1,14 +1,16 @@
 _ = require 'underscore'
 
 class VimMotion
-  constructor: (@name, @event, @count) ->
-  perform: (target) ->
+  constructor: (@name, @event, @count, @target) ->
+  perform: () ->
     window.console.log "Performing motion #{@name} (#{@count}) with event #{@event}"
-    target.trigger(@event) for n in [1..@count]
-  performSelect: (target) ->
-    event = @event.replace(/move/, 'select')
-    window.console.log "Performing motion #{@name} (#{@count}) with event #{event}"
-    target.trigger(event) for n in [1..@count]
+    if @event?() then @performEvent(@event(n)) for n in [1..@count]
+    else @performEvent(@event) for n in [1..@count]
+  performSelect: () ->
+    @event = @event.replace(/move/, 'select') if !@event?()
+    @perform()
+  performEvent: (event) ->
+    @target.trigger(event)
 
 class VimOperation
   constructor: (@name, @callback, @vim) ->
@@ -20,9 +22,9 @@ class VimOperation
   performEvent: (event) ->
     @target.trigger(event)
   performMotion: ->
-    @motion.perform(@target) if @motion?
+    @motion.perform() if @motion?
   performSelectMotion: ->
-    @motion.performSelect(@target) if @motion?
+    @motion.performSelect() if @motion?
   textInput: (text) ->
     @vim.editor.insertText(text)
 
@@ -41,11 +43,11 @@ class VimState
         @target.command "vim:alias-#{a}", => @alias(a)
   motion: (type) ->
     event = @motionEvents[type]
-    m = new VimMotion(type, event, @_count)
+    m = new VimMotion(type, event, @_count, @target)
     @_operation.perform(@target, m)
     @resetState()
   defaultMotion: () ->
-    new VimMotion('line', @motionEvents['line'], @_count)
+    new VimMotion('line', @motionEvents['line'], @_count, @target)
   addCountDecimal: (n) ->
     @_count = 0 if @state != "count"
     @enterState "count"
@@ -119,6 +121,8 @@ class VimState
     'previous-word': "editor:move-to-previous-word"
     'beginning-of-word': 'editor:move-to-beginning-of-word'
     'end-of-word': 'editor:move-to-end-of-word'
+    'go-to-line': (n) ->
+      if n == 1 then "editor:move-to-top" else "core:move-down"
   operations:
     'move': ->
       @performMotion()
