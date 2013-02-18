@@ -24,6 +24,16 @@ describe "Pane", ->
       expect(view2.css('display')).toBe ''
       expect(pane.currentItem).toBe view2
 
+    describe "when the given item isn't yet in the items list on the pane", ->
+      it "adds it to the items list after the current item", ->
+        view3 = $$ -> @div id: 'view-3', "View 3"
+        pane.showItem(editSession1)
+        expect(pane.getCurrentItemIndex()).toBe 1
+        pane.showItem(view3)
+        expect(pane.getItems()).toEqual [view1, editSession1, view3, view2, editSession2]
+        expect(pane.currentItem).toBe view3
+        expect(pane.getCurrentItemIndex()).toBe 2
+
     describe "when showing a model item", ->
       describe "when no view has yet been appended for that item", ->
         it "appends and shows a view to display the item based on its `.getViewClass` method", ->
