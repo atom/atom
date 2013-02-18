@@ -45,6 +45,31 @@ describe "Pane", ->
         pane.showItem(view2)
         expect(pane.itemViews.find('#view-2')).toExist()
 
+  describe ".removeItem(item)", ->
+    it "removes the item from the items list and shows the next item if it was showing", ->
+      pane.removeItem(view1)
+      expect(pane.getItems()).toEqual [editSession1, view2, editSession2]
+      expect(pane.currentItem).toBe editSession1
+
+      pane.showItem(editSession2)
+      pane.removeItem(editSession2)
+      expect(pane.getItems()).toEqual [editSession1, view2]
+      expect(pane.currentItem).toBe editSession1
+
+    describe "when the item is a view", ->
+      it "removes the item from the 'item-views' div", ->
+        expect(view1.parent()).toMatchSelector pane.itemViews
+        pane.removeItem(view1)
+        expect(view1.parent()).not.toMatchSelector pane.itemViews
+
+    describe "when the item is a model", ->
+      it "removes the associated view only when all items that require it have been removed", ->
+        pane.showItem(editSession2)
+        pane.removeItem(editSession2)
+        expect(pane.itemViews.find('.editor')).toExist()
+        pane.removeItem(editSession1)
+        expect(pane.itemViews.find('.editor')).not.toExist()
+
   describe "pane:show-next-item and pane:show-preview-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
       expect(pane.currentItem).toBe view1
