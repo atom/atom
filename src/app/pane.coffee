@@ -47,12 +47,18 @@ class Pane extends View
     @showItem(@items[index])
 
   showItem: (item) ->
+    @addItem(item)
     @itemViews.children().hide()
     view = @viewForItem(item)
     unless view.parent().is(@itemViews)
       @itemViews.append(view)
     @currentItem = item
     view.show()
+
+  addItem: (item) ->
+    return if _.include(@items, item)
+    @items.splice(@getCurrentItemIndex() + 1, 0, item)
+    item
 
   removeItem: (item) ->
     @showNextItem() if item is @currentItem and @items.length > 1
