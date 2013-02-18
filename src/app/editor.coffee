@@ -498,7 +498,7 @@ class Editor extends View
     @editSessions.push(editSession)
     @closedEditSessions = @closedEditSessions.filter ({path})->
       path isnt editSession.getPath()
-    editSession.on 'destroyed', => @editSessionDestroyed(editSession)
+#     editSession.on 'destroyed', => @editSessionDestroyed(editSession)
     @trigger 'editor:edit-session-added', [editSession, index]
     index
 
