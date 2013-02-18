@@ -1,4 +1,5 @@
 {View} = require 'space-pen'
+$ = require 'jquery'
 PaneRow = require 'pane-row'
 PaneColumn = require 'pane-column'
 
@@ -12,13 +13,27 @@ class Pane extends View
     new Pane(deserialize(wrappedView))
 
   initialize: (@items...) ->
-    @viewsByItem = new WeakMap
+    @viewsByClassName = {}
     @showItem(@items[0])
 
   showItem: (item) ->
     @itemViews.children().hide()
-    @itemViews.append(item) unless @itemViews.children(item).length
-    item.show()
+    view = @viewForItem(item)
+    unless view.parent().is(@itemViews)
+      @itemViews.append(view)
+    view.show()
+
+  viewForItem: (item) ->
+    if item instanceof $
+      item
+    else
+      viewClass = item.getViewClass()
+      if view = @viewsByClassName[viewClass.name]
+        view.setModel(item)
+        view
+      else
+        @viewsByClassName[viewClass.name] = new viewClass(item)
+
 
   serialize: ->
     deserializer: "Pane"
