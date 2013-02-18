@@ -6,10 +6,19 @@ module.exports =
 class Pane extends View
   @content: (wrappedView) ->
     @div class: 'pane', =>
-      @subview 'wrappedView', wrappedView if wrappedView
+      @div class: 'item-views', outlet: 'itemViews'
 
   @deserialize: ({wrappedView}) ->
     new Pane(deserialize(wrappedView))
+
+  initialize: (@items...) ->
+    @viewsByItem = new WeakMap
+    @showItem(@items[0])
+
+  showItem: (item) ->
+    @itemViews.children().hide()
+    @itemViews.append(item) unless @itemViews.children(item).length
+    item.show()
 
   serialize: ->
     deserializer: "Pane"
