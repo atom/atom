@@ -15,7 +15,7 @@ module.exports =
     rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
 
   deactivate: ->
-    @loadSnippetsTask?.terminate()
+    @loadSnippetsTask?.abort()
 
   loadAll: ->
     @loadSnippetsTask = new LoadSnippetsTask(this)

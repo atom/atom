@@ -132,7 +132,7 @@ class FuzzyFinderView extends SelectList
       @setLoading("Indexing...")
 
     if @reloadProjectPaths
-      @loadPathsTask?.terminate()
+      @loadPathsTask?.abort()
       callback = (paths) =>
         @projectPaths = paths
         @reloadProjectPaths = false
@@ -173,7 +173,7 @@ class FuzzyFinderView extends SelectList
   detach: ->
     super
 
-    @loadPathsTask?.terminate()
+    @loadPathsTask?.abort()
 
   attach: ->
     super

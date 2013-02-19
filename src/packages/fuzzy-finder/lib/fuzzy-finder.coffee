@@ -22,7 +22,7 @@ module.exports =
       editSession.lastOpened = state[editSession.getPath()]
 
   deactivate: ->
-    @loadPathsTask?.terminate()
+    @loadPathsTask?.abort()
     @loadPathsTask = null
     @fuzzyFinderView?.cancel()
     @fuzzyFinderView = null

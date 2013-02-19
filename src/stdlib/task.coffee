@@ -1,6 +1,6 @@
 module.exports =
 class Task
-  terminated: false
+  aborted: false
 
   constructor: (@path) ->
 
@@ -9,7 +9,7 @@ class Task
 
     @worker = new Worker(require.getPath('task-shell'))
     @worker.onmessage = ({data}) =>
-      if @terminated
+      if @aborted
         @done()
         return
 
@@ -42,10 +42,10 @@ class Task
   postMessage: (data) ->
     @worker.postMessage(data)
 
-  terminate: ->
-    @terminated = true
+  abort: ->
+    @aborted = true
 
   done: ->
-    @terminate()
+    @abort()
     @worker?.terminate()
     @worker = null
