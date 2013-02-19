@@ -12,7 +12,7 @@ describe "Window", ->
 
   afterEach ->
     window.stopApplication()
-    atom.setRootViewStateForPath(rootView.project.getPath(), null)
+    atom.setRootViewStateForPath(project.getPath(), null)
     $(window).off 'beforeunload'
 
   describe "when the window is loaded", ->
@@ -89,7 +89,7 @@ describe "Window", ->
 
   describe "stopApplication()", ->
     it "saves the serialized state of the project and root view to the atom object so it can be rehydrated after reload", ->
-      expect(atom.getRootViewStateForPath(rootView.project.getPath())).toBeUndefined()
+      expect(atom.getRootViewStateForPath(project.getPath())).toBeUndefined()
       # JSON.stringify removes keys with undefined values
       rootViewState = JSON.parse(JSON.stringify(rootView.serialize()))
       projectState = JSON.parse(JSON.stringify(project.serialize()))

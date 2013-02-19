@@ -3,13 +3,12 @@ CommandPanelView = require 'command-panel/lib/command-panel-view'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [editor, buffer, commandPanel, project, CommandPanel] = []
+  [editor, buffer, commandPanel, CommandPanel] = []
 
   beforeEach ->
     new RootView
     rootView.open(require.resolve 'fixtures/sample.js')
     rootView.enableKeymap()
-    project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
     commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).packageMain

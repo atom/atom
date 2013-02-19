@@ -13,12 +13,12 @@ module.exports =
     rootView.command 'fuzzy-finder:find-under-cursor', =>
       @createView().findUnderCursor()
 
-    if rootView.project.getPath()?
+    if project.getPath()?
       LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
       @loadPathsTask = new LoadPathsTask((paths) => @projectPaths = paths)
       @loadPathsTask.start()
 
-    for editSession in rootView.project.getEditSessions()
+    for editSession in project.getEditSessions()
       editSession.lastOpened = state[editSession.getPath()]
 
   deactivate: ->

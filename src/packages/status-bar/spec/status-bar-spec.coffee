@@ -114,13 +114,13 @@ describe "StatusBar", ->
 
     it "displays the current branch for files in repositories", ->
       path = require.resolve('fixtures/git/master.git/HEAD')
-      rootView.project.setPath(require.resolve('fixtures/git/master.git'))
+      project.setPath(require.resolve('fixtures/git/master.git'))
       rootView.open(path)
       expect(statusBar.branchArea).toBeVisible()
       expect(statusBar.branchLabel.text()).toBe 'master'
 
     it "doesn't display the current branch for a file not in a repository", ->
-      rootView.project.setPath('/tmp')
+      project.setPath('/tmp')
       rootView.open('/tmp/temp.txt')
       expect(statusBar.branchArea).toBeHidden()
       expect(statusBar.branchLabel.text()).toBe ''
@@ -184,7 +184,7 @@ describe "StatusBar", ->
     describe "when the editor's grammar changes", ->
       it "displays the new grammar of the editor", ->
         textGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'Plain Text'
-        rootView.project.addGrammarOverrideForPath(editor.getPath(), textGrammar)
+        project.addGrammarOverrideForPath(editor.getPath(), textGrammar)
         editor.reloadGrammar()
         expect(statusBar.find('.grammar-name').text()).toBe textGrammar.name
 

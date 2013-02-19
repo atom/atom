@@ -38,12 +38,10 @@ class RootView extends View
     window.rootView = this
     @handleEvents()
 
-    @project = window.project
-
     if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
       pathToOpen = projectOrPathToOpen
     else
-      pathToOpen = @project?.getPath()
+      pathToOpen = project.getPath()
     @pathToOpenIsFile = pathToOpen and fs.isFile(pathToOpen)
 
     config.load()
@@ -79,7 +77,7 @@ class RootView extends View
 
     @on 'root-view:active-path-changed', (e, path) =>
       if path
-        @project.setPath(path) unless @project.getRootDirectory()
+        project.setPath(path) unless project.getRootDirectory()
         @setTitle(fs.base(path))
       else
         @setTitle("untitled")
@@ -115,7 +113,7 @@ class RootView extends View
     allowActiveEditorChange = options.allowActiveEditorChange ? false
 
     unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
-      editSession = @project.buildEditSessionForPath(path)
+      editSession = project.buildEditSessionForPath(path)
       editor = new Editor({editSession})
       pane = new Pane(editor)
       @panes.append(pane)
@@ -130,7 +128,7 @@ class RootView extends View
     if activeEditor = @getActiveEditor()
       activeEditor.focus() if changeFocus
 
-      path = @project.resolve(path) if path
+      path = project.resolve(path) if path
 
       if editSession = activeEditor.activateEditSessionForPath(path)
         return editSession
@@ -141,7 +139,7 @@ class RootView extends View
             @makeEditorActive(editor, changeFocus)
             return editSession
 
-      editSession = @project.buildEditSessionForPath(path)
+      editSession = project.buildEditSessionForPath(path)
       activeEditor.edit(editSession)
       editSession
 
@@ -170,7 +168,7 @@ class RootView extends View
     @title or "untitled"
 
   setTitle: (title) ->
-    projectPath = @project.getPath()
+    projectPath = project.getPath()
     if not projectPath
       @title = "untitled"
     else if title
@@ -227,7 +225,7 @@ class RootView extends View
 
   remove: ->
     editor.remove() for editor in @getEditors()
-    @project.destroy()
+    project.destroy()
     super
 
   saveAll: ->
@@ -238,10 +236,10 @@ class RootView extends View
     @on 'editor:attached', (e, editor) -> callback(editor)
 
   eachEditSession: (callback) ->
-    @project.eachEditSession(callback)
+    project.eachEditSession(callback)
 
   eachBuffer: (callback) ->
-    @project.eachBuffer(callback)
+    project.eachBuffer(callback)
 
   indexOfPane: (pane) ->
     index = -1

@@ -36,9 +36,9 @@ describe "RootView", ->
           rootView = new RootView(pathToOpen)
           rootView.focus()
 
-          expect(rootView.project.getPath()).toBe pathToOpen
+          expect(project.getPath()).toBe pathToOpen
           expect(rootView.getEditors().length).toBe 0
-          expect(rootView.getTitle()).toBe rootView.project.getPath()
+          expect(rootView.getTitle()).toBe project.getPath()
 
     describe "when called with no pathToOpen", ->
       it "opens an empty buffer", ->
@@ -88,10 +88,10 @@ describe "RootView", ->
           editor3 = editor2.splitRight()
 
           editor4 = editor2.splitDown()
-          editor2.edit(rootView.project.buildEditSessionForPath('dir/b'))
-          editor3.edit(rootView.project.buildEditSessionForPath('sample.js'))
+          editor2.edit(project.buildEditSessionForPath('dir/b'))
+          editor3.edit(project.buildEditSessionForPath('sample.js'))
           editor3.setCursorScreenPosition([2, 4])
-          editor4.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+          editor4.edit(project.buildEditSessionForPath('sample.txt'))
           editor4.setCursorScreenPosition([0, 2])
           rootView.attachToDom()
           editor2.focus()
@@ -127,7 +127,7 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
-          expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
+          expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{project.getPath()}"
 
       describe "where there are no open editors", ->
         beforeEach ->
@@ -450,27 +450,27 @@ describe "RootView", ->
       rootView.on 'root-view:active-path-changed', pathChangeHandler
 
       editor1 = rootView.getActiveEditor()
-      expect(rootView.getTitle()).toBe "#{fs.base(editor1.getPath())} – #{rootView.project.getPath()}"
+      expect(rootView.getTitle()).toBe "#{fs.base(editor1.getPath())} – #{project.getPath()}"
 
       editor2 = rootView.getActiveEditor().splitLeft()
 
-      path = rootView.project.resolve('b')
-      editor2.edit(rootView.project.buildEditSessionForPath(path))
+      path = project.resolve('b')
+      editor2.edit(project.buildEditSessionForPath(path))
       expect(pathChangeHandler).toHaveBeenCalled()
-      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
+      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{project.getPath()}"
 
       pathChangeHandler.reset()
       editor1.getBuffer().saveAs("/tmp/should-not-be-title.txt")
       expect(pathChangeHandler).not.toHaveBeenCalled()
-      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
+      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{project.getPath()}"
 
     it "sets the project path to the directory of the editor if it was previously unassigned", ->
       project.setPath(undefined)
       rootView = new RootView
       rootView.open()
-      expect(rootView.project.getPath()?).toBeFalsy()
+      expect(project.getPath()?).toBeFalsy()
       rootView.getActiveEditor().getBuffer().saveAs('/tmp/ignore-me')
-      expect(rootView.project.getPath()).toBe '/tmp'
+      expect(project.getPath()).toBe '/tmp'
 
   describe "when editors are focused", ->
     it "triggers 'root-view:active-path-changed' events if the path of the active editor actually changes", ->
@@ -498,7 +498,7 @@ describe "RootView", ->
   describe "when the last editor is removed", ->
     it "updates the title to the project path", ->
       rootView.getEditors()[0].remove()
-      expect(rootView.getTitle()).toBe rootView.project.getPath()
+      expect(rootView.getTitle()).toBe project.getPath()
 
   describe "font size adjustment", ->
     editor = null
@@ -635,7 +635,7 @@ describe "RootView", ->
       expect(buffer1.isModified()).toBe(true)
 
       editor2 = editor1.splitRight()
-      editor2.edit(rootView.project.buildEditSessionForPath('atom-temp2.txt'))
+      editor2.edit(project.buildEditSessionForPath('atom-temp2.txt'))
       buffer2 = editor2.activeEditSession.buffer
       expect(buffer2.getText()).toBe("file2")
       expect(buffer2.isModified()).toBe(false)

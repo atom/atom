@@ -64,7 +64,7 @@ describe 'FuzzyFinder', ->
 
       describe "when root view's project has no path", ->
         beforeEach ->
-          rootView.project.setPath(null)
+          project.setPath(null)
 
         it "does not open the FuzzyFinder", ->
           expect(rootView.find('.fuzzy-finder')).not.toExist()
@@ -165,7 +165,7 @@ describe 'FuzzyFinder', ->
       describe "when the active editor only contains edit sessions for anonymous buffers", ->
         it "does not open", ->
           editor = rootView.getActiveEditor()
-          editor.edit(rootView.project.buildEditSessionForPath())
+          editor.edit(project.buildEditSessionForPath())
           editor.loadPreviousEditSession()
           editor.destroyActiveEditSession()
           expect(editor.getOpenBufferPaths().length).toBe 0
@@ -276,15 +276,15 @@ describe 'FuzzyFinder', ->
         expect(finderView.loadPathsTask.start).not.toHaveBeenCalled()
 
     it "doesn't cache buffer paths", ->
-      spyOn(rootView.project, "getEditSessions").andCallThrough()
+      spyOn(project, "getEditSessions").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
       waitsFor ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(rootView.project.getEditSessions).toHaveBeenCalled()
-        rootView.project.getEditSessions.reset()
+        expect(project.getEditSessions).toHaveBeenCalled()
+        project.getEditSessions.reset()
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
@@ -292,7 +292,7 @@ describe 'FuzzyFinder', ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(rootView.project.getEditSessions).toHaveBeenCalled()
+        expect(project.getEditSessions).toHaveBeenCalled()
 
     it "busts the cache when the window gains focus", ->
       spyOn(LoadPathsTask.prototype, "start").andCallThrough()

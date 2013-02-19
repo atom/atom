@@ -39,7 +39,7 @@ describe "MarkdownPreview", ->
       gfmGrammar = _.find syntax.grammars, (grammar) -> grammar.scopeName is 'source.gfm'
       rootView.open('file.js')
       editor = rootView.getActiveEditor()
-      rootView.project.addGrammarOverrideForPath(editor.getPath(), gfmGrammar)
+      project.addGrammarOverrideForPath(editor.getPath(), gfmGrammar)
       editor.reloadGrammar()
       expect(rootView.find('.markdown-preview')).not.toExist()
       editor.trigger('markdown-preview:toggle')

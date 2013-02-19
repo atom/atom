@@ -8,7 +8,7 @@ describe "GrammarView", ->
   beforeEach ->
     path = require.resolve('fixtures/sample.js')
     rootView = new RootView()
-    rootView.project.removeGrammarOverrideForPath(path)
+    project.removeGrammarOverrideForPath(path)
     rootView.open(path)
     editor = rootView.getActiveEditor()
     rootView.attachToDom()

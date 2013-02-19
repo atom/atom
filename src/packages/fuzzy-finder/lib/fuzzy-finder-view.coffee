@@ -65,13 +65,13 @@ class FuzzyFinderView extends SelectList
 
     editor = rootView.getActiveEditor()
     if editor
-      fn(editor, rootView.project.buildEditSessionForPath(path))
+      fn(editor, project.buildEditSessionForPath(path))
     else
       @openPath(path)
 
   confirmed : (path) ->
     return unless path.length
-    if fs.isFile(rootView.project.resolve(path))
+    if fs.isFile(project.resolve(path))
       @cancel()
       @openPath(path)
     else
@@ -82,7 +82,7 @@ class FuzzyFinderView extends SelectList
     if @hasParent()
       @cancel()
     else
-      return unless rootView.project.getPath()?
+      return unless project.getPath()?
       @allowActiveEditorChange = false
       @populateProjectPaths()
       @attach()
@@ -99,7 +99,7 @@ class FuzzyFinderView extends SelectList
     if @hasParent()
       @cancel()
     else
-      return unless rootView.project.getPath()?
+      return unless project.getPath()?
       @allowActiveEditorChange = false
       editor = rootView.getActiveEditor()
       currentWord = editor.getWordUnderCursor(wordRegex: @filenameRegex)
@@ -149,7 +149,7 @@ class FuzzyFinderView extends SelectList
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
-    editSessions = rootView.project.getEditSessions().filter (editSession)->
+    editSessions = project.getEditSessions().filter (editSession)->
       editSession.getPath()?
 
     editSessions = _.sortBy editSessions, (editSession) =>
@@ -159,13 +159,13 @@ class FuzzyFinderView extends SelectList
         -(editSession.lastOpened or 1)
 
     @paths = _.map editSessions, (editSession) ->
-      rootView.project.relativize editSession.getPath()
+      project.relativize editSession.getPath()
 
     @setArray(@paths)
 
   getOpenedPaths: ->
     paths = {}
-    for editSession in rootView.project.getEditSessions()
+    for editSession in project.getEditSessions()
       path = editSession.getPath()
       paths[path] = editSession.lastOpened if path?
     paths

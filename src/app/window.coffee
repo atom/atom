@@ -64,7 +64,7 @@ windowAdditions =
     $(rootViewParentSelector).append(rootView)
 
   stopApplication: ->
-    atom.setWindowState('pathToOpen', rootView.project.getPath())
+    atom.setWindowState('pathToOpen', project.getPath())
     atom.setRootViewStateForPath project.getPath(),
       project: project.serialize()
       rootView: rootView.serialize()

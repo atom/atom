@@ -152,15 +152,15 @@ describe "SymbolsView", ->
       expect(symbolsView.list.children('li').length).toBe 2
       expect(symbolsView).toBeVisible()
       symbolsView.confirmed(symbolsView.array[0])
-      expect(rootView.getActiveEditor().getPath()).toBe rootView.project.resolve("tagged-duplicate.js")
+      expect(rootView.getActiveEditor().getPath()).toBe project.resolve("tagged-duplicate.js")
       expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,4]
 
     describe "when the tag is in a file that doesn't exist", ->
       beforeEach ->
-        fs.move(rootView.project.resolve("tagged-duplicate.js"), rootView.project.resolve("tagged-duplicate-renamed.js"))
+        fs.move(project.resolve("tagged-duplicate.js"), project.resolve("tagged-duplicate-renamed.js"))
 
       afterEach ->
-        fs.move(rootView.project.resolve("tagged-duplicate-renamed.js"), rootView.project.resolve("tagged-duplicate.js"))
+        fs.move(project.resolve("tagged-duplicate-renamed.js"), project.resolve("tagged-duplicate.js"))
 
       it "doesn't display the tag", ->
         rootView.open("tagged.js")
