@@ -90,6 +90,12 @@
   font-style: normal !important;
 }
 
+.editor .indent-guide {
+  opacity: 0.2;
+  display: inline-block;
+  box-shadow: inset 1px 0px;
+}
+
 .editor .vertical-scrollbar {
   position: absolute;
   right: 0;

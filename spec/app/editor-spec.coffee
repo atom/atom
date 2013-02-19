@@ -1804,6 +1804,51 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
           expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
 
+    describe "when config.editor.showIndentGuide is set to true", ->
+      it "adds an indent-guide class to each leading whitespace span", ->
+        editor.attachToDom()
+
+        expect(config.get("editor.showIndentGuide")).toBeFalsy()
+        config.set("editor.showIndentGuide", true)
+        expect(editor.showIndentGuide).toBeTruthy()
+
+        expect(editor.renderedLines.find('.line:eq(0) .indent-guide').length).toBe 0
+
+        expect(editor.renderedLines.find('.line:eq(1) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(1) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(2) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(2) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(3) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(3) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(4) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(4) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(5) .indent-guide').length).toBe 3
+        expect(editor.renderedLines.find('.line:eq(5) .indent-guide').text()).toBe '      '
+
+        expect(editor.renderedLines.find('.line:eq(6) .indent-guide').length).toBe 3
+        expect(editor.renderedLines.find('.line:eq(6) .indent-guide').text()).toBe '      '
+
+        expect(editor.renderedLines.find('.line:eq(7) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(7) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(8) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(8) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(9) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(9) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(11) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(11) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(12) .indent-guide').length).toBe 0
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
