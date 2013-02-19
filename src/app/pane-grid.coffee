@@ -4,14 +4,14 @@ $ = require 'jquery'
 module.exports =
 class PaneGrid extends View
   @deserialize: ({children}) ->
-    childViews = children.map (child) -> deserializeView(child)
+    childViews = children.map (child) -> deserialize(child)
     new this(childViews)
 
   initialize: (children=[]) ->
     @append(children...)
 
   serialize: ->
-    viewClass: @className()
+    deserializer: @className()
     children: @childViewStates()
 
   childViewStates: ->

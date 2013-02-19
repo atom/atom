@@ -10,7 +10,7 @@ require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
 
-registeredViewClasses = {}
+deserializers = {}
 
 windowAdditions =
   rootViewParentSelector: 'body'
@@ -104,15 +104,14 @@ windowAdditions =
   onerror: ->
     atom.showDevTools()
 
-  registerViewClass: (viewClass) ->
-    registerViewClasses(viewClass)
+  registerDeserializers: (args...) ->
+    registerDeserializer(arg) for arg in args
 
-  registerViewClasses: (viewClasses...) ->
-    for viewClass in viewClasses
-      registeredViewClasses[viewClass.name] = viewClass
+  registerDeserializer: (klass) ->
+    deserializers[klass.name] = klass
 
-  deserializeView: (viewState) ->
-    registeredViewClasses[viewState.viewClass]?.deserialize(viewState)
+  deserialize: (state) ->
+    deserializers[state.deserializer]?.deserialize(state)
 
   measure: (description, fn) ->
     start = new Date().getTime()

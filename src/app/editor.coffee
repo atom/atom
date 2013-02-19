@@ -95,7 +95,7 @@ class Editor extends View
 
   serialize: ->
     @saveScrollPositionForActiveEditSession()
-    viewClass: "Editor"
+    deserializer: "Editor"
     editSessions: @editSessions.map (session) -> session.serialize()
     activeEditSessionIndex: @getActiveEditSessionIndex()
     isFocused: @isFocused

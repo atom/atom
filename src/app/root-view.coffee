@@ -13,7 +13,7 @@ PaneRow = require 'pane-row'
 
 module.exports =
 class RootView extends View
-  registerViewClasses(this, Pane, PaneRow, PaneColumn, Editor)
+  registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
 
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
@@ -34,7 +34,7 @@ class RootView extends View
     atom.atomPackageStates = packageStates ? {}
 
     rootView = new RootView(projectOrPathToOpen, suppressOpen: true)
-    rootView.setRootPane(deserializeView(panesViewState)) if panesViewState
+    rootView.setRootPane(deserialize(panesViewState)) if panesViewState
     rootView
 
   title: null

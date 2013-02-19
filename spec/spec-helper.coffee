@@ -1,6 +1,7 @@
 nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
+require 'window'
 Keymap = require 'keymap'
 Config = require 'config'
 Point = require 'point'
@@ -10,7 +11,6 @@ File = require 'file'
 Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
-require 'window'
 RootView = require 'root-view'
 requireStylesheet "jasmine.css"
 fixturePackagesPath = require.resolve('fixtures/packages')

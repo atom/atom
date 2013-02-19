@@ -150,9 +150,9 @@ describe "RootView", ->
       it "renders an empty pane", ->
         viewState =
           panesViewState:
-            viewClass: "Pane",
+            deserializer: "Pane",
             wrappedView:
-              viewClass: "BogusView"
+              deserializer: "BogusView"
 
         rootView.remove()
         rootView = RootView.deserialize(viewState)

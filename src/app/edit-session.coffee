@@ -12,6 +12,8 @@ fs = require 'fs'
 
 module.exports =
 class EditSession
+  registerDeserializer(this)
+
   @deserialize: (state, project) ->
     if fs.exists(state.buffer)
       session = project.buildEditSessionForPath(state.buffer)
@@ -62,6 +64,7 @@ class EditSession
     @off()
 
   serialize: ->
+    deserializer: 'EditSession'
     buffer: @buffer.getPath()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
