@@ -4,7 +4,7 @@
 }
 
 .editor .invisible {
-  color: #555 !important;
+  color: #555;
 }
 
 .editor.is-focused .cursor {
