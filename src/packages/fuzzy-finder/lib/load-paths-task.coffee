@@ -13,5 +13,5 @@ class LoadPathsTask extends Task
     @callWorkerMethod('loadPaths', rootPath, ignoredNames, excludeGitIgnoredPaths)
 
   pathsLoaded: (paths) ->
-    @terminate()
+    @done()
     @callback(paths)

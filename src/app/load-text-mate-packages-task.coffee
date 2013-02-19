@@ -11,7 +11,7 @@ class LoadTextMatePackagesTask extends Task
 
   loadNextPackage: ->
     unless @packages.length
-      @terminate()
+      @done()
       syntax.trigger 'grammars-loaded'
       return
 

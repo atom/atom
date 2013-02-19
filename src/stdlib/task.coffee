@@ -9,7 +9,10 @@ class Task
 
     @worker = new Worker(require.getPath('task-shell'))
     @worker.onmessage = ({data}) =>
-      return if @terminated
+      if @terminated
+        @done()
+        return
+
       if data.method and this[data.method]
         this[data.method](data.args...)
       else
@@ -40,7 +43,9 @@ class Task
     @worker.postMessage(data)
 
   terminate: ->
-    unless @terminated
-      @terminated = true
-      @worker?.terminate()
-      @worker = null
+    @terminated = true
+
+  done: ->
+    @terminate()
+    @worker?.terminate()
+    @worker = null
