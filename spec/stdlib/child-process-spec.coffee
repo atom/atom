@@ -142,3 +142,21 @@ describe 'Child Processes', ->
 
         runs ->
           expect(output.join('')).toBe "#{fixturesProject.getPath()}\n"
+
+      fdescribe "write to stdin", ->
+        it "returns a function for writing", ->
+          promise = ChildProcess.exec("pwd")
+          expect(typeof promise.write).toBe("function")
+        it "writes data to the process", ->
+          output = []
+
+          waitsForPromise ->
+            options =
+              stdout: (data) -> output.push(data)
+              stderr: (data) -> window.console.log("ERROR #{data}")
+
+            p = ChildProcess.exec("cat", options)
+            p.write("hello, world\n", true)
+            p
+          runs ->
+            expect(output.join('')).toBe("hello, world\n")

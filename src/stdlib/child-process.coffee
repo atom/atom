@@ -13,7 +13,7 @@ class ChildProccess
       options.stdout = @bufferLines(options.stdout) if options.stdout
       options.stderr = @bufferLines(options.stderr) if options.stderr
 
-    $native.exec command, options, (exitStatus, stdout, stderr) ->
+    deferred.write = $native.exec command, options, (exitStatus, stdout, stderr) ->
       options.stdout?(stdout)
       options.stderr?(stderr)
       try

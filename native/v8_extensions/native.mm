@@ -19,6 +19,33 @@ namespace v8_extensions {
   NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value);
   void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception> exception, NSString *message);
 
+
+  class WriteHandler : public CefV8Handler {
+  public:
+    WriteHandler(NSFileHandle *fh) : CefV8Handler(), fileHandle(fh) {
+      [fileHandle retain];
+    };
+    virtual bool Execute(const CefString& name,
+                         CefRefPtr<CefV8Value> object,
+                         const CefV8ValueList& arguments,
+                         CefRefPtr<CefV8Value>& retval,
+                         CefString& exception) {
+      if (name == "write") {
+        std::string cc_value = arguments[0]->GetStringValue().ToString();
+        bool exit = arguments[1]->GetBoolValue();
+        const char *input = cc_value.c_str();
+        NSString *string = [NSString stringWithUTF8String:input];
+        NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
+        [fileHandle writeData:data];
+        if(exit)
+          [fileHandle closeFile];
+      }
+    }
+    IMPLEMENT_REFCOUNTING(WriteHandler);
+  private:
+    NSFileHandle *fileHandle;
+  };
+
   Native::Native() : CefV8Handler() {
   }
 
@@ -402,16 +429,18 @@ namespace v8_extensions {
       NSString *command = stringFromCefV8Value(arguments[0]);
       CefRefPtr<CefV8Value> options = arguments[1];
       CefRefPtr<CefV8Value> callback = arguments[2];
+      WriteHandler *stdinHandler = nil;
 
       NSTask *task = [[NSTask alloc] init];
       [task setLaunchPath:@"/bin/sh"];
-      [task setStandardInput:[NSFileHandle fileHandleWithNullDevice]];
       [task setArguments:[NSArray arrayWithObjects:@"-l", @"-c", command, nil]];
 
       NSPipe *stdout = [NSPipe pipe];
       NSPipe *stderr = [NSPipe pipe];
+      NSPipe *stdin = [NSPipe pipe];
       [task setStandardOutput:stdout];
       [task setStandardError:stderr];
+      [task setStandardInput:stdin];
 
       CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
       void (^outputHandle)(NSString *contents, CefRefPtr<CefV8Value> function) = nil;
@@ -445,6 +474,7 @@ namespace v8_extensions {
           throwException(context->GetGlobal(), callback->GetException(), @"Error thrown in TaskTerminatedHandle");
         }
 
+        delete stdinHandler;
         context->Exit();
 
         stdout.fileHandleForReading.writeabilityHandler = nil;
@@ -489,6 +519,10 @@ namespace v8_extensions {
       if (!currentWorkingDirectory->IsUndefined() && !currentWorkingDirectory->IsNull()) {
         [task setCurrentDirectoryPath:stringFromCefV8Value(currentWorkingDirectory)];
       }
+
+      stdinHandler = new WriteHandler(stdin.fileHandleForWriting);
+      CefRefPtr<CefV8Value> stdinFunction = CefV8Value::CreateFunction("write", stdinHandler);
+      retval = stdinFunction;
 
       [task launch];
 
