@@ -13,6 +13,8 @@ PaneRow = require 'pane-row'
 
 module.exports =
 class RootView extends View
+  registerViewClasses(this, Pane, PaneRow, PaneColumn, Editor)
+
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
     disabledPackages: []
@@ -31,8 +33,8 @@ class RootView extends View
 
     atom.atomPackageStates = packageStates ? {}
 
-    rootView = new RootView(projectOrPathToOpen , suppressOpen: true)
-    rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
+    rootView = new RootView(projectOrPathToOpen, suppressOpen: true)
+    rootView.setRootPane(deserializeView(panesViewState)) if panesViewState
     rootView
 
   title: null
@@ -40,12 +42,6 @@ class RootView extends View
 
   initialize: (projectOrPathToOpen, { suppressOpen } = {}) ->
     window.rootView = this
-    @viewClasses = {
-      "Pane": Pane,
-      "PaneRow": PaneRow,
-      "PaneColumn": PaneColumn,
-      "Editor": Editor
-    }
     @handleEvents()
 
     if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
@@ -115,12 +111,6 @@ class RootView extends View
 
   afterAttach: (onDom) ->
     @focus() if onDom
-
-  registerViewClass: (viewClass) ->
-    @viewClasses[viewClass.name] = viewClass
-
-  deserializeView: (viewState) ->
-    @viewClasses[viewState.viewClass]?.deserialize(viewState, this)
 
   deactivate: ->
     atom.setRootViewStateForPath(@project.getPath(), @serialize())

@@ -3,8 +3,8 @@ $ = require 'jquery'
 
 module.exports =
 class PaneGrid extends View
-  @deserialize: ({children}, rootView) ->
-    childViews = children.map (child) -> rootView.deserializeView(child)
+  @deserialize: ({children}) ->
+    childViews = children.map (child) -> deserializeView(child)
     new this(childViews)
 
   initialize: (children=[]) ->

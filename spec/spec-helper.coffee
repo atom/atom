@@ -7,11 +7,11 @@ Point = require 'point'
 Project = require 'project'
 Directory = require 'directory'
 File = require 'file'
-RootView = require 'root-view'
 Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
 require 'window'
+RootView = require 'root-view'
 requireStylesheet "jasmine.css"
 fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)

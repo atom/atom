@@ -5,11 +5,12 @@ fs = require 'fs'
 $ = require 'jquery'
 Config = require 'config'
 Syntax = require 'syntax'
-RootView = require 'root-view'
 Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
+
+registeredViewClasses = {}
 
 windowAdditions =
   rootViewParentSelector: 'body'
@@ -37,6 +38,7 @@ windowAdditions =
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
   attachRootView: (pathToOpen) ->
+    RootView = require 'root-view'
     if pathState = atom.getRootViewStateForPath(pathToOpen)
       RootView.deserialize(pathState)
     else
@@ -101,6 +103,16 @@ windowAdditions =
 
   onerror: ->
     atom.showDevTools()
+
+  registerViewClass: (viewClass) ->
+    registerViewClasses(viewClass)
+
+  registerViewClasses: (viewClasses...) ->
+    for viewClass in viewClasses
+      registeredViewClasses[viewClass.name] = viewClass
+
+  deserializeView: (viewState) ->
+    registeredViewClasses[viewState.viewClass]?.deserialize(viewState)
 
   measure: (description, fn) ->
     start = new Date().getTime()
