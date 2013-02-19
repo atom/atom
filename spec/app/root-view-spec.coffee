@@ -474,101 +474,54 @@ describe "RootView", ->
       rootView.trigger 'window:decrease-font-size'
       expect(editor.getFontSize()).toBe 1
 
-  describe ".open(path, options)", ->
-    describe "when there is no active editor", ->
+  fdescribe ".open(path, options)", ->
+    describe "when there is no active pane", ->
       beforeEach ->
-        rootView.getActiveEditor().destroyActiveEditSession()
-        expect(rootView.getActiveEditor()).toBeUndefined()
+        rootView.getActivePane().remove()
+        expect(rootView.getActivePane()).toBeUndefined()
 
       describe "when called with no path", ->
         it "opens / returns an edit session for an empty buffer in a new editor", ->
           editSession = rootView.open()
-          expect(rootView.getActiveEditor()).toBeDefined()
-          expect(rootView.getActiveEditor().getPath()).toBeUndefined()
-          expect(editSession).toBe rootView.getActiveEditor().activeEditSession
+          expect(rootView.getActivePane().currentItem).toBe editSession
+          expect(editSession.getPath()).toBeUndefined()
 
       describe "when called with a path", ->
         it "opens a buffer with the given path in a new editor", ->
           editSession = rootView.open('b')
-          expect(rootView.getActiveEditor()).toBeDefined()
-          expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/dir/b')
-          expect(editSession).toBe rootView.getActiveEditor().activeEditSession
+          expect(rootView.getActivePane().currentItem).toBe editSession
+          expect(editSession.getPath()).toBe require.resolve('fixtures/dir/b')
 
-    describe "when there is an active editor", ->
+    describe "when there is an active pane", ->
+      [activePane, initialItemCount] = []
       beforeEach ->
-        expect(rootView.getActiveEditor()).toBeDefined()
+        activePane = rootView.getActivePane()
+        initialItemCount = activePane.getItems().length
 
       describe "when called with no path", ->
-        it "opens an empty buffer in the active editor", ->
+        it "opens an edit session with an empty buffer in the active pane", ->
           editSession = rootView.open()
-          expect(rootView.getActiveEditor().getPath()).toBeUndefined()
-          expect(editSession).toBe rootView.getActiveEditor().activeEditSession
+          expect(activePane.getItems().length).toBe initialItemCount + 1
+          expect(activePane.currentItem).toBe editSession
+          expect(editSession.getPath()).toBeUndefined()
 
       describe "when called with a path", ->
-        [editor1, editor2] = []
-        beforeEach ->
-          rootView.attachToDom()
-          editor1 = rootView.getActiveEditor()
-          editor2 = editor1.splitRight()
-          rootView.open('b')
-          editor2.loadPreviousEditSession()
-          editor1.focus()
+        describe "when the active pane already has an edit session item for the path being opened", ->
+          it "shows the existing edit session on the pane", ->
+            previousEditSession = activePane.currentItem
 
-        describe "when allowActiveEditorChange is false (the default)", ->
-          activeEditor = null
-          beforeEach ->
-            activeEditor = rootView.getActiveEditor()
+            editSession = rootView.open('b')
+            expect(activePane.currentItem).toBe editSession
 
-          describe "when the active editor has an edit session for the given path", ->
-            it "re-activates the existing edit session", ->
-              expect(activeEditor.getPath()).toBe require.resolve('fixtures/dir/a')
-              previousEditSession = activeEditor.activeEditSession
+            editSession = rootView.open('a')
+            expect(editSession).not.toBe previousEditSession
+            expect(activePane.currentItem).toBe editSession
 
-              editSession = rootView.open('b')
-              expect(activeEditor.activeEditSession).not.toBe previousEditSession
-              expect(editSession).toBe rootView.getActiveEditor().activeEditSession
-
-              editSession = rootView.open('a')
-              expect(activeEditor.activeEditSession).toBe previousEditSession
-              expect(editSession).toBe previousEditSession
-
-          describe "when the active editor does not have an edit session for the given path", ->
-            it "creates a new edit session for the given path in the active editor", ->
-              editSession = rootView.open('b')
-              expect(activeEditor.editSessions.length).toBe 2
-              expect(editSession).toBe rootView.getActiveEditor().activeEditSession
-
-        describe "when the 'allowActiveEditorChange' option is true", ->
-          describe "when the active editor has an edit session for the given path", ->
-            it "re-activates the existing edit session regardless of whether any other editor also has an edit session for the path", ->
-              activeEditor = rootView.getActiveEditor()
-              expect(activeEditor.getPath()).toBe require.resolve('fixtures/dir/a')
-              previousEditSession = activeEditor.activeEditSession
-
-              editSession = rootView.open('b')
-              expect(activeEditor.activeEditSession).not.toBe previousEditSession
-              expect(editSession).toBe activeEditor.activeEditSession
-
-              editSession = rootView.open('a', allowActiveEditorChange: true)
-              expect(activeEditor.activeEditSession).toBe previousEditSession
-              expect(editSession).toBe activeEditor.activeEditSession
-
-          describe "when the active editor does *not* have an edit session for the given path", ->
-            describe "when another editor has an edit session for the path", ->
-              it "focuses the other editor and activates its edit session for the path", ->
-                expect(rootView.getActiveEditor()).toBe editor1
-                editSession = rootView.open('b', allowActiveEditorChange: true)
-                expect(rootView.getActiveEditor()).toBe editor2
-                expect(editor2.getPath()).toBe require.resolve('fixtures/dir/b')
-                expect(editSession).toBe rootView.getActiveEditor().activeEditSession
-
-            describe "when no other editor has an edit session for the path either", ->
-              it "creates a new edit session for the path on the current active editor", ->
-                path = require.resolve('fixtures/sample.js')
-                editSession = rootView.open(path, allowActiveEditorChange: true)
-                expect(rootView.getActiveEditor()).toBe editor1
-                expect(editor1.getPath()).toBe path
-                expect(editSession).toBe rootView.getActiveEditor().activeEditSession
+        describe "when the active pane does not have an edit session item for the path being opened", ->
+          it "creates a new edit session for the given path in the active editor", ->
+            editSession = rootView.open('b')
+            expect(activePane.items.length).toBe 2
+            expect(activePane.currentItem).toBe editSession
 
   describe ".saveAll()", ->
     it "saves all open editors", ->

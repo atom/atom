@@ -92,15 +92,18 @@ class RootView extends View
 
   open: (path, options = {}) ->
     if activePane = @getActivePane()
-      if existingItem = activePane.itemForPath(path)
-        activePane.showItem(existingItem)
+      if editSession = activePane.itemForPath(path)
+        activePane.showItem(editSession)
       else
-        activePane.showItem(project.buildEditSession(path))
+        editSession = project.buildEditSession(path)
+        activePane.showItem(editSession)
     else
-      activePane = new Pane(project.buildEditSession(path))
+      editSession = project.buildEditSession(path)
+      activePane = new Pane(editSession)
       @panes.append(activePane)
 
     activePane.focus() if options.changeFocus
+    editSession
 
   editorFocused: (editor) ->
     @makeEditorActive(editor) if @panes.containsElement(editor)
