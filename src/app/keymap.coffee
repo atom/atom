@@ -63,7 +63,7 @@ class Keymap
 
     keystrokeMap
 
-  handleKeyEvent: (event) ->
+  handleKeyEvent: (event) =>
     event.keystrokes = @multiKeystrokeStringForEvent(event)
     isMultiKeystroke = @queuedKeystrokes?
     @queuedKeystrokes = null

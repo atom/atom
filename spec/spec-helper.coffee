@@ -15,11 +15,13 @@ RootView = require 'root-view'
 requireStylesheet "jasmine.css"
 fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
+keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 beforeEach ->
   jQuery.fx.off = true
   window.fixturesProject = new Project(require.resolve('fixtures'))
+  window.project = fixturesProject
   window.resetTimeouts()
   atom.atomPackageStates = {}
   atom.loadedPackages = []
@@ -54,13 +56,14 @@ beforeEach ->
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
+  rootView?.deactivate()
   delete window.rootView if window.rootView
+  project.destroy()
   $('#jasmine-content').empty()
-  window.fixturesProject.destroy()
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
-window.keymap.bindKeys '*', 'meta-w': 'close'
+# window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
 $(document).on 'toggle-dev-tools', (e) ->
   atom.toggleDevTools() if $('#root-view').length is 0

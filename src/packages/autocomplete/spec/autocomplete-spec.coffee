@@ -48,6 +48,7 @@ describe "AutocompleteView", ->
     miniEditor = autocomplete.miniEditor
 
   afterEach ->
+    rootView.deactivate()
     editor?.remove()
 
   describe 'autocomplete:attach event', ->

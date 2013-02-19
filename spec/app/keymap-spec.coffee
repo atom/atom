@@ -151,6 +151,8 @@ describe "Keymap", ->
             expect(bazHandler).toHaveBeenCalled()
 
       describe "when the event's target is the document body", ->
+        afterEach -> rootView.deactivate()
+
         it "triggers the mapped event on the rootView", ->
           rootView = new RootView
           keymap.bindKeys 'body', 'x': 'foo'

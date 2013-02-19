@@ -5,12 +5,13 @@ describe "Window", ->
   [rootView] = []
 
   beforeEach ->
-    window.setUpEventHandlers()
-    window.attachRootView(require.resolve('fixtures'))
+    window.handleWindowEvents()
+    spyOn(atom, 'getPathToOpen').andReturn(project.getPath())
+    window.buildProjectAndRootView()
     rootView = window.rootView
 
   afterEach ->
-    window.shutdown()
+    window.stopApplication()
     atom.setRootViewStateForPath(rootView.project.getPath(), null)
     $(window).off 'beforeunload'
 
@@ -86,12 +87,18 @@ describe "Window", ->
       removeStylesheet(cssPath)
       expect($(document.body).css('font-weight')).not.toBe("bold")
 
-  describe "before the window is unloaded", ->
-    it "saves the serialized state of the root view to the atom object so it can be rehydrated after reload", ->
-      expect(atom.getRootViewStateForPath(window.rootView.project.getPath())).toBeUndefined()
-      expectedState = JSON.parse(JSON.stringify(window.rootView.serialize())) # JSON.stringify removes keys with undefined values
-      $(window).trigger 'beforeunload'
-      expect(atom.getRootViewStateForPath(rootView.project.getPath())).toEqual expectedState
+  describe "stopApplication()", ->
+    it "saves the serialized state of the project and root view to the atom object so it can be rehydrated after reload", ->
+      expect(atom.getRootViewStateForPath(rootView.project.getPath())).toBeUndefined()
+      # JSON.stringify removes keys with undefined values
+      rootViewState = JSON.parse(JSON.stringify(rootView.serialize()))
+      projectState = JSON.parse(JSON.stringify(project.serialize()))
+
+      stopApplication()
+
+      expect(atom.getRootViewStateForPath(project.getPath())).toEqual
+        project: projectState
+        rootView: rootViewState
 
     it "unsubscribes from all buffers", ->
       rootView.open('sample.js')
@@ -99,15 +106,7 @@ describe "Window", ->
       editor2 = editor1.splitRight()
       expect(window.rootView.getEditors().length).toBe 2
 
-      $(window).trigger 'beforeunload'
+      stopApplication()
 
       expect(editor1.getBuffer().subscriptionCount()).toBe 0
 
-  describe ".shutdown()", ->
-    it "only deactivates the RootView the first time it is called", ->
-      deactivateSpy = spyOn(rootView, "deactivate").andCallThrough()
-      window.shutdown()
-      expect(rootView.deactivate).toHaveBeenCalled()
-      deactivateSpy.reset()
-      window.shutdown()
-      expect(rootView.deactivate).not.toHaveBeenCalled()

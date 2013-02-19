@@ -1,17 +1,19 @@
 $ = require 'jquery'
 fs = require 'fs'
+Project = require 'project'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 {View, $$} = require 'space-pen'
 
 describe "RootView", ->
-  rootView = null
-  path = null
+  [rootView, pathToOpen] = []
 
   beforeEach ->
-    path = require.resolve 'fixtures/dir/a'
-    rootView = new RootView(path)
+    project.destroy()
+    window.project = new Project(require.resolve('fixtures/dir'))
+    pathToOpen = project.resolve('a')
+    rootView = new RootView(pathToOpen)
     rootView.enableKeymap()
     rootView.focus()
 
@@ -21,34 +23,29 @@ describe "RootView", ->
   describe ".initialize(pathToOpen)", ->
     describe "when called with a pathToOpen", ->
       describe "when pathToOpen references a file", ->
-        it "creates a project for the file's parent directory, then sets the title and opens the file in an editor", ->
-          expect(rootView.project.getPath()).toBe fs.directory(path)
+        it "opens the file at the given path and sets the window title", ->
           expect(rootView.getEditors().length).toBe 1
           expect(rootView.getEditors()[0]).toHaveClass 'active'
-          expect(rootView.getActiveEditor().getPath()).toBe path
+          expect(rootView.getActiveEditor().getPath()).toBe pathToOpen
           expect(rootView.getActiveEditor().editSessions.length).toBe 1
-          expect(rootView.getTitle()).toBe "#{fs.base(path)} – #{rootView.project.getPath()}"
+          expect(rootView.getTitle()).toBe "#{fs.base(pathToOpen)} – #{project.getPath()}"
 
       describe "when pathToOpen references a directory", ->
-        beforeEach ->
-          rootView.remove()
-
-        it "creates a project for the directory and sets the title, but does not open an editor", ->
-          path = require.resolve 'fixtures/dir'
-          rootView = new RootView(path)
+        it "does not open an editor", ->
+          pathToOpen = project.getPath()
+          rootView = new RootView(pathToOpen)
           rootView.focus()
 
-          expect(rootView.project.getPath()).toBe path
+          expect(rootView.project.getPath()).toBe pathToOpen
           expect(rootView.getEditors().length).toBe 0
           expect(rootView.getTitle()).toBe rootView.project.getPath()
 
     describe "when called with no pathToOpen", ->
       it "opens an empty buffer", ->
-        rootView.remove()
         rootView = new RootView
         expect(rootView.getEditors().length).toBe 1
         expect(rootView.getEditors()[0].getText()).toEqual ""
-        expect(rootView.getTitle()).toBe 'untitled'
+        expect(rootView.getTitle()).toBe "untitled – #{project.getPath()}"
 
   describe ".deactivate()", ->
     it "deactivates all packages", ->
@@ -65,7 +62,6 @@ describe "RootView", ->
       buffer = null
 
       beforeEach ->
-        rootView.remove()
         rootView = new RootView
         rootView.open()
         editor1 = rootView.getActiveEditor()
@@ -75,16 +71,14 @@ describe "RootView", ->
 
       it "constructs the view with the same panes", ->
         rootView = RootView.deserialize(viewState)
-        expect(rootView.project.getPath()?).toBeFalsy()
+        rootView.focus()
         expect(rootView.getEditors().length).toBe 2
         expect(rootView.getActiveEditor().getText()).toBe buffer.getText()
-        expect(rootView.getTitle()).toBe 'untitled'
+        expect(rootView.getTitle()).toBe "untitled – #{project.getPath()}"
 
     describe "when the serialized RootView has a project", ->
       beforeEach ->
-        path = require.resolve 'fixtures'
-        rootView.remove()
-        rootView = new RootView(path)
+        project.setPath(require.resolve('fixtures'))
 
       describe "when there are open editors", ->
         beforeEach ->
@@ -92,6 +86,7 @@ describe "RootView", ->
           editor1 = rootView.getActiveEditor()
           editor2 = editor1.splitRight()
           editor3 = editor2.splitRight()
+
           editor4 = editor2.splitDown()
           editor2.edit(rootView.project.buildEditSessionForPath('dir/b'))
           editor3.edit(rootView.project.buildEditSessionForPath('sample.js'))
@@ -136,15 +131,16 @@ describe "RootView", ->
 
       describe "where there are no open editors", ->
         beforeEach ->
-          rootView.attachToDom()
+          rootView.deactivate()
+          rootView = new RootView(project.getPath())
+          expect(rootView.getEditors().length).toBe 0
           viewState = rootView.serialize()
           rootView.remove()
 
         it "constructs the view with no open editors", ->
-            rootView = RootView.deserialize(viewState)
-            rootView.attachToDom()
-
-            expect(rootView.getEditors().length).toBe 0
+          rootView = RootView.deserialize(viewState)
+          rootView.attachToDom()
+          expect(rootView.getEditors().length).toBe 0
 
     describe "when a pane's wrapped view cannot be deserialized", ->
       it "renders an empty pane", ->
@@ -448,7 +444,7 @@ describe "RootView", ->
         expect(Object.keys(keybindings).length).toBe 2
         expect(keybindings["meta-a"]).toEqual "test-event-a"
 
-  describe "when the focused editor changes", ->
+  describe "when the path of the active editor changes", ->
     it "changes the title and emits an root-view:active-path-changed event", ->
       pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
       rootView.on 'root-view:active-path-changed', pathChangeHandler
@@ -468,8 +464,8 @@ describe "RootView", ->
       expect(pathChangeHandler).not.toHaveBeenCalled()
       expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
 
-    it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
-      rootView.remove()
+    it "sets the project path to the directory of the editor if it was previously unassigned", ->
+      project.setPath(undefined)
       rootView = new RootView
       rootView.open()
       expect(rootView.project.getPath()?).toBeFalsy()
@@ -624,12 +620,12 @@ describe "RootView", ->
 
   describe ".saveAll()", ->
     it "saves all open editors", ->
-      rootView.remove()
+      project.setPath('/tmp')
       file1 = '/tmp/atom-temp1.txt'
       file2 = '/tmp/atom-temp2.txt'
       fs.write(file1, "file1")
       fs.write(file2, "file2")
-      rootView = new RootView(file1)
+      rootView.open(file1)
 
       editor1 = rootView.getActiveEditor()
       buffer1 = editor1.activeEditSession.buffer

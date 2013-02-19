@@ -3,7 +3,6 @@ date = new Date().getTime()
 require 'atom'
 require 'window'
 
-pathToOpen = atom.getWindowState('pathToOpen') ? window.location.params.pathToOpen
-window.attachRootView(pathToOpen)
+window.startApplication()
 atom.show()
 console.log "Load time: #{new Date().getTime() - date}"

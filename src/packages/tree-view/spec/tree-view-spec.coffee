@@ -6,11 +6,11 @@ Directory = require 'directory'
 fs = require 'fs'
 
 describe "TreeView", ->
-  [project, treeView, sampleJs, sampleTxt] = []
+  [treeView, sampleJs, sampleTxt] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/tree-view'))
-    project = rootView.project
+    project.setPath(project.resolve('tree-view'))
+    new RootView(project.getPath())
 
     window.loadPackage("tree-view")
     rootView.trigger 'tree-view:toggle'
@@ -48,6 +48,7 @@ describe "TreeView", ->
 
     describe "when the project has no path", ->
       beforeEach ->
+        project.setPath(undefined)
         rootView.deactivate()
         new RootView()
         treeView = window.loadPackage("tree-view").packageMain.createView()
@@ -605,8 +606,8 @@ describe "TreeView", ->
       fs.makeDirectory(dirPath)
       fs.write(filePath, "doesn't matter")
 
+      project.setPath(rootDirPath)
       new RootView(rootDirPath)
-      project = rootView.project
       window.loadPackage('tree-view')
       rootView.trigger 'tree-view:toggle'
       treeView = rootView.find(".tree-view").view()

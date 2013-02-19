@@ -16,6 +16,9 @@ _.extend atom,
   activatedAtomPackages: []
   atomPackageStates: {}
 
+  getPathToOpen: ->
+    @getWindowState('pathToOpen') ? window.location.params.pathToOpen
+
   activateAtomPackage: (pack) ->
     @activatedAtomPackages.push(pack)
     pack.packageMain.activate(@atomPackageStates[pack.name] ? {})

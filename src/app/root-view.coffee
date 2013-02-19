@@ -25,15 +25,9 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'
 
-  @deserialize: ({ projectState, panesViewState, packageStates, projectPath }) ->
-    if projectState
-      projectOrPathToOpen = Project.deserialize(projectState)
-    else
-      projectOrPathToOpen = projectPath # This will migrate people over to the new project serialization scheme. It should be removed eventually.
-
+  @deserialize: ({ panesViewState, packageStates, projectPath }) ->
     atom.atomPackageStates = packageStates ? {}
-
-    rootView = new RootView(projectOrPathToOpen, suppressOpen: true)
+    rootView = new RootView(null, suppressOpen: true)
     rootView.setRootPane(deserialize(panesViewState)) if panesViewState
     rootView
 
@@ -44,23 +38,23 @@ class RootView extends View
     window.rootView = this
     @handleEvents()
 
+    @project = window.project
+
     if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
       pathToOpen = projectOrPathToOpen
-      @project = new Project(projectOrPathToOpen)
     else
-      @project = projectOrPathToOpen
       pathToOpen = @project?.getPath()
     @pathToOpenIsFile = pathToOpen and fs.isFile(pathToOpen)
 
     config.load()
 
-    if pathToOpen
-      @open(pathToOpen) if @pathToOpenIsFile and not suppressOpen
-    else
-      @open()
+    unless suppressOpen
+      if pathToOpen
+        @open(pathToOpen) if @pathToOpenIsFile
+      else
+        @open()
 
   serialize: ->
-    projectState: @project?.serialize()
     panesViewState: @panes.children().view()?.serialize()
     packageStates: atom.serializeAtomPackages()
 
@@ -113,7 +107,6 @@ class RootView extends View
     @focus() if onDom
 
   deactivate: ->
-    atom.setRootViewStateForPath(@project.getPath(), @serialize())
     atom.deactivateAtomPackages()
     @remove()
 

@@ -3,9 +3,6 @@
 
 fs = require 'fs'
 $ = require 'jquery'
-Config = require 'config'
-Syntax = require 'syntax'
-Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -20,15 +17,22 @@ windowAdditions =
 
   # This method runs when the file is required. Any code here will run
   # in all environments: spec, benchmark, and application
-  startup: ->
-    @config = new Config
-    @syntax = new Syntax
-    @setUpKeymap()
-    @pasteboard = new Pasteboard
-    @setUpEventHandlers()
+  setUpEnvironment: ->
+    Config = require 'config'
+    Syntax = require 'syntax'
+    Pasteboard = require 'pasteboard'
+    Keymap = require 'keymap'
 
-  setUpEventHandlers: ->
+    window.config = new Config
+    window.syntax = new Syntax
+    window.pasteboard = new Pasteboard
+    window.keymap = new Keymap()
+    $(document).on 'keydown', keymap.handleKeyEvent
+    keymap.bindDefaultKeys()
+
     $(window).on 'core:close', => @close()
+
+  handleWindowEvents: ->
     $(window).command 'window:close', => @close()
     $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
     $(window).on 'focus', -> $("body").removeClass('is-blurred')
@@ -37,37 +41,36 @@ windowAdditions =
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
-  attachRootView: (pathToOpen) ->
-    RootView = require 'root-view'
-    if pathState = atom.getRootViewStateForPath(pathToOpen)
-      RootView.deserialize(pathState)
-    else
-      new RootView(pathToOpen)
-
-    $(@rootViewParentSelector).append(@rootView)
+  startApplication: ->
+    config.load()
+    buildProjectAndRootView()
+    keymap.loadBundledKeymaps()
+    keymap.loadUserKeymaps()
+    atom.loadThemes()
+    atom.loadPackages()
+    $(window).on 'beforeunload', -> stopApplication(); false
     $(window).focus()
-    $(window).on 'beforeunload', =>
-      @shutdown()
-      false
 
-  shutdown: ->
-    if @rootView
-      atom.setWindowState('pathToOpen', @rootView.project.getPath())
-      @rootView.deactivate()
-      @rootView = null
-    $(window).off('focus')
-    $(window).off('blur')
-    $(window).off('before')
+  buildProjectAndRootView: ->
+    RootView = require 'root-view'
+    Project = require 'project'
 
-  setUpKeymap: ->
-    Keymap = require 'keymap'
+    if windowState = atom.getRootViewStateForPath(atom.getPathToOpen()) and windowState?.project?
+      window.project = deserialize(windowState.project)
+      window.rootView = deserialize(windowState.rootView)
+    else
+      window.project = new Project(atom.getPathToOpen())
+      window.rootView = new RootView(atom.getPathToOpen())
+    $(rootViewParentSelector).append(rootView)
 
-    @keymap = new Keymap()
-    @keymap.bindDefaultKeys()
-    @keymap.loadBundledKeymaps()
-
-    @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
-    $(document).on 'keydown', @_handleKeyEvent
+  stopApplication: ->
+    atom.setWindowState('pathToOpen', rootView.project.getPath())
+    atom.setRootViewStateForPath project.getPath(),
+      project: project.serialize()
+      rootView: rootView.serialize()
+    rootView.deactivate()
+    project.destroy()
+    $(window).off('focus blur before')
 
   stylesheetElementForId: (id) ->
     $("head style[id='#{id}']")
@@ -121,7 +124,7 @@ windowAdditions =
     value
 
 window[key] = value for key, value of windowAdditions
-window.startup()
+window.setUpEnvironment()
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
