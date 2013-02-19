@@ -1762,48 +1762,47 @@ describe "Editor", ->
         expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
         expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
 
-     it "displays trailing carriage return using a visible non-empty value", ->
-       editor.setText "a line that ends with a carriage return\r\n"
-       editor.attachToDom()
+      it "displays trailing carriage return using a visible non-empty value", ->
+        editor.setText "a line that ends with a carriage return\r\n"
+        editor.attachToDom()
 
-       expect(config.get("editor.showInvisibles")).toBeFalsy()
-       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
+        expect(config.get("editor.showInvisibles")).toBeFalsy()
+        expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
 
-       config.set("editor.showInvisibles", true)
-       cr = editor.invisibles?.cr
-       expect(cr).toBeTruthy()
-       eol = editor.invisibles?.eol
-       expect(eol).toBeTruthy()
-       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
+        config.set("editor.showInvisibles", true)
+        cr = editor.invisibles?.cr
+        expect(cr).toBeTruthy()
+        eol = editor.invisibles?.eol
+        expect(eol).toBeTruthy()
+        expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
 
+      describe "when wrapping is on", ->
+        it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
+          editor.setSoftWrapColumn(6)
+          editor.setText "a line that wraps"
+          editor.attachToDom()
+          config.set "editor.showInvisibles", true
+          space = editor.invisibles?.space
+          expect(space).toBeTruthy()
+          eol = editor.invisibles?.eol
+          expect(eol).toBeTruthy()
+          expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+          expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
 
-     describe "when wrapping is on", ->
-       it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
-         editor.setSoftWrapColumn(6)
-         editor.setText "a line that wraps"
-         editor.attachToDom()
-         config.set "editor.showInvisibles", true
-         space = editor.invisibles?.space
-         expect(space).toBeTruthy()
-         eol = editor.invisibles?.eol
-         expect(eol).toBeTruthy()
-         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
-         expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
-
-       it "displays trailing carriage return using a visible non-empty value", ->
-         editor.setSoftWrapColumn(6)
-         editor.setText "a line that\r\n"
-         editor.attachToDom()
-         config.set "editor.showInvisibles", true
-         space = editor.invisibles?.space
-         expect(space).toBeTruthy()
-         cr = editor.invisibles?.cr
-         expect(cr).toBeTruthy()
-         eol = editor.invisibles?.eol
-         expect(eol).toBeTruthy()
-         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
-         expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
-         expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
+        it "displays trailing carriage return using a visible non-empty value", ->
+          editor.setSoftWrapColumn(6)
+          editor.setText "a line that\r\n"
+          editor.attachToDom()
+          config.set "editor.showInvisibles", true
+          space = editor.invisibles?.space
+          expect(space).toBeTruthy()
+          cr = editor.invisibles?.cr
+          expect(cr).toBeTruthy()
+          eol = editor.invisibles?.eol
+          expect(eol).toBeTruthy()
+          expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+          expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
+          expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
 
   describe "gutter rendering", ->
     beforeEach ->
