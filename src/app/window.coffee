@@ -64,9 +64,8 @@ windowAdditions =
     if windowState?.project?
       window.project = deserialize(windowState.project)
       window.rootView = deserialize(windowState.rootView)
-    else
-      window.project = new Project(atom.getPathToOpen())
-      window.rootView = new RootView
+    window.project ?= new Project(atom.getPathToOpen())
+    window.rootView ?= new RootView
     $(rootViewParentSelector).append(rootView)
 
   stopApplication: ->
