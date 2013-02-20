@@ -33,7 +33,7 @@ windowAdditions =
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
-  startApplication: ->
+  startup: ->
     handleWindowEvents()
     config.load()
     atom.loadTextPackage()
@@ -42,7 +42,7 @@ windowAdditions =
     atom.loadThemes()
     atom.loadPackages()
     keymap.loadUserKeymaps()
-    $(window).on 'beforeunload', -> stopApplication(); false
+    $(window).on 'beforeunload', -> shutdown(); false
     $(window).focus()
 
     pathToOpen = atom.getPathToOpen()
@@ -67,7 +67,7 @@ windowAdditions =
     window.rootView ?= new RootView
     $(rootViewParentSelector).append(rootView)
 
-  stopApplication: ->
+  shutdown: ->
     atom.setWindowState('pathToOpen', project.getPath())
     atom.setRootViewStateForPath project.getPath(),
       project: project.serialize()

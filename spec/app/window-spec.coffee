@@ -11,7 +11,7 @@ describe "Window", ->
     rootView = window.rootView
 
   afterEach ->
-    window.stopApplication()
+    window.shutdown()
     atom.setRootViewStateForPath(project.getPath(), null)
     $(window).off 'beforeunload'
 
@@ -87,14 +87,14 @@ describe "Window", ->
       removeStylesheet(cssPath)
       expect($(document.body).css('font-weight')).not.toBe("bold")
 
-  describe "stopApplication()", ->
+  describe "shutdown()", ->
     it "saves the serialized state of the project and root view to the atom object so it can be rehydrated after reload", ->
       expect(atom.getRootViewStateForPath(project.getPath())).toBeUndefined()
       # JSON.stringify removes keys with undefined values
       rootViewState = JSON.parse(JSON.stringify(rootView.serialize()))
       projectState = JSON.parse(JSON.stringify(project.serialize()))
 
-      stopApplication()
+      shutdown()
 
       expect(atom.getRootViewStateForPath(project.getPath())).toEqual
         project: projectState
@@ -106,7 +106,6 @@ describe "Window", ->
       editor2 = editor1.splitRight()
       expect(window.rootView.getEditors().length).toBe 2
 
-      stopApplication()
+      shutdown()
 
       expect(editor1.getBuffer().subscriptionCount()).toBe 0
-
