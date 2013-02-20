@@ -8,7 +8,6 @@ require 'underscore-extensions'
 require 'space-pen-extensions'
 
 deserializers = {}
-wasShutdown = false
 
 windowAdditions =
   rootViewParentSelector: 'body'
@@ -69,8 +68,7 @@ windowAdditions =
     $(rootViewParentSelector).append(rootView)
 
   shutdown: ->
-    return if wasShutdown
-    wasShutdown = true
+    return if not project and not rootView
     atom.setWindowState('pathToOpen', project.getPath())
     atom.setRootViewStateForPath project.getPath(),
       project: project.serialize()
@@ -78,6 +76,8 @@ windowAdditions =
     rootView.deactivate()
     project.destroy()
     $(window).off('focus blur before')
+    window.rootView = null
+    window.project = null
 
   stylesheetElementForId: (id) ->
     $("head style[id='#{id}']")

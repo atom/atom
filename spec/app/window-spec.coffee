@@ -2,17 +2,17 @@ $ = require 'jquery'
 fs = require 'fs'
 
 describe "Window", ->
-  [rootView] = []
+  projectPath = null
 
   beforeEach ->
-    window.handleWindowEvents()
     spyOn(atom, 'getPathToOpen').andReturn(project.getPath())
+    window.handleWindowEvents()
     window.buildProjectAndRootView()
-    rootView = window.rootView
+    projectPath = project.getPath()
 
   afterEach ->
     window.shutdown()
-    atom.setRootViewStateForPath(project.getPath(), null)
+    atom.setRootViewStateForPath(projectPath, null)
     $(window).off 'beforeunload'
 
   describe "when the window is loaded", ->
@@ -87,16 +87,17 @@ describe "Window", ->
       removeStylesheet(cssPath)
       expect($(document.body).css('font-weight')).not.toBe("bold")
 
-  describe "shutdown()", ->
+  describe ".shutdown()", ->
     it "saves the serialized state of the project and root view to the atom object so it can be rehydrated after reload", ->
-      expect(atom.getRootViewStateForPath(project.getPath())).toBeUndefined()
+      projectPath = project.getPath()
+      expect(atom.getRootViewStateForPath(projectPath)).toBeUndefined()
       # JSON.stringify removes keys with undefined values
       rootViewState = JSON.parse(JSON.stringify(rootView.serialize()))
       projectState = JSON.parse(JSON.stringify(project.serialize()))
 
-      shutdown()
+      window.shutdown()
 
-      expect(atom.getRootViewStateForPath(project.getPath())).toEqual
+      expect(atom.getRootViewStateForPath(projectPath)).toEqual
         project: projectState
         rootView: rootViewState
 
@@ -106,7 +107,7 @@ describe "Window", ->
       editor2 = editor1.splitRight()
       expect(window.rootView.getEditors().length).toBe 2
 
-      shutdown()
+      window.shutdown()
 
       expect(editor1.getBuffer().subscriptionCount()).toBe 0
 

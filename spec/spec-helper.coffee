@@ -59,7 +59,9 @@ afterEach ->
   if rootView?
     rootView.deactivate()
     window.rootView = null
-  project.destroy()
+  if project?
+    project.destroy()
+    window.project = null
   $('#jasmine-content').empty()
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
