@@ -1,5 +1,3 @@
-fs = require 'fs'
-
 module.exports =
   treeView: null
 
