@@ -23,13 +23,6 @@ class Gutter extends View
     highlightLines = => @highlightLines()
     editor.on 'cursor:moved', highlightLines
     editor.on 'selection:changed', highlightLines
-    @on 'click', '.line-number', (e) =>
-      row = parseInt($(e.target).text()) - 1
-      position = new Point(row, 0)
-      if e.shiftKey
-        @editor().selectToScreenPosition(position)
-      else
-        @editor().setCursorScreenPosition(position)
 
     @calculateWidth()
 

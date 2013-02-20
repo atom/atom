@@ -2225,21 +2225,44 @@ describe "Editor", ->
       runs ->
         expect(editor.getText()).toBe(originalPathText)
 
-  describe "when clicking a gutter line", ->
+  describe "when clicking in the gutter", ->
     beforeEach ->
-      rootView.attachToDom()
+      editor.attachToDom()
 
-    it "moves the cursor to the start of the selected line", ->
-      expect(editor.getCursorScreenPosition()).toEqual [0,0]
-      editor.gutter.find(".line-number:eq(1)").trigger 'click'
-      expect(editor.getCursorScreenPosition()).toEqual [1,0]
+    describe "when single clicking", ->
+      it "moves the cursor to the start of the selected line", ->
+        expect(editor.getCursorScreenPosition()).toEqual [0,0]
+        event = $.Event("mousedown")
+        event.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+        event.originalEvent = {detail: 1}
+        editor.gutter.find(".line-number:eq(1)").trigger event
+        expect(editor.getCursorScreenPosition()).toEqual [1,0]
 
-    it "selects to the start of the selected line when shift is pressed", ->
-      expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
-      event = $.Event("click")
-      event.shiftKey = true
-      editor.gutter.find(".line-number:eq(1)").trigger event
-      expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [1,0]]
+    describe "when shift-clicking", ->
+      it "selects to the start of the selected line", ->
+        expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
+        event = $.Event("mousedown")
+        event.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+        event.originalEvent = {detail: 1}
+        event.shiftKey = true
+        editor.gutter.find(".line-number:eq(1)").trigger event
+        expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [1,0]]
+
+    describe "when mousing down and then moving across multiple lines before mousing up", ->
+      it "selects the lines", ->
+        mousedownEvent = $.Event("mousedown")
+        mousedownEvent.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+        mousedownEvent.originalEvent = {detail: 1}
+        editor.gutter.find(".line-number:eq(1)").trigger mousedownEvent
+
+        mousemoveEvent = $.Event("mousemove")
+        mousemoveEvent.pageY = editor.gutter.find(".line-number:eq(5)").offset().top
+        mousemoveEvent.originalEvent = {detail: 1}
+        editor.gutter.find(".line-number:eq(5)").trigger mousemoveEvent
+
+        $(document).trigger 'mouseup'
+
+        expect(editor.getSelection().getScreenRange()).toEqual [[1,0], [5,30]]
 
   describe "when clicking below the last line", ->
     beforeEach ->

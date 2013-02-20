@@ -385,7 +385,7 @@ class Editor extends View
       @destroyFold($(e.currentTarget).attr('fold-id'))
       false
 
-    @renderedLines.on 'mousedown', (e) =>
+    onMouseDown = (e) =>
       clickCount = e.originalEvent.detail
 
       screenPosition = @screenPositionFromMouseEvent(e)
@@ -403,6 +403,8 @@ class Editor extends View
 
       @selectOnMousemoveUntilMouseup()
 
+    @renderedLines.on 'mousedown', onMouseDown
+
     @on "textInput", (e) =>
       @insertText(e.originalEvent.data)
       false
@@ -418,6 +420,10 @@ class Editor extends View
     unless @mini
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
+
+      @gutter.on 'mousedown', (e) =>
+        e.pageX = @renderedLines.offset().left
+        onMouseDown(e)
 
       @subscribe syntax, 'grammars-loaded', =>
         @reloadGrammar()
