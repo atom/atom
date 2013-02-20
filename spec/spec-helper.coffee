@@ -64,8 +64,7 @@ afterEach ->
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
-# window.keymap.bindKeys '*', 'meta-w': 'close'
-$(document).on 'close', -> window.close()
+$(window).on 'core:close', -> window.close()
 $(window).on 'toggle-dev-tools', (e) -> atom.toggleDevTools()
 $('html,body').css('overflow', 'auto')
 
