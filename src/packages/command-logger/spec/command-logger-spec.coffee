@@ -11,9 +11,6 @@ describe "CommandLogger", ->
     commandLogger.eventLog = {}
     editor = rootView.getActiveEditor()
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "when a command is triggered", ->
     it "records the number of times the command is triggered", ->
       expect(commandLogger.eventLog['core:backspace']).toBeUndefined()

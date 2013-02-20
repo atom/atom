@@ -15,9 +15,6 @@ describe 'FuzzyFinder', ->
     rootView.enableKeymap()
     finderView = window.loadPackage("fuzzy-finder").packageMain.createView()
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "file-finder behavior", ->
     describe "toggling", ->
       describe "when the root view's project has a path", ->

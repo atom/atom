@@ -21,9 +21,6 @@ describe "TreeView", ->
 
     expect(treeView.root.directory.subscriptionCount()).toBeGreaterThan 0
 
-  afterEach ->
-    rootView.deactivate()
-
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
       expect(treeView.root.find('> .header .disclosure-arrow')).not.toHaveClass('expanded')
@@ -616,7 +613,6 @@ describe "TreeView", ->
       fileView = treeView.find('.file:contains(test-file.txt)').view()
 
     afterEach ->
-      rootView.deactivate()
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
 
     describe "tree-view:add", ->

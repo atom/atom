@@ -11,9 +11,6 @@ describe "Gists package", ->
     editor = rootView.getActiveEditor()
     spyOn($, 'ajax')
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "when gist:create is triggered on an editor", ->
 
     describe "when the editor has no selection", ->

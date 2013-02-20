@@ -16,9 +16,6 @@ describe "CommandPanel", ->
     commandPanel.history = []
     commandPanel.historyIndex = 0
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "serialization", ->
     it "preserves the command panel's history across reloads", ->
       rootView.attachToDom()

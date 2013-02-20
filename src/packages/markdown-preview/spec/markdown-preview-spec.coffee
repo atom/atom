@@ -10,9 +10,6 @@ describe "MarkdownPreview", ->
     window.loadPackage("markdown-preview")
     spyOn(MarkdownPreview.prototype, 'loadHtml')
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "markdown-preview:toggle event", ->
     it "toggles on/off a preview for a .md file", ->
       rootView.open('file.md')

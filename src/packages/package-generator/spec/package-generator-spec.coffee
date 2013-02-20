@@ -9,9 +9,6 @@ describe 'Package Generator', ->
     rootView.open('sample.js')
     window.loadPackage("package-generator")
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "when package-generator:generate is triggered", ->
     it "displays a miniEditor", ->
       rootView.trigger("package-generator:generate")

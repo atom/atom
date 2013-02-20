@@ -12,9 +12,6 @@ describe "bracket matching", ->
     editSession = editor.activeEditSession
     buffer = editSession.buffer
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "matching bracket highlighting", ->
     describe "when the cursor is before a starting pair", ->
       it "highlights the starting pair and ending pair", ->

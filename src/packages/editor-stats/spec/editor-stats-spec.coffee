@@ -26,9 +26,6 @@ describe "EditorStats", ->
 
     editorStats = window.loadPackage('editor-stats').packageMain.stats
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "when a keyup event is triggered", ->
     it "records the number of times a keyup is triggered", ->
       simulateKeyUp('a')

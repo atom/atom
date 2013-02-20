@@ -28,8 +28,7 @@ describe "Snippets extension", ->
     rootView.enableKeymap()
 
   afterEach ->
-    rootView.deactivate()
-    delete window.snippets
+    window.snippets = null
 
   describe "when 'tab' is triggered on the editor", ->
     beforeEach ->
