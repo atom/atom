@@ -159,6 +159,7 @@ class Editor extends View
         'editor:save': @save
         'editor:save-as': @saveAs
         'editor:newline-below': @insertNewlineBelow
+        'editor:newline-above': @insertNewlineAbove
         'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
         'editor:fold-all': @foldAll
@@ -263,6 +264,7 @@ class Editor extends View
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
+  insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
   indent: (options) -> @activeEditSession.indent(options)
   autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows(options)
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()

@@ -1022,6 +1022,25 @@ describe "EditSession", ->
         expect(buffer.lineForRow(1)).toBe "  "
         expect(editSession.getCursorBufferPosition()).toEqual [1, 2]
 
+    describe ".insertNewlineAbove()", ->
+      describe "when the cursor is on first line", ->
+        it "inserts a newline on the first line and moves the cursor to the first line", ->
+          editSession.setCursorBufferPosition([0])
+          editSession.insertNewlineAbove()
+          expect(editSession.getCursorBufferPosition()).toEqual [0,0]
+          expect(editSession.lineForBufferRow(0)).toBe ''
+          expect(editSession.lineForBufferRow(1)).toBe 'var quicksort = function () {'
+          expect(editSession.buffer.getLineCount()).toBe 14
+
+      describe "when the cursor is not on the first line", ->
+        it "inserts a newline above the current line and moves the cursor to the inserted line", ->
+          editSession.setCursorBufferPosition([3])
+          editSession.insertNewlineAbove()
+          expect(editSession.getCursorBufferPosition()).toEqual [3,0]
+          expect(editSession.lineForBufferRow(3)).toBe ''
+          expect(editSession.lineForBufferRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(editSession.buffer.getLineCount()).toBe 14
+
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
         changeScreenRangeHandler = null

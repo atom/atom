@@ -174,6 +174,14 @@ class EditSession
     @moveCursorToEndOfLine()
     @insertNewline()
 
+  insertNewlineAbove: ->
+    @transact =>
+      onFirstLine = @getCursorBufferPosition().row is 0
+      @moveCursorToBeginningOfLine()
+      @moveCursorLeft()
+      @insertNewline()
+      @moveCursorUp() if onFirstLine
+
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
