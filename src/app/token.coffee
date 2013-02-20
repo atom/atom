@@ -62,7 +62,8 @@ class Token
   isOnlyWhitespace: ->
     not /\S/.test(@value)
 
-  getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace})->
+  getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide})->
+    invisibles ?= {}
     html = @value
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
@@ -70,26 +71,29 @@ class Token
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
 
-    if invisibles
-      if @isHardTab and invisibles.tab
-        html = html.replace(/^./, "<span class='invisible hard-tab'>#{invisibles.tab}</span>")
-      else if invisibles.space
-        if hasLeadingWhitespace
-          html = html.replace /^[ ]+/, (match) ->
-            "<span class='invisible leading-whitespace'>#{match.replace(/./g, invisibles.space)}</span>"
-        if hasTrailingWhitespace
-          html = html.replace /[ ]+$/, (match) ->
-            "<span class='invisible trailing-whitespace'>#{match.replace(/./g, invisibles.space)}</span>"
+    if @isHardTab
+      html = html.replace /^./, (match) ->
+        classes = []
+        classes.push('invisible') if invisibles.tab
+        classes.push('indent-guide') if hasIndentGuide
+        classes.push('hard-tab')
+        match = invisibles.tab ? match
+        "<span class='#{classes.join(' ')}'>#{match}</span>"
     else
-      if @isHardTab
-        html = html.replace /^./, (match) ->
-          "<span class='hard-tab'>#{match}</span>"
-      else
-        if hasLeadingWhitespace
-          html = html.replace /^[ ]+/, (match) ->
-            "<span class='leading-whitespace'>#{match}</span>"
-        if hasTrailingWhitespace
-          html = html.replace /[ ]+$/, (match) ->
-            "<span class='trailing-whitespace'>#{match}</span>"
+      if hasLeadingWhitespace
+        html = html.replace /^[ ]+/, (match) ->
+          classes = []
+          classes.push('invisible') if invisibles.space
+          classes.push('indent-guide') if hasIndentGuide
+          classes.push('leading-whitespace')
+          match = match.replace(/./g, invisibles.space) if invisibles.space
+          "<span class='#{classes.join(' ')}'>#{match}</span>"
+      if hasTrailingWhitespace
+        html = html.replace /[ ]+$/, (match) ->
+          classes = []
+          classes.push('invisible') if invisibles.space
+          classes.push('trailing-whitespace')
+          match = match.replace(/./g, invisibles.space) if invisibles.space
+          "<span class='#{classes.join(' ')}'>#{match}</span>"
 
     html

@@ -1762,48 +1762,106 @@ describe "Editor", ->
         expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
         expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
 
-     it "displays trailing carriage return using a visible non-empty value", ->
-       editor.setText "a line that ends with a carriage return\r\n"
-       editor.attachToDom()
+      it "displays trailing carriage return using a visible non-empty value", ->
+        editor.setText "a line that ends with a carriage return\r\n"
+        editor.attachToDom()
 
-       expect(config.get("editor.showInvisibles")).toBeFalsy()
-       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
+        expect(config.get("editor.showInvisibles")).toBeFalsy()
+        expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
 
-       config.set("editor.showInvisibles", true)
-       cr = editor.invisibles?.cr
-       expect(cr).toBeTruthy()
-       eol = editor.invisibles?.eol
-       expect(eol).toBeTruthy()
-       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
+        config.set("editor.showInvisibles", true)
+        cr = editor.invisibles?.cr
+        expect(cr).toBeTruthy()
+        eol = editor.invisibles?.eol
+        expect(eol).toBeTruthy()
+        expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
 
+      describe "when wrapping is on", ->
+        it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
+          editor.setSoftWrapColumn(6)
+          editor.setText "a line that wraps"
+          editor.attachToDom()
+          config.set "editor.showInvisibles", true
+          space = editor.invisibles?.space
+          expect(space).toBeTruthy()
+          eol = editor.invisibles?.eol
+          expect(eol).toBeTruthy()
+          expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+          expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
 
-     describe "when wrapping is on", ->
-       it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
-         editor.setSoftWrapColumn(6)
-         editor.setText "a line that wraps"
-         editor.attachToDom()
-         config.set "editor.showInvisibles", true
-         space = editor.invisibles?.space
-         expect(space).toBeTruthy()
-         eol = editor.invisibles?.eol
-         expect(eol).toBeTruthy()
-         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
-         expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
+        it "displays trailing carriage return using a visible non-empty value", ->
+          editor.setSoftWrapColumn(6)
+          editor.setText "a line that\r\n"
+          editor.attachToDom()
+          config.set "editor.showInvisibles", true
+          space = editor.invisibles?.space
+          expect(space).toBeTruthy()
+          cr = editor.invisibles?.cr
+          expect(cr).toBeTruthy()
+          eol = editor.invisibles?.eol
+          expect(eol).toBeTruthy()
+          expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+          expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
+          expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
 
-       it "displays trailing carriage return using a visible non-empty value", ->
-         editor.setSoftWrapColumn(6)
-         editor.setText "a line that\r\n"
-         editor.attachToDom()
-         config.set "editor.showInvisibles", true
-         space = editor.invisibles?.space
-         expect(space).toBeTruthy()
-         cr = editor.invisibles?.cr
-         expect(cr).toBeTruthy()
-         eol = editor.invisibles?.eol
-         expect(eol).toBeTruthy()
-         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
-         expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
-         expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
+    describe "when config.editor.showIndentGuide is set to true", ->
+      it "adds an indent-guide class to each leading whitespace span", ->
+        editor.attachToDom()
+
+        expect(config.get("editor.showIndentGuide")).toBeFalsy()
+        config.set("editor.showIndentGuide", true)
+        expect(editor.showIndentGuide).toBeTruthy()
+
+        expect(editor.renderedLines.find('.line:eq(0) .indent-guide').length).toBe 0
+
+        expect(editor.renderedLines.find('.line:eq(1) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(1) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(2) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(2) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(3) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(3) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(4) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(4) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(5) .indent-guide').length).toBe 3
+        expect(editor.renderedLines.find('.line:eq(5) .indent-guide').text()).toBe '      '
+
+        expect(editor.renderedLines.find('.line:eq(6) .indent-guide').length).toBe 3
+        expect(editor.renderedLines.find('.line:eq(6) .indent-guide').text()).toBe '      '
+
+        expect(editor.renderedLines.find('.line:eq(7) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(7) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(8) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(8) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(9) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(9) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(11) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(11) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(12) .indent-guide').length).toBe 0
+
+      describe "when the indentation level on a line before an empty line is changed", ->
+        it "updates the indent guide on the empty line", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+          editor.setCursorBufferPosition([9])
+          editor.indentSelectedRows()
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
   describe "gutter rendering", ->
     beforeEach ->
