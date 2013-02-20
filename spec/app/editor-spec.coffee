@@ -1849,6 +1849,20 @@ describe "Editor", ->
 
         expect(editor.renderedLines.find('.line:eq(12) .indent-guide').length).toBe 0
 
+      describe "when the indentation level on a line before an empty line is changed", ->
+        it "updates the indent guide on the empty line", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+          editor.setCursorBufferPosition([9])
+          editor.indentSelectedRows()
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)

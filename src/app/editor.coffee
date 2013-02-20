@@ -1006,6 +1006,18 @@ class Editor extends View
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
 
     intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
+
+    if @showIndentGuide
+      trailingEmptyLineChanges = []
+      for change in @pendingChanges
+        continue unless change.bufferDelta?
+        start = change.end + change.bufferDelta + 1
+        continue unless @lineForBufferRow(start) is ''
+        end = start
+        end++ while @lineForBufferRow(end + 1) is ''
+        trailingEmptyLineChanges.push({start, end, screenDelta: 0})
+        @pendingChanges.push(trailingEmptyLineChanges...)
+
     for change in @pendingChanges
       newIntactRanges = []
       for range in intactRanges
