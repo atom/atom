@@ -102,6 +102,13 @@ describe "Pane", ->
       expect(editSession1.destroyed).toBeTruthy()
       expect(editSession2.destroyed).toBeTruthy()
 
+  describe ".focus()", ->
+    it "focuses the current item", ->
+      focusHandler = jasmine.createSpy("focusHandler")
+      pane.currentItem.on 'focus', focusHandler
+      pane.focus()
+      expect(focusHandler).toHaveBeenCalled()
+
   describe ".itemForPath(path)", ->
     it "returns the item for which a call to .getPath() returns the given path", ->
       expect(pane.itemForPath(editSession1.getPath())).toBe editSession1
