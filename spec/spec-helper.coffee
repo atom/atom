@@ -66,8 +66,7 @@ afterEach ->
 
 # window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
-$(document).on 'toggle-dev-tools', (e) ->
-  atom.toggleDevTools() if $('#root-view').length is 0
+$(window).on 'toggle-dev-tools', (e) -> atom.toggleDevTools()
 $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
