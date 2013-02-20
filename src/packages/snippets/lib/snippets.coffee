@@ -12,7 +12,8 @@ module.exports =
   activate: ->
     window.snippets = this
     @loadAll()
-    rootView.on 'editor:attached', (e, editor) => @enableSnippetsInEditor(editor)
+    rootView.eachEditor (editor) =>
+      @enableSnippetsInEditor(editor) if editor.attached
 
   deactivate: ->
     @loadSnippetsTask?.abort()
