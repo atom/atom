@@ -39,13 +39,30 @@ class Syntax
 
   grammarByFirstLineRegex: (filePath, fileContents) ->
     try
-      fileContents = fs.read(filePath) unless fileContents?
+      fileContents ?= fs.read(filePath)
     catch e
-      null
+      return
 
-    if fileContents
-      firstLine = fileContents.match(/^.*$/m)
-      _.find @grammars, (grammar) -> grammar.firstLineRegex?.test(firstLine)
+    return unless fileContents
+
+    lines = fileContents.split('\n')
+    _.find @grammars, (grammar) ->
+      regex = grammar.firstLineRegex
+      return unless regex?
+
+      escaped = false
+      numberOfNewlinesInRegex = 0
+      for character in regex.source
+        switch character
+          when '\\'
+            escaped = !escaped
+          when 'n'
+            numberOfNewlinesInRegex++ if escaped
+            escaped = false
+          else
+            escaped = false
+
+      regex.test(lines[0..numberOfNewlinesInRegex].join('\n'))
 
   grammarForScopeName: (scopeName) ->
     @grammarsByScopeName[scopeName]
