@@ -106,3 +106,8 @@ describe "Pane", ->
     it "returns the item for which a call to .getPath() returns the given path", ->
       expect(pane.itemForPath(editSession1.getPath())).toBe editSession1
       expect(pane.itemForPath(editSession2.getPath())).toBe editSession2
+
+  describe "serialization", ->
+    it "can serialize and deserialize the pane and all its serializable items", ->
+      newPane = deserialize(pane.serialize())
+      expect(newPane.getItems()).toEqual [editSession1, editSession2]
