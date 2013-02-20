@@ -2680,6 +2680,18 @@ describe "Editor", ->
           expect(buffer.lineForRow(15)).toBeUndefined()
           expect(editor.getCursorBufferPosition()).toEqual [14, 0]
 
+      describe "when the cursor is on the second to last line and the last line only a newline", ->
+        it "duplicates the current line below and moves the cursor down one row", ->
+          editor.moveCursorToBottom()
+          editor.insertNewline()
+          editor.setCursorBufferPosition([12])
+          editor.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(12)).toBe '};'
+          expect(buffer.lineForRow(13)).toBe '};'
+          expect(buffer.lineForRow(14)).toBe ''
+          expect(buffer.lineForRow(15)).toBeUndefined()
+          expect(editor.getCursorBufferPosition()).toEqual [13, 0]
+
   describe ".moveEditSessionToIndex(fromIndex, toIndex)", ->
     describe "when the edit session moves to a later index", ->
       it "updates the edit session order", ->

@@ -421,7 +421,7 @@ class EditSession
         bufferRange = new Range([cursorPosition.row], [cursorPosition.row + 1])
 
       insertPosition = new Point(bufferRange.end.row)
-      if insertPosition.row >= @buffer.getLastRow()
+      if insertPosition.row > @buffer.getLastRow()
         @unfoldCurrentRow() if cursorRowFolded
         @buffer.append("\n#{@getTextInBufferRange(bufferRange)}")
         @foldCurrentRow() if cursorRowFolded
