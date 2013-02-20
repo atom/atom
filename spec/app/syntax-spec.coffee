@@ -12,6 +12,10 @@ describe "the `syntax` global", ->
       filePath = require.resolve("fixtures/shebang")
       expect(syntax.grammarForFilePath(filePath).name).toBe "Ruby"
 
+    it "only use the first line to determine the syntax", ->
+      fileContent = "first-line\n<html>"
+      expect(syntax.grammarForFilePath("dummy.coffee", fileContent).name).toBe "CoffeeScript"
+
     it "doesn't read the file when the file contents are specified", ->
       filePath = require.resolve("fixtures/shebang")
       filePathContents = fs.read(filePath)

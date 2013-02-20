@@ -43,7 +43,9 @@ class Syntax
     catch e
       null
 
-    _.find @grammars, (grammar) -> grammar.firstLineRegex?.test(fileContents)
+    if fileContents
+      firstLine = fileContents.match(/^.*$/m)
+      _.find @grammars, (grammar) -> grammar.firstLineRegex?.test(firstLine)
 
   grammarForScopeName: (scopeName) ->
     @grammarsByScopeName[scopeName]
