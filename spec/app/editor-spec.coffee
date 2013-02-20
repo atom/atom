@@ -1863,6 +1863,19 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
+      describe "when a line contains only whitespace", ->
+        it "displays an indent guide on the line", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          editor.setCursorBufferPosition([10])
+          editor.indent()
+          console.log 'here'
+          editor.indent()
+          expect(editor.getCursorBufferPosition()).toEqual [10, 4]
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)

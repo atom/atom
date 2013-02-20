@@ -1201,16 +1201,14 @@ class Editor extends View
     else
       firstNonWhitespacePosition = screenLine.text.search(/\S/)
       firstTrailingWhitespacePosition = screenLine.text.search(/\s*$/)
+      lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
       position = 0
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
-        line.push(token.getValueAsHtml(
-          invisibles: invisibles
-          hasLeadingWhitespace: position < firstNonWhitespacePosition
-          hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
-          hasIndentGuide: @showIndentGuide
-        ))
-
+        hasLeadingWhitespace =  position < firstNonWhitespacePosition
+        hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
+        hasIndentGuide = @showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
+        line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
         position += token.value.length
 
     popScope() while scopeStack.length > 0

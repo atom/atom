@@ -92,6 +92,7 @@ class Token
         html = html.replace /[ ]+$/, (match) ->
           classes = []
           classes.push('invisible') if invisibles.space
+          classes.push('indent-guide') if hasIndentGuide
           classes.push('trailing-whitespace')
           match = match.replace(/./g, invisibles.space) if invisibles.space
           "<span class='#{classes.join(' ')}'>#{match}</span>"
