@@ -70,7 +70,7 @@ class Editor extends View
     if editSessionOrOptions instanceof EditSession
       editSession = editSessionOrOptions
     else
-      {editSession, @mini, deserializing} = (options ? {})
+      {editSession, @mini, deserializing} = (editSessionOrOptions ? {})
 
     requireStylesheet 'editor.css'
 
@@ -793,19 +793,19 @@ class Editor extends View
     new Editor { editSession: editSession ? @activeEditSession.copy() }
 
   splitLeft: (editSession) ->
-    @pane()?.splitLeft(@newSplitEditor(editSession)).wrappedView
+    @pane()?.splitLeft(@newSplitEditor(editSession)).currentItem
 
   splitRight: (editSession) ->
-    @pane()?.splitRight(@newSplitEditor(editSession)).wrappedView
+    @pane()?.splitRight(@newSplitEditor(editSession)).currentItem
 
   splitUp: (editSession) ->
-    @pane()?.splitUp(@newSplitEditor(editSession)).wrappedView
+    @pane()?.splitUp(@newSplitEditor(editSession)).currentItem
 
   splitDown: (editSession) ->
-    @pane()?.splitDown(@newSplitEditor(editSession)).wrappedView
+    @pane()?.splitDown(@newSplitEditor(editSession)).currentItem
 
   pane: ->
-    @parent('.pane').view()
+    @closest('.pane').view()
 
   promptToSaveDirtySession: (session, callback) ->
     path = session.getPath()
@@ -821,7 +821,7 @@ class Editor extends View
   remove: (selector, keepData) ->
     return super if keepData or @removed
     @trigger 'editor:will-be-removed'
-    if @pane() then @pane().remove() else super
+    super
     rootView?.focus()
 
   afterRemove: ->

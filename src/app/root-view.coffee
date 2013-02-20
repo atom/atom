@@ -120,6 +120,7 @@ class RootView extends View
     if not editor.mini
       editor.on 'editor:path-changed.root-view', =>
         @trigger 'root-view:active-path-changed', editor.getPath()
+
       if not previousActiveEditor or editor.getPath() != previousActiveEditor.getPath()
         @trigger 'root-view:active-path-changed', editor.getPath()
 
@@ -144,7 +145,7 @@ class RootView extends View
     document.title = @title
 
   getEditors: ->
-    @panes.find('.pane > .editor').map(-> $(this).view()).toArray()
+    @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
   getModifiedBuffers: ->
     modifiedBuffers = []

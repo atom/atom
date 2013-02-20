@@ -55,6 +55,12 @@ html, body {
   box-sizing: border-box;
 }
 
+#root-view #panes .pane .item-views {
+  -webkit-flex: 1;
+  display: -webkit-flex;
+  -webkit-flex-flow: column;
+}
+
 @font-face {
   font-family: 'Octicons Regular';
   src: url("octicons-regular-webfont.woff") format("woff");

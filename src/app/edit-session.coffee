@@ -14,7 +14,7 @@ module.exports =
 class EditSession
   registerDeserializer(this)
 
-  @deserialize: (state, project) ->
+  @deserialize: (state) ->
     if fs.exists(state.buffer)
       session = project.buildEditSession(state.buffer)
     else
