@@ -6,8 +6,8 @@ describe "CommandPanel", ->
   [editor, buffer, commandPanel, CommandPanel] = []
 
   beforeEach ->
-    new RootView
-    rootView.open(require.resolve 'fixtures/sample.js')
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.enableKeymap()
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
@@ -33,7 +33,8 @@ describe "CommandPanel", ->
 
       rootViewState = rootView.serialize()
       rootView.deactivate()
-      RootView.deserialize(rootViewState).attachToDom()
+      window.rootView = RootView.deserialize(rootViewState)
+      rootView.attachToDom()
       window.loadPackage('command-panel')
 
       expect(rootView.find('.command-panel')).not.toExist()

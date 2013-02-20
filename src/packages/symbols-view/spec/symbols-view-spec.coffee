@@ -7,14 +7,13 @@ describe "SymbolsView", ->
   [symbolsView, setArraySpy] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures'))
+    window.rootView = new RootView
     window.loadPackage("symbols-view")
 
     rootView.attachToDom()
     setArraySpy = spyOn(SymbolsView.prototype, 'setArray').andCallThrough()
 
   afterEach ->
-    rootView.deactivate()
     setArraySpy.reset()
 
   describe "when tags can be generated for a file", ->

@@ -7,99 +7,53 @@ Editor = require 'editor'
 {View, $$} = require 'space-pen'
 
 describe "RootView", ->
-  [rootView, pathToOpen] = []
+  pathToOpen = null
 
   beforeEach ->
     project.destroy()
-    window.project = new Project(require.resolve('fixtures/dir'))
+    project.setPath(project.resolve('dir'))
     pathToOpen = project.resolve('a')
-    rootView = new RootView(pathToOpen)
+    window.rootView = new RootView
     rootView.enableKeymap()
+    rootView.open(pathToOpen)
     rootView.focus()
-
-  afterEach ->
-    rootView.deactivate()
-
-  describe ".initialize(pathToOpen)", ->
-    describe "when called with a pathToOpen", ->
-      describe "when pathToOpen references a file", ->
-        it "opens the file at the given path and sets the window title", ->
-          expect(rootView.getEditors().length).toBe 1
-          expect(rootView.getEditors()[0]).toHaveClass 'active'
-          expect(rootView.getActiveEditor().getPath()).toBe pathToOpen
-          expect(rootView.getActiveEditor().editSessions.length).toBe 1
-          expect(rootView.getTitle()).toBe "#{fs.base(pathToOpen)} – #{project.getPath()}"
-
-      describe "when pathToOpen references a directory", ->
-        it "does not open an editor", ->
-          pathToOpen = project.getPath()
-          rootView = new RootView(pathToOpen)
-          rootView.focus()
-
-          expect(project.getPath()).toBe pathToOpen
-          expect(rootView.getEditors().length).toBe 0
-          expect(rootView.getTitle()).toBe project.getPath()
-
-    describe "when called with no pathToOpen", ->
-      it "opens an empty buffer", ->
-        rootView = new RootView
-        expect(rootView.getEditors().length).toBe 1
-        expect(rootView.getEditors()[0].getText()).toEqual ""
-        expect(rootView.getTitle()).toBe "untitled – #{project.getPath()}"
-
-  describe ".deactivate()", ->
-    it "deactivates all packages", ->
-      pack = window.loadPackage("package-with-module")
-      atom.activateAtomPackage(pack)
-      spyOn(pack.packageMain, "deactivate").andCallThrough()
-      rootView.deactivate()
-      expect(pack.packageMain.deactivate).toHaveBeenCalled()
 
   describe "@deserialize()", ->
     viewState = null
 
     describe "when the serialized RootView has an unsaved buffer", ->
-      buffer = null
-
-      beforeEach ->
-        rootView = new RootView
+      it "constructs the view with the same panes", ->
         rootView.open()
         editor1 = rootView.getActiveEditor()
         buffer = editor1.getBuffer()
         editor1.splitRight()
         viewState = rootView.serialize()
+        rootView.deactivate()
 
-      it "constructs the view with the same panes", ->
-        rootView = RootView.deserialize(viewState)
+        window.rootView = RootView.deserialize(viewState)
         rootView.focus()
         expect(rootView.getEditors().length).toBe 2
         expect(rootView.getActiveEditor().getText()).toBe buffer.getText()
         expect(rootView.getTitle()).toBe "untitled – #{project.getPath()}"
 
     describe "when the serialized RootView has a project", ->
-      beforeEach ->
-        project.setPath(require.resolve('fixtures'))
-
       describe "when there are open editors", ->
-        beforeEach ->
-          rootView.open('dir/a')
+        it "constructs the view with the same panes", ->
           editor1 = rootView.getActiveEditor()
           editor2 = editor1.splitRight()
           editor3 = editor2.splitRight()
-
           editor4 = editor2.splitDown()
-          editor2.edit(project.buildEditSessionForPath('dir/b'))
-          editor3.edit(project.buildEditSessionForPath('sample.js'))
+          editor2.edit(project.buildEditSessionForPath('b'))
+          editor3.edit(project.buildEditSessionForPath('../sample.js'))
           editor3.setCursorScreenPosition([2, 4])
-          editor4.edit(project.buildEditSessionForPath('sample.txt'))
+          editor4.edit(project.buildEditSessionForPath('../sample.txt'))
           editor4.setCursorScreenPosition([0, 2])
           rootView.attachToDom()
           editor2.focus()
-          viewState = rootView.serialize()
-          rootView.remove()
 
-        it "constructs the view with the same project and panes", ->
-          rootView = RootView.deserialize(viewState)
+          viewState = rootView.serialize()
+          rootView.deactivate()
+          window.rootView = RootView.deserialize(viewState)
           rootView.attachToDom()
 
           expect(rootView.getEditors().length).toBe 4
@@ -108,11 +62,11 @@ describe "RootView", ->
           editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
           editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
 
-          expect(editor1.getPath()).toBe require.resolve('fixtures/dir/a')
-          expect(editor2.getPath()).toBe require.resolve('fixtures/dir/b')
-          expect(editor3.getPath()).toBe require.resolve('fixtures/sample.js')
+          expect(editor1.getPath()).toBe project.resolve('a')
+          expect(editor2.getPath()).toBe project.resolve('b')
+          expect(editor3.getPath()).toBe project.resolve('../sample.js')
           expect(editor3.getCursorScreenPosition()).toEqual [2, 4]
-          expect(editor4.getPath()).toBe require.resolve('fixtures/sample.txt')
+          expect(editor4.getPath()).toBe project.resolve('../sample.txt')
           expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
 
           # ensure adjust pane dimensions is called
@@ -130,15 +84,15 @@ describe "RootView", ->
           expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{project.getPath()}"
 
       describe "where there are no open editors", ->
-        beforeEach ->
-          rootView.deactivate()
-          rootView = new RootView(project.getPath())
-          expect(rootView.getEditors().length).toBe 0
-          viewState = rootView.serialize()
-          rootView.remove()
-
         it "constructs the view with no open editors", ->
-          rootView = RootView.deserialize(viewState)
+          rootView.getActiveEditor().remove()
+          expect(rootView.getEditors().length).toBe 0
+
+          viewState = rootView.serialize()
+          console.log viewState
+          rootView.deactivate()
+          window.rootView = RootView.deserialize(viewState)
+
           rootView.attachToDom()
           expect(rootView.getEditors().length).toBe 0
 
@@ -150,16 +104,14 @@ describe "RootView", ->
             wrappedView:
               deserializer: "BogusView"
 
-        rootView.remove()
-        rootView = RootView.deserialize(viewState)
+        rootView.deactivate()
+        window.rootView = RootView.deserialize(viewState)
         expect(rootView.find('.pane').length).toBe 1
         expect(rootView.find('.pane').children().length).toBe 0
 
   describe "focus", ->
     describe "when there is an active editor", ->
       it "hands off focus to the active editor", ->
-        rootView.remove()
-        rootView = new RootView(require.resolve 'fixtures')
         rootView.attachToDom()
 
         rootView.open() # create an editor
@@ -171,25 +123,23 @@ describe "RootView", ->
         expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
     describe "when there is no active editor", ->
+      beforeEach ->
+        rootView.getActiveEditor().remove()
+        rootView.attachToDom()
+
       describe "when are visible focusable elements (with a -1 tabindex)", ->
         it "passes focus to the first focusable element", ->
-          rootView.remove()
-          rootView = new RootView(require.resolve 'fixtures')
-
           rootView.horizontal.append $$ ->
             @div "One", id: 'one', tabindex: -1
             @div "Two", id: 'two', tabindex: -1
 
-          rootView.attachToDom()
+          rootView.focus()
           expect(rootView).not.toMatchSelector(':focus')
           expect(rootView.find('#one')).toMatchSelector(':focus')
           expect(rootView.find('#two')).not.toMatchSelector(':focus')
 
       describe "when there are no visible focusable elements", ->
         it "surrenders focus to the body", ->
-          rootView.remove()
-          rootView = new RootView(require.resolve 'fixtures')
-          rootView.attachToDom()
           expect(document.activeElement).toBe $('body')[0]
 
   describe "panes", ->
@@ -466,7 +416,7 @@ describe "RootView", ->
 
     it "sets the project path to the directory of the editor if it was previously unassigned", ->
       project.setPath(undefined)
-      rootView = new RootView
+      window.rootView = new RootView
       rootView.open()
       expect(project.getPath()?).toBeFalsy()
       rootView.getActiveEditor().getBuffer().saveAs('/tmp/ignore-me')

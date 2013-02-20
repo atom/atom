@@ -4,7 +4,8 @@ describe "bracket matching", ->
   [editor, editSession, buffer] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     window.loadPackage('bracket-matcher')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()

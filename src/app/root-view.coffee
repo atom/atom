@@ -27,49 +27,13 @@ class RootView extends View
 
   @deserialize: ({ panesViewState, packageStates, projectPath }) ->
     atom.atomPackageStates = packageStates ? {}
-    rootView = new RootView(null, suppressOpen: true)
+    rootView = new RootView
     rootView.setRootPane(deserialize(panesViewState)) if panesViewState
     rootView
 
   title: null
-  pathToOpenIsFile: false
 
-  initialize: (projectOrPathToOpen, { suppressOpen } = {}) ->
-    window.rootView = this
-    @handleEvents()
-
-    if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
-      pathToOpen = projectOrPathToOpen
-    else
-      pathToOpen = project.getPath()
-    @pathToOpenIsFile = pathToOpen and fs.isFile(pathToOpen)
-
-    config.load()
-
-    unless suppressOpen
-      if pathToOpen
-        @open(pathToOpen) if @pathToOpenIsFile
-      else
-        @open()
-
-  serialize: ->
-    panesViewState: @panes.children().view()?.serialize()
-    packageStates: atom.serializeAtomPackages()
-
-  handleFocus: (e) ->
-    if @getActiveEditor()
-      @getActiveEditor().focus()
-      false
-    else
-      @setTitle(null)
-      focusableChild = this.find("[tabindex=-1]:visible:first")
-      if focusableChild.length
-        focusableChild.focus()
-        false
-      else
-        true
-
-  handleEvents: ->
+  initialize: ->
     @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
@@ -100,6 +64,24 @@ class RootView extends View
       config.set("editor.autoIndent", !config.get("editor.autoIndent"))
     @command 'window:toggle-auto-indent-on-paste', =>
       config.set("editor.autoIndentOnPaste", !config.get("editor.autoIndentOnPaste"))
+
+  serialize: ->
+    deserializer: 'RootView'
+    panesViewState: @panes.children().view()?.serialize()
+    packageStates: atom.serializeAtomPackages()
+
+  handleFocus: (e) ->
+    if @getActiveEditor()
+      @getActiveEditor().focus()
+      false
+    else
+      @setTitle(null)
+      focusableChild = this.find("[tabindex=-1]:visible:first")
+      if focusableChild.length
+        focusableChild.focus()
+        false
+      else
+        true
 
   afterAttach: (onDom) ->
     @focus() if onDom

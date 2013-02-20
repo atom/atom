@@ -56,8 +56,9 @@ beforeEach ->
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
-  rootView?.deactivate()
-  delete window.rootView if window.rootView
+  if rootView?
+    rootView.deactivate()
+    window.rootView = null
   project.destroy()
   $('#jasmine-content').empty()
   ensureNoPathSubscriptions()

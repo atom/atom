@@ -10,7 +10,8 @@ describe 'FuzzyFinder', ->
   [finderView] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.enableKeymap()
     finderView = window.loadPackage("fuzzy-finder").packageMain.createView()
 

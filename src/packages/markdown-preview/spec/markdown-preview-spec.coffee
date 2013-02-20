@@ -6,7 +6,7 @@ _ = require 'underscore'
 describe "MarkdownPreview", ->
   beforeEach ->
     project.setPath(project.resolve('markdown'))
-    rootView = new RootView(project.getPath())
+    window.rootView = new RootView
     window.loadPackage("markdown-preview")
     spyOn(MarkdownPreview.prototype, 'loadHtml')
 

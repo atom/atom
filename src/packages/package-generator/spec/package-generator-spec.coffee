@@ -5,7 +5,8 @@ describe 'Package Generator', ->
   [packageGenerator] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     window.loadPackage("package-generator")
 
   afterEach ->

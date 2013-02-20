@@ -4,15 +4,13 @@ describe "WrapGuide", ->
   [editor, wrapGuide] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     window.loadPackage('wrap-guide')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()
     wrapGuide = rootView.find('.wrap-guide').view()
     editor.width(editor.charWidth * wrapGuide.getDefaultColumn() * 2)
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "@initialize", ->
     it "appends a wrap guide to all existing and new editors", ->

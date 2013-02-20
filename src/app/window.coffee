@@ -30,10 +30,10 @@ windowAdditions =
     $(document).on 'keydown', keymap.handleKeyEvent
     keymap.bindDefaultKeys()
 
-    $(window).on 'core:close', => @close()
+    $(window).on 'core:close', => window.close()
 
   handleWindowEvents: ->
-    $(window).command 'window:close', => @close()
+    $(window).command 'window:close', => window.close()
     $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
     $(window).on 'focus', -> $("body").removeClass('is-blurred')
     $(window).on 'blur',  -> $("body").addClass('is-blurred')
@@ -42,6 +42,7 @@ windowAdditions =
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
   startApplication: ->
+    handleWindowEvents()
     config.load()
     buildProjectAndRootView()
     keymap.loadBundledKeymaps()
@@ -50,6 +51,9 @@ windowAdditions =
     atom.loadPackages()
     $(window).on 'beforeunload', -> stopApplication(); false
     $(window).focus()
+
+    pathToOpen = atom.getPathToOpen()
+    rootView.open(pathToOpen) if !pathToOpen or fs.isFile(pathToOpen)
 
   buildProjectAndRootView: ->
     RootView = require 'root-view'
@@ -60,7 +64,7 @@ windowAdditions =
       window.rootView = deserialize(windowState.rootView)
     else
       window.project = new Project(atom.getPathToOpen())
-      window.rootView = new RootView(atom.getPathToOpen())
+      window.rootView = new RootView
     $(rootViewParentSelector).append(rootView)
 
   stopApplication: ->

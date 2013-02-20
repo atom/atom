@@ -3,10 +3,7 @@ RootView = require 'root-view'
 
 describe "the `atom` global", ->
   beforeEach ->
-    new RootView
-
-  afterEach ->
-    rootView.deactivate()
+    window.rootView = new RootView
 
   describe "when a package is built and loaded", ->
     [extension, stylesheetPath] = []

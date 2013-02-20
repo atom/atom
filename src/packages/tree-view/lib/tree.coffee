@@ -1,9 +1,10 @@
+fs = require 'fs'
+
 module.exports =
   treeView: null
 
   activate: (@state) ->
-    if @state.attached == undefined and not rootView.pathToOpenIsFile
-      @state.attached = true
+    @state.attached ?= true unless rootView.getActiveEditSession()
 
     @createView() if @state.attached
     rootView.command 'tree-view:toggle', => @createView().toggle()

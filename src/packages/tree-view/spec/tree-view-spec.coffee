@@ -10,7 +10,7 @@ describe "TreeView", ->
 
   beforeEach ->
     project.setPath(project.resolve('tree-view'))
-    new RootView(project.getPath())
+    window.rootView = new RootView
 
     window.loadPackage("tree-view")
     rootView.trigger 'tree-view:toggle'
@@ -50,7 +50,8 @@ describe "TreeView", ->
       beforeEach ->
         project.setPath(undefined)
         rootView.deactivate()
-        new RootView()
+        window.rootView = new RootView()
+        rootView.open()
         treeView = window.loadPackage("tree-view").packageMain.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
@@ -75,15 +76,14 @@ describe "TreeView", ->
     describe "when the root view is opened to a file path", ->
       it "does not attach to the root view but does create a root node when initialized", ->
         rootView.deactivate()
-        new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
+        window.rootView = new RootView
+        rootView.open('tree-view.js')
         treeView = window.loadPackage("tree-view").packageMain.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
     describe "when the root view is opened to a directory", ->
       it "attaches to the root view", ->
-        rootView.deactivate()
-        new RootView(require.resolve('fixtures/tree-view'))
         treeView = window.loadPackage("tree-view").packageMain.createView()
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.root).toExist()
@@ -95,7 +95,7 @@ describe "TreeView", ->
 
       rootViewState = rootView.serialize()
       rootView.deactivate()
-      RootView.deserialize(rootViewState)
+      window.rootView = RootView.deserialize(rootViewState)
       window.loadPackage("tree-view")
       treeView = rootView.find(".tree-view").view()
 
@@ -110,7 +110,7 @@ describe "TreeView", ->
 
       rootViewState = rootView.serialize()
       rootView.deactivate()
-      RootView.deserialize(rootViewState)
+      window.rootView = RootView.deserialize(rootViewState)
 
       rootView.attachToDom()
       window.loadPackage("tree-view")
@@ -607,7 +607,7 @@ describe "TreeView", ->
       fs.write(filePath, "doesn't matter")
 
       project.setPath(rootDirPath)
-      new RootView(rootDirPath)
+      window.rootView = new RootView(rootDirPath)
       window.loadPackage('tree-view')
       rootView.trigger 'tree-view:toggle'
       treeView = rootView.find(".tree-view").view()

@@ -5,7 +5,8 @@ describe "CommandLogger", ->
   [commandLogger, editor] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     commandLogger = window.loadPackage('command-logger').packageMain
     commandLogger.eventLog = {}
     editor = rootView.getActiveEditor()

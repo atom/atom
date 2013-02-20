@@ -21,7 +21,8 @@ describe "Editor", ->
     cachedLineHeight
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
 
@@ -33,9 +34,6 @@ describe "Editor", ->
     editor.lineOverdraw = 2
     editor.enableKeymap()
     editor.isFocused = true
-
-  afterEach ->
-    rootView.remove()
 
   describe "construction", ->
     it "throws an error if no editor session is given unless deserializing", ->
@@ -356,14 +354,11 @@ describe "Editor", ->
       tempFilePath = null
 
       beforeEach ->
-        rootView.deactivate()
-
+        project.setPath('/tmp')
         tempFilePath = '/tmp/atom-temp.txt'
         fs.write(tempFilePath, "")
-        new RootView(tempFilePath)
+        rootView.open(tempFilePath)
         editor = rootView.getActiveEditor()
-        project = project
-
         expect(editor.getPath()).toBe tempFilePath
 
       afterEach ->

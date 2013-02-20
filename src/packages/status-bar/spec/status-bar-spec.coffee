@@ -5,18 +5,16 @@ StatusBar = require 'status-bar/lib/status-bar-view'
 fs = require 'fs'
 
 describe "StatusBar", ->
-  [rootView, editor, statusBar, buffer] = []
+  [editor, statusBar, buffer] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.simulateDomAttachment()
     StatusBar.activate()
     editor = rootView.getActiveEditor()
     statusBar = rootView.find('.status-bar').view()
     buffer = editor.getBuffer()
-
-  afterEach ->
-    rootView.remove()
 
   describe "@initialize", ->
     it "appends a status bar to all existing and new editors", ->
@@ -34,8 +32,8 @@ describe "StatusBar", ->
 
     describe "when associated with an unsaved buffer", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
-        rootView.remove()
-        rootView = new RootView
+        rootView.deactivate()
+        window.rootView = new RootView
         rootView.open()
         rootView.simulateDomAttachment()
         StatusBar.activate()

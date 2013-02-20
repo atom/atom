@@ -7,15 +7,13 @@ describe "TabView", ->
   [editor, buffer, tabs] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.open('sample.txt')
     rootView.simulateDomAttachment()
     window.loadPackage("tabs")
     editor = rootView.getActiveEditor()
     tabs = rootView.find('.tabs').view()
-
-  afterEach ->
-    rootView.remove()
 
   describe "@activate", ->
     it "appends a status bear to all existing and new editors", ->
@@ -25,7 +23,7 @@ describe "TabView", ->
       expect(rootView.find('.pane').length).toBe 2
       expect(rootView.panes.find('.pane > .tabs').length).toBe 2
 
-  describe "#initialize()", ->
+  describe ".initialize()", ->
     it "creates a tab for each edit session on the editor to which the tab-strip belongs", ->
       expect(editor.editSessions.length).toBe 2
       expect(tabs.find('.tab').length).toBe 2

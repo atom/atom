@@ -4,7 +4,8 @@ describe "Autoflow package", ->
   editor = null
 
   beforeEach ->
-    new RootView
+    window.rootView = new RootView
+    rootView.open()
     window.loadPackage 'autoflow'
     editor = rootView.getActiveEditor()
     config.set('editor.preferredLineLength', 30)

@@ -10,7 +10,8 @@ Package = require 'package'
 describe "Snippets extension", ->
   [buffer, editor, editSession] = []
   beforeEach ->
-    new RootView(project.resolve('sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     spyOn(LoadSnippetsTask.prototype, 'start')
 
     packageWithSnippets = window.loadPackage("package-with-snippets")

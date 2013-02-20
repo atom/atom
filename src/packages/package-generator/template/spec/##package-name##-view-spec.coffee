@@ -9,11 +9,8 @@ fdescribe "##PackageName##View", ->
   ##packageName## = null
 
   beforeEach ->
-    new RootView()
+    window.rootView = new RootView
     ##packageName## = window.loadPackage('##packageName##', activateImmediately: true)
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "when the ##package-name##:toggle event is triggered", ->
     it "attaches and then detaches the view", ->
