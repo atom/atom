@@ -44,6 +44,7 @@ windowAdditions =
   startApplication: ->
     handleWindowEvents()
     config.load()
+    atom.loadTextPackage()
     buildProjectAndRootView()
     keymap.loadBundledKeymaps()
     atom.loadThemes()
@@ -59,7 +60,8 @@ windowAdditions =
     RootView = require 'root-view'
     Project = require 'project'
 
-    if windowState = atom.getRootViewStateForPath(atom.getPathToOpen()) and windowState?.project?
+    windowState = atom.getRootViewStateForPath(atom.getPathToOpen())
+    if windowState?.project?
       window.project = deserialize(windowState.project)
       window.rootView = deserialize(windowState.rootView)
     else
