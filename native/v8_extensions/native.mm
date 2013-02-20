@@ -9,6 +9,7 @@
 
 #import <iostream>
 #include <fts.h>
+#include <util.h>
 
 static std::string windowState = "{}";
 static NSLock *windowStateLock = [[NSLock alloc] init];
@@ -432,15 +433,34 @@ namespace v8_extensions {
       WriteHandler *stdinHandler = nil;
 
       NSTask *task = [[NSTask alloc] init];
-      [task setLaunchPath:@"/bin/sh"];
-      [task setArguments:[NSArray arrayWithObjects:@"-l", @"-c", command, nil]];
-
       NSPipe *stdout = [NSPipe pipe];
       NSPipe *stderr = [NSPipe pipe];
       NSPipe *stdin = [NSPipe pipe];
-      [task setStandardOutput:stdout];
-      [task setStandardError:stderr];
-      [task setStandardInput:stdin];
+      NSFileHandle *ptyFileHandle = nil;
+      NSFileHandle *ptyMasterHandle = nil;
+      int masterFd = 0, slaveFd = 0;
+
+      if(options->GetValue("interactive")->GetBoolValue()) {
+        [task setLaunchPath:command];
+        [task setArguments:[NSArray arrayWithObjects:@"-l", nil]];
+        [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: @"SHELL", "/bin/bash", nil]];
+        openpty(&masterFd, &slaveFd, nil, nil, nil);
+        fcntl(masterFd, F_SETFD, FD_CLOEXEC);
+        fcntl(slaveFd, F_SETFD, FD_CLOEXEC);
+        login_tty(slaveFd);
+        ptyFileHandle = [[NSFileHandle alloc] initWithFileDescriptor:slaveFd];
+        ptyMasterHandle = [[NSFileHandle alloc] initWithFileDescriptor:masterFd];
+        [task setStandardOutput:ptyFileHandle];
+        [task setStandardError:ptyFileHandle];
+        [task setStandardInput:ptyFileHandle];
+      } else {
+        [task setLaunchPath:@"/bin/sh"];
+        [task setArguments:[NSArray arrayWithObjects:@"-l", @"-c", command, nil]];
+        [task setStandardOutput:stdout];
+        [task setStandardError:stderr];
+        [task setStandardInput:stdin];
+      }
+
 
       CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
       void (^outputHandle)(NSString *contents, CefRefPtr<CefV8Value> function) = nil;

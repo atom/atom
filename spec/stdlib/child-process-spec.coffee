@@ -143,7 +143,7 @@ describe 'Child Processes', ->
         runs ->
           expect(output.join('')).toBe "#{fixturesProject.getPath()}\n"
 
-      fdescribe "write to stdin", ->
+      describe "write to stdin", ->
         it "returns a function for writing", ->
           promise = ChildProcess.exec("pwd")
           expect(typeof promise.write).toBe("function")
