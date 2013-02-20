@@ -171,8 +171,9 @@ class EditSession
     @insertText('\n')
 
   insertNewlineBelow: ->
-    @moveCursorToEndOfLine()
-    @insertNewline()
+    @transact =>
+      @moveCursorToEndOfLine()
+      @insertNewline()
 
   insertNewlineAbove: ->
     @transact =>

@@ -1015,6 +1015,14 @@ describe "EditSession", ->
             expect(cursor2.getBufferPosition()).toEqual [8,0]
 
     describe ".insertNewlineBelow()", ->
+      describe "when the operation is undone", ->
+        it "places the cursor back at the previous location", ->
+          editSession.setCursorBufferPosition([0,2])
+          editSession.insertNewlineBelow()
+          expect(editSession.getCursorBufferPosition()).toEqual [1,0]
+          editSession.undo()
+          expect(editSession.getCursorBufferPosition()).toEqual [0,2]
+
       xit "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
         editSession.setAutoIndent(true)
         editSession.insertNewlineBelow()
