@@ -11,6 +11,10 @@
   border-color: #000;
 }
 
+.editor .selection .region {
+  background-color: #e1e1e1;
+}
+
 .editor.is-focused .selection .region {
   background-color: #afc4da;
 }
