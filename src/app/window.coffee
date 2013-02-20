@@ -46,9 +46,9 @@ windowAdditions =
     config.load()
     buildProjectAndRootView()
     keymap.loadBundledKeymaps()
-    keymap.loadUserKeymaps()
     atom.loadThemes()
     atom.loadPackages()
+    keymap.loadUserKeymaps()
     $(window).on 'beforeunload', -> stopApplication(); false
     $(window).focus()
 
