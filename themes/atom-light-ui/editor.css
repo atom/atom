@@ -10,6 +10,10 @@
   background: #333;
 }
 
+.editor.mini .selection .region {
+  background-color: #afc4da;
+}
+
 .editor .gutter.drop-shadow {
   -webkit-box-shadow: -2px 0px 10px 2px #222;
 }
