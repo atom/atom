@@ -93,7 +93,7 @@ task :clean do
 end
 
 desc "Run the specs"
-task :test => ["clone-default-bundles", "build"] do
+task :test => ["update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
     `rm -rf path`
