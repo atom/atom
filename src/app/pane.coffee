@@ -10,8 +10,8 @@ class Pane extends View
     @div class: 'pane', =>
       @div class: 'item-views', outlet: 'itemViews'
 
-  @deserialize: ({wrappedView}) ->
-    new Pane(deserialize(wrappedView))
+  @deserialize: ({items}) ->
+    new Pane(items.map((item) -> deserialize(item))...)
 
   currentItem: null
   items: null
@@ -96,7 +96,7 @@ class Pane extends View
 
   serialize: ->
     deserializer: "Pane"
-    wrappedView: @wrappedView?.serialize()
+    items: _.compact(@getItems().map (item) -> item.serialize?())
 
   adjustDimensions: -> # do nothing
 
