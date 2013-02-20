@@ -20,6 +20,13 @@ require.paths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
+$(window).on 'core:close', -> window.close()
+$(window).on 'toggle-dev-tools', (e) -> atom.toggleDevTools()
+$('html,body').css('overflow', 'auto')
+
+jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+jasmine.getEnv().defaultTimeoutInterval = 1000
+
 beforeEach ->
   jQuery.fx.off = true
   window.fixturesProject = new Project(require.resolve('fixtures'))
@@ -67,13 +74,6 @@ afterEach ->
   $('#jasmine-content').empty()
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
-
-$(window).on 'core:close', -> window.close()
-$(window).on 'toggle-dev-tools', (e) -> atom.toggleDevTools()
-$('html,body').css('overflow', 'auto')
-
-jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
-jasmine.getEnv().defaultTimeoutInterval = 1000
 
 window.loadPackage = (name, options) ->
   Package = require 'package'
