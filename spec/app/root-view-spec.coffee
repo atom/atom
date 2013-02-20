@@ -10,7 +10,6 @@ describe "RootView", ->
   pathToOpen = null
 
   beforeEach ->
-    project.destroy()
     project.setPath(project.resolve('dir'))
     pathToOpen = project.resolve('a')
     window.rootView = new RootView
@@ -18,7 +17,7 @@ describe "RootView", ->
     rootView.open(pathToOpen)
     rootView.focus()
 
-  describe "@deserialize()", ->
+  xdescribe "@deserialize()", ->
     viewState = null
 
     describe "when the serialized RootView has an unsaved buffer", ->
@@ -27,10 +26,11 @@ describe "RootView", ->
         editor1 = rootView.getActiveEditor()
         buffer = editor1.getBuffer()
         editor1.splitRight()
+
         viewState = rootView.serialize()
         rootView.deactivate()
-
         window.rootView = RootView.deserialize(viewState)
+
         rootView.focus()
         expect(rootView.getEditors().length).toBe 2
         expect(rootView.getActiveEditor().getText()).toBe buffer.getText()
@@ -141,7 +141,7 @@ describe "RootView", ->
         it "surrenders focus to the body", ->
           expect(document.activeElement).toBe $('body')[0]
 
-  fdescribe "panes", ->
+  describe "panes", ->
     [pane1, newPaneContent] = []
 
     beforeEach ->
@@ -474,7 +474,7 @@ describe "RootView", ->
       rootView.trigger 'window:decrease-font-size'
       expect(editor.getFontSize()).toBe 1
 
-  fdescribe ".open(path, options)", ->
+  describe ".open(path, options)", ->
     describe "when there is no active pane", ->
       beforeEach ->
         rootView.getActivePane().remove()
