@@ -109,3 +109,9 @@ describe "Window", ->
       shutdown()
 
       expect(editor1.getBuffer().subscriptionCount()).toBe 0
+
+    it "only serializes window state the first time it is called", ->
+      deactivateSpy = spyOn(atom, "setRootViewStateForPath").andCallThrough()
+      window.shutdown()
+      window.shutdown()
+      expect(atom.setRootViewStateForPath.callCount).toBe 1

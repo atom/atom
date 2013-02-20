@@ -8,6 +8,7 @@ require 'underscore-extensions'
 require 'space-pen-extensions'
 
 deserializers = {}
+wasShutdown = false
 
 windowAdditions =
   rootViewParentSelector: 'body'
@@ -68,6 +69,8 @@ windowAdditions =
     $(rootViewParentSelector).append(rootView)
 
   shutdown: ->
+    return if wasShutdown
+    wasShutdown = true
     atom.setWindowState('pathToOpen', project.getPath())
     atom.setRootViewStateForPath project.getPath(),
       project: project.serialize()
