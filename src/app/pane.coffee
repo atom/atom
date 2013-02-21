@@ -20,6 +20,7 @@ class Pane extends View
     @viewsByClassName = {}
     @showItem(@items[0])
 
+    @command 'core:close', @removeCurrentItem
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
     @command 'pane:split-left', => @splitLeft()
@@ -64,6 +65,9 @@ class Pane extends View
     return if _.include(@items, item)
     @items.splice(@getCurrentItemIndex() + 1, 0, item)
     item
+
+  removeCurrentItem: =>
+    @removeItem(@currentItem)
 
   removeItem: (item) ->
     @showNextItem() if item is @currentItem and @items.length > 1

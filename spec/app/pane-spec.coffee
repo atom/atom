@@ -91,6 +91,12 @@ describe "Pane", ->
         pane.removeItem(editSession2)
         expect(editSession2.destroyed).toBeTruthy()
 
+  describe "core:close", ->
+    it "removes the current item", ->
+      initialItemCount = pane.getItems().length
+      pane.trigger 'core:close'
+      expect(pane.getItems().length).toBe initialItemCount - 1
+
   describe "pane:show-next-item and pane:show-previous-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
       expect(pane.currentItem).toBe view1
