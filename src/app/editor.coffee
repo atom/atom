@@ -160,7 +160,6 @@ class Editor extends View
         'core:select-down': @selectDown
         'core:select-to-top': @selectToTop
         'core:select-to-bottom': @selectToBottom
-        'core:close': @destroyActiveEditSession
         'editor:save': @save
         'editor:save-as': @saveAs
         'editor:newline-below': @insertNewlineBelow
@@ -172,7 +171,6 @@ class Editor extends View
         'editor:fold-current-row': @foldCurrentRow
         'editor:unfold-current-row': @unfoldCurrentRow
         'editor:fold-selection': @foldSelection
-        'editor:show-next-buffer': @loadNextEditSession
         'editor:show-buffer-1': => @setActiveEditSessionIndex(0) if @editSessions[0]
         'editor:show-buffer-2': => @setActiveEditSessionIndex(1) if @editSessions[1]
         'editor:show-buffer-3': => @setActiveEditSessionIndex(2) if @editSessions[2]
@@ -182,7 +180,6 @@ class Editor extends View
         'editor:show-buffer-7': => @setActiveEditSessionIndex(6) if @editSessions[6]
         'editor:show-buffer-8': => @setActiveEditSessionIndex(7) if @editSessions[7]
         'editor:show-buffer-9': => @setActiveEditSessionIndex(8) if @editSessions[8]
-        'editor:show-previous-buffer': @loadPreviousEditSession
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
