@@ -3,14 +3,16 @@ Pane = require 'pane'
 {$$} = require 'space-pen'
 
 describe "Pane", ->
-  [view1, view2, editSession1, editSession2, pane] = []
+  [container, view1, view2, editSession1, editSession2, pane] = []
 
   beforeEach ->
+    container = $$ -> @div id: 'panes'
     view1 = $$ -> @div id: 'view-1', 'View 1'
     view2 = $$ -> @div id: 'view-2', 'View 2'
     editSession1 = project.buildEditSession('sample.js')
     editSession2 = project.buildEditSession('sample.txt')
     pane = new Pane(view1, editSession1, view2, editSession2)
+    container.append(pane)
 
   describe ".initialize(items...)", ->
     it "displays the first item in the pane", ->
@@ -108,6 +110,61 @@ describe "Pane", ->
       pane.currentItem.on 'focus', focusHandler
       pane.focus()
       expect(focusHandler).toHaveBeenCalled()
+
+  describe "split methods", ->
+    [view3, view4] = []
+    beforeEach ->
+      pane.showItem(editSession1)
+      view3 = $$ -> @div id: 'view-3', 'View 3'
+      view4 = $$ -> @div id: 'view-4', 'View 4'
+
+    describe "splitRight(items...)", ->
+      it "builds a row if needed, then appends a new pane after itself", ->
+        # creates the new pane with a copy of the current item if none are given
+        pane2 = pane.splitRight()
+        expect(container.find('.row .pane').toArray()).toEqual [pane[0], pane2[0]]
+        expect(pane2.items).toEqual [editSession1]
+        expect(pane2.currentItem).not.toBe editSession1 # it's a copy
+
+        pane3 = pane2.splitRight(view3, view4)
+        expect(pane3.getItems()).toEqual [view3, view4]
+        expect(container.find('.row .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
+
+    describe "splitRight(items...)", ->
+      it "builds a row if needed, then appends a new pane before itself", ->
+        # creates the new pane with a copy of the current item if none are given
+        pane2 = pane.splitLeft()
+        expect(container.find('.row .pane').toArray()).toEqual [pane2[0], pane[0]]
+        expect(pane2.items).toEqual [editSession1]
+        expect(pane2.currentItem).not.toBe editSession1 # it's a copy
+
+        pane3 = pane2.splitLeft(view3, view4)
+        expect(pane3.getItems()).toEqual [view3, view4]
+        expect(container.find('.row .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
+
+    describe "splitDown(items...)", ->
+      it "builds a column if needed, then appends a new pane after itself", ->
+        # creates the new pane with a copy of the current item if none are given
+        pane2 = pane.splitDown()
+        expect(container.find('.column .pane').toArray()).toEqual [pane[0], pane2[0]]
+        expect(pane2.items).toEqual [editSession1]
+        expect(pane2.currentItem).not.toBe editSession1 # it's a copy
+
+        pane3 = pane2.splitDown(view3, view4)
+        expect(pane3.getItems()).toEqual [view3, view4]
+        expect(container.find('.column .pane').toArray()).toEqual [pane[0], pane2[0], pane3[0]]
+
+    describe "splitUp(items...)", ->
+      it "builds a column if needed, then appends a new pane before itself", ->
+        # creates the new pane with a copy of the current item if none are given
+        pane2 = pane.splitUp()
+        expect(container.find('.column .pane').toArray()).toEqual [pane2[0], pane[0]]
+        expect(pane2.items).toEqual [editSession1]
+        expect(pane2.currentItem).not.toBe editSession1 # it's a copy
+
+        pane3 = pane2.splitUp(view3, view4)
+        expect(pane3.getItems()).toEqual [view3, view4]
+        expect(container.find('.column .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
 
   describe ".itemForPath(path)", ->
     it "returns the item for which a call to .getPath() returns the given path", ->

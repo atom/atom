@@ -104,29 +104,33 @@ class Pane extends View
 
   verticalGridUnits: -> 1
 
-  splitUp: (view) ->
-    @split(view, 'column', 'before')
+  splitUp: (items...) ->
+    @split(items, 'column', 'before')
 
-  splitDown: (view) ->
-    @split(view, 'column', 'after')
+  splitDown: (items...) ->
+    @split(items, 'column', 'after')
 
-  splitLeft: (view) ->
-    @split(view, 'row', 'before')
+  splitLeft: (items...) ->
+    @split(items, 'row', 'before')
 
-  splitRight: (view) ->
-    @split(view, 'row', 'after')
+  splitRight: (items...) ->
+    @split(items, 'row', 'after')
 
-  split: (view, axis, side) ->
+  split: (items, axis, side) ->
     unless @parent().hasClass(axis)
       @buildPaneAxis(axis)
         .insertBefore(this)
         .append(@detach())
 
-    pane = new Pane(view)
+    items = [@copyCurrentItem()] unless items.length
+    pane = new Pane(items...)
     this[side](pane)
     rootView?.adjustPaneDimensions()
     pane.focus()
     pane
+
+  copyCurrentItem: ->
+    deserialize(@currentItem.serialize())
 
   remove: (selector, keepData) ->
     return super if keepData
