@@ -57,6 +57,42 @@ task :install => [:clean, :build] do
   puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `~/.atom` directory\033[0m"
 end
 
+<<<<<<< HEAD
+=======
+desc "Bump patch number"
+task "bump-patch-number" do
+  path = application_path()
+  exit 1 if not path
+
+  version_number = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString:" ./native/mac/info.plist`
+  major, minor, patch = version_number.match(/(\d+)\.(\d+)\.(\d+)/)[1..-1].map {|o| o.to_i}
+  `/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString #{major}.#{minor}.#{patch + 1}" ./native/mac/info.plist`
+  `/usr/libexec/PlistBuddy -c "Set :CFBundleVersion #{major}.#{minor}.#{patch + 1}" ./native/mac/info.plist`
+
+  new_version_number = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString:" ./native/mac/info.plist`
+  puts "Bumped from #{version_number.strip} to #{new_version_number.strip}"
+end
+
+desc "Creates .atom file if non exists"
+task "create-dot-atom" do
+  dot_atom_template_path = ATOM_SRC_PATH + "/dot-atom"
+
+  if File.exists?(DOT_ATOM_PATH)
+    user_config = "#{DOT_ATOM_PATH}/user.coffee"
+    old_user_config = "#{DOT_ATOM_PATH}/atom.coffee"
+
+    if File.exists?(old_user_config)
+      `mv #{old_user_config} #{user_config}`
+      puts "\033[32mRenamed #{old_user_config} to #{user_config}\033[0m"
+    end
+  else
+    `mkdir "#{DOT_ATOM_PATH}"`
+    `cp -r "#{dot_atom_template_path}/" "#{DOT_ATOM_PATH}"/`
+    `cp -r "#{ATOM_SRC_PATH}/themes/" "#{DOT_ATOM_PATH}"/themes/`
+  end
+end
+
+>>>>>>> Add bump patch number to rakefile
 desc "Clone default bundles into vendor/bundles directory"
 task "clone-default-bundles" do
   `git submodule --quiet sync`
