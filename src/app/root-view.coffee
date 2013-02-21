@@ -159,7 +159,7 @@ class RootView extends View
     _.uniq(_.flatten(@getEditors().map (editor) -> editor.getOpenBufferPaths()))
 
   getActivePane: ->
-    @panes.find('.pane.active').view() ? @panes.find('.pane:first').view()
+    @panes.getActivePane()
 
   getActiveEditor: ->
     if (editor = @panes.find('.editor.active')).length
