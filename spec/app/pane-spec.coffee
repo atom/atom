@@ -27,6 +27,27 @@ describe "Pane", ->
       expect(view2.css('display')).toBe ''
       expect(pane.currentItem).toBe view2
 
+    it "triggers 'pane:active-item-changed' if the pane is active and the item isn't already the currentItem", ->
+      pane.makeActive()
+      itemChangedHandler = jasmine.createSpy("itemChangedHandler")
+      container.on 'pane:active-item-changed', itemChangedHandler
+
+      expect(pane.currentItem).toBe view1
+      pane.showItem(view2)
+      pane.showItem(view2)
+      expect(itemChangedHandler.callCount).toBe 1
+      expect(itemChangedHandler.argsForCall[0][1]).toBe view2
+      itemChangedHandler.reset()
+
+      pane.showItem(editSession1)
+      expect(itemChangedHandler).toHaveBeenCalled()
+      expect(itemChangedHandler.argsForCall[0][1]).toBe editSession1
+      itemChangedHandler.reset()
+
+      pane.makeInactive()
+      pane.showItem(editSession2)
+      expect(itemChangedHandler).not.toHaveBeenCalled()
+
     describe "when the given item isn't yet in the items list on the pane", ->
       it "adds it to the items list after the current item", ->
         view3 = $$ -> @div id: 'view-3', "View 3"
@@ -129,6 +150,18 @@ describe "Pane", ->
       pane.currentItem.on 'focus', focusHandler
       pane.focus()
       expect(focusHandler).toHaveBeenCalled()
+
+    it "triggers 'pane:active-item-changed' if it was not previously active", ->
+      itemChangedHandler = jasmine.createSpy("itemChangedHandler")
+      container.on 'pane:active-item-changed', itemChangedHandler
+
+      expect(pane.isActive()).toBeFalsy()
+      pane.focusin()
+      expect(pane.isActive()).toBeTruthy()
+      pane.focusin()
+
+      expect(itemChangedHandler.callCount).toBe 1
+      expect(itemChangedHandler.argsForCall[0][1]).toBe pane.currentItem
 
   describe "split methods", ->
     [pane1, view3, view4] = []
