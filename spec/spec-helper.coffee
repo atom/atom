@@ -25,7 +25,7 @@ $(window).on 'toggle-dev-tools', (e) -> atom.toggleDevTools()
 $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
-jasmine.getEnv().defaultTimeoutInterval = 1000
+jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
   jQuery.fx.off = true
