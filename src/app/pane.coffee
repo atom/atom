@@ -70,6 +70,7 @@ class Pane extends View
     _.remove(@items, item)
     item.destroy?()
     @cleanupItemView(item)
+    @remove() unless @items.length
 
   itemForPath: (path) ->
     _.detect @items, (item) -> item.getPath?() is path
