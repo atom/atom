@@ -41,7 +41,8 @@ describe "Pane", ->
       describe "when no view has yet been appended for that item", ->
         it "appends and shows a view to display the item based on its `.getViewClass` method", ->
           pane.showItem(editSession1)
-          editor = pane.itemViews.find('.editor').view()
+          editor = pane.currentView
+          expect(editor.css('display')).toBe ''
           expect(editor.activeEditSession).toBe editSession1
 
       describe "when a valid view has already been appended for another item", ->
@@ -49,7 +50,7 @@ describe "Pane", ->
           pane.showItem(editSession1)
           pane.showItem(editSession2)
           expect(pane.itemViews.find('.editor').length).toBe 1
-          editor = pane.itemViews.find('.editor').view()
+          editor = pane.currentView
           expect(editor.css('display')).toBe ''
           expect(editor.activeEditSession).toBe editSession2
 
@@ -58,6 +59,7 @@ describe "Pane", ->
         expect(pane.itemViews.find('#view-2')).not.toExist()
         pane.showItem(view2)
         expect(pane.itemViews.find('#view-2')).toExist()
+        expect(pane.currentView).toBe view2
 
   describe ".removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
