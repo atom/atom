@@ -10,6 +10,7 @@ Project = require 'project'
 Pane = require 'pane'
 PaneColumn = require 'pane-column'
 PaneRow = require 'pane-row'
+PaneContainer = require 'pane-container'
 
 module.exports =
 class RootView extends View
@@ -19,17 +20,16 @@ class RootView extends View
     ignoredNames: [".git", ".svn", ".DS_Store"]
     disabledPackages: []
 
-  @content: ->
+  @content: ({panes}) ->
     @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
-          @div id: 'panes', outlet: 'panes'
+          @subview 'panes', panes ? new PaneContainer
 
   @deserialize: ({ panesViewState, packageStates, projectPath }) ->
     atom.atomPackageStates = packageStates ? {}
-    rootView = new RootView
-    rootView.setRootPane(deserialize(panesViewState)) if panesViewState
-    rootView
+    panes = deserialize(panesViewState) if panesViewState?.deserializer is 'PaneContainer'
+    new RootView({panes})
 
   title: null
 
@@ -67,7 +67,7 @@ class RootView extends View
 
   serialize: ->
     deserializer: 'RootView'
-    panesViewState: @panes.children().view()?.serialize()
+    panesViewState: @panes.serialize()
     packageStates: atom.serializeAtomPackages()
 
   handleFocus: (e) ->
@@ -170,24 +170,8 @@ class RootView extends View
   getActiveEditSession: ->
     @getActiveEditor()?.activeEditSession
 
-  focusNextPane: ->
-    panes = @panes.find('.pane')
-    currentIndex = panes.toArray().indexOf(@getFocusedPane()[0])
-    nextIndex = (currentIndex + 1) % panes.length
-    panes.eq(nextIndex).view().focus()
-
-  getFocusedPane: ->
-    @panes.find('.pane:has(:focus)')
-
-  setRootPane: (pane) ->
-    @panes.empty()
-    @panes.append(pane)
-    @adjustPaneDimensions()
-
-  adjustPaneDimensions: ->
-    rootPane = @panes.children().first().view()
-    rootPane?.css(width: '100%', height: '100%', top: 0, left: 0)
-    rootPane?.adjustDimensions()
+  focusNextPane: -> @panes.focusNextPane()
+  getFocusedPane: -> @panes.getFocusedPane()
 
   remove: ->
     editor.remove() for editor in @getEditors()

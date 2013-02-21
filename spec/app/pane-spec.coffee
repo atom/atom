@@ -1,12 +1,13 @@
-Editor = require 'editor'
+PaneContainer = require 'pane-container'
 Pane = require 'pane'
 {$$} = require 'space-pen'
+$ = require 'jquery'
 
 describe "Pane", ->
   [container, view1, view2, editSession1, editSession2, pane] = []
 
   beforeEach ->
-    container = $$ -> @div id: 'panes'
+    container = new PaneContainer
     view1 = $$ -> @div id: 'view-1', 'View 1'
     view2 = $$ -> @div id: 'view-2', 'View 2'
     editSession1 = project.buildEditSession('sample.js')
@@ -52,7 +53,7 @@ describe "Pane", ->
           expect(editor.activeEditSession).toBe editSession2
 
     describe "when showing a view item", ->
-      it "appends it to the itemViews div if it hasn't already been appended and show it", ->
+      it "appends it to the itemViews div if it hasn't already been appended and shows it", ->
         expect(pane.itemViews.find('#view-2')).not.toExist()
         pane.showItem(view2)
         expect(pane.itemViews.find('#view-2')).toExist()
@@ -112,8 +113,9 @@ describe "Pane", ->
       expect(focusHandler).toHaveBeenCalled()
 
   describe "split methods", ->
-    [view3, view4] = []
+    [pane1, view3, view4] = []
     beforeEach ->
+      pane1 = pane
       pane.showItem(editSession1)
       view3 = $$ -> @div id: 'view-3', 'View 3'
       view4 = $$ -> @div id: 'view-4', 'View 4'
@@ -121,8 +123,8 @@ describe "Pane", ->
     describe "splitRight(items...)", ->
       it "builds a row if needed, then appends a new pane after itself", ->
         # creates the new pane with a copy of the current item if none are given
-        pane2 = pane.splitRight()
-        expect(container.find('.row .pane').toArray()).toEqual [pane[0], pane2[0]]
+        pane2 = pane1.splitRight()
+        expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
         expect(pane2.items).toEqual [editSession1]
         expect(pane2.currentItem).not.toBe editSession1 # it's a copy
 
@@ -165,6 +167,75 @@ describe "Pane", ->
         pane3 = pane2.splitUp(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
         expect(container.find('.column .pane').toArray()).toEqual [pane3[0], pane2[0], pane[0]]
+
+    it "lays out nested panes by equally dividing their containing row / column", ->
+      container.width(520).height(240).attachToDom()
+      pane1.showItem($("1"))
+      pane1
+        .splitLeft($("2"))
+        .splitUp($("3"))
+        .splitLeft($("4"))
+        .splitDown($("5"))
+
+      row1 = container.children(':eq(0)')
+      expect(row1.children().length).toBe 2
+      column1 = row1.children(':eq(0)').view()
+      pane1 = row1.children(':eq(1)').view()
+      expect(column1.outerWidth()).toBe Math.round(2/3 * container.width())
+      expect(column1.outerHeight()).toBe container.height()
+      expect(pane1.outerWidth()).toBe Math.round(1/3 * container.width())
+      expect(pane1.outerHeight()).toBe container.height()
+      expect(Math.round(pane1.position().left)).toBe column1.outerWidth()
+
+      expect(column1.children().length).toBe 2
+      row2 = column1.children(':eq(0)').view()
+      pane2 = column1.children(':eq(1)').view()
+      expect(row2.outerWidth()).toBe column1.outerWidth()
+      expect(row2.height()).toBe 2/3 * container.height()
+      expect(pane2.outerWidth()).toBe column1.outerWidth()
+      expect(pane2.outerHeight()).toBe 1/3 * container.height()
+      expect(pane2.position().top).toBe row2.height()
+
+      expect(row2.children().length).toBe 2
+      column3 = row2.children(':eq(0)').view()
+      pane3 = row2.children(':eq(1)').view()
+      expect(column3.outerWidth()).toBe Math.round(1/3 * container.width())
+      expect(column3.outerHeight()).toBe row2.outerHeight()
+      # the built in rounding seems to be rounding x.5 down, but we need to go up. this sucks.
+      expect(Math.round(pane3.trueWidth())).toBe Math.round(1/3 * container.width())
+      expect(pane3.height()).toBe row2.outerHeight()
+      expect(Math.round(pane3.position().left)).toBe column3.width()
+
+      expect(column3.children().length).toBe 2
+      pane4 = column3.children(':eq(0)').view()
+      pane5 = column3.children(':eq(1)').view()
+      expect(pane4.outerWidth()).toBe column3.width()
+      expect(pane4.outerHeight()).toBe 1/3 * container.height()
+      expect(pane5.outerWidth()).toBe column3.width()
+      expect(pane5.position().top).toBe pane4.outerHeight()
+      expect(pane5.outerHeight()).toBe 1/3 * container.height()
+
+      pane5.remove()
+      expect(column3.parent()).not.toExist()
+      expect(pane2.outerHeight()).toBe Math.floor(1/2 * container.height())
+      expect(pane3.outerHeight()).toBe Math.floor(1/2 * container.height())
+      expect(pane4.outerHeight()).toBe Math.floor(1/2 * container.height())
+
+      pane4.remove()
+      expect(row2.parent()).not.toExist()
+      expect(pane1.outerWidth()).toBe Math.floor(1/2 * container.width())
+      expect(pane2.outerWidth()).toBe Math.floor(1/2 * container.width())
+      expect(pane3.outerWidth()).toBe Math.floor(1/2 * container.width())
+
+      pane3.remove()
+      expect(column1.parent()).not.toExist()
+      expect(pane2.outerHeight()).toBe container.height()
+
+      pane2.remove()
+      expect(row1.parent()).not.toExist()
+      expect(container.children().length).toBe 1
+      expect(container.children('.pane').length).toBe 1
+      expect(pane1.outerWidth()).toBe container.width()
 
   describe ".itemForPath(path)", ->
     it "returns the item for which a call to .getPath() returns the given path", ->

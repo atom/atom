@@ -151,6 +151,9 @@ window.registerDeserializers = (args...) ->
 window.registerDeserializer = (klass) ->
   deserializers[klass.name] = klass
 
+window.unregisterDeserializer = (klass) ->
+  delete deserializers[klass.name]
+
 window.deserialize = (state) ->
   deserializers[state?.deserializer]?.deserialize(state)
 

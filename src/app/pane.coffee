@@ -125,9 +125,17 @@ class Pane extends View
     items = [@copyCurrentItem()] unless items.length
     pane = new Pane(items...)
     this[side](pane)
-    rootView?.adjustPaneDimensions()
+    @getContainer().adjustPaneDimensions()
     pane.focus()
     pane
+
+  buildPaneAxis: (axis) ->
+    switch axis
+      when 'row' then new PaneRow
+      when 'column' then new PaneColumn
+
+  getContainer: ->
+    @closest('#panes').view()
 
   copyCurrentItem: ->
     deserialize(@currentItem.serialize())
@@ -135,17 +143,13 @@ class Pane extends View
   remove: (selector, keepData) ->
     return super if keepData
     # find parent elements before removing from dom
+    container = @getContainer()
     parentAxis = @parent('.row, .column')
     super
     if parentAxis.children().length == 1
       sibling = parentAxis.children().detach()
       parentAxis.replaceWith(sibling)
-    rootView?.adjustPaneDimensions()
+    container.adjustPaneDimensions()
 
   afterRemove: ->
     item.destroy?() for item in @getItems()
-
-  buildPaneAxis: (axis) ->
-    switch axis
-      when 'row' then new PaneRow
-      when 'column' then new PaneColumn
