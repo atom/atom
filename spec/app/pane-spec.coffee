@@ -86,7 +86,7 @@ describe "Pane", ->
         pane.removeItem(editSession2)
         expect(editSession2.destroyed).toBeTruthy()
 
-  describe "pane:show-next-item and pane:show-preview-item", ->
+  describe "pane:show-next-item and pane:show-previous-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
       expect(pane.currentItem).toBe view1
       pane.trigger 'pane:show-previous-item'
@@ -104,8 +104,8 @@ describe "Pane", ->
       expect(editSession1.destroyed).toBeTruthy()
       expect(editSession2.destroyed).toBeTruthy()
 
-  describe ".focus()", ->
-    it "focuses the current item", ->
+  describe "when the pane is focused", ->
+    it "focuses the current item view", ->
       focusHandler = jasmine.createSpy("focusHandler")
       pane.currentItem.on 'focus', focusHandler
       pane.focus()
