@@ -18,6 +18,7 @@ class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath, vendoredThemesDirPath]
   packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
+  userPackagesDirPath: userPackagesDirPath
   defaultSettings: null
   settings: null
 
@@ -32,8 +33,8 @@ class Config
   load: ->
     @loadUserConfig()
     @requireUserInitScript()
-    atom.loadThemes()
-    atom.loadPackages()
+
+
 
   loadUserConfig: ->
     if fs.exists(@configFilePath)

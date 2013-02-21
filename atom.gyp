@@ -25,7 +25,7 @@
     'default_configuration': 'Debug',
     'configurations': {
       'Debug': {
-        'defines': ['DEBUG=1', 'RESOURCE_PATH="$PROJECT_DIR"'],
+        'defines': ['DEBUG=1'],
         'xcode_settings': { 'GCC_OPTIMIZATION_LEVEL' : '0' },
       },
       'Release': {
@@ -132,8 +132,8 @@
             {
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/Libraries/',
               'files': [
-                'cef/frameworks/libcef.dylib',
-                'cef/frameworks/ffmpegsumo.so',
+                'cef/Release/libcef.dylib',
+                'cef/Release/ffmpegsumo.so',
               ],
             },
             {
@@ -246,7 +246,7 @@
       ],
       'link_settings': {
         'libraries': [
-          'cef/frameworks/libcef.dylib',
+          'cef/Release/libcef.dylib',
         ],
       }
     },

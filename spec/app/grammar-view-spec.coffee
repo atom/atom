@@ -6,10 +6,9 @@ describe "GrammarView", ->
   [editor, textGrammar, jsGrammar] =  []
 
   beforeEach ->
-    path = require.resolve('fixtures/sample.js')
-    rootView = new RootView()
-    rootView.project.removeGrammarOverrideForPath(path)
-    rootView.open(path)
+    window.rootView = new RootView
+    project.removeGrammarOverrideForPath('sample.js')
+    rootView.open('sample.js')
     editor = rootView.getActiveEditor()
     rootView.attachToDom()
     textGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'Plain Text'
@@ -17,9 +16,6 @@ describe "GrammarView", ->
     jsGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'JavaScript'
     expect(jsGrammar).toBeTruthy()
     expect(editor.getGrammar()).toBe jsGrammar
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "when editor:select-grammar is toggled", ->
     it "displays a list of all the available grammars", ->

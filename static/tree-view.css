@@ -117,6 +117,11 @@
   top: -2px;
 }
 
+.tree-view .file .binary-icon:before {
+  content: "\f094";
+  top: -2px;
+}
+
 .tree-view .directory > .header .disclosure-arrow:before {
   content: "\f05a";
 }

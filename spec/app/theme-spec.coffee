@@ -20,13 +20,34 @@ describe "@load(name)", ->
       expect($(".editor").css("background-color")).toBe("rgb(20, 20, 20)")
 
   describe "AtomTheme", ->
-    it "Loads and applies css from package.json in the correct order", ->
-      expect($(".editor").css("padding-top")).not.toBe("101px")
-      expect($(".editor").css("padding-right")).not.toBe("102px")
-      expect($(".editor").css("padding-bottom")).not.toBe("103px")
+    describe "when the theme contains a package.json file", ->
+      it "loads and applies css from package.json in the correct order", ->
+        expect($(".editor").css("padding-top")).not.toBe("101px")
+        expect($(".editor").css("padding-right")).not.toBe("102px")
+        expect($(".editor").css("padding-bottom")).not.toBe("103px")
 
-      themePath = require.resolve(fs.join('fixtures', 'test-atom-theme'))
-      theme = Theme.load(themePath)
-      expect($(".editor").css("padding-top")).toBe("101px")
-      expect($(".editor").css("padding-right")).toBe("102px")
-      expect($(".editor").css("padding-bottom")).toBe("103px")
+        themePath = fixturesProject.resolve('themes/theme-with-package-file')
+        theme = Theme.load(themePath)
+        expect($(".editor").css("padding-top")).toBe("101px")
+        expect($(".editor").css("padding-right")).toBe("102px")
+        expect($(".editor").css("padding-bottom")).toBe("103px")
+
+    describe "when the theme is a CSS file", ->
+      it "loads and applies the stylesheet", ->
+        expect($(".editor").css("padding-bottom")).not.toBe "1234px"
+
+        themePath = fixturesProject.resolve('themes/theme-stylesheet.css')
+        theme = Theme.load(themePath)
+        expect($(".editor").css("padding-top")).toBe "1234px"
+
+    describe "when the theme does not contain a package.json file and is a directory", ->
+      it "loads all CSS files in the directory", ->
+        expect($(".editor").css("padding-top")).not.toBe "10px"
+        expect($(".editor").css("padding-right")).not.toBe "20px"
+        expect($(".editor").css("padding-bottom")).not.toBe "30px"
+
+        themePath = fixturesProject.resolve('themes/theme-without-package-file')
+        theme = Theme.load(themePath)
+        expect($(".editor").css("padding-top")).toBe "10px"
+        expect($(".editor").css("padding-right")).toBe "20px"
+        expect($(".editor").css("padding-bottom")).toBe "30px"

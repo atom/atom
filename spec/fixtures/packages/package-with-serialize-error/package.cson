@@ -1,0 +1,5 @@
+# This package loads async, otherwise it would log errors when it
+# is automatically serialized when rootView is deactivatated
+
+'main': 'index.coffee'
+'activationEvents': ['activation-event']

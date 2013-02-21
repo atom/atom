@@ -8,11 +8,11 @@ class Pane extends View
     @div class: 'pane', =>
       @subview 'wrappedView', wrappedView if wrappedView
 
-  @deserialize: ({wrappedView}, rootView) ->
-    new Pane(rootView.deserializeView(wrappedView))
+  @deserialize: ({wrappedView}) ->
+    new Pane(deserialize(wrappedView))
 
   serialize: ->
-    viewClass: "Pane"
+    deserializer: "Pane"
     wrappedView: @wrappedView?.serialize()
 
   adjustDimensions: -> # do nothing
@@ -43,7 +43,7 @@ class Pane extends View
 
     pane = new Pane(view)
     this[side](pane)
-    @rootView().adjustPaneDimensions()
+    rootView.adjustPaneDimensions()
     view.focus?()
     pane
 
@@ -51,7 +51,6 @@ class Pane extends View
     return super if keepData
     # find parent elements before removing from dom
     parentAxis = @parent('.row, .column')
-    rootView = @rootView()
     super
     if parentAxis.children().length == 1
       sibling = parentAxis.children().detach()
@@ -62,6 +61,3 @@ class Pane extends View
     switch axis
       when 'row' then new PaneRow
       when 'column' then new PaneColumn
-
-  rootView: ->
-    @parents('#root-view').view()

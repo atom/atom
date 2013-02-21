@@ -180,11 +180,20 @@ module.exports =
       '.ron'
     ], ext, true) >= 0
 
+  isBinaryExtension: (ext) ->
+    _.indexOf([
+      '.DS_Store'
+      '.woff'
+    ], ext, true) >= 0
 
-  isReadme: (path) ->
+  isReadmePath: (path) ->
     extension = @extension(path)
     base = @base(path, extension).toLowerCase()
     base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
+
+  isObjectPath: (path) ->
+    extension = @extension(path)
+    extension is '.cson' or extension is '.json'
 
   readObject: (path) ->
     contents = @read(path)

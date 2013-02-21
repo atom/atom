@@ -1,4 +1,4 @@
-#include "atom_cef_render_process_handler.h"
+#import <iostream>
 #import "native/v8_extensions/atom.h"
 #import "native/v8_extensions/native.h"
 #import "native/v8_extensions/onig_reg_exp.h"
@@ -7,7 +7,7 @@
 #import "native/v8_extensions/tags.h"
 #import "native/message_translation.h"
 #import "path_watcher.h"
-#include <iostream>
+#import "atom_cef_render_process_handler.h"
 
 
 void AtomCefRenderProcessHandler::OnWebKitInitialized() {
@@ -57,8 +57,8 @@ bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser>
     return true;
   }
   else if (name == "shutdown") {
-      Shutdown(browser);
-      return true;
+    Shutdown(browser);
+    return true;
   }
   else {
     return CallMessageReceivedHandler(browser->GetMainFrame()->GetV8Context(), message);

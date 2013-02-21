@@ -3,12 +3,9 @@ RootView = require 'root-view'
 
 describe "the `atom` global", ->
   beforeEach ->
-    new RootView
+    window.rootView = new RootView
 
-  afterEach ->
-    rootView.deactivate()
-
-  describe ".loadPackage(name)", ->
+  describe "when a package is built and loaded", ->
     [extension, stylesheetPath] = []
 
     beforeEach ->
@@ -20,13 +17,13 @@ describe "the `atom` global", ->
 
     it "requires and activates the package's main module if it exists", ->
       spyOn(atom, 'activateAtomPackage').andCallThrough()
-      atom.loadPackage("package-with-module")
+      window.loadPackage("package-with-module")
       expect(atom.activateAtomPackage).toHaveBeenCalled()
 
     it "logs warning instead of throwing an exception if a package fails to load", ->
       config.set("core.disabledPackages", [])
       spyOn(console, "warn")
-      expect(-> atom.loadPackage("package-that-throws-an-exception")).not.toThrow()
+      expect(-> window.loadPackage("package-that-throws-an-exception")).not.toThrow()
       expect(console.warn).toHaveBeenCalled()
 
     describe "keymap loading", ->
@@ -40,7 +37,7 @@ describe "the `atom` global", ->
           expect(keymap.bindingsForElement(element2)['ctrl-z']).toBeUndefined()
           expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
-          atom.loadPackage("package-with-module")
+          window.loadPackage("package-with-module")
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
           expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
@@ -53,7 +50,7 @@ describe "the `atom` global", ->
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
 
-          atom.loadPackage("package-with-keymaps-manifest")
+          window.loadPackage("package-with-keymaps-manifest")
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe 'keymap-1'
           expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
@@ -62,83 +59,75 @@ describe "the `atom` global", ->
     it "loads stylesheets associated with the package", ->
       stylesheetPath = require.resolve("fixtures/packages/package-with-module/stylesheets/styles.css")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 0
-      atom.loadPackage("package-with-module")
+      window.loadPackage("package-with-module")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 1
 
   describe ".loadPackages()", ->
     beforeEach ->
       spyOn(syntax, 'addGrammar')
 
-    it "terminates the worker when all packages have been loaded", ->
-      spyOn(Worker.prototype, 'terminate').andCallThrough()
+    it "aborts the worker when all packages have been loaded", ->
+      LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
+      spyOn(LoadTextMatePackagesTask.prototype, 'abort').andCallThrough()
       eventHandler = jasmine.createSpy('eventHandler')
       syntax.on 'grammars-loaded', eventHandler
-      disabledPackages = config.get("core.disabledPackages")
-      disabledPackages.push('textmate-package.tmbundle')
-      disabledPackages.push('package-with-snippets')
-      config.set "core.disabledPackages", disabledPackages
+      config.get("core.disabledPackages").push('textmate-package.tmbundle', 'package-with-snippets')
       atom.loadPackages()
 
       waitsFor "all packages to load", 5000, -> eventHandler.callCount > 0
 
       runs ->
-        expect(Worker.prototype.terminate).toHaveBeenCalled()
-        expect(Worker.prototype.terminate.calls.length).toBe 1
+        expect(LoadTextMatePackagesTask.prototype.abort).toHaveBeenCalled()
+        expect(LoadTextMatePackagesTask.prototype.abort.calls.length).toBe 1
 
   describe "package lifecycle", ->
-    [pack, packageModule] = []
-
-    beforeEach ->
-      pack =
-        name: "package"
-        packageMain:
-          activate: jasmine.createSpy("activate")
-          deactivate: ->
-          serialize: -> "it worked"
-
-      packageModule = pack.packageMain
-
-    describe ".activateAtomPackage(package)", ->
-      it "calls activate on the package", ->
-        atom.activateAtomPackage(pack)
-        expect(packageModule.activate).toHaveBeenCalledWith(undefined)
-
-      it "calls activate on the package module with its previous state", ->
-        atom.activateAtomPackage(pack)
-        packageModule.activate.reset()
+    describe "activation", ->
+      it "calls activate on the package main with its previous state", ->
+        pack = window.loadPackage('package-with-module')
+        spyOn(pack.packageMain, 'activate')
 
         serializedState = rootView.serialize()
         rootView.deactivate()
         RootView.deserialize(serializedState)
+        window.loadPackage('package-with-module')
 
-        atom.activateAtomPackage(pack)
-        expect(packageModule.activate).toHaveBeenCalledWith("it worked")
+        expect(pack.packageMain.activate).toHaveBeenCalledWith(someNumber: 1)
 
-    describe ".deactivateAtomPackages()", ->
+    describe "deactivation", ->
       it "deactivates and removes the package module from the package module map", ->
-        atom.activateAtomPackage(pack)
-        spyOn(packageModule, "deactivate").andCallThrough()
+        pack = window.loadPackage('package-with-module')
+        expect(atom.activatedAtomPackages.length).toBe 1
+        spyOn(pack.packageMain, "deactivate").andCallThrough()
         atom.deactivateAtomPackages()
-        expect(packageModule.deactivate).toHaveBeenCalled()
-        expect(rootView.packages.length).toBe 0
+        expect(pack.packageMain.deactivate).toHaveBeenCalled()
+        expect(atom.activatedAtomPackages.length).toBe 0
 
-    describe ".serializeAtomPackages()", ->
+    describe "serialization", ->
+      it "uses previous serialization state on unactivated packages", ->
+        atom.atomPackageStates['package-with-activation-events'] = {previousData: 'exists'}
+        unactivatedPackage = window.loadPackage('package-with-activation-events')
+        activatedPackage = window.loadPackage('package-with-module')
+
+        expect(atom.serializeAtomPackages()).toEqual
+          'package-with-module':
+            'someNumber': 1
+          'package-with-activation-events':
+            'previousData': 'exists'
+
+        # ensure serialization occurs when the packageis activated
+        unactivatedPackage.activatePackageMain()
+        expect(atom.serializeAtomPackages()).toEqual
+          'package-with-module':
+            'someNumber': 1
+          'package-with-activation-events':
+            'previousData': 'overwritten'
+
       it "absorbs exceptions that are thrown by the package module's serialize methods", ->
         spyOn(console, 'error')
-
-        atom.activateAtomPackage
-          name: "bad-egg"
-          packageMain:
-            activate: ->
-            serialize: -> throw new Error("I'm broken")
-
-        atom.activateAtomPackage
-          name: "good-egg"
-          packageMain:
-            activate: ->
-            serialize: -> "I still get called"
+        window.loadPackage('package-with-module')
+        window.loadPackage('package-with-serialize-error', activateImmediately: true)
 
         packageStates = atom.serializeAtomPackages()
-        expect(packageStates['good-egg']).toBe "I still get called"
-        expect(packageStates['bad-egg']).toBeUndefined()
+        expect(packageStates['package-with-module']).toEqual someNumber: 1
+        expect(packageStates['package-with-serialize-error']).toBeUndefined()
         expect(console.error).toHaveBeenCalled()

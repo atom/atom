@@ -1,14 +1,14 @@
 .tabs {
   font: caption;
-  -webkit-user-select: none;
-  display: -webkit-box;
+  display: -webkit-flex;
   -webkit-box-align: center;
 }
 
 .tab {
+  -webkit-user-select: none;
+  -webkit-user-drag: element;
   cursor: default;
-  -webkit-box-flex: 2;
-  position: relative;
+  -webkit-flex: 1;
   width: 175px;
   max-width: 175px;
   min-width: 40px;
@@ -16,10 +16,11 @@
   text-shadow: -1px -1px 0 #000;
   font-size: 11px;
   padding: 5px 10px;
+  position: relative;
 }
 
 .tab.active {
-  -webkit-box-flex: 1;
+  -webkit-flex: 2;
 }
 
 .tab .file-name {
@@ -27,7 +28,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  padding: 3px 5px;
+  padding: 3px 10px 3px 0;
 }
 
 .tab .close-icon {
@@ -38,8 +39,8 @@
   cursor: pointer;
   position: absolute;
   color: rgba(255, 255, 255, 0.5);
-  right: 5px;
-  top: 4px;
+  right: 8px;
+  top: 5px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -52,10 +53,10 @@
 }
 
 .tab.file-modified .close-icon {
-  top: 10px;
+  top: 11px;
   width: 5px;
   height: 5px;
-  right: 6px;
+  right: 9px;
   border: 2px solid #66a6ff;
   border-radius: 12px;
 }
@@ -68,11 +69,42 @@
   border: none;
   width: 12px;
   height: 12px;
-  right: 5px;
-  top: 4px;
+  right: 8px;
+  top: 5px;
 }
 
 .tab.file-modified:hover .close-icon:before {
   content: "\f081";
   color: #66a6ff;
+}
+
+/* Drag and Drop */
+.tab.is-dragging {
+
+}
+
+.tab.is-drop-target:after {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  content: "";
+  z-index: 999;
+  display: inline-block;
+  width: 2px;
+  height: 30px;
+  display: inline-block;
+  background: #0098ff;
+}
+
+.tab.is-drop-target:before {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #0098ff;
+  right: -4px;
+  top: 30px;
+  border-radius: 4px;
+  z-index: 9999;
+  border: 1px solid transparent;
 }

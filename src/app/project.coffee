@@ -11,6 +11,7 @@ Git = require 'git'
 
 module.exports =
 class Project
+  registerDeserializer(this)
 
   @deserialize: (state) ->
     new Project(state.path, state.grammarOverridesByPath)
@@ -29,6 +30,7 @@ class Project
     @buffers = []
 
   serialize: ->
+    deserializer: 'Project'
     path: @getPath()
     grammarOverridesByPath: @grammarOverridesByPath
 

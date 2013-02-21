@@ -6,21 +6,20 @@ Directory = require 'directory'
 fs = require 'fs'
 
 describe "TreeView", ->
-  [project, treeView, sampleJs, sampleTxt] = []
+  [treeView, sampleJs, sampleTxt] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/tree-view'))
-    project = rootView.project
+    project.setPath(project.resolve('tree-view'))
+    window.rootView = new RootView
 
-    treeView = atom.loadPackage("tree-view").packageMain.createView()
+    window.loadPackage("tree-view")
+    rootView.trigger 'tree-view:toggle'
+    treeView = rootView.find(".tree-view").view()
     treeView.root = treeView.find('ol > li:first').view()
     sampleJs = treeView.find('.file:contains(tree-view.js)')
     sampleTxt = treeView.find('.file:contains(tree-view.txt)')
 
     expect(treeView.root.directory.subscriptionCount()).toBeGreaterThan 0
-
-  afterEach ->
-    rootView.deactivate()
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
@@ -46,10 +45,11 @@ describe "TreeView", ->
 
     describe "when the project has no path", ->
       beforeEach ->
+        project.setPath(undefined)
         rootView.deactivate()
-
-        new RootView
-        treeView = atom.loadPackage("tree-view").packageMain.createView()
+        window.rootView = new RootView()
+        rootView.open()
+        treeView = window.loadPackage("tree-view").packageMain.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -71,51 +71,48 @@ describe "TreeView", ->
           expect(treeView.root.parent()).toMatchSelector(".tree-view")
 
     describe "when the root view is opened to a file path", ->
-      beforeEach ->
-        rootView.deactivate()
-
-        new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
-        treeView = atom.loadPackage("tree-view").packageMain.createView()
-
       it "does not attach to the root view but does create a root node when initialized", ->
+        rootView.deactivate()
+        window.rootView = new RootView
+        rootView.open('tree-view.js')
+        treeView = window.loadPackage("tree-view").packageMain.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
+    describe "when the root view is opened to a directory", ->
+      it "attaches to the root view", ->
+        treeView = window.loadPackage("tree-view").packageMain.createView()
+        expect(treeView.hasParent()).toBeTruthy()
+        expect(treeView.root).toExist()
+
   describe "serialization", ->
-    [newRootView, newTreeView] = []
-
-    afterEach ->
-      newRootView?.deactivate()
-
     it "restores expanded directories and selected file when deserialized", ->
       treeView.find('.directory:contains(dir1)').click()
       sampleJs.click()
-      oldRootView = rootView
-      newRootView = RootView.deserialize(rootView.serialize())
-      oldRootView.deactivate() # Deactivates previous TreeView
 
-      atom.loadPackage('tree-view')
+      rootViewState = rootView.serialize()
+      rootView.deactivate()
+      window.rootView = RootView.deserialize(rootViewState)
+      window.loadPackage("tree-view")
+      treeView = rootView.find(".tree-view").view()
 
-      newTreeView = newRootView.find(".tree-view").view()
-
-      expect(newTreeView).toExist()
-      expect(newTreeView.selectedEntry()).toMatchSelector(".file:contains(tree-view.js)")
-      expect(newTreeView.find(".directory:contains(dir1)")).toHaveClass("expanded")
+      expect(treeView).toExist()
+      expect(treeView.selectedEntry()).toMatchSelector(".file:contains(tree-view.js)")
+      expect(treeView.find(".directory:contains(dir1)")).toHaveClass("expanded")
 
     it "restores the focus state of the tree view", ->
       rootView.attachToDom()
       treeView.focus()
       expect(treeView.find(".tree-view")).toMatchSelector ':focus'
 
-      oldRootView = rootView
-      newRootView = RootView.deserialize(rootView.serialize())
-      oldRootView.deactivate() # Deactivates previous TreeView
+      rootViewState = rootView.serialize()
+      rootView.deactivate()
+      window.rootView = RootView.deserialize(rootViewState)
 
-      newRootView.attachToDom()
-      atom.loadPackage('tree-view')
-
-      newTreeView = newRootView.find(".tree-view").view()
-      expect(newTreeView.find(".tree-view")).toMatchSelector ':focus'
+      rootView.attachToDom()
+      window.loadPackage("tree-view")
+      treeView = rootView.find(".tree-view").view()
+      expect(treeView.find(".tree-view")).toMatchSelector ':focus'
 
     it "restores the scroll top when toggled", ->
       rootView.height(5)
@@ -606,16 +603,16 @@ describe "TreeView", ->
       fs.makeDirectory(dirPath)
       fs.write(filePath, "doesn't matter")
 
-      new RootView(rootDirPath)
-      project = rootView.project
-      atom.loadPackage('tree-view')
+      project.setPath(rootDirPath)
+      window.rootView = new RootView(rootDirPath)
+      window.loadPackage('tree-view')
+      rootView.trigger 'tree-view:toggle'
       treeView = rootView.find(".tree-view").view()
       dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
       dirView.expand()
       fileView = treeView.find('.file:contains(test-file.txt)').view()
 
     afterEach ->
-      rootView.deactivate()
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
 
     describe "tree-view:add", ->

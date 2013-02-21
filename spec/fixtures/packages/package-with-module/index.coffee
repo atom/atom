@@ -2,7 +2,12 @@ module.exports =
   configDefaults:
     numbers: { one: 1, two: 2 }
 
+  someNumber: 0
+
   activate: ->
-    @activateCalled = true
+    @someNumber = 1
 
   deactivate: ->
+
+  serialize: ->
+    {@someNumber}

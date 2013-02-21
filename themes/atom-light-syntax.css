@@ -3,8 +3,16 @@
   color: #555;
 }
 
+.editor .invisible {
+  color: #555;
+}
+
 .editor.is-focused .cursor {
   border-color: #000;
+}
+
+.editor .selection .region {
+  background-color: #e1e1e1;
 }
 
 .editor.is-focused .selection .region {
@@ -143,18 +151,6 @@
   font-weight: bold;
 }
 
-.editor .markup.deleted {
-  color: #00A8C6;
-}
-
-.editor .markup.inserted {
-  color: #A6E22E;
-}
-
-.editor .markup.changed {
-  color: #E6DB74;
-}
-
 .editor .constant.numeric.line-number.find-in-files .- .match {
   color: rgba(143, 190, 0, 0.63);
 }
@@ -171,4 +167,22 @@
 
 .editor .css.constant {
   color: #099;
+}
+
+
+/* Markdown */
+.editor .source.gfm {
+  color: #444;
+}
+
+.editor .gfm .markup.heading {
+  color: #111;
+}
+
+.editor .gfm .link {
+  color: #888;
+}
+
+.editor .gfm .variable.list {
+  color: #888;
 }

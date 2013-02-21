@@ -30,3 +30,27 @@ describe "underscore extensions", ->
       expect(_.endsWith("test.txt", ".txt2")).toBeFalsy()
       expect(_.endsWith("test.txt", ".tx")).toBeFalsy()
       expect(_.endsWith("test.txt", "test")).toBeFalsy()
+
+  describe "camelize(string)", ->
+    it "converts `string` to camel case", ->
+      expect(_.camelize("corey_dale_johnson")).toBe "coreyDaleJohnson"
+      expect(_.camelize("corey-dale-johnson")).toBe "coreyDaleJohnson"
+      expect(_.camelize("corey_dale-johnson")).toBe "coreyDaleJohnson"
+      expect(_.camelize("coreyDaleJohnson")).toBe "coreyDaleJohnson"
+      expect(_.camelize("CoreyDaleJohnson")).toBe "CoreyDaleJohnson"
+
+  describe "dasherize(string)", ->
+    it "converts `string` to use dashes", ->
+      expect(_.dasherize("corey_dale_johnson")).toBe "corey-dale-johnson"
+      expect(_.dasherize("coreyDaleJohnson")).toBe "corey-dale-johnson"
+      expect(_.dasherize("CoreyDaleJohnson")).toBe "corey-dale-johnson"
+      expect(_.dasherize("corey-dale-johnson")).toBe "corey-dale-johnson"
+
+  describe "underscore(string)", ->
+    it "converts `string` to use underscores", ->
+      expect(_.underscore("corey-dale-johnson")).toBe "corey_dale_johnson"
+      expect(_.underscore("coreyDaleJohnson")).toBe "corey_dale_johnson"
+      expect(_.underscore("CoreyDaleJohnson")).toBe "corey_dale_johnson"
+      expect(_.underscore("corey_dale_johnson")).toBe "corey_dale_johnson"
+
+

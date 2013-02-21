@@ -1,10 +1,12 @@
-'#root-view':
+'body':
   'meta-\\': 'tree-view:toggle'
   'meta-|': 'tree-view:reveal-active-file'
 
 '.tree-view':
   'right': 'tree-view:expand-directory'
+  'ctrl-]': 'tree-view:expand-directory'
   'left': 'tree-view:collapse-directory'
+  'ctrl-[': 'tree-view:collapse-directory'
   'enter': 'tree-view:open-selected-entry'
   'm': 'tree-view:move'
   'a': 'tree-view:add'

@@ -61,7 +61,7 @@ describe "TextMateGrammar", ->
       it "creates distinct tokens for nested captures and does not return tokens beyond the scope of the overall capture", ->
         {tokens} = grammar.tokenizeLine("  destroy: ->")
         expect(tokens.length).toBe 6
-        expect(tokens[0]).toEqual(value: '  ', scopes: ["source.coffee", "meta.function.coffee"])
+        expect(tokens[0]).toEqual(value: '  ', scopes: ["source.coffee"])
         expect(tokens[1]).toEqual(value: 'destro', scopes: ["source.coffee", "meta.function.coffee", "entity.name.function.coffee"])
         # this dangling 'y' with a duplicated scope looks wrong, but textmate yields the same behavior. probably a quirk in the coffee grammar.
         expect(tokens[2]).toEqual(value: 'y', scopes: ["source.coffee", "meta.function.coffee", "entity.name.function.coffee", "entity.name.function.coffee"])

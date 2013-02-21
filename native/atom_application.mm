@@ -25,10 +25,6 @@
 + (NSDictionary *)parseArguments:(char **)argv count:(int)argc {
   NSMutableDictionary *arguments = [[NSMutableDictionary alloc] init];
 
-  #ifdef RESOURCE_PATH
-    [arguments setObject:[NSString stringWithUTF8String:RESOURCE_PATH] forKey:@"resource-path"];
-  #endif
-
   // Remove non-posix (i.e. -long_argument_with_one_leading_hyphen) added by OS X from the command line
   int cleanArgc = argc;
   size_t argvSize = argc * sizeof(char *);
@@ -139,6 +135,7 @@
 - (void)dealloc {
   [_backgroundWindowController release];
   [_arguments release];
+  [_updateInvocation release];
   [super dealloc];
 }
 
@@ -210,12 +207,6 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
   if (!_filesOpened && [self shouldOpenFiles]) {
     NSString *path = [self.arguments objectForKey:@"path"];
-
-    // Just a hack to open the Atom src by default when we run from xcode
-    #ifdef RESOURCE_PATH
-    if (!path) path = [NSString stringWithUTF8String:RESOURCE_PATH];
-    #endif
-
     NSNumber *pid = [self.arguments objectForKey:@"wait"] ? [self.arguments objectForKey:@"pid"] : nil;
     [self open:path pidToKillWhenWindowCloses:pid];
   }
@@ -246,11 +237,11 @@
 # pragma mark CefAppProtocol
 
 - (BOOL)isHandlingSendEvent {
-  return handlingSendEvent_;
+  return _handlingSendEvent;
 }
 
 - (void)setHandlingSendEvent:(BOOL)handlingSendEvent {
-  handlingSendEvent_ = handlingSendEvent;
+  _handlingSendEvent = handlingSendEvent;
 }
 
 - (void)sendEvent:(NSEvent*)event {
@@ -266,26 +257,35 @@
   }
 }
 
+- (NSString *)updateStatus {
+  return _updateStatus ? _updateStatus : @"idle";
+}
+
+- (void)installUpdate {
+  if (_updateInvocation) [_updateInvocation invoke];
+}
+
 #pragma mark SUUpdaterDelegate
 
 - (void)updaterDidNotFindUpdate:(SUUpdater *)update {
-  NSLog(@"No update found");
+  _updateStatus = @"current";
 }
 
 - (void)updater:(SUUpdater *)updater didFindValidUpdate:(SUAppcastItem *)update {
-  NSLog(@"Found Update");
+  _updateStatus = @"downloading";
 }
 
 - (void)updater:(SUUpdater *)updater willExtractUpdate:(SUAppcastItem *)update {
-  NSLog(@"Extract update");
+   _updateStatus = @"installing";
 }
 
 - (void)updater:(SUUpdater *)updater willInstallUpdateOnQuit:(SUAppcastItem *)update immediateInstallationInvocation:(NSInvocation *)invocation {
-  NSLog(@"Install Update");
+  _updateInvocation = invocation;
+  _updateStatus = @"ready";
 }
 
 - (void)updater:(SUUpdater *)updater didCancelInstallUpdateOnQuit:(SUAppcastItem *)update {
-  NSLog(@"Cancel Update Install");
+  _updateStatus = @"current";
 }
 
 @end
