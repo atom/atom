@@ -1284,20 +1284,23 @@ class Editor extends View
     column = 0
 
     if lineElement = @lineElementForScreenRow(row)[0]
-      @overlayer.hide()
-      @css '-webkit-user-select', 'auto'
-      if range = document.caretRangeFromPoint(pageX, pageY)
-        clickedTextNode = range.endContainer
-        clickedOffset = range.endOffset
-        range.detach()
-      @css '-webkit-user-select', ''
-      @overlayer.show()
+      range = document.createRange()
+      iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+      while node = iterator.nextNode()
+        range.selectNodeContents(node)
+        column += node.textContent.length
+        {left, right} = range.getClientRects()[0]
+        break if left <= pageX <= right
 
-      if clickedTextNode and lineElement
-        iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
-        while (node = iterator.nextNode()) and node isnt clickedTextNode
-          column += node.textContent.length
-        column += clickedOffset
+      if node
+        for characterPosition in [node.textContent.length...0]
+          range.setStart(node, characterPosition - 1)
+          range.setEnd(node, characterPosition)
+          {left, right, width} = range.getClientRects()[0]
+          break if left <= pageX - width / 2 <= right
+          column--
+
+      range.detach()
 
     new Point(row, column)
 
