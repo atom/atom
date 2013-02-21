@@ -1,6 +1,6 @@
 PaneContainer = require 'pane-container'
 Pane = require 'pane'
-{View} = require 'space-pen'
+{View, $$} = require 'space-pen'
 $ = require 'jquery'
 
 describe "PaneContainer", ->
@@ -34,6 +34,28 @@ describe "PaneContainer", ->
       expect(pane3.currentItem).toMatchSelector ':focus'
       container.focusNextPane()
       expect(pane1.currentItem).toMatchSelector ':focus'
+
+  describe ".getActivePane()", ->
+    it "returns the most-recently focused pane", ->
+      focusStealer = $$ -> @div tabindex: -1, "focus stealer"
+      focusStealer.attachToDom()
+      container.attachToDom()
+
+      pane2.focus()
+      expect(container.getFocusedPane()).toBe pane2
+      expect(container.getActivePane()).toBe pane2
+
+      focusStealer.focus()
+      expect(container.getFocusedPane()).toBeUndefined()
+      expect(container.getActivePane()).toBe pane2
+
+      pane3.focus()
+      expect(container.getFocusedPane()).toBe pane3
+      expect(container.getActivePane()).toBe pane3
+
+      # returns the first pane if none have been set to active
+      container.find('.pane.active').removeClass('active')
+      expect(container.getActivePane()).toBe pane1
 
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
