@@ -172,10 +172,6 @@ class Editor extends View
         'editor:fold-current-row': @foldCurrentRow
         'editor:unfold-current-row': @unfoldCurrentRow
         'editor:fold-selection': @foldSelection
-        'editor:split-left': @splitLeft
-        'editor:split-right': @splitRight
-        'editor:split-up': @splitUp
-        'editor:split-down': @splitDown
         'editor:show-next-buffer': @loadNextEditSession
         'editor:show-buffer-1': => @setActiveEditSessionIndex(0) if @editSessions[0]
         'editor:show-buffer-2': => @setActiveEditSessionIndex(1) if @editSessions[1]
@@ -789,20 +785,17 @@ class Editor extends View
     @updateLayerDimensions()
     @requestDisplayUpdate()
 
-  newSplitEditor: (editSession) ->
-    new Editor { editSession: editSession ? @activeEditSession.copy() }
-
   splitLeft: (editSession) ->
-    @pane()?.splitLeft(@newSplitEditor(editSession)).currentItem
+    @pane()?.splitLeft()
 
   splitRight: (editSession) ->
-    @pane()?.splitRight(@newSplitEditor(editSession)).currentItem
+    @pane()?.splitRight()
 
   splitUp: (editSession) ->
-    @pane()?.splitUp(@newSplitEditor(editSession)).currentItem
+    @pane()?.splitUp()
 
   splitDown: (editSession) ->
-    @pane()?.splitDown(@newSplitEditor(editSession)).currentItem
+    @pane()?.splitDown()
 
   pane: ->
     @closest('.pane').view()
