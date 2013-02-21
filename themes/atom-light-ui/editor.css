@@ -6,10 +6,6 @@
   color: #333;
 }
 
-.editor.mini .cursor {
-  background: #333;
-}
-
 .editor.mini .selection .region {
   background-color: #afc4da;
 }
