@@ -483,6 +483,9 @@ class Editor extends View
     index = @pushEditSession(editSession) if index == -1
     @setActiveEditSessionIndex(index)
 
+  getModel: ->
+    @activeEditSession
+
   setModel: (editSession) ->
     @edit(editSession)
 
