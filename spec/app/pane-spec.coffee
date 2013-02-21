@@ -93,10 +93,15 @@ describe "Pane", ->
         expect(editSession2.destroyed).toBeTruthy()
 
   describe "core:close", ->
-    it "removes the current item", ->
+    it "removes the current item and does not bubble the event", ->
+      containerCloseHandler = jasmine.createSpy("containerCloseHandler")
+      container.on 'core:close', containerCloseHandler
+
       initialItemCount = pane.getItems().length
       pane.trigger 'core:close'
       expect(pane.getItems().length).toBe initialItemCount - 1
+
+      expect(containerCloseHandler).not.toHaveBeenCalled()
 
   describe "pane:show-next-item and pane:show-previous-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
