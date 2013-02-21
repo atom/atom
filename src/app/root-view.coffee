@@ -71,8 +71,8 @@ class RootView extends View
     packageStates: atom.serializeAtomPackages()
 
   handleFocus: (e) ->
-    if @getActiveEditor()
-      @getActiveEditor().focus()
+    if @getActivePane()
+      @getActivePane().focus()
       false
     else
       @setTitle(null)
@@ -163,9 +163,13 @@ class RootView extends View
       editor.view()
     else
       @panes.find('.editor:first').view()
+  getActivePaneItem: ->
+    @panes.getActivePaneItem()
 
   getActiveEditSession: ->
     @getActiveEditor()?.activeEditSession
+  getActiveView: ->
+    @panes.getActiveView()
 
   focusNextPane: -> @panes.focusNextPane()
   getFocusedPane: -> @panes.getFocusedPane()
