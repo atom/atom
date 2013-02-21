@@ -124,9 +124,6 @@ class RootView extends View
       if not previousActiveEditor or editor.getPath() != previousActiveEditor.getPath()
         @trigger 'root-view:active-path-changed', editor.getPath()
 
-  activeKeybindings: ->
-    keymap.bindingsForElement(document.activeElement)
-
   getTitle: ->
     @title or "untitled"
 
