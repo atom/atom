@@ -5,13 +5,11 @@ describe "Gists package", ->
   [editor] = []
 
   beforeEach ->
-    rootView = new RootView(fixturesProject.resolve('sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     window.loadPackage('gists')
     editor = rootView.getActiveEditor()
     spyOn($, 'ajax')
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "when gist:create is triggered on an editor", ->
 

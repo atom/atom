@@ -8,11 +8,11 @@ class Pane extends View
     @div class: 'pane', =>
       @subview 'wrappedView', wrappedView if wrappedView
 
-  @deserialize: ({wrappedView}, rootView) ->
-    new Pane(rootView.deserializeView(wrappedView))
+  @deserialize: ({wrappedView}) ->
+    new Pane(deserialize(wrappedView))
 
   serialize: ->
-    viewClass: "Pane"
+    deserializer: "Pane"
     wrappedView: @wrappedView?.serialize()
 
   adjustDimensions: -> # do nothing

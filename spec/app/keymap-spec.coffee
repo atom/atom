@@ -152,7 +152,7 @@ describe "Keymap", ->
 
       describe "when the event's target is the document body", ->
         it "triggers the mapped event on the rootView", ->
-          rootView = new RootView
+          window.rootView = new RootView
           keymap.bindKeys 'body', 'x': 'foo'
           fooHandler = jasmine.createSpy("fooHandler")
           rootView.on 'foo', fooHandler

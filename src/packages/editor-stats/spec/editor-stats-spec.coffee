@@ -14,7 +14,8 @@ describe "EditorStats", ->
     rootView.trigger(e)
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
 
     date = new Date()
     mins = date.getMinutes()
@@ -24,9 +25,6 @@ describe "EditorStats", ->
     time  = "#{hours}:#{mins}"
 
     editorStats = window.loadPackage('editor-stats').packageMain.stats
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "when a keyup event is triggered", ->
     it "records the number of times a keyup is triggered", ->

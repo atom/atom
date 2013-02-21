@@ -11,7 +11,7 @@ find: (editor) ->
   word = editor.getTextInRange(editor.getCursor().getCurrentWordBufferRange())
   return [] unless word.length > 0
 
-  tagsFile = @getTagsFile(rootView.project)
+  tagsFile = @getTagsFile(project)
   return [] unless tagsFile
 
   $tags.find(tagsFile, word) or []

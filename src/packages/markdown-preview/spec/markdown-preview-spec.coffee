@@ -5,12 +5,10 @@ _ = require 'underscore'
 
 describe "MarkdownPreview", ->
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/markdown'))
+    project.setPath(project.resolve('markdown'))
+    window.rootView = new RootView
     window.loadPackage("markdown-preview")
     spyOn(MarkdownPreview.prototype, 'loadHtml')
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "markdown-preview:toggle event", ->
     it "toggles on/off a preview for a .md file", ->
@@ -38,7 +36,7 @@ describe "MarkdownPreview", ->
       gfmGrammar = _.find syntax.grammars, (grammar) -> grammar.scopeName is 'source.gfm'
       rootView.open('file.js')
       editor = rootView.getActiveEditor()
-      rootView.project.addGrammarOverrideForPath(editor.getPath(), gfmGrammar)
+      project.addGrammarOverrideForPath(editor.getPath(), gfmGrammar)
       editor.reloadGrammar()
       expect(rootView.find('.markdown-preview')).not.toExist()
       editor.trigger('markdown-preview:toggle')

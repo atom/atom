@@ -3,22 +3,18 @@ CommandPanelView = require 'command-panel/lib/command-panel-view'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [editor, buffer, commandPanel, project, CommandPanel] = []
+  [editor, buffer, commandPanel, CommandPanel] = []
 
   beforeEach ->
-    new RootView
-    rootView.open(require.resolve 'fixtures/sample.js')
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.enableKeymap()
-    project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
     commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).packageMain
     commandPanel = commandPanelMain.commandPanelView
     commandPanel.history = []
     commandPanel.historyIndex = 0
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "serialization", ->
     it "preserves the command panel's history across reloads", ->
@@ -34,7 +30,8 @@ describe "CommandPanel", ->
 
       rootViewState = rootView.serialize()
       rootView.deactivate()
-      RootView.deserialize(rootViewState).attachToDom()
+      window.rootView = RootView.deserialize(rootViewState)
+      rootView.attachToDom()
       window.loadPackage('command-panel')
 
       expect(rootView.find('.command-panel')).not.toExist()

@@ -5,11 +5,9 @@ describe 'Package Generator', ->
   [packageGenerator] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     window.loadPackage("package-generator")
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "when package-generator:generate is triggered", ->
     it "displays a miniEditor", ->

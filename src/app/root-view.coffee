@@ -13,6 +13,8 @@ PaneRow = require 'pane-row'
 
 module.exports =
 class RootView extends View
+  registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
+
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
     disabledPackages: []
@@ -23,65 +25,15 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'
 
-  @deserialize: ({ projectState, panesViewState, packageStates, projectPath }) ->
-    if projectState
-      projectOrPathToOpen = Project.deserialize(projectState)
-    else
-      projectOrPathToOpen = projectPath # This will migrate people over to the new project serialization scheme. It should be removed eventually.
-
+  @deserialize: ({ panesViewState, packageStates, projectPath }) ->
     atom.atomPackageStates = packageStates ? {}
-
-    rootView = new RootView(projectOrPathToOpen , suppressOpen: true)
-    rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
+    rootView = new RootView
+    rootView.setRootPane(deserialize(panesViewState)) if panesViewState
     rootView
 
   title: null
-  pathToOpenIsFile: false
 
-  initialize: (projectOrPathToOpen, { suppressOpen } = {}) ->
-    window.rootView = this
-    @viewClasses = {
-      "Pane": Pane,
-      "PaneRow": PaneRow,
-      "PaneColumn": PaneColumn,
-      "Editor": Editor
-    }
-    @handleEvents()
-
-    if not projectOrPathToOpen or _.isString(projectOrPathToOpen)
-      pathToOpen = projectOrPathToOpen
-      @project = new Project(projectOrPathToOpen)
-    else
-      @project = projectOrPathToOpen
-      pathToOpen = @project?.getPath()
-    @pathToOpenIsFile = pathToOpen and fs.isFile(pathToOpen)
-
-    config.load()
-
-    if pathToOpen
-      @open(pathToOpen) if @pathToOpenIsFile and not suppressOpen
-    else
-      @open()
-
-  serialize: ->
-    projectState: @project?.serialize()
-    panesViewState: @panes.children().view()?.serialize()
-    packageStates: atom.serializeAtomPackages()
-
-  handleFocus: (e) ->
-    if @getActiveEditor()
-      @getActiveEditor().focus()
-      false
-    else
-      @setTitle(null)
-      focusableChild = this.find("[tabindex=-1]:visible:first")
-      if focusableChild.length
-        focusableChild.focus()
-        false
-      else
-        true
-
-  handleEvents: ->
+  initialize: ->
     @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
@@ -89,7 +41,7 @@ class RootView extends View
 
     @on 'root-view:active-path-changed', (e, path) =>
       if path
-        @project.setPath(path) unless @project.getRootDirectory()
+        project.setPath(path) unless project.getRootDirectory()
         @setTitle(fs.base(path))
       else
         @setTitle("untitled")
@@ -114,17 +66,28 @@ class RootView extends View
     @command 'window:toggle-auto-indent-on-paste', =>
       config.set("editor.autoIndentOnPaste", !config.get("editor.autoIndentOnPaste"))
 
+  serialize: ->
+    deserializer: 'RootView'
+    panesViewState: @panes.children().view()?.serialize()
+    packageStates: atom.serializeAtomPackages()
+
+  handleFocus: (e) ->
+    if @getActiveEditor()
+      @getActiveEditor().focus()
+      false
+    else
+      @setTitle(null)
+      focusableChild = this.find("[tabindex=-1]:visible:first")
+      if focusableChild.length
+        focusableChild.focus()
+        false
+      else
+        true
+
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  registerViewClass: (viewClass) ->
-    @viewClasses[viewClass.name] = viewClass
-
-  deserializeView: (viewState) ->
-    @viewClasses[viewState.viewClass]?.deserialize(viewState, this)
-
   deactivate: ->
-    atom.setRootViewStateForPath(@project.getPath(), @serialize())
     atom.deactivateAtomPackages()
     @remove()
 
@@ -133,7 +96,7 @@ class RootView extends View
     allowActiveEditorChange = options.allowActiveEditorChange ? false
 
     unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
-      editSession = @project.buildEditSessionForPath(path)
+      editSession = project.buildEditSessionForPath(path)
       editor = new Editor({editSession})
       pane = new Pane(editor)
       @panes.append(pane)
@@ -148,7 +111,7 @@ class RootView extends View
     if activeEditor = @getActiveEditor()
       activeEditor.focus() if changeFocus
 
-      path = @project.resolve(path) if path
+      path = project.resolve(path) if path
 
       if editSession = activeEditor.activateEditSessionForPath(path)
         return editSession
@@ -159,7 +122,7 @@ class RootView extends View
             @makeEditorActive(editor, changeFocus)
             return editSession
 
-      editSession = @project.buildEditSessionForPath(path)
+      editSession = project.buildEditSessionForPath(path)
       activeEditor.edit(editSession)
       editSession
 
@@ -188,7 +151,7 @@ class RootView extends View
     @title or "untitled"
 
   setTitle: (title) ->
-    projectPath = @project.getPath()
+    projectPath = project.getPath()
     if not projectPath
       @title = "untitled"
     else if title
@@ -251,7 +214,7 @@ class RootView extends View
 
   remove: ->
     editor.remove() for editor in @getEditors()
-    @project.destroy()
+    project.destroy()
     super
 
   saveAll: ->
@@ -262,10 +225,10 @@ class RootView extends View
     @on 'editor:attached', (e, editor) -> callback(editor)
 
   eachEditSession: (callback) ->
-    @project.eachEditSession(callback)
+    project.eachEditSession(callback)
 
   eachBuffer: (callback) ->
-    @project.eachBuffer(callback)
+    project.eachBuffer(callback)
 
   indexOfPane: (pane) ->
     index = -1

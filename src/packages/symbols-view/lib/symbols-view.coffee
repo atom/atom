@@ -67,7 +67,7 @@ class SymbolsView extends SelectList
   populateProjectSymbols: ->
     @list.empty()
     @setLoading("Loading symbols...")
-    TagReader.getAllTags(rootView.project).done (tags) =>
+    TagReader.getAllTags(project).done (tags) =>
       if tags.length > 0
         @miniEditor.show()
         @maxItems = 10
@@ -102,7 +102,7 @@ class SymbolsView extends SelectList
   getTagLine: (tag) ->
     pattern = $.trim(tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '')) # Remove leading /^ and trailing $/
     return unless pattern
-    file = rootView.project.resolve(tag.file)
+    file = project.resolve(tag.file)
     return unless fs.isFile(file)
     for line, index in fs.read(file).split('\n')
       return new Point(index, 0) if pattern is $.trim(line)

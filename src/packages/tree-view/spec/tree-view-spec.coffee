@@ -6,11 +6,11 @@ Directory = require 'directory'
 fs = require 'fs'
 
 describe "TreeView", ->
-  [project, treeView, sampleJs, sampleTxt] = []
+  [treeView, sampleJs, sampleTxt] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/tree-view'))
-    project = rootView.project
+    project.setPath(project.resolve('tree-view'))
+    window.rootView = new RootView
 
     window.loadPackage("tree-view")
     rootView.trigger 'tree-view:toggle'
@@ -20,9 +20,6 @@ describe "TreeView", ->
     sampleTxt = treeView.find('.file:contains(tree-view.txt)')
 
     expect(treeView.root.directory.subscriptionCount()).toBeGreaterThan 0
-
-  afterEach ->
-    rootView.deactivate()
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
@@ -48,8 +45,10 @@ describe "TreeView", ->
 
     describe "when the project has no path", ->
       beforeEach ->
+        project.setPath(undefined)
         rootView.deactivate()
-        new RootView()
+        window.rootView = new RootView()
+        rootView.open()
         treeView = window.loadPackage("tree-view").packageMain.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
@@ -74,15 +73,14 @@ describe "TreeView", ->
     describe "when the root view is opened to a file path", ->
       it "does not attach to the root view but does create a root node when initialized", ->
         rootView.deactivate()
-        new RootView(require.resolve('fixtures/tree-view/tree-view.js'))
+        window.rootView = new RootView
+        rootView.open('tree-view.js')
         treeView = window.loadPackage("tree-view").packageMain.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
     describe "when the root view is opened to a directory", ->
       it "attaches to the root view", ->
-        rootView.deactivate()
-        new RootView(require.resolve('fixtures/tree-view'))
         treeView = window.loadPackage("tree-view").packageMain.createView()
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.root).toExist()
@@ -94,7 +92,7 @@ describe "TreeView", ->
 
       rootViewState = rootView.serialize()
       rootView.deactivate()
-      RootView.deserialize(rootViewState)
+      window.rootView = RootView.deserialize(rootViewState)
       window.loadPackage("tree-view")
       treeView = rootView.find(".tree-view").view()
 
@@ -109,7 +107,7 @@ describe "TreeView", ->
 
       rootViewState = rootView.serialize()
       rootView.deactivate()
-      RootView.deserialize(rootViewState)
+      window.rootView = RootView.deserialize(rootViewState)
 
       rootView.attachToDom()
       window.loadPackage("tree-view")
@@ -605,8 +603,8 @@ describe "TreeView", ->
       fs.makeDirectory(dirPath)
       fs.write(filePath, "doesn't matter")
 
-      new RootView(rootDirPath)
-      project = rootView.project
+      project.setPath(rootDirPath)
+      window.rootView = new RootView(rootDirPath)
       window.loadPackage('tree-view')
       rootView.trigger 'tree-view:toggle'
       treeView = rootView.find(".tree-view").view()
@@ -615,7 +613,6 @@ describe "TreeView", ->
       fileView = treeView.find('.file:contains(test-file.txt)').view()
 
     afterEach ->
-      rootView.deactivate()
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
 
     describe "tree-view:add", ->

@@ -155,9 +155,11 @@ describe 'Buffer', ->
       expect(bufferToDelete.getPath()).toBe path
       expect(bufferToDelete.isModified()).toBeFalsy()
 
+      removeHandler = jasmine.createSpy('removeHandler')
+      bufferToDelete.file.on 'removed', removeHandler
       fs.remove(path)
-      waitsFor "file to be removed",  (done) ->
-        bufferToDelete.file.one 'removed', done
+      waitsFor "file to be removed", ->
+        removeHandler.callCount > 0
 
     afterEach ->
       bufferToDelete.destroy()
@@ -173,8 +175,10 @@ describe 'Buffer', ->
 
       fs.write(path, 'moo')
 
-      waitsFor 'change event', (done) ->
-        bufferToDelete.one 'changed', done
+      changeHandler = jasmine.createSpy('changeHandler')
+      bufferToDelete.on 'changed', changeHandler
+      waitsFor 'change event', ->
+        changeHandler.callCount > 0
 
   describe ".isModified()", ->
     it "returns true when user changes buffer", ->
@@ -980,9 +984,11 @@ describe 'Buffer', ->
         expect(bufferToDelete.isModified()).toBeFalsy()
         expect(contentsModifiedHandler).not.toHaveBeenCalled()
 
+        removeHandler = jasmine.createSpy('removeHandler')
+        bufferToDelete.file.on 'removed', removeHandler
         fs.remove(path)
-        waitsFor "file to be removed",  (done) ->
-          bufferToDelete.file.one 'removed', done
+        waitsFor "file to be removed", ->
+          removeHandler.callCount > 0
 
         runs ->
           expect(contentsModifiedHandler).toHaveBeenCalledWith(differsFromDisk:true)

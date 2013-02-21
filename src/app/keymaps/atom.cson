@@ -30,8 +30,6 @@
   'ctrl-tab': 'window:focus-next-pane'
   'ctrl-meta-f': 'window:toggle-full-screen'
 
-  'alt-meta-i': 'toggle-dev-tools'
-
 '.tool-panel':
   'meta-escape': 'tool-panel:unfocus'
   'escape': 'core:close'

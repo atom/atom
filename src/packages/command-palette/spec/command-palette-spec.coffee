@@ -7,7 +7,8 @@ describe "CommandPalette", ->
   [palette] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     window.loadPackage("command-palette")
     rootView.attachToDom().focus()
     rootView.trigger 'command-palette:toggle'

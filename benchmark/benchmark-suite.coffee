@@ -22,7 +22,7 @@ describe "editor.", ->
         editor.on 'editor:display-updated', done
 
     runs ->
-      projectPath = rootView.project.getPath()
+      projectPath = project.getPath()
       $(window).off 'beforeunload'
       window.shutdown()
       atom.setRootViewStateForPath(projectPath, null)
@@ -38,7 +38,7 @@ describe "editor.", ->
 
   describe "opening-buffers.", ->
     benchmark "300-line-file.", ->
-      buffer = rootView.project.bufferForPath('medium.coffee')
+      buffer = project.bufferForPath('medium.coffee')
 
   describe "empty-file.", ->
     benchmark "insert-delete", ->

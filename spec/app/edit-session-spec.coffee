@@ -1015,12 +1015,39 @@ describe "EditSession", ->
             expect(cursor2.getBufferPosition()).toEqual [8,0]
 
     describe ".insertNewlineBelow()", ->
+      describe "when the operation is undone", ->
+        it "places the cursor back at the previous location", ->
+          editSession.setCursorBufferPosition([0,2])
+          editSession.insertNewlineBelow()
+          expect(editSession.getCursorBufferPosition()).toEqual [1,0]
+          editSession.undo()
+          expect(editSession.getCursorBufferPosition()).toEqual [0,2]
+
       xit "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
         editSession.setAutoIndent(true)
         editSession.insertNewlineBelow()
         expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
         expect(buffer.lineForRow(1)).toBe "  "
         expect(editSession.getCursorBufferPosition()).toEqual [1, 2]
+
+    describe ".insertNewlineAbove()", ->
+      describe "when the cursor is on first line", ->
+        it "inserts a newline on the first line and moves the cursor to the first line", ->
+          editSession.setCursorBufferPosition([0])
+          editSession.insertNewlineAbove()
+          expect(editSession.getCursorBufferPosition()).toEqual [0,0]
+          expect(editSession.lineForBufferRow(0)).toBe ''
+          expect(editSession.lineForBufferRow(1)).toBe 'var quicksort = function () {'
+          expect(editSession.buffer.getLineCount()).toBe 14
+
+      describe "when the cursor is not on the first line", ->
+        it "inserts a newline above the current line and moves the cursor to the inserted line", ->
+          editSession.setCursorBufferPosition([3])
+          editSession.insertNewlineAbove()
+          expect(editSession.getCursorBufferPosition()).toEqual [3,0]
+          expect(editSession.lineForBufferRow(3)).toBe ''
+          expect(editSession.lineForBufferRow(4)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(editSession.buffer.getLineCount()).toBe 14
 
     describe ".backspace()", ->
       describe "when there is a single cursor", ->

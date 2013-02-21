@@ -12,6 +12,8 @@ fs = require 'fs'
 
 module.exports =
 class EditSession
+  registerDeserializer(this)
+
   @deserialize: (state, project) ->
     if fs.exists(state.buffer)
       session = project.buildEditSessionForPath(state.buffer)
@@ -62,6 +64,7 @@ class EditSession
     @off()
 
   serialize: ->
+    deserializer: 'EditSession'
     buffer: @buffer.getPath()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
@@ -168,8 +171,17 @@ class EditSession
     @insertText('\n')
 
   insertNewlineBelow: ->
-    @moveCursorToEndOfLine()
-    @insertNewline()
+    @transact =>
+      @moveCursorToEndOfLine()
+      @insertNewline()
+
+  insertNewlineAbove: ->
+    @transact =>
+      onFirstLine = @getCursorBufferPosition().row is 0
+      @moveCursorToBeginningOfLine()
+      @moveCursorLeft()
+      @insertNewline()
+      @moveCursorUp() if onFirstLine
 
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
@@ -418,7 +430,7 @@ class EditSession
         bufferRange = new Range([cursorPosition.row], [cursorPosition.row + 1])
 
       insertPosition = new Point(bufferRange.end.row)
-      if insertPosition.row >= @buffer.getLastRow()
+      if insertPosition.row > @buffer.getLastRow()
         @unfoldCurrentRow() if cursorRowFolded
         @buffer.append("\n#{@getTextInBufferRange(bufferRange)}")
         @foldCurrentRow() if cursorRowFolded

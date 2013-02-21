@@ -4,11 +4,15 @@
 }
 
 .editor .invisible {
-  color: #555 !important;
+  color: #555;
 }
 
 .editor.is-focused .cursor {
   border-color: #000;
+}
+
+.editor .selection .region {
+  background-color: #e1e1e1;
 }
 
 .editor.is-focused .selection .region {
