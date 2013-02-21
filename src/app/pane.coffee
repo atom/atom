@@ -68,6 +68,7 @@ class Pane extends View
 
   removeCurrentItem: =>
     @removeItem(@currentItem)
+    false
 
   removeItem: (item) ->
     @showNextItem() if item is @currentItem and @items.length > 1
