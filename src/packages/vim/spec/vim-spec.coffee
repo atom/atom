@@ -3,12 +3,12 @@ Vim = require 'vim/lib/vim-view'
 
 fdescribe "Vim package", ->
 
-  [rootView, editor] = []
+  [editor] = []
 
   beforeEach ->
     config.set("vim.enabled", true)
-    filePath = fixturesProject.resolve('sample.js')
-    rootView = new RootView(filePath)
+    window.rootView = new RootView()
+    rootView.open('sample.js')
     rootView.simulateDomAttachment()
     Vim.activate(rootView)
     editor = rootView.getActiveEditor()

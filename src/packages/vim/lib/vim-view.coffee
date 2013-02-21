@@ -5,7 +5,7 @@ VimState = require './vim-state'
 
 module.exports =
 class VimView extends View
-  @activate: ->
+  @activate: (rootView) ->
     return if config.get("vim.enabled") != true
     rootView.eachEditor (editor) =>
       @appendToEditorPane(rootView, editor) if editor.attached
