@@ -69,6 +69,25 @@ _.mixin
     else
       "#{count} #{plural}"
 
+  camelize: (string) ->
+    string.replace /[_-]+(\w)/g, (m) -> m[1].toUpperCase()
+
+  dasherize: (string) ->
+    string = string[0].toLowerCase() + string[1..]
+    string.replace /([A-Z])|(_)/g, (m, letter, underscore) ->
+      if letter
+        "-" + letter.toLowerCase()
+      else
+        "-"
+
+  underscore: (string) ->
+    string = string[0].toLowerCase() + string[1..]
+    string.replace /([A-Z])|(-)/g, (m, letter, dash) ->
+      if letter
+        "_" + letter.toLowerCase()
+      else
+        "_"
+
   losslessInvert: (hash) ->
     inverted = {}
     for key, value of hash

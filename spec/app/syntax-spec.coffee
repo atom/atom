@@ -12,6 +12,16 @@ describe "the `syntax` global", ->
       filePath = require.resolve("fixtures/shebang")
       expect(syntax.grammarForFilePath(filePath).name).toBe "Ruby"
 
+    it "uses the number of newlines in the first line regex to determine the number of lines to test against", ->
+      fileContent = "first-line\n<html>"
+      expect(syntax.grammarForFilePath("dummy.coffee", fileContent).name).toBe "CoffeeScript"
+
+      fileContent = '<?xml version="1.0" encoding="UTF-8"?>'
+      expect(syntax.grammarForFilePath("grammar.tmLanguage", fileContent).name).toBe "Plain Text"
+
+      fileContent += '\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+      expect(syntax.grammarForFilePath("grammar.tmLanguage", fileContent).name).toBe "Property List (XML)"
+
     it "doesn't read the file when the file contents are specified", ->
       filePath = require.resolve("fixtures/shebang")
       filePathContents = fs.read(filePath)

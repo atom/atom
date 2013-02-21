@@ -1,3 +1,0 @@
-# The Atom Guide
-
-Welcome!

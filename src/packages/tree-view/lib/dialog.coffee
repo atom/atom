@@ -32,7 +32,7 @@ class Dialog extends View
 
   close: ->
     @remove()
-    $('#root-view').focus()
+    rootView.focus()
 
   cancel: ->
     @remove()

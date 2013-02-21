@@ -28,7 +28,8 @@ class DisplayBuffer
     @foldsById = {}
     @markers = {}
     @buildLineMap()
-    @tokenizedBuffer.on 'changed', (e) => @handleTokenizedBufferChange(e)
+    @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
+    @buffer.on 'markers-updated', @handleMarkersUpdated
 
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
@@ -37,8 +38,11 @@ class DisplayBuffer
     @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
   triggerChanged: (eventProperties, refreshMarkers=true) ->
-    @refreshMarkerScreenPositions() if refreshMarkers
+    if refreshMarkers
+      @pauseMarkerObservers()
+      @refreshMarkerScreenPositions()
     @trigger 'changed', eventProperties
+    @resumeMarkerObservers()
 
   setSoftWrapColumn: (@softWrapColumn) ->
     start = 0
@@ -71,9 +75,26 @@ class DisplayBuffer
     for row in [@buffer.getLastRow()..0]
       @activeFolds[row]?.forEach (fold) => @destroyFold(fold)
 
+  rowRangeForCommentAtBufferRow: (row) ->
+    return unless @tokenizedBuffer.lineForScreenRow(row).isComment()
+
+    startRow = row
+    for currentRow in [row-1..0]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      startRow = currentRow
+    endRow = row
+    for currentRow in [row+1..@buffer.getLastRow()]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      endRow = currentRow
+    return [startRow, endRow] if startRow isnt endRow
+
   foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
-      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
+      rowRange = @rowRangeForCommentAtBufferRow(currentRow)
+      rowRange ?= @languageMode.rowRangeForFoldAtBufferRow(currentRow)
+      [startRow, endRow] = rowRange ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
       fold = @largestFoldStartingAtBufferRow(startRow)
       continue if fold
@@ -131,7 +152,6 @@ class DisplayBuffer
       screenDelta = newScreenRange.end.row - oldScreenRange.end.row
       bufferDelta = 0
 
-      @refreshMarkerScreenPositions()
       @triggerChanged({ start, end, screenDelta, bufferDelta })
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
@@ -216,7 +236,7 @@ class DisplayBuffer
     allFolds.push(folds...) for row, folds of @activeFolds
     fold.handleBufferChange(e) for fold in allFolds
 
-  handleTokenizedBufferChange: (tokenizedBufferChange) ->
+  handleTokenizedBufferChange: (tokenizedBufferChange) =>
     if bufferChange = tokenizedBufferChange.bufferChange
       @handleBufferChange(bufferChange)
       bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
@@ -231,7 +251,17 @@ class DisplayBuffer
     @lineMap.replaceScreenRows(start, end, newScreenLines)
     screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
 
-    @triggerChanged({ start, end, screenDelta, bufferDelta }, false)
+    changeEvent = { start, end, screenDelta, bufferDelta }
+    if bufferChange
+      @pauseMarkerObservers()
+      @pendingChangeEvent = changeEvent
+    else
+      @triggerChanged(changeEvent, false)
+
+  handleMarkersUpdated: =>
+    event = @pendingChangeEvent
+    @pendingChangeEvent = null
+    @triggerChanged(event, false)
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
@@ -372,12 +402,19 @@ class DisplayBuffer
   observeMarker: (id, callback) ->
     @getMarker(id).observe(callback)
 
+  pauseMarkerObservers: ->
+    marker.pauseEvents() for marker in @getMarkers()
+
+  resumeMarkerObservers: ->
+    marker.resumeEvents() for marker in @getMarkers()
+
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
       marker.notifyObservers(bufferChanged: false)
 
   destroy: ->
     @tokenizedBuffer.destroy()
+    @buffer.off 'markers-updated', @handleMarkersUpdated
 
   logLines: (start, end) ->
     @lineMap.logLines(start, end)

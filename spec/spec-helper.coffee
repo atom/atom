@@ -1,3 +1,6 @@
+require 'window'
+window.setUpEnvironment()
+
 nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
@@ -7,30 +10,30 @@ Point = require 'point'
 Project = require 'project'
 Directory = require 'directory'
 File = require 'file'
-RootView = require 'root-view'
 Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
-require 'window'
+RootView = require 'root-view'
 requireStylesheet "jasmine.css"
 fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
+keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
-# Specs rely on TextMate bundles (but not atom packages)
-window.loadTextMatePackages = ->
-  TextMatePackage = require 'text-mate-package'
-  config.packageDirPaths.unshift(fixturePackagesPath)
-  window.textMatePackages = []
-  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
-    window.textMatePackages.push atom.loadPackage(fs.base(path))
+$(window).on 'core:close', -> window.close()
+$(window).on 'toggle-dev-tools', (e) -> atom.toggleDevTools()
+$('html,body').css('overflow', 'auto')
 
-window.loadTextMatePackages()
+jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
+  jQuery.fx.off = true
   window.fixturesProject = new Project(require.resolve('fixtures'))
+  window.project = fixturesProject
   window.resetTimeouts()
   atom.atomPackageStates = {}
+  atom.loadedPackages = []
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
@@ -62,20 +65,33 @@ beforeEach ->
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
-  delete window.rootView if window.rootView
+  if rootView?
+    rootView.deactivate()
+    window.rootView = null
+  if project?
+    project.destroy()
+    window.project = null
   $('#jasmine-content').empty()
-  window.fixturesProject.destroy()
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
-window.keymap.bindKeys '*', 'meta-w': 'close'
-$(document).on 'close', -> window.close()
-$(document).on 'toggle-dev-tools', (e) ->
-  atom.toggleDevTools() if $('#root-view').length is 0
-$('html,body').css('overflow', 'auto')
+window.loadPackage = (name, options) ->
+  Package = require 'package'
+  packagePath = _.find atom.getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
+  if pack = Package.build(packagePath)
+    pack.load(options)
+    atom.loadedPackages.push(pack)
+  pack
 
-jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
-jasmine.getEnv().defaultTimeoutInterval = 1000
+# Specs rely on TextMate bundles (but not atom packages)
+window.loadTextMatePackages = ->
+  TextMatePackage = require 'text-mate-package'
+  config.packageDirPaths.unshift(fixturePackagesPath)
+  window.textMatePackages = []
+  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
+    window.textMatePackages.push window.loadPackage(fs.base(path))
+
+window.loadTextMatePackages()
 
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()
@@ -102,9 +118,8 @@ window.keyIdentifierForKey = (key) ->
     "U+00" + charCode.toString(16)
 
 window.keydownEvent = (key, properties={}) ->
-  event = $.Event "keydown", _.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
-  # event.keystroke = (new Keymap).keystrokeStringForEvent(event)
-  event
+  properties = $.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
+  $.Event("keydown", properties)
 
 window.mouseEvent = (type, properties) ->
   if properties.point

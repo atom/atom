@@ -10,19 +10,19 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  [rootView, project, buffer, editor, cachedLineHeight] = []
+  [buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
-    editorForMeasurement = new Editor(editSession: rootView.project.buildEditSessionForPath('sample.js'))
+    editorForMeasurement = new Editor(editSession: project.buildEditSessionForPath('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     editorForMeasurement.remove()
     cachedLineHeight
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
-    project = rootView.project
+    window.rootView = new RootView
+    rootView.open('sample.js')
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
 
@@ -35,9 +35,6 @@ describe "Editor", ->
     editor.enableKeymap()
     editor.isFocused = true
 
-  afterEach ->
-    rootView.remove()
-
   describe "construction", ->
     it "throws an error if no editor session is given unless deserializing", ->
       expect(-> new Editor).toThrow()
@@ -49,7 +46,7 @@ describe "Editor", ->
       rootView.height(8 * editor.lineHeight)
       rootView.width(50 * editor.charWidth)
 
-      editor.edit(rootView.project.buildEditSessionForPath('two-hundred.txt'))
+      editor.edit(project.buildEditSessionForPath('two-hundred.txt'))
       editor.setCursorScreenPosition([5, 1])
       editor.scrollTop(1.5 * editor.lineHeight)
       editor.scrollView.scrollLeft(44)
@@ -78,7 +75,7 @@ describe "Editor", ->
     it "does not blow up if no file exists for a previous edit session, but prints a warning", ->
       spyOn(console, 'warn')
       fs.write('/tmp/delete-me')
-      editor.edit(rootView.project.buildEditSessionForPath('/tmp/delete-me'))
+      editor.edit(project.buildEditSessionForPath('/tmp/delete-me'))
       fs.remove('/tmp/delete-me')
       newEditor = editor.copy()
       expect(console.warn).toHaveBeenCalled()
@@ -140,7 +137,7 @@ describe "Editor", ->
   describe ".remove()", ->
     it "removes subscriptions from all edit session buffers", ->
       previousEditSession = editor.activeEditSession
-      otherEditSession = rootView.project.buildEditSessionForPath(rootView.project.resolve('sample.txt'))
+      otherEditSession = project.buildEditSessionForPath(project.resolve('sample.txt'))
       expect(previousEditSession.buffer.subscriptionCount()).toBeGreaterThan 1
 
       editor.edit(otherEditSession)
@@ -151,8 +148,18 @@ describe "Editor", ->
       expect(otherEditSession.buffer.subscriptionCount()).toBe 0
 
   describe "when 'close' is triggered", ->
+    it "adds a closed session path to the array", ->
+      editor.edit(project.buildEditSessionForPath())
+      editSession = editor.activeEditSession
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.edit(project.buildEditSessionForPath(project.resolve('sample.txt')))
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 1
+
     it "closes the active edit session and loads next edit session", ->
-      editor.edit(rootView.project.buildEditSessionForPath())
+      editor.edit(project.buildEditSessionForPath())
       editSession = editor.activeEditSession
       spyOn(editSession.buffer, 'isModified').andReturn false
       spyOn(editSession, 'destroy').andCallThrough()
@@ -163,7 +170,7 @@ describe "Editor", ->
       expect(editor.getBuffer()).toBe buffer
 
     it "triggers the 'editor:edit-session-removed' event with the edit session and its former index", ->
-      editor.edit(rootView.project.buildEditSessionForPath())
+      editor.edit(project.buildEditSessionForPath())
       editSession = editor.activeEditSession
       index = editor.getActiveEditSessionIndex()
       spyOn(editSession.buffer, 'isModified').andReturn false
@@ -211,7 +218,7 @@ describe "Editor", ->
     otherEditSession = null
 
     beforeEach ->
-      otherEditSession = rootView.project.buildEditSessionForPath()
+      otherEditSession = project.buildEditSessionForPath()
 
     describe "when the edit session wasn't previously assigned to this editor", ->
       it "adds edit session to editor and triggers the 'editor:edit-session-added' event", ->
@@ -247,16 +254,24 @@ describe "Editor", ->
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
 
+    it "removes the opened session from the closed sessions array", ->
+      editor.edit(project.buildEditSessionForPath('sample.txt'))
+      expect(editor.closedEditSessions.length).toBe 0
+      editor.trigger "core:close"
+      expect(editor.closedEditSessions.length).toBe 1
+      editor.edit(project.buildEditSessionForPath('sample.txt'))
+      expect(editor.closedEditSessions.length).toBe 0
+
   describe "switching edit sessions", ->
     [session0, session1, session2] = []
 
     beforeEach ->
       session0 = editor.activeEditSession
 
-      editor.edit(rootView.project.buildEditSessionForPath('sample.txt'))
+      editor.edit(project.buildEditSessionForPath('sample.txt'))
       session1 = editor.activeEditSession
 
-      editor.edit(rootView.project.buildEditSessionForPath('two-hundred.txt'))
+      editor.edit(project.buildEditSessionForPath('two-hundred.txt'))
       session2 = editor.activeEditSession
 
     describe ".setActiveEditSessionIndex(index)", ->
@@ -339,14 +354,11 @@ describe "Editor", ->
       tempFilePath = null
 
       beforeEach ->
-        rootView.remove()
-
+        project.setPath('/tmp')
         tempFilePath = '/tmp/atom-temp.txt'
         fs.write(tempFilePath, "")
-        rootView = new RootView(tempFilePath)
+        rootView.open(tempFilePath)
         editor = rootView.getActiveEditor()
-        project = rootView.project
-
         expect(editor.getPath()).toBe tempFilePath
 
       afterEach ->
@@ -364,7 +376,7 @@ describe "Editor", ->
     describe "when the current buffer has no path", ->
       selectedFilePath = null
       beforeEach ->
-        editor.edit(rootView.project.buildEditSessionForPath())
+        editor.edit(project.buildEditSessionForPath())
 
         expect(editor.getPath()).toBeUndefined()
         editor.getBuffer().setText 'Save me to a new path'
@@ -464,13 +476,13 @@ describe "Editor", ->
       openHandler = jasmine.createSpy('openHandler')
       editor.on 'editor:attached', openHandler
 
-      editor.simulateDomAttachment()
+      editor.attachToDom()
       expect(openHandler).toHaveBeenCalled()
       [event, eventEditor] = openHandler.argsForCall[0]
       expect(eventEditor).toBe editor
 
       openHandler.reset()
-      editor.simulateDomAttachment()
+      editor.attachToDom()
       expect(openHandler).not.toHaveBeenCalled()
 
   describe "editor-path-changed event", ->
@@ -491,7 +503,7 @@ describe "Editor", ->
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor:path-changed', eventHandler
-      editor.edit(rootView.project.buildEditSessionForPath(path))
+      editor.edit(project.buildEditSessionForPath(path))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -499,7 +511,7 @@ describe "Editor", ->
       oldBuffer = editor.getBuffer()
       editor.on 'editor:path-changed', eventHandler
 
-      editor.edit(rootView.project.buildEditSessionForPath(path))
+      editor.edit(project.buildEditSessionForPath(path))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
@@ -523,6 +535,9 @@ describe "Editor", ->
       expect($("head style.font-family")).not.toExist()
 
     describe "when the font family changes", ->
+      afterEach ->
+        editor.clearFontFamily()
+
       it "updates the font family on new and existing editors", ->
         rootView.attachToDom()
         rootView.height(200)
@@ -531,7 +546,7 @@ describe "Editor", ->
         config.set("editor.fontFamily", "Courier")
         newEditor = editor.splitRight()
 
-        expect($("head style.font-family").text()).toMatch "{font-family: Courier}"
+        expect($("head style.editor-font-family").text()).toMatch "{font-family: Courier}"
         expect(editor.css('font-family')).toBe 'Courier'
         expect(newEditor.css('font-family')).toBe 'Courier'
 
@@ -542,7 +557,7 @@ describe "Editor", ->
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "Inconsolata")
+        config.set("editor.fontFamily", "Courier")
         editor.setCursorScreenPosition [5, 6]
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
@@ -615,7 +630,7 @@ describe "Editor", ->
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
 
       describe "when the editor is detached", ->
-        it "updates the font-size correctly and recalculates the dimensions by placing the rendered lines on the DOM", ->
+        it "redraws the editor according to the new font size when it is reattached", ->
           rootView.attachToDom()
           rootView.height(200)
           rootView.width(200)
@@ -650,6 +665,18 @@ describe "Editor", ->
           editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
           editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 50])
           expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
+
+      describe "when the editor is using a variable-width font", ->
+        beforeEach ->
+          editor.setFontFamily('sans-serif')
+
+        afterEach ->
+          editor.clearFontFamily()
+
+        it "positions the cursor to the clicked row and column", ->
+          {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
+          editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
+          expect(editor.getCursorScreenPosition()).toEqual [3, 30]
 
     describe "double-click", ->
       it "selects the word under the cursor, and expands the selection wordwise in either direction on a subsequent shift-click", ->
@@ -1080,6 +1107,19 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(cursorView).toBeVisible()
 
+      describe "when the editor is using a variable-width font", ->
+        beforeEach ->
+          editor.setFontFamily('sans-serif')
+
+        afterEach ->
+          editor.clearFontFamily()
+
+        it "correctly positions the cursor", ->
+          editor.setCursorBufferPosition([3, 30])
+          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 178}
+          editor.setCursorBufferPosition([3, Infinity])
+          expect(editor.getCursorView().position()).toEqual {top: 3 * editor.lineHeight, left: 353}
+
       describe "autoscrolling", ->
         it "only autoscrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])
@@ -1108,6 +1148,15 @@ describe "Editor", ->
 
           editor.setCursorBufferPosition([4, 10])
           expect(editor.scrollToPixelPosition).toHaveBeenCalled()
+
+        it "does not autoscroll the cursor based on a buffer change, unless the buffer change was initiated by the cursor", ->
+          lastVisibleRow = editor.getLastVisibleScreenRow()
+          editor.addCursorAtBufferPosition([lastVisibleRow, 0])
+          spyOn(editor, 'scrollToPixelPosition')
+          buffer.insert([lastVisibleRow, 0], "\n\n")
+          expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
+          editor.insertText('\n\n')
+          expect(editor.scrollToPixelPosition.callCount).toBe 1
 
         describe "when the last cursor exceeds the upper or lower scroll margins", ->
           describe "when the editor is taller than twice the vertical scroll margin", ->
@@ -1252,7 +1301,27 @@ describe "Editor", ->
         expect(span0.children('span:eq(2)').text()).toBe "{"
 
         line12 = editor.renderedLines.find('.line:eq(11)')
-        expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
+        expect(line12.find('span:eq(2)')).toMatchSelector '.keyword'
+
+      it "wraps hard tabs in a span", ->
+        editor.setText('\t<- hard tab')
+        line0 = editor.renderedLines.find('.line:first')
+        span0_0 = line0.children('span:eq(0)').children('span:eq(0)')
+        expect(span0_0).toMatchSelector '.hard-tab'
+        expect(span0_0.text()).toBe ' '
+
+      it "wraps leading whitespace in a span", ->
+        line1 = editor.renderedLines.find('.line:eq(1)')
+        span0_0 = line1.children('span:eq(0)').children('span:eq(0)')
+        expect(span0_0).toMatchSelector '.leading-whitespace'
+        expect(span0_0.text()).toBe '  '
+
+      it "wraps trailing whitespace in a span", ->
+        editor.setText('trailing whitespace ->   ')
+        line0 = editor.renderedLines.find('.line:first')
+        span0_last = line0.children('span:eq(0)').children('span:last')
+        expect(span0_last).toMatchSelector '.trailing-whitespace'
+        expect(span0_last.text()).toBe '   '
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
@@ -1297,14 +1366,13 @@ describe "Editor", ->
         it "changes the max line length and repositions the cursor when the window size changes", ->
           editor.setCursorBufferPosition([3, 60])
           setEditorWidthInChars(editor, 40)
-          $(window).trigger 'resize'
           expect(editor.renderedLines.find('.line').length).toBe 19
           expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
           expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
           expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
         it "does not wrap the lines of any newly assigned buffers", ->
-          otherEditSession = rootView.project.buildEditSessionForPath()
+          otherEditSession = project.buildEditSessionForPath()
           otherEditSession.buffer.setText([1..100].join(''))
           editor.edit(otherEditSession)
           expect(editor.renderedLines.find('.line').length).toBe(1)
@@ -1340,7 +1408,7 @@ describe "Editor", ->
           expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
         it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
-          otherEditor = new Editor(editSession: rootView.project.buildEditSessionForPath('sample.js'))
+          otherEditor = new Editor(editSession: project.buildEditSessionForPath('sample.js'))
           spyOn(otherEditor, 'setSoftWrapColumn')
 
           otherEditor.setSoftWrap(true)
@@ -1636,7 +1704,7 @@ describe "Editor", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editor.edit(rootView.project.buildEditSessionForPath('two-hundred.txt'))
+        editor.edit(project.buildEditSessionForPath('two-hundred.txt'))
         editor.attachToDom(heightInLines: 5.5)
 
         expect(editor.renderedLines.find('.line').length).toBe 8
@@ -1694,48 +1762,118 @@ describe "Editor", ->
         expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
         expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
 
-     it "displays trailing carriage return using a visible non-empty value", ->
-       editor.setText "a line that ends with a carriage return\r\n"
-       editor.attachToDom()
+      it "displays trailing carriage return using a visible non-empty value", ->
+        editor.setText "a line that ends with a carriage return\r\n"
+        editor.attachToDom()
 
-       expect(config.get("editor.showInvisibles")).toBeFalsy()
-       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
+        expect(config.get("editor.showInvisibles")).toBeFalsy()
+        expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return"
 
-       config.set("editor.showInvisibles", true)
-       cr = editor.invisibles?.cr
-       expect(cr).toBeTruthy()
-       eol = editor.invisibles?.eol
-       expect(eol).toBeTruthy()
-       expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
+        config.set("editor.showInvisibles", true)
+        cr = editor.invisibles?.cr
+        expect(cr).toBeTruthy()
+        eol = editor.invisibles?.eol
+        expect(eol).toBeTruthy()
+        expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
 
+      describe "when wrapping is on", ->
+        it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
+          editor.setSoftWrapColumn(6)
+          editor.setText "a line that wraps"
+          editor.attachToDom()
+          config.set "editor.showInvisibles", true
+          space = editor.invisibles?.space
+          expect(space).toBeTruthy()
+          eol = editor.invisibles?.eol
+          expect(eol).toBeTruthy()
+          expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+          expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
 
-     describe "when wrapping is on", ->
-       it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
-         editor.setSoftWrapColumn(6)
-         editor.setText "a line that wraps"
-         editor.attachToDom()
-         config.set "editor.showInvisibles", true
-         space = editor.invisibles?.space
-         expect(space).toBeTruthy()
-         eol = editor.invisibles?.eol
-         expect(eol).toBeTruthy()
-         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
-         expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
+        it "displays trailing carriage return using a visible non-empty value", ->
+          editor.setSoftWrapColumn(6)
+          editor.setText "a line that\r\n"
+          editor.attachToDom()
+          config.set "editor.showInvisibles", true
+          space = editor.invisibles?.space
+          expect(space).toBeTruthy()
+          cr = editor.invisibles?.cr
+          expect(cr).toBeTruthy()
+          eol = editor.invisibles?.eol
+          expect(eol).toBeTruthy()
+          expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
+          expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
+          expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
 
-       it "displays trailing carriage return using a visible non-empty value", ->
-         editor.setSoftWrapColumn(6)
-         editor.setText "a line that\r\n"
-         editor.attachToDom()
-         config.set "editor.showInvisibles", true
-         space = editor.invisibles?.space
-         expect(space).toBeTruthy()
-         cr = editor.invisibles?.cr
-         expect(cr).toBeTruthy()
-         eol = editor.invisibles?.eol
-         expect(eol).toBeTruthy()
-         expect(editor.renderedLines.find('.line:first').text()).toBe "a line#{space}"
-         expect(editor.renderedLines.find('.line:eq(1)').text()).toBe "that#{cr}#{eol}"
-         expect(editor.renderedLines.find('.line:last').text()).toBe "#{eol}"
+    describe "when config.editor.showIndentGuide is set to true", ->
+      it "adds an indent-guide class to each leading whitespace span", ->
+        editor.attachToDom()
+
+        expect(config.get("editor.showIndentGuide")).toBeFalsy()
+        config.set("editor.showIndentGuide", true)
+        expect(editor.showIndentGuide).toBeTruthy()
+
+        expect(editor.renderedLines.find('.line:eq(0) .indent-guide').length).toBe 0
+
+        expect(editor.renderedLines.find('.line:eq(1) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(1) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(2) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(2) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(3) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(3) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(4) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(4) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(5) .indent-guide').length).toBe 3
+        expect(editor.renderedLines.find('.line:eq(5) .indent-guide').text()).toBe '      '
+
+        expect(editor.renderedLines.find('.line:eq(6) .indent-guide').length).toBe 3
+        expect(editor.renderedLines.find('.line:eq(6) .indent-guide').text()).toBe '      '
+
+        expect(editor.renderedLines.find('.line:eq(7) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(7) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(8) .indent-guide').length).toBe 2
+        expect(editor.renderedLines.find('.line:eq(8) .indent-guide').text()).toBe '    '
+
+        expect(editor.renderedLines.find('.line:eq(9) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(9) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(11) .indent-guide').length).toBe 1
+        expect(editor.renderedLines.find('.line:eq(11) .indent-guide').text()).toBe '  '
+
+        expect(editor.renderedLines.find('.line:eq(12) .indent-guide').length).toBe 0
+
+      describe "when the indentation level on a line before an empty line is changed", ->
+        it "updates the indent guide on the empty line", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+          editor.setCursorBufferPosition([9])
+          editor.indentSelectedRows()
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
+
+      describe "when a line contains only whitespace", ->
+        it "displays an indent guide on the line", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          editor.setCursorBufferPosition([10])
+          editor.indent()
+          editor.indent()
+          expect(editor.getCursorBufferPosition()).toEqual [10, 4]
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
   describe "gutter rendering", ->
     beforeEach ->
@@ -1981,7 +2119,7 @@ describe "Editor", ->
 
   describe "folding", ->
     beforeEach ->
-      editSession = rootView.project.buildEditSessionForPath('two-hundred.txt')
+      editSession = project.buildEditSessionForPath('two-hundred.txt')
       buffer = editSession.buffer
       editor.edit(editSession)
       editor.attachToDom()
@@ -2130,7 +2268,7 @@ describe "Editor", ->
       expect(editSession.save).toHaveBeenCalled()
 
   describe ".checkoutHead()", ->
-    [repo, path, originalPathText] = []
+    [path, originalPathText] = []
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
@@ -2157,21 +2295,44 @@ describe "Editor", ->
       runs ->
         expect(editor.getText()).toBe(originalPathText)
 
-  describe "when clicking a gutter line", ->
+  describe "when clicking in the gutter", ->
     beforeEach ->
-      rootView.attachToDom()
+      editor.attachToDom()
 
-    it "moves the cursor to the start of the selected line", ->
-      expect(editor.getCursorScreenPosition()).toEqual [0,0]
-      editor.gutter.find(".line-number:eq(1)").trigger 'click'
-      expect(editor.getCursorScreenPosition()).toEqual [1,0]
+    describe "when single clicking", ->
+      it "moves the cursor to the start of the selected line", ->
+        expect(editor.getCursorScreenPosition()).toEqual [0,0]
+        event = $.Event("mousedown")
+        event.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+        event.originalEvent = {detail: 1}
+        editor.gutter.find(".line-number:eq(1)").trigger event
+        expect(editor.getCursorScreenPosition()).toEqual [1,0]
 
-    it "selects to the start of the selected line when shift is pressed", ->
-      expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
-      event = $.Event("click")
-      event.shiftKey = true
-      editor.gutter.find(".line-number:eq(1)").trigger event
-      expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [1,0]]
+    describe "when shift-clicking", ->
+      it "selects to the start of the selected line", ->
+        expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
+        event = $.Event("mousedown")
+        event.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+        event.originalEvent = {detail: 1}
+        event.shiftKey = true
+        editor.gutter.find(".line-number:eq(1)").trigger event
+        expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [1,0]]
+
+    describe "when mousing down and then moving across multiple lines before mousing up", ->
+      it "selects the lines", ->
+        mousedownEvent = $.Event("mousedown")
+        mousedownEvent.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+        mousedownEvent.originalEvent = {detail: 1}
+        editor.gutter.find(".line-number:eq(1)").trigger mousedownEvent
+
+        mousemoveEvent = $.Event("mousemove")
+        mousemoveEvent.pageY = editor.gutter.find(".line-number:eq(5)").offset().top
+        mousemoveEvent.originalEvent = {detail: 1}
+        editor.gutter.find(".line-number:eq(5)").trigger mousemoveEvent
+
+        $(document).trigger 'mouseup'
+
+        expect(editor.getSelection().getScreenRange()).toEqual [[1,0], [5,30]]
 
   describe "when clicking below the last line", ->
     beforeEach ->
@@ -2248,7 +2409,7 @@ describe "Editor", ->
       rootView.attachToDom()
 
     afterEach ->
-      rootView.project.removeGrammarOverrideForPath(path)
+      project.removeGrammarOverrideForPath(path)
       fs.remove(path) if fs.exists(path)
 
     it "updates all the rendered lines when the grammar changes", ->
@@ -2258,7 +2419,7 @@ describe "Editor", ->
       jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
       expect(jsGrammar.name).toBe 'JavaScript'
 
-      rootView.project.addGrammarOverrideForPath(path, jsGrammar)
+      project.addGrammarOverrideForPath(path, jsGrammar)
       expect(editor.reloadGrammar()).toBeTruthy()
       expect(editor.getGrammar()).toBe jsGrammar
 
@@ -2291,7 +2452,7 @@ describe "Editor", ->
       expect(eventHandler).not.toHaveBeenCalled()
 
       jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
-      rootView.project.addGrammarOverrideForPath(path, jsGrammar)
+      project.addGrammarOverrideForPath(path, jsGrammar)
       editor.reloadGrammar()
 
       expect(eventHandler).toHaveBeenCalled()
@@ -2588,3 +2749,113 @@ describe "Editor", ->
           expect(buffer.lineForRow(14)).toBe ''
           expect(buffer.lineForRow(15)).toBeUndefined()
           expect(editor.getCursorBufferPosition()).toEqual [14, 0]
+
+      describe "when the cursor is on the second to last line and the last line only a newline", ->
+        it "duplicates the current line below and moves the cursor down one row", ->
+          editor.moveCursorToBottom()
+          editor.insertNewline()
+          editor.setCursorBufferPosition([12])
+          editor.trigger 'editor:duplicate-line'
+          expect(buffer.lineForRow(12)).toBe '};'
+          expect(buffer.lineForRow(13)).toBe '};'
+          expect(buffer.lineForRow(14)).toBe ''
+          expect(buffer.lineForRow(15)).toBeUndefined()
+          expect(editor.getCursorBufferPosition()).toEqual [13, 0]
+
+  describe ".moveEditSessionToIndex(fromIndex, toIndex)", ->
+    describe "when the edit session moves to a later index", ->
+      it "updates the edit session order", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.editSessions[0].getPath()).toBe jsPath
+        expect(editor.editSessions[1].getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(0, 1)
+        expect(editor.editSessions[0].getPath()).toBe txtPath
+        expect(editor.editSessions[1].getPath()).toBe jsPath
+
+      it "fires an editor:edit-session-order-changed event", ->
+        eventHandler = jasmine.createSpy("eventHandler")
+        rootView.open("sample.txt")
+        editor.on "editor:edit-session-order-changed", eventHandler
+        editor.moveEditSessionToIndex(0, 1)
+        expect(eventHandler).toHaveBeenCalled()
+
+      it "sets the moved session as the editor's active session", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.activeEditSession.getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(0, 1)
+        expect(editor.activeEditSession.getPath()).toBe jsPath
+
+    describe "when the edit session moves to an earlier index", ->
+      it "updates the edit session order", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.editSessions[0].getPath()).toBe jsPath
+        expect(editor.editSessions[1].getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(1, 0)
+        expect(editor.editSessions[0].getPath()).toBe txtPath
+        expect(editor.editSessions[1].getPath()).toBe jsPath
+
+      it "fires an editor:edit-session-order-changed event", ->
+        eventHandler = jasmine.createSpy("eventHandler")
+        rootView.open("sample.txt")
+        editor.on "editor:edit-session-order-changed", eventHandler
+        editor.moveEditSessionToIndex(1, 0)
+        expect(eventHandler).toHaveBeenCalled()
+
+      it "sets the moved session as the editor's active session", ->
+        jsPath = editor.getPath()
+        rootView.open("sample.txt")
+        txtPath = editor.getPath()
+        expect(editor.activeEditSession.getPath()).toBe txtPath
+        editor.moveEditSessionToIndex(1, 0)
+        expect(editor.activeEditSession.getPath()).toBe txtPath
+
+  describe ".moveEditSessionToEditor(fromIndex, toEditor, toIndex)", ->
+    it "closes the edit session in the source editor", ->
+      jsPath = editor.getPath()
+      rootView.open("sample.txt")
+      txtPath = editor.getPath()
+      rightEditor = editor.splitRight()
+      expect(editor.editSessions[0].getPath()).toBe jsPath
+      expect(editor.editSessions[1].getPath()).toBe txtPath
+      editor.moveEditSessionToEditor(0, rightEditor, 1)
+      expect(editor.editSessions[0].getPath()).toBe txtPath
+      expect(editor.editSessions[1]).toBeUndefined()
+
+    it "opens the edit session in the destination editor at the target index", ->
+      jsPath = editor.getPath()
+      rootView.open("sample.txt")
+      txtPath = editor.getPath()
+      rightEditor = editor.splitRight()
+      expect(rightEditor.editSessions[0].getPath()).toBe txtPath
+      expect(rightEditor.editSessions[1]).toBeUndefined()
+      editor.moveEditSessionToEditor(0, rightEditor, 0)
+      expect(rightEditor.editSessions[0].getPath()).toBe jsPath
+      expect(rightEditor.editSessions[1].getPath()).toBe txtPath
+
+  describe "when editor:undo-close-session is triggered", ->
+    describe "when an edit session is opened back up after it is closed", ->
+      it "is removed from the undo stack and not reopened when the event is triggered", ->
+        rootView.open('sample.txt')
+        expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+        editor.trigger "core:close"
+        expect(editor.closedEditSessions.length).toBe 1
+        rootView.open('sample.txt')
+        expect(editor.closedEditSessions.length).toBe 0
+        editor.trigger 'editor:undo-close-session'
+        expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+
+    it "opens the closed session back up at the previous index", ->
+      rootView.open('sample.txt')
+      editor.loadPreviousEditSession()
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
+      editor.trigger "core:close"
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.txt')
+      editor.trigger 'editor:undo-close-session'
+      expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
+      expect(editor.getActiveEditSessionIndex()).toBe 0

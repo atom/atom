@@ -5,14 +5,12 @@ describe 'GoToLine', ->
   [goToLine, editor] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.enableKeymap()
     editor = rootView.getActiveEditor()
     goToLine = GoToLineView.activate()
     editor.setCursorBufferPosition([1,0])
-
-  afterEach ->
-    rootView.remove()
 
   describe "when editor:go-to-line is triggered", ->
     it "attaches to the root view", ->

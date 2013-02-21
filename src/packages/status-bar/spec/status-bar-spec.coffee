@@ -5,18 +5,16 @@ StatusBar = require 'status-bar/lib/status-bar-view'
 fs = require 'fs'
 
 describe "StatusBar", ->
-  [rootView, editor, statusBar, buffer] = []
+  [editor, statusBar, buffer] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.simulateDomAttachment()
     StatusBar.activate()
     editor = rootView.getActiveEditor()
     statusBar = rootView.find('.status-bar').view()
     buffer = editor.getBuffer()
-
-  afterEach ->
-    rootView.remove()
 
   describe "@initialize", ->
     it "appends a status bar to all existing and new editors", ->
@@ -34,8 +32,8 @@ describe "StatusBar", ->
 
     describe "when associated with an unsaved buffer", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
-        rootView.remove()
-        rootView = new RootView
+        rootView.deactivate()
+        window.rootView = new RootView
         rootView.open()
         rootView.simulateDomAttachment()
         StatusBar.activate()
@@ -114,13 +112,13 @@ describe "StatusBar", ->
 
     it "displays the current branch for files in repositories", ->
       path = require.resolve('fixtures/git/master.git/HEAD')
-      rootView.project.setPath(require.resolve('fixtures/git/master.git'))
+      project.setPath(require.resolve('fixtures/git/master.git'))
       rootView.open(path)
       expect(statusBar.branchArea).toBeVisible()
       expect(statusBar.branchLabel.text()).toBe 'master'
 
     it "doesn't display the current branch for a file not in a repository", ->
-      rootView.project.setPath('/tmp')
+      project.setPath('/tmp')
       rootView.open('/tmp/temp.txt')
       expect(statusBar.branchArea).toBeHidden()
       expect(statusBar.branchLabel.text()).toBe ''
@@ -184,7 +182,7 @@ describe "StatusBar", ->
     describe "when the editor's grammar changes", ->
       it "displays the new grammar of the editor", ->
         textGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'Plain Text'
-        rootView.project.addGrammarOverrideForPath(editor.getPath(), textGrammar)
+        project.addGrammarOverrideForPath(editor.getPath(), textGrammar)
         editor.reloadGrammar()
         expect(statusBar.find('.grammar-name').text()).toBe textGrammar.name
 

@@ -45,5 +45,19 @@ jasmine.ConsoleReporter.prototype.reportSpecResults = function(spec) {
 };
 
 jasmine.ConsoleReporter.prototype.specFilter = function(spec) {
-  return true;
+  var globalFocusPriority = jasmine.getEnv().focusPriority
+  var parent = spec.parentSuite || spec.suite
+
+  if (!globalFocusPriority) {
+    return true
+  }
+  else if (spec.focusPriority >= globalFocusPriority) {
+    return true
+  }
+  else if (!parent) {
+    return false
+  }
+  else {
+    return this.specFilter(parent)
+  }
 };

@@ -1,8 +1,11 @@
+_ = require 'underscore'
+
 module.exports =
   projectPaths: null
   fuzzyFinderView: null
+  loadPathsTask: null
 
-  activate: ->
+  activate: (state) ->
     rootView.command 'fuzzy-finder:toggle-file-finder', =>
       @createView().toggleFileFinder()
     rootView.command 'fuzzy-finder:toggle-buffer-finder', =>
@@ -10,17 +13,23 @@ module.exports =
     rootView.command 'fuzzy-finder:find-under-cursor', =>
       @createView().findUnderCursor()
 
-    if rootView.project.getPath()?
+    if project.getPath()?
       LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
       @loadPathsTask = new LoadPathsTask((paths) => @projectPaths = paths)
       @loadPathsTask.start()
 
+    for editSession in project.getEditSessions()
+      editSession.lastOpened = state[editSession.getPath()]
+
   deactivate: ->
-    @loadPathsTask?.terminate()
+    @loadPathsTask?.abort()
+    @loadPathsTask = null
     @fuzzyFinderView?.cancel()
     @fuzzyFinderView = null
     @projectPaths = null
-    @fuzzyFinderView = null
+
+  serialize: ->
+    @fuzzyFinderView?.getOpenedPaths()
 
   createView:  ->
     unless @fuzzyFinderView

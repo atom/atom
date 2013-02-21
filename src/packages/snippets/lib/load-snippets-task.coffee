@@ -13,7 +13,7 @@ class LoadSnippetsTask extends Task
 
   loadNextPackageSnippets: ->
     unless @packages.length
-      @terminate()
+      @done()
       @snippets.loaded = true
       return
 

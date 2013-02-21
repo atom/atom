@@ -14,7 +14,8 @@ describe "EditorStats", ->
     rootView.trigger(e)
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
 
     date = new Date()
     mins = date.getMinutes()
@@ -23,10 +24,7 @@ describe "EditorStats", ->
     mins = if mins == 60 then '01' else mins + 1
     time  = "#{hours}:#{mins}"
 
-    editorStats = atom.loadPackage('editor-stats').packageMain.stats
-
-  afterEach ->
-    rootView.deactivate()
+    editorStats = window.loadPackage('editor-stats').packageMain.stats
 
   describe "when a keyup event is triggered", ->
     it "records the number of times a keyup is triggered", ->

@@ -2,14 +2,15 @@ RootView = require 'root-view'
 fs = require 'fs'
 
 describe "StripTrailingWhitespace", ->
-  [rootView, editor, path] = []
+  [editor, path] = []
 
   beforeEach ->
     path = "/tmp/atom-whitespace.txt"
     fs.write(path, "")
-    rootView = new RootView(path)
+    window.rootView = new RootView
+    rootView.open(path)
 
-    atom.loadPackage('strip-trailing-whitespace')
+    window.loadPackage('strip-trailing-whitespace')
     rootView.focus()
     editor = rootView.getActiveEditor()
 

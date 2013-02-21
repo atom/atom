@@ -10,15 +10,16 @@ Package = require 'package'
 describe "Snippets extension", ->
   [buffer, editor, editSession] = []
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     spyOn(LoadSnippetsTask.prototype, 'start')
 
-    packageWithSnippets = atom.loadPackage("package-with-snippets")
+    packageWithSnippets = window.loadPackage("package-with-snippets")
 
     spyOn(atom, "getLoadedPackages").andCallFake ->
       window.textMatePackages.concat([packageWithSnippets])
 
-    atom.loadPackage("snippets")
+    window.loadPackage("snippets")
 
     editor = rootView.getActiveEditor()
     editSession = rootView.getActiveEditSession()
@@ -27,8 +28,7 @@ describe "Snippets extension", ->
     rootView.enableKeymap()
 
   afterEach ->
-    rootView.deactivate()
-    delete window.snippets
+    window.snippets = null
 
   describe "when 'tab' is triggered on the editor", ->
     beforeEach ->

@@ -5,13 +5,11 @@ describe "Gists package", ->
   [editor] = []
 
   beforeEach ->
-    rootView = new RootView(fixturesProject.resolve('sample.js'))
-    atom.loadPackage('gists')
+    window.rootView = new RootView
+    rootView.open('sample.js')
+    window.loadPackage('gists')
     editor = rootView.getActiveEditor()
     spyOn($, 'ajax')
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "when gist:create is triggered on an editor", ->
 
@@ -19,14 +17,9 @@ describe "Gists package", ->
       [request, originalFxOffValue] = []
 
       beforeEach ->
-        originalFxOffValue = $.fx.off
-        $.fx.off = true
         editor.trigger 'gist:create'
         expect($.ajax).toHaveBeenCalled()
         request = $.ajax.argsForCall[0][0]
-
-      afterEach ->
-        $.fx.off = originalFxOffValue
 
       it "creates an Ajax request to api.github.com with the entire buffer contents as the Gist's content", ->
         expect(request.url).toBe 'https://api.github.com/gists'
@@ -46,7 +39,7 @@ describe "Gists package", ->
           expect(rootView.find('.notification')).toExist()
           expect(rootView.find('.notification .title').text()).toBe 'Gist 1 created'
           advanceClock(2000)
-          expect(rootView.find('.gist-notification')).not.toExist()
+          expect(rootView.find('.notification')).not.toExist()
 
     describe "when the editor has a selection", ->
       beforeEach ->

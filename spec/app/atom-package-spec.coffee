@@ -4,14 +4,13 @@ fs = require 'fs'
 
 describe "AtomPackage", ->
   describe ".load()", ->
-    afterEach ->
-      rootView.deactivate()
+    beforeEach ->
+      window.rootView = new RootView
 
     describe "when the package metadata includes activation events", ->
       [packageMainModule, pack] = []
 
       beforeEach ->
-        new RootView(fixturesProject.getPath())
         pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-activation-events'))
         packageMainModule = require 'fixtures/packages/package-with-activation-events/main'
         spyOn(packageMainModule, 'activate').andCallThrough()
@@ -39,7 +38,6 @@ describe "AtomPackage", ->
     describe "when the package does not specify a main module", ->
       describe "when the package has an index.coffee", ->
         it "uses index.coffee as the main module", ->
-          new RootView(fixturesProject.getPath())
           pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-module'))
           packageMainModule = require 'fixtures/packages/package-with-module'
           spyOn(packageMainModule, 'activate').andCallThrough()
@@ -52,7 +50,6 @@ describe "AtomPackage", ->
         it "does not throw an exception or log an error", ->
           spyOn(console, "error")
           spyOn(console, "warn")
-          new RootView(fixturesProject.getPath())
           pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-keymaps-manifest'))
 
           expect(-> pack.load()).not.toThrow()
@@ -62,6 +59,6 @@ describe "AtomPackage", ->
   describe "when a package is activated", ->
     it "loads config defaults based on the `configDefaults` key", ->
       expect(config.get('package-with-module.numbers.one')).toBeUndefined()
-      atom.loadPackage("package-with-module")
+      window.loadPackage("package-with-module")
       expect(config.get('package-with-module.numbers.one')).toBe 1
       expect(config.get('package-with-module.numbers.two')).toBe 2

@@ -101,3 +101,11 @@ class ScreenLine
       outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
       breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
     outputTokens
+
+  isComment: ->
+    for token in @tokens
+      continue if token.scopes.length is 1
+      continue if token.isOnlyWhitespace()
+      for scope in token.scopes
+        return true if _.contains(scope.split('.'), 'comment')
+      break

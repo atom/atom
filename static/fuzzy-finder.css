@@ -35,3 +35,7 @@
 .fuzzy-finder .file.readme-name:before {
   content: "\f007";
 }
+
+.fuzzy-finder .file.binary-name:before {
+  content: "\f094";
+}

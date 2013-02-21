@@ -3,6 +3,10 @@
   color: #c5c8c6;
 }
 
+.editor .invisible {
+  color: #c5c8c6;
+}
+
 .editor .cursor {
   border-color: #FFFFFF;
 }
@@ -210,57 +214,6 @@
   background-color: #0E2231;
 }
 
-.markup.deleted {
-  color: #F8F8F8;
-  background-color: #420E09;
-}
-
-.markup.changed {
-  color: #F8F8F8;
-  background-color: #4A410D;
-}
-
-.markup.inserted {
-  color: #F8F8F8;
-  background-color: #253B22;
-}
-
-.markup.italic {
-  color: #E9C062;
-}
-
-.markup.bold {
-  color: #E9C062;
-}
-
-.markup.underline {
-  text-decoration: underline;
-  color: #E18964;
-}
-
-.markup.quote {
-  color: #E1D4B9;
-  background-color: rgba(254, 224, 156, 0.07);
-}
-
-.markup.heading, .markup.heading .entity {
-  color: #FEDCC5;
-  background-color: #632D04;
-}
-
-.markup.list {
-  color: #E1D4B9;
-}
-
-.markup.raw {
-  color: #578BB3;
-  background-color: rgba(177, 179, 186, 0.03);
-}
-
-.markup .comment {
-  color: #F67B37;
-}
-
 .meta.separator {
   color: #60A633;
   background-color: #242424;
@@ -272,4 +225,31 @@
 
 .meta.line.error.logfile {
   background-color: #751012;
+}
+
+/* Markdown Styles */
+
+.editor .source.gfm {
+  color: #999;
+}
+
+.editor .gfm .markup.heading {
+  color: #eee;
+}
+
+.editor .gfm .link {
+  color: #555;
+}
+
+.editor .gfm .variable.list,
+.editor .gfm .support.quote {
+  color: #555;
+}
+
+.editor .gfm .link .entity {
+  color: #ddd;
+}
+
+.editor .gfm .raw {
+  color: #aaa;
 }

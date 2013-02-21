@@ -5,13 +5,11 @@ describe "CommandLogger", ->
   [commandLogger, editor] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
-    commandLogger = atom.loadPackage('command-logger').packageMain
+    window.rootView = new RootView
+    rootView.open('sample.js')
+    commandLogger = window.loadPackage('command-logger').packageMain
     commandLogger.eventLog = {}
     editor = rootView.getActiveEditor()
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "when a command is triggered", ->
     it "records the number of times the command is triggered", ->

@@ -15,6 +15,7 @@ class Editor extends View
   @configDefaults:
     fontSize: 20
     showInvisibles: false
+    showIndentGuide: false
     autosave: false
     autoIndent: true
     autoIndentOnPaste: false
@@ -48,16 +49,18 @@ class Editor extends View
   lineCache: null
   isFocused: false
   activeEditSession: null
+  closedEditSessions: null
   editSessions: null
   attached: false
   lineOverdraw: 10
   pendingChanges: null
   newCursors: null
   newSelections: null
+  redrawOnReattach: false
 
-  @deserialize: (state, rootView) ->
+  @deserialize: (state) ->
     editor = new Editor(mini: state.mini, deserializing: true)
-    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
+    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, project)
     editor.pushEditSession(editSession) for editSession in editSessions
     editor.setActiveEditSessionIndex(state.activeEditSessionIndex)
     editor.isFocused = state.isFocused
@@ -74,6 +77,7 @@ class Editor extends View
     @cursorViews = []
     @selectionViews = []
     @editSessions = []
+    @closedEditSessions = []
     @pendingChanges = []
     @newCursors = []
     @newSelections = []
@@ -92,13 +96,13 @@ class Editor extends View
 
   serialize: ->
     @saveScrollPositionForActiveEditSession()
-    viewClass: "Editor"
+    deserializer: "Editor"
     editSessions: @editSessions.map (session) -> session.serialize()
     activeEditSessionIndex: @getActiveEditSessionIndex()
     isFocused: @isFocused
 
   copy: ->
-    Editor.deserialize(@serialize(), @rootView())
+    Editor.deserialize(@serialize(), rootView)
 
   bindKeys: ->
     editorBindings =
@@ -155,6 +159,7 @@ class Editor extends View
         'editor:save': @save
         'editor:save-as': @saveAs
         'editor:newline-below': @insertNewlineBelow
+        'editor:newline-above': @insertNewlineAbove
         'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
         'editor:fold-all': @foldAll
@@ -187,6 +192,8 @@ class Editor extends View
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
         'editor:duplicate-line': @duplicateLine
+        'editor:undo-close-session': @undoDestroySession
+        'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
 
     documentation = {}
     for name, method of editorBindings
@@ -257,6 +264,7 @@ class Editor extends View
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
+  insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
   indent: (options) -> @activeEditSession.indent(options)
   autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows(options)
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
@@ -326,6 +334,11 @@ class Editor extends View
       cr: '\u00a4'
     @resetDisplay()
 
+  setShowIndentGuide: (showIndentGuide) ->
+    return if showIndentGuide == @showIndentGuide
+    @showIndentGuide = showIndentGuide
+    @resetDisplay()
+
   checkoutHead: -> @getBuffer().checkoutHead()
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
@@ -342,6 +355,7 @@ class Editor extends View
 
   configure: ->
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
+    @observeConfig 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
@@ -352,7 +366,7 @@ class Editor extends View
       false
 
     @hiddenInput.on 'focus', =>
-      @rootView()?.editorFocused(this)
+      rootView?.editorFocused(this)
       @isFocused = true
       @addClass 'is-focused'
 
@@ -375,12 +389,13 @@ class Editor extends View
       @overlayer.show()
       e.target = clickedElement
       $(clickedElement).trigger(e)
+      false if @isFocused
 
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
       @destroyFold($(e.currentTarget).attr('fold-id'))
       false
 
-    @renderedLines.on 'mousedown', (e) =>
+    onMouseDown = (e) =>
       clickCount = e.originalEvent.detail
 
       screenPosition = @screenPositionFromMouseEvent(e)
@@ -398,6 +413,8 @@ class Editor extends View
 
       @selectOnMousemoveUntilMouseup()
 
+    @renderedLines.on 'mousedown', onMouseDown
+
     @on "textInput", (e) =>
       @insertText(e.originalEvent.data)
       false
@@ -414,7 +431,11 @@ class Editor extends View
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
 
-      syntax.on 'grammars-loaded', =>
+      @gutter.on 'mousedown', (e) =>
+        e.pageX = @renderedLines.offset().left
+        onMouseDown(e)
+
+      @subscribe syntax, 'grammars-loaded', =>
         @reloadGrammar()
         for session in @editSessions
           session.reloadGrammar() unless session is @activeEditSession
@@ -444,7 +465,9 @@ class Editor extends View
       @syncCursorAnimations()
 
   afterAttach: (onDom) ->
-    return if @attached or not onDom
+    return unless onDom
+    @redraw() if @redrawOnReattach
+    return if @attached
     @attached = true
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
@@ -464,11 +487,21 @@ class Editor extends View
   pushEditSession: (editSession) ->
     index = @editSessions.length
     @editSessions.push(editSession)
+    @closedEditSessions = @closedEditSessions.filter ({path})->
+      path isnt editSession.getPath()
     editSession.on 'destroyed', => @editSessionDestroyed(editSession)
     @trigger 'editor:edit-session-added', [editSession, index]
     index
 
   getBuffer: -> @activeEditSession.buffer
+
+  undoDestroySession: ->
+    return unless @closedEditSessions.length > 0
+
+    {path, index} = @closedEditSessions.pop()
+    rootView.open(path)
+    activeIndex = @getActiveEditSessionIndex()
+    @moveEditSessionToIndex(activeIndex, index) if index < activeIndex
 
   destroyActiveEditSession: ->
     @destroyEditSessionIndex(@getActiveEditSessionIndex())
@@ -477,7 +510,9 @@ class Editor extends View
     return if @mini
 
     editSession = @editSessions[index]
-    destroySession = ->
+    destroySession = =>
+      path = editSession.getPath()
+      @closedEditSessions.push({path, index}) if path
       editSession.destroy()
       callback?(index)
 
@@ -548,6 +583,20 @@ class Editor extends View
       "Reload", (=> editSession.buffer.reload()),
       "Cancel"
     )
+
+  moveEditSessionToIndex: (fromIndex, toIndex) ->
+    return if fromIndex is toIndex
+    editSession = @editSessions.splice(fromIndex, 1)
+    @editSessions.splice(toIndex, 0, editSession[0])
+    @trigger 'editor:edit-session-order-changed', [editSession, fromIndex, toIndex]
+    @setActiveEditSessionIndex(toIndex)
+
+  moveEditSessionToEditor: (fromIndex, toEditor, toIndex) ->
+    fromEditSession = @editSessions[fromIndex]
+    toEditSession = fromEditSession.copy()
+    @destroyEditSessionIndex(fromIndex)
+    toEditor.edit(toEditSession)
+    toEditor.moveEditSessionToIndex(toEditor.getActiveEditSessionIndex(), toIndex)
 
   activateEditSessionForPath: (path) ->
     for editSession, index in @editSessions
@@ -697,7 +746,11 @@ class Editor extends View
       headTag.append styleTag
 
     styleTag.text(".editor {font-size: #{fontSize}px}")
-    @redraw()
+
+    if @isOnDom()
+      @redraw()
+    else
+      @redrawOnReattach = @attached
 
   getFontSize: ->
     parseInt(@css("font-size"))
@@ -705,9 +758,9 @@ class Editor extends View
   setFontFamily: (fontFamily) ->
     return if fontFamily == undefined
     headTag = $("head")
-    styleTag = headTag.find("style.font-family")
+    styleTag = headTag.find("style.editor-font-family")
     if styleTag.length == 0
-      styleTag = $$ -> @style class: 'font-family'
+      styleTag = $$ -> @style class: 'editor-font-family'
       headTag.append styleTag
 
     styleTag.text(".editor {font-family: #{fontFamily}}")
@@ -715,8 +768,13 @@ class Editor extends View
 
   getFontFamily: -> @css("font-family")
 
+  clearFontFamily: ->
+    $('head style.editor-font-family').remove()
+
   redraw: ->
+    return unless @hasParent()
     return unless @attached
+    @redrawOnReattach = false
     @calculateDimensions()
     @updatePaddingOfRenderedLines()
     @updateLayerDimensions()
@@ -739,9 +797,6 @@ class Editor extends View
 
   pane: ->
     @parent('.pane').view()
-
-  rootView: ->
-    @parents('#root-view').view()
 
   promptToSaveDirtySession: (session, callback) ->
     path = session.getPath()
@@ -813,10 +868,6 @@ class Editor extends View
     @overlayer.append(view)
 
   calculateDimensions: ->
-    if not @isOnDom()
-      detachedEditorParent = _.last(@parents()) ? this
-      $(document.body).append(detachedEditorParent)
-
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)
 
@@ -827,8 +878,6 @@ class Editor extends View
     @charHeight = charRect.height
     @height(@lineHeight) if @mini
     fragment.remove()
-
-    $(detachedEditorParent).detach()
 
   updateLayerDimensions: ->
     @gutter.calculateWidth()
@@ -875,7 +924,7 @@ class Editor extends View
     @newSelections = @activeEditSession.getSelections()
     @updateDisplay(suppressAutoScroll: true)
 
-  requestDisplayUpdate: ()->
+  requestDisplayUpdate: ->
     return if @pendingDisplayUpdate
     @pendingDisplayUpdate = true
     _.nextTick =>
@@ -959,6 +1008,18 @@ class Editor extends View
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
 
     intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
+
+    if @showIndentGuide
+      trailingEmptyLineChanges = []
+      for change in @pendingChanges
+        continue unless change.bufferDelta?
+        start = change.end + change.bufferDelta + 1
+        continue unless @lineForBufferRow(start) is ''
+        end = start
+        end++ while @lineForBufferRow(end + 1) is ''
+        trailingEmptyLineChanges.push({start, end, screenDelta: 0})
+        @pendingChanges.push(trailingEmptyLineChanges...)
+
     for change in @pendingChanges
       newIntactRanges = []
       for range in intactRanges
@@ -1066,15 +1127,39 @@ class Editor extends View
     @pendingChanges.push(change)
     @requestDisplayUpdate()
 
+  buildLineElementForScreenRow: (screenRow) ->
+    @buildLineElementsForScreenRows(screenRow, screenRow)[0]
+
   buildLineElementsForScreenRows: (startRow, endRow) ->
     div = document.createElement('div')
-    div.innerHTML = @buildLinesHtml(@activeEditSession.linesForScreenRows(startRow, endRow))
+    div.innerHTML = @buildLinesHtml(startRow, endRow)
     new Array(div.children...)
 
-  buildLinesHtml: (screenLines) ->
-    screenLines.map((line) => @buildLineHtml(line)).join('\n\n')
+  buildLinesHtml: (startRow, endRow) ->
+    lines = @activeEditSession.linesForScreenRows(startRow, endRow)
+    htmlLines = []
+    screenRow = startRow
+    for line in @activeEditSession.linesForScreenRows(startRow, endRow)
+      htmlLines.push(@buildLineHtml(line, screenRow++))
+    htmlLines.join('\n\n')
 
-  buildLineHtml: (screenLine) ->
+  buildEmptyLineHtml: (screenRow) ->
+    if not @mini and @showIndentGuide
+      indentation = 0
+      while --screenRow >= 0
+        bufferRow = @activeEditSession.bufferPositionForScreenPosition([screenRow]).row
+        bufferLine = @activeEditSession.lineForBufferRow(bufferRow)
+        unless bufferLine is ''
+          indentation = Math.ceil(@activeEditSession.indentLevelForLine(bufferLine))
+          break
+
+      if indentation > 0
+        indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', @activeEditSession.getTabLength())}</span>"
+        return _.multiplyString(indentationHtml, indentation)
+
+    return '&nbsp;' unless @showInvisibles
+
+  buildLineHtml: (screenLine, screenRow) ->
     scopeStack = []
     line = []
 
@@ -1111,19 +1196,19 @@ class Editor extends View
     invisibles = @invisibles if @showInvisibles
 
     if screenLine.text == ''
-      line.push("&nbsp;") unless @showInvisibles
+      html = @buildEmptyLineHtml(screenRow)
+      line.push(html) if html
     else
       firstNonWhitespacePosition = screenLine.text.search(/\S/)
       firstTrailingWhitespacePosition = screenLine.text.search(/\s*$/)
+      lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
       position = 0
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
-        line.push(token.getValueAsHtml(
-          invisibles: invisibles
-          hasLeadingWhitespace: position < firstNonWhitespacePosition
-          hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
-        ))
-
+        hasLeadingWhitespace =  position < firstNonWhitespacePosition
+        hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
+        hasIndentGuide = @showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
+        line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
         position += token.value.length
 
     popScope() while scopeStack.length > 0
@@ -1155,22 +1240,69 @@ class Editor extends View
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
   pixelPositionForScreenPosition: (position) ->
-    position = Point.fromObject(position)
-    { top: position.row * @lineHeight, left: position.column * @charWidth }
+    return { top: 0, left: 0 } unless @isOnDom()
+    {row, column} = Point.fromObject(position)
+    actualRow = Math.floor(row)
+
+    lineElement = existingLineElement = @lineElementForScreenRow(actualRow)[0]
+    unless existingLineElement
+      lineElement = @buildLineElementForScreenRow(actualRow)
+      @renderedLines.append(lineElement)
+    left = @positionLeftForLineAndColumn(lineElement, column)
+    unless existingLineElement
+      @renderedLines[0].removeChild(lineElement)
+    { top: row * @lineHeight, left }
+
+  positionLeftForLineAndColumn: (lineElement, column) ->
+    return 0 if column is 0
+    delta = 0
+    iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+    while textNode = iterator.nextNode()
+      nextDelta = delta + textNode.textContent.length
+      if nextDelta >= column
+        offset = column - delta
+        break
+      delta = nextDelta
+
+    range = document.createRange()
+    range.setEnd(textNode, offset)
+    range.collapse()
+    leftPixels = range.getClientRects()[0].left - @scrollView.offset().left + @scrollView.scrollLeft()
+    range.detach()
+    leftPixels
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
     offset = @renderedLines.offset()
     {top: top + offset.top, left: left + offset.left}
 
-  screenPositionFromPixelPosition: ({top, left}) ->
-    screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
-
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
-    @screenPositionFromPixelPosition
-      top: pageY - @scrollView.offset().top + @scrollTop()
-      left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
+
+    editorRelativeTop = pageY - @scrollView.offset().top + @scrollTop()
+    row = Math.floor(editorRelativeTop / @lineHeight)
+    column = 0
+
+    if lineElement = @lineElementForScreenRow(row)[0]
+      range = document.createRange()
+      iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+      while node = iterator.nextNode()
+        range.selectNodeContents(node)
+        column += node.textContent.length
+        {left, right} = range.getClientRects()[0]
+        break if left <= pageX <= right
+
+      if node
+        for characterPosition in [node.textContent.length...0]
+          range.setStart(node, characterPosition - 1)
+          range.setEnd(node, characterPosition)
+          {left, right, width} = range.getClientRects()[0]
+          break if left <= pageX - width / 2 <= right
+          column--
+
+      range.detach()
+
+    new Point(row, column)
 
   highlightCursorLine: ->
     return if @mini

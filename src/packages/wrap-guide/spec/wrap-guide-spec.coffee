@@ -1,19 +1,16 @@
-$ = require 'jquery'
 RootView = require 'root-view'
 
 describe "WrapGuide", ->
   [editor, wrapGuide] = []
 
   beforeEach ->
-    new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage('wrap-guide')
+    window.rootView = new RootView
+    rootView.open('sample.js')
+    window.loadPackage('wrap-guide')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()
     wrapGuide = rootView.find('.wrap-guide').view()
-    editor.width(editor.charWidth * wrapGuide.defaultColumn * 2)
-
-  afterEach ->
-    rootView.deactivate()
+    editor.width(editor.charWidth * wrapGuide.getDefaultColumn() * 2)
 
   describe "@initialize", ->
     it "appends a wrap guide to all existing and new editors", ->
@@ -25,7 +22,7 @@ describe "WrapGuide", ->
 
   describe "@updateGuide", ->
     it "positions the guide at the configured column", ->
-      width = editor.charWidth * wrapGuide.defaultColumn
+      width = editor.charWidth * wrapGuide.getDefaultColumn()
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
       expect(wrapGuide).toBeVisible()
@@ -49,7 +46,7 @@ describe "WrapGuide", ->
     it "uses the default column when no custom column matches the path", ->
       config.set('wrapGuide.columns', [{pattern: '\.jsp$', column: '100'}])
       wrapGuide.updateGuide()
-      width = editor.charWidth * wrapGuide.defaultColumn
+      width = editor.charWidth * wrapGuide.getDefaultColumn()
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
 

@@ -2,11 +2,9 @@ module.exports =
   treeView: null
 
   activate: (@state) ->
-    if state
-      @createView().attach() if state.attached
-    else if rootView.project.getPath() and not rootView.pathToOpenIsFile
-      @createView().attach()
+    @state.attached ?= true unless rootView.getActiveEditSession()
 
+    @createView() if @state.attached
     rootView.command 'tree-view:toggle', => @createView().toggle()
     rootView.command 'tree-view:reveal-active-file', => @createView().revealActiveFile()
 
@@ -23,5 +21,5 @@ module.exports =
   createView: ->
     unless @treeView?
       TreeView = require 'tree-view/lib/tree-view'
-      @treeView = TreeView.activate(@state)
+      @treeView = new TreeView(@state)
     @treeView

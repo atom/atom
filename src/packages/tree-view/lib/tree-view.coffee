@@ -10,33 +10,17 @@ _ = require 'underscore'
 
 module.exports =
 class TreeView extends ScrollView
-  @activate: (state) ->
-    if state
-      TreeView.deserialize(state)
-    else
-      new TreeView
-
   @content: (rootView) ->
     @div class: 'tree-view-wrapper', =>
       @ol class: 'tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
       @div class: 'tree-view-resizer', outlet: 'resizer'
-
-  @deserialize: (state) ->
-    treeView = new TreeView
-    treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
-    treeView.selectEntryForPath(state.selectedPath)
-    treeView.focusAfterAttach = state.hasFocus
-    treeView.scrollTopAfterAttach = state.scrollTop
-    treeView.width(state.width)
-    treeView.attach() if state.attached
-    treeView
 
   root: null
   focusAfterAttach: false
   scrollTopAfterAttach: -1
   selectedPath: null
 
-  initialize: ->
+  initialize: (state) ->
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
     @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
@@ -57,10 +41,17 @@ class TreeView extends ScrollView
         @selectActiveFile()
 
     rootView.on 'root-view:active-path-changed', => @selectActiveFile()
-    rootView.project.on 'path-changed', => @updateRoot()
+    project.on 'path-changed', => @updateRoot()
     @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()
 
-    @selectEntry(@root) if @root
+    if @root
+      @selectEntry(@root)
+      @root.deserializeEntryExpansionStates(state.directoryExpansionStates)
+    @selectEntryForPath(state.selectedPath) if state.selectedPath
+    @focusAfterAttach = state.hasFocus
+    @scrollTopAfterAttach = state.scrollTop if state.scrollTop
+    @width(state.width) if state.width
+    @attach() if state.attached
 
   afterAttach: (onDom) ->
     @focus() if @focusAfterAttach
@@ -87,7 +78,7 @@ class TreeView extends ScrollView
         @attach()
 
   attach: ->
-    return unless rootView.project.getPath()
+    return unless project.getPath()
     rootView.horizontal.prepend(this)
     @focus()
 
@@ -131,8 +122,8 @@ class TreeView extends ScrollView
 
   updateRoot: ->
     @root?.remove()
-    if rootDirectory = rootView.project.getRootDirectory()
-      @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: rootView.project)
+    if rootDirectory = project.getRootDirectory()
+      @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: project)
       @treeViewList.append(@root)
     else
       @root = null
@@ -146,7 +137,6 @@ class TreeView extends ScrollView
 
     return unless activeFilePath = rootView.getActiveEditor()?.getPath()
 
-    project = rootView.project
     activePathComponents = project.relativize(activeFilePath).split('/')
     currentPath = project.getPath().replace(/\/$/, '')
     for pathComponent in activePathComponents
@@ -226,11 +216,11 @@ class TreeView extends ScrollView
 
     dialog = new Dialog
       prompt: prompt
-      path: rootView.project.relativize(oldPath)
+      path: project.relativize(oldPath)
       select: true
       iconClass: 'move'
       onConfirm: (newPath) =>
-        newPath = rootView.project.resolve(newPath)
+        newPath = project.resolve(newPath)
         directoryPath = fs.directory(newPath)
         try
           fs.makeTree(directoryPath) unless fs.exists(directoryPath)
@@ -258,7 +248,7 @@ class TreeView extends ScrollView
     selectedEntry = @selectedEntry() or @root
     selectedPath = selectedEntry.getPath()
     directoryPath = if fs.isFile(selectedPath) then fs.directory(selectedPath) else selectedPath
-    relativeDirectoryPath = rootView.project.relativize(directoryPath)
+    relativeDirectoryPath = project.relativize(directoryPath)
     relativeDirectoryPath += '/' if relativeDirectoryPath.length > 0
 
     dialog = new Dialog
@@ -268,7 +258,7 @@ class TreeView extends ScrollView
       iconClass: 'add'
       onConfirm: (relativePath) =>
         endsWithDirectorySeparator = /\/$/.test(relativePath)
-        path = rootView.project.resolve(relativePath)
+        path = project.resolve(relativePath)
         try
           if fs.exists(path)
             pathType = if fs.isFile(path) then "file" else "directory"

@@ -7,14 +7,13 @@ describe "SymbolsView", ->
   [symbolsView, setArraySpy] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures'))
-    atom.loadPackage("symbols-view")
+    window.rootView = new RootView
+    window.loadPackage("symbols-view")
 
     rootView.attachToDom()
     setArraySpy = spyOn(SymbolsView.prototype, 'setArray').andCallThrough()
 
   afterEach ->
-    rootView.deactivate()
     setArraySpy.reset()
 
   describe "when tags can be generated for a file", ->
@@ -152,15 +151,15 @@ describe "SymbolsView", ->
       expect(symbolsView.list.children('li').length).toBe 2
       expect(symbolsView).toBeVisible()
       symbolsView.confirmed(symbolsView.array[0])
-      expect(rootView.getActiveEditor().getPath()).toBe rootView.project.resolve("tagged-duplicate.js")
+      expect(rootView.getActiveEditor().getPath()).toBe project.resolve("tagged-duplicate.js")
       expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,4]
 
     describe "when the tag is in a file that doesn't exist", ->
       beforeEach ->
-        fs.move(rootView.project.resolve("tagged-duplicate.js"), rootView.project.resolve("tagged-duplicate-renamed.js"))
+        fs.move(project.resolve("tagged-duplicate.js"), project.resolve("tagged-duplicate-renamed.js"))
 
       afterEach ->
-        fs.move(rootView.project.resolve("tagged-duplicate-renamed.js"), rootView.project.resolve("tagged-duplicate.js"))
+        fs.move(project.resolve("tagged-duplicate-renamed.js"), project.resolve("tagged-duplicate.js"))
 
       it "doesn't display the tag", ->
         rootView.open("tagged.js")

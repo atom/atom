@@ -7,8 +7,9 @@ describe "CommandPalette", ->
   [palette] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
-    atom.loadPackage("command-palette")
+    window.rootView = new RootView
+    rootView.open('sample.js')
+    window.loadPackage("command-palette")
     rootView.attachToDom().focus()
     rootView.trigger 'command-palette:toggle'
     palette = rootView.find('.command-palette').view()

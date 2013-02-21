@@ -7,16 +7,14 @@ RootView = require 'root-view'
 
 describe "Autocomplete", ->
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.simulateDomAttachment()
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "@activate()", ->
     it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
       spyOn(AutocompleteView.prototype, 'initialize').andCallThrough()
-      autocompletePackage = atom.loadPackage("autocomplete")
+      autocompletePackage = window.loadPackage("autocomplete")
       expect(AutocompleteView.prototype.initialize).not.toHaveBeenCalled()
 
       leftEditor = rootView.getActiveEditor()
@@ -41,14 +39,11 @@ describe "AutocompleteView", ->
   miniEditor = null
 
   beforeEach ->
-    new RootView
+    window.rootView = new RootView
     editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
-    atom.loadPackage('autocomplete')
+    window.loadPackage('autocomplete')
     autocomplete = new AutocompleteView(editor)
     miniEditor = autocomplete.miniEditor
-
-  afterEach ->
-    editor?.remove()
 
   describe 'autocomplete:attach event', ->
     it "shows autocomplete view and focuses its mini-editor", ->
