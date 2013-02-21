@@ -143,6 +143,22 @@ describe 'Child Processes', ->
         runs ->
           expect(output.join('')).toBe "#{fixturesProject.getPath()}\n"
 
+      describe "when the interactive option is set", ->
+        it "runs the task in a pty session", ->
+          output = []
+
+          waitsForPromise ->
+            options =
+              interactive: true
+              stdout: (data) -> output.push(data)
+
+            p = ChildProcess.exec("/bin/bash", options)
+            p.write("echo $SHELL && exit\n", true)
+            p
+
+          runs ->
+            expect(output.join('')).toContain("bash")
+
       describe "write to stdin", ->
         it "returns a function for writing", ->
           promise = ChildProcess.exec("pwd")
@@ -153,7 +169,7 @@ describe 'Child Processes', ->
           waitsForPromise ->
             options =
               stdout: (data) -> output.push(data)
-              stderr: (data) -> window.console.log("ERROR #{data}")
+              stderr: (data) ->
 
             p = ChildProcess.exec("cat", options)
             p.write("hello, world\n", true)

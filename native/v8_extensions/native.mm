@@ -26,6 +26,9 @@ namespace v8_extensions {
     WriteHandler(NSFileHandle *fh) : CefV8Handler(), fileHandle(fh) {
       [fileHandle retain];
     };
+    ~WriteHandler() {
+      [fileHandle release];
+    };
     virtual bool Execute(const CefString& name,
                          CefRefPtr<CefV8Value> object,
                          const CefV8ValueList& arguments,
@@ -33,14 +36,14 @@ namespace v8_extensions {
                          CefString& exception) {
       if (name == "write") {
         std::string cc_value = arguments[0]->GetStringValue().ToString();
-        bool exit = arguments[1]->GetBoolValue();
-        const char *input = cc_value.c_str();
-        NSString *string = [NSString stringWithUTF8String:input];
-        NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
-        [fileHandle writeData:data];
-        if(exit)
-          [fileHandle closeFile];
+        NSString *string = [NSString stringWithUTF8String:cc_value.c_str()];
+        if (string.length > 0) {
+          NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
+          [fileHandle writeData:data];
+        }
+        return true;
       }
+      return false;
     }
     IMPLEMENT_REFCOUNTING(WriteHandler);
   private:
@@ -433,9 +436,9 @@ namespace v8_extensions {
       WriteHandler *stdinHandler = nil;
 
       NSTask *task = [[NSTask alloc] init];
-      NSPipe *stdout = [NSPipe pipe];
-      NSPipe *stderr = [NSPipe pipe];
-      NSPipe *stdin = [NSPipe pipe];
+      NSFileHandle *stdoutH;
+      NSFileHandle *stderrH = nil;
+      NSFileHandle *stdinH;
       NSFileHandle *ptyFileHandle = nil;
       NSFileHandle *ptyMasterHandle = nil;
       int masterFd = 0, slaveFd = 0;
@@ -443,24 +446,29 @@ namespace v8_extensions {
       if(options->GetValue("interactive")->GetBoolValue()) {
         [task setLaunchPath:command];
         [task setArguments:[NSArray arrayWithObjects:@"-l", nil]];
-        [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: @"SHELL", "/bin/bash", nil]];
+        [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: @"/bin/bash", @"SHELL", nil]];
         openpty(&masterFd, &slaveFd, nil, nil, nil);
-        fcntl(masterFd, F_SETFD, FD_CLOEXEC);
-        fcntl(slaveFd, F_SETFD, FD_CLOEXEC);
-        login_tty(slaveFd);
         ptyFileHandle = [[NSFileHandle alloc] initWithFileDescriptor:slaveFd];
         ptyMasterHandle = [[NSFileHandle alloc] initWithFileDescriptor:masterFd];
-        [task setStandardOutput:ptyFileHandle];
-        [task setStandardError:ptyFileHandle];
-        [task setStandardInput:ptyFileHandle];
+        fcntl(slaveFd, F_SETFD, FD_CLOEXEC);
+        fcntl(masterFd, F_SETFD, FD_CLOEXEC);
+        stdoutH = stdinH = ptyFileHandle;
+        [task setStandardOutput:stdoutH];
+        [task setStandardInput:stdinH];
+        stdoutH = stdinH = ptyMasterHandle;
       } else {
         [task setLaunchPath:@"/bin/sh"];
         [task setArguments:[NSArray arrayWithObjects:@"-l", @"-c", command, nil]];
+        NSPipe *stdout = [NSPipe pipe];
+        NSPipe *stderr = [NSPipe pipe];
+        NSPipe *stdin = [NSPipe pipe];
         [task setStandardOutput:stdout];
         [task setStandardError:stderr];
         [task setStandardInput:stdin];
+        stdoutH = stdout.fileHandleForReading;
+        stderrH = stderr.fileHandleForReading;
+        stdinH = stdin.fileHandleForWriting;
       }
-
 
       CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
       void (^outputHandle)(NSString *contents, CefRefPtr<CefV8Value> function) = nil;
@@ -497,23 +505,28 @@ namespace v8_extensions {
         delete stdinHandler;
         context->Exit();
 
-        stdout.fileHandleForReading.writeabilityHandler = nil;
-        stderr.fileHandleForReading.writeabilityHandler = nil;
+        stdoutH.writeabilityHandler = nil;
+        if(stderrH)
+          stderrH.writeabilityHandler = nil;
+        [ptyMasterHandle closeFile];
       };
 
       task.terminationHandler = ^(NSTask *) {
-        NSString *output = [[NSString alloc] initWithData:[[stdout fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
-        NSString *errorOutput  = [[NSString alloc] initWithData:[[stderr fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+        NSString *output = [[NSString alloc] initWithData:[stdoutH  readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+        NSString *errorOutput = @"";
+        if(stderrH)
+          errorOutput = [[NSString alloc] initWithData:[stderrH readDataToEndOfFile] encoding:NSUTF8StringEncoding];
         dispatch_sync(dispatch_get_main_queue(), ^() {
           taskTerminatedHandle(output, errorOutput);
         });
         [output release];
-        [errorOutput release];
+        if(stderrH)
+          [errorOutput release];
       };
 
       CefRefPtr<CefV8Value> stdoutFunction = options->GetValue("stdout");
       if (stdoutFunction->IsFunction()) {
-        stdout.fileHandleForReading.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+        stdoutH.writeabilityHandler = ^(NSFileHandle *fileHandle) {
           NSData *data = [fileHandle availableData];
           NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
           dispatch_sync(dispatch_get_main_queue(), ^() {
@@ -524,8 +537,8 @@ namespace v8_extensions {
       }
 
       CefRefPtr<CefV8Value> stderrFunction = options->GetValue("stderr");
-      if (stderrFunction->IsFunction()) {
-        stderr.fileHandleForReading.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+      if (stderrFunction->IsFunction() && stderrH) {
+        stderrH.writeabilityHandler = ^(NSFileHandle *fileHandle) {
           NSData *data = [fileHandle availableData];
           NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
           dispatch_sync(dispatch_get_main_queue(), ^() {
@@ -540,7 +553,7 @@ namespace v8_extensions {
         [task setCurrentDirectoryPath:stringFromCefV8Value(currentWorkingDirectory)];
       }
 
-      stdinHandler = new WriteHandler(stdin.fileHandleForWriting);
+      stdinHandler = new WriteHandler(stdinH);
       CefRefPtr<CefV8Value> stdinFunction = CefV8Value::CreateFunction("write", stdinHandler);
       retval = stdinFunction;
 
