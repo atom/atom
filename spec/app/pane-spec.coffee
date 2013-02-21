@@ -50,6 +50,7 @@ describe "Pane", ->
           pane.showItem(editSession2)
           expect(pane.itemViews.find('.editor').length).toBe 1
           editor = pane.itemViews.find('.editor').view()
+          expect(editor.css('display')).toBe ''
           expect(editor.activeEditSession).toBe editSession2
 
     describe "when showing a view item", ->
