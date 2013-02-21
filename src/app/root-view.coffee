@@ -20,7 +20,7 @@ class RootView extends View
     ignoredNames: [".git", ".svn", ".DS_Store"]
     disabledPackages: []
 
-  @content: ({panes}) ->
+  @content: ({panes}={}) ->
     @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
