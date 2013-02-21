@@ -58,10 +58,10 @@ class Pane extends View
     @addItem(item)
     @itemViews.children().hide()
     view = @viewForItem(item)
-    unless view.parent().is(@itemViews)
-      @itemViews.append(view)
+    @itemViews.append(view) unless view.parent().is(@itemViews)
     @currentItem = item
-    view.show()
+    @currentView = view
+    @currentView.show()
 
   addItem: (item) ->
     return if _.include(@items, item)
