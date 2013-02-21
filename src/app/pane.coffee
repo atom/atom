@@ -27,7 +27,9 @@ class Pane extends View
     @command 'pane:split-right', => @splitRight()
     @command 'pane:split-up', => @splitUp()
     @command 'pane:split-down', => @splitDown()
-    @on 'focus', => @viewForCurrentItem().focus()
+    @on 'focus', =>
+      @viewForCurrentItem().focus()
+      false
 
   getItems: ->
     new Array(@items...)

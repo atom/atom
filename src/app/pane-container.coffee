@@ -13,6 +13,11 @@ class PaneContainer extends View
   @content: ->
     @div id: 'panes'
 
+  initialize: ->
+    @on 'focusin', (e) =>
+      focusedPane = $(e.target).closest('.pane').view()
+      @setActivePane(focusedPane)
+
   serialize: ->
     deserializer: 'PaneContainer'
     root: @getRoot()?.serialize()
@@ -31,6 +36,13 @@ class PaneContainer extends View
 
   getFocusedPane: ->
     @find('.pane:has(:focus)').view()
+
+  getActivePane: ->
+    @find('.pane.active').view() ? @find('.pane:first').view()
+
+  setActivePane: (pane) ->
+    @find('.pane').removeClass('active')
+    pane.addClass('active')
 
   adjustPaneDimensions: ->
     if root = @getRoot()
