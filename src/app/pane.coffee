@@ -22,6 +22,10 @@ class Pane extends View
 
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
+    @command 'pane:split-left', => @splitLeft()
+    @command 'pane:split-right', => @splitRight()
+    @command 'pane:split-up', => @splitUp()
+    @command 'pane:split-down', => @splitDown()
     @on 'focus', => @viewForCurrentItem().focus()
 
   getItems: ->

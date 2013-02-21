@@ -384,29 +384,6 @@ describe "Editor", ->
         editor.scrollTop(50)
         expect(editor.scrollTop()).toBe 50
 
-  describe "split methods", ->
-    describe "when inside a pane", ->
-      fakePane = null
-      beforeEach ->
-        fakePane = { splitUp: jasmine.createSpy('splitUp').andReturn({}), remove: -> }
-        spyOn(editor, 'pane').andReturn(fakePane)
-
-      it "calls the corresponding split method on the containing pane with a new editor containing a copy of the active edit session", ->
-        editor.edit project.buildEditSession("sample.txt")
-        editor.splitUp()
-        expect(fakePane.splitUp).toHaveBeenCalled()
-        [newEditor] = fakePane.splitUp.argsForCall[0]
-        expect(newEditor.editSessions.length).toEqual 1
-        expect(newEditor.activeEditSession.buffer).toBe editor.activeEditSession.buffer
-        newEditor.remove()
-
-    describe "when not inside a pane", ->
-      it "does not split the editor, but doesn't throw an exception", ->
-        editor.splitUp()
-        editor.splitDown()
-        editor.splitLeft()
-        editor.splitRight()
-
   describe "editor:attached event", ->
     it 'only triggers an editor:attached event when it is first added to the DOM', ->
       openHandler = jasmine.createSpy('openHandler')

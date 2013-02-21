@@ -30,6 +30,12 @@
   'ctrl-tab': 'window:focus-next-pane'
   'ctrl-meta-f': 'window:toggle-full-screen'
 
+'.pane':
+  'ctrl-|': 'pane:split-right'
+  'ctrl-w v': 'pane:split-right'
+  'ctrl--': 'pane:split-down'
+  'ctrl-w s': 'pane:split-down'
+
 '.tool-panel':
   'meta-escape': 'tool-panel:unfocus'
   'escape': 'core:close'
