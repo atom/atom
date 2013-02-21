@@ -27,9 +27,21 @@ class Pane extends View
     @command 'pane:split-right', => @splitRight()
     @command 'pane:split-up', => @splitUp()
     @command 'pane:split-down', => @splitDown()
-    @on 'focus', =>
-      @viewForCurrentItem().focus()
-      false
+    @on 'focus', => @currentView.focus(); false
+    @on 'focusin', => @makeActive()
+
+  makeActive: ->
+    for pane in @getContainer().getPanes() when pane isnt this
+      pane.makeInactive()
+    wasActive = @isActive()
+    @addClass('active')
+    @trigger 'pane:active-item-changed', [@currentItem] unless wasActive
+
+  makeInactive: ->
+    @removeClass('active')
+
+  isActive: ->
+    @hasClass('active')
 
   getItems: ->
     new Array(@items...)
@@ -55,6 +67,7 @@ class Pane extends View
     @showItem(@items[index])
 
   showItem: (item) ->
+    return if item is @currentItem
     @addItem(item)
     @itemViews.children().hide()
     view = @viewForItem(item)
@@ -62,6 +75,7 @@ class Pane extends View
     @currentItem = item
     @currentView = view
     @currentView.show()
+    @trigger 'pane:active-item-changed', [item] if @isActive()
 
   addItem: (item) ->
     return if _.include(@items, item)
