@@ -69,6 +69,10 @@ describe "Pane", ->
       expect(pane.getItems()).toEqual [editSession1, view2]
       expect(pane.currentItem).toBe editSession1
 
+    it "removes the pane when its last item is removed", ->
+      pane.removeItem(item) for item in pane.getItems()
+      expect(pane.hasParent()).toBeFalsy()
+
     describe "when the item is a view", ->
       it "removes the item from the 'item-views' div", ->
         expect(view1.parent()).toMatchSelector pane.itemViews
