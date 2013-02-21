@@ -1,4 +1,3 @@
-RootView = require 'root-view'
 EditSession = require 'edit-session'
 Buffer = require 'buffer'
 Editor = require 'editor'
@@ -12,6 +11,19 @@ fs = require 'fs'
 describe "Editor", ->
   [buffer, editor, cachedLineHeight] = []
 
+  beforeEach ->
+    editor = new Editor(project.buildEditSession('sample.js'))
+    buffer = editor.getBuffer()
+    editor.lineOverdraw = 2
+    editor.isFocused = true
+    editor.enableKeymap()
+    editor.attachToDom = ({ heightInLines, widthInChars } = {}) ->
+      heightInLines ?= this.getBuffer().getLineCount()
+      this.height(getLineHeight() * heightInLines)
+      this.width(@charWidth * widthInChars) if widthInChars
+      $('#jasmine-content').append(this)
+
+
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
     editorForMeasurement = new Editor(editSession: project.buildEditSession('sample.js'))
@@ -20,65 +32,10 @@ describe "Editor", ->
     editorForMeasurement.remove()
     cachedLineHeight
 
-  beforeEach ->
-    window.rootView = new RootView
-    rootView.open('sample.js')
-    editor = rootView.getActiveEditor()
-    buffer = editor.getBuffer()
-
-    editor.attachToDom = ({ heightInLines } = {}) ->
-      heightInLines ?= this.getBuffer().getLineCount()
-      this.height(getLineHeight() * heightInLines)
-      $('#jasmine-content').append(this)
-
-    editor.lineOverdraw = 2
-    editor.enableKeymap()
-    editor.isFocused = true
-
   describe "construction", ->
     it "throws an error if no editor session is given unless deserializing", ->
       expect(-> new Editor).toThrow()
       expect(-> new Editor(deserializing: true)).not.toThrow()
-
-  describe ".copy()", ->
-    it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
-      rootView.attachToDom()
-      rootView.height(8 * editor.lineHeight)
-      rootView.width(50 * editor.charWidth)
-
-      editor.edit(project.buildEditSession('two-hundred.txt'))
-      editor.setCursorScreenPosition([5, 1])
-      editor.scrollTop(1.5 * editor.lineHeight)
-      editor.scrollView.scrollLeft(44)
-
-      # proves this test covers serialization and deserialization
-      spyOn(editor, 'serialize').andCallThrough()
-      spyOn(Editor, 'deserialize').andCallThrough()
-
-      newEditor = editor.copy()
-      expect(editor.serialize).toHaveBeenCalled()
-      expect(Editor.deserialize).toHaveBeenCalled()
-
-      expect(newEditor.getBuffer()).toBe editor.getBuffer()
-      expect(newEditor.getCursorScreenPosition()).toEqual editor.getCursorScreenPosition()
-      expect(newEditor.editSessions).toEqual(editor.editSessions)
-      expect(newEditor.activeEditSession).toEqual(editor.activeEditSession)
-      expect(newEditor.getActiveEditSessionIndex()).toEqual(editor.getActiveEditSessionIndex())
-
-      newEditor.height(editor.height())
-      newEditor.width(editor.width())
-
-      newEditor.attachToDom()
-      expect(newEditor.scrollTop()).toBe editor.scrollTop()
-      expect(newEditor.scrollView.scrollLeft()).toBe 44
-
-    it "does not blow up if no file exists for a previous edit session, but prints a warning", ->
-      spyOn(console, 'warn')
-      fs.write('/tmp/delete-me')
-      editor.edit(project.buildEditSession('/tmp/delete-me'))
-      fs.remove('/tmp/delete-me')
-      newEditor = editor.copy()
-      expect(console.warn).toHaveBeenCalled()
 
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
@@ -189,14 +146,6 @@ describe "Editor", ->
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
 
-    it "removes the opened session from the closed sessions array", ->
-      editor.edit(project.buildEditSession('sample.txt'))
-      expect(editor.closedEditSessions.length).toBe 0
-      editor.trigger "core:close"
-      expect(editor.closedEditSessions.length).toBe 1
-      editor.edit(project.buildEditSession('sample.txt'))
-      expect(editor.closedEditSessions.length).toBe 0
-
   describe "switching edit sessions", ->
     [session0, session1, session2] = []
 
@@ -293,9 +242,7 @@ describe "Editor", ->
         project.setPath('/tmp')
         tempFilePath = '/tmp/atom-temp.txt'
         fs.write(tempFilePath, "")
-        rootView.open(tempFilePath)
-        editor = rootView.getActiveEditor()
-        expect(editor.getPath()).toBe tempFilePath
+        editor.edit(project.buildEditSession(tempFilePath))
 
       afterEach ->
         expect(fs.remove(tempFilePath))
@@ -313,8 +260,6 @@ describe "Editor", ->
       selectedFilePath = null
       beforeEach ->
         editor.edit(project.buildEditSession())
-
-        expect(editor.getPath()).toBeUndefined()
         editor.getBuffer().setText 'Save me to a new path'
         spyOn(atom, 'showSaveDialog').andCallFake (callback) -> callback(selectedFilePath)
 
@@ -451,27 +396,21 @@ describe "Editor", ->
       afterEach ->
         editor.clearFontFamily()
 
-      it "updates the font family on new and existing editors", ->
-        rootView.attachToDom()
-        rootView.height(200)
-        rootView.width(200)
-        config.set("editor.fontFamily", "Courier")
-        newEditor = editor.splitRight()
-        expect($("head style.editor-font-family").text()).toMatch "{font-family: Courier}"
-        expect(editor.css('font-family')).toBe 'Courier'
-        expect(newEditor.css('font-family')).toBe 'Courier'
-
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
         editor.attachToDom(12)
-
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "PCMyungjo")
-
         editor.setCursorScreenPosition [5, 6]
+
+        config.set("editor.fontFamily", "PCMyungjo")
+        expect(editor.css('font-family')).toBe 'PCMyungjo'
+        expect($("head style.editor-font-family").text()).toMatch "{font-family: PCMyungjo}"
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
-        expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
+
+        newEditor = new Editor(editor.activeEditSession.copy())
+        newEditor.attachToDom()
+        expect(newEditor.css('font-family')).toBe 'PCMyungjo'
 
   describe "font size", ->
     beforeEach ->
@@ -483,24 +422,9 @@ describe "Editor", ->
       expect($("head style.font-size").text()).toMatch "{font-size: #{config.get('editor.fontSize')}px}"
 
     describe "when the font size changes", ->
-      it "updates the font family on new and existing editors", ->
-        rootView.attachToDom()
-        rootView.height(200)
-        rootView.width(200)
-
-        config.set("editor.fontSize", 20)
-        newEditor = editor.splitRight()
-
-        expect($("head style.font-size").text()).toMatch "{font-size: 20px}"
-        expect(editor.css('font-size')).toBe '20px'
-        expect(newEditor.css('font-size')).toBe '20px'
-
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
-        rootView.attachToDom()
-        rootView.height(200)
-        rootView.width(200)
-
         config.set("editor.fontSize", 10)
+        editor.attachToDom()
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
         editor.setCursorScreenPosition [5, 6]
@@ -510,14 +434,17 @@ describe "Editor", ->
         expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
         expect(editor.charWidth).toBeGreaterThan charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
-        expect(editor.activeEditSession.buffer).toBe buffer
         expect(editor.renderedLines.outerHeight()).toBe buffer.getLineCount() * editor.lineHeight
         expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
 
+        newEditor = new Editor(editor.activeEditSession.copy())
+        newEditor.attachToDom()
+        expect(editor.css('font-size')).toBe '30px'
+
       it "updates the position and size of selection regions", ->
-        rootView.attachToDom()
         config.set("editor.fontSize", 10)
         editor.setSelectedBufferRange([[5, 2], [5, 7]])
+        editor.attachToDom()
 
         config.set("editor.fontSize", 30)
         selectionRegion = editor.find('.region')
@@ -527,7 +454,7 @@ describe "Editor", ->
         expect(selectionRegion.width()).toBe 5 * editor.charWidth
 
       it "updates the gutter width and font size", ->
-        rootView.attachToDom()
+        editor.attachToDom()
         config.set("editor.fontSize", 20)
         expect(editor.gutter.css('font-size')).toBe "20px"
         expect(editor.gutter.width()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
@@ -540,22 +467,25 @@ describe "Editor", ->
         config.set("editor.fontSize", 10)
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
 
-      describe "when the editor is detached", ->
+      describe "when the font size changes while editor is detached", ->
         it "redraws the editor according to the new font size when it is reattached", ->
-          rootView.attachToDom()
-          rootView.height(200)
-          rootView.width(200)
+          editor.setCursorScreenPosition([4, 2])
+          editor.attachToDom()
+          initialLineHeight = editor.lineHeight
+          initialCharWidth = editor.charWidth
+          initialCursorPosition = editor.getCursorView().position()
+          initialScrollbarHeight = editor.verticalScrollbarContent.height()
+          editor.detach()
 
-          newEditor = editor.splitRight()
-          newEditorParent = newEditor.parent()
-          newEditor.detach()
           config.set("editor.fontSize", 10)
-          newEditorParent.append(newEditor)
+          expect(editor.lineHeight).toBe initialLineHeight
+          expect(editor.charWidth).toBe initialCharWidth
 
-          expect(newEditor.lineHeight).toBe editor.lineHeight
-          expect(newEditor.charWidth).toBe editor.charWidth
-          expect(newEditor.getCursorView().position()).toEqual editor.getCursorView().position()
-          expect(newEditor.verticalScrollbarContent.height()).toBe editor.verticalScrollbarContent.height()
+          editor.attachToDom()
+          expect(editor.lineHeight).not.toBe initialLineHeight
+          expect(editor.charWidth).not.toBe initialCharWidth
+          expect(editor.getCursorView().position()).not.toEqual initialCursorPosition
+          expect(editor.verticalScrollbarContent.height()).not.toBe initialScrollbarHeight
 
   describe "mouse events", ->
     beforeEach ->
@@ -1627,7 +1557,7 @@ describe "Editor", ->
 
     describe "when line has a character that could push it to be too tall (regression)", ->
       it "does renders the line at a consistent height", ->
-        rootView.attachToDom()
+        editor.attachToDom()
         buffer.insert([0, 0], "–")
         expect(editor.find('.line:eq(0)').outerHeight()).toBe editor.find('.line:eq(1)').outerHeight()
 
@@ -1658,21 +1588,11 @@ describe "Editor", ->
         expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible">¬</span>'
 
       it "allows invisible glyphs to be customized via config.editor.invisibles", ->
-        rootView.height(200)
-        rootView.attachToDom()
-        rightEditor = rootView.getActiveEditor()
-        rightEditor.setText(" \t ")
-        leftEditor = rightEditor.splitLeft()
-
-        config.set "editor.showInvisibles", true
-        config.set "editor.invisibles",
-          eol:   ";"
-          space: "_"
-          tab:   "tab"
-        config.update()
-
-        expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
-        expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
+        editor.setText(" \t ")
+        editor.attachToDom()
+        config.set("editor.showInvisibles", true)
+        config.set("editor.invisibles", eol: ";", space: "_", tab: "tab")
+        expect(editor.find(".line:first").text()).toBe "_tab _;"
 
       it "displays trailing carriage return using a visible non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
@@ -2169,30 +2089,13 @@ describe "Editor", ->
       expect(editor.getCursor().getScreenPosition().row).toBe(0)
       expect(editor.getFirstVisibleScreenRow()).toBe(0)
 
-  describe "when autosave is enabled", ->
-    it "autosaves the current buffer when the editor loses focus or switches edit sessions", ->
-      config.set "editor.autosave", true
-      rootView.attachToDom()
-      editor2 = editor.splitRight()
-      spyOn(editor2.activeEditSession, 'save')
-
-      editor.focus()
-      expect(editor2.activeEditSession.save).toHaveBeenCalled()
-
-      editSession = editor.activeEditSession
-      spyOn(editSession, 'save')
-      rootView.open('sample.txt')
-      expect(editSession.save).toHaveBeenCalled()
-
   describe ".checkoutHead()", ->
     [path, originalPathText] = []
 
     beforeEach ->
-      path = require.resolve('fixtures/git/working-dir/file.txt')
+      path = project.resolve('git/working-dir/file.txt')
       originalPathText = fs.read(path)
-      rootView.open(path)
-      editor = rootView.getActiveEditor()
-      editor.attachToDom()
+      editor.edit(project.buildEditSession(path))
 
     afterEach ->
       fs.write(path, originalPathText)
@@ -2253,7 +2156,7 @@ describe "Editor", ->
 
   describe "when clicking below the last line", ->
     beforeEach ->
-      rootView.attachToDom()
+      editor.attachToDom()
 
     it "move the cursor to the end of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual [0,0]
@@ -2270,32 +2173,19 @@ describe "Editor", ->
       editor.underlayer.trigger event
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
 
-  describe ".destroyEditSessionIndex(index)", ->
-    it "prompts to save dirty buffers before closing", ->
-      editor.setText("I'm dirty")
-      rootView.open('sample.txt')
-      expect(editor.getEditSessions().length).toBe 2
-      spyOn(atom, "confirm")
-      editor.destroyEditSessionIndex(0)
-      expect(atom.confirm).toHaveBeenCalled()
-      expect(editor.getEditSessions().length).toBe 2
-      expect(editor.getEditSessions()[0].buffer.isModified()).toBeTruthy()
-
   describe ".reloadGrammar()", ->
     [path] = []
 
     beforeEach ->
       path = "/tmp/grammar-change.txt"
       fs.write(path, "var i;")
-      rootView.attachToDom()
 
     afterEach ->
-      project.removeGrammarOverrideForPath(path)
       fs.remove(path) if fs.exists(path)
 
     it "updates all the rendered lines when the grammar changes", ->
-      rootView.open(path)
-      editor = rootView.getActiveEditor()
+      editor.edit(project.buildEditSession(path))
+
       expect(editor.getGrammar().name).toBe 'Plain Text'
       jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
       expect(jsGrammar.name).toBe 'JavaScript'
@@ -2309,12 +2199,6 @@ describe "Editor", ->
       expect(line0.tokens.length).toBe 3
       expect(line0.tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
 
-      line0 = editor.renderedLines.find('.line:first')
-      span0 = line0.children('span:eq(0)')
-      expect(span0).toMatchSelector '.source.js'
-      expect(span0.children('span:eq(0)')).toMatchSelector '.storage.modifier.js'
-      expect(span0.children('span:eq(0)').text()).toBe 'var'
-
     it "doesn't update the rendered lines when the grammar doesn't change", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
       spyOn(editor, 'updateDisplay').andCallThrough()
@@ -2324,8 +2208,8 @@ describe "Editor", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
     it "emits an editor:grammar-changed event when updated", ->
-      rootView.open(path)
-      editor = rootView.getActiveEditor()
+      editor.edit(project.buildEditSession(path))
+
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on('editor:grammar-changed', eventHandler)
       editor.reloadGrammar()
