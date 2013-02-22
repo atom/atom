@@ -73,7 +73,7 @@ afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
   if rootView?
-    rootView.deactivate()
+    rootView.deactivate?()
     window.rootView = null
   if project?
     project.destroy()

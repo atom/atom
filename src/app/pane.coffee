@@ -171,7 +171,13 @@ class Pane extends View
     # find parent elements before removing from dom
     container = @getContainer()
     parentAxis = @parent('.row, .column')
+    if @is(':has(:focus)')
+      rootView?.focus() unless container.focusNextPane()
+    else if @isActive()
+      container.makeNextPaneActive()
+
     super
+
     if parentAxis.children().length == 1
       sibling = parentAxis.children().detach()
       parentAxis.replaceWith(sibling)
