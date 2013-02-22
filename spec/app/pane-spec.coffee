@@ -187,6 +187,13 @@ describe "Pane", ->
         expect(container.getPanes().length).toBe 1
         window.rootView = focus: jasmine.createSpy("rootView.focus")
 
+      it "triggers a 'pane:active-item-changed' event with null", ->
+        itemChangedHandler = jasmine.createSpy("itemChangedHandler")
+        container.on 'pane:active-item-changed', itemChangedHandler
+        pane.remove()
+        expect(itemChangedHandler).toHaveBeenCalled()
+        expect(itemChangedHandler.argsForCall[0][1]).toBeNull()
+
       describe "when the removed pane is focused", ->
         it "calls focus on rootView so we don't lose focus", ->
           container.attachToDom()
