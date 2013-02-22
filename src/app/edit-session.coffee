@@ -56,7 +56,10 @@ class EditSession
     require 'editor'
 
   getTitle: ->
-    fs.base(@getPath())
+    if path = @getPath()
+      fs.base(path)
+    else
+      'untitled'
 
   destroy: ->
     return if @destroyed
