@@ -251,7 +251,7 @@ describe "RootView", ->
       fs.write(file2, "file2")
       rootView.open(file1)
 
-      editor1 = rootView.getActiveEditor()
+      editor1 = rootView.getActiveView()
       buffer1 = editor1.activeEditSession.buffer
       expect(buffer1.getText()).toBe("file1")
       expect(buffer1.isModified()).toBe(false)
