@@ -179,69 +179,30 @@ describe "RootView", ->
 
       window.keymap.bindKeys('*', 'x': 'foo-command')
 
-    describe "when a keydown event is triggered on the RootView (not originating from Ace)", ->
+    describe "when a keydown event is triggered on the RootView", ->
       it "triggers matching keybindings for that event", ->
         event = keydownEvent 'x', target: rootView[0]
 
         rootView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
 
+  describe "title", ->
+    describe "when the project has no path", ->
+      it "sets the title to 'untitled'", ->
+        project.setPath(undefined)
+        expect(rootView.title).toBe 'untitled'
 
-  describe "when the path of the active editor changes", ->
-    it "changes the title and emits an root-view:active-path-changed event", ->
-      pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
-      rootView.on 'root-view:active-path-changed', pathChangeHandler
+    describe "when the project has a path", ->
+      describe "when there is no active pane item", ->
+        it "sets the title to the project's path", ->
+          rootView.getActivePane().remove()
+          expect(rootView.getActivePaneItem()).toBeUndefined()
+          expect(rootView.title).toBe project.getPath()
 
-      editor1 = rootView.getActiveEditor()
-      expect(rootView.getTitle()).toBe "#{fs.base(editor1.getPath())} – #{project.getPath()}"
-
-      editor2 = rootView.getActiveEditor().splitLeft()
-
-      path = project.resolve('b')
-      editor2.edit(project.buildEditSession(path))
-      expect(pathChangeHandler).toHaveBeenCalled()
-      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{project.getPath()}"
-
-      pathChangeHandler.reset()
-      editor1.getBuffer().saveAs("/tmp/should-not-be-title.txt")
-      expect(pathChangeHandler).not.toHaveBeenCalled()
-      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{project.getPath()}"
-
-    it "sets the project path to the directory of the editor if it was previously unassigned", ->
-      project.setPath(undefined)
-      window.rootView = new RootView
-      rootView.open()
-      expect(project.getPath()?).toBeFalsy()
-      rootView.getActiveEditor().getBuffer().saveAs('/tmp/ignore-me')
-      expect(project.getPath()).toBe '/tmp'
-
-  describe "when editors are focused", ->
-    it "triggers 'root-view:active-path-changed' events if the path of the active editor actually changes", ->
-      pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
-      rootView.on 'root-view:active-path-changed', pathChangeHandler
-
-      editor1 = rootView.getActiveEditor()
-      editor2 = rootView.getActiveEditor().splitLeft()
-
-      rootView.open(require.resolve('fixtures/sample.txt'))
-      expect(pathChangeHandler).toHaveBeenCalled()
-      pathChangeHandler.reset()
-
-      editor1.focus()
-      expect(pathChangeHandler).toHaveBeenCalled()
-      pathChangeHandler.reset()
-
-      rootView.focus()
-      expect(pathChangeHandler).not.toHaveBeenCalled()
-
-      editor2.edit(editor1.activeEditSession.copy())
-      editor2.focus()
-      expect(pathChangeHandler).not.toHaveBeenCalled()
-
-  describe "when the last editor is removed", ->
-    it "updates the title to the project path", ->
-      rootView.getEditors()[0].remove()
-      expect(rootView.getTitle()).toBe project.getPath()
+      describe "when there is an active pane item", ->
+        it "sets the title to the pane item's title plus the project path", ->
+          item = rootView.getActivePaneItem()
+          expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
 
   describe "font size adjustment", ->
     editor = null

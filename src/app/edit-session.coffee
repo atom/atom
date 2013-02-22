@@ -55,6 +55,9 @@ class EditSession
   getViewClass: ->
     require 'editor'
 
+  getTitle: ->
+    fs.base(@getPath())
+
   destroy: ->
     return if @destroyed
     @destroyed = true
