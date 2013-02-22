@@ -19,9 +19,19 @@ class PaneContainer extends View
 
   focusNextPane: ->
     panes = @getPanes()
-    currentIndex = panes.indexOf(@getFocusedPane())
+    if panes.length > 1
+      currentIndex = panes.indexOf(@getFocusedPane())
+      nextIndex = (currentIndex + 1) % panes.length
+      panes[nextIndex].focus()
+      true
+    else
+      false
+
+  makeNextPaneActive: ->
+    panes = @getPanes()
+    currentIndex = panes.indexOf(@getActivePane())
     nextIndex = (currentIndex + 1) % panes.length
-    panes[nextIndex].focus()
+    panes[nextIndex].makeActive()
 
   getRoot: ->
     @children().first().view()
