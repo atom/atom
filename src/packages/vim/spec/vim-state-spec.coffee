@@ -5,6 +5,10 @@ VimState = require 'vim/lib/vim-state'
 class EventMonitor
   constructor: ->
     @events = []
+    @edit =
+      setCursorBufferPosition: () ->
+      getCursorBufferPosition: () ->
+      clearSelections: ()->
   trigger: (event) ->
     @events.push(event)
   count: () ->
@@ -16,6 +20,10 @@ class EventMonitor
       return true if event == name
     false
   command: (name) ->
+  activeEditSession:
+    setCursorBufferPosition: () ->
+    getCursorBufferPosition: () ->
+    clearSelections: ()->
 
 class MockVimView
   constructor: () ->
@@ -50,6 +58,7 @@ fdescribe "Vim state", ->
     editor = rootView.getActiveEditor()
     Vim.activate(rootView)
     vim = editor.vim.state
+
 
   # http://vimdoc.sourceforge.net/htmldoc/motion.html
   describe "motions", ->
@@ -172,6 +181,14 @@ fdescribe "Vim state", ->
         vim.motion("end-of-line")
         expect(target.hasEvent("editor:newline")).toBe(true)
     describe "yank", ->
+      it "copies text", ->
+        vim.operation("yank")
+        vim.operation("yank")
+        expect(target.hasEvent("core:copy")).toBe(true)
+    describe "paste", ->
+      it "pastes text", ->
+        vim.operation("paste")
+        expect(target.hasEvent("core:paste")).toBe(true)
     describe "swap case", ->
     describe "filter through external program", ->
     describe "shift left", ->

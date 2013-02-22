@@ -188,7 +188,21 @@ class VimState
       return if !state.lastOperation?
       state._operation = state.lastOperation
       state._operation.perform(@target, state._operation.motion)
+    'yank': (state) ->
+      edit = @target.activeEditSession
+      oldPos = edit.getCursorBufferPosition()
+      @performSelectMotion()
+      @performEvent("core:copy")
+      edit.clearSelections()
+      edit.setCursorBufferPosition(oldPos)
+    'paste': () ->
+      edit = @target.activeEditSession
+      @performEvent("core:right")
+      @performEvent("core:paste")
+      edit.clearSelections()
+    'paste-before': () ->
+      @performEvent("core:paste")
 
   operationsWithInput: ['change-character']
   motionsWithInput: ['find-character']
-  noMotionOperations: ['repeat']
+  noMotionOperations: ['repeat', 'paste']

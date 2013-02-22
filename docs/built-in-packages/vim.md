@@ -152,6 +152,12 @@ Keys: `u` `ctrl-r`
 
 Event: `core:{undo/redo}`
 
+**Yank/paste**
+
+Keys: `y` `p`
+
+Event: `vim:operation-{yank/paste}`
+
 #### Ex mode
 
 **Save**
