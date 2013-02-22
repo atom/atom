@@ -49,7 +49,6 @@ class RootView extends View
       fontSize = config.get "editor.fontSize"
       config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
-
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
@@ -150,16 +149,9 @@ class RootView extends View
   getActivePane: ->
     @panes.getActivePane()
 
-  getActiveEditor: ->
-    if (editor = @panes.find('.editor.active')).length
-      editor.view()
-    else
-      @panes.find('.editor:first').view()
   getActivePaneItem: ->
     @panes.getActivePaneItem()
 
-  getActiveEditSession: ->
-    @getActiveEditor()?.activeEditSession
   getActiveView: ->
     @panes.getActiveView()
 
