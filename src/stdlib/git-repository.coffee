@@ -2,7 +2,7 @@ module.exports =
 class GitRepository
   constructor: (path) ->
     unless repo = $git.getRepository(path)
-      throw new Error("No Git repository found searching path: " + path)
+      throw new Error("No Git repository found searching path: #{path}")
     repo.constructor = GitRepository
     repo.__proto__ = GitRepository.prototype
     return repo
