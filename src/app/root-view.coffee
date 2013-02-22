@@ -39,12 +39,8 @@ class RootView extends View
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
-    @on 'root-view:active-path-changed', (e, path) =>
-      if path
-        project.setPath(path) unless project.getRootDirectory()
-        @setTitle(fs.base(path))
-      else
-        @setTitle("untitled")
+    project.on 'path-changed', => @updateTitle()
+    @on 'pane:active-item-changed', => @updateTitle()
 
     @command 'window:increase-font-size', =>
       config.set("editor.fontSize", config.get("editor.fontSize") + 1)
@@ -124,22 +120,18 @@ class RootView extends View
       if not previousActiveEditor or editor.getPath() != previousActiveEditor.getPath()
         @trigger 'root-view:active-path-changed', editor.getPath()
 
-  getTitle: ->
-    @title or "untitled"
+
+  updateTitle: ->
+    if projectPath = project.getPath()
+      if item = @getActivePaneItem()
+        @setTitle("#{item.getTitle()} - #{projectPath}")
+      else
+        @setTitle(projectPath)
+    else
+      @setTitle('untitled')
 
   setTitle: (title) ->
-    projectPath = project.getPath()
-    if not projectPath
-      @title = "untitled"
-    else if title
-      @title = "#{title} – #{projectPath}"
-    else
-      @title = projectPath
-
-    @updateWindowTitle()
-
-  updateWindowTitle: ->
-    document.title = @title
+    document.title = title
 
   getEditors: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()

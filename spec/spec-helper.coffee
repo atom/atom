@@ -56,7 +56,7 @@ beforeEach ->
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
-  spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
+  spyOn(RootView.prototype, 'setTitle').andCallFake (@title) ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
