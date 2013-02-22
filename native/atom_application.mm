@@ -124,7 +124,7 @@
   CefSettings settings;
 
   CefString(&settings.cache_path) = [[self supportDirectory] UTF8String];
-  CefString(&settings.user_agent) = "";
+  CefString(&settings.user_agent) = "GitHubAtom/0.1";
   CefString(&settings.log_file) = "";
   CefString(&settings.javascript_flags) = "";
   settings.remote_debugging_port = 9090;
