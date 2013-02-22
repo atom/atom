@@ -280,8 +280,9 @@
 }
 
 - (void)updater:(SUUpdater *)updater willInstallUpdateOnQuit:(SUAppcastItem *)update immediateInstallationInvocation:(NSInvocation *)invocation {
-  _updateInvocation = invocation;
-  _updateStatus = @"ready";
+  _updateInvocation = [invocation retain];
+  _updateStatus = @"update-available";
+  [[NSApp dockTile] setBadgeLabel:@"\xE2\xAD\x90"];
 }
 
 - (void)updater:(SUUpdater *)updater didCancelInstallUpdateOnQuit:(SUAppcastItem *)update {
