@@ -12,7 +12,7 @@ describe "StripTrailingWhitespace", ->
 
     window.loadPackage('strip-trailing-whitespace')
     rootView.focus()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
 
   afterEach ->
     fs.remove(path) if fs.exists(path)

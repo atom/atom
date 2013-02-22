@@ -8,7 +8,7 @@ describe "Gists package", ->
     window.rootView = new RootView
     rootView.open('sample.js')
     window.loadPackage('gists')
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     spyOn($, 'ajax')
 
   describe "when gist:create is triggered on an editor", ->

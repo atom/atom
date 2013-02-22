@@ -7,7 +7,7 @@ describe "Autoflow package", ->
     window.rootView = new RootView
     rootView.open()
     window.loadPackage 'autoflow'
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     config.set('editor.preferredLineLength', 30)
 
   describe "autoflow:reflow-paragraph", ->

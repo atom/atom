@@ -8,7 +8,7 @@ describe 'GoToLine', ->
     window.rootView = new RootView
     rootView.open('sample.js')
     rootView.enableKeymap()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     goToLine = GoToLineView.activate()
     editor.setCursorBufferPosition([1,0])
 
