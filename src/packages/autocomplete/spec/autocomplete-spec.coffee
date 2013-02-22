@@ -17,8 +17,8 @@ describe "Autocomplete", ->
       autocompletePackage = window.loadPackage("autocomplete")
       expect(AutocompleteView.prototype.initialize).not.toHaveBeenCalled()
 
-      leftEditor = rootView.getActiveEditor()
-      rightEditor = rootView.getActiveEditor().splitRight()
+      leftEditor = rootView.getActiveView()
+      rightEditor = leftEditor.splitRight()
 
       leftEditor.trigger 'autocomplete:attach'
       expect(leftEditor.find('.autocomplete')).toExist()
