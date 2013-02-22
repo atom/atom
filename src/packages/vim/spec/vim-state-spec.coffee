@@ -97,14 +97,10 @@ fdescribe "Vim state", ->
 
     describe "word", ->
       describe "forward", ->
-        it_sends_motion_event "next-word", "editor:move-to-next-word"
+        it_sends_motion_event "next-word", "editor:move-to-beginning-of-next-word"
       describe "backward", ->
-        it_sends_motion_event "previous-word", "editor:move-to-previous-word"
-      describe "beginning of word", ->
-        it_sends_motion_event "beginning-of-word", "editor:move-to-beginning-of-word"
-      describe "end of word", ->
-        it_sends_motion_event "end-of-word", "editor:move-to-end-of-word"
-    describe "line", ->
+        it_sends_motion_event "previous-word", "editor:move-to-beginning-of-word"
+      describe "line", ->
     describe 'go to line', ->
       it "moves cursor to line n", ->
         vim.count(2)

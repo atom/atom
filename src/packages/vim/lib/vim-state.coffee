@@ -127,10 +127,8 @@ class VimState
     line: "editor:move-line"
     'beginning-of-line': "editor:move-to-beginning-of-line"
     'end-of-line': "editor:move-to-end-of-line"
-    'next-word': "editor:move-to-next-word"
-    'previous-word': "editor:move-to-previous-word"
-    'beginning-of-word': 'editor:move-to-beginning-of-word'
-    'end-of-word': 'editor:move-to-end-of-word'
+    'next-word': "editor:move-to-beginning-of-next-word"
+    'previous-word': "editor:move-to-beginning-of-word"
     'go-to-line': (n) ->
       if n == 1 then "core:move-to-top" else "core:move-down"
     'go-to-line-bottom': (n) ->
