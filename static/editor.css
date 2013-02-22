@@ -61,14 +61,13 @@
   content: '\f078';
   font-family: 'Octicons Regular';
   -webkit-font-smoothing: antialiased;
-  color: #fba0e3;
+  opacity: .8;
   visibility: hidden;
 }
 
 .editor .fold-marker:after {
   content: '\f09a';
   opacity: .8;
-  color: #fba0e3;
   padding-left: .2em;
   font-family: 'Octicons Regular';
   -webkit-font-smoothing: antialiased;
@@ -76,7 +75,7 @@
   top: 2px;
 }
 
-.editor .line.cursor-line .fold-marker {
+.editor .line.cursor-line .fold-marker:after {
   opacity: 1;
 }
 
