@@ -34,8 +34,6 @@ class Config
     @loadUserConfig()
     @requireUserInitScript()
 
-
-
   loadUserConfig: ->
     if fs.exists(@configFilePath)
       userConfig = fs.readObject(@configFilePath)
