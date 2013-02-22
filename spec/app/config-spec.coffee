@@ -113,16 +113,23 @@ describe "Config", ->
   describe "initializeConfigDirectory()", ->
     beforeEach ->
       config.configDirPath = '/tmp/dot-atom-dir'
+      expect(fs.exists(config.configDirPath)).toBeFalsy()
 
     afterEach ->
       fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
 
     describe "when the configDirPath doesn't exist", ->
-      it "copies the contents of dot-atom to ~/.atom if it doesn't exist", ->
-        expect(fs.exists(config.configDirPath)).toBeFalsy()
+      it "copies the contents of dot-atom to ~/.atom", ->
         config.initializeConfigDirectory()
         expect(fs.exists(config.configDirPath)).toBeTruthy()
         expect(fs.exists(fs.join(config.configDirPath, 'packages'))).toBeTruthy()
         expect(fs.exists(fs.join(config.configDirPath, 'snippets'))).toBeTruthy()
         expect(fs.exists(fs.join(config.configDirPath, 'themes'))).toBeTruthy()
         expect(fs.isFile(fs.join(config.configDirPath, 'config.cson'))).toBeTruthy()
+
+      it "copies the bundles themes to ~/.atom", ->
+        config.initializeConfigDirectory()
+        expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
+        expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
+        expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
+        expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()

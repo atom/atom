@@ -34,13 +34,21 @@ class Config
     return if fs.exists(@configDirPath)
 
     fs.makeDirectory(@configDirPath)
+
     templateConfigDirPath = fs.resolve(window.resourcePath, 'dot-atom')
+
     onConfigDirFile = (path) =>
       templatePath = fs.join(templateConfigDirPath, path)
       configPath = fs.join(@configDirPath, path)
       fs.write(configPath, fs.read(templatePath))
-    onConfigDirPath = (path) -> true
-    fs.traverseTree(templateConfigDirPath, onConfigDirFile, onConfigDirPath)
+    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+
+    configThemeDirPath = fs.join(@configDirPath, 'themes')
+    onThemeDirFile = (path) ->
+      templatePath = fs.join(bundledThemesDirPath, path)
+      configPath = fs.join(configThemeDirPath, path)
+      fs.write(configPath, fs.read(templatePath))
+    fs.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
   load: ->
     @initializeConfigDirectory()

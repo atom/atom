@@ -1,5 +1,4 @@
 ATOM_SRC_PATH = File.dirname(__FILE__)
-DOT_ATOM_PATH = ENV['HOME'] + "/.atom"
 BUILD_DIR = 'atom-build'
 
 require 'erb'
@@ -53,29 +52,9 @@ task :install => [:clean, :build] do
     f.chmod(0755)
   end
 
-  Rake::Task["create-dot-atom"].invoke()
   Rake::Task["clone-default-bundles"].invoke()
 
   puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `~/.atom` directory\033[0m"
-end
-
-desc "Creates .atom file if non exists"
-task "create-dot-atom" do
-  dot_atom_template_path = ATOM_SRC_PATH + "/dot-atom"
-
-  if File.exists?(DOT_ATOM_PATH)
-    user_config = "#{DOT_ATOM_PATH}/user.coffee"
-    old_user_config = "#{DOT_ATOM_PATH}/atom.coffee"
-
-    if File.exists?(old_user_config)
-      `mv #{old_user_config} #{user_config}`
-      puts "\033[32mRenamed #{old_user_config} to #{user_config}\033[0m"
-    end
-  else
-    `mkdir "#{DOT_ATOM_PATH}"`
-    `cp -r "#{dot_atom_template_path}/" "#{DOT_ATOM_PATH}"/`
-    `cp -r "#{ATOM_SRC_PATH}/themes/" "#{DOT_ATOM_PATH}"/themes/`
-  end
 end
 
 desc "Clone default bundles into vendor/bundles directory"
