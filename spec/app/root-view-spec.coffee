@@ -277,7 +277,7 @@ describe "RootView", ->
     it "shows/hides invisibles in all open and future editors", ->
       rootView.height(200)
       rootView.attachToDom()
-      rightEditor = rootView.getActiveEditor()
+      rightEditor = rootView.getActiveView()
       rightEditor.setText(" \t ")
       leftEditor = rightEditor.splitLeft()
       expect(rightEditor.find(".line:first").text()).toBe "    "
@@ -311,7 +311,7 @@ describe "RootView", ->
         count++
       rootView.eachEditor(callback)
       expect(count).toBe 1
-      expect(callbackEditor).toBe rootView.getActiveEditor()
+      expect(callbackEditor).toBe rootView.getActiveView()
 
     it "invokes the callback for new editor", ->
       count = 0
@@ -323,9 +323,9 @@ describe "RootView", ->
       rootView.eachEditor(callback)
       count = 0
       callbackEditor = null
-      rootView.getActiveEditor().splitRight()
+      rootView.getActiveView().splitRight()
       expect(count).toBe 1
-      expect(callbackEditor).toBe rootView.getActiveEditor()
+      expect(callbackEditor).toBe rootView.getActiveView()
 
   describe ".eachBuffer(callback)", ->
     beforeEach ->
@@ -339,7 +339,7 @@ describe "RootView", ->
         count++
       rootView.eachBuffer(callback)
       expect(count).toBe 1
-      expect(callbackBuffer).toBe rootView.getActiveEditor().getBuffer()
+      expect(callbackBuffer).toBe rootView.getActiveView().getBuffer()
 
     it "invokes the callback for new buffer", ->
       count = 0
@@ -353,4 +353,4 @@ describe "RootView", ->
       callbackBuffer = null
       rootView.open(require.resolve('fixtures/sample.txt'))
       expect(count).toBe 1
-      expect(callbackBuffer).toBe rootView.getActiveEditor().getBuffer()
+      expect(callbackBuffer).toBe rootView.getActiveView().getBuffer()
