@@ -205,26 +205,21 @@ describe "RootView", ->
           expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
 
   describe "font size adjustment", ->
-    editor = null
-    beforeEach ->
-      editor = rootView.getActiveEditor()
-      editor.attachToDom()
-
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
-      fontSizeBefore = editor.getFontSize()
+      fontSizeBefore = config.get('editor.fontSize')
       rootView.trigger 'window:increase-font-size'
-      expect(editor.getFontSize()).toBe fontSizeBefore + 1
+      expect(config.get('editor.fontSize')).toBe fontSizeBefore + 1
       rootView.trigger 'window:increase-font-size'
-      expect(editor.getFontSize()).toBe fontSizeBefore + 2
+      expect(config.get('editor.fontSize')).toBe fontSizeBefore + 2
       rootView.trigger 'window:decrease-font-size'
-      expect(editor.getFontSize()).toBe fontSizeBefore + 1
+      expect(config.get('editor.fontSize')).toBe fontSizeBefore + 1
       rootView.trigger 'window:decrease-font-size'
-      expect(editor.getFontSize()).toBe fontSizeBefore
+      expect(config.get('editor.fontSize')).toBe fontSizeBefore
 
     it "does not allow the font size to be less than 1", ->
       config.set("editor.fontSize", 1)
       rootView.trigger 'window:decrease-font-size'
-      expect(editor.getFontSize()).toBe 1
+      expect(config.get('editor.fontSize')).toBe 1
 
   describe ".open(path, options)", ->
     describe "when there is no active pane", ->
