@@ -23,7 +23,7 @@ describe "AtomPackage", ->
 
       it "triggers the activation event on all handlers registered during activation", ->
         rootView.open('sample.js')
-        editor = rootView.getActiveEditor()
+        editor = rootView.getActiveView()
         eventHandler = jasmine.createSpy("activation-event")
         editor.command 'activation-event', eventHandler
         editor.trigger 'activation-event'
