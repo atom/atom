@@ -194,6 +194,7 @@ class Editor extends View
         'editor:duplicate-line': @duplicateLine
         'editor:undo-close-session': @undoDestroySession
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
+        'editor:save-debug-snapshot': @saveDebugSnapshot
 
     documentation = {}
     for name, method of editorBindings
@@ -1226,15 +1227,8 @@ class Editor extends View
   lineElementForScreenRow: (screenRow) ->
     @renderedLines.children(":eq(#{screenRow - @firstRenderedScreenRow})")
 
-  logScreenLines: (start, end) ->
-    @activeEditSession.logScreenLines(start, end)
-
   toggleLineCommentsInSelection: ->
     @activeEditSession.toggleLineCommentsInSelection()
-
-  logRenderedLines: ->
-    @renderedLines.find('.line').each (n) ->
-      console.log n, $(this).text()
 
   pixelPositionForBufferPosition: (position) ->
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
@@ -1348,3 +1342,29 @@ class Editor extends View
   copyPathToPasteboard: ->
     path = @getPath()
     pasteboard.write(path) if path?
+
+  saveDebugSnapshot: ->
+    atom.showSaveDialog (path) =>
+      fs.write(path, @getDebugSnapshot()) if path
+
+  getDebugSnapshot: ->
+    [
+      "Debug Snapshot: #{@getPath()}"
+      @getRenderedLinesDebugSnapshot()
+      @activeEditSession.getDebugSnapshot()
+      @getBuffer().getDebugSnapshot()
+    ].join('\n\n')
+
+  getRenderedLinesDebugSnapshot: ->
+    lines = ['Rendered Lines:']
+    firstRenderedScreenRow = @firstRenderedScreenRow
+    @renderedLines.find('.line').each (n) ->
+      lines.push "#{firstRenderedScreenRow + n}: #{$(this).text()}"
+    lines.join('\n')
+
+  logScreenLines: (start, end) ->
+    @activeEditSession.logScreenLines(start, end)
+
+  logRenderedLines: ->
+    @renderedLines.find('.line').each (n) ->
+      console.log n, $(this).text()

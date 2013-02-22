@@ -419,11 +419,6 @@ class Buffer
         return match[0][0] != '\t'
     undefined
 
-  logLines: (start=0, end=@getLastRow())->
-    for row in [start..end]
-      line = @lineForRow(row)
-      console.log row, line, line.length
-
   getRepo: -> @project?.repo
 
   checkoutHead: ->
@@ -441,5 +436,16 @@ class Buffer
 
   fileExists: ->
     @file.exists()
+
+  logLines: (start=0, end=@getLastRow())->
+    for row in [start..end]
+      line = @lineForRow(row)
+      console.log row, line, line.length
+
+  getDebugSnapshot: ->
+    lines = ['Buffer:']
+    for row in [0..@getLastRow()]
+      lines.push "#{row}: #{@lineForRow(row)}"
+    lines.join('\n')
 
 _.extend(Buffer.prototype, EventEmitter)

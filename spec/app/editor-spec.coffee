@@ -2859,3 +2859,17 @@ describe "Editor", ->
       editor.trigger 'editor:undo-close-session'
       expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
       expect(editor.getActiveEditSessionIndex()).toBe 0
+
+  describe "editor:save-debug-snapshot", ->
+    it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
+      saveDialogCallback = null
+      spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
+      spyOn(fs, 'write')
+
+      editor.trigger 'editor:save-debug-snapshot'
+
+      expect(atom.showSaveDialog).toHaveBeenCalled()
+      saveDialogCallback('/tmp/state')
+      expect(fs.write).toHaveBeenCalled()
+      expect(fs.write.argsForCall[0][0]).toBe '/tmp/state'
+      expect(typeof fs.write.argsForCall[0][1]).toBe 'string'

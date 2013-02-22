@@ -419,4 +419,10 @@ class DisplayBuffer
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
 
+  getDebugSnapshot: ->
+    lines = ["Display Buffer:"]
+    for screenLine, row in @lineMap.linesForScreenRows(0, @getLastRow())
+        lines.push "#{row}: #{screenLine.text}"
+    lines.join('\n')
+
 _.extend DisplayBuffer.prototype, EventEmitter
