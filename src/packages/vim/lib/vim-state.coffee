@@ -2,15 +2,19 @@ _ = require 'underscore'
 
 class VimMotion
   constructor: (@name, @event, @count, @target) ->
-
-  perform: () ->
+    @select = false
+  perform: (@operation) ->
     window.console.log "Performing motion #{@name} (#{@count}) with event #{@event}"
-    if @event?() then @performEvent(@event(n)) for n in [1..@count]
+    if typeof @event == "function" then @event.apply(this)
     else @performEvent(@event) for n in [1..@count]
-  performSelect: () ->
-    @event = @event.replace(/move/, 'select') if !@event?()
-    @perform()
+  performSelect: (@operation) ->
+    @select = true
+    @perform(@operation)
+    @select = false
+  selectEvent: (event) ->
+    event.replace(/move/, 'select')
   performEvent: (event) ->
+    event = @selectEvent(event) if @select
     @target.trigger(event)
 
 class VimOperation
@@ -25,9 +29,9 @@ class VimOperation
   performEvent: (event) ->
     @target.trigger(event)
   performMotion: ->
-    @motion.perform() if @motion?
+    @motion.perform(this) if @motion?
   performSelectMotion: ->
-    @motion.performSelect() if @motion?
+    @motion.performSelect(this) if @motion?
   textInput: (text) ->
     @vim.editor.insertText(text)
 
@@ -48,8 +52,12 @@ class VimState
   motion: (type) ->
     event = @motionEvents[type]
     m = new VimMotion(type, event, @_count, @target)
-    @_operation.perform(@target, m)
-    @resetState()
+    if _.contains(@motionsWithInput, type)
+      @_operation.motion = m
+      @vim.enterAwaitInputMode()
+    else
+      @_operation.perform(@target, m)
+      @resetState()
   defaultMotion: () ->
     new VimMotion('line', @motionEvents['line'], @_count, @target)
   addCountDecimal: (n) ->
@@ -69,18 +77,18 @@ class VimState
     type = @defaultOperation() if !@operations[type]?
     new VimOperation(type, @operations[type], @vim)
   operation: (type) ->
-    if @visual()
+    if _.contains(@operationsWithInput, type)
+      @_operation = @buildOperation(type)
+      @vim.enterAwaitInputMode()
+    else if @visual()
       @_operation = @buildOperation(type)
       @_operation.perform(@target)
-      @vim.enterCommandMode()
+      # @vim.enterCommandMode()
       @resetState()
     else if _.contains(@noMotionOperations, type)
       @_operation = @buildOperation(type)
       @_operation.perform(@target)
       @resetState()
-    else if _.contains(@operationsWithInput, type)
-      @_operation = @buildOperation(type)
-      @vim.enterAwaitInputMode()
     else if @_operation.name == type
       @_operation.perform(@target, @defaultMotion())
       @resetState()
@@ -104,7 +112,11 @@ class VimState
     @motion(a.afterMotion) if a.afterMotion?
   input: (text) ->
     @_operation.input = text
-    @motion("right")
+    if @_operation.motion?
+      @_operation.perform(@target, @_operation.motion)
+    else
+      @motion("right")
+      @vim.enterCommandMode()
   aliases:
     'delete-character':
       motion: 'right'
@@ -129,12 +141,30 @@ class VimState
     'end-of-line': "editor:move-to-end-of-line"
     'next-word': "editor:move-to-beginning-of-next-word"
     'previous-word': "editor:move-to-beginning-of-word"
-    'go-to-line': (n) ->
-      if n == 1 then "core:move-to-top" else "core:move-down"
-    'go-to-line-bottom': (n) ->
-      if @count == 1 and n == 1 then return "core:move-to-bottom"
-      if n == 1 then "core:move-to-top" else "core:move-down"
-
+    'go-to-line': () ->
+      (if n == 1 then @performEvent("core:move-to-top") else @performEvent("core:move-down")) for n in [1..@count]
+    'go-to-line-bottom': () ->
+      if @count == 1 then @performEvent("core:move-to-bottom")
+      else (if n == 1 then @performEvent("core:move-to-top") else @performEvent("core:move-down")) for n in [1..@count]
+    'find-character': () ->
+      edit = @target.activeEditSession
+      for n in [1..@count]
+        found = false
+        oldPos = edit.getCursorBufferPosition()
+        if @select
+          edit.selectRight()
+        else
+          edit.moveCursorRight()
+        while !found
+          edit.selectRight()
+          char = _.last(edit.getSelectedText())
+          edit.clearSelections() if !@select
+          if !char || char == '' || edit.getCursorBufferPosition().row > edit.getEofBufferPosition().row
+            edit.setCursorBufferPosition(oldPos) if !@select
+            return
+          found = char == @operation.input
+        if !@select
+          edit.moveCursorLeft()
   operations:
     'move': ->
       @performMotion()
@@ -160,4 +190,5 @@ class VimState
       state._operation.perform(@target, state._operation.motion)
 
   operationsWithInput: ['change-character']
+  motionsWithInput: ['find-character']
   noMotionOperations: ['repeat']

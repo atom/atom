@@ -44,12 +44,12 @@ fdescribe "Vim state", ->
 
   realEditor = () ->
     config.set("vim.enabled", true)
-    filePath = fixturesProject.resolve('sample.js')
-    rootView = new RootView(filePath)
+    window.rootView = new RootView()
+    rootView.open('sample.js')
     rootView.simulateDomAttachment()
+    editor = rootView.getActiveEditor()
     Vim.activate(rootView)
-    realEditor = rootView.getActiveEditor()
-    editor.editor = realEditor
+    vim = editor.vim.state
 
   # http://vimdoc.sourceforge.net/htmldoc/motion.html
   describe "motions", ->
@@ -107,6 +107,14 @@ fdescribe "Vim state", ->
         vim.motion("go-to-line")
         expect(target.hasEvent("core:move-to-top")).toBe(true)
         expect(target.hasEvent("core:move-down")).toBe(true)
+    describe "find character", ->
+      it "moves cursor until it finds character", ->
+        realEditor()
+        expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(0)
+        vim.motion("find-character")
+        expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(0)
+        vim.input("f")
+        expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(16)
 
   describe "operations", ->
     describe "execution", ->
