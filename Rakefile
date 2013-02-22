@@ -112,7 +112,7 @@ end
 
 CLI_SCRIPT = <<-EOF
 #!/bin/sh
-open <%= application_path %> -n --args --resource-path="<%= resource_path %>" --executed-from="$(pwd)" --pid=$$ $@
+open -a Atom -n --args --resource-path="<%= resource_path %>" --executed-from="$(pwd)" --pid=$$ $@
 
 # Used to exit process when atom is used as $EDITOR
 on_die() {
