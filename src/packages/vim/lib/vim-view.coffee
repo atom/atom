@@ -25,6 +25,7 @@ class VimView extends View
     'w': "editor:save"
 
   initialize: (@rootView, @editor) ->
+    requireStylesheet 'vim.css'
     @editor.vim = this
     @vim = $(this)
     @visual = false

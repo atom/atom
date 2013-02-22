@@ -1,0 +1,22 @@
+.vim {
+  padding: 4px 10px 3px;
+  position: relative;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+.vim .prompt-and-editor {
+  display: -webkit-box;
+}
+
+.vim .prompt-and-editor .editor {
+  position: relative;
+  padding: 0px;
+  margin: 0px;
+  top: 5px;
+  border: none;
+}
+
+.cursor {
+  opacity: 0.5;
+}

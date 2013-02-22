@@ -1,26 +1,9 @@
 .vim {
   background-color: #303030;
   border-top: 1px solid #454545;
-  padding: 4px 10px 3px;
   color: #969696;
-  position: relative;
-  -webkit-user-select: none;
-  cursor: default;
-}
-
-.vim .prompt-and-editor {
-  display: -webkit-box;
 }
 
 .vim .prompt-and-editor .editor {
-  position: relative;
-  padding: 0px;
-  margin: 0px;
-  top: 5px;
-  border: none;
   background-color: #303030;
-}
-
-.cursor {
-  opacity: 0.5;
 }

@@ -91,7 +91,6 @@ class VimState
     @_count = 1
     if @_operation?.performed
       @lastOperation = @_operation
-      window.console.log @lastOperation
     @_operation = @buildOperation(@defaultOperation())
   enterState: (state) ->
     @state = state
@@ -158,7 +157,6 @@ class VimState
       @performMotion()
       @performEvent("editor:newline")
     'repeat': (state) ->
-      window.console.log state.lastOperation
       return if !state.lastOperation?
       state._operation = state.lastOperation
       state._operation.perform(@target, state._operation.motion)
