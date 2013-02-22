@@ -94,8 +94,8 @@ _.extend atom,
   open: (args...) ->
     @sendMessageToBrowserProcess('open', args)
 
-  openUnstable: (args...) ->
-    @sendMessageToBrowserProcess('openUnstable', args)
+  openDev: (args...) ->
+    @sendMessageToBrowserProcess('openDev', args)
 
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)

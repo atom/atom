@@ -52,11 +52,11 @@
 - (id)initWithPath:(NSString *)path {
   _pathToOpen = [path retain];
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  BOOL stable = [atomApplication.arguments objectForKey:@"stable"] != nil;
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:stable];
+  BOOL dev = [atomApplication.arguments objectForKey:@"dev"] != nil;
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:!dev];
 }
 
-- (id)initUnstableWithPath:(NSString *)path {
+- (id)initDevWithPath:(NSString *)path {
   _pathToOpen = [path retain];
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:false];
@@ -64,9 +64,9 @@
 
 - (id)initInBackground {
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  BOOL stable = [atomApplication.arguments objectForKey:@"stable"] != nil;
+  BOOL dev = [atomApplication.arguments objectForKey:@"dev"] != nil;
 
-  [self initWithBootstrapScript:@"window-bootstrap" background:YES alwaysUseBundleResourcePath:stable];
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES alwaysUseBundleResourcePath:!dev];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorStationary];

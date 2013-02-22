@@ -109,9 +109,8 @@ class AtomCefClient : public CefClient,
   void FocusPreviousWindow();
   void Open(std::string path);
   void Open();
-  void OpenUnstable(std::string path);
-
-                        void OpenUnstable();
+  void OpenDev(std::string path);
+  void OpenDev();
   void NewWindow();
   void ToggleDevTools(CefRefPtr<CefBrowser> browser);
   void ShowDevTools(CefRefPtr<CefBrowser> browser);

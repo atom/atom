@@ -50,20 +50,20 @@
     { "resource-path",      required_argument,      NULL,  'R'  },
     { "benchmark",          no_argument,            NULL,  'B'  },
     { "test",               no_argument,            NULL,  'T'  },
-    { "stable",             no_argument,            NULL,  'S'  },
+    { "dev",                no_argument,            NULL,  'D'  },
     { "pid",                required_argument,      NULL,  'P'  },
     { "wait",               no_argument,            NULL,  'W'  },
     { NULL,                 0,                      NULL,  0 }
   };
 
-  while ((opt = getopt_long(cleanArgc, cleanArgv, "K:R:BYSP:Wh?", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(cleanArgc, cleanArgv, "K:R:BYDP:Wh?", longopts, &longindex)) != -1) {
     NSString *key, *value;
     switch (opt) {
       case 'K':
       case 'R':
       case 'B':
       case 'T':
-      case 'S':
+      case 'D':
       case 'W':
       case 'P':
         key = [NSString stringWithUTF8String:longopts[longindex].name];
@@ -159,8 +159,8 @@
   [self open:path pidToKillWhenWindowCloses:nil];
 }
 
-- (void)openUnstable:(NSString *)path {
-  [[AtomWindowController alloc] initUnstableWithPath:path];
+- (void)openDev:(NSString *)path {
+  [[AtomWindowController alloc] initDevWithPath:path];
 }
 
 - (IBAction)runSpecs:(id)sender {
