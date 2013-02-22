@@ -2,6 +2,7 @@ _ = require 'underscore'
 
 class VimMotion
   constructor: (@name, @event, @count, @target) ->
+
   perform: () ->
     window.console.log "Performing motion #{@name} (#{@count}) with event #{@event}"
     if @event?() then @performEvent(@event(n)) for n in [1..@count]
@@ -15,9 +16,11 @@ class VimMotion
 class VimOperation
   constructor: (@name, @callback, @vim) ->
     @motion = null
+    @performed = false
   perform: (@target, @motion) ->
     window.console.log "Beginning operation #{@name}"
-    @callback.apply(this)
+    @performed = true
+    @callback.apply(this, [@vim.state])
     window.console.log "Finished operation #{@name}"
   performEvent: (event) ->
     @target.trigger(event)
@@ -32,6 +35,7 @@ module.exports =
 class VimState
   constructor: (@target, @vim) ->
     @resetState()
+    @lastOperation = null
     for m,event of @motionEvents
       do (m, event) =>
         @target.command "vim:motion-#{m}", => @motion(m)
@@ -70,6 +74,10 @@ class VimState
       @_operation.perform(@target)
       @vim.enterCommandMode()
       @resetState()
+    else if _.contains(@noMotionOperations, type)
+      @_operation = @buildOperation(type)
+      @_operation.perform(@target)
+      @resetState()
     else if _.contains(@operationsWithInput, type)
       @_operation = @buildOperation(type)
       @vim.enterAwaitInputMode()
@@ -81,6 +89,9 @@ class VimState
   resetState: ->
     @enterState "idle"
     @_count = 1
+    if @_operation?.performed
+      @lastOperation = @_operation
+      window.console.log @lastOperation
     @_operation = @buildOperation(@defaultOperation())
   enterState: (state) ->
     @state = state
@@ -146,4 +157,11 @@ class VimState
     'insert-line': ->
       @performMotion()
       @performEvent("editor:newline")
+    'repeat': (state) ->
+      window.console.log state.lastOperation
+      return if !state.lastOperation?
+      state._operation = state.lastOperation
+      state._operation.perform(@target, state._operation.motion)
+
   operationsWithInput: ['change-character']
+  noMotionOperations: ['repeat']

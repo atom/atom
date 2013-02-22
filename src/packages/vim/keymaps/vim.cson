@@ -38,6 +38,7 @@
   'd': 'vim:operation-delete'
   'f': 'vim:operation-find-character'
   'r': 'vim:operation-change-character'
+  '.': 'vim:operation-repeat'
   'v': 'vim:visual-mode'
   'ctrl-r': 'core:redo'
   'escape': 'vim:cancel-command'

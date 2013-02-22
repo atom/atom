@@ -40,6 +40,7 @@ fdescribe "Vim state", ->
     target = new EventMonitor
     editor = new MockVimView
     vim = new VimState(target, editor)
+    editor.state = vim
 
   realEditor = () ->
     config.set("vim.enabled", true)
@@ -127,6 +128,16 @@ fdescribe "Vim state", ->
         editor.visual = true
         vim.operation("delete")
         expect(target.count()).not.toBe(0)
+
+    describe "repeat last operation", ->
+      it "executes the last operation", ->
+        vim.operation("move")
+        expect(target.count()).toBe(1)
+        expect(target.hasEvent("editor:move-line")).toBeTruthy()
+        target.events = []
+        vim.operation("repeat")
+        expect(target.count()).toBe(1)
+        expect(target.hasEvent("editor:move-line")).toBeTruthy()
 
     describe "change", ->
       it "removes text in the motion", ->
