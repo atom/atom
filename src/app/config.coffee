@@ -30,7 +30,20 @@ class Config
     @configFilePath = fs.resolve(configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= fs.join(configDirPath, 'config.cson')
 
+  initializeConfigDirectory: ->
+    return if fs.exists(@configDirPath)
+
+    fs.makeDirectory(@configDirPath)
+    templateConfigDirPath = fs.resolve(window.resourcePath, 'dot-atom')
+    onConfigDirFile = (path) =>
+      templatePath = fs.join(templateConfigDirPath, path)
+      configPath = fs.join(@configDirPath, path)
+      fs.write(configPath, fs.read(templatePath))
+    onConfigDirPath = (path) -> true
+    fs.traverseTree(templateConfigDirPath, onConfigDirFile, onConfigDirPath)
+
   load: ->
+    @initializeConfigDirectory()
     @loadUserConfig()
     @requireUserInitScript()
 

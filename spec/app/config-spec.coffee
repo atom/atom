@@ -109,3 +109,20 @@ describe "Config", ->
 
       config.set("foo.bar.baz", "i'm back")
       expect(observeHandler).toHaveBeenCalledWith("i'm back")
+
+  describe "initializeConfigDirectory()", ->
+    beforeEach ->
+      config.configDirPath = '/tmp/dot-atom-dir'
+
+    afterEach ->
+      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+
+    describe "when the configDirPath doesn't exist", ->
+      it "copies the contents of dot-atom to ~/.atom if it doesn't exist", ->
+        expect(fs.exists(config.configDirPath)).toBeFalsy()
+        config.initializeConfigDirectory()
+        expect(fs.exists(config.configDirPath)).toBeTruthy()
+        expect(fs.exists(fs.join(config.configDirPath, 'packages'))).toBeTruthy()
+        expect(fs.exists(fs.join(config.configDirPath, 'snippets'))).toBeTruthy()
+        expect(fs.exists(fs.join(config.configDirPath, 'themes'))).toBeTruthy()
+        expect(fs.isFile(fs.join(config.configDirPath, 'config.cson'))).toBeTruthy()
