@@ -109,38 +109,39 @@ describe "RootView", ->
         expect(rootView.find('.pane').children().length).toBe 0
 
   describe "focus", ->
-    describe "when there is an active editor", ->
-      it "hands off focus to the active editor", ->
-        rootView.attachToDom()
-
-        rootView.open() # create an editor
-        expect(rootView).not.toMatchSelector(':focus')
-        expect(rootView.getActiveEditor().isFocused).toBeTruthy()
-
+    describe "when there is an active view", ->
+      it "hands off focus to the active view", ->
+        editor = rootView.getActiveView()
+        editor.isFocused = false
         rootView.focus()
-        expect(rootView).not.toMatchSelector(':focus')
-        expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+        expect(editor.isFocused).toBeTruthy()
 
-    describe "when there is no active editor", ->
+    describe "when there is no active view", ->
       beforeEach ->
-        rootView.getActiveEditor().remove()
+        rootView.getActivePane().remove()
+        expect(rootView.getActiveView()).toBeUndefined()
         rootView.attachToDom()
+        expect(document.activeElement).toBe document.body
 
       describe "when are visible focusable elements (with a -1 tabindex)", ->
         it "passes focus to the first focusable element", ->
-          rootView.horizontal.append $$ ->
-            @div "One", id: 'one', tabindex: -1
-            @div "Two", id: 'two', tabindex: -1
+          focusable1 = $$ -> @div "One", id: 'one', tabindex: -1
+          focusable2 = $$ -> @div "Two", id: 'two', tabindex: -1
+          rootView.horizontal.append(focusable1, focusable2)
+          expect(document.activeElement).toBe document.body
 
           rootView.focus()
-          expect(rootView).not.toMatchSelector(':focus')
-          expect(rootView.find('#one')).toMatchSelector(':focus')
-          expect(rootView.find('#two')).not.toMatchSelector(':focus')
+          expect(document.activeElement).toBe focusable1[0]
 
       describe "when there are no visible focusable elements", ->
         it "surrenders focus to the body", ->
-          expect(document.activeElement).toBe $('body')[0]
+          focusable = $$ -> @div "One", id: 'one', tabindex: -1
+          rootView.horizontal.append(focusable)
+          focusable.hide()
+          expect(document.activeElement).toBe document.body
 
+          rootView.focus()
+          expect(document.activeElement).toBe document.body
 
   describe "keymap wiring", ->
     commandHandler = null
