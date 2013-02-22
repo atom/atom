@@ -182,6 +182,7 @@ class Pane extends View
       sibling = parentAxis.children().detach()
       parentAxis.replaceWith(sibling)
     container.adjustPaneDimensions()
+    container.trigger 'pane:active-item-changed', [null] unless container.getActivePaneItem()
 
   afterRemove: ->
     item.destroy?() for item in @getItems()
