@@ -213,17 +213,18 @@
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  SUUpdater.sharedUpdater.delegate = self;
-  SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
-  SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
-  [SUUpdater.sharedUpdater checkForUpdatesInBackground];
-
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
   if ([self.arguments objectForKey:@"benchmark"]) {
     [self runBenchmarksThenExit:true];
   }
   else if ([self.arguments objectForKey:@"test"]) {
     [self runSpecsThenExit:true];
+  }
+  else {
+    SUUpdater.sharedUpdater.delegate = self;
+    SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
+    SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
+    [SUUpdater.sharedUpdater checkForUpdatesInBackground];
   }
 }
 
