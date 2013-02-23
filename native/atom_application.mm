@@ -213,7 +213,6 @@
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
   if ([self.arguments objectForKey:@"benchmark"]) {
     [self runBenchmarksThenExit:true];
   }
@@ -221,6 +220,7 @@
     [self runSpecsThenExit:true];
   }
   else {
+    _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
     SUUpdater.sharedUpdater.delegate = self;
     SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
     SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
