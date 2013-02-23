@@ -1,9 +1,10 @@
 $ = require 'jquery'
+_ = require 'underscore'
 RootView = require 'root-view'
 EditorStats = require 'editor-stats/lib/editor-stats-view'
 
 describe "EditorStats", ->
-  [editorStats, time] = []
+  [editorStats] = []
 
   simulateKeyUp = (key) ->
     e = $.Event "keydown", keyCode: key.charCodeAt(0)
@@ -16,26 +17,22 @@ describe "EditorStats", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-
-    date = new Date()
-    mins = date.getMinutes()
-    hours = date.getHours()
-
-    mins = if mins == 60 then '01' else mins + 1
-    time  = "#{hours}:#{mins}"
-
     editorStats = window.loadPackage('editor-stats').packageMain.stats
 
   describe "when a keyup event is triggered", ->
+    beforeEach ->
+      expect(_.values(editorStats.eventLog)).not.toContain 1
+      expect(_.values(editorStats.eventLog)).not.toContain 2
+
     it "records the number of times a keyup is triggered", ->
       simulateKeyUp('a')
-      expect(editorStats.eventLog[time]).toBe 1
+      expect(_.values(editorStats.eventLog)).toContain 1
       simulateKeyUp('b')
-      expect(editorStats.eventLog[time]).toBe 2
+      expect(_.values(editorStats.eventLog)).toContain 2
 
   describe "when a mouseup event is triggered", ->
     it "records the number of times a mouseup is triggered", ->
       simulateClick()
-      expect(editorStats.eventLog[time]).toBe 1
+      expect(_.values(editorStats.eventLog)).toContain 1
       simulateClick()
-      expect(editorStats.eventLog[time]).toBe 2
+      expect(_.values(editorStats.eventLog)).toContain 2

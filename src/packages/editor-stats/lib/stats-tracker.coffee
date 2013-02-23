@@ -2,7 +2,7 @@ module.exports =
 class StatsTracker
   startDate: new Date
   hours: 6
-  eventLog: []
+  eventLog: {}
 
   constructor: ->
     date = new Date(@startDate)
@@ -16,7 +16,7 @@ class StatsTracker
     rootView.on 'mouseup', => @track()
 
   clear: ->
-    @eventLog = []
+    @eventLog = {}
 
   track: ->
     date = new Date
