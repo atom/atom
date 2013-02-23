@@ -33,6 +33,17 @@
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
 
   _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
+  if (!alwaysUseBundleResourcePath && !_resourcePath) {
+    NSString *defaultRepositoryPath = @"~/github/atom";
+    defaultRepositoryPath = [defaultRepositoryPath stringByStandardizingPath];
+    if ([defaultRepositoryPath characterAtIndex:0] == '/') {
+      BOOL isDir = false;
+      BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
+      if (isDir && exists)
+        _resourcePath = defaultRepositoryPath;
+    }
+  }
+
   if (alwaysUseBundleResourcePath || !_resourcePath) {
     _resourcePath = [[NSBundle mainBundle] resourcePath];
   }

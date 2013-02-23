@@ -41,17 +41,6 @@ task :install => [:clean, :build] do
   `rm -rf #{dest}`
   `cp -r #{path} #{File.expand_path(dest)}`
 
-  # Install cli atom
-  usr_bin_path = "/opt/github/bin"
-  cli_path = "#{usr_bin_path}/atom"
-
-  template = ERB.new CLI_SCRIPT
-  namespace = OpenStruct.new(:application_path => dest, :resource_path => ATOM_SRC_PATH)
-  File.open(cli_path, "w") do |f|
-    f.write template.result(namespace.instance_eval { binding })
-    f.chmod(0755)
-  end
-
   Rake::Task["clone-default-bundles"].invoke()
 
   puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `~/.atom` directory\033[0m"
@@ -130,30 +119,3 @@ def application_path
 
   return nil
 end
-
-CLI_SCRIPT = <<-EOF
-#!/bin/sh
-open -a Atom -n --args --resource-path="<%= resource_path %>" --executed-from="$(pwd)" --pid=$$ $@
-
-# Used to exit process when atom is used as $EDITOR
-on_die() {
-  exit 0
-}
-trap 'on_die' SIGQUIT SIGTERM
-
-# Don't exit process if we were told to wait.
-while [ "$#" -gt "0" ]; do
-  case $1 in
-    -W|--wait)
-      WAIT=1
-      ;;
-  esac
-  shift
-done
-
-if [ $WAIT ]; then
-  while true; do
-    sleep 1
-  done
-fi
-EOF

@@ -1,5 +1,6 @@
 fs = require 'fs'
 $ = require 'jquery'
+ChildProcess = require 'child-process'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -39,6 +40,7 @@ window.setUpEnvironment = ->
 
 # This method is only called when opening a real application window
 window.startup = ->
+  installAtomCommand('/opt/github/bin/atom')
   handleWindowEvents()
   config.load()
   atom.loadTextPackage()
@@ -64,6 +66,14 @@ window.shutdown = ->
   $(window).off('focus blur before')
   window.rootView = null
   window.project = null
+
+window.installAtomCommand = (commandPath) ->
+  return if fs.exists(commandPath)
+
+  bundledCommandPath = fs.resolve(window.resourcePath, 'atom.sh')
+  if bundledCommandPath?
+    fs.write(commandPath, fs.read(bundledCommandPath))
+    ChildProcess.exec("chmod u+x '#{commandPath}'")
 
 window.handleWindowEvents = ->
   $(window).on 'core:close', => window.close()
