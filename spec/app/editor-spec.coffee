@@ -308,10 +308,11 @@ describe "Editor", ->
 
         spyOn(atom, "confirm")
 
+        contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
+        editSession.on 'contents-conflicted', contentsConflictedHandler
         fs.write(path, "a file change")
-
-        waitsFor "file to trigger contents-changed event", (done) ->
-          editSession.one 'contents-conflicted', done
+        waitsFor ->
+          contentsConflictedHandler.callCount > 0
 
         runs ->
           expect(atom.confirm).toHaveBeenCalled()
