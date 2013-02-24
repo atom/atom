@@ -41,6 +41,10 @@ task :install => [:clean, :build] do
   `rm -rf #{dest}`
   `cp -r #{path} #{File.expand_path(dest)}`
 
+  # Install atom cli
+  FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", "/opt/github/bin/atom")
+  FileUtils.chmod(0755, "/opt/github/bin/atom")
+
   Rake::Task["clone-default-bundles"].invoke()
 
   puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `~/.atom` directory\033[0m"
