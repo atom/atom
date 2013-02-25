@@ -13,21 +13,21 @@ class Pane extends View
   @deserialize: ({items}) ->
     new Pane(items.map((item) -> deserialize(item))...)
 
-  currentItem: null
+  activeItem: null
   items: null
 
   initialize: (@items...) ->
     @viewsByClassName = {}
     @showItem(@items[0])
 
-    @command 'core:close', @removeCurrentItem
+    @command 'core:close', @removeActiveItem
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
     @command 'pane:split-left', => @splitLeft()
     @command 'pane:split-right', => @splitRight()
     @command 'pane:split-up', => @splitUp()
     @command 'pane:split-down', => @splitDown()
-    @on 'focus', => @currentView.focus(); false
+    @on 'focus', => @activeView.focus(); false
     @on 'focusin', => @makeActive()
 
   afterAttach: ->
@@ -52,47 +52,47 @@ class Pane extends View
     new Array(@items...)
 
   showNextItem: =>
-    index = @getCurrentItemIndex()
+    index = @getActiveItemIndex()
     if index < @items.length - 1
       @showItemAtIndex(index + 1)
     else
       @showItemAtIndex(0)
 
   showPreviousItem: =>
-    index = @getCurrentItemIndex()
+    index = @getActiveItemIndex()
     if index > 0
       @showItemAtIndex(index - 1)
     else
       @showItemAtIndex(@items.length - 1)
 
-  getCurrentItemIndex: ->
-    @items.indexOf(@currentItem)
+  getActiveItemIndex: ->
+    @items.indexOf(@activeItem)
 
   showItemAtIndex: (index) ->
     @showItem(@items[index])
 
   showItem: (item) ->
-    return if item is @currentItem
+    return if item is @activeItem
     @addItem(item)
     @itemViews.children().hide()
     view = @viewForItem(item)
     @itemViews.append(view) unless view.parent().is(@itemViews)
-    @currentItem = item
-    @currentView = view
-    @currentView.show()
+    @activeItem = item
+    @activeView = view
+    @activeView.show()
     @trigger 'pane:active-item-changed', [item]
 
   addItem: (item) ->
     return if _.include(@items, item)
-    @items.splice(@getCurrentItemIndex() + 1, 0, item)
+    @items.splice(@getActiveItemIndex() + 1, 0, item)
     item
 
-  removeCurrentItem: =>
-    @removeItem(@currentItem)
+  removeActiveItem: =>
+    @removeItem(@activeItem)
     false
 
   removeItem: (item) ->
-    @showNextItem() if item is @currentItem and @items.length > 1
+    @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
     item.destroy?()
     @cleanupItemView(item)
@@ -122,8 +122,8 @@ class Pane extends View
         view = @viewsByClassName[viewClass.name] = new viewClass(item)
       view
 
-  viewForCurrentItem: ->
-    @viewForItem(@currentItem)
+  viewForActiveItem: ->
+    @viewForItem(@activeItem)
 
   serialize: ->
     deserializer: "Pane"
@@ -153,7 +153,7 @@ class Pane extends View
         .insertBefore(this)
         .append(@detach())
 
-    items = [@copyCurrentItem()] unless items.length
+    items = [@copyActiveItem()] unless items.length
     pane = new Pane(items...)
     this[side](pane)
     @getContainer().adjustPaneDimensions()
@@ -168,8 +168,8 @@ class Pane extends View
   getContainer: ->
     @closest('#panes').view()
 
-  copyCurrentItem: ->
-    deserialize(@currentItem.serialize())
+  copyActiveItem: ->
+    deserialize(@activeItem.serialize())
 
   remove: (selector, keepData) ->
     return super if keepData
