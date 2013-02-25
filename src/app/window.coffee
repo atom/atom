@@ -49,6 +49,7 @@ window.startup = ->
   atom.loadThemes()
   atom.loadPackages()
   keymap.loadUserKeymaps()
+  atom.requireUserInitScript()
   $(window).on 'beforeunload', -> shutdown(); false
   $(window).focus()
 

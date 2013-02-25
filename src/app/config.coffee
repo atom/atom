@@ -3,7 +3,6 @@ _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 
 configDirPath = fs.absolute("~/.atom")
-userInitScriptPath = fs.join(configDirPath, "user.coffee")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
 bundledThemesDirPath = fs.join(resourcePath, "themes")
 vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
@@ -53,7 +52,6 @@ class Config
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
-    @requireUserInitScript()
 
   loadUserConfig: ->
     if fs.exists(@configFilePath)
@@ -99,11 +97,5 @@ class Config
 
   save: ->
     fs.writeObject(@configFilePath, @settings)
-
-  requireUserInitScript: ->
-    try
-      require userInitScriptPath if fs.exists(userInitScriptPath)
-    catch error
-      console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
 _.extend Config.prototype, EventEmitter

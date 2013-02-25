@@ -179,3 +179,10 @@ _.extend atom,
 
   getUpdateStatus: (callback) ->
     @sendMessageToBrowserProcess('getUpdateStatus', [], callback)
+
+  requireUserInitScript: ->
+    userInitScriptPath = fs.join(config.configDirPath, "user.coffee")
+    try
+      require userInitScriptPath if fs.isFile(userInitScriptPath)
+    catch error
+      console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
