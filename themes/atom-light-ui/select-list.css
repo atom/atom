@@ -21,3 +21,13 @@
 .select-list ol .selected {
   background-color: #e0e0e0;
 }
+
+.select-list .right,
+.select-list .directory {
+  color: #777;
+}
+
+.select-list ol .selected .right,
+.select-list ol .selected .directory {
+  color: #333;
+}
