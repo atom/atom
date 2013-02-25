@@ -53,9 +53,6 @@ window.startup = ->
   $(window).on 'beforeunload', -> shutdown(); false
   $(window).focus()
 
-  pathToOpen = atom.getPathToOpen()
-  rootView.open(pathToOpen) if !pathToOpen or fs.isFile(pathToOpen)
-
 window.shutdown = ->
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
@@ -87,12 +84,14 @@ window.buildProjectAndRootView = ->
   RootView = require 'root-view'
   Project = require 'project'
 
-  windowState = atom.getRootViewStateForPath(atom.getPathToOpen())
-  if windowState?.project?
-    window.project = deserialize(windowState.project)
-    window.rootView = deserialize(windowState.rootView)
-  window.project ?= new Project(atom.getPathToOpen())
-  window.rootView ?= new RootView
+  pathToOpen = atom.getPathToOpen()
+  windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
+  window.project = deserialize(windowState.project) ? new Project(pathToOpen)
+  window.rootView = deserialize(windowState.rootView) ? new RootView
+
+  if !windowState.rootView and (!pathToOpen or fs.isFile(pathToOpen))
+    rootView.open(pathToOpen)
+
   $(rootViewParentSelector).append(rootView)
 
 window.stylesheetElementForId = (id) ->
@@ -137,7 +136,7 @@ window.registerDeserializer = (klass) ->
   deserializers[klass.name] = klass
 
 window.deserialize = (state) ->
-  deserializers[state.deserializer]?.deserialize(state)
+  deserializers[state?.deserializer]?.deserialize(state)
 
 window.measure = (description, fn) ->
   start = new Date().getTime()
