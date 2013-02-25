@@ -31,6 +31,17 @@ class GrammarView extends SelectList
 
   populate: ->
     grammars = new Array(syntax.grammars...)
+    grammars.sort (grammarA, grammarB) ->
+      if grammarA.scopeName is 'text.plain'
+        -1
+      else if grammarB.scopeName is 'text.plain'
+        1
+      else if grammarA.name < grammarB.name
+        -1
+      else if grammarA.name > grammarB.name
+        1
+      else
+        0
     grammars.unshift(@autoDetect)
     @setArray(grammars)
 
