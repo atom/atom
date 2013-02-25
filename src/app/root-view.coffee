@@ -166,6 +166,9 @@ class RootView extends View
   saveAll: ->
     editor.save() for editor in @getEditors()
 
+  eachPane: (callback) ->
+    @panes.eachPane(callback)
+
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     @on 'editor:attached', (e, editor) -> callback(editor)

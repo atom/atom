@@ -39,6 +39,12 @@ class PaneContainer extends View
   getPanes: ->
     @find('.pane').toArray().map (node)-> $(node).view()
 
+  eachPane: (callback) ->
+    callback(pane) for pane in @getPanes()
+    paneAttached = (e) -> callback($(e.target).view())
+    @on 'pane:attached', paneAttached
+    cancel: => @off 'pane:attached', paneAttached
+
   getFocusedPane: ->
     @find('.pane:has(:focus)').view()
 

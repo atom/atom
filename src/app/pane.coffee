@@ -30,6 +30,11 @@ class Pane extends View
     @on 'focus', => @currentView.focus(); false
     @on 'focusin', => @makeActive()
 
+  afterAttach: ->
+    return if @attached
+    @attached = true
+    @trigger 'pane:attached'
+
   makeActive: ->
     for pane in @getContainer().getPanes() when pane isnt this
       pane.makeInactive()

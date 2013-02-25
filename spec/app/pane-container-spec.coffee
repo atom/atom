@@ -57,6 +57,21 @@ describe "PaneContainer", ->
       container.find('.pane.active').removeClass('active')
       expect(container.getActivePane()).toBe pane1
 
+  describe ".eachPane(callback)", ->
+    it "runs the callback with all current and future panes until the subscription is cancelled", ->
+      panes = []
+      subscription = container.eachPane (pane) -> panes.push(pane)
+      expect(panes).toEqual [pane1, pane2, pane3]
+
+      panes = []
+      pane4 = pane3.splitRight()
+      expect(panes).toEqual [pane4]
+
+      panes = []
+      subscription.cancel()
+      pane4.splitDown()
+      expect(panes).toEqual []
+
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
       newContainer = deserialize(container.serialize())
