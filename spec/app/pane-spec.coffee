@@ -20,19 +20,19 @@ describe "Pane", ->
       expect(pane.itemViews.find('#view-1')).toExist()
 
   describe ".showItem(item)", ->
-    it "hides all item views except the one being shown and sets the currentItem", ->
-      expect(pane.currentItem).toBe view1
+    it "hides all item views except the one being shown and sets the activeItem", ->
+      expect(pane.activeItem).toBe view1
       pane.showItem(view2)
       expect(view1.css('display')).toBe 'none'
       expect(view2.css('display')).toBe ''
-      expect(pane.currentItem).toBe view2
+      expect(pane.activeItem).toBe view2
 
-    it "triggers 'pane:active-item-changed' if the item isn't already the currentItem", ->
+    it "triggers 'pane:active-item-changed' if the item isn't already the activeItem", ->
       pane.makeActive()
       itemChangedHandler = jasmine.createSpy("itemChangedHandler")
       container.on 'pane:active-item-changed', itemChangedHandler
 
-      expect(pane.currentItem).toBe view1
+      expect(pane.activeItem).toBe view1
       pane.showItem(view2)
       pane.showItem(view2)
       expect(itemChangedHandler.callCount).toBe 1
@@ -45,20 +45,20 @@ describe "Pane", ->
       itemChangedHandler.reset()
 
     describe "when the given item isn't yet in the items list on the pane", ->
-      it "adds it to the items list after the current item", ->
+      it "adds it to the items list after the active item", ->
         view3 = $$ -> @div id: 'view-3', "View 3"
         pane.showItem(editSession1)
-        expect(pane.getCurrentItemIndex()).toBe 1
+        expect(pane.getActiveItemIndex()).toBe 1
         pane.showItem(view3)
         expect(pane.getItems()).toEqual [view1, editSession1, view3, view2, editSession2]
-        expect(pane.currentItem).toBe view3
-        expect(pane.getCurrentItemIndex()).toBe 2
+        expect(pane.activeItem).toBe view3
+        expect(pane.getActiveItemIndex()).toBe 2
 
     describe "when showing a model item", ->
       describe "when no view has yet been appended for that item", ->
         it "appends and shows a view to display the item based on its `.getViewClass` method", ->
           pane.showItem(editSession1)
-          editor = pane.currentView
+          editor = pane.activeView
           expect(editor.css('display')).toBe ''
           expect(editor.activeEditSession).toBe editSession1
 
@@ -67,7 +67,7 @@ describe "Pane", ->
           pane.showItem(editSession1)
           pane.showItem(editSession2)
           expect(pane.itemViews.find('.editor').length).toBe 1
-          editor = pane.currentView
+          editor = pane.activeView
           expect(editor.css('display')).toBe ''
           expect(editor.activeEditSession).toBe editSession2
 
@@ -76,18 +76,18 @@ describe "Pane", ->
         expect(pane.itemViews.find('#view-2')).not.toExist()
         pane.showItem(view2)
         expect(pane.itemViews.find('#view-2')).toExist()
-        expect(pane.currentView).toBe view2
+        expect(pane.activeView).toBe view2
 
   describe ".removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
       pane.removeItem(view1)
       expect(pane.getItems()).toEqual [editSession1, view2, editSession2]
-      expect(pane.currentItem).toBe editSession1
+      expect(pane.activeItem).toBe editSession1
 
       pane.showItem(editSession2)
       pane.removeItem(editSession2)
       expect(pane.getItems()).toEqual [editSession1, view2]
-      expect(pane.currentItem).toBe editSession1
+      expect(pane.activeItem).toBe editSession1
 
     it "removes the pane when its last item is removed", ->
       pane.removeItem(item) for item in pane.getItems()
@@ -112,7 +112,7 @@ describe "Pane", ->
         expect(editSession2.destroyed).toBeTruthy()
 
   describe "core:close", ->
-    it "removes the current item and does not bubble the event", ->
+    it "removes the active item and does not bubble the event", ->
       containerCloseHandler = jasmine.createSpy("containerCloseHandler")
       container.on 'core:close', containerCloseHandler
 
@@ -124,15 +124,15 @@ describe "Pane", ->
 
   describe "pane:show-next-item and pane:show-previous-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
-      expect(pane.currentItem).toBe view1
+      expect(pane.activeItem).toBe view1
       pane.trigger 'pane:show-previous-item'
-      expect(pane.currentItem).toBe editSession2
+      expect(pane.activeItem).toBe editSession2
       pane.trigger 'pane:show-previous-item'
-      expect(pane.currentItem).toBe view2
+      expect(pane.activeItem).toBe view2
       pane.trigger 'pane:show-next-item'
-      expect(pane.currentItem).toBe editSession2
+      expect(pane.activeItem).toBe editSession2
       pane.trigger 'pane:show-next-item'
-      expect(pane.currentItem).toBe view1
+      expect(pane.activeItem).toBe view1
 
   describe ".remove()", ->
     it "destroys all the pane's items", ->
@@ -204,9 +204,9 @@ describe "Pane", ->
           expect(rootView.focus).not.toHaveBeenCalled()
 
   describe "when the pane is focused", ->
-    it "focuses the current item view", ->
+    it "focuses the active item view", ->
       focusHandler = jasmine.createSpy("focusHandler")
-      pane.currentItem.on 'focus', focusHandler
+      pane.activeItem.on 'focus', focusHandler
       pane.focus()
       expect(focusHandler).toHaveBeenCalled()
 
@@ -231,11 +231,11 @@ describe "Pane", ->
 
     describe "splitRight(items...)", ->
       it "builds a row if needed, then appends a new pane after itself", ->
-        # creates the new pane with a copy of the current item if none are given
+        # creates the new pane with a copy of the active item if none are given
         pane2 = pane1.splitRight()
         expect(container.find('.row .pane').toArray()).toEqual [pane1[0], pane2[0]]
         expect(pane2.items).toEqual [editSession1]
-        expect(pane2.currentItem).not.toBe editSession1 # it's a copy
+        expect(pane2.activeItem).not.toBe editSession1 # it's a copy
 
         pane3 = pane2.splitRight(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
@@ -243,11 +243,11 @@ describe "Pane", ->
 
     describe "splitRight(items...)", ->
       it "builds a row if needed, then appends a new pane before itself", ->
-        # creates the new pane with a copy of the current item if none are given
+        # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitLeft()
         expect(container.find('.row .pane').toArray()).toEqual [pane2[0], pane[0]]
         expect(pane2.items).toEqual [editSession1]
-        expect(pane2.currentItem).not.toBe editSession1 # it's a copy
+        expect(pane2.activeItem).not.toBe editSession1 # it's a copy
 
         pane3 = pane2.splitLeft(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
@@ -255,11 +255,11 @@ describe "Pane", ->
 
     describe "splitDown(items...)", ->
       it "builds a column if needed, then appends a new pane after itself", ->
-        # creates the new pane with a copy of the current item if none are given
+        # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitDown()
         expect(container.find('.column .pane').toArray()).toEqual [pane[0], pane2[0]]
         expect(pane2.items).toEqual [editSession1]
-        expect(pane2.currentItem).not.toBe editSession1 # it's a copy
+        expect(pane2.activeItem).not.toBe editSession1 # it's a copy
 
         pane3 = pane2.splitDown(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]
@@ -267,11 +267,11 @@ describe "Pane", ->
 
     describe "splitUp(items...)", ->
       it "builds a column if needed, then appends a new pane before itself", ->
-        # creates the new pane with a copy of the current item if none are given
+        # creates the new pane with a copy of the active item if none are given
         pane2 = pane.splitUp()
         expect(container.find('.column .pane').toArray()).toEqual [pane2[0], pane[0]]
         expect(pane2.items).toEqual [editSession1]
-        expect(pane2.currentItem).not.toBe editSession1 # it's a copy
+        expect(pane2.activeItem).not.toBe editSession1 # it's a copy
 
         pane3 = pane2.splitUp(view3, view4)
         expect(pane3.getItems()).toEqual [view3, view4]

@@ -27,13 +27,13 @@ describe "PaneContainer", ->
     it "focuses the pane following the focused pane or the first pane if no pane has focus", ->
       container.attachToDom()
       container.focusNextPane()
-      expect(pane1.currentItem).toMatchSelector ':focus'
+      expect(pane1.activeItem).toMatchSelector ':focus'
       container.focusNextPane()
-      expect(pane2.currentItem).toMatchSelector ':focus'
+      expect(pane2.activeItem).toMatchSelector ':focus'
       container.focusNextPane()
-      expect(pane3.currentItem).toMatchSelector ':focus'
+      expect(pane3.activeItem).toMatchSelector ':focus'
       container.focusNextPane()
-      expect(pane1.currentItem).toMatchSelector ':focus'
+      expect(pane1.activeItem).toMatchSelector ':focus'
 
   describe ".getActivePane()", ->
     it "returns the most-recently focused pane", ->
