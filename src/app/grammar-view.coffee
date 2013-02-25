@@ -22,9 +22,9 @@ class GrammarView extends SelectList
 
   itemForElement: (grammar) ->
     if grammar is @currentGrammar
-      grammarClass = 'current-grammar'
+      grammarClass = 'active-item'
     else
-      grammarClass = 'grammar'
+      grammarClass = 'inactive-item'
 
     $$ ->
       @li grammar.name, class: grammarClass
