@@ -23,6 +23,13 @@ describe "TOML grammar", ->
     expect(tokens[1]).toEqual value: 'I am a string', scopes: ["source.toml", "string.toml"]
     expect(tokens[2]).toEqual value: '"', scopes: ["source.toml", "string.toml","string.end.toml"]
 
+    {tokens} = grammar.tokenizeLine('"I\'m \\n escaped"')
+    expect(tokens[0]).toEqual value: '"', scopes: ["source.toml", "string.toml", "string.begin.toml"]
+    expect(tokens[1]).toEqual value: "I'm ", scopes: ["source.toml", "string.toml"]
+    expect(tokens[2]).toEqual value: "\\n", scopes: ["source.toml", "string.toml", "constant.character.escape.toml"]
+    expect(tokens[3]).toEqual value: " escaped", scopes: ["source.toml", "string.toml"]
+    expect(tokens[4]).toEqual value: '"', scopes: ["source.toml", "string.toml", "string.end.toml"]
+
   it "tokenizes booleans", ->
     {tokens} = grammar.tokenizeLine("true")
     expect(tokens[0]).toEqual value: "true", scopes: ["source.toml", "constant.language.boolean.true.toml"]

@@ -22,6 +22,10 @@
     'endCaptures':
       '0': 'name': 'string.end.toml'
     'name': 'string.toml'
+    'patterns': [
+      'match': '\\\\[nt0r"\\\\]'
+      'name' : 'constant.character.escape.toml'
+    ]
   }
   {
     'match': '#.*$'
