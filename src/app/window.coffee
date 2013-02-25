@@ -40,7 +40,11 @@ window.setUpEnvironment = ->
 
 # This method is only called when opening a real application window
 window.startup = ->
-  installAtomCommand('/opt/github/bin/atom')
+  if fs.isDirectory('/opt/boxen')
+    installAtomCommand('/opt/boxen/bin/atom')
+  else
+    installAtomCommand('/opt/github/bin/atom')
+
   handleWindowEvents()
   config.load()
   atom.loadTextPackage()

@@ -40,7 +40,12 @@ task :install => [:clean, :build] do
   `cp -r #{path} #{File.expand_path(dest_path)}`
 
   # Install atom cli
-  cli_path = "/opt/github/bin/atom"
+  if File.directory?("/opt/boxen")
+    cli_path = "/opt/boxen/bin/atom"
+  else
+    cli_path = "/opt/github/bin/atom"
+  end
+
   FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", cli_path)
   FileUtils.chmod(0755, cli_path)
 
