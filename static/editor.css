@@ -66,6 +66,7 @@
 }
 
 .editor .fold-marker:after {
+  font-size: .8em;
   content: '\f09a';
   opacity: .8;
   padding-left: .2em;

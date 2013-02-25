@@ -2137,6 +2137,11 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [5, 0]
 
+      it "keeps the gutter line and the editor line the same heights (regression)", ->
+        editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
+        editor.trigger 'editor:fold-selection'
+
+        expect(editor.gutter.find('.line-number:eq(4)').height()).toBe editor.renderedLines.find('.line:eq(4)').height()
 
     describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
