@@ -46,16 +46,17 @@ describe "Window", ->
       expect(window.close).toHaveBeenCalled()
 
   describe ".reload()", ->
-    it "returns false when no buffers are modified", ->
+    beforeEach ->
       spyOn($native, "reload")
+
+    it "returns false when no buffers are modified", ->
       window.reload()
       expect($native.reload).toHaveBeenCalled()
 
-    it "shows alert when a modifed buffer exists", ->
+    it "shows an alert when a modifed buffer exists", ->
       rootView.open('sample.js')
-      rootView.getActiveEditor().insertText("hi")
+      rootView.getActiveView().insertText("hi")
       spyOn(atom, "confirm")
-      spyOn($native, "reload")
       window.reload()
       expect($native.reload).not.toHaveBeenCalled()
       expect(atom.confirm).toHaveBeenCalled()
@@ -103,13 +104,13 @@ describe "Window", ->
 
     it "unsubscribes from all buffers", ->
       rootView.open('sample.js')
-      editor1 = rootView.getActiveEditor()
-      editor2 = editor1.splitRight()
-      expect(window.rootView.getEditors().length).toBe 2
+      buffer = rootView.getActivePaneItem().buffer
+      rootView.getActivePane().splitRight()
+      expect(window.rootView.find('.editor').length).toBe 2
 
       window.shutdown()
 
-      expect(editor1.getBuffer().subscriptionCount()).toBe 0
+      expect(buffer.subscriptionCount()).toBe 0
 
     it "only serializes window state the first time it is called", ->
       deactivateSpy = spyOn(atom, "setRootViewStateForPath").andCallThrough()
