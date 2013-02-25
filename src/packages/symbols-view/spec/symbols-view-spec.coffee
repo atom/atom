@@ -161,11 +161,15 @@ describe "SymbolsView", ->
       expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,4]
 
     describe "when the tag is in a file that doesn't exist", ->
+      renamedPath = null
+
       beforeEach ->
-        fs.move(project.resolve("tagged-duplicate.js"), project.resolve("tagged-duplicate-renamed.js"))
+        renamedPath = project.resolve("tagged-duplicate-renamed.js")
+        fs.remove(renamedPath) if fs.exists(renamedPath)
+        fs.move(project.resolve("tagged-duplicate.js"), renamedPath)
 
       afterEach ->
-        fs.move(project.resolve("tagged-duplicate-renamed.js"), project.resolve("tagged-duplicate.js"))
+        fs.move(renamedPath, project.resolve("tagged-duplicate.js"))
 
       it "doesn't display the tag", ->
         rootView.open("tagged.js")
