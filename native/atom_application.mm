@@ -137,6 +137,7 @@
 - (void)dealloc {
   [_backgroundWindowController release];
   [_arguments release];
+  [_updateInvocation release];
   [super dealloc];
 }
 
@@ -214,6 +215,9 @@
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
+  NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+  _versionMenuItem.title = [NSString stringWithFormat:@"Version %@", version];
+
   if ([self.arguments objectForKey:@"benchmark"]) {
     [self runBenchmarksThenExit:true];
   }
@@ -271,7 +275,8 @@
 }
 
 - (void)updater:(SUUpdater *)updater willInstallUpdateOnQuit:(SUAppcastItem *)update immediateInstallationInvocation:(NSInvocation *)invocation {
-  [[NSApp dockTile] setBadgeLabel:@"\xE2\xAD\x90"];
+  _updateInvocation = [invocation retain];
+  _versionMenuItem.title = [NSString stringWithFormat:@"Restart for %@", update.versionString];
 }
 
 - (void)updater:(SUUpdater *)updater didCancelInstallUpdateOnQuit:(SUAppcastItem *)update {

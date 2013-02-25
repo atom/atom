@@ -4,8 +4,11 @@
 class AtomCefClient;
 
 @interface AtomApplication : NSApplication <CefAppProtocol, NSApplicationDelegate> {
+  IBOutlet NSMenuItem *_versionMenuItem;
   NSWindowController *_backgroundWindowController;
   NSDictionary *_arguments;
+  NSInvocation *_updateInvocation;
+  NSString *_updateStatus;
   BOOL _filesOpened;
   BOOL _handlingSendEvent;
 }
