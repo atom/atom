@@ -7,6 +7,8 @@
   background: red;
   padding: 0;
   line-height: 100%;
+  -webkit-user-select: none;
+  cursor: default;
 }
 
 .select-list ol:empty {
