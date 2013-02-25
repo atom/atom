@@ -40,7 +40,9 @@ class RootView extends View
       @handleFocus(e) if document.activeElement is document.body
 
     project.on 'path-changed', => @updateTitle()
-    @on 'pane:active-item-changed', => @updateTitle()
+    @on 'pane:became-active', => @updateTitle()
+    @on 'pane:active-item-changed', '.active.pane', => @updateTitle()
+    @on 'pane:removed', => @updateTitle() unless @getActivePane()
 
     @command 'window:increase-font-size', =>
       config.set("editor.fontSize", config.get("editor.fontSize") + 1)
