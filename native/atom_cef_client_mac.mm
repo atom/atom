@@ -158,3 +158,14 @@ void AtomCefClient::Exit(int status) {
 void AtomCefClient::Log(const char *message) {
   std::cout << message << "\n";
 }
+
+void AtomCefClient::GetVersion(int replyId, CefRefPtr<CefBrowser> browser) {
+  CefRefPtr<CefProcessMessage> replyMessage = CefProcessMessage::Create("reply");
+  CefRefPtr<CefListValue> replyArguments = replyMessage->GetArgumentList();
+  NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+
+  replyArguments->SetSize(2);
+  replyArguments->SetString(1, [version UTF8String]);
+  replyArguments->SetList(0, CreateReplyDescriptor(replyId, 0));
+  browser->SendProcessMessage(PID_RENDERER, replyMessage);
+}

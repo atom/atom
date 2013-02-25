@@ -186,3 +186,6 @@ _.extend atom,
       require userInitScriptPath if fs.isFile(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+
+  getVersion: (callback) ->
+    @sendMessageToBrowserProcess('getVersion', null, callback)

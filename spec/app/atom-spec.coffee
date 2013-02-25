@@ -131,3 +131,13 @@ describe "the `atom` global", ->
         expect(packageStates['package-with-module']).toEqual someNumber: 1
         expect(packageStates['package-with-serialize-error']).toBeUndefined()
         expect(console.error).toHaveBeenCalled()
+
+  describe ".getVersion(callback)", ->
+    it "calls the callback with the current version number", ->
+      versionHandler = jasmine.createSpy("versionHandler")
+      atom.getVersion(versionHandler)
+      waitsFor ->
+        versionHandler.callCount > 0
+
+      runs ->
+        expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+\.\d+$/
