@@ -40,7 +40,7 @@ class Pane extends View
       pane.makeInactive()
     wasActive = @isActive()
     @addClass('active')
-    @trigger 'pane:active-item-changed', [@currentItem] unless wasActive
+    @trigger 'pane:became-active' unless wasActive
 
   makeInactive: ->
     @removeClass('active')
@@ -80,7 +80,7 @@ class Pane extends View
     @currentItem = item
     @currentView = view
     @currentView.show()
-    @trigger 'pane:active-item-changed', [item] if @isActive()
+    @trigger 'pane:active-item-changed', [item]
 
   addItem: (item) ->
     return if _.include(@items, item)
@@ -187,7 +187,7 @@ class Pane extends View
       sibling = parentAxis.children().detach()
       parentAxis.replaceWith(sibling)
     container.adjustPaneDimensions()
-    container.trigger 'pane:active-item-changed', [null] unless container.getActivePaneItem()
+    container.trigger 'pane:removed', [this]
 
   afterRemove: ->
     item.destroy?() for item in @getItems()

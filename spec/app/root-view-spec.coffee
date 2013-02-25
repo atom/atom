@@ -165,16 +165,33 @@ describe "RootView", ->
         expect(rootView.title).toBe 'untitled'
 
     describe "when the project has a path", ->
-      describe "when there is no active pane item", ->
-        it "sets the title to the project's path", ->
-          rootView.getActivePane().remove()
-          expect(rootView.getActivePaneItem()).toBeUndefined()
-          expect(rootView.title).toBe project.getPath()
+      beforeEach ->
+        rootView.open('b')
 
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = rootView.getActivePaneItem()
           expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
+
+      describe "when the active pane's item changes", ->
+        it "updates the title to the new item's title plus the project path", ->
+          rootView.getActivePane().showNextItem()
+          item = rootView.getActivePaneItem()
+          expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
+
+      describe "when the last pane item is removed", ->
+        it "sets the title to the project's path", ->
+          rootView.getActivePane().remove()
+          expect(rootView.getActivePaneItem()).toBeUndefined()
+          expect(rootView.title).toBe project.getPath()
+
+      describe "when an inactive pane's item changes", ->
+        it "does not update the title", ->
+          pane = rootView.getActivePane()
+          pane.splitRight()
+          initialTitle = rootView.title
+          pane.showNextItem()
+          expect(rootView.title).toBe initialTitle
 
   describe "font size adjustment", ->
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
