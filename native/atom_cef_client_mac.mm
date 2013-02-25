@@ -158,18 +158,3 @@ void AtomCefClient::Exit(int status) {
 void AtomCefClient::Log(const char *message) {
   std::cout << message << "\n";
 }
-
-void AtomCefClient::Update() {
-  [(AtomApplication *)NSApp installUpdate];
-}
-
-void AtomCefClient::GetUpdateStatus(int replyId, CefRefPtr<CefBrowser> browser) {
-  CefRefPtr<CefProcessMessage> replyMessage = CefProcessMessage::Create("reply");
-  CefRefPtr<CefListValue> replyArguments = replyMessage->GetArgumentList();
-
-  replyArguments->SetSize(2);
-  replyArguments->SetString(1, [[(AtomApplication *)NSApp updateStatus] UTF8String]);
-  replyArguments->SetList(0, CreateReplyDescriptor(replyId, 0));
-
-  browser->SendProcessMessage(PID_RENDERER, replyMessage);
-}

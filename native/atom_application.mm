@@ -135,7 +135,6 @@
 - (void)dealloc {
   [_backgroundWindowController release];
   [_arguments release];
-  [_updateInvocation release];
   [super dealloc];
 }
 
@@ -258,36 +257,22 @@
   }
 }
 
-- (NSString *)updateStatus {
-  return _updateStatus ? _updateStatus : @"idle";
-}
-
-- (void)installUpdate {
-  if (_updateInvocation) [_updateInvocation invoke];
-}
-
 #pragma mark SUUpdaterDelegate
 
 - (void)updaterDidNotFindUpdate:(SUUpdater *)update {
-  _updateStatus = @"current";
 }
 
 - (void)updater:(SUUpdater *)updater didFindValidUpdate:(SUAppcastItem *)update {
-  _updateStatus = @"downloading";
 }
 
 - (void)updater:(SUUpdater *)updater willExtractUpdate:(SUAppcastItem *)update {
-   _updateStatus = @"installing";
 }
 
 - (void)updater:(SUUpdater *)updater willInstallUpdateOnQuit:(SUAppcastItem *)update immediateInstallationInvocation:(NSInvocation *)invocation {
-  _updateInvocation = [invocation retain];
-  _updateStatus = @"update-available";
   [[NSApp dockTile] setBadgeLabel:@"\xE2\xAD\x90"];
 }
 
 - (void)updater:(SUUpdater *)updater didCancelInstallUpdateOnQuit:(SUAppcastItem *)update {
-  _updateStatus = @"current";
 }
 
 @end

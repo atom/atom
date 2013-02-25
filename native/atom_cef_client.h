@@ -125,8 +125,6 @@ class AtomCefClient : public CefClient,
   void Log(const char *message);
   void Show(CefRefPtr<CefBrowser> browser);
   void ToggleFullScreen(CefRefPtr<CefBrowser> browser);
-  void Update();
-  void GetUpdateStatus(int replyId, CefRefPtr<CefBrowser> browser);
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);
