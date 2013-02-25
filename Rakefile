@@ -1,8 +1,6 @@
 ATOM_SRC_PATH = File.dirname(__FILE__)
 BUILD_DIR = 'atom-build'
 
-require 'erb'
-
 desc "Build Atom via `xcodebuild`"
 task :build => "create-xcode-project" do
   command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
@@ -31,33 +29,36 @@ task "bootstrap" do
   `script/bootstrap`
 end
 
-desc "Creates symlink from `application_path() to /Applications/Atom and creates `atom` cli app"
+desc "Copies Atom.app to /Applications and creates `atom` cli app"
 task :install => [:clean, :build] do
   path = application_path()
   exit 1 if not path
 
   # Install Atom.app
-  dest =  "/Applications/#{File.basename(path)}"
-  `rm -rf #{dest}`
-  `cp -r #{path} #{File.expand_path(dest)}`
+  dest_path =  "/Applications/#{File.basename(path)}"
+  `rm -rf #{dest_path}`
+  `cp -r #{path} #{File.expand_path(dest_path)}`
 
   # Install atom cli
-  FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", "/opt/github/bin/atom")
-  FileUtils.chmod(0755, "/opt/github/bin/atom")
+  cli_path = "/opt/github/bin/atom"
+  FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", cli_path)
+  FileUtils.chmod(0755, cli_path)
 
   Rake::Task["clone-default-bundles"].invoke()
 
-  puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `~/.atom` directory\033[0m"
+  puts "\033[32mAtom is installed at `#{dest_path}`. Atom cli is installed at `#{cli_path}`\033[0m"
 end
 
-desc "Deploy"
-task :deploy => ["bump-patch-number", "build"] do
+desc "Package up the app for speakeasy"
+task :package => ["bump-patch-number", "build"] do
   path = application_path()
   exit 1 if not path
 
-  dest_path = '/tmp/Atom.app.zip'
+  dest_path = '/tmp/atom-for-speakeasy/Atom.app.zip'
+  `mkdir -p $(dirname #{dest_path})`
   `rm -rf #{dest_path}`
   `pushd $(dirname #{path}); zip -r #{dest_path} $(basename #{path}); popd`
+  `open $(dirname #{dest_path})`
 end
 
 desc "Bump patch number"
