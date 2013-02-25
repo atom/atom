@@ -123,8 +123,10 @@
 + (CefSettings)createCefSettings {
   CefSettings settings;
 
+  NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+  NSString *userAgent = [NSString stringWithFormat:@"GitHubAtom/%@", version];
   CefString(&settings.cache_path) = [[self supportDirectory] UTF8String];
-  CefString(&settings.user_agent) = "GitHubAtom/0.1";
+  CefString(&settings.user_agent) = [userAgent UTF8String];
   CefString(&settings.log_file) = "";
   CefString(&settings.javascript_flags) = "";
   settings.remote_debugging_port = 9090;
