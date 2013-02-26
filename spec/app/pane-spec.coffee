@@ -99,6 +99,13 @@ describe "Pane", ->
       expect(pane.getItems()).toEqual [editSession1, view2]
       expect(pane.activeItem).toBe editSession1
 
+    it "triggers 'pane:item-removed' with the item and its former index", ->
+      itemRemovedHandler = jasmine.createSpy("itemRemovedHandler")
+      pane.on 'pane:item-removed', itemRemovedHandler
+      pane.removeItem(editSession1)
+      expect(itemRemovedHandler).toHaveBeenCalled()
+      expect(itemRemovedHandler.argsForCall[0][1..2]).toEqual [editSession1, 1]
+
     it "removes the pane when its last item is removed", ->
       pane.removeItem(item) for item in pane.getItems()
       expect(pane.hasParent()).toBeFalsy()
