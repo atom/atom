@@ -741,6 +741,7 @@ describe 'Buffer', ->
           oldTailPosition: [4, 20]
           newTailPosition: [4, 20]
           bufferChanged: false
+          valid: true
         }
         observeHandler.reset()
 
@@ -751,6 +752,7 @@ describe 'Buffer', ->
           oldHeadPosition: [6, 2]
           newHeadPosition: [6, 5]
           bufferChanged: true
+          valid: true
         }
 
       it "calls the given callback when the marker's tail position changes", ->
@@ -762,6 +764,7 @@ describe 'Buffer', ->
           oldTailPosition: [4, 20]
           newTailPosition: [6, 2]
           bufferChanged: false
+          valid: true
         }
         observeHandler.reset()
 
@@ -773,6 +776,7 @@ describe 'Buffer', ->
           oldTailPosition: [6, 2]
           newTailPosition: [6, 5]
           bufferChanged: true
+          valid: true
         }
 
       it "calls the callback when the selection's tail is cleared", ->
@@ -784,6 +788,7 @@ describe 'Buffer', ->
           oldTailPosition: [4, 20]
           newTailPosition: [4, 23]
           bufferChanged: false
+          valid: true
         }
 
       it "only calls the callback once when both the marker's head and tail positions change due to the same operation", ->
@@ -795,6 +800,7 @@ describe 'Buffer', ->
           oldHeadPosition: [4, 23]
           newHeadPosition: [4, 26]
           bufferChanged: true
+          valid: true
         }
         observeHandler.reset()
 
@@ -806,6 +812,31 @@ describe 'Buffer', ->
           oldHeadPosition: [4, 26]
           newHeadPosition: [1, 1]
           bufferChanged: false
+          valid: true
+        }
+
+      it "calls the callback with the valid flag set to false when the marker is invalidated", ->
+        buffer.deleteRow(4)
+        expect(observeHandler.callCount).toBe 1
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldTailPosition: [4, 20]
+          newTailPosition: [4, 20]
+          oldHeadPosition: [4, 23]
+          newHeadPosition: [4, 23]
+          bufferChanged: true
+          valid: false
+        }
+
+        observeHandler.reset()
+        buffer.undo()
+        expect(observeHandler.callCount).toBe 1
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldTailPosition: [4, 20]
+          newTailPosition: [4, 20]
+          oldHeadPosition: [4, 23]
+          newHeadPosition: [4, 23]
+          bufferChanged: true
+          valid: true
         }
 
       it "allows the observation subscription to be cancelled", ->

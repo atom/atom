@@ -113,23 +113,31 @@ class BufferMarker
     [newRow, newColumn]
 
   observe: (callback) ->
-    @on 'position-changed', callback
+    @on 'changed', callback
     cancel: => @unobserve(callback)
 
   unobserve: (callback) ->
-    @off 'position-changed', callback
+    @off 'changed', callback
 
   containsPoint: (point) ->
     @getRange().containsPoint(point)
 
-  notifyObservers: ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}) ->
+  notifyObservers: ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged} = {}) ->
     return if @suppressObserverNotification
-    return if _.isEqual(newHeadPosition, oldHeadPosition) and _.isEqual(newTailPosition, oldTailPosition)
+
+    if newHeadPosition? and newTailPosition?
+      return if _.isEqual(newHeadPosition, oldHeadPosition) and _.isEqual(newTailPosition, oldTailPosition)
+    else if newHeadPosition?
+      return if _.isEqual(newHeadPosition, oldHeadPosition)
+    else if newTailPosition?
+      return if _.isEqual(newTailPosition, oldTailPosition)
+
     oldHeadPosition ?= @getHeadPosition()
     newHeadPosition ?= @getHeadPosition()
     oldTailPosition ?= @getTailPosition()
     newTailPosition ?= @getTailPosition()
-    @trigger 'position-changed', {oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}
+    valid = @buffer.validMarkers[@id]?
+    @trigger 'changed', {oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}
 
   consolidateObserverNotifications: (bufferChanged, fn) ->
     @suppressObserverNotification = true
@@ -144,5 +152,11 @@ class BufferMarker
   invalidate: ->
     delete @buffer.validMarkers[@id]
     @buffer.invalidMarkers[@id] = this
+    @notifyObservers(bufferChanged: true)
+
+  revalidate: ->
+    delete @buffer.invalidMarkers[@id]
+    @buffer.validMarkers[@id] = this
+    @notifyObservers(bufferChanged: true)
 
 _.extend BufferMarker.prototype, EventEmitter
