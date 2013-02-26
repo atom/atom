@@ -89,12 +89,13 @@ fdescribe "TabBarView", ->
       expect(pane.focus.callCount).toBe 2
 
   describe "when a tab's close icon is clicked", ->
-    it "removes the tab's item from the pane", ->
-      tabBar.tabForItem(item1).find('.close-icon').click()
+    it "destroys the tab's item on the pane", ->
+      tabBar.tabForItem(editSession1).find('.close-icon').click()
       expect(pane.getItems().length).toBe 2
-      expect(pane.getItems().indexOf(item1)).toBe -1
+      expect(pane.getItems().indexOf(editSession1)).toBe -1
+      expect(editSession1.destroyed).toBeTruthy()
       expect(tabBar.getTabs().length).toBe 2
-      expect(tabBar.find('.tab:contains(Item 1)')).not.toExist()
+      expect(tabBar.find('.tab:contains(sample.js)')).not.toExist()
 
   describe "when a tab item's title changes", ->
     it "updates the title of the item's tab", ->

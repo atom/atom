@@ -39,7 +39,7 @@ class TabBarView extends SortableList
 
     @on 'click', '.tab .close-icon', (e) =>
       tab = $(e.target).closest('.tab').view()
-      @pane.removeItem(tab.item)
+      @pane.destroyItem(tab.item)
       false
 
     @pane.prepend(this)
