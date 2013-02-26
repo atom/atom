@@ -171,6 +171,12 @@ class RootView extends View
   eachPane: (callback) ->
     @panes.eachPane(callback)
 
+  getPanes: ->
+    @panes.getPanes()
+
+  indexOfPane: (pane) ->
+    @panes.indexOfPane(pane)
+
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     @on 'editor:attached', (e, editor) -> callback(editor)
@@ -181,10 +187,3 @@ class RootView extends View
   eachBuffer: (callback) ->
     project.eachBuffer(callback)
 
-  indexOfPane: (pane) ->
-    index = -1
-    for p, idx in @panes.find('.pane')
-      if pane.is(p)
-        index = idx
-        break
-    index
