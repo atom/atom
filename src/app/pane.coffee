@@ -74,12 +74,12 @@ class Pane extends View
   showItem: (item) ->
     return if item is @activeItem
     @addItem(item)
-    @itemViews.children().hide()
     view = @viewForItem(item)
+    @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
+    view.show()
     @activeItem = item
     @activeView = view
-    @activeView.show()
     @trigger 'pane:active-item-changed', [item]
 
   addItem: (item) ->
