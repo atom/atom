@@ -45,14 +45,24 @@ describe "Pane", ->
       itemChangedHandler.reset()
 
     describe "when the given item isn't yet in the items list on the pane", ->
-      it "adds it to the items list after the active item", ->
+      view3 = null
+      beforeEach ->
         view3 = $$ -> @div id: 'view-3', "View 3"
         pane.showItem(editSession1)
         expect(pane.getActiveItemIndex()).toBe 1
+
+      it "adds it to the items list after the active item", ->
         pane.showItem(view3)
         expect(pane.getItems()).toEqual [view1, editSession1, view3, view2, editSession2]
         expect(pane.activeItem).toBe view3
         expect(pane.getActiveItemIndex()).toBe 2
+
+      it "triggers the 'item-added' event with the item and its index before the 'active-item-changed' event", ->
+        events = []
+        container.on 'pane:item-added', (e, item, index) -> events.push(['pane:item-added', item, index])
+        container.on 'pane:active-item-changed', (e, item) -> events.push(['pane:active-item-changed', item])
+        pane.showItem(view3)
+        expect(events).toEqual [['pane:item-added', view3, 2], ['pane:active-item-changed', view3]]
 
     describe "when showing a model item", ->
       describe "when no view has yet been appended for that item", ->
