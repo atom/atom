@@ -59,10 +59,10 @@ task :package => ["bump-patch-number", "build"] do
   path = application_path()
   exit 1 if not path
 
-  dest_path = '/tmp/atom-for-speakeasy/Atom.app.zip'
+  dest_path = '/tmp/atom-for-speakeasy/Atom.tar.bz2'
   `mkdir -p $(dirname #{dest_path})`
   `rm -rf #{dest_path}`
-  `pushd $(dirname #{path}); zip -r #{dest_path} $(basename #{path}); popd`
+  `tar --directory $(dirname #{path}) -jcvf #{dest_path} $(basename #{path})`
   `open $(dirname #{dest_path})`
 end
 
