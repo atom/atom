@@ -76,6 +76,7 @@
         'native/mac/English.lproj/AtomWindow.xib',
       ],
       'xcode_settings': {
+        'CODE_SIGN_IDENTITY': 'Developer ID Application: GitHub',
         'INFOPLIST_FILE': 'native/mac/info.plist',
         'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'], # Necessary to avoid an "install_name_tool: changing install names or rpaths can't be redone" error.
       },
