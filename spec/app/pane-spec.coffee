@@ -88,6 +88,12 @@ describe "Pane", ->
         expect(pane.itemViews.find('#view-2')).toExist()
         expect(pane.activeView).toBe view2
 
+  describe ".destroyItem(item)", ->
+    it "removes the item and destroys it if it's a model", ->
+      pane.destroyItem(editSession2)
+      expect(pane.getItems().indexOf(editSession2)).toBe -1
+      expect(editSession2.destroyed).toBeTruthy()
+
   describe ".removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
       pane.removeItem(view1)
@@ -124,10 +130,6 @@ describe "Pane", ->
         pane.removeItem(editSession1)
         expect(pane.itemViews.find('.editor')).not.toExist()
 
-      it "calls destroy on the model", ->
-        pane.removeItem(editSession2)
-        expect(editSession2.destroyed).toBeTruthy()
-
   describe ".moveItem(item, index)", ->
     it "moves the item to the given index and emits a 'pane:item-moved' event with the item and the new index", ->
       itemMovedHandler = jasmine.createSpy("itemMovedHandler")
@@ -152,13 +154,15 @@ describe "Pane", ->
       itemMovedHandler.reset()
 
   describe "core:close", ->
-    it "removes the active item and does not bubble the event", ->
+    it "destroys the active item and does not bubble the event", ->
       containerCloseHandler = jasmine.createSpy("containerCloseHandler")
       container.on 'core:close', containerCloseHandler
 
+      pane.showItem(editSession1)
       initialItemCount = pane.getItems().length
       pane.trigger 'core:close'
       expect(pane.getItems().length).toBe initialItemCount - 1
+      expect(editSession1.destroyed).toBeTruthy()
 
       expect(containerCloseHandler).not.toHaveBeenCalled()
 
