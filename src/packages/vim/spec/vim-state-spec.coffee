@@ -23,7 +23,9 @@ class EventMonitor
   activeEditSession:
     setCursorBufferPosition: () ->
     getCursorBufferPosition: () ->
-    clearSelections: ()->
+    clearSelections: () ->
+    insertText: () ->
+    getSelections: () -> []
 
 class MockVimView
   constructor: () ->
@@ -49,6 +51,7 @@ fdescribe "Vim state", ->
     editor = new MockVimView
     vim = new VimState(target, editor)
     editor.state = vim
+    vim.editSession = () => target.activeEditSession
 
   realEditor = () ->
     config.set("vim.enabled", true)
@@ -182,13 +185,15 @@ fdescribe "Vim state", ->
         expect(target.hasEvent("editor:newline")).toBe(true)
     describe "yank", ->
       it "copies text", ->
+        spyOn(vim, 'yankSelection')
         vim.operation("yank")
         vim.operation("yank")
-        expect(target.hasEvent("core:copy")).toBe(true)
+        expect(vim.yankSelection).toHaveBeenCalled()
     describe "paste", ->
       it "pastes text", ->
+        spyOn(vim, 'paste')
         vim.operation("paste")
-        expect(target.hasEvent("core:paste")).toBe(true)
+        expect(vim.paste).toHaveBeenCalled()
     describe "swap case", ->
     describe "filter through external program", ->
     describe "shift left", ->

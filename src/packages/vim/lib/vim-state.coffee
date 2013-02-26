@@ -34,11 +34,16 @@ class VimOperation
     @motion.performSelect(this) if @motion?
   textInput: (text) ->
     @vim.editor.insertText(text)
+  yank: () ->
+    @vim.state.yankSelection()
+  paste: (options={}) ->
+    @vim.state.paste(options)
 
 module.exports =
 class VimState
   constructor: (@target, @vim) ->
     @resetState()
+    @pasteBuffer = {}
     @lastOperation = null
     for m,event of @motionEvents
       do (m, event) =>
@@ -117,6 +122,29 @@ class VimState
     else
       @motion("right")
       @vim.enterCommandMode()
+  editSession: () ->
+    @vim.editor.activeEditSession
+  currentCursorPosition: () ->
+    @editSession().getCursorBufferPosition()
+  setCursorPosition: (pos) ->
+    @editSession().setCursorBufferPosition(pos)
+  clearSelection: () ->
+    @editSession().clearSelections()
+  selectedText: () ->
+    text = ""
+    for selection in @editSession().getSelections()
+      l = @editSession().buffer.getTextInRange(selection.getBufferRange())
+      if selection.linewise
+        text = text + l + '\n'
+      else
+        text = text + l
+    text
+  yankSelection: () ->
+    text = @selectedText()
+    window.console.log "Yanking: '#{text}'"
+    @pasteBuffer[0] = text
+  paste: (options={}) ->
+    @editSession().insertText(@pasteBuffer[0])
   aliases:
     'delete-character':
       motion: 'right'
@@ -189,20 +217,16 @@ class VimState
       state._operation = state.lastOperation
       state._operation.perform(@target, state._operation.motion)
     'yank': (state) ->
-      edit = @target.activeEditSession
-      oldPos = edit.getCursorBufferPosition()
+      pos = state.currentCursorPosition()
       @performSelectMotion()
-      @performEvent("core:copy")
-      edit.clearSelections()
-      edit.setCursorBufferPosition(oldPos)
+      @yank()
+      state.setCursorPosition(pos)
     'paste': () ->
-      edit = @target.activeEditSession
-      @performEvent("core:right")
-      @performEvent("core:paste")
-      edit.clearSelections()
-    'paste-before': () ->
-      @performEvent("core:paste")
-
+      @paste select:false
+    'paste-before': (state) ->
+      pos = state.currentCursorPosition()
+      @paste select:true
+      state.setCursorPosition(pos)
   operationsWithInput: ['change-character']
   motionsWithInput: ['find-character']
-  noMotionOperations: ['repeat', 'paste']
+  noMotionOperations: ['repeat', 'paste', 'paste-before']
