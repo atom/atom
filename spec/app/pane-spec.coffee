@@ -128,6 +128,29 @@ describe "Pane", ->
         pane.removeItem(editSession2)
         expect(editSession2.destroyed).toBeTruthy()
 
+  describe ".moveItem(item, index)", ->
+    it "moves the item to the given index and emits a 'pane:item-moved' event with the item and the new index", ->
+      itemMovedHandler = jasmine.createSpy("itemMovedHandler")
+      pane.on 'pane:item-moved', itemMovedHandler
+
+      pane.moveItem(view1, 2)
+      expect(pane.getItems()).toEqual [editSession1, view2, view1, editSession2]
+      expect(itemMovedHandler).toHaveBeenCalled()
+      expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [view1, 2]
+      itemMovedHandler.reset()
+
+      pane.moveItem(editSession1, 3)
+      expect(pane.getItems()).toEqual [view2, view1, editSession2, editSession1]
+      expect(itemMovedHandler).toHaveBeenCalled()
+      expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [editSession1, 3]
+      itemMovedHandler.reset()
+
+      pane.moveItem(editSession1, 1)
+      expect(pane.getItems()).toEqual [view2, editSession1, view1, editSession2]
+      expect(itemMovedHandler).toHaveBeenCalled()
+      expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [editSession1, 1]
+      itemMovedHandler.reset()
+
   describe "core:close", ->
     it "removes the active item and does not bubble the event", ->
       containerCloseHandler = jasmine.createSpy("containerCloseHandler")

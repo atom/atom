@@ -104,6 +104,12 @@ class Pane extends View
     @trigger 'pane:item-removed', [item, index]
     @remove() unless @items.length
 
+  moveItem: (item, newIndex) ->
+    oldIndex = @items.indexOf(item)
+    @items.splice(oldIndex, 1)
+    @items.splice(newIndex, 0, item)
+    @trigger 'pane:item-moved', [item, newIndex]
+
   itemForPath: (path) ->
     _.detect @items, (item) -> item.getPath?() is path
 
