@@ -141,7 +141,7 @@ class BufferMarker
     @suppressObserverNotification = false
     @notifyObservers({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged})
 
-  invalidate: (preserve) ->
+  invalidate: ->
     delete @buffer.validMarkers[@id]
     @buffer.invalidMarkers[@id] = this
 
