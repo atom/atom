@@ -204,3 +204,17 @@ fdescribe "Vim state", ->
       vim.count(2)
       vim.alias('delete-character')
       expect(target.count()).not.toBe(0)
+
+  describe "pasteboard", ->
+    it 'stores and retrieves data', ->
+      spyOn(vim, 'selectedText').andReturn("a")
+      spyOn(vim, 'insertText')
+      vim.yankSelection()
+      vim.paste()
+      expect(vim.insertText).toHaveBeenCalledWith("a")
+    it 'does not pasten when no text is yanked', ->
+      spyOn(vim, 'selectedText').andReturn(null)
+      spyOn(vim, 'insertText')
+      vim.yankSelection()
+      vim.paste()
+      expect(vim.insertText).not.toHaveBeenCalled()

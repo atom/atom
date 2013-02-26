@@ -129,6 +129,8 @@ class VimState
     @editSession().getCursorBufferPosition()
   setCursorPosition: (pos) ->
     @editSession().setCursorBufferPosition(pos)
+  insertText: (text) ->
+    @editSession().insertText(text)
   clearSelection: () ->
     @editSession().clearSelections()
   selectedText: () ->
@@ -142,10 +144,9 @@ class VimState
     text
   yankSelection: () ->
     text = @selectedText()
-    window.console.log "Yanking: '#{text}'"
     @pasteBuffer[0] = text
   paste: (options={}) ->
-    @editSession().insertText(@pasteBuffer[0])
+    @insertText(@pasteBuffer[0]) if @pasteBuffer[0] && @pasteBuffer[0] != ''
   aliases:
     'delete-character':
       motion: 'right'
@@ -205,13 +206,16 @@ class VimState
       @performSelectMotion()
     'change': ->
       @performSelectMotion()
+      @yank()
       @performEvent("core:delete")
       @vim.enterInsertMode()
     'delete': ->
       @performSelectMotion()
+      @yank()
       @performEvent("core:delete")
     'change-character': ->
       @performSelectMotion()
+      @yank()
       @performEvent("core:delete")
       @textInput(@input)
     'insert-line': ->
@@ -227,7 +231,9 @@ class VimState
       @yank()
       state.setCursorPosition(pos)
     'paste': () ->
+      @performEvent("core:move-right")
       @paste select:false
+      @performEvent("core:move-left")
     'paste-before': (state) ->
       pos = state.currentCursorPosition()
       @paste select:true
