@@ -17,10 +17,17 @@ describe "EditSession", ->
     fixturesProject.destroy()
 
   describe "title", ->
-    it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
-      expect(editSession.getTitle()).toBe 'sample.js'
-      buffer.setPath(undefined)
-      expect(editSession.getTitle()).toBe 'untitled'
+    describe ".getTitle()", ->
+      it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
+        expect(editSession.getTitle()).toBe 'sample.js'
+        buffer.setPath(undefined)
+        expect(editSession.getTitle()).toBe 'untitled'
+
+    describe ".getLongTitle()", ->
+      it "appends the name of the containing directory to the basename of the file", ->
+        expect(editSession.getLongTitle()).toBe 'sample.js - fixtures'
+        buffer.setPath(undefined)
+        expect(editSession.getLongTitle()).toBe 'untitled'
 
     it "emits 'title-changed' events when the underlying buffer path", ->
       titleChangedHandler = jasmine.createSpy("titleChangedHandler")

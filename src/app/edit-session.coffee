@@ -63,6 +63,14 @@ class EditSession
     else
       'untitled'
 
+  getLongTitle: ->
+    if path = @getPath()
+      fileName = fs.base(path)
+      directory = fs.base(fs.directory(path))
+      "#{fileName} - #{directory}"
+    else
+      'untitled'
+
   destroy: ->
     return if @destroyed
     @destroyed = true
