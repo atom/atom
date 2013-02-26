@@ -87,7 +87,9 @@ class DisplayBufferMarker
 
   notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged, valid} = {}) ->
     oldHeadScreenPosition = @getHeadScreenPosition()
+    newHeadScreenPosition = oldHeadScreenPosition
     oldTailScreenPosition = @getTailScreenPosition()
+    newTailScreenPosition = oldTailScreenPosition
     valid ?= true
 
     if valid
@@ -95,11 +97,11 @@ class DisplayBufferMarker
       newHeadScreenPosition = @getHeadScreenPosition()
       @tailScreenPosition = null
       newTailScreenPosition = @getTailScreenPosition()
-    else
-      newHeadScreenPosition = oldHeadScreenPosition
-      newTailScreenPosition = oldTailScreenPosition
 
-    return if valid is @valid and _.isEqual(newHeadScreenPosition, oldHeadScreenPosition) and _.isEqual(newTailScreenPosition, oldTailScreenPosition)
+    validChanged = valid isnt @valid
+    headScreenPositionChanged = not _.isEqual(newHeadScreenPosition, oldHeadScreenPosition)
+    tailScreenPositionChanged = not _.isEqual(newTailScreenPosition, oldTailScreenPosition)
+    return unless validChanged or headScreenPositionChanged or tailScreenPositionChanged
 
     oldHeadBufferPosition ?= @getHeadBufferPosition()
     newHeadBufferPosition = @getHeadBufferPosition() ? oldHeadBufferPosition
