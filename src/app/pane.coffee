@@ -94,10 +94,14 @@ class Pane extends View
     false
 
   removeItem: (item) ->
+    index = @items.indexOf(item)
+    return if index == -1
+
     @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
     item.destroy?()
     @cleanupItemView(item)
+    @trigger 'pane:item-removed', [item, index]
     @remove() unless @items.length
 
   itemForPath: (path) ->
