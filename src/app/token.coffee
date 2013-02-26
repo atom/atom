@@ -71,9 +71,9 @@ class Token
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
 
-    classes = []
-    classes.push('indent-guide') if hasIndentGuide
     if @isHardTab
+      classes = []
+      classes.push('indent-guide') if hasIndentGuide
       classes.push('invisible') if invisibles.tab
       classes.push('hard-tab')
       classes = classes.join(' ')
@@ -82,6 +82,8 @@ class Token
         "<span class='#{classes}'>#{match}</span>"
     else
       if hasLeadingWhitespace
+        classes = []
+        classes.push('indent-guide') if hasIndentGuide
         classes.push('invisible') if invisibles.space
         classes.push('leading-whitespace')
         classes = classes.join(' ')
@@ -89,6 +91,8 @@ class Token
           match = match.replace(/./g, invisibles.space) if invisibles.space
           "<span class='#{classes}'>#{match}</span>"
       if hasTrailingWhitespace
+        classes = []
+        classes.push('indent-guide') if hasIndentGuide
         classes.push('invisible') if invisibles.space
         classes.push('trailing-whitespace')
         classes = classes.join(' ')

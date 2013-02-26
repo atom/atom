@@ -1,5 +1,6 @@
 fs = require 'fs'
 $ = require 'jquery'
+ChildProcess = require 'child-process'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -39,6 +40,11 @@ window.setUpEnvironment = ->
 
 # This method is only called when opening a real application window
 window.startup = ->
+  if fs.isDirectory('/opt/boxen')
+    installAtomCommand('/opt/boxen/bin/atom')
+  else
+    installAtomCommand('/opt/github/bin/atom')
+
   handleWindowEvents()
   config.load()
   atom.loadTextPackage()
@@ -47,11 +53,9 @@ window.startup = ->
   atom.loadThemes()
   atom.loadPackages()
   keymap.loadUserKeymaps()
+  atom.requireUserInitScript()
   $(window).on 'beforeunload', -> shutdown(); false
   $(window).focus()
-
-  pathToOpen = atom.getPathToOpen()
-  rootView.open(pathToOpen) if !pathToOpen or fs.isFile(pathToOpen)
 
 window.shutdown = ->
   return if not project and not rootView
@@ -65,6 +69,14 @@ window.shutdown = ->
   window.rootView = null
   window.project = null
 
+window.installAtomCommand = (commandPath) ->
+  return if fs.exists(commandPath)
+
+  bundledCommandPath = fs.resolve(window.resourcePath, 'atom.sh')
+  if bundledCommandPath?
+    fs.write(commandPath, fs.read(bundledCommandPath))
+    ChildProcess.exec("chmod u+x '#{commandPath}'")
+
 window.handleWindowEvents = ->
   $(window).on 'core:close', => window.close()
   $(window).command 'window:close', => window.close()
@@ -76,12 +88,14 @@ window.buildProjectAndRootView = ->
   RootView = require 'root-view'
   Project = require 'project'
 
-  windowState = atom.getRootViewStateForPath(atom.getPathToOpen())
-  if windowState?.project?
-    window.project = deserialize(windowState.project)
-    window.rootView = deserialize(windowState.rootView)
-  window.project ?= new Project(atom.getPathToOpen())
-  window.rootView ?= new RootView
+  pathToOpen = atom.getPathToOpen()
+  windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
+  window.project = deserialize(windowState.project) ? new Project(pathToOpen)
+  window.rootView = deserialize(windowState.rootView) ? new RootView
+
+  if !windowState.rootView and (!pathToOpen or fs.isFile(pathToOpen))
+    rootView.open(pathToOpen)
+
   $(rootViewParentSelector).append(rootView)
 
 window.stylesheetElementForId = (id) ->
@@ -126,7 +140,7 @@ window.registerDeserializer = (klass) ->
   deserializers[klass.name] = klass
 
 window.deserialize = (state) ->
-  deserializers[state.deserializer]?.deserialize(state)
+  deserializers[state?.deserializer]?.deserialize(state)
 
 window.measure = (description, fn) ->
   start = new Date().getTime()

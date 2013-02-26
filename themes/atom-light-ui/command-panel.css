@@ -103,3 +103,11 @@
 .command-panel li.operation.selected .preview {
   color: #333;
 }
+
+.error-messages {
+  color: #333;
+}
+
+.error .error-messages {
+  color: white;
+}

@@ -820,5 +820,11 @@ class EditSession
       @displayBuffer.tokenizedBuffer.resetScreenLines()
     grammarChanged
 
+  getDebugSnapshot: ->
+    [
+      @displayBuffer.getDebugSnapshot()
+      @displayBuffer.tokenizedBuffer.getDebugSnapshot()
+    ].join('\n\n')
+
 _.extend(EditSession.prototype, EventEmitter)
 _.extend(EditSession.prototype, Subscriber)

@@ -19,7 +19,7 @@ class Editor extends View
     autosave: false
     autoIndent: true
     autoIndentOnPaste: false
-    nonWordCharacters: "./\\()\"'-_:,.;<>~!@#$%^&*|+=[]{}`~?"
+    nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?"
 
   @nextEditorId: 1
 
@@ -197,6 +197,7 @@ class Editor extends View
         'editor:duplicate-line': @duplicateLine
         'editor:undo-close-session': @undoDestroySession
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
+        'editor:save-debug-snapshot': @saveDebugSnapshot
 
     documentation = {}
     for name, method of editorBindings
@@ -1232,15 +1233,8 @@ class Editor extends View
   lineElementForScreenRow: (screenRow) ->
     @renderedLines.children(":eq(#{screenRow - @firstRenderedScreenRow})")
 
-  logScreenLines: (start, end) ->
-    @activeEditSession.logScreenLines(start, end)
-
   toggleLineCommentsInSelection: ->
     @activeEditSession.toggleLineCommentsInSelection()
-
-  logRenderedLines: ->
-    @renderedLines.find('.line').each (n) ->
-      console.log n, $(this).text()
 
   pixelPositionForBufferPosition: (position) ->
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
@@ -1290,20 +1284,23 @@ class Editor extends View
     column = 0
 
     if lineElement = @lineElementForScreenRow(row)[0]
-      @overlayer.hide()
-      @css '-webkit-user-select', 'auto'
-      if range = document.caretRangeFromPoint(pageX, pageY)
-        clickedTextNode = range.endContainer
-        clickedOffset = range.endOffset
-        range.detach()
-      @css '-webkit-user-select', ''
-      @overlayer.show()
+      range = document.createRange()
+      iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+      while node = iterator.nextNode()
+        range.selectNodeContents(node)
+        column += node.textContent.length
+        {left, right} = range.getClientRects()[0]
+        break if left <= pageX <= right
 
-      if clickedTextNode and lineElement
-        iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
-        while (node = iterator.nextNode()) and node isnt clickedTextNode
-          column += node.textContent.length
-        column += clickedOffset
+      if node
+        for characterPosition in [node.textContent.length...0]
+          range.setStart(node, characterPosition - 1)
+          range.setEnd(node, characterPosition)
+          {left, right, width} = range.getClientRects()[0]
+          break if left <= pageX - width / 2 <= right
+          column--
+
+      range.detach()
 
     new Point(row, column)
 
@@ -1351,3 +1348,29 @@ class Editor extends View
   copyPathToPasteboard: ->
     path = @getPath()
     pasteboard.write(path) if path?
+
+  saveDebugSnapshot: ->
+    atom.showSaveDialog (path) =>
+      fs.write(path, @getDebugSnapshot()) if path
+
+  getDebugSnapshot: ->
+    [
+      "Debug Snapshot: #{@getPath()}"
+      @getRenderedLinesDebugSnapshot()
+      @activeEditSession.getDebugSnapshot()
+      @getBuffer().getDebugSnapshot()
+    ].join('\n\n')
+
+  getRenderedLinesDebugSnapshot: ->
+    lines = ['Rendered Lines:']
+    firstRenderedScreenRow = @firstRenderedScreenRow
+    @renderedLines.find('.line').each (n) ->
+      lines.push "#{firstRenderedScreenRow + n}: #{$(this).text()}"
+    lines.join('\n')
+
+  logScreenLines: (start, end) ->
+    @activeEditSession.logScreenLines(start, end)
+
+  logRenderedLines: ->
+    @renderedLines.find('.line').each (n) ->
+      console.log n, $(this).text()

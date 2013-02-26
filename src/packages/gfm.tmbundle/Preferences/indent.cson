@@ -1,0 +1,4 @@
+'name': 'Indent'
+'scope': 'source.gfm'
+'settings':
+  'increaseIndentPattern': '^\\s*([\\*\\+-])[ \\t]+'

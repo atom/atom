@@ -308,10 +308,11 @@ describe "Editor", ->
 
         spyOn(atom, "confirm")
 
+        contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
+        editSession.on 'contents-conflicted', contentsConflictedHandler
         fs.write(path, "a file change")
-
-        waitsFor "file to trigger contents-changed event", (done) ->
-          editSession.one 'contents-conflicted', done
+        waitsFor ->
+          contentsConflictedHandler.callCount > 0
 
         runs ->
           expect(atom.confirm).toHaveBeenCalled()
@@ -2148,6 +2149,11 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [5, 0]
 
+      it "keeps the gutter line and the editor line the same heights (regression)", ->
+        editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
+        editor.trigger 'editor:fold-selection'
+
+        expect(editor.gutter.find('.line-number:eq(4)').height()).toBe editor.renderedLines.find('.line:eq(4)').height()
 
     describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
@@ -2871,3 +2877,17 @@ describe "Editor", ->
       editor.trigger 'editor:undo-close-session'
       expect(editor.getPath()).toBe fixturesProject.resolve('sample.js')
       expect(editor.getActiveEditSessionIndex()).toBe 0
+
+  describe "editor:save-debug-snapshot", ->
+    it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
+      saveDialogCallback = null
+      spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
+      spyOn(fs, 'write')
+
+      editor.trigger 'editor:save-debug-snapshot'
+
+      expect(atom.showSaveDialog).toHaveBeenCalled()
+      saveDialogCallback('/tmp/state')
+      expect(fs.write).toHaveBeenCalled()
+      expect(fs.write.argsForCall[0][0]).toBe '/tmp/state'
+      expect(typeof fs.write.argsForCall[0][1]).toBe 'string'

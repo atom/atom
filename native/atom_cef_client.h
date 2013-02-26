@@ -109,9 +109,8 @@ class AtomCefClient : public CefClient,
   void FocusPreviousWindow();
   void Open(std::string path);
   void Open();
-  void OpenUnstable(std::string path);
-
-                        void OpenUnstable();
+  void OpenDev(std::string path);
+  void OpenDev();
   void NewWindow();
   void ToggleDevTools(CefRefPtr<CefBrowser> browser);
   void ShowDevTools(CefRefPtr<CefBrowser> browser);
@@ -126,8 +125,7 @@ class AtomCefClient : public CefClient,
   void Log(const char *message);
   void Show(CefRefPtr<CefBrowser> browser);
   void ToggleFullScreen(CefRefPtr<CefBrowser> browser);
-  void Update();
-  void GetUpdateStatus(int replyId, CefRefPtr<CefBrowser> browser);
+  void GetVersion(int replyId, CefRefPtr<CefBrowser> browser);
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);

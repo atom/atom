@@ -78,7 +78,7 @@ class LanguageMode
       continue if @editSession.isBufferRowBlank(row)
       indentation = @editSession.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes).search(@editSession.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.search(@editSession.lineForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 

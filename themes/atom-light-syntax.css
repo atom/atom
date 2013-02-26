@@ -3,6 +3,12 @@
   color: #555;
 }
 
+.editor .gutter .line-number.fold,
+.editor .gutter .line-number:after,
+.editor .fold-marker:after {
+  color: #e87b00;
+}
+
 .editor .invisible {
   color: #555;
 }
