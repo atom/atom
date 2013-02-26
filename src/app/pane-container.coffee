@@ -37,7 +37,13 @@ class PaneContainer extends View
     @children().first().view()
 
   getPanes: ->
-    @find('.pane').toArray().map (node)-> $(node).view()
+    @find('.pane').views()
+
+  indexOfPane: (pane) ->
+    @getPanes().indexOf(pane.view())
+
+  paneAtIndex: (index) ->
+    @getPanes()[index]
 
   eachPane: (callback) ->
     callback(pane) for pane in @getPanes()
