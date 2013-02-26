@@ -22,7 +22,7 @@ describe "Tabs package main", ->
       expect(rootView.panes.find('.pane > .tabs').length).toBe 2
 
 fdescribe "TabBarView", ->
-  [item1, item2, editSession1, editSession2, pane, tabBar] = []
+  [item1, item2, editSession1, pane, tabBar] = []
 
   class TestView extends View
     @content: (title) -> @div title
