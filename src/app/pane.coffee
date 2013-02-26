@@ -20,7 +20,7 @@ class Pane extends View
     @viewsByClassName = {}
     @showItem(@items[0])
 
-    @command 'core:close', @removeActiveItem
+    @command 'core:close', @destroyActiveItem
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
     @command 'pane:split-left', => @splitLeft()
@@ -89,9 +89,13 @@ class Pane extends View
     @trigger 'pane:item-added', [item, index]
     item
 
-  removeActiveItem: =>
-    @removeItem(@activeItem)
+  destroyActiveItem: =>
+    @destroyItem(@activeItem)
     false
+
+  destroyItem: (item) ->
+    @removeItem(item)
+    item.destroy?()
 
   removeItem: (item) ->
     index = @items.indexOf(item)
@@ -99,7 +103,7 @@ class Pane extends View
 
     @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
-    item.destroy?()
+
     @cleanupItemView(item)
     @trigger 'pane:item-removed', [item, index]
     @remove() unless @items.length
