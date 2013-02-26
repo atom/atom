@@ -16,6 +16,20 @@ describe "EditSession", ->
   afterEach ->
     fixturesProject.destroy()
 
+  describe "title", ->
+    it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
+      expect(editSession.getTitle()).toBe 'sample.js'
+      buffer.setPath(undefined)
+      expect(editSession.getTitle()).toBe 'untitled'
+
+    it "emits 'title-changed' events when the underlying buffer path", ->
+      titleChangedHandler = jasmine.createSpy("titleChangedHandler")
+      editSession.on 'title-changed', titleChangedHandler
+
+      buffer.setPath('/foo/bar/baz.txt')
+      buffer.setPath(undefined)
+      expect(titleChangedHandler.callCount).toBe 2
+
   describe "cursor", ->
     describe ".getCursor()", ->
       it "returns the most recently created cursor", ->
