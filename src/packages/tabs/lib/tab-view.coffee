@@ -1,3 +1,4 @@
+$ = require 'jquery'
 {View} = require 'space-pen'
 fs = require 'fs'
 
@@ -9,9 +10,8 @@ class TabView extends View
       @span class: 'close-icon'
 
   initialize: (@item, @pane) ->
-    @title.text(@item.getTitle())
-
-
+    @item.on? 'title-changed', => @updateTitle()
+    @updateTitle()
 #     @buffer = @editSession.buffer
 #     @subscribe @buffer, 'path-changed', => @updateFileName()
 #     @subscribe @buffer, 'contents-modified', => @updateModifiedStatus()
@@ -21,6 +21,24 @@ class TabView extends View
 #     @subscribe @editor, 'editor:edit-session-removed', => @updateFileName()
 #     @updateFileName()
 #     @updateModifiedStatus()
+
+  updateTitle: ->
+    return if @updatingTitle
+    @updatingTitle = true
+
+    title = @item.getTitle()
+    useLongTitle = false
+    for tab in @getSiblingTabs()
+      if tab.item.getTitle() is title
+        tab.updateTitle()
+        useLongTitle = true
+    title = @item.getLongTitle?() ? title if useLongTitle
+
+    @title.text(title)
+    @updatingTitle = false
+
+  getSiblingTabs: ->
+    @siblings('.tab').views()
 
   updateModifiedStatus: ->
     if @buffer.isModified()
