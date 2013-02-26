@@ -124,7 +124,7 @@ class Pane extends View
       viewClass = item.getViewClass()
       otherItemsForView = @items.filter (i) -> i.getViewClass?() is viewClass
       unless otherItemsForView.length
-        @viewsByClassName[viewClass.name].remove()
+        @viewsByClassName[viewClass.name]?.remove()
         delete @viewsByClassName[viewClass.name]
 
   viewForItem: (item) ->
