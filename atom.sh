@@ -1,5 +1,5 @@
 #!/bin/sh
-open -a Atom -n --args --executed-from="$(pwd)" --pid=$$ $@
+open -a /Applications/Atom.app -n --args --executed-from="$(pwd)" --pid=$$ $@
 
 # Used to exit process when atom is used as $EDITOR
 on_die() {
