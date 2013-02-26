@@ -43,7 +43,9 @@ class EditSession
     @addCursorAtScreenPosition([0, 0])
 
     @buffer.retain()
-    @subscribe @buffer, "path-changed", => @trigger "path-changed"
+    @subscribe @buffer, "path-changed", =>
+      @trigger "title-changed"
+      @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
     @subscribe @buffer, "markers-updated", => @mergeCursors()
 
