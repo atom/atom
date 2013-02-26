@@ -28,6 +28,7 @@ fdescribe "TabBarView", ->
     @content: (title) -> @div title
     initialize: (@title) ->
     getTitle: -> @title
+    getLongTitle: -> @longTitle
 
   beforeEach ->
     item1 = new TestView('Item 1')
@@ -62,7 +63,7 @@ fdescribe "TabBarView", ->
       expect(tabBar.find('.tab:eq(2)')).toHaveClass 'active'
 
   describe "when a new item is added to the pane", ->
-    ffit "adds a tab for the new item at the same index as the item in the pane", ->
+    it "adds a tab for the new item at the same index as the item in the pane", ->
       pane.showItem(item1)
       item3 = new TestView('Item 3')
       pane.showItem(item3)
@@ -95,44 +96,28 @@ fdescribe "TabBarView", ->
       expect(tabBar.getTabs().length).toBe 2
       expect(tabBar.find('.tab:contains(Item 1)')).not.toExist()
 
-  describe "when a file name associated with a tab changes", ->
-    [buffer, oldPath, newPath] = []
-
-    beforeEach ->
-      buffer = editor.editSessions[0].buffer
-      oldPath = "/tmp/file-to-rename.txt"
-      newPath = "/tmp/renamed-file.txt"
-      fs.write(oldPath, "this old path")
-      rootView.open(oldPath)
-
-    afterEach ->
-      fs.remove(newPath) if fs.exists(newPath)
-
-    it "updates the file name in the tab", ->
-      tabFileName = tabs.find('.tab:eq(2) .file-name')
-      expect(tabFileName).toExist()
-      editor.setActiveEditSessionIndex(0)
-      fs.move(oldPath, newPath)
-      waitsFor "file to be renamed", ->
-        tabFileName.text() == "renamed-file.txt"
+  describe "when a tab item's title changes", ->
+    it "updates the title of the item's tab", ->
+      editSession1.buffer.setPath('/this/is-a/test.txt')
+      expect(tabBar.tabForItem(editSession1)).toHaveText 'test.txt'
 
   describe "when two tabs have the same file name", ->
-    [tempPath] = []
+    it "displays the long title on the tab if it's available from the item", ->
+      item1.title = "Old Man"
+      item1.longTitle = "Grumpy Old Man"
+      item1.trigger 'title-changed'
+      item2.title = "Old Man"
+      item2.longTitle = "Jolly Old Man"
+      item2.trigger 'title-changed'
 
-    beforeEach ->
-      tempPath = '/tmp/sample.js'
-      fs.write(tempPath, 'sample')
+      expect(tabBar.tabForItem(item1)).toHaveText "Grumpy Old Man"
+      expect(tabBar.tabForItem(item2)).toHaveText "Jolly Old Man"
 
-    afterEach ->
-      fs.remove(tempPath) if fs.exists(tempPath)
+      item2.longTitle = undefined
+      item2.trigger 'title-changed'
 
-    it "displays the parent folder name after the file name", ->
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js'
-      rootView.open(tempPath)
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js - fixtures'
-      expect(tabs.find('.tab:last .file-name').text()).toBe 'sample.js - tmp'
-      editor.destroyActiveEditSession()
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js'
+      expect(tabBar.tabForItem(item1)).toHaveText "Grumpy Old Man"
+      expect(tabBar.tabForItem(item2)).toHaveText "Old Man"
 
   describe "when an editor:edit-session-order-changed event is triggered", ->
     it "updates the order of the tabs to match the new edit session order", ->
