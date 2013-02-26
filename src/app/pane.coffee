@@ -84,7 +84,9 @@ class Pane extends View
 
   addItem: (item) ->
     return if _.include(@items, item)
-    @items.splice(@getActiveItemIndex() + 1, 0, item)
+    index = @getActiveItemIndex() + 1
+    @items.splice(index, 0, item)
+    @trigger 'pane:item-added', [item, index]
     item
 
   removeActiveItem: =>
