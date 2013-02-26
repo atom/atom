@@ -7,6 +7,7 @@ class DisplayBufferMarker
   bufferMarkerSubscription: null
   headScreenPosition: null
   tailScreenPosition: null
+  valid: true
 
   constructor: ({@id, @displayBuffer}) ->
     @buffer = @displayBuffer.buffer
@@ -57,11 +58,11 @@ class DisplayBufferMarker
 
   observe: (callback) ->
     @observeBufferMarkerIfNeeded()
-    @on 'position-changed', callback
+    @on 'changed', callback
     cancel: => @unobserve(callback)
 
   unobserve: (callback) ->
-    @off 'position-changed', callback
+    @off 'changed', callback
     @unobserveBufferMarkerIfNeeded()
 
   observeBufferMarkerIfNeeded: ->
@@ -69,13 +70,14 @@ class DisplayBufferMarker
     @getHeadScreenPosition() # memoize current value
     @getTailScreenPosition() # memoize current value
     @bufferMarkerSubscription =
-      @buffer.observeMarker @id, ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}) =>
+      @buffer.observeMarker @id, ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
         @notifyObservers
           oldHeadBufferPosition: oldHeadPosition
           newHeadBufferPosition: newHeadPosition
           oldTailBufferPosition: oldTailPosition
           newTailBufferPosition: newTailPosition
           bufferChanged: bufferChanged
+          valid: valid
     @displayBuffer.markers[@id] = this
 
   unobserveBufferMarkerIfNeeded: ->
@@ -83,28 +85,35 @@ class DisplayBufferMarker
     @bufferMarkerSubscription.cancel()
     delete @displayBuffer.markers[@id]
 
-  notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged}) ->
+  notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged, valid} = {}) ->
     oldHeadScreenPosition = @getHeadScreenPosition()
-    @headScreenPosition = null
-    newHeadScreenPosition = @getHeadScreenPosition()
-
     oldTailScreenPosition = @getTailScreenPosition()
-    @tailScreenPosition = null
-    newTailScreenPosition = @getTailScreenPosition()
+    valid ?= true
 
-    return if _.isEqual(newHeadScreenPosition, oldHeadScreenPosition) and _.isEqual(newTailScreenPosition, oldTailScreenPosition)
+    if valid
+      @headScreenPosition = null
+      newHeadScreenPosition = @getHeadScreenPosition()
+      @tailScreenPosition = null
+      newTailScreenPosition = @getTailScreenPosition()
+    else
+      newHeadScreenPosition = oldHeadScreenPosition
+      newTailScreenPosition = oldTailScreenPosition
+
+    return if valid is @valid and _.isEqual(newHeadScreenPosition, oldHeadScreenPosition) and _.isEqual(newTailScreenPosition, oldTailScreenPosition)
 
     oldHeadBufferPosition ?= @getHeadBufferPosition()
-    newHeadBufferPosition = @getHeadBufferPosition()
+    newHeadBufferPosition = @getHeadBufferPosition() ? oldHeadBufferPosition
     oldTailBufferPosition ?= @getTailBufferPosition()
-    newTailBufferPosition = @getTailBufferPosition()
+    newTailBufferPosition = @getTailBufferPosition() ? oldTailBufferPosition
+    @valid = valid
 
-    @trigger 'position-changed', {
+    @trigger 'changed', {
       oldHeadScreenPosition, newHeadScreenPosition,
       oldTailScreenPosition, newTailScreenPosition,
       oldHeadBufferPosition, newHeadBufferPosition,
       oldTailBufferPosition, newTailBufferPosition,
       bufferChanged
+      valid
     }
 
 _.extend DisplayBufferMarker.prototype, EventEmitter
