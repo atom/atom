@@ -34,6 +34,7 @@
   'ctrl-w h': 'window:focus-previous-pane'
   'x': 'vim:alias-delete-character'
   'D': 'vim:alias-delete-until-end-of-line'
+  'J': 'vim:alias-join-lines'
   'u': 'core:undo'
   'c': 'vim:operation-change'
   'd': 'vim:operation-delete'

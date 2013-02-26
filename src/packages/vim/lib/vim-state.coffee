@@ -112,6 +112,7 @@ class VimState
     @vim.stateUpdated(@state) if @vim? and @vim.stateUpdated?
   alias: (name) ->
     a = @aliases[name]
+    @motion(a.beforeMotion) if a.beforeMotion?
     @operation(a.operation)
     @motion(a.motion)
     @motion(a.afterMotion) if a.afterMotion?
@@ -159,6 +160,10 @@ class VimState
     'insert-line-down':
       motion: 'end-of-line'
       operation: 'insert-line'
+    'join-lines':
+      beforeMotion: 'end-of-line'
+      motion: 'right'
+      operation: 'delete'
   motionEvents:
     left: "core:move-left"
     right: "core:move-right"
