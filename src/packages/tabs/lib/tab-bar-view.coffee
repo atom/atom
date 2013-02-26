@@ -1,4 +1,5 @@
 $ = require 'jquery'
+_ = require 'underscore'
 SortableList = require 'sortable-list'
 TabView = require './tab-view'
 
@@ -9,14 +10,16 @@ class TabBarView extends SortableList
 
   initialize: (@pane) ->
     super
-
     @addTabForItem(item) for item in @pane.getItems()
 
+    @pane.on 'pane:item-added', (e, item, index) => @addTabForItem(item, index)
+    @pane.on 'pane:item-removed', (e, item) => @removeTabForItem(item)
+    @pane.on 'pane:active-item-changed', => @updateActiveTab()
 
-#     @addTabForEditSession(editSession) for editSession in @editor.editSessions
-#
+    @updateActiveTab()
+
 #     @setActiveTab(@editor.getActiveEditSessionIndex())
-#     @editor.on 'editor:active-edit-session-changed', (e, editSession, index) => @setActiveTab(index)
+
 #     @editor.on 'editor:edit-session-added', (e, editSession) => @addTabForEditSession(editSession)
 #     @editor.on 'editor:edit-session-removed', (e, editSession, index) => @removeTabAtIndex(index)
 #     @editor.on 'editor:edit-session-order-changed', (e, editSession, fromIndex, toIndex) =>
@@ -29,25 +32,44 @@ class TabBarView extends SortableList
 #         fromTab.insertBefore(toTab)
 
     @on 'click', '.tab', (e) =>
-      @editor.setActiveEditSessionIndex($(e.target).closest('.tab').index())
-      @editor.focus()
+      tab = $(e.target).closest('.tab').view()
+      @pane.showItem(tab.item)
+      @pane.focus()
 
     @on 'click', '.tab .close-icon', (e) =>
-      index = $(e.target).closest('.tab').index()
-      @editor.destroyEditSessionIndex(index)
+      tab = $(e.target).closest('.tab').view()
+      @pane.removeItem(tab.item)
       false
 
     @pane.prepend(this)
 
-  addTabForItem: (item) ->
+  addTabForItem: (item, index) ->
     tabView = new TabView(item, @pane)
-    @append(tabView)
-    @setActiveTabView(tabView) if item is @pane.currentItem
+    followingTab = @tabAtIndex(index) if index?
+    if followingTab
+      tabView.insertBefore(followingTab)
+    else
+      @append(tabView)
 
-  setActiveTabView: (tabView) ->
+  removeTabForItem: (item) ->
+    @tabForItem(item).remove()
+
+  getTabs: ->
+    @children('.tab').toArray().map (elt) -> $(elt).view()
+
+  tabAtIndex: (index) ->
+    @children(".tab:eq(#{index})").view()
+
+  tabForItem: (item) ->
+    _.detect @getTabs(), (tab) -> tab.item is item
+
+  setActiveTab: (tabView) ->
     unless tabView.hasClass('active')
       @find(".tab.active").removeClass('active')
       tabView.addClass('active')
+
+  updateActiveTab: ->
+    @setActiveTab(@tabForItem(@pane.activeItem))
 
   removeTabAtIndex: (index) ->
     @find(".tab:eq(#{index})").remove()
