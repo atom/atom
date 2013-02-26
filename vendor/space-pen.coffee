@@ -162,7 +162,8 @@ class Builder
         options.attributes = arg
     options
 
-jQuery.fn.view = -> this.data('view')
+jQuery.fn.view = -> @data('view')
+jQuery.fn.views = -> @toArray().map (elt) -> jQuery(elt).view()
 
 # Trigger attach event when views are added to the DOM
 callAttachHook = (element) ->
