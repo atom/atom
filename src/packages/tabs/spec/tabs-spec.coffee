@@ -119,18 +119,15 @@ fdescribe "TabBarView", ->
       expect(tabBar.tabForItem(item1)).toHaveText "Grumpy Old Man"
       expect(tabBar.tabForItem(item2)).toHaveText "Old Man"
 
-  describe "when an editor:edit-session-order-changed event is triggered", ->
-    it "updates the order of the tabs to match the new edit session order", ->
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
-      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
-
-      editor.moveEditSessionToIndex(0, 1)
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
-      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
-
-      editor.moveEditSessionToIndex(1, 0)
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
-      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+  describe "when a pane item moves to a new index", ->
+    it "updates the order of the tabs to match the new item order", ->
+      expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+      pane.moveItem(item2, 1)
+      expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "Item 2", "sample.js"]
+      pane.moveItem(editSession1, 0)
+      expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 1", "Item 2"]
+      pane.moveItem(item1, 2)
+      expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 2", "Item 1"]
 
   describe "dragging and dropping tabs", ->
     describe "when the tab is dropped onto itself", ->

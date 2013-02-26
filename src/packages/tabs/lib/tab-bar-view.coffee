@@ -13,6 +13,7 @@ class TabBarView extends SortableList
     @addTabForItem(item) for item in @pane.getItems()
 
     @pane.on 'pane:item-added', (e, item, index) => @addTabForItem(item, index)
+    @pane.on 'pane:item-moved', (e, item, index) => @moveItemTabToIndex(item, index)
     @pane.on 'pane:item-removed', (e, item) => @removeTabForItem(item)
     @pane.on 'pane:active-item-changed', => @updateActiveTab()
 
@@ -44,12 +45,19 @@ class TabBarView extends SortableList
     @pane.prepend(this)
 
   addTabForItem: (item, index) ->
-    tabView = new TabView(item, @pane)
+    @insertTabAtIndex(new TabView(item, @pane), index)
+
+  moveItemTabToIndex: (item, index) ->
+    tab = @tabForItem(item)
+    tab.detach()
+    @insertTabAtIndex(tab, index)
+
+  insertTabAtIndex: (tab, index) ->
     followingTab = @tabAtIndex(index) if index?
     if followingTab
-      tabView.insertBefore(followingTab)
+      tab.insertBefore(followingTab)
     else
-      @append(tabView)
+      @append(tab)
 
   removeTabForItem: (item) ->
     @tabForItem(item).remove()
