@@ -14,7 +14,9 @@ class SortableList extends View
     @on 'drop',      '.sortable', @onDrop
 
   onDragStart: (event) =>
-    return false if !@shouldAllowDrag(event)
+    unless @shouldAllowDrag(event)
+      event.preventDefault()
+      return
 
     el = @getSortableElement(event)
     el.addClass 'is-dragging'
