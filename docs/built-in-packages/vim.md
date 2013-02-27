@@ -60,6 +60,14 @@ Key: `v`
 
 Event: `vim:visual-mode`
 
+Variants:
+
+* Visual line
+
+  Key: `V`
+
+  Event: `vim:visual-mode-lines`
+
 #### Motions
 
 **Move cursor to left/down/up/right**
@@ -157,6 +165,12 @@ Event: `core:{undo/redo}`
 Keys: `y` `p`
 
 Event: `vim:operation-{yank/paste}`
+
+**Join lines**
+
+Keys: `J`
+
+Event: `vim:alias-join-lines`
 
 #### Ex mode
 
