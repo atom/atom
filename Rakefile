@@ -4,32 +4,29 @@ BUILD_DIR = 'atom-build'
 desc "Build Atom via `xcodebuild`"
 task :build => "create-xcode-project" do
   command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
-  sh command do |ok, res|
-    unless ok
-      $stderr.puts "Error #{res.exitstatus}:\n#{output}"
-      exit(res.exitstatus)
-    end
+  output = `#{command}`
+  if $?.exitstatus != 0
+    $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
+    exit($?.exitstatus)
   end
 end
 
 desc "Create xcode project from gyp file"
 task "create-xcode-project" => "update-cef" do
-  sh %{rm -rf atom.xcodeproj}
-  sh %{gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp}
+  `rm -rf atom.xcodeproj`
+  `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
 end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
 task "update-cef" => "bootstrap" do
-  sh %{prebuilt-cef/script/download -f cef} do |ok, res|
-    exit res.statuscode unless ok
-  end
+  exit 1 unless system %{prebuilt-cef/script/download -f cef}
   Dir.glob('cef/*.gypi').each do |filename|
     `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
   end
 end
 
 task "bootstrap" do
-  sh %{script/bootstrap}
+  `script/bootstrap`
 end
 
 desc "Copies Atom.app to /Applications and creates `atom` cli app"
@@ -39,8 +36,8 @@ task :install => [:clean, :build] do
 
   # Install Atom.app
   dest_path =  "/Applications/#{File.basename(path)}"
-  sh %{rm -rf #{dest_path}}
-  sh %{cp -r #{path} #{File.expand_path(dest_path)}}
+  `rm -rf #{dest_path}`
+  `cp -r #{path} #{File.expand_path(dest_path)}`
 
   # Install atom cli
   if File.directory?("/opt/boxen")
@@ -63,10 +60,10 @@ task :package => ["setup-codesigning", "bump-patch-number", "build"] do
   exit 1 if not path
 
   dest_path = '/tmp/atom-for-speakeasy/Atom.tar.bz2'
-  sh %{mkdir -p $(dirname #{dest_path})}
-  sh %{rm -rf #{dest_path}}
-  sh %{tar --directory $(dirname #{path}) -jcf #{dest_path} $(basename #{path})}
-  sh %{open $(dirname #{dest_path})}
+  `mkdir -p $(dirname #{dest_path})`
+  `rm -rf #{dest_path}`
+  `tar --directory $(dirname #{path}) -jcf #{dest_path} $(basename #{path})`
+  `open $(dirname #{dest_path})`
 end
 
 task "setup-codesigning" do
@@ -86,28 +83,27 @@ end
 
 desc "Clone default bundles into vendor/bundles directory"
 task "clone-default-bundles" do
-  sh %{git submodule --quiet sync}
-  sh %{git submodule --quiet update --recursive --init}
+  `git submodule --quiet sync`
+  `git submodule --quiet update --recursive --init`
 end
 
 desc "Clean build Atom via `xcodebuild`"
 task :clean do
   output = `xcodebuild clean`
-  sh %{rm -rf #{application_path()}}
-  sh %{rm -rf #{BUILD_DIR}}
-  sh %{rm -rf /tmp/atom-compiled-scripts}
+  `rm -rf #{application_path()}`
+  `rm -rf #{BUILD_DIR}`
+  `rm -rf /tmp/atom-compiled-scripts`
 end
 
 desc "Run the specs"
 task :test => ["update-cef", "clone-default-bundles", "build"] do
-  sh %{pkill Atom}
+  `pkill Atom`
   if path = application_path()
-    sh %{rm -rf path}
-    sh "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH}" do |ok, res|
-      exit(res.exitstatus) unless ok
-    end
+    `rm -rf path`
+    cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH} 2> /dev/null"
+    system(cmd)
+    exit($?.exitstatus)
   else
-    puts "Couldn't find Atom!"
     exit(1)
   end
 end
