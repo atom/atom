@@ -43,7 +43,7 @@ class SymbolsView extends SelectList
   populateFileSymbols: ->
     tags = []
     callback = (tag) -> tags.push tag
-    path = rootView.getActiveEditor().getPath()
+    path = rootView.getActiveView().getPath()
     @list.empty()
     @setLoading("Generating symbols...")
     new TagGenerator(path, callback).generate().done =>
@@ -91,7 +91,7 @@ class SymbolsView extends SelectList
     @moveToPosition(position) if position
 
   moveToPosition: (position) ->
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     editor.scrollToBufferPosition(position, center: true)
     editor.setCursorBufferPosition(position)
     editor.moveCursorToFirstCharacterOfLine()
@@ -111,7 +111,7 @@ class SymbolsView extends SelectList
       return new Point(index, 0) if pattern is $.trim(line)
 
   goToDeclaration: ->
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     matches = TagReader.find(editor)
     return unless matches.length
 
