@@ -28,7 +28,11 @@ class VimOperation
     window.console.log "Finished operation #{@name}"
   performEvent: (event) ->
     @target.trigger(event)
-  performMotion: ->
+  performMotion: (name) ->
+    if name?
+      m = new VimMotion(name, @vim.state.motionEvents[name], 1, @target)
+      m.perform(this)
+      return
     @motion.perform(this) if @motion?
   performSelectMotion: ->
     @motion.performSelect(this) if @motion?
@@ -240,16 +244,16 @@ class VimState
       @yank()
       state.setCursorPosition(pos)
     'paste': () ->
-      @performEvent("core:move-right")
+      @performMotion("right")
       @paste select:false
-      @performEvent("core:move-left")
+      @performMotion("left")
     'paste-before': (state) ->
       pos = state.currentCursorPosition()
       @paste select:true
       state.setCursorPosition(pos)
     'enter-visual-normal': () ->
     'enter-visual-lines': (state) ->
-      @performEvent("editor:move-to-beginning-of-line")
+      @performMotion("beginning-of-line")
       state.expandSelection()
   noModeResetOperations: ['move', 'select', 'enter-visual-normal', 'enter-visual-lines']
   operationsWithInput: ['change-character']
