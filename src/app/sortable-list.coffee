@@ -47,9 +47,8 @@ class SortableList extends View
     true
 
   getDroppedElement: (event) ->
-    idx = event.originalEvent.dataTransfer.getData 'sortable-index'
-    @find ".sortable:eq(#{idx})"
+    index = event.originalEvent.dataTransfer.getData('sortable-index')
+    @find(".sortable:eq(#{index})")
 
   getSortableElement: (event) ->
-    el = $(event.target)
-    if !el.hasClass('sortable') then el.closest('.sortable') else el
+    $(event.target).closest('.sortable')
