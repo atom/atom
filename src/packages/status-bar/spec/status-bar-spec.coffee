@@ -12,7 +12,7 @@ describe "StatusBar", ->
     rootView.open('sample.js')
     rootView.simulateDomAttachment()
     StatusBar.activate()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     statusBar = rootView.find('.status-bar').view()
     buffer = editor.getBuffer()
 
