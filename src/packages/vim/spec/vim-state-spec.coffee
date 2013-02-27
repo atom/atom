@@ -151,13 +151,19 @@ fdescribe "Vim state", ->
 
     describe "repeat last operation", ->
       it "executes the last operation", ->
-        vim.operation("move")
-        expect(target.count()).toBe(1)
-        expect(target.hasEvent("editor:move-line")).toBeTruthy()
+        vim.operation("delete")
+        vim.motion("right")
+        expect(target.count()).toBe(2)
+        expect(target.hasEvent("core:delete")).toBeTruthy()
         target.events = []
         vim.operation("repeat")
-        expect(target.count()).toBe(1)
-        expect(target.hasEvent("editor:move-line")).toBeTruthy()
+        expect(target.count()).toBe(2)
+        expect(target.hasEvent("core:delete")).toBeTruthy()
+      it "does not repeat motion operations", ->
+        vim.operation("move")
+        target.events = []
+        vim.operation("repeat")
+        expect(target.count()).toBe(0)
 
     describe "change", ->
       it "removes text in the motion", ->
@@ -169,12 +175,14 @@ fdescribe "Vim state", ->
         vim.operation("change")
         vim.motion("end-of-line")
         expect(editor.mode).toBe("insert")
+
     describe "delete", ->
       it "removes text in the motion", ->
         vim.operation("delete")
         vim.motion("end-of-line")
         expect(target.hasEvent("editor:select-to-end-of-line")).toBe(true)
         expect(target.hasEvent("core:delete")).toBe(true)
+
     describe "change-character", ->
       it "changes the character under the cursor to input", ->
         spyOn(editor.editor, "insertText")
@@ -182,22 +190,26 @@ fdescribe "Vim state", ->
         vim.input("a")
         expect(target.hasEvent("core:delete")).toBe(true)
         expect(editor.editor.insertText).toHaveBeenCalled()
+
     describe "insert-line", ->
       it "inserts a line below the cursor", ->
         vim.operation("insert-line")
         vim.motion("end-of-line")
         expect(target.hasEvent("editor:newline")).toBe(true)
+
     describe "yank", ->
       it "copies text", ->
         spyOn(vim, 'yankSelection')
         vim.operation("yank")
         vim.operation("yank")
         expect(vim.yankSelection).toHaveBeenCalled()
+
     describe "paste", ->
       it "pastes text", ->
         spyOn(vim, 'paste')
         vim.operation("paste")
         expect(vim.paste).toHaveBeenCalled()
+
     describe "swap case", ->
     describe "filter through external program", ->
     describe "shift left", ->

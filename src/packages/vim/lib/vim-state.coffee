@@ -112,7 +112,8 @@ class VimState
     @enterState "idle"
     @_count = 1
     if @_operation?.performed
-      @lastOperation = @_operation
+      if !_.contains(@noRepeatOperations, @_operation.name)
+        @lastOperation = @_operation
       if @visual() and !_.contains(@noModeResetOperations, @_operation.name)
         @vim.exitVisualMode()
       if @recording && !@_operation.name.match(/-recording/)
@@ -278,6 +279,7 @@ class VimState
       state.stopRecording()
     'replay-recording': (state) ->
       state.replayRecording(@input)
+  noRepeatOperations: ['move', 'select', 'repeat', 'start-recording', 'stop-recording']
   noModeResetOperations: ['move', 'select', 'enter-visual-normal', 'enter-visual-lines']
   operationsWithInput: ['change-character', 'start-recording', 'replay-recording']
   motionsWithInput: ['find-character']
