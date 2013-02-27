@@ -1,6 +1,9 @@
 'body':
   'escape': 'vim:command-mode'
 
+'.editor':
+  'escape': 'vim:command-mode'
+
 '.editor.command-mode':
   '1': 'vim:count-add-1'
   '2': 'vim:count-add-2'
