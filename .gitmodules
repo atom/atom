@@ -52,3 +52,6 @@
 [submodule "vendor/packages/clojure.tmbundle"]
 	path = vendor/packages/clojure.tmbundle
 	url = https://github.com/mmcgrana/textmate-clojure
+[submodule "vendor/packages/yaml.tmbundle"]
+	path = vendor/packages/yaml.tmbundle
+	url = https://github.com/textmate/yaml.tmbundle.git
