@@ -746,7 +746,7 @@ class Editor extends View
       styleTag = $$ -> @style class: 'font-size'
       headTag.append styleTag
 
-    styleTag.text(".editor {font-size: #{fontSize}pt}")
+    styleTag.text(".editor {font-size: #{fontSize}px}")
 
     if @isOnDom()
       @redraw()
@@ -1362,6 +1362,8 @@ class Editor extends View
       lines.push "#{firstRenderedScreenRow + n}: #{$(this).text()}"
     lines.join('\n')
 
+  logScreenLines: (start, end) ->
+    @activeEditSession.logScreenLines(start, end)
 
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->
