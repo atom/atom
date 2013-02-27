@@ -89,6 +89,7 @@ class RootView extends View
     @remove()
 
   open: (path, options = {}) ->
+    changeFocus = options.changeFocus ? true
     path = project.resolve(path) if path?
     if activePane = @getActivePane()
       if editSession = activePane.itemForPath(path)
@@ -101,7 +102,7 @@ class RootView extends View
       activePane = new Pane(editSession)
       @panes.append(activePane)
 
-    activePane.focus() if options.changeFocus
+    activePane.focus() if changeFocus
     editSession
 
   editorFocused: (editor) ->
