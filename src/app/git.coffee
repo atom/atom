@@ -59,7 +59,12 @@ class Git
     @getRepo().getHead() ? ''
 
   getPathStatus: (path) ->
+    currentPathStatus = @statuses[path]
     pathStatus = @getRepo().getStatus(@relativize(path))
+    @statuses[path] = pathStatus
+    if currentPathStatus isnt pathStatus
+      @trigger 'status-changed', path, pathStatus
+    pathStatus
 
   isPathIgnored: (path) ->
     @getRepo().isIgnored(@relativize(path))

@@ -148,6 +148,32 @@ describe "Git", ->
       fs.write(path, "#{originalPathText} edited line")
       expect(repo.getDiffStats(path)).toEqual {added: 1, deleted: 1}
 
+  describe ".getPathStatus(path)", ->
+    [path, originalPathText] = []
+
+    beforeEach ->
+      repo = new Git(require.resolve('fixtures/git/working-dir'))
+      path = require.resolve('fixtures/git/working-dir/file.txt')
+      originalPathText = fs.read(path)
+
+    afterEach ->
+      fs.write(path, originalPathText)
+
+    it "trigger a status-changed event when the new status differs from the last cached one", ->
+      statusHandler = jasmine.createSpy("statusHandler")
+      repo.on 'status-changed', statusHandler
+      status = repo.getPathStatus(path)
+      expect(statusHandler.callCount).toBe 1
+      expect(statusHandler.argsForCall[0][0..1]).toEqual [path, status]
+
+      fs.write(path, '')
+      status = repo.getPathStatus(path)
+      expect(statusHandler.callCount).toBe 2
+      expect(statusHandler.argsForCall[1][0..1]).toEqual [path, status]
+
+      repo.getPathStatus(path)
+      expect(statusHandler.callCount).toBe 2
+
   describe ".refreshStatus()", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
 
