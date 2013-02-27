@@ -80,6 +80,9 @@
         'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'], # Necessary to avoid an "install_name_tool: changing install names or rpaths can't be redone" error.
       },
       'conditions': [
+        ['CODE_SIGN' , {
+          'xcode_settings': {'CODE_SIGN_IDENTITY': "<(CODE_SIGN)"},
+        }],
         ['OS=="win" and win_use_allocator_shim==1', {
           'dependencies': [
             '<(DEPTH)/base/allocator/allocator.gyp:allocator',

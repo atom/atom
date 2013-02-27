@@ -194,7 +194,7 @@ class Project
 
     ChildProcess.exec command , bufferLines: true, stdout: (data) ->
       lines = data.split('\n')
-      lines.pop() # the last segment is a spurios '' because data always ends in \n due to bufferLines: true
+      lines.pop() # the last segment is a spurious '' because data always ends in \n due to bufferLines: true
       for line in lines
         readPath(line) if state is 'readingPath'
         readLine(line) if state is 'readingLines'

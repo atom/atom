@@ -447,41 +447,49 @@ namespace v8_extensions {
 
         context->Exit();
 
-        stdout.fileHandleForReading.writeabilityHandler = nil;
-        stderr.fileHandleForReading.writeabilityHandler = nil;
+        stdout.fileHandleForReading.readabilityHandler = nil;
+        stderr.fileHandleForReading.readabilityHandler = nil;
       };
 
       task.terminationHandler = ^(NSTask *) {
-        NSString *output = [[NSString alloc] initWithData:[[stdout fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
-        NSString *errorOutput  = [[NSString alloc] initWithData:[[stderr fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
-        dispatch_sync(dispatch_get_main_queue(), ^() {
-          taskTerminatedHandle(output, errorOutput);
-        });
-        [output release];
-        [errorOutput release];
+        @synchronized(task) {
+          NSData *outputData = [[stdout fileHandleForReading] readDataToEndOfFile];
+          NSString *output = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+          NSData *errorData = [[stderr fileHandleForReading] readDataToEndOfFile];
+          NSString *errorOutput  = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
+          dispatch_sync(dispatch_get_main_queue(), ^() {
+            taskTerminatedHandle(output, errorOutput);
+          });
+          [output release];
+          [errorOutput release];
+        }
       };
 
       CefRefPtr<CefV8Value> stdoutFunction = options->GetValue("stdout");
       if (stdoutFunction->IsFunction()) {
-        stdout.fileHandleForReading.writeabilityHandler = ^(NSFileHandle *fileHandle) {
-          NSData *data = [fileHandle availableData];
-          NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-          dispatch_sync(dispatch_get_main_queue(), ^() {
-            outputHandle(contents, stdoutFunction);
-          });
-          [contents release];
+        stdout.fileHandleForReading.readabilityHandler = ^(NSFileHandle *fileHandle) {
+          @synchronized(task) {
+            NSData *data = [fileHandle availableData];
+            NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            dispatch_sync(dispatch_get_main_queue(), ^() {
+              outputHandle(contents, stdoutFunction);
+            });
+            [contents release];
+          }
         };
       }
 
       CefRefPtr<CefV8Value> stderrFunction = options->GetValue("stderr");
       if (stderrFunction->IsFunction()) {
-        stderr.fileHandleForReading.writeabilityHandler = ^(NSFileHandle *fileHandle) {
-          NSData *data = [fileHandle availableData];
-          NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-          dispatch_sync(dispatch_get_main_queue(), ^() {
-            outputHandle(contents, stderrFunction);
-          });
-          [contents release];
+        stderr.fileHandleForReading.readabilityHandler = ^(NSFileHandle *fileHandle) {
+          @synchronized(task) {
+            NSData *data = [fileHandle availableData];
+            NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            dispatch_sync(dispatch_get_main_queue(), ^() {
+              outputHandle(contents, stderrFunction);
+            });
+            [contents release];
+          }
         };
       }
 

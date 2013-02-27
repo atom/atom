@@ -226,10 +226,12 @@
   }
   else {
     _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
-    SUUpdater.sharedUpdater.delegate = self;
-    SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
-    SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
-    [SUUpdater.sharedUpdater checkForUpdatesInBackground];
+    if (![self.arguments objectForKey:@"dev"]) {
+      SUUpdater.sharedUpdater.delegate = self;
+      SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
+      SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
+      [SUUpdater.sharedUpdater checkForUpdatesInBackground];
+    }
   }
 }
 
