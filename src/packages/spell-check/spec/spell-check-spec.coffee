@@ -45,3 +45,17 @@ describe "Spell check", ->
       editor.insertText('a')
       advanceClock(editor.getBuffer().stoppedChangingDelay)
       expect(editor.find('.misspelling')).toBeHidden()
+
+  describe "when spell checking for a grammar is removed", ->
+    it "removes all current decorations", ->
+      editor.setText('notaword')
+      advanceClock(editor.getBuffer().stoppedChangingDelay)
+      config.set('spell-check.grammars', ['source.js'])
+
+      waitsFor ->
+        editor.find('.misspelling').length > 0
+
+      runs ->
+        expect(editor.find('.misspelling').length).toBe 1
+        config.set('spell-check.grammars', [])
+        expect(editor.find('.misspelling').length).toBe 0
