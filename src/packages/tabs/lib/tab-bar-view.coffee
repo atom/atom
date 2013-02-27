@@ -10,6 +10,8 @@ class TabBarView extends SortableList
 
   initialize: (@pane) ->
     super
+
+    @paneContainer = @pane.getContainer()
     @addTabForItem(item) for item in @pane.getItems()
 
     @pane.on 'pane:item-added', (e, item, index) => @addTabForItem(item, index)
@@ -91,39 +93,26 @@ class TabBarView extends SortableList
 
   onDragStart: (event) =>
     super
-
     pane = $(event.target).closest('.pane')
-    paneIndex = rootView.indexOfPane(pane)
+    paneIndex = @paneContainer.indexOfPane(pane)
     event.originalEvent.dataTransfer.setData 'from-pane-index', paneIndex
 
   onDrop: (event) =>
     super
 
-    droppedNearTab = @getSortableElement(event)
-    transfer = event.originalEvent.dataTransfer
-    previousDraggedTabIndex = transfer.getData 'sortable-index'
+    dataTransfer  = event.originalEvent.dataTransfer
+    fromIndex     = parseInt(dataTransfer.getData('sortable-index'))
+    fromPaneIndex = parseInt(dataTransfer.getData('from-pane-index'))
+    fromPane      = @paneContainer.paneAtIndex(fromPaneIndex)
+    toIndex       = @getSortableElement(event).index()
+    toPane        = $(event.target).closest('.pane').view()
+    draggedTab    = fromPane.find(".tabs .sortable:eq(#{fromIndex})").view()
+    item          = draggedTab.item
 
-    fromPaneIndex = ~~transfer.getData 'from-pane-index'
-    toPaneIndex   = rootView.indexOfPane($(event.target).closest('.pane'))
-    fromPane      = $(rootView.find('.pane')[fromPaneIndex])
-    fromEditor    = fromPane.find('.editor').view()
-    draggedTab    = fromPane.find(".#{TabBarView.viewClass()} .sortable:eq(#{previousDraggedTabIndex})")
-
-    if draggedTab.is(droppedNearTab)
-      fromEditor.focus()
-      return
-
-    if fromPaneIndex == toPaneIndex
-      droppedNearTab = @getSortableElement(event)
-      fromIndex = draggedTab.index()
-      toIndex = droppedNearTab.index()
+    if toPane is fromPane
       toIndex++ if fromIndex > toIndex
-      fromEditor.moveEditSessionToIndex(fromIndex, toIndex)
-      fromEditor.focus()
+      toPane.moveItem(item, toIndex)
     else
-      toEditor = rootView.find(".pane:eq(#{toPaneIndex}) > .editor").view()
-      if @containsEditSession(toEditor, fromEditor.editSessions[draggedTab.index()])
-        fromEditor.focus()
-      else
-        fromEditor.moveEditSessionToEditor(draggedTab.index(), toEditor, droppedNearTab.index() + 1)
-        toEditor.focus()
+      fromPane.moveItemToPane(item, toPane, toIndex)
+    toPane.showItem(item)
+    toPane.focus()

@@ -114,6 +114,10 @@ class Pane extends View
     @items.splice(newIndex, 0, item)
     @trigger 'pane:item-moved', [item, newIndex]
 
+  moveItemToPane: (item, pane, index) ->
+    @removeItem(item)
+    pane.addItem(item, index)
+
   itemForPath: (path) ->
     _.detect @items, (item) -> item.getPath?() is path
 
