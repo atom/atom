@@ -46,9 +46,6 @@
 [submodule "vendor/packages/python.tmbundle"]
 	path = vendor/packages/python.tmbundle
 	url = https://github.com/textmate/python.tmbundle
-[submodule "prebuilt-cef"]
-	path = prebuilt-cef
-	url = https://github.com/github/prebuilt-cef
 [submodule "vendor/packages/clojure.tmbundle"]
 	path = vendor/packages/clojure.tmbundle
 	url = https://github.com/mmcgrana/textmate-clojure
