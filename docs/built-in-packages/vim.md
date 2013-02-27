@@ -179,7 +179,8 @@ Keys: `q n` `@ n`
 Events: `vim:command-start-recording` `vim:command-replay-recording`
 
 Notes: There is also the `vim:command-stop-recording` event that should
-be bound in the `.editor.recording` context instead of just `.editor`
+be bound in the `.editor.recording` context instead of
+`.editor.command-mode`
 
 #### Ex mode
 
