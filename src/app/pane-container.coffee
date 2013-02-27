@@ -58,10 +58,10 @@ class PaneContainer extends View
     @find('.pane.active').view() ? @find('.pane:first').view()
 
   getActivePaneItem: ->
-    @getActivePane()?.currentItem
+    @getActivePane()?.activeItem
 
   getActiveView: ->
-    @getActivePane()?.currentView
+    @getActivePane()?.activeView
 
   adjustPaneDimensions: ->
     if root = @getRoot()
