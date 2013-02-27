@@ -55,3 +55,6 @@
 [submodule "vendor/packages/yaml.tmbundle"]
 	path = vendor/packages/yaml.tmbundle
 	url = https://github.com/textmate/yaml.tmbundle.git
+[submodule "vendor/packages/java.tmbundle"]
+	path = vendor/packages/java.tmbundle
+	url = https://github.com/textmate/java.tmbundle.git
