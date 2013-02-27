@@ -9,33 +9,41 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  [buffer, editor, cachedLineHeight] = []
+  [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    editor = new Editor(project.buildEditSession('sample.js'))
-    buffer = editor.getBuffer()
+    editSession = project.buildEditSession('sample.js')
+    buffer = editSession.buffer
+    editor = new Editor(editSession)
     editor.lineOverdraw = 2
     editor.isFocused = true
     editor.enableKeymap()
     editor.attachToDom = ({ heightInLines, widthInChars } = {}) ->
       heightInLines ?= this.getBuffer().getLineCount()
       this.height(getLineHeight() * heightInLines)
-      this.width(@charWidth * widthInChars) if widthInChars
+      this.width(getCharWidth() * widthInChars) if widthInChars
       $('#jasmine-content').append(this)
-
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
+    calcDimensions()
+    cachedLineHeight
+
+  getCharWidth = ->
+    return cachedCharWidth if cachedCharWidth?
+    calcDimensions()
+    cachedCharWidth
+
+  calcDimensions = ->
     editorForMeasurement = new Editor(editSession: project.buildEditSession('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
+    cachedCharWidth = editorForMeasurement.charWidth
     editorForMeasurement.remove()
-    cachedLineHeight
 
   describe "construction", ->
-    it "throws an error if no editor session is given unless deserializing", ->
+    it "throws an error if no edit session is given", ->
       expect(-> new Editor).toThrow()
-      expect(-> new Editor(deserializing: true)).not.toThrow()
 
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
@@ -92,147 +100,67 @@ describe "Editor", ->
         expect(atom.confirm).toHaveBeenCalled()
 
   describe ".remove()", ->
-    it "removes subscriptions from all edit session buffers", ->
-      editSession1 = editor.activeEditSession
-      subscriberCount1 = editSession1.buffer.subscriptionCount()
-      editSession2 = project.buildEditSession(project.resolve('sample.txt'))
-      expect(subscriberCount1).toBeGreaterThan 1
-
-      editor.edit(editSession2)
-      subscriberCount2 = editSession2.buffer.subscriptionCount()
-      expect(subscriberCount2).toBeGreaterThan 1
-
+    it "destroys the edit session", ->
       editor.remove()
-      expect(editSession1.buffer.subscriptionCount()).toBeLessThan subscriberCount1
-      expect(editSession2.buffer.subscriptionCount()).toBeLessThan subscriberCount2
+      expect(editor.activeEditSession.destroyed).toBeTruthy()
 
   describe ".edit(editSession)", ->
-    otherEditSession = null
+    [newEditSession, newBuffer] = []
 
     beforeEach ->
-      otherEditSession = project.buildEditSession()
+      newEditSession = project.buildEditSession('two-hundred.txt')
+      newBuffer = newEditSession.buffer
 
-    describe "when the edit session wasn't previously assigned to this editor", ->
-      it "adds edit session to editor and triggers the 'editor:edit-session-added' event", ->
-        editSessionAddedHandler = jasmine.createSpy('editSessionAddedHandler')
-        editor.on 'editor:edit-session-added', editSessionAddedHandler
+    it "updates the rendered lines, cursors, selections, scroll position, and event subscriptions to match the given edit session", ->
+      editor.attachToDom(heightInLines: 5, widthInChars: 30)
+      editor.setCursorBufferPosition([3, 5])
+      editor.scrollToBottom()
+      editor.scrollView.scrollLeft(150)
+      previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
+      previousScrollTop = editor.scrollTop()
+      previousScrollLeft = editor.scrollView.scrollLeft()
 
-        originalEditSessionCount = editor.editSessions.length
-        editor.edit(otherEditSession)
-        expect(editor.activeEditSession).toBe otherEditSession
-        expect(editor.editSessions.length).toBe originalEditSessionCount + 1
+      newEditSession.scrollTop = 120
+      newEditSession.setSelectedBufferRange([[40, 0], [43, 1]])
 
-        expect(editSessionAddedHandler).toHaveBeenCalled()
-        expect(editSessionAddedHandler.argsForCall[0][1..2]).toEqual [otherEditSession, originalEditSessionCount]
+      editor.edit(newEditSession)
+      { firstRenderedScreenRow, lastRenderedScreenRow } = editor
+      expect(editor.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe newBuffer.lineForRow(firstRenderedScreenRow)
+      expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe newBuffer.lineForRow(editor.lastRenderedScreenRow)
+      expect(editor.scrollTop()).toBe 120
+      expect(editor.getSelectionView().regions[0].position().top).toBe 40 * editor.lineHeight
+      editor.insertText("hello")
+      expect(editor.lineElementForScreenRow(40).text()).toBe "hello3"
 
-    describe "when the edit session was previously assigned to this editor", ->
-      it "restores the previous edit session associated with the editor", ->
-        previousEditSession = editor.activeEditSession
+      editor.edit(editSession)
+      { firstRenderedScreenRow, lastRenderedScreenRow } = editor
+      expect(editor.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe buffer.lineForRow(firstRenderedScreenRow)
+      expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe buffer.lineForRow(editor.lastRenderedScreenRow)
+      expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
+      expect(editor.scrollTop()).toBe previousScrollTop
+      expect(editor.scrollView.scrollLeft()).toBe previousScrollLeft
+      console.log editor.getCursorView().css('left')
+      expect(editor.getCursorView().position()).toEqual { top: 3 * editor.lineHeight, left: 5 * editor.charWidth }
+      editor.insertText("goodbye")
+      expect(editor.lineElementForScreenRow(3).text()).toMatch /^    vgoodbyear/
 
-        editor.edit(otherEditSession)
-        expect(editor.activeEditSession).not.toBe previousEditSession
+    it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
+      path = "/tmp/atom-changed-file.txt"
+      fs.write(path, "")
+      tempEditSession = project.buildEditSession(path)
+      editor.edit(tempEditSession)
+      tempEditSession.insertText("a buffer change")
 
-        editor.edit(previousEditSession)
-        expect(editor.activeEditSession).toBe previousEditSession
+      spyOn(atom, "confirm")
 
-    it "handles buffer manipulation correctly after switching to a new edit session", ->
-      editor.attachToDom()
-      editor.insertText("abc\n")
-      expect(editor.lineElementForScreenRow(0).text()).toBe 'abc'
+      contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
+      tempEditSession.on 'contents-conflicted', contentsConflictedHandler
+      fs.write(path, "a file change")
+      waitsFor ->
+        contentsConflictedHandler.callCount > 0
 
-      editor.edit(otherEditSession)
-      expect(editor.lineElementForScreenRow(0).html()).toBe '&nbsp;'
-
-      editor.insertText("def\n")
-      expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
-
-  describe "switching edit sessions", ->
-    [session0, session1, session2] = []
-
-    beforeEach ->
-      session0 = editor.activeEditSession
-
-      editor.edit(project.buildEditSession('sample.txt'))
-      session1 = editor.activeEditSession
-
-      editor.edit(project.buildEditSession('two-hundred.txt'))
-      session2 = editor.activeEditSession
-
-    describe ".setActiveEditSessionIndex(index)", ->
-      it "restores the buffer, cursors, selections, and scroll position of the edit session associated with the index", ->
-        editor.attachToDom(heightInLines: 10)
-        editor.setSelectedBufferRange([[40, 0], [43, 1]])
-        expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
-        previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
-
-        editor.scrollTop(750)
-        expect(editor.scrollTop()).toBe 750
-
-        editor.setActiveEditSessionIndex(0)
-        expect(editor.getBuffer()).toBe session0.buffer
-
-        editor.setActiveEditSessionIndex(2)
-        expect(editor.getBuffer()).toBe session2.buffer
-        expect(editor.getCursorScreenPosition()).toEqual [43, 1]
-        expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
-        expect(editor.scrollTop()).toBe 750
-        expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
-        expect(editor.getSelectionView().find('.region')).toExist()
-
-        editor.setActiveEditSessionIndex(0)
-        editor.activeEditSession.selectToEndOfLine()
-        expect(editor.getSelectionView().find('.region')).toExist()
-
-      it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
-        path = "/tmp/atom-changed-file.txt"
-        fs.write(path, "")
-        editSession = project.buildEditSession(path)
-        editor.edit editSession
-        editSession.insertText("a buffer change")
-
-        spyOn(atom, "confirm")
-
-        contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
-        editSession.on 'contents-conflicted', contentsConflictedHandler
-        fs.write(path, "a file change")
-        waitsFor ->
-          contentsConflictedHandler.callCount > 0
-
-        runs ->
-          expect(atom.confirm).toHaveBeenCalled()
-
-      it "emits an editor:active-edit-session-changed event with the edit session and its index", ->
-        activeEditSessionChangeHandler = jasmine.createSpy('activeEditSessionChangeHandler')
-        editor.on 'editor:active-edit-session-changed', activeEditSessionChangeHandler
-
-        editor.setActiveEditSessionIndex(2)
-        expect(activeEditSessionChangeHandler).toHaveBeenCalled()
-        expect(activeEditSessionChangeHandler.argsForCall[0][1..2]).toEqual [editor.activeEditSession, 2]
-        activeEditSessionChangeHandler.reset()
-
-        editor.setActiveEditSessionIndex(0)
-        expect(activeEditSessionChangeHandler.argsForCall[0][1..2]).toEqual [editor.activeEditSession, 0]
-        activeEditSessionChangeHandler.reset()
-
-    describe ".loadNextEditSession()", ->
-      it "loads the next editor state and wraps to beginning when end is reached", ->
-        expect(editor.activeEditSession).toBe session2
-        editor.loadNextEditSession()
-        expect(editor.activeEditSession).toBe session0
-        editor.loadNextEditSession()
-        expect(editor.activeEditSession).toBe session1
-        editor.loadNextEditSession()
-        expect(editor.activeEditSession).toBe session2
-
-    describe ".loadPreviousEditSession()", ->
-      it "loads the next editor state and wraps to beginning when end is reached", ->
-        expect(editor.activeEditSession).toBe session2
-        editor.loadPreviousEditSession()
-        expect(editor.activeEditSession).toBe session1
-        editor.loadPreviousEditSession()
-        expect(editor.activeEditSession).toBe session0
-        editor.loadPreviousEditSession()
-        expect(editor.activeEditSession).toBe session2
+      runs ->
+        expect(atom.confirm).toHaveBeenCalled()
 
   describe ".save()", ->
     describe "when the current buffer has a path", ->
@@ -1817,11 +1745,14 @@ describe "Editor", ->
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
-        editor.edit(fixturesProject.buildEditSession(null))
+        emptyEditSession = fixturesProject.buildEditSession(null)
+        editor.edit(emptyEditSession)
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 
-        editor.setActiveEditSessionIndex(0)
-        editor.setActiveEditSessionIndex(1)
+        editor.edit(editSession)
+        expect(editor.gutter.lineNumbers.find('.line-number').length).toBeGreaterThan 1
+
+        editor.edit(emptyEditSession)
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 
     describe "when the editor is mini", ->
@@ -2039,14 +1970,6 @@ describe "Editor", ->
 
         editor.scrollTop(0)
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
-
-  describe ".getOpenBufferPaths()", ->
-    it "returns the paths of all non-anonymous buffers with edit sessions on this editor", ->
-      editor.edit(project.buildEditSession('sample.txt'))
-      editor.edit(project.buildEditSession('two-hundred.txt'))
-      editor.edit(project.buildEditSession())
-      paths = editor.getOpenBufferPaths().map (path) -> project.relativize(path)
-      expect(paths).toEqual = ['sample.js', 'sample.txt', 'two-hundred.txt']
 
   describe "paging up and down", ->
     beforeEach ->

@@ -49,8 +49,6 @@ class Editor extends View
   lineCache: null
   isFocused: false
   activeEditSession: null
-  closedEditSessions: null
-  editSessions: null
   attached: false
   lineOverdraw: 10
   pendingChanges: null
@@ -59,10 +57,7 @@ class Editor extends View
   redrawOnReattach: false
 
   @deserialize: (state) ->
-    editor = new Editor(mini: state.mini, deserializing: true)
-    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, project)
-    editor.pushEditSession(editSession) for editSession in editSessions
-    editor.setActiveEditSessionIndex(state.activeEditSessionIndex)
+    editor = new Editor(mini: state.mini, editSession: deserialize(state.editSession))
     editor.isFocused = state.isFocused
     editor
 
@@ -70,7 +65,7 @@ class Editor extends View
     if editSessionOrOptions instanceof EditSession
       editSession = editSessionOrOptions
     else
-      {editSession, @mini, deserializing} = (editSessionOrOptions ? {})
+      {editSession, @mini} = (editSessionOrOptions ? {})
 
     requireStylesheet 'editor.css'
 
@@ -81,8 +76,6 @@ class Editor extends View
     @handleEvents()
     @cursorViews = []
     @selectionViews = []
-    @editSessions = []
-    @closedEditSessions = []
     @pendingChanges = []
     @newCursors = []
     @newSelections = []
@@ -96,14 +89,13 @@ class Editor extends View
         tabLength: 2
         softTabs: true
       )
-    else if not deserializing
-      throw new Error("Editor must be constructed with an 'editSession' or 'mini: true' param")
+    else
+      throw new Error("Must supply an EditSession or mini: true")
 
   serialize: ->
     @saveScrollPositionForActiveEditSession()
     deserializer: "Editor"
-    editSessions: @editSessions.map (session) -> session.serialize()
-    activeEditSessionIndex: @getActiveEditSessionIndex()
+    editSession: @activeEditSession.serialize()
     isFocused: @isFocused
 
   copy: ->
@@ -171,20 +163,9 @@ class Editor extends View
         'editor:fold-current-row': @foldCurrentRow
         'editor:unfold-current-row': @unfoldCurrentRow
         'editor:fold-selection': @foldSelection
-        'editor:show-buffer-1': => @setActiveEditSessionIndex(0) if @editSessions[0]
-        'editor:show-buffer-2': => @setActiveEditSessionIndex(1) if @editSessions[1]
-        'editor:show-buffer-3': => @setActiveEditSessionIndex(2) if @editSessions[2]
-        'editor:show-buffer-4': => @setActiveEditSessionIndex(3) if @editSessions[3]
-        'editor:show-buffer-5': => @setActiveEditSessionIndex(4) if @editSessions[4]
-        'editor:show-buffer-6': => @setActiveEditSessionIndex(5) if @editSessions[5]
-        'editor:show-buffer-7': => @setActiveEditSessionIndex(6) if @editSessions[6]
-        'editor:show-buffer-8': => @setActiveEditSessionIndex(7) if @editSessions[7]
-        'editor:show-buffer-9': => @setActiveEditSessionIndex(8) if @editSessions[8]
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
-        'editor:close-other-edit-sessions': @destroyInactiveEditSessions
-        'editor:close-all-edit-sessions': @destroyAllEditSessions
         'editor:select-grammar': @selectGrammar
         'editor:copy-path': @copyPathToPasteboard
         'editor:move-line-up': @moveLineUp
@@ -434,10 +415,7 @@ class Editor extends View
         e.pageX = @renderedLines.offset().left
         onMouseDown(e)
 
-      @subscribe syntax, 'grammars-loaded', =>
-        @reloadGrammar()
-        for session in @editSessions
-          session.reloadGrammar() unless session is @activeEditSession
+      @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
@@ -479,92 +457,17 @@ class Editor extends View
     @trigger 'editor:attached', [this]
 
   edit: (editSession) ->
-    index = @editSessions.indexOf(editSession)
-    index = @pushEditSession(editSession) if index == -1
-    @setActiveEditSessionIndex(index)
-
-  getModel: ->
-    @activeEditSession
-
-  setModel: (editSession) ->
-    @edit(editSession)
-
-  pushEditSession: (editSession) ->
-    index = @editSessions.length
-    @editSessions.push(editSession)
-    @closedEditSessions = @closedEditSessions.filter ({path})->
-      path isnt editSession.getPath()
-#     editSession.on 'destroyed', => @editSessionDestroyed(editSession)
-    @trigger 'editor:edit-session-added', [editSession, index]
-    index
-
-  getBuffer: -> @activeEditSession.buffer
-
-  undoDestroySession: ->
-    return unless @closedEditSessions.length > 0
-
-    {path, index} = @closedEditSessions.pop()
-    rootView.open(path)
-    activeIndex = @getActiveEditSessionIndex()
-    @moveEditSessionToIndex(activeIndex, index) if index < activeIndex
-
-  destroyActiveEditSession: ->
-    @destroyEditSessionIndex(@getActiveEditSessionIndex())
-
-  destroyEditSessionIndex: (index, callback) ->
-    return if @mini
-
-    editSession = @editSessions[index]
-    destroySession = =>
-      path = editSession.getPath()
-      @closedEditSessions.push({path, index}) if path
-      editSession.destroy()
-      callback?(index)
-
-    if editSession.isModified() and not editSession.hasEditors()
-      @promptToSaveDirtySession(editSession, destroySession)
-    else
-      destroySession()
-
-  destroyInactiveEditSessions: ->
-    destroyIndex = (index) =>
-      index++ if index is @getActiveEditSessionIndex()
-      @destroyEditSessionIndex(index, destroyIndex) if @editSessions[index]
-    destroyIndex(0)
-
-  destroyAllEditSessions: ->
-    destroyIndex = (index) =>
-      @destroyEditSessionIndex(index, destroyIndex) if @editSessions[index]
-    destroyIndex(0)
-
-  editSessionDestroyed: (editSession) ->
-    index = @editSessions.indexOf(editSession)
-    @loadPreviousEditSession() if index is @getActiveEditSessionIndex() and @editSessions.length > 1
-    _.remove(@editSessions, editSession)
-    @trigger 'editor:edit-session-removed', [editSession, index]
-    @remove() if @editSessions.length is 0
-
-  loadNextEditSession: ->
-    nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
-    @setActiveEditSessionIndex(nextIndex)
-
-  loadPreviousEditSession: ->
-    previousIndex = @getActiveEditSessionIndex() - 1
-    previousIndex = @editSessions.length - 1 if previousIndex < 0
-    @setActiveEditSessionIndex(previousIndex)
-
-  getActiveEditSessionIndex: ->
-    return index for session, index in @editSessions when session == @activeEditSession
-
-  setActiveEditSessionIndex: (index) ->
-    throw new Error("Edit session not found") unless @editSessions[index]
+    return if editSession is @activeEditSession
 
     if @activeEditSession
       @autosave() if config.get "editor.autosave"
       @saveScrollPositionForActiveEditSession()
       @activeEditSession.off(".editor")
 
-    @activeEditSession = @editSessions[index]
+    @activeEditSession = editSession
+
+    return unless @activeEditSession?
+
     @activeEditSession.setVisible(true)
 
     @activeEditSession.on "contents-conflicted.editor", =>
@@ -575,11 +478,18 @@ class Editor extends View
       @trigger 'editor:path-changed'
 
     @trigger 'editor:path-changed'
-    @trigger 'editor:active-edit-session-changed', [@activeEditSession, index]
     @resetDisplay()
 
     if @attached and @activeEditSession.buffer.isInConflict()
-      setTimeout(( =>@showBufferConflictAlert(@activeEditSession)), 0) # Display after editSession has a chance to display
+      _.defer => @showBufferConflictAlert(@activeEditSession) # Display after editSession has a chance to display
+
+  getModel: ->
+    @activeEditSession
+
+  setModel: (editSession) ->
+    @edit(editSession)
+
+  getBuffer: -> @activeEditSession.buffer
 
   showBufferConflictAlert: (editSession) ->
     atom.confirm(
@@ -588,30 +498,6 @@ class Editor extends View
       "Reload", (=> editSession.buffer.reload()),
       "Cancel"
     )
-
-  moveEditSessionToIndex: (fromIndex, toIndex) ->
-    return if fromIndex is toIndex
-    editSession = @editSessions.splice(fromIndex, 1)
-    @editSessions.splice(toIndex, 0, editSession[0])
-    @trigger 'editor:edit-session-order-changed', [editSession, fromIndex, toIndex]
-    @setActiveEditSessionIndex(toIndex)
-
-  moveEditSessionToEditor: (fromIndex, toEditor, toIndex) ->
-    fromEditSession = @editSessions[fromIndex]
-    toEditSession = fromEditSession.copy()
-    @destroyEditSessionIndex(fromIndex)
-    toEditor.edit(toEditSession)
-    toEditor.moveEditSessionToIndex(toEditor.getActiveEditSessionIndex(), toIndex)
-
-  activateEditSessionForPath: (path) ->
-    for editSession, index in @editSessions
-      if editSession.buffer.getPath() == path
-        @setActiveEditSessionIndex(index)
-        return @activeEditSession
-    false
-
-  getOpenBufferPaths: ->
-    editSession.buffer.getPath() for editSession in @editSessions when editSession.buffer.getPath()?
 
   scrollTop: (scrollTop, options={}) ->
     return @cachedScrollTop or 0 unless scrollTop?
@@ -819,16 +705,9 @@ class Editor extends View
 
   afterRemove: ->
     @removed = true
-    @destroyEditSessions()
+    @activeEditSession.destroy()
     $(window).off(".editor-#{@id}")
     $(document).off(".editor-#{@id}")
-
-  getEditSessions: ->
-    new Array(@editSessions...)
-
-  destroyEditSessions: ->
-    for session in @getEditSessions()
-      session.destroy()
 
   getCursorView: (index) ->
     index ?= @cursorViews.length - 1
