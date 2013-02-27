@@ -40,7 +40,7 @@ class TreeView extends ScrollView
       else
         @selectActiveFile()
 
-    rootView.on 'root-view:active-path-changed', => @selectActiveFile()
+    rootView.on 'pane:active-item-changed pane:became-active', => @selectActiveFile()
     project.on 'path-changed', => @updateRoot()
     @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()
 
@@ -98,7 +98,7 @@ class TreeView extends ScrollView
         @openSelectedEntry(false) if entry instanceof FileView
       when 2
         if entry.is('.selected.file')
-          rootView.getActiveEditor().focus()
+          rootView.getActiveView().focus()
         else if entry.is('.selected.directory')
           entry.toggleExpansion()
 
@@ -119,6 +119,7 @@ class TreeView extends ScrollView
 
   updateRoot: ->
     @root?.remove()
+
     if rootDirectory = project.getRootDirectory()
       @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: project)
       @treeViewList.append(@root)
@@ -126,14 +127,14 @@ class TreeView extends ScrollView
       @root = null
 
   selectActiveFile: ->
-    activeFilePath = rootView.getActiveEditor()?.getPath()
+    activeFilePath = rootView.getActiveView()?.getPath()
     @selectEntryForPath(activeFilePath) if activeFilePath
 
   revealActiveFile: ->
     @attach()
     @focus()
 
-    return unless activeFilePath = rootView.getActiveEditor()?.getPath()
+    return unless activeFilePath = rootView.getActiveView()?.getPath()
 
     activePathComponents = project.relativize(activeFilePath).split('/')
     currentPath = project.getPath().replace(/\/$/, '')
