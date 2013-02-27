@@ -54,6 +54,9 @@ class Git
   getPathStatus: (path) ->
     pathStatus = @getRepo().getStatus(@relativize(path))
 
+  getAllStatuses: (path) ->
+    @getRepo().getStatuses()
+
   isPathIgnored: (path) ->
     @getRepo().isIgnored(@relativize(path))
 

@@ -8,6 +8,14 @@ namespace v8_extensions {
   private:
     git_repository *repo;
 
+    static int CollectStatus(const char *path, unsigned int status, void *payload) {
+      if ((status & GIT_STATUS_IGNORED) == 0) {
+        std::map<const char*, unsigned int> *statuses = (std::map<const char*, unsigned int> *) payload;
+        statuses->insert(std::pair<const char*, unsigned int>(path, status));
+      }
+      return 0;
+    }
+
   public:
     GitRepository(const char *pathInRepo) {
       if (git_repository_open_ext(&repo, pathInRepo, 0, NULL) != GIT_OK) {
@@ -53,6 +61,17 @@ namespace v8_extensions {
       }
 
       return CefV8Value::CreateNull();
+    }
+
+    CefRefPtr<CefV8Value> GetStatuses() {
+      std::map<const char*, unsigned int> statuses;
+      git_status_foreach(repo, CollectStatus, &statuses);
+      std::map<const char*, unsigned int>::iterator iter = statuses.begin();
+      CefRefPtr<CefV8Value> v8Statuses = CefV8Value::CreateObject(NULL);
+      for (; iter != statuses.end(); ++iter) {
+        v8Statuses->SetValue(iter->first, CefV8Value::CreateInt(iter->second), V8_PROPERTY_ATTRIBUTE_NONE);
+      }
+      return v8Statuses;
     }
 
     CefRefPtr<CefV8Value> IsIgnored(const char *path) {
@@ -190,7 +209,7 @@ namespace v8_extensions {
   void Git::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
       "getRepository", "getHead", "getPath", "isIgnored", "getStatus", "checkoutHead",
-      "getDiffStats", "isSubmodule", "refreshIndex", "destroy"
+      "getDiffStats", "isSubmodule", "refreshIndex", "destroy", "getStatuses"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -274,6 +293,12 @@ namespace v8_extensions {
       if (name == "destroy") {
         GitRepository *userData = (GitRepository *)object->GetUserData().get();
         userData->Destroy();
+        return true;
+      }
+
+      if (name == "getStatuses") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->GetStatuses();
         return true;
       }
 

@@ -147,3 +147,25 @@ describe "Git", ->
       expect(repo.getDiffStats(path)).toEqual {added: 0, deleted: 0}
       fs.write(path, "#{originalPathText} edited line")
       expect(repo.getDiffStats(path)).toEqual {added: 1, deleted: 1}
+
+  describe ".getStatuses()", ->
+    [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
+
+    beforeEach ->
+      repo = new Git(require.resolve('fixtures/git/working-dir'))
+      modifiedPath = fixturesProject.resolve('git/working-dir/file.txt')
+      originalModifiedPathText = fs.read(modifiedPath)
+      newPath = fixturesProject.resolve('git/working-dir/untracked.txt')
+      cleanPath = fixturesProject.resolve('git/working-dir/other.txt')
+      fs.write(newPath, '')
+
+    afterEach ->
+      fs.write(modifiedPath, originalModifiedPathText)
+      fs.remove(newPath) if fs.exists(newPath)
+
+    it "returns status information for all new and modified files", ->
+      fs.write(modifiedPath, 'making this path modified')
+      statuses = repo.getAllStatuses()
+      expect(statuses[cleanPath]).toBeUndefined()
+      expect(repo.isStatusNew(statuses[repo.relativize(newPath)])).toBeTruthy()
+      expect(repo.isStatusModified(statuses[repo.relativize(modifiedPath)])).toBeTruthy()

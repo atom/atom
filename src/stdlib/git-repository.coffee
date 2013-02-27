@@ -10,6 +10,7 @@ class GitRepository
   getHead: $git.getHead
   getPath: $git.getPath
   getStatus: $git.getStatus
+  getStatuses: $git.getStatuses
   isIgnored: $git.isIgnored
   checkoutHead: $git.checkoutHead
   getDiffStats: $git.getDiffStats
