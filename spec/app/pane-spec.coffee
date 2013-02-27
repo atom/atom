@@ -153,6 +153,31 @@ describe "Pane", ->
       expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [editSession1, 1]
       itemMovedHandler.reset()
 
+  describe ".moveItemToPane(item, pane, index)", ->
+    [pane2, view3] = []
+
+    beforeEach ->
+      view3 = $$ -> @div id: 'view-3', "View 3"
+      pane2 = pane.splitRight(view3)
+
+    it "moves the item to the given pane at the given index", ->
+      pane.moveItemToPane(view1, pane2, 1)
+      expect(pane.getItems()).toEqual [editSession1, view2, editSession2]
+      expect(pane2.getItems()).toEqual [view3, view1]
+
+    describe "when it is the last item on the source pane", ->
+      it "removes the source pane, but does not destroy the item", ->
+        pane.removeItem(view1)
+        pane.removeItem(view2)
+        pane.removeItem(editSession2)
+
+        expect(pane.getItems()).toEqual [editSession1]
+        pane.moveItemToPane(editSession1, pane2, 1)
+
+        expect(pane.hasParent()).toBeFalsy()
+        expect(pane2.getItems()).toEqual [view3, editSession1]
+        expect(editSession1.destroyed).toBeFalsy()
+
   describe "core:close", ->
     it "destroys the active item and does not bubble the event", ->
       containerCloseHandler = jasmine.createSpy("containerCloseHandler")
