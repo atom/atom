@@ -3,12 +3,8 @@ fs = require 'fs'
 _ = require 'underscore'
 
 describe "Project", ->
-  project = null
   beforeEach ->
-    project = new Project(require.resolve('fixtures/dir'))
-
-  afterEach ->
-    project.destroy()
+    project.setPath(project.resolve('dir'))
 
   describe "when editSession is destroyed", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
