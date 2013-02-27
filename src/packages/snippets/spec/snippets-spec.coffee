@@ -21,8 +21,8 @@ describe "Snippets extension", ->
 
     window.loadPackage("snippets")
 
-    editor = rootView.getActiveEditor()
-    editSession = rootView.getActiveEditSession()
+    editor = rootView.getActiveView()
+    editSession = rootView.getActivePaneItem()
     buffer = editor.getBuffer()
     rootView.simulateDomAttachment()
     rootView.enableKeymap()
