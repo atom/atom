@@ -1,6 +1,6 @@
 module.exports =
   findMisspellings: (text) ->
-    wordRegex = /(?:^|\s)([a-zA-Z]+)(?=\s|\.|$)/g
+    wordRegex = /(?:^|\s)([a-zA-Z']+)(?=\s|\.|$)/g
     row = 0
     misspellings = []
     for line in text.split('\n')
