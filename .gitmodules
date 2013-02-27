@@ -67,3 +67,6 @@
 [submodule "vendor/packages/sass.tmbundle"]
 	path = vendor/packages/sass.tmbundle
 	url = https://github.com/alexsancho/SASS.tmbundle.git
+[submodule "vendor/packages/less.tmbundle"]
+	path = vendor/packages/less.tmbundle
+	url = https://github.com/mathewbyrne/less.tmbundle.git
