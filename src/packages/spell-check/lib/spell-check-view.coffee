@@ -1,5 +1,4 @@
 {View} = require 'space-pen'
-$ = require 'jquery'
 _ = require 'underscore'
 SpellCheckTask = require './spell-check-task'
 MisspellingView = require './misspelling-view'
@@ -38,16 +37,17 @@ class SpellCheckView extends View
       view.destroy() for view in @views
       @views = []
 
-  addView: (misspelling)->
-    view = new MisspellingView(misspelling, @editor)
-    @views.push(view)
-    @append(view)
+  addViews: (misspellings) ->
+    for misspelling in misspellings
+      view = new MisspellingView(misspelling, @editor)
+      @views.push(view)
+      @append(view)
 
   updateMisspellings: ->
     @task?.abort()
 
     callback = (misspellings) =>
       @destroyViews()
-      @addView(misspelling) for misspelling in misspellings
+      @addViews(misspellings)
     @task = new SpellCheckTask(@buffer.getText(), callback)
     @task.start()
