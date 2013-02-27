@@ -217,15 +217,15 @@ describe "RootView", ->
         expect(rootView.getActivePane()).toBeUndefined()
 
       describe "when called with no path", ->
-        it "opens / returns an edit session for an empty buffer in a new editor", ->
+        it "opens and returns an edit session for an empty buffer in a new editor", ->
           editSession = rootView.open()
-          expect(rootView.getActivePane().currentItem).toBe editSession
+          expect(rootView.getActivePane().activeItem).toBe editSession
           expect(editSession.getPath()).toBeUndefined()
 
       describe "when called with a path", ->
         it "opens a buffer with the given path in a new editor", ->
           editSession = rootView.open('b')
-          expect(rootView.getActivePane().currentItem).toBe editSession
+          expect(rootView.getActivePane().activeItem).toBe editSession
           expect(editSession.getPath()).toBe require.resolve('fixtures/dir/b')
 
     describe "when there is an active pane", ->
@@ -238,26 +238,26 @@ describe "RootView", ->
         it "opens an edit session with an empty buffer in the active pane", ->
           editSession = rootView.open()
           expect(activePane.getItems().length).toBe initialItemCount + 1
-          expect(activePane.currentItem).toBe editSession
+          expect(activePane.activeItem).toBe editSession
           expect(editSession.getPath()).toBeUndefined()
 
       describe "when called with a path", ->
         describe "when the active pane already has an edit session item for the path being opened", ->
           it "shows the existing edit session on the pane", ->
-            previousEditSession = activePane.currentItem
+            previousEditSession = activePane.activeItem
 
             editSession = rootView.open('b')
-            expect(activePane.currentItem).toBe editSession
+            expect(activePane.activeItem).toBe editSession
 
             editSession = rootView.open('a')
             expect(editSession).not.toBe previousEditSession
-            expect(activePane.currentItem).toBe editSession
+            expect(activePane.activeItem).toBe editSession
 
         describe "when the active pane does not have an edit session item for the path being opened", ->
           it "creates a new edit session for the given path in the active editor", ->
             editSession = rootView.open('b')
             expect(activePane.items.length).toBe 2
-            expect(activePane.currentItem).toBe editSession
+            expect(activePane.activeItem).toBe editSession
 
   describe ".saveAll()", ->
     it "saves all open editors", ->

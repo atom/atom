@@ -672,16 +672,16 @@ class Editor extends View
     @requestDisplayUpdate()
 
   splitLeft: (editSession) ->
-    @pane()?.splitLeft().currentView
+    @pane()?.splitLeft().activeView
 
   splitRight: (editSession) ->
-    @pane()?.splitRight().currentView
+    @pane()?.splitRight().activeView
 
   splitUp: (editSession) ->
-    @pane()?.splitUp().currentView
+    @pane()?.splitUp().activeView
 
   splitDown: (editSession) ->
-    @pane()?.splitDown().currentView
+    @pane()?.splitDown().activeView
 
   pane: ->
     @closest('.pane').view()
