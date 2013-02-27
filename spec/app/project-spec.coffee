@@ -20,6 +20,16 @@ describe "Project", ->
       anotherEditSession.destroy()
       expect(project.editSessions.length).toBe 0
 
+  describe "when an edit session is saved and the project has no path", ->
+    it "sets the project's path to the saved file's parent directory", ->
+      path = project.resolve('a')
+      project.setPath(undefined)
+      expect(project.getPath()).toBeUndefined()
+      editSession = project.buildEditSession()
+      editSession.saveAs('/tmp/atom-test-save-sets-project-path')
+      expect(project.getPath()).toBe '/tmp'
+      fs.remove('/tmp/atom-test-save-sets-project-path')
+
   describe ".buildEditSession(path)", ->
     [absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->

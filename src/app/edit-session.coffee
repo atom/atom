@@ -44,6 +44,7 @@ class EditSession
 
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
+      @project.setPath(fs.directory(@getPath())) unless @project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
