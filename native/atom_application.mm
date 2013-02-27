@@ -206,14 +206,6 @@
   }
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification *)notification {
-  if (!_filesOpened && [self shouldOpenFiles]) {
-    NSString *path = [self.arguments objectForKey:@"path"];
-    NSNumber *pid = [self.arguments objectForKey:@"wait"] ? [self.arguments objectForKey:@"pid"] : nil;
-    [self open:path pidToKillWhenWindowCloses:pid];
-  }
-}
-
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
   _versionMenuItem.title = [NSString stringWithFormat:@"Version %@", version];
@@ -232,6 +224,14 @@
       SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
       [SUUpdater.sharedUpdater checkForUpdatesInBackground];
     }
+  }
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  if (!_filesOpened && [self shouldOpenFiles]) {
+    NSString *path = [self.arguments objectForKey:@"path"];
+    NSNumber *pid = [self.arguments objectForKey:@"wait"] ? [self.arguments objectForKey:@"pid"] : nil;
+    [self open:path pidToKillWhenWindowCloses:pid];
   }
 }
 

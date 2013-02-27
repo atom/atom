@@ -47,11 +47,11 @@ class RootView extends View
         @setTitle("untitled")
 
     @command 'window:increase-font-size', =>
-      config.set("editor.fontSize", config.get("editor.fontSize") + 1)
+      config.set("editor.fontSize", config.get("editor.fontSize") + 2)
 
     @command 'window:decrease-font-size', =>
       fontSize = config.get "editor.fontSize"
-      config.set("editor.fontSize", fontSize - 1) if fontSize > 1
+      config.set("editor.fontSize", fontSize - 2) if fontSize > 2
 
 
     @command 'window:focus-next-pane', => @focusNextPane()
