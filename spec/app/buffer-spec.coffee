@@ -861,8 +861,8 @@ describe 'Buffer', ->
         buffer.undo()
         expect(buffer.getMarkerRange(marker)).toBeUndefined()
 
-        # even "stayValid" markers get destroyed properly
-        marker2 = buffer.markRange([[4, 20], [4, 23]], stayValid: true)
+        # even "invalidationStrategy: never" markers get destroyed properly
+        marker2 = buffer.markRange([[4, 20], [4, 23]], invalidationStrategy: 'never')
         buffer.delete([[4, 15], [4, 25]])
         buffer.destroyMarker(marker2)
         buffer.undo()
@@ -873,7 +873,7 @@ describe 'Buffer', ->
 
       beforeEach ->
         marker1 = buffer.markRange([[4, 20], [4, 23]])
-        marker2 = buffer.markRange([[4, 20], [4, 23]], stayValid: true)
+        marker2 = buffer.markRange([[4, 20], [4, 23]], invalidationStrategy: 'never')
 
       describe "when the buffer changes due to a new operation", ->
         describe "when the change precedes the marker range", ->
@@ -911,14 +911,14 @@ describe 'Buffer', ->
             expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 26]]
 
         describe "when the change surrounds the marker range", ->
-          describe "when the marker was created with stayValid: false (the default)", ->
+          describe "when the marker's invalidation strategy is 'contains' (the default)", ->
             it "invalidates the marker", ->
               buffer.delete([[4, 15], [4, 25]])
               expect(buffer.getMarkerRange(marker1)).toBeUndefined()
               buffer.undo()
               expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
-          describe "when the marker was created with stayValid: true", ->
+          describe "when the marker's invalidation strategy is 'never'", ->
             it "does not invalidate the marker, but sets it to an empty range at the end of the change", ->
               buffer.change([[4, 15], [4, 25]], "...")
               expect(buffer.getMarkerRange(marker2)).toEqual [[4, 18], [4, 18]]
@@ -926,14 +926,14 @@ describe 'Buffer', ->
               expect(buffer.getMarkerRange(marker2)).toEqual [[4, 20], [4, 23]]
 
         describe "when the change straddles the start of the marker range", ->
-          describe "when the marker was created with stayValid: false (the default)", ->
+          describe "when the marker's invalidation strategy is 'contains' (the default)", ->
             it "invalidates the marker", ->
               buffer.delete([[4, 15], [4, 22]])
               expect(buffer.getMarkerRange(marker1)).toBeUndefined()
               buffer.undo()
               expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
-          describe "when the marker was created with stayValid: true", ->
+          describe "when the marker's invalidation strategy is 'never'", ->
             it "moves the start of the marker range to the end of the change", ->
               buffer.delete([[4, 15], [4, 22]])
               expect(buffer.getMarkerRange(marker2)).toEqual [[4, 15], [4, 16]]
@@ -941,14 +941,14 @@ describe 'Buffer', ->
               expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
         describe "when the change straddles the end of the marker range", ->
-          describe "when the marker was created with stayValid: false (the default)", ->
+          describe "when the marker's invalidation strategy is 'contains' (the default)", ->
             it "invalidates the marker", ->
               buffer.delete([[4, 22], [4, 25]])
               expect(buffer.getMarkerRange(marker1)).toBeUndefined()
               buffer.undo()
               expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
-          describe "when the marker was created with stayValid: true", ->
+          describe "when the marker's invalidation strategy is 'never'", ->
             it "moves the end of the marker range to the start of the change", ->
               buffer.delete([[4, 22], [4, 25]])
               expect(buffer.getMarkerRange(marker2)).toEqual [[4, 20], [4, 22]]

@@ -8,9 +8,9 @@ class BufferMarker
   headPosition: null
   tailPosition: null
   suppressObserverNotification: false
-  stayValid: false
+  invalidationStrategy: 'contains'
 
-  constructor: ({@id, @buffer, range, @stayValid, noTail, reverse}) ->
+  constructor: ({@id, @buffer, range, @invalidationStrategy, noTail, reverse}) ->
     @setRange(range, {noTail, reverse})
 
   setRange: (range, options={}) ->
@@ -76,7 +76,7 @@ class BufferMarker
     containsEnd = oldRange.containsPoint(@getEndPosition(), exclusive: true)
     return unless containsEnd or containsStart
 
-    if @stayValid
+    if @invalidationStrategy is 'never'
       previousRange = @getRange()
       if containsStart and containsEnd
         @setRange([oldRange.end, oldRange.end])
