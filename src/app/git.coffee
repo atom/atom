@@ -34,7 +34,7 @@ class Git
       $ = require 'jquery'
       @subscribe $(window), 'focus', =>
         @refreshIndex()
-        @refreshStatuses()
+        @refreshStatus()
 
   getRepo: ->
     unless @repo?
@@ -107,7 +107,7 @@ class Git
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))
 
-  refreshStatuses: ->
+  refreshStatus: ->
     new RepositoryStatusTask(this).start()
 
 _.extend Git.prototype, Subscriber

@@ -148,7 +148,7 @@ describe "Git", ->
       fs.write(path, "#{originalPathText} edited line")
       expect(repo.getDiffStats(path)).toEqual {added: 1, deleted: 1}
 
-  describe ".refreshStatuses()", ->
+  describe ".refreshStatus()", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
 
     beforeEach ->
@@ -167,7 +167,7 @@ describe "Git", ->
       fs.write(modifiedPath, 'making this path modified')
       statusHandler = jasmine.createSpy('statusHandler')
       repo.on 'statuses-changed', statusHandler
-      repo.refreshStatuses()
+      repo.refreshStatus()
 
       waitsFor ->
         statusHandler.callCount > 0
