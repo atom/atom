@@ -64,3 +64,6 @@
 [submodule "vendor/packages/perl.tmbundle"]
 	path = vendor/packages/perl.tmbundle
 	url = https://github.com/textmate/perl.tmbundle.git
+[submodule "vendor/packages/sass.tmbundle"]
+	path = vendor/packages/sass.tmbundle
+	url = https://github.com/alexsancho/SASS.tmbundle.git
