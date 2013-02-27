@@ -89,6 +89,7 @@ class RootView extends View
     @remove()
 
   open: (path, options = {}) ->
+    path = project.resolve(path) if path?
     if activePane = @getActivePane()
       if editSession = activePane.itemForPath(path)
         activePane.showItem(editSession)
