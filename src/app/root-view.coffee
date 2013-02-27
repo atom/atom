@@ -11,6 +11,7 @@ Pane = require 'pane'
 PaneColumn = require 'pane-column'
 PaneRow = require 'pane-row'
 PaneContainer = require 'pane-container'
+EditSession = require 'edit-session'
 
 module.exports =
 class RootView extends View
@@ -139,10 +140,9 @@ class RootView extends View
 
   getModifiedBuffers: ->
     modifiedBuffers = []
-    for editor in @getEditors()
-      for session in editor.editSessions
-        modifiedBuffers.push session.buffer if session.buffer.isModified()
-
+    for pane in @getPanes()
+      for item in pane.getItems() when item instanceof EditSession
+        modifiedBuffers.push item.buffer if item.buffer.isModified()
     modifiedBuffers
 
   getOpenBufferPaths: ->
