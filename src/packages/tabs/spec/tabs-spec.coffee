@@ -21,16 +21,19 @@ describe "Tabs package main", ->
       expect(rootView.find('.pane').length).toBe 2
       expect(rootView.panes.find('.pane > .tabs').length).toBe 2
 
-fdescribe "TabBarView", ->
+describe "TabBarView", ->
   [item1, item2, editSession1, pane, tabBar] = []
 
   class TestView extends View
+    @deserialize: ({title, longTitle}) -> new TestView(title, longTitle)
     @content: (title) -> @div title
-    initialize: (@title) ->
+    initialize: (@title, @longTitle) ->
     getTitle: -> @title
     getLongTitle: -> @longTitle
+    serialize: -> { deserializer: 'TestView', @title, @longTitle }
 
   beforeEach ->
+    registerDeserializer(TestView)
     item1 = new TestView('Item 1')
     item2 = new TestView('Item 2')
     editSession1 = project.buildEditSession('sample.js')
@@ -39,6 +42,9 @@ fdescribe "TabBarView", ->
     pane.showItem(item2)
     paneContainer.append(pane)
     tabBar = new TabBarView(pane)
+
+  afterEach ->
+    unregisterDeserializer(TestView)
 
   describe ".initialize(pane)", ->
     it "creates a tab for each item on the tab bar's parent pane", ->
@@ -131,75 +137,98 @@ fdescribe "TabBarView", ->
       expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 2", "Item 1"]
 
   describe "dragging and dropping tabs", ->
-    describe "when the tab is dropped onto itself", ->
-      it "doesn't move the edit session and focuses the editor", ->
-        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+    buildDragEvents = (dragged, dropTarget) ->
+      dataTransfer =
+        data: {}
+        setData: (key, value) -> @data[key] = value
+        getData: (key) -> @data[key]
 
-        sortableElement = [tabs.find('.tab:eq(0)')]
-        spyOn(tabs, 'getSortableElement').andCallFake -> sortableElement[0]
-        event = $.Event()
-        event.target = tabs[0]
-        event.originalEvent =
-          dataTransfer:
-            data: {}
-            setData: (key, value) -> @data[key] = value
-            getData: (key) -> @data[key]
+      dragStartEvent = $.Event()
+      dragStartEvent.target = dragged[0]
+      dragStartEvent.originalEvent = { dataTransfer }
 
-        editor.hiddenInput.focusout()
-        tabs.onDragStart(event)
-        tabs.onDrop(event)
+      dropEvent = $.Event()
+      dropEvent.target = dropTarget[0]
+      dropEvent.originalEvent = { dataTransfer }
 
-        expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
-        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
-        expect(editor.isFocused).toBeTruthy()
+      [dragStartEvent, dropEvent]
 
-    describe "when a tab is dragged from and dropped onto the same editor", ->
-      it "moves the edit session, updates the order of the tabs, and focuses the editor", ->
-        expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
-        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+    describe "when a tab is dragged within the same pane", ->
+      describe "when it is dropped on tab that's later in the list", ->
+        it "moves the tab and its item, shows the tab's item, and focuses the pane", ->
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item2
+          spyOn(pane, 'focus')
 
-        sortableElement = [tabs.find('.tab:eq(0)')]
-        spyOn(tabs, 'getSortableElement').andCallFake -> sortableElement[0]
-        event = $.Event()
-        event.target = tabs[0]
-        event.originalEvent =
-          dataTransfer:
-            data: {}
-            setData: (key, value) -> @data[key] = value
-            getData: (key) -> @data[key]
+          [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar.tabAtIndex(1))
+          tabBar.onDragStart(dragStartEvent)
+          tabBar.onDrop(dropEvent)
 
-        editor.hiddenInput.focusout()
-        tabs.onDragStart(event)
-        sortableElement = [tabs.find('.tab:eq(1)')]
-        tabs.onDrop(event)
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 1", "Item 2"]
+          expect(pane.getItems()).toEqual [editSession1, item1, item2]
+          expect(pane.activeItem).toBe item1
+          expect(pane.focus).toHaveBeenCalled()
 
-        expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
-        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
-        expect(editor.isFocused).toBeTruthy()
+      describe "when it is dropped on a tab that's earlier in the list", ->
+        it "moves the tab and its item, shows the tab's item, and focuses the pane", ->
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item2
+          spyOn(pane, 'focus')
 
-    describe "when a tab is dragged from one editor and dropped onto another editor", ->
-      it "moves the edit session, updates the order of the tabs, and focuses the destination editor", ->
-        leftTabs = tabs
-        rightEditor = editor.splitRight()
-        rightTabs = rootView.find('.tabs:last').view()
+          [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(2), tabBar.tabAtIndex(0))
+          tabBar.onDragStart(dragStartEvent)
+          tabBar.onDrop(dropEvent)
 
-        sortableElement = [leftTabs.find('.tab:eq(0)')]
-        spyOn(tabs, 'getSortableElement').andCallFake -> sortableElement[0]
-        event = $.Event()
-        event.target = leftTabs
-        event.originalEvent =
-          dataTransfer:
-            data: {}
-            setData: (key, value) -> @data[key] = value
-            getData: (key) -> @data[key]
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "Item 2", "sample.js"]
+          expect(pane.getItems()).toEqual [item1, item2, editSession1]
+          expect(pane.activeItem).toBe item2
+          expect(pane.focus).toHaveBeenCalled()
 
-        rightEditor.hiddenInput.focusout()
-        tabs.onDragStart(event)
+      describe "when it is dropped on itself", ->
+        it "doesn't move the tab or item, but does make it the active item and focuses the pane", ->
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item2
+          spyOn(pane, 'focus')
 
-        event.target = rightTabs
-        sortableElement = [rightTabs.find('.tab:eq(0)')]
-        tabs.onDrop(event)
+          [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar.tabAtIndex(0))
+          tabBar.onDragStart(dragStartEvent)
+          tabBar.onDrop(dropEvent)
 
-        expect(rightTabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
-        expect(rightTabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
-        expect(rightEditor.isFocused).toBeTruthy()
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item1
+          expect(pane.focus).toHaveBeenCalled()
+
+    describe "when a tab is dragged to a different pane", ->
+      [pane2, tabBar2, item2b] = []
+
+      beforeEach ->
+        pane2 = pane.splitRight()
+        [item2b] = pane2.getItems()
+        tabBar2 = new TabBarView(pane2)
+
+      it "removes the tab and item from their original pane and moves them to the target pane", ->
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [item1, editSession1, item2]
+        expect(pane.activeItem).toBe item2
+
+        expect(tabBar2.getTabs().map (tab) -> tab.text()).toEqual ["Item 2"]
+        expect(pane2.getItems()).toEqual [item2b]
+        expect(pane2.activeItem).toBe item2b
+        spyOn(pane2, 'focus')
+
+        [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar2.tabAtIndex(0))
+        tabBar.onDragStart(dragStartEvent)
+        tabBar.onDrop(dropEvent)
+
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [editSession1, item2]
+        expect(pane.activeItem).toBe item2
+
+        expect(tabBar2.getTabs().map (tab) -> tab.text()).toEqual ["Item 2", "Item 1"]
+        expect(pane2.getItems()).toEqual [item2b, item1]
+        expect(pane2.activeItem).toBe item1
+        expect(pane2.focus).toHaveBeenCalled()
