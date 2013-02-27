@@ -55,3 +55,18 @@
 [submodule "vendor/packages/yaml.tmbundle"]
 	path = vendor/packages/yaml.tmbundle
 	url = https://github.com/textmate/yaml.tmbundle.git
+[submodule "vendor/packages/java.tmbundle"]
+	path = vendor/packages/java.tmbundle
+	url = https://github.com/textmate/java.tmbundle.git
+[submodule "vendor/packages/php.tmbundle"]
+	path = vendor/packages/php.tmbundle
+	url = https://github.com/textmate/php.tmbundle.git
+[submodule "vendor/packages/perl.tmbundle"]
+	path = vendor/packages/perl.tmbundle
+	url = https://github.com/textmate/perl.tmbundle.git
+[submodule "vendor/packages/sass.tmbundle"]
+	path = vendor/packages/sass.tmbundle
+	url = https://github.com/alexsancho/SASS.tmbundle.git
+[submodule "vendor/packages/less.tmbundle"]
+	path = vendor/packages/less.tmbundle
+	url = https://github.com/mathewbyrne/less.tmbundle.git
