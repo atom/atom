@@ -332,8 +332,9 @@ class DisplayBuffer
   getMarkers: ->
     _.values(@markers)
 
-  markScreenRange: (screenRange) ->
-    @markBufferRange(@bufferRangeForScreenRange(screenRange))
+  markScreenRange: (args...) ->
+    bufferRange = @bufferRangeForScreenRange(args.shift())
+    @markBufferRange(bufferRange, args...)
 
   markBufferRange: (args...) ->
     @buffer.markRange(args...)
