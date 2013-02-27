@@ -8,9 +8,10 @@ class BufferMarker
   headPosition: null
   tailPosition: null
   suppressObserverNotification: false
-  invalidationStrategy: 'contains'
+  invalidationStrategy: null
 
   constructor: ({@id, @buffer, range, @invalidationStrategy, noTail, reverse}) ->
+    @invalidationStrategy ?= 'contains'
     @setRange(range, {noTail, reverse})
 
   setRange: (range, options={}) ->
@@ -71,23 +72,30 @@ class BufferMarker
     newTailPosition = @getTailPosition()
     @notifyObservers({oldTailPosition, newTailPosition, bufferChanged: false})
 
-  tryToInvalidate: (oldRange) ->
-    containsStart = oldRange.containsPoint(@getStartPosition(), exclusive: true)
-    containsEnd = oldRange.containsPoint(@getEndPosition(), exclusive: true)
-    return unless containsEnd or containsStart
+  tryToInvalidate: (changedRange) ->
+    betweenStartAndEnd = @getRange().containsRange(changedRange, exclusive: false)
+    containsStart = changedRange.containsPoint(@getStartPosition(), exclusive: true)
+    containsEnd = changedRange.containsPoint(@getEndPosition(), exclusive: true)
 
-    if @invalidationStrategy is 'never'
-      previousRange = @getRange()
-      if containsStart and containsEnd
-        @setRange([oldRange.end, oldRange.end])
-      else if containsStart
-        @setRange([oldRange.end, @getEndPosition()])
-      else
-        @setRange([@getStartPosition(), oldRange.start])
-      [@id, previousRange]
-    else
-      @invalidate()
-      [@id]
+    switch @invalidationStrategy
+      when 'between'
+        if betweenStartAndEnd or containsStart or containsEnd
+          @invalidate()
+          [@id]
+      when 'contains'
+        if containsStart or containsEnd
+          @invalidate()
+          [@id]
+      when 'never'
+        if containsStart or containsEnd
+          previousRange = @getRange()
+          if containsStart and containsEnd
+            @setRange([changedRange.end, changedRange.end])
+          else if containsStart
+            @setRange([changedRange.end, @getEndPosition()])
+          else
+            @setRange([@getStartPosition(), changedRange.start])
+          [@id, previousRange]
 
   handleBufferChange: (bufferChange) ->
     @consolidateObserverNotifications true, =>

@@ -869,11 +869,12 @@ describe 'Buffer', ->
         expect(buffer.getMarkerRange(marker2)).toBeUndefined()
 
     describe "marker updates due to buffer changes", ->
-      [marker1, marker2] = []
+      [marker1, marker2, marker3] = []
 
       beforeEach ->
         marker1 = buffer.markRange([[4, 20], [4, 23]])
         marker2 = buffer.markRange([[4, 20], [4, 23]], invalidationStrategy: 'never')
+        marker3 = buffer.markRange([[4, 20], [4, 23]], invalidationStrategy: 'between')
 
       describe "when the buffer changes due to a new operation", ->
         describe "when the change precedes the marker range", ->
@@ -905,10 +906,20 @@ describe 'Buffer', ->
             buffer.insert([4, 20], '...')
             expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 26]]
 
+          describe "when the invalidation strategy is 'between'", ->
+            it "invalidates the marker", ->
+              buffer.insert([4, 20], '...')
+              expect(buffer.getMarkerRange(marker3)).toBeUndefined()
+
         describe "when the change is an insertion at the end of the marker range", ->
           it "moves the end point", ->
             buffer.insert([4, 23], '...')
             expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 26]]
+
+          describe "when the invalidation strategy is 'between'", ->
+            it "invalidates the marker", ->
+              buffer.insert([4, 23], '...')
+              expect(buffer.getMarkerRange(marker3)).toBeUndefined()
 
         describe "when the change surrounds the marker range", ->
           describe "when the marker's invalidation strategy is 'contains' (the default)", ->
@@ -917,6 +928,13 @@ describe 'Buffer', ->
               expect(buffer.getMarkerRange(marker1)).toBeUndefined()
               buffer.undo()
               expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
+
+          describe "when the marker's invalidation strategy is 'between'", ->
+            it "invalidates the marker", ->
+              buffer.delete([[4, 15], [4, 25]])
+              expect(buffer.getMarkerRange(marker3)).toBeUndefined()
+              buffer.undo()
+              expect(buffer.getMarkerRange(marker3)).toEqual [[4, 20], [4, 23]]
 
           describe "when the marker's invalidation strategy is 'never'", ->
             it "does not invalidate the marker, but sets it to an empty range at the end of the change", ->
@@ -933,6 +951,13 @@ describe 'Buffer', ->
               buffer.undo()
               expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
+          describe "when the marker's invalidation strategy is 'between'", ->
+            it "invalidates the marker", ->
+              buffer.delete([[4, 15], [4, 22]])
+              expect(buffer.getMarkerRange(marker3)).toBeUndefined()
+              buffer.undo()
+              expect(buffer.getMarkerRange(marker3)).toEqual [[4, 20], [4, 23]]
+
           describe "when the marker's invalidation strategy is 'never'", ->
             it "moves the start of the marker range to the end of the change", ->
               buffer.delete([[4, 15], [4, 22]])
@@ -948,10 +973,39 @@ describe 'Buffer', ->
               buffer.undo()
               expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
+          describe "when the marker's invalidation strategy is 'between'", ->
+            it "invalidates the marker", ->
+              buffer.delete([[4, 22], [4, 25]])
+              expect(buffer.getMarkerRange(marker3)).toBeUndefined()
+              buffer.undo()
+              expect(buffer.getMarkerRange(marker3)).toEqual [[4, 20], [4, 23]]
+
           describe "when the marker's invalidation strategy is 'never'", ->
             it "moves the end of the marker range to the start of the change", ->
               buffer.delete([[4, 22], [4, 25]])
               expect(buffer.getMarkerRange(marker2)).toEqual [[4, 20], [4, 22]]
+              buffer.undo()
+              expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
+
+        describe "when the change is between the start and the end of the marker range", ->
+          describe "when the marker's invalidation strategy is 'contains' (the default)", ->
+            it "does not invalidate the marker", ->
+              buffer.insert([4, 21], 'x')
+              expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 24]]
+              buffer.undo()
+              expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
+
+          describe "when the marker's invalidation strategy is 'between'", ->
+            it "invalidates the marker", ->
+              buffer.insert([4, 21], 'x')
+              expect(buffer.getMarkerRange(marker3)).toBeUndefined()
+              buffer.undo()
+              expect(buffer.getMarkerRange(marker3)).toEqual [[4, 20], [4, 23]]
+
+          describe "when the marker's invalidation strategy is 'never'", ->
+            it "moves the end of the marker range to the start of the change", ->
+              buffer.insert([4, 21], 'x')
+              expect(buffer.getMarkerRange(marker2)).toEqual [[4, 20], [4, 24]]
               buffer.undo()
               expect(buffer.getMarkerRange(marker1)).toEqual [[4, 20], [4, 23]]
 
