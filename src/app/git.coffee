@@ -47,6 +47,7 @@ class Git
     @path ?= fs.absolute(@getRepo().getPath())
 
   destroy: ->
+    @statusTask?.abort()
     @getRepo().destroy()
     @repo = null
     @unsubscribe()
@@ -108,7 +109,7 @@ class Git
     @getRepo().isSubmodule(@relativize(path))
 
   refreshStatus: ->
-    new RepositoryStatusTask(this).start()
+    @statusTask = new RepositoryStatusTask(this).start()
 
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter
