@@ -21,19 +21,6 @@ class TabBarView extends SortableList
 
     @updateActiveTab()
 
-#     @setActiveTab(@editor.getActiveEditSessionIndex())
-
-#     @editor.on 'editor:edit-session-added', (e, editSession) => @addTabForEditSession(editSession)
-#     @editor.on 'editor:edit-session-removed', (e, editSession, index) => @removeTabAtIndex(index)
-#     @editor.on 'editor:edit-session-order-changed', (e, editSession, fromIndex, toIndex) =>
-#       fromTab = @find(".tab:eq(#{fromIndex})")
-#       toTab = @find(".tab:eq(#{toIndex})")
-#       fromTab.detach()
-#       if fromIndex < toIndex
-#         fromTab.insertAfter(toTab)
-#       else
-#         fromTab.insertBefore(toTab)
-
     @on 'click', '.tab', (e) =>
       tab = $(e.target).closest('.tab').view()
       @pane.showItem(tab.item)
@@ -80,13 +67,6 @@ class TabBarView extends SortableList
 
   updateActiveTab: ->
     @setActiveTab(@tabForItem(@pane.activeItem))
-
-  removeTabAtIndex: (index) ->
-    @find(".tab:eq(#{index})").remove()
-
-  containsEditSession: (editor, editSession) ->
-    for session in editor.editSessions
-      return true if editSession.getPath() is session.getPath()
 
   shouldAllowDrag: ->
     (@paneContainer.getPanes().length > 1) or (@pane.getItems().length > 1)
