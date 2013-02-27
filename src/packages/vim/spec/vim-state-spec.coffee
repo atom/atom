@@ -37,6 +37,8 @@ class MockVimView
   exitVisualMode: () ->
     @visual = false
   enterAwaitInputMode: () ->
+  startedRecording: () ->
+  stoppedRecording: () ->
   editor:
     insertText:() ->
 fdescribe "Vim state", ->
@@ -200,6 +202,29 @@ fdescribe "Vim state", ->
     describe "filter through external program", ->
     describe "shift left", ->
     describe "shift right", ->
+    describe "record", ->
+      beforeEach ->
+        vim.operation("start-recording")
+        vim.input("a")
+        vim.motion("right")
+      it "is stored in a register", ->
+        expect(vim.recording).toBeTruthy()
+        vim.operation("stop-recording")
+        expect(vim.recording).toBeFalsy()
+        expect(vim.recordings['a']).toBeTruthy()
+      it "stores all operations", ->
+        vim.operation("stop-recording")
+        expect(vim.recordings['a'][0].name).toBe("move")
+        expect(vim.recordings['a'].length).toBe(1)
+      it "replays all operations", ->
+        vim.motion("left")
+        vim.operation("stop-recording")
+        expect(vim.recordings['a'].length).toBe(2)
+        target.events = []
+        vim.operation("replay-recording")
+        vim.input("a")
+        expect(target.hasEvent("core:move-right")).toBeTruthy()
+        expect(target.hasEvent("core:move-left")).toBeTruthy()
 
   describe "aliases", ->
     it 'performs an operation and motion with the current count', ->

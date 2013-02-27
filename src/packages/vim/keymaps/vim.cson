@@ -43,10 +43,15 @@
   'y': 'vim:operation-yank'
   'p': 'vim:operation-paste'
   'P': 'vim:operation-paste-before'
+  'q': 'vim:operation-start-recording'
+  '@': 'vim:operation-replay-recording'
   'v': 'vim:visual-mode'
   'V': 'vim:visual-mode-lines'
   'ctrl-r': 'core:redo'
   'escape': 'vim:cancel-command'
+
+'.editor.recording':
+  'q': 'vim:operation-stop-recording'
 
 '.editor.command-mode.count':
   '0': 'vim:count-add-0'

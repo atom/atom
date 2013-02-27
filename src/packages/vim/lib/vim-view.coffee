@@ -105,6 +105,13 @@ class VimView extends View
   awaitingInput: ->
     @mode is "awaiting-input"
 
+  startedRecording: () ->
+    @editor.addClass("recording")
+    @updateCommandLine()
+  stoppedRecording: () ->
+    @editor.removeClass("recording")
+    @updateCommandLine()
+
   enterInsertMode: (type) ->
     @resetMode()
     switch type
@@ -155,7 +162,9 @@ class VimView extends View
       @enterCommandMode()
 
   updateCommandLineText: ->
-    if @inInsertMode()
+    if @state && @state.recording
+      @prompt.text("recording")
+    else if @inInsertMode()
       @prompt.text("--INSERT--")
     else if @inVisualMode()
       label = "VISUAL"

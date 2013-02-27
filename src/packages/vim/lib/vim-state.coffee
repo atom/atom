@@ -47,6 +47,8 @@ module.exports =
 class VimState
   constructor: (@target, @vim) ->
     @resetState()
+    @recording = false
+    @recordings = {}
     @pasteBuffer = {}
     @lastOperation = null
     for m,event of @motionEvents
@@ -113,6 +115,8 @@ class VimState
       @lastOperation = @_operation
       if @visual() and !_.contains(@noModeResetOperations, @_operation.name)
         @vim.exitVisualMode()
+      if @recording && !@_operation.name.match(/-recording/)
+        @recordings[@recording].push(@_operation)
     @_operation = @buildOperation(@defaultOperation())
   enterState: (state) ->
     @state = state
@@ -132,6 +136,19 @@ class VimState
     else
       @motion("right")
       @vim.enterCommandMode()
+  startRecording: (register) ->
+    @recording = register
+    @recordings[register] = []
+    @vim.startedRecording()
+  stopRecording: () ->
+    @recording = false
+    @vim.stoppedRecording()
+  replayRecording: (register) ->
+    return if @recording
+    record = @recordings[register]
+    if record? && record.length > 0
+      for operation in record
+        operation.perform(@target, operation.motion)
   editSession: () ->
     @vim.editor.activeEditSession
   currentCursorPosition: () ->
@@ -255,7 +272,13 @@ class VimState
     'enter-visual-lines': (state) ->
       @performMotion("beginning-of-line")
       state.expandSelection()
+    'start-recording': (state) ->
+      state.startRecording(@input)
+    'stop-recording': (state) ->
+      state.stopRecording()
+    'replay-recording': (state) ->
+      state.replayRecording(@input)
   noModeResetOperations: ['move', 'select', 'enter-visual-normal', 'enter-visual-lines']
-  operationsWithInput: ['change-character']
+  operationsWithInput: ['change-character', 'start-recording', 'replay-recording']
   motionsWithInput: ['find-character']
-  noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines']
+  noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines', 'start-recording', 'stop-recording', 'replay-recording']
