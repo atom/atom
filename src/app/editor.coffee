@@ -705,7 +705,7 @@ class Editor extends View
 
   afterRemove: ->
     @removed = true
-    @activeEditSession.destroy()
+    @activeEditSession?.destroy()
     $(window).off(".editor-#{@id}")
     $(document).off(".editor-#{@id}")
 
