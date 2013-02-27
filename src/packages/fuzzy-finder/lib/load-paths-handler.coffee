@@ -5,7 +5,7 @@ module.exports =
   loadPaths: (rootPath, ignoredNames, excludeGitIgnoredPaths) ->
     if excludeGitIgnoredPaths
       Git = require 'git'
-      repo = Git.open(rootPath, refreshIndexOnFocus: false)
+      repo = Git.open(rootPath, refreshOnWindowFocus: false)
 
     paths = []
     isIgnored = (path) ->

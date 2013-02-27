@@ -1,7 +1,9 @@
 _ = require 'underscore'
 fs = require 'fs'
 Subscriber = require 'subscriber'
+EventEmitter = require 'event-emitter'
 GitRepository = require 'git-repository'
+RepositoryStatusTask = require 'repository-status-task'
 
 module.exports =
 class Git
@@ -23,12 +25,16 @@ class Git
     working_dir_typechange: 1 << 10
     ignore: 1 << 14
 
+  statuses: {}
+
   constructor: (path, options={}) ->
     @repo = GitRepository.open(path)
-    refreshIndexOnFocus = options.refreshIndexOnFocus ? true
-    if refreshIndexOnFocus
+    refreshOnWindowFocus = options.refreshOnWindowFocus ? true
+    if refreshOnWindowFocus
       $ = require 'jquery'
-      @subscribe $(window), 'focus', => @refreshIndex()
+      @subscribe $(window), 'focus', =>
+        @refreshIndex()
+        @refreshStatuses()
 
   getRepo: ->
     unless @repo?
@@ -53,9 +59,6 @@ class Git
 
   getPathStatus: (path) ->
     pathStatus = @getRepo().getStatus(@relativize(path))
-
-  getAllStatuses: (path) ->
-    @getRepo().getStatuses()
 
   isPathIgnored: (path) ->
     @getRepo().isIgnored(@relativize(path))
@@ -104,4 +107,8 @@ class Git
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))
 
+  refreshStatuses: ->
+    new RepositoryStatusTask(this).start()
+
 _.extend Git.prototype, Subscriber
+_.extend Git.prototype, EventEmitter

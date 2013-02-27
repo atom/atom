@@ -148,7 +148,7 @@ describe "Git", ->
       fs.write(path, "#{originalPathText} edited line")
       expect(repo.getDiffStats(path)).toEqual {added: 1, deleted: 1}
 
-  describe ".getStatuses()", ->
+  describe ".refreshStatuses()", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
 
     beforeEach ->
@@ -165,7 +165,15 @@ describe "Git", ->
 
     it "returns status information for all new and modified files", ->
       fs.write(modifiedPath, 'making this path modified')
-      statuses = repo.getAllStatuses()
-      expect(statuses[cleanPath]).toBeUndefined()
-      expect(repo.isStatusNew(statuses[repo.relativize(newPath)])).toBeTruthy()
-      expect(repo.isStatusModified(statuses[repo.relativize(modifiedPath)])).toBeTruthy()
+      statusHandler = jasmine.createSpy('statusHandler')
+      repo.on 'statuses-changed', statusHandler
+      repo.refreshStatuses()
+
+      waitsFor ->
+        statusHandler.callCount > 0
+
+      runs ->
+        statuses = repo.statuses
+        expect(statuses[cleanPath]).toBeUndefined()
+        expect(repo.isStatusNew(statuses[newPath])).toBeTruthy()
+        expect(repo.isStatusModified(statuses[modifiedPath])).toBeTruthy()
