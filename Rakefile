@@ -14,7 +14,7 @@ end
 desc "Create xcode project from gyp file"
 task "create-xcode-project" => "update-cef" do
   `rm -rf atom.xcodeproj`
-  `gyp --depth=. atom.gyp`
+  `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
 end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
@@ -55,15 +55,19 @@ task :install => [:clean, :build] do
 end
 
 desc "Package up the app for speakeasy"
-task :package => ["bump-patch-number", "build"] do
+task :package => ["setup-codesigning", "bump-patch-number", "build"] do
   path = application_path()
   exit 1 if not path
 
   dest_path = '/tmp/atom-for-speakeasy/Atom.tar.bz2'
   `mkdir -p $(dirname #{dest_path})`
   `rm -rf #{dest_path}`
-  `tar --directory $(dirname #{path}) -jcvf #{dest_path} $(basename #{path})`
+  `tar --directory $(dirname #{path}) -jcf #{dest_path} $(basename #{path})`
   `open $(dirname #{dest_path})`
+end
+
+task "setup-codesigning" do
+  ENV['CODE_SIGN'] = "Developer ID Application: GitHub"
 end
 
 desc "Bump patch number"
