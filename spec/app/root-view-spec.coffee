@@ -4,6 +4,7 @@ Project = require 'project'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
+Pane = require 'pane'
 {View, $$} = require 'space-pen'
 
 describe "RootView", ->
@@ -213,33 +214,43 @@ describe "RootView", ->
   describe ".open(path, options)", ->
     describe "when there is no active pane", ->
       beforeEach ->
+        spyOn(Pane.prototype, 'focus')
         rootView.getActivePane().remove()
         expect(rootView.getActivePane()).toBeUndefined()
 
       describe "when called with no path", ->
-        it "opens and returns an edit session for an empty buffer in a new editor", ->
+        it "creates a empty edit session as an item on a new pane, and focuses the pane", ->
           editSession = rootView.open()
           expect(rootView.getActivePane().activeItem).toBe editSession
           expect(editSession.getPath()).toBeUndefined()
+          expect(rootView.getActivePane().focus).toHaveBeenCalled()
 
       describe "when called with a path", ->
-        it "opens a buffer with the given path in a new editor", ->
+        it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editSession = rootView.open('b')
           expect(rootView.getActivePane().activeItem).toBe editSession
           expect(editSession.getPath()).toBe require.resolve('fixtures/dir/b')
+          expect(rootView.getActivePane().focus).toHaveBeenCalled()
+
+      describe "when the changeFocus option is false", ->
+        it "does not focus the new pane", ->
+          editSession = rootView.open('b', changeFocus: false)
+          expect(rootView.getActivePane().focus).not.toHaveBeenCalled()
 
     describe "when there is an active pane", ->
       [activePane, initialItemCount] = []
       beforeEach ->
         activePane = rootView.getActivePane()
+        spyOn(activePane, 'focus')
         initialItemCount = activePane.getItems().length
 
       describe "when called with no path", ->
-        it "opens an edit session with an empty buffer in the active pane", ->
+        it "opens an edit session with an empty buffer as an item on the active pane and focuses it", ->
           editSession = rootView.open()
           expect(activePane.getItems().length).toBe initialItemCount + 1
           expect(activePane.activeItem).toBe editSession
           expect(editSession.getPath()).toBeUndefined()
+          expect(activePane.focus).toHaveBeenCalled()
 
       describe "when called with a path", ->
         describe "when the active pane already has an edit session item for the path being opened", ->
@@ -248,16 +259,25 @@ describe "RootView", ->
 
             editSession = rootView.open('b')
             expect(activePane.activeItem).toBe editSession
-
-            editSession = rootView.open('a')
             expect(editSession).not.toBe previousEditSession
+
+            editSession = rootView.open(previousEditSession.getPath())
+            expect(editSession).toBe previousEditSession
             expect(activePane.activeItem).toBe editSession
+
+            expect(activePane.focus).toHaveBeenCalled()
 
         describe "when the active pane does not have an edit session item for the path being opened", ->
           it "creates a new edit session for the given path in the active editor", ->
             editSession = rootView.open('b')
             expect(activePane.items.length).toBe 2
             expect(activePane.activeItem).toBe editSession
+            expect(activePane.focus).toHaveBeenCalled()
+
+      describe "when the changeFocus option is false", ->
+        it "does not focus the active pane", ->
+          editSession = rootView.open('b', changeFocus: false)
+          expect(activePane.focus).not.toHaveBeenCalled()
 
   describe ".saveAll()", ->
     it "saves all open editors", ->
