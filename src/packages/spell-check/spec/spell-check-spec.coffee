@@ -59,3 +59,40 @@ describe "Spell check", ->
         expect(editor.find('.misspelling').length).toBe 1
         config.set('spell-check.grammars', [])
         expect(editor.find('.misspelling').length).toBe 0
+
+  describe "when 'editor:correct-misspelling' is triggered on the editor", ->
+    describe "when the cursor touches a misspelling that has corrections", ->
+      it "displays the corrections for the misspelling and replaces the misspelling when a correction is selected", ->
+        editor.setText('fryday')
+        advanceClock(editor.getBuffer().stoppedChangingDelay)
+        config.set('spell-check.grammars', ['source.js'])
+
+        waitsFor ->
+          editor.find('.misspelling').length > 0
+
+        runs ->
+          editor.trigger 'editor:correct-misspelling'
+          expect(editor.find('.corrections').length).toBe 1
+          expect(editor.find('.corrections li').length).toBeGreaterThan 0
+          expect(editor.find('.corrections li:first').text()).toBe "Friday"
+          editor.find('.corrections').view().confirmSelection()
+          expect(editor.getText()).toBe 'Friday'
+          expect(editor.getCursorBufferPosition()).toEqual [0, 6]
+          advanceClock(editor.getBuffer().stoppedChangingDelay)
+          expect(editor.find('.misspelling')).toBeHidden()
+          expect(editor.find('.corrections').length).toBe 0
+
+    describe "when the cursor touches a misspelling that has no corrections", ->
+      it "displays a message saying no corrections found", ->
+        editor.setText('asdfasdf')
+        advanceClock(editor.getBuffer().stoppedChangingDelay)
+        config.set('spell-check.grammars', ['source.js'])
+
+        waitsFor ->
+          editor.find('.misspelling').length > 0
+
+        runs ->
+          editor.trigger 'editor:correct-misspelling'
+          expect(editor.find('.corrections').length).toBe 1
+          expect(editor.find('.corrections li').length).toBe 0
+          expect(editor.find('.corrections .error').text()).toBe "No corrections found"

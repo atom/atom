@@ -27,7 +27,8 @@ namespace v8_extensions {
       "exists", "read", "write", "absolute", "getAllFilePathsAsync", "traverseTree", "isDirectory",
       "isFile", "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
       "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload", "lastModified",
-      "md5ForPath", "exec", "getPlatform", "setWindowState", "getWindowState", "isMisspelled"
+      "md5ForPath", "exec", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
+      "getCorrectionsForMisspelling"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -525,6 +526,22 @@ namespace v8_extensions {
       NSString *word = stringFromCefV8Value(arguments[0]);
       NSRange range = [[NSSpellChecker sharedSpellChecker] checkSpellingOfString:word startingAt:0];
       retval = CefV8Value::CreateBool(range.length > 0);
+      return true;
+    }
+
+    else if (name == "getCorrectionsForMisspelling") {
+      NSString *misspelling = stringFromCefV8Value(arguments[0]);
+      NSSpellChecker *spellchecker = [NSSpellChecker sharedSpellChecker];
+      NSString *language = [spellchecker language];
+      NSRange range;
+      range.location = 0;
+      range.length = [misspelling length];
+      NSArray *guesses = [spellchecker guessesForWordRange:range inString:misspelling language:language inSpellDocumentWithTag:0];
+      CefRefPtr<CefV8Value> v8Guesses = CefV8Value::CreateArray([guesses count]);
+      for (int i = 0; i < [guesses count]; i++) {
+        v8Guesses->SetValue(i, CefV8Value::CreateString([[guesses objectAtIndex:i] UTF8String]));
+      }
+      retval = v8Guesses;
       return true;
     }
 

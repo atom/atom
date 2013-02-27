@@ -1,5 +1,6 @@
 {View} = require 'space-pen'
 Range = require 'range'
+CorrectionsView = require './corrections-view'
 
 module.exports =
 class MisspellingView extends View
@@ -11,18 +12,36 @@ class MisspellingView extends View
     range = @editSession.screenRangeForBufferRange(Range.fromObject(range))
     @startPosition = range.start
     @endPosition = range.end
+    @misspellingValid = true
 
     @marker = @editSession.markScreenRange(range, invalidationStrategy: 'between')
     @editSession.observeMarker @marker, ({newHeadScreenPosition, newTailScreenPosition, valid}) =>
       @startPosition = newTailScreenPosition
       @endPosition = newHeadScreenPosition
       @updateDisplayPosition = valid
+      @misspellingValid = valid
       @hide() unless valid
 
-    @editor.on 'editor:display-updated', =>
+    @subscribe @editor, 'editor:display-updated', =>
       @updatePosition() if @updateDisplayPosition
 
+    @editor.command 'editor:correct-misspelling', =>
+      return unless @misspellingValid and @containsCursor()
+
+      screenRange = @getScreenRange()
+      misspelling = @editor.getTextInRange(@editor.bufferRangeForScreenRange(screenRange))
+      corrections = $native.getCorrectionsForMisspelling(misspelling)
+      @correctionsView?.remove()
+      @correctionsView = new CorrectionsView(@editor, corrections, screenRange)
+
     @updatePosition()
+
+  getScreenRange: ->
+    new Range(@startPosition, @endPosition)
+
+  containsCursor: ->
+    cursor = @editor.getCursorScreenPosition()
+    @getScreenRange().containsPoint(cursor, exclusive: false)
 
   updatePosition: ->
     @updateDisplayPosition = false
@@ -36,5 +55,7 @@ class MisspellingView extends View
     @show()
 
   destroy: ->
+    @misspellingValid = false
     @editSession.destroyMarker(@marker)
+    @correctionsView?.remove()
     @remove()
