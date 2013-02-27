@@ -74,8 +74,11 @@ class VimState
   count: (n) ->
     @_count = n if n?
     @_count
-  visual: () ->
-    @vim.visual
+  visual: (type) ->
+    if type?
+      @vim.visual == type
+    else
+      @vim.visual
   defaultOperation: () ->
     if @visual() then 'select' else 'move'
   buildOperation: (type) ->
@@ -104,6 +107,8 @@ class VimState
     @_count = 1
     if @_operation?.performed
       @lastOperation = @_operation
+      if @visual() and !_.contains(@noModeResetOperations, @_operation.name)
+        @vim.exitVisualMode()
     @_operation = @buildOperation(@defaultOperation())
   enterState: (state) ->
     @state = state
@@ -133,6 +138,9 @@ class VimState
     @editSession().insertText(text)
   clearSelection: () ->
     @editSession().clearSelections()
+  expandSelection: () ->
+    for selection in @editSession().getSelections()
+      selection.expandOverLine()
   selectedText: () ->
     text = ""
     for selection in @editSession().getSelections()
@@ -146,7 +154,8 @@ class VimState
     text = @selectedText()
     @pasteBuffer[0] = text
   paste: (options={}) ->
-    @insertText(@pasteBuffer[0]) if @pasteBuffer[0] && @pasteBuffer[0] != ''
+    text = @pasteBuffer[0]
+    @insertText(text) if text && text != ''
   aliases:
     'delete-character':
       motion: 'right'
@@ -238,6 +247,11 @@ class VimState
       pos = state.currentCursorPosition()
       @paste select:true
       state.setCursorPosition(pos)
+    'enter-visual-normal': () ->
+    'enter-visual-lines': (state) ->
+      @performEvent("editor:move-to-beginning-of-line")
+      state.expandSelection()
+  noModeResetOperations: ['move', 'select', 'enter-visual-normal', 'enter-visual-lines']
   operationsWithInput: ['change-character']
   motionsWithInput: ['find-character']
-  noMotionOperations: ['repeat', 'paste', 'paste-before']
+  noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines']

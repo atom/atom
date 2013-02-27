@@ -29,28 +29,28 @@ fdescribe "Vim package", ->
   describe "command mode", ->
     it "enters command mode", ->
       editor.trigger 'vim:command-mode'
-      expect(editor.vim.inCommandMode()).toBe true
+      expect(editor.vim.inCommandMode()).toBeTruthy()
 
     it "enters ex mode", ->
       editor.trigger 'vim:ex-mode'
-      expect(editor.vim.inCommandMode()).toBe false
+      expect(editor.vim.inCommandMode()).toBeFalsy()
 
     it "enters visual mode", ->
       editor.trigger 'vim:visual-mode'
-      expect(editor.vim.inCommandMode()).toBe true
-      expect(editor.vim.inVisualMode()).toBe true
+      expect(editor.vim.inCommandMode()).toBeTruthy()
+      expect(editor.vim.inVisualMode()).toBeTruthy()
 
     it "awaits input then resets to command mode", ->
       editor.trigger 'vim:command-mode'
-      expect(editor.vim.inCommandMode()).toBe true
+      expect(editor.vim.inCommandMode()).toBeTruthy()
       editor.vim.enterAwaitInputMode()
-      expect(editor.vim.inCommandMode()).toBe false
-      expect(editor.vim.awaitingInput()).toBe true
+      expect(editor.vim.inCommandMode()).toBeFalsy()
+      expect(editor.vim.awaitingInput()).toBeTruthy()
       event = jQuery.Event("textInput", {originalEvent:{data: "a"}})
       editor.trigger(event)
-      expect(editor.vim.inCommandMode()).toBe true
+      expect(editor.vim.inCommandMode()).toBeTruthy()
 
   describe "insert mode", ->
     it "enters insert mode", ->
       editor.trigger 'vim:insert-mode'
-      expect(editor.vim.inInsertMode()).toBe true
+      expect(editor.vim.inInsertMode()).toBeTruthy()

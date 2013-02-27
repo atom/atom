@@ -45,6 +45,7 @@ class VimView extends View
     @editor.command "vim:command-mode", => @enterCommandMode()
     @editor.command 'vim:ex-mode', => @enterExMode()
     @editor.command 'vim:visual-mode', => @enterVisualMode()
+    @editor.command 'vim:visual-mode-lines', => @enterVisualMode("lines")
     @editor.command 'vim:cancel-command', => @discardCommand()
 
     @command 'vim:insert-mode', => @enterInsertMode()
@@ -61,10 +62,11 @@ class VimView extends View
 
   resetMode: ->
     @mode = "command"
+    @visual = false
     @state.resetState()
     @editor.addClass("command-mode")
     @editor.focus()
-    @visual = false
+    @state.clearSelection()
 
   cursor: () ->
     @editor.getCursorView()
@@ -84,7 +86,10 @@ class VimView extends View
 
   discardCommand: ->
     @miniEditor.setText("")
-    @resetMode()
+    if @inVisualMode()
+      @enterCommandMode()
+    else
+      @resetMode()
 
   inInsertMode: ->
     @mode is "insert"
@@ -115,6 +120,7 @@ class VimView extends View
     @updateCommandLine()
 
   enterCommandMode: ->
+    window.console.log 'command'
     @resetMode()
     cursor = @cursor()
     cursor.width = @editor.getFontSize()
@@ -127,10 +133,15 @@ class VimView extends View
     @mode = "ex"
     @updateCommandLine()
 
-  enterVisualMode: ->
+  enterVisualMode: (type="normal") ->
     @enterCommandMode()
-    @visual = true
+    @visual = type
     @state.resetState()
+    @state.operation("enter-visual-#{type}")
+    @updateCommandLine()
+
+  exitVisualMode: () ->
+    @visual = false
     @updateCommandLine()
 
   enterAwaitInputMode: ->
@@ -148,7 +159,9 @@ class VimView extends View
     if @inInsertMode()
       @prompt.text("--INSERT--")
     else if @inVisualMode()
-      @prompt.text("--VISUAL--")
+      label = "VISUAL"
+      label += " LINES" if @visual == "lines"
+      @prompt.text("--#{label}--")
     else if @inExMode()
       @prompt.text(":")
     else

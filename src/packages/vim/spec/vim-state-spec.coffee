@@ -34,6 +34,8 @@ class MockVimView
     @mode = "insert"
   enterCommandMode: () ->
     @mode = "command"
+  exitVisualMode: () ->
+    @visual = false
   enterAwaitInputMode: () ->
   editor:
     insertText:() ->
