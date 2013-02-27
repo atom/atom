@@ -27,7 +27,7 @@ namespace v8_extensions {
       "exists", "read", "write", "absolute", "getAllFilePathsAsync", "traverseTree", "isDirectory",
       "isFile", "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
       "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload", "lastModified",
-      "md5ForPath", "exec", "getPlatform", "setWindowState", "getWindowState"
+      "md5ForPath", "exec", "getPlatform", "setWindowState", "getWindowState", "isMisspelled"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -518,6 +518,13 @@ namespace v8_extensions {
       [windowStateLock lock];
       retval = CefV8Value::CreateString(windowState);
       [windowStateLock unlock];
+      return true;
+    }
+
+    else if (name == "isMisspelled") {
+      NSString *word = stringFromCefV8Value(arguments[0]);
+      NSRange range = [[NSSpellChecker sharedSpellChecker] checkSpellingOfString:word startingAt:0];
+      retval = CefV8Value::CreateBool(range.length > 0);
       return true;
     }
 
