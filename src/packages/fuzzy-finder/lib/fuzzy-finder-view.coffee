@@ -22,19 +22,18 @@ class FuzzyFinderView extends SelectList
 
     @subscribe $(window), 'focus', => @reloadProjectPaths = true
     @observeConfig 'fuzzy-finder.ignoredNames', => @reloadProjectPaths = true
-    rootView.eachEditor (editor) ->
-      editor.activeEditSession.lastOpened = (new Date) - 1
-      editor.on 'editor:active-edit-session-changed', (e, editSession, index) ->
-        editSession.lastOpened = (new Date) - 1
+    rootView.eachPane (pane) ->
+      pane.activeItem.lastOpened = (new Date) - 1
+      pane.on 'pane:active-item-changed', (e, item) -> item.lastOpened = (new Date) - 1
 
-    @miniEditor.command 'editor:split-left', =>
-      @splitOpenPath (editor, session) -> editor.splitLeft(session)
-    @miniEditor.command 'editor:split-right', =>
-      @splitOpenPath (editor, session) -> editor.splitRight(session)
-    @miniEditor.command 'editor:split-down', =>
-      @splitOpenPath (editor, session) -> editor.splitDown(session)
-    @miniEditor.command 'editor:split-up', =>
-      @splitOpenPath (editor, session) -> editor.splitUp(session)
+    @miniEditor.command 'pane:split-left', =>
+      @splitOpenPath (pane, session) -> pane.splitLeft(session)
+    @miniEditor.command 'pane:split-right', =>
+      @splitOpenPath (pane, session) -> pane.splitRight(session)
+    @miniEditor.command 'pane:split-down', =>
+      @splitOpenPath (pane, session) -> pane.splitDown(session)
+    @miniEditor.command 'pane:split-up', =>
+      @splitOpenPath (pane, session) -> pane.splitUp(session)
 
   itemForElement: (path) ->
     $$ ->
@@ -70,10 +69,8 @@ class FuzzyFinderView extends SelectList
   splitOpenPath: (fn) ->
     path = @getSelectedElement()
     return unless path
-
-    editor = rootView.getActiveEditor()
-    if editor
-      fn(editor, project.buildEditSession(path))
+    if pane = rootView.getActivePane()
+      fn(pane, project.buildEditSession(path))
     else
       @openPath(path)
 
@@ -118,7 +115,7 @@ class FuzzyFinderView extends SelectList
     else
       return unless project.getPath()?
       @allowActiveEditorChange = false
-      editor = rootView.getActiveEditor()
+      editor = rootView.getActiveView()
       currentWord = editor.getWordUnderCursor(wordRegex: @filenameRegex)
 
       if currentWord.length == 0
@@ -177,7 +174,7 @@ class FuzzyFinderView extends SelectList
       editSession.getPath()?
 
     editSessions = _.sortBy editSessions, (editSession) =>
-      if editSession is rootView.getActiveEditSession()
+      if editSession is rootView.getActivePaneItem()
         0
       else
         -(editSession.lastOpened or 1)
