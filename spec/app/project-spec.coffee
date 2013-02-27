@@ -6,7 +6,7 @@ describe "Project", ->
   beforeEach ->
     project.setPath(project.resolve('dir'))
 
-  describe "when editSession is destroyed", ->
+  describe "when an edit session is destroyed", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
       editSession = project.buildEditSession("a")
       anotherEditSession = project.buildEditSession("a")
