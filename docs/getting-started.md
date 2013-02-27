@@ -1,6 +1,6 @@
 # Getting Started
 
-Welcome to Atom. This documentation is intented to offer a basic introduction
+Welcome to Atom. This documentation is intended to offer a basic introduction
 of how to get productive with this editor. Then we'll delve into more details
 about configuring, theming, and extending Atom.
 
