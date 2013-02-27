@@ -86,9 +86,8 @@ class TabBarView extends SortableList
     for session in editor.editSessions
       return true if editSession.getPath() is session.getPath()
 
-  shouldAllowDrag: (event) ->
-    panes = rootView.find('.pane')
-    !(panes.length == 1 && panes.find('.sortable').length == 1)
+  shouldAllowDrag: ->
+    (@paneContainer.getPanes().length > 1) or (@pane.getItems().length > 1)
 
   onDragStart: (event) =>
     super
