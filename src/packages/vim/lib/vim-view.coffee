@@ -58,7 +58,6 @@ class VimView extends View
         @editor.command "vim:count-add-#{n}", => @state.addCountDecimal(n)
 
     @subscribe $(window), 'focus', => @updateCommandLine()
-    @miniEditor.setFontSize "11"
 
   resetMode: ->
     @mode = "command"

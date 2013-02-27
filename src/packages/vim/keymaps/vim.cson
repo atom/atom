@@ -56,4 +56,4 @@
 
 '.vim .editor':
   'enter': 'vim:execute'
-  'escape': 'vim:command-mode'
+  'escape': 'vim:cancel-command'

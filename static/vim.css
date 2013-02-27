@@ -1,8 +1,9 @@
 .vim {
-  padding: 4px 10px 3px;
+  padding: 5px 10px;
   position: relative;
   -webkit-user-select: none;
   cursor: default;
+  font-weight: bold;
 }
 
 .vim .prompt-and-editor {
@@ -13,8 +14,11 @@
   position: relative;
   padding: 0px;
   margin: 0px;
-  top: 5px;
+  top: -4px;
+  margin-left: 5px;
+  min-width: 100px;
   border: none;
+  background: none;
 }
 
 .cursor {
