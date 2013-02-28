@@ -69,6 +69,7 @@ class Buffer
 
     @file.on "removed", =>
       @updateCachedDiskContents()
+      @trigger "modified-status-changed", @isModified()
       @trigger "contents-modified", {differsFromDisk: true}
 
     @file.on "moved", =>
@@ -78,6 +79,7 @@ class Buffer
     @trigger 'will-reload'
     @updateCachedDiskContents()
     @setText(@cachedDiskContents)
+    @trigger 'modified-status-changed', false
     @trigger 'reloaded'
 
   updateCachedDiskContents: ->
@@ -252,6 +254,7 @@ class Buffer
     @setPath(path)
     @cachedDiskContents = @getText()
     @file.write(@getText())
+    @trigger 'modified-status-changed', false
     @trigger 'saved'
 
   isModified: ->
@@ -424,10 +427,14 @@ class Buffer
     return unless path
     git?.checkoutHead(path)
 
-  scheduleStoppedChangingEvent: ->
+  scheduleModifiedStatusChangedEvent: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
     stoppedChangingCallback = =>
       @stoppedChangingTimeout = null
+      modifiedStatus = @isModified()
+      unless modifiedStatus is @previousModifiedStatus
+        @previousModifiedStatus = modifiedStatus
+        @trigger 'modified-status-changed', modifiedStatus
       @trigger 'contents-modified', {differsFromDisk: @isModified()}
     @stoppedChangingTimeout = setTimeout(stoppedChangingCallback, @stoppedChangingDelay)
 
