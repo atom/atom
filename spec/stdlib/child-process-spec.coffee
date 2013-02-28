@@ -114,7 +114,7 @@ describe 'Child Processes', ->
       afterEach ->
         jasmine.getEnv().defaultTimeoutInterval = originalTimeout
 
-      it "does not block indefinitally on stdout or stderr callbacks (regression)", ->
+      it "does not block indefinitely on stdout or stderr callbacks (regression)", ->
         output = []
 
         waitsForPromise ->

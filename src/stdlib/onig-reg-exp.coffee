@@ -1,11 +1,11 @@
 module.exports =
 class OnigRegExp
-  constructor: (source) ->
+  @create: (source) ->
     regexp = $onigRegExp.buildOnigRegExp(source);
     regexp.constructor = OnigRegExp
     regexp.__proto__ = OnigRegExp.prototype
     regexp.source = source
-    return regexp
+    regexp
 
   search: $onigRegExp.search
   test: $onigRegExp.test

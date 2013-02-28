@@ -56,17 +56,17 @@ void AtomCefClient::Open() {
   }
 }
 
-void AtomCefClient::OpenUnstable(std::string path) {
+void AtomCefClient::OpenDev(std::string path) {
   NSString *pathString = [NSString stringWithCString:path.c_str() encoding:NSUTF8StringEncoding];
-  [(AtomApplication *)[AtomApplication sharedApplication] openUnstable:pathString];
+  [(AtomApplication *)[AtomApplication sharedApplication] openDev:pathString];
 }
 
-void AtomCefClient::OpenUnstable() {
+void AtomCefClient::OpenDev() {
   NSOpenPanel *panel = [NSOpenPanel openPanel];
   [panel setCanChooseDirectories:YES];
   if ([panel runModal] == NSFileHandlingPanelOKButton) {
     NSURL *url = [[panel URLs] lastObject];
-    OpenUnstable([[url path] UTF8String]);
+    OpenDev([[url path] UTF8String]);
   }
 }
 
@@ -159,17 +159,13 @@ void AtomCefClient::Log(const char *message) {
   std::cout << message << "\n";
 }
 
-void AtomCefClient::Update() {
-  [(AtomApplication *)NSApp installUpdate];
-}
-
-void AtomCefClient::GetUpdateStatus(int replyId, CefRefPtr<CefBrowser> browser) {
+void AtomCefClient::GetVersion(int replyId, CefRefPtr<CefBrowser> browser) {
   CefRefPtr<CefProcessMessage> replyMessage = CefProcessMessage::Create("reply");
   CefRefPtr<CefListValue> replyArguments = replyMessage->GetArgumentList();
-  
+  NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+
   replyArguments->SetSize(2);
-  replyArguments->SetString(1, [[(AtomApplication *)NSApp updateStatus] UTF8String]);
+  replyArguments->SetString(1, [version UTF8String]);
   replyArguments->SetList(0, CreateReplyDescriptor(replyId, 0));
-  
   browser->SendProcessMessage(PID_RENDERER, replyMessage);
 }

@@ -57,7 +57,11 @@ class Range
     else
       otherRange.intersectsWith(this)
 
-  containsPoint: (point, { exclusive } = {}) ->
+  containsRange: (otherRange, {exclusive} = {}) ->
+    { start, end } = Range.fromObject(otherRange)
+    @containsPoint(start, {exclusive}) and @containsPoint(end, {exclusive})
+
+  containsPoint: (point, {exclusive} = {}) ->
     point = Point.fromObject(point)
     if exclusive
       point.isGreaterThan(@start) and point.isLessThan(@end)
