@@ -121,9 +121,19 @@ describe "Pane", ->
       expect(itemRemovedHandler).toHaveBeenCalled()
       expect(itemRemovedHandler.argsForCall[0][1..2]).toEqual [editSession1, 1]
 
-    it "removes the pane when its last item is removed", ->
-      pane.removeItem(item) for item in pane.getItems()
-      expect(pane.hasParent()).toBeFalsy()
+    describe "when removing the last item", ->
+      it "removes the pane", ->
+        pane.removeItem(item) for item in pane.getItems()
+        expect(pane.hasParent()).toBeFalsy()
+
+      describe "when the pane is focused", ->
+        it "shifts focus to the next pane", ->
+          container.attachToDom()
+          pane2 = pane.splitRight($$ -> @div class: 'view-3', tabindex: -1, 'View 3')
+          pane.focus()
+          expect(pane).toMatchSelector(':has(:focus)')
+          pane.removeItem(item) for item in pane.getItems()
+          expect(pane2).toMatchSelector ':has(:focus)'
 
     describe "when the item is a view", ->
       it "removes the item from the 'item-views' div", ->
