@@ -271,7 +271,7 @@ describe "Editor", ->
       editor.attachToDom()
       expect(openHandler).not.toHaveBeenCalled()
 
-  describe "editor-path-changed event", ->
+  describe "editor:path-changed event", ->
     path = null
     beforeEach ->
       path = "/tmp/something.txt"
