@@ -34,17 +34,16 @@ class FileView extends View
 
   updateStatus: ->
     @removeClass('ignored modified new')
-    repo = @project.repo
-    return unless repo?
+    return unless git?
 
     path = @getPath()
-    if repo.isPathIgnored(path)
+    if git.isPathIgnored(path)
       @addClass('ignored')
     else
-      status = repo.getPathStatus(path)
-      if repo.isStatusModified(status)
+      status = git.getPathStatus(path)
+      if git.isStatusModified(status)
         @addClass('modified')
-      else if repo.isStatusNew(status)
+      else if git.isStatusNew(status)
         @addClass('new')
 
   getPath: ->

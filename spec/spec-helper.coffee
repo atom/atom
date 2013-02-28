@@ -14,6 +14,7 @@ Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
 RootView = require 'root-view'
+Git = require 'git'
 requireStylesheet "jasmine.css"
 fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
@@ -31,6 +32,11 @@ beforeEach ->
   jQuery.fx.off = true
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.project = fixturesProject
+  window.git = Git.open(fixturesProject.getPath())
+  window.project.on 'path-changed', ->
+    window.git?.destroy()
+    window.git = Git.open(window.project.getPath())
+
   window.resetTimeouts()
   atom.atomPackageStates = {}
   atom.loadedPackages = []
@@ -72,6 +78,9 @@ afterEach ->
   if project?
     project.destroy()
     window.project = null
+  if git?
+    git.destroy()
+    window.git = null
   $('#jasmine-content').empty()
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently

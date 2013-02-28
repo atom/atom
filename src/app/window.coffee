@@ -91,6 +91,7 @@ window.handleWindowEvents = ->
 window.buildProjectAndRootView = ->
   RootView = require 'root-view'
   Project = require 'project'
+  Git = require 'git'
 
   pathToOpen = atom.getPathToOpen()
   windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
@@ -101,6 +102,11 @@ window.buildProjectAndRootView = ->
     rootView.open(pathToOpen)
 
   $(rootViewParentSelector).append(rootView)
+
+  window.git = Git.open(project.getPath())
+  project.on 'path-changed', ->
+    window.git?.destroy()
+    window.git = Git.open(project.getPath())
 
 window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")

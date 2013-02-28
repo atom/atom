@@ -22,22 +22,21 @@ class DirectoryView extends View
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
 
-    repo = @project.repo
     iconClass = 'directory-icon'
-    if repo?
+    if git?
       path = @directory.getPath()
       if parent
-        @directoryName.addClass('ignored') if repo.isPathIgnored(path)
-        iconClass = 'submodule-icon' if repo.isSubmodule(path)
+        @directoryName.addClass('ignored') if git.isPathIgnored(path)
+        iconClass = 'submodule-icon' if git.isSubmodule(path)
       else
-        iconClass = 'repository-icon' if path is repo.getWorkingDirectory()
+        iconClass = 'repository-icon' if path is git.getWorkingDirectory()
     @directoryName.addClass(iconClass)
 
   getPath: ->
     @directory.path
 
   isPathIgnored: (path) ->
-    config.get("core.hideGitIgnoredFiles") and @project.repo?.isPathIgnored(path)
+    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(path)
 
   buildEntries: ->
     @unwatchDescendantEntries()

@@ -68,7 +68,7 @@ class StatusBarView extends View
     @branchArea.hide()
     return unless path
 
-    head = @buffer.getRepo()?.getShortHead() or ''
+    head = git?.getShortHead() or ''
     @branchLabel.text(head)
     @branchArea.show() if head
 
@@ -78,8 +78,7 @@ class StatusBarView extends View
     return unless path
 
     @gitStatusIcon.addClass('git-status octicons')
-    git = @buffer.getRepo()
-    return unless git
+    return unless git?
 
     status = git.getPathStatus(path)
     if git.isStatusModified(status)

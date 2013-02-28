@@ -443,7 +443,7 @@ describe 'FuzzyFinder', ->
       it "displays the modified icon", ->
         editor.setText('modified')
         editor.save()
-        project.repo?.getPathStatus(editor.getPath())
+        git.getPathStatus(editor.getPath())
 
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         expect(finderView.find('.file.modified').length).toBe 1
@@ -453,7 +453,7 @@ describe 'FuzzyFinder', ->
     describe "when a new file is shown in the list", ->
       it "displays the new icon", ->
         rootView.open('newsample.js')
-        project.repo?.getPathStatus(editor.getPath())
+        git.getPathStatus(editor.getPath())
 
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         expect(finderView.find('.file.new').length).toBe 1

@@ -7,7 +7,6 @@ EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 ChildProcess = require 'child-process'
-Git = require 'git'
 
 module.exports =
 class Project
@@ -35,8 +34,6 @@ class Project
     grammarOverridesByPath: @grammarOverridesByPath
 
   destroy: ->
-    @repo?.destroy()
-    @repo = null
     editSession.destroy() for editSession in @getEditSessions()
 
   addGrammarOverrideForPath: (path, grammar) ->
@@ -60,10 +57,8 @@ class Project
     if path?
       directory = if fs.isDirectory(path) then path else fs.directory(path)
       @rootDirectory = new Directory(directory)
-      @repo = Git.open(path)
     else
       @rootDirectory = null
-      @repo = null
 
     @trigger "path-changed"
 
@@ -85,7 +80,7 @@ class Project
     @ignoreRepositoryPath(path)
 
   ignoreRepositoryPath: (path) ->
-    config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(fs.join(@getPath(), path))
+    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fs.join(@getPath(), path))
 
   resolve: (filePath) ->
     filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'

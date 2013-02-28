@@ -40,12 +40,11 @@ class FuzzyFinderView extends SelectList
     $$ ->
       @li =>
         typeClass = null
-        repo = project.repo
-        if repo?
-          status = project.repo?.statuses[project.resolve(path)]
-          if repo.isStatusNew(status)
+        if git?
+          status = git.statuses[project.resolve(path)]
+          if git.isStatusNew(status)
             typeClass = 'new'
-          else if repo.isStatusModified(status)
+          else if git.isStatusModified(status)
             typeClass = 'modified'
 
         unless typeClass
