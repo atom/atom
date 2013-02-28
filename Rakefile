@@ -55,7 +55,7 @@ task :install => [:clean, :build] do
 end
 
 desc "Package up the app for speakeasy"
-task :package => ["setup-codesigning", "bump-patch-number", "build"] do
+task :package => ["setup-codesigning", "build"] do
   path = application_path()
   exit 1 if not path
 
@@ -68,17 +68,6 @@ end
 
 task "setup-codesigning" do
   ENV['CODE_SIGN'] = "Developer ID Application: GitHub"
-end
-
-desc "Bump patch number"
-task "bump-patch-number" do
-  version_number = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString:" ./native/mac/info.plist`
-  major, minor, patch = version_number.match(/(\d+)\.(\d+)\.(\d+)/)[1..-1].map {|o| o.to_i}
-  `/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString #{major}.#{minor}.#{patch + 1}" ./native/mac/info.plist`
-  `/usr/libexec/PlistBuddy -c "Set :CFBundleVersion #{major}.#{minor}.#{patch + 1}" ./native/mac/info.plist`
-
-  new_version_number = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString:" ./native/mac/info.plist`
-  puts "Bumped from #{version_number.strip} to #{new_version_number.strip}"
 end
 
 desc "Clone default bundles into vendor/bundles directory"
