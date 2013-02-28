@@ -29,9 +29,9 @@ class FileView extends View
       @fileName.addClass('text-icon')
 
     if git?
-      git.on 'status-changed', (path, status) =>
+      @subscribe git, 'status-changed', (path, status) =>
         @updateStatus() if path is @getPath()
-      git.on 'statuses-changed', =>
+      @subscribe git, 'statuses-changed', =>
         @updateStatus()
 
     @updateStatus()
