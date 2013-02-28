@@ -105,10 +105,8 @@ class Pane extends View
 
     @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
-
     @cleanupItemView(item)
     @trigger 'pane:item-removed', [item, index]
-    @remove() unless @items.length
 
   moveItem: (item, newIndex) ->
     oldIndex = @items.indexOf(item)
@@ -125,15 +123,19 @@ class Pane extends View
 
   cleanupItemView: (item) ->
     if item instanceof $
-      item.remove()
+      viewToRemove = item
     else
       viewClass = item.getViewClass()
       otherItemsForView = @items.filter (i) -> i.getViewClass?() is viewClass
       unless otherItemsForView.length
-        view = @viewsByClassName[viewClass.name]
-        view?.setModel(null)
-        view?.remove()
+        viewToRemove = @viewsByClassName[viewClass.name]
+        viewToRemove?.setModel(null)
         delete @viewsByClassName[viewClass.name]
+
+    if @items.length > 0
+      viewToRemove?.remove()
+    else
+      @remove()
 
   viewForItem: (item) ->
     if item instanceof $
@@ -197,19 +199,24 @@ class Pane extends View
 
   remove: (selector, keepData) ->
     return super if keepData
+
     # find parent elements before removing from dom
     container = @getContainer()
     parentAxis = @parent('.row, .column')
+
     if @is(':has(:focus)')
-      rootView?.focus() unless container.focusNextPane()
+      container.focusNextPane() or rootView?.focus()
     else if @isActive()
       container.makeNextPaneActive()
 
     super
 
     if parentAxis.children().length == 1
-      sibling = parentAxis.children().detach()
+      sibling = parentAxis.children()
+      siblingFocused = sibling.is(':has(:focus)')
+      sibling.detach()
       parentAxis.replaceWith(sibling)
+      sibling.focus() if siblingFocused
     container.adjustPaneDimensions()
     container.trigger 'pane:removed', [this]
 
