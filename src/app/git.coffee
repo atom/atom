@@ -81,7 +81,7 @@ class Git
   isPathIgnored: (path) ->
     @getRepo().isIgnored(@relativize(path))
 
-  isStatusModified: (status) ->
+  isStatusModified: (status=0) ->
     modifiedFlags = @statusFlags.working_dir_modified |
                     @statusFlags.working_dir_delete |
                     @statusFlags.working_dir_typechange |
@@ -93,7 +93,7 @@ class Git
   isPathModified: (path) ->
     @isStatusModified(@getPathStatus(path))
 
-  isStatusNew: (status) ->
+  isStatusNew: (status=0) ->
     newFlags = @statusFlags.working_dir_new |
                @statusFlags.index_new
     (status & newFlags) > 0
