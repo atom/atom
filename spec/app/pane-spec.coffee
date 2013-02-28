@@ -270,6 +270,42 @@ describe "Pane", ->
 
       expect(containerCloseHandler).not.toHaveBeenCalled()
 
+  describe "core:save", ->
+    describe "when the current item has a path", ->
+      describe "when the current item has a save method", ->
+        it "saves the current item", ->
+          spyOn(editSession2, 'save')
+          pane.showItem(editSession2)
+          pane.trigger 'core:save'
+          expect(editSession2.save).toHaveBeenCalled()
+
+      describe "when the current item has no save method", ->
+        it "does nothing", ->
+          expect(pane.activeItem.save).toBeUndefined()
+          pane.trigger 'core:save'
+
+    describe "when the current item has no path", ->
+      beforeEach ->
+        spyOn(atom, 'showSaveDialog')
+
+      describe "when the current item has a saveAs method", ->
+        it "opens a save dialog and saves the current item as the selected path", ->
+          spyOn(editSession2, 'saveAs')
+          editSession2.buffer.setPath(undefined)
+          pane.showItem(editSession2)
+
+          pane.trigger 'core:save'
+
+          expect(atom.showSaveDialog).toHaveBeenCalled()
+          atom.showSaveDialog.argsForCall[0][0]('/selected/path')
+          expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
+
+      describe "when the current item has no saveAs method", ->
+        it "does nothing", ->
+          expect(pane.activeItem.saveAs).toBeUndefined()
+          pane.trigger 'core:save'
+          expect(atom.showSaveDialog).not.toHaveBeenCalled()
+
   describe "pane:show-next-item and pane:show-previous-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
       expect(pane.activeItem).toBe view1

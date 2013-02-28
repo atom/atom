@@ -1,4 +1,5 @@
 'body':
+  'meta-s': 'core:save'
   'enter': 'core:confirm'
   'escape': 'core:cancel'
   'meta-w': 'core:close'

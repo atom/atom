@@ -152,7 +152,6 @@ class Editor extends View
         'core:select-down': @selectDown
         'core:select-to-top': @selectToTop
         'core:select-to-bottom': @selectToBottom
-        'editor:save': @save
         'editor:save-as': @saveAs
         'editor:newline-below': @insertNewlineBelow
         'editor:newline-above': @insertNewlineAbove
@@ -610,13 +609,6 @@ class Editor extends View
     else
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
-
-  save: (session=@activeEditSession, onSuccess) ->
-    if @getPath()
-      session.save()
-      onSuccess?()
-    else
-      @saveAs(session, onSuccess)
 
   saveAs: (session=@activeEditSession, onSuccess) ->
       atom.showSaveDialog (path) =>
