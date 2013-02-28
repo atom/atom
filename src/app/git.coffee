@@ -38,6 +38,13 @@ class Git
         @refreshIndex()
         @refreshStatus()
 
+    project?.eachBuffer this, (buffer) =>
+      bufferStatusHandler = =>
+        path = buffer.getPath()
+        @getPathStatus(path) if path
+      @subscribe buffer, 'saved', bufferStatusHandler
+      @subscribe buffer, 'reloaded', bufferStatusHandler
+
   getRepo: ->
     unless @repo?
       throw new Error("Repository has been destroyed")

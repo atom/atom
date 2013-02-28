@@ -69,9 +69,11 @@ window.shutdown = ->
     rootView: rootView.serialize()
   rootView.deactivate()
   project.destroy()
+  git?.destroy()
   $(window).off('focus blur before')
   window.rootView = null
   window.project = null
+  window.git = null
 
 window.installAtomCommand = (commandPath) ->
   return if fs.exists(commandPath)

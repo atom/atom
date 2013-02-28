@@ -933,9 +933,11 @@ describe "TreeView", ->
       config.set "core.hideGitIgnoredFiles", false
       ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
       fs.write(ignoreFile, 'tree-view.js')
+      git.getPathStatus(ignoreFile)
       modifiedFile = fs.join(require.resolve('fixtures/tree-view'), 'tree-view.txt')
       originalFileContent = fs.read(modifiedFile)
       fs.write modifiedFile, 'ch ch changes'
+      git.getPathStatus(modifiedFile)
       treeView.updateRoot()
 
     afterEach ->
@@ -945,13 +947,6 @@ describe "TreeView", ->
     describe "when a file is modified", ->
       it "adds a custom style", ->
         expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
-
-      describe "when the window gains focus after the contents are restored to a clean state", ->
-        it "removes the custom style", ->
-          expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
-          fs.write modifiedFile, originalFileContent
-          $(window).trigger 'focus'
-          expect(treeView.find('.file:contains(tree-view.txt)')).not.toHaveClass 'modified'
 
     describe "when a file is new", ->
       it "adds a custom style", ->

@@ -130,6 +130,8 @@ describe "StatusBar", ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
       newPath = fs.join(require.resolve('fixtures/git/working-dir'), 'new.txt')
       fs.write(newPath, "I'm new here")
+      git.getPathStatus(path)
+      git.getPathStatus(newPath)
       originalPathText = fs.read(path)
       rootView.attachToDom()
 
@@ -139,6 +141,7 @@ describe "StatusBar", ->
 
     it "displays the modified icon for a changed file", ->
       fs.write(path, "i've changed for the worse")
+      git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
 
@@ -152,22 +155,17 @@ describe "StatusBar", ->
 
     it "updates when a git-status-changed event occurs", ->
       fs.write(path, "i've changed for the worse")
+      git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
       fs.write(path, originalPathText)
+      git.getPathStatus(path)
       rootView.getActiveEditor().getBuffer().trigger 'git-status-changed'
-      expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
-
-    it "updates when the window receives focus", ->
-      fs.write(path, "i've changed for the worse")
-      rootView.open(path)
-      expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
-      fs.write(path, originalPathText)
-      $(window).trigger 'focus'
       expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
 
     it "displays the diff stat for modified files", ->
       fs.write(path, "i've changed for the worse")
+      git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveText('+1,-1')
 

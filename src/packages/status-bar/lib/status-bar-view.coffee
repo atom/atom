@@ -32,9 +32,13 @@ class StatusBarView extends View
 
     @updateCursorPositionText()
     @subscribe @editor, 'cursor:moved', => @updateCursorPositionText()
-    @subscribe $(window), 'focus', => @updateStatusBar()
     @subscribe @grammarName, 'click', => @editor.trigger 'editor:select-grammar'
     @subscribe @editor, 'editor:grammar-changed', => @updateGrammarText()
+    if git?
+      @subscribe git, 'status-changed', (path, status) =>
+        @updateStatusBar() if path is @buffer?.getPath()
+      @subscribe git, 'statuses-changed', =>
+        @updateStatusBar()
 
     @subscribeToBuffer()
 
@@ -42,7 +46,6 @@ class StatusBarView extends View
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
     @buffer.on 'contents-modified.status-bar', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
-    @buffer.on 'saved.status-bar', => @updateStatusBar()
     @buffer.on 'git-status-changed.status-bar', => @updateStatusBar()
     @updateStatusBar()
 
@@ -80,7 +83,7 @@ class StatusBarView extends View
     @gitStatusIcon.addClass('git-status octicons')
     return unless git?
 
-    status = git.getPathStatus(path)
+    status = git.statuses[path]
     if git.isStatusModified(status)
       @gitStatusIcon.addClass('modified-status-icon')
       stats = git.getDiffStats(path)

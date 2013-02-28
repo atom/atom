@@ -128,9 +128,15 @@ class Project
       buffers.push editSession.buffer
     buffers
 
-  eachBuffer: (callback) ->
+  eachBuffer: (args...) ->
+    subscriber = args.shift() if args.length > 1
+    callback = args.shift()
+
     callback(buffer) for buffer in @getBuffers()
-    @on 'buffer-created', (buffer) -> callback(buffer)
+    if subscriber
+      subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
+    else
+      @on 'buffer-created', (buffer) -> callback(buffer)
 
   bufferForPath: (filePath) ->
     if filePath?
