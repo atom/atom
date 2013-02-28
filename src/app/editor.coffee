@@ -684,17 +684,6 @@ class Editor extends View
   pane: ->
     @closest('.pane').view()
 
-  promptToSaveDirtySession: (session, callback) ->
-    path = session.getPath()
-    filename = if path then fs.base(path) else "untitled buffer"
-    atom.confirm(
-      "'#{filename}' has changes, do you want to save them?"
-      "Your changes will be lost if you don't save them"
-      "Save", => @save(session, callback),
-      "Cancel", null
-      "Don't Save", callback
-    )
-
   remove: (selector, keepData) ->
     return super if keepData or @removed
     @trigger 'editor:will-be-removed'

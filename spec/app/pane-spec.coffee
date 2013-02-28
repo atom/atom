@@ -98,10 +98,70 @@ describe "Pane", ->
         expect(pane.activeView).toBe view2
 
   describe ".destroyItem(item)", ->
-    it "removes the item and destroys it if it's a model", ->
-      pane.destroyItem(editSession2)
-      expect(pane.getItems().indexOf(editSession2)).toBe -1
-      expect(editSession2.destroyed).toBeTruthy()
+    describe "if the item is not modified", ->
+      it "removes the item and tries to call destroy on it", ->
+        pane.destroyItem(editSession2)
+        expect(pane.getItems().indexOf(editSession2)).toBe -1
+        expect(editSession2.destroyed).toBeTruthy()
+
+    describe "if the item is modified", ->
+      beforeEach ->
+        spyOn(atom, 'confirm')
+        spyOn(atom, 'showSaveDialog')
+        spyOn(editSession2, 'save')
+        spyOn(editSession2, 'saveAs')
+
+        atom.confirm.selectOption = (buttonText) ->
+          for arg, i in @argsForCall[0] when arg is buttonText
+            @argsForCall[0][i + 1]?()
+
+        editSession2.insertText('a')
+        expect(editSession2.isModified()).toBeTruthy()
+        pane.destroyItem(editSession2)
+
+      it "presents a dialog with the option to save the item first", ->
+        expect(atom.confirm).toHaveBeenCalled()
+        expect(pane.getItems().indexOf(editSession2)).not.toBe -1
+        expect(editSession2.destroyed).toBeFalsy()
+
+      describe "if the [Save] option is selected", ->
+        describe "when the item has a path", ->
+          it "saves the item before removing and destroying it", ->
+            atom.confirm.selectOption('Save')
+
+            expect(editSession2.save).toHaveBeenCalled()
+            expect(pane.getItems().indexOf(editSession2)).toBe -1
+            expect(editSession2.destroyed).toBeTruthy()
+
+        describe "when the item has no path", ->
+          it "presents a save-as dialog, then saves the item with the given path before removing and destroying it", ->
+            editSession2.buffer.setPath(undefined)
+
+            atom.confirm.selectOption('Save')
+
+            expect(atom.showSaveDialog).toHaveBeenCalled()
+
+            atom.showSaveDialog.argsForCall[0][0]("/selected/path")
+
+            expect(editSession2.saveAs).toHaveBeenCalledWith("/selected/path")
+            expect(pane.getItems().indexOf(editSession2)).toBe -1
+            expect(editSession2.destroyed).toBeTruthy()
+
+      describe "if the [Don't Save] option is selected", ->
+        it "removes and destroys the item without saving it", ->
+          atom.confirm.selectOption("Don't Save")
+
+          expect(editSession2.save).not.toHaveBeenCalled()
+          expect(pane.getItems().indexOf(editSession2)).toBe -1
+          expect(editSession2.destroyed).toBeTruthy()
+
+      describe "if the [Cancel] option is selected", ->
+        it "does not save, remove, or destroy the item", ->
+          atom.confirm.selectOption("Cancel")
+
+          expect(editSession2.save).not.toHaveBeenCalled()
+          expect(pane.getItems().indexOf(editSession2)).not.toBe -1
+          expect(editSession2.destroyed).toBeFalsy()
 
   describe ".removeItem(item)", ->
     it "removes the item from the items list and shows the next item if it was showing", ->
