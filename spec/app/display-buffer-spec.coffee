@@ -5,7 +5,7 @@ describe "DisplayBuffer", ->
   [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
-    editSession = fixturesProject.buildEditSession('sample.js', { tabLength })
+    editSession = project.buildEditSession('sample.js', { tabLength })
     { buffer, displayBuffer } = editSession
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'changed', changeHandler
@@ -220,7 +220,7 @@ describe "DisplayBuffer", ->
     editSession2 = null
 
     beforeEach ->
-      editSession2 = fixturesProject.buildEditSession('two-hundred.txt')
+      editSession2 = project.buildEditSession('two-hundred.txt')
       { buffer, displayBuffer } = editSession2
       displayBuffer.on 'changed', changeHandler
 

@@ -1743,7 +1743,7 @@ describe "Editor", ->
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
-        emptyEditSession = fixturesProject.buildEditSession(null)
+        emptyEditSession = project.buildEditSession(null)
         editor.edit(emptyEditSession)
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 

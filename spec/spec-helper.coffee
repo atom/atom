@@ -30,8 +30,8 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
   jQuery.fx.off = true
-  window.fixturesProject = new Project(require.resolve('fixtures'))
-  window.project = fixturesProject
+
+  window.project = new Project(require.resolve('fixtures'))
   window.git = Git.open(fixturesProject.getPath())
   window.project.on 'path-changed', ->
     window.git?.destroy()
