@@ -23,7 +23,7 @@
   -webkit-flex: 2;
 }
 
-.tab .file-name {
+.tab .title {
   display: block;
   overflow: hidden;
   white-space: nowrap;
