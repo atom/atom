@@ -3,7 +3,6 @@ _ = require 'underscore'
 
 module.exports =
 class RepositoryStatusTask extends Task
-
   constructor: (@repo) ->
     super('repository-status-handler')
 
