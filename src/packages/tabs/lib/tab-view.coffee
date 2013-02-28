@@ -12,15 +12,6 @@ class TabView extends View
   initialize: (@item, @pane) ->
     @item.on? 'title-changed', => @updateTitle()
     @updateTitle()
-#     @buffer = @editSession.buffer
-#     @subscribe @buffer, 'path-changed', => @updateFileName()
-#     @subscribe @buffer, 'contents-modified', => @updateModifiedStatus()
-#     @subscribe @buffer, 'saved', => @updateModifiedStatus()
-#     @subscribe @buffer, 'git-status-changed', => @updateModifiedStatus()
-#     @subscribe @editor, 'editor:edit-session-added', => @updateFileName()
-#     @subscribe @editor, 'editor:edit-session-removed', => @updateFileName()
-#     @updateFileName()
-#     @updateModifiedStatus()
 
   updateTitle: ->
     return if @updatingTitle
