@@ -45,7 +45,7 @@
   }
 
   if (alwaysUseBundleResourcePath || !_resourcePath) {
-    _resourcePath = [[NSBundle mainBundle] resourcePath];
+    _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   }
   [_resourcePath retain];
 
@@ -119,7 +119,7 @@
 // have the correct initial size based on the frame's last stored size.
 // HACK: I hate this and want to place this code directly in windowDidLoad
 - (void)attachWebView {
-  NSURL *url = [[NSBundle mainBundle] resourceURL];
+  NSURL *url = [[NSBundle bundleForClass:self.class] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];

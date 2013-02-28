@@ -16,6 +16,22 @@
         'toolkit_uses_gtk%': 0,
       }],
     ],
+    'fix_framework_link_command': [
+      'install_name_tool',
+      '-change',
+      '@executable_path/libcef.dylib',
+      '@rpath/Chromium Embedded Framework.framework/Libraries/libcef.dylib',
+      '-change',
+      '@executable_path/../Frameworks/CocoaOniguruma.framework/Versions/A/CocoaOniguruma',
+      '@rpath/CocoaOniguruma.framework/Versions/A/CocoaOniguruma',
+      '-change',
+      '@loader_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle',
+      '@rpath/Sparkle.framework/Versions/A/Sparkle',
+      '-change',
+      '@executable_path/libgit2.0.17.0.dylib',
+      '@rpath/libgit2.framework/Libraries/libgit2.0.17.0.dylib',
+      '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
+    ],
   },
   'includes': [
     'cef/cef_paths2.gypi',
@@ -45,39 +61,20 @@
       'mac_bundle': 1,
       'msvs_guid': 'D22C6F51-AA2D-457C-B579-6C97A96C724D',
       'dependencies': [
-        'libcef_dll_wrapper',
+        'atom_framework',
       ],
-      'defines': [
-        'USING_CEF_SHARED',
-      ],
-      'include_dirs': [ '.', 'cef', 'git2' ],
       'mac_framework_dirs': [ 'native/frameworks' ],
-      'libraries': [ 'native/frameworks/CocoaOniguruma.framework', 'native/frameworks/Sparkle.framework'],
       'sources': [
-        '<@(includes_common)',
-        '<@(includes_wrapper)',
-        'native/main_mac.mm',
-        'native/atom_application.h',
-        'native/atom_application.mm',
-        'native/atom_cef_app.h',
-        'native/atom_window_controller.h',
-        'native/atom_window_controller.mm',
-        'native/atom_cef_client_mac.mm',
-        'native/atom_cef_client.cpp',
-        'native/atom_cef_client.h',
-        'native/message_translation.cpp',
-        'native/message_translation.h',
+        'native/main.cpp',
       ],
       'mac_bundle_resources': [
         'native/mac/atom.icns',
         'native/mac/file.icns',
         'native/mac/speakeasy.pem',
-        'native/mac/English.lproj/MainMenu.xib',
-        'native/mac/English.lproj/AtomWindow.xib',
       ],
       'xcode_settings': {
         'INFOPLIST_FILE': 'native/mac/info.plist',
-        'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'], # Necessary to avoid an "install_name_tool: changing install names or rpaths can't be redone" error.
+        'LD_RUNPATH_SEARCH_PATHS': '@executable_path/../Frameworks',
       },
       'conditions': [
         ['CODE_SIGN' , {
@@ -142,6 +139,7 @@
             {
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks',
               'files': [
+                '<(PRODUCT_DIR)/Atom.framework',
                 'native/frameworks/CocoaOniguruma.framework',
                 'native/frameworks/Sparkle.framework',
               ],
@@ -155,12 +153,6 @@
           ],
           'postbuilds': [
             {
-              'postbuild_name': 'Copy and Compile Static Files',
-              'action': [
-                'script/copy-files-to-bundle'
-              ],
-            },
-            {
               'postbuild_name': 'Copy Helper App',
               'action': [
                 'cp',
@@ -172,11 +164,7 @@
             {
               'postbuild_name': 'Fix Framework Link',
               'action': [
-                'install_name_tool',
-                '-change',
-                '@executable_path/libcef.dylib',
-                '@executable_path/../Frameworks/Chromium Embedded Framework.framework/Libraries/libcef.dylib',
-                '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
+                '<@(fix_framework_link_command)',
               ],
             },
             {
@@ -232,6 +220,87 @@
       ],
     },
     {
+      'target_name': 'atom_framework',
+      'product_name': 'Atom',
+      'type': 'shared_library',
+      'mac_bundle': 1,
+      'dependencies': [
+        'libcef_dll_wrapper',
+      ],
+      'defines': [
+        'USING_CEF_SHARED',
+      ],
+      'xcode_settings': {
+        'INFOPLIST_FILE': 'native/mac/framework-info.plist',
+        'LD_DYLIB_INSTALL_NAME': '@rpath/Atom.framework/Atom',
+      },
+      'include_dirs': [ '.', 'cef', 'git2' ],
+      'mac_framework_dirs': [ 'native/frameworks' ],
+      'sources': [
+        '<@(includes_common)',
+        '<@(includes_wrapper)',
+        'native/atom_application.h',
+        'native/atom_application.mm',
+        'native/atom_cef_app.h',
+        'native/atom_cef_app.h',
+        'native/atom_cef_client.cpp',
+        'native/atom_cef_client.h',
+        'native/atom_cef_client_mac.mm',
+        'native/atom_cef_render_process_handler.h',
+        'native/atom_cef_render_process_handler.mm',
+        'native/atom_window_controller.h',
+        'native/atom_window_controller.mm',
+        'native/atom_main.h',
+        'native/atom_main_mac.mm',
+        'native/message_translation.cpp',
+        'native/message_translation.cpp',
+        'native/message_translation.h',
+        'native/message_translation.h',
+        'native/path_watcher.h',
+        'native/path_watcher.mm',
+        'native/v8_extensions/atom.h',
+        'native/v8_extensions/atom.mm',
+        'native/v8_extensions/git.h',
+        'native/v8_extensions/git.mm',
+        'native/v8_extensions/native.h',
+        'native/v8_extensions/native.mm',
+        'native/v8_extensions/onig_reg_exp.h',
+        'native/v8_extensions/onig_reg_exp.mm',
+        'native/v8_extensions/onig_scanner.h',
+        'native/v8_extensions/onig_scanner.mm',
+        'native/v8_extensions/readtags.c',
+        'native/v8_extensions/readtags.h',
+        'native/v8_extensions/tags.h',
+        'native/v8_extensions/tags.mm',
+      ],
+      'link_settings': {
+        'libraries': [
+          '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
+          'git2/frameworks/libgit2.0.17.0.dylib',
+          'native/frameworks/CocoaOniguruma.framework',
+          'native/frameworks/Sparkle.framework',
+        ],
+      },
+      'mac_bundle_resources': [
+        'native/mac/English.lproj/AtomWindow.xib',
+        'native/mac/English.lproj/MainMenu.xib',
+      ],
+      'postbuilds': [
+        {
+          'postbuild_name': 'Copy and Compile Static Files',
+          'action': [
+            'script/copy-files-to-bundle'
+          ],
+        },
+        {
+          'postbuild_name': 'Fix Framework Link',
+          'action': [
+            '<@(fix_framework_link_command)',
+          ],
+        },
+      ],
+    },
+    {
       'target_name': 'libcef_dll_wrapper',
       'type': 'static_library',
       'msvs_guid': 'A9D6DC71-C0DC-4549-AEA0-3B15B44E86A9',
@@ -271,46 +340,15 @@
           'product_name': 'Atom Helper',
           'mac_bundle': 1,
           'dependencies': [
-            'libcef_dll_wrapper',
+            'atom_framework',
           ],
           'defines': [
             'USING_CEF_SHARED',
             'PROCESS_HELPER_APP',
           ],
-          'include_dirs': [ '.', 'cef', 'git2' ],
           'mac_framework_dirs': [ 'native/frameworks' ],
-          'link_settings': {
-            'libraries': [
-              '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
-            ],
-          },
-          'libraries': [
-            'native/frameworks/CocoaOniguruma.framework',
-            'git2/frameworks/libgit2.0.17.0.dylib',
-          ],
           'sources': [
-            'native/atom_cef_app.h',
-            'native/atom_cef_render_process_handler.h',
-            'native/atom_cef_render_process_handler.mm',
-            'native/message_translation.cpp',
-            'native/message_translation.h',
-            'native/path_watcher.mm',
-            'native/path_watcher.h',
-            'native/main_helper_mac.mm',
-            'native/v8_extensions/native.mm',
-            'native/v8_extensions/native.h',
-            'native/v8_extensions/onig_reg_exp.mm',
-            'native/v8_extensions/onig_reg_exp.h',
-            'native/v8_extensions/onig_scanner.mm',
-            'native/v8_extensions/onig_scanner.h',
-            'native/v8_extensions/atom.mm',
-            'native/v8_extensions/atom.h',
-            'native/v8_extensions/git.mm',
-            'native/v8_extensions/git.h',
-            'native/v8_extensions/readtags.h',
-            'native/v8_extensions/readtags.c',
-            'native/v8_extensions/tags.h',
-            'native/v8_extensions/tags.mm',
+            'native/main.cpp',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
@@ -320,45 +358,13 @@
           ],
           'xcode_settings': {
             'INFOPLIST_FILE': 'native/mac/helper-info.plist',
-            'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'], # Necessary to avoid an "install_name_tool: changing install names or rpaths can't be redone" error.
+            'LD_RUNPATH_SEARCH_PATHS': '@executable_path/../../..',
           },
-          'copies': [
-            {
-              'destination': '<(PRODUCT_DIR)/Atom Helper.app/Contents/Frameworks',
-              'files': [
-                'native/frameworks/CocoaOniguruma.framework',
-              ],
-            },
-          ],
           'postbuilds': [
             {
-              # The framework defines its load-time path
-              # (DYLIB_INSTALL_NAME_BASE) relative to the main executable
-              # (chrome).  A different relative path needs to be used in
-              # atom_helper_app.
-              'postbuild_name': 'Fix CEF Framework Link',
+              'postbuild_name': 'Fix Framework Link',
               'action': [
-                'install_name_tool',
-                '-change',
-                '@executable_path/libcef.dylib',
-                '@executable_path/../../../../Frameworks/Chromium Embedded Framework.framework/Libraries/libcef.dylib',
-                '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
-              ],
-            },
-            {
-              'postbuild_name': 'Fix libgit2 Framework Link',
-              'action': [
-                'install_name_tool',
-                '-change',
-                '@executable_path/libgit2.0.17.0.dylib',
-                '@executable_path/../../../../Frameworks/libgit2.framework/Libraries/libgit2.0.17.0.dylib',
-                '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
-              ],
-            },
-            {
-              'postbuild_name': 'Copy and Compile Static Files',
-              'action': [
-                'script/copy-files-to-bundle'
+                '<@(fix_framework_link_command)',
               ],
             },
           ],
