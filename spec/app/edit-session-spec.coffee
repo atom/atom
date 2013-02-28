@@ -9,12 +9,9 @@ describe "EditSession", ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
   beforeEach ->
-    editSession = fixturesProject.buildEditSession('sample.js', autoIndent: false)
+    editSession = project.buildEditSession('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
-
-  afterEach ->
-    fixturesProject.destroy()
 
   describe "title", ->
     describe ".getTitle()", ->
@@ -1736,7 +1733,7 @@ describe "EditSession", ->
 
       it "does not explode if the current language mode has no comment regex", ->
         editSession.destroy()
-        editSession = fixturesProject.buildEditSession(null, autoIndent: false)
+        editSession = project.buildEditSession(null, autoIndent: false)
         editSession.setSelectedBufferRange([[4, 5], [4, 5]])
         editSession.toggleLineCommentsInSelection()
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
@@ -1814,7 +1811,7 @@ describe "EditSession", ->
         expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
       it "restores selected ranges even when the change occurred in another edit session", ->
-        otherEditSession = fixturesProject.buildEditSession(editSession.getPath())
+        otherEditSession = project.buildEditSession(editSession.getPath())
         otherEditSession.setSelectedBufferRange([[2, 2], [3, 3]])
         otherEditSession.delete()
 
@@ -2007,13 +2004,13 @@ describe "EditSession", ->
 
   describe "soft-tabs detection", ->
     it "assign soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
-      editSession = fixturesProject.buildEditSession('sample.js', softTabs: false)
+      editSession = project.buildEditSession('sample.js', softTabs: false)
       expect(editSession.softTabs).toBeTruthy()
 
-      editSession = fixturesProject.buildEditSession('sample-with-tabs.coffee', softTabs: true)
+      editSession = project.buildEditSession('sample-with-tabs.coffee', softTabs: true)
       expect(editSession.softTabs).toBeFalsy()
 
-      editSession = fixturesProject.buildEditSession(null, softTabs: false)
+      editSession = project.buildEditSession(null, softTabs: false)
       expect(editSession.softTabs).toBeFalsy()
 
   describe ".indentLevelForLine(line)", ->

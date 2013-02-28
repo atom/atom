@@ -78,7 +78,7 @@ describe 'FuzzyFinder', ->
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
         finderView.confirmed('dir/a')
-        expectedPath = fixturesProject.resolve('dir/a')
+        expectedPath = project.resolve('dir/a')
 
         expect(finderView.hasParent()).toBeFalsy()
         expect(editor1.getPath()).not.toBe expectedPath
@@ -179,7 +179,7 @@ describe 'FuzzyFinder', ->
 
       describe "when the active pane has an item for the selected path", ->
         it "switches to the item for the selected path", ->
-          expectedPath = fixturesProject.resolve('sample.txt')
+          expectedPath = project.resolve('sample.txt')
           finderView.confirmed('sample.txt')
 
           expect(finderView.hasParent()).toBeFalsy()
@@ -195,7 +195,7 @@ describe 'FuzzyFinder', ->
 
           expect(rootView.getActiveView()).toBe editor1
 
-          expectedPath = fixturesProject.resolve('sample.txt')
+          expectedPath = project.resolve('sample.txt')
           finderView.confirmed('sample.txt')
 
           expect(finderView.hasParent()).toBeFalsy()
