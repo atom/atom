@@ -811,7 +811,8 @@ class Editor extends View
       @pendingDisplayUpdate = false
 
   updateDisplay: (options={}) ->
-    return unless @attached
+    return unless @attached and @activeEditSession
+    return if @activeEditSession.destroyed
     @updateRenderedLines()
     @highlightCursorLine()
     @updateCursorViews()
