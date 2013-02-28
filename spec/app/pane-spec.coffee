@@ -44,6 +44,15 @@ describe "Pane", ->
       expect(itemChangedHandler.argsForCall[0][1]).toBe editSession1
       itemChangedHandler.reset()
 
+    describe "if the pane's active view is focused before calling showItem", ->
+      it "focuses the new active view", ->
+        container.attachToDom()
+        pane.focus()
+        expect(pane.activeView).not.toBe view2
+        expect(pane.activeView).toMatchSelector ':focus'
+        pane.showItem(view2)
+        expect(view2).toMatchSelector ':focus'
+
     describe "when the given item isn't yet in the items list on the pane", ->
       view3 = null
       beforeEach ->

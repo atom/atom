@@ -73,11 +73,13 @@ class Pane extends View
 
   showItem: (item) ->
     return if item is @activeItem
+    isFocused = @is(':has(:focus)')
     @addItem(item)
     view = @viewForItem(item)
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
     view.show()
+    view.focus() if isFocused
     @activeItem = item
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
