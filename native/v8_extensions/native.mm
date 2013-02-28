@@ -455,6 +455,7 @@ namespace v8_extensions {
         fcntl(masterFd, F_SETFD, FD_CLOEXEC);
         stdoutH = stdinH = ptyFileHandle;
         [task setStandardOutput:stdoutH];
+        [task setStandardError:stdoutH];
         [task setStandardInput:stdinH];
         stdoutH = stdinH = ptyMasterHandle;
       } else {
