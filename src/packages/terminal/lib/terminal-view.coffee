@@ -21,6 +21,9 @@ class TerminalView extends ScrollView
     @exited = false
     @readData = false
 
+    @on 'click', =>
+      @hiddenInput.focus()
+
     @on 'focus', =>
       @hiddenInput.focus()
       false
@@ -71,11 +74,18 @@ class TerminalView extends ScrollView
   update: () ->
     @updateLine(line) for line in @buffer.getDirtyLines()
     @buffer.rendered()
+    @scrollToBottom()
 
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")
-    if !l.length
-      l = $("<pre>")
-      l.addClass("line-#{line.number}")
+    if !l.size()
+      l = $("<pre>").addClass("line-#{line.number}")
       @content.append(l)
-    l.text(line.text)
+    else
+      l.empty()
+    for c in line.characters
+      character = $("<span>").addClass("character").text(c.char)
+      if c.cursor
+        cursor = $("<span>").addClass("cursor")
+        character.append(cursor)
+      l.append character

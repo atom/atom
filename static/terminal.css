@@ -5,12 +5,39 @@
   right: 0px;
   height: 200px;
   z-index: 2;
+  overflow-y: scroll;
 }
 
 .terminal .content {
+  font-family: Inconsolata, Monaco, Courier;
   margin: 8px;
+}
+
+.terminal .hidden-input {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  opacity: 0;
 }
 
 .terminal .content pre {
   display: block;
+}
+
+.terminal .content pre span.character {
+  display: inline-block;
+  width: 0.8em;
+  height: 1em;
+  text-align: center;
+  position: relative;
+}
+
+.terminal .cursor {
+  display: block;
+  position: absolute;
+  top: 0; left: 0;
+  bottom: 0; right: 0;
+  width: 0.8em;
+  height: 1em;
 }

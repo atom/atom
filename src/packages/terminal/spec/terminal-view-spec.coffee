@@ -49,3 +49,6 @@ fdescribe 'Terminal', ->
     it "updates the line item", ->
       terminalView.output("a")
       expect(terminalView.content.find("pre").text()).toBe("a")
+    it "creates each character", ->
+      terminalView.output("ab")
+      expect(terminalView.content.find("pre").first().find("span.character").size()).toBe(3)

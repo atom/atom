@@ -4,5 +4,10 @@
 }
 
 .terminal .content {
-  border: 1px solid #000;
+}
+
+.terminal .cursor {
+  background-color: #000;
+  opacity: 0.5;
+  z-index: 2;
 }

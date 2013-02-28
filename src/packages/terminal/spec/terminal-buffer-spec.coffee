@@ -13,11 +13,12 @@ fdescribe 'Terminal Buffer', ->
 
   describe "when a sequence of characters is entered", ->
     it "processes each character", ->
-      spyOn(buffer, "inputCharacter")
+      spyOn(buffer, "inputCharacter").andCallThrough()
       buffer.input("abc")
       expect(buffer.inputCharacter).toHaveBeenCalledWith("a")
       expect(buffer.inputCharacter).toHaveBeenCalledWith("b")
       expect(buffer.inputCharacter).toHaveBeenCalledWith("c")
+      expect(buffer.lastLine().text()).toBe("abc")
 
   describe "when a line changes", ->
     it "is marked as dirty", ->
