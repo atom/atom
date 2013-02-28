@@ -180,23 +180,72 @@ describe 'Buffer', ->
       waitsFor 'change event', ->
         changeHandler.callCount > 0
 
-  describe ".isModified()", ->
-    it "returns true when user changes buffer", ->
+  describe "modified status", ->
+    it "reports a modified status of true after the user changes buffer", ->
+      modifiedHandler = jasmine.createSpy("modifiedHandler")
+      buffer.on 'modified-status-changed', modifiedHandler
+
       expect(buffer.isModified()).toBeFalsy()
       buffer.insert([0,0], "hi")
       expect(buffer.isModified()).toBe true
 
-    it "returns false after modified buffer is saved", ->
+      advanceClock(buffer.stoppedChangingDelay)
+      expect(modifiedHandler).toHaveBeenCalledWith(true)
+
+      modifiedHandler.reset()
+      buffer.insert([0,2], "ho")
+      advanceClock(buffer.stoppedChangingDelay)
+      expect(modifiedHandler).not.toHaveBeenCalled()
+
+      modifiedHandler.reset()
+      buffer.undo()
+      buffer.undo()
+      advanceClock(buffer.stoppedChangingDelay)
+      expect(modifiedHandler).toHaveBeenCalledWith(false)
+
+    it "reports a modified status of true after the underlying file is deleted", ->
+      buffer.release()
+      filePath = "/tmp/atom-tmp-file"
+      fs.write(filePath, 'delete me')
+      buffer = new Buffer(filePath)
+      modifiedHandler = jasmine.createSpy("modifiedHandler")
+      buffer.on 'modified-status-changed', modifiedHandler
+
+      fs.remove(filePath)
+
+      waitsFor "modified status to change", -> modifiedHandler.callCount
+      runs -> expect(buffer.isModified()).toBe true
+
+    it "reports a modified status of false after a modified buffer is saved", ->
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, '')
       buffer.release()
       buffer = new Buffer(filePath)
-      expect(buffer.isModified()).toBe false
+      modifiedHandler = jasmine.createSpy("modifiedHandler")
+      buffer.on 'modified-status-changed', modifiedHandler
 
       buffer.insert([0,0], "hi")
       expect(buffer.isModified()).toBe true
+      modifiedHandler.reset()
 
       buffer.save()
+      expect(modifiedHandler).toHaveBeenCalledWith(false)
+      expect(buffer.isModified()).toBe false
+
+    it "reports a modified status of false after a modified buffer is reloaded", ->
+      filePath = "/tmp/atom-tmp-file"
+      fs.write(filePath, '')
+      buffer.release()
+      buffer = new Buffer(filePath)
+      modifiedHandler = jasmine.createSpy("modifiedHandler")
+      buffer.on 'modified-status-changed', modifiedHandler
+
+      buffer.insert([0,0], "hi")
+      expect(buffer.isModified()).toBe true
+      modifiedHandler.reset()
+
+      buffer.reload()
+      expect(modifiedHandler).toHaveBeenCalledWith(false)
       expect(buffer.isModified()).toBe false
 
     it "returns false for an empty buffer with no path", ->

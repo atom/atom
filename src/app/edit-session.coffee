@@ -49,6 +49,7 @@ class EditSession
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
     @subscribe @buffer, "markers-updated", => @mergeCursors()
+    @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
 
     @preserveCursorPositionOnBufferReload()
 
