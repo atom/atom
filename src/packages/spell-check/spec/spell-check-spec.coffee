@@ -9,7 +9,7 @@ describe "Spell check", ->
     config.set('spell-check.grammars', [])
     window.loadPackage('spell-check')
     rootView.attachToDom()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
 
   it "decorates all misspelled words", ->
     editor.setText("This middle of thiss sentencts has issues.")
