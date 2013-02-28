@@ -26,11 +26,30 @@ class DirectoryView extends View
     if git?
       path = @directory.getPath()
       if parent
-        @directoryName.addClass('ignored') if git.isPathIgnored(path)
-        iconClass = 'submodule-icon' if git.isSubmodule(path)
+        if git.isSubmodule(path)
+          iconClass = 'submodule-icon'
+        else
+          @subscribe git, 'status-changed', (path, status) =>
+            @updateStatus() if path.substring("#{@getPath()}/") is 0
+          @subscribe git, 'statuses-changed', =>
+            @updateStatus()
+          @updateStatus()
       else
         iconClass = 'repository-icon' if path is git.getWorkingDirectory()
+
     @directoryName.addClass(iconClass)
+
+  updateStatus: ->
+    @removeClass('ignored modified new')
+    path = @directory.getPath()
+    if git.isPathIgnored(path)
+      @addClass('ignored')
+    else
+      status = git.getDirectoryStatus(path)
+      if git.isStatusModified(status)
+        @addClass('modified')
+      else if git.isStatusNew(status)
+        @addClass('new')
 
   getPath: ->
     @directory.path

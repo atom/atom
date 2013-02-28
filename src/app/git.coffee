@@ -126,5 +126,12 @@ class Git
     @statusTask = new RepositoryStatusTask(this)
     @statusTask.start()
 
+  getDirectoryStatus: (directoryPath) ->
+    directoryPath = "#{directoryPath}/"
+    directoryStatus = 0
+    for path, status of @statuses
+      directoryStatus |= status if path.indexOf(directoryPath) is 0
+    directoryStatus
+
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter
