@@ -39,19 +39,30 @@ class FuzzyFinderView extends SelectList
   itemForElement: (path) ->
     $$ ->
       @li =>
-        ext = fs.extension(path)
-        if fs.isReadmePath(path)
-          typeClass = 'readme-name'
-        else if fs.isCompressedExtension(ext)
-          typeClass = 'compressed-name'
-        else if fs.isImageExtension(ext)
-          typeClass = 'image-name'
-        else if fs.isPdfExtension(ext)
-          typeClass = 'pdf-name'
-        else if fs.isBinaryExtension(ext)
-          typeClass = 'binary-name'
-        else
-          typeClass = 'text-name'
+        typeClass = null
+        repo = project.repo
+        if repo?
+          status = project.repo?.statuses[project.resolve(path)]
+          if repo.isStatusNew(status)
+            typeClass = 'new'
+          else if repo.isStatusModified(status)
+            typeClass = 'modified'
+
+        unless typeClass
+          ext = fs.extension(path)
+          if fs.isReadmePath(path)
+            typeClass = 'readme-name'
+          else if fs.isCompressedExtension(ext)
+            typeClass = 'compressed-name'
+          else if fs.isImageExtension(ext)
+            typeClass = 'image-name'
+          else if fs.isPdfExtension(ext)
+            typeClass = 'pdf-name'
+          else if fs.isBinaryExtension(ext)
+            typeClass = 'binary-name'
+          else
+            typeClass = 'text-name'
+
         @span fs.base(path), class: "file label #{typeClass}"
         if folder = fs.directory(path)
           @span " - #{folder}/", class: 'directory'
