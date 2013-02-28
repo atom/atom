@@ -8,6 +8,7 @@ RepositoryStatusTask = require 'repository-status-task'
 module.exports =
 class Git
   @open: (path, options) ->
+    return null unless path
     try
       new Git(path, options)
     catch e
@@ -25,9 +26,10 @@ class Git
     working_dir_typechange: 1 << 10
     ignore: 1 << 14
 
-  statuses: {}
+  statuses: null
 
   constructor: (path, options={}) ->
+    @statuses = {}
     @repo = GitRepository.open(path)
     refreshOnWindowFocus = options.refreshOnWindowFocus ? true
     if refreshOnWindowFocus
@@ -114,7 +116,8 @@ class Git
     @getRepo().isSubmodule(@relativize(path))
 
   refreshStatus: ->
-    @statusTask = new RepositoryStatusTask(this).start()
+    @statusTask = new RepositoryStatusTask(this)
+    @statusTask.start()
 
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter
