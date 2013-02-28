@@ -321,7 +321,7 @@ class Editor extends View
   checkoutHead: -> @getBuffer().checkoutHead()
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
-  getPath: -> @getBuffer().getPath()
+  getPath: -> @activeEditSession?.getPath()
   getLineCount: -> @getBuffer().getLineCount()
   getLastBufferRow: -> @getBuffer().getLastRow()
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
