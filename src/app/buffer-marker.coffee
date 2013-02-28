@@ -8,9 +8,10 @@ class BufferMarker
   headPosition: null
   tailPosition: null
   suppressObserverNotification: false
-  stayValid: false
+  invalidationStrategy: null
 
-  constructor: ({@id, @buffer, range, @stayValid, noTail, reverse}) ->
+  constructor: ({@id, @buffer, range, @invalidationStrategy, noTail, reverse}) ->
+    @invalidationStrategy ?= 'contains'
     @setRange(range, {noTail, reverse})
 
   setRange: (range, options={}) ->
@@ -71,23 +72,30 @@ class BufferMarker
     newTailPosition = @getTailPosition()
     @notifyObservers({oldTailPosition, newTailPosition, bufferChanged: false})
 
-  tryToInvalidate: (oldRange) ->
-    containsStart = oldRange.containsPoint(@getStartPosition(), exclusive: true)
-    containsEnd = oldRange.containsPoint(@getEndPosition(), exclusive: true)
-    return unless containsEnd or containsStart
+  tryToInvalidate: (changedRange) ->
+    betweenStartAndEnd = @getRange().containsRange(changedRange, exclusive: false)
+    containsStart = changedRange.containsPoint(@getStartPosition(), exclusive: true)
+    containsEnd = changedRange.containsPoint(@getEndPosition(), exclusive: true)
 
-    if @stayValid
-      previousRange = @getRange()
-      if containsStart and containsEnd
-        @setRange([oldRange.end, oldRange.end])
-      else if containsStart
-        @setRange([oldRange.end, @getEndPosition()])
-      else
-        @setRange([@getStartPosition(), oldRange.start])
-      [@id, previousRange]
-    else
-      @invalidate()
-      [@id]
+    switch @invalidationStrategy
+      when 'between'
+        if betweenStartAndEnd or containsStart or containsEnd
+          @invalidate()
+          [@id]
+      when 'contains'
+        if containsStart or containsEnd
+          @invalidate()
+          [@id]
+      when 'never'
+        if containsStart or containsEnd
+          previousRange = @getRange()
+          if containsStart and containsEnd
+            @setRange([changedRange.end, changedRange.end])
+          else if containsStart
+            @setRange([changedRange.end, @getEndPosition()])
+          else
+            @setRange([@getStartPosition(), changedRange.start])
+          [@id, previousRange]
 
   handleBufferChange: (bufferChange) ->
     @consolidateObserverNotifications true, =>
@@ -113,23 +121,31 @@ class BufferMarker
     [newRow, newColumn]
 
   observe: (callback) ->
-    @on 'position-changed', callback
+    @on 'changed', callback
     cancel: => @unobserve(callback)
 
   unobserve: (callback) ->
-    @off 'position-changed', callback
+    @off 'changed', callback
 
   containsPoint: (point) ->
     @getRange().containsPoint(point)
 
-  notifyObservers: ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}) ->
+  notifyObservers: ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged} = {}) ->
     return if @suppressObserverNotification
-    return if _.isEqual(newHeadPosition, oldHeadPosition) and _.isEqual(newTailPosition, oldTailPosition)
+
+    if newHeadPosition? and newTailPosition?
+      return if _.isEqual(newHeadPosition, oldHeadPosition) and _.isEqual(newTailPosition, oldTailPosition)
+    else if newHeadPosition?
+      return if _.isEqual(newHeadPosition, oldHeadPosition)
+    else if newTailPosition?
+      return if _.isEqual(newTailPosition, oldTailPosition)
+
     oldHeadPosition ?= @getHeadPosition()
     newHeadPosition ?= @getHeadPosition()
     oldTailPosition ?= @getTailPosition()
     newTailPosition ?= @getTailPosition()
-    @trigger 'position-changed', {oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged}
+    valid = @buffer.validMarkers[@id]?
+    @trigger 'changed', {oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}
 
   consolidateObserverNotifications: (bufferChanged, fn) ->
     @suppressObserverNotification = true
@@ -141,8 +157,14 @@ class BufferMarker
     @suppressObserverNotification = false
     @notifyObservers({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged})
 
-  invalidate: (preserve) ->
+  invalidate: ->
     delete @buffer.validMarkers[@id]
     @buffer.invalidMarkers[@id] = this
+    @notifyObservers(bufferChanged: true)
+
+  revalidate: ->
+    delete @buffer.invalidMarkers[@id]
+    @buffer.validMarkers[@id] = this
+    @notifyObservers(bufferChanged: true)
 
 _.extend BufferMarker.prototype, EventEmitter

@@ -72,15 +72,12 @@ class TreeView extends ScrollView
     if @hasFocus()
       @detach()
     else
-      if @hasParent()
-        @focus()
-      else
-        @attach()
+      @attach() unless @hasParent()
+      @focus()
 
   attach: ->
     return unless project.getPath()
     rootView.horizontal.prepend(this)
-    @focus()
 
   detach: ->
     @scrollTopAfterAttach = @scrollTop()
@@ -134,6 +131,7 @@ class TreeView extends ScrollView
 
   revealActiveFile: ->
     @attach()
+    @focus()
 
     return unless activeFilePath = rootView.getActiveEditor()?.getPath()
 

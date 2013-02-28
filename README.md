@@ -17,4 +17,3 @@ Requirements
 1. gh-setup atom
 
 2. cd ~/github/atom && `rake install`
-

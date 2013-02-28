@@ -332,8 +332,9 @@ class DisplayBuffer
   getMarkers: ->
     _.values(@markers)
 
-  markScreenRange: (screenRange) ->
-    @markBufferRange(@bufferRangeForScreenRange(screenRange))
+  markScreenRange: (args...) ->
+    bufferRange = @bufferRangeForScreenRange(args.shift())
+    @markBufferRange(bufferRange, args...)
 
   markBufferRange: (args...) ->
     @buffer.markRange(args...)
@@ -418,5 +419,11 @@ class DisplayBuffer
 
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
+
+  getDebugSnapshot: ->
+    lines = ["Display Buffer:"]
+    for screenLine, row in @lineMap.linesForScreenRows(0, @getLastRow())
+        lines.push "#{row}: #{screenLine.text}"
+    lines.join('\n')
 
 _.extend DisplayBuffer.prototype, EventEmitter

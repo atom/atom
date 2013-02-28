@@ -18,8 +18,3 @@
   -webkit-animation-duration: 1s;
   -webkit-animation-iteration-count: 1;
 }
-
-.editor .gutter .line-number.fold {
-  color: #fba0e3;
-  opacity: .8;
-}

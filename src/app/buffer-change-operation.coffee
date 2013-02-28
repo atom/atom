@@ -107,5 +107,4 @@ class BufferChangeOperation
       if validMarker = @buffer.validMarkers[id]
         validMarker.setRange(previousRange)
       else if invalidMarker = @buffer.invalidMarkers[id]
-        @buffer.validMarkers[id] = invalidMarker
-
+        invalidMarker.revalidate()

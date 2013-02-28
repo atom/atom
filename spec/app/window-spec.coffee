@@ -116,3 +116,16 @@ describe "Window", ->
       window.shutdown()
       window.shutdown()
       expect(atom.setRootViewStateForPath.callCount).toBe 1
+
+  describe ".installAtomCommand(commandPath)", ->
+    commandPath = '/tmp/installed-atom-command/atom'
+
+    afterEach ->
+      fs.remove(commandPath) if fs.exists(commandPath)
+
+    describe "when the command path doesn't exist", ->
+      it "copies atom.sh to the specified path", ->
+        expect(fs.exists(commandPath)).toBeFalsy()
+        window.installAtomCommand(commandPath)
+        expect(fs.exists(commandPath)).toBeTruthy()
+        expect(fs.read(commandPath).length).toBeGreaterThan 1

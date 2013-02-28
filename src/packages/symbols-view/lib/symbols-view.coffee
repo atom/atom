@@ -27,12 +27,11 @@ class SymbolsView extends SelectList
     $$ ->
       @li =>
         @div name, class: 'label'
-        @div class: 'right', =>
-          if position
-            text = "Line #{position.row + 1}"
-          else
-            text = fs.base(file)
-          @div text, class: 'function-details'
+        if position
+          text = "Line #{position.row + 1}"
+        else
+          text = fs.base(file)
+        @div text, class: 'right function-details'
 
   toggleFileSymbols: ->
     if @hasParent()

@@ -30,13 +30,13 @@ class LanguageMode
 
     buffer = @editSession.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
-    commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
+    commentStartRegex = OnigRegExp.create("^(\\s*)(#{commentStartRegexString})")
     shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
     if commentEndString = syntax.getProperty(scopes, "editor.commentEnd")
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
-        commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
+        commentEndRegex = OnigRegExp.create("(#{commentEndRegexString})(\\s*)$")
         startMatch =  commentStartRegex.search(buffer.lineForRow(start))
         endMatch = commentEndRegex.search(buffer.lineForRow(end))
         if startMatch and endMatch
@@ -78,7 +78,7 @@ class LanguageMode
       continue if @editSession.isBufferRowBlank(row)
       indentation = @editSession.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes).search(@editSession.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.search(@editSession.lineForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -152,12 +152,12 @@ class LanguageMode
 
   increaseIndentRegexForScopes: (scopes) ->
     if increaseIndentPattern = syntax.getProperty(scopes, 'editor.increaseIndentPattern')
-      new OnigRegExp(increaseIndentPattern)
+      OnigRegExp.create(increaseIndentPattern)
 
   decreaseIndentRegexForScopes: (scopes) ->
     if decreaseIndentPattern = syntax.getProperty(scopes, 'editor.decreaseIndentPattern')
-      new OnigRegExp(decreaseIndentPattern)
+      OnigRegExp.create(decreaseIndentPattern)
 
   foldEndRegexForScopes: (scopes) ->
     if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
-      new OnigRegExp(foldEndPattern)
+      OnigRegExp.create(foldEndPattern)

@@ -36,9 +36,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     bool hasArguments = argumentList->GetSize() > 1;
     hasArguments ? Open(argumentList->GetString(1)) : Open();
   }
-  if (name == "openUnstable") {
+  if (name == "openDev") {
     bool hasArguments = argumentList->GetSize() > 1;
-    hasArguments ? OpenUnstable(argumentList->GetString(1)) : OpenUnstable();
+    hasArguments ? OpenDev(argumentList->GetString(1)) : OpenDev();
   }
   else if (name == "newWindow") {
     NewWindow();
@@ -84,11 +84,8 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "toggleFullScreen") {
     ToggleFullScreen(browser);
   }
-  else if (name == "update") {
-    Update();
-  }
-  else if (name == "getUpdateStatus") {
-    GetUpdateStatus(messageId, browser);
+  else if (name == "getVersion") {
+    GetVersion(messageId, browser);
   }
   else {
     return false;

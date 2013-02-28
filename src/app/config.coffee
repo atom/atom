@@ -3,7 +3,6 @@ _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 
 configDirPath = fs.absolute("~/.atom")
-userInitScriptPath = fs.join(configDirPath, "user.coffee")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
 bundledThemesDirPath = fs.join(resourcePath, "themes")
 vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
@@ -30,11 +29,29 @@ class Config
     @configFilePath = fs.resolve(configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= fs.join(configDirPath, 'config.cson')
 
+  initializeConfigDirectory: ->
+    return if fs.exists(@configDirPath)
+
+    fs.makeDirectory(@configDirPath)
+
+    templateConfigDirPath = fs.resolve(window.resourcePath, 'dot-atom')
+
+    onConfigDirFile = (path) =>
+      templatePath = fs.join(templateConfigDirPath, path)
+      configPath = fs.join(@configDirPath, path)
+      fs.write(configPath, fs.read(templatePath))
+    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+
+    configThemeDirPath = fs.join(@configDirPath, 'themes')
+    onThemeDirFile = (path) ->
+      templatePath = fs.join(bundledThemesDirPath, path)
+      configPath = fs.join(configThemeDirPath, path)
+      fs.write(configPath, fs.read(templatePath))
+    fs.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
+
   load: ->
+    @initializeConfigDirectory()
     @loadUserConfig()
-    @requireUserInitScript()
-
-
 
   loadUserConfig: ->
     if fs.exists(@configFilePath)
@@ -80,11 +97,5 @@ class Config
 
   save: ->
     fs.writeObject(@configFilePath, @settings)
-
-  requireUserInitScript: ->
-    try
-      require userInitScriptPath if fs.exists(userInitScriptPath)
-    catch error
-      console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
 _.extend Config.prototype, EventEmitter

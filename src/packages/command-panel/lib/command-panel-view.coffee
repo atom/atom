@@ -11,7 +11,7 @@ module.exports =
 class CommandPanelView extends View
   @content: ->
     @div class: 'command-panel tool-panel', =>
-      @div class: 'loading', outlet: 'loadingMessage'
+      @div class: 'loading is-loading', outlet: 'loadingMessage', 'Searching...'
       @div class: 'header', outlet: 'previewHeader', =>
         @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
           @li class: 'expand', 'Expand All'
@@ -53,6 +53,7 @@ class CommandPanelView extends View
     @previewList.hide()
     @previewHeader.hide()
     @errorMessages.hide()
+    @loadingMessage.hide()
     @prompt.iconSize(@miniEditor.getFontSize())
 
     @history = state.history ? []
@@ -88,14 +89,7 @@ class CommandPanelView extends View
         @miniEditor.focus()
 
   toggleLoading: ->
-    if @loadingMessage.hasClass 'is-loading'
-      @loadingMessage.removeClass 'is-loading'
-      @loadingMessage.html ''
-      @loadingMessage.hide()
-    else
-      @loadingMessage.addClass 'is-loading'
-      @loadingMessage.html 'Searching...'
-      @loadingMessage.show()
+    @loadingMessage.toggle()
 
   onExpandAll: (event) =>
     @previewList.expandAllPaths()

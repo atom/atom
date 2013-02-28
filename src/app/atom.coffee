@@ -94,8 +94,8 @@ _.extend atom,
   open: (args...) ->
     @sendMessageToBrowserProcess('open', args)
 
-  openUnstable: (args...) ->
-    @sendMessageToBrowserProcess('openUnstable', args)
+  openDev: (args...) ->
+    @sendMessageToBrowserProcess('openDev', args)
 
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)
@@ -179,3 +179,13 @@ _.extend atom,
 
   getUpdateStatus: (callback) ->
     @sendMessageToBrowserProcess('getUpdateStatus', [], callback)
+
+  requireUserInitScript: ->
+    userInitScriptPath = fs.join(config.configDirPath, "user.coffee")
+    try
+      require userInitScriptPath if fs.isFile(userInitScriptPath)
+    catch error
+      console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+
+  getVersion: (callback) ->
+    @sendMessageToBrowserProcess('getVersion', null, callback)

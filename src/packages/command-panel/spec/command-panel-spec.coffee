@@ -3,7 +3,7 @@ CommandPanelView = require 'command-panel/lib/command-panel-view'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [editor, buffer, commandPanel, CommandPanel] = []
+  [editor, buffer, commandPanel] = []
 
   beforeEach ->
     window.rootView = new RootView

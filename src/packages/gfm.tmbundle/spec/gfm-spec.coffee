@@ -132,3 +132,10 @@ describe "GitHub Flavored Markdown grammar", ->
     {tokens} = grammar.tokenizeLine("> Quotation")
     expect(tokens[0]).toEqual value: ">", scopes: ["source.gfm", "support.quote.gfm"]
     expect(tokens[1]).toEqual value: " Quotation", scopes: ["source.gfm", "comment.quote.gfm"]
+
+  describe "auto indent", ->
+    it "indents newlines entered after list lines", ->
+      config.set('editor.autoIndent', true)
+      editSession = fixturesProject.buildEditSessionForPath('gfm.md')
+      editSession.insertNewlineBelow()
+      expect(editSession.buffer.lineForRow(1)).toBe '    '
