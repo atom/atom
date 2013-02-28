@@ -21,6 +21,7 @@ class Pane extends View
     @showItem(@items[0])
 
     @command 'core:close', @destroyActiveItem
+    @command 'core:save', @saveActiveItem
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
     @command 'pane:split-left', => @splitLeft()
@@ -115,14 +116,17 @@ class Pane extends View
       "Don't Save", nextAction
     )
 
+  saveActiveItem: =>
+    @saveItem(@activeItem)
+
   saveItem: (item, nextAction) ->
-    if item.getPath()
+    if item.getPath?()
       item.save()
-      nextAction()
-    else
+      nextAction?()
+    else if item.saveAs?
       atom.showSaveDialog (path) ->
         item.saveAs(path)
-        nextAction()
+        nextAction?()
 
   removeItem: (item) ->
     index = @items.indexOf(item)
