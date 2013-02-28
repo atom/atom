@@ -1,5 +1,15 @@
-#!/bin/sh
+#!/usr/bin/env ruby
 
-set -e
-rm -rf ~/.atom
-rake test
+sha = `git rev-parse HEAD`.chop
+key = File.expand_path('../atom.githubapp.com', __FILE__)
+system 'chmod', '600', key
+
+system 'ssh',
+  '-l', 'atom',
+  '-i', key,
+  '-o', 'StrictHostKeyChecking=no',
+  '-p', '6000',
+  'atom.githubapp.com',
+  "rm -rf ~/.atom && cd /Users/atom/code/atom && git fetch -q origin && git reset -q --hard #{sha} && rake test"
+
+exit $?.exitstatus
