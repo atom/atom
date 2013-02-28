@@ -24,7 +24,7 @@ class Git
     ignore: 1 << 14
 
   constructor: (path, options={}) ->
-    @repo = new GitRepository(path)
+    @repo = GitRepository.open(path)
     refreshIndexOnFocus = options.refreshIndexOnFocus ? true
     if refreshIndexOnFocus
       $ = require 'jquery'

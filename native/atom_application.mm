@@ -278,7 +278,9 @@
 
 - (void)updater:(SUUpdater *)updater willInstallUpdateOnQuit:(SUAppcastItem *)update immediateInstallationInvocation:(NSInvocation *)invocation {
   _updateInvocation = [invocation retain];
-  _versionMenuItem.title = [NSString stringWithFormat:@"Restart for %@", update.versionString];
+  _versionMenuItem.title = [NSString stringWithFormat:@"Update to %@", update.versionString];
+  _versionMenuItem.target = _updateInvocation;
+  _versionMenuItem.action = @selector(invoke);
 }
 
 - (void)updater:(SUUpdater *)updater didCancelInstallUpdateOnQuit:(SUAppcastItem *)update {

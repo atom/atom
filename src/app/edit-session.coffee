@@ -538,11 +538,11 @@ class EditSession
     _.last(@cursors)
 
   addCursorAtScreenPosition: (screenPosition) ->
-    marker = @markScreenPosition(screenPosition, stayValid: true)
+    marker = @markScreenPosition(screenPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
 
   addCursorAtBufferPosition: (bufferPosition) ->
-    marker = @markBufferPosition(bufferPosition, stayValid: true)
+    marker = @markBufferPosition(bufferPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
 
   addCursor: (marker) ->
@@ -565,7 +565,7 @@ class EditSession
     selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    options = _.defaults({stayValid: true}, options)
+    options = _.defaults({invalidationStrategy: 'never'}, options)
     marker = @markBufferRange(bufferRange, options)
     @addSelection(marker)
 
