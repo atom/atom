@@ -70,7 +70,10 @@ class Git
   getPathStatus: (path) ->
     currentPathStatus = @statuses[path]
     pathStatus = @getRepo().getStatus(@relativize(path))
-    @statuses[path] = pathStatus
+    if pathStatus > 0
+      @statuses[path] = pathStatus
+    else
+      delete @statuses[path]
     if currentPathStatus isnt pathStatus
       @trigger 'status-changed', path, pathStatus
     pathStatus
