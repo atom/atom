@@ -1,0 +1,16 @@
+.terminal {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  height: 200px;
+  z-index: 2;
+}
+
+.terminal .content {
+  margin: 8px;
+}
+
+.terminal .content pre {
+  display: block;
+}

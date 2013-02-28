@@ -34,6 +34,7 @@ window.setUpEnvironment = ->
   requireStylesheet 'popover-list.css'
   requireStylesheet 'notification.css'
   requireStylesheet 'markdown.css'
+  requireStylesheet 'terminal.css'
 
   if nativeStylesheetPath = require.resolve("#{platform}.css")
     requireStylesheet(nativeStylesheetPath)

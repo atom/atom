@@ -1,15 +1,8 @@
 .terminal {
-  position: absolute;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  height: 200px;
-  z-index: 2;
   background-color: #f4f4f4;
   border-top: 1px solid #000;
 }
 
 .terminal .content {
-  margin: 8px;
   border: 1px solid #000;
 }
