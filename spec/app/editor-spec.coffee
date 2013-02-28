@@ -8,7 +8,6 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
 fs = require 'fs'
-Git = require 'git'
 
 describe "Editor", ->
   [buffer, editor, cachedLineHeight] = []
