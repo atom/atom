@@ -503,23 +503,3 @@ describe "Pane", ->
     it "can serialize and deserialize the pane and all its serializable items", ->
       newPane = deserialize(pane.serialize())
       expect(newPane.getItems()).toEqual [editSession1, editSession2]
-
-#   This relates to confirming the closing of a tab
-#
-#   describe "when buffer is modified", ->
-#     it "triggers an alert and does not close the session", ->
-#       spyOn(editor, 'remove').andCallThrough()
-#       spyOn(atom, 'confirm')
-#       editor.insertText("I AM CHANGED!")
-#       editor.trigger "core:close"
-#       expect(editor.remove).not.toHaveBeenCalled()
-#       expect(atom.confirm).toHaveBeenCalled()
-#
-#     it "doesn't trigger an alert if the buffer is opened in multiple sessions", ->
-#       spyOn(editor, 'remove').andCallThrough()
-#       spyOn(atom, 'confirm')
-#       editor.insertText("I AM CHANGED!")
-#       editor.splitLeft()
-#       editor.trigger "core:close"
-#       expect(editor.remove).toHaveBeenCalled()
-#       expect(atom.confirm).not.toHaveBeenCalled()
