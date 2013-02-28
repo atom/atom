@@ -1105,61 +1105,30 @@ describe 'Buffer', ->
       expect(buffer.isEmpty()).toBeFalsy()
 
   describe "'contents-modified' event", ->
-    describe "when the buffer is deleted", ->
-      it "triggers the contents-modified event", ->
-        delay = buffer.stoppedChangingDelay
-        path = "/tmp/atom-file-to-delete.txt"
-        fs.write(path, 'delete me')
-        bufferToDelete = new Buffer(path)
-        contentsModifiedHandler = jasmine.createSpy("contentsModifiedHandler")
-        bufferToDelete.on 'contents-modified', contentsModifiedHandler
+    it "triggers the 'contents-modified' event with the current modified status when the buffer changes, rate-limiting events with a delay", ->
+      delay = buffer.stoppedChangingDelay
+      contentsModifiedHandler = jasmine.createSpy("contentsModifiedHandler")
+      buffer.on 'contents-modified', contentsModifiedHandler
 
-        expect(bufferToDelete.getPath()).toBe path
-        expect(bufferToDelete.isModified()).toBeFalsy()
-        expect(contentsModifiedHandler).not.toHaveBeenCalled()
+      buffer.insert([0, 0], 'a')
+      expect(contentsModifiedHandler).not.toHaveBeenCalled()
 
-        removeHandler = jasmine.createSpy('removeHandler')
-        bufferToDelete.file.on 'removed', removeHandler
-        fs.remove(path)
-        waitsFor "file to be removed", ->
-          removeHandler.callCount > 0
+      advanceClock(delay / 2)
 
-        runs ->
-          expect(contentsModifiedHandler).toHaveBeenCalledWith(differsFromDisk:true)
-          bufferToDelete.destroy()
+      buffer.insert([0, 0], 'b')
+      expect(contentsModifiedHandler).not.toHaveBeenCalled()
 
-    describe "when the buffer text has been changed", ->
-      it "triggers the contents-modified event 'stoppedChangingDelay' ms after the last buffer change", ->
-        delay = buffer.stoppedChangingDelay
-        contentsModifiedHandler = jasmine.createSpy("contentsModifiedHandler")
-        buffer.on 'contents-modified', contentsModifiedHandler
+      advanceClock(delay / 2)
+      expect(contentsModifiedHandler).not.toHaveBeenCalled()
 
-        buffer.insert([0, 0], 'a')
-        expect(contentsModifiedHandler).not.toHaveBeenCalled()
+      advanceClock(delay / 2)
+      expect(contentsModifiedHandler).toHaveBeenCalledWith(true)
 
-        advanceClock(delay / 2)
-
-        buffer.insert([0, 0], 'b')
-        expect(contentsModifiedHandler).not.toHaveBeenCalled()
-
-        advanceClock(delay / 2)
-        expect(contentsModifiedHandler).not.toHaveBeenCalled()
-
-        advanceClock(delay / 2)
-        expect(contentsModifiedHandler).toHaveBeenCalled()
-
-      it "triggers the contents-modified event with data about whether its contents differ from the contents on disk", ->
-        delay = buffer.stoppedChangingDelay
-        contentsModifiedHandler = jasmine.createSpy("contentsModifiedHandler")
-        buffer.on 'contents-modified', contentsModifiedHandler
-
-        buffer.insert([0, 0], 'a')
-        advanceClock(delay)
-        expect(contentsModifiedHandler).toHaveBeenCalledWith(differsFromDisk:true)
-
-        buffer.delete([[0, 0], [0, 1]], '')
-        advanceClock(delay)
-        expect(contentsModifiedHandler).toHaveBeenCalledWith(differsFromDisk:false)
+      contentsModifiedHandler.reset()
+      buffer.undo()
+      buffer.undo()
+      advanceClock(delay)
+      expect(contentsModifiedHandler).toHaveBeenCalledWith(false)
 
   describe ".append(text)", ->
     it "adds text to the end of the buffer", ->
