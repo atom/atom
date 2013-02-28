@@ -12,6 +12,8 @@ module.exports =
       @createView().toggleBufferFinder()
     rootView.command 'fuzzy-finder:find-under-cursor', =>
       @createView().findUnderCursor()
+    rootView.command 'fuzzy-finder:toggle-git-status-finder', =>
+      @createView().toggleGitFinder()
 
     if project.getPath()?
       LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'

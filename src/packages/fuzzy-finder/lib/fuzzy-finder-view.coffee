@@ -103,6 +103,15 @@ class FuzzyFinderView extends SelectList
       @populateOpenBufferPaths()
       @attach() if @paths?.length
 
+  toggleGitFinder: ->
+    if @hasParent()
+      @cancel()
+    else
+      return unless project.getPath()? and git?
+      @allowActiveEditorChange = false
+      @populateGitStatusPaths()
+      @attach()
+
   findUnderCursor: ->
     if @hasParent()
       @cancel()
@@ -125,6 +134,13 @@ class FuzzyFinderView extends SelectList
           else
             @attach()
             @miniEditor.setText(currentWord)
+
+  populateGitStatusPaths: ->
+    projectRelativePaths = []
+    for path, status of git.statuses
+      continue unless fs.isFile(path)
+      projectRelativePaths.push(project.relativize(path))
+    @setArray(projectRelativePaths)
 
   populateProjectPaths: (options = {}) ->
     if @projectPaths?.length > 0
