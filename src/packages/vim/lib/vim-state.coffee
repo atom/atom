@@ -97,7 +97,6 @@ class VimState
     else if @visual()
       @_operation = @buildOperation(type)
       @_operation.perform(@target)
-      # @vim.enterCommandMode()
       @resetState()
     else if _.contains(@noMotionOperations, type)
       @_operation = @buildOperation(type)

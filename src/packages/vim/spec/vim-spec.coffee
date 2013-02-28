@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 Vim = require 'vim/lib/vim-view'
 
-fdescribe "Vim package", ->
+describe "Vim package", ->
 
   [editor] = []
 
@@ -24,7 +24,6 @@ fdescribe "Vim package", ->
       editor.splitRight()
       expect(rootView.find('.pane').length).toBe 2
       expect(rootView.panes.find('.pane > .vim').length).toBe 2
-
 
   describe "command mode", ->
     it "enters command mode", ->

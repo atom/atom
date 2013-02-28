@@ -126,7 +126,6 @@ class VimView extends View
     @updateCommandLine()
 
   enterCommandMode: ->
-    window.console.log 'command'
     @resetMode()
     cursor = @cursor()
     cursor.width = @editor.getFontSize()
@@ -151,7 +150,6 @@ class VimView extends View
     @updateCommandLine()
 
   enterAwaitInputMode: ->
-    # @enterCommandMode()
     @editor.removeClass("command-mode")
     @editor.addClass("awaiting-input")
     @mode = "awaiting-input"
