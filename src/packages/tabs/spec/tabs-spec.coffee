@@ -76,6 +76,12 @@ describe "TabBarView", ->
       expect(tabBar.find('.tab').length).toBe 4
       expect(tabBar.tabAtIndex(1).find('.title')).toHaveText 'Item 3'
 
+    it "adds the 'modified' class to the new tab if the item is initially modified", ->
+      editSession2 = project.buildEditSession('sample.txt')
+      editSession2.insertText('x')
+      pane.showItem(editSession2)
+      expect(tabBar.tabForItem(editSession2)).toHaveClass 'modified'
+
   describe "when an item is removed from the pane", ->
     it "removes the item's tab from the tab bar", ->
       pane.removeItem(item2)
@@ -108,7 +114,7 @@ describe "TabBarView", ->
       editSession1.buffer.setPath('/this/is-a/test.txt')
       expect(tabBar.tabForItem(editSession1)).toHaveText 'test.txt'
 
-  describe "when two tabs have the same file name", ->
+  describe "when two tabs have the same title", ->
     it "displays the long title on the tab if it's available from the item", ->
       item1.title = "Old Man"
       item1.longTitle = "Grumpy Old Man"
@@ -125,6 +131,22 @@ describe "TabBarView", ->
 
       expect(tabBar.tabForItem(item1)).toHaveText "Grumpy Old Man"
       expect(tabBar.tabForItem(item2)).toHaveText "Old Man"
+
+  describe "when a tab item's modified status changes", ->
+    it "adds or removes the 'modified' class to the tab based on the status", ->
+      tab = tabBar.tabForItem(editSession1)
+      expect(editSession1.isModified()).toBeFalsy()
+      expect(tab).not.toHaveClass 'modified'
+
+      editSession1.insertText('x')
+      advanceClock(editSession1.buffer.stoppedChangingDelay)
+      expect(editSession1.isModified()).toBeTruthy()
+      expect(tab).toHaveClass 'modified'
+
+      editSession1.undo()
+      advanceClock(editSession1.buffer.stoppedChangingDelay)
+      expect(editSession1.isModified()).toBeFalsy()
+      expect(tab).not.toHaveClass 'modified'
 
   describe "when a pane item moves to a new index", ->
     it "updates the order of the tabs to match the new item order", ->
