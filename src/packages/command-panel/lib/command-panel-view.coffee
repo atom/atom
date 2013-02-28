@@ -88,9 +88,6 @@ class CommandPanelView extends View
       else
         @miniEditor.focus()
 
-  toggleLoading: ->
-    @loadingMessage.toggle()
-
   onExpandAll: (event) =>
     @previewList.expandAllPaths()
     @previewList.focus()
@@ -119,12 +116,12 @@ class CommandPanelView extends View
     @miniEditor.getText()
 
   execute: (command=@escapedCommand())->
-    @toggleLoading()
+    @loadingMessage.show()
     @errorMessages.empty()
 
     try
       @commandInterpreter.eval(command, rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
-        @toggleLoading()
+        @loadingMessage.hide()
         @history.push(command)
         @historyIndex = @history.length
 

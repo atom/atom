@@ -321,7 +321,18 @@ static void parseTagLine (tagFile *file, tagEntry *const entry)
 				do
 				{
 					p = strchr (p + 1, delimiter);
-				} while (p != NULL  &&  *(p - 1) == '\\');
+					if (p == NULL)
+						break;
+					if (*(p - 1) != '\\')
+						break;
+					// Make sure preceeding backslas isn't an escaped backslash by
+					// advancing backwards and counting the number of backslashes
+					int slashCount = 1;
+					while (*(p - slashCount - 1) == '\\')
+						slashCount++;
+					if (slashCount % 2 == 0)
+						break;
+				} while (1);
 				if (p == NULL)
 				{
 					/* invalid pattern */
