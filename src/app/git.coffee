@@ -114,7 +114,9 @@ class Git
     return head
 
   checkoutHead: (path) ->
-    @getRepo().checkoutHead(@relativize(path))
+    headCheckedOut = @getRepo().checkoutHead(@relativize(path))
+    @getPathStatus(path) if headCheckedOut
+    headCheckedOut
 
   getDiffStats: (path) ->
     @getRepo().getDiffStats(@relativize(path)) ? added: 0, deleted: 0

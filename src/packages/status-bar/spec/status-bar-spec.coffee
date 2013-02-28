@@ -153,14 +153,13 @@ describe "StatusBar", ->
       rootView.open(newPath)
       expect(statusBar.gitStatusIcon).toHaveClass('new-status-icon')
 
-    it "updates when a git-status-changed event occurs", ->
+    it "updates when a status-changed event occurs", ->
       fs.write(path, "i've changed for the worse")
       git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
       fs.write(path, originalPathText)
       git.getPathStatus(path)
-      rootView.getActiveEditor().getBuffer().trigger 'git-status-changed'
       expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
 
     it "displays the diff stat for modified files", ->

@@ -126,6 +126,17 @@ describe "Git", ->
       expect(fs.read(path2)).toBe('path 2 is edited')
       expect(repo.isPathModified(path2)).toBeTruthy()
 
+    it "fires a status-changed event if the checkout completes successfully", ->
+      statusHandler = jasmine.createSpy('statusHandler')
+      repo.on 'status-changed', statusHandler
+      fs.write(path1, '')
+      repo.checkoutHead(path1)
+      expect(statusHandler.callCount).toBe 1
+      expect(statusHandler.argsForCall[0][0..1]).toEqual [path1, 0]
+
+      repo.checkoutHead(path1)
+      expect(statusHandler.callCount).toBe 1
+
   describe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
       repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))

@@ -422,8 +422,7 @@ class Buffer
   checkoutHead: ->
     path = @getPath()
     return unless path
-    if git?.checkoutHead(path)
-      @trigger 'git-status-changed'
+    git?.checkoutHead(path)
 
   scheduleStoppedChangingEvent: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
