@@ -2,4 +2,4 @@
   'meta-t': 'fuzzy-finder:toggle-file-finder'
   'meta-b': 'fuzzy-finder:toggle-buffer-finder'
   'ctrl-.': 'fuzzy-finder:find-under-cursor'
-  'meta-T': 'fuzzy-finder:toggle-git-status-finder'
+  'meta-B': 'fuzzy-finder:toggle-git-status-finder'
