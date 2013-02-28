@@ -105,26 +105,6 @@ class RootView extends View
     activePane.focus() if changeFocus
     editSession
 
-  editorFocused: (editor) ->
-    @makeEditorActive(editor) if @panes.containsElement(editor)
-
-  makeEditorActive: (editor, focus) ->
-    if focus
-      editor.focus()
-      return
-
-    previousActiveEditor = @panes.find('.editor.active').view()
-    previousActiveEditor?.removeClass('active').off('.root-view')
-    editor.addClass('active')
-
-    if not editor.mini
-      editor.on 'editor:path-changed.root-view', =>
-        @trigger 'root-view:active-path-changed', editor.getPath()
-
-      if not previousActiveEditor or editor.getPath() != previousActiveEditor.getPath()
-        @trigger 'root-view:active-path-changed', editor.getPath()
-
-
   updateTitle: ->
     if projectPath = project.getPath()
       if item = @getActivePaneItem()
