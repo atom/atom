@@ -26,7 +26,7 @@ fdescribe 'Terminal', ->
         waitsFor ->
           terminalView.exited == true
         runs ->
-          expect($(terminalView.content.find("pre").get(1)).text()).toBe("hello, world")
+          expect($(terminalView.content.find("pre.line-1")).text()).toBe("hello, world")
           expect(terminalView.write()).toBeFalsy()
 
     it "exits the terminal session", ->
@@ -40,7 +40,12 @@ fdescribe 'Terminal', ->
         expect(terminalView.logout).toHaveBeenCalled()
 
   describe "terminal view output", ->
-    it "adds a line for each line of output it receives", ->
+    it "is added to the buffer", ->
       terminalView.output("foo\nbar")
       terminalView.output(" baz")
       expect(terminalView.content.find("pre").size()).toBe(2)
+
+  describe "when a line in the buffer is dirty", ->
+    it "updates the line item", ->
+      terminalView.output("a")
+      expect(terminalView.content.find("pre").text()).toBe("a")

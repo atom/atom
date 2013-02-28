@@ -1,5 +1,6 @@
 {View, $$} = require 'space-pen'
 ScrollView = require 'scroll-view'
+TerminalBuffer = require 'terminal/lib/terminal-buffer'
 _ = require 'underscore'
 $ = require 'jquery'
 fs = require 'fs'
@@ -16,9 +17,9 @@ class TerminalView extends ScrollView
 
   initialize: ->
     super
+    @buffer = new TerminalBuffer
     @exited = false
     @readData = false
-    @appendLine("", true)
 
     @on 'focus', =>
       @hiddenInput.focus()
@@ -61,24 +62,20 @@ class TerminalView extends ScrollView
 
   output: (data) ->
     if data.length > 0
-      @appendData(data)
+      @buffer.input(data)
+      @update()
 
   lastLine: () ->
     $(@content.find("pre").last().get(0))
 
-  prepareLine: (line) ->
-    line.replace(/\r$/, '')
+  update: () ->
+    @updateLine(line) for line in @buffer.getDirtyLines()
+    @buffer.rendered()
 
-  appendLine: (line, newline=false) ->
-    l = @lastLine()
-    line = @prepareLine(line)
-    if !l? || l.hasClass("newline") || newline
-      @content.append $("<pre>").text(line)
-    else
-      l.append(line)
-      l.addClass("newline") if newline
-
-  appendData: (data) ->
-    lines = data.split("\n")
-    for i, line of lines
-      @appendLine(line, i > 0 && i < lines.length)
+  updateLine: (line) ->
+    l = @content.find("pre.line-#{line.number}")
+    if !l.length
+      l = $("<pre>")
+      l.addClass("line-#{line.number}")
+      @content.append(l)
+    l.text(line.text)
