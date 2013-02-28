@@ -30,15 +30,16 @@
   'ctrl-tab': 'window:focus-next-pane'
   'ctrl-meta-f': 'window:toggle-full-screen'
 
+  'ctrl-|': 'pane:split-right'
+  'ctrl-w v': 'pane:split-right'
+  'ctrl--': 'pane:split-down'
+  'ctrl-w s': 'pane:split-down'
+
 '.pane':
   'meta-{': 'pane:show-previous-item'
   'meta-}': 'pane:show-next-item'
   'alt-meta-left': 'pane:show-previous-item'
   'alt-meta-right': 'pane:show-next-item'
-  'ctrl-|': 'pane:split-right'
-  'ctrl-w v': 'pane:split-right'
-  'ctrl--': 'pane:split-down'
-  'ctrl-w s': 'pane:split-down'
 
 '.tool-panel':
   'meta-escape': 'tool-panel:unfocus'
