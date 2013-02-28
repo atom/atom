@@ -7,12 +7,6 @@
   color: #ddd;
 }
 
-.select-list li .right {
-  color: #999;
-  display: inline-block;
-  margin-top: -3px;
-}
-
 .select-list .key-binding {
   background: -webkit-linear-gradient(
     rgba(100, 100, 100, 0.5),
@@ -24,13 +18,14 @@
 }
 
 .select-list li:hover {
-  background-color: #555;
+  background-color: #2c2c2c;
 }
 
 .select-list ol .selected {
   background-image: -webkit-linear-gradient(#7e7e7e, #737373);
 }
 
+.select-list .right,
 .select-list .directory {
   color: #777;
 }
@@ -39,6 +34,7 @@
   color: #fff;
 }
 
+.select-list ol .selected .right,
 .select-list ol .selected .directory {
   color: #ccc;
 }

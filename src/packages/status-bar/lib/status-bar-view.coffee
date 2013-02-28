@@ -99,7 +99,7 @@ class StatusBarView extends View
 
   updatePathText: ->
     if path = @editor.getPath()
-      @currentPath.text(rootView.project.relativize(path))
+      @currentPath.text(project.relativize(path))
     else
       @currentPath.text('untitled')
 

@@ -3,10 +3,7 @@ RootView = require 'root-view'
 
 describe "the `atom` global", ->
   beforeEach ->
-    new RootView
-
-  afterEach ->
-    rootView.deactivate()
+    window.rootView = new RootView
 
   describe "when a package is built and loaded", ->
     [extension, stylesheetPath] = []
@@ -69,21 +66,19 @@ describe "the `atom` global", ->
     beforeEach ->
       spyOn(syntax, 'addGrammar')
 
-    it "terminates the worker when all packages have been loaded", ->
-      spyOn(Worker.prototype, 'terminate').andCallThrough()
+    it "aborts the worker when all packages have been loaded", ->
+      LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
+      spyOn(LoadTextMatePackagesTask.prototype, 'abort').andCallThrough()
       eventHandler = jasmine.createSpy('eventHandler')
       syntax.on 'grammars-loaded', eventHandler
-      disabledPackages = config.get("core.disabledPackages")
-      disabledPackages.push('textmate-package.tmbundle')
-      disabledPackages.push('package-with-snippets')
-      config.set "core.disabledPackages", disabledPackages
+      config.get("core.disabledPackages").push('textmate-package.tmbundle', 'package-with-snippets')
       atom.loadPackages()
 
       waitsFor "all packages to load", 5000, -> eventHandler.callCount > 0
 
       runs ->
-        expect(Worker.prototype.terminate).toHaveBeenCalled()
-        expect(Worker.prototype.terminate.calls.length).toBe 1
+        expect(LoadTextMatePackagesTask.prototype.abort).toHaveBeenCalled()
+        expect(LoadTextMatePackagesTask.prototype.abort.calls.length).toBe 1
 
   describe "package lifecycle", ->
     describe "activation", ->
@@ -136,3 +131,13 @@ describe "the `atom` global", ->
         expect(packageStates['package-with-module']).toEqual someNumber: 1
         expect(packageStates['package-with-serialize-error']).toBeUndefined()
         expect(console.error).toHaveBeenCalled()
+
+  describe ".getVersion(callback)", ->
+    it "calls the callback with the current version number", ->
+      versionHandler = jasmine.createSpy("versionHandler")
+      atom.getVersion(versionHandler)
+      waitsFor ->
+        versionHandler.callCount > 0
+
+      runs ->
+        expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+\.\d+$/

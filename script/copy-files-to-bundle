@@ -38,4 +38,4 @@ for CSON_FILE in $CSON_FILES; do
 done;
 
 # Copy non-coffee files into bundle
-rsync --archive --recursive --exclude="src/**/*.coffee" --exclude="src/**/*.cson" src static vendor spec benchmark themes "$RESOUCES_PATH"
+rsync --archive --recursive --exclude="src/**/*.coffee" --exclude="src/**/*.cson" src static vendor spec benchmark themes dot-atom atom.sh "$RESOUCES_PATH"

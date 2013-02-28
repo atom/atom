@@ -7,14 +7,13 @@ describe "SymbolsView", ->
   [symbolsView, setArraySpy] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures'))
+    window.rootView = new RootView
     window.loadPackage("symbols-view")
 
     rootView.attachToDom()
     setArraySpy = spyOn(SymbolsView.prototype, 'setArray').andCallThrough()
 
   afterEach ->
-    rootView.deactivate()
     setArraySpy.reset()
 
   describe "when tags can be generated for a file", ->
@@ -105,28 +104,34 @@ describe "SymbolsView", ->
 
   describe "TagGenerator", ->
     it "generates tags for all JavaScript functions", ->
+      tags = []
+
       waitsForPromise ->
-        tags = []
         path = require.resolve('fixtures/sample.js')
         callback = (tag) ->
           tags.push tag
         generator = new TagGenerator(path, callback)
-        generator.generate().done ->
-          expect(tags.length).toBe 2
-          expect(tags[0].name).toBe "quicksort"
-          expect(tags[0].position.row).toBe 0
-          expect(tags[1].name).toBe "quicksort.sort"
-          expect(tags[1].position.row).toBe 1
+        generator.generate()
+
+      runs ->
+        expect(tags.length).toBe 2
+        expect(tags[0].name).toBe "quicksort"
+        expect(tags[0].position.row).toBe 0
+        expect(tags[1].name).toBe "quicksort.sort"
+        expect(tags[1].position.row).toBe 1
 
     it "generates no tags for text file", ->
+      tags = []
+
       waitsForPromise ->
-        tags = []
         path = require.resolve('fixtures/sample.txt')
         callback = (tag) ->
           tags.push tag
         generator = new TagGenerator(path, callback)
-        generator.generate().done ->
-          expect(tags.length).toBe 0
+        generator.generate()
+
+      runs ->
+        expect(tags.length).toBe 0
 
   describe "go to declaration", ->
     it "doesn't move the cursor when no declaration is found", ->
@@ -152,15 +157,19 @@ describe "SymbolsView", ->
       expect(symbolsView.list.children('li').length).toBe 2
       expect(symbolsView).toBeVisible()
       symbolsView.confirmed(symbolsView.array[0])
-      expect(rootView.getActiveEditor().getPath()).toBe rootView.project.resolve("tagged-duplicate.js")
+      expect(rootView.getActiveEditor().getPath()).toBe project.resolve("tagged-duplicate.js")
       expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,4]
 
     describe "when the tag is in a file that doesn't exist", ->
+      renamedPath = null
+
       beforeEach ->
-        fs.move(rootView.project.resolve("tagged-duplicate.js"), rootView.project.resolve("tagged-duplicate-renamed.js"))
+        renamedPath = project.resolve("tagged-duplicate-renamed.js")
+        fs.remove(renamedPath) if fs.exists(renamedPath)
+        fs.move(project.resolve("tagged-duplicate.js"), renamedPath)
 
       afterEach ->
-        fs.move(rootView.project.resolve("tagged-duplicate-renamed.js"), rootView.project.resolve("tagged-duplicate.js"))
+        fs.move(renamedPath, project.resolve("tagged-duplicate.js"))
 
       it "doesn't display the tag", ->
         rootView.open("tagged.js")

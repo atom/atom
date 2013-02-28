@@ -226,4 +226,10 @@ class TokenizedBuffer
       line = @lineForScreenRow(row).text
       console.log row, line, line.length
 
+  getDebugSnapshot: ->
+    lines = ["Tokenized Buffer:"]
+    for screenLine, row in @linesForScreenRows(0, @getLastRow())
+      lines.push "#{row}: #{screenLine.text}"
+    lines.join('\n')
+
 _.extend(TokenizedBuffer.prototype, EventEmitter)

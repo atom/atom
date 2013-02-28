@@ -25,7 +25,7 @@ class AtomCefClient;
 @property (nonatomic, retain) NSString *pathToOpen;
 
 - (id)initWithPath:(NSString *)path;
-- (id)initUnstableWithPath:(NSString *)path;
+- (id)initDevWithPath:(NSString *)path;
 - (id)initInBackground;
 - (id)initSpecsThenExit:(BOOL)exitWhenDone;
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone;

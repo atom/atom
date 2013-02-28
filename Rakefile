@@ -1,8 +1,5 @@
 ATOM_SRC_PATH = File.dirname(__FILE__)
-DOT_ATOM_PATH = ENV['HOME'] + "/.atom"
 BUILD_DIR = 'atom-build'
-
-require 'erb'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-xcode-project" do
@@ -17,7 +14,7 @@ end
 desc "Create xcode project from gyp file"
 task "create-xcode-project" => "update-cef" do
   `rm -rf atom.xcodeproj`
-  `gyp --depth=. atom.gyp`
+  `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
 end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
@@ -32,50 +29,56 @@ task "bootstrap" do
   `script/bootstrap`
 end
 
-desc "Creates symlink from `application_path() to /Applications/Atom and creates `atom` cli app"
+desc "Copies Atom.app to /Applications and creates `atom` cli app"
 task :install => [:clean, :build] do
   path = application_path()
   exit 1 if not path
 
   # Install Atom.app
-  dest =  "/Applications/#{File.basename(path)}"
-  `rm -rf #{dest}`
-  `cp -r #{path} #{File.expand_path(dest)}`
+  dest_path =  "/Applications/#{File.basename(path)}"
+  `rm -rf #{dest_path}`
+  `cp -r #{path} #{File.expand_path(dest_path)}`
 
-  # Install cli atom
-  usr_bin_path = "/opt/github/bin"
-  cli_path = "#{usr_bin_path}/atom"
-
-  template = ERB.new CLI_SCRIPT
-  namespace = OpenStruct.new(:application_path => dest, :resource_path => ATOM_SRC_PATH)
-  File.open(cli_path, "w") do |f|
-    f.write template.result(namespace.instance_eval { binding })
-    f.chmod(0755)
+  # Install atom cli
+  if File.directory?("/opt/boxen")
+    cli_path = "/opt/boxen/bin/atom"
+  else
+    cli_path = "/opt/github/bin/atom"
   end
 
-  Rake::Task["create-dot-atom"].invoke()
+  FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", cli_path)
+  FileUtils.chmod(0755, cli_path)
+
   Rake::Task["clone-default-bundles"].invoke()
 
-  puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `~/.atom` directory\033[0m"
+  puts "\033[32mAtom is installed at `#{dest_path}`. Atom cli is installed at `#{cli_path}`\033[0m"
 end
 
-desc "Creates .atom file if non exists"
-task "create-dot-atom" do
-  dot_atom_template_path = ATOM_SRC_PATH + "/dot-atom"
+desc "Package up the app for speakeasy"
+task :package => ["setup-codesigning", "bump-patch-number", "build"] do
+  path = application_path()
+  exit 1 if not path
 
-  if File.exists?(DOT_ATOM_PATH)
-    user_config = "#{DOT_ATOM_PATH}/user.coffee"
-    old_user_config = "#{DOT_ATOM_PATH}/atom.coffee"
+  dest_path = '/tmp/atom-for-speakeasy/Atom.tar.bz2'
+  `mkdir -p $(dirname #{dest_path})`
+  `rm -rf #{dest_path}`
+  `tar --directory $(dirname #{path}) -jcf #{dest_path} $(basename #{path})`
+  `open $(dirname #{dest_path})`
+end
 
-    if File.exists?(old_user_config)
-      `mv #{old_user_config} #{user_config}`
-      puts "\033[32mRenamed #{old_user_config} to #{user_config}\033[0m"
-    end
-  else
-    `mkdir "#{DOT_ATOM_PATH}"`
-    `cp -r "#{dot_atom_template_path}/" "#{DOT_ATOM_PATH}"/`
-    `cp -r "#{ATOM_SRC_PATH}/themes/" "#{DOT_ATOM_PATH}"/themes/`
-  end
+task "setup-codesigning" do
+  ENV['CODE_SIGN'] = "Developer ID Application: GitHub"
+end
+
+desc "Bump patch number"
+task "bump-patch-number" do
+  version_number = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString:" ./native/mac/info.plist`
+  major, minor, patch = version_number.match(/(\d+)\.(\d+)\.(\d+)/)[1..-1].map {|o| o.to_i}
+  `/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString #{major}.#{minor}.#{patch + 1}" ./native/mac/info.plist`
+  `/usr/libexec/PlistBuddy -c "Set :CFBundleVersion #{major}.#{minor}.#{patch + 1}" ./native/mac/info.plist`
+
+  new_version_number = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString:" ./native/mac/info.plist`
+  puts "Bumped from #{version_number.strip} to #{new_version_number.strip}"
 end
 
 desc "Clone default bundles into vendor/bundles directory"
@@ -93,9 +96,16 @@ task :clean do
 end
 
 desc "Run the specs"
-task :test => ["clean", "clone-default-bundles"] do
+task :test => ["update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
-  Rake::Task["run"].invoke("--test --resource-path=#{ATOM_SRC_PATH}")
+  if path = application_path()
+    `rm -rf path`
+    cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH} 2> /dev/null"
+    system(cmd)
+    exit($?.exitstatus)
+  else
+    exit(1)
+  end
 end
 
 desc "Run the benchmarks"
@@ -123,30 +133,3 @@ def application_path
 
   return nil
 end
-
-CLI_SCRIPT = <<-EOF
-#!/bin/sh
-open <%= application_path %> -n --args --resource-path="<%= resource_path %>" --executed-from="$(pwd)" --pid=$$ $@
-
-# Used to exit process when atom is used as $EDITOR
-on_die() {
-  exit 0
-}
-trap 'on_die' SIGQUIT SIGTERM
-
-# Don't exit process if we were told to wait.
-while [ "$#" -gt "0" ]; do
-  case $1 in
-    -W|--wait)
-      WAIT=1
-      ;;
-  esac
-  shift
-done
-
-if [ $WAIT ]; then
-  while true; do
-    sleep 1
-  done
-fi
-EOF

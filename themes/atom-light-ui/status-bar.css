@@ -13,3 +13,9 @@
   color: #5293d8;
   display: inline-block;
 }
+
+.status-bar .grammar-name:hover {
+  color: #000;
+  border: 1px solid rgba(50, 50, 50, 0.2);
+  border-radius: 2px;
+}

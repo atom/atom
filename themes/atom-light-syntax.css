@@ -3,12 +3,22 @@
   color: #555;
 }
 
+.editor .gutter .line-number.fold,
+.editor .gutter .line-number:after,
+.editor .fold-marker:after {
+  color: #e87b00;
+}
+
 .editor .invisible {
-  color: #555 !important;
+  color: #555;
 }
 
 .editor.is-focused .cursor {
   border-color: #000;
+}
+
+.editor .selection .region {
+  background-color: #e1e1e1;
 }
 
 .editor.is-focused .selection .region {

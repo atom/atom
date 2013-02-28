@@ -661,6 +661,7 @@ describe "DisplayBuffer", ->
           newTailScreenPosition: [5, 4]
           newTailBufferPosition: [8, 4]
           bufferChanged: false
+          valid: true
         }
         observeHandler.reset()
 
@@ -676,6 +677,7 @@ describe "DisplayBuffer", ->
           newTailScreenPosition: [5, 4]
           newTailBufferPosition: [8, 4]
           bufferChanged: true
+          valid: true
         }
         observeHandler.reset()
 
@@ -691,6 +693,7 @@ describe "DisplayBuffer", ->
           newTailScreenPosition: [8, 4]
           newTailBufferPosition: [8, 4]
           bufferChanged: false
+          valid: true
         }
         observeHandler.reset()
 
@@ -706,6 +709,7 @@ describe "DisplayBuffer", ->
           newTailScreenPosition: [5, 4]
           newTailBufferPosition: [8, 4]
           bufferChanged: false
+          valid: true
         }
 
       it "calls the callback whenever the marker tail's position changes in the buffer or on screen", ->
@@ -721,6 +725,7 @@ describe "DisplayBuffer", ->
           newTailScreenPosition: [8, 20]
           newTailBufferPosition: [11, 20]
           bufferChanged: false
+          valid: true
         }
         observeHandler.reset()
 
@@ -736,6 +741,40 @@ describe "DisplayBuffer", ->
           newTailScreenPosition: [8, 23]
           newTailBufferPosition: [11, 23]
           bufferChanged: true
+          valid: true
+        }
+
+      it "calls the callback whenever the marker is invalidated or revalidated", ->
+        buffer.deleteRow(8)
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldHeadScreenPosition: [5, 10]
+          oldHeadBufferPosition: [8, 10]
+          newHeadScreenPosition: [5, 10]
+          newHeadBufferPosition: [8, 10]
+          oldTailScreenPosition: [5, 4]
+          oldTailBufferPosition: [8, 4]
+          newTailScreenPosition: [5, 4]
+          newTailBufferPosition: [8, 4]
+          bufferChanged: true
+          valid: false
+        }
+
+        observeHandler.reset()
+        buffer.undo()
+
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.argsForCall[0][0]).toEqual {
+          oldHeadScreenPosition: [5, 10]
+          oldHeadBufferPosition: [8, 10]
+          newHeadScreenPosition: [5, 10]
+          newHeadBufferPosition: [8, 10]
+          oldTailScreenPosition: [5, 4]
+          oldTailBufferPosition: [8, 4]
+          newTailScreenPosition: [5, 4]
+          newTailBufferPosition: [8, 4]
+          bufferChanged: true
+          valid: true
         }
 
       it "does not call the callback for screen changes that don't change the position of the marker", ->

@@ -15,10 +15,11 @@ class Editor extends View
   @configDefaults:
     fontSize: 20
     showInvisibles: false
+    showIndentGuide: false
     autosave: false
     autoIndent: true
     autoIndentOnPaste: false
-    nonWordCharacters: "./\\()\"'-_:,.;<>~!@#$%^&*|+=[]{}`~?"
+    nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?"
 
   @nextEditorId: 1
 
@@ -59,7 +60,7 @@ class Editor extends View
 
   @deserialize: (state) ->
     editor = new Editor(mini: state.mini, deserializing: true)
-    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
+    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, project)
     editor.pushEditSession(editSession) for editSession in editSessions
     editor.setActiveEditSessionIndex(state.activeEditSessionIndex)
     editor.isFocused = state.isFocused
@@ -95,7 +96,7 @@ class Editor extends View
 
   serialize: ->
     @saveScrollPositionForActiveEditSession()
-    viewClass: "Editor"
+    deserializer: "Editor"
     editSessions: @editSessions.map (session) -> session.serialize()
     activeEditSessionIndex: @getActiveEditSessionIndex()
     isFocused: @isFocused
@@ -158,6 +159,7 @@ class Editor extends View
         'editor:save': @save
         'editor:save-as': @saveAs
         'editor:newline-below': @insertNewlineBelow
+        'editor:newline-above': @insertNewlineAbove
         'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
         'editor:fold-all': @foldAll
@@ -191,6 +193,8 @@ class Editor extends View
         'editor:move-line-down': @moveLineDown
         'editor:duplicate-line': @duplicateLine
         'editor:undo-close-session': @undoDestroySession
+        'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
+        'editor:save-debug-snapshot': @saveDebugSnapshot
 
     documentation = {}
     for name, method of editorBindings
@@ -261,6 +265,7 @@ class Editor extends View
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
+  insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
   indent: (options) -> @activeEditSession.indent(options)
   autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows(options)
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
@@ -330,6 +335,11 @@ class Editor extends View
       cr: '\u00a4'
     @resetDisplay()
 
+  setShowIndentGuide: (showIndentGuide) ->
+    return if showIndentGuide == @showIndentGuide
+    @showIndentGuide = showIndentGuide
+    @resetDisplay()
+
   checkoutHead: -> @getBuffer().checkoutHead()
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
@@ -346,6 +356,7 @@ class Editor extends View
 
   configure: ->
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
+    @observeConfig 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
@@ -385,7 +396,7 @@ class Editor extends View
       @destroyFold($(e.currentTarget).attr('fold-id'))
       false
 
-    @renderedLines.on 'mousedown', (e) =>
+    onMouseDown = (e) =>
       clickCount = e.originalEvent.detail
 
       screenPosition = @screenPositionFromMouseEvent(e)
@@ -403,6 +414,8 @@ class Editor extends View
 
       @selectOnMousemoveUntilMouseup()
 
+    @renderedLines.on 'mousedown', onMouseDown
+
     @on "textInput", (e) =>
       @insertText(e.originalEvent.data)
       false
@@ -418,6 +431,10 @@ class Editor extends View
     unless @mini
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
+
+      @gutter.on 'mousedown', (e) =>
+        e.pageX = @renderedLines.offset().left
+        onMouseDown(e)
 
       @subscribe syntax, 'grammars-loaded', =>
         @reloadGrammar()
@@ -992,6 +1009,18 @@ class Editor extends View
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
 
     intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
+
+    if @showIndentGuide
+      trailingEmptyLineChanges = []
+      for change in @pendingChanges
+        continue unless change.bufferDelta?
+        start = change.end + change.bufferDelta + 1
+        continue unless @lineForBufferRow(start) is ''
+        end = start
+        end++ while @lineForBufferRow(end + 1) is ''
+        trailingEmptyLineChanges.push({start, end, screenDelta: 0})
+        @pendingChanges.push(trailingEmptyLineChanges...)
+
     for change in @pendingChanges
       newIntactRanges = []
       for range in intactRanges
@@ -1104,13 +1133,34 @@ class Editor extends View
 
   buildLineElementsForScreenRows: (startRow, endRow) ->
     div = document.createElement('div')
-    div.innerHTML = @buildLinesHtml(@activeEditSession.linesForScreenRows(startRow, endRow))
+    div.innerHTML = @buildLinesHtml(startRow, endRow)
     new Array(div.children...)
 
-  buildLinesHtml: (screenLines) ->
-    screenLines.map((line) => @buildLineHtml(line)).join('\n\n')
+  buildLinesHtml: (startRow, endRow) ->
+    lines = @activeEditSession.linesForScreenRows(startRow, endRow)
+    htmlLines = []
+    screenRow = startRow
+    for line in @activeEditSession.linesForScreenRows(startRow, endRow)
+      htmlLines.push(@buildLineHtml(line, screenRow++))
+    htmlLines.join('\n\n')
 
-  buildLineHtml: (screenLine) ->
+  buildEmptyLineHtml: (screenRow) ->
+    if not @mini and @showIndentGuide
+      indentation = 0
+      while --screenRow >= 0
+        bufferRow = @activeEditSession.bufferPositionForScreenPosition([screenRow]).row
+        bufferLine = @activeEditSession.lineForBufferRow(bufferRow)
+        unless bufferLine is ''
+          indentation = Math.ceil(@activeEditSession.indentLevelForLine(bufferLine))
+          break
+
+      if indentation > 0
+        indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', @activeEditSession.getTabLength())}</span>"
+        return _.multiplyString(indentationHtml, indentation)
+
+    return '&nbsp;' unless @showInvisibles
+
+  buildLineHtml: (screenLine, screenRow) ->
     scopeStack = []
     line = []
 
@@ -1147,19 +1197,19 @@ class Editor extends View
     invisibles = @invisibles if @showInvisibles
 
     if screenLine.text == ''
-      line.push("&nbsp;") unless @showInvisibles
+      html = @buildEmptyLineHtml(screenRow)
+      line.push(html) if html
     else
       firstNonWhitespacePosition = screenLine.text.search(/\S/)
       firstTrailingWhitespacePosition = screenLine.text.search(/\s*$/)
+      lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
       position = 0
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
-        line.push(token.getValueAsHtml(
-          invisibles: invisibles
-          hasLeadingWhitespace: position < firstNonWhitespacePosition
-          hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
-        ))
-
+        hasLeadingWhitespace =  position < firstNonWhitespacePosition
+        hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
+        hasIndentGuide = @showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
+        line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
         position += token.value.length
 
     popScope() while scopeStack.length > 0
@@ -1177,15 +1227,8 @@ class Editor extends View
   lineElementForScreenRow: (screenRow) ->
     @renderedLines.children(":eq(#{screenRow - @firstRenderedScreenRow})")
 
-  logScreenLines: (start, end) ->
-    @activeEditSession.logScreenLines(start, end)
-
   toggleLineCommentsInSelection: ->
     @activeEditSession.toggleLineCommentsInSelection()
-
-  logRenderedLines: ->
-    @renderedLines.find('.line').each (n) ->
-      console.log n, $(this).text()
 
   pixelPositionForBufferPosition: (position) ->
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
@@ -1235,20 +1278,23 @@ class Editor extends View
     column = 0
 
     if lineElement = @lineElementForScreenRow(row)[0]
-      @overlayer.hide()
-      @css '-webkit-user-select', 'auto'
-      if range = document.caretRangeFromPoint(pageX, pageY)
-        clickedTextNode = range.endContainer
-        clickedOffset = range.endOffset
-        range.detach()
-      @css '-webkit-user-select', ''
-      @overlayer.show()
+      range = document.createRange()
+      iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
+      while node = iterator.nextNode()
+        range.selectNodeContents(node)
+        column += node.textContent.length
+        {left, right} = range.getClientRects()[0]
+        break if left <= pageX <= right
 
-      if clickedTextNode and lineElement
-        iterator = document.createNodeIterator(lineElement, NodeFilter.SHOW_TEXT, acceptNode: -> NodeFilter.FILTER_ACCEPT)
-        while (node = iterator.nextNode()) and node isnt clickedTextNode
-          column += node.textContent.length
-        column += clickedOffset
+      if node
+        for characterPosition in [node.textContent.length...0]
+          range.setStart(node, characterPosition - 1)
+          range.setEnd(node, characterPosition)
+          {left, right, width} = range.getClientRects()[0]
+          break if left <= pageX - width / 2 <= right
+          column--
+
+      range.detach()
 
     new Point(row, column)
 
@@ -1296,3 +1342,29 @@ class Editor extends View
   copyPathToPasteboard: ->
     path = @getPath()
     pasteboard.write(path) if path?
+
+  saveDebugSnapshot: ->
+    atom.showSaveDialog (path) =>
+      fs.write(path, @getDebugSnapshot()) if path
+
+  getDebugSnapshot: ->
+    [
+      "Debug Snapshot: #{@getPath()}"
+      @getRenderedLinesDebugSnapshot()
+      @activeEditSession.getDebugSnapshot()
+      @getBuffer().getDebugSnapshot()
+    ].join('\n\n')
+
+  getRenderedLinesDebugSnapshot: ->
+    lines = ['Rendered Lines:']
+    firstRenderedScreenRow = @firstRenderedScreenRow
+    @renderedLines.find('.line').each (n) ->
+      lines.push "#{firstRenderedScreenRow + n}: #{$(this).text()}"
+    lines.join('\n')
+
+  logScreenLines: (start, end) ->
+    @activeEditSession.logScreenLines(start, end)
+
+  logRenderedLines: ->
+    @renderedLines.find('.line').each (n) ->
+      console.log n, $(this).text()

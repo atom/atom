@@ -12,6 +12,8 @@ fs = require 'fs'
 
 module.exports =
 class EditSession
+  registerDeserializer(this)
+
   @deserialize: (state, project) ->
     if fs.exists(state.buffer)
       session = project.buildEditSessionForPath(state.buffer)
@@ -62,6 +64,7 @@ class EditSession
     @off()
 
   serialize: ->
+    deserializer: 'EditSession'
     buffer: @buffer.getPath()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
@@ -168,8 +171,17 @@ class EditSession
     @insertText('\n')
 
   insertNewlineBelow: ->
-    @moveCursorToEndOfLine()
-    @insertNewline()
+    @transact =>
+      @moveCursorToEndOfLine()
+      @insertNewline()
+
+  insertNewlineAbove: ->
+    @transact =>
+      onFirstLine = @getCursorBufferPosition().row is 0
+      @moveCursorToBeginningOfLine()
+      @moveCursorLeft()
+      @insertNewline()
+      @moveCursorUp() if onFirstLine
 
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
@@ -418,7 +430,7 @@ class EditSession
         bufferRange = new Range([cursorPosition.row], [cursorPosition.row + 1])
 
       insertPosition = new Point(bufferRange.end.row)
-      if insertPosition.row >= @buffer.getLastRow()
+      if insertPosition.row > @buffer.getLastRow()
         @unfoldCurrentRow() if cursorRowFolded
         @buffer.append("\n#{@getTextInBufferRange(bufferRange)}")
         @foldCurrentRow() if cursorRowFolded
@@ -526,11 +538,11 @@ class EditSession
     _.last(@cursors)
 
   addCursorAtScreenPosition: (screenPosition) ->
-    marker = @markScreenPosition(screenPosition, stayValid: true)
+    marker = @markScreenPosition(screenPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
 
   addCursorAtBufferPosition: (bufferPosition) ->
-    marker = @markBufferPosition(bufferPosition, stayValid: true)
+    marker = @markBufferPosition(bufferPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
 
   addCursor: (marker) ->
@@ -553,7 +565,7 @@ class EditSession
     selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    options = _.defaults({stayValid: true}, options)
+    options = _.defaults({invalidationStrategy: 'never'}, options)
     marker = @markBufferRange(bufferRange, options)
     @addSelection(marker)
 
@@ -807,6 +819,12 @@ class EditSession
       @unfoldAll()
       @displayBuffer.tokenizedBuffer.resetScreenLines()
     grammarChanged
+
+  getDebugSnapshot: ->
+    [
+      @displayBuffer.getDebugSnapshot()
+      @displayBuffer.tokenizedBuffer.getDebugSnapshot()
+    ].join('\n\n')
 
 _.extend(EditSession.prototype, EventEmitter)
 _.extend(EditSession.prototype, Subscriber)

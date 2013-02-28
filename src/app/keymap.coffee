@@ -20,13 +20,14 @@ class Keymap
         'meta-n': 'new-window'
         'meta-,': 'open-user-configuration'
         'meta-o': 'open'
-        'meta-O': 'open-unstable'
+        'meta-O': 'open-dev'
         'meta-w': 'core:close'
+        'alt-meta-i': 'toggle-dev-tools'
 
     $(document).command 'new-window', => atom.newWindow()
     $(document).command 'open-user-configuration', => atom.open(config.configDirPath)
     $(document).command 'open', => atom.open()
-    $(document).command 'open-unstable', => atom.openUnstable()
+    $(document).command 'open-dev', => atom.openDev()
 
   loadBundledKeymaps: ->
     @loadDirectory(require.resolve('keymaps'))
@@ -63,7 +64,7 @@ class Keymap
 
     keystrokeMap
 
-  handleKeyEvent: (event) ->
+  handleKeyEvent: (event) =>
     event.keystrokes = @multiKeystrokeStringForEvent(event)
     isMultiKeystroke = @queuedKeystrokes?
     @queuedKeystrokes = null

@@ -50,20 +50,20 @@
     { "resource-path",      required_argument,      NULL,  'R'  },
     { "benchmark",          no_argument,            NULL,  'B'  },
     { "test",               no_argument,            NULL,  'T'  },
-    { "stable",             no_argument,            NULL,  'S'  },
+    { "dev",                no_argument,            NULL,  'D'  },
     { "pid",                required_argument,      NULL,  'P'  },
     { "wait",               no_argument,            NULL,  'W'  },
     { NULL,                 0,                      NULL,  0 }
   };
 
-  while ((opt = getopt_long(cleanArgc, cleanArgv, "K:R:BYSP:Wh?", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(cleanArgc, cleanArgv, "K:R:BYDP:Wh?", longopts, &longindex)) != -1) {
     NSString *key, *value;
     switch (opt) {
       case 'K':
       case 'R':
       case 'B':
       case 'T':
-      case 'S':
+      case 'D':
       case 'W':
       case 'P':
         key = [NSString stringWithUTF8String:longopts[longindex].name];
@@ -123,8 +123,10 @@
 + (CefSettings)createCefSettings {
   CefSettings settings;
 
+  NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+  NSString *userAgent = [NSString stringWithFormat:@"GitHubAtom/%@", version];
   CefString(&settings.cache_path) = [[self supportDirectory] UTF8String];
-  CefString(&settings.user_agent) = "";
+  CefString(&settings.user_agent) = [userAgent UTF8String];
   CefString(&settings.log_file) = "";
   CefString(&settings.javascript_flags) = "";
   settings.remote_debugging_port = 9090;
@@ -159,8 +161,8 @@
   [self open:path pidToKillWhenWindowCloses:nil];
 }
 
-- (void)openUnstable:(NSString *)path {
-  [[AtomWindowController alloc] initUnstableWithPath:path];
+- (void)openDev:(NSString *)path {
+  [[AtomWindowController alloc] initDevWithPath:path];
 }
 
 - (IBAction)runSpecs:(id)sender {
@@ -213,17 +215,23 @@
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  SUUpdater.sharedUpdater.delegate = self;
-  SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
-  SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
-  [SUUpdater.sharedUpdater checkForUpdatesInBackground];
+  NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+  _versionMenuItem.title = [NSString stringWithFormat:@"Version %@", version];
 
-  _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
   if ([self.arguments objectForKey:@"benchmark"]) {
     [self runBenchmarksThenExit:true];
   }
   else if ([self.arguments objectForKey:@"test"]) {
     [self runSpecsThenExit:true];
+  }
+  else {
+    _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
+    if (![self.arguments objectForKey:@"dev"]) {
+      SUUpdater.sharedUpdater.delegate = self;
+      SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
+      SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
+      [SUUpdater.sharedUpdater checkForUpdatesInBackground];
+    }
   }
 }
 
@@ -257,35 +265,25 @@
   }
 }
 
-- (NSString *)updateStatus {
-  return _updateStatus ? _updateStatus : @"idle";
-}
-
-- (void)installUpdate {
-  if (_updateInvocation) [_updateInvocation invoke];
-}
-
 #pragma mark SUUpdaterDelegate
 
 - (void)updaterDidNotFindUpdate:(SUUpdater *)update {
-  _updateStatus = @"current";
 }
 
 - (void)updater:(SUUpdater *)updater didFindValidUpdate:(SUAppcastItem *)update {
-  _updateStatus = @"downloading";
 }
 
 - (void)updater:(SUUpdater *)updater willExtractUpdate:(SUAppcastItem *)update {
-   _updateStatus = @"installing";
 }
 
 - (void)updater:(SUUpdater *)updater willInstallUpdateOnQuit:(SUAppcastItem *)update immediateInstallationInvocation:(NSInvocation *)invocation {
-  _updateInvocation = invocation;
-  _updateStatus = @"ready";
+  _updateInvocation = [invocation retain];
+  _versionMenuItem.title = [NSString stringWithFormat:@"Update to %@", update.versionString];
+  _versionMenuItem.target = _updateInvocation;
+  _versionMenuItem.action = @selector(invoke);
 }
 
 - (void)updater:(SUUpdater *)updater didCancelInstallUpdateOnQuit:(SUAppcastItem *)update {
-  _updateStatus = @"current";
 }
 
 @end

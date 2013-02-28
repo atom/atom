@@ -6,8 +6,8 @@
   color: #333;
 }
 
-.editor.mini .cursor {
-  background: #333;
+.editor.mini .selection .region {
+  background-color: #afc4da;
 }
 
 .editor .gutter.drop-shadow {
@@ -23,9 +23,4 @@
   -webkit-animation-name: highlight;
   -webkit-animation-duration: 1s;
   -webkit-animation-iteration-count: 1;
-}
-
-.editor .gutter .line-number.fold {
-  color: #fba0e3;
-  opacity: .8;
 }

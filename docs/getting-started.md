@@ -1,6 +1,6 @@
 # Getting Started
 
-Welcome to Atom. This documentation is intented to offer a basic introduction
+Welcome to Atom. This documentation is intended to offer a basic introduction
 of how to get productive with this editor. Then we'll delve into more details
 about configuring, theming, and extending Atom.
 
@@ -35,6 +35,15 @@ bindings, but here's a list of a few useful commands.
 - `meta-l` : go to line
 
 ## Usage Basics
+
+### If You See A Rendering Bug
+
+Things are pretty stable, but we think we have a couple rendering bugs lurking
+that are hard to reproduce. If you see one, please hit `meta-p` and type
+"save debug snapshot". Run that command to save a snapshot of the misbehaving
+editor and send it to us, along with a screenshot and your best description of
+how you produced the bug. Refreshing with `meta-r` should usually resolve the
+issue so you can keep working.
 
 ### Working With Files
 

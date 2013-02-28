@@ -1,6 +1,7 @@
 'stylesheets': [
   'atom.css'
   'editor.css'
+  'overlay.css'
   'select-list.css'
   'tree-view.css'
   'tabs.css'

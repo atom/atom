@@ -4,15 +4,13 @@ describe "bracket matching", ->
   [editor, editSession, buffer] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     window.loadPackage('bracket-matcher')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()
     editSession = editor.activeEditSession
     buffer = editSession.buffer
-
-  afterEach ->
-    rootView.deactivate()
 
   describe "matching bracket highlighting", ->
     describe "when the cursor is before a starting pair", ->

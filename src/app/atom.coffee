@@ -16,6 +16,9 @@ _.extend atom,
   activatedAtomPackages: []
   atomPackageStates: {}
 
+  getPathToOpen: ->
+    @getWindowState('pathToOpen') ? window.location.params.pathToOpen
+
   activateAtomPackage: (pack) ->
     @activatedAtomPackages.push(pack)
     pack.packageMain.activate(@atomPackageStates[pack.name] ? {})
@@ -36,12 +39,19 @@ _.extend atom,
         packageStates[pack.name] = @atomPackageStates[pack.name]
     packageStates
 
+  loadTextPackage: ->
+    textPackagePath = _.find @getPackagePaths(), (path) -> fs.base(path) is 'text.tmbundle'
+    pack = Package.build(textPackagePath)
+    @loadedPackages.push(pack)
+    pack.load()
+
   loadPackages: ->
     textMatePackages = []
-    for path in @getPackagePaths()
+    paths = @getPackagePaths().filter (path) -> fs.base(path) isnt 'text.tmbundle'
+    for path in paths
       pack = Package.build(path)
       @loadedPackages.push(pack)
-      if pack instanceof TextMatePackage and fs.base(pack.path) isnt 'text.tmbundle'
+      if pack instanceof TextMatePackage
         textMatePackages.push(pack)
       else
         pack.load()
@@ -84,8 +94,8 @@ _.extend atom,
   open: (args...) ->
     @sendMessageToBrowserProcess('open', args)
 
-  openUnstable: (args...) ->
-    @sendMessageToBrowserProcess('openUnstable', args)
+  openDev: (args...) ->
+    @sendMessageToBrowserProcess('openDev', args)
 
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)
@@ -169,3 +179,13 @@ _.extend atom,
 
   getUpdateStatus: (callback) ->
     @sendMessageToBrowserProcess('getUpdateStatus', [], callback)
+
+  requireUserInitScript: ->
+    userInitScriptPath = fs.join(config.configDirPath, "user.coffee")
+    try
+      require userInitScriptPath if fs.isFile(userInitScriptPath)
+    catch error
+      console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+
+  getVersion: (callback) ->
+    @sendMessageToBrowserProcess('getVersion', null, callback)
