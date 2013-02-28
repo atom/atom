@@ -11,7 +11,9 @@ class TabView extends View
 
   initialize: (@item, @pane) ->
     @item.on? 'title-changed', => @updateTitle()
+    @item.on? 'modified-status-changed', => @updateModifiedStatus()
     @updateTitle()
+    @updateModifiedStatus()
 
   updateTitle: ->
     return if @updatingTitle
@@ -32,11 +34,11 @@ class TabView extends View
     @siblings('.tab').views()
 
   updateModifiedStatus: ->
-    if @buffer.isModified()
-      @toggleClass('file-modified') unless @isModified
+    if @item.isModified?()
+      @addClass('modified') unless @isModified
       @isModified = true
     else
-      @removeClass('file-modified') if @isModified
+      @removeClass('modified') if @isModified
       @isModified = false
 
   updateFileName: ->
