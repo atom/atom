@@ -96,8 +96,33 @@ class Pane extends View
     false
 
   destroyItem: (item) ->
-    @removeItem(item)
-    item.destroy?()
+    reallyDestroyItem = =>
+      @removeItem(item)
+      item.destroy?()
+
+    if item.isModified?()
+      @promptToSaveItem(item, reallyDestroyItem)
+    else
+      reallyDestroyItem()
+
+  promptToSaveItem: (item, nextAction) ->
+    path = item.getPath()
+    atom.confirm(
+      "'#{item.getTitle()}' has changes, do you want to save them?"
+      "Your changes will be lost if close this item without saving."
+      "Save", => @saveItem(item, nextAction)
+      "Cancel", null
+      "Don't Save", nextAction
+    )
+
+  saveItem: (item, nextAction) ->
+    if item.getPath()
+      item.save()
+      nextAction()
+    else
+      atom.showSaveDialog (path) ->
+        item.saveAs(path)
+        nextAction()
 
   removeItem: (item) ->
     index = @items.indexOf(item)
