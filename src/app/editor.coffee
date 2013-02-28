@@ -171,7 +171,6 @@ class Editor extends View
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
         'editor:duplicate-line': @duplicateLine
-        'editor:undo-close-session': @undoDestroySession
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
         'editor:save-debug-snapshot': @saveDebugSnapshot
 
