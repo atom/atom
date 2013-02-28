@@ -16,15 +16,26 @@
   color: #9d9d9d;
 }
 
-.fuzzy-finder .file.new:before {
+.fuzzy-finder .status {
+  font-family: 'Octicons Regular';
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  -webkit-font-smoothing: antialiased;
+  color: #9d9d9d;
+  float: right;
+}
+
+.fuzzy-finder .status.new:before {
   position: relative;
-  top: 1px;
+  top: 3px;
   content: "\f06b";
 }
 
-.fuzzy-finder .file.modified:before {
+.fuzzy-finder .status.modified:before {
   position: relative;
-  top: 1px;
+  top: 3px;
   content: "\f06d";
 }
 

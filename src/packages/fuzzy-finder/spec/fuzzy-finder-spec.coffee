@@ -446,8 +446,8 @@ describe 'FuzzyFinder', ->
         git.getPathStatus(editor.getPath())
 
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-        expect(finderView.find('.file.modified').length).toBe 1
-        expect(finderView.find('.file.modified').text()).toBe 'sample.js'
+        expect(finderView.find('.status.modified').length).toBe 1
+        expect(finderView.find('.status.modified').closest('li').find('.file').text()).toBe 'sample.js'
 
 
     describe "when a new file is shown in the list", ->
@@ -456,5 +456,5 @@ describe 'FuzzyFinder', ->
         git.getPathStatus(editor.getPath())
 
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-        expect(finderView.find('.file.new').length).toBe 1
-        expect(finderView.find('.file.new').text()).toBe 'newsample.js'
+        expect(finderView.find('.status.new').length).toBe 1
+        expect(finderView.find('.status.new').closest('li').find('.file').text()).toBe 'newsample.js'
