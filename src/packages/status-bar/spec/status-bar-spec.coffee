@@ -63,7 +63,7 @@ describe "StatusBar", ->
       editor.insertText("\n")
       advanceClock(buffer.stoppedChangingDelay)
       expect(statusBar.bufferModified.text()).toBe '*'
-      editor.save()
+      editor.getBuffer().save()
       expect(statusBar.bufferModified.text()).toBe ''
 
     it "disables the buffer modified indicator if the content matches again", ->

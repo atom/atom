@@ -139,7 +139,6 @@ describe "Editor", ->
       expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
       expect(editor.scrollTop()).toBe previousScrollTop
       expect(editor.scrollView.scrollLeft()).toBe previousScrollLeft
-      console.log editor.getCursorView().css('left')
       expect(editor.getCursorView().position()).toEqual { top: 3 * editor.lineHeight, left: 5 * editor.charWidth }
       editor.insertText("goodbye")
       expect(editor.lineElementForScreenRow(3).text()).toMatch /^    vgoodbyear/
@@ -161,54 +160,6 @@ describe "Editor", ->
 
       runs ->
         expect(atom.confirm).toHaveBeenCalled()
-
-  describe ".save()", ->
-    describe "when the current buffer has a path", ->
-      tempFilePath = null
-
-      beforeEach ->
-        project.setPath('/tmp')
-        tempFilePath = '/tmp/atom-temp.txt'
-        fs.write(tempFilePath, "")
-        editor.edit(project.buildEditSession(tempFilePath))
-
-      afterEach ->
-        expect(fs.remove(tempFilePath))
-
-      it "saves the current buffer to disk", ->
-        editor.getBuffer().setText 'Edited!'
-        expect(fs.read(tempFilePath)).not.toBe "Edited!"
-
-        editor.save()
-
-        expect(fs.exists(tempFilePath)).toBeTruthy()
-        expect(fs.read(tempFilePath)).toBe 'Edited!'
-
-    describe "when the current buffer has no path", ->
-      selectedFilePath = null
-      beforeEach ->
-        editor.edit(project.buildEditSession())
-        editor.getBuffer().setText 'Save me to a new path'
-        spyOn(atom, 'showSaveDialog').andCallFake (callback) -> callback(selectedFilePath)
-
-      it "presents a 'save as' dialog", ->
-        editor.save()
-        expect(atom.showSaveDialog).toHaveBeenCalled()
-
-      describe "when a path is chosen", ->
-        it "saves the buffer to the chosen path", ->
-          selectedFilePath = '/tmp/temp.txt'
-
-          editor.save()
-
-          expect(fs.exists(selectedFilePath)).toBeTruthy()
-          expect(fs.read(selectedFilePath)).toBe 'Save me to a new path'
-
-      describe "when dialog is cancelled", ->
-        it "does not save the buffer", ->
-          selectedFilePath = null
-          editor.save()
-          expect(fs.exists(selectedFilePath)).toBeFalsy()
 
   describe ".scrollTop(n)", ->
     beforeEach ->
@@ -2023,7 +1974,7 @@ describe "Editor", ->
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
-      editor.save()
+      editor.getBuffer().save()
 
       fileChangeHandler = jasmine.createSpy('fileChange')
       editor.getBuffer().file.on 'contents-changed', fileChangeHandler
