@@ -31,7 +31,7 @@ bindings, but here's a list of a few useful commands.
 - `meta-shift-f` : open command prompt with `Xx/` for a project-wide search
 - `meta-\` : focus/open tree view, or close it when it is focused
 - `meta-shift-\` : open tree view with the current file selected
-- `ctrl-w v`, `ctrl-|` : split screen vertically
+- `ctrl-w v`, `ctrl-shift-|` : split screen vertically
 - `ctrl-w s`, `ctrl--` : split screen horizontally
 - `meta-l` : go to line
 
