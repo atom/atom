@@ -306,6 +306,27 @@ describe "Pane", ->
           pane.trigger 'core:save'
           expect(atom.showSaveDialog).not.toHaveBeenCalled()
 
+  describe "core:save-as", ->
+    beforeEach ->
+      spyOn(atom, 'showSaveDialog')
+
+    describe "when the current item has a saveAs method", ->
+      it "opens the save dialog and calls saveAs on the item with the selected path", ->
+        spyOn(editSession2, 'saveAs')
+        pane.showItem(editSession2)
+
+        pane.trigger 'core:save-as'
+
+        expect(atom.showSaveDialog).toHaveBeenCalled()
+        atom.showSaveDialog.argsForCall[0][0]('/selected/path')
+        expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
+
+    describe "when the current item does not have a saveAs method", ->
+      it "does nothing", ->
+        expect(pane.activeItem.saveAs).toBeUndefined()
+        pane.trigger 'core:save-as'
+        expect(atom.showSaveDialog).not.toHaveBeenCalled()
+
   describe "pane:show-next-item and pane:show-previous-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->
       expect(pane.activeItem).toBe view1
