@@ -141,3 +141,72 @@ describe "the `atom` global", ->
 
       runs ->
         expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+(\.\d+)?$/
+
+  describe "modal native dialogs", ->
+    beforeEach ->
+      spyOn(atom, 'sendMessageToBrowserProcess')
+      atom.sendMessageToBrowserProcess.simulateConfirmation = (buttonText) ->
+        labels = @argsForCall[0][1][2...]
+        callbacks = @argsForCall[0][2]
+        @reset()
+        callbacks[labels.indexOf(buttonText)]()
+
+      atom.sendMessageToBrowserProcess.simulatePathSelection = (path) ->
+        callback = @argsForCall[0][2]
+        @reset()
+        callback(path)
+
+    it "only presents one native dialog at a time", ->
+      confirmHandler = jasmine.createSpy("confirmHandler")
+      selectPathHandler = jasmine.createSpy("selectPathHandler")
+
+      atom.confirm "Are you happy?", "really, truly happy?", "Yes", confirmHandler, "No"
+      atom.confirm "Are you happy?", "really, truly happy?", "Yes", confirmHandler, "No"
+      atom.showSaveDialog(selectPathHandler)
+      atom.showSaveDialog(selectPathHandler)
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      atom.sendMessageToBrowserProcess.simulateConfirmation("Yes")
+      expect(confirmHandler).toHaveBeenCalled()
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      atom.sendMessageToBrowserProcess.simulateConfirmation("No")
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      atom.sendMessageToBrowserProcess.simulatePathSelection('/selected/path')
+      expect(selectPathHandler).toHaveBeenCalledWith('/selected/path')
+      selectPathHandler.reset()
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+
+    it "prioritizes dialogs presented as the result of dismissing other dialogs before any previously deferred dialogs", ->
+      atom.confirm "A1", "", "Next", ->
+        atom.confirm "B1", "", "Next", ->
+          atom.confirm "C1", "", "Next", ->
+          atom.confirm "C2", "", "Next", ->
+        atom.confirm "B2", "", "Next", ->
+      atom.confirm "A2", "", "Next", ->
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A1"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "B1"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "C1"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "C2"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "B2"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A2"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')

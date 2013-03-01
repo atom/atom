@@ -83,6 +83,8 @@ afterEach ->
     window.git = null
   $('#jasmine-content').empty()
   ensureNoPathSubscriptions()
+  atom.pendingModals = [[]]
+  atom.presentingModal = false
   waits(0) # yield to ui thread to make screen update more frequently
 
 window.loadPackage = (name, options) ->
