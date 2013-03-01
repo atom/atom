@@ -131,7 +131,8 @@ _.extend atom,
     @pendingModals.push([]) # prioritize any modals presented during dismiss callback
     fn?(args...)
     @presentingModal = false
-    @presentModal(fn) if fn = @shiftPendingModal()
+    if fn = @shiftPendingModal()
+      _.delay (=> @presentModal(fn)), 50 # let view update before next dialog
 
   pushPendingModal: (fn) ->
     # pendingModals is a stack of queues. enqueue to top of stack.
