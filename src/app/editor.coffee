@@ -654,17 +654,17 @@ class Editor extends View
     @updateLayerDimensions()
     @requestDisplayUpdate()
 
-  splitLeft: (editSession) ->
-    @pane()?.splitLeft().activeView
+  splitLeft: (items...) ->
+    @pane()?.splitLeft(items...).activeView
 
-  splitRight: (editSession) ->
-    @pane()?.splitRight().activeView
+  splitRight: (items...) ->
+    @pane()?.splitRight(items...).activeView
 
-  splitUp: (editSession) ->
-    @pane()?.splitUp().activeView
+  splitUp: (items...) ->
+    @pane()?.splitUp(items...).activeView
 
-  splitDown: (editSession) ->
-    @pane()?.splitDown().activeView
+  splitDown: (items...) ->
+    @pane()?.splitDown(items...).activeView
 
   pane: ->
     @closest('.pane').view()
