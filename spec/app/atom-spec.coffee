@@ -150,11 +150,13 @@ describe "the `atom` global", ->
         callbacks = @argsForCall[0][2]
         @reset()
         callbacks[labels.indexOf(buttonText)]()
+        advanceClock 50
 
       atom.sendMessageToBrowserProcess.simulatePathSelection = (path) ->
         callback = @argsForCall[0][2]
         @reset()
         callback(path)
+        advanceClock 50
 
     it "only presents one native dialog at a time", ->
       confirmHandler = jasmine.createSpy("confirmHandler")
