@@ -69,7 +69,7 @@ class Buffer
 
     @file.on "removed", =>
       @updateCachedDiskContents()
-      @trigger "modified-status-changed", @isModified()
+      @triggerModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
       @trigger "path-changed", this
@@ -78,7 +78,7 @@ class Buffer
     @trigger 'will-reload'
     @updateCachedDiskContents()
     @setText(@cachedDiskContents)
-    @trigger 'modified-status-changed', false
+    @triggerModifiedStatusChanged(false)
     @trigger 'reloaded'
 
   updateCachedDiskContents: ->
@@ -253,7 +253,7 @@ class Buffer
     @setPath(path)
     @cachedDiskContents = @getText()
     @file.write(@getText())
-    @trigger 'modified-status-changed', false
+    @triggerModifiedStatusChanged(false)
     @trigger 'saved'
 
   isModified: ->
@@ -432,10 +432,13 @@ class Buffer
       @stoppedChangingTimeout = null
       modifiedStatus = @isModified()
       @trigger 'contents-modified', modifiedStatus
-      unless modifiedStatus is @previousModifiedStatus
-        @previousModifiedStatus = modifiedStatus
-        @trigger 'modified-status-changed', modifiedStatus
+      @triggerModifiedStatusChanged(modifiedStatus)
     @stoppedChangingTimeout = setTimeout(stoppedChangingCallback, @stoppedChangingDelay)
+
+  triggerModifiedStatusChanged: (modifiedStatus) ->
+    return if modifiedStatus is @previousModifiedStatus
+    @previousModifiedStatus = modifiedStatus
+    @trigger 'modified-status-changed', modifiedStatus
 
   fileExists: ->
     @file.exists()
