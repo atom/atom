@@ -152,18 +152,20 @@ bool OnigScanner::Execute(const CefString& name,
                          const CefV8ValueList& arguments,
                          CefRefPtr<CefV8Value>& retval,
                          CefString& exception) {
-  if (name == "findNextMatch") {
-    OnigScannerUserData *userData = (OnigScannerUserData *)object->GetUserData().get();
-    retval = userData->FindNextMatch(arguments[0], arguments[1]);
-    return true;
-  }
-  else if (name == "buildScanner") {
-    retval = CefV8Value::CreateObject(NULL);
-    retval->SetUserData(new OnigScannerUserData(arguments[0]));
-    return true;
-  }
+  @autoreleasepool {
+    if (name == "findNextMatch") {
+      OnigScannerUserData *userData = (OnigScannerUserData *)object->GetUserData().get();
+      retval = userData->FindNextMatch(arguments[0], arguments[1]);
+      return true;
+    }
+    else if (name == "buildScanner") {
+      retval = CefV8Value::CreateObject(NULL);
+      retval->SetUserData(new OnigScannerUserData(arguments[0]));
+      return true;
+    }
 
-  return false;
+    return false;
+  }
 }
 
 } // namespace v8_extensions

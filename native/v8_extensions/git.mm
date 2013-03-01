@@ -210,72 +210,74 @@ namespace v8_extensions {
                     const CefV8ValueList& arguments,
                     CefRefPtr<CefV8Value>& retval,
                     CefString& exception) {
-    if (name == "getRepository") {
-      GitRepository *repository = new GitRepository(arguments[0]->GetStringValue().ToString().c_str());
-      if (repository->Exists()) {
-        CefRefPtr<CefBase> userData = repository;
-        retval = CefV8Value::CreateObject(NULL);
-        retval->SetUserData(userData);
-      } else {
-        retval = CefV8Value::CreateNull();
+    @autoreleasepool {
+      if (name == "getRepository") {
+        GitRepository *repository = new GitRepository(arguments[0]->GetStringValue().ToString().c_str());
+        if (repository->Exists()) {
+          CefRefPtr<CefBase> userData = repository;
+          retval = CefV8Value::CreateObject(NULL);
+          retval->SetUserData(userData);
+        } else {
+          retval = CefV8Value::CreateNull();
+        }
+        return true;
       }
-      return true;
-    }
 
-    if (name == "getHead") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      retval = userData->GetHead();
-      return true;
-    }
+      if (name == "getHead") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->GetHead();
+        return true;
+      }
 
-    if (name == "getPath") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      retval = userData->GetPath();
-      return true;
-    }
+      if (name == "getPath") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->GetPath();
+        return true;
+      }
 
-    if (name == "isIgnored") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      retval = userData->IsIgnored(arguments[0]->GetStringValue().ToString().c_str());
-      return true;
-    }
+      if (name == "isIgnored") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->IsIgnored(arguments[0]->GetStringValue().ToString().c_str());
+        return true;
+      }
 
-    if (name == "getStatus") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      retval = userData->GetStatus(arguments[0]->GetStringValue().ToString().c_str());
-      return true;
-    }
+      if (name == "getStatus") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->GetStatus(arguments[0]->GetStringValue().ToString().c_str());
+        return true;
+      }
 
-    if (name == "checkoutHead") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      retval = userData->CheckoutHead(arguments[0]->GetStringValue().ToString().c_str());
-      return true;
-    }
+      if (name == "checkoutHead") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->CheckoutHead(arguments[0]->GetStringValue().ToString().c_str());
+        return true;
+      }
 
-    if (name == "getDiffStats") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      retval = userData->GetDiffStats(arguments[0]->GetStringValue().ToString().c_str());
-      return true;
-    }
+      if (name == "getDiffStats") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->GetDiffStats(arguments[0]->GetStringValue().ToString().c_str());
+        return true;
+      }
 
-    if (name == "isSubmodule") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      retval = userData->IsSubmodule(arguments[0]->GetStringValue().ToString().c_str());
-      return true;
-    }
+      if (name == "isSubmodule") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->IsSubmodule(arguments[0]->GetStringValue().ToString().c_str());
+        return true;
+      }
 
-    if (name == "refreshIndex") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      userData->RefreshIndex();
-      return true;
-    }
+      if (name == "refreshIndex") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        userData->RefreshIndex();
+        return true;
+      }
 
-    if (name == "destroy") {
-      GitRepository *userData = (GitRepository *)object->GetUserData().get();
-      userData->Destroy();
-      return true;
-    }
+      if (name == "destroy") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        userData->Destroy();
+        return true;
+      }
 
-    return false;
+      return false;
+    }
   }
 }

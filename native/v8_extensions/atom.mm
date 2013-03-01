@@ -22,24 +22,26 @@ namespace v8_extensions {
                               const CefV8ValueList& arguments,
                               CefRefPtr<CefV8Value>& retval,
                               CefString& exception) {
-    CefRefPtr<CefBrowser> browser = CefV8Context::GetCurrentContext()->GetBrowser();
+    @autoreleasepool {
+      CefRefPtr<CefBrowser> browser = CefV8Context::GetCurrentContext()->GetBrowser();
 
-    if (name == "sendMessageToBrowserProcess") {
-      if (arguments.size() == 0 || !arguments[0]->IsString()) {
-        exception = "You must supply a message name";
-        return false;
+      if (name == "sendMessageToBrowserProcess") {
+        if (arguments.size() == 0 || !arguments[0]->IsString()) {
+          exception = "You must supply a message name";
+          return false;
+        }
+
+        CefString name = arguments[0]->GetStringValue();
+        CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(name);
+
+        if (arguments.size() > 1 && arguments[1]->IsArray()) {
+          TranslateList(arguments[1], message->GetArgumentList());
+        }
+
+        browser->SendProcessMessage(PID_BROWSER, message);
+        return true;
       }
-
-      CefString name = arguments[0]->GetStringValue();
-      CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(name);
-
-      if (arguments.size() > 1 && arguments[1]->IsArray()) {
-        TranslateList(arguments[1], message->GetArgumentList());
-      }
-
-      browser->SendProcessMessage(PID_BROWSER, message);
-      return true;
+      return false;
     }
-    return false;
   };
 }
