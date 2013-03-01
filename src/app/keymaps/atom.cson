@@ -1,5 +1,6 @@
 'body':
   'meta-s': 'core:save'
+  'meta-S': 'core:save-as'
   'enter': 'core:confirm'
   'escape': 'core:cancel'
   'meta-w': 'core:close'

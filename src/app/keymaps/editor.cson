@@ -2,7 +2,6 @@
   'meta-T': 'editor:undo-close-session'
 
 '.editor':
-  'meta-S': 'editor:save-as'
   'enter': 'editor:newline'
   'meta-enter': 'editor:newline-below'
   'meta-shift-enter': 'editor:newline-above'

@@ -22,6 +22,7 @@ class Pane extends View
 
     @command 'core:close', @destroyActiveItem
     @command 'core:save', @saveActiveItem
+    @command 'core:save-as', @saveActiveItemAs
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
     @command 'pane:split-left', => @splitLeft()
@@ -119,12 +120,20 @@ class Pane extends View
   saveActiveItem: =>
     @saveItem(@activeItem)
 
+  saveActiveItemAs: =>
+    @saveItemAs(@activeItem)
+
   saveItem: (item, nextAction) ->
     if item.getPath?()
       item.save()
       nextAction?()
-    else if item.saveAs?
-      atom.showSaveDialog (path) ->
+    else
+      @saveItemAs(item, nextAction)
+
+  saveItemAs: (item, nextAction) ->
+    return unless item.saveAs?
+    atom.showSaveDialog (path) =>
+      if path
         item.saveAs(path)
         nextAction?()
 
