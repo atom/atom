@@ -21,11 +21,11 @@ describe "Git", ->
   describe ".getPath()", ->
     it "returns the repository path for a .git directory path", ->
       repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
-      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git') + '/'
+      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git')
 
     it "returns the repository path for a repository path", ->
       repo = new Git(require.resolve('fixtures/git/master.git'))
-      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git') + '/'
+      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git')
 
   describe ".getHead()", ->
     it "returns a branch name for a non-empty repository", ->

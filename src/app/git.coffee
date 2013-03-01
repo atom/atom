@@ -1,10 +1,10 @@
 _ = require 'underscore'
+fs = require 'fs'
 Subscriber = require 'subscriber'
 GitRepository = require 'git-repository'
 
 module.exports =
 class Git
-
   @open: (path, options) ->
     try
       new Git(path, options)
@@ -37,7 +37,8 @@ class Git
 
   refreshIndex: -> @getRepo().refreshIndex()
 
-  getPath: -> @getRepo().getPath()
+  getPath: ->
+    @path ?= fs.absolute(@getRepo().getPath())
 
   destroy: ->
     @getRepo().destroy()
@@ -45,8 +46,7 @@ class Git
     @unsubscribe()
 
   getWorkingDirectory: ->
-    repoPath = @getPath()
-    repoPath?.substring(0, repoPath.length - 6)
+    @getPath()?.replace(/\/\.git\/?/, '')
 
   getHead: ->
     @getRepo().getHead() ? ''
