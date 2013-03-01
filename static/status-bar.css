@@ -55,3 +55,17 @@
 .status-bar .new-status-icon:before {
   content: "\f26b";
 }
+
+.status-bar .commits-behind-label:before {
+  margin-top: -3px;
+  margin-left: 3px;
+  margin-right: 1px;
+  content: "\f03f";
+}
+
+.status-bar .commits-ahead-label:before {
+  margin-top: -3px;
+  margin-left: 3px;
+  margin-right: 1px;
+  content: "\f03d";
+}

@@ -9,8 +9,9 @@ class RepositoryStatusTask extends Task
   started: ->
     @callWorkerMethod('loadStatuses', @repo.getPath())
 
-  statusesLoaded: (statuses) ->
+  statusesLoaded: ({statuses, upstream}) ->
     @done()
-    unless _.isEqual(statuses, @repo.statuses)
-      @repo.statuses = statuses
-      @repo.trigger 'statuses-changed'
+    statusesUnchanged = _.isEqual(statuses, @repo.statuses) and _.isEqual(upstream, @repo.upstream)
+    @repo.statuses = statuses
+    @repo.upstream = upstream
+    @repo.trigger 'statuses-changed' unless statusesUnchanged

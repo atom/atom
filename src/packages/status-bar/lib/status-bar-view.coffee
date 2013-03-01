@@ -17,6 +17,8 @@ class StatusBarView extends View
       @span class: 'git-branch', outlet: 'branchArea', =>
         @span class: 'octicons branch-icon'
         @span class: 'branch-label', outlet: 'branchLabel'
+        @span class: 'octicons commits-ahead-label', outlet: 'commitsAhead'
+        @span class: 'octicons commits-behind-label', outlet: 'commitsBehind'
         @span class: 'git-status', outlet: 'gitStatusIcon'
       @span class: 'file-info', =>
         @span class: 'current-path', outlet: 'currentPath'
@@ -81,6 +83,16 @@ class StatusBarView extends View
 
     @gitStatusIcon.addClass('git-status octicons')
     return unless git?
+
+    if git.upstream.ahead > 0
+      @commitsAhead.text(git.upstream.ahead).show()
+    else
+      @commitsAhead.hide()
+
+    if git.upstream.behind > 0
+      @commitsBehind.text(git.upstream.behind).show()
+    else
+      @commitsBehind.hide()
 
     status = git.statuses[path]
     if git.isStatusModified(status)

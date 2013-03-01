@@ -27,9 +27,11 @@ class Git
     ignore: 1 << 14
 
   statuses: null
+  upstream: null
 
   constructor: (path, options={}) ->
     @statuses = {}
+    @upstream = {ahead: 0, behind: 0}
     @repo = GitRepository.open(path)
     refreshOnWindowFocus = options.refreshOnWindowFocus ? true
     if refreshOnWindowFocus
