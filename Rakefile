@@ -25,6 +25,11 @@ task "update-cef" => "bootstrap" do
   end
 end
 
+desc "Download debug symbols for CEF"
+task "download-cef-symbols" => "update-cef" do
+  sh %{prebuilt-cef/script/download -s cef}
+end
+
 task "bootstrap" do
   `script/bootstrap`
 end
