@@ -295,8 +295,7 @@ describe "RootView", ->
       buffer1.setText('edited1')
       expect(buffer1.isModified()).toBe(true)
 
-      editor2 = editor1.splitRight()
-      editor2.edit(project.buildEditSession('atom-temp2.txt'))
+      editor2 = editor1.splitRight(project.buildEditSession('atom-temp2.txt'))
       buffer2 = editor2.activeEditSession.buffer
       expect(buffer2.getText()).toBe("file2")
       expect(buffer2.isModified()).toBe(false)

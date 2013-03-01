@@ -148,7 +148,7 @@ class RootView extends View
     super
 
   saveAll: ->
-    editor.save() for editor in @getEditors()
+    pane.saveItems() for pane in @getPanes()
 
   eachPane: (callback) ->
     @panes.eachPane(callback)
