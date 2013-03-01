@@ -17,3 +17,4 @@ class GitRepository
   isSubmodule: $git.isSubmodule
   refreshIndex: $git.refreshIndex
   destroy: $git.destroy
+  getAheadBehindCounts: $git.getAheadBehindCounts

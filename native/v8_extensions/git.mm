@@ -1,6 +1,7 @@
 #import "git.h"
 #import "include/git2.h"
 #import <Cocoa/Cocoa.h>
+#import <stdlib.h>
 
 namespace v8_extensions {
 
@@ -72,6 +73,106 @@ namespace v8_extensions {
         v8Statuses->SetValue(iter->first, CefV8Value::CreateInt(iter->second), V8_PROPERTY_ATTRIBUTE_NONE);
       }
       return v8Statuses;
+    }
+
+    int getCommitCount(const git_oid* fromCommit, const git_oid* toCommit) {
+      int count = 0;
+      git_revwalk *revWalk;
+      if (git_revwalk_new(&revWalk, repo) == GIT_OK) {
+        git_revwalk_push(revWalk, fromCommit);
+        git_revwalk_hide(revWalk, toCommit);
+        git_oid currentCommit;
+        while (git_revwalk_next(&currentCommit, revWalk) == GIT_OK)
+          count++;
+        git_revwalk_free(revWalk);
+      }
+      return count;
+    }
+
+    void getShortBranchName(const char** out, const char* branchName) {
+      *out = NULL;
+      if (branchName == NULL)
+        return;
+      int branchNameLength = strlen(branchName);
+      if (branchNameLength < 12)
+        return;
+      if (strncmp("refs/heads/", branchName, 11) != 0)
+        return;
+
+      int shortNameLength = branchNameLength - 11;
+      char* shortName = (char*) malloc(sizeof(char) * shortNameLength + 1);
+      shortName[shortNameLength] = '\0';
+      strncpy(shortName, &branchName[11], shortNameLength);
+      *out = shortName;
+    }
+
+    void getUpstreamBranch(const char** out, git_reference *branch) {
+      *out = NULL;
+      git_config *config;
+      if (git_repository_config(&config, repo) != GIT_OK)
+        return;
+
+      const char* branchName = git_reference_name(branch);
+      const char* shortBranchName;
+      getShortBranchName(&shortBranchName, branchName);
+      if (shortBranchName == NULL)
+        return;
+
+      int shortBranchNameLength = strlen(shortBranchName);
+      char* remoteKey = (char*) malloc(sizeof(char) * shortBranchNameLength + 15);
+      remoteKey[shortBranchNameLength + 14] = '\0';
+      sprintf(remoteKey, "branch.%s.remote", shortBranchName);
+      char* mergeKey = (char*) malloc(sizeof(char) * shortBranchNameLength + 14);
+      mergeKey[shortBranchNameLength + 13] = '\0';
+      sprintf(mergeKey, "branch.%s.merge", shortBranchName);
+      free((char*)shortBranchName);
+
+      const char *remote;
+      const char *merge;
+      if (git_config_get_string(&remote, config, remoteKey) == GIT_OK
+          && git_config_get_string(&merge, config, mergeKey) == GIT_OK) {
+        const char* shortMergeBranchName;
+        getShortBranchName(&shortMergeBranchName, merge);
+        if (shortMergeBranchName != NULL) {
+          int shortMergeBranchNameLength = strlen(shortMergeBranchName);
+          int updateRefLength = strlen(remote) + shortMergeBranchNameLength + 15;
+          char* upstreamBranch = (char*) malloc(sizeof(char) * updateRefLength);
+          sprintf(upstreamBranch, "refs/remotes/%s/%s", remote, shortMergeBranchName);
+          free((char*)shortMergeBranchName);
+          *out = upstreamBranch;
+        }
+      }
+
+      free(remoteKey);
+      free(mergeKey);
+      git_config_free(config);
+    }
+
+    CefRefPtr<CefV8Value> GetAheadBehindCounts() {
+      CefRefPtr<CefV8Value> result = CefV8Value::CreateObject(NULL);
+      git_reference *head;
+      if (git_repository_head(&head, repo) == GIT_OK) {
+        const char* upstreamBranchName;
+        getUpstreamBranch(&upstreamBranchName, head);
+        if (upstreamBranchName != NULL) {
+          git_reference *upstream;
+          if (git_reference_lookup(&upstream, repo, upstreamBranchName) == GIT_OK) {
+            const git_oid* headSha = git_reference_target(head);
+            const git_oid* upstreamSha = git_reference_target(upstream);
+            git_oid mergeBase;
+            if (git_merge_base(&mergeBase, repo, headSha, upstreamSha) == GIT_OK) {
+              int ahead = getCommitCount(headSha, &mergeBase);
+              result->SetValue("ahead", CefV8Value::CreateInt(ahead), V8_PROPERTY_ATTRIBUTE_NONE);
+              int behind = getCommitCount(upstreamSha, &mergeBase);
+              result->SetValue("behind", CefV8Value::CreateInt(behind), V8_PROPERTY_ATTRIBUTE_NONE);
+            }
+            git_reference_free(upstream);
+          }
+          free((char*)upstreamBranchName);
+        }
+        git_reference_free(head);
+      }
+      return result;
     }
 
     CefRefPtr<CefV8Value> IsIgnored(const char *path) {
@@ -209,7 +310,8 @@ namespace v8_extensions {
   void Git::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
       "getRepository", "getHead", "getPath", "isIgnored", "getStatus", "checkoutHead",
-      "getDiffStats", "isSubmodule", "refreshIndex", "destroy", "getStatuses"
+      "getDiffStats", "isSubmodule", "refreshIndex", "destroy", "getStatuses",
+      "getAheadBehindCounts"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -299,6 +401,12 @@ namespace v8_extensions {
       if (name == "getStatuses") {
         GitRepository *userData = (GitRepository *)object->GetUserData().get();
         retval = userData->GetStatuses();
+        return true;
+      }
+
+      if (name == "getAheadBehindCounts") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->GetAheadBehindCounts();
         return true;
       }
 

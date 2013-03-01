@@ -138,5 +138,8 @@ class Git
       directoryStatus |= status if path.indexOf(directoryPath) is 0
     directoryStatus
 
+  getAheadBehindCounts: ->
+    @getRepo().getAheadBehindCounts()
+
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter
