@@ -279,36 +279,6 @@ describe "RootView", ->
           editSession = rootView.open('b', changeFocus: false)
           expect(activePane.focus).not.toHaveBeenCalled()
 
-  describe ".saveAll()", ->
-    it "saves all open editors", ->
-      project.setPath('/tmp')
-      file1 = '/tmp/atom-temp1.txt'
-      file2 = '/tmp/atom-temp2.txt'
-      fs.write(file1, "file1")
-      fs.write(file2, "file2")
-      rootView.open(file1)
-
-      editor1 = rootView.getActiveView()
-      buffer1 = editor1.activeEditSession.buffer
-      expect(buffer1.getText()).toBe("file1")
-      expect(buffer1.isModified()).toBe(false)
-      buffer1.setText('edited1')
-      expect(buffer1.isModified()).toBe(true)
-
-      editor2 = editor1.splitRight(project.buildEditSession('atom-temp2.txt'))
-      buffer2 = editor2.activeEditSession.buffer
-      expect(buffer2.getText()).toBe("file2")
-      expect(buffer2.isModified()).toBe(false)
-      buffer2.setText('edited2')
-      expect(buffer2.isModified()).toBe(true)
-
-      rootView.saveAll()
-
-      expect(buffer1.isModified()).toBe(false)
-      expect(fs.read(buffer1.getPath())).toBe("edited1")
-      expect(buffer2.isModified()).toBe(false)
-      expect(fs.read(buffer2.getPath())).toBe("edited2")
-
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->
       rootView.height(200)

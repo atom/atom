@@ -13,6 +13,8 @@ describe "PaneContainer", ->
       @content: -> @div tabindex: -1
       initialize: (@myText) -> @text(@myText)
       serialize: -> deserializer: 'TestView', myText: @myText
+      getPath: -> "/tmp/hi"
+      save: -> @saved = true
 
     container = new PaneContainer
     pane1 = new Pane(new TestView('1'))
@@ -71,6 +73,16 @@ describe "PaneContainer", ->
       subscription.cancel()
       pane4.splitDown()
       expect(panes).toEqual []
+
+  describe ".saveAll()", ->
+    it "saves all open pane items", ->
+      pane1.showItem(new TestView('4'))
+
+      container.saveAll()
+
+      for pane in container.getPanes()
+        for item in pane.getItems()
+          expect(item.saved).toBeTruthy()
 
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->

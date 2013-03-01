@@ -36,6 +36,9 @@ class PaneContainer extends View
   getRoot: ->
     @children().first().view()
 
+  saveAll: ->
+    pane.saveItems() for pane in @getPanes()
+
   getPanes: ->
     @find('.pane').views()
 
