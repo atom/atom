@@ -348,7 +348,7 @@ class Editor extends View
 
     @hiddenInput.on 'focusout', =>
       @isFocused = false
-      @autosave() if config.get "editor.autosave"
+#       @autosave() if config.get "editor.autosave"
       @removeClass 'is-focused'
 
     @underlayer.on 'click', (e) =>
@@ -456,7 +456,7 @@ class Editor extends View
     return if editSession is @activeEditSession
 
     if @activeEditSession
-      @autosave() if config.get "editor.autosave"
+#       @autosave() if config.get "editor.autosave"
       @saveScrollPositionForActiveEditSession()
       @activeEditSession.off(".editor")
 
@@ -609,8 +609,8 @@ class Editor extends View
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
 
-  autosave: ->
-    @save() if @getPath()?
+#   autosave: ->
+#     @save() if @getPath()?
 
   setFontSize: (fontSize) ->
     headTag = $("head")
