@@ -23,6 +23,7 @@ class Pane extends View
     @command 'core:close', @destroyActiveItem
     @command 'core:save', @saveActiveItem
     @command 'core:save-as', @saveActiveItemAs
+    @command 'pane:save-items', @saveItems
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
     @command 'pane:split-left', => @splitLeft()
@@ -136,6 +137,9 @@ class Pane extends View
       if path
         item.saveAs(path)
         nextAction?()
+
+  saveItems: =>
+    @saveItem(item) for item in @getItems()
 
   removeItem: (item) ->
     index = @items.indexOf(item)
