@@ -110,9 +110,9 @@ operate on the whole buffer.
 
 ### Split Panes
 
-You can split any editor pane horizontally or vertically by using `ctrl-w v,
-ctrl-|`. Once you have a split pane, you can move focus between them with
-`ctrl-tab`. To close a pane, close all tabs inside it.
+You can split any editor pane horizontally or vertically by using `ctrl-shift-|` or
+`ctrl-w v`. Once you have a split pane, you can move focus between them with
+`ctrl-tab` or `ctrl-w w`. To close a pane, close all tabs inside it.
 
 ### Folding
 
