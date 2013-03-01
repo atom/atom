@@ -139,6 +139,7 @@
             {
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks',
               'files': [
+                '<(PRODUCT_DIR)/Atom Helper.app',
                 '<(PRODUCT_DIR)/Atom.framework',
                 'native/frameworks/CocoaOniguruma.framework',
                 'native/frameworks/Sparkle.framework',
@@ -150,30 +151,18 @@
                 'git2/frameworks/libgit2.0.17.0.dylib',
               ],
             },
-          ],
-          'postbuilds': [
             {
-              'postbuild_name': 'Copy Helper App',
-              'action': [
-                'cp',
-                '-r',
-                '${BUILT_PRODUCTS_DIR}/Atom Helper.app',
-                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks',
+              'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework',
+              'files': [
+                'cef/Resources',
               ],
             },
+          ],
+          'postbuilds': [
             {
               'postbuild_name': 'Fix Framework Link',
               'action': [
                 '<@(fix_framework_link_command)',
-              ],
-            },
-            {
-              'postbuild_name': 'Copy Framework Resources Directory',
-              'action': [
-                'cp',
-                '-r',
-                'cef/Resources',
-                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/'
               ],
             },
             {
