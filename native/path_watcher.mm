@@ -245,7 +245,7 @@ static NSMutableArray *gPathWatchers;
         char pathBuffer[MAXPATHLEN];
         fcntl((int)event.ident, F_GETPATH, &pathBuffer);
         close(event.ident);
-        newPath = [NSString stringWithUTF8String:pathBuffer];
+        newPath = [[NSString stringWithUTF8String:pathBuffer] stringByStandardizingPath];
         if (!newPath) {
           NSLog(@"WARNING: Ignoring rename event for deleted file '%@'", path);
           continue;
