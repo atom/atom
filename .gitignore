@@ -2,7 +2,6 @@
 .project
 .svn
 .nvm-version
-atom-build
 atom.xcodeproj
 build
 .xcodebuild-info

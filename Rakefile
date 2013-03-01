@@ -1,5 +1,5 @@
 ATOM_SRC_PATH = File.dirname(__FILE__)
-BUILD_DIR = 'atom-build'
+BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-xcode-project" do
