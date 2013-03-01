@@ -34,7 +34,6 @@ void AtomCefRenderProcessHandler::OnWorkerContextCreated(int worker_id,
 void AtomCefRenderProcessHandler::OnWorkerContextReleased(int worker_id,
                                                           const CefString& url,
                                                           CefRefPtr<CefV8Context> context) {
-  NSLog(@"Web worker context released");
 }
 
 void AtomCefRenderProcessHandler::OnWorkerUncaughtException(int worker_id,
