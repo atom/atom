@@ -524,24 +524,33 @@ namespace v8_extensions {
 
     else if (name == "isMisspelled") {
       NSString *word = stringFromCefV8Value(arguments[0]);
-      NSRange range = [[NSSpellChecker sharedSpellChecker] checkSpellingOfString:word startingAt:0];
-      retval = CefV8Value::CreateBool(range.length > 0);
+      NSSpellChecker *spellChecker = [NSSpellChecker sharedSpellChecker];
+      @synchronized(spellChecker) {
+        @autoreleasepool {
+          NSRange range = [spellChecker checkSpellingOfString:word startingAt:0];
+          retval = CefV8Value::CreateBool(range.length > 0);
+        }
+      }
       return true;
     }
 
     else if (name == "getCorrectionsForMisspelling") {
       NSString *misspelling = stringFromCefV8Value(arguments[0]);
-      NSSpellChecker *spellchecker = [NSSpellChecker sharedSpellChecker];
-      NSString *language = [spellchecker language];
-      NSRange range;
-      range.location = 0;
-      range.length = [misspelling length];
-      NSArray *guesses = [spellchecker guessesForWordRange:range inString:misspelling language:language inSpellDocumentWithTag:0];
-      CefRefPtr<CefV8Value> v8Guesses = CefV8Value::CreateArray([guesses count]);
-      for (int i = 0; i < [guesses count]; i++) {
-        v8Guesses->SetValue(i, CefV8Value::CreateString([[guesses objectAtIndex:i] UTF8String]));
+      NSSpellChecker *spellChecker = [NSSpellChecker sharedSpellChecker];
+      @synchronized(spellChecker) {
+        @autoreleasepool {
+          NSString *language = [spellChecker language];
+          NSRange range;
+          range.location = 0;
+          range.length = [misspelling length];
+          NSArray *guesses = [spellChecker guessesForWordRange:range inString:misspelling language:language inSpellDocumentWithTag:0];
+          CefRefPtr<CefV8Value> v8Guesses = CefV8Value::CreateArray([guesses count]);
+          for (int i = 0; i < [guesses count]; i++) {
+            v8Guesses->SetValue(i, CefV8Value::CreateString([[guesses objectAtIndex:i] UTF8String]));
+          }
+          retval = v8Guesses;
+        }
       }
-      retval = v8Guesses;
       return true;
     }
 
