@@ -30,6 +30,7 @@ class Pane extends View
     @command 'pane:split-right', => @splitRight()
     @command 'pane:split-up', => @splitUp()
     @command 'pane:split-down', => @splitDown()
+    @command 'pane:close', => @destroyItems()
     @on 'focus', => @activeView.focus(); false
     @on 'focusin', => @makeActive()
 
@@ -107,6 +108,9 @@ class Pane extends View
       @promptToSaveItem(item, reallyDestroyItem)
     else
       reallyDestroyItem()
+
+  destroyItems: ->
+    @destroyItem(item) for item in @getItems()
 
   promptToSaveItem: (item, nextAction) ->
     path = item.getPath()
