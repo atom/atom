@@ -21,12 +21,15 @@ class SpellCheckView extends View
   subscribeToBuffer: ->
     @destroyViews()
     @task?.abort()
-    return unless @spellCheckCurrentGrammar()
 
-    @buffer?.off '.spell-check'
-    @buffer = @editor.getBuffer()
-    @buffer.on 'contents-modified.spell-check', => @updateMisspellings()
-    @updateMisspellings()
+    if @buffer?
+      @buffer.off '.spell-check'
+      @buffer = null
+
+    if @spellCheckCurrentGrammar()
+      @buffer = @editor.getBuffer()
+      @buffer.on 'contents-modified.spell-check', => @updateMisspellings()
+      @updateMisspellings()
 
   spellCheckCurrentGrammar: ->
     grammar = @editor.getGrammar().scopeName

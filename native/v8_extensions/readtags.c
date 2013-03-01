@@ -325,7 +325,7 @@ static void parseTagLine (tagFile *file, tagEntry *const entry)
 						break;
 					if (*(p - 1) != '\\')
 						break;
-					// Make sure preceeding backslas isn't an escaped backslash by
+					// Make sure preceding backslash isn't an escaped backslash by
 					// advancing backwards and counting the number of backslashes
 					int slashCount = 1;
 					while (*(p - slashCount - 1) == '\\')
