@@ -70,8 +70,8 @@ class Git
     @getRepo().getHead() ? ''
 
   getPathStatus: (path) ->
-    currentPathStatus = @statuses[path]
-    pathStatus = @getRepo().getStatus(@relativize(path))
+    currentPathStatus = @statuses[path] ? 0
+    pathStatus = @getRepo().getStatus(@relativize(path)) ? 0
     if pathStatus > 0
       @statuses[path] = pathStatus
     else

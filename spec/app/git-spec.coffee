@@ -127,9 +127,10 @@ describe "Git", ->
       expect(repo.isPathModified(path2)).toBeTruthy()
 
     it "fires a status-changed event if the checkout completes successfully", ->
+      fs.write(path1, '')
+      repo.getPathStatus(path1)
       statusHandler = jasmine.createSpy('statusHandler')
       repo.on 'status-changed', statusHandler
-      fs.write(path1, '')
       repo.checkoutHead(path1)
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler.argsForCall[0][0..1]).toEqual [path1, 0]
@@ -173,17 +174,14 @@ describe "Git", ->
     it "trigger a status-changed event when the new status differs from the last cached one", ->
       statusHandler = jasmine.createSpy("statusHandler")
       repo.on 'status-changed', statusHandler
+      fs.write(path, '')
       status = repo.getPathStatus(path)
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler.argsForCall[0][0..1]).toEqual [path, status]
 
-      fs.write(path, '')
+      fs.write(path, 'abc')
       status = repo.getPathStatus(path)
-      expect(statusHandler.callCount).toBe 2
-      expect(statusHandler.argsForCall[1][0..1]).toEqual [path, status]
-
-      repo.getPathStatus(path)
-      expect(statusHandler.callCount).toBe 2
+      expect(statusHandler.callCount).toBe 1
 
   describe ".refreshStatus()", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
