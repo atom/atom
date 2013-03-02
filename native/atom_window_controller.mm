@@ -34,7 +34,7 @@
 
   _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
   if (!alwaysUseBundleResourcePath && !_resourcePath) {
-    NSString *defaultRepositoryPath = @"~/github/atom";
+    NSString *defaultRepositoryPath = [@"~/github/atom" stringByStandardizingPath];
     if ([defaultRepositoryPath characterAtIndex:0] == '/') {
       BOOL isDir = false;
       BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
