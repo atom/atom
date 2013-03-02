@@ -354,6 +354,15 @@ describe "Pane", ->
       pane.trigger 'pane:show-next-item'
       expect(pane.activeItem).toBe view1
 
+  describe "pane:show-item-N events", ->
+    it "shows the (n-1)th item if it exists", ->
+      pane.trigger 'pane:show-item-2'
+      expect(pane.activeItem).toBe pane.itemAtIndex(1)
+      pane.trigger 'pane:show-item-1'
+      expect(pane.activeItem).toBe pane.itemAtIndex(0)
+      pane.trigger 'pane:show-item-9' # don't fail on out-of-bounds indices
+      expect(pane.activeItem).toBe pane.itemAtIndex(0)
+
   describe ".remove()", ->
     it "destroys all the pane's items", ->
       pane.remove()
