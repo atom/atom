@@ -273,7 +273,6 @@ describe "Pane", ->
   describe "pane:close", ->
     it "destroys all items and removes the pane", ->
       pane.showItem(editSession1)
-      initialItemCount = pane.getItems().length
       pane.trigger 'pane:close'
       expect(pane.hasParent()).toBeFalsy()
       expect(editSession2.destroyed).toBeTruthy()
