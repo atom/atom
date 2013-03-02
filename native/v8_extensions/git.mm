@@ -81,7 +81,7 @@ namespace v8_extensions {
       return v8Statuses;
     }
 
-    int getCommitCount(const git_oid* fromCommit, const git_oid* toCommit) {
+    int GetCommitCount(const git_oid* fromCommit, const git_oid* toCommit) {
       int count = 0;
       git_revwalk *revWalk;
       if (git_revwalk_new(&revWalk, repo) == GIT_OK) {
@@ -95,7 +95,7 @@ namespace v8_extensions {
       return count;
     }
 
-    void getShortBranchName(const char** out, const char* branchName) {
+    void GetShortBranchName(const char** out, const char* branchName) {
       *out = NULL;
       if (branchName == NULL)
         return;
@@ -120,7 +120,7 @@ namespace v8_extensions {
 
       const char* branchName = git_reference_name(branch);
       const char* shortBranchName;
-      getShortBranchName(&shortBranchName, branchName);
+      GetShortBranchName(&shortBranchName, branchName);
       if (shortBranchName == NULL)
         return;
 
@@ -138,7 +138,7 @@ namespace v8_extensions {
       if (git_config_get_string(&remote, config, remoteKey) == GIT_OK
           && git_config_get_string(&merge, config, mergeKey) == GIT_OK) {
         const char* shortMergeBranchName;
-        getShortBranchName(&shortMergeBranchName, merge);
+        GetShortBranchName(&shortMergeBranchName, merge);
         if (shortMergeBranchName != NULL) {
           int shortMergeBranchNameLength = strlen(shortMergeBranchName);
           int updateRefLength = strlen(remote) + shortMergeBranchNameLength + 15;
@@ -167,9 +167,9 @@ namespace v8_extensions {
             const git_oid* upstreamSha = git_reference_target(upstream);
             git_oid mergeBase;
             if (git_merge_base(&mergeBase, repo, headSha, upstreamSha) == GIT_OK) {
-              int ahead = getCommitCount(headSha, &mergeBase);
+              int ahead = GetCommitCount(headSha, &mergeBase);
               result->SetValue("ahead", CefV8Value::CreateInt(ahead), V8_PROPERTY_ATTRIBUTE_NONE);
-              int behind = getCommitCount(upstreamSha, &mergeBase);
+              int behind = GetCommitCount(upstreamSha, &mergeBase);
               result->SetValue("behind", CefV8Value::CreateInt(behind), V8_PROPERTY_ATTRIBUTE_NONE);
             }
             git_reference_free(upstream);
