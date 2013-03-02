@@ -320,8 +320,6 @@ namespace v8_extensions {
         return CefV8Value::CreateNull();
 
       int size = strlen(text);
-      git_diff_options options = GIT_DIFF_OPTIONS_INIT;
-      options.context_lines = 1;
       std::vector<git_diff_range> ranges;
       if (git_diff_blob_to_buffer(blob, text, size, NULL, NULL, CollectDiffHunk, NULL, &ranges) == GIT_OK) {
         CefRefPtr<CefV8Value> v8Ranges = CefV8Value::CreateArray(ranges.size());
