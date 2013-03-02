@@ -7,7 +7,7 @@ read config settings. You can read a value from `config` with `config.get`:
 
 ```coffeescript
 # read a value with `config.get`
-@autosave() if config.get "editor.autosave"
+@autosave() if config.get "core.autosave"
 ```
 
 Or you can use `observeConfig` to track changes from a view object.
@@ -47,7 +47,7 @@ the following way:
 
 ```coffeescript
 # basic key update
-config.set("editor.autosave", true)
+config.set("core.autosave", true)
 
 # if you mutate a config key, you'll need to call `config.update` to inform
 # observers of the change
