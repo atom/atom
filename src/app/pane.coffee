@@ -26,6 +26,17 @@ class Pane extends View
     @command 'pane:save-items', @saveItems
     @command 'pane:show-next-item', @showNextItem
     @command 'pane:show-previous-item', @showPreviousItem
+
+    @command 'pane:show-item-1', => @showItemAtIndex(0)
+    @command 'pane:show-item-2', => @showItemAtIndex(1)
+    @command 'pane:show-item-3', => @showItemAtIndex(2)
+    @command 'pane:show-item-4', => @showItemAtIndex(3)
+    @command 'pane:show-item-5', => @showItemAtIndex(4)
+    @command 'pane:show-item-6', => @showItemAtIndex(5)
+    @command 'pane:show-item-7', => @showItemAtIndex(6)
+    @command 'pane:show-item-8', => @showItemAtIndex(7)
+    @command 'pane:show-item-9', => @showItemAtIndex(8)
+
     @command 'pane:split-left', => @splitLeft()
     @command 'pane:split-right', => @splitRight()
     @command 'pane:split-up', => @splitUp()
@@ -74,10 +85,13 @@ class Pane extends View
     @items.indexOf(@activeItem)
 
   showItemAtIndex: (index) ->
-    @showItem(@items[index])
+    @showItem(@itemAtIndex(index))
+
+  itemAtIndex: (index) ->
+    @items[index]
 
   showItem: (item) ->
-    return if item is @activeItem
+    return if !item? or item is @activeItem
     isFocused = @is(':has(:focus)')
     @addItem(item)
     view = @viewForItem(item)
