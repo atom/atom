@@ -575,6 +575,68 @@ describe "Pane", ->
       expect(container.children('.pane').length).toBe 1
       expect(pane1.outerWidth()).toBe container.width()
 
+  describe "autosave", ->
+    [initialActiveItem, initialActiveItemPath] = []
+
+    beforeEach ->
+      initialActiveItem = pane.activeItem
+      initialActiveItemPath = null
+      pane.activeItem.getPath = -> initialActiveItemPath
+      pane.activeItem.save = jasmine.createSpy("activeItem.save")
+      spyOn(pane, 'saveItem').andCallThrough()
+
+    describe "when the active view loses focus", ->
+      it "saves the item if core.autosave is true and the item has a path", ->
+        pane.activeView.trigger 'focusout'
+        expect(pane.saveItem).not.toHaveBeenCalled()
+        expect(pane.activeItem.save).not.toHaveBeenCalled()
+
+        config.set('core.autosave', true)
+        pane.activeView.trigger 'focusout'
+        expect(pane.saveItem).not.toHaveBeenCalled()
+        expect(pane.activeItem.save).not.toHaveBeenCalled()
+
+        initialActiveItemPath = '/tmp/hi'
+        pane.activeView.trigger 'focusout'
+        expect(pane.activeItem.save).toHaveBeenCalled()
+
+    describe "when an item becomes inactive", ->
+      it "saves the item if core.autosave is true and the item has a path", ->
+        expect(view2).not.toBe pane.activeItem
+        expect(pane.saveItem).not.toHaveBeenCalled()
+        expect(initialActiveItem.save).not.toHaveBeenCalled()
+        pane.showItem(view2)
+
+        pane.showItem(initialActiveItem)
+        config.set('core.autosave', true)
+        pane.showItem(view2)
+        expect(pane.saveItem).not.toHaveBeenCalled()
+        expect(initialActiveItem.save).not.toHaveBeenCalled()
+
+        pane.showItem(initialActiveItem)
+        initialActiveItemPath = '/tmp/hi'
+        pane.showItem(view2)
+        expect(initialActiveItem.save).toHaveBeenCalled()
+
+    describe "when an item is destroyed", ->
+      it "saves the item if core.autosave is true and the item has a path", ->
+        # doesn't have to be the active item
+        expect(view2).not.toBe pane.activeItem
+        pane.showItem(view2)
+
+        pane.destroyItem(editSession1)
+        expect(pane.saveItem).not.toHaveBeenCalled()
+
+        config.set("core.autosave", true)
+        view2.getPath = -> undefined
+        view2.save = ->
+        pane.destroyItem(view2)
+        expect(pane.saveItem).not.toHaveBeenCalled()
+
+        initialActiveItemPath = '/tmp/hi'
+        pane.destroyItem(initialActiveItem)
+        expect(initialActiveItem.save).toHaveBeenCalled()
+
   describe ".itemForPath(path)", ->
     it "returns the item for which a call to .getPath() returns the given path", ->
       expect(pane.itemForPath(editSession1.getPath())).toBe editSession1

@@ -45,6 +45,7 @@ class Pane extends View
     @command 'pane:close-other-items', => @destroyInactiveItems()
     @on 'focus', => @activeView.focus(); false
     @on 'focusin', => @makeActive()
+    @on 'focusout', => @autosaveActiveItem()
 
   afterAttach: ->
     return if @attached
@@ -92,6 +93,9 @@ class Pane extends View
 
   showItem: (item) ->
     return if !item? or item is @activeItem
+
+    @autosaveActiveItem() if @activeItem
+
     isFocused = @is(':has(:focus)')
     @addItem(item)
     view = @viewForItem(item)
@@ -118,6 +122,8 @@ class Pane extends View
     reallyDestroyItem = =>
       @removeItem(item)
       item.destroy?()
+
+    @autosaveItem(item)
 
     if item.isModified?()
       @promptToSaveItem(item, reallyDestroyItem)
@@ -162,6 +168,12 @@ class Pane extends View
 
   saveItems: =>
     @saveItem(item) for item in @getItems()
+
+  autosaveActiveItem: ->
+    @autosaveItem(@activeItem)
+
+  autosaveItem: (item) ->
+    @saveItem(item) if config.get('core.autosave') and item.getPath?()
 
   removeItem: (item) ->
     index = @items.indexOf(item)
