@@ -1,7 +1,6 @@
 #import "git.h"
 #import "include/git2.h"
 #import <Cocoa/Cocoa.h>
-#import <stdlib.h>
 
 namespace v8_extensions {
 
@@ -14,6 +13,13 @@ namespace v8_extensions {
         std::map<const char*, unsigned int> *statuses = (std::map<const char*, unsigned int> *) payload;
         statuses->insert(std::pair<const char*, unsigned int>(path, status));
       }
+      return 0;
+    }
+
+    static int CollectDiffHunk(const git_diff_delta *delta, const git_diff_range *range,
+                               const char *header, size_t header_len, void *payload) {
+      std::vector<git_diff_range> *ranges = (std::vector<git_diff_range> *) payload;
+      ranges->push_back(*range);
       return 0;
     }
 
@@ -243,6 +249,7 @@ namespace v8_extensions {
 
       git_diff_list *diffs;
       int diffStatus = git_diff_tree_to_workdir(&diffs, repo, tree, &options);
+      git_tree_free(tree);
       free(copiedPath);
       if (diffStatus != GIT_OK || git_diff_num_deltas(diffs) != 1) {
         return CefV8Value::CreateNull();
@@ -282,6 +289,58 @@ namespace v8_extensions {
       return result;
     }
 
+    CefRefPtr<CefV8Value> GetLineDiffs(const char *path, const char *text) {
+      git_reference *head;
+      if (git_repository_head(&head, repo) != GIT_OK)
+        return CefV8Value::CreateNull();
+
+      const git_oid* sha = git_reference_target(head);
+      git_commit *commit;
+      int commitStatus = git_commit_lookup(&commit, repo, sha);
+      git_reference_free(head);
+      if (commitStatus != GIT_OK)
+        return CefV8Value::CreateNull();
+
+      git_tree *tree;
+      int treeStatus = git_commit_tree(&tree, commit);
+      git_commit_free(commit);
+      if (treeStatus != GIT_OK)
+        return CefV8Value::CreateNull();
+
+      git_tree_entry* treeEntry;
+      git_tree_entry_bypath(&treeEntry, tree, path);
+      git_blob *blob = NULL;
+      if (treeEntry != NULL) {
+        const git_oid *blobSha = git_tree_entry_id(treeEntry);
+        if (blobSha == NULL || git_blob_lookup(&blob, repo, blobSha) != GIT_OK)
+          blob = NULL;
+      }
+      git_tree_free(tree);
+      if (blob == NULL)
+        return CefV8Value::CreateNull();
+
+      int size = strlen(text);
+      git_diff_options options = GIT_DIFF_OPTIONS_INIT;
+      options.context_lines = 1;
+      std::vector<git_diff_range> ranges;
+      if (git_diff_blob_to_buffer(blob, text, size, NULL, NULL, CollectDiffHunk, NULL, &ranges) == GIT_OK) {
+        CefRefPtr<CefV8Value> v8Ranges = CefV8Value::CreateArray(ranges.size());
+        for(int i = 0; i < ranges.size(); i++) {
+          CefRefPtr<CefV8Value> v8Range = CefV8Value::CreateArray(4);
+          v8Range->SetValue(0, CefV8Value::CreateInt(ranges[i].old_start));
+          v8Range->SetValue(1, CefV8Value::CreateInt(ranges[i].old_lines));
+          v8Range->SetValue(2, CefV8Value::CreateInt(ranges[i].new_start));
+          v8Range->SetValue(3, CefV8Value::CreateInt(ranges[i].new_lines));
+          v8Ranges->SetValue(i, v8Range);
+        }
+        git_blob_free(blob);
+        return v8Ranges;
+      } else {
+        git_blob_free(blob);
+        return CefV8Value::CreateNull();
+      }
+    }
+
     CefRefPtr<CefV8Value> IsSubmodule(const char *path) {
       BOOL isSubmodule = false;
       git_index* index;
@@ -311,7 +370,7 @@ namespace v8_extensions {
     const char* methodNames[] = {
       "getRepository", "getHead", "getPath", "isIgnored", "getStatus", "checkoutHead",
       "getDiffStats", "isSubmodule", "refreshIndex", "destroy", "getStatuses",
-      "getAheadBehindCounts"
+      "getAheadBehindCounts", "getLineDiffs"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -407,6 +466,14 @@ namespace v8_extensions {
       if (name == "getAheadBehindCounts") {
         GitRepository *userData = (GitRepository *)object->GetUserData().get();
         retval = userData->GetAheadBehindCounts();
+        return true;
+      }
+
+      if (name == "getLineDiffs") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        std::string path = arguments[0]->GetStringValue().ToString();
+        std::string text = arguments[1]->GetStringValue().ToString();
+        retval = userData->GetLineDiffs(path.c_str(), text.c_str());
         return true;
       }
 

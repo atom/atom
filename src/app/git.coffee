@@ -143,5 +143,8 @@ class Git
   getAheadBehindCounts: ->
     @getRepo().getAheadBehindCounts()
 
+  getLineDiffs: (path, text) ->
+    @getRepo().getLineDiffs(@relativize(path), path)
+
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter

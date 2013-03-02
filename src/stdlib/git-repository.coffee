@@ -18,3 +18,4 @@ class GitRepository
   refreshIndex: $git.refreshIndex
   destroy: $git.destroy
   getAheadBehindCounts: $git.getAheadBehindCounts
+  getLineDiffs: $git.getLineDiffs
