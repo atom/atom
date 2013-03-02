@@ -278,6 +278,13 @@ describe "Pane", ->
       expect(editSession2.destroyed).toBeTruthy()
       expect(editSession1.destroyed).toBeTruthy()
 
+  describe "pane:close-other-items", ->
+    it "destroys all items except the current", ->
+      pane.showItem(editSession1)
+      pane.trigger 'pane:close-other-items'
+      expect(editSession2.destroyed).toBeTruthy()
+      expect(pane.getItems()).toEqual [editSession1]
+
   describe "core:save", ->
     describe "when the current item has a path", ->
       describe "when the current item has a save method", ->
