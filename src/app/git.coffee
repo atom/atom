@@ -64,7 +64,7 @@ class Git
     @unsubscribe()
 
   getWorkingDirectory: ->
-    @getPath()?.replace(/\/\.git\/?/, '')
+    @getPath()?.replace(/\/\.git\/?$/, '')
 
   getHead: ->
     @getRepo().getHead() ? ''
