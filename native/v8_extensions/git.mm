@@ -321,14 +321,16 @@ namespace v8_extensions {
 
       int size = strlen(text);
       std::vector<git_diff_range> ranges;
-      if (git_diff_blob_to_buffer(blob, text, size, NULL, NULL, CollectDiffHunk, NULL, &ranges) == GIT_OK) {
+      git_diff_options options = GIT_DIFF_OPTIONS_INIT;
+      options.context_lines = 1;
+      if (git_diff_blob_to_buffer(blob, text, size, &options, NULL, CollectDiffHunk, NULL, &ranges) == GIT_OK) {
         CefRefPtr<CefV8Value> v8Ranges = CefV8Value::CreateArray(ranges.size());
         for(int i = 0; i < ranges.size(); i++) {
-          CefRefPtr<CefV8Value> v8Range = CefV8Value::CreateArray(4);
-          v8Range->SetValue(0, CefV8Value::CreateInt(ranges[i].old_start));
-          v8Range->SetValue(1, CefV8Value::CreateInt(ranges[i].old_lines));
-          v8Range->SetValue(2, CefV8Value::CreateInt(ranges[i].new_start));
-          v8Range->SetValue(3, CefV8Value::CreateInt(ranges[i].new_lines));
+          CefRefPtr<CefV8Value> v8Range = CefV8Value::CreateObject(NULL);
+          v8Range->SetValue("oldStart", CefV8Value::CreateInt(ranges[i].old_start), V8_PROPERTY_ATTRIBUTE_NONE);
+          v8Range->SetValue("oldLines", CefV8Value::CreateInt(ranges[i].old_lines), V8_PROPERTY_ATTRIBUTE_NONE);
+          v8Range->SetValue("newStart", CefV8Value::CreateInt(ranges[i].new_start), V8_PROPERTY_ATTRIBUTE_NONE);
+          v8Range->SetValue("newLines", CefV8Value::CreateInt(ranges[i].new_lines), V8_PROPERTY_ATTRIBUTE_NONE);
           v8Ranges->SetValue(i, v8Range);
         }
         git_blob_free(blob);
