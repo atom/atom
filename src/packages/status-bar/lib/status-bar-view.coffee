@@ -48,6 +48,7 @@ class StatusBarView extends View
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
     @buffer.on 'contents-modified.status-bar', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
+    @buffer.on 'saved.status-bar', => @updateStatusBar()
     @updateStatusBar()
 
   updateStatusBar: ->
