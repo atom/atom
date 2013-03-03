@@ -24,7 +24,7 @@ class Task
   error: -> console.error(arguments...)
 
   startWorker: ->
-    @callWorkerMethod 'start'
+    @callWorkerMethod 'start',
       globals:
         resourcePath: window.resourcePath
         navigator:
