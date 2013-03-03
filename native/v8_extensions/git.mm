@@ -112,7 +112,7 @@ namespace v8_extensions {
       *out = shortName;
     }
 
-    void getUpstreamBranch(const char** out, git_reference *branch) {
+    void GetUpstreamBranch(const char** out, git_reference *branch) {
       *out = NULL;
       git_config *config;
       if (git_repository_config(&config, repo) != GIT_OK)
@@ -159,7 +159,7 @@ namespace v8_extensions {
       git_reference *head;
       if (git_repository_head(&head, repo) == GIT_OK) {
         const char* upstreamBranchName;
-        getUpstreamBranch(&upstreamBranchName, head);
+        GetUpstreamBranch(&upstreamBranchName, head);
         if (upstreamBranchName != NULL) {
           git_reference *upstream;
           if (git_reference_lookup(&upstream, repo, upstreamBranchName) == GIT_OK) {
