@@ -48,8 +48,12 @@ task :install => [:clean, :build] do
   # Install atom cli
   if File.directory?("/opt/boxen")
     cli_path = "/opt/boxen/bin/atom"
-  else
+  elsif File.directory?("/opt/github")
     cli_path = "/opt/github/bin/atom"
+  elsif File.directory?("/usr/local")
+    cli_path = "/usr/local/bin/atom"
+  else
+    raise "Missing directory for `atom` binary"
   end
 
   FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", cli_path)
