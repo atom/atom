@@ -4,7 +4,7 @@ set -ex
 
 cd "$(dirname "$0")/../.."
 
-export PATH="/usr/local/Cellar/node/0.8.21/bin:${PATH}"
+export PATH="/usr/local/Cellar/node/0.8.21/bin:/usr/local/bin:${PATH}"
 
 npm install
 rake create-xcode-project
