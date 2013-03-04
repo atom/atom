@@ -115,7 +115,6 @@ window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")
 
 window.requireStylesheet = (path) ->
-  console.log path
   if fullPath = require.resolve(path)
     content = ""
     if fs.extension(fullPath) == '.less'
