@@ -74,7 +74,7 @@
         'native/mac/speakeasy.pem',
       ],
       'xcode_settings': {
-        'INFOPLIST_FILE': 'native/mac/info.plist',
+        'INFOPLIST_FILE': 'native/mac/Atom-Info.plist',
         'LD_RUNPATH_SEARCH_PATHS': '@executable_path/../Frameworks',
       },
       'conditions': [
