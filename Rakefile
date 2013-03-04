@@ -64,18 +64,6 @@ task :install => [:clean, :build] do
   puts "\033[32mAtom is installed at `#{dest_path}`. Atom cli is installed at `#{cli_path}`\033[0m"
 end
 
-desc "Package up the app for speakeasy"
-task :package => ["setup-codesigning", "build"] do
-  path = application_path()
-  exit 1 if not path
-
-  dest_path = '/tmp/atom-for-speakeasy/Atom.tar.bz2'
-  `mkdir -p $(dirname #{dest_path})`
-  `rm -rf #{dest_path}`
-  `tar --directory $(dirname #{path}) -jcf #{dest_path} $(basename #{path})`
-  `open $(dirname #{dest_path})`
-end
-
 task "setup-codesigning" do
   ENV['CODE_SIGN'] = "Developer ID Application: GitHub"
 end
