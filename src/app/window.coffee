@@ -47,7 +47,7 @@ window.startup = ->
   else if fs.isDirectory('/usr/local')
     installAtomCommand('/usr/local/bin/atom')
   else
-    throw "Missing directory for `atom` binary"
+    console.warn "Failed to install `atom` binary"
 
   handleWindowEvents()
   config.load()
