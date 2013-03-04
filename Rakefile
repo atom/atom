@@ -3,7 +3,7 @@ BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-xcode-project" do
-  command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
+  command = "xcodebuild -target Atom SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
