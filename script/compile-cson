@@ -6,11 +6,11 @@ set -e
 # The Setup's environment ourselves. If this isn't done, things like the
 # node shim won't be able to find the stuff they need.
 
-if node --version > /dev/null 2>&1; then
-  # cool
-elif [ -e /opt/github/env.sh ]; then
-  source /opt/github/env.sh
-fi
+node --version > /dev/null 2>&1 || {
+  if [ -e /opt/github/env.sh ]; then
+    source /opt/github/env.sh
+  fi
+}
 
 INPUT_FILE="${1}"
 OUTPUT_FILE="${2}"
