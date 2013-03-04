@@ -1,41 +1,10 @@
 #!/bin/sh
 # This can only be run by xcode or xcodebuild!
 
-# Because of the way xcodebuild invokes external scripts we need to load
-# The Setup's environment ourselves. If this isn't done, things like the
-# node shim won't be able to find the stuff they need.
+set -e
 
-if [ -f /opt/github/env.sh ]; then
-  source /opt/github/env.sh
-fi
-
+COMPILED_SOURCES_DIR="${1}"
 RESOUCES_PATH="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
 
-DIRS="src static vendor"
-
-# Compile .coffee files into bundle
-COFFEE_FILES=$(find $DIRS -type file -name '*.coffee')
-for COFFEE_FILE in $COFFEE_FILES; do
-  JS_FILE=$(echo "$RESOUCES_PATH/$COFFEE_FILE" | sed 's/.coffee/.js/' )
-  OUTPUT_PATH="$RESOUCES_PATH/$(dirname "$COFFEE_FILE")"
-
-  if [ $COFFEE_FILE -nt "$JS_FILE" ]; then
-    mkdir -p "$OUTPUT_PATH"
-    node_modules/.bin/coffee -c -o "$OUTPUT_PATH" "$COFFEE_FILE" || exit 1
-  fi
-done;
-
-# Compile .cson files into bundle
-CSON_FILES=$(find $DIRS -type file -name '*.cson')
-for CSON_FILE in $CSON_FILES; do
-  JSON_FILE=$(echo "$RESOUCES_PATH/$CSON_FILE" | sed 's/.cson/.json/' )
-  OUTPUT_PATH="$RESOUCES_PATH/$(dirname "$CSON_FILE")"
-
-  if [ $CSON_FILE -nt "$JSON_FILE" ]; then
-    mkdir -p "$OUTPUT_PATH"
-    node_modules/.bin/cson2json "$CSON_FILE" > "$JSON_FILE"
-  fi
-done;
-
 # Copy non-coffee files into bundle
-rsync --archive --recursive --exclude="src/**/*.coffee" --exclude="src/**/*.cson" src static vendor spec benchmark themes dot-atom atom.sh "$RESOUCES_PATH"
+rsync --archive --recursive --exclude="src/**/*.coffee" --exclude="src/**/*.cson" src static vendor spec benchmark themes dot-atom atom.sh "${COMPILED_SOURCES_DIR}/" "$RESOUCES_PATH"

@@ -1,13 +1,13 @@
 {$$, View} = require 'space-pen'
 
 module.exports =
-class ##PackageName##View extends View
+class __PackageName__View extends View
   @content: ->
-    @div class: '##package-name## overlay from-top', =>
-      @div "The ##PackageName## package is Alive! It's ALIVE!", class: "message"
+    @div class: '__package-name__ overlay from-top', =>
+      @div "The __PackageName__ package is Alive! It's ALIVE!", class: "message"
 
   initialize: (serializeState) ->
-    rootView.command "##package-name##:toggle", => @toggle()
+    rootView.command "__package-name__:toggle", => @toggle()
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
@@ -17,7 +17,7 @@ class ##PackageName##View extends View
     @detach()
 
   toggle: ->
-    console.log "##PackageName##View was toggled!"
+    console.log "__PackageName__View was toggled!"
     if @hasParent()
       @detach()
     else
