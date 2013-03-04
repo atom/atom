@@ -182,6 +182,12 @@
                 'Atom',
               ],
             },
+            {
+              'postbuild_name': 'Print env for Constructicon',
+              'action': [
+                'env',
+              ],
+            },
           ],
           'link_settings': {
             'libraries': [
