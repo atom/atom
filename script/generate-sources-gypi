@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -e
+
+cd "$(dirname $0)/.."
+
+DIRS="src static vendor"
+
+find_files() {
+  find ${DIRS} -type file -name ${1}
+}
+
+file_list() {
+  while read file; do
+    echo "      '${file}',"
+  done
+}
+
+cat > sources.gypi <<EOF
+{
+  'variables': {
+    'compiled_sources_dir': '<(INTERMEDIATE_DIR)/atom-resources',
+    'compiled_sources_dir_xcode': '\${INTERMEDIATE_DIR}/atom-resources',
+    'coffee_sources': [
+$(find_files '*.coffee' | file_list)
+    ],
+    'cson_sources': [
+$(find_files '*.cson' | file_list)
+    ],
+  },
+}
+EOF

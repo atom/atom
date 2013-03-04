@@ -36,6 +36,7 @@
   'includes': [
     'cef/cef_paths2.gypi',
     'git2/libgit2.gypi',
+    'sources.gypi',
   ],
   'target_defaults': {
     'default_configuration': 'Debug',
@@ -214,6 +215,7 @@
       'type': 'shared_library',
       'mac_bundle': 1,
       'dependencies': [
+        'generated_sources',
         'libcef_dll_wrapper',
       ],
       'defines': [
@@ -276,9 +278,10 @@
       ],
       'postbuilds': [
         {
-          'postbuild_name': 'Copy and Compile Static Files',
+          'postbuild_name': 'Copy Static Files',
           'action': [
-            'script/copy-files-to-bundle'
+            'script/copy-files-to-bundle',
+            '<(compiled_sources_dir_xcode)',
           ],
         },
         {
@@ -310,6 +313,48 @@
           'cef/Release/libcef.dylib',
         ],
       }
+    },
+    {
+      'target_name': 'generated_sources',
+      'type': 'none',
+      'sources': [
+        '<@(coffee_sources)',
+        '<@(cson_sources)',
+      ],
+      'rules': [
+        {
+          'rule_name': 'coffee',
+          'extension': 'coffee',
+          'inputs': [
+            'script/compile-coffee',
+          ],
+          'outputs': [
+            '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).js',
+          ],
+          'action': [
+            'sh',
+            'script/compile-coffee',
+            '<(RULE_INPUT_PATH)',
+            '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).js',
+          ],
+        },
+        {
+          'rule_name': 'cson2json',
+          'extension': 'cson',
+          'inputs': [
+            'script/compile-cson',
+          ],
+          'outputs': [
+            '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).json',
+          ],
+          'action': [
+            'sh',
+            'script/compile-cson',
+            '<(RULE_INPUT_PATH)',
+            '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).json',
+          ],
+        },
+      ],
     },
   ],
   'conditions': [

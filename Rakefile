@@ -14,6 +14,7 @@ end
 desc "Create xcode project from gyp file"
 task "create-xcode-project" => "update-cef" do
   `rm -rf atom.xcodeproj`
+  `script/generate-sources-gypi`
   `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
 end
 
