@@ -42,7 +42,7 @@ task :install => [:clean, :build] do
   # Install Atom.app
   dest_path =  "/Applications/#{File.basename(path)}"
   `rm -rf #{dest_path}`
-  `cp -r #{path} #{File.expand_path(dest_path)}`
+  `cp -a #{path} #{File.expand_path(dest_path)}`
 
   # Install atom cli
   if File.directory?("/opt/boxen")
