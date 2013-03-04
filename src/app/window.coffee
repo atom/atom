@@ -1,6 +1,7 @@
 fs = require 'fs'
 $ = require 'jquery'
 ChildProcess = require 'child-process'
+{less} = require 'less'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -33,7 +34,7 @@ window.setUpEnvironment = ->
   requireStylesheet 'overlay.css'
   requireStylesheet 'popover-list.css'
   requireStylesheet 'notification.css'
-  requireStylesheet 'markdown.css'
+  requireStylesheet 'markdown.less'
 
   if nativeStylesheetPath = require.resolve("#{platform}.css")
     requireStylesheet(nativeStylesheetPath)
@@ -114,8 +115,17 @@ window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")
 
 window.requireStylesheet = (path) ->
+  console.log path
   if fullPath = require.resolve(path)
-    window.applyStylesheet(fullPath, fs.read(fullPath))
+    content = ""
+    if fs.extension(fullPath) == '.less'
+      (new less.Parser).parse __read(fullPath), (e, tree) ->
+        throw new Error(e.message, file, e.line) if e
+        content = tree.toCSS()
+    else
+      content = fs.read(fullPath)
+
+    window.applyStylesheet(fullPath, content)
   unless fullPath
     throw new Error("Could not find a file at path '#{path}'")
 

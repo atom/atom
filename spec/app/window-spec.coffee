@@ -1,5 +1,6 @@
 $ = require 'jquery'
 fs = require 'fs'
+{less} = require 'less'
 
 describe "Window", ->
   projectPath = null
@@ -76,6 +77,25 @@ describe "Window", ->
 
       # doesn't append twice
       requireStylesheet('atom.css')
+      expect($('head style').length).toBe lengthBefore + 1
+
+    it  "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
+      $('head style[id*="markdown.less"]').remove()
+      lengthBefore = $('head style').length
+      requireStylesheet('markdown.less')
+      expect($('head style').length).toBe lengthBefore + 1
+
+      styleElt = $('head style[id*="markdown.less"]')
+
+      fullPath = require.resolve('markdown.less')
+      expect(styleElt.attr('id')).toBe fullPath
+
+      (new less.Parser).parse __read(fullPath), (e, tree) ->
+        throw new Error(e.message, file, e.line) if e
+        expect(styleElt.text()).toBe tree.toCSS()
+
+      # doesn't append twice
+      requireStylesheet('markdown.less')
       expect($('head style').length).toBe lengthBefore + 1
 
   describe ".disableStyleSheet(path)", ->
