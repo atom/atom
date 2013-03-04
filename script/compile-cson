@@ -9,6 +9,9 @@ set -e
 node --version > /dev/null 2>&1 || {
   if [ -e /opt/github/env.sh ]; then
     source /opt/github/env.sh
+  else
+    # Try Constructicon's PATH.
+    export PATH="/usr/local/Cellar/node/0.8.21/bin:${PATH}"
   fi
 }
 
