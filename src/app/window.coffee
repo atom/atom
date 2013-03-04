@@ -42,8 +42,12 @@ window.setUpEnvironment = ->
 window.startup = ->
   if fs.isDirectory('/opt/boxen')
     installAtomCommand('/opt/boxen/bin/atom')
-  else
+  else if fs.isDirectory('/opt/github')
     installAtomCommand('/opt/github/bin/atom')
+  else if fs.isDirectory('/usr/local')
+    installAtomCommand('/usr/local/bin/atom')
+  else
+    throw "Missing directory for `atom` binary"
 
   handleWindowEvents()
   config.load()
