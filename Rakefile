@@ -20,9 +20,7 @@ end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
 task "update-cef" => "bootstrap" do
-  # TODO Use prebuilt-cef's script after https://github.com/github/prebuilt-cef/pull/2 is merged.
-  # exit 1 unless system %{prebuilt-cef/script/download -b 1410 -r 1107 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -f cef}
-  exit 1 unless system %{script/download_cef -b 1410 -r 1107 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -f cef}
+  exit 1 unless system %{prebuilt-cef/script/download -b 1410 -r 1107 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -f cef}
   Dir.glob('cef/*.gypi').each do |filename|
     `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
   end
@@ -30,9 +28,7 @@ end
 
 desc "Download debug symbols for CEF"
 task "download-cef-symbols" => "update-cef" do
-  # TODO Use prebuilt-cef's script after https://github.com/github/prebuilt-cef/pull/2 is merged.
-  # sh %{prebuilt-cef/script/download -b 1410 -r 1107 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -s cef}
-  sh %{script/download_cef -b 1410 -r 1107 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -s cef}
+  sh %{prebuilt-cef/script/download -b 1410 -r 1107 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -s cef}
 end
 
 task "bootstrap" do
