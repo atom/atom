@@ -98,4 +98,6 @@ class TerminalView extends ScrollView
         cursor = $("<span>").addClass("cursor")
         character.append(cursor)
       character.addClass("color-#{c.color}").addClass("background-#{c.backgroundColor}")
+      for s in ['bold', 'italic', 'underlined']
+        character.addClass(s) if c[s] == true
       l.append character

@@ -55,11 +55,30 @@ describe 'Terminal Buffer', ->
       describe "up", ->
       describe "down", ->
     describe "sgr", ->
+      describe "multiple codes seperated by ;", ->
+        it "assigns all attributes", ->
+          buffer.input("#{TerminalBuffer.escapeSequence("31;1m")}a")
+          expect(buffer.lastLine().lastVisibleCharacter().color).toBe(1)
+          expect(buffer.lastLine().lastVisibleCharacter().bold).toBe(true)
       describe "reset", ->
         it "resets all attributes", ->
           buffer.input("#{TerminalBuffer.escapeSequence("31m")}a#{TerminalBuffer.escapeSequence("0m")}A")
           expect(buffer.lastLine().lastVisibleCharacter().char).toBe("A")
           expect(buffer.lastLine().lastVisibleCharacter().color).toBe(0)
+      describe "bold", ->
+        it "sets characters to be bold", ->
+          buffer.input("#{TerminalBuffer.escapeSequence("1m")}a")
+          expect(buffer.lastLine().lastVisibleCharacter().bold).toBe(true)
+      describe "italic", ->
+        it "sets characters to be italic", ->
+          buffer.input("#{TerminalBuffer.escapeSequence("3m")}a")
+          expect(buffer.lastLine().lastVisibleCharacter().italic).toBe(true)
+      describe "underlined", ->
+        it "sets characters to be underlined", ->
+          buffer.input("#{TerminalBuffer.escapeSequence("4m")}a")
+          expect(buffer.lastLine().lastVisibleCharacter().underlined).toBe(true)
+      describe "reverse", ->
+      describe "hidden", ->
       describe "text color", ->
         it "sets the text color", ->
           buffer.input("#{TerminalBuffer.escape}[31mA")
@@ -74,7 +93,7 @@ describe 'Terminal Buffer', ->
 
   fdescribe "cursor", ->
     describe "when characters are entered", ->
-      it "moves to the end of the line", ->
+      it "moves to the end of the entered text", ->
         buffer.input("abc")
         expect(buffer.cursor.x).toBe(3)
       it "moves to the next line", ->

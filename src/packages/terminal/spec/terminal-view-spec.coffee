@@ -58,10 +58,22 @@ fdescribe 'Terminal', ->
       it "sets the text color", ->
         terminalView.output(TerminalBuffer.escapeSequence("31m"))
         terminalView.output("a")
-        expect(terminalView.content.find("pre span").hasClass("color-1")).toBeTruthy()
-
+        expect(terminalView.content.find("pre span").hasClass("color-1")).toBe(true)
     describe "background-color", ->
+      it "has no background color by default", ->
+        terminalView.output("a")
+        expect(terminalView.content.find("pre span").hasClass("background-0")).toBe(false)
       it "sets the background color", ->
         terminalView.output(TerminalBuffer.escapeSequence("41m"))
         terminalView.output("a")
-        expect(terminalView.content.find("pre span").hasClass("background-1")).toBeTruthy()
+        expect(terminalView.content.find("pre span").hasClass("background-1")).toBe(true)
+    describe "text style", ->
+      it "sets the style to bold", ->
+        terminalView.output("#{TerminalBuffer.escapeSequence("1m")}a")
+        expect(terminalView.content.find("pre span").hasClass("bold")).toBe(true)
+      it "sets the style to italic", ->
+        terminalView.output("#{TerminalBuffer.escapeSequence("3m")}a")
+        expect(terminalView.content.find("pre span").hasClass("italic")).toBe(true)
+      it "sets the style to underlined", ->
+        terminalView.output("#{TerminalBuffer.escapeSequence("4m")}a")
+        expect(terminalView.content.find("pre span").hasClass("underlined")).toBe(true)

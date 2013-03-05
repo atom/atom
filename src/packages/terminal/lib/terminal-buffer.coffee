@@ -10,10 +10,15 @@ class TerminalBuffer
     @lines = []
     @dirtyLines = []
     @inEscapeSequence = false
-    @color = 0
-    @backgroundColor = 0
+    @resetSGR()
     @cursor = new TerminalCursor(this)
     @addLine()
+  resetSGR: () ->
+    @color = 0
+    @backgroundColor = -1
+    @bold = false
+    @italic = false
+    @underlined = false
   length: () ->
     l = 0
     l += line.length() for line in @lines
@@ -64,19 +69,34 @@ class TerminalBuffer
     window.console.log "Escape #{type} #{sequence}"
     seq = sequence.split(";")
     switch type
+      when "A" then # Move cursor up
+      when "B" then # Move cursor down
+      when "C" then # Move cursor right
+      when "D" then # Move cursor left
       when "H" then # Cursor position
       when "J" then # Erase data
       when "K" then # Erase in line
       when "m" # SGR (Graphics)
         for s in seq
           i = parseInt(s)
-          if i == 0 # Reset
-            @color = 0
-            @backgroundColor = 0
-          if i >= 30 && i <= 37 # Text color
-            @color = i - 30
-          if i >= 40 && i <= 47 # Background color
-            @backgroundColor = i - 40
+          switch i
+            when 0 # Reset
+              @resetSGR()
+            when 1 # Bold
+              @bold = true
+            when 3 # Italic
+              @italic = true
+            when 4 # Underlined
+              @underlined = true
+            when 5 then # Blink: Slow
+            when 6 then # Blink: Rapid
+            when 7 then # Reverse
+            when 8 then # Hidden
+            else
+              if i >= 30 && i <= 37 # Text color
+                @color = i - 30
+              if i >= 40 && i <= 47 # Background color
+                @backgroundColor = i - 40
     @lastLine().lastCharacter()?.reset(this)
   escape: ->
     @inEscapeSequence = true
@@ -135,10 +155,15 @@ class TerminalCharacter
     if buffer?
       @color = buffer.color
       @backgroundColor = buffer.backgroundColor
+      @bold = buffer.bold
+      @italic = buffer.italic
+      @underlined = buffer.underlined
     else
-      @bold = false
       @color = 0
       @backgroundColor = 0
+      @bold = false
+      @italic = false
+      @underlined = false
       @cursor = false
 
 class TerminalCursor

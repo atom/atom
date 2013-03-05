@@ -41,3 +41,15 @@
   width: 0.8em;
   height: 1em;
 }
+
+.terminal .bold {
+  font-weight: bold;
+}
+
+.terminal .italic {
+  font-style: italic;
+}
+
+.terminal .underlined {
+  text-decoration: underline;
+}
