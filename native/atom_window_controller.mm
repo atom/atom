@@ -69,7 +69,6 @@
 
 - (id)initDevWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:false];
 }
 
