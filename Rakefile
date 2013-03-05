@@ -112,7 +112,7 @@ task :benchmark do
 end
 
 task :nof do
-  system %{find . -name *spec.coffee | grep --invert-match --regexp "#{BUILD_DIR}\\|##package-name##" | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
+  system %{find . -name *spec.coffee | grep --invert-match --regexp "#{BUILD_DIR}\\|__package-name__" | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
 end
 
 task :tags do
