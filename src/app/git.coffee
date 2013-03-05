@@ -141,7 +141,7 @@ class Git
     directoryStatus
 
   getAheadBehindCounts: ->
-    @getRepo().getAheadBehindCounts()
+    @getRepo().getAheadBehindCounts() ? ahead: 0, behind: 0
 
   getLineDiffs: (path, text) ->
     @getRepo().getLineDiffs(@relativize(path), text) ? []

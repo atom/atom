@@ -9,7 +9,7 @@ module.exports =
       statuses = {}
       for path, status of repo.getRepo().getStatuses()
         statuses[fs.join(workingDirectoryPath, path)] = status
-      upstream = repo.getAheadBehindCounts() ? {ahead: 0, behind: 0}
+      upstream = repo.getAheadBehindCounts()
       repo.destroy()
     else
       upstream = {}
