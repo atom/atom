@@ -4,6 +4,7 @@ window.setUpEnvironment()
 nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
+{less} = require 'less'
 Keymap = require 'keymap'
 Config = require 'config'
 Point = require 'point'
@@ -212,6 +213,13 @@ window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth
 window.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
   editor.height(charHeight * heightInChars + editor.renderedLines.position().top)
   $(window).trigger 'resize' # update editor's on-screen lines
+
+window.parseLessFile = (path) ->
+  content = ""
+  (new less.Parser).parse __read(path), (e, tree) ->
+    throw new Error(e.message, file, e.line) if e
+    content = tree.toCSS()
+  content
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)
