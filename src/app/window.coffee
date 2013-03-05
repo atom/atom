@@ -24,7 +24,7 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  requireStylesheet 'reset.css'
+  requireStylesheet 'reset.less'
   requireStylesheet 'atom.css'
   requireStylesheet 'tabs.css'
   requireStylesheet 'tree-view.css'
