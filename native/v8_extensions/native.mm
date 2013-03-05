@@ -448,7 +448,7 @@ namespace v8_extensions {
       if(options->GetValue("interactive")->GetBoolValue()) {
         [task setLaunchPath:command];
         [task setArguments:[NSArray arrayWithObjects:@"-l", nil]];
-        [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: @"/bin/bash", @"SHELL", nil]];
+        [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: @"/bin/bash", @"SHELL", @"xterm-256color", @"TERM", nil]];
         openpty(&masterFd, &slaveFd, nil, nil, nil);
         ptyFileHandle = [[NSFileHandle alloc] initWithFileDescriptor:slaveFd];
         ptyMasterHandle = [[NSFileHandle alloc] initWithFileDescriptor:masterFd];

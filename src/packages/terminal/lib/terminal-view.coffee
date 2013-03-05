@@ -36,6 +36,8 @@ class TerminalView extends ScrollView
       @input(TerminalBuffer.enter)
     rootView.command "terminal:delete", =>
       @input(TerminalBuffer.backspace)
+    rootView.command "terminal:tab", =>
+      @input(TerminalBuffer.tab)
     rootView.command "terminal:paste", =>
       @input(pasteboard.read())
     rootView.command "terminal:left", =>

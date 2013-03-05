@@ -5,6 +5,7 @@ class TerminalBuffer
   @enter: String.fromCharCode(10)
   @backspace: String.fromCharCode(8)
   @escape: String.fromCharCode(27)
+  @tab: String.fromCharCode(9)
   @escapeSequence: (sequence) -> "#{@escape}[#{sequence}"
   constructor: () ->
     @lines = []
