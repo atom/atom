@@ -41,6 +41,8 @@ module.exports =
     "#{cson}#{@stringifyIndent(indentLevel)}]"
 
   stringifyObject: (object, indentLevel=0) ->
+    return '{}' if _.isEmpty(object)
+
     cson = ''
     prefix = ''
     for key, value of object

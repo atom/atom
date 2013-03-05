@@ -68,8 +68,8 @@ describe "CSON", ->
 
     describe "when formatting an object", ->
       describe "when the object is empty", ->
-        it "returns the empty string", ->
-        expect(CSON.stringify({})).toBe ""
+        it "returns {}", ->
+          expect(CSON.stringify({})).toBe "{}"
 
       it "returns formatted CSON", ->
         expect(CSON.stringify(a: {b: 'c'})).toBe "'a':\n  'b': 'c'"
