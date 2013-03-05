@@ -206,7 +206,7 @@ describe 'FuzzyFinder', ->
     [originalText, originalPath, newPath] = []
 
     beforeEach ->
-      editor = rootView.getActiveEditor()
+      editor = rootView.getActiveView()
       originalText = editor.getText()
       originalPath = editor.getPath()
       fs.write(originalPath, 'making a change for the better')
@@ -461,7 +461,7 @@ describe 'FuzzyFinder', ->
     describe "when a modified file is shown in the list", ->
       it "displays the modified icon", ->
         editor.setText('modified')
-        editor.save()
+        editor.activeEditSession.save()
         git.getPathStatus(editor.getPath())
 
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
