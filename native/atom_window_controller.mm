@@ -47,7 +47,7 @@
     _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   }
 
-  if (![self isDevMode]) {
+  if ([self isDevMode]) {
     [self displayDevIcon];
   }
 
