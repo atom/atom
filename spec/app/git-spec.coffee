@@ -188,10 +188,10 @@ describe "Git", ->
 
     beforeEach ->
       repo = new Git(require.resolve('fixtures/git/working-dir'))
-      modifiedPath = fixturesProject.resolve('git/working-dir/file.txt')
+      modifiedPath = project.resolve('git/working-dir/file.txt')
       originalModifiedPathText = fs.read(modifiedPath)
-      newPath = fixturesProject.resolve('git/working-dir/untracked.txt')
-      cleanPath = fixturesProject.resolve('git/working-dir/other.txt')
+      newPath = project.resolve('git/working-dir/untracked.txt')
+      cleanPath = project.resolve('git/working-dir/other.txt')
       fs.write(newPath, '')
 
     afterEach ->

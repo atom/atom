@@ -110,5 +110,5 @@ describe "Spell check", ->
         view = editor.find('.misspelling').view()
         buffer = editor.getBuffer()
         expect(buffer.getMarkerPosition(view.marker)).not.toBeUndefined()
-        editor.destroyEditSessions()
+        editor.remove()
         expect(buffer.getMarkerPosition(view.marker)).toBeUndefined()
