@@ -11,4 +11,4 @@ node --version > /dev/null 2>&1 || source /opt/github/env.sh
 INPUT_FILE="${1}"
 OUTPUT_FILE="${2}"
 
-node_modules/.bin/cson2json "${INPUT_FILE}" > "${OUTPUT_FILE}"
+node_modules/.bin/coffee script/compile-cson.coffee -- "${INPUT_FILE}" "${OUTPUT_FILE}"
