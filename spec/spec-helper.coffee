@@ -16,7 +16,7 @@ TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
 RootView = require 'root-view'
 Git = require 'git'
-requireStylesheet "jasmine.css"
+requireStylesheet "jasmine.less"
 fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()

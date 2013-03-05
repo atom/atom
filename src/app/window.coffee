@@ -26,14 +26,14 @@ window.setUpEnvironment = ->
 
   requireStylesheet 'reset.less'
   requireStylesheet 'atom.less'
-  requireStylesheet 'tabs.css'
-  requireStylesheet 'tree-view.css'
-  requireStylesheet 'status-bar.css'
+  requireStylesheet 'tabs.less'
+  requireStylesheet 'tree-view.less'
+  requireStylesheet 'status-bar.less'
   requireStylesheet 'command-panel.less'
-  requireStylesheet 'fuzzy-finder.css'
-  requireStylesheet 'overlay.css'
-  requireStylesheet 'popover-list.css'
-  requireStylesheet 'notification.css'
+  requireStylesheet 'fuzzy-finder.less'
+  requireStylesheet 'overlay.less'
+  requireStylesheet 'popover-list.less'
+  requireStylesheet 'notification.less'
   requireStylesheet 'markdown.less'
 
   if nativeStylesheetPath = require.resolve("#{platform}.css")
