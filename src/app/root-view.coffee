@@ -34,6 +34,7 @@ class RootView extends View
   title: null
 
   initialize: ->
+    @addClass('dev-mode') if atom.devMode
     @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>

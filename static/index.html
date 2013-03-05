@@ -23,12 +23,6 @@
         console.error(error.stack || error);
       }
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      if (window.location.params.devMode) {
-        document.body.setAttribute('class', 'is-dev-mode')
-      }
-    })
   </script>
 
   <script src='../src/stdlib/require.js'></script>

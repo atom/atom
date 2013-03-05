@@ -10,7 +10,7 @@ html, body {
   position: relative;
 }
 
-.is-dev-mode #root-view:before {
+#root-view.dev-mode:before {
   content: "";
   height: 3px;
   display: block;
