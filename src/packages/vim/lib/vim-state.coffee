@@ -4,7 +4,6 @@ class VimMotion
   constructor: (@name, @event, @count, @target) ->
     @select = false
   perform: (@operation) ->
-    window.console.log "Performing motion #{@name} (#{@count}) with event #{@event}"
     if typeof @event == "function" then @event.apply(this)
     else @performEvent(@event) for n in [1..@count]
   performSelect: (@operation) ->
@@ -22,10 +21,8 @@ class VimOperation
     @motion = null
     @performed = false
   perform: (@target, @motion) ->
-    window.console.log "Beginning operation #{@name}"
     @performed = true
     @callback.apply(this, [@vim.state])
-    window.console.log "Finished operation #{@name}"
   performEvent: (event) ->
     @target.trigger(event)
   performMotion: (name) ->
@@ -38,7 +35,7 @@ class VimOperation
     @motion.performSelect(this) if @motion?
   textInput: (text) ->
     @vim.editor.insertText(text)
-  yank: () ->
+  yank: ->
     @vim.state.yankSelection()
   paste: (options={}) ->
     @vim.state.paste(options)
@@ -69,7 +66,7 @@ class VimState
     else
       @_operation.perform(@target, m)
       @resetState()
-  defaultMotion: () ->
+  defaultMotion: ->
     new VimMotion('line', @motionEvents['line'], @_count, @target)
   addCountDecimal: (n) ->
     @_count = 0 if @state != "count"
@@ -85,7 +82,7 @@ class VimState
       @vim.visual == type
     else
       @vim.visual
-  defaultOperation: () ->
+  defaultOperation: ->
     if @visual() then 'select' else 'move'
   buildOperation: (type) ->
     type = @defaultOperation() if !@operations[type]?
@@ -140,7 +137,7 @@ class VimState
     @recording = register
     @recordings[register] = []
     @vim.startedRecording()
-  stopRecording: () ->
+  stopRecording: ->
     @recording = false
     @vim.stoppedRecording()
   replayRecording: (register) ->
@@ -149,20 +146,20 @@ class VimState
     if record? && record.length > 0
       for operation in record
         operation.perform(@target, operation.motion)
-  editSession: () ->
+  editSession: ->
     @vim.editor.activeEditSession
-  currentCursorPosition: () ->
+  currentCursorPosition: ->
     @editSession().getCursorBufferPosition()
   setCursorPosition: (pos) ->
     @editSession().setCursorBufferPosition(pos)
   insertText: (text) ->
     @editSession().insertText(text)
-  clearSelection: () ->
+  clearSelection: ->
     @editSession().clearSelections()
-  expandSelection: () ->
+  expandSelection: ->
     for selection in @editSession().getSelections()
       selection.expandOverLine()
-  selectedText: () ->
+  selectedText: ->
     text = ""
     for selection in @editSession().getSelections()
       l = @editSession().buffer.getTextInRange(selection.getBufferRange())
@@ -171,7 +168,7 @@ class VimState
       else
         text = text + l
     text
-  yankSelection: () ->
+  yankSelection: ->
     text = @selectedText()
     @pasteBuffer[0] = text
   paste: (options={}) ->
