@@ -156,7 +156,6 @@ namespace v8_extensions {
     }
 
     CefRefPtr<CefV8Value> GetAheadBehindCounts() {
-      CefRefPtr<CefV8Value> result = CefV8Value::CreateObject(NULL);
       git_reference *head;
       if (git_repository_head(&head, repo) == GIT_OK) {
         const char* upstreamBranchName;
@@ -168,10 +167,12 @@ namespace v8_extensions {
             const git_oid* upstreamSha = git_reference_target(upstream);
             git_oid mergeBase;
             if (git_merge_base(&mergeBase, repo, headSha, upstreamSha) == GIT_OK) {
+              CefRefPtr<CefV8Value> result = CefV8Value::CreateObject(NULL);
               int ahead = GetCommitCount(headSha, &mergeBase);
               result->SetValue("ahead", CefV8Value::CreateInt(ahead), V8_PROPERTY_ATTRIBUTE_NONE);
               int behind = GetCommitCount(upstreamSha, &mergeBase);
               result->SetValue("behind", CefV8Value::CreateInt(behind), V8_PROPERTY_ATTRIBUTE_NONE);
+              return result;
             }
             git_reference_free(upstream);
           }
@@ -179,7 +180,8 @@ namespace v8_extensions {
         }
         git_reference_free(head);
       }
-      return result;
+
+      return CefV8Value::CreateNull();
     }
 
     CefRefPtr<CefV8Value> IsIgnored(const char *path) {
