@@ -31,7 +31,8 @@ describe "WrapGuide", ->
     it "updates the wrap guide position", ->
       initial = wrapGuide.position().left
       expect(initial).toBeGreaterThan(0)
-      rootView.trigger('window:increase-font-size')
+      fontSize = config.get("editor.fontSize")
+      config.set("editor.fontSize", fontSize * 2)
       expect(wrapGuide.position().left).toBeGreaterThan(initial)
       expect(wrapGuide).toBeVisible()
 
