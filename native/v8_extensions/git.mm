@@ -114,9 +114,6 @@ namespace v8_extensions {
 
     void GetUpstreamBranch(const char** out, git_reference *branch) {
       *out = NULL;
-      git_config *config;
-      if (git_repository_config(&config, repo) != GIT_OK)
-        return;
 
       const char* branchName = git_reference_name(branch);
       const char* shortBranchName;
@@ -132,6 +129,10 @@ namespace v8_extensions {
       mergeKey[shortBranchNameLength + 13] = '\0';
       sprintf(mergeKey, "branch.%s.merge", shortBranchName);
       free((char*)shortBranchName);
+
+      git_config *config;
+      if (git_repository_config(&config, repo) != GIT_OK)
+        return;
 
       const char *remote;
       const char *merge;
