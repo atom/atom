@@ -6,14 +6,14 @@ Check out our [documentation on the docs tab](https://github.com/github/atom/doc
 
 ## Building from source
 
-Requirements
+### Requirements
 
-**Mountain Lion**
+  * Mountain Lion
+  * The Setup™ or Boxen
+  * Xcode (available in the App Store)
 
-**The Setup™**
+### Installation
 
-**Xcode** (Get Xcode from the App Store (ugh, I know))
+  1. `gh-setup atom`
 
-1. gh-setup atom
-
-2. cd ~/github/atom && `rake install`
+  2. `cd ~/github/atom && rake install`
