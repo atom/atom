@@ -554,13 +554,12 @@ describe "Editor", ->
         expect(newEditor.css('font-family')).toBe 'Courier'
 
       it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
-        rootView.attachToDom()
-        rootView.height(200)
-        rootView.width(200)
+        editor.attachToDom(12)
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "Consolas")
+        config.set("editor.fontFamily", "PCMyungjo")
+
         editor.setCursorScreenPosition [5, 6]
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
