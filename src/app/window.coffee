@@ -29,7 +29,7 @@ window.setUpEnvironment = ->
   requireStylesheet 'tabs.css'
   requireStylesheet 'tree-view.css'
   requireStylesheet 'status-bar.css'
-  requireStylesheet 'command-panel.css'
+  requireStylesheet 'command-panel.less'
   requireStylesheet 'fuzzy-finder.css'
   requireStylesheet 'overlay.css'
   requireStylesheet 'popover-list.css'
