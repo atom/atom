@@ -4,3 +4,8 @@
 '.terminal':
   'enter': 'terminal:enter'
   'delete': 'terminal:delete'
+  'meta-v': 'terminal:paste'
+  'left': 'terminal:left'
+  'right': 'terminal:right'
+  'up': 'terminal:up'
+  'down': 'terminal:down'

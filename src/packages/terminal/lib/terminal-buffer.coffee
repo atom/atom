@@ -2,9 +2,16 @@ _ = require 'underscore'
 
 module.exports =
 class TerminalBuffer
+  @enter: String.fromCharCode(10)
+  @backspace: String.fromCharCode(8)
+  @escape: String.fromCharCode(27)
+  @escapeSequence: (sequence) -> "#{@escape}[#{sequence}"
   constructor: () ->
     @lines = []
     @dirtyLines = []
+    @inEscapeSequence = false
+    @color = 0
+    @backgroundColor = 0
     @addLine()
   length: () ->
     l = 0
@@ -37,13 +44,39 @@ class TerminalBuffer
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
+    if @inEscapeSequence
+      return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
       when 8 then @backspace()
       when 13 then # Ignore CR
       when 10 then @addLine()
+      when 27 then @escape()
       else
         @lastLine().append(c)
     @moveCursorToEndOfLastLine()
+  inputEscapeSequence: (c) ->
+    code = c.charCodeAt(0)
+    if (code >= 65 && code <= 90) || (code >= 97 && code <= 122) # A-Z, a-z
+      @evaluateEscapeSequence(c, @escapeSequence)
+      @inEscapeSequence = false
+      @escapeSequence = ""
+    else if code != 91 # Ignore [
+      @escapeSequence += c
+  evaluateEscapeSequence: (type, sequence) ->
+    switch type
+      when "m" # SGR (Graphics)
+        i = parseInt(sequence)
+        if i == 0 # Reset
+          @color = 0
+          @backgroundColor = 0
+        if i >= 30 && i <= 37 # Text color
+          @color = i - 30
+        if i >= 40 && i <= 47 # Background color
+          @backgroundColor = i - 40
+    @lastLine().lastCharacter()?.reset(this)
+  escape: ->
+    @inEscapeSequence = true
+    @escapeSequence = ""
 
 class TerminalBufferLine
   constructor: (@buffer, @number) ->
@@ -52,7 +85,7 @@ class TerminalBufferLine
     if text?
       @setText(text)
   emptyChar: () ->
-    new TerminalCharacter(this)
+    new TerminalCharacter(this, @buffer)
   append: (text) ->
     @appendCharacter(c) for c in text
     @setDirty()
@@ -62,7 +95,8 @@ class TerminalBufferLine
     , "")
   appendCharacter: (c) ->
     @lastCharacter().char = c
-    @characters.push(@emptyChar())
+    char = @emptyChar()
+    @characters.push(char)
   lastCharacter: () ->
     _.last(@characters)
   lastVisibleCharacter: () ->
@@ -88,10 +122,15 @@ class TerminalBufferLine
     @characters.pop() if @lastCharacter() != @lastVisibleCharacter()
 
 class TerminalCharacter
-  constructor: (@line) ->
+  constructor: (@line, buffer) ->
     @char = ""
-    @resetAttributes()
-  resetAttributes: () ->
-    @bold = false
-    @color = 0
-    @cursor = false
+    @reset(buffer)
+  reset: (buffer) ->
+    if buffer?
+      @color = buffer.color
+      @backgroundColor = buffer.backgroundColor
+    else
+      @bold = false
+      @color = 0
+      @backgroundColor = 0
+      @cursor = false

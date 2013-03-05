@@ -33,9 +33,19 @@ class TerminalView extends ScrollView
       false
 
     rootView.command "terminal:enter", =>
-      @input(String.fromCharCode(10))
+      @input(TerminalBuffer.enter)
     rootView.command "terminal:delete", =>
-      @input(String.fromCharCode(8))
+      @input(TerminalBuffer.delete)
+    rootView.command "terminal:paste", =>
+      @input(pasteboard.read())
+    rootView.command "terminal:left", =>
+      @input(TerminalBuffer.escapeSequence("D"))
+    rootView.command "terminal:right", =>
+      @input(TerminalBuffer.escapeSequence("C"))
+    rootView.command "terminal:up", =>
+      @input(TerminalBuffer.escapeSequence("A"))
+    rootView.command "terminal:down", =>
+      @input(TerminalBuffer.escapeSequence("B"))
 
   login: ->
     @process = ChildProcess.exec "/bin/bash", interactive: true, stdout: (data) =>
@@ -87,4 +97,5 @@ class TerminalView extends ScrollView
       if c.cursor
         cursor = $("<span>").addClass("cursor")
         character.append(cursor)
+      character.addClass("color-#{c.color}").addClass("background-#{c.backgroundColor}")
       l.append character

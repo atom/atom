@@ -1,5 +1,6 @@
 RootView = require 'root-view'
 TerminalView  = require 'terminal/lib/terminal-view'
+TerminalBuffer  = require 'terminal/lib/terminal-buffer'
 _ = require 'underscore'
 $ = require 'jquery'
 {$$} = require 'space-pen'
@@ -52,3 +53,15 @@ fdescribe 'Terminal', ->
     it "creates each character", ->
       terminalView.output("ab")
       expect(terminalView.content.find("pre").first().find("span.character").size()).toBe(3)
+
+    describe "color", ->
+      it "sets the text color", ->
+        terminalView.output(TerminalBuffer.escapeSequence("31m"))
+        terminalView.output("a")
+        expect(terminalView.content.find("pre span").hasClass("color-1")).toBeTruthy()
+
+    describe "background-color", ->
+      it "sets the background color", ->
+        terminalView.output(TerminalBuffer.escapeSequence("41m"))
+        terminalView.output("a")
+        expect(terminalView.content.find("pre span").hasClass("background-1")).toBeTruthy()

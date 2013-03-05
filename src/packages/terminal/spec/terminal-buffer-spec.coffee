@@ -5,7 +5,7 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
 
-fdescribe 'Terminal Buffer', ->
+describe 'Terminal Buffer', ->
   [buffer] = []
 
   beforeEach ->
@@ -46,4 +46,23 @@ fdescribe 'Terminal Buffer', ->
         buffer.inputCharacter(String.fromCharCode(8))
         expect(buffer.lastLine().text().length).toBe(0)
 
-  describe "when a control sequence is entered", ->
+  fdescribe "when a control sequence is entered", ->
+    beforeEach ->
+      spyOn(buffer, 'evaluateEscapeSequence').andCallThrough()
+    describe "sgr", ->
+      describe "reset", ->
+        it "resets all attributes", ->
+          buffer.input("#{TerminalBuffer.escapeSequence("31m")}a#{TerminalBuffer.escapeSequence("0m")}A")
+          expect(buffer.lastLine().lastVisibleCharacter().char).toBe("A")
+          expect(buffer.lastLine().lastVisibleCharacter().color).toBe(0)
+      describe "text color", ->
+        it "sets the text color", ->
+          buffer.input("#{TerminalBuffer.escape}[31mA")
+          expect(buffer.lastLine().lastVisibleCharacter().char).toBe("A")
+          expect(buffer.lastLine().lastVisibleCharacter().color).toBe(1)
+          expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "31")
+      describe "background color", ->
+        it "sets the background color", ->
+          buffer.input("#{TerminalBuffer.escape}[41mA")
+          expect(buffer.lastLine().lastVisibleCharacter().backgroundColor).toBe(1)
+          expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "41")
