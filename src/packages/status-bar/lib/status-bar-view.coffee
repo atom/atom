@@ -17,6 +17,8 @@ class StatusBarView extends View
       @span class: 'git-branch', outlet: 'branchArea', =>
         @span class: 'octicons branch-icon'
         @span class: 'branch-label', outlet: 'branchLabel'
+        @span class: 'octicons commits-ahead-label', outlet: 'commitsAhead'
+        @span class: 'octicons commits-behind-label', outlet: 'commitsBehind'
         @span class: 'git-status', outlet: 'gitStatusIcon'
       @span class: 'file-info', =>
         @span class: 'current-path', outlet: 'currentPath'
@@ -32,9 +34,13 @@ class StatusBarView extends View
 
     @updateCursorPositionText()
     @subscribe @editor, 'cursor:moved', => @updateCursorPositionText()
-    @subscribe $(window), 'focus', => @updateStatusBar()
     @subscribe @grammarName, 'click', => @editor.trigger 'editor:select-grammar'
     @subscribe @editor, 'editor:grammar-changed', => @updateGrammarText()
+    if git?
+      @subscribe git, 'status-changed', (path, status) =>
+        @updateStatusBar() if path is @buffer?.getPath()
+      @subscribe git, 'statuses-changed', =>
+        @updateStatusBar()
 
     @subscribeToBuffer()
 
@@ -43,7 +49,6 @@ class StatusBarView extends View
     @buffer = @editor.getBuffer()
     @buffer.on 'contents-modified.status-bar', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
     @buffer.on 'saved.status-bar', => @updateStatusBar()
-    @buffer.on 'git-status-changed.status-bar', => @updateStatusBar()
     @updateStatusBar()
 
   updateStatusBar: ->
@@ -68,7 +73,7 @@ class StatusBarView extends View
     @branchArea.hide()
     return unless path
 
-    head = @buffer.getRepo()?.getShortHead() or ''
+    head = git?.getShortHead() or ''
     @branchLabel.text(head)
     @branchArea.show() if head
 
@@ -78,10 +83,19 @@ class StatusBarView extends View
     return unless path
 
     @gitStatusIcon.addClass('git-status octicons')
-    git = @buffer.getRepo()
-    return unless git
+    return unless git?
 
-    status = git.getPathStatus(path)
+    if git.upstream.ahead > 0
+      @commitsAhead.text(git.upstream.ahead).show()
+    else
+      @commitsAhead.hide()
+
+    if git.upstream.behind > 0
+      @commitsBehind.text(git.upstream.behind).show()
+    else
+      @commitsBehind.hide()
+
+    status = git.statuses[path]
     if git.isStatusModified(status)
       @gitStatusIcon.addClass('modified-status-icon')
       stats = git.getDiffStats(path)

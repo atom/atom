@@ -38,3 +38,11 @@
 .select-list ol .selected .directory {
   color: #ccc;
 }
+
+.select-list .modified {
+  color: #f78a46;
+}
+
+.select-list .new {
+  color: #5293d8;
+}

@@ -8,6 +8,21 @@ namespace v8_extensions {
   private:
     git_repository *repo;
 
+    static int CollectStatus(const char *path, unsigned int status, void *payload) {
+      if ((status & GIT_STATUS_IGNORED) == 0) {
+        std::map<const char*, unsigned int> *statuses = (std::map<const char*, unsigned int> *) payload;
+        statuses->insert(std::pair<const char*, unsigned int>(path, status));
+      }
+      return 0;
+    }
+
+    static int CollectDiffHunk(const git_diff_delta *delta, const git_diff_range *range,
+                               const char *header, size_t header_len, void *payload) {
+      std::vector<git_diff_range> *ranges = (std::vector<git_diff_range> *) payload;
+      ranges->push_back(*range);
+      return 0;
+    }
+
   public:
     GitRepository(const char *pathInRepo) {
       if (git_repository_open_ext(&repo, pathInRepo, 0, NULL) != GIT_OK) {
@@ -53,6 +68,118 @@ namespace v8_extensions {
       }
 
       return CefV8Value::CreateNull();
+    }
+
+    CefRefPtr<CefV8Value> GetStatuses() {
+      std::map<const char*, unsigned int> statuses;
+      git_status_foreach(repo, CollectStatus, &statuses);
+      std::map<const char*, unsigned int>::iterator iter = statuses.begin();
+      CefRefPtr<CefV8Value> v8Statuses = CefV8Value::CreateObject(NULL);
+      for (; iter != statuses.end(); ++iter) {
+        v8Statuses->SetValue(iter->first, CefV8Value::CreateInt(iter->second), V8_PROPERTY_ATTRIBUTE_NONE);
+      }
+      return v8Statuses;
+    }
+
+    int GetCommitCount(const git_oid* fromCommit, const git_oid* toCommit) {
+      int count = 0;
+      git_revwalk *revWalk;
+      if (git_revwalk_new(&revWalk, repo) == GIT_OK) {
+        git_revwalk_push(revWalk, fromCommit);
+        git_revwalk_hide(revWalk, toCommit);
+        git_oid currentCommit;
+        while (git_revwalk_next(&currentCommit, revWalk) == GIT_OK)
+          count++;
+        git_revwalk_free(revWalk);
+      }
+      return count;
+    }
+
+    void GetShortBranchName(const char** out, const char* branchName) {
+      *out = NULL;
+      if (branchName == NULL)
+        return;
+      int branchNameLength = strlen(branchName);
+      if (branchNameLength < 12)
+        return;
+      if (strncmp("refs/heads/", branchName, 11) != 0)
+        return;
+
+      int shortNameLength = branchNameLength - 11;
+      char* shortName = (char*) malloc(sizeof(char) * shortNameLength + 1);
+      shortName[shortNameLength] = '\0';
+      strncpy(shortName, &branchName[11], shortNameLength);
+      *out = shortName;
+    }
+
+    void GetUpstreamBranch(const char** out, git_reference *branch) {
+      *out = NULL;
+
+      const char* branchName = git_reference_name(branch);
+      const char* shortBranchName;
+      GetShortBranchName(&shortBranchName, branchName);
+      if (shortBranchName == NULL)
+        return;
+
+      int shortBranchNameLength = strlen(shortBranchName);
+      char* remoteKey = (char*) malloc(sizeof(char) * shortBranchNameLength + 15);
+      sprintf(remoteKey, "branch.%s.remote", shortBranchName);
+      char* mergeKey = (char*) malloc(sizeof(char) * shortBranchNameLength + 14);
+      sprintf(mergeKey, "branch.%s.merge", shortBranchName);
+      free((char*)shortBranchName);
+
+      git_config *config;
+      if (git_repository_config(&config, repo) != GIT_OK)
+        return;
+
+      const char *remote;
+      const char *merge;
+      if (git_config_get_string(&remote, config, remoteKey) == GIT_OK
+          && git_config_get_string(&merge, config, mergeKey) == GIT_OK) {
+        int remoteLength = strlen(remote);
+        if (remoteLength > 0) {
+          const char *shortMergeBranchName;
+          GetShortBranchName(&shortMergeBranchName, merge);
+          if (shortMergeBranchName != NULL) {
+            int updateBranchLength = remoteLength + strlen(shortMergeBranchName) + 14;
+            char* upstreamBranch = (char*) malloc(sizeof(char) * (updateBranchLength + 1));
+            sprintf(upstreamBranch, "refs/remotes/%s/%s", remote, shortMergeBranchName);
+            *out = upstreamBranch;
+          }
+          free((char*)shortMergeBranchName);
+        }
+      }
+
+      free(remoteKey);
+      free(mergeKey);
+      git_config_free(config);
+    }
+
+    CefRefPtr<CefV8Value> GetAheadBehindCounts() {
+      CefRefPtr<CefV8Value> result = CefV8Value::CreateObject(NULL);
+      git_reference *head;
+      if (git_repository_head(&head, repo) == GIT_OK) {
+        const char* upstreamBranchName;
+        GetUpstreamBranch(&upstreamBranchName, head);
+        if (upstreamBranchName != NULL) {
+          git_reference *upstream;
+          if (git_reference_lookup(&upstream, repo, upstreamBranchName) == GIT_OK) {
+            const git_oid* headSha = git_reference_target(head);
+            const git_oid* upstreamSha = git_reference_target(upstream);
+            git_oid mergeBase;
+            if (git_merge_base(&mergeBase, repo, headSha, upstreamSha) == GIT_OK) {
+              int ahead = GetCommitCount(headSha, &mergeBase);
+              result->SetValue("ahead", CefV8Value::CreateInt(ahead), V8_PROPERTY_ATTRIBUTE_NONE);
+              int behind = GetCommitCount(upstreamSha, &mergeBase);
+              result->SetValue("behind", CefV8Value::CreateInt(behind), V8_PROPERTY_ATTRIBUTE_NONE);
+            }
+            git_reference_free(upstream);
+          }
+          free((char*)upstreamBranchName);
+        }
+        git_reference_free(head);
+      }
+      return result;
     }
 
     CefRefPtr<CefV8Value> IsIgnored(const char *path) {
@@ -123,6 +250,7 @@ namespace v8_extensions {
 
       git_diff_list *diffs;
       int diffStatus = git_diff_tree_to_workdir(&diffs, repo, tree, &options);
+      git_tree_free(tree);
       free(copiedPath);
       if (diffStatus != GIT_OK || git_diff_num_deltas(diffs) != 1) {
         return CefV8Value::CreateNull();
@@ -162,6 +290,58 @@ namespace v8_extensions {
       return result;
     }
 
+    CefRefPtr<CefV8Value> GetLineDiffs(const char *path, const char *text) {
+      git_reference *head;
+      if (git_repository_head(&head, repo) != GIT_OK)
+        return CefV8Value::CreateNull();
+
+      const git_oid* sha = git_reference_target(head);
+      git_commit *commit;
+      int commitStatus = git_commit_lookup(&commit, repo, sha);
+      git_reference_free(head);
+      if (commitStatus != GIT_OK)
+        return CefV8Value::CreateNull();
+
+      git_tree *tree;
+      int treeStatus = git_commit_tree(&tree, commit);
+      git_commit_free(commit);
+      if (treeStatus != GIT_OK)
+        return CefV8Value::CreateNull();
+
+      git_tree_entry* treeEntry;
+      git_tree_entry_bypath(&treeEntry, tree, path);
+      git_blob *blob = NULL;
+      if (treeEntry != NULL) {
+        const git_oid *blobSha = git_tree_entry_id(treeEntry);
+        if (blobSha == NULL || git_blob_lookup(&blob, repo, blobSha) != GIT_OK)
+          blob = NULL;
+      }
+      git_tree_free(tree);
+      if (blob == NULL)
+        return CefV8Value::CreateNull();
+
+      int size = strlen(text);
+      std::vector<git_diff_range> ranges;
+      git_diff_options options = GIT_DIFF_OPTIONS_INIT;
+      options.context_lines = 1;
+      if (git_diff_blob_to_buffer(blob, text, size, &options, NULL, CollectDiffHunk, NULL, &ranges) == GIT_OK) {
+        CefRefPtr<CefV8Value> v8Ranges = CefV8Value::CreateArray(ranges.size());
+        for(int i = 0; i < ranges.size(); i++) {
+          CefRefPtr<CefV8Value> v8Range = CefV8Value::CreateObject(NULL);
+          v8Range->SetValue("oldStart", CefV8Value::CreateInt(ranges[i].old_start), V8_PROPERTY_ATTRIBUTE_NONE);
+          v8Range->SetValue("oldLines", CefV8Value::CreateInt(ranges[i].old_lines), V8_PROPERTY_ATTRIBUTE_NONE);
+          v8Range->SetValue("newStart", CefV8Value::CreateInt(ranges[i].new_start), V8_PROPERTY_ATTRIBUTE_NONE);
+          v8Range->SetValue("newLines", CefV8Value::CreateInt(ranges[i].new_lines), V8_PROPERTY_ATTRIBUTE_NONE);
+          v8Ranges->SetValue(i, v8Range);
+        }
+        git_blob_free(blob);
+        return v8Ranges;
+      } else {
+        git_blob_free(blob);
+        return CefV8Value::CreateNull();
+      }
+    }
+
     CefRefPtr<CefV8Value> IsSubmodule(const char *path) {
       BOOL isSubmodule = false;
       git_index* index;
@@ -190,7 +370,8 @@ namespace v8_extensions {
   void Git::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
       "getRepository", "getHead", "getPath", "isIgnored", "getStatus", "checkoutHead",
-      "getDiffStats", "isSubmodule", "refreshIndex", "destroy"
+      "getDiffStats", "isSubmodule", "refreshIndex", "destroy", "getStatuses",
+      "getAheadBehindCounts", "getLineDiffs"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -274,6 +455,26 @@ namespace v8_extensions {
       if (name == "destroy") {
         GitRepository *userData = (GitRepository *)object->GetUserData().get();
         userData->Destroy();
+        return true;
+      }
+
+      if (name == "getStatuses") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->GetStatuses();
+        return true;
+      }
+
+      if (name == "getAheadBehindCounts") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        retval = userData->GetAheadBehindCounts();
+        return true;
+      }
+
+      if (name == "getLineDiffs") {
+        GitRepository *userData = (GitRepository *)object->GetUserData().get();
+        std::string path = arguments[0]->GetStringValue().ToString();
+        std::string text = arguments[1]->GetStringValue().ToString();
+        retval = userData->GetLineDiffs(path.c_str(), text.c_str());
         return true;
       }
 

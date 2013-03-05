@@ -13,7 +13,6 @@ class Tab extends View
     @subscribe @buffer, 'path-changed', => @updateFileName()
     @subscribe @buffer, 'contents-modified', => @updateModifiedStatus()
     @subscribe @buffer, 'saved', => @updateModifiedStatus()
-    @subscribe @buffer, 'git-status-changed', => @updateModifiedStatus()
     @subscribe @editor, 'editor:edit-session-added', => @updateFileName()
     @subscribe @editor, 'editor:edit-session-removed', => @updateFileName()
     @updateFileName()
