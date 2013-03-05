@@ -43,12 +43,11 @@
     }
   }
 
-  NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   if (alwaysUseBundleResourcePath || !_resourcePath) {
-    _resourcePath = bundleResourcePath;
+    _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   }
 
-  if (![_resourcePath isEqualToString:bundleResourcePath]) {
+  if (![self isDevMode]) {
     [self displayDevIcon];
   }
 
@@ -205,6 +204,11 @@
 
   [self autorelease];
   return YES;
+}
+
+- (bool)isDevMode {
+  NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
+  return [_resourcePath isEqualToString:bundleResourcePath];
 }
 
 - (void)displayDevIcon {
