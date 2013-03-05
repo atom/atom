@@ -12,6 +12,7 @@ class TerminalBuffer
     @inEscapeSequence = false
     @color = 0
     @backgroundColor = 0
+    @cursor = new TerminalCursor(this)
     @addLine()
   length: () ->
     l = 0
@@ -36,9 +37,6 @@ class TerminalBuffer
   rendered: () ->
     line.rendered() for line in @dirtyLines
     @dirtyLines = []
-  moveCursorToEndOfLastLine: () ->
-    @lastLine().clearCursor()
-    @lastLine().lastCharacter().cursor = true
   backspace: () ->
     @lastLine().backspace()
   input: (text) ->
@@ -53,7 +51,7 @@ class TerminalBuffer
       when 27 then @escape()
       else
         @lastLine().append(c)
-    @moveCursorToEndOfLastLine()
+    @cursor.update()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
     if (code >= 65 && code <= 90) || (code >= 97 && code <= 122) # A-Z, a-z
@@ -63,16 +61,22 @@ class TerminalBuffer
     else if code != 91 # Ignore [
       @escapeSequence += c
   evaluateEscapeSequence: (type, sequence) ->
+    window.console.log "Escape #{type} #{sequence}"
+    seq = sequence.split(";")
     switch type
+      when "H" then # Cursor position
+      when "J" then # Erase data
+      when "K" then # Erase in line
       when "m" # SGR (Graphics)
-        i = parseInt(sequence)
-        if i == 0 # Reset
-          @color = 0
-          @backgroundColor = 0
-        if i >= 30 && i <= 37 # Text color
-          @color = i - 30
-        if i >= 40 && i <= 47 # Background color
-          @backgroundColor = i - 40
+        for s in seq
+          i = parseInt(s)
+          if i == 0 # Reset
+            @color = 0
+            @backgroundColor = 0
+          if i >= 30 && i <= 37 # Text color
+            @color = i - 30
+          if i >= 40 && i <= 47 # Background color
+            @backgroundColor = i - 40
     @lastLine().lastCharacter()?.reset(this)
   escape: ->
     @inEscapeSequence = true
@@ -101,6 +105,8 @@ class TerminalBufferLine
     _.last(@characters)
   lastVisibleCharacter: () ->
     _.first(_.last(@characters, 2))
+  getCharacter: (n) ->
+    @characters[n]
   length: () ->
     @text().length
   setText: (text) ->
@@ -134,3 +140,19 @@ class TerminalCharacter
       @color = 0
       @backgroundColor = 0
       @cursor = false
+
+class TerminalCursor
+  constructor: (@buffer) ->
+    @x = 0
+    @y = 0
+  update: () ->
+    @line = @buffer.getLine(@y)
+    lastLine = @buffer.lastLine()
+    if @line != lastLine
+      @line.clearCursor()
+      @line = lastLine
+    @y = @line.number
+    @x = @line.length()
+    if char = @line.getCharacter(@x)
+      @line.clearCursor()
+      char.cursor = true

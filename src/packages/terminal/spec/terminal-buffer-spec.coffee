@@ -49,6 +49,11 @@ describe 'Terminal Buffer', ->
   fdescribe "when a control sequence is entered", ->
     beforeEach ->
       spyOn(buffer, 'evaluateEscapeSequence').andCallThrough()
+    describe "cursor movement", ->
+      describe "forward", ->
+      describe "back", ->
+      describe "up", ->
+      describe "down", ->
     describe "sgr", ->
       describe "reset", ->
         it "resets all attributes", ->
@@ -66,3 +71,14 @@ describe 'Terminal Buffer', ->
           buffer.input("#{TerminalBuffer.escape}[41mA")
           expect(buffer.lastLine().lastVisibleCharacter().backgroundColor).toBe(1)
           expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "41")
+
+  fdescribe "cursor", ->
+    describe "when characters are entered", ->
+      it "moves to the end of the line", ->
+        buffer.input("abc")
+        expect(buffer.cursor.x).toBe(3)
+      it "moves to the next line", ->
+        buffer.input("a#{TerminalBuffer.enter}b")
+        expect(buffer.cursor.y).toBe(1)
+        expect(buffer.cursor.x).toBe(1)
+    describe "when it is moved", ->
