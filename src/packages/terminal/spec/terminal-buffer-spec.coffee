@@ -101,3 +101,15 @@ describe 'Terminal Buffer', ->
         expect(buffer.cursor.y).toBe(1)
         expect(buffer.cursor.x).toBe(1)
     describe "when it is moved", ->
+
+  fdescribe "screen", ->
+    describe "coordinates", ->
+      it "converts to line number", ->
+        expect(buffer.screenToLine([1,1])).toEqual([1,1])
+    describe "set scrolling region", ->
+    describe "when a character is entered at the end of a line", ->
+      it "inserts the character on the next line"
+    describe "when the screen size changes", ->
+      it "reformats the text in the buffer"
+    describe "when the cursor is moved to screen coordinates", ->
+      it "moves the cursor to the corresponding line", ->

@@ -11,6 +11,7 @@ class TerminalView extends ScrollView
 
   @content: (params) ->
     @div class: "terminal", tabindex: -1, =>
+      @div class: "title", outlet: "title"
       @div class: "content", outlet: "content", =>
         @pre
       @input class: 'hidden-input', outlet: 'hiddenInput'
@@ -20,6 +21,7 @@ class TerminalView extends ScrollView
     @buffer = new TerminalBuffer
     @exited = false
     @readData = false
+    @setTitle()
 
     @on 'click', =>
       @hiddenInput.focus()
@@ -85,7 +87,10 @@ class TerminalView extends ScrollView
   update: () ->
     @updateLine(line) for line in @buffer.getDirtyLines()
     @buffer.rendered()
-    @scrollToBottom()
+    @content.scrollToBottom()
+
+  setTitle: (text) ->
+    @title.text("Atom Terminal#{if text? && text.length then " - #{text}" else ""}")
 
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")

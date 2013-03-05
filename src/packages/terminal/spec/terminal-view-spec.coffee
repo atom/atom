@@ -77,3 +77,6 @@ fdescribe 'Terminal', ->
       it "sets the style to underlined", ->
         terminalView.output("#{TerminalBuffer.escapeSequence("4m")}a")
         expect(terminalView.content.find("pre span").hasClass("underlined")).toBe(true)
+
+  describe "when the terminal view size changes", ->
+    it "resizes the terminal buffer", ->

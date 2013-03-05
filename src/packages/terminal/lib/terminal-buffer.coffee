@@ -24,6 +24,8 @@ class TerminalBuffer
     l = 0
     l += line.length() for line in @lines
     l
+  screenToLine: (screenCoords) ->
+    screenCoords
   lastLine: () ->
     _.last(@lines)
   setLine: (text, n=-1) ->

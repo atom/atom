@@ -3,14 +3,22 @@
   bottom: 0px;
   left: 0px;
   right: 0px;
-  height: 200px;
   z-index: 2;
-  overflow-y: scroll;
+}
+
+.terminal .title {
+  font-size: 0.75em;
+  line-height: 1.8em;
+  text-align: right;
+  padding-right: 10px;
+  border-bottom: 1px dotted #000;
 }
 
 .terminal .content {
   font-family: Inconsolata, Monaco, Courier;
   margin: 2px;
+  height: 200px;
+  overflow-y: scroll;
 }
 
 .terminal .hidden-input {
