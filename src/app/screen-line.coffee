@@ -12,6 +12,8 @@ class ScreenLine
     new ScreenLine({@tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold})
 
   clipScreenColumn: (column, options={}) ->
+    return 0 if @tokens.length == 0
+
     { skipAtomicTokens } = options
     column = Math.min(column, @getMaxScreenColumn())
 
