@@ -25,7 +25,14 @@ class TerminalBuffer
     l += line.length() for line in @lines
     l
   screenToLine: (screenCoords) ->
+    if @scrollingRegion?
+      return [screenCoords[0] + @scrollingRegion.firstLine, screenCoords[1]]
     screenCoords
+  setScrollingRegion: (coords) ->
+    @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1])
+    l = @lastLine()
+    @scrollingRegion.firstLine = l.number + 1
+    @addLine() for n in [1..@scrollingRegion.height]
   lastLine: () ->
     _.last(@lines)
   setLine: (text, n=-1) ->
@@ -35,7 +42,9 @@ class TerminalBuffer
     if n >= 0 && n < @lines.length then @lines[n]
   addLine: () ->
     @lastLine()?.clearCursor()
-    @lines.push(new TerminalBufferLine(this, @lines.length))
+    line = new TerminalBufferLine(this, @lines.length)
+    @lines.push(line)
+    line
   numLines: () ->
     @lines.length
   addDirtyLine: (line) ->
@@ -76,7 +85,7 @@ class TerminalBuffer
       when "B" then # Move cursor down
       when "C" then # Move cursor right
       when "D" then # Move cursor left
-      when "H" then # Cursor position
+      when "H", "f" then # Cursor position
       when "J" then # Erase data
       when "K" then # Erase in line
       when "m" # SGR (Graphics)
@@ -184,3 +193,8 @@ class TerminalCursor
     if char = @line.getCharacter(@x)
       @line.clearCursor()
       char.cursor = true
+
+class TerminalScrollingRegion
+  constructor: (top, bottom) ->
+    @firstLine = 0
+    @height = (bottom - top) + 1

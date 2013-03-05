@@ -107,6 +107,13 @@ describe 'Terminal Buffer', ->
       it "converts to line number", ->
         expect(buffer.screenToLine([1,1])).toEqual([1,1])
     describe "set scrolling region", ->
+      it "adds lines for the scrolling region", ->
+        buffer.input("a")
+        buffer.setScrollingRegion([1,10])
+        expect(buffer.scrollingRegion.height).toBe(10)
+        expect(buffer.numLines()).toBe(11)
+        expect(buffer.scrollingRegion.firstLine).toBe(1)
+        expect(buffer.screenToLine([1,1])).toEqual([2,1])
     describe "when a character is entered at the end of a line", ->
       it "inserts the character on the next line"
     describe "when the screen size changes", ->
