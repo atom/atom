@@ -17,6 +17,7 @@ class AtomCefClient;
 
   BOOL _runningSpecs;
   BOOL _exitWhenDone;
+  BOOL _devMode;
 }
 
 @property (nonatomic, retain) IBOutlet NSSplitView *splitView;

@@ -22,6 +22,7 @@
 
   _cefClient = NULL;
   _cefDevToolsClient = NULL;
+  _devMode = NULL;
 
   [super dealloc];
 }
@@ -29,6 +30,7 @@
 - (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background alwaysUseBundleResourcePath:(BOOL)alwaysUseBundleResourcePath {
   self = [super initWithWindowNibName:@"AtomWindow"];
   _bootstrapScript = [bootstrapScript retain];
+  _devMode = false;
 
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
 
@@ -38,8 +40,10 @@
     if ([defaultRepositoryPath characterAtIndex:0] == '/') {
       BOOL isDir = false;
       BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
-      if (isDir && exists)
+      if (isDir && exists) {
+        _devMode = true;
         _resourcePath = defaultRepositoryPath;
+      }
     }
   }
 
@@ -124,6 +128,7 @@
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];
   [urlString appendFormat:@"&resourcePath=%@", [self encodeUrlParam:_resourcePath]];
+  [urlString appendFormat:@"&devMode=%@", [self encodeUrlParam:_devMode ? @"true" : @"false"]];
   if (_exitWhenDone)
     [urlString appendString:@"&exitWhenDone=1"];
   if (_pathToOpen)
