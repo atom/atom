@@ -73,7 +73,7 @@ class PackageGeneratorView extends View
         fs.write(sourcePath, content)
 
   replacePackageNamePlaceholders: (string, packageName) ->
-    placeholderRegex = /##(?:(package-name)|([pP]ackageName)|(package_name))##/g
+    placeholderRegex = /__(?:(package-name)|([pP]ackageName)|(package_name))__/g
     string = string.replace placeholderRegex, (match, dash, camel, underscore) ->
       if dash
         _.dasherize(packageName)

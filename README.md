@@ -1,19 +1,19 @@
 # Atom — Futuristic Text Editing
 
-![atom](http://f.cl.ly/items/3h1L1O333p1d0W3D2K3r/atom-sketch.jpg)
+![atom](https://f.cloud.github.com/assets/1300064/208230/4cefbca4-821a-11e2-8139-92c0328abf68.png)
 
 Check out our [documentation on the docs tab](https://github.com/github/atom/docs).
 
 ## Building from source
 
-Requirements
+### Requirements
 
-**Mountain Lion**
+  * Mountain Lion
+  * The Setup™ or Boxen
+  * Xcode (available in the App Store)
 
-**The Setup™**
+### Installation
 
-**Xcode** (Get Xcode from the App Store (ugh, I know))
+  1. `gh-setup atom`
 
-1. gh-setup atom
-
-2. cd ~/github/atom && `rake install`
+  2. `cd ~/github/atom && rake install`

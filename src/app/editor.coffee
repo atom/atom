@@ -19,7 +19,7 @@ class Editor extends View
     autosave: false
     autoIndent: true
     autoIndentOnPaste: false
-    nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?"
+    nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
 
   @nextEditorId: 1
 

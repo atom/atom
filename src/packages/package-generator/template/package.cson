@@ -1,2 +1,2 @@
-'main': 'lib/##package-name##'
-'activationEvents': ['##package-name##:toggle']
+'main': 'lib/__package-name__'
+'activationEvents': ['__package-name__:toggle']

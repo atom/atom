@@ -136,16 +136,18 @@ describe "Editor", ->
 
   describe ".remove()", ->
     it "removes subscriptions from all edit session buffers", ->
-      previousEditSession = editor.activeEditSession
-      otherEditSession = project.buildEditSessionForPath(project.resolve('sample.txt'))
-      expect(previousEditSession.buffer.subscriptionCount()).toBeGreaterThan 1
+      editSession1 = editor.activeEditSession
+      subscriberCount1 = editSession1.buffer.subscriptionCount()
+      editSession2 = project.buildEditSessionForPath(project.resolve('sample.txt'))
+      expect(subscriberCount1).toBeGreaterThan 1
 
-      editor.edit(otherEditSession)
-      expect(otherEditSession.buffer.subscriptionCount()).toBeGreaterThan 1
+      editor.edit(editSession2)
+      subscriberCount2 = editSession2.buffer.subscriptionCount()
+      expect(subscriberCount2).toBeGreaterThan 1
 
       editor.remove()
-      expect(previousEditSession.buffer.subscriptionCount()).toBe 0
-      expect(otherEditSession.buffer.subscriptionCount()).toBe 0
+      expect(editSession1.buffer.subscriptionCount()).toBeLessThan subscriberCount1
+      expect(editSession2.buffer.subscriptionCount()).toBeLessThan subscriberCount2
 
   describe "when 'close' is triggered", ->
     it "adds a closed session path to the array", ->
@@ -558,7 +560,7 @@ describe "Editor", ->
 
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        config.set("editor.fontFamily", "Courier")
+        config.set("editor.fontFamily", "Consolas")
         editor.setCursorScreenPosition [5, 6]
         expect(editor.charWidth).not.toBe charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
@@ -618,9 +620,9 @@ describe "Editor", ->
 
       it "updates the gutter width and font size", ->
         rootView.attachToDom()
-        config.set("editor.fontSize", 16 * 4)
-        expect(editor.gutter.css('font-size')).toBe "#{16 * 4}px"
-        expect(editor.gutter.width()).toBe(64 + editor.gutter.calculateLineNumberPadding())
+        config.set("editor.fontSize", 20)
+        expect(editor.gutter.css('font-size')).toBe "20px"
+        expect(editor.gutter.width()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
 
       it "updates lines if there are unrendered lines", ->
         editor.attachToDom(heightInLines: 5)

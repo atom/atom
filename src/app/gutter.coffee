@@ -1,9 +1,5 @@
 {View, $$, $$$} = require 'space-pen'
-
-$ = require 'jquery'
-_ = require 'underscore'
 Range = require 'range'
-Point = require 'point'
 
 module.exports =
 class Gutter extends View

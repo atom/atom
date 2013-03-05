@@ -89,7 +89,6 @@ describe "RootView", ->
           expect(rootView.getEditors().length).toBe 0
 
           viewState = rootView.serialize()
-          console.log viewState
           rootView.deactivate()
           window.rootView = RootView.deserialize(viewState)
 

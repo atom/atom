@@ -34,8 +34,7 @@
 
   _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
   if (!alwaysUseBundleResourcePath && !_resourcePath) {
-    NSString *defaultRepositoryPath = @"~/github/atom";
-    defaultRepositoryPath = [defaultRepositoryPath stringByStandardizingPath];
+    NSString *defaultRepositoryPath = [@"~/github/atom" stringByStandardizingPath];
     if ([defaultRepositoryPath characterAtIndex:0] == '/') {
       BOOL isDir = false;
       BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
@@ -45,8 +44,9 @@
   }
 
   if (alwaysUseBundleResourcePath || !_resourcePath) {
-    _resourcePath = [[NSBundle mainBundle] resourcePath];
+    _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   }
+  _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
 
   if (!background) {
@@ -119,7 +119,7 @@
 // have the correct initial size based on the frame's last stored size.
 // HACK: I hate this and want to place this code directly in windowDidLoad
 - (void)attachWebView {
-  NSURL *url = [[NSBundle mainBundle] resourceURL];
+  NSURL *url = [[NSBundle bundleForClass:self.class] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];

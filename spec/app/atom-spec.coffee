@@ -140,4 +140,4 @@ describe "the `atom` global", ->
         versionHandler.callCount > 0
 
       runs ->
-        expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+\.\d+$/
+        expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+(\.\d+)?$/
