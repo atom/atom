@@ -10,7 +10,7 @@
 
 .terminal .content {
   font-family: Inconsolata, Monaco, Courier;
-  margin: 8px;
+  margin: 2px;
 }
 
 .terminal .hidden-input {
@@ -23,13 +23,16 @@
 
 .terminal .content pre {
   display: block;
+  line-height: 1.4em;
+  height: 1.4em;
+  clear: both;
 }
 
 .terminal .content pre span.character {
-  display: inline-block;
-  width: 0.8em;
-  height: 1em;
+  display: block;
+  height: 1.4em;
   text-align: center;
+  float: left;
   position: relative;
 }
 
@@ -39,7 +42,7 @@
   top: 0; left: 0;
   bottom: 0; right: 0;
   width: 0.8em;
-  height: 1em;
+  height: 1.4em;
 }
 
 .terminal .bold {
