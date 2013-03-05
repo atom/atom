@@ -141,9 +141,9 @@ namespace v8_extensions {
         const char* shortMergeBranchName;
         GetShortBranchName(&shortMergeBranchName, merge);
         if (shortMergeBranchName != NULL) {
-          int shortMergeBranchNameLength = strlen(shortMergeBranchName);
-          int updateRefLength = strlen(remote) + shortMergeBranchNameLength + 15;
-          char* upstreamBranch = (char*) malloc(sizeof(char) * updateRefLength);
+          int updateBranchLength = strlen(remote) + strlen(shortMergeBranchName) + 14;
+          char* upstreamBranch = (char*) malloc(sizeof(char) * (updateBranchLength + 1));
+          upstreamBranch[updateBranchLength] = '\0';
           sprintf(upstreamBranch, "refs/remotes/%s/%s", remote, shortMergeBranchName);
           free((char*)shortMergeBranchName);
           *out = upstreamBranch;
