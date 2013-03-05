@@ -96,3 +96,19 @@ describe "Spell check", ->
           expect(editor.find('.corrections').length).toBe 1
           expect(editor.find('.corrections li').length).toBe 0
           expect(editor.find('.corrections .error').text()).toBe "No corrections found"
+
+  describe "when the edit session is destroyed", ->
+    it "destroys all misspelling markers", ->
+      editor.setText("mispelling")
+      config.set('spell-check.grammars', ['source.js'])
+
+      waitsFor ->
+        editor.find('.misspelling').length > 0
+
+      runs ->
+        expect(editor.find('.misspelling').length).toBe 1
+        view = editor.find('.misspelling').view()
+        buffer = editor.getBuffer()
+        expect(buffer.getMarkerPosition(view.marker)).not.toBeUndefined()
+        editor.destroyEditSessions()
+        expect(buffer.getMarkerPosition(view.marker)).toBeUndefined()

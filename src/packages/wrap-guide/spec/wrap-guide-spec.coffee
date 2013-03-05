@@ -11,6 +11,7 @@ describe "WrapGuide", ->
     editor = rootView.getActiveEditor()
     wrapGuide = rootView.find('.wrap-guide').view()
     editor.width(editor.charWidth * wrapGuide.getDefaultColumn() * 2)
+    editor.trigger 'resize'
 
   describe "@initialize", ->
     it "appends a wrap guide to all existing and new editors", ->

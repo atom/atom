@@ -793,12 +793,21 @@ describe "EditSession", ->
                 expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
 
             describe "when the preceding does not match an auto-indent pattern", ->
-              it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
-                editSession.setCursorBufferPosition([3, Infinity])
-                editSession.insertText('\n', autoIndent: true)
-                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
-                editSession.insertText('   }', autoIndent: true)
-                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
+              describe "when the inserted text is whitespace", ->
+                it "does not auto-decreases the indentation", ->
+                  editSession.setCursorBufferPosition([12, 0])
+                  editSession.insertText('  ', autoIndent: true)
+                  expect(editSession.lineForBufferRow(12)).toBe '  };'
+                  editSession.insertText('\t\t', autoIndent: true)
+                  expect(editSession.lineForBufferRow(12)).toBe '  \t\t};'
+
+              describe "when the inserted text is non-whitespace", ->
+                it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
+                  editSession.setCursorBufferPosition([3, Infinity])
+                  editSession.insertText('\n', autoIndent: true)
+                  expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
+                  editSession.insertText('   }', autoIndent: true)
+                  expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
 
           describe "when the current line does not match an auto-outdent pattern", ->
             it "leaves the line unchanged", ->

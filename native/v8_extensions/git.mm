@@ -370,6 +370,7 @@ namespace v8_extensions {
   };
 
   Git::Git() : CefV8Handler() {
+    git_threads_init();
   }
 
   void Git::CreateContextBinding(CefRefPtr<CefV8Context> context) {
