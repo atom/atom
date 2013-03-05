@@ -12,6 +12,9 @@ self.console =
   log: -> callTaskMethod 'log', arguments...
   error: -> callTaskMethod 'error', arguments...
 
+self.nodeRequire = self.require
+self.require = undefined
+
 window.document =
   createElement: ->
     setAttribute: ->

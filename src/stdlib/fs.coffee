@@ -2,6 +2,7 @@
 # http://ringojs.org/api/v0.8/fs/
 
 _ = require 'underscore'
+nodeFs = nodeRequire 'fs'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -90,7 +91,7 @@ module.exports =
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
-    $native.read(path)
+    String nodeFs.readFileSync(path)
 
   # Returns an array of path components. If the path is absolute, the first
   # component will be an indicator of the root of the file system; for file
