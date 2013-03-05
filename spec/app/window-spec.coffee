@@ -64,19 +64,19 @@ describe "Window", ->
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads the stylesheet at the given path and installs a style tag for it in the head", ->
-      $('head style[id*="atom.css"]').remove()
+      $('head style[id*="atom.less"]').remove()
       lengthBefore = $('head style').length
-      requireStylesheet('atom.css')
+      requireStylesheet('atom.less')
       expect($('head style').length).toBe lengthBefore + 1
 
-      styleElt = $('head style[id*="atom.css"]')
+      styleElt = $('head style[id*="atom.less"]')
 
-      fullPath = require.resolve('atom.css')
+      fullPath = require.resolve('atom.less')
       expect(styleElt.attr('id')).toBe fullPath
-      expect(styleElt.text()).toBe fs.read(fullPath)
+      expect(styleElt.text()).toBe parseLessFile(fullPath)
 
       # doesn't append twice
-      requireStylesheet('atom.css')
+      requireStylesheet('atom.less')
       expect($('head style').length).toBe lengthBefore + 1
 
     it  "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
@@ -89,10 +89,7 @@ describe "Window", ->
 
       fullPath = require.resolve('markdown.less')
       expect(styleElt.attr('id')).toBe fullPath
-
-      (new less.Parser).parse __read(fullPath), (e, tree) ->
-        throw new Error(e.message, file, e.line) if e
-        expect(styleElt.text()).toBe tree.toCSS()
+      expect(styleElt.text()).toBe parseLessFile(fullPath)
 
       # doesn't append twice
       requireStylesheet('markdown.less')

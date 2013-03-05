@@ -25,7 +25,7 @@ window.setUpEnvironment = ->
   keymap.bindDefaultKeys()
 
   requireStylesheet 'reset.less'
-  requireStylesheet 'atom.css'
+  requireStylesheet 'atom.less'
   requireStylesheet 'tabs.css'
   requireStylesheet 'tree-view.css'
   requireStylesheet 'status-bar.css'
