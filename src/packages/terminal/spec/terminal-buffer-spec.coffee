@@ -40,5 +40,10 @@ fdescribe 'Terminal Buffer', ->
       it "adds a new line", ->
         buffer.inputCharacter('\n')
         expect(buffer.numLines()).toBe(2)
+    describe "backspace", ->
+      it "removes the last character", ->
+        buffer.inputCharacter('a')
+        buffer.inputCharacter(String.fromCharCode(8))
+        expect(buffer.lastLine().text().length).toBe(0)
 
   describe "when a control sequence is entered", ->

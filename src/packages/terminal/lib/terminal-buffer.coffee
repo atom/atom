@@ -32,13 +32,15 @@ class TerminalBuffer
   moveCursorToEndOfLastLine: () ->
     @lastLine().clearCursor()
     @lastLine().lastCharacter().cursor = true
+  backspace: () ->
+    @lastLine().backspace()
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
-    switch c
-      when "\r" then # Ignore CR
-      when "\n"
-        @addLine()
+    switch c.charCodeAt(0)
+      when 8 then @backspace()
+      when 13 then # Ignore CR
+      when 10 then @addLine()
       else
         @lastLine().append(c)
     @moveCursorToEndOfLastLine()
@@ -63,6 +65,8 @@ class TerminalBufferLine
     @characters.push(@emptyChar())
   lastCharacter: () ->
     _.last(@characters)
+  lastVisibleCharacter: () ->
+    _.first(_.last(@characters, 2))
   length: () ->
     @text().length
   setText: (text) ->
@@ -77,6 +81,11 @@ class TerminalBufferLine
   clearCursor: () ->
     c.cursor = false for c in @characters
     @setDirty()
+  backspace: () ->
+    c = @lastVisibleCharacter()
+    c.cursor = true
+    c.char = ''
+    @characters.pop() if @lastCharacter() != @lastVisibleCharacter()
 
 class TerminalCharacter
   constructor: (@line) ->

@@ -10,7 +10,7 @@ module.exports =
 class TerminalView extends ScrollView
 
   @content: (params) ->
-    @div class: "terminal", =>
+    @div class: "terminal", tabindex: -1, =>
       @div class: "content", outlet: "content", =>
         @pre
       @input class: 'hidden-input', outlet: 'hiddenInput'
@@ -34,7 +34,6 @@ class TerminalView extends ScrollView
 
     rootView.command "terminal:enter", =>
       @input(String.fromCharCode(10))
-
     rootView.command "terminal:delete", =>
       @input(String.fromCharCode(8))
 

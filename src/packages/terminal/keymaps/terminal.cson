@@ -3,5 +3,4 @@
 
 '.terminal':
   'enter': 'terminal:enter'
-'.terminal .hidden-input':
   'delete': 'terminal:delete'
