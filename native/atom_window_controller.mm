@@ -43,9 +43,15 @@
     }
   }
 
+  NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   if (alwaysUseBundleResourcePath || !_resourcePath) {
-    _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
+    _resourcePath = bundleResourcePath;
   }
+
+  if (![_resourcePath isEqualToString:bundleResourcePath]) {
+    [self displayDevIcon];
+  }
+
   _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
 
@@ -199,6 +205,28 @@
 
   [self autorelease];
   return YES;
+}
+
+- (void)displayDevIcon {
+  NSView *themeFrame = [self.window.contentView superview];
+  NSButton *fullScreenButton = nil;
+  for (NSView *view in themeFrame.subviews) {
+    if (![view isKindOfClass:NSButton.class]) continue;
+    NSButton *button = (NSButton *)view;
+    if (button.action != @selector(toggleFullScreen:)) continue;
+    fullScreenButton = button;
+    break;
+  }
+
+  NSButton *devButton = [[NSButton alloc] init];
+  [devButton setTitle:@"\xF0\x9F\x92\x80"];
+  devButton.autoresizingMask = NSViewMinXMargin | NSViewMinYMargin;
+  devButton.buttonType = NSMomentaryChangeButton;
+  devButton.bordered = NO;
+  [devButton sizeToFit];
+  devButton.frame = NSMakeRect(fullScreenButton.frame.origin.x - devButton.frame.size.width - 5, fullScreenButton.frame.origin.y, devButton.frame.size.width, devButton.frame.size.height);
+
+  [[self.window.contentView superview] addSubview:devButton];
 }
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
