@@ -121,7 +121,20 @@ module.exports =
     $native.getAllFilePathsAsync(rootPath, callback)
 
   traverseTree: (rootPath, onFile, onDirectory) ->
-    $native.traverseTree(rootPath, onFile, onDirectory)
+    return unless nodeFs.existsSync(rootPath) and nodeFs.statSync(rootPath).isDirectory()
+
+    traverse = (rootPath, prefix, onFile, onDirectory) =>
+      prefix  = "#{prefix}/" if prefix
+      for file in nodeFs.readdirSync(rootPath)
+        relativePath = "#{prefix}#{file}"
+        absolutePath = @join(rootPath, file)
+        stats = nodeFs.statSync(absolutePath)
+        if stats.isDirectory()
+          traverse(absolutePath, relativePath, onFile, onDirectory) if onDirectory(relativePath)
+        else if stats.isFile()
+          onFile(relativePath)
+
+    traverse(rootPath, '', onFile, onDirectory)
 
   lastModified: (path) ->
     $native.lastModified(path)
