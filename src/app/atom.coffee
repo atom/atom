@@ -10,6 +10,7 @@ originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
 _.extend atom,
   exitWhenDone: window.location.params.exitWhenDone
+  devMode: window.location.params.devMode
   loadedThemes: []
   pendingBrowserProcessCallbacks: {}
   loadedPackages: []

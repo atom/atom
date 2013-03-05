@@ -25,8 +25,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      if(window.location.params.devMode == "true")
+      if (window.location.params.devMode) {
         document.body.setAttribute('class', 'is-dev-mode')
+      }
     })
   </script>
 

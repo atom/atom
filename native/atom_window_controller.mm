@@ -128,6 +128,8 @@
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];
   [urlString appendFormat:@"&resourcePath=%@", [self encodeUrlParam:_resourcePath]];
+  if ([self isDevMode])
+    [urlString appendFormat:@"&devMode=1"];
   if (_exitWhenDone)
     [urlString appendString:@"&exitWhenDone=1"];
   if (_pathToOpen)
@@ -208,7 +210,7 @@
 
 - (bool)isDevMode {
   NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
-  return [_resourcePath isEqualToString:bundleResourcePath];
+  return ![_resourcePath isEqualToString:bundleResourcePath];
 }
 
 - (void)displayDevIcon {
