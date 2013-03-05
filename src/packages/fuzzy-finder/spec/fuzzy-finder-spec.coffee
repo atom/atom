@@ -215,6 +215,34 @@ describe 'FuzzyFinder', ->
           expect(editor2.getPath()).toBe expectedPath
           expect(editor2.isFocused).toBeTruthy()
 
+  describe "git-status-finder behavior", ->
+    [originalText, originalPath, newPath] = []
+
+    beforeEach ->
+      editor = rootView.getActiveEditor()
+      originalText = editor.getText()
+      originalPath = editor.getPath()
+      fs.write(originalPath, 'making a change for the better')
+      git.getPathStatus(originalPath)
+
+      newPath = project.resolve('newsample.js')
+      fs.write(newPath, '')
+      git.getPathStatus(newPath)
+
+    afterEach ->
+      fs.write(originalPath, originalText)
+      fs.remove(newPath) if fs.exists(newPath)
+
+    it "displays all new and modified paths", ->
+      expect(rootView.find('.fuzzy-finder')).not.toExist()
+      rootView.trigger 'fuzzy-finder:toggle-git-status-finder'
+      expect(rootView.find('.fuzzy-finder')).toExist()
+
+      expect(finderView.find('.file').length).toBe 2
+
+      expect(finderView.find('.status.modified').length).toBe 1
+      expect(finderView.find('.status.new').length).toBe 1
+
   describe "common behavior between file and buffer finder", ->
     describe "when the fuzzy finder is cancelled", ->
       describe "when an editor is open", ->
@@ -376,7 +404,6 @@ describe 'FuzzyFinder', ->
       runs ->
         expect(finderView.find('.error').text().length).toBeGreaterThan 0
 
-
   describe "opening a path into a split", ->
     beforeEach ->
       rootView.attachToDom()
@@ -425,3 +452,37 @@ describe 'FuzzyFinder', ->
         expect(editor.splitUp).toHaveBeenCalled()
         expect(rootView.getActiveEditor()).not.toBe editor
         expect(rootView.getActiveEditor().getPath()).toBe editor.getPath()
+
+  describe "git status decorations", ->
+    [originalText, originalPath, editor, newPath] = []
+
+    beforeEach ->
+      editor = rootView.getActiveEditor()
+      originalText = editor.getText()
+      originalPath = editor.getPath()
+      newPath = project.resolve('newsample.js')
+      fs.write(newPath, '')
+
+    afterEach ->
+      fs.write(originalPath, originalText)
+      fs.remove(newPath) if fs.exists(newPath)
+
+    describe "when a modified file is shown in the list", ->
+      it "displays the modified icon", ->
+        editor.setText('modified')
+        editor.save()
+        git.getPathStatus(editor.getPath())
+
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+        expect(finderView.find('.status.modified').length).toBe 1
+        expect(finderView.find('.status.modified').closest('li').find('.file').text()).toBe 'sample.js'
+
+
+    describe "when a new file is shown in the list", ->
+      it "displays the new icon", ->
+        rootView.open('newsample.js')
+        git.getPathStatus(editor.getPath())
+
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+        expect(finderView.find('.status.new').length).toBe 1
+        expect(finderView.find('.status.new').closest('li').find('.file').text()).toBe 'newsample.js'

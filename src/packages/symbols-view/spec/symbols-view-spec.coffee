@@ -201,3 +201,29 @@ describe "SymbolsView", ->
         expect(symbolsView.list.children('li:last').find('.function-details')).toHaveText 'tagged.js'
         expect(symbolsView).not.toHaveClass "error"
         expect(symbolsView.error).not.toBeVisible()
+
+    describe "when selecting a tag", ->
+      describe "when the file doesn't exist", ->
+        renamedPath = null
+
+        beforeEach ->
+          renamedPath = project.resolve("tagged-renamed.js")
+          fs.remove(renamedPath) if fs.exists(renamedPath)
+          fs.move(project.resolve("tagged.js"), renamedPath)
+
+        afterEach ->
+          fs.move(renamedPath, project.resolve("tagged.js"))
+
+        it "doesn't open the editor", ->
+          rootView.trigger "symbols-view:toggle-project-symbols"
+          symbolsView = rootView.find('.symbols-view').view()
+
+          waitsFor ->
+            setArraySpy.callCount > 0
+
+          runs ->
+            spyOn(rootView, 'open').andCallThrough()
+            symbolsView.list.children('li:first').mousedown().mouseup()
+            expect(rootView.open).not.toHaveBeenCalled()
+            expect(symbolsView.error.text().length).toBeGreaterThan 0
+            expect(symbolsView).toHaveClass "error"

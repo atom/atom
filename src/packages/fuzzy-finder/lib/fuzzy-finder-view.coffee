@@ -39,6 +39,13 @@ class FuzzyFinderView extends SelectList
   itemForElement: (path) ->
     $$ ->
       @li =>
+        if git?
+          status = git.statuses[project.resolve(path)]
+          if git.isStatusNew(status)
+            @div class: 'status new'
+          else if git.isStatusModified(status)
+            @div class: 'status modified'
+
         ext = fs.extension(path)
         if fs.isReadmePath(path)
           typeClass = 'readme-name'
@@ -52,6 +59,7 @@ class FuzzyFinderView extends SelectList
           typeClass = 'binary-name'
         else
           typeClass = 'text-name'
+
         @span fs.base(path), class: "file label #{typeClass}"
         if folder = fs.directory(path)
           @span " - #{folder}/", class: 'directory'
@@ -95,6 +103,15 @@ class FuzzyFinderView extends SelectList
       @populateOpenBufferPaths()
       @attach() if @paths?.length
 
+  toggleGitFinder: ->
+    if @hasParent()
+      @cancel()
+    else
+      return unless project.getPath()? and git?
+      @allowActiveEditorChange = false
+      @populateGitStatusPaths()
+      @attach()
+
   findUnderCursor: ->
     if @hasParent()
       @cancel()
@@ -117,6 +134,13 @@ class FuzzyFinderView extends SelectList
           else
             @attach()
             @miniEditor.setText(currentWord)
+
+  populateGitStatusPaths: ->
+    projectRelativePaths = []
+    for path, status of git.statuses
+      continue unless fs.isFile(path)
+      projectRelativePaths.push(project.relativize(path))
+    @setArray(projectRelativePaths)
 
   populateProjectPaths: (options = {}) ->
     if @projectPaths?.length > 0

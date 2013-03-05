@@ -927,35 +927,47 @@ describe "TreeView", ->
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1
 
   describe "Git status decorations", ->
-    [ignoreFile, modifiedFile, originalFileContent] = []
+    [ignoreFile, newFile, modifiedFile, originalFileContent] = []
 
     beforeEach ->
       config.set "core.hideGitIgnoredFiles", false
       ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
       fs.write(ignoreFile, 'tree-view.js')
-      modifiedFile = fs.join(require.resolve('fixtures/tree-view'), 'tree-view.txt')
+      git.getPathStatus(ignoreFile)
+
+      newFile = fs.join(require.resolve('fixtures/tree-view/dir2'), 'new2')
+      fs.write(newFile, '')
+      git.getPathStatus(newFile)
+
+      modifiedFile = fs.join(require.resolve('fixtures/tree-view/dir1'), 'file1')
       originalFileContent = fs.read(modifiedFile)
       fs.write modifiedFile, 'ch ch changes'
+      git.getPathStatus(modifiedFile)
+
       treeView.updateRoot()
+      treeView.root.entries.find('.directory:contains(dir1)').view().expand()
+      treeView.root.entries.find('.directory:contains(dir2)').view().expand()
 
     afterEach ->
       fs.remove(ignoreFile) if fs.exists(ignoreFile)
+      fs.remove(newFile) if fs.exists(newFile)
       fs.write modifiedFile, originalFileContent
 
     describe "when a file is modified", ->
       it "adds a custom style", ->
-        expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
+        expect(treeView.find('.file:contains(file1)')).toHaveClass 'modified'
 
-      describe "when the window gains focus after the contents are restored to a clean state", ->
-        it "removes the custom style", ->
-          expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
-          fs.write modifiedFile, originalFileContent
-          $(window).trigger 'focus'
-          expect(treeView.find('.file:contains(tree-view.txt)')).not.toHaveClass 'modified'
+    describe "when a directory if modified", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.directory:contains(dir1)')).toHaveClass 'modified'
 
     describe "when a file is new", ->
       it "adds a custom style", ->
         expect(treeView.find('.file:contains(.gitignore)')).toHaveClass 'new'
+
+    describe "when a directory is new", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.directory:contains(dir2)')).toHaveClass 'new'
 
     describe "when a file is ignored", ->
       it "adds a custom style", ->

@@ -419,13 +419,10 @@ class Buffer
         return match[0][0] != '\t'
     undefined
 
-  getRepo: -> @project?.repo
-
   checkoutHead: ->
     path = @getPath()
     return unless path
-    if @getRepo()?.checkoutHead(path)
-      @trigger 'git-status-changed'
+    git?.checkoutHead(path)
 
   scheduleStoppedChangingEvent: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout

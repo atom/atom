@@ -53,7 +53,7 @@ exts =
     code or= __read file
     eval("define(function(require, exports, module) { 'use strict';#{code}})\n//@ sourceURL=#{file}")
     __defines.pop()?.call()
-  coffee: (file, retry=true) ->
+  coffee: (file) ->
     cacheFilePath = getCacheFilePath(file)
     if __exists(cacheFilePath)
       compiled = __read(cacheFilePath)

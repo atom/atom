@@ -1,5 +1,5 @@
 ATOM_SRC_PATH = File.dirname(__FILE__)
-BUILD_DIR = 'atom-build'
+BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-xcode-project" do
@@ -14,6 +14,7 @@ end
 desc "Create xcode project from gyp file"
 task "create-xcode-project" => "update-cef" do
   `rm -rf atom.xcodeproj`
+  `script/generate-sources-gypi`
   `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
 end
 
@@ -23,6 +24,11 @@ task "update-cef" => "bootstrap" do
   Dir.glob('cef/*.gypi').each do |filename|
     `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
   end
+end
+
+desc "Download debug symbols for CEF"
+task "download-cef-symbols" => "update-cef" do
+  sh %{prebuilt-cef/script/download -s cef}
 end
 
 task "bootstrap" do
@@ -37,13 +43,17 @@ task :install => [:clean, :build] do
   # Install Atom.app
   dest_path =  "/Applications/#{File.basename(path)}"
   `rm -rf #{dest_path}`
-  `cp -r #{path} #{File.expand_path(dest_path)}`
+  `cp -a #{path} #{File.expand_path(dest_path)}`
 
   # Install atom cli
   if File.directory?("/opt/boxen")
     cli_path = "/opt/boxen/bin/atom"
-  else
+  elsif File.directory?("/opt/github")
     cli_path = "/opt/github/bin/atom"
+  elsif File.directory?("/usr/local")
+    cli_path = "/usr/local/bin/atom"
+  else
+    raise "Missing directory for `atom` binary"
   end
 
   FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", cli_path)
@@ -55,7 +65,7 @@ task :install => [:clean, :build] do
 end
 
 desc "Package up the app for speakeasy"
-task :package => ["setup-codesigning", "bump-patch-number", "build"] do
+task :package => ["setup-codesigning", "build"] do
   path = application_path()
   exit 1 if not path
 
@@ -68,17 +78,6 @@ end
 
 task "setup-codesigning" do
   ENV['CODE_SIGN'] = "Developer ID Application: GitHub"
-end
-
-desc "Bump patch number"
-task "bump-patch-number" do
-  version_number = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString:" ./native/mac/info.plist`
-  major, minor, patch = version_number.match(/(\d+)\.(\d+)\.(\d+)/)[1..-1].map {|o| o.to_i}
-  `/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString #{major}.#{minor}.#{patch + 1}" ./native/mac/info.plist`
-  `/usr/libexec/PlistBuddy -c "Set :CFBundleVersion #{major}.#{minor}.#{patch + 1}" ./native/mac/info.plist`
-
-  new_version_number = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString:" ./native/mac/info.plist`
-  puts "Bumped from #{version_number.strip} to #{new_version_number.strip}"
 end
 
 desc "Clone default bundles into vendor/bundles directory"
@@ -99,7 +98,6 @@ desc "Run the specs"
 task :test => ["update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
-    `rm -rf path`
     cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH} 2> /dev/null"
     system(cmd)
     exit($?.exitstatus)
@@ -114,7 +112,7 @@ task :benchmark do
 end
 
 task :nof do
-  system %{find . -name *spec.coffee | grep --invert-match --regexp "#{BUILD_DIR}\\|##package-name##" | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
+  system %{find . -name *spec.coffee | grep --invert-match --regexp "#{BUILD_DIR}\\|__package-name__" | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
 end
 
 task :tags do

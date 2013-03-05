@@ -14,8 +14,6 @@ class FileView extends View
   file: null
 
   initialize: ({@file, @project} = {}) ->
-    @subscribe $(window), 'focus', => @updateStatus()
-
     extension = fs.extension(@getPath())
     if fs.isReadmePath(@getPath())
       @fileName.addClass('readme-icon')
@@ -30,21 +28,26 @@ class FileView extends View
     else
       @fileName.addClass('text-icon')
 
+    if git?
+      @subscribe git, 'status-changed', (path, status) =>
+        @updateStatus() if path is @getPath()
+      @subscribe git, 'statuses-changed', =>
+        @updateStatus()
+
     @updateStatus()
 
   updateStatus: ->
     @removeClass('ignored modified new')
-    repo = @project.repo
-    return unless repo?
+    return unless git?
 
     path = @getPath()
-    if repo.isPathIgnored(path)
+    if git.isPathIgnored(path)
       @addClass('ignored')
     else
-      status = repo.getPathStatus(path)
-      if repo.isStatusModified(status)
+      status = git.statuses[path]
+      if git.isStatusModified(status)
         @addClass('modified')
-      else if repo.isStatusNew(status)
+      else if git.isStatusNew(status)
         @addClass('new')
 
   getPath: ->

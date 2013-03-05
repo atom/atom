@@ -134,14 +134,14 @@ describe 'Child Processes', ->
 
         waitsForPromise ->
           options =
-            cwd: fixturesProject.getPath()
+            cwd: "/Applications"
             stdout: (data) -> output.push(data)
             stderr: (data) ->
 
           ChildProcess.exec("pwd", options)
 
         runs ->
-          expect(output.join('')).toBe "#{fixturesProject.getPath()}\n"
+          expect(output.join('')).toBe "/Applications\n"
 
       describe "when the interactive option is set", ->
         it "runs the task in a pty session", ->

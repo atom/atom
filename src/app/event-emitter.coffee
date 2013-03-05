@@ -83,4 +83,3 @@ module.exports =
     for name, handlers of @eventHandlersByEventName
       count += handlers.length
     count
-

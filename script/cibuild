@@ -1,5 +1,5 @@
 #!/bin/sh
 
-set -e
+set -ex
 rm -rf ~/.atom
 rake test

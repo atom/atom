@@ -41,8 +41,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.tree-view-dialog .prompt.add:before {
+.tree-view-dialog .prompt.add-file:before {
   content: "\f086";
+}
+
+.tree-view-dialog .prompt.add-directory:before {
+  content: "\f095";
 }
 
 .tree-view-dialog .prompt.move:before {

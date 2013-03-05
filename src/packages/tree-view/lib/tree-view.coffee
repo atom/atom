@@ -253,7 +253,8 @@ class TreeView extends ScrollView
       prompt: "Enter the path for the new file/directory. Directories end with a '/'."
       path: relativeDirectoryPath
       select: false
-      iconClass: 'add'
+      iconClass: 'add-directory'
+
       onConfirm: (relativePath) =>
         endsWithDirectorySeparator = /\/$/.test(relativePath)
         path = project.resolve(relativePath)
@@ -272,6 +273,12 @@ class TreeView extends ScrollView
             dialog.close()
         catch e
           dialog.showError("Error: #{e.message} Try a different path.")
+
+    dialog.miniEditor.getBuffer().on 'changed', =>
+      if /\/$/.test(dialog.miniEditor.getText())
+        dialog.prompt.removeClass('add-file').addClass('add-directory')
+      else
+        dialog.prompt.removeClass('add-directory').addClass('add-file')
 
     rootView.append(dialog)
 

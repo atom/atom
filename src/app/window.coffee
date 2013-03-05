@@ -43,8 +43,12 @@ window.setUpEnvironment = ->
 window.startup = ->
   if fs.isDirectory('/opt/boxen')
     installAtomCommand('/opt/boxen/bin/atom')
-  else
+  else if fs.isDirectory('/opt/github')
     installAtomCommand('/opt/github/bin/atom')
+  else if fs.isDirectory('/usr/local')
+    installAtomCommand('/usr/local/bin/atom')
+  else
+    console.warn "Failed to install `atom` binary"
 
   handleWindowEvents()
   config.load()
@@ -66,9 +70,11 @@ window.shutdown = ->
     rootView: rootView.serialize()
   rootView.deactivate()
   project.destroy()
+  git?.destroy()
   $(window).off('focus blur before')
   window.rootView = null
   window.project = null
+  window.git = null
 
 window.installAtomCommand = (commandPath) ->
   return if fs.exists(commandPath)
@@ -88,6 +94,7 @@ window.handleWindowEvents = ->
 window.buildProjectAndRootView = ->
   RootView = require 'root-view'
   Project = require 'project'
+  Git = require 'git'
 
   pathToOpen = atom.getPathToOpen()
   windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
@@ -98,6 +105,11 @@ window.buildProjectAndRootView = ->
     rootView.open(pathToOpen)
 
   $(rootViewParentSelector).append(rootView)
+
+  window.git = Git.open(project.getPath())
+  project.on 'path-changed', ->
+    window.git?.destroy()
+    window.git = Git.open(project.getPath())
 
 window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")

@@ -77,8 +77,12 @@ class SymbolsView extends SelectList
         setTimeout (=> @cancel()), 2000
 
   confirmed : (tag) ->
-    @cancel()
-    @openTag(tag)
+    if tag.file and not fs.isFile(project.resolve(tag.file))
+      @setError('Selected file does not exist')
+      setTimeout((=> @setError()), 2000)
+    else
+      @cancel()
+      @openTag(tag)
 
   openTag: (tag) ->
     position = tag.position
