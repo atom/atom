@@ -95,7 +95,7 @@ class TreeView extends ScrollView
     switch e.originalEvent?.detail ? 1
       when 1
         @selectEntry(entry)
-        @openSelectedEntry(false) if entry instanceof FileView
+        @openSelectedEntry(true) if entry instanceof FileView
       when 2
         if entry.is('.selected.file')
           rootView.getActiveEditor().focus()
