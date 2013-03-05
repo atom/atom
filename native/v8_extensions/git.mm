@@ -123,10 +123,8 @@ namespace v8_extensions {
 
       int shortBranchNameLength = strlen(shortBranchName);
       char* remoteKey = (char*) malloc(sizeof(char) * shortBranchNameLength + 15);
-      remoteKey[shortBranchNameLength + 14] = '\0';
       sprintf(remoteKey, "branch.%s.remote", shortBranchName);
       char* mergeKey = (char*) malloc(sizeof(char) * shortBranchNameLength + 14);
-      mergeKey[shortBranchNameLength + 13] = '\0';
       sprintf(mergeKey, "branch.%s.merge", shortBranchName);
       free((char*)shortBranchName);
 
@@ -146,7 +144,6 @@ namespace v8_extensions {
             int updateBranchLength = remoteLength + strlen(shortMergeBranchName) + 14;
             char* upstreamBranch = (char*) malloc(sizeof(char) * (updateBranchLength + 1));
             sprintf(upstreamBranch, "refs/remotes/%s/%s", remote, shortMergeBranchName);
-            upstreamBranch[updateBranchLength] = '\0';
             *out = upstreamBranch;
           }
           free((char*)shortMergeBranchName);
