@@ -138,15 +138,18 @@ namespace v8_extensions {
       const char *merge;
       if (git_config_get_string(&remote, config, remoteKey) == GIT_OK
           && git_config_get_string(&merge, config, mergeKey) == GIT_OK) {
-        const char* shortMergeBranchName;
-        GetShortBranchName(&shortMergeBranchName, merge);
-        if (shortMergeBranchName != NULL) {
-          int updateBranchLength = strlen(remote) + strlen(shortMergeBranchName) + 14;
-          char* upstreamBranch = (char*) malloc(sizeof(char) * (updateBranchLength + 1));
-          upstreamBranch[updateBranchLength] = '\0';
-          sprintf(upstreamBranch, "refs/remotes/%s/%s", remote, shortMergeBranchName);
+        int remoteLength = strlen(remote);
+        if (remoteLength > 0) {
+          const char *shortMergeBranchName;
+          GetShortBranchName(&shortMergeBranchName, merge);
+          if (shortMergeBranchName != NULL) {
+            int updateBranchLength = remoteLength + strlen(shortMergeBranchName) + 14;
+            char* upstreamBranch = (char*) malloc(sizeof(char) * (updateBranchLength + 1));
+            sprintf(upstreamBranch, "refs/remotes/%s/%s", remote, shortMergeBranchName);
+            upstreamBranch[updateBranchLength] = '\0';
+            *out = upstreamBranch;
+          }
           free((char*)shortMergeBranchName);
-          *out = upstreamBranch;
         }
       }
 
