@@ -1,6 +1,3 @@
-'body':
-  'meta-T': 'editor:undo-close-session'
-
 '.editor':
   'enter': 'editor:newline'
   'meta-enter': 'editor:newline-below'
