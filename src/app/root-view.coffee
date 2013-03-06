@@ -63,6 +63,9 @@ class RootView extends View
     @command 'window:toggle-auto-indent-on-paste', =>
       config.set("editor.autoIndentOnPaste", !config.get("editor.autoIndentOnPaste"))
 
+    @command 'pane:reopen-closed-item', =>
+      @panes.restoreItem()
+
   serialize: ->
     deserializer: 'RootView'
     panesViewState: @panes.serialize()
