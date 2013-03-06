@@ -46,6 +46,11 @@
   if (alwaysUseBundleResourcePath || !_resourcePath) {
     _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   }
+
+  if ([self isDevMode]) {
+    [self displayDevIcon];
+  }
+
   _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
 
@@ -69,7 +74,6 @@
 
 - (id)initDevWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:false];
 }
 
@@ -124,6 +128,8 @@
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];
   [urlString appendFormat:@"&resourcePath=%@", [self encodeUrlParam:_resourcePath]];
+  if ([self isDevMode])
+    [urlString appendFormat:@"&devMode=1"];
   if (_exitWhenDone)
     [urlString appendString:@"&exitWhenDone=1"];
   if (_pathToOpen)
@@ -200,6 +206,33 @@
 
   [self autorelease];
   return YES;
+}
+
+- (bool)isDevMode {
+  NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
+  return ![_resourcePath isEqualToString:bundleResourcePath];
+}
+
+- (void)displayDevIcon {
+  NSView *themeFrame = [self.window.contentView superview];
+  NSButton *fullScreenButton = nil;
+  for (NSView *view in themeFrame.subviews) {
+    if (![view isKindOfClass:NSButton.class]) continue;
+    NSButton *button = (NSButton *)view;
+    if (button.action != @selector(toggleFullScreen:)) continue;
+    fullScreenButton = button;
+    break;
+  }
+
+  NSButton *devButton = [[NSButton alloc] init];
+  [devButton setTitle:@"\xF0\x9F\x92\x80"];
+  devButton.autoresizingMask = NSViewMinXMargin | NSViewMinYMargin;
+  devButton.buttonType = NSMomentaryChangeButton;
+  devButton.bordered = NO;
+  [devButton sizeToFit];
+  devButton.frame = NSMakeRect(fullScreenButton.frame.origin.x - devButton.frame.size.width - 5, fullScreenButton.frame.origin.y, devButton.frame.size.width, devButton.frame.size.height);
+
+  [[self.window.contentView superview] addSubview:devButton];
 }
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
