@@ -10,14 +10,6 @@ html, body {
   position: relative;
 }
 
-#root-view.dev-mode:before {
-  content: "";
-  height: 3px;
-  display: block;
-  background-image: -webkit-linear-gradient(#ffc833, #ebac00);
-  border-bottom: 1px solid #000;
-}
-
 #root-view #horizontal {
   display: -webkit-flex;
   height: 100%;
