@@ -363,6 +363,24 @@ describe "Pane", ->
       pane.trigger 'pane:show-item-9' # don't fail on out-of-bounds indices
       expect(pane.activeItem).toBe pane.itemAtIndex(0)
 
+  describe "when the title of the active item changes", ->
+    it "emits pane:active-item-title-changed", ->
+      activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
+      pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
+
+      expect(pane.activeItem).toBe view1
+
+      view2.trigger 'title-changed'
+      expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+
+      view1.trigger 'title-changed'
+      expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+      activeItemTitleChangedHandler.reset()
+
+      pane.showItem(view2)
+      view2.trigger 'title-changed'
+      expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+
   describe ".remove()", ->
     it "destroys all the pane's items", ->
       pane.remove()

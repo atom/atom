@@ -32,8 +32,6 @@ class RootView extends View
     panes = deserialize(panesViewState) if panesViewState?.deserializer is 'PaneContainer'
     new RootView({panes})
 
-  title: null
-
   initialize: ->
     @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
@@ -44,6 +42,7 @@ class RootView extends View
     @on 'pane:became-active', => @updateTitle()
     @on 'pane:active-item-changed', '.active.pane', => @updateTitle()
     @on 'pane:removed', => @updateTitle() unless @getActivePane()
+    @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
 
     @command 'window:increase-font-size', =>
       config.set("editor.fontSize", config.get("editor.fontSize") + 1)

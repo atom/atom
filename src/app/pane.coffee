@@ -94,10 +94,13 @@ class Pane extends View
   showItem: (item) ->
     return if !item? or item is @activeItem
 
-    @autosaveActiveItem() if @activeItem
+    if @activeItem
+      @activeItem.off? 'title-changed', @activeItemTitleChanged
+      @autosaveActiveItem()
 
     isFocused = @is(':has(:focus)')
     @addItem(item)
+    item.on? 'title-changed', @activeItemTitleChanged
     view = @viewForItem(item)
     @itemViews.children().not(view).hide()
     @itemViews.append(view) unless view.parent().is(@itemViews)
@@ -106,6 +109,9 @@ class Pane extends View
     @activeItem = item
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
+
+  activeItemTitleChanged: =>
+    @trigger 'pane:active-item-title-changed'
 
   addItem: (item) ->
     return if _.include(@items, item)
