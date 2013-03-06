@@ -58,13 +58,15 @@ class RootView extends View
       config.set("editor.showInvisibles", !config.get("editor.showInvisibles"))
     @command 'window:toggle-ignored-files', =>
       config.set("core.hideGitIgnoredFiles", not config.core.hideGitIgnoredFiles)
+
     @command 'window:toggle-auto-indent', =>
       config.set("editor.autoIndent", !config.get("editor.autoIndent"))
+
     @command 'window:toggle-auto-indent-on-paste', =>
       config.set("editor.autoIndentOnPaste", !config.get("editor.autoIndentOnPaste"))
 
     @command 'pane:reopen-closed-item', =>
-      @panes.restoreItem()
+      @panes.reopenItem()
 
   serialize: ->
     deserializer: 'RootView'

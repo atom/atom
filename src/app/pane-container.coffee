@@ -37,7 +37,7 @@ class PaneContainer extends View
     nextIndex = (currentIndex + 1) % panes.length
     panes[nextIndex].makeActive()
 
-  restoreItem: ->
+  reopenItem: ->
     if lastItemState = @destroyedItemStates.pop()
       if activePane = @getActivePane()
         activePane.showItem(deserialize(lastItemState))
