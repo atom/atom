@@ -23,35 +23,25 @@ class TerminalView extends ScrollView
     @readData = false
     @setTitle()
 
+    @on 'mousedown', '.title', (e) => @resizeStarted(e)
     @on 'click', =>
       @hiddenInput.focus()
-
     @on 'focus', =>
       @hiddenInput.focus()
       false
-
     @on 'textInput', (e) =>
       @input(e.originalEvent.data)
       false
 
-    rootView.command "terminal:enter", =>
-      @input(TerminalBuffer.enter)
-    rootView.command "terminal:delete", =>
-      @input(TerminalBuffer.backspace)
-    rootView.command "terminal:escape", =>
-      @input(TerminalBuffer.escape)
-    rootView.command "terminal:tab", =>
-      @input(TerminalBuffer.tab)
-    rootView.command "terminal:paste", =>
-      @input(pasteboard.read())
-    rootView.command "terminal:left", =>
-      @input(TerminalBuffer.escapeSequence("D"))
-    rootView.command "terminal:right", =>
-      @input(TerminalBuffer.escapeSequence("C"))
-    rootView.command "terminal:up", =>
-      @input(TerminalBuffer.escapeSequence("A"))
-    rootView.command "terminal:down", =>
-      @input(TerminalBuffer.escapeSequence("B"))
+    rootView.command "terminal:enter", => @input(TerminalBuffer.enter)
+    rootView.command "terminal:delete", => @input(TerminalBuffer.backspace)
+    rootView.command "terminal:escape", => @input(TerminalBuffer.escape)
+    rootView.command "terminal:tab", => @input(TerminalBuffer.tab)
+    rootView.command "terminal:paste", => @input(pasteboard.read())
+    rootView.command "terminal:left", => @input(TerminalBuffer.escapeSequence("D"))
+    rootView.command "terminal:right", => @input(TerminalBuffer.escapeSequence("C"))
+    rootView.command "terminal:up", => @input(TerminalBuffer.escapeSequence("A"))
+    rootView.command "terminal:down", => @input(TerminalBuffer.escapeSequence("B"))
 
   login: ->
     @process = ChildProcess.exec "/bin/bash", interactive: true, stdout: (data) =>
@@ -93,6 +83,17 @@ class TerminalView extends ScrollView
 
   setTitle: (text) ->
     @title.text("Atom Terminal#{if text? && text.length then " - #{text}" else ""}")
+
+  resizeStarted: (e) =>
+    $(document.body).on('mousemove', @resizeTerminal)
+    $(document.body).on('mouseup', @resizeStopped)
+
+  resizeStopped: (e) =>
+    $(document.body).off('mousemove', @resizeTerminal)
+    $(document.body).off('mouseup', @resizeStopped)
+
+  resizeTerminal: (e) =>
+    @content.css(height: window.innerWidth - e.pageY)
 
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")
