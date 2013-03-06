@@ -125,7 +125,7 @@ describe "Pane", ->
         expect(editSession2.destroyed).toBeFalsy()
 
       describe "if the [Save] option is selected", ->
-        describe "when the item has a path", ->
+        describe "when the item has a uri", ->
           it "saves the item before removing and destroying it", ->
             atom.confirm.selectOption('Save')
 
@@ -133,8 +133,8 @@ describe "Pane", ->
             expect(pane.getItems().indexOf(editSession2)).toBe -1
             expect(editSession2.destroyed).toBeTruthy()
 
-        describe "when the item has no path", ->
-          it "presents a save-as dialog, then saves the item with the given path before removing and destroying it", ->
+        describe "when the item has no uri", ->
+          it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
             editSession2.buffer.setPath(undefined)
 
             atom.confirm.selectOption('Save')
@@ -286,7 +286,7 @@ describe "Pane", ->
       expect(pane.getItems()).toEqual [editSession1]
 
   describe "core:save", ->
-    describe "when the current item has a path", ->
+    describe "when the current item has a uri", ->
       describe "when the current item has a save method", ->
         it "saves the current item", ->
           spyOn(editSession2, 'save')
@@ -299,7 +299,7 @@ describe "Pane", ->
           expect(pane.activeItem.save).toBeUndefined()
           pane.trigger 'core:save'
 
-    describe "when the current item has no path", ->
+    describe "when the current item has no uri", ->
       beforeEach ->
         spyOn(atom, 'showSaveDialog')
 
@@ -576,17 +576,17 @@ describe "Pane", ->
       expect(pane1.outerWidth()).toBe container.width()
 
   describe "autosave", ->
-    [initialActiveItem, initialActiveItemPath] = []
+    [initialActiveItem, initialActiveItemUri] = []
 
     beforeEach ->
       initialActiveItem = pane.activeItem
-      initialActiveItemPath = null
-      pane.activeItem.getPath = -> initialActiveItemPath
+      initialActiveItemUri = null
+      pane.activeItem.getUri = -> initialActiveItemUri
       pane.activeItem.save = jasmine.createSpy("activeItem.save")
       spyOn(pane, 'saveItem').andCallThrough()
 
     describe "when the active view loses focus", ->
-      it "saves the item if core.autosave is true and the item has a path", ->
+      it "saves the item if core.autosave is true and the item has a uri", ->
         pane.activeView.trigger 'focusout'
         expect(pane.saveItem).not.toHaveBeenCalled()
         expect(pane.activeItem.save).not.toHaveBeenCalled()
@@ -596,12 +596,12 @@ describe "Pane", ->
         expect(pane.saveItem).not.toHaveBeenCalled()
         expect(pane.activeItem.save).not.toHaveBeenCalled()
 
-        initialActiveItemPath = '/tmp/hi'
+        initialActiveItemUri = '/tmp/hi'
         pane.activeView.trigger 'focusout'
         expect(pane.activeItem.save).toHaveBeenCalled()
 
     describe "when an item becomes inactive", ->
-      it "saves the item if core.autosave is true and the item has a path", ->
+      it "saves the item if core.autosave is true and the item has a uri", ->
         expect(view2).not.toBe pane.activeItem
         expect(pane.saveItem).not.toHaveBeenCalled()
         expect(initialActiveItem.save).not.toHaveBeenCalled()
@@ -614,12 +614,12 @@ describe "Pane", ->
         expect(initialActiveItem.save).not.toHaveBeenCalled()
 
         pane.showItem(initialActiveItem)
-        initialActiveItemPath = '/tmp/hi'
+        initialActiveItemUri = '/tmp/hi'
         pane.showItem(view2)
         expect(initialActiveItem.save).toHaveBeenCalled()
 
     describe "when an item is destroyed", ->
-      it "saves the item if core.autosave is true and the item has a path", ->
+      it "saves the item if core.autosave is true and the item has a uri", ->
         # doesn't have to be the active item
         expect(view2).not.toBe pane.activeItem
         pane.showItem(view2)
@@ -628,19 +628,19 @@ describe "Pane", ->
         expect(pane.saveItem).not.toHaveBeenCalled()
 
         config.set("core.autosave", true)
-        view2.getPath = -> undefined
+        view2.getUri = -> undefined
         view2.save = ->
         pane.destroyItem(view2)
         expect(pane.saveItem).not.toHaveBeenCalled()
 
-        initialActiveItemPath = '/tmp/hi'
+        initialActiveItemUri = '/tmp/hi'
         pane.destroyItem(initialActiveItem)
         expect(initialActiveItem.save).toHaveBeenCalled()
 
-  describe ".itemForPath(path)", ->
-    it "returns the item for which a call to .getPath() returns the given path", ->
-      expect(pane.itemForPath(editSession1.getPath())).toBe editSession1
-      expect(pane.itemForPath(editSession2.getPath())).toBe editSession2
+  describe ".itemForUri(uri)", ->
+    it "returns the item for which a call to .getUri() returns the given uri", ->
+      expect(pane.itemForUri(editSession1.getUri())).toBe editSession1
+      expect(pane.itemForUri(editSession2.getUri())).toBe editSession2
 
   describe "serialization", ->
     it "can serialize and deserialize the pane and all its serializable items", ->

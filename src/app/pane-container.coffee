@@ -1,4 +1,5 @@
 {View} = require 'space-pen'
+Pane = require 'pane'
 $ = require 'jquery'
 
 module.exports =
@@ -12,6 +13,9 @@ class PaneContainer extends View
 
   @content: ->
     @div id: 'panes'
+
+  initialize: ->
+    @destroyedItemStates = []
 
   serialize: ->
     deserializer: 'PaneContainer'
@@ -32,6 +36,24 @@ class PaneContainer extends View
     currentIndex = panes.indexOf(@getActivePane())
     nextIndex = (currentIndex + 1) % panes.length
     panes[nextIndex].makeActive()
+
+  restoreItem: ->
+    if lastItemState = @destroyedItemStates.pop()
+      if activePane = @getActivePane()
+        activePane.showItem(deserialize(lastItemState))
+        true
+      else
+        @append(new Pane(deserialize(lastItemState)))
+
+  itemDestroyed: (item) ->
+    state = item.serialize?()
+    state.uri ?= item.getUri?()
+    @destroyedItemStates.push(state) if state?
+
+  itemAdded: (item) ->
+    itemUri = item.getUri?()
+    @destroyedItemStates = @destroyedItemStates.filter (itemState) ->
+      itemState.uri isnt itemUri
 
   getRoot: ->
     @children().first().view()
