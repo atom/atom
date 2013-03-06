@@ -4,6 +4,7 @@
 '.terminal':
   'enter': 'terminal:enter'
   'delete': 'terminal:delete'
+  'escape': 'terminal:escape'
   'tab': 'terminal:tab'
   'meta-v': 'terminal:paste'
   'left': 'terminal:left'

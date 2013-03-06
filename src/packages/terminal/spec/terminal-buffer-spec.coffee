@@ -5,7 +5,7 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
 
-describe 'Terminal Buffer', ->
+fdescribe 'Terminal Buffer', ->
   [buffer] = []
 
   beforeEach ->
@@ -31,9 +31,10 @@ describe 'Terminal Buffer', ->
 
   describe "when a character is entered", ->
     it "adds the character to the buffer", ->
-      expect(buffer.length()).toBe 0
-      buffer.inputCharacter('a')
       expect(buffer.length()).toBe 1
+      buffer.inputCharacter('a')
+      expect(buffer.length()).toBe 2
+      window.console.log(buffer)
 
   describe "when a special character is entered", ->
     describe "newline", ->
@@ -54,6 +55,33 @@ describe 'Terminal Buffer', ->
       describe "back", ->
       describe "up", ->
       describe "down", ->
+      describe "set cursor", ->
+        it "moves the cursor to the coordinates", ->
+          buffer.input(TerminalBuffer.escapeSequence("3;1H"))
+          expect(buffer.cursor.y).toBe(3)
+          expect(buffer.cursor.x).toBe(1)
+    describe "set screen region", ->
+      it "creates a new screen region", ->
+        expect(buffer.scrollingRegion).toBeFalsy()
+        buffer.input(TerminalBuffer.escapeSequence("1;5r"))
+        expect(buffer.scrollingRegion).toBeTruthy()
+        expect(buffer.scrollingRegion.height).toBe(5)
+    describe "clear text", ->
+      it "deletes to end of line", ->
+        buffer.input("abcd\nc")
+        buffer.moveCursorTo([1,3])
+        buffer.input(TerminalBuffer.escapeSequence("0K"))
+        expect(buffer.text()).toBe("ab\nc\n")
+      it "deletes to beginning of line", ->
+        buffer.input("abcd\nc")
+        buffer.moveCursorTo([1,3])
+        buffer.input(TerminalBuffer.escapeSequence("1K"))
+        expect(buffer.text()).toBe("cd\nc\n")
+      it "deletes entire line", ->
+        buffer.input("ab\nc")
+        buffer.moveCursorTo([1,2])
+        buffer.input(TerminalBuffer.escapeSequence("2K"))
+        expect(buffer.text()).toBe("\nc\n")
     describe "sgr", ->
       describe "multiple codes seperated by ;", ->
         it "assigns all attributes", ->
@@ -91,18 +119,33 @@ describe 'Terminal Buffer', ->
           expect(buffer.lastLine().lastVisibleCharacter().backgroundColor).toBe(1)
           expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "41")
 
-  fdescribe "cursor", ->
+  describe "cursor", ->
     describe "when characters are entered", ->
       it "moves to the end of the entered text", ->
         buffer.input("abc")
-        expect(buffer.cursor.x).toBe(3)
+        expect(buffer.cursor.x).toBe(4)
       it "moves to the next line", ->
         buffer.input("a#{TerminalBuffer.enter}b")
-        expect(buffer.cursor.y).toBe(1)
-        expect(buffer.cursor.x).toBe(1)
+        expect(buffer.cursor.y).toBe(2)
+        expect(buffer.cursor.x).toBe(2)
+      it "moves to a screen coordinate", ->
+        buffer.moveCursorTo([5,3])
+        expect(buffer.cursor.y).toBe(5)
+        expect(buffer.cursor.x).toBe(3)
+      it "creates lines if the cursor is out of bounds", ->
+        expect(buffer.numLines()).toBe(1)
+        buffer.moveCursorTo([5,3])
+        expect(buffer.numLines()).toBe(5)
+        window.console.log buffer.cursorLine()
+        expect(buffer.cursorLine().length()).toBe(3)
+      it "inserts characters at the cursor", ->
+        buffer.moveCursorTo([1,3])
+        expect(buffer.cursorLine().length()).toBe(3)
+        buffer.input("a")
+        expect(buffer.cursorLine().length()).toBe(4)
     describe "when it is moved", ->
 
-  fdescribe "screen", ->
+  describe "screen", ->
     describe "coordinates", ->
       it "converts to line number", ->
         expect(buffer.screenToLine([1,1])).toEqual([1,1])
@@ -114,6 +157,10 @@ describe 'Terminal Buffer', ->
         expect(buffer.numLines()).toBe(11)
         expect(buffer.scrollingRegion.firstLine).toBe(1)
         expect(buffer.screenToLine([1,1])).toEqual([2,1])
+      it "modifies the cursor coordinates", ->
+        buffer.setScrollingRegion([1,10])
+        buffer.moveCursorTo([10,1])
+        expect(buffer.cursor.y).toBe(11)
     describe "when a character is entered at the end of a line", ->
       it "inserts the character on the next line"
     describe "when the screen size changes", ->

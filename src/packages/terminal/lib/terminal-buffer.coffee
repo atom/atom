@@ -13,7 +13,7 @@ class TerminalBuffer
     @inEscapeSequence = false
     @resetSGR()
     @cursor = new TerminalCursor(this)
-    @addLine()
+    @addLine(false)
   resetSGR: () ->
     @color = 0
     @backgroundColor = -1
@@ -33,20 +33,36 @@ class TerminalBuffer
     l = @lastLine()
     @scrollingRegion.firstLine = l.number + 1
     @addLine() for n in [1..@scrollingRegion.height]
+  moveCursorTo: (coords) ->
+    @cursor.moveTo(@screenToLine(coords))
+    n = @numLines()
+    if @cursor.y > n
+      @addLine(false) for x in [n..(@cursor.line())]
+    line = @cursorLine()
+    if line? && @cursor.character() >= line.length()
+      line.appendCharacter(" ") for x in [line.length()..(@cursor.character())]
   lastLine: () ->
     _.last(@lines)
+  cursorLine: () ->
+    l = @getLine(@cursor.line())
+    l
   setLine: (text, n=-1) ->
     n = @lines.length - 1 if n < 0
     @lines[n].setText(text)
   getLine: (n) ->
     if n >= 0 && n < @lines.length then @lines[n]
-  addLine: () ->
+  addLine: (moveCursor=true) ->
     @lastLine()?.clearCursor()
     line = new TerminalBufferLine(this, @lines.length)
     @lines.push(line)
+    @cursor.moveTo([@lastLine().number + 1, 1]) if moveCursor
     line
   numLines: () ->
     @lines.length
+  text: () ->
+    _.reduce(@lines, (memo, line) ->
+      return memo + line.text() + "\n"
+    , "")
   addDirtyLine: (line) ->
     @dirtyLines.push(line)
   getDirtyLines: () ->
@@ -56,6 +72,8 @@ class TerminalBuffer
     @dirtyLines = []
   backspace: () ->
     @lastLine().backspace()
+    @cursor.x -= 1
+    @cursor.moved()
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
@@ -65,10 +83,12 @@ class TerminalBuffer
       when 8 then @backspace()
       when 13 then # Ignore CR
       when 10 then @addLine()
-      when 27 then @escape()
+      when 27
+        @escape()
       else
-        @lastLine().append(c)
-    @cursor.update()
+        @cursorLine().appendAt(c, @cursor.character())
+        @cursor.x += 1
+        @cursor.moved()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
     if (code >= 65 && code <= 90) || (code >= 97 && code <= 122) # A-Z, a-z
@@ -78,22 +98,28 @@ class TerminalBuffer
     else if code != 91 # Ignore [
       @escapeSequence += c
   evaluateEscapeSequence: (type, sequence) ->
-    window.console.log "Escape #{type} #{sequence}"
     seq = sequence.split(";")
     switch type
-      when "A" then # Move cursor up
-      when "B" then # Move cursor down
-      when "C" then # Move cursor right
-      when "D" then # Move cursor left
-      when "H", "f" then # Cursor position
-      when "J" then # Erase data
-      when "K" then # Erase in line
+      # when "A" then # Move cursor up
+      # when "B" then # Move cursor down
+      # when "C" then # Move cursor right
+      # when "D" then # Move cursor left
+      when "H", "f" # Cursor position
+        row = parseInt(seq[0])
+        col = parseInt(seq[1])
+        @moveCursorTo([row, col])
+      # when "J" then # Erase data
+      when "K" # Erase in line
+        op = parseInt(seq[0])
+        @cursorLine().erase(@cursor.character(), op)
+      when "r" # Set scrollable region
+        row = parseInt(seq[0])
+        col = parseInt(seq[1])
+        @setScrollingRegion([row,col])
       when "m" # SGR (Graphics)
         for s in seq
           i = parseInt(s)
           switch i
-            when 0 # Reset
-              @resetSGR()
             when 1 # Bold
               @bold = true
             when 3 # Italic
@@ -104,11 +130,28 @@ class TerminalBuffer
             when 6 then # Blink: Rapid
             when 7 then # Reverse
             when 8 then # Hidden
+            when 22 # Normal
+              @bold = false
+            when 27 then # Disable reverse
+            when 39 # Default text color
+              @color = 0
+            when 49 # Default background color
+              @backgroundColor = -1
             else
-              if i >= 30 && i <= 37 # Text color
+              if s == "" || i == 0 # Reset
+                @resetSGR()
+              else if i >= 30 && i <= 37 # Text color
                 @color = i - 30
-              if i >= 40 && i <= 47 # Background color
+              else if i >= 90 && i <= 97 # Text color (alt.)
+                @color = i - 90
+              else if i >= 40 && i <= 47 # Background color
                 @backgroundColor = i - 40
+              else if i >= 100 && i <= 107 # Background color (alt.)
+                @backgroundColor = i - 100
+              else
+                window.console.log "Terminal: Unhandled SGR sequence #{sequence}#{type} #{i}"
+      else
+        window.console.log "Terminal: Unhandled escape sequence #{sequence}#{type}"
     @lastLine().lastCharacter()?.reset(this)
   escape: ->
     @inEscapeSequence = true
@@ -133,14 +176,30 @@ class TerminalBufferLine
     @lastCharacter().char = c
     char = @emptyChar()
     @characters.push(char)
+  appendAt: (c, x) ->
+    char = @emptyChar()
+    char.char = c
+    @characters = _.flatten([@characters.slice(0, x), char, @characters.slice(x, @length())])
+    @setDirty()
   lastCharacter: () ->
     _.last(@characters)
   lastVisibleCharacter: () ->
     _.first(_.last(@characters, 2))
   getCharacter: (n) ->
     @characters[n]
+  erase: (start, op) ->
+    switch op
+      when 1 # Clear to beginning of line
+        @characters[n] = null for n in [0..(start-1)]
+        @characters = _.compact(@characters)
+      when 2 # Clear entire line
+        @characters = [@emptyChar()]
+      else # Clear to end of line
+        @characters[n] = null for n in [start..@length()]
+        @characters = _.compact(@characters)
+    @setDirty()
   length: () ->
-    @text().length
+    @characters.length
   setText: (text) ->
     @characters = []
     @append(text)
@@ -171,6 +230,9 @@ class TerminalCharacter
       @italic = buffer.italic
       @underlined = buffer.underlined
     else
+      @resetToBlank()
+  resetToBlank: () ->
+      @char = ""
       @color = 0
       @backgroundColor = 0
       @bold = false
@@ -180,21 +242,27 @@ class TerminalCharacter
 
 class TerminalCursor
   constructor: (@buffer) ->
-    @x = 0
-    @y = 0
-  update: () ->
-    @line = @buffer.getLine(@y)
-    lastLine = @buffer.lastLine()
-    if @line != lastLine
-      @line.clearCursor()
-      @line = lastLine
-    @y = @line.number
-    @x = @line.length()
-    if char = @line.getCharacter(@x)
-      @line.clearCursor()
+    @moveTo([1,1])
+  moveTo: (coords) ->
+    @y = coords[0]
+    @y = 1 if @y < 1
+    @x = coords[1]
+    @x = 1 if @x < 1
+    @moved()
+  moved: () ->
+    lastLine = @curLine
+    @curLine = @buffer.getLine(@line())
+    if lastLine && @curLine != lastLine
+      lastLine.clearCursor()
+    if @curLine && char = @curLine.getCharacter(@character())
+      @curLine.clearCursor()
       char.cursor = true
+  line: () ->
+    @y - 1
+  character: () ->
+    @x - 1
 
 class TerminalScrollingRegion
   constructor: (top, bottom) ->
-    @firstLine = 0
+    @firstLine = 1
     @height = (bottom - top) + 1

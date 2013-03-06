@@ -17,7 +17,7 @@
 .terminal .content {
   font-family: Inconsolata, Monaco, Courier;
   margin: 2px;
-  height: 200px;
+  height: 400px;
   overflow-y: scroll;
 }
 
