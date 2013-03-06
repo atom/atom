@@ -67,21 +67,37 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.scrollingRegion).toBeTruthy()
         expect(buffer.scrollingRegion.height).toBe(5)
     describe "clear text", ->
-      it "deletes to end of line", ->
+      it "deletes to end of the line", ->
         buffer.input("abcd\nc")
         buffer.moveCursorTo([1,3])
         buffer.input(TerminalBuffer.escapeSequence("0K"))
         expect(buffer.text()).toBe("ab\nc\n")
-      it "deletes to beginning of line", ->
+      it "deletes to beginning of the line", ->
         buffer.input("abcd\nc")
         buffer.moveCursorTo([1,3])
         buffer.input(TerminalBuffer.escapeSequence("1K"))
         expect(buffer.text()).toBe("cd\nc\n")
-      it "deletes entire line", ->
+      it "deletes the entire line", ->
         buffer.input("ab\nc")
         buffer.moveCursorTo([1,2])
         buffer.input(TerminalBuffer.escapeSequence("2K"))
         expect(buffer.text()).toBe("\nc\n")
+    describe "clear screen", ->
+      it "deletes to the end of the screen", ->
+        buffer.input("abcd\nc")
+        buffer.moveCursorTo([1,3])
+        buffer.input(TerminalBuffer.escapeSequence("0J"))
+        expect(buffer.text()).toBe("ab\n\n")
+      it "deletes to the beginning of the screen", ->
+        buffer.input("ab\ncd\nc")
+        buffer.moveCursorTo([2,2])
+        buffer.input(TerminalBuffer.escapeSequence("1J"))
+        expect(buffer.text()).toBe("\nd\nc\n")
+      it "deletes the entire screen", ->
+        buffer.input("ab\nc")
+        buffer.moveCursorTo([1,2])
+        buffer.input(TerminalBuffer.escapeSequence("2J"))
+        expect(buffer.text()).toBe("\n\n")
     describe "sgr", ->
       describe "multiple codes seperated by ;", ->
         it "assigns all attributes", ->

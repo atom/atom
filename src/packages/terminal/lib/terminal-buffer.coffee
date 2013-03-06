@@ -47,13 +47,13 @@ class TerminalBuffer
     l = @getLine(@cursor.line())
     l
   setLine: (text, n=-1) ->
-    n = @lines.length - 1 if n < 0
+    n = @numLines() - 1 if n < 0
     @lines[n].setText(text)
   getLine: (n) ->
-    if n >= 0 && n < @lines.length then @lines[n]
+    if n >= 0 && n < @numLines() then @lines[n]
   addLine: (moveCursor=true) ->
     @lastLine()?.clearCursor()
-    line = new TerminalBufferLine(this, @lines.length)
+    line = new TerminalBufferLine(this, @numLines())
     @lines.push(line)
     @cursor.moveTo([@lastLine().number + 1, 1]) if moveCursor
     line
@@ -98,6 +98,7 @@ class TerminalBuffer
     else if code != 91 # Ignore [
       @escapeSequence += c
   evaluateEscapeSequence: (type, sequence) ->
+    # window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     switch type
       # when "A" then # Move cursor up
@@ -108,14 +109,25 @@ class TerminalBuffer
         row = parseInt(seq[0])
         col = parseInt(seq[1])
         @moveCursorTo([row, col])
-      # when "J" then # Erase data
+      when "J" # Erase data
+        op = parseInt(seq[0])
+        @cursorLine()?.erase(@cursor.character(), op)
+        if op == 1
+          @getLine(n).erase(0, 2) for n in [0..@cursor.line()-1]
+        else if op == 2
+          @getLine(n).erase(0, 2) for n in [0..@numLines()-1]
+          @cursor.moveTo([1,1])
+        else
+          @getLine(n).erase(0, 2) for n in [@cursor.line()+1..@numLines()-1]
       when "K" # Erase in line
         op = parseInt(seq[0])
         @cursorLine().erase(@cursor.character(), op)
+        @cursorLine().lastCharacter().cursor = true
       when "r" # Set scrollable region
         row = parseInt(seq[0])
         col = parseInt(seq[1])
         @setScrollingRegion([row,col])
+      when "P" then # Device Control String (ignored)
       when "m" # SGR (Graphics)
         for s in seq
           i = parseInt(s)
@@ -179,7 +191,10 @@ class TerminalBufferLine
   appendAt: (c, x) ->
     char = @emptyChar()
     char.char = c
-    @characters = _.flatten([@characters.slice(0, x), char, @characters.slice(x, @length())])
+    @characters[x] = char
+    if x == @length() - 1
+      @characters.push(@emptyChar())
+    # @characters = _.flatten([@characters.slice(0, x), char, @characters.slice(x, @length())])
     @setDirty()
   lastCharacter: () ->
     _.last(@characters)
@@ -197,6 +212,7 @@ class TerminalBufferLine
       else # Clear to end of line
         @characters[n] = null for n in [start..@length()]
         @characters = _.compact(@characters)
+        @characters.push(@emptyChar())
     @setDirty()
   length: () ->
     @characters.length
