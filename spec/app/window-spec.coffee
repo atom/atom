@@ -63,37 +63,45 @@ describe "Window", ->
       expect(atom.confirm).toHaveBeenCalled()
 
   describe "requireStylesheet(path)", ->
-    it "synchronously loads the stylesheet at the given path and installs a style tag for it in the head", ->
-      $('head style[id*="atom.less"]').remove()
+    it "synchronously loads css at the given path and installs a style tag for it in the head", ->
+      cssPath = project.resolve('css.css')
       lengthBefore = $('head style').length
-      requireStylesheet('atom.less')
+
+      requireStylesheet(cssPath)
       expect($('head style').length).toBe lengthBefore + 1
 
-      styleElt = $('head style[id*="atom.less"]')
-
-      fullPath = require.resolve('atom.less')
-      expect(styleElt.attr('id')).toBe fullPath
-      expect(styleElt.text()).toBe parseLessFile(fullPath)
+      element = $('head style[id*="css.css"]')
+      expect(element.attr('id')).toBe cssPath
+      expect(element.text()).toBe fs.read(cssPath)
 
       # doesn't append twice
-      requireStylesheet('atom.less')
+      requireStylesheet(cssPath)
       expect($('head style').length).toBe lengthBefore + 1
+
+      $('head style[id*="css.css"]').remove()
 
     it  "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
-      $('head style[id*="markdown.less"]').remove()
+      lessPath = project.resolve('sample.less')
       lengthBefore = $('head style').length
-      requireStylesheet('markdown.less')
+      requireStylesheet(lessPath)
       expect($('head style').length).toBe lengthBefore + 1
 
-      styleElt = $('head style[id*="markdown.less"]')
+      element = $('head style[id*="sample.less"]')
+      expect(element.attr('id')).toBe lessPath
+      expect(element.text()).toBe """
+      #header {
+        color: #4d926f;
+      }
+      h2 {
+        color: #4d926f;
+      }
 
-      fullPath = require.resolve('markdown.less')
-      expect(styleElt.attr('id')).toBe fullPath
-      expect(styleElt.text()).toBe parseLessFile(fullPath)
+      """
 
       # doesn't append twice
-      requireStylesheet('markdown.less')
+      requireStylesheet(lessPath)
       expect($('head style').length).toBe lengthBefore + 1
+      $('head style[id*="sample.less"]').remove()
 
   describe ".disableStyleSheet(path)", ->
     it "removes styling applied by given stylesheet path", ->
