@@ -159,7 +159,7 @@ describe "RootView", ->
         rootView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
 
-  describe "title", ->
+  describe "window title", ->
     describe "when the project has no path", ->
       it "sets the title to 'untitled'", ->
         project.setPath(undefined)
@@ -173,6 +173,12 @@ describe "RootView", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = rootView.getActivePaneItem()
           expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
+
+      describe "when the title of the active pane item changes", ->
+        it "updates the window title based on the item's new title", ->
+          editSession = rootView.getActivePaneItem()
+          editSession.buffer.setPath('/tmp/hi')
+          expect(rootView.title).toBe "#{editSession.getTitle()} - #{project.getPath()}"
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
