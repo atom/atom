@@ -76,7 +76,7 @@ describe "PaneContainer", ->
       pane4.splitDown()
       expect(panes).toEqual []
 
-  describe ".restoreItem()", ->
+  describe ".reopenItem()", ->
     describe "when there is an active pane", ->
       it "reconstructs and shows the last-closed pane item", ->
         expect(container.getActivePane()).toBe pane3
@@ -88,13 +88,13 @@ describe "PaneContainer", ->
         pane3.destroyItem(item4)
         expect(container.getActivePane()).toBe pane1
 
-        expect(container.restoreItem()).toBeTruthy()
+        expect(container.reopenItem()).toBeTruthy()
         expect(pane1.activeItem).toEqual item4
 
-        expect(container.restoreItem()).toBeTruthy()
+        expect(container.reopenItem()).toBeTruthy()
         expect(pane1.activeItem).toEqual item3
 
-        expect(container.restoreItem()).toBeFalsy()
+        expect(container.reopenItem()).toBeFalsy()
         expect(pane1.activeItem).toEqual item3
 
     describe "when there is no active pane", ->
@@ -105,7 +105,7 @@ describe "PaneContainer", ->
         pane3.destroyItem(item3)
         expect(container.getActivePane()).toBeUndefined()
 
-        container.restoreItem()
+        container.reopenItem()
 
         expect(container.getActivePane().activeItem).toEqual item3
 
@@ -119,11 +119,11 @@ describe "PaneContainer", ->
       expect(container.getActivePane()).toBe pane1
       pane1.showItem(new TestView('4'))
 
-      expect(container.restoreItem()).toBeTruthy()
+      expect(container.reopenItem()).toBeTruthy()
       expect(_.pluck(pane1.getItems(), 'name')).toEqual ['1', '4', '3']
       expect(pane1.activeItem).toEqual item3
 
-      expect(container.restoreItem()).toBeFalsy()
+      expect(container.reopenItem()).toBeFalsy()
       expect(pane1.activeItem).toEqual item3
 
   describe ".saveAll()", ->
