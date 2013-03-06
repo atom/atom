@@ -25,6 +25,12 @@ class EditSession
     session.setCursorScreenPosition(state.cursorScreenPosition)
     session
 
+  @identifiedBy: 'path'
+
+  @deserializesToSameObject: (state, editSession) ->
+    state.path
+
+
   scrollTop: 0
   scrollLeft: 0
   languageMode: null
@@ -151,6 +157,7 @@ class EditSession
   saveAs: (path) -> @buffer.saveAs(path)
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
+  getUri: -> @getPath()
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
   getEofBufferPosition: -> @buffer.getEofPosition()

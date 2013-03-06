@@ -111,6 +111,7 @@ class Pane extends View
     return if _.include(@items, item)
     index = @getActiveItemIndex() + 1
     @items.splice(index, 0, item)
+    @getContainer().itemAdded(item)
     @trigger 'pane:item-added', [item, index]
     item
 
@@ -119,8 +120,10 @@ class Pane extends View
     false
 
   destroyItem: (item) ->
+    container = @getContainer()
     reallyDestroyItem = =>
       @removeItem(item)
+      container.itemDestroyed(item)
       item.destroy?()
 
     @autosaveItem(item)
@@ -137,7 +140,7 @@ class Pane extends View
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
   promptToSaveItem: (item, nextAction) ->
-    path = item.getPath()
+    uri = item.getUri()
     atom.confirm(
       "'#{item.getTitle()}' has changes, do you want to save them?"
       "Your changes will be lost if close this item without saving."
@@ -153,7 +156,7 @@ class Pane extends View
     @saveItemAs(@activeItem)
 
   saveItem: (item, nextAction) ->
-    if item.getPath?()
+    if item.getUri?()
       item.save()
       nextAction?()
     else
@@ -173,7 +176,7 @@ class Pane extends View
     @autosaveItem(@activeItem)
 
   autosaveItem: (item) ->
-    @saveItem(item) if config.get('core.autosave') and item.getPath?()
+    @saveItem(item) if config.get('core.autosave') and item.getUri?()
 
   removeItem: (item) ->
     index = @items.indexOf(item)
@@ -194,8 +197,8 @@ class Pane extends View
     @removeItem(item)
     pane.addItem(item, index)
 
-  itemForPath: (path) ->
-    _.detect @items, (item) -> item.getPath?() is path
+  itemForUri: (uri) ->
+    _.detect @items, (item) -> item.getUri?() is uri
 
   cleanupItemView: (item) ->
     if item instanceof $

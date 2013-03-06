@@ -1,6 +1,7 @@
 PaneContainer = require 'pane-container'
 Pane = require 'pane'
 {View, $$} = require 'space-pen'
+_ = require 'underscore'
 $ = require 'jquery'
 
 describe "PaneContainer", ->
@@ -9,12 +10,13 @@ describe "PaneContainer", ->
   beforeEach ->
     class TestView extends View
       registerDeserializer(this)
-      @deserialize: ({myText}) -> new TestView(myText)
+      @deserialize: ({name}) -> new TestView(name)
       @content: -> @div tabindex: -1
-      initialize: (@myText) -> @text(@myText)
-      serialize: -> deserializer: 'TestView', myText: @myText
-      getPath: -> "/tmp/hi"
+      initialize: (@name) -> @text(@name)
+      serialize: -> { deserializer: 'TestView', @name }
+      getUri: -> "/tmp/#{@name}"
       save: -> @saved = true
+      isEqual: (other) -> @name is other.name
 
     container = new PaneContainer
     pane1 = new Pane(new TestView('1'))
@@ -73,6 +75,56 @@ describe "PaneContainer", ->
       subscription.cancel()
       pane4.splitDown()
       expect(panes).toEqual []
+
+  describe ".restoreItem()", ->
+    describe "when there is an active pane", ->
+      it "reconstructs and shows the last-closed pane item", ->
+        expect(container.getActivePane()).toBe pane3
+        item3 = pane3.activeItem
+        item4 = new TestView('4')
+        pane3.showItem(item4)
+
+        pane3.destroyItem(item3)
+        pane3.destroyItem(item4)
+        expect(container.getActivePane()).toBe pane1
+
+        expect(container.restoreItem()).toBeTruthy()
+        expect(pane1.activeItem).toEqual item4
+
+        expect(container.restoreItem()).toBeTruthy()
+        expect(pane1.activeItem).toEqual item3
+
+        expect(container.restoreItem()).toBeFalsy()
+        expect(pane1.activeItem).toEqual item3
+
+    describe "when there is no active pane", ->
+      it "attaches a new pane with the reconstructed last pane item", ->
+        pane1.remove()
+        pane2.remove()
+        item3 = pane3.activeItem
+        pane3.destroyItem(item3)
+        expect(container.getActivePane()).toBeUndefined()
+
+        container.restoreItem()
+
+        expect(container.getActivePane().activeItem).toEqual item3
+
+    it "does not reopen an item that is already open", ->
+      item3 = pane3.activeItem
+      item4 = new TestView('4')
+      pane3.showItem(item4)
+      pane3.destroyItem(item3)
+      pane3.destroyItem(item4)
+
+      expect(container.getActivePane()).toBe pane1
+      pane1.showItem(new TestView('4'))
+
+      expect(container.restoreItem()).toBeTruthy()
+      expect(_.pluck(pane1.getItems(), 'name')).toEqual ['1', '4', '3']
+      expect(pane1.activeItem).toEqual item3
+
+      expect(container.restoreItem()).toBeFalsy()
+      expect(pane1.activeItem).toEqual item3
 
   describe ".saveAll()", ->
     it "saves all open pane items", ->
