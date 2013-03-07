@@ -1,0 +1,9 @@
+.vim {
+  background-color: #303030;
+  border-top: 1px solid #454545;
+  color: #969696;
+}
+
+.vim .prompt-and-editor .editor {
+  color: #969696;
+}

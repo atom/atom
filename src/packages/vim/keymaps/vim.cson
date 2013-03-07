@@ -1,0 +1,71 @@
+'body':
+  'escape': 'vim:command-mode'
+
+'.editor':
+  'escape': 'vim:command-mode'
+
+'.editor.command-mode':
+  '1': 'vim:count-add-1'
+  '2': 'vim:count-add-2'
+  '3': 'vim:count-add-3'
+  '4': 'vim:count-add-4'
+  '5': 'vim:count-add-5'
+  '6': 'vim:count-add-6'
+  '7': 'vim:count-add-7'
+  '8': 'vim:count-add-8'
+  '9': 'vim:count-add-9'
+  ':': 'vim:ex-mode'
+  'i': 'vim:insert-mode'
+  'a': 'vim:insert-mode-append'
+  'o': 'vim:insert-mode-next-line'
+  'O': 'vim:insert-mode-previous-line'
+  'h': 'vim:motion-left'
+  'j': 'vim:motion-down'
+  'k': 'vim:motion-up'
+  'l': 'vim:motion-right'
+  'left': 'vim:motion-left'
+  'down': 'vim:motion-down'
+  'up': 'vim:motion-up'
+  'right': 'vim:motion-right'
+  '0': 'vim:motion-beginning-of-line'
+  '$': 'vim:motion-end-of-line'
+  'w': 'vim:motion-next-word'
+  'b': 'vim:motion-previous-word'
+  'e': 'vim:motion-end-of-word'
+  'f': 'vim:motion-find-character'
+  'G': 'vim:motion-go-to-line-bottom'
+  'g g': 'vim:motion-go-to-line'
+  'ctrl-d': 'vim:motion-down-screen'
+  'ctrl-u': 'vim:motion-up-screen'
+  'ctrl-w l': 'window:focus-next-pane'
+  'ctrl-w h': 'window:focus-previous-pane'
+  'x': 'vim:alias-delete-character'
+  'D': 'vim:alias-delete-until-end-of-line'
+  'J': 'vim:alias-join-lines'
+  'u': 'core:undo'
+  'c': 'vim:operation-change'
+  'd': 'vim:operation-delete'
+  'r': 'vim:operation-change-character'
+  '.': 'vim:operation-repeat'
+  'y': 'vim:operation-yank'
+  'p': 'vim:operation-paste'
+  'P': 'vim:operation-paste-before'
+  'q': 'vim:operation-start-recording'
+  '@': 'vim:operation-replay-recording'
+  'v': 'vim:visual-mode'
+  'V': 'vim:visual-mode-lines'
+  'ctrl-r': 'core:redo'
+  'escape': 'vim:cancel-command'
+
+'.editor.recording':
+  'q': 'vim:operation-stop-recording'
+
+'.editor.command-mode.count':
+  '0': 'vim:count-add-0'
+
+'.editor.awaiting-input':
+  'escape': 'vim:cancel-input'
+
+'.vim .editor':
+  'enter': 'vim:execute'
+  'escape': 'vim:cancel-command'

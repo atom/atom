@@ -135,10 +135,13 @@ class Editor extends View
       'editor:move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
       'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord
       'editor:move-to-end-of-word': @moveCursorToEndOfWord
+      'editor:move-to-beginning-of-next-word': @moveCursorToBeginningOfNextWord
       'editor:select-to-end-of-line': @selectToEndOfLine
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:select-to-beginning-of-next-word': @selectToBeginningOfNextWord
+      'editor:select-line': @selectLine
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
       'editor:lower-case': @lowerCase
@@ -211,6 +214,7 @@ class Editor extends View
   moveCursorRight: -> @activeEditSession.moveCursorRight()
   moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
   moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
+  moveCursorToBeginningOfNextWord: -> @activeEditSession.moveCursorToEndOfWord() && @activeEditSession.moveCursorRight()
   moveCursorToTop: -> @activeEditSession.moveCursorToTop()
   moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
   moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
@@ -247,8 +251,10 @@ class Editor extends View
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
+  selectToBeginningOfNextWord: -> @activeEditSession.selectToEndOfWord() && @activeEditSession.selectRight()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectWord: -> @activeEditSession.selectWord()
+  selectLine: -> @activeEditSession.selectLine()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   transpose: -> @activeEditSession.transpose()
   upperCase: -> @activeEditSession.upperCase()

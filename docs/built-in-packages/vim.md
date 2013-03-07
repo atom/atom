@@ -1,0 +1,193 @@
+## Vim-mode
+
+Fuses the power of [Vim](http://www.vim.org/) with the Atom.
+
+### Configuration
+
+To enable Vim-mode set `vim.enabled` to true.
+
+config.cson:
+```coffee-script
+"vim":
+  "enabled": true
+```
+
+### Supported commands
+
+#### Modes
+
+**Insert mode**
+
+Key: `i`
+
+Event: `vim:insert-mode`
+
+Variants:
+
+* Append
+
+  Key: `a`
+
+  Event: `vim:insert-mode-append`
+
+* Insert a newline below and enter insert mode
+
+  Key: `o`
+
+  Event: `vim:insert-mode-next-line`
+
+* Insert a newline above and enter insert mode_
+
+  Key: `O`
+
+  Event: `vim:insert-mode-previous-line`
+
+**Command mode**
+
+Key: `esc`
+
+Event: `vim:command-mode`
+
+**Ex mode**
+
+Key: `:`
+
+Event: `vim:ex-mode`
+
+**Visual mode**
+
+Key: `v`
+
+Event: `vim:visual-mode`
+
+Variants:
+
+* Visual line
+
+  Key: `V`
+
+  Event: `vim:visual-mode-lines`
+
+#### Motions
+
+**Move cursor to left/down/up/right**
+
+Keys: `h` `j` `k` `l`
+
+Event: `vim:motion-{left/down/up/right}`
+
+**Move to beginning/end of line**
+
+Keys: `0` `$`
+
+Event: `vim:motion-{beginning/end}-of-line`
+
+**Move to next/previous word**
+
+Keys: `w` `b`
+
+Event: `vim:motion-{next/previous}-word`
+
+**Find character n**
+
+Key: `f n`
+
+Event: `vim:motion-find-character`
+
+**Go to line**
+
+Key: `g`
+
+Event: `vim:motion-go-to-line`
+
+Variants:
+
+  * Go to last line
+
+    Key: `G`
+
+    Event: `vim:motion-go-to-line-bottom`
+
+**Select next/previous pane**
+
+Key: `ctrl-w l` `ctrl-w h`
+
+Event: `window:focus-{next/previous}-pane`
+
+#### Operators
+
+**Delete**
+
+Key: `d`
+
+Event: `vim:operation-delete`
+
+Variants:
+
+  * Delete character
+
+    Key: `x`
+
+    Event: `vim:alias-delete-character`
+
+  * Delete until end of line
+
+    Key: `D`
+
+    Event: `vim:alias-delete-until-end-of-line`
+
+**Change**
+
+Key: `c`
+
+Event: `vim:operation-change`
+
+**Change character**
+
+Key: `r`
+
+Event: `vim:change-character`
+
+**Repeat last operation**
+
+Key: `.`
+
+Event: `vim:operation-repeat`
+
+**Undo/redo**
+
+Keys: `u` `ctrl-r`
+
+Event: `core:{undo/redo}`
+
+**Yank/paste**
+
+Keys: `y` `p`
+
+Event: `vim:operation-{yank/paste}`
+
+**Join lines**
+
+Keys: `J`
+
+Event: `vim:alias-join-lines`
+
+**Record/replay a series of commands in register n**
+
+Keys: `q n` `@ n`
+
+Events: `vim:command-start-recording` `vim:command-replay-recording`
+
+Notes: There is also the `vim:command-stop-recording` event that should
+be bound in the `.editor.recording` context instead of
+`.editor.command-mode`
+
+#### Ex mode
+
+**Save**
+
+Command: `:w`
+
+**Close window**
+
+Command: `:q`
