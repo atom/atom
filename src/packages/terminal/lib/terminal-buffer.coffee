@@ -6,7 +6,10 @@ class TerminalBuffer
   @backspace: String.fromCharCode(8)
   @escape: String.fromCharCode(27)
   @tab: String.fromCharCode(9)
-  @ctrl: (c) -> String.fromCharCode(c.charCodeAt(0) - "A".charCodeAt(0) + 1)
+  @ctrl: (c) ->
+    base = "a".charCodeAt(0)
+    base = "A".charCodeAt(0) if c.charCodeAt(0) < base
+    String.fromCharCode(c.charCodeAt(0) - base + 1)
   @escapeSequence: (sequence) -> "#{@escape}[#{sequence}"
   constructor: () ->
     @lines = []

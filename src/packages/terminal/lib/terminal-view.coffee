@@ -37,10 +37,10 @@ class TerminalView extends ScrollView
     rootView.command "terminal:delete", => @input(TerminalBuffer.backspace)
     rootView.command "terminal:escape", => @input(TerminalBuffer.escape)
     rootView.command "terminal:tab", => @input(TerminalBuffer.tab)
-    rootView.command "terminal:ctrl-c", => @input(TerminalBuffer.ctrl("C"))
-    rootView.command "terminal:ctrl-d", => @input(TerminalBuffer.ctrl("D"))
-    rootView.command "terminal:ctrl-w", => @input(TerminalBuffer.ctrl("W"))
-    rootView.command "terminal:ctrl-z", => @input(TerminalBuffer.ctrl("Z"))
+    for letter in "abcdefghijklmnopqrstuvwxyz"
+      do (letter) =>
+        key = TerminalBuffer.ctrl(letter)
+        rootView.command "terminal:ctrl-#{letter}", => @input(key)
     rootView.command "terminal:paste", => @input(pasteboard.read())
     rootView.command "terminal:left", => @input(TerminalBuffer.escapeSequence("D"))
     rootView.command "terminal:right", => @input(TerminalBuffer.escapeSequence("C"))
