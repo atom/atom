@@ -18,39 +18,40 @@ describe "RootView", ->
     rootView.open(pathToOpen)
     rootView.focus()
 
-  xdescribe "@deserialize()", ->
+  describe "@deserialize()", ->
     viewState = null
 
     describe "when the serialized RootView has an unsaved buffer", ->
       it "constructs the view with the same panes", ->
+        rootView.attachToDom()
         rootView.open()
-        editor1 = rootView.getActiveEditor()
+        editor1 = rootView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
-
         viewState = rootView.serialize()
         rootView.deactivate()
-        window.rootView = RootView.deserialize(viewState)
 
-        rootView.focus()
+        window.rootView = RootView.deserialize(viewState)
+        rootView.attachToDom()
+
         expect(rootView.getEditors().length).toBe 2
-        expect(rootView.getActiveEditor().getText()).toBe buffer.getText()
-        expect(rootView.getTitle()).toBe "untitled – #{project.getPath()}"
+        expect(rootView.getActiveView().getText()).toBe buffer.getText()
+        expect(rootView.title).toBe "untitled - #{project.getPath()}"
 
     describe "when the serialized RootView has a project", ->
       describe "when there are open editors", ->
         it "constructs the view with the same panes", ->
-          editor1 = rootView.getActiveEditor()
-          editor2 = editor1.splitRight()
-          editor3 = editor2.splitRight()
-          editor4 = editor2.splitDown()
-          editor2.edit(project.buildEditSession('b'))
-          editor3.edit(project.buildEditSession('../sample.js'))
-          editor3.setCursorScreenPosition([2, 4])
-          editor4.edit(project.buildEditSession('../sample.txt'))
-          editor4.setCursorScreenPosition([0, 2])
           rootView.attachToDom()
-          editor2.focus()
+          pane1 = rootView.getActivePane()
+          pane2 = pane1.splitRight()
+          pane3 = pane2.splitRight()
+          pane4 = pane2.splitDown()
+          pane2.showItem(project.buildEditSession('b'))
+          pane3.showItem(project.buildEditSession('../sample.js'))
+          pane3.activeItem.setCursorScreenPosition([2, 4])
+          pane4.showItem(project.buildEditSession('../sample.txt'))
+          pane4.activeItem.setCursorScreenPosition([0, 2])
+          pane2.focus()
 
           viewState = rootView.serialize()
           rootView.deactivate()
@@ -82,11 +83,11 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
-          expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{project.getPath()}"
+          expect(rootView.title).toBe "#{fs.base(editor2.getPath())} - #{project.getPath()}"
 
       describe "where there are no open editors", ->
         it "constructs the view with no open editors", ->
-          rootView.getActiveEditor().remove()
+          rootView.getActivePane().remove()
           expect(rootView.getEditors().length).toBe 0
 
           viewState = rootView.serialize()
@@ -95,19 +96,6 @@ describe "RootView", ->
 
           rootView.attachToDom()
           expect(rootView.getEditors().length).toBe 0
-
-    describe "when a pane's wrapped view cannot be deserialized", ->
-      it "renders an empty pane", ->
-        viewState =
-          panesViewState:
-            deserializer: "Pane",
-            wrappedView:
-              deserializer: "BogusView"
-
-        rootView.deactivate()
-        window.rootView = RootView.deserialize(viewState)
-        expect(rootView.find('.pane').length).toBe 1
-        expect(rootView.find('.pane').children().length).toBe 0
 
   describe "focus", ->
     describe "when there is an active view", ->
