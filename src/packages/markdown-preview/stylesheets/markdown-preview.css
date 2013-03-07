@@ -2,38 +2,28 @@
   font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   line-height: 1.6;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0px;
-  left: 0px;
   background-color: #fff;
   overflow: auto;
-  z-index: 3;
-  box-sizing: border-box;
   padding: 20px;
+  -webkit-flex: 1;
 }
 
-.markdown-body {
-  min-width: 680px;
-}
-
-.markdown-body pre,
-.markdown-body code,
-.markdown-body tt {
+.markdown-preview pre,
+.markdown-preview code,
+.markdown-preview tt {
   font-size: 12px;
   font-family: Consolas, "Liberation Mono", Courier, monospace;
 }
 
-.markdown-body a {
+.markdown-preview a {
   color: #4183c4;
 }
 
-.markdown-body ol > li {
+.markdown-preview ol > li {
   list-style-type: decimal;
 }
 
-.markdown-body ul > li {
+.markdown-preview ul > li {
   list-style-type: disc;
 }
 
@@ -50,17 +40,17 @@
 
 /* this code below was copied from https://github.com/assets/stylesheets/primer/components/markdown.css */
 /* we really need to get primer in here somehow. */
-.markdown-body {
+.markdown-preview {
   font-size: 14px;
   line-height: 1.6;
   overflow: hidden; }
-  .markdown-body > *:first-child {
+  .markdown-preview > *:first-child {
     margin-top: 0 !important; }
-  .markdown-body > *:last-child {
+  .markdown-preview > *:last-child {
     margin-bottom: 0 !important; }
-  .markdown-body a.absent {
+  .markdown-preview a.absent {
     color: #c00; }
-  .markdown-body a.anchor {
+  .markdown-preview a.anchor {
     display: block;
     padding-left: 30px;
     margin-left: -30px;
@@ -69,130 +59,130 @@
     top: 0;
     left: 0;
     bottom: 0; }
-  .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+  .markdown-preview h1, .markdown-preview h2, .markdown-preview h3, .markdown-preview h4, .markdown-preview h5, .markdown-preview h6 {
     margin: 20px 0 10px;
     padding: 0;
     font-weight: bold;
     -webkit-font-smoothing: antialiased;
     cursor: text;
     position: relative; }
-    .markdown-body h1 .mini-icon-link, .markdown-body h2 .mini-icon-link, .markdown-body h3 .mini-icon-link, .markdown-body h4 .mini-icon-link, .markdown-body h5 .mini-icon-link, .markdown-body h6 .mini-icon-link {
+    .markdown-preview h1 .mini-icon-link, .markdown-preview h2 .mini-icon-link, .markdown-preview h3 .mini-icon-link, .markdown-preview h4 .mini-icon-link, .markdown-preview h5 .mini-icon-link, .markdown-preview h6 .mini-icon-link {
       display: none;
       color: #000; }
-    .markdown-body h1:hover a.anchor, .markdown-body h2:hover a.anchor, .markdown-body h3:hover a.anchor, .markdown-body h4:hover a.anchor, .markdown-body h5:hover a.anchor, .markdown-body h6:hover a.anchor {
+    .markdown-preview h1:hover a.anchor, .markdown-preview h2:hover a.anchor, .markdown-preview h3:hover a.anchor, .markdown-preview h4:hover a.anchor, .markdown-preview h5:hover a.anchor, .markdown-preview h6:hover a.anchor {
       text-decoration: none;
       line-height: 1;
       padding-left: 0;
       margin-left: -22px;
       top: 15%; }
-      .markdown-body h1:hover a.anchor .mini-icon-link, .markdown-body h2:hover a.anchor .mini-icon-link, .markdown-body h3:hover a.anchor .mini-icon-link, .markdown-body h4:hover a.anchor .mini-icon-link, .markdown-body h5:hover a.anchor .mini-icon-link, .markdown-body h6:hover a.anchor .mini-icon-link {
+      .markdown-preview h1:hover a.anchor .mini-icon-link, .markdown-preview h2:hover a.anchor .mini-icon-link, .markdown-preview h3:hover a.anchor .mini-icon-link, .markdown-preview h4:hover a.anchor .mini-icon-link, .markdown-preview h5:hover a.anchor .mini-icon-link, .markdown-preview h6:hover a.anchor .mini-icon-link {
         display: inline-block; }
-    .markdown-body h1 tt, .markdown-body h1 code, .markdown-body h2 tt, .markdown-body h2 code, .markdown-body h3 tt, .markdown-body h3 code, .markdown-body h4 tt, .markdown-body h4 code, .markdown-body h5 tt, .markdown-body h5 code, .markdown-body h6 tt, .markdown-body h6 code {
+    .markdown-preview h1 tt, .markdown-preview h1 code, .markdown-preview h2 tt, .markdown-preview h2 code, .markdown-preview h3 tt, .markdown-preview h3 code, .markdown-preview h4 tt, .markdown-preview h4 code, .markdown-preview h5 tt, .markdown-preview h5 code, .markdown-preview h6 tt, .markdown-preview h6 code {
       font-size: inherit; }
-  .markdown-body h1 {
+  .markdown-preview h1 {
     font-size: 28px;
     color: #000; }
-  .markdown-body h2 {
+  .markdown-preview h2 {
     font-size: 24px;
     border-bottom: 1px solid #ccc;
     color: #000; }
-  .markdown-body h3 {
+  .markdown-preview h3 {
     font-size: 18px; }
-  .markdown-body h4 {
+  .markdown-preview h4 {
     font-size: 16px; }
-  .markdown-body h5 {
+  .markdown-preview h5 {
     font-size: 14px; }
-  .markdown-body h6 {
+  .markdown-preview h6 {
     color: #777;
     font-size: 14px; }
-  .markdown-body p,
-  .markdown-body blockquote,
-  .markdown-body ul, .markdown-body ol, .markdown-body dl,
-  .markdown-body table,
-  .markdown-body pre {
+  .markdown-preview p,
+  .markdown-preview blockquote,
+  .markdown-preview ul, .markdown-preview ol, .markdown-preview dl,
+  .markdown-preview table,
+  .markdown-preview pre {
     margin: 15px 0; }
-  .markdown-body hr {
+  .markdown-preview hr {
     background: transparent url("https://a248.e.akamai.net/assets.github.com/assets/primer/markdown/dirty-shade-0e7d81b119cc9beae17b0c98093d121fa0050a74.png") repeat-x 0 0;
     border: 0 none;
     color: #ccc;
     height: 4px;
     padding: 0; }
-  .markdown-body > h2:first-child, .markdown-body > h1:first-child, .markdown-body > h1:first-child + h2, .markdown-body > h3:first-child, .markdown-body > h4:first-child, .markdown-body > h5:first-child, .markdown-body > h6:first-child {
+  .markdown-preview > h2:first-child, .markdown-preview > h1:first-child, .markdown-preview > h1:first-child + h2, .markdown-preview > h3:first-child, .markdown-preview > h4:first-child, .markdown-preview > h5:first-child, .markdown-preview > h6:first-child {
     margin-top: 0;
     padding-top: 0; }
-  .markdown-body a:first-child h1, .markdown-body a:first-child h2, .markdown-body a:first-child h3, .markdown-body a:first-child h4, .markdown-body a:first-child h5, .markdown-body a:first-child h6 {
+  .markdown-preview a:first-child h1, .markdown-preview a:first-child h2, .markdown-preview a:first-child h3, .markdown-preview a:first-child h4, .markdown-preview a:first-child h5, .markdown-preview a:first-child h6 {
     margin-top: 0;
     padding-top: 0; }
-  .markdown-body h1 + p,
-  .markdown-body h2 + p,
-  .markdown-body h3 + p,
-  .markdown-body h4 + p,
-  .markdown-body h5 + p,
-  .markdown-body h6 + p {
+  .markdown-preview h1 + p,
+  .markdown-preview h2 + p,
+  .markdown-preview h3 + p,
+  .markdown-preview h4 + p,
+  .markdown-preview h5 + p,
+  .markdown-preview h6 + p {
     margin-top: 0; }
-  .markdown-body li p.first {
+  .markdown-preview li p.first {
     display: inline-block; }
-  .markdown-body ul, .markdown-body ol {
+  .markdown-preview ul, .markdown-preview ol {
     padding-left: 30px; }
-    .markdown-body ul.no-list, .markdown-body ol.no-list {
+    .markdown-preview ul.no-list, .markdown-preview ol.no-list {
       list-style-type: none;
       padding: 0; }
-    .markdown-body ul li > :first-child,
-    .markdown-body ul li ul:first-of-type, .markdown-body ol li > :first-child,
-    .markdown-body ol li ul:first-of-type {
+    .markdown-preview ul li > :first-child,
+    .markdown-preview ul li ul:first-of-type, .markdown-preview ol li > :first-child,
+    .markdown-preview ol li ul:first-of-type {
       margin-top: 0px; }
-  .markdown-body ul ul,
-  .markdown-body ul ol,
-  .markdown-body ol ol,
-  .markdown-body ol ul {
+  .markdown-preview ul ul,
+  .markdown-preview ul ol,
+  .markdown-preview ol ol,
+  .markdown-preview ol ul {
     margin-bottom: 0; }
-  .markdown-body dl {
+  .markdown-preview dl {
     padding: 0; }
-  .markdown-body dl dt {
+  .markdown-preview dl dt {
     font-size: 14px;
     font-weight: bold;
     font-style: italic;
     padding: 0;
     margin: 15px 0 5px; }
-    .markdown-body dl dt:first-child {
+    .markdown-preview dl dt:first-child {
       padding: 0; }
-    .markdown-body dl dt > :first-child {
+    .markdown-preview dl dt > :first-child {
       margin-top: 0px; }
-    .markdown-body dl dt > :last-child {
+    .markdown-preview dl dt > :last-child {
       margin-bottom: 0px; }
-  .markdown-body dl dd {
+  .markdown-preview dl dd {
     margin: 0 0 15px;
     padding: 0 15px; }
-    .markdown-body dl dd > :first-child {
+    .markdown-preview dl dd > :first-child {
       margin-top: 0px; }
-    .markdown-body dl dd > :last-child {
+    .markdown-preview dl dd > :last-child {
       margin-bottom: 0px; }
-  .markdown-body blockquote {
+  .markdown-preview blockquote {
     border-left: 4px solid #DDD;
     padding: 0 15px;
     color: #777; }
-    .markdown-body blockquote > :first-child {
+    .markdown-preview blockquote > :first-child {
       margin-top: 0px; }
-    .markdown-body blockquote > :last-child {
+    .markdown-preview blockquote > :last-child {
       margin-bottom: 0px; }
-  .markdown-body table th {
+  .markdown-preview table th {
     font-weight: bold; }
-  .markdown-body table th, .markdown-body table td {
+  .markdown-preview table th, .markdown-preview table td {
     border: 1px solid #ccc;
     padding: 6px 13px; }
-  .markdown-body table tr {
+  .markdown-preview table tr {
     border-top: 1px solid #ccc;
     background-color: #fff; }
-    .markdown-body table tr:nth-child(2n) {
+    .markdown-preview table tr:nth-child(2n) {
       background-color: #f8f8f8; }
-  .markdown-body img {
+  .markdown-preview img {
     max-width: 100%;
     -moz-box-sizing: border-box;
     box-sizing: border-box; }
-  .markdown-body span.frame {
+  .markdown-preview span.frame {
     display: block;
     overflow: hidden; }
-    .markdown-body span.frame > span {
+    .markdown-preview span.frame > span {
       border: 1px solid #ddd;
       display: block;
       float: left;
@@ -200,70 +190,70 @@
       margin: 13px 0 0;
       padding: 7px;
       width: auto; }
-    .markdown-body span.frame span img {
+    .markdown-preview span.frame span img {
       display: block;
       float: left; }
-    .markdown-body span.frame span span {
+    .markdown-preview span.frame span span {
       clear: both;
       color: #333;
       display: block;
       padding: 5px 0 0; }
-  .markdown-body span.align-center {
+  .markdown-preview span.align-center {
     display: block;
     overflow: hidden;
     clear: both; }
-    .markdown-body span.align-center > span {
+    .markdown-preview span.align-center > span {
       display: block;
       overflow: hidden;
       margin: 13px auto 0;
       text-align: center; }
-    .markdown-body span.align-center span img {
+    .markdown-preview span.align-center span img {
       margin: 0 auto;
       text-align: center; }
-  .markdown-body span.align-right {
+  .markdown-preview span.align-right {
     display: block;
     overflow: hidden;
     clear: both; }
-    .markdown-body span.align-right > span {
+    .markdown-preview span.align-right > span {
       display: block;
       overflow: hidden;
       margin: 13px 0 0;
       text-align: right; }
-    .markdown-body span.align-right span img {
+    .markdown-preview span.align-right span img {
       margin: 0;
       text-align: right; }
-  .markdown-body span.float-left {
+  .markdown-preview span.float-left {
     display: block;
     margin-right: 13px;
     overflow: hidden;
     float: left; }
-    .markdown-body span.float-left span {
+    .markdown-preview span.float-left span {
       margin: 13px 0 0; }
-  .markdown-body span.float-right {
+  .markdown-preview span.float-right {
     display: block;
     margin-left: 13px;
     overflow: hidden;
     float: right; }
-    .markdown-body span.float-right > span {
+    .markdown-preview span.float-right > span {
       display: block;
       overflow: hidden;
       margin: 13px auto 0;
       text-align: right; }
-  .markdown-body code, .markdown-body tt {
+  .markdown-preview code, .markdown-preview tt {
     margin: 0 2px;
     padding: 0px 5px;
     border: 1px solid #eaeaea;
     background-color: #f8f8f8;
     border-radius: 3px; }
-  .markdown-body code {
+  .markdown-preview code {
     white-space: nowrap; }
-  .markdown-body pre > code {
+  .markdown-preview pre > code {
     margin: 0;
     padding: 0;
     white-space: pre;
     border: none;
     background: transparent; }
-  .markdown-body .highlight pre, .markdown-body pre {
+  .markdown-preview .highlight pre, .markdown-preview pre {
     background-color: #f8f8f8;
     border: 1px solid #ccc;
     font-size: 13px;
@@ -271,168 +261,168 @@
     overflow: auto;
     padding: 6px 10px;
     border-radius: 3px; }
-  .markdown-body pre code, .markdown-body pre tt {
+  .markdown-preview pre code, .markdown-preview pre tt {
     margin: 0;
     padding: 0;
     background-color: transparent;
     border: none; }
 
 /* this code was copied from https://github.com/assets/stylesheets/primer/components/pygments.css */
-/* the .markdown-body class was then added to all rules */
-.markdown-body .highlight {
+/* the .markdown-preview class was then added to all rules */
+.markdown-preview .highlight {
   background: #ffffff; }
-  .markdown-body .highlight .c {
+  .markdown-preview .highlight .c {
     color: #999988;
     font-style: italic; }
-  .markdown-body .highlight .err {
+  .markdown-preview .highlight .err {
     color: #a61717;
     background-color: #e3d2d2; }
-  .markdown-body .highlight .k {
+  .markdown-preview .highlight .k {
     font-weight: bold; }
-  .markdown-body .highlight .o {
+  .markdown-preview .highlight .o {
     font-weight: bold; }
-  .markdown-body .highlight .cm {
+  .markdown-preview .highlight .cm {
     color: #999988;
     font-style: italic; }
-  .markdown-body .highlight .cp {
+  .markdown-preview .highlight .cp {
     color: #999999;
     font-weight: bold; }
-  .markdown-body .highlight .c1 {
+  .markdown-preview .highlight .c1 {
     color: #999988;
     font-style: italic; }
-  .markdown-body .highlight .cs {
+  .markdown-preview .highlight .cs {
     color: #999999;
     font-weight: bold;
     font-style: italic; }
-  .markdown-body .highlight .gd {
+  .markdown-preview .highlight .gd {
     color: #000000;
     background-color: #ffdddd; }
-  .markdown-body .highlight .gd .x {
+  .markdown-preview .highlight .gd .x {
     color: #000000;
     background-color: #ffaaaa; }
-  .markdown-body .highlight .ge {
+  .markdown-preview .highlight .ge {
     font-style: italic; }
-  .markdown-body .highlight .gr {
+  .markdown-preview .highlight .gr {
     color: #aa0000; }
-  .markdown-body .highlight .gh {
+  .markdown-preview .highlight .gh {
     color: #999999; }
-  .markdown-body .highlight .gi {
+  .markdown-preview .highlight .gi {
     color: #000000;
     background-color: #ddffdd; }
-  .markdown-body .highlight .gi .x {
+  .markdown-preview .highlight .gi .x {
     color: #000000;
     background-color: #aaffaa; }
-  .markdown-body .highlight .go {
+  .markdown-preview .highlight .go {
     color: #888888; }
-  .markdown-body .highlight .gp {
+  .markdown-preview .highlight .gp {
     color: #555555; }
-  .markdown-body .highlight .gs {
+  .markdown-preview .highlight .gs {
     font-weight: bold; }
-  .markdown-body .highlight .gu {
+  .markdown-preview .highlight .gu {
     color: #800080;
     font-weight: bold; }
-  .markdown-body .highlight .gt {
+  .markdown-preview .highlight .gt {
     color: #aa0000; }
-  .markdown-body .highlight .kc {
+  .markdown-preview .highlight .kc {
     font-weight: bold; }
-  .markdown-body .highlight .kd {
+  .markdown-preview .highlight .kd {
     font-weight: bold; }
-  .markdown-body .highlight .kn {
+  .markdown-preview .highlight .kn {
     font-weight: bold; }
-  .markdown-body .highlight .kp {
+  .markdown-preview .highlight .kp {
     font-weight: bold; }
-  .markdown-body .highlight .kr {
+  .markdown-preview .highlight .kr {
     font-weight: bold; }
-  .markdown-body .highlight .kt {
+  .markdown-preview .highlight .kt {
     color: #445588;
     font-weight: bold; }
-  .markdown-body .highlight .m {
+  .markdown-preview .highlight .m {
     color: #009999; }
-  .markdown-body .highlight .s {
+  .markdown-preview .highlight .s {
     color: #d14; }
-  .markdown-body .highlight .na {
+  .markdown-preview .highlight .na {
     color: #008080; }
-  .markdown-body .highlight .nb {
+  .markdown-preview .highlight .nb {
     color: #0086B3; }
-  .markdown-body .highlight .nc {
+  .markdown-preview .highlight .nc {
     color: #445588;
     font-weight: bold; }
-  .markdown-body .highlight .no {
+  .markdown-preview .highlight .no {
     color: #008080; }
-  .markdown-body .highlight .ni {
+  .markdown-preview .highlight .ni {
     color: #800080; }
-  .markdown-body .highlight .ne {
+  .markdown-preview .highlight .ne {
     color: #990000;
     font-weight: bold; }
-  .markdown-body .highlight .nf {
+  .markdown-preview .highlight .nf {
     color: #990000;
     font-weight: bold; }
-  .markdown-body .highlight .nn {
+  .markdown-preview .highlight .nn {
     color: #555555; }
-  .markdown-body .highlight .nt {
+  .markdown-preview .highlight .nt {
     color: #000080; }
-  .markdown-body .highlight .nv {
+  .markdown-preview .highlight .nv {
     color: #008080; }
-  .markdown-body .highlight .ow {
+  .markdown-preview .highlight .ow {
     font-weight: bold; }
-  .markdown-body .highlight .w {
+  .markdown-preview .highlight .w {
     color: #bbbbbb; }
-  .markdown-body .highlight .mf {
+  .markdown-preview .highlight .mf {
     color: #009999; }
-  .markdown-body .highlight .mh {
+  .markdown-preview .highlight .mh {
     color: #009999; }
-  .markdown-body .highlight .mi {
+  .markdown-preview .highlight .mi {
     color: #009999; }
-  .markdown-body .highlight .mo {
+  .markdown-preview .highlight .mo {
     color: #009999; }
-  .markdown-body .highlight .sb {
+  .markdown-preview .highlight .sb {
     color: #d14; }
-  .markdown-body .highlight .sc {
+  .markdown-preview .highlight .sc {
     color: #d14; }
-  .markdown-body .highlight .sd {
+  .markdown-preview .highlight .sd {
     color: #d14; }
-  .markdown-body .highlight .s2 {
+  .markdown-preview .highlight .s2 {
     color: #d14; }
-  .markdown-body .highlight .se {
+  .markdown-preview .highlight .se {
     color: #d14; }
-  .markdown-body .highlight .sh {
+  .markdown-preview .highlight .sh {
     color: #d14; }
-  .markdown-body .highlight .si {
+  .markdown-preview .highlight .si {
     color: #d14; }
-  .markdown-body .highlight .sx {
+  .markdown-preview .highlight .sx {
     color: #d14; }
-  .markdown-body .highlight .sr {
+  .markdown-preview .highlight .sr {
     color: #009926; }
-  .markdown-body .highlight .s1 {
+  .markdown-preview .highlight .s1 {
     color: #d14; }
-  .markdown-body .highlight .ss {
+  .markdown-preview .highlight .ss {
     color: #990073; }
-  .markdown-body .highlight .bp {
+  .markdown-preview .highlight .bp {
     color: #999999; }
-  .markdown-body .highlight .vc {
+  .markdown-preview .highlight .vc {
     color: #008080; }
-  .markdown-body .highlight .vg {
+  .markdown-preview .highlight .vg {
     color: #008080; }
-  .markdown-body .highlight .vi {
+  .markdown-preview .highlight .vi {
     color: #008080; }
-  .markdown-body .highlight .il {
+  .markdown-preview .highlight .il {
     color: #009999; }
-  .markdown-body .highlight .gc {
+  .markdown-preview .highlight .gc {
     color: #999;
     background-color: #EAF2F5; }
 
-.type-csharp .markdown-body .highlight .k {
+.type-csharp .markdown-preview .highlight .k {
   color: #0000FF; }
-.type-csharp .markdown-body .highlight .kt {
+.type-csharp .markdown-preview .highlight .kt {
   color: #0000FF; }
-.type-csharp .markdown-body .highlight .nf {
+.type-csharp .markdown-preview .highlight .nf {
   color: #000000;
   font-weight: normal; }
-.type-csharp .markdown-body .highlight .nc {
+.type-csharp .markdown-preview .highlight .nc {
   color: #2B91AF; }
-.type-csharp .markdown-body .highlight .nn {
+.type-csharp .markdown-preview .highlight .nn {
   color: #000000; }
-.type-csharp .markdown-body .highlight .s {
+.type-csharp .markdown-preview .highlight .s {
   color: #A31515; }
-.type-csharp .markdown-body .highlight .sc {
+.type-csharp .markdown-preview .highlight .sc {
   color: #A31515; }
