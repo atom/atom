@@ -30,7 +30,6 @@ class EditSession
   @deserializesToSameObject: (state, editSession) ->
     state.path
 
-
   scrollTop: 0
   scrollLeft: 0
   languageMode: null

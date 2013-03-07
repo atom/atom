@@ -52,33 +52,33 @@ describe "MarkdownPreview", ->
       expect(rootView.find('.markdown-preview')).not.toExist()
       expect(MarkdownPreview.prototype.loadHtml).not.toHaveBeenCalled()
 
-   describe "core:cancel event", ->
-     it "removes markdown preview", ->
-       rootView.open('file.md')
-       editor = rootView.getActiveView()
-       expect(rootView.find('.markdown-preview')).not.toExist()
-       editor.trigger('markdown-preview:toggle')
+  describe "core:cancel event", ->
+   it "removes markdown preview", ->
+     rootView.open('file.md')
+     editor = rootView.getActiveView()
+     expect(rootView.find('.markdown-preview')).not.toExist()
+     editor.trigger('markdown-preview:toggle')
 
-       markdownPreviewView = rootView.find('.markdown-preview')?.view()
-       expect(markdownPreviewView).toExist()
-       markdownPreviewView.trigger('core:cancel')
-       expect(rootView.find('.markdown-preview')).not.toExist()
+     markdownPreviewView = rootView.find('.markdown-preview')?.view()
+     expect(markdownPreviewView).toExist()
+     markdownPreviewView.trigger('core:cancel')
+     expect(rootView.find('.markdown-preview')).not.toExist()
 
-   describe "when the editor receives focus", ->
-     it "removes the markdown preview view", ->
-       rootView.attachToDom()
-       rootView.open('file.md')
-       editor = rootView.getActiveView()
-       expect(rootView.find('.markdown-preview')).not.toExist()
-       editor.trigger('markdown-preview:toggle')
+  describe "when the editor receives focus", ->
+   it "removes the markdown preview view", ->
+     rootView.attachToDom()
+     rootView.open('file.md')
+     editor = rootView.getActiveView()
+     expect(rootView.find('.markdown-preview')).not.toExist()
+     editor.trigger('markdown-preview:toggle')
 
-       markdownPreviewView = rootView.find('.markdown-preview')
-       editor.focus()
-       expect(markdownPreviewView).toExist()
-       expect(rootView.find('.markdown-preview')).not.toExist()
+     markdownPreviewView = rootView.find('.markdown-preview')
+     editor.focus()
+     expect(markdownPreviewView).toExist()
+     expect(rootView.find('.markdown-preview')).not.toExist()
 
-   describe "when no editor is open", ->
-     it "does not attach", ->
-       expect(rootView.getActiveView()).toBeFalsy()
-       rootView.trigger('markdown-preview:toggle')
-       expect(rootView.find('.markdown-preview')).not.toExist()
+  describe "when no editor is open", ->
+   it "does not attach", ->
+     expect(rootView.getActiveView()).toBeFalsy()
+     rootView.trigger('markdown-preview:toggle')
+     expect(rootView.find('.markdown-preview')).not.toExist()
