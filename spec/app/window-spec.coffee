@@ -46,16 +46,17 @@ describe "Window", ->
       expect(window.close).toHaveBeenCalled()
 
   describe ".reload()", ->
-    it "returns false when no buffers are modified", ->
+    beforeEach ->
       spyOn($native, "reload")
+
+    it "returns false when no buffers are modified", ->
       window.reload()
       expect($native.reload).toHaveBeenCalled()
 
-    it "shows alert when a modifed buffer exists", ->
+    it "shows an alert when a modifed buffer exists", ->
       rootView.open('sample.js')
-      rootView.getActiveEditor().insertText("hi")
+      rootView.getActiveView().insertText("hi")
       spyOn(atom, "confirm")
-      spyOn($native, "reload")
       window.reload()
       expect($native.reload).not.toHaveBeenCalled()
       expect(atom.confirm).toHaveBeenCalled()
@@ -103,13 +104,13 @@ describe "Window", ->
 
     it "unsubscribes from all buffers", ->
       rootView.open('sample.js')
-      editor1 = rootView.getActiveEditor()
-      editor2 = editor1.splitRight()
-      expect(window.rootView.getEditors().length).toBe 2
+      buffer = rootView.getActivePaneItem().buffer
+      rootView.getActivePane().splitRight()
+      expect(window.rootView.find('.editor').length).toBe 2
 
       window.shutdown()
 
-      expect(editor1.getBuffer().subscriptionCount()).toBe 0
+      expect(buffer.subscriptionCount()).toBe 0
 
     it "only serializes window state the first time it is called", ->
       deactivateSpy = spyOn(atom, "setRootViewStateForPath").andCallThrough()
@@ -129,3 +130,34 @@ describe "Window", ->
         window.installAtomCommand(commandPath)
         expect(fs.exists(commandPath)).toBeTruthy()
         expect(fs.read(commandPath).length).toBeGreaterThan 1
+
+  describe ".deserialize(state)", ->
+    class Foo
+      @deserialize: ({name}) -> new Foo(name)
+      constructor: (@name) ->
+
+    beforeEach ->
+      registerDeserializer(Foo)
+
+    afterEach ->
+      unregisterDeserializer(Foo)
+
+    it "calls deserialize on the deserializer for the given state object, or returns undefined if one can't be found", ->
+      object = deserialize({ deserializer: 'Foo', name: 'Bar' })
+      expect(object.name).toBe 'Bar'
+      expect(deserialize({ deserializer: 'Bogus' })).toBeUndefined()
+
+    describe "when the deserializer has a version", ->
+      beforeEach ->
+        Foo.version = 2
+
+      describe "when the deserialized state has a matching version", ->
+        it "attempts to deserialize the state", ->
+          object = deserialize({ deserializer: 'Foo', version: 2, name: 'Bar' })
+          expect(object.name).toBe 'Bar'
+
+      describe "when the deserialized state has a non-matching version", ->
+        it "returns undefined", ->
+          expect(deserialize({ deserializer: 'Foo', version: 3, name: 'Bar' })).toBeUndefined()
+          expect(deserialize({ deserializer: 'Foo', version: 1, name: 'Bar' })).toBeUndefined()
+          expect(deserialize({ deserializer: 'Foo', name: 'Bar' })).toBeUndefined()

@@ -2,7 +2,7 @@ module.exports =
   treeView: null
 
   activate: (@state) ->
-    @state.attached ?= true unless rootView.getActiveEditSession()
+    @state.attached ?= true unless rootView.getActivePaneItem()
 
     @createView() if @state.attached
     rootView.command 'tree-view:toggle', => @createView().toggle()

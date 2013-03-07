@@ -2,7 +2,7 @@ $ = require 'jquery'
 {View} = require 'space-pen'
 
 module.exports =
-class PaneGrid extends View
+class PaneAxis extends View
   @deserialize: ({children}) ->
     childViews = children.map (child) -> deserialize(child)
     new this(childViews)

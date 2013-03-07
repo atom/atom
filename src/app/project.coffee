@@ -95,10 +95,10 @@ class Project
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
-  buildEditSessionForPath: (filePath, editSessionOptions={}) ->
-    @buildEditSession(@bufferForPath(filePath), editSessionOptions)
+  buildEditSession: (filePath, editSessionOptions={}) ->
+    @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
 
-  buildEditSession: (buffer, editSessionOptions) ->
+  buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
     options.project = this
     options.buffer = buffer

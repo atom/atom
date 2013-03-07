@@ -40,7 +40,7 @@ class MarkdownPreviewView extends ScrollView
     @detaching = false
 
   getActiveText: ->
-    rootView.getActiveEditor()?.getText()
+    rootView.getActiveView()?.getText()
 
   getErrorHtml: (error) ->
     $$$ ->
@@ -74,7 +74,7 @@ class MarkdownPreviewView extends ScrollView
     @markdownBody.html(html) if @hasParent()
 
   isMarkdownEditor: (path) ->
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     return unless editor?
     return true if editor.getGrammar().scopeName is 'source.gfm'
     path and fs.isMarkdownExtension(fs.extension(path))

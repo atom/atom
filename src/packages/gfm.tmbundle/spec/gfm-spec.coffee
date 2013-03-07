@@ -136,6 +136,6 @@ describe "GitHub Flavored Markdown grammar", ->
   describe "auto indent", ->
     it "indents newlines entered after list lines", ->
       config.set('editor.autoIndent', true)
-      editSession = fixturesProject.buildEditSessionForPath('gfm.md')
+      editSession = project.buildEditSession('gfm.md')
       editSession.insertNewlineBelow()
       expect(editSession.buffer.lineForRow(1)).toBe '    '

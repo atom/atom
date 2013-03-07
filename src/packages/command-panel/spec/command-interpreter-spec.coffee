@@ -6,12 +6,11 @@ EditSession = require 'edit-session'
 _ = require 'underscore'
 
 describe "CommandInterpreter", ->
-  [project, interpreter, editSession, buffer] = []
+  [interpreter, editSession, buffer] = []
 
   beforeEach ->
-    project = new Project(fixturesProject.resolve('dir/'))
-    interpreter = new CommandInterpreter(fixturesProject)
-    editSession = fixturesProject.buildEditSessionForPath('sample.js')
+    interpreter = new CommandInterpreter(project)
+    editSession = project.buildEditSession('sample.js')
     buffer = editSession.buffer
 
   afterEach ->
@@ -418,7 +417,7 @@ describe "CommandInterpreter", ->
   describe "X x/regex/", ->
     it "returns selection operations for all regex matches in all the project's files", ->
       editSession.destroy()
-      project = new Project(fixturesProject.resolve('dir/'))
+      project.setPath(project.resolve('dir'))
       interpreter = new CommandInterpreter(project)
 
       operationsToPreview = null
@@ -428,7 +427,7 @@ describe "CommandInterpreter", ->
       runs ->
         expect(operationsToPreview.length).toBeGreaterThan 3
         for operation in operationsToPreview
-          editSession = project.buildEditSessionForPath(operation.getPath())
+          editSession = project.buildEditSession(operation.getPath())
           editSession.setSelectedBufferRange(operation.execute(editSession))
           expect(editSession.getSelectedText()).toMatch /a+/
           editSession.destroy()
