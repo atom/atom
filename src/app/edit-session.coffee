@@ -843,11 +843,10 @@ class EditSession
   getGrammar: -> @languageMode.grammar
 
   reloadGrammar: ->
-    grammarChanged = @languageMode.reloadGrammar()
-    if grammarChanged
+    if @languageMode.reloadGrammar()
       @unfoldAll()
       @displayBuffer.tokenizedBuffer.resetScreenLines()
-    grammarChanged
+      true
 
   getDebugSnapshot: ->
     [
