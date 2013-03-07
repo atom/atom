@@ -28,6 +28,7 @@ class Git
 
   statuses: null
   upstream: null
+  statusTask: null
 
   constructor: (path, options={}) ->
     @statuses = {}
@@ -58,7 +59,11 @@ class Git
     @path ?= fs.absolute(@getRepo().getPath())
 
   destroy: ->
-    @statusTask?.abort()
+    if @statusTask?
+      @statusTask.abort()
+      @statusTask.off()
+      @statusTask = null
+
     @getRepo().destroy()
     @repo = null
     @unsubscribe()
@@ -130,8 +135,16 @@ class Git
     @getRepo().isSubmodule(@relativize(path))
 
   refreshStatus: ->
-    @statusTask = new RepositoryStatusTask(this)
-    @statusTask.start()
+    if @statusTask?
+      @statusTask.off()
+      @statusTask.one 'task-completed', =>
+        @statusTask = null
+        @refreshStatus()
+    else
+      @statusTask = new RepositoryStatusTask(this)
+      @statusTask.one 'task-completed', =>
+        @statusTask = null
+      @statusTask.start()
 
   getDirectoryStatus: (directoryPath) ->
     directoryPath = "#{directoryPath}/"

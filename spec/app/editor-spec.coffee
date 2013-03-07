@@ -275,9 +275,23 @@ describe "Editor", ->
       afterEach ->
         editor.clearFontFamily()
 
-      it "updates the font family on new and existing editors and recalculates dimensions critical to cursor positioning", ->
-        editor.attachToDom()
+      it "updates the font family on new and existing editors", ->
+        editor.attachToDom(12)
+        config.set("editor.fontFamily", "Courier")
+
+        newEditor = new Editor(project.buildEditSession('sample.js'))
+        newEditor.attachToDom(12)
+
+        expect($("head style.editor-font-family").text()).toMatch "{font-family: Courier}"
+        expect(editor.css('font-family')).toBe 'Courier'
+        expect(newEditor.css('font-family')).toBe 'Courier'
+
+      it "updates the font family of editors and recalculates dimensions critical to cursor positioning", ->
+        editor.attachToDom(12)
+
+        lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
+        config.set("editor.fontFamily", "PCMyungjo")
 
         editor.setCursorScreenPosition [5, 6]
         config.set("editor.fontFamily", "Consolas")

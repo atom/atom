@@ -1,5 +1,6 @@
 DisplayBuffer = require 'display-buffer'
 Buffer = require 'buffer'
+_ = require 'underscore'
 
 describe "DisplayBuffer", ->
   [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
@@ -55,6 +56,13 @@ describe "DisplayBuffer", ->
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
+        describe "when whitespace is added after the max line length", ->
+          it "adds whitespace to the end of the current line and wraps an empty line", ->
+            fiftyCharacters = _.multiplyString("x", 50)
+            editSession.buffer.setText(fiftyCharacters)
+            editSession.setCursorBufferPosition([0, 51])
+            editSession.insertText(" ")
+
         describe "when the update makes a soft-wrapped line shorter than the max line length", ->
           it "rewraps the line and emits a change event", ->
             buffer.delete([[6, 24], [6, 42]])

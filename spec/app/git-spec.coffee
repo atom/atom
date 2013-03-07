@@ -1,5 +1,6 @@
 Git = require 'git'
 fs = require 'fs'
+Task = require 'task'
 
 describe "Git", ->
   repo = null
@@ -212,3 +213,22 @@ describe "Git", ->
         expect(statuses[cleanPath]).toBeUndefined()
         expect(repo.isStatusNew(statuses[newPath])).toBeTruthy()
         expect(repo.isStatusModified(statuses[modifiedPath])).toBeTruthy()
+
+    it "only starts a single web worker at a time and schedules a restart if one is already running", =>
+      fs.write(modifiedPath, 'making this path modified')
+      statusHandler = jasmine.createSpy('statusHandler')
+      repo.on 'statuses-changed', statusHandler
+
+      spyOn(Task.prototype, "start").andCallThrough()
+      repo.refreshStatus()
+      expect(Task.prototype.start.callCount).toBe 1
+      repo.refreshStatus()
+      expect(Task.prototype.start.callCount).toBe 1
+      repo.refreshStatus()
+      expect(Task.prototype.start.callCount).toBe 1
+
+      waitsFor ->
+        statusHandler.callCount > 0
+
+      runs ->
+        expect(Task.prototype.start.callCount).toBe 2
