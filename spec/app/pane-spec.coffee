@@ -664,3 +664,30 @@ describe "Pane", ->
     it "can serialize and deserialize the pane and all its serializable items", ->
       newPane = deserialize(pane.serialize())
       expect(newPane.getItems()).toEqual [editSession1, editSession2]
+
+    it "restores the active item on deserialization if it serializable", ->
+      pane.showItem(editSession2)
+      newPane = deserialize(pane.serialize())
+      expect(newPane.activeItem).toEqual editSession2
+
+    it "defaults to the first item on deserialization if the active item was not serializable", ->
+      expect(view2.serialize?()).toBeFalsy()
+      pane.showItem(view2)
+      newPane = deserialize(pane.serialize())
+      expect(newPane.activeItem).toEqual editSession1
+
+    it "focuses the pane after attach only if had focus when serialized", ->
+      container.attachToDom()
+
+      pane.focus()
+      state = pane.serialize()
+      pane.remove()
+      newPane = deserialize(state)
+      container.append(newPane)
+      expect(newPane).toMatchSelector(':has(:focus)')
+
+      $(document.activeElement).blur()
+      state = newPane.serialize()
+      newPane.remove()
+      newerPane = deserialize(state)
+      expect(newerPane).not.toMatchSelector(':has(:focus)')

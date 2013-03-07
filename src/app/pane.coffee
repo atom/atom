@@ -10,8 +10,11 @@ class Pane extends View
     @div class: 'pane', =>
       @div class: 'item-views', outlet: 'itemViews'
 
-  @deserialize: ({items}) ->
-    new Pane(items.map((item) -> deserialize(item))...)
+  @deserialize: ({items, focused, activeItemUri}) ->
+    pane = new Pane(items.map((item) -> deserialize(item))...)
+    pane.showItemForUri(activeItemUri) if activeItemUri
+    pane.focusOnAttach = true if focused
+    pane
 
   activeItem: null
   items: null
@@ -47,7 +50,11 @@ class Pane extends View
     @on 'focusin', => @makeActive()
     @on 'focusout', => @autosaveActiveItem()
 
-  afterAttach: ->
+  afterAttach: (onDom) ->
+    if @focusOnAttach and onDom
+      @focusOnAttach = null
+      @focus()
+
     return if @attached
     @attached = true
     @trigger 'pane:attached'
@@ -206,6 +213,9 @@ class Pane extends View
   itemForUri: (uri) ->
     _.detect @items, (item) -> item.getUri?() is uri
 
+  showItemForUri: (uri) ->
+    @showItem(@itemForUri(uri))
+
   cleanupItemView: (item) ->
     if item instanceof $
       viewToRemove = item
@@ -238,6 +248,8 @@ class Pane extends View
 
   serialize: ->
     deserializer: "Pane"
+    focused: @is(':has(:focus)')
+    activeItemUri: @activeItem.getUri?() if typeof @activeItem.serialize is 'function'
     items: _.compact(@getItems().map (item) -> item.serialize?())
 
   adjustDimensions: -> # do nothing
