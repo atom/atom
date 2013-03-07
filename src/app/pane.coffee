@@ -72,6 +72,12 @@ class Pane extends View
   isActive: ->
     @hasClass('active')
 
+  getNextPane: ->
+    panes = @getContainer()?.getPanes()
+    return unless panes.length > 1
+    nextIndex = (panes.indexOf(this) + 1) % panes.length
+    panes[nextIndex]
+
   getItems: ->
     new Array(@items...)
 
