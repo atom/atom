@@ -129,8 +129,11 @@ namespace v8_extensions {
       free((char*)shortBranchName);
 
       git_config *config;
-      if (git_repository_config(&config, repo) != GIT_OK)
+      if (git_repository_config(&config, repo) != GIT_OK) {
+        free(remoteKey);
+        free(mergeKey);
         return;
+      }
 
       const char *remote;
       const char *merge;
