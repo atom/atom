@@ -142,7 +142,7 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           rootView.open()
 
-          states = rootView.serialize().packageStates
+          states = rootView.serialize().packages
           states = _.map states['fuzzy-finder'], (path, time) -> [ path, time ]
           states = _.sortBy states, (path, time) -> -time
 

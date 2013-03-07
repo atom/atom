@@ -27,9 +27,9 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @subview 'panes', panes ? new PaneContainer
 
-  @deserialize: ({ panesViewState, packageStates, projectPath }) ->
-    atom.atomPackageStates = packageStates ? {}
-    panes = deserialize(panesViewState) if panesViewState?.deserializer is 'PaneContainer'
+  @deserialize: ({ panes, packages, projectPath }) ->
+    atom.atomPackageStates = packages ? {}
+    panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes})
 
   initialize: ->
@@ -69,8 +69,8 @@ class RootView extends View
 
   serialize: ->
     deserializer: 'RootView'
-    panesViewState: @panes.serialize()
-    packageStates: atom.serializeAtomPackages()
+    panes: @panes.serialize()
+    packages: atom.serializeAtomPackages()
 
   handleFocus: (e) ->
     if @getActivePane()
