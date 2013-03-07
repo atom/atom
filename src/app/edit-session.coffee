@@ -61,6 +61,8 @@ class EditSession
     @subscribe @displayBuffer, "changed", (e) =>
       @trigger 'screen-lines-changed', e
 
+    @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
+
   getViewClass: ->
     require 'editor'
 
