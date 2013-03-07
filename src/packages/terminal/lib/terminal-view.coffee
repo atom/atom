@@ -119,6 +119,7 @@ class TerminalView extends ScrollView
     @updateTerminalSize()
 
   setTerminalSize: () ->
+    @process.winsize(@size[0], @size[1])
 
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")
