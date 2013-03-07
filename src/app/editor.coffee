@@ -55,11 +55,6 @@ class Editor extends View
   newSelections: null
   redrawOnReattach: false
 
-  @deserialize: (state) ->
-    editor = new Editor(mini: state.mini, editSession: deserialize(state.editSession))
-    editor.isFocused = state.isFocused
-    editor
-
   initialize: (editSessionOrOptions) ->
     if editSessionOrOptions instanceof EditSession
       editSession = editSessionOrOptions
@@ -90,15 +85,6 @@ class Editor extends View
       )
     else
       throw new Error("Must supply an EditSession or mini: true")
-
-  serialize: ->
-    @saveScrollPositionForActiveEditSession()
-    deserializer: "Editor"
-    editSession: @activeEditSession.serialize()
-    isFocused: @isFocused
-
-  copy: ->
-    Editor.deserialize(@serialize(), rootView)
 
   bindKeys: ->
     editorBindings =
