@@ -68,6 +68,8 @@ beforeEach ->
   spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboardContent = text
   spyOn($native, 'readFromPasteboard').andCallFake -> pasteboardContent
 
+  addCustomMatchers(this)
+
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
@@ -120,6 +122,18 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
 jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].originalValue?
   object[methodName] = object[methodName].originalValue
+
+addCustomMatchers = (spec) ->
+  spec.addMatchers
+    toBeInstanceOf: (expected) ->
+      notText = if @isNot then " not" else ""
+      this.message = => "Expected #{jasmine.pp(@actual)} to#{notText} be instance of #{expected.name} class"
+      @actual instanceof expected
+
+    toHaveLength: (expected) ->
+      notText = if @isNot then " not" else ""
+      this.message = => "Expected object with length #{@actual.length} to#{notText} have length #{expected}"
+      @actual.length == expected
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
