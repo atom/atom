@@ -1,3 +1,4 @@
+$ = require 'jquery'
 {View, $$, $$$} = require 'space-pen'
 CommandInterpreter = require './command-interpreter'
 RegexAddress = require './commands/regex-address'
@@ -21,6 +22,17 @@ class CommandPanelView extends View
 
       @subview 'previewList', new PreviewList(rootView)
       @ul class: 'error-messages', outlet: 'errorMessages'
+      @div class: 'search-selections', =>
+        @ul class: 'search-options', =>
+          @li name: 'regex', class: 'regex', =>
+            @div class: 'search-option active', =>
+              @span class: 'octicons regexp-icon', outlet: 'searchButton'
+          @li name: 'caseSensitive', class: 'case-sensitive', =>
+            @div class: 'search-option', =>
+              @span class: 'octicons case-sensitive-icon'
+          @li name: 'wholeWord', class: 'whole-word', =>
+            @div class: 'search-option', =>
+              @span class: 'octicons whole-word-icon'
       @div class: 'prompt-and-editor', =>
         @div class: 'prompt', outlet: 'prompt'
         @subview 'miniEditor', new Editor(mini: true)
@@ -29,6 +41,11 @@ class CommandPanelView extends View
   history: null
   historyIndex: 0
   maxSerializedHistorySize: 100
+
+  searchOptions = 
+    regex: true
+    caseSensitive: false
+    wholeWord: false
 
   initialize: (state) ->
     @commandInterpreter = new CommandInterpreter(project)
@@ -50,6 +67,7 @@ class CommandPanelView extends View
 
     @expandAll.on 'click', @onExpandAll
     @collapseAll.on 'click', @onCollapseAll
+    @on 'click', '.search-options', (e) => @searchOptionsClicked(e)
 
     @previewList.hide()
     @previewHeader.hide()
@@ -130,6 +148,15 @@ class CommandPanelView extends View
     else
       @attach('Xx/')
 
+  searchOptionsClicked: (event) ->
+    toolButton = $(event.target).closest('div')
+    if toolButton.hasClass('active')
+      toolButton.removeClass('active')
+      searchOptions[$(event.target).closest('li').attr('name')] = false
+    else
+      toolButton.addClass('active')
+      searchOptions[$(event.target).closest('li').attr('name')] = true
+
   escapedCommand: ->
     @miniEditor.getText()
 
@@ -138,6 +165,9 @@ class CommandPanelView extends View
     @previewList.hide()
     @previewHeader.hide()
     @errorMessages.empty()
+
+    # pass the list of toggled options
+    RegexAddress.setOptions searchOptions
 
     try
       activePaneItem = rootView.getActivePaneItem()

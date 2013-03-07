@@ -154,3 +154,36 @@
     margin-left: 5px;
   }
 }
+
+.search-options li {
+  display: inline;
+  float: left;
+}
+
+.search-options .octicons:before {
+  font-family: 'Octicons Regular';
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.search-options .regexp-icon:before {
+  content: "\f20d";
+}
+
+.search-options .case-sensitive-icon:before {
+  content: "\f23d";
+}
+
+.search-options .whole-word-icon:before {
+  content: "\f263";
+}
+
+.search-option.active .octicons {
+  color: red;
+}

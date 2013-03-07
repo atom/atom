@@ -1,18 +1,28 @@
 Address = require './address'
 Range = require 'range'
+_ = require 'underscore'
 
 module.exports =
 class RegexAddress extends Address
   regex: null
   isReversed: false
 
-  constructor: (@pattern, isReversed, options) ->
+  searchOptions = 
+    regex: true
+    caseSensitive: false
+
+  constructor: (@pattern, isReversed) ->
     flags = ""
     pattern = pattern.source if pattern.source
-
-    patternContainsCapitalLetter = /(^|[^\\])[A-Z]/.test(pattern)
-    flags += "i" unless patternContainsCapitalLetter
+    
     @isReversed = isReversed
+
+    if !searchOptions.regex
+      pattern = @escape(pattern)
+    if !searchOptions.caseSensitive
+      flags += "i"
+    if searchOptions.wholeWord
+      pattern = "\\b#{pattern}\\b"
 
     @regex = new RegExp(pattern, flags)
 
@@ -45,3 +55,9 @@ class RegexAddress extends Address
 
   reverse: ->
     new RegexAddress(@regex, !@isReversed)
+
+  @setOptions: (options) ->
+    searchOptions = _.extend(searchOptions, options)
+
+  escape: (pattern) ->
+    pattern.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
