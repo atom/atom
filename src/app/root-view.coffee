@@ -17,6 +17,8 @@ module.exports =
 class RootView extends View
   registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
 
+  @version: 1
+
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
     disabledPackages: []
@@ -68,6 +70,7 @@ class RootView extends View
       @panes.reopenItem()
 
   serialize: ->
+    version: @constructor.version
     deserializer: 'RootView'
     panes: @panes.serialize()
     packages: atom.serializeAtomPackages()
