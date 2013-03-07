@@ -49,6 +49,9 @@
   _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
 
+  NSString *nodePath = [NSString stringWithFormat:@"%@/node_modules", _resourcePath];
+  setenv("NODE_PATH", [nodePath UTF8String], TRUE);
+
   if (!background) {
     [self setShouldCascadeWindows:NO];
     [self setWindowFrameAutosaveName:@"AtomWindow"];

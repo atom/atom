@@ -3,7 +3,8 @@
   "version" : "0.0.0",
 
   "dependencies": {
-    "coffee-script": "1.5"
+    "coffee-script": "1.5",
+    "ctags": "0.1.0"
   },
 
   "scripts": {

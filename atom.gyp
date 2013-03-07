@@ -259,10 +259,6 @@
         'native/v8_extensions/onig_reg_exp.mm',
         'native/v8_extensions/onig_scanner.h',
         'native/v8_extensions/onig_scanner.mm',
-        'native/v8_extensions/readtags.c',
-        'native/v8_extensions/readtags.h',
-        'native/v8_extensions/tags.h',
-        'native/v8_extensions/tags.mm',
       ],
       'link_settings': {
         'libraries': [

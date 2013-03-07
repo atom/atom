@@ -1,5 +1,7 @@
 fs = require 'fs'
 $ = require 'jquery'
+LoadTagsTask = require './load-tags-task'
+ctags = nodeRequire 'ctags'
 
 module.exports =
 
@@ -14,14 +16,11 @@ find: (editor) ->
   tagsFile = @getTagsFile(project)
   return [] unless tagsFile
 
-  $tags.find(tagsFile, word) or []
+  ctags.findTag(tagsFile, word)
 
 getAllTags: (project, callback) ->
   deferred = $.Deferred()
-  tagsFile = @getTagsFile(project)
-  if tagsFile
-    $tags.getAllTagsAsync tagsFile, (tags) =>
-      deferred.resolve(tags)
-  else
-    deferred.resolve([])
+  callback = (tags=[]) =>
+    deferred.resolve(tags)
+  new LoadTagsTask(callback).start()
   deferred.promise()
