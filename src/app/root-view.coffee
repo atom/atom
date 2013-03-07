@@ -70,7 +70,7 @@ class RootView extends View
       @panes.reopenItem()
 
   serialize: ->
-    version: @constructor.version
+    version: RootView.version
     deserializer: 'RootView'
     panes: @panes.serialize()
     packages: atom.serializeAtomPackages()
