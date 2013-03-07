@@ -2040,7 +2040,7 @@ describe "EditSession", ->
       spyOn(syntax, 'grammarForFilePath').andCallFake -> grammarToReturn
 
       editSession = project.buildEditSession('sample.js', autoIndent: false)
-      expect(editSession.lineForScreenRow(0).tokens).toHaveLength 1
+      expect(editSession.lineForScreenRow(0).tokens.length).toBe 1
 
       grammarToReturn = syntax.grammarByFileTypeSuffix('js')
       syntax.trigger 'grammars-loaded'
