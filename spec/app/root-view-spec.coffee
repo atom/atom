@@ -31,7 +31,7 @@ describe "RootView", ->
         viewState = rootView.serialize()
         rootView.deactivate()
 
-        window.rootView = RootView.deserialize(viewState)
+        window.rootView = deserialize(viewState)
         rootView.attachToDom()
 
         expect(rootView.getEditors().length).toBe 2
@@ -55,7 +55,7 @@ describe "RootView", ->
 
           viewState = rootView.serialize()
           rootView.deactivate()
-          window.rootView = RootView.deserialize(viewState)
+          window.rootView = deserialize(viewState)
           rootView.attachToDom()
 
           expect(rootView.getEditors().length).toBe 4
@@ -92,7 +92,7 @@ describe "RootView", ->
 
           viewState = rootView.serialize()
           rootView.deactivate()
-          window.rootView = RootView.deserialize(viewState)
+          window.rootView = deserialize(viewState)
 
           rootView.attachToDom()
           expect(rootView.getEditors().length).toBe 0
