@@ -6,7 +6,14 @@ set -e
 # The Setup's environment ourselves. If this isn't done, things like the
 # node shim won't be able to find the stuff they need.
 
-node --version > /dev/null 2>&1 || source /opt/github/env.sh
+node --version > /dev/null 2>&1 || {
+  if [ -e /opt/github/env.sh ]; then
+    source /opt/github/env.sh
+  else
+    # Try Constructicon's PATH.
+    export PATH="/usr/local/Cellar/node/0.8.21/bin:${PATH}"
+  fi
+}
 
 INPUT_FILE="${1}"
 OUTPUT_FILE="${2}"

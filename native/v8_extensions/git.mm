@@ -106,7 +106,7 @@ namespace v8_extensions {
         return;
 
       int shortNameLength = branchNameLength - 11;
-      char* shortName = (char*) malloc(sizeof(char) * shortNameLength + 1);
+      char* shortName = (char*) malloc(sizeof(char) * (shortNameLength + 1));
       shortName[shortNameLength] = '\0';
       strncpy(shortName, &branchName[11], shortNameLength);
       *out = shortName;
@@ -122,15 +122,18 @@ namespace v8_extensions {
         return;
 
       int shortBranchNameLength = strlen(shortBranchName);
-      char* remoteKey = (char*) malloc(sizeof(char) * shortBranchNameLength + 15);
+      char* remoteKey = (char*) malloc(sizeof(char) * (shortBranchNameLength + 15));
       sprintf(remoteKey, "branch.%s.remote", shortBranchName);
-      char* mergeKey = (char*) malloc(sizeof(char) * shortBranchNameLength + 14);
+      char* mergeKey = (char*) malloc(sizeof(char) * (shortBranchNameLength + 14));
       sprintf(mergeKey, "branch.%s.merge", shortBranchName);
       free((char*)shortBranchName);
 
       git_config *config;
-      if (git_repository_config(&config, repo) != GIT_OK)
+      if (git_repository_config(&config, repo) != GIT_OK) {
+        free(remoteKey);
+        free(mergeKey);
         return;
+      }
 
       const char *remote;
       const char *merge;

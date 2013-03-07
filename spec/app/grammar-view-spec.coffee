@@ -7,10 +7,8 @@ describe "GrammarView", ->
 
   beforeEach ->
     window.rootView = new RootView
-    project.removeGrammarOverrideForPath('sample.js')
     rootView.open('sample.js')
-    editor = rootView.getActiveEditor()
-    rootView.attachToDom()
+    editor = rootView.getActiveView()
     textGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'Plain Text'
     expect(textGrammar).toBeTruthy()
     jsGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'JavaScript'

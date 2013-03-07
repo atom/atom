@@ -151,8 +151,16 @@ window.registerDeserializers = (args...) ->
 window.registerDeserializer = (klass) ->
   deserializers[klass.name] = klass
 
+window.unregisterDeserializer = (klass) ->
+  delete deserializers[klass.name]
+
 window.deserialize = (state) ->
-  deserializers[state?.deserializer]?.deserialize(state)
+  if deserializer = getDeserializer(state)
+    return if deserializer.version? and deserializer.version isnt state.version
+    deserializer.deserialize(state)
+
+window.getDeserializer = (state) ->
+  deserializers[state?.deserializer]
 
 window.measure = (description, fn) ->
   start = new Date().getTime()

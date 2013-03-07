@@ -1,231 +1,256 @@
 $ = require 'jquery'
 _ = require 'underscore'
 RootView = require 'root-view'
+Pane = require 'pane'
+PaneContainer = require 'pane-container'
+TabBarView = require 'tabs/lib/tab-bar-view'
 fs = require 'fs'
+{View} = require 'space-pen'
 
-describe "TabView", ->
-  [editor, buffer, tabs] = []
-
+describe "Tabs package main", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    rootView.open('sample.txt')
-    rootView.simulateDomAttachment()
     window.loadPackage("tabs")
-    editor = rootView.getActiveEditor()
-    tabs = rootView.find('.tabs').view()
 
-  describe "@activate", ->
-    it "appends a status bear to all existing and new editors", ->
+  describe ".activate()", ->
+    it "appends a tab bar all existing and new panes", ->
       expect(rootView.panes.find('.pane').length).toBe 1
       expect(rootView.panes.find('.pane > .tabs').length).toBe 1
-      editor.splitRight()
+      rootView.getActivePane().splitRight()
       expect(rootView.find('.pane').length).toBe 2
       expect(rootView.panes.find('.pane > .tabs').length).toBe 2
 
-  describe ".initialize()", ->
-    it "creates a tab for each edit session on the editor to which the tab-strip belongs", ->
-      expect(editor.editSessions.length).toBe 2
-      expect(tabs.find('.tab').length).toBe 2
+describe "TabBarView", ->
+  [item1, item2, editSession1, pane, tabBar] = []
 
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe editor.editSessions[0].buffer.getBaseName()
-      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe editor.editSessions[1].buffer.getBaseName()
+  class TestView extends View
+    @deserialize: ({title, longTitle}) -> new TestView(title, longTitle)
+    @content: (title) -> @div title
+    initialize: (@title, @longTitle) ->
+    getTitle: -> @title
+    getLongTitle: -> @longTitle
+    serialize: -> { deserializer: 'TestView', @title, @longTitle }
 
-    it "highlights the tab for the current active edit session", ->
-      expect(editor.getActiveEditSessionIndex()).toBe 1
-      expect(tabs.find('.tab:eq(1)')).toHaveClass 'active'
+  beforeEach ->
+    registerDeserializer(TestView)
+    item1 = new TestView('Item 1')
+    item2 = new TestView('Item 2')
+    editSession1 = project.buildEditSession('sample.js')
+    paneContainer = new PaneContainer
+    pane = new Pane(item1, editSession1, item2)
+    pane.showItem(item2)
+    paneContainer.append(pane)
+    tabBar = new TabBarView(pane)
 
-    it "sets the title on each tab to be the full path of the edit session", ->
-      expect(tabs.find('.tab:eq(0) .file-name').attr('title')).toBe editor.editSessions[0].getPath()
-      expect(tabs.find('.tab:eq(1) .file-name').attr('title')).toBe editor.editSessions[1].getPath()
+  afterEach ->
+    unregisterDeserializer(TestView)
 
-  describe "when the active edit session changes", ->
-    it "highlights the tab for the newly-active edit session", ->
-      editor.setActiveEditSessionIndex(0)
-      expect(tabs.find('.active').length).toBe 1
-      expect(tabs.find('.tab:eq(0)')).toHaveClass 'active'
+  describe ".initialize(pane)", ->
+    it "creates a tab for each item on the tab bar's parent pane", ->
+      expect(pane.getItems().length).toBe 3
+      expect(tabBar.find('.tab').length).toBe 3
 
-      editor.setActiveEditSessionIndex(1)
-      expect(tabs.find('.active').length).toBe 1
-      expect(tabs.find('.tab:eq(1)')).toHaveClass 'active'
+      expect(tabBar.find('.tab:eq(0) .title').text()).toBe item1.getTitle()
+      expect(tabBar.find('.tab:eq(1) .title').text()).toBe editSession1.getTitle()
+      expect(tabBar.find('.tab:eq(2) .title').text()).toBe item2.getTitle()
 
-  describe "when a new edit session is created", ->
-    it "adds a tab for the new edit session", ->
-      rootView.open('two-hundred.txt')
-      expect(tabs.find('.tab').length).toBe 3
-      expect(tabs.find('.tab:eq(2) .file-name').text()).toBe 'two-hundred.txt'
+    it "highlights the tab for the active pane item", ->
+      expect(tabBar.find('.tab:eq(2)')).toHaveClass 'active'
 
-    describe "when the edit session's buffer has an undefined path", ->
-      it "makes the tab text 'untitled'", ->
-        rootView.open()
-        expect(tabs.find('.tab').length).toBe 3
-        expect(tabs.find('.tab:eq(2) .file-name').text()).toBe 'untitled'
+  describe "when the active pane item changes", ->
+    it "highlights the tab for the new active pane item", ->
+      pane.showItem(item1)
+      expect(tabBar.find('.active').length).toBe 1
+      expect(tabBar.find('.tab:eq(0)')).toHaveClass 'active'
 
-      it "removes the tab's title", ->
-        rootView.open()
-        expect(tabs.find('.tab').length).toBe 3
-        expect(tabs.find('.tab:eq(2) .file-name').attr('title')).toBeUndefined()
+      pane.showItem(item2)
+      expect(tabBar.find('.active').length).toBe 1
+      expect(tabBar.find('.tab:eq(2)')).toHaveClass 'active'
 
-  describe "when an edit session is removed", ->
-    it "removes the tab for the removed edit session", ->
-      editor.setActiveEditSessionIndex(0)
-      editor.destroyActiveEditSession()
-      expect(tabs.find('.tab').length).toBe 1
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.txt'
+  describe "when a new item is added to the pane", ->
+    it "adds a tab for the new item at the same index as the item in the pane", ->
+      pane.showItem(item1)
+      item3 = new TestView('Item 3')
+      pane.showItem(item3)
+      expect(tabBar.find('.tab').length).toBe 4
+      expect(tabBar.tabAtIndex(1).find('.title')).toHaveText 'Item 3'
+
+    it "adds the 'modified' class to the new tab if the item is initially modified", ->
+      editSession2 = project.buildEditSession('sample.txt')
+      editSession2.insertText('x')
+      pane.showItem(editSession2)
+      expect(tabBar.tabForItem(editSession2)).toHaveClass 'modified'
+
+  describe "when an item is removed from the pane", ->
+    it "removes the item's tab from the tab bar", ->
+      pane.removeItem(item2)
+      expect(tabBar.getTabs().length).toBe 2
+      expect(tabBar.find('.tab:contains(Item 2)')).not.toExist()
 
   describe "when a tab is clicked", ->
-    it "activates the associated edit session", ->
-      expect(editor.getActiveEditSessionIndex()).toBe 1
-      tabs.find('.tab:eq(0)').click()
-      expect(editor.getActiveEditSessionIndex()).toBe 0
-      tabs.find('.tab:eq(1)').click()
-      expect(editor.getActiveEditSessionIndex()).toBe 1
+    it "shows the associated item on the pane and focuses the pane", ->
+      spyOn(pane, 'focus')
 
-    it "focuses the associated editor", ->
-      rootView.attachToDom()
-      expect(editor).toMatchSelector ":has(:focus)"
-      editor.splitRight()
-      expect(editor).not.toMatchSelector ":has(:focus)"
-      tabs.find('.tab:eq(0)').click()
-      expect(editor).toMatchSelector ":has(:focus)"
+      tabBar.tabAtIndex(0).click()
+      expect(pane.activeItem).toBe pane.getItems()[0]
 
-  describe "when a file name associated with a tab changes", ->
-    [buffer, oldPath, newPath] = []
+      tabBar.tabAtIndex(2).click()
+      expect(pane.activeItem).toBe pane.getItems()[2]
 
-    beforeEach ->
-      buffer = editor.editSessions[0].buffer
-      oldPath = "/tmp/file-to-rename.txt"
-      newPath = "/tmp/renamed-file.txt"
-      fs.write(oldPath, "this old path")
-      rootView.open(oldPath)
+      expect(pane.focus.callCount).toBe 2
 
-    afterEach ->
-      fs.remove(newPath) if fs.exists(newPath)
+  describe "when a tab's close icon is clicked", ->
+    it "destroys the tab's item on the pane", ->
+      tabBar.tabForItem(editSession1).find('.close-icon').click()
+      expect(pane.getItems().length).toBe 2
+      expect(pane.getItems().indexOf(editSession1)).toBe -1
+      expect(editSession1.destroyed).toBeTruthy()
+      expect(tabBar.getTabs().length).toBe 2
+      expect(tabBar.find('.tab:contains(sample.js)')).not.toExist()
 
-    it "updates the file name in the tab", ->
-      tabFileName = tabs.find('.tab:eq(2) .file-name')
-      expect(tabFileName).toExist()
-      editor.setActiveEditSessionIndex(0)
-      fs.move(oldPath, newPath)
-      waitsFor "file to be renamed", ->
-        tabFileName.text() == "renamed-file.txt"
+  describe "when a tab item's title changes", ->
+    it "updates the title of the item's tab", ->
+      editSession1.buffer.setPath('/this/is-a/test.txt')
+      expect(tabBar.tabForItem(editSession1)).toHaveText 'test.txt'
 
-  describe "when the close icon is clicked", ->
-    it "closes the selected non-active edit session", ->
-      activeSession = editor.activeEditSession
-      expect(editor.getActiveEditSessionIndex()).toBe 1
-      tabs.find('.tab .close-icon:eq(0)').click()
-      expect(editor.getActiveEditSessionIndex()).toBe 0
-      expect(editor.activeEditSession).toBe activeSession
+  describe "when two tabs have the same title", ->
+    it "displays the long title on the tab if it's available from the item", ->
+      item1.title = "Old Man"
+      item1.longTitle = "Grumpy Old Man"
+      item1.trigger 'title-changed'
+      item2.title = "Old Man"
+      item2.longTitle = "Jolly Old Man"
+      item2.trigger 'title-changed'
 
-    it "closes the selected active edit session", ->
-      firstSession = editor.getEditSessions()[0]
-      expect(editor.getActiveEditSessionIndex()).toBe 1
-      tabs.find('.tab .close-icon:eq(1)').click()
-      expect(editor.getActiveEditSessionIndex()).toBe 0
-      expect(editor.activeEditSession).toBe firstSession
+      expect(tabBar.tabForItem(item1)).toHaveText "Grumpy Old Man"
+      expect(tabBar.tabForItem(item2)).toHaveText "Jolly Old Man"
 
-  describe "when two tabs have the same file name", ->
-    [tempPath] = []
+      item2.longTitle = undefined
+      item2.trigger 'title-changed'
 
-    beforeEach ->
-      tempPath = '/tmp/sample.js'
-      fs.write(tempPath, 'sample')
+      expect(tabBar.tabForItem(item1)).toHaveText "Grumpy Old Man"
+      expect(tabBar.tabForItem(item2)).toHaveText "Old Man"
 
-    afterEach ->
-      fs.remove(tempPath) if fs.exists(tempPath)
+  describe "when a tab item's modified status changes", ->
+    it "adds or removes the 'modified' class to the tab based on the status", ->
+      tab = tabBar.tabForItem(editSession1)
+      expect(editSession1.isModified()).toBeFalsy()
+      expect(tab).not.toHaveClass 'modified'
 
-    it "displays the parent folder name after the file name", ->
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js'
-      rootView.open(tempPath)
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js - fixtures'
-      expect(tabs.find('.tab:last .file-name').text()).toBe 'sample.js - tmp'
-      editor.destroyActiveEditSession()
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.js'
+      editSession1.insertText('x')
+      advanceClock(editSession1.buffer.stoppedChangingDelay)
+      expect(editSession1.isModified()).toBeTruthy()
+      expect(tab).toHaveClass 'modified'
 
-  describe "when an editor:edit-session-order-changed event is triggered", ->
-    it "updates the order of the tabs to match the new edit session order", ->
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
-      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+      editSession1.undo()
+      advanceClock(editSession1.buffer.stoppedChangingDelay)
+      expect(editSession1.isModified()).toBeFalsy()
+      expect(tab).not.toHaveClass 'modified'
 
-      editor.moveEditSessionToIndex(0, 1)
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
-      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
-
-      editor.moveEditSessionToIndex(1, 0)
-      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
-      expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+  describe "when a pane item moves to a new index", ->
+    it "updates the order of the tabs to match the new item order", ->
+      expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+      pane.moveItem(item2, 1)
+      expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "Item 2", "sample.js"]
+      pane.moveItem(editSession1, 0)
+      expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 1", "Item 2"]
+      pane.moveItem(item1, 2)
+      expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 2", "Item 1"]
 
   describe "dragging and dropping tabs", ->
-    describe "when the tab is dropped onto itself", ->
-      it "doesn't move the edit session and focuses the editor", ->
-        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+    buildDragEvents = (dragged, dropTarget) ->
+      dataTransfer =
+        data: {}
+        setData: (key, value) -> @data[key] = value
+        getData: (key) -> @data[key]
 
-        sortableElement = [tabs.find('.tab:eq(0)')]
-        spyOn(tabs, 'getSortableElement').andCallFake -> sortableElement[0]
-        event = $.Event()
-        event.target = tabs[0]
-        event.originalEvent =
-          dataTransfer:
-            data: {}
-            setData: (key, value) -> @data[key] = value
-            getData: (key) -> @data[key]
+      dragStartEvent = $.Event()
+      dragStartEvent.target = dragged[0]
+      dragStartEvent.originalEvent = { dataTransfer }
 
-        editor.hiddenInput.focusout()
-        tabs.onDragStart(event)
-        tabs.onDrop(event)
+      dropEvent = $.Event()
+      dropEvent.target = dropTarget[0]
+      dropEvent.originalEvent = { dataTransfer }
 
-        expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
-        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
-        expect(editor.isFocused).toBeTruthy()
+      [dragStartEvent, dropEvent]
 
-    describe "when a tab is dragged from and dropped onto the same editor", ->
-      it "moves the edit session, updates the order of the tabs, and focuses the editor", ->
-        expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.js"
-        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.txt"
+    describe "when a tab is dragged within the same pane", ->
+      describe "when it is dropped on tab that's later in the list", ->
+        it "moves the tab and its item, shows the tab's item, and focuses the pane", ->
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item2
+          spyOn(pane, 'focus')
 
-        sortableElement = [tabs.find('.tab:eq(0)')]
-        spyOn(tabs, 'getSortableElement').andCallFake -> sortableElement[0]
-        event = $.Event()
-        event.target = tabs[0]
-        event.originalEvent =
-          dataTransfer:
-            data: {}
-            setData: (key, value) -> @data[key] = value
-            getData: (key) -> @data[key]
+          [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar.tabAtIndex(1))
+          tabBar.onDragStart(dragStartEvent)
+          tabBar.onDrop(dropEvent)
 
-        editor.hiddenInput.focusout()
-        tabs.onDragStart(event)
-        sortableElement = [tabs.find('.tab:eq(1)')]
-        tabs.onDrop(event)
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 1", "Item 2"]
+          expect(pane.getItems()).toEqual [editSession1, item1, item2]
+          expect(pane.activeItem).toBe item1
+          expect(pane.focus).toHaveBeenCalled()
 
-        expect(tabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
-        expect(tabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
-        expect(editor.isFocused).toBeTruthy()
+      describe "when it is dropped on a tab that's earlier in the list", ->
+        it "moves the tab and its item, shows the tab's item, and focuses the pane", ->
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item2
+          spyOn(pane, 'focus')
 
-    describe "when a tab is dragged from one editor and dropped onto another editor", ->
-      it "moves the edit session, updates the order of the tabs, and focuses the destination editor", ->
-        leftTabs = tabs
-        rightEditor = editor.splitRight()
-        rightTabs = rootView.find('.tabs:last').view()
+          [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(2), tabBar.tabAtIndex(0))
+          tabBar.onDragStart(dragStartEvent)
+          tabBar.onDrop(dropEvent)
 
-        sortableElement = [leftTabs.find('.tab:eq(0)')]
-        spyOn(tabs, 'getSortableElement').andCallFake -> sortableElement[0]
-        event = $.Event()
-        event.target = leftTabs
-        event.originalEvent =
-          dataTransfer:
-            data: {}
-            setData: (key, value) -> @data[key] = value
-            getData: (key) -> @data[key]
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "Item 2", "sample.js"]
+          expect(pane.getItems()).toEqual [item1, item2, editSession1]
+          expect(pane.activeItem).toBe item2
+          expect(pane.focus).toHaveBeenCalled()
 
-        rightEditor.hiddenInput.focusout()
-        tabs.onDragStart(event)
+      describe "when it is dropped on itself", ->
+        it "doesn't move the tab or item, but does make it the active item and focuses the pane", ->
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item2
+          spyOn(pane, 'focus')
 
-        event.target = rightTabs
-        sortableElement = [rightTabs.find('.tab:eq(0)')]
-        tabs.onDrop(event)
+          [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar.tabAtIndex(0))
+          tabBar.onDragStart(dragStartEvent)
+          tabBar.onDrop(dropEvent)
 
-        expect(rightTabs.find('.tab:eq(0) .file-name').text()).toBe "sample.txt"
-        expect(rightTabs.find('.tab:eq(1) .file-name').text()).toBe "sample.js"
-        expect(rightEditor.isFocused).toBeTruthy()
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item1
+          expect(pane.focus).toHaveBeenCalled()
+
+    describe "when a tab is dragged to a different pane", ->
+      [pane2, tabBar2, item2b] = []
+
+      beforeEach ->
+        pane2 = pane.splitRight()
+        [item2b] = pane2.getItems()
+        tabBar2 = new TabBarView(pane2)
+
+      it "removes the tab and item from their original pane and moves them to the target pane", ->
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [item1, editSession1, item2]
+        expect(pane.activeItem).toBe item2
+
+        expect(tabBar2.getTabs().map (tab) -> tab.text()).toEqual ["Item 2"]
+        expect(pane2.getItems()).toEqual [item2b]
+        expect(pane2.activeItem).toBe item2b
+        spyOn(pane2, 'focus')
+
+        [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar2.tabAtIndex(0))
+        tabBar.onDragStart(dragStartEvent)
+        tabBar.onDrop(dropEvent)
+
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [editSession1, item2]
+        expect(pane.activeItem).toBe item2
+
+        expect(tabBar2.getTabs().map (tab) -> tab.text()).toEqual ["Item 2", "Item 1"]
+        expect(pane2.getItems()).toEqual [item2b, item1]
+        expect(pane2.activeItem).toBe item1
+        expect(pane2.focus).toHaveBeenCalled()

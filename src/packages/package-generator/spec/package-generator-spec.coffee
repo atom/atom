@@ -21,11 +21,11 @@ describe 'Package Generator', ->
       rootView.trigger("package-generator:generate")
       packageGeneratorView = rootView.find(".package-generator").view()
       expect(packageGeneratorView.miniEditor.isFocused).toBeTruthy()
-      expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+      expect(rootView.getActiveView().isFocused).toBeFalsy()
 
       packageGeneratorView.trigger("core:cancel")
       expect(packageGeneratorView.hasParent()).toBeFalsy()
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+      expect(rootView.getActiveView().isFocused).toBeTruthy()
 
   describe "when a package is generated", ->
     [packageName, packagePath] = []
@@ -58,6 +58,7 @@ describe 'Package Generator', ->
       expect(fs.join(fs.directory(packagePath), "camel-case-is-for-the-birds")).toExistOnDisk()
 
     it "correctly lays out the package files and closes the package generator view", ->
+      rootView.attachToDom()
       rootView.trigger("package-generator:generate")
       packageGeneratorView = rootView.find(".package-generator").view()
       expect(packageGeneratorView.hasParent()).toBeTruthy()
@@ -73,7 +74,7 @@ describe 'Package Generator', ->
       expect("#{packagePath}/stylesheets/#{packageName}.css").toExistOnDisk()
 
       expect(packageGeneratorView.hasParent()).toBeFalsy()
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+      expect(rootView.getActiveView().isFocused).toBeTruthy()
 
     it "replaces instances of packageName placeholders in template files", ->
       rootView.trigger("package-generator:generate")

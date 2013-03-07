@@ -10,11 +10,14 @@ originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
 _.extend atom,
   exitWhenDone: window.location.params.exitWhenDone
+  devMode: window.location.params.devMode
   loadedThemes: []
   pendingBrowserProcessCallbacks: {}
   loadedPackages: []
   activatedAtomPackages: []
   atomPackageStates: {}
+  presentingModal: false
+  pendingModals: [[]]
 
   getPathToOpen: ->
     @getWindowState('pathToOpen') ? window.location.params.pathToOpen
@@ -101,15 +104,50 @@ _.extend atom,
     @sendMessageToBrowserProcess('newWindow', args)
 
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
-    args = [message, detailedMessage]
-    callbacks = []
-    while buttonLabelsAndCallbacks.length
-      args.push(buttonLabelsAndCallbacks.shift())
-      callbacks.push(buttonLabelsAndCallbacks.shift())
-    @sendMessageToBrowserProcess('confirm', args, callbacks)
+    wrapCallback = (callback) => => @dismissModal(callback)
+    @presentModal =>
+      args = [message, detailedMessage]
+      callbacks = []
+      while buttonLabelsAndCallbacks.length
+        do =>
+          buttonLabel = buttonLabelsAndCallbacks.shift()
+          buttonCallback = buttonLabelsAndCallbacks.shift()
+          args.push(buttonLabel)
+          callbacks.push(=> @dismissModal(buttonCallback))
+      @sendMessageToBrowserProcess('confirm', args, callbacks)
 
   showSaveDialog: (callback) ->
-    @sendMessageToBrowserProcess('showSaveDialog', [], callback)
+    @presentModal =>
+      @sendMessageToBrowserProcess('showSaveDialog', [], (path) => @dismissModal(callback, path))
+
+  presentModal: (fn) ->
+    if @presentingModal
+      @pushPendingModal(fn)
+    else
+      @presentingModal = true
+      fn()
+
+  dismissModal: (fn, args...) ->
+    @pendingModals.push([]) # prioritize any modals presented during dismiss callback
+    fn?(args...)
+    @presentingModal = false
+    if fn = @shiftPendingModal()
+      _.delay (=> @presentModal(fn)), 50 # let view update before next dialog
+
+  pushPendingModal: (fn) ->
+    # pendingModals is a stack of queues. enqueue to top of stack.
+    stackSize = @pendingModals.length
+    @pendingModals[stackSize - 1].push(fn)
+
+  shiftPendingModal: ->
+    # pop pendingModals stack if its top queue is empty, otherwise shift off the topmost queue
+    stackSize = @pendingModals.length
+    currentQueueSize = @pendingModals[stackSize - 1].length
+    if stackSize > 1 and currentQueueSize == 0
+      @pendingModals.pop()
+      @shiftPendingModal()
+    else
+      @pendingModals[stackSize - 1].shift()
 
   toggleDevTools: ->
     @sendMessageToBrowserProcess('toggleDevTools')
