@@ -53,7 +53,7 @@ class TerminalView extends ScrollView
     @write = @process.write
 
   logout: ->
-    @input("\nlogout\n")
+    @write?("", true)
 
   attach: ->
     rootView.append(this)
@@ -66,7 +66,7 @@ class TerminalView extends ScrollView
 
   input: (data) ->
     return if @exited
-    @write?(data)
+    @write?(data, false)
 
   output: (data) ->
     if data.length > 0

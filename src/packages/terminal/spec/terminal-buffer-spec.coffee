@@ -47,7 +47,7 @@ fdescribe 'Terminal Buffer', ->
         buffer.inputCharacter(String.fromCharCode(8))
         expect(buffer.lastLine().text().length).toBe(0)
 
-  fdescribe "when a control sequence is entered", ->
+  describe "when a control sequence is entered", ->
     beforeEach ->
       spyOn(buffer, 'evaluateEscapeSequence').andCallThrough()
     describe "cursor movement", ->

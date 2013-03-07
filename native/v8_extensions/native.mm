@@ -10,6 +10,7 @@
 #import <iostream>
 #include <fts.h>
 #include <util.h>
+#include <termios.h>
 
 static std::string windowState = "{}";
 static NSLock *windowStateLock = [[NSLock alloc] init];
@@ -17,38 +18,88 @@ static NSLock *windowStateLock = [[NSLock alloc] init];
 namespace v8_extensions {
   using namespace std;
 
-  NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value);
-  void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception> exception, NSString *message);
-
-
-  class WriteHandler : public CefV8Handler {
+  class IOHandler : public CefV8Handler {
   public:
-    WriteHandler(NSFileHandle *fh) : CefV8Handler(), fileHandle(fh) {
-      [fileHandle retain];
+    bool closed;
+    bool interactive;
+    IOHandler(NSFileHandle *_stdin, NSTask *_task, bool _interactive) : CefV8Handler(), task(_task), stdin(_stdin), interactive(_interactive) {
+      [stdin retain];
+      [task retain];
+      closed = false;
     };
-    ~WriteHandler() {
-      [fileHandle release];
-    };
+    ~IOHandler() {
+      [stdin release];
+      [task release];
+    }
+    void writeData(NSString *data) {
+      @try {
+        [stdin writeData:[data dataUsingEncoding:NSUTF8StringEncoding]];
+      } @catch (NSException* e) {
+      }
+    }
     virtual bool Execute(const CefString& name,
                          CefRefPtr<CefV8Value> object,
                          const CefV8ValueList& arguments,
                          CefRefPtr<CefV8Value>& retval,
                          CefString& exception) {
+      @autoreleasepool {
       if (name == "write") {
-        std::string cc_value = arguments[0]->GetStringValue().ToString();
-        NSString *string = [NSString stringWithUTF8String:cc_value.c_str()];
-        if (string.length > 0) {
-          NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
-          [fileHandle writeData:data];
+        @synchronized(task) {
+          if (closed) return;
+          std::string value = arguments[0]->GetStringValue().ToString();
+          NSString *data = [NSString stringWithUTF8String:value.c_str()];
+          writeData(data);
+          if(arguments[1]->GetBoolValue() == true) {
+            closed = true;
+            if(interactive)
+              writeData([NSString stringWithFormat:@"%c", 4]);
+            else
+              [stdin closeFile];
+          }
         }
-        return true;
       }
-      return false;
-    }
-    IMPLEMENT_REFCOUNTING(WriteHandler);
+      }
+    };
+    IMPLEMENT_REFCOUNTING(IOHandler);
   private:
-    NSFileHandle *fileHandle;
+    NSFileHandle *stdin;
+    NSTask *task;
   };
+
+  NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value);
+  void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception> exception, NSString *message);
+
+  #define CTRLCODE(c)   ((c)-'A'+1)
+  NSFileHandle* usePtyForTask(NSTask* task) {
+    NSFileHandle *ptyFileHandle = nil;
+    NSFileHandle *ptyMasterHandle = nil;
+    int masterFd = 0, slaveFd = 0;
+    struct termios term;
+    struct winsize window;
+    term.c_iflag = ICRNL | IXON | IXANY | IMAXBEL | BRKINT;
+    term.c_oflag = OPOST | ONLCR;
+    term.c_cflag = CREAD | CS8 | HUPCL;
+    term.c_lflag = ICANON | ISIG | IEXTEN | ECHO | ECHOE | ECHOK | ECHOKE | ECHOCTL;
+    term.c_cc[VEOF] = CTRLCODE('D');
+    term.c_cc[VINTR] = CTRLCODE('C');
+    term.c_cc[VWERASE] = CTRLCODE('W');
+    term.c_cc[VSUSP] = CTRLCODE('Z');
+    term.c_cc[VQUIT] = 0x1c;
+    term.c_ispeed = B38400;
+    term.c_ospeed = B38400;
+    window.ws_row = 24;
+    window.ws_col = 80;
+    openpty(&masterFd, &slaveFd, nil, &term, &window);
+    ptyFileHandle = [[NSFileHandle alloc] initWithFileDescriptor:slaveFd];
+    ptyMasterHandle = [[NSFileHandle alloc] initWithFileDescriptor:masterFd];
+    fcntl(slaveFd, F_SETFD, FD_CLOEXEC);
+    fcntl(masterFd, F_SETFD, FD_CLOEXEC);
+    [task setStandardOutput:ptyFileHandle];
+    [task setStandardError:ptyFileHandle];
+    [task setStandardInput:ptyFileHandle];
+    [ptyFileHandle release];
+    return ptyMasterHandle;
+  }
 
   Native::Native() : CefV8Handler() {
   }
@@ -435,43 +486,31 @@ namespace v8_extensions {
       NSString *command = stringFromCefV8Value(arguments[0]);
       CefRefPtr<CefV8Value> options = arguments[1];
       CefRefPtr<CefV8Value> callback = arguments[2];
-      WriteHandler *stdinHandler = nil;
+      bool interactive = options->GetValue("interactive")->GetBoolValue();
+      NSFileHandle *stdout;
+      NSFileHandle *stderr = nil;
+      NSFileHandle *stdin;
 
       NSTask *task = [[NSTask alloc] init];
-      NSFileHandle *stdoutH;
-      NSFileHandle *stderrH = nil;
-      NSFileHandle *stdinH;
-      NSFileHandle *ptyFileHandle = nil;
-      NSFileHandle *ptyMasterHandle = nil;
-      int masterFd = 0, slaveFd = 0;
-
-      if(options->GetValue("interactive")->GetBoolValue()) {
+      if (interactive) {
         [task setLaunchPath:command];
-        [task setArguments:[NSArray arrayWithObjects:@"-l", nil]];
-        [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: @"/bin/bash", @"SHELL", @"xterm-256color", @"TERM", nil]];
-        openpty(&masterFd, &slaveFd, nil, nil, nil);
-        ptyFileHandle = [[NSFileHandle alloc] initWithFileDescriptor:slaveFd];
-        ptyMasterHandle = [[NSFileHandle alloc] initWithFileDescriptor:masterFd];
-        fcntl(slaveFd, F_SETFD, FD_CLOEXEC);
-        fcntl(masterFd, F_SETFD, FD_CLOEXEC);
-        stdoutH = stdinH = ptyFileHandle;
-        [task setStandardOutput:stdoutH];
-        [task setStandardError:stdoutH];
-        [task setStandardInput:stdinH];
-        stdoutH = stdinH = ptyMasterHandle;
+        [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: @"/bin/bash", @"SHELL", @"xterm-256color", @"TERM", [@"~" stringByExpandingTildeInPath], @"HOME", nil]];
+        [task setArguments:[NSArray arrayWithObject:@"-l"]];
+        stdin = stdout = usePtyForTask(task);
       } else {
         [task setLaunchPath:@"/bin/sh"];
         [task setArguments:[NSArray arrayWithObjects:@"-l", @"-c", command, nil]];
-        NSPipe *stdout = [NSPipe pipe];
-        NSPipe *stderr = [NSPipe pipe];
-        NSPipe *stdin = [NSPipe pipe];
-        [task setStandardOutput:stdout];
-        [task setStandardError:stderr];
-        [task setStandardInput:stdin];
-        stdoutH = stdout.fileHandleForReading;
-        stderrH = stderr.fileHandleForReading;
-        stdinH = stdin.fileHandleForWriting;
+        NSPipe *stdoutP = [NSPipe pipe];
+        NSPipe *stderrP = [NSPipe pipe];
+        NSPipe *stdinP = [NSPipe pipe];
+        stdout = stdoutP.fileHandleForReading;
+        stderr = stderrP.fileHandleForReading;
+        stdin = stdinP.fileHandleForWriting;
+        [task setStandardOutput:stdoutP];
+        [task setStandardError:stderrP];
+        [task setStandardInput:stdinP];
       }
+      IOHandler *iohandler = new IOHandler(stdin, task, interactive);
 
       CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
       void (^outputHandle)(NSString *contents, CefRefPtr<CefV8Value> function) = nil;
@@ -505,36 +544,46 @@ namespace v8_extensions {
           throwException(context->GetGlobal(), callback->GetException(), @"Error thrown in TaskTerminatedHandle");
         }
 
-        delete stdinHandler;
         context->Exit();
 
-        stdoutH.writeabilityHandler = nil;
-        if(stderrH)
-          stderrH.writeabilityHandler = nil;
-        [ptyMasterHandle closeFile];
+        stdout.readabilityHandler = nil;
+        if (stderr)
+          stderr.readabilityHandler = nil;
+        if(interactive)
+          [stdout closeFile];
       };
 
       task.terminationHandler = ^(NSTask *) {
-        NSData *outputData = [stdoutH  readDataToEndOfFile];
-        NSString *output = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
-        NSString *errorOutput = @"";
-        if (stderrH) {
-          NSData *errorData = [stderrH readDataToEndOfFile];
-          errorOutput = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
-        }
-        dispatch_sync(dispatch_get_main_queue(), ^() {
-          taskTerminatedHandle(output, errorOutput);
-        });
-        [output release];
-        if (stderrH)
+        @synchronized(task) {
+          NSString *output = @"";
+          NSString *errorOutput = @"";
+          if(!interactive) {
+            NSData *outputData = [stdout readDataToEndOfFile];
+            output = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+            if(stderr) {
+              NSData *errorData = [stderr readDataToEndOfFile];
+              errorOutput = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
+            }
+          }
+          dispatch_sync(dispatch_get_main_queue(), ^() {
+            taskTerminatedHandle(output, errorOutput);
+          });
+          [output release];
           [errorOutput release];
+        }
       };
 
       CefRefPtr<CefV8Value> stdoutFunction = options->GetValue("stdout");
       if (stdoutFunction->IsFunction()) {
-        stdoutH.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+        stdout.readabilityHandler = ^(NSFileHandle *fileHandle) {
           @synchronized(task) {
-            NSData *data = [fileHandle availableData];
+           NSData *data;
+            @try {
+              data = [fileHandle availableData];
+            }
+            @catch (NSException *e) {
+              return;
+            }
             NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             dispatch_sync(dispatch_get_main_queue(), ^() {
               outputHandle(contents, stdoutFunction);
@@ -545,8 +594,8 @@ namespace v8_extensions {
       }
 
       CefRefPtr<CefV8Value> stderrFunction = options->GetValue("stderr");
-      if (stderrFunction->IsFunction() && stderrH) {
-        stderrH.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+      if (stderr && stderrFunction->IsFunction()) {
+        stderr.readabilityHandler = ^(NSFileHandle *fileHandle) {
           @synchronized(task) {
             NSData *data = [fileHandle availableData];
             NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
@@ -563,9 +612,8 @@ namespace v8_extensions {
         [task setCurrentDirectoryPath:stringFromCefV8Value(currentWorkingDirectory)];
       }
 
-      stdinHandler = new WriteHandler(stdinH);
-      CefRefPtr<CefV8Value> stdinFunction = CefV8Value::CreateFunction("write", stdinHandler);
-      retval = stdinFunction;
+      CefRefPtr<CefV8Value> iocallback = CefV8Value::CreateFunction("write", iohandler);
+      retval = iocallback;
 
       [task launch];
 

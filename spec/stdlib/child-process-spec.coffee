@@ -153,11 +153,11 @@ describe 'Child Processes', ->
               stdout: (data) -> output.push(data)
 
             p = ChildProcess.exec("/bin/bash", options)
-            p.write("echo $SHELL && exit\n", true)
+            p.write("echo $LINES && exit\n", true)
             p
 
           runs ->
-            expect(output.join('')).toContain("bash")
+            expect(output.join('')).toContain("24")
 
       describe "write to stdin", ->
         it "returns a function for writing", ->
