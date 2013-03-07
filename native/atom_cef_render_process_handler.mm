@@ -1,8 +1,6 @@
 #import <iostream>
 #import "native/v8_extensions/atom.h"
 #import "native/v8_extensions/native.h"
-#import "native/v8_extensions/onig_reg_exp.h"
-#import "native/v8_extensions/onig_scanner.h"
 #import "native/v8_extensions/git.h"
 #import "native/message_translation.h"
 #import "path_watcher.h"
@@ -122,6 +120,4 @@ void AtomCefRenderProcessHandler::InjectExtensionsIntoV8Context(CefRefPtr<CefV8C
   (new v8_extensions::Atom())->CreateContextBinding(context);
   (new v8_extensions::Native())->CreateContextBinding(context);
   (new v8_extensions::Git())->CreateContextBinding(context);
-  (new v8_extensions::OnigRegExp())->CreateContextBinding(context);
-  (new v8_extensions::OnigScanner())->CreateContextBinding(context);
 }

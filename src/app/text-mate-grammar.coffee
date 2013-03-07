@@ -2,8 +2,7 @@ _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
 Token = require 'token'
-OnigRegExp = require 'onig-reg-exp'
-OnigScanner = require 'onig-scanner'
+{OnigRegExp, OnigScanner} = nodeRequire 'oniguruma'
 
 module.exports =
 class TextMateGrammar
@@ -28,7 +27,7 @@ class TextMateGrammar
   constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
     @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
-    @firstLineRegex = OnigRegExp.create(firstLineMatch) if firstLineMatch
+    @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
 
     for name, data of repository
@@ -111,7 +110,7 @@ class Rule
         regex = pattern.regexSource
       regexes.push regex if regex
 
-    regexScanner = OnigScanner.create(regexes)
+    regexScanner = new OnigScanner(regexes)
     regexScanner.patterns = patterns
     @scannersByBaseGrammarName[baseGrammar.name] = regexScanner unless anchored
     regexScanner
