@@ -11,6 +11,7 @@
 #include <fts.h>
 #include <util.h>
 #include <termios.h>
+#include <sys/ioctl.h>
 
 static std::string windowState = "{}";
 static NSLock *windowStateLock = [[NSLock alloc] init];
@@ -43,21 +44,37 @@ namespace v8_extensions {
                          CefRefPtr<CefV8Value>& retval,
                          CefString& exception) {
       @autoreleasepool {
-      if (name == "write") {
-        @synchronized(task) {
+        if (name == "write") {
           if (closed) return;
           std::string value = arguments[0]->GetStringValue().ToString();
           NSString *data = [NSString stringWithUTF8String:value.c_str()];
-          writeData(data);
-          if(arguments[1]->GetBoolValue() == true) {
-            closed = true;
-            if(interactive)
-              writeData([NSString stringWithFormat:@"%c", 4]);
-            else
-              [stdin closeFile];
+          @synchronized(task) {
+            writeData(data);
+            if(arguments[1]->GetBoolValue() == true) {
+              closed = true;
+              if(interactive)
+                writeData([NSString stringWithFormat:@"%c", 4]);
+              else
+                [stdin closeFile];
+            }
           }
+        } else if (name == "winsize") {
+          int fd = [stdin fileDescriptor];
+          unsigned short rows, cols;
+          rows = arguments[0]->GetUIntValue();
+          cols = arguments[1]->GetUIntValue();
+          struct winsize winsize;
+          @synchronized(task) {
+            ioctl(fd, TIOCGWINSZ, &winsize);
+            if (winsize.ws_row != rows || winsize.ws_col != cols) {
+              winsize.ws_row = rows;
+              winsize.ws_col = cols;
+              ioctl(fd, TIOCSWINSZ, &winsize);
+            }
+          }
+          return true;
         }
-      }
+        return false;
       }
     };
     IMPLEMENT_REFCOUNTING(IOHandler);
@@ -612,8 +629,12 @@ namespace v8_extensions {
         [task setCurrentDirectoryPath:stringFromCefV8Value(currentWorkingDirectory)];
       }
 
-      CefRefPtr<CefV8Value> iocallback = CefV8Value::CreateFunction("write", iohandler);
+      context->Enter();
+      CefRefPtr<CefV8Value> iocallback = CefV8Value::CreateObject(NULL);
+      iocallback->SetValue("write", CefV8Value::CreateFunction("write", iohandler), V8_PROPERTY_ATTRIBUTE_NONE);
+      iocallback->SetValue("winsize", CefV8Value::CreateFunction("winsize", iohandler), V8_PROPERTY_ATTRIBUTE_NONE);
       retval = iocallback;
+      context->Exit();
 
       [task launch];
 

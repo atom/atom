@@ -22,6 +22,7 @@ class TerminalView extends ScrollView
     @exited = false
     @readData = false
     @setTitle()
+    @size = [24,80]
 
     @on 'mousedown', '.title', (e) => @resizeStarted(e)
     @on 'click', =>
@@ -61,6 +62,7 @@ class TerminalView extends ScrollView
 
   attach: ->
     rootView.append(this)
+    @updateTerminalSize()
     @focus()
     @login()
 
@@ -85,6 +87,17 @@ class TerminalView extends ScrollView
     @buffer.rendered()
     @content.scrollToBottom()
 
+  updateTerminalSize: () ->
+    tester = $("<pre><span class='character'>a</span></pre>")
+    @content.append(tester)
+    charWidth = parseInt(tester.find("span").css("width"))
+    lineHeight = parseInt(tester.css("height"))
+    tester.remove()
+    windowWidth = parseInt(@content.css("width"))
+    windowHeight = parseInt(@content.css("height"))
+    @size = [Math.floor(windowHeight / lineHeight), Math.floor(windowWidth / charWidth)]
+    window.console.log @size
+
   setTitle: (text) ->
     @title.text("Atom Terminal#{if text? && text.length then " - #{text}" else ""}")
 
@@ -95,9 +108,17 @@ class TerminalView extends ScrollView
   resizeStopped: (e) =>
     $(document.body).off('mousemove', @resizeTerminal)
     $(document.body).off('mouseup', @resizeStopped)
+    @setTerminalSize()
 
   resizeTerminal: (e) =>
-    @content.css(height: window.innerWidth - e.pageY)
+    height = window.innerWidth - e.pageY
+    lineHeight = parseInt(@content.find("pre").css("height"))
+    lines = Math.floor(height / lineHeight)
+    lines = 1 if lines < 1
+    @content.css(height: lines * lineHeight)
+    @updateTerminalSize()
+
+  setTerminalSize: () ->
 
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")

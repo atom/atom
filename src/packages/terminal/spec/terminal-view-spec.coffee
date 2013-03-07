@@ -86,3 +86,5 @@ fdescribe 'Terminal', ->
 
   describe "when the terminal view size changes", ->
     it "resizes the terminal buffer", ->
+      terminalView.size = [5, 10]
+      terminalView.setTerminalSize()
