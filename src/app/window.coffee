@@ -155,7 +155,9 @@ window.unregisterDeserializer = (klass) ->
   delete deserializers[klass.name]
 
 window.deserialize = (state) ->
-  getDeserializer(state)?.deserialize(state)
+  if deserializer = getDeserializer(state)
+    return if deserializer.version? and deserializer.version isnt state.version
+    deserializer.deserialize(state)
 
 window.getDeserializer = (state) ->
   deserializers[state?.deserializer]
