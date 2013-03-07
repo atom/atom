@@ -4,7 +4,8 @@
 
   "dependencies": {
     "coffee-script": "1.5",
-    "ctags": "0.1.0"
+    "ctags": "0.1.0",
+    "oniguruma": "0.2.0"
   },
 
   "scripts": {
