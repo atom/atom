@@ -115,7 +115,7 @@ class RootView extends View
   updateTitle: ->
     if projectPath = project.getPath()
       if item = @getActivePaneItem()
-        @setTitle("#{item.getTitle()} - #{projectPath}")
+        @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
         @setTitle(projectPath)
     else
