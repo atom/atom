@@ -1,23 +1,40 @@
-ScrollView = require 'scroll-view'
 fs = require 'fs'
 $ = require 'jquery'
+ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
   @activate: ->
     @instance = new MarkdownPreviewView
+    rootView.command 'markdown-preview:show', '.editor', => @show()
+
+  @show: ->
+    activePane = rootView.getActivePane()
+    editSession = activePane.activeItem
+    if nextPane = activePane.getNextPane()
+      if preview = nextPane.itemForUri("markdown-preview:#{editSession.getPath()}")
+        nextPane.showItem(preview)
+      else
+        nextPane.showItem(new MarkdownPreviewView(editSession.buffer))
+    else
+      activePane.splitRight(new MarkdownPreviewView(editSession.buffer))
+    activePane.focus()
 
   @content: ->
     @div class: 'markdown-preview', tabindex: -1, =>
       @div class: 'markdown-body', outlet: 'markdownBody'
 
-  initialize: ->
+  initialize: (@buffer) ->
     super
 
     rootView.command 'markdown-preview:toggle', => @toggle()
-    @on 'blur', => @detach() unless document.activeElement is this[0]
-    @command 'core:cancel', => @detach()
+
+  getTitle: ->
+    "Markdown Preview"
+
+  getUri: ->
+    "markdown-preview:#{@buffer.getPath()}"
 
   toggle: ->
     if @hasParent()
@@ -33,11 +50,11 @@ class MarkdownPreviewView extends ScrollView
     @focus()
 
   detach: ->
-    return if @detaching
-    @detaching = true
-    super
-    rootView.focus()
-    @detaching = false
+#     return if @detaching
+#     @detaching = true
+#     super
+#     rootView.focus()
+#     @detaching = false
 
   getActiveText: ->
     rootView.getActiveView()?.getText()
