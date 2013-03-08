@@ -22,7 +22,7 @@ class TerminalView extends ScrollView
     @exited = false
     @readData = false
     @setTitle()
-    @size = [24,80]
+    @size = [24,80,8,18]
 
     @on 'mousedown', '.title', (e) => @resizeStarted(e)
     @on 'click', =>
@@ -104,7 +104,7 @@ class TerminalView extends ScrollView
     tester.remove()
     windowWidth = parseInt(@content.css("width"))
     windowHeight = parseInt(@content.css("height"))
-    @size = [Math.floor(windowHeight / lineHeight), Math.floor(windowWidth / charWidth)]
+    @size = [Math.floor(windowHeight / lineHeight) - 1, Math.floor(windowWidth / charWidth) - 1, charWidth, lineHeight]
 
   setTitle: (text) ->
     @title.text("#{if text? && text.length then "#{text} - " else ""}Atom Terminal")
@@ -121,9 +121,9 @@ class TerminalView extends ScrollView
   resizeTerminal: (e) =>
     height = window.innerWidth - e.pageY
     lineHeight = parseInt(@content.find("pre").css("height"))
-    lines = Math.floor(height / lineHeight)
+    lines = Math.floor(height / lineHeight) - 1
     lines = 1 if lines < 1
-    @content.css(height: lines * lineHeight)
+    @content.css(height: (lines * lineHeight) + 8)
     @updateTerminalSize()
 
   setTerminalSize: () ->
@@ -146,10 +146,9 @@ class TerminalView extends ScrollView
       if c.reversed
         color = 7 if color == -1
         bgcolor = 7 if bgcolor == -1
-        window.console.log "reversed #{color} #{bgcolor}"
         [color, bgcolor] = [bgcolor, color]
-        window.console.log "reversed #{color} #{bgcolor}"
       character.addClass("color-#{color}").addClass("background-#{bgcolor}")
       for s in ['bold', 'italic', 'underlined']
         character.addClass(s) if c[s] == true
+      character.css(width: @size[2]) if c.bold
       l.append character
