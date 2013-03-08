@@ -14,10 +14,12 @@ class TerminalBuffer
   constructor: () ->
     @lines = []
     @dirtyLines = []
+    @decsc = [0,0]
     @inEscapeSequence = false
     @resetSGR()
     @cursor = new TerminalCursor(this)
     @addLine(false)
+    @redrawNeeded = true
   resetSGR: () ->
     @color = 0
     @backgroundColor = -1
@@ -30,9 +32,10 @@ class TerminalBuffer
     l
   screenToLine: (screenCoords) ->
     if @scrollingRegion?
-      return [screenCoords[0] + @scrollingRegion.firstLine, screenCoords[1]]
+      return [screenCoords[0] + (@scrollingRegion.firstLine - 1), screenCoords[1]]
     screenCoords
   setScrollingRegion: (coords) ->
+    @addLine() for n in [1..coords[0]] if @numLines() < coords[0]
     @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1])
     l = @lastLine()
     @scrollingRegion.firstLine = l.number + 1
@@ -67,6 +70,18 @@ class TerminalBuffer
     _.reduce(@lines, (memo, line) ->
       return memo + line.text() + "\n"
     , "")
+  enableAlternateBuffer: () ->
+    @altBuffer = @lines
+    @lines = []
+    @addLine()
+    @redrawNeeded = true
+    @dirtyLines = []
+  disableAlternateBuffer: () ->
+    return if !@altBuffer?
+    @lines = @altBuffer
+    @altBuffer = null
+    @redrawNeeded = true
+    @dirtyLines = []
   addDirtyLine: (line) ->
     @dirtyLines.push(line)
   getDirtyLines: () ->
@@ -120,26 +135,54 @@ class TerminalBuffer
         col = parseInt(seq[1])
         @moveCursorTo([row, col])
       when "J" # Erase data
+        numLines = @numLines() - 1
+        start = 0
+        cursorLine = @cursor.line()
+        if @scrollingRegion?
+          start = @scrollingRegion.firstLine - 1
+          numLines = start + @scrollingRegion.height - 1
         op = parseInt(seq[0])
         @cursorLine()?.erase(@cursor.character(), op)
         if op == 1
-          @getLine(n).erase(0, 2) for n in [0..@cursor.line()-1]
+          @getLine(n).erase(0, 2) for n in [start..cursorLine-1]
         else if op == 2
-          @getLine(n).erase(0, 2) for n in [0..@numLines()-1]
+          @getLine(n).erase(0, 2) for n in [start..numLines]
           @cursor.moveTo([1,1])
         else
-          @getLine(n).erase(0, 2) for n in [@cursor.line()+1..@numLines()-1]
+          @getLine(n).erase(0, 2) for n in [cursorLine+1..numLines]
       when "K" # Erase in line
         op = parseInt(seq[0])
         @cursorLine().erase(@cursor.character(), op)
         @cursorLine().lastCharacter().cursor = true
       when "r" # Set scrollable region
-        row = parseInt(seq[0])
-        col = parseInt(seq[1])
-        @setScrollingRegion([row,col])
+        top = parseInt(seq[0]) || 1
+        bottom = parseInt(seq[1]) || 1
+        @setScrollingRegion([top,bottom])
       when "P" # Delete characters
         num = parseInt(seq[0])
         @cursorLine().eraseCharacters(@cursor.character(), num)
+      when "h"
+        num = parseInt(seq[0].replace(/^\?/, ''))
+        switch num
+          when 0 then # Ignore
+          when 1048 # Store cursor position
+            @cursor.store()
+          when 1049 # Store cursor and switch to alternate buffer
+            @cursor.store()
+            @enableAlternateBuffer()
+          else
+            window.console.log "Terminal: Unhandled DECSET #{num}"
+      when "l"
+        num = parseInt(seq[0].replace(/^\?/, ''))
+        switch num
+          when 0 then # Ignore
+          when 1048 # Restore cursor position
+            @cursor.restore()
+          when 1049 # Switch to main buffer and restore cursor
+            @disableAlternateBuffer()
+            @cursor.restore()
+          else
+            window.console.log "Terminal: Unhandled DECRST #{num}"
       when "m" # SGR (Graphics)
         for s in seq
           i = parseInt(s)
@@ -280,6 +323,11 @@ class TerminalCharacter
 class TerminalCursor
   constructor: (@buffer) ->
     @moveTo([1,1])
+    @decsc = [1,1]
+  store: () ->
+    @decsc = [@x, @y]
+  restore: () ->
+    [@x, @y] = @decsc
   moveTo: (coords) ->
     @y = coords[0]
     @y = 1 if @y < 1

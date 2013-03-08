@@ -84,6 +84,13 @@ class TerminalView extends ScrollView
     $(@content.find("pre").last().get(0))
 
   update: () ->
+    if @buffer.redrawNeeded
+      @content.empty()
+      @updateLine(line) for line in @buffer.lines
+      @buffer.rendered()
+      @content.scrollToTop()
+      @buffer.redrawNeeded = false
+      return
     @updateLine(line) for line in @buffer.getDirtyLines()
     @buffer.rendered()
     @content.scrollToBottom()
@@ -93,12 +100,10 @@ class TerminalView extends ScrollView
     @content.append(tester)
     charWidth = parseInt(tester.find("span").css("width"))
     lineHeight = parseInt(tester.css("height"))
-    window.console.log [charWidth, lineHeight]
     tester.remove()
     windowWidth = parseInt(@content.css("width"))
     windowHeight = parseInt(@content.css("height"))
     @size = [Math.floor(windowHeight / lineHeight), Math.floor(windowWidth / charWidth)]
-    window.console.log @size
 
   setTitle: (text) ->
     @title.text("Atom Terminal#{if text? && text.length then " - #{text}" else ""}")

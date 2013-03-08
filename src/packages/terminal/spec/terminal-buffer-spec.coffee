@@ -34,7 +34,6 @@ fdescribe 'Terminal Buffer', ->
       expect(buffer.length()).toBe 1
       buffer.inputCharacter('a')
       expect(buffer.length()).toBe 2
-      window.console.log(buffer)
 
   describe "when a special character is entered", ->
     describe "newline", ->
@@ -99,6 +98,15 @@ fdescribe 'Terminal Buffer', ->
         buffer.moveCursorTo([1,2])
         buffer.input(TerminalBuffer.escapeSequence("2J"))
         expect(buffer.text()).toBe("\n\n")
+      it "only clears inside the scrolling region", ->
+        buffer.input("ab")
+        buffer.setScrollingRegion([2,3])
+        buffer.moveCursorTo([1,1])
+        buffer.input("cd")
+        buffer.moveCursorTo([2,1])
+        buffer.input("e")
+        buffer.input(TerminalBuffer.escapeSequence("2J"))
+        expect(buffer.text()).toBe("ab\n\n\n\n\n")
     describe "insert blank character", ->
       it "inserts a blank character after the cursor", ->
         buffer.input("ab\nc")
@@ -147,6 +155,30 @@ fdescribe 'Terminal Buffer', ->
           buffer.input("#{TerminalBuffer.escape}[41mA")
           expect(buffer.lastLine().lastVisibleCharacter().backgroundColor).toBe(1)
           expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "41")
+      describe "dec private mode", ->
+        describe "save cursor", ->
+          it "saves cursor position and restores it", ->
+            buffer.input("abcdef")
+            buffer.moveCursorTo([1,4])
+            buffer.input(TerminalBuffer.escapeSequence("?1048h"))
+            buffer.moveCursorTo([1,6])
+            buffer.input(TerminalBuffer.escapeSequence("?1048l"))
+            expect(buffer.cursor.x).toBe(4)
+        describe "save cursor and use alternate screen buffer", ->
+          beforeEach ->
+            buffer.input("abcdef")
+          it "uses an alternate screen buffer", ->
+            buffer.input(TerminalBuffer.escapeSequence("?1049h"))
+            buffer.input("alt")
+            expect(buffer.text()).toBe("alt\n")
+            buffer.input(TerminalBuffer.escapeSequence("?1049l"))
+            expect(buffer.text()).toBe("abcdef\n")
+          it "restores the original cursor position", ->
+            buffer.moveCursorTo([1,4])
+            buffer.input(TerminalBuffer.escapeSequence("?1049h"))
+            buffer.moveCursorTo([1,6])
+            buffer.input(TerminalBuffer.escapeSequence("?1049l"))
+            expect(buffer.cursor.x).toBe(4)
 
   describe "cursor", ->
     describe "when characters are entered", ->
@@ -165,7 +197,6 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.numLines()).toBe(1)
         buffer.moveCursorTo([5,3])
         expect(buffer.numLines()).toBe(5)
-        window.console.log buffer.cursorLine()
         expect(buffer.cursorLine().length()).toBe(3)
       it "inserts characters at the cursor", ->
         buffer.moveCursorTo([1,3])
@@ -185,11 +216,11 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.scrollingRegion.height).toBe(10)
         expect(buffer.numLines()).toBe(11)
         expect(buffer.scrollingRegion.firstLine).toBe(1)
-        expect(buffer.screenToLine([1,1])).toEqual([2,1])
+        expect(buffer.screenToLine([1,1])).toEqual([1,1])
       it "modifies the cursor coordinates", ->
-        buffer.setScrollingRegion([1,10])
+        buffer.setScrollingRegion([10,20])
         buffer.moveCursorTo([10,1])
-        expect(buffer.cursor.y).toBe(11)
+        expect(buffer.cursor.y).toBe(20)
     describe "when a character is entered at the end of a line", ->
       it "inserts the character on the next line"
     describe "when the screen size changes", ->

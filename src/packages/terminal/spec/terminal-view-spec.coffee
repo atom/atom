@@ -78,6 +78,21 @@ fdescribe 'Terminal', ->
         terminalView.output("#{TerminalBuffer.escapeSequence("4m")}a")
         expect(terminalView.content.find("pre span").hasClass("underlined")).toBe(true)
 
+  describe "when the alternate buffer is used", ->
+    it "clears the display on enable", ->
+      terminalView.content.append($("<span class='to-be-deleted'>a</span>"))
+      terminalView.buffer.enableAlternateBuffer()
+      terminalView.update()
+      expect(terminalView.content.find('.to-be-deleted').length).toBe(0)
+    it "clears the display on disable", ->
+      terminalView.content.append($("<span class='to-be-deleted'>a</span>"))
+      terminalView.buffer.enableAlternateBuffer()
+      terminalView.update()
+      expect(terminalView.content.find('.to-be-deleted').length).toBe(0)
+
+  describe "when the cursor position changes", ->
+    it "scrolls to the cursor", ->
+
   describe "when a control key combo is pressed", ->
     it "sends the control event to the process", ->
       spyOn(terminalView, "input")
