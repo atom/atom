@@ -127,8 +127,10 @@ class TreeView extends ScrollView
       @root = null
 
   selectActiveFile: ->
-    activeFilePath = rootView.getActiveView()?.getPath()
-    @selectEntryForPath(activeFilePath) if activeFilePath
+    if activeFilePath = rootView.getActiveView()?.getPath?()
+      @selectEntryForPath(activeFilePath)
+    else
+      @deselect()
 
   revealActiveFile: ->
     @attach()
@@ -290,8 +292,11 @@ class TreeView extends ScrollView
     return false unless entry.get(0)
     entry = entry.view() unless entry instanceof View
     @selectedPath = entry.getPath()
-    @treeViewList.find('.selected').removeClass('selected')
+    @deselect()
     entry.addClass('selected')
+
+  deselect: ->
+    @treeViewList.find('.selected').removeClass('selected')
 
   scrollTop: (top) ->
     if top
