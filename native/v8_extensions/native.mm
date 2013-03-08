@@ -8,7 +8,6 @@
 #import "path_watcher.h"
 
 #import <iostream>
-#include <fts.h>
 
 static std::string windowState = "{}";
 static NSLock *windowStateLock = [[NSLock alloc] init];
