@@ -48,15 +48,13 @@ namespace v8_extensions {
           if (closed) return;
           std::string value = arguments[0]->GetStringValue().ToString();
           NSString *data = [NSString stringWithUTF8String:value.c_str()];
-          @synchronized(task) {
-            writeData(data);
-            if(arguments[1]->GetBoolValue() == true) {
-              closed = true;
-              if(interactive)
-                writeData([NSString stringWithFormat:@"%c", 4]);
-              else
-                [stdin closeFile];
-            }
+          writeData(data);
+          if(arguments[1]->GetBoolValue() == true) {
+            closed = true;
+            if(interactive)
+              writeData([NSString stringWithFormat:@"%c", 4]);
+            else
+              [stdin closeFile];
           }
         } else if (name == "winsize") {
           int fd = [stdin fileDescriptor];
@@ -64,13 +62,11 @@ namespace v8_extensions {
           rows = arguments[0]->GetUIntValue();
           cols = arguments[1]->GetUIntValue();
           struct winsize winsize;
-          @synchronized(task) {
-            ioctl(fd, TIOCGWINSZ, &winsize);
-            if (winsize.ws_row != rows || winsize.ws_col != cols) {
-              winsize.ws_row = rows;
-              winsize.ws_col = cols;
-              ioctl(fd, TIOCSWINSZ, &winsize);
-            }
+          ioctl(fd, TIOCGWINSZ, &winsize);
+          if (winsize.ws_row != rows || winsize.ws_col != cols) {
+            winsize.ws_row = rows;
+            winsize.ws_col = cols;
+            ioctl(fd, TIOCSWINSZ, &winsize);
           }
           return true;
         }
