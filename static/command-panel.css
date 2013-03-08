@@ -122,6 +122,7 @@
 
 .command-panel .prompt-and-editor .editor {
   position: relative;
+  -webkit-flex: 1;
 }
 
 .command-panel .prompt-and-editor {
