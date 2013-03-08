@@ -2033,6 +2033,19 @@ describe "EditSession", ->
       editSession.buffer.reload()
       expect(editSession.getCursorScreenPosition()).toEqual [0,1]
 
+  describe "when the 'grammars-loaded' event is triggered on the syntax global", ->
+    it "reloads the edit session's grammar and re-tokenizes the buffer if it changes", ->
+      editSession.destroy()
+      grammarToReturn = syntax.grammarByFileTypeSuffix('txt')
+      spyOn(syntax, 'grammarForFilePath').andCallFake -> grammarToReturn
+
+      editSession = project.buildEditSession('sample.js', autoIndent: false)
+      expect(editSession.lineForScreenRow(0).tokens.length).toBe 1
+
+      grammarToReturn = syntax.grammarByFileTypeSuffix('js')
+      syntax.trigger 'grammars-loaded'
+      expect(editSession.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
+
   describe "auto-indent", ->
     describe "editor.autoIndent", ->
       it "auto-indents newlines if editor.autoIndent is true", ->
