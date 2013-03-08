@@ -24,8 +24,8 @@ namespace v8_extensions {
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
-      "exists", "read", "write", "absolute", "isDirectory",
-      "isFile", "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
+      "exists", "read", "write", "absolute",
+      "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
       "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload", "lastModified",
       "md5ForPath", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
       "getCorrectionsForMisspelling"
@@ -110,24 +110,6 @@ namespace v8_extensions {
       if ([path characterAtIndex:0] == '/') {
         retval = CefV8Value::CreateString([path UTF8String]);
       }
-
-      return true;
-    }
-    else if (name == "isDirectory") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-
-      BOOL isDir = false;
-      BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];
-      retval = CefV8Value::CreateBool(exists && isDir);
-
-      return true;
-    }
-    else if (name == "isFile") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-
-      BOOL isDir = false;
-      BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];
-      retval = CefV8Value::CreateBool(exists && !isDir);
 
       return true;
     }

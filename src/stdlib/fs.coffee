@@ -50,13 +50,12 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
-    $native.isDirectory path
+    path? and nodeFs.existsSync(path) and nodeFs.statSync(path).isDirectory()
 
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    return false unless path?
-    $native.isFile(path)
+    path? and nodeFs.existsSync(path) and nodeFs.statSync(path).isFile()
 
   # Returns an array with all the names of files contained
   # in the directory path.
@@ -118,7 +117,7 @@ module.exports =
       @makeDirectory(path)
 
   traverseTree: (rootPath, onFile, onDirectory) ->
-    return unless nodeFs.existsSync(rootPath) and nodeFs.statSync(rootPath).isDirectory()
+    return unless @isDirectory(rootPath)
 
     traverse = (rootPath, prefix, onFile, onDirectory) =>
       prefix  = "#{prefix}/" if prefix
