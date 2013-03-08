@@ -24,7 +24,7 @@ namespace v8_extensions {
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
-      "exists", "read", "write", "absolute",
+      "read", "write", "absolute",
       "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
       "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload", "lastModified",
       "md5ForPath", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
@@ -49,14 +49,7 @@ namespace v8_extensions {
                        CefRefPtr<CefV8Value>& retval,
                        CefString& exception) {
     @autoreleasepool {
-    if (name == "exists") {
-      std::string cc_value = arguments[0]->GetStringValue().ToString();
-      const char *path = cc_value.c_str();
-      retval = CefV8Value::CreateBool(access(path, F_OK) == 0);
-
-      return true;
-    }
-    else if (name == "read") {
+    if (name == "read") {
       NSString *path = stringFromCefV8Value(arguments[0]);
 
       NSError *error = nil;

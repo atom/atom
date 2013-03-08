@@ -27,8 +27,7 @@ module.exports =
 
   # Returns true if the file specified by path exists
   exists: (path) ->
-    return false unless path?
-    $native.exists(path)
+    path? and nodeFs.existsSync(path)
 
   # Returns the extension of a file. The extension of a file is the
   # last dot (excluding any number of initial dots) followed by one or
@@ -50,12 +49,12 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
-    path? and nodeFs.existsSync(path) and nodeFs.statSync(path).isDirectory()
+    @exists(path) and nodeFs.statSync(path).isDirectory()
 
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    path? and nodeFs.existsSync(path) and nodeFs.statSync(path).isFile()
+    @exists(path) and nodeFs.statSync(path).isFile()
 
   # Returns an array with all the names of files contained
   # in the directory path.
