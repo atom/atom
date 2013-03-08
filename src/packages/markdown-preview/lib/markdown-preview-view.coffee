@@ -5,12 +5,21 @@ ScrollView = require 'scroll-view'
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
+  registerDeserializer(this)
+
+  @deserialize: ({path}) ->
+    new MarkdownPreviewView(project.bufferForPath(path))
+
   @content: ->
     @div class: 'markdown-preview', tabindex: -1
 
   initialize: (@buffer) ->
     super
     @fetchRenderedMarkdown()
+
+  serialize: ->
+    deserializer: 'MarkdownPreviewView'
+    path: @buffer.getPath()
 
   getTitle: ->
     "Markdown Preview – #{@buffer.getBaseName()}"
