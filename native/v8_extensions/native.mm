@@ -27,7 +27,7 @@ namespace v8_extensions {
       "exists", "read", "write", "absolute", "getAllFilePathsAsync", "traverseTree", "isDirectory",
       "isFile", "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
       "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload", "lastModified",
-      "md5ForPath", "exec", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
+      "md5ForPath", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
       "getCorrectionsForMisspelling"
     };
 
@@ -398,110 +398,6 @@ namespace v8_extensions {
       }
 
       retval = CefV8Value::CreateString([hash UTF8String]);
-      return true;
-    }
-    else if (name == "exec") {
-      NSString *command = stringFromCefV8Value(arguments[0]);
-      CefRefPtr<CefV8Value> options = arguments[1];
-      CefRefPtr<CefV8Value> callback = arguments[2];
-
-      NSTask *task = [[NSTask alloc] init];
-      [task setLaunchPath:@"/bin/sh"];
-      [task setStandardInput:[NSFileHandle fileHandleWithNullDevice]];
-      [task setArguments:[NSArray arrayWithObjects:@"-l", @"-c", command, nil]];
-
-      NSPipe *stdout = [NSPipe pipe];
-      NSPipe *stderr = [NSPipe pipe];
-      [task setStandardOutput:stdout];
-      [task setStandardError:stderr];
-
-      CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
-      void (^outputHandle)(NSString *contents, CefRefPtr<CefV8Value> function) = nil;
-      void (^taskTerminatedHandle)(NSString *output, NSString *errorOutput) = nil;
-
-      outputHandle = ^(NSString *contents, CefRefPtr<CefV8Value> function) {
-        context->Enter();
-
-        CefV8ValueList args;
-        args.push_back(CefV8Value::CreateString(std::string([contents UTF8String], [contents lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
-        CefRefPtr<CefV8Value> retval = function->ExecuteFunction(function, args);
-
-        if (function->HasException()) {
-          throwException(context->GetGlobal(), function->GetException(), @"Error thrown in OutputHandle");
-        }
-
-        context->Exit();
-      };
-
-      taskTerminatedHandle = ^(NSString *output, NSString *errorOutput) {
-        context->Enter();
-
-        CefV8ValueList args;
-        args.push_back(CefV8Value::CreateInt([task terminationStatus]));
-        args.push_back(CefV8Value::CreateString([output UTF8String]));
-        args.push_back(CefV8Value::CreateString([errorOutput UTF8String]));
-
-        callback->ExecuteFunction(callback, args);
-
-        if (callback->HasException()) {
-          throwException(context->GetGlobal(), callback->GetException(), @"Error thrown in TaskTerminatedHandle");
-        }
-
-        context->Exit();
-
-        stdout.fileHandleForReading.readabilityHandler = nil;
-        stderr.fileHandleForReading.readabilityHandler = nil;
-      };
-
-      task.terminationHandler = ^(NSTask *) {
-        @synchronized(task) {
-          NSData *outputData = [[stdout fileHandleForReading] readDataToEndOfFile];
-          NSString *output = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
-          NSData *errorData = [[stderr fileHandleForReading] readDataToEndOfFile];
-          NSString *errorOutput  = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
-          dispatch_sync(dispatch_get_main_queue(), ^() {
-            taskTerminatedHandle(output, errorOutput);
-          });
-          [output release];
-          [errorOutput release];
-        }
-      };
-
-      CefRefPtr<CefV8Value> stdoutFunction = options->GetValue("stdout");
-      if (stdoutFunction->IsFunction()) {
-        stdout.fileHandleForReading.readabilityHandler = ^(NSFileHandle *fileHandle) {
-          @synchronized(task) {
-            NSData *data = [fileHandle availableData];
-            NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-            dispatch_sync(dispatch_get_main_queue(), ^() {
-              outputHandle(contents, stdoutFunction);
-            });
-            [contents release];
-          }
-        };
-      }
-
-      CefRefPtr<CefV8Value> stderrFunction = options->GetValue("stderr");
-      if (stderrFunction->IsFunction()) {
-        stderr.fileHandleForReading.readabilityHandler = ^(NSFileHandle *fileHandle) {
-          @synchronized(task) {
-            NSData *data = [fileHandle availableData];
-            NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-            dispatch_sync(dispatch_get_main_queue(), ^() {
-              outputHandle(contents, stderrFunction);
-            });
-            [contents release];
-          }
-        };
-      }
-
-      CefRefPtr<CefV8Value> currentWorkingDirectory = options->GetValue("cwd");
-      if (!currentWorkingDirectory->IsUndefined() && !currentWorkingDirectory->IsNull()) {
-        [task setCurrentDirectoryPath:stringFromCefV8Value(currentWorkingDirectory)];
-      }
-
-      [task launch];
-
       return true;
     }
     else if (name == "getPlatform") {
