@@ -105,7 +105,7 @@ module.exports =
     $native.write(path, content)
 
   makeDirectory: (path) ->
-    $native.makeDirectory(path)
+    nodeFs.mkdirSync(path)
 
   # Creates the directory specified by "path" including any missing parent
   # directories.
