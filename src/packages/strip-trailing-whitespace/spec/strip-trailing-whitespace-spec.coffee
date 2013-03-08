@@ -12,7 +12,7 @@ describe "StripTrailingWhitespace", ->
 
     window.loadPackage('strip-trailing-whitespace')
     rootView.focus()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
 
   afterEach ->
     fs.remove(path) if fs.exists(path)
@@ -23,7 +23,7 @@ describe "StripTrailingWhitespace", ->
 
     # works for buffers that are already open when extension is initialized
     editor.insertText("foo   \nbar\t   \n\nbaz")
-    editor.save()
+    editor.getBuffer().save()
     expect(editor.getText()).toBe "foo\nbar\n\nbaz"
 
     # works for buffers that are opened after extension is initialized
@@ -47,25 +47,25 @@ describe "StripTrailingWhitespace", ->
 
     it "adds a trailing newline when there is no trailing newline", ->
       editor.insertText "foo"
-      editor.save()
+      editor.getBuffer().save()
       expect(editor.getText()).toBe "foo\n"
 
     it "removes extra trailing newlines and only keeps one", ->
       editor.insertText "foo\n\n\n\n"
-      editor.save()
+      editor.getBuffer().save()
       expect(editor.getText()).toBe "foo\n"
 
     it "leaves a buffer with a single trailing newline untouched", ->
       editor.insertText "foo\nbar\n"
-      editor.save()
+      editor.getBuffer().save()
       expect(editor.getText()).toBe "foo\nbar\n"
 
     it "leaves an empty buffer untouched", ->
       editor.insertText ""
-      editor.save()
+      editor.getBuffer().save()
       expect(editor.getText()).toBe ""
 
     it "leaves a buffer that is a single newline untouched", ->
       editor.insertText "\n"
-      editor.save()
+      editor.getBuffer().save()
       expect(editor.getText()).toBe "\n"

@@ -157,10 +157,10 @@ its own namespace.
   - hideGitIgnoredFiles: Whether files in the .gitignore should be hidden
   - ignoredNames: File names to ignore across all of atom (not fully implemented)
   - themes: An array of theme names to load, in cascading order
+  - autosave: Save a resource when its view loses focus
 - editor
   - autoIndent: Enable/disable basic auto-indent (defaults to true)
   - autoIndentOnPaste: Enable/disable auto-indented pasted text (defaults to false)
-  - autosave: Save a file when an editor loses focus
   - nonWordCharacters: A string of non-word characters to define word boundaries
   - fontSize
   - fontFamily

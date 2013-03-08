@@ -26,7 +26,7 @@ describe "@load(name)", ->
         expect($(".editor").css("padding-right")).not.toBe("102px")
         expect($(".editor").css("padding-bottom")).not.toBe("103px")
 
-        themePath = fixturesProject.resolve('themes/theme-with-package-file')
+        themePath = project.resolve('themes/theme-with-package-file')
         theme = Theme.load(themePath)
         expect($(".editor").css("padding-top")).toBe("101px")
         expect($(".editor").css("padding-right")).toBe("102px")
@@ -36,7 +36,7 @@ describe "@load(name)", ->
       it "loads and applies the stylesheet", ->
         expect($(".editor").css("padding-bottom")).not.toBe "1234px"
 
-        themePath = fixturesProject.resolve('themes/theme-stylesheet.css')
+        themePath = project.resolve('themes/theme-stylesheet.css')
         theme = Theme.load(themePath)
         expect($(".editor").css("padding-top")).toBe "1234px"
 
@@ -46,7 +46,7 @@ describe "@load(name)", ->
         expect($(".editor").css("padding-right")).not.toBe "20px"
         expect($(".editor").css("padding-bottom")).not.toBe "30px"
 
-        themePath = fixturesProject.resolve('themes/theme-without-package-file')
+        themePath = project.resolve('themes/theme-without-package-file')
         theme = Theme.load(themePath)
         expect($(".editor").css("padding-top")).toBe "10px"
         expect($(".editor").css("padding-right")).toBe "20px"

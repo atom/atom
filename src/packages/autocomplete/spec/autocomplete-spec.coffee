@@ -17,8 +17,8 @@ describe "Autocomplete", ->
       autocompletePackage = window.loadPackage("autocomplete")
       expect(AutocompleteView.prototype.initialize).not.toHaveBeenCalled()
 
-      leftEditor = rootView.getActiveEditor()
-      rightEditor = rootView.getActiveEditor().splitRight()
+      leftEditor = rootView.getActiveView()
+      rightEditor = leftEditor.splitRight()
 
       leftEditor.trigger 'autocomplete:attach'
       expect(leftEditor.find('.autocomplete')).toExist()
@@ -40,7 +40,7 @@ describe "AutocompleteView", ->
 
   beforeEach ->
     window.rootView = new RootView
-    editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
+    editor = new Editor(editSession: project.buildEditSession('sample.js'))
     window.loadPackage('autocomplete')
     autocomplete = new AutocompleteView(editor)
     miniEditor = autocomplete.miniEditor

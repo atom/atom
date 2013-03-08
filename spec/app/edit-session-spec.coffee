@@ -9,12 +9,30 @@ describe "EditSession", ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
   beforeEach ->
-    editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
+    editSession = project.buildEditSession('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
 
-  afterEach ->
-    fixturesProject.destroy()
+  describe "title", ->
+    describe ".getTitle()", ->
+      it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
+        expect(editSession.getTitle()).toBe 'sample.js'
+        buffer.setPath(undefined)
+        expect(editSession.getTitle()).toBe 'untitled'
+
+    describe ".getLongTitle()", ->
+      it "appends the name of the containing directory to the basename of the file", ->
+        expect(editSession.getLongTitle()).toBe 'sample.js - fixtures'
+        buffer.setPath(undefined)
+        expect(editSession.getLongTitle()).toBe 'untitled'
+
+    it "emits 'title-changed' events when the underlying buffer path", ->
+      titleChangedHandler = jasmine.createSpy("titleChangedHandler")
+      editSession.on 'title-changed', titleChangedHandler
+
+      buffer.setPath('/foo/bar/baz.txt')
+      buffer.setPath(undefined)
+      expect(titleChangedHandler.callCount).toBe 2
 
   describe "cursor", ->
     describe ".getCursor()", ->
@@ -793,12 +811,21 @@ describe "EditSession", ->
                 expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
 
             describe "when the preceding does not match an auto-indent pattern", ->
-              it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
-                editSession.setCursorBufferPosition([3, Infinity])
-                editSession.insertText('\n', autoIndent: true)
-                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
-                editSession.insertText('   }', autoIndent: true)
-                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
+              describe "when the inserted text is whitespace", ->
+                it "does not auto-decreases the indentation", ->
+                  editSession.setCursorBufferPosition([12, 0])
+                  editSession.insertText('  ', autoIndent: true)
+                  expect(editSession.lineForBufferRow(12)).toBe '  };'
+                  editSession.insertText('\t\t', autoIndent: true)
+                  expect(editSession.lineForBufferRow(12)).toBe '  \t\t};'
+
+              describe "when the inserted text is non-whitespace", ->
+                it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
+                  editSession.setCursorBufferPosition([3, Infinity])
+                  editSession.insertText('\n', autoIndent: true)
+                  expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
+                  editSession.insertText('   }', autoIndent: true)
+                  expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
 
           describe "when the current line does not match an auto-outdent pattern", ->
             it "leaves the line unchanged", ->
@@ -1706,7 +1733,7 @@ describe "EditSession", ->
 
       it "does not explode if the current language mode has no comment regex", ->
         editSession.destroy()
-        editSession = fixturesProject.buildEditSessionForPath(null, autoIndent: false)
+        editSession = project.buildEditSession(null, autoIndent: false)
         editSession.setSelectedBufferRange([[4, 5], [4, 5]])
         editSession.toggleLineCommentsInSelection()
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
@@ -1784,7 +1811,7 @@ describe "EditSession", ->
         expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
       it "restores selected ranges even when the change occurred in another edit session", ->
-        otherEditSession = fixturesProject.buildEditSessionForPath(editSession.getPath())
+        otherEditSession = project.buildEditSession(editSession.getPath())
         otherEditSession.setSelectedBufferRange([[2, 2], [3, 3]])
         otherEditSession.delete()
 
@@ -1977,13 +2004,13 @@ describe "EditSession", ->
 
   describe "soft-tabs detection", ->
     it "assign soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
-      editSession = fixturesProject.buildEditSessionForPath('sample.js', softTabs: false)
+      editSession = project.buildEditSession('sample.js', softTabs: false)
       expect(editSession.softTabs).toBeTruthy()
 
-      editSession = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', softTabs: true)
+      editSession = project.buildEditSession('sample-with-tabs.coffee', softTabs: true)
       expect(editSession.softTabs).toBeFalsy()
 
-      editSession = fixturesProject.buildEditSessionForPath(null, softTabs: false)
+      editSession = project.buildEditSession(null, softTabs: false)
       expect(editSession.softTabs).toBeFalsy()
 
   describe ".indentLevelForLine(line)", ->
@@ -2005,6 +2032,19 @@ describe "EditSession", ->
       editSession.setCursorScreenPosition([0, 1])
       editSession.buffer.reload()
       expect(editSession.getCursorScreenPosition()).toEqual [0,1]
+
+  describe "when the 'grammars-loaded' event is triggered on the syntax global", ->
+    it "reloads the edit session's grammar and re-tokenizes the buffer if it changes", ->
+      editSession.destroy()
+      grammarToReturn = syntax.grammarByFileTypeSuffix('txt')
+      spyOn(syntax, 'grammarForFilePath').andCallFake -> grammarToReturn
+
+      editSession = project.buildEditSession('sample.js', autoIndent: false)
+      expect(editSession.lineForScreenRow(0).tokens.length).toBe 1
+
+      grammarToReturn = syntax.grammarByFileTypeSuffix('js')
+      syntax.trigger 'grammars-loaded'
+      expect(editSession.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
   describe "auto-indent", ->
     describe "editor.autoIndent", ->

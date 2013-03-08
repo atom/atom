@@ -21,12 +21,12 @@ html, body {
   -webkit-flex-flow: column;
 }
 
-#root-view #panes {
+#panes {
   position: relative;
   -webkit-flex: 1;
 }
 
-#root-view #panes .column {
+#panes .column {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -35,7 +35,7 @@ html, body {
   overflow-y: hidden;
 }
 
-#root-view #panes .row {
+#panes .row {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -44,7 +44,7 @@ html, body {
   overflow-x: hidden;
 }
 
-#root-view #panes .pane {
+#panes .pane {
   position: absolute;
   display: -webkit-flex;
   -webkit-flex-flow: column;
@@ -53,6 +53,12 @@ html, body {
   left: 0;
   right: 0;
   box-sizing: border-box;
+}
+
+#panes .pane .item-views {
+  -webkit-flex: 1;
+  display: -webkit-flex;
+  -webkit-flex-flow: column;
 }
 
 @font-face {
