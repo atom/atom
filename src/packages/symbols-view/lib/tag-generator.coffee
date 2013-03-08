@@ -1,6 +1,7 @@
 Point = require 'point'
 ChildProcess = nodeRequire 'child_process'
 $ = require 'jquery'
+BufferedProcess = require 'buffered-process'
 
 module.exports =
 class TagGenerator
@@ -15,18 +16,15 @@ class TagGenerator
       null
 
   generate: ->
+    deferred = $.Deferred()
+    tags = []
     command = "#{require.resolve('ctags')}"
     args = ['--fields=+KS', '-nf', '-', @path]
-    ctags = ChildProcess.spawn(command, args)
-    deferred = $.Deferred()
-    output = ''
-    ctags.stdout.setEncoding('utf8')
-    ctags.stdout.on 'data', (data) ->
-      output += data
-    ctags.stdout.on 'close', =>
-      tags = []
-      for line in output.split('\n')
+    stdout = (lines) =>
+      for line in lines.split('\n')
         tag = @parseTagLine(line)
         tags.push(tag) if tag
+    exit = ->
       deferred.resolve(tags)
+    new BufferedProcess({command, args, stdout, exit})
     deferred
