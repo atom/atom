@@ -5,10 +5,9 @@ set -e
 cd "$(dirname $0)/.."
 
 DIRS="src static vendor"
-EXCLUDE_DIRS="src/packages/package-generator/template"
 
 find_files() {
-  find ${DIRS} -type file -name ${1} | grep -v ${EXCLUDE_DIRS}
+  find ${DIRS} -type file -name ${1}
 }
 
 file_list() {
