@@ -82,6 +82,7 @@ class TerminalBuffer
   disableAlternateBuffer: () ->
     return if !@altBuffer?
     [@lines, @altBuffer] = [@altBuffer, null]
+    @scrollingRegion = null
     @redrawNeeded = true
     @dirtyLines = []
   addDirtyLine: (line) ->
@@ -113,6 +114,8 @@ class TerminalBuffer
       when 27
         @escape()
       else
+        if !@cursorLine()
+          @cursor.y = @lastLine().number
         @cursorLine().insertAt(c, @cursor.character())
         @cursor.x += 1
         @cursor.moved()
@@ -142,8 +145,8 @@ class TerminalBuffer
         num = parseInt(seq[0])
         @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]
       when "H", "f" # Cursor position
-        row = parseInt(seq[0])
-        col = parseInt(seq[1])
+        row = parseInt(seq[0]) || 1
+        col = parseInt(seq[1]) || 1
         @moveCursorTo([row, col])
       when "J" # Erase data
         numLines = @numLines() - 1
@@ -158,7 +161,6 @@ class TerminalBuffer
           @getLine(n).erase(0, 2) for n in [start..cursorLine-1]
         else if op == 2
           @getLine(n).erase(0, 2) for n in [start..numLines]
-          @cursor.moveTo([1,1])
         else
           @getLine(n).erase(0, 2) for n in [cursorLine+1..numLines]
       when "K" # Erase in line
