@@ -86,7 +86,19 @@ module.exports =
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
   remove: (path) ->
-    $native.remove path
+    if @isFile(path)
+      nodeFs.unlinkSync(path)
+    else if @isDirectory(path)
+      removeDirectory = (path) =>
+        for entry in nodeFs.readdirSync(path)
+          entryPath = @join(path, entry)
+          stats = nodeFs.statSync(entryPath)
+          if stats.isDirectory()
+            removeDirectory(entryPath)
+          else if stats.isFile()
+            nodeFs.unlinkSync(entryPath)
+        nodeFs.rmdirSync(path)
+      removeDirectory(path)
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->

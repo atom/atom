@@ -59,18 +59,6 @@ namespace v8_extensions {
 
       return true;
     }
-    else if (name == "remove") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-
-      NSError *error = nil;
-      [[NSFileManager defaultManager] removeItemAtPath:path error:&error];
-
-      if (error) {
-        exception = [[error localizedDescription] UTF8String];
-      }
-
-      return true;
-    }
     else if (name == "writeToPasteboard") {
       NSString *text = stringFromCefV8Value(arguments[0]);
 
