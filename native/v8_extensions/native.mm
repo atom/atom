@@ -24,7 +24,7 @@ namespace v8_extensions {
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
-      "exists", "read", "write", "absolute", "getAllFilePathsAsync", "traverseTree", "isDirectory",
+      "exists", "read", "write", "absolute", "traverseTree", "isDirectory",
       "isFile", "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
       "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload", "lastModified",
       "md5ForPath", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
@@ -111,57 +111,6 @@ namespace v8_extensions {
         retval = CefV8Value::CreateString([path UTF8String]);
       }
 
-      return true;
-    }
-    else if (name == "getAllFilePathsAsync") {
-      std::string argument = arguments[0]->GetStringValue().ToString();
-      CefRefPtr<CefV8Value> callback = arguments[1];
-      CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
-
-      dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-      dispatch_async(queue, ^{
-        int rootPathLength = argument.size() + 1;
-        char rootPath[rootPathLength];
-        strcpy(rootPath, argument.c_str());
-        char * const treePaths[] = {rootPath, NULL};
-
-        FTS *tree = fts_open(treePaths, FTS_COMFOLLOW | FTS_PHYSICAL| FTS_NOCHDIR | FTS_NOSTAT, NULL);
-        std::vector<std::string> paths;
-
-        if (tree != NULL) {
-          FTSENT *entry;
-          int arrayIndex = 0;
-          while ((entry = fts_read(tree)) != NULL) {
-            if (entry->fts_level == 0) {
-              continue;
-            }
-
-            bool isFile = entry->fts_info == FTS_NSOK;
-            if (!isFile) {
-              continue;
-            }
-
-            int pathLength = entry->fts_pathlen - rootPathLength;
-            char relative[pathLength + 1];
-            relative[pathLength] = '\0';
-            strncpy(relative, entry->fts_path + rootPathLength, pathLength);
-            paths.push_back(relative);
-          }
-        }
-
-        dispatch_queue_t mainQueue = dispatch_get_main_queue();
-        dispatch_async(mainQueue, ^{
-          context->Enter();
-          CefRefPtr<CefV8Value> v8Paths = CefV8Value::CreateArray(paths.size());
-          for (int i = 0; i < paths.size(); i++) {
-            v8Paths->SetValue(i, CefV8Value::CreateString(paths[i]));
-          }
-          CefV8ValueList callbackArgs;
-          callbackArgs.push_back(v8Paths);
-          callback->ExecuteFunction(callback, callbackArgs);
-          context->Exit();
-        });
-      });
       return true;
     }
     else if (name == "traverseTree") {

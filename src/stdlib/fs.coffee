@@ -117,9 +117,6 @@ module.exports =
       @makeTree(@directory(path))
       @makeDirectory(path)
 
-  getAllFilePathsAsync: (rootPath, callback) ->
-    $native.getAllFilePathsAsync(rootPath, callback)
-
   traverseTree: (rootPath, onFile, onDirectory) ->
     return unless nodeFs.existsSync(rootPath) and nodeFs.statSync(rootPath).isDirectory()
 

@@ -67,9 +67,11 @@ class Project
 
   getFilePaths: ->
     deferred = $.Deferred()
-    fs.getAllFilePathsAsync @getPath(), (paths) =>
-      paths = paths.filter (path) => not @isPathIgnored(path)
-      deferred.resolve(paths)
+    paths = []
+    onFile = (path) => paths.push(path) unless @isPathIgnored(path)
+    onDirectory = -> true
+    fs.traverseTree(@getPath(), onFile, onDirectory)
+    deferred.resolve(paths)
     deferred.promise()
 
   isPathIgnored: (path) ->

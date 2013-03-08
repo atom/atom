@@ -118,7 +118,7 @@ describe "Project", ->
         expect(project.getRootDirectory()?).toBeFalsy()
 
   describe ".getFilePaths()", ->
-    it "asynchronously returns file paths using a promise", ->
+    it "returns file paths using a promise", ->
       paths = null
       waitsForPromise ->
         project.getFilePaths().done (foundPaths) -> paths = foundPaths
