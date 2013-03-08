@@ -24,7 +24,7 @@ namespace v8_extensions {
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
-      "read", "absolute",
+      "absolute",
       "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
       "getWatchedPaths", "unwatchAllPaths", "move", "moveToTrash", "reload",
       "md5ForPath", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
@@ -49,28 +49,7 @@ namespace v8_extensions {
                        CefRefPtr<CefV8Value>& retval,
                        CefString& exception) {
     @autoreleasepool {
-    if (name == "read") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-
-      NSError *error = nil;
-      NSStringEncoding *encoding = nil;
-      NSString *contents = [NSString stringWithContentsOfFile:path usedEncoding:encoding error:&error];
-
-      NSError *binaryFileError = nil;
-      if (error) {
-        contents = [NSString stringWithContentsOfFile:path encoding:NSASCIIStringEncoding error:&binaryFileError];
-      }
-
-      if (binaryFileError) {
-        exception = [[binaryFileError localizedDescription] UTF8String];
-      }
-      else {
-        retval = CefV8Value::CreateString([contents UTF8String]);
-      }
-
-      return true;
-    }
-    else if (name == "absolute") {
+    if (name == "absolute") {
       NSString *path = stringFromCefV8Value(arguments[0]);
 
       path = [path stringByStandardizingPath];
