@@ -18,7 +18,7 @@ class TagGenerator
   generate: ->
     deferred = $.Deferred()
     tags = []
-    command = "#{require.resolve('ctags')}"
+    command = require.resolve('ctags')
     args = ['--fields=+KS', '-nf', '-', @path]
     stdout = (lines) =>
       for line in lines.split('\n')
