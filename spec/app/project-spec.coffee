@@ -1,6 +1,7 @@
 Project = require 'project'
 fs = require 'fs'
 _ = require 'underscore'
+BufferedProcess = require 'buffered-process'
 
 describe "Project", ->
   beforeEach ->
@@ -239,12 +240,12 @@ describe "Project", ->
           expect(fs.base(paths[4])).toBe "utfa\u0306.md"
 
       it "handles breaks in the search subprocess's output following the filename", ->
-        spyOn $native, 'exec'
+        spyOn(BufferedProcess.prototype, 'bufferStream')
 
         iterator = jasmine.createSpy('iterator')
         project.scan /a+/, iterator
 
-        stdout = $native.exec.argsForCall[0][1].stdout
+        stdout = BufferedProcess.prototype.bufferStream.argsForCall[0][1]
         stdout ":#{require.resolve('fixtures/dir/a')}\n"
         stdout "1;0 3:aaa bbb\n2;3 2:cc aa cc\n"
 

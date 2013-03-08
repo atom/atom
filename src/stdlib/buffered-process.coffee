@@ -2,8 +2,8 @@ ChildProcess = nodeRequire 'child_process'
 
 module.exports =
 class BufferedProcess
-  constructor: (options={}) ->
-    process = ChildProcess.spawn(options.command, options.args)
+  constructor: ({command, args, options, stdout, stderr, exit}={}) ->
+    process = ChildProcess.spawn(command, args, options)
 
     stdoutClosed = true
     stderrClosed = true
@@ -11,21 +11,21 @@ class BufferedProcess
     exitCode = 0
     triggerExitCallback = ->
       if stdoutClosed and stderrClosed and processExited
-        options.exit?(exitCode)
+        exit?(exitCode)
 
-    if options.stdout
+    if stdout
       stdoutClosed = false
-      @bufferStream process.stdout, options.stdout, ->
+      @bufferStream process.stdout, stdout, ->
         stdoutClosed = true
         triggerExitCallback()
 
-    if options.stderr
+    if stderr
       stderrClosed = false
-      @bufferStream process.stderr, options.stderr, ->
+      @bufferStream process.stderr, stderr, ->
         stderrClosed = true
         triggerExitCallback()
 
-    if options.exit
+    if exit
       processExited = false
       process.on 'exit', (code) ->
         exitCode = code
