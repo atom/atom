@@ -75,23 +75,24 @@ class TerminalBuffer
       return memo + line.text() + "\n"
     , "")
   enableAlternateBuffer: () ->
-    @altBuffer = @lines
-    @lines = []
+    [@altBuffer, @lines] = [@lines, []]
     @addLine()
     @redrawNeeded = true
     @dirtyLines = []
   disableAlternateBuffer: () ->
     return if !@altBuffer?
-    @lines = @altBuffer
-    @altBuffer = null
+    [@lines, @altBuffer] = [@altBuffer, null]
     @redrawNeeded = true
     @dirtyLines = []
   addDirtyLine: (line) ->
-    @dirtyLines.push(line)
+    @dirtyLines.push(line) if _.contains(@lines, line)
   getDirtyLines: () ->
     _.uniq(@dirtyLines)
   rendered: () ->
     line.rendered() for line in @dirtyLines
+    @dirtyLines = []
+  renderedAll: () ->
+    line.rendered() for line in @lines
     @dirtyLines = []
   backspace: () ->
     # @lastLine().backspace()

@@ -86,9 +86,10 @@ class TerminalView extends ScrollView
   update: () ->
     @setTitle(@buffer.title)
     if @buffer.redrawNeeded
+      window.lines = @buffer.lines
       @content.empty()
       @updateLine(line) for line in @buffer.lines
-      @buffer.rendered()
+      @buffer.renderedAll()
       @content.scrollToTop()
       @buffer.redrawNeeded = false
       return
