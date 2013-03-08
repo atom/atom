@@ -1,3 +1,5 @@
+fs = nodeRequire 'fs'
+
 paths = [
   "#{window.resourcePath}/spec"
   "#{window.resourcePath}/benchmark"
@@ -64,7 +66,8 @@ exts =
       writeToCache = true
 
     evaluated = exts.js(file, compiled)
-    $native.write(cacheFilePath, compiled) if writeToCache
+    createCacheDirectory()
+    fs.writeFileSync(cacheFilePath, compiled) if writeToCache
     evaluated
 
 getPath = (path) ->
@@ -75,8 +78,12 @@ getPath = (path) ->
   unless __exists(cacheFilePath)
     {CoffeeScript} = require 'coffee-script'
     compiled = CoffeeScript.compile(__read(path), filename: path)
-    $native.write(cacheFilePath, compiled)
+    createCacheDirectory()
+    fs.writeFileSync(cacheFilePath, compiled)
   cacheFilePath
+
+createCacheDirectory = ->
+  fs.mkdirSync('/tmp/atom-compiled-scripts') unless __exists('/tmp/atom-compiled-scripts')
 
 getCacheFilePath = (path) ->
   "/tmp/atom-compiled-scripts/#{$native.md5ForPath(path)}"
@@ -148,14 +155,14 @@ __expand = (path) ->
   null
 
 __exists = (path) ->
-  $native.exists path
+  fs.existsSync path
 
 __isFile = (path) ->
-  $native.isFile path
+  __exists(path) && fs.statSync(path).isFile()
 
 __read = (path) ->
   try
-    $native.read(path)
+    fs.readFileSync(path, 'utf8')
   catch e
     console.error "Failed to read `#{path}`"
     throw e
