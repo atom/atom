@@ -1,6 +1,6 @@
 fs = require 'fs'
 $ = require 'jquery'
-ChildProcess = require 'child-process'
+ChildProcess = nodeRequire 'child_process'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
