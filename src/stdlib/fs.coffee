@@ -81,7 +81,7 @@ module.exports =
     paths
 
   move: (source, target) ->
-    $native.move(source, target)
+    nodeFs.renameSync(source, target)
 
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.

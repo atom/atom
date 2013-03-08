@@ -26,7 +26,7 @@ namespace v8_extensions {
     const char* methodNames[] = {
       "absolute",
       "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
-      "getWatchedPaths", "unwatchAllPaths", "move", "moveToTrash", "reload",
+      "getWatchedPaths", "unwatchAllPaths", "moveToTrash", "reload",
       "md5ForPath", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
       "getCorrectionsForMisspelling"
     };
@@ -152,20 +152,6 @@ namespace v8_extensions {
     else if (name == "unwatchAllPaths") {
       PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
       [pathWatcher unwatchAllPaths];
-      return true;
-    }
-    else if (name == "move") {
-      NSString *sourcePath = stringFromCefV8Value(arguments[0]);
-      NSString *targetPath = stringFromCefV8Value(arguments[1]);
-      NSFileManager *fm = [NSFileManager defaultManager];
-
-      NSError *error = nil;
-      [fm moveItemAtPath:sourcePath toPath:targetPath error:&error];
-
-      if (error) {
-        exception = [[error localizedDescription] UTF8String];
-      }
-
       return true;
     }
     else if (name == "moveToTrash") {
