@@ -16,7 +16,7 @@ class TagGenerator
 
   generate: ->
     command = "#{require.resolve('ctags')}"
-    args = ["--fields=+KS", "-nf", "-", "#{@path}"]
+    args = ['--fields=+KS', '-nf', '-', @path]
     ctags = ChildProcess.spawn(command, args)
     deferred = $.Deferred()
     output = ''
