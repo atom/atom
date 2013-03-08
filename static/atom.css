@@ -61,6 +61,11 @@ html, body {
   -webkit-flex-flow: column;
 }
 
+#panes .pane .item-views > * {
+  -webkit-flex: 1;
+  min-height: 0;
+}
+
 @font-face {
   font-family: 'Octicons Regular';
   src: url("octicons-regular-webfont.woff") format("woff");

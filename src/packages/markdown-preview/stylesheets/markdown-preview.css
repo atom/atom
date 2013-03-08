@@ -3,9 +3,8 @@
   font-size: 14px;
   line-height: 1.6;
   background-color: #fff;
-  overflow: auto;
+  overflow: scroll;
   padding: 20px;
-  -webkit-flex: 1;
 }
 
 .markdown-preview pre,
@@ -40,10 +39,7 @@
 
 /* this code below was copied from https://github.com/assets/stylesheets/primer/components/markdown.css */
 /* we really need to get primer in here somehow. */
-.markdown-preview {
-  font-size: 14px;
-  line-height: 1.6;
-  overflow: hidden; }
+.markdown-preview {}
   .markdown-preview > *:first-child {
     margin-top: 0 !important; }
   .markdown-preview > *:last-child {

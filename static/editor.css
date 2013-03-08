@@ -6,7 +6,6 @@
   z-index: 0;
   font-family: Inconsolata, Monaco, Courier;
   line-height: 1.3;
-  -webkit-flex: 1;
 }
 
 .editor.mini {
