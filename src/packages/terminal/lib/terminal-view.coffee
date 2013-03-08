@@ -84,6 +84,7 @@ class TerminalView extends ScrollView
     $(@content.find("pre").last().get(0))
 
   update: () ->
+    @setTitle(@buffer.title)
     if @buffer.redrawNeeded
       @content.empty()
       @updateLine(line) for line in @buffer.lines
@@ -106,7 +107,7 @@ class TerminalView extends ScrollView
     @size = [Math.floor(windowHeight / lineHeight), Math.floor(windowWidth / charWidth)]
 
   setTitle: (text) ->
-    @title.text("Atom Terminal#{if text? && text.length then " - #{text}" else ""}")
+    @title.text("#{if text? && text.length then "#{text} - " else ""}Atom Terminal")
 
   resizeStarted: (e) =>
     $(document.body).on('mousemove', @resizeTerminal)

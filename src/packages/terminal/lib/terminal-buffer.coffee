@@ -4,6 +4,7 @@ module.exports =
 class TerminalBuffer
   @enter: String.fromCharCode(10)
   @backspace: String.fromCharCode(8)
+  @bell: String.fromCharCode(7)
   @escape: String.fromCharCode(27)
   @tab: String.fromCharCode(9)
   @ctrl: (c) ->
@@ -16,10 +17,12 @@ class TerminalBuffer
     @dirtyLines = []
     @decsc = [0,0]
     @inEscapeSequence = false
+    @endWithBell = false
     @resetSGR()
     @cursor = new TerminalCursor(this)
     @addLine(false)
     @redrawNeeded = true
+    @title = ""
   resetSGR: () ->
     @color = 0
     @backgroundColor = -1
@@ -113,15 +116,21 @@ class TerminalBuffer
         @cursor.moved()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
-    if (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@" # A-Z, a-z, @
+    if (@endWithBell && code == 7) || (!@endWithBell && ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@")) # A-Z, a-z, @
       @evaluateEscapeSequence(c, @escapeSequence)
       @inEscapeSequence = false
+      @endWithBell = false
       @escapeSequence = ""
-    else if code != 91 # Ignore [
+    else if !@endWithBell && code == 93 # ]...<bell>
+      @endWithBell = true
+    else if @endWithBell || code != 91 # Ignore [
       @escapeSequence += c
   evaluateEscapeSequence: (type, sequence) ->
     # window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
+    if @endWithBell
+      @title = seq[1]
+      return
     switch type
       # when "A" then # Move cursor up
       # when "B" then # Move cursor down

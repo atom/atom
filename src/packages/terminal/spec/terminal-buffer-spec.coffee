@@ -179,6 +179,11 @@ fdescribe 'Terminal Buffer', ->
             buffer.moveCursorTo([1,6])
             buffer.input(TerminalBuffer.escapeSequence("?1049l"))
             expect(buffer.cursor.x).toBe(4)
+      describe "window title", ->
+        it "updates the title of the buffer", ->
+          buffer.input("#{TerminalBuffer.escape}]2;Window Title#{TerminalBuffer.bell}")
+          expect(buffer.title).toBe("Window Title")
+          expect(buffer.text()).toBe("\n")
 
   describe "cursor", ->
     describe "when characters are entered", ->
