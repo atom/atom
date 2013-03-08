@@ -75,27 +75,30 @@ class TerminalBuffer
     line.rendered() for line in @dirtyLines
     @dirtyLines = []
   backspace: () ->
-    @lastLine().backspace()
+    # @lastLine().backspace()
     @cursor.x -= 1
+    @cursor.x = 1 if @cursor.x < 1
     @cursor.moved()
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
+    # window.console.log [c, c.charCodeAt(0)]
     if @inEscapeSequence
       return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
+      when 7 then # Ignore Bell
       when 8 then @backspace()
       when 13 then # Ignore CR
       when 10 then @addLine()
       when 27
         @escape()
       else
-        @cursorLine().appendAt(c, @cursor.character())
+        @cursorLine().insertAt(c, @cursor.character())
         @cursor.x += 1
         @cursor.moved()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
-    if (code >= 65 && code <= 90) || (code >= 97 && code <= 122) # A-Z, a-z
+    if (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@" # A-Z, a-z, @
       @evaluateEscapeSequence(c, @escapeSequence)
       @inEscapeSequence = false
       @escapeSequence = ""
@@ -109,6 +112,9 @@ class TerminalBuffer
       # when "B" then # Move cursor down
       # when "C" then # Move cursor right
       # when "D" then # Move cursor left
+      when "@" # Insert blank character
+        num = parseInt(seq[0])
+        @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]
       when "H", "f" # Cursor position
         row = parseInt(seq[0])
         col = parseInt(seq[1])
@@ -131,7 +137,9 @@ class TerminalBuffer
         row = parseInt(seq[0])
         col = parseInt(seq[1])
         @setScrollingRegion([row,col])
-      when "P" then # Device Control String (ignored)
+      when "P" # Delete characters
+        num = parseInt(seq[0])
+        @cursorLine().eraseCharacters(@cursor.character(), num)
       when "m" # SGR (Graphics)
         for s in seq
           i = parseInt(s)
@@ -192,13 +200,18 @@ class TerminalBufferLine
     @lastCharacter().char = c
     char = @emptyChar()
     @characters.push(char)
-  appendAt: (c, x) ->
+  insertAt: (c, x) ->
     char = @emptyChar()
     char.char = c
     @characters[x] = char
     if x == @length() - 1
       @characters.push(@emptyChar())
     # @characters = _.flatten([@characters.slice(0, x), char, @characters.slice(x, @length())])
+    @setDirty()
+  appendAt: (c, x) ->
+    char = @emptyChar()
+    char.char = c
+    @characters = _.flatten([@characters.slice(0, x), char, @characters.slice(x, @length())])
     @setDirty()
   lastCharacter: () ->
     _.last(@characters)
@@ -217,6 +230,10 @@ class TerminalBufferLine
         @characters[n] = null for n in [start..@length()]
         @characters = _.compact(@characters)
         @characters.push(@emptyChar())
+    @setDirty()
+  eraseCharacters: (start, num) ->
+    @characters[n] = null for n in [start..(start+num-1)]
+    @characters = _.compact(@characters)
     @setDirty()
   length: () ->
     @characters.length

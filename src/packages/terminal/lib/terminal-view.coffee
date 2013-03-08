@@ -56,6 +56,7 @@ class TerminalView extends ScrollView
       @exited = true
       @write = () -> false
     @write = @process.write
+    @setTerminalSize()
 
   logout: ->
     @write?("", true)
@@ -92,6 +93,7 @@ class TerminalView extends ScrollView
     @content.append(tester)
     charWidth = parseInt(tester.find("span").css("width"))
     lineHeight = parseInt(tester.css("height"))
+    window.console.log [charWidth, lineHeight]
     tester.remove()
     windowWidth = parseInt(@content.css("width"))
     windowHeight = parseInt(@content.css("height"))
@@ -119,7 +121,7 @@ class TerminalView extends ScrollView
     @updateTerminalSize()
 
   setTerminalSize: () ->
-    @process.winsize(@size[0], @size[1])
+    @process?.winsize(@size[0], @size[1])
 
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")

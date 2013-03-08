@@ -42,10 +42,11 @@ fdescribe 'Terminal Buffer', ->
         buffer.inputCharacter('\n')
         expect(buffer.numLines()).toBe(2)
     describe "backspace", ->
-      it "removes the last character", ->
+      it "moves the cursor back", ->
         buffer.inputCharacter('a')
+        expect(buffer.cursor.x).toBe(2)
         buffer.inputCharacter(String.fromCharCode(8))
-        expect(buffer.lastLine().text().length).toBe(0)
+        expect(buffer.cursor.x).toBe(1)
 
   describe "when a control sequence is entered", ->
     beforeEach ->
@@ -98,6 +99,18 @@ fdescribe 'Terminal Buffer', ->
         buffer.moveCursorTo([1,2])
         buffer.input(TerminalBuffer.escapeSequence("2J"))
         expect(buffer.text()).toBe("\n\n")
+    describe "insert blank character", ->
+      it "inserts a blank character after the cursor", ->
+        buffer.input("ab\nc")
+        buffer.moveCursorTo([1,2])
+        buffer.input(TerminalBuffer.escapeSequence("2@"))
+        expect(buffer.text()).toBe("a#{String.fromCharCode(0)}#{String.fromCharCode(0)}b\nc\n")
+    describe "delete character", ->
+      it "deletes the character under the cursor", ->
+        buffer.input("abcde")
+        buffer.moveCursorTo([1,2])
+        buffer.input(TerminalBuffer.escapeSequence("3P"))
+        expect(buffer.text()).toBe("ae\n")
     describe "sgr", ->
       describe "multiple codes seperated by ;", ->
         it "assigns all attributes", ->
