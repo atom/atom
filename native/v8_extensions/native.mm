@@ -24,7 +24,7 @@ namespace v8_extensions {
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
-      "read", "write", "absolute",
+      "read", "absolute",
       "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
       "getWatchedPaths", "unwatchAllPaths", "move", "moveToTrash", "reload",
       "md5ForPath", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
@@ -66,32 +66,6 @@ namespace v8_extensions {
       }
       else {
         retval = CefV8Value::CreateString([contents UTF8String]);
-      }
-
-      return true;
-    }
-    else if (name == "write") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-      NSString *content = stringFromCefV8Value(arguments[1]);
-
-      NSFileManager *fm = [NSFileManager defaultManager];
-
-      // Create parent directories if they don't exist
-      BOOL exists = [fm fileExistsAtPath:[path stringByDeletingLastPathComponent] isDirectory:nil];
-      if (!exists) {
-        [fm createDirectoryAtPath:[path stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
-      }
-
-      NSError *error = nil;
-      BOOL success = [content writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:&error];
-
-      if (error) {
-        exception = [[error localizedDescription] UTF8String];
-      }
-      else if (!success) {
-        std::string exception = "Cannot write to '";
-        exception += [path UTF8String];
-        exception += "'";
       }
 
       return true;

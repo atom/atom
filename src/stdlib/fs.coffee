@@ -3,6 +3,7 @@
 
 _ = require 'underscore'
 nodeFs = nodeRequire 'fs'
+mkdirp = nodeRequire 'mkdirp'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -102,7 +103,8 @@ module.exports =
 
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
-    $native.write(path, content)
+    mkdirp.sync(@directory(path))
+    nodeFs.writeFileSync(path, content)
 
   makeDirectory: (path) ->
     nodeFs.mkdirSync(path)
