@@ -166,8 +166,8 @@ namespace v8_extensions {
     }
     else if (name == "traverseTree") {
       std::string argument = arguments[0]->GetStringValue().ToString();
-      int rootPathLength = argument.size() + 1;
-      char rootPath[rootPathLength];
+      int rootPathLength = argument.size();
+      char rootPath[rootPathLength + 1];
       strcpy(rootPath, argument.c_str());
       char * const paths[] = {rootPath, NULL};
 
