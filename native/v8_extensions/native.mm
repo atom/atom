@@ -26,7 +26,7 @@ namespace v8_extensions {
     const char* methodNames[] = {
       "read", "write", "absolute",
       "remove", "writeToPasteboard", "readFromPasteboard", "quit", "watchPath", "unwatchPath",
-      "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload", "lastModified",
+      "getWatchedPaths", "unwatchAllPaths", "makeDirectory", "move", "moveToTrash", "reload",
       "md5ForPath", "getPlatform", "setWindowState", "getWindowState", "isMisspelled",
       "getCorrectionsForMisspelling"
     };
@@ -245,21 +245,6 @@ namespace v8_extensions {
     }
     else if (name == "reload") {
       CefV8Context::GetCurrentContext()->GetBrowser()->ReloadIgnoreCache();
-    }
-    else if (name == "lastModified") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-      NSFileManager *fm = [NSFileManager defaultManager];
-
-      NSError *error = nil;
-      NSDictionary *attributes = [fm attributesOfItemAtPath:path error:&error];
-
-      if (error) {
-        exception = [[error localizedDescription] UTF8String];
-      }
-
-      NSDate *lastModified = [attributes objectForKey:NSFileModificationDate];
-      retval = CefV8Value::CreateDate(CefTime([lastModified timeIntervalSince1970]));
-      return true;
     }
     else if (name == "md5ForPath") {
       NSString *path = stringFromCefV8Value(arguments[0]);

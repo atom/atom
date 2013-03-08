@@ -131,9 +131,6 @@ module.exports =
 
     traverse(rootPath, '', onFile, onDirectory)
 
-  lastModified: (path) ->
-    $native.lastModified(path)
-
   md5ForPath: (path) ->
     $native.md5ForPath(path)
 
