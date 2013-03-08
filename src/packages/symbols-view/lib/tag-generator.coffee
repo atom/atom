@@ -1,5 +1,4 @@
 Point = require 'point'
-ChildProcess = nodeRequire 'child_process'
 $ = require 'jquery'
 BufferedProcess = require 'buffered-process'
 
