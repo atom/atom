@@ -143,6 +143,9 @@ fdescribe 'Terminal Buffer', ->
           buffer.input("#{TerminalBuffer.escapeSequence("4m")}a")
           expect(buffer.lastLine().lastVisibleCharacter().underlined).toBe(true)
       describe "reverse", ->
+        it "enables reverse mode", ->
+          buffer.input("#{TerminalBuffer.escapeSequence("7m")}a")
+          expect(buffer.lastLine().lastVisibleCharacter().reversed).toBe(true)
       describe "hidden", ->
       describe "text color", ->
         it "sets the text color", ->
@@ -155,35 +158,36 @@ fdescribe 'Terminal Buffer', ->
           buffer.input("#{TerminalBuffer.escape}[41mA")
           expect(buffer.lastLine().lastVisibleCharacter().backgroundColor).toBe(1)
           expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "41")
-      describe "dec private mode", ->
-        describe "save cursor", ->
-          it "saves cursor position and restores it", ->
-            buffer.input("abcdef")
-            buffer.moveCursorTo([1,4])
-            buffer.input(TerminalBuffer.escapeSequence("?1048h"))
-            buffer.moveCursorTo([1,6])
-            buffer.input(TerminalBuffer.escapeSequence("?1048l"))
-            expect(buffer.cursor.x).toBe(4)
-        describe "save cursor and use alternate screen buffer", ->
-          beforeEach ->
-            buffer.input("abcdef")
-          it "uses an alternate screen buffer", ->
-            buffer.input(TerminalBuffer.escapeSequence("?1049h"))
-            buffer.input("alt")
-            expect(buffer.text()).toBe("alt\n")
-            buffer.input(TerminalBuffer.escapeSequence("?1049l"))
-            expect(buffer.text()).toBe("abcdef\n")
-          it "restores the original cursor position", ->
-            buffer.moveCursorTo([1,4])
-            buffer.input(TerminalBuffer.escapeSequence("?1049h"))
-            buffer.moveCursorTo([1,6])
-            buffer.input(TerminalBuffer.escapeSequence("?1049l"))
-            expect(buffer.cursor.x).toBe(4)
-      describe "window title", ->
-        it "updates the title of the buffer", ->
-          buffer.input("#{TerminalBuffer.escape}]2;Window Title#{TerminalBuffer.bell}")
-          expect(buffer.title).toBe("Window Title")
-          expect(buffer.text()).toBe("\n")
+
+    describe "dec private mode", ->
+      describe "save cursor", ->
+        it "saves cursor position and restores it", ->
+          buffer.input("abcdef")
+          buffer.moveCursorTo([1,4])
+          buffer.input(TerminalBuffer.escapeSequence("?1048h"))
+          buffer.moveCursorTo([1,6])
+          buffer.input(TerminalBuffer.escapeSequence("?1048l"))
+          expect(buffer.cursor.x).toBe(4)
+      describe "save cursor and use alternate screen buffer", ->
+        beforeEach ->
+          buffer.input("abcdef")
+        it "uses an alternate screen buffer", ->
+          buffer.input(TerminalBuffer.escapeSequence("?1049h"))
+          buffer.input("alt")
+          expect(buffer.text()).toBe("alt\n")
+          buffer.input(TerminalBuffer.escapeSequence("?1049l"))
+          expect(buffer.text()).toBe("abcdef\n")
+        it "restores the original cursor position", ->
+          buffer.moveCursorTo([1,4])
+          buffer.input(TerminalBuffer.escapeSequence("?1049h"))
+          buffer.moveCursorTo([1,6])
+          buffer.input(TerminalBuffer.escapeSequence("?1049l"))
+          expect(buffer.cursor.x).toBe(4)
+    describe "window title", ->
+      it "updates the title of the buffer", ->
+        buffer.input("#{TerminalBuffer.escape}]2;Window Title#{TerminalBuffer.bell}")
+        expect(buffer.title).toBe("Window Title")
+        expect(buffer.text()).toBe("\n")
 
   describe "cursor", ->
     describe "when characters are entered", ->

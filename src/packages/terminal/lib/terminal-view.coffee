@@ -141,7 +141,15 @@ class TerminalView extends ScrollView
       if c.cursor
         cursor = $("<span>").addClass("cursor")
         character.append(cursor)
-      character.addClass("color-#{c.color}").addClass("background-#{c.backgroundColor}")
+      color = c.color
+      bgcolor = c.backgroundColor
+      if c.reversed
+        color = 7 if color == -1
+        bgcolor = 7 if bgcolor == -1
+        window.console.log "reversed #{color} #{bgcolor}"
+        [color, bgcolor] = [bgcolor, color]
+        window.console.log "reversed #{color} #{bgcolor}"
+      character.addClass("color-#{color}").addClass("background-#{bgcolor}")
       for s in ['bold', 'italic', 'underlined']
         character.addClass(s) if c[s] == true
       l.append character

@@ -29,6 +29,7 @@ class TerminalBuffer
     @bold = false
     @italic = false
     @underlined = false
+    @reversed = false
   length: () ->
     l = 0
     l += line.length() for line in @lines
@@ -126,7 +127,7 @@ class TerminalBuffer
     else if @endWithBell || code != 91 # Ignore [
       @escapeSequence += c
   evaluateEscapeSequence: (type, sequence) ->
-    # window.console.log "Terminal: Escape #{sequence} #{type}"
+    window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
       @title = seq[1]
@@ -204,7 +205,8 @@ class TerminalBuffer
               @underlined = true
             when 5 then # Blink: Slow
             when 6 then # Blink: Rapid
-            when 7 then # Reverse
+            when 7 # Reverse
+              @reversed = true
             when 8 then # Hidden
             when 22 # Normal
               @bold = false
@@ -318,6 +320,7 @@ class TerminalCharacter
       @bold = buffer.bold
       @italic = buffer.italic
       @underlined = buffer.underlined
+      @reversed = buffer.reversed
     else
       @resetToBlank()
   resetToBlank: () ->
@@ -328,6 +331,7 @@ class TerminalCharacter
       @italic = false
       @underlined = false
       @cursor = false
+      @reversed = false
 
 class TerminalCursor
   constructor: (@buffer) ->
