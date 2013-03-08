@@ -8,9 +8,10 @@ class BufferedProcess
     stdoutClosed = true
     stderrClosed = true
     processExited = true
+    exitCode = 0
     triggerExitCallback = ->
       if stdoutClosed and stderrClosed and processExited
-        options.exit?()
+        options.exit?(exitCode)
 
     if options.stdout
       stdoutClosed = false
@@ -26,7 +27,8 @@ class BufferedProcess
 
     if options.exit
       processExited = false
-      process.on 'exit', ->
+      process.on 'exit', (code) ->
+        exitCode = code
         processExited = true
         triggerExitCallback()
 
