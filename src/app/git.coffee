@@ -2,8 +2,8 @@ _ = require 'underscore'
 fs = require 'fs'
 Subscriber = require 'subscriber'
 EventEmitter = require 'event-emitter'
-GitRepository = require 'git-repository'
 RepositoryStatusTask = require 'repository-status-task'
+GitUtils = nodeRequire 'git-utils'
 
 module.exports =
 class Git
@@ -31,9 +31,13 @@ class Git
   statusTask: null
 
   constructor: (path, options={}) ->
+    @repo = GitUtils.open(path)
+    unless @repo?
+      throw new Error("No Git repository found searching path: #{path}")
+
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
-    @repo = GitRepository.open(path)
+
     refreshOnWindowFocus = options.refreshOnWindowFocus ? true
     if refreshOnWindowFocus
       $ = require 'jquery'
@@ -64,12 +68,11 @@ class Git
       @statusTask.off()
       @statusTask = null
 
-    @getRepo().destroy()
     @repo = null
     @unsubscribe()
 
   getWorkingDirectory: ->
-    @getPath()?.replace(/\/\.git\/?$/, '')
+    @getRepo().getWorkingDirectory()
 
   getHead: ->
     @getRepo().getHead() ? ''
@@ -116,12 +119,7 @@ class Git
       path
 
   getShortHead: ->
-    head = @getHead()
-    return head.substring(11) if head.indexOf('refs/heads/') is 0
-    return head.substring(10) if head.indexOf('refs/tags/') is 0
-    return head.substring(13) if head.indexOf('refs/remotes/') is 0
-    return head.substring(0, 7) if head.match(/[a-fA-F0-9]{40}/)
-    return head
+    @getRepo().getShortHead()
 
   checkoutHead: (path) ->
     headCheckedOut = @getRepo().checkoutHead(@relativize(path))
@@ -129,7 +127,7 @@ class Git
     headCheckedOut
 
   getDiffStats: (path) ->
-    @getRepo().getDiffStats(@relativize(path)) ? added: 0, deleted: 0
+    _.clone(@getRepo().getDiffStats(@relativize(path)))
 
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))
@@ -154,10 +152,7 @@ class Git
     directoryStatus
 
   getAheadBehindCounts: ->
-    @getRepo().getAheadBehindCounts() ? ahead: 0, behind: 0
-
-  getLineDiffs: (path, text) ->
-    @getRepo().getLineDiffs(@relativize(path), text) ? []
+    @getRepo().getAheadBehindCount()
 
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter

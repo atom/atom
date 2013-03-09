@@ -1,7 +1,6 @@
 #import <iostream>
 #import "native/v8_extensions/atom.h"
 #import "native/v8_extensions/native.h"
-#import "native/v8_extensions/git.h"
 #import "native/message_translation.h"
 #import "path_watcher.h"
 #import "atom_cef_render_process_handler.h"
@@ -119,5 +118,4 @@ void AtomCefRenderProcessHandler::InjectExtensionsIntoV8Context(CefRefPtr<CefV8C
   // these objects are deleted when the context removes all references to them
   (new v8_extensions::Atom())->CreateContextBinding(context);
   (new v8_extensions::Native())->CreateContextBinding(context);
-  (new v8_extensions::Git())->CreateContextBinding(context);
 }
