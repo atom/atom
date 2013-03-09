@@ -6,7 +6,8 @@
     "coffee-script": "1.5",
     "ctags": "0.1.0",
     "oniguruma": "0.4.0",
-    "mkdirp": "0.3.5"
+    "mkdirp": "0.3.5",
+    "git-utils": "0.1.0"
   },
 
   "scripts": {
