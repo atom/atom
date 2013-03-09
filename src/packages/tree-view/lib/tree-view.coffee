@@ -220,6 +220,14 @@ class TreeView extends ScrollView
       iconClass: 'move'
       onConfirm: (newPath) =>
         newPath = project.resolve(newPath)
+        if oldPath is newPath
+          dialog.close()
+          return
+
+        if fs.exists(newPath)
+          dialog.showError("Error: #{newPath} already exists. Try a different path.")
+          return
+
         directoryPath = fs.directory(newPath)
         try
           fs.makeTree(directoryPath) unless fs.exists(directoryPath)
