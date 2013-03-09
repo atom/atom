@@ -14,18 +14,6 @@ class Git
     catch e
       null
 
-  statusFlags:
-    index_new: 1 << 0
-    index_modified: 1 << 1
-    index_deleted: 1 << 2
-    index_renamed: 1 << 3
-    index_typechange: 1 << 4
-    working_dir_new: 1 << 7
-    working_dir_modified: 1 << 8
-    working_dir_delete: 1 << 9
-    working_dir_typechange: 1 << 10
-    ignore: 1 << 14
-
   statuses: null
   upstream: null
   statusTask: null
@@ -91,22 +79,14 @@ class Git
   isPathIgnored: (path) ->
     @getRepo().isIgnored(@relativize(path))
 
-  isStatusModified: (status=0) ->
-    modifiedFlags = @statusFlags.working_dir_modified |
-                    @statusFlags.working_dir_delete |
-                    @statusFlags.working_dir_typechange |
-                    @statusFlags.index_modified |
-                    @statusFlags.index_deleted |
-                    @statusFlags.index_typechange
-    (status & modifiedFlags) > 0
+  isStatusModified: (status) ->
+    @getRepo().isStatusModified(status)
 
   isPathModified: (path) ->
     @isStatusModified(@getPathStatus(path))
 
-  isStatusNew: (status=0) ->
-    newFlags = @statusFlags.working_dir_new |
-               @statusFlags.index_new
-    (status & newFlags) > 0
+  isStatusNew: (status) ->
+    @getRepo().isStatusNew(status)
 
   isPathNew: (path) ->
     @isStatusNew(@getPathStatus(path))
