@@ -116,17 +116,20 @@ window.stylesheetElementForId = (id) ->
 
 window.requireStylesheet = (path) ->
   if fullPath = require.resolve(path)
-    content = ""
-    if fs.extension(fullPath) == '.less'
-      (new less.Parser).parse __read(fullPath), (e, tree) ->
-        throw new Error(e.message, file, e.line) if e
-        content = tree.toCSS()
-    else
-      content = fs.read(fullPath)
-
+    content = window.loadStylesheet(fullPath)
     window.applyStylesheet(fullPath, content)
-  unless fullPath
+  else
+    console.log "bad", path
     throw new Error("Could not find a file at path '#{path}'")
+
+window.loadStylesheet = (path) ->
+  content = fs.read(path)
+  if fs.extension(path) == '.less'
+    (new less.Parser).parse content, (e, tree) ->
+      throw new Error(e.message, file, e.line) if e
+      content = tree.toCSS()
+
+  content
 
 window.removeStylesheet = (path) ->
   unless fullPath = require.resolve(path)
