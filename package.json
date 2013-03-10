@@ -7,7 +7,7 @@
     "ctags": "0.1.0",
     "oniguruma": "0.4.0",
     "mkdirp": "0.3.5",
-    "git-utils": "0.2.0"
+    "git-utils": "0.3.0"
   },
 
   "scripts": {
