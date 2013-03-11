@@ -17,7 +17,7 @@ describe "EditorStats", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    editorStats = window.loadPackage('editor-stats').packageMain.stats
+    editorStats = window.loadPackage('editor-stats').mainModule.stats
 
   describe "when a keyup event is triggered", ->
     beforeEach ->

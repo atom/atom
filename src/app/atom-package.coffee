@@ -6,7 +6,7 @@ $ = require 'jquery'
 module.exports =
 class AtomPackage extends Package
   metadata: null
-  packageMain: null
+  mainModule: null
   deferActivation: false
 
   load: ->
@@ -48,17 +48,17 @@ class AtomPackage extends Package
     else
       try
         if @requirePackageMain()
-          config.setDefaults(@name, @packageMain.configDefaults)
+          config.setDefaults(@name, @mainModule.configDefaults)
           atom.activateAtomPackage(this)
       catch e
         console.warn "Failed to activate package named '#{@name}'", e.stack
 
   requirePackageMain: ->
-    return @packageMain if @packageMain
+    return @mainModule if @mainModule
     mainPath = @path
     mainPath = fs.join(mainPath, @metadata.main) if @metadata.main
     mainPath = require.resolve(mainPath)
-    @packageMain = require(mainPath) if fs.isFile(mainPath)
+    @mainModule = require(mainPath) if fs.isFile(mainPath)
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []

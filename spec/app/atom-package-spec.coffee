@@ -12,12 +12,12 @@ describe "AtomPackage", ->
   describe ".load()", ->
     describe "if the package's metadata has a `deferredDeserializers` array", ->
       it "requires the package's main module attempting to use deserializers named in the array", ->
-        expect(pack.packageMain).toBeNull()
+        expect(pack.mainModule).toBeNull()
         object = deserialize(deserializer: 'Foo', data: "Hello")
         expect(object.constructor.name).toBe 'Foo'
         expect(object.data).toBe 'Hello'
-        expect(pack.packageMain).toBeDefined()
-        expect(pack.packageMain.activateCallCount).toBe 0
+        expect(pack.mainModule).toBeDefined()
+        expect(pack.mainModule.activateCallCount).toBe 0
 
   describe ".activate()", ->
     beforeEach ->

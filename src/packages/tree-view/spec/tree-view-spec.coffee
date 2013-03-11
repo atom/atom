@@ -50,7 +50,7 @@ describe "TreeView", ->
         rootView.deactivate()
         window.rootView = new RootView()
         rootView.open()
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -76,13 +76,13 @@ describe "TreeView", ->
         rootView.deactivate()
         window.rootView = new RootView
         rootView.open('tree-view.js')
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
     describe "when the root view is opened to a directory", ->
       it "attaches to the root view", ->
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.root).toExist()
 
