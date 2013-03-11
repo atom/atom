@@ -17,6 +17,7 @@ module.exports =
     if nextPane = activePane.getNextPane()
       if preview = nextPane.itemForUri("markdown-preview:#{editSession.getPath()}")
         nextPane.showItem(preview)
+        preview.fetchRenderedMarkdown()
       else
         nextPane.showItem(new MarkdownPreviewView(editSession.buffer))
     else

@@ -58,7 +58,9 @@ describe "MarkdownPreview package", ->
           expect(pane2.activeItem).not.toBe preview
           pane1.focus()
 
+          preview.fetchRenderedMarkdown.reset()
           rootView.getActiveView().trigger 'markdown-preview:show'
+          expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()
           expect(rootView.getPanes()).toHaveLength 2
           expect(pane2.getItems()).toHaveLength 2
           expect(pane2.activeItem).toBe preview
