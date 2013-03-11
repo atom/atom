@@ -121,6 +121,16 @@ fdescribe 'Terminal Buffer', ->
           buffer.input(TerminalBuffer.escapeSequence("3;1H"))
           expect(buffer.cursor.y).toBe(3)
           expect(buffer.cursor.x).toBe(1)
+      describe "set cursor line", ->
+        it "moves cursor to the line", ->
+          buffer.input(TerminalBuffer.escapeSequence("3d"))
+          expect(buffer.cursor.y).toBe(3)
+          expect(buffer.cursor.x).toBe(1)
+      describe "set cursor character", ->
+        it "moves cursor in line", ->
+          buffer.input(TerminalBuffer.escapeSequence("4G"))
+          expect(buffer.cursor.y).toBe(1)
+          expect(buffer.cursor.x).toBe(4)
     describe "set screen region", ->
       it "creates a new screen region", ->
         expect(buffer.scrollingRegion).toBeFalsy()

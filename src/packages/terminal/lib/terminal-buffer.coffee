@@ -17,6 +17,7 @@ class TerminalBuffer
     @dirtyLines = []
     @decsc = [0,0]
     @inEscapeSequence = false
+    @ignoreEscapeSequence = false
     @endWithBell = false
     @autowrap = false
     @resetSGR()
@@ -153,12 +154,19 @@ class TerminalBuffer
         @updatedCursor()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
+    if @escapeSequence.length == 0
+      if code == 61 # Ignore =
+        return
+      if code == 40 || code == 41 # Ignore ( and )
+        @ignoreEscapeSequence = true
+        return
     if code == 24 || code == 26 # Cancel escape sequence
       @inEscapeSequence = false
       @endWithBell = false
       @escapeSequence = ""
     else if (@endWithBell && code == 7) || (!@endWithBell && ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@")) # A-Z, a-z, @
-      @evaluateEscapeSequence(c, @escapeSequence)
+      @evaluateEscapeSequence(c, @escapeSequence) if !@ignoreEscapeSequence
+      @ignoreEscapeSequence = false
       @inEscapeSequence = false
       @endWithBell = false
       @escapeSequence = ""
@@ -167,7 +175,7 @@ class TerminalBuffer
     else if @endWithBell || code != 91 # Ignore [
       @escapeSequence += c
   evaluateEscapeSequence: (type, sequence) ->
-    window.console.log "Terminal: Escape #{sequence} #{type}"
+    # window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
       @title = seq[1]
@@ -200,6 +208,9 @@ class TerminalBuffer
       when "@" # Insert blank character
         num = parseInt(seq[0])
         @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]
+      when "G" # Move cursor to position in line
+        num = parseInt(seq[0]) || 1
+        @moveCursorTo([@cursor.y, num])
       when "H", "f" # Cursor position
         row = parseInt(seq[0]) || 1
         col = parseInt(seq[1]) || 1
@@ -235,6 +246,9 @@ class TerminalBuffer
       when "P" # Delete characters
         num = parseInt(seq[0])
         @cursorLine().eraseCharacters(@cursor.character(), num)
+      when "d" # Move cursor to line
+        num = parseInt(seq[0]) || 1
+        @moveCursorTo([num, @cursor.x])
       when "h"
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
@@ -265,6 +279,7 @@ class TerminalBuffer
           when 1049 # Switch to main buffer and restore cursor
             @disableAlternateBuffer()
             @cursor.restore()
+            @updatedCursor()
           else
             window.console.log "Terminal: Unhandled DECRST #{num}"
       when "m" # SGR (Graphics)
@@ -306,7 +321,7 @@ class TerminalBuffer
               else if i >= 100 && i <= 107 # Background color (alt.)
                 @backgroundColor = i - 100
               else
-                window.console.log "Terminal: Unhandled SGR sequence #{sequence}#{type} #{i}"
+                window.console.log "Terminal: Unhandled SGR sequence #{s}#{type} #{i}"
       else
         window.console.log "Terminal: Unhandled escape sequence #{sequence}#{type}"
     @lastLine().lastCharacter()?.reset(this)
