@@ -24,6 +24,7 @@ class TreeView extends ScrollView
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
     @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
+    @subscribe $(window), 'resize', => @resize()
     @command 'core:move-up', => @moveUp()
     @command 'core:move-down', => @moveDown()
     @command 'core:close', => @detach(); false
@@ -116,6 +117,9 @@ class TreeView extends ScrollView
 
   resizeTreeView: (e) =>
     @css(width: e.pageX)
+
+  resize: =>
+    @treeViewList.append(@root?.remove())
 
   updateRoot: ->
     @root?.remove()

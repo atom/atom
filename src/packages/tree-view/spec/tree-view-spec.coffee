@@ -971,3 +971,9 @@ describe "TreeView", ->
     describe "when a file is ignored", ->
       it "adds a custom style", ->
         expect(treeView.find('.file:contains(tree-view.js)')).toHaveClass 'ignored'
+
+  describe "when the window containing the view is resized", ->
+    it "resizes the tree view as well", ->
+      spyOn(treeView, "resize")
+      $(window).trigger 'resize'
+      expect(treeView.resize).toHaveBeenCalled()
