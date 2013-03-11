@@ -151,10 +151,26 @@ class TerminalBuffer
       @title = seq[1]
       return
     switch type
-      # when "A" then # Move cursor up
-      # when "B" then # Move cursor down
-      # when "C" then # Move cursor right
-      # when "D" then # Move cursor left
+      when "A" # Move cursor up
+        num = parseInt(seq[0]) || 1
+        @cursor.y -= num
+        @cursor.y = 1 if @cursor.y < 1
+      when "B" # Move cursor down
+        num = parseInt(seq[0]) || 1
+        @cursor.y += num
+        len = @numLines()
+        if @cursor.y > len
+          @cursor.y = len
+      when "C" # Move cursor right
+        num = parseInt(seq[0]) || 1
+        @cursor.x += num
+        len = @cursorLine().length()
+        if @cursor.x > len
+          @cursor.x = len
+      when "D" # Move cursor left
+        num = parseInt(seq[0]) || 1
+        @cursor.x -= num
+        @cursor.x = 1 if @cursor.x < 1
       when "@" # Insert blank character
         num = parseInt(seq[0])
         @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]

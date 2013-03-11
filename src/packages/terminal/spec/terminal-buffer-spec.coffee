@@ -71,9 +71,37 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.text()).toBe("abcde\n")
     describe "cursor movement", ->
       describe "forward", ->
+        it "moves the cursor to the right", ->
+          buffer.input("abc")
+          buffer.moveCursorTo([1,1])
+          buffer.input(TerminalBuffer.escapeSequence("C"))
+          expect(buffer.cursor.x).toBe(2)
+          buffer.input(TerminalBuffer.escapeSequence("4C"))
+          expect(buffer.cursor.x).toBe(4)
       describe "back", ->
+        it "moves the cursor to the left", ->
+          buffer.input("abc")
+          buffer.moveCursorTo([1,3])
+          buffer.input(TerminalBuffer.escapeSequence("D"))
+          expect(buffer.cursor.x).toBe(2)
+          buffer.input(TerminalBuffer.escapeSequence("4D"))
+          expect(buffer.cursor.x).toBe(1)
       describe "up", ->
+        it "moves the cursor to the previous line", ->
+          buffer.input("a\nb\nc\nd")
+          expect(buffer.cursor.y).toBe(4)
+          buffer.input(TerminalBuffer.escapeSequence("A"))
+          expect(buffer.cursor.y).toBe(3)
+          buffer.input(TerminalBuffer.escapeSequence("4A"))
+          expect(buffer.cursor.y).toBe(1)
       describe "down", ->
+        it "moves the cursor to the next line", ->
+          buffer.input("a\nb\nc\nd")
+          buffer.moveCursorTo([1,1])
+          buffer.input(TerminalBuffer.escapeSequence("B"))
+          expect(buffer.cursor.y).toBe(2)
+          buffer.input(TerminalBuffer.escapeSequence("4B"))
+          expect(buffer.cursor.y).toBe(4)
       describe "set cursor", ->
         it "moves the cursor to the coordinates", ->
           buffer.input(TerminalBuffer.escapeSequence("3;1H"))
