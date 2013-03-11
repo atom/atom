@@ -18,11 +18,13 @@ class TerminalBuffer
     @decsc = [0,0]
     @inEscapeSequence = false
     @endWithBell = false
+    @autowrap = false
     @resetSGR()
     @cursor = new TerminalCursor(this)
     @addLine(false)
     @redrawNeeded = true
     @title = ""
+    @size = [24, 80]
   resetSGR: () ->
     @color = 0
     @backgroundColor = -1
@@ -124,6 +126,9 @@ class TerminalBuffer
       when 27
         @escape()
       else
+        if @autowrap
+          if @cursor.x > @size[1]
+            @addLine()
         if !@cursorLine()
           @cursor.y = @lastLine().number
         @cursorLine().insertAt(c, @cursor.character())
@@ -208,6 +213,8 @@ class TerminalBuffer
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
           when 0 then # Ignore
+          when 7 # Autowrap
+            @autowrap = true
           when 1048 # Store cursor position
             @cursor.store()
           when 1049 # Store cursor and switch to alternate buffer
@@ -219,6 +226,8 @@ class TerminalBuffer
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
           when 0 then # Ignore
+          when 7 # Autowrap
+            @autowrap = false
           when 1048 # Restore cursor position
             @cursor.restore()
           when 1049 # Switch to main buffer and restore cursor

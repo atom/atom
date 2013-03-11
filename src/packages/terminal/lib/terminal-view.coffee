@@ -106,6 +106,7 @@ class TerminalView extends ScrollView
     windowWidth = parseInt(@content.css("width"))
     windowHeight = parseInt(@content.css("height"))
     @size = [Math.floor(windowHeight / lineHeight) - 1, Math.floor(windowWidth / charWidth) - 1, charWidth, lineHeight]
+    @buffer.size = [@size[0], @size[1]]
 
   setTitle: (text) ->
     @title.text("#{if text? && text.length then "#{text} - " else ""}Atom Terminal")

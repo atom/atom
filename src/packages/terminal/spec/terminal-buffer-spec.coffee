@@ -38,13 +38,17 @@ fdescribe 'Terminal Buffer', ->
       expect(buffer.length()).toBe 1
       buffer.inputCharacter('a')
       expect(buffer.length()).toBe 2
+    describe "when auto-wrap mode is enabled", ->
+      it "adds characters to the next line when the end of the line is reached", ->
+        buffer.autowrap = true
+        buffer.inputCharacter("a") for [1..buffer.size[1] + 2]
+        expect(buffer.numLines()).toBe(2)
+        expect(buffer.getLine(1).text()).toBe("aa")
 
   describe "when a special character is entered", ->
     describe "enquire", ->
       it "responds with a ack response", ->
         buffer.inputCharacter(String.fromCharCode(5))
-        window.console.log view.data
-        window.console.log view.data[0].charCodeAt(0)
         expect(view.data[0]).toBe(String.fromCharCode(6))
     describe "newline", ->
       it "adds a new line", ->
@@ -207,6 +211,12 @@ fdescribe 'Terminal Buffer', ->
           expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "41")
 
     describe "dec private mode", ->
+      describe "autowrap", ->
+        it "enables autowrap", ->
+          buffer.input(TerminalBuffer.escapeSequence("?7h"))
+          expect(buffer.autowrap).toBe(true)
+          buffer.input(TerminalBuffer.escapeSequence("?7l"))
+          expect(buffer.autowrap).toBe(false)
       describe "save cursor", ->
         it "saves cursor position and restores it", ->
           buffer.input("abcdef")
