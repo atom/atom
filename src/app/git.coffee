@@ -107,7 +107,7 @@ class Git
     headCheckedOut
 
   getDiffStats: (path) ->
-    _.clone(@getRepo().getDiffStats(@relativize(path)))
+    @getRepo().getDiffStats(@relativize(path))
 
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))
