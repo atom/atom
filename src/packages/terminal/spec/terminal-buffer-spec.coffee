@@ -6,10 +6,14 @@ $ = require 'jquery'
 fs = require 'fs'
 
 fdescribe 'Terminal Buffer', ->
-  [buffer] = []
+  [buffer, view] = []
 
   beforeEach ->
-    buffer = new TerminalBuffer
+    view =
+      input: (data) ->
+        @data ?= []
+        @data.push data
+    buffer = new TerminalBuffer(view)
 
   describe "when a sequence of characters is entered", ->
     it "processes each character", ->
@@ -36,20 +40,35 @@ fdescribe 'Terminal Buffer', ->
       expect(buffer.length()).toBe 2
 
   describe "when a special character is entered", ->
+    describe "enquire", ->
+      it "responds with a ack response", ->
+        buffer.inputCharacter(String.fromCharCode(5))
+        window.console.log view.data
+        window.console.log view.data[0].charCodeAt(0)
+        expect(view.data[0]).toBe(String.fromCharCode(6))
     describe "newline", ->
       it "adds a new line", ->
         buffer.inputCharacter('\n')
         expect(buffer.numLines()).toBe(2)
     describe "backspace", ->
-      it "moves the cursor back", ->
+      it "moves the cursor back by one", ->
         buffer.inputCharacter('a')
         expect(buffer.cursor.x).toBe(2)
         buffer.inputCharacter(String.fromCharCode(8))
+        expect(buffer.cursor.x).toBe(1)
+    describe 'carriage return', ->
+      it "moves the cursor to the beginning of the line", ->
+        buffer.input("abcde")
+        buffer.inputCharacter(String.fromCharCode(13))
         expect(buffer.cursor.x).toBe(1)
 
   describe "when a control sequence is entered", ->
     beforeEach ->
       spyOn(buffer, 'evaluateEscapeSequence').andCallThrough()
+    describe "cancel", ->
+      it "discards the current escape sequence", ->
+        buffer.input("ab#{TerminalBuffer.escapeSequence(String.fromCharCode(24))}cde")
+        expect(buffer.text()).toBe("abcde\n")
     describe "cursor movement", ->
       describe "forward", ->
       describe "back", ->

@@ -12,7 +12,7 @@ class TerminalBuffer
     base = "A".charCodeAt(0) if c.charCodeAt(0) < base
     String.fromCharCode(c.charCodeAt(0) - base + 1)
   @escapeSequence: (sequence) -> "#{@escape}[#{sequence}"
-  constructor: () ->
+  constructor: (@view) ->
     @lines = []
     @dirtyLines = []
     @decsc = [0,0]
@@ -96,7 +96,6 @@ class TerminalBuffer
     line.rendered() for line in @lines
     @dirtyLines = []
   backspace: () ->
-    # @lastLine().backspace()
     @cursor.x -= 1
     @cursor.x = 1 if @cursor.x < 1
     @cursor.moved()
@@ -107,10 +106,21 @@ class TerminalBuffer
     if @inEscapeSequence
       return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
+      when 0 then # Ignore NUL
+      when 3 then # Ignore ETX
+      when 4 then # Ignore EOT
+      when 5 # ENQ
+        @view.input(String.fromCharCode(6))
       when 7 then # Ignore Bell
       when 8 then @backspace()
-      when 13 then # Ignore CR
-      when 10 then @addLine()
+      when 9 then # Ignore TAB
+      when 10, 11, 12 # treat LF, VT (vertical tab) and FF (form feed) as newline
+        @addLine()
+      when 13 # CR
+        @cursor.x = 1
+      when 14, 15 then # Ignore SO, SI (change character set)
+      when 17, 19 then # Ignore DC1, DC3 codes
+      when 24, 26 then # Ignore CAN
       when 27
         @escape()
       else
@@ -121,7 +131,11 @@ class TerminalBuffer
         @cursor.moved()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
-    if (@endWithBell && code == 7) || (!@endWithBell && ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@")) # A-Z, a-z, @
+    if code == 24 || code == 26 # Cancel escape sequence
+      @inEscapeSequence = false
+      @endWithBell = false
+      @escapeSequence = ""
+    else if (@endWithBell && code == 7) || (!@endWithBell && ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@")) # A-Z, a-z, @
       @evaluateEscapeSequence(c, @escapeSequence)
       @inEscapeSequence = false
       @endWithBell = false
@@ -131,7 +145,7 @@ class TerminalBuffer
     else if @endWithBell || code != 91 # Ignore [
       @escapeSequence += c
   evaluateEscapeSequence: (type, sequence) ->
-    window.console.log "Terminal: Escape #{sequence} #{type}"
+    # window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
       @title = seq[1]
