@@ -34,6 +34,6 @@ describe "MarkdownPreviewView", ->
       expect(preview.text()).toContain "Failed"
 
   describe "serialization", ->
-    fit "reassociates with the same buffer when deserialized", ->
+    it "reassociates with the same buffer when deserialized", ->
       newPreview = deserialize(preview.serialize())
       expect(newPreview.buffer).toBe buffer
