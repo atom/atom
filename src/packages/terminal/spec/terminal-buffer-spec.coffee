@@ -180,6 +180,14 @@ fdescribe 'Terminal Buffer', ->
         buffer.moveCursorTo([1,2])
         buffer.input(TerminalBuffer.escapeSequence("3P"))
         expect(buffer.text()).toBe("ae\n")
+    describe "delete line", ->
+      it "deletes the line under the cursor", ->
+        buffer.input("a\nb\nc\nd\ne\nf")
+        buffer.moveCursorTo([2,1])
+        expect(buffer.getLine(1).number).toBe(1)
+        buffer.input(TerminalBuffer.escapeSequence("3M"))
+        expect(buffer.text()).toBe("a\ne\nf\n")
+        expect(buffer.getLine(1).number).toBe(1)
     describe "sgr", ->
       describe "multiple codes seperated by ;", ->
         it "assigns all attributes", ->

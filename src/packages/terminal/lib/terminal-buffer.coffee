@@ -57,6 +57,8 @@ class TerminalBuffer
     if line? && @cursor.character() >= line.length()
       line.appendCharacter(" ") for x in [line.length()..(@cursor.character())]
     @cursor.moved()
+  updateLineNumbers: () ->
+    line.number = parseInt(n) for n,line of @lines
   lastLine: () ->
     _.last(@lines)
   cursorLine: () ->
@@ -212,6 +214,11 @@ class TerminalBuffer
         op = parseInt(seq[0])
         @cursorLine().erase(@cursor.character(), op)
         @cursorLine().lastCharacter().cursor = true
+      when "M" # Delete lines
+        num = parseInt(seq[0]) || 1
+        @lines[n] = null for n in [@cursor.line()..@cursor.line()+(num-1)]
+        @lines = _.compact(@lines)
+        @updateLineNumbers()
       when "r" # Set scrollable region
         top = parseInt(seq[0]) || 1
         bottom = parseInt(seq[1]) || 1
