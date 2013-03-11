@@ -96,7 +96,7 @@ class CommandLoggerView extends ScrollView
     w = @treeMap.width()
     h = @treeMap.height()
 
-    d3 = require 'd3.v3'
+    d3 = nodeRequire 'd3'
 
     x = d3.scale.linear().range([0, w])
     y = d3.scale.linear().range([0, h])
