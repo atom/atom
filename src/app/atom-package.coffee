@@ -17,7 +17,7 @@ class AtomPackage extends Package
       if @deferActivation = @metadata.activationEvents?
         @registerDeferredDeserializers()
       else
-        @requirePackageMain()
+        @requireMainModule()
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack
     this
@@ -47,13 +47,13 @@ class AtomPackage extends Package
       @subscribeToActivationEvents()
     else
       try
-        if @requirePackageMain()
+        if @requireMainModule()
           config.setDefaults(@name, @mainModule.configDefaults)
           atom.activateAtomPackage(this)
       catch e
         console.warn "Failed to activate package named '#{@name}'", e.stack
 
-  requirePackageMain: ->
+  requireMainModule: ->
     return @mainModule if @mainModule
     mainPath = @path
     mainPath = fs.join(mainPath, @metadata.main) if @metadata.main
@@ -62,7 +62,7 @@ class AtomPackage extends Package
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []
-      registerDeferredDeserializer deserializerName, => @requirePackageMain()
+      registerDeferredDeserializer deserializerName, => @requireMainModule()
 
   subscribeToActivationEvents: () ->
     return unless @metadata.activationEvents?
