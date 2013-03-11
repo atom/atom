@@ -17,7 +17,8 @@ exit_unless_npm_exists() {
 
 exit_unless_xcode_exists
 exit_unless_npm_exists
-
-HOME=~/.cefode-gyp npm install --target=0.8.21 --dist-url=https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/dist --arch=ia32
+npm install node-gyp
+HOME=~/.cefode-gyp node-gyp install --target=0.8.21 --dist-url=https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/dist --arch=ia32
+HOME=~/.cefode-gyp npm install --target=0.8.21 --arch=ia32
 git submodule --quiet sync
 git submodule --quiet update --recursive --init
