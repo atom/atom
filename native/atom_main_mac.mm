@@ -13,18 +13,14 @@ void activateOpenApp();
 BOOL isAppAlreadyOpen();
 
 int AtomMain(int argc, char* argv[]) {
-  {
-    // See if we're being run as a secondary process.
-
-    CefMainArgs main_args(argc, argv);
-    CefRefPtr<CefApp> app(new AtomCefApp);
-    int exitCode = CefExecuteProcess(main_args, app);
-    if (exitCode >= 0)
-      return exitCode;
-  }
+  // Check if we're being run as a secondary process.
+  CefMainArgs main_args(argc, argv);
+  CefRefPtr<CefApp> app(new AtomCefApp);
+  int exitCode = CefExecuteProcess(main_args, app);
+  if (exitCode >= 0)
+    return exitCode;
 
   // We're the main process.
-
   @autoreleasepool {
     handleBeingOpenedAgain(argc, argv);
 
