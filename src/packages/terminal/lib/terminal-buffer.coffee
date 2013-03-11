@@ -41,11 +41,18 @@ class TerminalBuffer
       return [screenCoords[0] + (@scrollingRegion.firstLine - 1), screenCoords[1]]
     screenCoords
   setScrollingRegion: (coords) ->
-    @addLine() for n in [1..coords[0]] if @numLines() < coords[0]
+    oldRegion = @scrollingRegion
+    @addLine() for n in [@numLines()+1..coords[0]] if @numLines() < coords[0]
     @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1])
-    l = @lastLine()
-    @scrollingRegion.firstLine = l.number + 1
-    @addLine() for n in [1..@scrollingRegion.height]
+    if oldRegion? && oldRegion.height < @scrollingRegion.height
+      linesToRemove = @scrollingRegion.height - oldRegion.height
+      @lines.splice(@scrollingRegion.top - 1, 1) for n in [1..linesToRemove]
+      @lines.splice(@scrollingRegion.bottom - 1 - (n-1), 0, @emptyLine(0)) for n in [1..linesToRemove]
+    if @numLines() < coords[1]
+      @addLine() for n in [@numLines()+1..coords[1]]
+    @updateLineNumbers()
+    line = @getLine(@scrollingRegion.top - 1)
+    @scrollingRegion.firstLine = if line? then line.number + 1 else 1
   moveCursorTo: (coords) ->
     @cursor.moveTo(@screenToLine(coords))
     @updatedCursor()
@@ -69,9 +76,11 @@ class TerminalBuffer
     @lines[n].setText(text)
   getLine: (n) ->
     if n >= 0 && n < @numLines() then @lines[n]
+  emptyLine: (n) ->
+    new TerminalBufferLine(this, n)
   addLine: (moveCursor=true) ->
     @lastLine()?.clearCursor()
-    line = new TerminalBufferLine(this, @numLines())
+    line = @emptyLine(@numLines())
     @lines.push(line)
     @cursor.moveTo([@lastLine().number + 1, 1]) if moveCursor
     line
@@ -432,6 +441,6 @@ class TerminalCursor
     @x - 1
 
 class TerminalScrollingRegion
-  constructor: (top, bottom) ->
+  constructor: (@top, @bottom) ->
     @firstLine = 1
-    @height = (bottom - top) + 1
+    @height = (@bottom - @top) + 1

@@ -167,7 +167,7 @@ fdescribe 'Terminal Buffer', ->
         buffer.moveCursorTo([2,1])
         buffer.input("e")
         buffer.input(TerminalBuffer.escapeSequence("2J"))
-        expect(buffer.text()).toBe("ab\n\n\n\n\n")
+        expect(buffer.text()).toBe("ab\n\n\n")
     describe "insert blank character", ->
       it "inserts a blank character after the cursor", ->
         buffer.input("ab\nc")
@@ -306,13 +306,38 @@ fdescribe 'Terminal Buffer', ->
         buffer.input("a")
         buffer.setScrollingRegion([1,10])
         expect(buffer.scrollingRegion.height).toBe(10)
-        expect(buffer.numLines()).toBe(11)
+        expect(buffer.numLines()).toBe(10)
         expect(buffer.scrollingRegion.firstLine).toBe(1)
         expect(buffer.screenToLine([1,1])).toEqual([1,1])
       it "modifies the cursor coordinates", ->
         buffer.setScrollingRegion([10,20])
+        window.console.log buffer.scrollingRegion.firstLine
         buffer.moveCursorTo([10,1])
-        expect(buffer.cursor.y).toBe(20)
+        expect(buffer.cursor.y).toBe(19)
+      it "only adds lines if needed", ->
+        buffer.input("a")
+        buffer.setScrollingRegion([1,10])
+        buffer.setScrollingRegion([1,5])
+        buffer.setScrollingRegion([1,10])
+        expect(buffer.scrollingRegion.height).toBe(10)
+        expect(buffer.numLines()).toBe(10)
+        expect(buffer.scrollingRegion.firstLine).toBe(1)
+        expect(buffer.screenToLine([1,1])).toEqual([1,1])
+      it "deletes lines from top if scrolling region shrinks", ->
+        buffer.input("a\nb\nc\nd")
+        buffer.setScrollingRegion([1,3])
+        buffer.setScrollingRegion([1,2])
+        buffer.setScrollingRegion([1,3])
+        expect(buffer.text()).toBe("b\nc\n\nd\n")
+      it "never adds more lines", ->
+        buffer.setScrollingRegion([1,3])
+        buffer.setScrollingRegion([1,2])
+        buffer.setScrollingRegion([1,3])
+        buffer.setScrollingRegion([1,2])
+        buffer.setScrollingRegion([1,3])
+        buffer.setScrollingRegion([1,2])
+        buffer.setScrollingRegion([1,3])
+        expect(buffer.numLines()).toBe(3)
     describe "when a character is entered at the end of a line", ->
       it "inserts the character on the next line"
     describe "when the screen size changes", ->
