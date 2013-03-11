@@ -6,7 +6,7 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
 
-fdescribe 'Terminal', ->
+describe 'Terminal', ->
   [terminalView] = []
 
   beforeEach ->

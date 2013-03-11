@@ -65,6 +65,16 @@ fdescribe 'Terminal Buffer', ->
         buffer.input("abcde")
         buffer.inputCharacter(String.fromCharCode(13))
         expect(buffer.cursor.x).toBe(1)
+    describe 'tab', ->
+      it "moves the cursor to the next tabstop", ->
+        expect(buffer.cursor.x).toBe(1)
+        buffer.input('\t')
+        expect(buffer.cursor.x).toBe(9)
+      it "moves the cursor by one or more characters", ->
+        buffer.input('abcdefg\t')
+        expect(buffer.cursor.x).toBe(9)
+        buffer.input('abcdefg\t')
+        expect(buffer.cursor.x).toBe(17)
 
   describe "when a control sequence is entered", ->
     beforeEach ->

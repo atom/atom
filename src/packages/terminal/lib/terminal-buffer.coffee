@@ -48,12 +48,15 @@ class TerminalBuffer
     @addLine() for n in [1..@scrollingRegion.height]
   moveCursorTo: (coords) ->
     @cursor.moveTo(@screenToLine(coords))
+    @updatedCursor()
+  updatedCursor: () ->
     n = @numLines()
     if @cursor.y > n
       @addLine(false) for x in [n..(@cursor.line())]
     line = @cursorLine()
     if line? && @cursor.character() >= line.length()
       line.appendCharacter(" ") for x in [line.length()..(@cursor.character())]
+    @cursor.moved()
   lastLine: () ->
     _.last(@lines)
   cursorLine: () ->
@@ -100,7 +103,7 @@ class TerminalBuffer
   backspace: () ->
     @cursor.x -= 1
     @cursor.x = 1 if @cursor.x < 1
-    @cursor.moved()
+    @updatedCursor()
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
@@ -115,11 +118,14 @@ class TerminalBuffer
         @view.input(String.fromCharCode(6))
       when 7 then # Ignore Bell
       when 8 then @backspace()
-      when 9 then # Ignore TAB
+      when 9 # TAB
+        @cursor.x += 8 - ((@cursor.x - 1) % 8)
+        @updatedCursor()
       when 10, 11, 12 # treat LF, VT (vertical tab) and FF (form feed) as newline
         @addLine()
       when 13 # CR
         @cursor.x = 1
+        @updatedCursor()
       when 14, 15 then # Ignore SO, SI (change character set)
       when 17, 19 then # Ignore DC1, DC3 codes
       when 24, 26 then # Ignore CAN
@@ -133,7 +139,7 @@ class TerminalBuffer
           @cursor.y = @lastLine().number
         @cursorLine().insertAt(c, @cursor.character())
         @cursor.x += 1
-        @cursor.moved()
+        @updatedCursor()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
     if code == 24 || code == 26 # Cancel escape sequence
@@ -160,22 +166,26 @@ class TerminalBuffer
         num = parseInt(seq[0]) || 1
         @cursor.y -= num
         @cursor.y = 1 if @cursor.y < 1
+        @updatedCursor()
       when "B" # Move cursor down
         num = parseInt(seq[0]) || 1
         @cursor.y += num
         len = @numLines()
         if @cursor.y > len
           @cursor.y = len
+        @updatedCursor()
       when "C" # Move cursor right
         num = parseInt(seq[0]) || 1
         @cursor.x += num
         len = @cursorLine().length()
         if @cursor.x > len
           @cursor.x = len
+        @updatedCursor()
       when "D" # Move cursor left
         num = parseInt(seq[0]) || 1
         @cursor.x -= num
         @cursor.x = 1 if @cursor.x < 1
+        @updatedCursor()
       when "@" # Insert blank character
         num = parseInt(seq[0])
         @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]
@@ -252,7 +262,12 @@ class TerminalBuffer
             when 8 then # Hidden
             when 22 # Normal
               @bold = false
-            when 27 then # Disable reverse
+            when 24 # Not underlined
+              @underlined = false
+            when 25 then # Not blinking
+            when 27 # Disable reverse
+              @reversed = false
+            when 28 then # Not hidden
             when 39 # Default text color
               @color = 0
             when 49 # Default background color
