@@ -83,6 +83,15 @@ fdescribe 'Terminal Buffer', ->
       it "discards the current escape sequence", ->
         buffer.input("ab#{TerminalBuffer.escapeSequence(String.fromCharCode(24))}cde")
         expect(buffer.text()).toBe("abcde\n")
+    describe "simple sequences", ->
+      describe "save cursor", ->
+        it "saves cursor position and restores it", ->
+          buffer.input("abcdef")
+          buffer.moveCursorTo([1,4])
+          buffer.input("#{TerminalBuffer.escape}7")
+          buffer.moveCursorTo([1,6])
+          buffer.input("#{TerminalBuffer.escape}8")
+          expect(buffer.cursor.x).toBe(4)
     describe "cursor movement", ->
       describe "forward", ->
         it "moves the cursor to the right", ->
@@ -237,7 +246,14 @@ fdescribe 'Terminal Buffer', ->
           buffer.input("#{TerminalBuffer.escape}[41mA")
           expect(buffer.lastLine().lastVisibleCharacter().backgroundColor).toBe(1)
           expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "41")
-
+    describe "use alternate screen buffer", ->
+      it "uses an alternate screen buffer", ->
+        buffer.input("abcdef")
+        buffer.input(TerminalBuffer.escapeSequence("?47h"))
+        buffer.input("alt")
+        expect(buffer.text()).toBe("alt\n")
+        buffer.input(TerminalBuffer.escapeSequence("?47l"))
+        expect(buffer.text()).toBe("abcdef\n")
     describe "dec private mode", ->
       describe "autowrap", ->
         it "enables autowrap", ->
@@ -253,6 +269,14 @@ fdescribe 'Terminal Buffer', ->
           expect(buffer.cursorLine().lastCharacter().cursor).toBe(false)
           buffer.input(TerminalBuffer.escapeSequence("?25h"))
           expect(buffer.cursorLine().lastCharacter().cursor).toBe(true)
+      describe "use alternate screen buffer", ->
+        it "uses an alternate screen buffer", ->
+          buffer.input("abcdef")
+          buffer.input(TerminalBuffer.escapeSequence("?1047h"))
+          buffer.input("alt")
+          expect(buffer.text()).toBe("alt\n")
+          buffer.input(TerminalBuffer.escapeSequence("?1047l"))
+          expect(buffer.text()).toBe("abcdef\n")
       describe "save cursor", ->
         it "saves cursor position and restores it", ->
           buffer.input("abcdef")

@@ -120,7 +120,7 @@ class TerminalBuffer
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
-    window.console.log [c, c.charCodeAt(0)]
+    # window.console.log [c, c.charCodeAt(0)]
     if @inEscapeSequence
       return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
@@ -155,34 +155,51 @@ class TerminalBuffer
         @updatedCursor()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
+    @clear = false
     if !@escapeSequenceStarted && @escapeSequence.length == 0
-      if code == 7 # Store cursor
-        @cursor.store()
-      else if code == 8 # Restore cursor
-        @cursor.restore()
-      else
-        if code == 61 # Ignore =
-          return
-        if code == 40 || code == 41 # Ignore ( and )
+      clear = true
+      switch c
+        when "6" then # Back index
+        when "7" # Store cursor
+          @cursor.store()
+          break
+        when "8" # Restore cursor
+          @cursor.restore()
+          break
+        when "9" then # Forward index
+        when "=" then # Application keypad
+        when ">" then # Normal keypad
+        when "F" then # Cursor to lower left
+        when "c" then # Full reset
+        when "n", "o", "|", "}", "~" then # Ignore charset
+        when "(", ")" # Ignore ( and )
           @ignoreEscapeSequence = true
-          return
-        if code == 91 # [
           @escapeSequenceStarted = true
-          return
-        if !@endWithBell && code == 93 # ]...<bell>
+          clear = false
+        when "["
+          @escapeSequenceStarted = true
+          clear = false
+        when "]"
+          @escapeSequenceStarted = true
           @endWithBell = true
-          return
+          clear = false
+        else
+          window.console.log("Unhandled escape sequence ESC #{c} (#{code})")
+          clear = false
     else if code == 24 || code == 26 # Cancel escape sequence
-    else if (@endWithBell && code == 7) || (!@endWithBell && ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@")) # A-Z, a-z, @
+      clear = true
+    else if (@endWithBell && code == 7) ||(!@endWithBell && ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@" || c == "`")) # A-Z, a-z, @, `
       @evaluateEscapeSequence(c, @escapeSequence) if !@ignoreEscapeSequence
+      clear = true
     else
       @escapeSequence += c
       return
-    @ignoreEscapeSequence = false
-    @inEscapeSequence = false
-    @escapeSequenceStarted = false
-    @endWithBell = false
-    @escapeSequence = ""
+    if clear
+      @ignoreEscapeSequence = false
+      @inEscapeSequence = false
+      @escapeSequenceStarted = false
+      @endWithBell = false
+      @escapeSequence = ""
   evaluateEscapeSequence: (type, sequence) ->
     window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
@@ -190,6 +207,9 @@ class TerminalBuffer
       @title = seq[1]
       return
     switch type
+      when "@" # Insert blank character
+        num = parseInt(seq[0])
+        @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]
       when "A" # Move cursor up
         num = parseInt(seq[0]) || 1
         @cursor.y -= num
@@ -214,9 +234,8 @@ class TerminalBuffer
         @cursor.x -= num
         @cursor.x = 1 if @cursor.x < 1
         @updatedCursor()
-      when "@" # Insert blank character
-        num = parseInt(seq[0])
-        @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]
+      # when "E" then # Cursor next line
+      # when "F" then # Cursor preceding line
       when "G" # Move cursor to position in line
         num = parseInt(seq[0]) || 1
         @moveCursorTo([@cursor.y, num])
@@ -224,6 +243,7 @@ class TerminalBuffer
         row = parseInt(seq[0]) || 1
         col = parseInt(seq[1]) || 1
         @moveCursorTo([row, col])
+      # when "I" then # Number of forward tab stops
       when "J" # Erase data
         numLines = @numLines() - 1
         start = 0
@@ -243,21 +263,28 @@ class TerminalBuffer
         op = parseInt(seq[0])
         @cursorLine().erase(@cursor.character(), op)
         @cursorLine().lastCharacter().cursor = true
+      # when "L" then # Insert lines
       when "M" # Delete lines
         num = parseInt(seq[0]) || 1
         @lines[n] = null for n in [@cursor.line()..@cursor.line()+(num-1)]
         @lines = _.compact(@lines)
         @updateLineNumbers()
-      when "r" # Set scrollable region
-        top = parseInt(seq[0]) || 1
-        bottom = parseInt(seq[1]) || 1
-        @setScrollingRegion([top,bottom])
       when "P" # Delete characters
         num = parseInt(seq[0])
         @cursorLine().eraseCharacters(@cursor.character(), num)
-      when "d" # Move cursor to line
+      # when "S" then # Scroll up
+      # when "T" then # Scroll down
+      # when "X" then # Erase characters
+      # when "Z" then # Number of backwards tab stops
+      # when "`" then # Character position relative
+      # when "a" then # Character position absolute
+      # when "b" then # Repeat preceeding character
+      # when "c" then # Send device attribute
+      when "d" # Move cursor to line (absolute)
         num = parseInt(seq[0]) || 1
         @moveCursorTo([num, @cursor.x])
+      # when "d" then # Move cursor to line (relative)
+      # when "g" then # Tab clear
       when "h"
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
@@ -267,6 +294,8 @@ class TerminalBuffer
           when 25 # Show cursor
             @cursor.show = true
             @cursor.moved()
+          when 47, 1047 # Switch to alternate buffer
+            @enableAlternateBuffer()
           when 1048 # Store cursor position
             @cursor.store()
           when 1049 # Store cursor and switch to alternate buffer
@@ -274,6 +303,7 @@ class TerminalBuffer
             @enableAlternateBuffer()
           else
             window.console.log "Terminal: Unhandled DECSET #{num}"
+      # when "i" then # Media copy
       when "l"
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
@@ -283,6 +313,8 @@ class TerminalBuffer
           when 25 # Hide cursor
             @cursor.show = false
             @cursor.moved()
+          when 47, 1047 # Switch to main buffer
+            @disableAlternateBuffer()
           when 1048 # Restore cursor position
             @cursor.restore()
           when 1049 # Switch to main buffer and restore cursor
@@ -331,6 +363,15 @@ class TerminalBuffer
                 @backgroundColor = i - 100
               else
                 window.console.log "Terminal: Unhandled SGR sequence #{s}#{type} #{i}"
+      # when "n" then # Device status report
+      # when "p" then # Pointer mode (>), soft reset (!), ansi mode ($)
+      # when "q" then # Load LEDs, set cursor style (sp)
+      when "r" # Set scrollable region
+        top = parseInt(seq[0]) || 1
+        bottom = parseInt(seq[1]) || 1
+        @setScrollingRegion([top,bottom])
+      # when "s" then # Set left and right margins
+      # when "t" then # Window attributes
       else
         window.console.log "Terminal: Unhandled escape sequence #{sequence}#{type}"
     @lastLine().lastCharacter()?.reset(this)
