@@ -29,7 +29,7 @@ int AtomMain(int argc, char* argv[]) {
 
     NSString *mainNibName = [infoDictionary objectForKey:@"NSMainNibFile"];
     NSNib *mainNib = [[NSNib alloc] initWithNibNamed:mainNibName bundle:[NSBundle bundleWithIdentifier:@"com.github.atom.framework"]];
-    [mainNib instantiateNibWithOwner:application topLevelObjects:nil];
+    [mainNib instantiateWithOwner:application topLevelObjects:nil];
 
     CefRunMessageLoop();
   }
