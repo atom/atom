@@ -17,6 +17,7 @@ class TerminalBuffer
     @dirtyLines = []
     @decsc = [0,0]
     @inEscapeSequence = false
+    @escapeSequenceStarted = false
     @ignoreEscapeSequence = false
     @endWithBell = false
     @autowrap = false
@@ -119,7 +120,7 @@ class TerminalBuffer
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
-    # window.console.log [c, c.charCodeAt(0)]
+    window.console.log [c, c.charCodeAt(0)]
     if @inEscapeSequence
       return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
@@ -154,28 +155,36 @@ class TerminalBuffer
         @updatedCursor()
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
-    if @escapeSequence.length == 0
-      if code == 61 # Ignore =
-        return
-      if code == 40 || code == 41 # Ignore ( and )
-        @ignoreEscapeSequence = true
-        return
-    if code == 24 || code == 26 # Cancel escape sequence
-      @inEscapeSequence = false
-      @endWithBell = false
-      @escapeSequence = ""
+    if !@escapeSequenceStarted && @escapeSequence.length == 0
+      if code == 7 # Store cursor
+        @cursor.store()
+      else if code == 8 # Restore cursor
+        @cursor.restore()
+      else
+        if code == 61 # Ignore =
+          return
+        if code == 40 || code == 41 # Ignore ( and )
+          @ignoreEscapeSequence = true
+          return
+        if code == 91 # [
+          @escapeSequenceStarted = true
+          return
+        if !@endWithBell && code == 93 # ]...<bell>
+          @endWithBell = true
+          return
+    else if code == 24 || code == 26 # Cancel escape sequence
     else if (@endWithBell && code == 7) || (!@endWithBell && ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || c == "@")) # A-Z, a-z, @
       @evaluateEscapeSequence(c, @escapeSequence) if !@ignoreEscapeSequence
-      @ignoreEscapeSequence = false
-      @inEscapeSequence = false
-      @endWithBell = false
-      @escapeSequence = ""
-    else if !@endWithBell && code == 93 # ]...<bell>
-      @endWithBell = true
-    else if @endWithBell || code != 91 # Ignore [
+    else
       @escapeSequence += c
+      return
+    @ignoreEscapeSequence = false
+    @inEscapeSequence = false
+    @escapeSequenceStarted = false
+    @endWithBell = false
+    @escapeSequence = ""
   evaluateEscapeSequence: (type, sequence) ->
-    # window.console.log "Terminal: Escape #{sequence} #{type}"
+    window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
       @title = seq[1]
@@ -328,6 +337,7 @@ class TerminalBuffer
   escape: ->
     @inEscapeSequence = true
     @escapeSequence = ""
+    @escapeSequenceStarted = false
 
 class TerminalBufferLine
   constructor: (@buffer, @number) ->
