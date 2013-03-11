@@ -1,0 +1,131 @@
+.command-panel {
+  position: relative;
+  padding: 0;
+
+  .is-loading {
+    display: block;
+    margin: 0 auto 10px auto;
+    width: 100px;
+    background-color: #111111;
+    background-size: auto;
+    background-position: 5px 5px;
+    padding: 5px 5px 10px 30px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid rgba(0,0,0,1);
+    border-left: 1px solid rgba(0,0,0,1);
+  }
+
+  .preview-count {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 11px;
+    -webkit-user-select: none;
+  }
+
+  .preview-list {
+    max-height: 300px;
+    overflow: auto;
+    margin: 0 0 10px 0;
+    position: relative;
+    cursor: default;
+
+    .path {
+      position: relative;
+      -webkit-user-select: none;
+    }
+
+    .path-details:before {
+      font-family: 'Octicons Regular';
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
+      margin-right: 5px;
+      margin-left: 5px;
+      -webkit-font-smoothing: antialiased;
+      content: "\f05b";
+      position: relative;
+      top: 0;
+    }
+
+    .is-collapsed .path-details:before {
+      content: "\f05a";
+    }
+
+    .path-name:before {
+      font-family: 'Octicons Regular';
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+      -webkit-font-smoothing: antialiased;
+      content: "\f011";
+      position: relative;
+      top: 1px;
+    }
+
+    .path.readme .path-name:before {
+      content: "\f007";
+    }
+
+    .operation {
+      padding-top: 2px;
+      padding-bottom: 2px;
+      padding-left: 10px;
+    }
+
+    .line-number {
+      margin-right: 1ex;
+      text-align: right;
+      display: inline-block;
+    }
+
+    .path-match-number {
+      padding-left: 8px;
+    }
+
+    .preview {
+      word-break: break-all;
+
+      .match {
+        -webkit-border-radius: 2px;
+        padding: 1px;
+      }
+    }
+  }
+
+  .header:after {
+    content: ".";
+    display: block;
+    visibility: hidden;
+    clear: both;
+    height: 0;
+  }
+
+  .expand-collapse {
+    float: right;
+    -webkit-user-select: none;
+
+    li {
+      display: inline-block;
+      cursor: pointer;
+      font-size: 11px;
+      margin-left: 5px;
+      padding: 5px 10px;
+      border-radius: 3px;
+    }
+  }
+
+  .prompt-and-editor {
+    display: -webkit-flex;
+
+    .editor {
+      position: relative;
+    }
+  }
+}
+
+.error-messages {
+  padding: 5px 1em;
+  color: white;
+}

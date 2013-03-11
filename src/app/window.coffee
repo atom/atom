@@ -1,6 +1,7 @@
 fs = require 'fs'
 $ = require 'jquery'
 ChildProcess = require 'child-process'
+{less} = require 'less'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -23,17 +24,17 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  requireStylesheet 'reset.css'
-  requireStylesheet 'atom.css'
-  requireStylesheet 'tabs.css'
-  requireStylesheet 'tree-view.css'
-  requireStylesheet 'status-bar.css'
-  requireStylesheet 'command-panel.css'
-  requireStylesheet 'fuzzy-finder.css'
-  requireStylesheet 'overlay.css'
-  requireStylesheet 'popover-list.css'
-  requireStylesheet 'notification.css'
-  requireStylesheet 'markdown.css'
+  requireStylesheet 'reset.less'
+  requireStylesheet 'atom.less'
+  requireStylesheet 'tabs.less'
+  requireStylesheet 'tree-view.less'
+  requireStylesheet 'status-bar.less'
+  requireStylesheet 'command-panel.less'
+  requireStylesheet 'fuzzy-finder.less'
+  requireStylesheet 'overlay.less'
+  requireStylesheet 'popover-list.less'
+  requireStylesheet 'notification.less'
+  requireStylesheet 'markdown.less'
 
   if nativeStylesheetPath = require.resolve("#{platform}.css")
     requireStylesheet(nativeStylesheetPath)
@@ -115,9 +116,20 @@ window.stylesheetElementForId = (id) ->
 
 window.requireStylesheet = (path) ->
   if fullPath = require.resolve(path)
-    window.applyStylesheet(fullPath, fs.read(fullPath))
-  unless fullPath
+    content = window.loadStylesheet(fullPath)
+    window.applyStylesheet(fullPath, content)
+  else
+    console.log "bad", path
     throw new Error("Could not find a file at path '#{path}'")
+
+window.loadStylesheet = (path) ->
+  content = fs.read(path)
+  if fs.extension(path) == '.less'
+    (new less.Parser).parse content, (e, tree) ->
+      throw new Error(e.message, file, e.line) if e
+      content = tree.toCSS()
+
+  content
 
 window.removeStylesheet = (path) ->
   unless fullPath = require.resolve(path)
