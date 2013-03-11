@@ -7,7 +7,7 @@ Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 fs = require 'fs'
 
 module.exports =

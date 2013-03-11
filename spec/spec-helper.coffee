@@ -3,7 +3,7 @@ window.setUpEnvironment()
 
 nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 Keymap = require 'keymap'
 Config = require 'config'
 Point = require 'point'

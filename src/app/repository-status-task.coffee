@@ -1,5 +1,5 @@
 Task = require 'task'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class RepositoryStatusTask extends Task

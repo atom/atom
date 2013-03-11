@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 TreeView = require 'tree-view/lib/tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'

@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 RootView = require 'root-view'
 StatusBar = require 'status-bar/lib/status-bar-view'
 fs = require 'fs'

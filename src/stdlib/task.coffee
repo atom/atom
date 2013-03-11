@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 EventEmitter = require 'event-emitter'
 
 module.exports =

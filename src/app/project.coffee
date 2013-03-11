@@ -1,5 +1,5 @@
 fs = require 'fs'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 $ = require 'jquery'
 Range = require 'range'
 Buffer = require 'buffer'

@@ -1,6 +1,6 @@
 {$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class CommandLoggerView extends ScrollView

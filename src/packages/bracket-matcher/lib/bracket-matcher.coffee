@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 {$$} = require 'space-pen'
 Range = require 'range'
 

@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 EventEmitter = require 'event-emitter'
 
 describe "EventEmitter mixin", ->
@@ -167,5 +167,3 @@ describe "EventEmitter mixin", ->
 
       object.off 'foo'
       expect(object.subscriptionCount()).toBe 2
-
-

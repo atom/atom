@@ -1,6 +1,6 @@
 nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 Keymap = require 'keymap'
 Point = require 'point'
 Config = require 'config'
@@ -127,4 +127,3 @@ $.fn.textInput = (data) ->
   event = document.createEvent 'TextEvent'
   event.initTextEvent('textInput', true, true, window, data)
   this.each -> this.dispatchEvent(event)
-

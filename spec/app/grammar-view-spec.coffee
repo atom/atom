@@ -1,6 +1,6 @@
 RootView = require 'root-view'
 GrammarView = require 'grammar-view'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 describe "GrammarView", ->
   [editor, textGrammar, jsGrammar] =  []

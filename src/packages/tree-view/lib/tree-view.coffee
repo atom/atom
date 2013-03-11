@@ -6,7 +6,7 @@ FileView = require './file-view'
 Dialog = require './dialog'
 fs = require 'fs'
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class TreeView extends ScrollView

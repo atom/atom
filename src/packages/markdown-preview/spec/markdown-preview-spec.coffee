@@ -1,7 +1,7 @@
 $ = require 'jquery'
 RootView = require 'root-view'
 MarkdownPreview = require 'markdown-preview/lib/markdown-preview-view'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 describe "MarkdownPreview", ->
   beforeEach ->

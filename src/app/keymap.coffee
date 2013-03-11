@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 fs = require 'fs'
 
 BindingSet = require 'binding-set'

@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 PaneAxis = require 'pane-axis'
 
 module.exports =

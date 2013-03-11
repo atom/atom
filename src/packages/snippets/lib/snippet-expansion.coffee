@@ -1,5 +1,5 @@
 Subscriber = require 'subscriber'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class SnippetExpansion

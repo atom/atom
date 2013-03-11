@@ -1,7 +1,7 @@
 PaneContainer = require 'pane-container'
 Pane = require 'pane'
 {View, $$} = require 'space-pen'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 $ = require 'jquery'
 
 describe "PaneContainer", ->

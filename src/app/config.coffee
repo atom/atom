@@ -1,5 +1,5 @@
 fs = require 'fs'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 EventEmitter = require 'event-emitter'
 
 configDirPath = fs.absolute("~/.atom")

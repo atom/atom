@@ -1,6 +1,6 @@
 $ = require 'jquery'
 ScrollView = require 'scroll-view'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 fs = require 'fs'
 PathView = require './path-view'
 OperationView = require './operation-view'

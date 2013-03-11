@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 TokenizedBuffer = require 'tokenized-buffer'
 LineMap = require 'line-map'
 Point = require 'point'

@@ -1,6 +1,6 @@
 {View, $$} = require 'space-pen'
 SelectList = require 'select-list'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 $ = require 'jquery'
 fs = require 'fs'
 LoadPathsTask = require './load-paths-task'

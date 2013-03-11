@@ -1,6 +1,6 @@
 Range = require 'range'
 EventEmitter = require 'event-emitter'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class Selection

@@ -1,7 +1,7 @@
 {$$} = require 'space-pen'
 SelectList = require 'select-list'
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class CommandPaletteView extends SelectList

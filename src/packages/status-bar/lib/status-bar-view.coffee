@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 {View, $$} = require 'space-pen'
 $ = require 'jquery'
 

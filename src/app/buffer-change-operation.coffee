@@ -1,5 +1,5 @@
 Range = require 'range'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class BufferChangeOperation

@@ -1,6 +1,6 @@
 Package = require 'package'
 fs = require 'fs'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 $ = require 'jquery'
 
 module.exports =

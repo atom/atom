@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 fs = require 'fs'
 File = require 'file'
 EventEmitter = require 'event-emitter'

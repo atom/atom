@@ -1,6 +1,6 @@
 Project = require 'project'
 fs = require 'fs'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 BufferedProcess = require 'buffered-process'
 
 describe "Project", ->

@@ -3,7 +3,7 @@ Project = require 'project'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 describe "CommandInterpreter", ->
   [interpreter, editSession, buffer] = []

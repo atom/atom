@@ -1,5 +1,5 @@
 Range = require 'range'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 require 'underscore-extensions'
 {OnigRegExp} = nodeRequire 'oniguruma'
 

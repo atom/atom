@@ -8,7 +8,7 @@ CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
 fs = require 'fs'
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class Editor extends View

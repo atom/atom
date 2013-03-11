@@ -1,6 +1,6 @@
 AtomPackage = require 'atom-package'
 fs = require 'fs'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 SnippetExpansion = require './snippet-expansion'
 Snippet = require './snippet'
 LoadSnippetsTask = require './load-snippets-task'

@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 ScreenLine = require 'screen-line'
 EventEmitter = require 'event-emitter'
 Token = require 'token'

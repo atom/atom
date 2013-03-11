@@ -1,5 +1,5 @@
 {View} = require 'space-pen'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 SpellCheckTask = require './spell-check-task'
 MisspellingView = require './misspelling-view'
 
