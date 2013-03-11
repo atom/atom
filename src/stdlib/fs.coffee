@@ -218,7 +218,7 @@ module.exports =
   readObject: (path) ->
     contents = @read(path)
     if @extension(path) is '.cson'
-      {CoffeeScript} = require 'coffee-script'
+      CoffeeScript = nodeRequire 'coffee-script'
       CoffeeScript.eval(contents, bare: true)
     else
       JSON.parse(contents)

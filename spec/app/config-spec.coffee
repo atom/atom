@@ -49,7 +49,7 @@ describe "Config", ->
         config.save()
 
         expect(fs.write.argsForCall[0][0]).toBe(fs.join(config.configDirPath, "config.cson"))
-        {CoffeeScript} = require 'coffee-script'
+        CoffeeScript = nodeRequire 'coffee-script'
         writtenConfig = CoffeeScript.eval(fs.write.argsForCall[0][1], bare: true)
         expect(writtenConfig).toEqual config.settings
 

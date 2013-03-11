@@ -61,7 +61,7 @@ exts =
       compiled = __read(cacheFilePath)
       writeToCache = false
     else
-      {CoffeeScript} = require 'coffee-script'
+      CoffeeScript = nodeRequire 'coffee-script'
       compiled = CoffeeScript.compile(__read(file), filename: file)
       writeToCache = true
 
@@ -76,7 +76,7 @@ getPath = (path) ->
 
   cacheFilePath = getCacheFilePath(path)
   unless __exists(cacheFilePath)
-    {CoffeeScript} = require 'coffee-script'
+    CoffeeScript = nodeRequire 'coffee-script'
     compiled = CoffeeScript.compile(__read(path), filename: path)
     createCacheDirectory()
     fs.writeFileSync(cacheFilePath, compiled)
