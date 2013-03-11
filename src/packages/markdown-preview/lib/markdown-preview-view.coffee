@@ -16,6 +16,8 @@ class MarkdownPreviewView extends ScrollView
   initialize: (@buffer) ->
     super
     @fetchRenderedMarkdown()
+    @on 'core:move-up', => @scrollUp()
+    @on 'core:move-down', => @scrollDown()
 
   serialize: ->
     deserializer: 'MarkdownPreviewView'
