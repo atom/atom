@@ -61,6 +61,9 @@ _.extend atom,
 
     new LoadTextMatePackagesTask(textMatePackages).start() if textMatePackages.length > 0
 
+  activatePackages: ->
+    pack.activate() for pack in @loadedPackages
+
   getLoadedPackages: ->
     _.clone(@loadedPackages)
 

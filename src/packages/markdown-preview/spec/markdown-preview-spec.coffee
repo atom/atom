@@ -6,7 +6,7 @@ describe "MarkdownPreview package", ->
   beforeEach ->
     project.setPath(project.resolve('markdown'))
     window.rootView = new RootView
-    window.loadPackage("markdown-preview")
+    window.loadPackage("markdown-preview", activateImmediately: true)
     spyOn(MarkdownPreviewView.prototype, 'fetchRenderedMarkdown')
 
   describe "markdown-preview:show", ->

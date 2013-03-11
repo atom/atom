@@ -3,7 +3,7 @@ AtomPackage = require 'atom-package'
 fs = require 'fs'
 
 describe "AtomPackage", ->
-  describe ".load()", ->
+  describe ".activate()", ->
     beforeEach ->
       window.rootView = new RootView
 
@@ -15,6 +15,7 @@ describe "AtomPackage", ->
         packageMainModule = require 'fixtures/packages/package-with-activation-events/main'
         spyOn(packageMainModule, 'activate').andCallThrough()
         pack.load()
+        pack.activate()
 
       it "defers activating the package until an activation event bubbles to the root view", ->
         expect(packageMainModule.activate).not.toHaveBeenCalled()
@@ -44,6 +45,7 @@ describe "AtomPackage", ->
 
           expect(packageMainModule.activate).not.toHaveBeenCalled()
           pack.load()
+          pack.activate()
           expect(packageMainModule.activate).toHaveBeenCalled()
 
       describe "when the package doesn't have an index.coffee", ->

@@ -1,3 +1,4 @@
 'main': 'lib/markdown-preview'
 'activationEvents':
   'markdown-preview:show': '.editor'
+'deferredDeserializers': ['MarkdownPreviewView']
