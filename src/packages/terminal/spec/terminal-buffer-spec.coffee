@@ -235,6 +235,14 @@ fdescribe 'Terminal Buffer', ->
           expect(buffer.autowrap).toBe(true)
           buffer.input(TerminalBuffer.escapeSequence("?7l"))
           expect(buffer.autowrap).toBe(false)
+      describe "show/hide cursor", ->
+        it "determines if the cursor is shown", ->
+          buffer.input("a")
+          expect(buffer.cursorLine().lastCharacter().cursor).toBe(true)
+          buffer.input(TerminalBuffer.escapeSequence("?25l"))
+          expect(buffer.cursorLine().lastCharacter().cursor).toBe(false)
+          buffer.input(TerminalBuffer.escapeSequence("?25h"))
+          expect(buffer.cursorLine().lastCharacter().cursor).toBe(true)
       describe "save cursor", ->
         it "saves cursor position and restores it", ->
           buffer.input("abcdef")

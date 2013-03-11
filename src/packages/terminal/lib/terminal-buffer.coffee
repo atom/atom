@@ -158,7 +158,7 @@ class TerminalBuffer
     else if @endWithBell || code != 91 # Ignore [
       @escapeSequence += c
   evaluateEscapeSequence: (type, sequence) ->
-    # window.console.log "Terminal: Escape #{sequence} #{type}"
+    window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
       @title = seq[1]
@@ -209,7 +209,7 @@ class TerminalBuffer
         else if op == 2
           @getLine(n).erase(0, 2) for n in [start..numLines]
         else
-          @getLine(n).erase(0, 2) for n in [cursorLine+1..numLines]
+          @getLine(n).erase(0, 2) for n in [cursorLine+1..numLines] if numLines > cursorLine
       when "K" # Erase in line
         op = parseInt(seq[0])
         @cursorLine().erase(@cursor.character(), op)
@@ -232,6 +232,9 @@ class TerminalBuffer
           when 0 then # Ignore
           when 7 # Autowrap
             @autowrap = true
+          when 25 # Show cursor
+            @cursor.show = true
+            @cursor.moved()
           when 1048 # Store cursor position
             @cursor.store()
           when 1049 # Store cursor and switch to alternate buffer
@@ -245,6 +248,9 @@ class TerminalBuffer
           when 0 then # Ignore
           when 7 # Autowrap
             @autowrap = false
+          when 25 # Hide cursor
+            @cursor.show = false
+            @cursor.moved()
           when 1048 # Restore cursor position
             @cursor.restore()
           when 1049 # Switch to main buffer and restore cursor
@@ -401,6 +407,7 @@ class TerminalCursor
   constructor: (@buffer) ->
     @moveTo([1,1])
     @decsc = [1,1]
+    @show = true
   store: () ->
     @decsc = [@x, @y]
   restore: () ->
@@ -418,7 +425,7 @@ class TerminalCursor
       lastLine.clearCursor()
     if @curLine && char = @curLine.getCharacter(@character())
       @curLine.clearCursor()
-      char.cursor = true
+      char.cursor = true if @show
   line: () ->
     @y - 1
   character: () ->
