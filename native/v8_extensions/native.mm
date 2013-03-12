@@ -166,8 +166,7 @@ namespace v8_extensions {
     }
     else if (name == "traverseTree") {
       std::string argument = arguments[0]->GetStringValue().ToString();
-      int rootPathLength = argument.size() + 1;
-      char rootPath[rootPathLength];
+      char rootPath[argument.size() + 1];
       strcpy(rootPath, argument.c_str());
       char * const paths[] = {rootPath, NULL};
 
@@ -191,12 +190,8 @@ namespace v8_extensions {
           continue;
         }
 
-        int pathLength = entry->fts_pathlen - rootPathLength;
-        char relative[pathLength + 1];
-        relative[pathLength] = '\0';
-        strncpy(relative, entry->fts_path + rootPathLength, pathLength);
         args.clear();
-        args.push_back(CefV8Value::CreateString(relative));
+        args.push_back(CefV8Value::CreateString(entry->fts_path));
         if (isFile) {
           onFile->ExecuteFunction(onFile, args);
         }
