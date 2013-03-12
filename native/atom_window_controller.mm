@@ -69,6 +69,7 @@
     NSString *fullPath = [NSString stringWithFormat:@"%@/%@", _resourcePath, [paths objectAtIndex:i]];
     [resourcePaths addObject:fullPath];
   }
+  [resourcePaths addObject:_resourcePath];
   NSString *nodePath = [resourcePaths componentsJoinedByString:@":"];
   setenv("NODE_PATH", [nodePath UTF8String], TRUE);
 
