@@ -27,6 +27,8 @@ class TerminalBuffer
     @redrawNeeded = true
     @title = ""
     @size = [24, 80]
+  setSize: (size) ->
+    @size = size
   resetSGR: () ->
     @color = 0
     @backgroundColor = -1
@@ -120,6 +122,7 @@ class TerminalBuffer
   enableAlternateBuffer: () ->
     [@altBuffer, @lines] = [@lines, []]
     @addLine()
+    @scrollingRegion = null
     @redrawNeeded = true
     @dirtyLines = []
   disableAlternateBuffer: () ->
@@ -146,7 +149,7 @@ class TerminalBuffer
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
-    # window.console.log [c, c.charCodeAt(0), @numLines()]
+    window.console.log [c, c.charCodeAt(0), @numLines()]
     if @inEscapeSequence
       return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
@@ -202,7 +205,20 @@ class TerminalBuffer
         when "9" then # Forward index
         when "=" then # Application keypad
         when ">" then # Normal keypad
+        when "D" then # Index
+        when "E" then # Next line
         when "F" then # Cursor to lower left
+        when "H" then # Tab set
+        when "M" then # Reverse index
+        when "N", "O" then # Ignore charset
+        when "P" then # Device control string
+        when "V" then # Start guarded area
+        when "W" then # End guarded area
+        when "X" then # Start of string
+        when "Z" then # Return terminal id
+        when "\\" then # End of string
+        when "^" then # Privacy message
+        when "_" then # Application program command
         when "c" then # Full reset
         when "n", "o", "|", "}", "~" then # Ignore charset
         when "(", ")" # Ignore ( and )
