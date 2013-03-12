@@ -450,6 +450,14 @@ describe "Pane", ->
           pane.remove()
           expect(rootView.focus).not.toHaveBeenCalled()
 
+  describe ".getNextPane()", ->
+    it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
+      pane.showItem(editSession1)
+      expect(pane.getNextPane()).toBeUndefined
+      pane2 = pane.splitRight()
+      expect(pane.getNextPane()).toBe pane2
+      expect(pane2.getNextPane()).toBe pane
+
   describe "when the pane is focused", ->
     it "focuses the active item view", ->
       focusHandler = jasmine.createSpy("focusHandler")

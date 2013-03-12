@@ -11,7 +11,7 @@ describe "CommandPanel", ->
     rootView.enableKeymap()
     editSession = rootView.getActivePaneItem()
     buffer = editSession.buffer
-    commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).packageMain
+    commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).mainModule
     commandPanel = commandPanelMain.commandPanelView
     commandPanel.history = []
     commandPanel.historyIndex = 0

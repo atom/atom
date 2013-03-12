@@ -7,6 +7,7 @@ require 'underscore-extensions'
 require 'space-pen-extensions'
 
 deserializers = {}
+deferredDeserializers = {}
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
@@ -53,10 +54,11 @@ window.startup = ->
   handleWindowEvents()
   config.load()
   atom.loadTextPackage()
-  buildProjectAndRootView()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
   atom.loadPackages()
+  buildProjectAndRootView()
+  atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
   $(window).on 'beforeunload', -> shutdown(); false
@@ -163,6 +165,9 @@ window.registerDeserializers = (args...) ->
 window.registerDeserializer = (klass) ->
   deserializers[klass.name] = klass
 
+window.registerDeferredDeserializer = (name, fn) ->
+  deferredDeserializers[name] = fn
+
 window.unregisterDeserializer = (klass) ->
   delete deserializers[klass.name]
 
@@ -172,7 +177,11 @@ window.deserialize = (state) ->
     deserializer.deserialize(state)
 
 window.getDeserializer = (state) ->
-  deserializers[state?.deserializer]
+  name = state?.deserializer
+  if deferredDeserializers[name]
+    deferredDeserializers[name]()
+    delete deferredDeserializers[name]
+  deserializers[name]
 
 window.measure = (description, fn) ->
   start = new Date().getTime()
