@@ -1,5 +1,6 @@
 RootView = require 'root-view'
 {$$} = require 'space-pen'
+fs = require 'fs-utils'
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -10,7 +11,7 @@ describe "the `atom` global", ->
 
     beforeEach ->
       extension = require "package-with-module"
-      stylesheetPath = require.resolve("fixtures/packages/package-with-module/stylesheets/styles.css")
+      stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
 
     afterEach ->
       removeStylesheet(stylesheetPath)
@@ -57,7 +58,7 @@ describe "the `atom` global", ->
           expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
     it "loads stylesheets associated with the package", ->
-      stylesheetPath = require.resolve("fixtures/packages/package-with-module/stylesheets/styles.css")
+      stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 0
       window.loadPackage("package-with-module")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 1

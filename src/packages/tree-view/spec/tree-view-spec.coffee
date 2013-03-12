@@ -67,7 +67,7 @@ describe "TreeView", ->
         it "creates a root directory view but does not attach to the root view", ->
           rootView.getActivePaneItem().saveAs("/tmp/test.txt")
           expect(treeView.hasParent()).toBeFalsy()
-          expect(treeView.root.getPath()).toBe require.resolve('/tmp')
+          expect(treeView.root.getPath()).toBe '/tmp'
           expect(treeView.root.parent()).toMatchSelector(".tree-view")
 
     describe "when the root view is opened to a file path", ->
@@ -266,20 +266,20 @@ describe "TreeView", ->
 
       sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleJs).toHaveClass 'selected'
-      expect(rootView.getActiveView().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
+      expect(rootView.getActiveView().getPath()).toBe fs.resolveOnLoadPath('fixtures/tree-view/tree-view.js')
       expect(rootView.getActiveView().isFocused).toBeFalsy()
 
       sampleTxt.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleTxt).toHaveClass 'selected'
       expect(treeView.find('.selected').length).toBe 1
-      expect(rootView.getActiveView().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.txt')
+      expect(rootView.getActiveView().getPath()).toBe fs.resolveOnLoadPath('fixtures/tree-view/tree-view.txt')
       expect(rootView.getActiveView().isFocused).toBeFalsy()
 
   describe "when a file is double-clicked", ->
     it "selects the file and opens it in the active editor on the first click, then changes focus to the active editor on the second", ->
       sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleJs).toHaveClass 'selected'
-      expect(rootView.getActiveView().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
+      expect(rootView.getActiveView().getPath()).toBe fs.resolveOnLoadPath('fixtures/tree-view/tree-view.js')
       expect(rootView.getActiveView().isFocused).toBeFalsy()
 
       sampleJs.trigger clickEvent(originalEvent: { detail: 2 })
@@ -304,7 +304,7 @@ describe "TreeView", ->
   describe "when a new file is opened in the active editor", ->
     it "selects the file in the tree view if the file's entry visible", ->
       sampleJs.click()
-      rootView.open(require.resolve('fixtures/tree-view/tree-view.txt'))
+      rootView.open(fs.resolveOnLoadPath('fixtures/tree-view/tree-view.txt'))
 
       expect(sampleTxt).toHaveClass 'selected'
       expect(treeView.find('.selected').length).toBe 1
@@ -568,7 +568,7 @@ describe "TreeView", ->
         it "opens the file in the editor and focuses it", ->
           treeView.root.find('.file:contains(tree-view.js)').click()
           treeView.root.trigger 'tree-view:open-selected-entry'
-          expect(rootView.getActiveView().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
+          expect(rootView.getActiveView().getPath()).toBe fs.resolveOnLoadPath('fixtures/tree-view/tree-view.js')
           expect(rootView.getActiveView().isFocused).toBeTruthy()
 
       describe "when a directory is selected", ->
@@ -875,7 +875,7 @@ describe "TreeView", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fs.join(require.resolve('fixtures/tree-view'), 'temporary')
+      temporaryFilePath = fs.join(fs.resolveOnLoadPath('fixtures/tree-view'), 'temporary')
       if fs.exists(temporaryFilePath)
         fs.remove(temporaryFilePath)
         waits(20)
@@ -907,7 +907,7 @@ describe "TreeView", ->
     [ignoreFile] = []
 
     beforeEach ->
-      ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
+      ignoreFile = fs.join(fs.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
       fs.write(ignoreFile, 'tree-view.js')
       config.set "core.hideGitIgnoredFiles", false
 
@@ -930,15 +930,15 @@ describe "TreeView", ->
 
     beforeEach ->
       config.set "core.hideGitIgnoredFiles", false
-      ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
+      ignoreFile = fs.join(fs.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
       fs.write(ignoreFile, 'tree-view.js')
       git.getPathStatus(ignoreFile)
 
-      newFile = fs.join(require.resolve('fixtures/tree-view/dir2'), 'new2')
+      newFile = fs.join(fs.resolveOnLoadPath('fixtures/tree-view/dir2'), 'new2')
       fs.write(newFile, '')
       git.getPathStatus(newFile)
 
-      modifiedFile = fs.join(require.resolve('fixtures/tree-view/dir1'), 'file1')
+      modifiedFile = fs.join(fs.resolveOnLoadPath('fixtures/tree-view/dir1'), 'file1')
       originalFileContent = fs.read(modifiedFile)
       fs.write modifiedFile, 'ch ch changes'
       git.getPathStatus(modifiedFile)

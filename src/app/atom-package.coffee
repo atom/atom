@@ -62,7 +62,10 @@ class AtomPackage extends Package
   activatePackageMain: ->
     mainPath = @path
     mainPath = fs.join(mainPath, @metadata.main) if @metadata.main
-    mainPath = require.resolve(mainPath)
+    try
+      mainPath = require.resolve(mainPath)
+    catch e
+      return
     if fs.isFile(mainPath)
       @packageMain = require(mainPath)
       config.setDefaults(@name, @packageMain.configDefaults)

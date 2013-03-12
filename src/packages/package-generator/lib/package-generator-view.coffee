@@ -56,7 +56,7 @@ class PackageGeneratorView extends View
       true
 
   createPackageFiles: ->
-    templatePath = require.resolve(fs.join("package-generator", "template"))
+    templatePath = fs.resolveOnLoadPath(fs.join("package-generator", "template"))
     packageName = fs.base(@getPackagePath())
 
     for path in fs.listTree(templatePath)

@@ -9,7 +9,7 @@ describe "fs", ->
       expect(-> fs.read(require.resolve("fixtures/binary-file.png"))).not.toThrow()
 
   describe ".isFile(path)", ->
-    fixturesDir = require.resolve('fixtures')
+    fixturesDir = fs.resolveOnLoadPath('fixtures')
 
     it "returns true with a file path", ->
       expect(fs.isFile(fs.join(fixturesDir,  'sample.js'))).toBe true
@@ -24,7 +24,7 @@ describe "fs", ->
   describe ".directory(path)", ->
     describe "when called with a file path", ->
       it "returns the path to the directory", ->
-        expect(fs.directory(require.resolve('fixtures/dir/a'))).toBe require.resolve('fixtures/dir')
+        expect(fs.directory(fs.resolveOnLoadPath('fixtures/dir/a'))).toBe fs.resolveOnLoadPath('fixtures/dir')
 
     describe "when called with a directory path", ->
       it "return the path it was given", ->
@@ -42,10 +42,10 @@ describe "fs", ->
 
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
-      expect(fs.exists(require.resolve('fixtures'))).toBe true
+      expect(fs.exists(fs.resolveOnLoadPath('fixtures'))).toBe true
 
     it "returns false when path doesn't exsit", ->
-      expect(fs.exists(require.resolve("fixtures") + "/-nope-does-not-exist")).toBe false
+      expect(fs.exists(fs.resolveOnLoadPath("fixtures") + "/-nope-does-not-exist")).toBe false
       expect(fs.exists("")).toBe false
       expect(fs.exists(null)).toBe false
 
@@ -81,7 +81,7 @@ describe "fs", ->
     fixturesDir = null
 
     beforeEach ->
-      fixturesDir = require.resolve('fixtures')
+      fixturesDir = fs.resolveOnLoadPath('fixtures')
 
     it "calls fn for every path in the tree at the given path", ->
       paths = []
@@ -124,4 +124,4 @@ describe "fs", ->
   describe ".list(path, extensions)", ->
     it "returns the paths with the specified extensions", ->
       path = require.resolve('fixtures/css.css')
-      expect(fs.list(require.resolve('fixtures'), ['.css'])).toEqual [path]
+      expect(fs.list(fs.resolveOnLoadPath('fixtures'), ['.css'])).toEqual [path]
