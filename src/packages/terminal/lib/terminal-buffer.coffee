@@ -149,7 +149,7 @@ class TerminalBuffer
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
-    window.console.log [c, c.charCodeAt(0), @numLines()]
+    # window.console.log [c, c.charCodeAt(0), @numLines()]
     if @inEscapeSequence
       return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
@@ -250,7 +250,7 @@ class TerminalBuffer
       @endWithBell = false
       @escapeSequence = ""
   evaluateEscapeSequence: (type, sequence) ->
-    window.console.log "Terminal: Escape #{sequence} #{type}"
+    # window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
       @title = seq[1]

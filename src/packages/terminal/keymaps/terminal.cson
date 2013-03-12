@@ -1,5 +1,5 @@
 'body':
-  'meta-T': 'terminal:toggle-terminal'
+  'alt-down': 'terminal:create-split-down'
 
 '.terminal':
   'enter': 'terminal:enter'

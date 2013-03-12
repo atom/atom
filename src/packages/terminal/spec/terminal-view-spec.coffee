@@ -6,13 +6,13 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
 
-describe 'Terminal', ->
+fdescribe 'Terminal', ->
   [terminalView] = []
 
   beforeEach ->
     window.rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    terminalView = window.loadPackage("terminal").packageMain.createView()
+    terminalView = new TerminalView
 
   afterEach ->
     rootView.deactivate()

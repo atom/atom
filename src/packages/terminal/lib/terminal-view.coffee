@@ -11,7 +11,6 @@ class TerminalView extends ScrollView
 
   @content: (params) ->
     @div class: "terminal", tabindex: -1, =>
-      @div class: "title", outlet: "title"
       @div class: "content", outlet: "content", =>
         @pre
       @input class: 'hidden-input', outlet: 'hiddenInput'
@@ -33,6 +32,9 @@ class TerminalView extends ScrollView
     @on 'textInput', (e) =>
       @input(e.originalEvent.data)
       false
+    @on 'pane:attached', =>
+      window.console.log 'became active'
+      @updateTerminalSize()
 
     rootView.command "terminal:enter", => @input(TerminalBuffer.enter)
     rootView.command "terminal:delete", => @input(TerminalBuffer.backspace)
@@ -62,8 +64,6 @@ class TerminalView extends ScrollView
     @write?("", true)
 
   attach: ->
-    rootView.append(this)
-    @updateTerminalSize()
     @focus()
     @login()
 
@@ -106,9 +106,14 @@ class TerminalView extends ScrollView
     windowHeight = parseInt(@content.css("height"))
     @size = [Math.floor(windowHeight / lineHeight) - 1, Math.floor(windowWidth / charWidth) - 1, charWidth, lineHeight]
     @buffer.setSize([@size[0], @size[1]])
+    window.console.log @size
 
+  getTitle: () -> @title
   setTitle: (text) ->
-    @title.text("#{if text? && text.length then "#{text} - " else ""}Atom Terminal")
+    @title = ("#{if text? && text.length then "#{text} - " else ""}Atom Terminal")
+
+  getUri: ->
+    "terminal:foo"
 
   resizeStarted: (e) =>
     $(document.body).on('mousemove', @resizeTerminal)

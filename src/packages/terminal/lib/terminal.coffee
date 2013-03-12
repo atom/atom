@@ -1,24 +1,16 @@
+TerminalView  = require 'terminal/lib/terminal-view'
 _ = require 'underscore'
 
 module.exports =
-  terminalView: null
-
   activate: (state) ->
-    rootView.command 'terminal:toggle-terminal', =>
-      if @terminalView?
-        @deactivate()
-      else
-        @createView().attach()
+    rootView.command 'terminal:create-split-down', =>
+      activePane = rootView.getActivePane()
+      view = @createView()
+      activePane.splitDown(view)
+      view.attach()
 
-  deactivate: ->
-    @terminalView.detach() if @terminalView?
-    @terminalView = null
+  createView: () ->
+    new TerminalView
 
   serialize: ->
     true
-
-  createView:  ->
-    unless @terminalView
-      TerminalView  = require 'terminal/lib/terminal-view'
-      @terminalView = new TerminalView()
-    @terminalView

@@ -377,7 +377,6 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.screenToLine([1,1])).toEqual([1,1])
       it "modifies the cursor coordinates", ->
         buffer.setScrollingRegion([10,20])
-        window.console.log buffer.scrollingRegion.firstLine
         buffer.moveCursorTo([10,1])
         expect(buffer.cursor.y).toBe(19)
       it "only adds lines if needed", ->
