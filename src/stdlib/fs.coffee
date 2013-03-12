@@ -146,7 +146,8 @@ module.exports =
     traverse(rootPath, '', onFile, onDirectory)
 
   md5ForPath: (path) ->
-    $native.md5ForPath(path)
+    contents = nodeFs.readFileSync(path)
+    nodeRequire('crypto').createHash('md5').update(contents).digest('hex')
 
   resolve: (args...) ->
     extensions = args.pop() if _.isArray(_.last(args))
