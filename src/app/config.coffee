@@ -20,6 +20,7 @@ class Config
   userPackagesDirPath: userPackagesDirPath
   defaultSettings: null
   settings: null
+  configFileHasErrors: null
 
   constructor: ->
     @defaultSettings =
@@ -55,8 +56,13 @@ class Config
 
   loadUserConfig: ->
     if fs.exists(@configFilePath)
-      userConfig = fs.readObject(@configFilePath)
-      _.extend(@settings, userConfig)
+      try
+        userConfig = fs.readObject(@configFilePath)
+        _.extend(@settings, userConfig)
+      catch e
+        @configFileHasErrors = true
+        console.error "Failed to load user config '#{@configFilePath}'", e.message
+        console.error e.stack
 
   get: (keyPath) ->
     _.valueForKeyPath(@settings, keyPath) ?
@@ -92,6 +98,7 @@ class Config
     subscription
 
   update: ->
+    return if @configFileHasErrors
     @save()
     @trigger 'updated'
 
