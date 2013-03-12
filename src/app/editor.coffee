@@ -1,14 +1,14 @@
 {View, $$} = require 'space-pen'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Gutter = require 'gutter'
 Point = require 'point'
 Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 module.exports =
 class Editor extends View

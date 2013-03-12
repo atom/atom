@@ -1,4 +1,4 @@
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 _.mixin
   remove: (array, element) ->

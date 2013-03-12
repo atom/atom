@@ -1,7 +1,7 @@
 EventEmitter = require 'event-emitter'
 
-fs = require 'fs'
-_ = nodeRequire 'underscore'
+fs = require 'fs-utils'
+_ = require 'underscore'
 
 module.exports =
 class File

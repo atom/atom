@@ -1,8 +1,8 @@
 {View} = require 'space-pen'
 Editor = require 'editor'
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 
 module.exports =
 class PackageGeneratorView extends View

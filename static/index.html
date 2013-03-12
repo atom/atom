@@ -16,6 +16,7 @@
 
     window.onload = function() {
       try {
+        require('coffee-script');
         if (bootstrapScript) require(bootstrapScript);
       }
       catch (error) {
@@ -23,12 +24,7 @@
         console.error(error.stack || error);
       }
     }
-
-    window.nodeRequire = window.require;
-    window.require = undefined;
   </script>
-
-  <script src='../src/stdlib/require.js'></script>
 </head>
 <body>
 </body>

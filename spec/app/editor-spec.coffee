@@ -1,12 +1,12 @@
 EditSession = require 'edit-session'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 Range = require 'range'
 Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []

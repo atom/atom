@@ -1,7 +1,7 @@
 {View} = require 'space-pen'
 Point = require 'point'
 Range = require 'range'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 module.exports =
 class CursorView extends View

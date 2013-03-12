@@ -1,6 +1,6 @@
 DisplayBuffer = require 'display-buffer'
-Buffer = require 'buffer'
-_ = nodeRequire 'underscore'
+Buffer = require 'text-buffer'
+_ = require 'underscore'
 
 describe "DisplayBuffer", ->
   [editSession, displayBuffer, buffer, changeHandler, tabLength] = []

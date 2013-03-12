@@ -56,8 +56,11 @@
 
   NSArray *paths = [NSArray arrayWithObjects:@"spec", @"benchmark",
                     @"src/stdlib", @"src/app", @"src/packages", @"src",
-                    @"vendor/packages", @"vendor", @"static", @"themes", nil];
+                    @"vendor/packages", @"vendor", @"static", @"themes",
+                    @"node_modules", nil];
   NSMutableArray *resourcePaths = [[NSMutableArray alloc] init];
+  NSString *userPackagesDirectory = [@"~/.atom/packages" stringByStandardizingPath];
+  [resourcePaths addObject:userPackagesDirectory];
   for (int i = 0; i < paths.count; i++) {
     NSString *fullPath = [NSString stringWithFormat:@"%@/%@", _resourcePath, [paths objectAtIndex:i]];
     [resourcePaths addObject:fullPath];

@@ -3,7 +3,7 @@ window.setUpEnvironment()
 
 nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 Keymap = require 'keymap'
 Config = require 'config'
 Point = require 'point'
@@ -12,11 +12,11 @@ Directory = require 'directory'
 File = require 'file'
 Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
-fs = require 'fs'
+fs = require 'fs-utils'
 RootView = require 'root-view'
 Git = require 'git'
 requireStylesheet "jasmine.css"
-fixturePackagesPath = require.resolve('fixtures/packages')
+fixturePackagesPath = fs.resolveOnLoadPath('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []

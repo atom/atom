@@ -1,9 +1,9 @@
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 TreeView = require 'tree-view/lib/tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "TreeView", ->
   [treeView, sampleJs, sampleTxt] = []

@@ -13,9 +13,6 @@ console =
   error: -> callTaskMethod 'error', arguments...
 self.__defineGetter__ 'console', -> console
 
-self.nodeRequire = self.require
-self.require = undefined
-
 window.document =
   createElement: ->
     setAttribute: ->
@@ -36,12 +33,11 @@ self.callTaskMethod = (method, args...) ->
 
 # The worker's initial handler replaces itself when `start` is invoked
 self.handler =
-  start: ({resourcePath, globals, requirePath, handlerPath}) ->
+  start: ({globals, handlerPath}) ->
     for key, value of globals
       self[key] = value
       window[key] = value
-    importScripts(requirePath)
-    require 'config'
+    require 'coffee-script'
     self.handler = require(handlerPath)
     callTaskMethod 'started'
 

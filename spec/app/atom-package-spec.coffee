@@ -1,6 +1,6 @@
 RootView = require 'root-view'
 AtomPackage = require 'atom-package'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "AtomPackage", ->
   describe ".load()", ->

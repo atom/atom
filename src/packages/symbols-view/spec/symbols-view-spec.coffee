@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 SymbolsView = require 'symbols-view/lib/symbols-view'
 TagGenerator = require 'symbols-view/lib/tag-generator'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "SymbolsView", ->
   [symbolsView, setArraySpy] = []

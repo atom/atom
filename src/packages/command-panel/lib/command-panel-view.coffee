@@ -5,7 +5,7 @@ CompositeCommand = require './commands/composite-command'
 PreviewList = require './preview-list'
 Editor = require 'editor'
 {SyntaxError} = require('pegjs').parser
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 module.exports =
 class CommandPanelView extends View

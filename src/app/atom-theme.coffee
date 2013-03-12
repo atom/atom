@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 Theme = require 'theme'
 CSON = require 'cson'
 

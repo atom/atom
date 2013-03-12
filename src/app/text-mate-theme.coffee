@@ -1,5 +1,5 @@
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 plist = require 'plist'
 Theme = require 'theme'
 

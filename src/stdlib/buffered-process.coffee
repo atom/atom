@@ -1,4 +1,4 @@
-ChildProcess = nodeRequire 'child_process'
+ChildProcess = require 'child_process'
 
 module.exports =
 class BufferedProcess

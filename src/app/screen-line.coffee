@@ -1,4 +1,4 @@
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 module.exports =
 class ScreenLine

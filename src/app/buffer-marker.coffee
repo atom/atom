@@ -1,4 +1,4 @@
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 Point = require 'point'
 Range = require 'range'
 EventEmitter = require 'event-emitter'

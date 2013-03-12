@@ -1,5 +1,5 @@
 Point = require 'point'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
@@ -7,8 +7,8 @@ Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 
 module.exports =
 class EditSession

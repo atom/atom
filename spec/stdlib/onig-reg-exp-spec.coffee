@@ -1,4 +1,4 @@
-{OnigRegExp} = nodeRequire 'oniguruma'
+{OnigRegExp} = require 'oniguruma'
 
 describe "OnigRegExp", ->
   describe ".search(string, index)", ->

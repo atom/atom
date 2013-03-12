@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 plist = require 'plist'
 TextMateTheme = require 'text-mate-theme'
 Theme = require 'theme'

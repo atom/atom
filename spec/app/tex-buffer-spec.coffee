@@ -1,7 +1,7 @@
 Project = require 'project'
-Buffer = require 'buffer'
-fs = require 'fs'
-_ = nodeRequire 'underscore'
+Buffer = require 'text-buffer'
+fs = require 'fs-utils'
+_ = require 'underscore'
 
 describe 'Buffer', ->
   [filePath, fileContents, buffer] = []

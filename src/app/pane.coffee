@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 PaneRow = require 'pane-row'
 PaneColumn = require 'pane-column'
 

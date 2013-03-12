@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 $.fn.scrollBottom = (newValue) ->
   if newValue?

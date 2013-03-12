@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 module.exports =
 class WrapGuideView extends View

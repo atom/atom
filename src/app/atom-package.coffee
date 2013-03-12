@@ -1,6 +1,6 @@
 Package = require 'package'
-fs = require 'fs'
-_ = nodeRequire 'underscore'
+fs = require 'fs-utils'
+_ = require 'underscore'
 $ = require 'jquery'
 CSON = require 'cson'
 

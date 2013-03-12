@@ -1,8 +1,8 @@
 TextMateGrammar = require 'text-mate-grammar'
 TextMatePackage = require 'text-mate-package'
 plist = require 'plist'
-fs = require 'fs'
-_ = nodeRequire 'underscore'
+fs = require 'fs-utils'
+_ = require 'underscore'
 
 describe "TextMateGrammar", ->
   grammar = null

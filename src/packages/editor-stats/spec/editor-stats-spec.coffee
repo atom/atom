@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 RootView = require 'root-view'
 EditorStats = require 'editor-stats/lib/editor-stats-view'
 

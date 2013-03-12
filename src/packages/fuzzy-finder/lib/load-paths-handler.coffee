@@ -1,5 +1,5 @@
-fs = require 'fs'
-_ = nodeRequire 'underscore'
+fs = require 'fs-utils'
+_ = require 'underscore'
 
 module.exports =
   loadPaths: (rootPath, ignoredNames, excludeGitIgnoredPaths) ->

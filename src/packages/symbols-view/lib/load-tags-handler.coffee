@@ -1,5 +1,5 @@
-ctags = nodeRequire 'ctags'
-fs = require 'fs'
+ctags = require 'ctags'
+fs = require 'fs-utils'
 
 module.exports =
   getTagsFile: (path) ->

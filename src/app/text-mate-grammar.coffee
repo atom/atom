@@ -1,9 +1,9 @@
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 plist = require 'plist'
 Token = require 'token'
 CSON = require 'cson'
-{OnigRegExp, OnigScanner} = nodeRequire 'oniguruma'
+{OnigRegExp, OnigScanner} = require 'oniguruma'
 
 module.exports =
 class TextMateGrammar

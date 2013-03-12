@@ -1,9 +1,9 @@
 CommandInterpreter = require 'command-panel/lib/command-interpreter'
 Project = require 'project'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 describe "CommandInterpreter", ->
   [interpreter, editSession, buffer] = []

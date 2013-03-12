@@ -3,7 +3,7 @@ SelectList = require 'select-list'
 TagGenerator = require './tag-generator'
 TagReader = require './tag-reader'
 Point = require 'point'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 
 module.exports =

@@ -1,5 +1,5 @@
 Directory = require 'directory'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "Directory", ->
   directory = null

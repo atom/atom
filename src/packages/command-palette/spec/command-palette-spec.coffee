@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 CommandPalette = require 'command-palette/lib/command-palette-view'
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 describe "CommandPalette", ->
   [palette] = []

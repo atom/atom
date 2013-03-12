@@ -1,7 +1,7 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 LoadTagsTask = require './load-tags-task'
-ctags = nodeRequire 'ctags'
+ctags = require 'ctags'
 
 module.exports =
 

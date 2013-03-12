@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "fs", ->
   describe ".read(path)", ->

@@ -1,5 +1,5 @@
 ScrollView = require 'scroll-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 {$$$} = require 'space-pen'
 

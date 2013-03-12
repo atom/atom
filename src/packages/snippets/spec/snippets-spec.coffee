@@ -1,10 +1,10 @@
 Snippet = require 'snippets/lib/snippet'
 LoadSnippetsTask = require 'snippets/lib/load-snippets-task'
 RootView = require 'root-view'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 Package = require 'package'
 
 describe "Snippets extension", ->

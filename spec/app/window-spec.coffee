@@ -1,5 +1,5 @@
 $ = require 'jquery'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "Window", ->
   projectPath = null

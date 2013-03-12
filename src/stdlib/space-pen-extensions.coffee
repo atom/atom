@@ -1,4 +1,4 @@
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 {View} = require 'space-pen'
 jQuery = require 'jquery'
 ConfigObserver = require 'config-observer'

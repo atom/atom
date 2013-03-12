@@ -1,5 +1,5 @@
 {View} = require 'space-pen'
-fs = require 'fs'
+fs = require 'fs-utils'
 OperationView = require './operation-view'
 $ = require 'jquery'
 

@@ -1,5 +1,5 @@
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 File = require 'file'
 Point = require 'point'
 Range = require 'range'

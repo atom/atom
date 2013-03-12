@@ -1,7 +1,7 @@
 Point = require 'point'
 Range = require 'range'
 EventEmitter = require 'event-emitter'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 module.exports =
 class Cursor

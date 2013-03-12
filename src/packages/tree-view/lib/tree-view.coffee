@@ -4,9 +4,9 @@ Directory = require 'directory'
 DirectoryView = require './directory-view'
 FileView = require './file-view'
 Dialog = require './dialog'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 module.exports =
 class TreeView extends ScrollView

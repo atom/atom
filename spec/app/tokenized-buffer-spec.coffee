@@ -1,8 +1,8 @@
 TokenizedBuffer = require 'tokenized-buffer'
 LanguageMode = require 'language-mode'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Range = require 'range'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 describe "TokenizedBuffer", ->
   [editSession, tokenizedBuffer, buffer, changeHandler] = []

@@ -1,5 +1,5 @@
-Git = nodeRequire 'git-utils'
-fs = require 'fs'
+Git = require 'git-utils'
+fs = require 'fs-utils'
 
 module.exports =
   loadStatuses: (path) ->

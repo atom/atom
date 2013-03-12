@@ -1,7 +1,7 @@
 Range = require 'range'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 require 'underscore-extensions'
-{OnigRegExp} = nodeRequire 'oniguruma'
+{OnigRegExp} = require 'oniguruma'
 
 module.exports =
 class LanguageMode

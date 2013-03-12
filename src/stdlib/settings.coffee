@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 CoffeeScript = require 'coffee-script'
 
 # Settings file looks like:

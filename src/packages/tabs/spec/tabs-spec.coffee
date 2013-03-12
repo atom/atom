@@ -1,10 +1,10 @@
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 RootView = require 'root-view'
 Pane = require 'pane'
 PaneContainer = require 'pane-container'
 TabBarView = require 'tabs/lib/tab-bar-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 {View} = require 'space-pen'
 
 describe "Tabs package main", ->

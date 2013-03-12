@@ -1,7 +1,7 @@
 Package = require 'package'
-fs = require 'fs'
+fs = require 'fs-utils'
 plist = require 'plist'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
 CSON = require 'cson'
 

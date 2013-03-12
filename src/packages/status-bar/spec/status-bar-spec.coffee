@@ -1,8 +1,8 @@
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 RootView = require 'root-view'
 StatusBar = require 'status-bar/lib/status-bar-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "StatusBar", ->
   [editor, statusBar, buffer] = []

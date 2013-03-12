@@ -1,5 +1,5 @@
-fs = require 'fs'
-_ = nodeRequire 'underscore'
+fs = require 'fs-utils'
+_ = require 'underscore'
 EventEmitter = require 'event-emitter'
 CSON = require 'cson'
 
@@ -10,8 +10,6 @@ vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
 vendoredThemesDirPath = fs.join(resourcePath, "vendor/themes")
 userThemesDirPath = fs.join(configDirPath, "themes")
 userPackagesDirPath = fs.join(configDirPath, "packages")
-
-require.paths.unshift userPackagesDirPath
 
 module.exports =
 class Config

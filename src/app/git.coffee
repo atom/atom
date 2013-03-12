@@ -1,9 +1,9 @@
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 Subscriber = require 'subscriber'
 EventEmitter = require 'event-emitter'
 RepositoryStatusTask = require 'repository-status-task'
-GitUtils = nodeRequire 'git-utils'
+GitUtils = require 'git-utils'
 
 module.exports =
 class Git

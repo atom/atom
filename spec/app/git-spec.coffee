@@ -1,5 +1,5 @@
 Git = require 'git'
-fs = require 'fs'
+fs = require 'fs-utils'
 Task = require 'task'
 
 describe "Git", ->

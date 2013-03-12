@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 TextMatePackage = require 'text-mate-package'
 SnippetBodyParser = require './snippet-body-parser'
 CSON = require 'cson'

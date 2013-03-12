@@ -1,5 +1,5 @@
 File = require 'file'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe 'File', ->
   [path, file] = []

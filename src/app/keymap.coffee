@@ -1,6 +1,6 @@
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 CSON = require 'cson'
 
 BindingSet = require 'binding-set'
@@ -31,7 +31,7 @@ class Keymap
     $(document).command 'open-dev', => atom.openDev()
 
   loadBundledKeymaps: ->
-    @loadDirectory(require.resolve('keymaps'))
+    @loadDirectory(fs.resolveOnLoadPath('keymaps'))
 
   loadUserKeymaps: ->
     @loadDirectory(fs.join(config.configDirPath, 'keymaps'))

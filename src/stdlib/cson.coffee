@@ -1,5 +1,5 @@
-_ = nodeRequire 'underscore'
-fs = require 'fs'
+_ = require 'underscore'
+fs = require 'fs-utils'
 
 module.exports =
   isObjectPath: (path) ->
@@ -9,7 +9,7 @@ module.exports =
   readObject: (path) ->
     contents = fs.read(path)
     if fs.extension(path) is '.cson'
-      CoffeeScript = nodeRequire 'coffee-script'
+      CoffeeScript = require 'coffee-script'
       CoffeeScript.eval(contents, bare: true)
     else
       JSON.parse(contents)

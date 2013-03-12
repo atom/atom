@@ -1,10 +1,10 @@
 RootView = require 'root-view'
 FuzzyFinder = require 'fuzzy-finder/lib/fuzzy-finder-view'
 LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe 'FuzzyFinder', ->
   [finderView] = []

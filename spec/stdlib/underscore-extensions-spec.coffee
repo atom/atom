@@ -1,4 +1,4 @@
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 describe "underscore extensions", ->
   describe "_.adviseBefore", ->

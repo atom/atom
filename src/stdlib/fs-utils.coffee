@@ -1,9 +1,10 @@
 # commonjs fs module
 # http://ringojs.org/api/v0.8/fs/
 
-_ = nodeRequire 'underscore'
-nodeFs = nodeRequire 'fs'
-mkdirp = nodeRequire 'mkdirp'
+_ = require 'underscore'
+fs = require 'fs'
+mkdirp = require 'mkdirp'
+Module = require 'module'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -28,7 +29,7 @@ module.exports =
 
   # Returns true if the file specified by path exists
   exists: (path) ->
-    path? and nodeFs.existsSync(path)
+    path? and fs.existsSync(path)
 
   # Returns the extension of a file. The extension of a file is the
   # last dot (excluding any number of initial dots) followed by one or
@@ -50,12 +51,12 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
-    @exists(path) and nodeFs.statSync(path).isDirectory()
+    @exists(path) and fs.statSync(path).isDirectory()
 
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    @exists(path) and nodeFs.statSync(path).isFile()
+    @exists(path) and fs.statSync(path).isFile()
 
   # Returns an array with all the names of files contained
   # in the directory path.
@@ -81,28 +82,28 @@ module.exports =
     paths
 
   move: (source, target) ->
-    nodeFs.renameSync(source, target)
+    fs.renameSync(source, target)
 
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
   remove: (path) ->
     if @isFile(path)
-      nodeFs.unlinkSync(path)
+      fs.unlinkSync(path)
     else if @isDirectory(path)
       removeDirectory = (path) =>
-        for entry in nodeFs.readdirSync(path)
+        for entry in fs.readdirSync(path)
           entryPath = @join(path, entry)
-          stats = nodeFs.statSync(entryPath)
+          stats = fs.statSync(entryPath)
           if stats.isDirectory()
             removeDirectory(entryPath)
           else if stats.isFile()
-            nodeFs.unlinkSync(entryPath)
-        nodeFs.rmdirSync(path)
+            fs.unlinkSync(entryPath)
+        fs.rmdirSync(path)
       removeDirectory(path)
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
-    String nodeFs.readFileSync(path)
+    String fs.readFileSync(path)
 
   # Returns an array of path components. If the path is absolute, the first
   # component will be an indicator of the root of the file system; for file
@@ -116,10 +117,10 @@ module.exports =
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
     mkdirp.sync(@directory(path))
-    nodeFs.writeFileSync(path, content)
+    fs.writeFileSync(path, content)
 
   makeDirectory: (path) ->
-    nodeFs.mkdirSync(path)
+    fs.mkdirSync(path)
 
   # Creates the directory specified by "path" including any missing parent
   # directories.
@@ -134,10 +135,10 @@ module.exports =
 
     traverse = (rootPath, prefix, onFile, onDirectory) =>
       prefix  = "#{prefix}/" if prefix
-      for file in nodeFs.readdirSync(rootPath)
+      for file in fs.readdirSync(rootPath)
         relativePath = "#{prefix}#{file}"
         absolutePath = @join(rootPath, file)
-        stats = nodeFs.statSync(absolutePath)
+        stats = fs.statSync(absolutePath)
         if stats.isDirectory()
           traverse(absolutePath, relativePath, onFile, onDirectory) if onDirectory(relativePath)
         else if stats.isFile()
@@ -146,8 +147,8 @@ module.exports =
     traverse(rootPath, '', onFile, onDirectory)
 
   md5ForPath: (path) ->
-    contents = nodeFs.readFileSync(path)
-    nodeRequire('crypto').createHash('md5').update(contents).digest('hex')
+    contents = fs.readFileSync(path)
+    require('crypto').createHash('md5').update(contents).digest('hex')
 
   resolve: (args...) ->
     extensions = args.pop() if _.isArray(_.last(args))
@@ -162,6 +163,10 @@ module.exports =
       else
         return candidatePath if @exists(candidatePath)
     undefined
+
+  resolveOnLoadPath: (args...) ->
+    loadPaths = Module.globalPaths.concat(module.paths)
+    @resolve(loadPaths..., args...)
 
   resolveExtension: (path, extensions) ->
     for extension in extensions

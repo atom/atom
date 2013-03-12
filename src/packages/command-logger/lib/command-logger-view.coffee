@@ -1,6 +1,6 @@
 {$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 
 module.exports =
 class CommandLoggerView extends ScrollView
@@ -96,7 +96,7 @@ class CommandLoggerView extends ScrollView
     w = @treeMap.width()
     h = @treeMap.height()
 
-    d3 = nodeRequire 'd3'
+    d3 = require 'd3'
 
     x = d3.scale.linear().range([0, w])
     y = d3.scale.linear().range([0, h])

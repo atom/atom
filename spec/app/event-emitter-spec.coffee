@@ -1,4 +1,4 @@
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 EventEmitter = require 'event-emitter'
 
 describe "EventEmitter mixin", ->

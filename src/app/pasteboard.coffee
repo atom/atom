@@ -1,4 +1,4 @@
-crypto = nodeRequire 'crypto'
+crypto = require 'crypto'
 
 module.exports =
 class Pasteboard

@@ -1,7 +1,7 @@
 require 'benchmark-helper'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
-_ = nodeRequire 'underscore'
+_ = require 'underscore'
 TokenizedBuffer = require 'tokenized-buffer'
 
 describe "editor.", ->
