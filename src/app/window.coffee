@@ -88,10 +88,10 @@ window.installAtomCommand = (commandPath) ->
 
 window.handleWindowEvents = ->
   $(window).on 'core:close', => window.close()
-  $(window).command 'window:close', => window.close()
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
+  $(window).command 'window:close', => confirmClose()
 
 window.buildProjectAndRootView = ->
   RootView = require 'root-view'
@@ -189,3 +189,7 @@ window.measure = (description, fn) ->
   result = new Date().getTime() - start
   console.log description, result
   value
+
+
+confirmClose = ->
+  rootView.confirmClose().done -> window.close()

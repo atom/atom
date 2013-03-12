@@ -35,7 +35,7 @@ describe "Window", ->
         $(window).trigger 'focus'
         expect($("body")).not.toHaveClass("is-blurred")
 
-  describe ".close()", ->
+  describe "window close events", ->
     it "is triggered by the 'core:close' event", ->
       spyOn window, 'close'
       $(window).trigger 'core:close'
@@ -45,6 +45,25 @@ describe "Window", ->
       spyOn window, 'close'
       $(window).trigger 'window:close'
       expect(window.close).toHaveBeenCalled()
+
+    describe "when modified buffers exist", ->
+      it "prompts user to save and aborts if prompt is canceled", ->
+        spyOn(window, 'close')
+        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancel) -> cancel()
+        editSession = rootView.open("sample.js")
+        editSession.insertText("I look different, I feel different.")
+        $(window).trigger 'window:close'
+        expect(window.close).not.toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
+
+      it "prompts user to save and closes", ->
+        spyOn(window, 'close')
+        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSave) -> noSave()
+        editSession = rootView.open("sample.js")
+        editSession.insertText("I look different, I feel different.")
+        $(window).trigger 'window:close'
+        expect(window.close).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
   describe ".reload()", ->
     beforeEach ->
