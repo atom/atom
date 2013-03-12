@@ -87,7 +87,6 @@ window.installAtomCommand = (commandPath) ->
     ChildProcess.exec("chmod u+x '#{commandPath}'")
 
 window.handleWindowEvents = ->
-  $(window).on 'core:close', => window.close()
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
