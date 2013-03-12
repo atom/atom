@@ -1,3 +1,12 @@
+window.nakedLoad = (file) ->
+  fs = require 'fs-utils'
+  file = require.resolve(file)
+  code = fs.read(file)
+  if fs.extension(file) is '.coffee'
+    require('coffee-script').eval(code, filename: file)
+  else
+    window.eval("#{code}\n//@ sourceURL=#{file}")
+
 module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   {$$} = require 'space-pen'
   nakedLoad 'jasmine'
@@ -13,7 +22,6 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
     new jasmine.ConsoleReporter(document, logErrors)
   else
     new AtomReporter()
-
 
   require specSuite
   jasmineEnv = jasmine.getEnv()

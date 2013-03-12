@@ -17,7 +17,6 @@ RootView = require 'root-view'
 Git = require 'git'
 requireStylesheet "jasmine.css"
 fixturePackagesPath = fs.resolveOnLoadPath('fixtures/packages')
-require.paths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
@@ -30,7 +29,7 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
   jQuery.fx.off = true
-  window.project = new Project(require.resolve('fixtures'))
+  window.project = new Project(fs.resolveOnLoadPath('fixtures'))
   window.git = Git.open(project.getPath())
   window.project.on 'path-changed', ->
     window.git?.destroy()
