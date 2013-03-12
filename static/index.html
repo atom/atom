@@ -17,6 +17,7 @@
     window.onload = function() {
       try {
         require('coffee-script');
+        require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache');
         if (bootstrapScript) require(bootstrapScript);
       }
       catch (error) {
