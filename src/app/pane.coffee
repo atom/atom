@@ -11,7 +11,8 @@ class Pane extends View
       @div class: 'item-views', outlet: 'itemViews'
 
   @deserialize: ({items, focused, activeItemUri}) ->
-    pane = new Pane(items.map((item) -> deserialize(item))...)
+    deserializedItems = _.compact(items.map((item) -> deserialize(item)))
+    pane = new Pane(deserializedItems...)
     pane.showItemForUri(activeItemUri) if activeItemUri
     pane.focusOnAttach = true if focused
     pane
@@ -21,7 +22,7 @@ class Pane extends View
 
   initialize: (@items...) ->
     @viewsByClassName = {}
-    @showItem(@items[0])
+    @showItem(@items[0]) if @items.length > 0
 
     @command 'core:close', @destroyActiveItem
     @command 'core:save', @saveActiveItem
@@ -46,7 +47,7 @@ class Pane extends View
     @command 'pane:split-down', => @splitDown()
     @command 'pane:close', => @destroyItems()
     @command 'pane:close-other-items', => @destroyInactiveItems()
-    @on 'focus', => @activeView.focus(); false
+    @on 'focus', => @activeView?.focus(); false
     @on 'focusin', => @makeActive()
     @on 'focusout', => @autosaveActiveItem()
 
@@ -71,6 +72,12 @@ class Pane extends View
 
   isActive: ->
     @hasClass('active')
+
+  getNextPane: ->
+    panes = @getContainer()?.getPanes()
+    return unless panes.length > 1
+    nextIndex = (panes.indexOf(this) + 1) % panes.length
+    panes[nextIndex]
 
   getItems: ->
     new Array(@items...)

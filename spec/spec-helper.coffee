@@ -68,6 +68,8 @@ beforeEach ->
   spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboardContent = text
   spyOn($native, 'readFromPasteboard').andCallFake -> pasteboardContent
 
+  addCustomMatchers(this)
+
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
@@ -86,12 +88,14 @@ afterEach ->
   atom.presentingModal = false
   waits(0) # yield to ui thread to make screen update more frequently
 
-window.loadPackage = (name, options) ->
+window.loadPackage = (name, options={}) ->
   Package = require 'package'
   packagePath = _.find atom.getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
   if pack = Package.build(packagePath)
     pack.load(options)
     atom.loadedPackages.push(pack)
+    pack.deferActivation = false if options.activateImmediately
+    pack.activate()
   pack
 
 # Specs rely on TextMate bundles (but not atom packages)
@@ -120,6 +124,18 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
 jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].originalValue?
   object[methodName] = object[methodName].originalValue
+
+addCustomMatchers = (spec) ->
+  spec.addMatchers
+    toBeInstanceOf: (expected) ->
+      notText = if @isNot then " not" else ""
+      this.message = => "Expected #{jasmine.pp(@actual)} to#{notText} be instance of #{expected.name} class"
+      @actual instanceof expected
+
+    toHaveLength: (expected) ->
+      notText = if @isNot then " not" else ""
+      this.message = => "Expected object with length #{@actual.length} to#{notText} have length #{expected}"
+      @actual.length == expected
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key

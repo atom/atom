@@ -8,20 +8,44 @@
   top: 0px;
   left: 0px;
   background-color: #fff;
-  overflow: auto;
+  overflow: scroll;
   z-index: 3;
   box-sizing: border-box;
   padding: 20px;
 }
 
-// This is styling for generic markdownized text. Anything you put in a
-// container with .markdown-body on it should render generally well. It also
-// includes some GitHub Flavored Markdown specific styling (like @mentions)
-.markdown-body {
+.markdown-spinner {
+  margin: auto;
+  background-image: url(images/octocat-spinner-128.gif);
+  background-repeat: no-repeat;
+  background-size: 64px;
+  background-position: top center;
+  padding-top: 70px;
+  text-align: center;
+}
 
-  font-size: 14px;
-  line-height: 1.6;
-  overflow: hidden;
+// This is styling for generic markdownized text. Anything you put in a
+// container with .markdown-preview on it should render generally well. It also
+// includes some GitHub Flavored Markdown specific styling (like @mentions)
+.markdown-preview {
+  pre,
+  code,
+  tt {
+    font-size: 12px;
+    font-family: Consolas, "Liberation Mono", Courier, monospace;
+  }
+
+  a {
+    color: #4183c4;
+  }
+
+  ol > li {
+    list-style-type: decimal;
+  }
+
+  ul > li {
+    list-style-type: disc;
+  }
 
   & > *:first-child {
     margin-top: 0 !important;

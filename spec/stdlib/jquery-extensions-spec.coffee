@@ -1,4 +1,5 @@
 $ = require 'jquery'
+_ = require 'underscore'
 {View, $$} = require 'space-pen'
 
 describe 'jQuery extensions', ->
@@ -75,6 +76,35 @@ describe 'jQuery extensions', ->
         'b2': "B2: Looks evil. Kinda is."
         'a1': "A1: Waste perfectly-good steak"
         'a2': null
+
+  describe "$.fn.scrollUp/Down/ToTop/ToBottom", ->
+    it "scrolls the element in the specified way if possible", ->
+      view = $$ -> @div => _.times 20, => @div('A')
+      view.css(height: 100, width: 100, overflow: 'scroll')
+      view.attachToDom()
+
+      view.scrollUp()
+      expect(view.scrollTop()).toBe 0
+
+      view.scrollDown()
+      expect(view.scrollTop()).toBeGreaterThan 0
+      previousScrollTop = view.scrollTop()
+      view.scrollDown()
+      expect(view.scrollTop()).toBeGreaterThan previousScrollTop
+
+      view.scrollToBottom()
+      expect(view.scrollTop()).toBe view.prop('scrollHeight') - 100
+      previousScrollTop = view.scrollTop()
+      view.scrollDown()
+      expect(view.scrollTop()).toBe previousScrollTop
+      view.scrollUp()
+      expect(view.scrollTop()).toBeLessThan previousScrollTop
+      previousScrollTop = view.scrollTop()
+      view.scrollUp()
+      expect(view.scrollTop()).toBeLessThan previousScrollTop
+
+      view.scrollToTop()
+      expect(view.scrollTop()).toBe 0
 
   describe "Event.prototype", ->
     class GrandchildView extends View
