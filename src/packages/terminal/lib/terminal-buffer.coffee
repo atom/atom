@@ -266,7 +266,7 @@ class TerminalBuffer
       # when "L" then # Insert lines
       when "M" # Delete lines
         num = parseInt(seq[0]) || 1
-        @lines[n] = null for n in [@cursor.line()..@cursor.line()+(num-1)]
+        (@lines[n].setDirty() ; @lines[n] = null) for n in [@cursor.line()..@cursor.line()+(num-1)]
         @lines = _.compact(@lines)
         @updateLineNumbers()
       when "P" # Delete characters

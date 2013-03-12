@@ -46,13 +46,18 @@ describe 'Terminal', ->
       terminalView.output(" baz")
       expect(terminalView.content.find("pre").size()).toBe(2)
 
-  describe "when a line in the buffer is dirty", ->
+  fdescribe "when a line in the buffer is dirty", ->
     it "updates the line item", ->
       terminalView.output("a")
       expect(terminalView.content.find("pre").text()).toBe("a")
     it "creates each character", ->
       terminalView.output("ab")
       expect(terminalView.content.find("pre").first().find("span.character").size()).toBe(3)
+    it "removes the line if it is not in the buffer anymore", ->
+      terminalView.output("a\nb")
+      terminalView.output(TerminalBuffer.escapeSequence("M"))
+      expect(terminalView.buffer.numLines()).toBe(1)
+      expect(terminalView.content.find("pre").size()).toBe(1)
 
     describe "color", ->
       it "sets the text color", ->

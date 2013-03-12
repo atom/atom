@@ -133,6 +133,9 @@ class TerminalView extends ScrollView
 
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")
+    if !_.contains(@buffer.lines, line)
+      l.remove()
+      return
     if !l.size()
       l = $("<pre>").addClass("line-#{line.number}")
       @content.append(l)
