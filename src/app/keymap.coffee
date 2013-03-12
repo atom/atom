@@ -1,6 +1,7 @@
 $ = require 'jquery'
 _ = nodeRequire 'underscore'
 fs = require 'fs'
+CSON = require 'cson'
 
 BindingSet = require 'binding-set'
 
@@ -39,7 +40,7 @@ class Keymap
     @load(filePath) for filePath in fs.list(directoryPath, ['.cson', '.json'])
 
   load: (path) ->
-    @add(fs.readObject(path))
+    @add(CSON.readObject(path))
 
   add: (keymap) ->
     for selector, bindings of keymap

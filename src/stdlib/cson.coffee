@@ -1,6 +1,26 @@
 _ = nodeRequire 'underscore'
+fs = require 'fs'
 
 module.exports =
+  isObjectPath: (path) ->
+    extension = fs.extension(path)
+    extension is '.cson' or extension is '.json'
+
+  readObject: (path) ->
+    contents = fs.read(path)
+    if fs.extension(path) is '.cson'
+      CoffeeScript = nodeRequire 'coffee-script'
+      CoffeeScript.eval(contents, bare: true)
+    else
+      JSON.parse(contents)
+
+  writeObject: (path, object) ->
+    if fs.extension(path) is '.cson'
+      content = @stringify(object)
+    else
+      content = JSON.stringify(object, undefined, 2)
+    fs.write(path, "#{content}\n")
+
   stringifyIndent: (level=0) -> _.multiplyString(' ', Math.max(level, 0))
 
   stringifyString: (string) ->

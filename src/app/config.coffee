@@ -1,6 +1,7 @@
 fs = require 'fs'
 _ = nodeRequire 'underscore'
 EventEmitter = require 'event-emitter'
+CSON = require 'cson'
 
 configDirPath = fs.absolute("~/.atom")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
@@ -55,7 +56,7 @@ class Config
 
   loadUserConfig: ->
     if fs.exists(@configFilePath)
-      userConfig = fs.readObject(@configFilePath)
+      userConfig = CSON.readObject(@configFilePath)
       _.extend(@settings, userConfig)
 
   get: (keyPath) ->
@@ -96,6 +97,6 @@ class Config
     @trigger 'updated'
 
   save: ->
-    fs.writeObject(@configFilePath, @settings)
+    CSON.writeObject(@configFilePath, @settings)
 
 _.extend Config.prototype, EventEmitter

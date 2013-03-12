@@ -2,14 +2,15 @@ _ = nodeRequire 'underscore'
 fs = require 'fs'
 plist = require 'plist'
 Token = require 'token'
+CSON = require 'cson'
 {OnigRegExp, OnigScanner} = nodeRequire 'oniguruma'
 
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
     grammarContent = null
-    if fs.isObjectPath(path)
-      grammarContent = fs.readObject(path)
+    if CSON.isObjectPath(path)
+      grammarContent = CSON.readObject(path)
     else
       plist.parseString fs.read(path), (e, data) ->
         throw new Error(e) if e

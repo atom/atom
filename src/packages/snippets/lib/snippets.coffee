@@ -4,6 +4,7 @@ _ = nodeRequire 'underscore'
 SnippetExpansion = require './snippet-expansion'
 Snippet = require './snippet'
 LoadSnippetsTask = require './load-snippets-task'
+CSON = require 'cson'
 
 module.exports =
   snippetsByExtension: {}
@@ -28,7 +29,7 @@ module.exports =
 
   loadFile: (snippetsPath) ->
     try
-      snippets = fs.readObject(snippetsPath)
+      snippets = CSON.readObject(snippetsPath)
     catch e
       console.warn "Error reading snippets file '#{snippetsPath}'"
     @add(snippets)

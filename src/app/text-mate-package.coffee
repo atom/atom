@@ -3,6 +3,7 @@ fs = require 'fs'
 plist = require 'plist'
 _ = nodeRequire 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
+CSON = require 'cson'
 
 module.exports =
 class TextMatePackage extends Package
@@ -76,8 +77,8 @@ class TextMatePackage extends Package
   readObjectFromPath: (path, callback) ->
     object = null
     error = null
-    if fs.isObjectPath(path)
-      object = fs.readObject(path)
+    if CSON.isObjectPath(path)
+      object = CSON.readObject(path)
     else
       plist.parseString fs.read(path), (e, data) ->
         error = e

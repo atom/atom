@@ -2,6 +2,7 @@ Package = require 'package'
 fs = require 'fs'
 _ = nodeRequire 'underscore'
 $ = require 'jquery'
+CSON = require 'cson'
 
 module.exports =
 class AtomPackage extends Package
@@ -69,7 +70,7 @@ class AtomPackage extends Package
 
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
-      @metadata = fs.readObject(metadataPath)
+      @metadata = CSON.readObject(metadataPath)
     @metadata ?= {}
 
   loadKeymaps: ->

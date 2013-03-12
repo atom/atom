@@ -1,6 +1,7 @@
 fs = require 'fs'
 TextMatePackage = require 'text-mate-package'
 SnippetBodyParser = require './snippet-body-parser'
+CSON = require 'cson'
 
 module.exports =
   snippetsLoaded: (snippets) ->
@@ -20,7 +21,7 @@ module.exports =
 
       continue if fs.base(snippetsPath).indexOf('.') is 0
       try
-        if fs.isObjectPath(snippetsPath) and object = fs.readObject(snippetsPath)
+        if CSON.isObjectPath(snippetsPath) and object = CSON.readObject(snippetsPath)
           snippets.push(object)
         else if object = fs.readPlist(snippetsPath)
           snippets.push(object)
@@ -37,7 +38,7 @@ module.exports =
     for snippetsPath in fs.list(snippetsDirPath)
       continue if fs.base(snippetsPath).indexOf('.') is 0
       try
-        snippets.push(fs.readObject(snippetsPath))
+        snippets.push(CSON.readObject(snippetsPath))
       catch e
         console.warn "Error reading snippets file '#{snippetsPath}'"
     @snippetsLoaded(snippets)
