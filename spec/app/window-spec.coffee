@@ -35,34 +35,30 @@ describe "Window", ->
         $(window).trigger 'focus'
         expect($("body")).not.toHaveClass("is-blurred")
 
-  describe "window close events", ->
-    it "is triggered by the 'core:close' event", ->
-      spyOn window, 'close'
-      $(window).trigger 'core:close'
-      expect(window.close).toHaveBeenCalled()
-
-    it "is triggered by the 'window:close event'", ->
-      spyOn window, 'close'
-      $(window).trigger 'window:close'
-      expect(window.close).toHaveBeenCalled()
-
-    describe "when modified buffers exist", ->
-      it "prompts user to save and aborts if prompt is canceled", ->
-        spyOn(window, 'close')
-        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancel) -> cancel()
-        editSession = rootView.open("sample.js")
-        editSession.insertText("I look different, I feel different.")
+  describe "window:close event", ->
+    describe "when no pane items are modified", ->
+      it "calls window.close", ->
+        spyOn window, 'close'
         $(window).trigger 'window:close'
-        expect(window.close).not.toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        expect(window.close).toHaveBeenCalled()
 
-      it "prompts user to save and closes", ->
+    describe "when pane items are are modified", ->
+      it "prompts user to save and and calls window.close", ->
         spyOn(window, 'close')
         spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSave) -> noSave()
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
         $(window).trigger 'window:close'
         expect(window.close).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
+
+      it "prompts user to save and aborts if dialog is canceled", ->
+        spyOn(window, 'close')
+        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancel) -> cancel()
+        editSession = rootView.open("sample.js")
+        editSession.insertText("I look different, I feel different.")
+        $(window).trigger 'window:close'
+        expect(window.close).not.toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
   describe ".reload()", ->
