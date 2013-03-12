@@ -162,7 +162,7 @@ class Pane extends View
   promptToSaveItem: (item, nextAction, cancelAction) ->
     uri = item.getUri()
     atom.confirm(
-      "'#{item.getTitle()}' has changes, do you want to save them?"
+      "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
       "Your changes will be lost if close this item without saving."
       "Save", => @saveItem(item, nextAction)
       "Cancel", cancelAction
