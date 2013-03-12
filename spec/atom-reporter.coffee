@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {View, $$} = require 'space-pen'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class AtomReporter extends View

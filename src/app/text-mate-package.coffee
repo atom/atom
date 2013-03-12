@@ -1,7 +1,7 @@
 Package = require 'package'
 fs = require 'fs'
 plist = require 'plist'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
 
 module.exports =

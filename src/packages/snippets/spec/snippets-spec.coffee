@@ -3,7 +3,7 @@ LoadSnippetsTask = require 'snippets/lib/load-snippets-task'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 fs = require 'fs'
 Package = require 'package'
 

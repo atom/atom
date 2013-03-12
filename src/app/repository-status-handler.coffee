@@ -1,4 +1,4 @@
-Git = require 'git'
+Git = nodeRequire 'git-utils'
 fs = require 'fs'
 
 module.exports =
@@ -7,10 +7,9 @@ module.exports =
     if repo?
       workingDirectoryPath = repo.getWorkingDirectory()
       statuses = {}
-      for path, status of repo.getRepo().getStatuses()
+      for path, status of repo.getStatuses()
         statuses[fs.join(workingDirectoryPath, path)] = status
-      upstream = repo.getAheadBehindCounts()
-      repo.destroy()
+      upstream = repo.getAheadBehindCount()
     else
       upstream = {}
       statuses = {}

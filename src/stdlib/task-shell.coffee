@@ -7,10 +7,14 @@
 
 self.window = {}
 self.attachEvent = ->
-self.console =
+console =
   warn: -> callTaskMethod 'warn', arguments...
   log: -> callTaskMethod 'log', arguments...
   error: -> callTaskMethod 'error', arguments...
+self.__defineGetter__ 'console', -> console
+
+self.nodeRequire = self.require
+self.require = undefined
 
 window.document =
   createElement: ->

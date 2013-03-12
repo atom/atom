@@ -1,5 +1,5 @@
 fs = require 'fs'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 Package = require 'package'
 TextMatePackage = require 'text-mate-package'
 Theme = require 'theme'

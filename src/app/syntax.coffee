@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 jQuery = require 'jquery'
 Specificity = require 'specificity'
 {$$} = require 'space-pen'

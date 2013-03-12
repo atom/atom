@@ -54,6 +54,9 @@
   _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
 
+  NSString *nodePath = [NSString stringWithFormat:@"%@/node_modules", _resourcePath];
+  setenv("NODE_PATH", [nodePath UTF8String], TRUE);
+
   if (!background) {
     [self setShouldCascadeWindows:NO];
     [self setWindowFrameAutosaveName:@"AtomWindow"];
@@ -237,42 +240,30 @@
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
   CefString(&settings.default_encoding) = "UTF-8";
-  settings.remote_fonts_disabled = false;
-  settings.encoding_detector_enabled = false;
-  settings.javascript_disabled = false;
-  settings.javascript_open_windows_disallowed = false;
-  settings.javascript_close_windows_disallowed = false;
-  settings.javascript_access_clipboard_disallowed = false;
-  settings.dom_paste_disabled = true;
-  settings.caret_browsing_enabled = false;
-  settings.java_disabled = true;
-  settings.plugins_disabled = true;
-  settings.universal_access_from_file_urls_allowed = false;
-  settings.file_access_from_file_urls_allowed = false;
-  settings.web_security_disabled = true;
-  settings.xss_auditor_enabled = true;
-  settings.image_load_disabled = false;
-  settings.shrink_standalone_images_to_fit = false;
-  settings.site_specific_quirks_disabled = false;
-  settings.text_area_resize_disabled = false;
-  settings.page_cache_disabled = true;
-  settings.tab_to_links_disabled = true;
-  settings.hyperlink_auditing_disabled = true;
-  settings.user_style_sheet_enabled = false;
-  settings.author_and_user_styles_disabled = false;
-  settings.local_storage_disabled = false;
-  settings.databases_disabled = false;
-  settings.application_cache_disabled = false;
-  settings.webgl_disabled = false;
-  settings.accelerated_compositing_disabled = false;
-  settings.accelerated_layers_disabled = false;
-  settings.accelerated_video_disabled = false;
-  settings.accelerated_2d_canvas_disabled = false;
-//   settings.accelerated_painting_enabled = true;
-//   settings.accelerated_filters_enabled = true;
-  settings.accelerated_plugins_disabled = false;
-  settings.developer_tools_disabled = false;
-//   settings.fullscreen_enabled = true;
+  settings.remote_fonts = STATE_ENABLED;
+  settings.javascript = STATE_ENABLED;
+  settings.javascript_open_windows = STATE_ENABLED;
+  settings.javascript_close_windows = STATE_ENABLED;
+  settings.javascript_access_clipboard = STATE_ENABLED;
+  settings.javascript_dom_paste = STATE_DISABLED;
+  settings.caret_browsing = STATE_DISABLED;
+  settings.java = STATE_DISABLED;
+  settings.plugins = STATE_DISABLED;
+  settings.universal_access_from_file_urls = STATE_DISABLED;
+  settings.file_access_from_file_urls = STATE_DISABLED;
+  settings.web_security = STATE_DISABLED;
+  settings.image_loading = STATE_ENABLED;
+  settings.image_shrink_standalone_to_fit = STATE_DISABLED;
+  settings.text_area_resize = STATE_ENABLED;
+  settings.page_cache = STATE_DISABLED;
+  settings.tab_to_links = STATE_DISABLED;
+  settings.author_and_user_styles = STATE_ENABLED;
+  settings.local_storage = STATE_ENABLED;
+  settings.databases = STATE_ENABLED;
+  settings.application_cache = STATE_ENABLED;
+  settings.webgl = STATE_ENABLED;
+  settings.accelerated_compositing = STATE_ENABLED;
+  settings.developer_tools = STATE_ENABLED;
 }
 
 @end

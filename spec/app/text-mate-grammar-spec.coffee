@@ -2,7 +2,7 @@ TextMateGrammar = require 'text-mate-grammar'
 TextMatePackage = require 'text-mate-package'
 plist = require 'plist'
 fs = require 'fs'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 describe "TextMateGrammar", ->
   grammar = null

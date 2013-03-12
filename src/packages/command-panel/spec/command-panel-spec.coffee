@@ -1,6 +1,6 @@
 RootView = require 'root-view'
 CommandPanelView = require 'command-panel/lib/command-panel-view'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 describe "CommandPanel", ->
   [editSession, buffer, commandPanel] = []

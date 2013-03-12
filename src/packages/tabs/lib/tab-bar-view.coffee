@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 SortableList = require 'sortable-list'
 TabView = require './tab-view'
 

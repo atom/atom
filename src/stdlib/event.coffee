@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class Event

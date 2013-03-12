@@ -1,5 +1,5 @@
+_ = nodeRequire 'underscore'
 require 'underscore-extensions'
-_ = require 'underscore'
 
 module.exports =
   stringifyIndent: (level=0) -> _.multiplyString(' ', Math.max(level, 0))

@@ -1,5 +1,5 @@
 Point = require 'point'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
 class Range

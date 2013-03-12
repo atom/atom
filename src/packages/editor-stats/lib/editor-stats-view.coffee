@@ -1,6 +1,6 @@
 ScrollView = require 'scroll-view'
-d3 = require 'd3.v3'
-_ = require 'underscore'
+d3 = nodeRequire 'd3'
+_ = nodeRequire 'underscore'
 $ = require 'jquery'
 
 module.exports =

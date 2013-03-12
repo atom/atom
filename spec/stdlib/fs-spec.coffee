@@ -119,14 +119,6 @@ describe "fs", ->
 
       expect(symlinkPaths).toEqual(paths)
 
-  describe ".lastModified(path)", ->
-    it "returns a Date object representing the time the file was last modified", ->
-      beforeWrite = new Date
-      fs.write('/tmp/foo', '')
-      lastModified = fs.lastModified('/tmp/foo')
-      expect(lastModified instanceof Date).toBeTruthy()
-      expect(lastModified.getTime()).toBeGreaterThan(beforeWrite.getTime() - 1000)
-
   describe ".md5ForPath(path)", ->
     it "returns the MD5 hash of the file at the given path", ->
       expect(fs.md5ForPath(require.resolve('fixtures/sample.js'))).toBe 'dd38087d0d7e3e4802a6d3f9b9745f2b'

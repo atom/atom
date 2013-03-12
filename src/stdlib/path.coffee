@@ -1,7 +1,7 @@
 # node.js path module
 # http://nodejs.org/docs/v0.6.0/api/path.html
 
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 module.exports =
   # Return the last portion of a path. Similar to the Unix basename command.

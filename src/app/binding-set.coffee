@@ -1,5 +1,5 @@
 $ = require 'jquery'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 fs = require 'fs'
 
 Specificity = require 'specificity'

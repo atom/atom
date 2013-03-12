@@ -1,5 +1,5 @@
 Range = require 'range'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 EventEmitter = require 'event-emitter'
 
 module.exports =

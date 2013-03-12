@@ -5,7 +5,7 @@ Range = require 'range'
 Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->

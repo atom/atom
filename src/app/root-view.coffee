@@ -1,7 +1,7 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 
 {View} = require 'space-pen'
 Buffer = require 'buffer'

@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
 fs = require 'fs'
 plist = require 'plist'
 Theme = require 'theme'

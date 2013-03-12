@@ -1,7 +1,9 @@
 # commonjs fs module
 # http://ringojs.org/api/v0.8/fs/
 
-_ = require 'underscore'
+_ = nodeRequire 'underscore'
+nodeFs = nodeRequire 'fs'
+mkdirp = nodeRequire 'mkdirp'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -26,8 +28,7 @@ module.exports =
 
   # Returns true if the file specified by path exists
   exists: (path) ->
-    return false unless path?
-    $native.exists(path)
+    path? and nodeFs.existsSync(path)
 
   # Returns the extension of a file. The extension of a file is the
   # last dot (excluding any number of initial dots) followed by one or
@@ -49,13 +50,12 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
-    $native.isDirectory path
+    @exists(path) and nodeFs.statSync(path).isDirectory()
 
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    return false unless path?
-    $native.isFile(path)
+    @exists(path) and nodeFs.statSync(path).isFile()
 
   # Returns an array with all the names of files contained
   # in the directory path.
@@ -81,16 +81,28 @@ module.exports =
     paths
 
   move: (source, target) ->
-    $native.move(source, target)
+    nodeFs.renameSync(source, target)
 
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
   remove: (path) ->
-    $native.remove path
+    if @isFile(path)
+      nodeFs.unlinkSync(path)
+    else if @isDirectory(path)
+      removeDirectory = (path) =>
+        for entry in nodeFs.readdirSync(path)
+          entryPath = @join(path, entry)
+          stats = nodeFs.statSync(entryPath)
+          if stats.isDirectory()
+            removeDirectory(entryPath)
+          else if stats.isFile()
+            nodeFs.unlinkSync(entryPath)
+        nodeFs.rmdirSync(path)
+      removeDirectory(path)
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
-    $native.read(path)
+    String nodeFs.readFileSync(path)
 
   # Returns an array of path components. If the path is absolute, the first
   # component will be an indicator of the root of the file system; for file
@@ -103,10 +115,11 @@ module.exports =
 
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
-    $native.write(path, content)
+    mkdirp.sync(@directory(path))
+    nodeFs.writeFileSync(path, content)
 
   makeDirectory: (path) ->
-    $native.makeDirectory(path)
+    nodeFs.mkdirSync(path)
 
   # Creates the directory specified by "path" including any missing parent
   # directories.
@@ -116,14 +129,21 @@ module.exports =
       @makeTree(@directory(path))
       @makeDirectory(path)
 
-  getAllFilePathsAsync: (rootPath, callback) ->
-    $native.getAllFilePathsAsync(rootPath, callback)
-
   traverseTree: (rootPath, onFile, onDirectory) ->
-    $native.traverseTree(rootPath, onFile, onDirectory)
+    return unless @isDirectory(rootPath)
 
-  lastModified: (path) ->
-    $native.lastModified(path)
+    traverse = (rootPath, prefix, onFile, onDirectory) =>
+      prefix  = "#{prefix}/" if prefix
+      for file in nodeFs.readdirSync(rootPath)
+        relativePath = "#{prefix}#{file}"
+        absolutePath = @join(rootPath, file)
+        stats = nodeFs.statSync(absolutePath)
+        if stats.isDirectory()
+          traverse(absolutePath, relativePath, onFile, onDirectory) if onDirectory(relativePath)
+        else if stats.isFile()
+          onFile(relativePath)
+
+    traverse(rootPath, '', onFile, onDirectory)
 
   md5ForPath: (path) ->
     $native.md5ForPath(path)
@@ -198,7 +218,7 @@ module.exports =
   readObject: (path) ->
     contents = @read(path)
     if @extension(path) is '.cson'
-      {CoffeeScript} = require 'coffee-script'
+      CoffeeScript = nodeRequire 'coffee-script'
       CoffeeScript.eval(contents, bare: true)
     else
       JSON.parse(contents)
