@@ -47,9 +47,7 @@ class TerminalBuffer
     @addLine() for n in [@numLines()+1..coords[0]] if @numLines() < coords[0]
     @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1])
     if oldRegion? && oldRegion.height < @scrollingRegion.height
-      linesToRemove = @scrollingRegion.height - oldRegion.height
-      @lines.splice(@scrollingRegion.top - 1, 1) for n in [1..linesToRemove]
-      @lines.splice(@scrollingRegion.bottom - 1 - (n-1), 0, @emptyLine(0)) for n in [1..linesToRemove]
+      @scrollUp() for n in [1..(@scrollingRegion.height-oldRegion.height)]
     if @numLines() < coords[1]
       @addLine() for n in [@numLines()+1..coords[1]]
     @updateLineNumbers()
@@ -80,6 +78,8 @@ class TerminalBuffer
     if n >= 0 && n < @numLines() then @lines[n]
   emptyLine: (n) ->
     new TerminalBufferLine(this, n)
+  addLineAt: (n) ->
+    @lines.splice(n, 0, @emptyLine(0))
   addLine: (moveCursor=true) ->
     @lastLine()?.clearCursor()
     line = @emptyLine(@numLines())
@@ -88,6 +88,26 @@ class TerminalBuffer
     line
   numLines: () ->
     @lines.length
+  scrollUp: () ->
+    topLine = 0
+    bottomLine = @numLines() - 1
+    if @scrollingRegion?
+      topLine = @scrollingRegion.firstLine - 1
+      bottomLine = topLine + @scrollingRegion.height - 1
+    @lines[topLine].setDirty()
+    @lines.splice(topLine, 1)
+    @addLineAt(bottomLine)
+    @updateLineNumbers()
+  scrollDown: () ->
+    topLine = 0
+    bottomLine = @numLines() - 1
+    if @scrollingRegion?
+      topLine = @scrollingRegion.firstLine - 1
+      bottomLine = topLine + @scrollingRegion.height - 1
+    @lines[bottomLine].setDirty()
+    @lines.splice(bottomLine, 1)
+    @addLineAt(topLine)
+    @updateLineNumbers()
   text: () ->
     _.reduce(@lines, (memo, line) ->
       return memo + line.text() + "\n"
@@ -272,8 +292,12 @@ class TerminalBuffer
       when "P" # Delete characters
         num = parseInt(seq[0])
         @cursorLine().eraseCharacters(@cursor.character(), num)
-      # when "S" then # Scroll up
-      # when "T" then # Scroll down
+      when "S" # Scroll up
+        num = parseInt(seq[0]) || 1
+        @scrollUp() for n in [1..num]
+      when "T" # Scroll down
+        num = parseInt(seq[0]) || 1
+        @scrollDown() for n in [1..num]
       # when "X" then # Erase characters
       # when "Z" then # Number of backwards tab stops
       # when "`" then # Character position relative

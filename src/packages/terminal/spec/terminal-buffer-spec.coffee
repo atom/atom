@@ -207,6 +207,26 @@ fdescribe 'Terminal Buffer', ->
         buffer.input(TerminalBuffer.escapeSequence("3M"))
         expect(buffer.text()).toBe("a\ne\nf\n")
         expect(buffer.getLine(1).number).toBe(1)
+    describe "scroll up", ->
+      it "moves lines up", ->
+        buffer.input("a\nb")
+        buffer.input(TerminalBuffer.escapeSequence("S"))
+        expect(buffer.text()).toBe("b\n\n")
+      it "scrolls inside the scrolling region", ->
+        buffer.input("a\nb\nc\nd")
+        buffer.setScrollingRegion([2,3])
+        buffer.input(TerminalBuffer.escapeSequence("2S"))
+        expect(buffer.text()).toBe("a\n\n\nd\n")
+    describe "scroll down", ->
+      it "moves lines down", ->
+        buffer.input("a\nb")
+        buffer.input(TerminalBuffer.escapeSequence("T"))
+        expect(buffer.text()).toBe("\na\n")
+      it "scrolls inside the scrolling region", ->
+        buffer.input("a\nb\nc\nd")
+        buffer.setScrollingRegion([2,3])
+        buffer.input(TerminalBuffer.escapeSequence("2T"))
+        expect(buffer.text()).toBe("a\n\n\nd\n")
     describe "sgr", ->
       describe "multiple codes seperated by ;", ->
         it "assigns all attributes", ->

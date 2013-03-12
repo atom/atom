@@ -138,7 +138,10 @@ class TerminalView extends ScrollView
       return
     if !l.size()
       l = $("<pre>").addClass("line-#{line.number}")
-      @content.append(l)
+      if line.number < 1
+        @content.prepend(l)
+      else
+        @content.append(l)
     else
       l.empty()
     for c in line.characters
