@@ -389,12 +389,6 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.numLines()).toBe(10)
         expect(buffer.scrollingRegion.firstLine).toBe(1)
         expect(buffer.screenToLine([1,1])).toEqual([1,1])
-      # it "deletes lines from top if scrolling region shrinks", ->
-      #  buffer.input("a\nb\nc\nd")
-      #  buffer.setScrollingRegion([1,3])
-      #  buffer.setScrollingRegion([1,2])
-      #  buffer.setScrollingRegion([1,3])
-      #  expect(buffer.text()).toBe("b\nc\n\nd\n")
       it "never adds more lines", ->
         buffer.setScrollingRegion([1,3])
         buffer.setScrollingRegion([1,2])

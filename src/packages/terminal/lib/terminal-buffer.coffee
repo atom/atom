@@ -64,7 +64,7 @@ class TerminalBuffer
       line.appendCharacter(" ") for x in [line.length()..(@cursor.character())]
     @cursor.moved()
   updateLineNumbers: () ->
-    line.number = parseInt(n) for n,line of @lines
+    (line.number = parseInt(n); line.setDirty()) for n,line of @lines
   lastLine: () ->
     _.last(@lines)
   cursorLine: () ->
@@ -78,7 +78,9 @@ class TerminalBuffer
   emptyLine: (n) ->
     new TerminalBufferLine(this, n)
   addLineAt: (n) ->
-    @lines.splice(n, 0, @emptyLine(0))
+    line = @emptyLine(0)
+    @lines.splice(n, 0, line)
+    line
   addLine: (moveCursor=true) ->
     @lastLine()?.clearCursor()
     line = @emptyLine(@numLines())
@@ -95,7 +97,7 @@ class TerminalBuffer
       bottomLine = topLine + @scrollingRegion.height - 1
     @lines[topLine].setDirty()
     @lines.splice(topLine, 1)
-    @addLineAt(bottomLine)
+    @addLineAt(bottomLine).setDirty()
     @updateLineNumbers()
   scrollDown: () ->
     topLine = 0
@@ -105,7 +107,7 @@ class TerminalBuffer
       bottomLine = topLine + @scrollingRegion.height - 1
     @lines[bottomLine].setDirty()
     @lines.splice(bottomLine, 1)
-    @addLineAt(topLine)
+    @addLineAt(topLine).setDirty()
     @updateLineNumbers()
   text: () ->
     _.reduce(@lines, (memo, line) ->
@@ -301,8 +303,8 @@ class TerminalBuffer
         if @scrollingRegion?
           @scrollUp() for n in [1..num]
         else
-          (@lines[n].setDirty() ; @lines[n] = null) for n in [@cursor.line()..@cursor.line()+(num-1)]
-          @lines = _.compact(@lines)
+          @lines[@cursor.line() + n].setDirty() for n in [0..num-1]
+          @lines.splice(@cursor.line(), num)
           @updateLineNumbers()
       when "P" # Delete characters
         num = parseInt(seq[0])
