@@ -60,7 +60,7 @@
                     @"node_modules", nil];
   NSMutableArray *resourcePaths = [[NSMutableArray alloc] init];
   if (_runningSpecs) {
-    NSString *fixturePackagesDirectory = [NSString stringWithFormat:@"%@/fixtures/packages", _resourcePath];
+    NSString *fixturePackagesDirectory = [NSString stringWithFormat:@"%@/spec/fixtures/packages", _resourcePath];
     [resourcePaths addObject:fixturePackagesDirectory];
   }
   NSString *userPackagesDirectory = [@"~/.atom/packages" stringByStandardizingPath];
