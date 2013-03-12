@@ -159,13 +159,13 @@ class Pane extends View
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
-  promptToSaveItem: (item, nextAction) ->
+  promptToSaveItem: (item, nextAction, cancelAction) ->
     uri = item.getUri()
     atom.confirm(
       "'#{item.getTitle()}' has changes, do you want to save them?"
       "Your changes will be lost if close this item without saving."
       "Save", => @saveItem(item, nextAction)
-      "Cancel", null
+      "Cancel", cancelAction
       "Don't Save", nextAction
     )
 
