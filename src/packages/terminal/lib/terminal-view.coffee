@@ -91,7 +91,6 @@ class TerminalView extends ScrollView
       @updateLine(line) for line in @buffer.lines
       @buffer.renderedAll()
       @content.scrollToTop()
-      @buffer.redrawNeeded = false
       return
     @updateLine(line) for line in @buffer.getDirtyLines()
     @buffer.rendered()
@@ -141,7 +140,20 @@ class TerminalView extends ScrollView
       if line.number < 1
         @content.prepend(l)
       else
-        @content.append(l)
+        n = line.number - 1
+        inserted = false
+        while n >= 0 && !inserted
+          e = @content.find("pre.line-#{n}")
+          if e.length > 0
+            e.after(l)
+            inserted = true
+          else
+          n--
+        if !inserted
+          if line.number - 1 > n
+            @content.prepend(l)
+          else
+            @content.append(l)
     else
       l.empty()
     for c in line.characters

@@ -58,6 +58,16 @@ describe 'Terminal', ->
       terminalView.output(TerminalBuffer.escapeSequence("M"))
       expect(terminalView.buffer.numLines()).toBe(1)
       expect(terminalView.content.find("pre").size()).toBe(1)
+    it "inserts the line at the right position", ->
+      b = terminalView.buffer
+      b.input("a\nb\nc\nd\ne")
+      b.renderedAll()
+      b.dirtyLines = [b.getLine(2), b.getLine(4)]
+      terminalView.update()
+      b.dirtyLines = [b.getLine(1), b.getLine(0), b.getLine(3)]
+      terminalView.update()
+      expect(terminalView.content.find("pre").size()).toBe(5)
+      expect(terminalView.content.find("pre").text()).toBe("abcde")
 
     describe "color", ->
       it "sets the text color", ->

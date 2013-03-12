@@ -46,8 +46,7 @@ class TerminalBuffer
     oldRegion = @scrollingRegion
     @addLine() for n in [@numLines()+1..coords[0]] if @numLines() < coords[0]
     @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1])
-    if oldRegion? && oldRegion.height < @scrollingRegion.height
-      @scrollUp() for n in [1..(@scrollingRegion.height-oldRegion.height)]
+    if oldRegion? && oldRegion.height < @scrollingRegion.height then # @scrollUp() for n in [1..(@scrollingRegion.height-oldRegion.height)]
     if @numLines() < coords[1]
       @addLine() for n in [@numLines()+1..coords[1]]
     @updateLineNumbers()
@@ -133,6 +132,7 @@ class TerminalBuffer
   renderedAll: () ->
     line.rendered() for line in @lines
     @dirtyLines = []
+    @redrawNeeded = false
   backspace: () ->
     @cursor.x -= 1
     @cursor.x = 1 if @cursor.x < 1
@@ -140,7 +140,7 @@ class TerminalBuffer
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
-    # window.console.log [c, c.charCodeAt(0)]
+    window.console.log [c, c.charCodeAt(0), @numLines()]
     if @inEscapeSequence
       return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
@@ -155,7 +155,14 @@ class TerminalBuffer
         @cursor.x += 8 - ((@cursor.x - 1) % 8)
         @updatedCursor()
       when 10, 11, 12 # treat LF, VT (vertical tab) and FF (form feed) as newline
-        @addLine()
+        if @scrollingRegion?
+          @cursor.y += 1
+          len = @numLines()
+          if @cursor.y > len
+            @cursor.y = len
+          @updatedCursor()
+        else
+          @addLine()
       when 13 # CR
         @cursor.x = 1
         @updatedCursor()
@@ -286,9 +293,12 @@ class TerminalBuffer
       # when "L" then # Insert lines
       when "M" # Delete lines
         num = parseInt(seq[0]) || 1
-        (@lines[n].setDirty() ; @lines[n] = null) for n in [@cursor.line()..@cursor.line()+(num-1)]
-        @lines = _.compact(@lines)
-        @updateLineNumbers()
+        if @scrollingRegion?
+          @scrollUp() for n in [1..num]
+        else
+          (@lines[n].setDirty() ; @lines[n] = null) for n in [@cursor.line()..@cursor.line()+(num-1)]
+          @lines = _.compact(@lines)
+          @updateLineNumbers()
       when "P" # Delete characters
         num = parseInt(seq[0])
         @cursorLine().eraseCharacters(@cursor.character(), num)

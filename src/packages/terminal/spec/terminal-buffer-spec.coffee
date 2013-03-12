@@ -54,6 +54,10 @@ fdescribe 'Terminal Buffer', ->
       it "adds a new line", ->
         buffer.inputCharacter('\n')
         expect(buffer.numLines()).toBe(2)
+      it "scrolls down when scrolling region is active", ->
+        buffer.setScrollingRegion([1,3])
+        buffer.inputCharacter('\n')
+        expect(buffer.numLines()).toBe(3)
     describe "backspace", ->
       it "moves the cursor back by one", ->
         buffer.inputCharacter('a')
