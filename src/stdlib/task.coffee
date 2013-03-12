@@ -11,8 +11,7 @@ class Task
   start: ->
     throw new Error("Task already started") if @worker?
 
-    taskShellPath = fs.resolveOnLoadPath('task-shell', ['js', 'coffee'])
-    blob = new Blob(["require('coffee-script'); require('#{taskShellPath}');"], type: 'text/javascript')
+    blob = new Blob(["require('coffee-script'); require('task-shell');"], type: 'text/javascript')
     @worker = new Worker(URL.createObjectURL(blob))
     @worker.onmessage = ({data}) =>
       if @aborted
