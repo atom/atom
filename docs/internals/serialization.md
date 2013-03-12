@@ -65,13 +65,12 @@ class MyObject
   serialize: -> { version: MyObject.version, ... }
 ```
 
-Your serializable class can optionally have a version class-level `@version`
-property and include a `version` key in its serialized state. When
-deserializing, Atom will only attempt to call deserialize if the two versions
-match, and otherwise return undefined. We plan on implementing a migration
-system in the future, but this at least protects you from improperly
-deserializing old state. If you find yourself in dire need of the migration
-system, let us know.
+Your serializable class can optionally have a class-level `@version` property
+and include a `version` key in its serialized state. When deserializing, Atom
+will only attempt to call deserialize if the two versions match, and otherwise
+return undefined. We plan on implementing a migration system in the future, but
+this at least protects you from improperly deserializing old state. If you find
+yourself in dire need of the migration system, let us know.
 
 ### Deferred Package Deserializers
 
