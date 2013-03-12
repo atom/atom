@@ -87,6 +87,10 @@ class TerminalBuffer
     @lines.push(line)
     @cursor.moveTo([@lastLine().number + 1, 1]) if moveCursor
     line
+  removeLine: (n, num=1) ->
+    @lines[n].setDirty()
+    @lines.splice(n, num)
+    @updateLineNumbers()
   numLines: () ->
     @lines.length
   scrollUp: () ->
@@ -97,7 +101,7 @@ class TerminalBuffer
       bottomLine = topLine + @scrollingRegion.height - 1
     @lines[topLine].setDirty()
     @lines.splice(topLine, 1)
-    @addLineAt(bottomLine).setDirty()
+    @addLineAt(bottomLine)
     @updateLineNumbers()
   scrollDown: () ->
     topLine = 0
@@ -107,7 +111,7 @@ class TerminalBuffer
       bottomLine = topLine + @scrollingRegion.height - 1
     @lines[bottomLine].setDirty()
     @lines.splice(bottomLine, 1)
-    @addLineAt(topLine).setDirty()
+    @addLineAt(topLine)
     @updateLineNumbers()
   text: () ->
     _.reduce(@lines, (memo, line) ->
@@ -125,7 +129,7 @@ class TerminalBuffer
     @redrawNeeded = true
     @dirtyLines = []
   addDirtyLine: (line) ->
-    @dirtyLines.push(line) if _.contains(@lines, line)
+    @dirtyLines.push(line) if _.contains(@lines, line) && !_.contains(@dirtyLines, line)
   getDirtyLines: () ->
     _.uniq(@dirtyLines)
   rendered: () ->
@@ -142,7 +146,7 @@ class TerminalBuffer
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
-    window.console.log [c, c.charCodeAt(0), @numLines()]
+    # window.console.log [c, c.charCodeAt(0), @numLines()]
     if @inEscapeSequence
       return @inputEscapeSequence(c)
     switch c.charCodeAt(0)
@@ -303,9 +307,7 @@ class TerminalBuffer
         if @scrollingRegion?
           @scrollUp() for n in [1..num]
         else
-          @lines[@cursor.line() + n].setDirty() for n in [0..num-1]
-          @lines.splice(@cursor.line(), num)
-          @updateLineNumbers()
+          @removeLine(@cursor.line(), num)
       when "P" # Delete characters
         num = parseInt(seq[0])
         @cursorLine().eraseCharacters(@cursor.character(), num)
