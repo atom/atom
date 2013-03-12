@@ -1,6 +1,7 @@
 Point = require 'point'
 $ = require 'jquery'
 BufferedProcess = require 'buffered-process'
+fs = require 'fs-utils'
 
 module.exports =
 class TagGenerator
@@ -17,7 +18,7 @@ class TagGenerator
   generate: ->
     deferred = $.Deferred()
     tags = []
-    command = require.resolve('ctags')
+    command = fs.resolveOnLoadPath('ctags')
     args = ['--fields=+KS', '-nf', '-', @path]
     stdout = (lines) =>
       for line in lines.split('\n')
