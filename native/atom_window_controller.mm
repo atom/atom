@@ -54,7 +54,15 @@
   _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
 
-  NSString *nodePath = [NSString stringWithFormat:@"%@/node_modules", _resourcePath];
+  NSArray *paths = [NSArray arrayWithObjects:@"spec", @"benchmark",
+                    @"src/stdlib", @"src/app", @"src/packages", @"src",
+                    @"vendor/packages", @"vendor", @"static", @"themes", nil];
+  NSMutableArray *resourcePaths = [[NSMutableArray alloc] init];
+  for (int i = 0; i < paths.count; i++) {
+    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", _resourcePath, [paths objectAtIndex:i]];
+    [resourcePaths addObject:fullPath];
+  }
+  NSString *nodePath = [resourcePaths componentsJoinedByString:@":"];
   setenv("NODE_PATH", [nodePath UTF8String], TRUE);
 
   if (!background) {
