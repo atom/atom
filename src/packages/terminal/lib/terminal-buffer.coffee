@@ -290,7 +290,12 @@ class TerminalBuffer
         op = parseInt(seq[0])
         @cursorLine().erase(@cursor.character(), op)
         @cursorLine().lastCharacter().cursor = true
-      # when "L" then # Insert lines
+      when "L" # Insert lines
+        num = parseInt(seq[0]) || 1
+        if @scrollingRegion?
+          @scrollDown() for n in [1..num]
+        else
+          @addLine(false) for n in [1..num]
       when "M" # Delete lines
         num = parseInt(seq[0]) || 1
         if @scrollingRegion?
