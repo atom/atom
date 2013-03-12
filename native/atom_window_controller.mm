@@ -59,17 +59,21 @@
                     @"vendor/packages", @"vendor", @"static", @"themes",
                     @"node_modules", nil];
   NSMutableArray *resourcePaths = [[NSMutableArray alloc] init];
+
   if (_runningSpecs) {
     NSString *fixturePackagesDirectory = [NSString stringWithFormat:@"%@/spec/fixtures/packages", _resourcePath];
     [resourcePaths addObject:fixturePackagesDirectory];
   }
+
   NSString *userPackagesDirectory = [@"~/.atom/packages" stringByStandardizingPath];
   [resourcePaths addObject:userPackagesDirectory];
+
   for (int i = 0; i < paths.count; i++) {
     NSString *fullPath = [NSString stringWithFormat:@"%@/%@", _resourcePath, [paths objectAtIndex:i]];
     [resourcePaths addObject:fullPath];
   }
   [resourcePaths addObject:_resourcePath];
+
   NSString *nodePath = [resourcePaths componentsJoinedByString:@":"];
   setenv("NODE_PATH", [nodePath UTF8String], TRUE);
 
