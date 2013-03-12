@@ -37,7 +37,6 @@ self.handler =
     for key, value of globals
       self[key] = value
       window[key] = value
-    require 'coffee-script'
     self.handler = require(handlerPath)
     callTaskMethod 'started'
 
