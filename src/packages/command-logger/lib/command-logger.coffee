@@ -21,8 +21,8 @@ module.exports =
       eventNameLog.lastRun = new Date().getTime()
     trigger = $.fn.trigger
     @originalTrigger = trigger
-    $.fn.trigger = (eventName) ->
-      eventName = eventName.type if eventName.type
+    $.fn.trigger = (event) ->
+      eventName = event.type ? event
       registerTriggeredEvent(eventName) if $(this).events()[eventName]
       trigger.apply(this, arguments)
 
