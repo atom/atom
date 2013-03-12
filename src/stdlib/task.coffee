@@ -12,11 +12,7 @@ class Task
     throw new Error("Task already started") if @worker?
 
     taskShellPath = fs.resolveOnLoadPath('task-shell', ['js', 'coffee'])
-    contents = fs.read(taskShellPath)
-    if fs.extension(taskShellPath) is '.coffee'
-      CoffeeScript = require 'coffee-script'
-      contents = CoffeeScript.compile(contents, filename: taskShellPath)
-    blob = new Blob([contents], type: 'text/javascript')
+    blob = new Blob(["require('coffee-script'); require('#{taskShellPath}');"], type: 'text/javascript')
     @worker = new Worker(URL.createObjectURL(blob))
     @worker.onmessage = ({data}) =>
       if @aborted
