@@ -9,6 +9,7 @@ class PaneContainer extends View
   @deserialize: ({root}) ->
     container = new PaneContainer
     container.append(deserialize(root)) if root
+    container.removeEmptyPanes()
     container
 
   @content: ->
@@ -92,6 +93,10 @@ class PaneContainer extends View
     if root = @getRoot()
       root.css(width: '100%', height: '100%', top: 0, left: 0)
       root.adjustDimensions()
+
+  removeEmptyPanes: ->
+    for pane in @getPanes() when pane.getItems().length == 0
+      pane.remove()
 
   afterAttach: ->
     @adjustPaneDimensions()

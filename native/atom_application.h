@@ -18,6 +18,7 @@ class AtomCefClient;
 + (CefSettings)createCefSettings;
 + (NSDictionary *)parseArguments:(char **)argv count:(int)argc;
 - (void)open:(NSString *)path;
+- (void)openDev:(NSString *)path;
 - (void)open:(NSString *)path pidToKillWhenWindowCloses:(NSNumber *)pid;
 - (IBAction)runSpecs:(id)sender;
 - (IBAction)runBenchmarks:(id)sender;

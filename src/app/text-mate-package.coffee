@@ -31,6 +31,8 @@ class TextMatePackage extends Package
       console.warn "Failed to load package at '#{@path}'", e.stack
     this
 
+  activate: -> # no-op
+
   getGrammars: -> @grammars
 
   readGrammars: ->

@@ -7,6 +7,12 @@ $.fn.scrollBottom = (newValue) ->
   else
     @scrollTop() + @height()
 
+$.fn.scrollDown = ->
+  @scrollTop(@scrollTop() + $(window).height() / 20)
+
+$.fn.scrollUp = ->
+  @scrollTop(@scrollTop() - $(window).height() / 20)
+
 $.fn.scrollToTop = ->
   @scrollTop(0)
 

@@ -69,6 +69,13 @@ exts =
     createCacheDirectory()
     fs.writeFileSync(cacheFilePath, compiled) if writeToCache
     evaluated
+  less: (file) ->
+    output = ""
+    (new less.Parser).parse __read(file), (e, tree) ->
+      throw new Error(e.message, file, e.line) if e
+      output = tree.toCSS()
+    output
+
 
 getPath = (path) ->
   path = resolve(path)

@@ -1,4 +1,5 @@
 _ = nodeRequire 'underscore'
+require 'underscore-extensions'
 
 module.exports =
   stringifyIndent: (level=0) -> _.multiplyString(' ', Math.max(level, 0))

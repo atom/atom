@@ -37,16 +37,16 @@ class Config
     templateConfigDirPath = fs.resolve(window.resourcePath, 'dot-atom')
 
     onConfigDirFile = (path) =>
-      templatePath = fs.join(templateConfigDirPath, path)
-      configPath = fs.join(@configDirPath, path)
-      fs.write(configPath, fs.read(templatePath))
+      relativePath = path.substring(templateConfigDirPath.length + 1)
+      configPath = fs.join(@configDirPath, relativePath)
+      fs.write(configPath, fs.read(path))
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
     configThemeDirPath = fs.join(@configDirPath, 'themes')
     onThemeDirFile = (path) ->
-      templatePath = fs.join(bundledThemesDirPath, path)
-      configPath = fs.join(configThemeDirPath, path)
-      fs.write(configPath, fs.read(templatePath))
+      relativePath = path.substring(bundledThemesDirPath.length + 1)
+      configPath = fs.join(configThemeDirPath, relativePath)
+      fs.write(configPath, fs.read(path))
     fs.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
   load: ->

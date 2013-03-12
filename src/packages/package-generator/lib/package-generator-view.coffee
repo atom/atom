@@ -62,6 +62,7 @@ class PackageGeneratorView extends View
     for path in fs.listTree(templatePath)
       relativePath = path.replace(templatePath, "")
       relativePath = relativePath.replace(/^\//, '')
+      relativePath = relativePath.replace(/\.template$/, '')
       relativePath = @replacePackageNamePlaceholders(relativePath, packageName)
 
       sourcePath = fs.join(@getPackagePath(), relativePath)
