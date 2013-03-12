@@ -1,4 +1,5 @@
 fs = nodeRequire 'fs'
+crypto = nodeRequire 'crypto'
 
 paths = [
   "#{window.resourcePath}/spec"
@@ -86,7 +87,8 @@ createCacheDirectory = ->
   fs.mkdirSync('/tmp/atom-compiled-scripts') unless __exists('/tmp/atom-compiled-scripts')
 
 getCacheFilePath = (path) ->
-  "/tmp/atom-compiled-scripts/#{$native.md5ForPath(path)}"
+  md5 = crypto.createHash('md5').update(fs.readFileSync(path)).digest('hex')
+  "/tmp/atom-compiled-scripts/#{md5}"
 
 resolve = (name, {verifyExistence}={}) ->
   verifyExistence ?= true
