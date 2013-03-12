@@ -37,12 +37,6 @@ describe 'Package Generator', ->
       packagePath = "/tmp/atom-packages/#{packageName}"
       fs.remove(packagePath) if fs.exists(packagePath)
 
-      @addMatchers
-        toExistOnDisk: (expected) ->
-          notText = this.isNot and " not" or ""
-          @message = -> return "Expected path '" + @actual + "'" + notText + " to exist."
-          fs.exists(@actual)
-
     afterEach ->
       fs.remove(packagePath) if fs.exists(packagePath)
 

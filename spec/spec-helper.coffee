@@ -137,6 +137,11 @@ addCustomMatchers = (spec) ->
       this.message = => "Expected object with length #{@actual.length} to#{notText} have length #{expected}"
       @actual.length == expected
 
+    toExistOnDisk: (expected) ->
+      notText = this.isNot and " not" or ""
+      @message = -> return "Expected path '" + @actual + "'" + notText + " to exist."
+      fs.exists(@actual)
+
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
     key
