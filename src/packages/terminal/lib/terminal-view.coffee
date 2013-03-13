@@ -17,7 +17,7 @@ class TerminalView extends ScrollView
 
   initialize: ->
     super
-    @buffer = new TerminalBuffer
+    @buffer = new TerminalBuffer(this)
     @exited = true
     @readData = false
     @setTitle()

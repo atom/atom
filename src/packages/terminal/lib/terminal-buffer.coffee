@@ -464,6 +464,8 @@ class TerminalBuffer
             when 27 # Disable reverse
               @reversed = false
             when 28 then # Not hidden
+            when 38, 48 # Ignore closest color to
+              break
             when 39 # Default text color
               @color = 0
             when 49 # Default background color
