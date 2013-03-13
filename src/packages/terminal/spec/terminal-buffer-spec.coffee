@@ -157,8 +157,24 @@ fdescribe 'Terminal Buffer', ->
           buffer.input(TerminalBuffer.escapeSequence("4a"))
           expect(buffer.cursor.y).toBe(1)
           expect(buffer.cursor.x).toBe(14)
-      describe "back to tab stop", ->
-        it "moves cursor to the previous tab stop", ->
+      describe "next line", ->
+        it "moves cursor down", ->
+          buffer.input(TerminalBuffer.escapeSequence("2E"))
+          expect(buffer.cursor.y).toBe(3)
+      describe "previous line", ->
+        it "moves cursor up", ->
+          buffer.moveCursorTo([5,1])
+          buffer.input(TerminalBuffer.escapeSequence("2F"))
+          expect(buffer.cursor.y).toBe(3)
+          buffer.input(TerminalBuffer.escapeSequence("5F"))
+          expect(buffer.cursor.y).toBe(1)
+      describe "tabs", ->
+        it "moves to next tab stop", ->
+          buffer.input(TerminalBuffer.escapeSequence("I"))
+          expect(buffer.cursor.x).toBe(9)
+          buffer.input(TerminalBuffer.escapeSequence("2I"))
+          expect(buffer.cursor.x).toBe(25)
+        it "moves to previous tab stop", ->
           buffer.input("\t\t\t")
           buffer.input(TerminalBuffer.escapeSequence("2Z"))
           expect(buffer.cursor.x).toBe(9)

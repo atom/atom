@@ -146,6 +146,38 @@ class TerminalBuffer
     @cursor.x -= 1
     @cursor.x = 1 if @cursor.x < 1
     @updatedCursor()
+  moveCursorX: (direction=1) ->
+    @cursor.x += direction
+    len = @cursorLine().length()
+    @cursor.x = len if @cursor.x > len
+    @cursor.x = 1 if @cursor.x < 1
+    @updatedCursor()
+  moveCursorY: (direction=1) ->
+    @cursor.y += direction
+    len = @numLines()
+    @cursor.y = len if @cursor.y > len
+    @cursor.y = 1 if @cursor.y < 1
+    @updatedCursor()
+  tab: (direction=1) ->
+    if direction > 0
+      @cursor.x += 8 - ((@cursor.x - 1) % 8) for n in [1..direction]
+    else
+      @cursor.x -= 8 - ((@cursor.x - 1) % 8) for n in [1..-direction]
+    @cursor.x = 1 if @cursor.x < 1
+    @updatedCursor()
+  newline: (direction=1) ->
+    if @scrollingRegion?
+      @cursor.y += direction
+      len = @numLines()
+      if @cursor.y > len
+        @cursor.y = len
+      @updatedCursor()
+    else
+      if direction > 0
+        @addLine() for n in [1..direction]
+      else
+        @cursor.y += direction
+        @cursor.y = 1 if @cursor.y < 1
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
@@ -161,17 +193,9 @@ class TerminalBuffer
       when 7 then # Ignore Bell
       when 8 then @backspace()
       when 9 # TAB
-        @cursor.x += 8 - ((@cursor.x - 1) % 8)
-        @updatedCursor()
+        @tab()
       when 10, 11, 12 # treat LF, VT (vertical tab) and FF (form feed) as newline
-        if @scrollingRegion?
-          @cursor.y += 1
-          len = @numLines()
-          if @cursor.y > len
-            @cursor.y = len
-          @updatedCursor()
-        else
-          @addLine()
+        @newline()
       when 13 # CR
         @cursor.x = 1
         @updatedCursor()
@@ -255,44 +279,29 @@ class TerminalBuffer
     if @endWithBell
       @title = seq[1]
       return
+    num = parseInt(seq[0]) || 1
     switch type
       when "@" # Insert blank character
-        num = parseInt(seq[0])
         @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]
       when "A" # Move cursor up
-        num = parseInt(seq[0]) || 1
-        @cursor.y -= num
-        @cursor.y = 1 if @cursor.y < 1
-        @updatedCursor()
+        @moveCursorY(-num)
       when "B" # Move cursor down
-        num = parseInt(seq[0]) || 1
-        @cursor.y += num
-        len = @numLines()
-        if @cursor.y > len
-          @cursor.y = len
-        @updatedCursor()
+        @moveCursorY(num)
       when "C" # Move cursor right
-        num = parseInt(seq[0]) || 1
-        @cursor.x += num
-        len = @cursorLine().length()
-        if @cursor.x > len
-          @cursor.x = len
-        @updatedCursor()
+        @moveCursorX(num)
       when "D" # Move cursor left
-        num = parseInt(seq[0]) || 1
-        @cursor.x -= num
-        @cursor.x = 1 if @cursor.x < 1
-        @updatedCursor()
-      # when "E" then # Cursor next line
-      # when "F" then # Cursor preceding line
+        @moveCursorX(-num)
+      when "E" # Cursor next line
+        @newline(num)
+      when "F" # Cursor preceding line
+        @newline(-num)
       when "G", "`" # Move cursor to position in line
-        num = parseInt(seq[0]) || 1
         @moveCursorTo([@cursor.y, num])
       when "H", "f" # Cursor position
-        row = parseInt(seq[0]) || 1
         col = parseInt(seq[1]) || 1
-        @moveCursorTo([row, col])
-      # when "I" then # Number of forward tab stops
+        @moveCursorTo([num, col])
+      when "I" # Forward tab
+        @tab(num)
       when "J" # Erase data
         numLines = @numLines() - 1
         start = 0
@@ -313,42 +322,32 @@ class TerminalBuffer
         @cursorLine().erase(@cursor.character(), op)
         @cursorLine().lastCharacter().cursor = true
       when "L" # Insert lines
-        num = parseInt(seq[0]) || 1
         if @scrollingRegion?
           @scrollDown() for n in [1..num]
         else
           @addLine(false) for n in [1..num]
       when "M" # Delete lines
-        num = parseInt(seq[0]) || 1
         if @scrollingRegion?
           @scrollUp() for n in [1..num]
         else
           @removeLine(@cursor.line(), num)
       when "P" # Delete characters
-        num = parseInt(seq[0])
         @cursorLine().deleteCharacters(@cursor.character(), num)
       when "S" # Scroll up
-        num = parseInt(seq[0]) || 1
         @scrollUp() for n in [1..num]
       when "T" # Scroll down
-        num = parseInt(seq[0]) || 1
         @scrollDown() for n in [1..num]
       when "X" # Erase characters
-        num = parseInt(seq[0]) || 1
         @cursorLine().eraseCharacters(@cursor.character(), num)
       when "Z" # Backwards tab
-        num = parseInt(seq[0]) || 1
-        @cursor.x -= 8 - ((@cursor.x - 1) % 8) for n in [1..num]
+        @tab(-num)
       when "a" # Character position (relative)
-        num = parseInt(seq[0]) || 1
         @moveCursorTo([@cursor.y, @cursor.x + num])
       # when "b" then # Repeat preceeding character
       # when "c" then # Send device attribute
       when "d" # Move cursor to line (absolute)
-        num = parseInt(seq[0]) || 1
         @moveCursorTo([num, @cursor.x])
       when "e" # Move cursor to line (relative)
-        num = parseInt(seq[0]) || 1
         @moveCursorTo([@cursor.y + num, @cursor.x])
       # when "g" then # Tab clear
       when "h"
@@ -433,9 +432,8 @@ class TerminalBuffer
       # when "p" then # Pointer mode (>), soft reset (!), ansi mode ($)
       # when "q" then # Load LEDs, set cursor style (sp)
       when "r" # Set scrollable region
-        top = parseInt(seq[0]) || 1
         bottom = parseInt(seq[1]) || 1
-        @setScrollingRegion([top,bottom])
+        @setScrollingRegion([num,bottom])
       # when "s" then # Set left and right margins
       # when "t" then # Window attributes
       else

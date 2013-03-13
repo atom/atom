@@ -109,7 +109,6 @@ class TerminalView extends ScrollView
     @content.append(tester)
     charWidth = parseInt(tester.find("span").css("width"))
     lineHeight = parseInt(tester.css("height"))
-    window.console.log [charWidth, lineHeight]
     tester.remove()
     windowWidth = parseInt(@css("width"))
     windowHeight = parseInt(@css("height"))
@@ -118,7 +117,6 @@ class TerminalView extends ScrollView
     return if h <= 0 || w <= 0
     @terminalSize = [h, w, charWidth, lineHeight]
     @buffer.setSize([@terminalSize[0], @terminalSize[1]])
-    window.console.log @terminalSize
     @setTerminalSize()
 
   getTitle: () -> @title
@@ -139,7 +137,6 @@ class TerminalView extends ScrollView
 
   setTerminalSize: () ->
     return if !@terminalSize? || @exited
-    window.console.log ['setting', @terminalSize]
     @process?.winsize(@terminalSize[0], @terminalSize[1])
 
   updateLine: (line) ->
