@@ -168,6 +168,33 @@ module.exports =
 
     traverse(rootPath, '', onFile, onDirectory)
 
+  traverseTreeAsync: (rootPath, onFile, onDirectory, onDone) ->
+    pathCounter = 0
+    startPath = -> pathCounter++
+    endPath = -> onDone() if --pathCounter is 0
+
+    traverse = (rootPath, onFile, onDirectory) =>
+      startPath()
+      fs.readdir rootPath, (error, files) =>
+        if error or files.length is 0
+          endPath()
+          return
+
+        for file in files
+          path = @join(rootPath, file)
+          do (path) =>
+            startPath()
+            fs.stat path, (error, stats) =>
+              unless error
+                if stats.isFile()
+                  onFile(path)
+                else if stats.isDirectory()
+                  traverse(path, onFile, onDirectory) if onDirectory(path)
+              endPath()
+        endPath()
+
+    traverse(rootPath, onFile, onDirectory)
+
   md5ForPath: (path) ->
     contents = fs.readFileSync(path)
     require('crypto').createHash('md5').update(contents).digest('hex')
