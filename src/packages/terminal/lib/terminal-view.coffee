@@ -37,7 +37,8 @@ class TerminalView extends ScrollView
       @updateTerminalSize()
 
     rootView.command "terminal:enter", => @input("#{TerminalBuffer.carriageReturn}")
-    rootView.command "terminal:delete", => @input(TerminalBuffer.backspace)
+    rootView.command "terminal:delete", => @input(TerminalBuffer.deleteKey)
+    rootView.command "terminal:backspace", => @input(TerminalBuffer.backspace)
     rootView.command "terminal:escape", => @input(TerminalBuffer.escape)
     rootView.command "terminal:tab", => @input(TerminalBuffer.tab)
     for letter in "abcdefghijklmnopqrstuvwxyz"

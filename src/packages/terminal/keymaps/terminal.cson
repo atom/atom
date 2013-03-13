@@ -4,6 +4,7 @@
 '.terminal':
   'enter': 'terminal:enter'
   'delete': 'terminal:delete'
+  'backspace': 'terminal:backspace'
   'escape': 'terminal:escape'
   'tab': 'terminal:tab'
   'ctrl-a': 'terminal:ctrl-a'

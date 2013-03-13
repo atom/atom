@@ -4,6 +4,7 @@ module.exports =
 class TerminalBuffer
   @enter: String.fromCharCode(10)
   @carriageReturn: String.fromCharCode(13)
+  @deleteKey: String.fromCharCode(127)
   @backspace: String.fromCharCode(8)
   @bell: String.fromCharCode(7)
   @escape: String.fromCharCode(27)
