@@ -281,6 +281,15 @@ fdescribe 'Terminal Buffer', ->
         buffer.setScrollingRegion([2,3])
         buffer.input(TerminalBuffer.escapeSequence("2T"))
         expect(buffer.text()).toBe("a\n\n\nd\n")
+    describe "mouse tracking", ->
+      it "is ignored", ->
+        buffer.input("a\nb")
+        buffer.input(TerminalBuffer.escapeSequence("1;2;3;4;5T"))
+        expect(buffer.text()).toBe("a\nb\n")
+    describe "send device attributes", ->
+      it "responds as a VT102", ->
+        buffer.input(TerminalBuffer.escapeSequence("c"))
+        expect(view.data[0]).toBe(TerminalBuffer.escapeSequence("?6c"))
     describe "sgr", ->
       describe "multiple codes seperated by ;", ->
         it "assigns all attributes", ->

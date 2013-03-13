@@ -336,7 +336,12 @@ class TerminalBuffer
       when "S" # Scroll up
         @scrollUp() for n in [1..num]
       when "T" # Scroll down
-        @scrollDown() for n in [1..num]
+        if seq.length == 1
+          @scrollDown() for n in [1..num]
+        else if seq.length == 2
+          # Ignore reset features
+        else
+          # Ignore mouse tracking
       when "X" # Erase characters
         @cursorLine().eraseCharacters(@cursor.character(), num)
       when "Z" # Backwards tab
@@ -344,7 +349,8 @@ class TerminalBuffer
       when "a" # Character position (relative)
         @moveCursorTo([@cursor.y, @cursor.x + num])
       # when "b" then # Repeat preceeding character
-      # when "c" then # Send device attribute
+      when "c" # Send device attribute
+        @view.input(TerminalBuffer.escapeSequence("?6c"))
       when "d" # Move cursor to line (absolute)
         @moveCursorTo([num, @cursor.x])
       when "e" # Move cursor to line (relative)
