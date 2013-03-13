@@ -190,21 +190,21 @@ class TerminalBuffer
       when 4 then # Ignore EOT
       when 5 # ENQ
         @view.input(String.fromCharCode(6))
-      when 7 then # Ignore Bell
+      when 7 then # Ignore BEL
       when 8 then @backspace()
       when 9 # TAB
         @tab()
-      when 10, 11, 12 # treat LF, VT (vertical tab) and FF (form feed) as newline
+      when 10, 11, 12 # treat LF, VT and FF as newline
         @newline()
       when 13 # CR
         @cursor.x = 1
         @updatedCursor()
-      when 14, 15 then # Ignore SO, SI (change character set)
+      when 14, 15 then # Ignore SO, SI
       when 17, 19 then # Ignore DC1, DC3 codes
       when 24, 26 then # Ignore CAN
-      when 27
+      when 27 # ESC
         @escape()
-      else
+      else # Input
         if @autowrap
           if @cursor.x > @size[1]
             @addLine()
@@ -219,40 +219,40 @@ class TerminalBuffer
     if !@escapeSequenceStarted && @escapeSequence.length == 0
       clear = true
       switch c
-        when "6" then # Back index
-        when "7" # Store cursor
+        when "6" then # DECBI - Back index
+        when "7" # DECSC - Store cursor
           @cursor.store()
           break
-        when "8" # Restore cursor
+        when "8" # DECRC - Restore cursor
           @cursor.restore()
           break
-        when "9" then # Forward index
-        when "=" then # Application keypad
-        when ">" then # Normal keypad
-        when "D" then # Index
-        when "E" then # Next line
+        when "9" then # DECFI - Forward index
+        when "=" then # DECKPAM - Application keypad
+        when ">" then # DECKPNM - Normal keypad
+        when "D" then # DEL - Index
+        when "E" then # NEL - Next line
         when "F" then # Cursor to lower left
-        when "H" then # Tab set
-        when "M" then # Reverse index
-        when "N", "O" then # Ignore charset
-        when "P" then # Device control string
-        when "V" then # Start guarded area
-        when "W" then # End guarded area
-        when "X" then # Start of string
-        when "Z" then # Return terminal id
-        when "\\" then # End of string
-        when "^" then # Privacy message
-        when "_" then # Application program command
-        when "c" then # Full reset
-        when "n", "o", "|", "}", "~" then # Ignore charset
+        when "H" then # HTS - Tab set
+        when "M" then # RI - Reverse index
+        when "N", "O" then # SS2, SS3 - Ignore charset
+        when "P" then # DCS - Device control string
+        when "V" then # SPA - Start guarded area
+        when "W" then # EPA - End guarded area
+        when "X" then # SOS - Start of string
+        when "Z" then # DECID - Return terminal id
+        when "\\" then # ST - End of string
+        when "^" then # PM - Privacy message
+        when "_" then # APC - Application program command
+        when "c" then # RIS - Full reset
+        when "n", "o", "|", "}", "~" then # LS2, LS3, LS3R, LS2R, LS1R - Ignore charset
         when "(", ")" # Ignore ( and )
           @ignoreEscapeSequence = true
           @escapeSequenceStarted = true
           clear = false
-        when "["
+        when "[" # CSI
           @escapeSequenceStarted = true
           clear = false
-        when "]"
+        when "]" # OSC
           @escapeSequenceStarted = true
           @endWithBell = true
           clear = false
@@ -281,28 +281,28 @@ class TerminalBuffer
       return
     num = parseInt(seq[0]) || 1
     switch type
-      when "@" # Insert blank character
+      when "@" # ICH - Insert blank character
         @cursorLine().appendAt(String.fromCharCode(0), @cursor.character()) for n in [1..num]
-      when "A" # Move cursor up
+      when "A" # CUU - Move cursor up
         @moveCursorY(-num)
-      when "B" # Move cursor down
+      when "B" # CUD - Move cursor down
         @moveCursorY(num)
-      when "C" # Move cursor right
+      when "C" # CUF - Move cursor right
         @moveCursorX(num)
-      when "D" # Move cursor left
+      when "D" # CUB - Move cursor left
         @moveCursorX(-num)
-      when "E" # Cursor next line
+      when "E" # CNL - Cursor next line
         @newline(num)
-      when "F" # Cursor preceding line
+      when "F" # CPL - Cursor preceding line
         @newline(-num)
-      when "G", "`" # Move cursor to position in line
+      when "G", "`" # CHA, HPA - Move cursor to position in line
         @moveCursorTo([@cursor.y, num])
-      when "H", "f" # Cursor position
+      when "H", "f" # CUP, HVP - Cursor position
         col = parseInt(seq[1]) || 1
         @moveCursorTo([num, col])
-      when "I" # Forward tab
+      when "I" # CHT - Forward tab
         @tab(num)
-      when "J" # Erase data
+      when "J" # ED - Erase data
         numLines = @numLines() - 1
         start = 0
         cursorLine = @cursor.line()
@@ -317,52 +317,52 @@ class TerminalBuffer
           @getLine(n).erase(0, 2) for n in [start..numLines]
         else
           @getLine(n).erase(0, 2) for n in [cursorLine+1..numLines] if numLines > cursorLine
-      when "K" # Erase in line
+      when "K" # EL - Erase in line
         op = parseInt(seq[0])
         @cursorLine().erase(@cursor.character(), op)
         @cursorLine().lastCharacter().cursor = true
-      when "L" # Insert lines
+      when "L" # IL - Insert lines
         if @scrollingRegion?
           @scrollDown() for n in [1..num]
         else
           @addLine(false) for n in [1..num]
-      when "M" # Delete lines
+      when "M" # DL - Delete lines
         if @scrollingRegion?
           @scrollUp() for n in [1..num]
         else
           @removeLine(@cursor.line(), num)
-      when "P" # Delete characters
+      when "P" # DCH - Delete characters
         @cursorLine().deleteCharacters(@cursor.character(), num)
-      when "S" # Scroll up
+      when "S" # SU - Scroll up
         @scrollUp() for n in [1..num]
-      when "T" # Scroll down
+      when "T" # SD - Scroll down
         if seq.length == 1
           @scrollDown() for n in [1..num]
         else if seq.length == 2
           # Ignore reset features
         else
           # Ignore mouse tracking
-      when "X" # Erase characters
+      when "X" # ECH - Erase characters
         @cursorLine().eraseCharacters(@cursor.character(), num)
-      when "Z" # Backwards tab
+      when "Z" # CBT - Backwards tab
         @tab(-num)
-      when "a" # Character position (relative)
+      when "a" # HPR - Character position (relative)
         @moveCursorTo([@cursor.y, @cursor.x + num])
-      # when "b" then # Repeat preceeding character
-      when "c" # Send device attribute
+      # when "b" then # REP - Repeat preceeding character
+      when "c" # DA - Send device attribute
         @view.input(TerminalBuffer.escapeSequence("?6c"))
-      when "d" # Move cursor to line (absolute)
+      when "d" # VPA - Move cursor to line (absolute)
         @moveCursorTo([num, @cursor.x])
-      when "e" # Move cursor to line (relative)
+      when "e" # VPR - Move cursor to line (relative)
         @moveCursorTo([@cursor.y + num, @cursor.x])
-      # when "g" then # Tab clear
-      when "h"
+      # when "g" then # TBC - Tab clear
+      when "h" # SM - Set mode
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
           when 0 then # Ignore
-          when 7 # Autowrap
+          when 7 # DECAWM - Autowrap
             @autowrap = true
-          when 25 # Show cursor
+          when 25 # DECTCEM - Show cursor
             @cursor.show = true
             @cursor.moved()
           when 47, 1047 # Switch to alternate buffer
@@ -374,14 +374,14 @@ class TerminalBuffer
             @enableAlternateBuffer()
           else
             window.console.log "Terminal: Unhandled DECSET #{num}"
-      # when "i" then # Media copy
-      when "l"
+      # when "i" then # MC - Media copy
+      when "l" # RM - Reset mode
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
           when 0 then # Ignore
-          when 7 # Autowrap
+          when 7 # DECAWM - Autowrap
             @autowrap = false
-          when 25 # Hide cursor
+          when 25 # DECTCEM - Hide cursor
             @cursor.show = false
             @cursor.moved()
           when 47, 1047 # Switch to main buffer
@@ -394,7 +394,7 @@ class TerminalBuffer
             @updatedCursor()
           else
             window.console.log "Terminal: Unhandled DECRST #{num}"
-      when "m" # SGR (Graphics)
+      when "m" # SGR - Graphics
         for s in seq
           i = parseInt(s)
           switch i
@@ -434,7 +434,7 @@ class TerminalBuffer
                 @backgroundColor = i - 100
               else
                 window.console.log "Terminal: Unhandled SGR sequence #{s}#{type} #{i}"
-      when "n" # Device status report
+      when "n" # DSR - Device status report
         num = parseInt(seq[0].replace(/^\?/, ''))
         if num == 5 # Are you ok?
           @view.input(TerminalBuffer.escapeSequence("0n"))
@@ -442,12 +442,12 @@ class TerminalBuffer
           @view.input(TerminalBuffer.escapeSequence("#{@cursor.y};#{@cursor.x}R"))
         else if num == 15 # Printer status
           @view.input(TerminalBuffer.escapeSequence("1n"))
-      when "p" then # Ignore pointer mode (>), soft reset (!), ansi mode ($)
-      when "q" then # Ignore load LEDs, set cursor style (sp)
-      when "r" # Set scrollable region
+      when "p" then # Ignore pointer mode (>), DECSTR - soft reset (!), DECRQM - ansi mode ($)
+      when "q" then # DECLL - Ignore load LEDs, DECSCUSR -set cursor style (sp)
+      when "r" # DECSTBM - Set scrollable region
         bottom = parseInt(seq[1]) || 1
         @setScrollingRegion([num,bottom])
-      # when "s" then # Set left and right margins
+      # when "s" then # DECSLRM - Set left and right margins
       # when "t" then # Window attributes
       else
         window.console.log "Terminal: Unhandled escape sequence #{sequence}#{type}"
