@@ -115,6 +115,23 @@ class TerminalBuffer
     @lines.splice(bottomLine, 1)
     @addLineAt(topLine)
     @updateLineNumbers()
+  eraseData: (op) ->
+    numLines = @numLines() - 1
+    start = 0
+    cursorLine = @cursor.line()
+    if @scrollingRegion?
+      start = @scrollingRegion.firstLine - 1
+      numLines = start + @scrollingRegion.height - 1
+    @cursorLine()?.erase(@cursor.character(), op)
+    if op == 1
+      @getLine(n).erase(0, 2) for n in [start..cursorLine-1]
+    else if op == 2
+      @getLine(n).erase(0, 2) for n in [start..numLines]
+    else
+      @getLine(n).erase(0, 2) for n in [cursorLine+1..numLines] if numLines > cursorLine
+  eraseInLine: (op) ->
+    @cursorLine().erase(@cursor.character(), op)
+    @cursorLine().lastCharacter().cursor = true
   text: () ->
     _.reduce(@lines, (memo, line) ->
       return memo + line.text() + "\n"
@@ -178,6 +195,15 @@ class TerminalBuffer
       else
         @cursor.y += direction
         @cursor.y = 1 if @cursor.y < 1
+  insertCharacter: (c) ->
+    if @autowrap
+      if @cursor.x > @size[1]
+        @addLine()
+    if !@cursorLine()
+      @cursor.y = @lastLine().number
+    @cursorLine().insertAt(c, @cursor.character())
+    @cursor.x += 1
+    @updatedCursor()
   input: (text) ->
     @inputCharacter(c) for c in text
   inputCharacter: (c) ->
@@ -205,14 +231,7 @@ class TerminalBuffer
       when 27 # ESC
         @escape()
       else # Input
-        if @autowrap
-          if @cursor.x > @size[1]
-            @addLine()
-        if !@cursorLine()
-          @cursor.y = @lastLine().number
-        @cursorLine().insertAt(c, @cursor.character())
-        @cursor.x += 1
-        @updatedCursor()
+        @insertCharacter(c)
   inputEscapeSequence: (c) ->
     code = c.charCodeAt(0)
     @clear = false
@@ -303,24 +322,9 @@ class TerminalBuffer
       when "I" # CHT - Forward tab
         @tab(num)
       when "J" # ED - Erase data
-        numLines = @numLines() - 1
-        start = 0
-        cursorLine = @cursor.line()
-        if @scrollingRegion?
-          start = @scrollingRegion.firstLine - 1
-          numLines = start + @scrollingRegion.height - 1
-        op = parseInt(seq[0])
-        @cursorLine()?.erase(@cursor.character(), op)
-        if op == 1
-          @getLine(n).erase(0, 2) for n in [start..cursorLine-1]
-        else if op == 2
-          @getLine(n).erase(0, 2) for n in [start..numLines]
-        else
-          @getLine(n).erase(0, 2) for n in [cursorLine+1..numLines] if numLines > cursorLine
+        @eraseData(parseInt(seq[0]))
       when "K" # EL - Erase in line
-        op = parseInt(seq[0])
-        @cursorLine().erase(@cursor.character(), op)
-        @cursorLine().lastCharacter().cursor = true
+        @eraseInLine(parseInt(seq[0]))
       when "L" # IL - Insert lines
         if @scrollingRegion?
           @scrollDown() for n in [1..num]
@@ -348,7 +352,9 @@ class TerminalBuffer
         @tab(-num)
       when "a" # HPR - Character position (relative)
         @moveCursorTo([@cursor.y, @cursor.x + num])
-      # when "b" then # REP - Repeat preceeding character
+      when "b" # REP - Repeat preceeding character
+        c = @cursorLine().getCharacter(@cursor.character() - 1)
+        @insertCharacter(c.char) for n in [1..num] if c?
       when "c" # DA - Send device attribute
         @view.input(TerminalBuffer.escapeSequence("?6c"))
       when "d" # VPA - Move cursor to line (absolute)

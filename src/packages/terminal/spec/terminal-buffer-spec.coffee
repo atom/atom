@@ -231,6 +231,11 @@ fdescribe 'Terminal Buffer', ->
         buffer.moveCursorTo([1,2])
         buffer.input(TerminalBuffer.escapeSequence("2@"))
         expect(buffer.text()).toBe("a#{String.fromCharCode(0)}#{String.fromCharCode(0)}b\nc\n")
+    describe "repeat character", ->
+      it "inserts the last visible character again", ->
+        buffer.input("a")
+        buffer.input(TerminalBuffer.escapeSequence("2b"))
+        expect(buffer.text()).toBe("aaa\n")
     describe "delete character", ->
       it "deletes the character under the cursor", ->
         buffer.input("abcde")
