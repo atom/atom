@@ -25,7 +25,7 @@ namespace v8_extensions {
     const char* methodNames[] = {
       "absolute", "writeToPasteboard", "readFromPasteboard", "quit",
       "watchPath", "unwatchPath", "getWatchedPaths", "unwatchAllPaths",
-      "moveToTrash", "reload", "md5ForPath", "getPlatform", "setWindowState",
+      "moveToTrash", "reload", "getPlatform", "setWindowState",
       "getWindowState", "isMisspelled", "getCorrectionsForMisspelling"
     };
 
@@ -158,23 +158,6 @@ namespace v8_extensions {
     }
     else if (name == "reload") {
       CefV8Context::GetCurrentContext()->GetBrowser()->ReloadIgnoreCache();
-    }
-    else if (name == "md5ForPath") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-      unsigned char outputData[CC_MD5_DIGEST_LENGTH];
-
-      NSData *inputData = [[NSData alloc] initWithContentsOfFile:path];
-      CC_MD5([inputData bytes], [inputData length], outputData);
-      [inputData release];
-
-      NSMutableString *hash = [[NSMutableString alloc] init];
-
-      for (NSUInteger i = 0; i < CC_MD5_DIGEST_LENGTH; i++) {
-        [hash appendFormat:@"%02x", outputData[i]];
-      }
-
-      retval = CefV8Value::CreateString([hash UTF8String]);
-      return true;
     }
     else if (name == "getPlatform") {
       retval = CefV8Value::CreateString("mac");
