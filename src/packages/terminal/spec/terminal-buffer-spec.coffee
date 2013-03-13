@@ -388,7 +388,19 @@ fdescribe 'Terminal Buffer', ->
         buffer.input("#{TerminalBuffer.escape}]2;Window Title#{TerminalBuffer.bell}")
         expect(buffer.title).toBe("Window Title")
         expect(buffer.text()).toBe("\n")
-
+    describe "status report", ->
+      it "reports the terminal is ok", ->
+        buffer.input(TerminalBuffer.escapeSequence("5n"))
+        expect(view.data[0]).toBe(TerminalBuffer.escapeSequence("0n"))
+      it "reports the cursor position", ->
+        buffer.moveCursorTo([5,3])
+        buffer.input(TerminalBuffer.escapeSequence("6n"))
+        expect(view.data[0]).toBe(TerminalBuffer.escapeSequence("5;3R"))
+        buffer.input(TerminalBuffer.escapeSequence("?6n"))
+        expect(view.data[0]).toBe(TerminalBuffer.escapeSequence("5;3R"))
+      it "reports that a printer is not ready", ->
+        buffer.input(TerminalBuffer.escapeSequence("?15n"))
+        expect(view.data[0]).toBe(TerminalBuffer.escapeSequence("1n"))
   describe "cursor", ->
     describe "when characters are entered", ->
       it "moves to the end of the entered text", ->

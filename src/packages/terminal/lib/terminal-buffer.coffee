@@ -434,9 +434,16 @@ class TerminalBuffer
                 @backgroundColor = i - 100
               else
                 window.console.log "Terminal: Unhandled SGR sequence #{s}#{type} #{i}"
-      # when "n" then # Device status report
-      # when "p" then # Pointer mode (>), soft reset (!), ansi mode ($)
-      # when "q" then # Load LEDs, set cursor style (sp)
+      when "n" # Device status report
+        num = parseInt(seq[0].replace(/^\?/, ''))
+        if num == 5 # Are you ok?
+          @view.input(TerminalBuffer.escapeSequence("0n"))
+        else if num == 6 # Cursor position
+          @view.input(TerminalBuffer.escapeSequence("#{@cursor.y};#{@cursor.x}R"))
+        else if num == 15 # Printer status
+          @view.input(TerminalBuffer.escapeSequence("1n"))
+      when "p" then # Ignore pointer mode (>), soft reset (!), ansi mode ($)
+      when "q" then # Ignore load LEDs, set cursor style (sp)
       when "r" # Set scrollable region
         bottom = parseInt(seq[1]) || 1
         @setScrollingRegion([num,bottom])
