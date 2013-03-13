@@ -3,6 +3,7 @@ _ = require 'underscore'
 module.exports =
 class TerminalBuffer
   @enter: String.fromCharCode(10)
+  @carriageReturn: String.fromCharCode(13)
   @backspace: String.fromCharCode(8)
   @bell: String.fromCharCode(7)
   @escape: String.fromCharCode(27)
@@ -21,6 +22,7 @@ class TerminalBuffer
     @ignoreEscapeSequence = false
     @endWithBell = false
     @autowrap = false
+    @insertmode = false
     @resetSGR()
     @cursor = new TerminalCursor(this)
     @addLine(false)
@@ -219,7 +221,10 @@ class TerminalBuffer
         @addLine()
     if !@cursorLine()
       @cursor.y = @lastLine().number
-    @cursorLine().insertAt(c, @cursor.character())
+    if !@insertmode
+      @cursorLine().insertAt(c, @cursor.character())
+    else
+      @cursorLine().appendAt(c, @cursor.character())
     @cursor.x += 1
     @updatedCursor()
   input: (text) ->
@@ -263,7 +268,7 @@ class TerminalBuffer
         when "8" # DECRC - Restore cursor
           @cursor.restore()
           break
-        when "9" then # DECFI - Forward index
+        when "9" then # Ignore DECFI - Forward index
         when "=" then # DECKPAM - Application keypad
         when ">" then # DECKPNM - Normal keypad
         when "D" then # DEL - Index
@@ -391,8 +396,13 @@ class TerminalBuffer
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
           when 0 then # Ignore
+          when 2 then # AM - Keyboard action mode
+          when 4 # IRM - Insert mode
+            @insertmode = true
           when 7 # DECAWM - Autowrap
             @autowrap = true
+          # when 20 # LNM - Automatic newline
+          #   @automaticnewline = true
           when 25 # DECTCEM - Show cursor
             @cursor.show = true
             @cursor.moved()
@@ -410,8 +420,13 @@ class TerminalBuffer
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
           when 0 then # Ignore
+          when 2 then # AM - Keyboard action mode
+          when 4 # IRM - Replace mode
+            @insertmode = false
           when 7 # DECAWM - Autowrap
             @autowrap = false
+          # when 20 # LNM - Normal linefeed
+          #   @automaticnewline = false
           when 25 # DECTCEM - Hide cursor
             @cursor.show = false
             @cursor.moved()

@@ -377,6 +377,21 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.text()).toBe("alt\n")
         buffer.input(TerminalBuffer.escapeSequence("?47l"))
         expect(buffer.text()).toBe("abcdef\n")
+    describe "modes", ->
+      describe "insert", ->
+        it "inserts characters", ->
+          buffer.input("abc")
+          buffer.moveCursorTo([1,2])
+          buffer.input(TerminalBuffer.escapeSequence("4h"))
+          buffer.input("z")
+          expect(buffer.text()).toBe("azbc\n")
+      describe "replace", ->
+        it "replaces existing characters", ->
+          buffer.input("abc")
+          buffer.moveCursorTo([1,2])
+          buffer.input(TerminalBuffer.escapeSequence("4l"))
+          buffer.input("z")
+          expect(buffer.text()).toBe("azc\n")
     describe "dec private mode", ->
       describe "autowrap", ->
         it "enables autowrap", ->

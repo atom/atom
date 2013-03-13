@@ -36,7 +36,7 @@ class TerminalView extends ScrollView
     @subscribe $(window), 'resize', =>
       @updateTerminalSize()
 
-    rootView.command "terminal:enter", => @input(TerminalBuffer.enter)
+    rootView.command "terminal:enter", => @input("#{TerminalBuffer.carriageReturn}")
     rootView.command "terminal:delete", => @input(TerminalBuffer.backspace)
     rootView.command "terminal:escape", => @input(TerminalBuffer.escape)
     rootView.command "terminal:tab", => @input(TerminalBuffer.tab)
