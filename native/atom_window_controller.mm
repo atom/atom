@@ -54,13 +54,22 @@
   _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
 
-  NSArray *paths = [NSArray arrayWithObjects:@"spec", @"benchmark",
-                    @"src/stdlib", @"src/app", @"src/packages", @"src",
-                    @"vendor/packages", @"vendor", @"static", @"themes",
-                    @"node_modules", nil];
+  NSMutableArray *paths = [NSMutableArray arrayWithObjects:
+                            @"src/stdlib",
+                            @"src/app",
+                            @"src/packages",
+                            @"src",
+                            @"vendor/packages",
+                            @"vendor",
+                            @"static",
+                            @"themes",
+                            @"node_modules",
+                            nil];
   NSMutableArray *resourcePaths = [[NSMutableArray alloc] init];
 
   if (_runningSpecs) {
+    [paths insertObject:@"benchmark" atIndex:0];
+    [paths insertObject:@"spec" atIndex:0];
     NSString *fixturePackagesDirectory = [NSString stringWithFormat:@"%@/spec/fixtures/packages", _resourcePath];
     [resourcePaths addObject:fixturePackagesDirectory];
   }
