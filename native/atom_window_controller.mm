@@ -59,7 +59,6 @@
                             @"src/app",
                             @"src/packages",
                             @"src",
-                            @"vendor/packages",
                             @"vendor",
                             @"static",
                             @"themes",
