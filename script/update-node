@@ -5,7 +5,7 @@ set -e
 cd "$(dirname $0)/.."
 
 # Test whether we need update.
-if [ -d "node/node" ]; then
+if [ -f "node/node" ]; then
   exit 0
 fi
 
