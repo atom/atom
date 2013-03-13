@@ -1,3 +1,4 @@
+require 'underscore-extensions'
 _ = require 'underscore'
 
 module.exports =

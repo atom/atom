@@ -9,6 +9,7 @@ class PaneContainer extends View
   @deserialize: ({root}) ->
     container = new PaneContainer
     container.append(deserialize(root)) if root
+    container.removeEmptyPanes()
     container
 
   @content: ->
@@ -61,6 +62,23 @@ class PaneContainer extends View
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
 
+  confirmClose: ->
+    deferred = $.Deferred()
+    modifiedItems = []
+    for pane in @getPanes()
+      modifiedItems.push(item) for item in pane.getItems() when item.isModified?()
+
+    cancel = => deferred.reject()
+    saveNextModifiedItem = =>
+      if modifiedItems.length == 0
+        deferred.resolve()
+      else
+        item = modifiedItems.pop()
+        @paneAtIndex(0).promptToSaveItem item, saveNextModifiedItem, cancel
+
+    saveNextModifiedItem()
+    deferred.promise()
+
   getPanes: ->
     @find('.pane').views()
 
@@ -92,6 +110,10 @@ class PaneContainer extends View
     if root = @getRoot()
       root.css(width: '100%', height: '100%', top: 0, left: 0)
       root.adjustDimensions()
+
+  removeEmptyPanes: ->
+    for pane in @getPanes() when pane.getItems().length == 0
+      pane.remove()
 
   afterAttach: ->
     @adjustPaneDimensions()

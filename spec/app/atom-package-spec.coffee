@@ -3,18 +3,31 @@ AtomPackage = require 'atom-package'
 fs = require 'fs'
 
 describe "AtomPackage", ->
+  [packageMainModule, pack] = []
+
+  beforeEach ->
+    pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-activation-events'))
+    pack.load()
+
   describe ".load()", ->
+    describe "if the package's metadata has a `deferredDeserializers` array", ->
+      it "requires the package's main module attempting to use deserializers named in the array", ->
+        expect(pack.mainModule).toBeNull()
+        object = deserialize(deserializer: 'Foo', data: "Hello")
+        expect(object.constructor.name).toBe 'Foo'
+        expect(object.data).toBe 'Hello'
+        expect(pack.mainModule).toBeDefined()
+        expect(pack.mainModule.activateCallCount).toBe 0
+
+  describe ".activate()", ->
     beforeEach ->
       window.rootView = new RootView
+      packageMainModule = require 'fixtures/packages/package-with-activation-events/main'
+      spyOn(packageMainModule, 'activate').andCallThrough()
 
     describe "when the package metadata includes activation events", ->
-      [packageMainModule, pack] = []
-
       beforeEach ->
-        pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-activation-events'))
-        packageMainModule = require 'fixtures/packages/package-with-activation-events/main'
-        spyOn(packageMainModule, 'activate').andCallThrough()
-        pack.load()
+        pack.activate()
 
       it "defers activating the package until an activation event bubbles to the root view", ->
         expect(packageMainModule.activate).not.toHaveBeenCalled()
@@ -44,6 +57,7 @@ describe "AtomPackage", ->
 
           expect(packageMainModule.activate).not.toHaveBeenCalled()
           pack.load()
+          pack.activate()
           expect(packageMainModule.activate).toHaveBeenCalled()
 
       describe "when the package doesn't have an index.coffee", ->
