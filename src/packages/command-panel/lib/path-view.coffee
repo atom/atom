@@ -5,18 +5,16 @@ $ = require 'jquery'
 
 module.exports =
 class PathView extends View
-  @content: ({path, operations, previewList} = {}) ->
+  @content: ({path, previewList} = {}) ->
     classes = ['path']
     classes.push('readme') if fs.isReadmePath(path)
     @li class: classes.join(' '), =>
       @div outlet: 'pathDetails', class: 'path-details', =>
         @span class: 'path-name', path
-        @span "(#{operations.length})", class: 'path-match-number'
+        @span outlet: 'description', class: 'path-match-number'
       @ul outlet: 'matches', class: 'matches', =>
-        for operation in operations
-          @subview "operation#{operation.index}", new OperationView({operation, previewList})
 
-  initialize: ({@previewList}) ->
+  initialize: ({operations, @previewList}) ->
     @pathDetails.on 'mousedown', => @toggle(true)
     @subscribe @previewList, 'command-panel:collapse-result', =>
       @collapse(true) if @isSelected()
@@ -26,6 +24,12 @@ class PathView extends View
       if @hasClass('selected')
         @toggle(true)
         false
+
+    @addOperation(operation) for operation in operations
+
+  addOperation: (operation) ->
+    @matches.append new OperationView({operation, @previewList})
+    @description.text("(#{@matches.find('li').length})")
 
   isSelected: ->
     @hasClass('selected') or @find('.selected').length
