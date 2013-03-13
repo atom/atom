@@ -39,7 +39,7 @@ class FuzzyFinderView extends SelectList
     $$ ->
       @li =>
         if git?
-          status = git.statuses[project.resolve(path)]
+          status = git.statuses[path]
           if git.isStatusNew(status)
             @div class: 'status new'
           else if git.isStatusModified(status)
@@ -61,7 +61,7 @@ class FuzzyFinderView extends SelectList
 
         @span fs.base(path), class: "file label #{typeClass}"
         if folder = fs.directory(path)
-          @span " - #{folder}/", class: 'directory'
+          @span " - #{project.relativize(folder)}/", class: 'directory'
 
   openPath: (path) ->
     rootView.open(path, {@allowActiveEditorChange}) if path
@@ -76,7 +76,7 @@ class FuzzyFinderView extends SelectList
 
   confirmed : (path) ->
     return unless path.length
-    if fs.isFile(project.resolve(path))
+    if fs.isFile(path)
       @cancel()
       @openPath(path)
     else
@@ -133,11 +133,10 @@ class FuzzyFinderView extends SelectList
             @miniEditor.setText(currentWord)
 
   populateGitStatusPaths: ->
-    projectRelativePaths = []
-    for path, status of git.statuses
-      continue unless fs.isFile(path)
-      projectRelativePaths.push(project.relativize(path))
-    @setArray(projectRelativePaths)
+    paths = []
+    paths.push(path) for path, status of git.statuses when fs.isFile(path)
+
+    @setArray(paths)
 
   populateProjectPaths: (options = {}) ->
     if @projectPaths?.length > 0
@@ -179,17 +178,10 @@ class FuzzyFinderView extends SelectList
       else
         -(editSession.lastOpened or 1)
 
-    @paths = _.map editSessions, (editSession) ->
-      project.relativize editSession.getPath()
+    @paths = []
+    @paths.push(editSession.getPath()) for editSession in editSessions
 
-    @setArray(@paths)
-
-  getOpenedPaths: ->
-    paths = {}
-    for editSession in project.getEditSessions()
-      path = editSession.getPath()
-      paths[path] = editSession.lastOpened if path?
-    paths
+    @setArray(_.uniq(@paths))
 
   detach: ->
     super
