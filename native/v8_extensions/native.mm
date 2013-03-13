@@ -23,7 +23,7 @@ namespace v8_extensions {
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
-      "absolute", "writeToPasteboard", "readFromPasteboard", "quit",
+      "writeToPasteboard", "readFromPasteboard", "quit",
       "watchPath", "unwatchPath", "getWatchedPaths", "unwatchAllPaths",
       "moveToTrash", "reload", "getPlatform", "setWindowState",
       "getWindowState", "isMisspelled", "getCorrectionsForMisspelling"
@@ -47,17 +47,7 @@ namespace v8_extensions {
                        CefRefPtr<CefV8Value>& retval,
                        CefString& exception) {
     @autoreleasepool {
-    if (name == "absolute") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-
-      path = [path stringByStandardizingPath];
-      if ([path characterAtIndex:0] == '/') {
-        retval = CefV8Value::CreateString([path UTF8String]);
-      }
-
-      return true;
-    }
-    else if (name == "writeToPasteboard") {
+    if (name == "writeToPasteboard") {
       NSString *text = stringFromCefV8Value(arguments[0]);
 
       NSPasteboard *pb = [NSPasteboard generalPasteboard];

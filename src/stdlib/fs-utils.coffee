@@ -10,7 +10,21 @@ module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (path) ->
-    $native.absolute(path)
+    return null unless path?
+
+    if path.indexOf('~/') is 0
+      if process.platform is 'win32'
+        home = process.env.USERPROFILE
+      else
+        home = process.env.HOME
+      path = "#{home}#{path.substring(1)}"
+    try
+      path = fs.realpathSync(path)
+      if process.platform is 'darwin' and path.indexOf('/private/') is 0
+        path = path.substring(8)
+      path
+    catch e
+      path
 
   # Return the basename of the given path. That is the path with
   # any leading directory components removed. If specified, also
