@@ -43,14 +43,6 @@ class PreviewList extends ScrollView
 
     @show()
     @find('.operation:first').addClass('selected')
-    @setLineNumberWidth()
-
-  setLineNumberWidth: ->
-    lineNumbers = @find('.line-number')
-    maxWidth = 0
-    lineNumbers.each (index, element) ->
-      maxWidth = Math.max($(element).outerWidth(), maxWidth)
-    lineNumbers.width(maxWidth)
 
   selectNextOperation: ->
     selectedView = @find('.selected').view()
