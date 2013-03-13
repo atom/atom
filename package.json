@@ -10,7 +10,8 @@
     "git-utils": "0.3.0",
     "underscore": "1.4.4",
     "d3": "3.0.8",
-    "coffee-cache": "0.1.0"
+    "coffee-cache": "0.1.0",
+    "pegjs": "0.7.0"
   },
 
   "scripts": {
