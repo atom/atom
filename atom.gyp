@@ -144,6 +144,13 @@
                 'cef/Resources',
               ],
             },
+            {
+              # Copy node binary for worker process support.
+              'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Resources',
+              'files': [
+                'node/node',
+              ],
+            },
           ],
           'postbuilds': [
             {

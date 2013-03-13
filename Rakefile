@@ -12,7 +12,7 @@ task :build => "create-xcode-project" do
 end
 
 desc "Create xcode project from gyp file"
-task "create-xcode-project" => "update-cef" do
+task "create-xcode-project" => ["update-cef", "update-node"] do
   `rm -rf atom.xcodeproj`
   `script/generate-sources-gypi`
   `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
@@ -24,6 +24,11 @@ task "update-cef" => "bootstrap" do
   Dir.glob('cef/*.gypi').each do |filename|
     `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
   end
+end
+
+desc "Download node binary"
+task "update-node" do
+  `script/update-node`
 end
 
 desc "Download debug symbols for CEF"
