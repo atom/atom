@@ -51,12 +51,20 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
-    @exists(path) and fs.statSync(path).isDirectory()
+    return false unless path?.length > 0
+    try
+      fs.statSync(path).isDirectory()
+    catch e
+      false
 
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    @exists(path) and fs.statSync(path).isFile()
+    return false unless path?.length > 0
+    try
+      path? and fs.statSync(path).isFile()
+    catch e
+      false
 
   # Returns an array with all the names of files contained
   # in the directory path.
