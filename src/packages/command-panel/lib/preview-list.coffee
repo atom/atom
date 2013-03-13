@@ -37,7 +37,6 @@ class PreviewList extends ScrollView
     @operations = operations
     @empty()
 
-    operation.index = index for operation, index in operations
     operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
     for path, operations of operationsByPath
       @append new PathView({path, operations, previewList: this})
