@@ -77,7 +77,7 @@ describe "fs", ->
       fs.makeTree("/tmp/a/b/c")
       expect(fs.exists("/tmp/a/b/c")).toBeTruthy()
 
-  describe ".traverseTree(path, onFile, onDirectory)", ->
+  describe ".traverseTreeSync(path, onFile, onDirectory)", ->
     fixturesDir = null
 
     beforeEach ->
@@ -88,7 +88,7 @@ describe "fs", ->
       onPath = (path) ->
         paths.push(fs.join(fixturesDir, path))
         true
-      fs.traverseTree fixturesDir, onPath, onPath
+      fs.traverseTreeSync fixturesDir, onPath, onPath
       expect(paths).toEqual fs.listTree(fixturesDir)
 
     it "does not recurse into a directory if it is pruned", ->
@@ -99,7 +99,7 @@ describe "fs", ->
         else
           paths.push(path)
           true
-      fs.traverseTree fixturesDir, onPath, onPath
+      fs.traverseTreeSync fixturesDir, onPath, onPath
 
       expect(paths.length).toBeGreaterThan 0
       for path in paths
@@ -112,8 +112,8 @@ describe "fs", ->
       paths = []
       onPath = (path) -> paths.push(path)
 
-      fs.traverseTree(fs.join(fixturesDir, 'symlink-to-dir'), onSymlinkPath, onSymlinkPath)
-      fs.traverseTree(fs.join(fixturesDir, 'dir'), onPath, onPath)
+      fs.traverseTreeSync(fs.join(fixturesDir, 'symlink-to-dir'), onSymlinkPath, onSymlinkPath)
+      fs.traverseTreeSync(fs.join(fixturesDir, 'dir'), onPath, onPath)
 
       expect(symlinkPaths).toEqual(paths)
 

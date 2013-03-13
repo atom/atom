@@ -27,7 +27,7 @@ class LoadPathsTask
     onDone = =>
       @callback(paths) unless @aborted
 
-    fs.traverseTreeAsync(rootPath, onFile, onDirectory, onDone)
+    fs.traverseTree(rootPath, onFile, onDirectory, onDone)
 
   abort: ->
     @aborted = true

@@ -70,7 +70,7 @@ class Project
     paths = []
     onFile = (path) => paths.push(path) unless @isPathIgnored(path)
     onDirectory = -> true
-    fs.traverseTree(@getPath(), onFile, onDirectory)
+    fs.traverseTreeSync(@getPath(), onFile, onDirectory)
     deferred.resolve(paths)
     deferred.promise()
 

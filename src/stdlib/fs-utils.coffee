@@ -92,7 +92,7 @@ module.exports =
       onPath = (path) =>
         paths.push(@join(rootPath, path))
         false
-    @traverseTree(rootPath, onPath, onPath)
+    @traverseTreeSync(rootPath, onPath, onPath)
     paths
 
   listTree: (rootPath) ->
@@ -100,7 +100,7 @@ module.exports =
     onPath = (path) =>
       paths.push(@join(rootPath, path))
       true
-    @traverseTree(rootPath, onPath, onPath)
+    @traverseTreeSync(rootPath, onPath, onPath)
     paths
 
   move: (source, target) ->
@@ -152,7 +152,7 @@ module.exports =
       @makeTree(@directory(path))
       @makeDirectory(path)
 
-  traverseTree: (rootPath, onFile, onDirectory) ->
+  traverseTreeSync: (rootPath, onFile, onDirectory) ->
     return unless @isDirectory(rootPath)
 
     traverse = (rootPath, prefix, onFile, onDirectory) =>
@@ -168,7 +168,7 @@ module.exports =
 
     traverse(rootPath, '', onFile, onDirectory)
 
-  traverseTreeAsync: (rootPath, onFile, onDirectory, onDone) ->
+  traverseTree: (rootPath, onFile, onDirectory, onDone) ->
     pathCounter = 0
     startPath = -> pathCounter++
     endPath = -> onDone() if --pathCounter is 0

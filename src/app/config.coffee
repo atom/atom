@@ -39,14 +39,14 @@ class Config
       templatePath = fs.join(templateConfigDirPath, path)
       configPath = fs.join(@configDirPath, path)
       fs.write(configPath, fs.read(templatePath))
-    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+    fs.traverseTreeSync(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
     configThemeDirPath = fs.join(@configDirPath, 'themes')
     onThemeDirFile = (path) ->
       templatePath = fs.join(bundledThemesDirPath, path)
       configPath = fs.join(configThemeDirPath, path)
       fs.write(configPath, fs.read(templatePath))
-    fs.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
+    fs.traverseTreeSync(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
   load: ->
     @initializeConfigDirectory()
