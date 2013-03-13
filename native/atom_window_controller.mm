@@ -61,7 +61,6 @@
                             @"src",
                             @"vendor",
                             @"static",
-                            @"themes",
                             @"node_modules",
                             nil];
   NSMutableArray *resourcePaths = [[NSMutableArray alloc] init];
