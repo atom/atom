@@ -74,6 +74,28 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.cursor.x).toBe(1)
         buffer.input('\t')
         expect(buffer.cursor.x).toBe(9)
+      it "moves the cursor to the next defined tabstop", ->
+        buffer.tabstops = [3, 6]
+        expect(buffer.cursor.x).toBe(1)
+        buffer.input('\t')
+        expect(buffer.cursor.x).toBe(3)
+        buffer.input('\t')
+        expect(buffer.cursor.x).toBe(6)
+        buffer.input('\t')
+        expect(buffer.cursor.x).toBe(9)
+        buffer.input('\t')
+        expect(buffer.cursor.x).toBe(17)
+      it "moves the cursor to the previous defined tabstop", ->
+        buffer.tabstops = [3, 6]
+        buffer.moveCursorTo([1,12])
+        buffer.input(TerminalBuffer.escapeSequence("Z"))
+        expect(buffer.cursor.x).toBe(6)
+        buffer.input(TerminalBuffer.escapeSequence("Z"))
+        expect(buffer.cursor.x).toBe(3)
+        buffer.input(TerminalBuffer.escapeSequence("Z"))
+        expect(buffer.cursor.x).toBe(1)
+        buffer.input(TerminalBuffer.escapeSequence("Z"))
+        expect(buffer.cursor.x).toBe(1)
       it "moves the cursor by one or more characters", ->
         buffer.input('abcdefg\t')
         expect(buffer.cursor.x).toBe(9)
@@ -96,6 +118,11 @@ fdescribe 'Terminal Buffer', ->
           buffer.moveCursorTo([1,6])
           buffer.input("#{TerminalBuffer.escape}8")
           expect(buffer.cursor.x).toBe(4)
+      describe "set tab stop", ->
+        it "creates a tab stop at the current position", ->
+          buffer.input("  #{TerminalBuffer.escape}H\n")
+          buffer.input("\t")
+          expect(buffer.cursor.x).toBe(3)
     describe "cursor movement", ->
       describe "forward", ->
         it "moves the cursor to the right", ->
@@ -178,6 +205,14 @@ fdescribe 'Terminal Buffer', ->
           buffer.input("\t\t\t")
           buffer.input(TerminalBuffer.escapeSequence("2Z"))
           expect(buffer.cursor.x).toBe(9)
+        it "clears tab stop in current column", ->
+          buffer.tabstops = [1,3,4]
+          buffer.input(TerminalBuffer.escapeSequence("g"))
+          expect(buffer.tabstops).toEqual([3,4])
+        it "clears all tab stops", ->
+          buffer.tabstops = [1,3,4]
+          buffer.input(TerminalBuffer.escapeSequence("3g"))
+          expect(buffer.tabstops).toEqual([])
     describe "set screen region", ->
       it "creates a new screen region", ->
         expect(buffer.scrollingRegion).toBeFalsy()

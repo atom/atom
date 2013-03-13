@@ -27,6 +27,7 @@ class TerminalBuffer
     @redrawNeeded = true
     @title = ""
     @size = [24, 80]
+    @tabstops = []
   setSize: (size) ->
     @size = size
   resetSGR: () ->
@@ -176,7 +177,24 @@ class TerminalBuffer
     @cursor.y = 1 if @cursor.y < 1
     @updatedCursor()
   tab: (direction=1) ->
-    if direction > 0
+    found = false
+    if @tabstops.length > 0
+      if direction > 0
+        for stop in @tabstops
+          if stop > @cursor.x
+            @cursor.x = stop
+            found = true
+            break
+      else
+        stops = _.clone(@tabstops)
+        stops.reverse()
+        for stop in stops
+          if stop < @cursor.x
+            @cursor.x = stop
+            found = true
+            break
+    if found
+    else if direction > 0
       @cursor.x += 8 - ((@cursor.x - 1) % 8) for n in [1..direction]
     else
       @cursor.x -= 8 - ((@cursor.x - 1) % 8) for n in [1..-direction]
@@ -251,7 +269,9 @@ class TerminalBuffer
         when "D" then # DEL - Index
         when "E" then # NEL - Next line
         when "F" then # Cursor to lower left
-        when "H" then # HTS - Tab set
+        when "H" # HTS - Tab set
+          @tabstops.push(@cursor.x)
+          @tabstops.sort()
         when "M" then # RI - Reverse index
         when "N", "O" then # SS2, SS3 - Ignore charset
         when "P" then # DCS - Device control string
@@ -361,7 +381,12 @@ class TerminalBuffer
         @moveCursorTo([num, @cursor.x])
       when "e" # VPR - Move cursor to line (relative)
         @moveCursorTo([@cursor.y + num, @cursor.x])
-      # when "g" then # TBC - Tab clear
+      when "g" # TBC - Tab clear
+        num = parseInt(seq[0]) || 0
+        if num == 0 # Clear tabstop in column
+          @tabstops = _.without(@tabstops, @cursor.x)
+        else if num == 3 # Clear all tabstops
+          @tabstops = []
       when "h" # SM - Set mode
         num = parseInt(seq[0].replace(/^\?/, ''))
         switch num
