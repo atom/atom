@@ -11,6 +11,7 @@ class PreviewList extends ScrollView
     @ol class: 'preview-list', tabindex: -1
 
   operations: null
+  viewsForPath: null
 
   initialize: ->
     super
@@ -36,13 +37,22 @@ class PreviewList extends ScrollView
     @destroyOperations() if @operations
     @operations = operations
     @empty()
+    @viewsForPath = {}
 
-    operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
-    for path, operations of operationsByPath
-      @append new PathView({path, operations, previewList: this})
+    for operation in operations
+      pathView = @pathViewForPath(operation.getPath())
+      pathView.addOperation(operation)
 
     @show()
     @find('.operation:first').addClass('selected')
+
+  pathViewForPath: (path) ->
+    pathView = @viewsForPath[path]
+    if not pathView
+      pathView = new PathView({path: path, previewList: this})
+      @viewsForPath[path] = pathView
+      @append(pathView)
+    pathView
 
   selectNextOperation: ->
     selectedView = @find('.selected').view()
