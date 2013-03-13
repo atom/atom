@@ -285,7 +285,7 @@ class TerminalBuffer
         @updatedCursor()
       # when "E" then # Cursor next line
       # when "F" then # Cursor preceding line
-      when "G" # Move cursor to position in line
+      when "G", "`" # Move cursor to position in line
         num = parseInt(seq[0]) || 1
         @moveCursorTo([@cursor.y, num])
       when "H", "f" # Cursor position
@@ -326,23 +326,30 @@ class TerminalBuffer
           @removeLine(@cursor.line(), num)
       when "P" # Delete characters
         num = parseInt(seq[0])
-        @cursorLine().eraseCharacters(@cursor.character(), num)
+        @cursorLine().deleteCharacters(@cursor.character(), num)
       when "S" # Scroll up
         num = parseInt(seq[0]) || 1
         @scrollUp() for n in [1..num]
       when "T" # Scroll down
         num = parseInt(seq[0]) || 1
         @scrollDown() for n in [1..num]
-      # when "X" then # Erase characters
-      # when "Z" then # Number of backwards tab stops
-      # when "`" then # Character position relative
-      # when "a" then # Character position absolute
+      when "X" # Erase characters
+        num = parseInt(seq[0]) || 1
+        @cursorLine().eraseCharacters(@cursor.character(), num)
+      when "Z" # Backwards tab
+        num = parseInt(seq[0]) || 1
+        @cursor.x -= 8 - ((@cursor.x - 1) % 8) for n in [1..num]
+      when "a" # Character position (relative)
+        num = parseInt(seq[0]) || 1
+        @moveCursorTo([@cursor.y, @cursor.x + num])
       # when "b" then # Repeat preceeding character
       # when "c" then # Send device attribute
       when "d" # Move cursor to line (absolute)
         num = parseInt(seq[0]) || 1
         @moveCursorTo([num, @cursor.x])
-      # when "d" then # Move cursor to line (relative)
+      when "e" # Move cursor to line (relative)
+        num = parseInt(seq[0]) || 1
+        @moveCursorTo([@cursor.y + num, @cursor.x])
       # when "g" then # Tab clear
       when "h"
         num = parseInt(seq[0].replace(/^\?/, ''))
@@ -489,9 +496,11 @@ class TerminalBufferLine
         @characters = _.compact(@characters)
         @characters.push(@emptyChar())
     @setDirty()
+  deleteCharacters: (start,num) ->
+    @characters.splice(start, num)
+    @setDirty()
   eraseCharacters: (start, num) ->
-    @characters[n] = null for n in [start..(start+num-1)]
-    @characters = _.compact(@characters)
+    @characters[n].resetToBlank() for n in [start..(start+num-1)]
     @setDirty()
   length: () ->
     @characters.length

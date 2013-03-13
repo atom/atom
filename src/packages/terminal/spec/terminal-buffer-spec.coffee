@@ -139,11 +139,29 @@ fdescribe 'Terminal Buffer', ->
           buffer.input(TerminalBuffer.escapeSequence("3d"))
           expect(buffer.cursor.y).toBe(3)
           expect(buffer.cursor.x).toBe(1)
+        it "moves cursor relative to current line", ->
+          buffer.moveCursorTo([3,1])
+          buffer.input(TerminalBuffer.escapeSequence("3e"))
+          expect(buffer.cursor.y).toBe(6)
+          expect(buffer.cursor.x).toBe(1)
       describe "set cursor character", ->
         it "moves cursor in line", ->
           buffer.input(TerminalBuffer.escapeSequence("4G"))
           expect(buffer.cursor.y).toBe(1)
           expect(buffer.cursor.x).toBe(4)
+          buffer.input(TerminalBuffer.escapeSequence("2`"))
+          expect(buffer.cursor.y).toBe(1)
+          expect(buffer.cursor.x).toBe(2)
+        it "moves cursor relative in line", ->
+          buffer.moveCursorTo([1,10])
+          buffer.input(TerminalBuffer.escapeSequence("4a"))
+          expect(buffer.cursor.y).toBe(1)
+          expect(buffer.cursor.x).toBe(14)
+      describe "back to tab stop", ->
+        it "moves cursor to the previous tab stop", ->
+          buffer.input("\t\t\t")
+          buffer.input(TerminalBuffer.escapeSequence("2Z"))
+          expect(buffer.cursor.x).toBe(9)
     describe "set screen region", ->
       it "creates a new screen region", ->
         expect(buffer.scrollingRegion).toBeFalsy()
@@ -202,6 +220,14 @@ fdescribe 'Terminal Buffer', ->
         buffer.input("abcde")
         buffer.moveCursorTo([1,2])
         buffer.input(TerminalBuffer.escapeSequence("3P"))
+        expect(buffer.cursorLine().length()).toBe(3)
+        expect(buffer.text()).toBe("ae\n")
+    describe "erase character", ->
+      it "clears the character under the cursor", ->
+        buffer.input("abcde")
+        buffer.moveCursorTo([1,2])
+        buffer.input(TerminalBuffer.escapeSequence("3X"))
+        expect(buffer.cursorLine().length()).toBe(6)
         expect(buffer.text()).toBe("ae\n")
     describe "insert line", ->
       it "inserts a new line", ->
