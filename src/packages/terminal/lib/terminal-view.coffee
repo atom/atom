@@ -18,22 +18,22 @@ class TerminalView extends ScrollView
   initialize: ->
     super
     @buffer = new TerminalBuffer
-    @exited = false
+    @exited = true
     @readData = false
     @setTitle()
-    @size = [24,80,8,18]
+    @terminalSize = null
 
     @on 'mousedown', '.title', (e) => @resizeStarted(e)
     @on 'click', =>
       @hiddenInput.focus()
     @on 'focus', =>
       @hiddenInput.focus()
+      @updateTerminalSize()
       false
     @on 'textInput', (e) =>
       @input(e.originalEvent.data)
       false
-    @on 'pane:attached', =>
-      window.console.log 'became active'
+    @subscribe $(window), 'resize', =>
       @updateTerminalSize()
 
     rootView.command "terminal:enter", => @input(TerminalBuffer.enter)
@@ -58,7 +58,8 @@ class TerminalView extends ScrollView
       @exited = true
       @write = () -> false
     @write = @process.write
-    @setTerminalSize()
+    @exited = false
+    @updateTerminalSize()
 
   logout: ->
     @write?("", true)
@@ -66,6 +67,10 @@ class TerminalView extends ScrollView
   attach: ->
     @focus()
     @login()
+
+  show: ->
+    super
+    @login() if @exited
 
   detach: ->
     @logout()
@@ -79,6 +84,9 @@ class TerminalView extends ScrollView
     if data.length > 0
       @buffer.input(data)
       @update()
+    if !@terminalSize?
+      @updateTerminalSize()
+      @setTerminalSize()
 
   lastLine: () ->
     $(@content.find("pre").last().get(0))
@@ -90,23 +98,28 @@ class TerminalView extends ScrollView
       @content.empty()
       @updateLine(line) for line in @buffer.lines
       @buffer.renderedAll()
-      @content.scrollToTop()
+      @scrollToBottom()
       return
     @updateLine(line) for line in @buffer.getDirtyLines()
     @buffer.rendered()
-    @content.scrollToBottom()
+    @scrollToBottom()
 
   updateTerminalSize: () ->
     tester = $("<pre><span class='character'>a</span></pre>")
     @content.append(tester)
     charWidth = parseInt(tester.find("span").css("width"))
     lineHeight = parseInt(tester.css("height"))
+    window.console.log [charWidth, lineHeight]
     tester.remove()
-    windowWidth = parseInt(@content.css("width"))
-    windowHeight = parseInt(@content.css("height"))
-    @size = [Math.floor(windowHeight / lineHeight) - 1, Math.floor(windowWidth / charWidth) - 1, charWidth, lineHeight]
-    @buffer.setSize([@size[0], @size[1]])
-    window.console.log @size
+    windowWidth = parseInt(@css("width"))
+    windowHeight = parseInt(@css("height"))
+    h = Math.floor(windowHeight / lineHeight) - 1
+    w = Math.floor(windowWidth / charWidth) - 1
+    return if h <= 0 || w <= 0
+    @terminalSize = [h, w, charWidth, lineHeight]
+    @buffer.setSize([@terminalSize[0], @terminalSize[1]])
+    window.console.log @terminalSize
+    @setTerminalSize()
 
   getTitle: () -> @title
   setTitle: (text) ->
@@ -124,16 +137,10 @@ class TerminalView extends ScrollView
     $(document.body).off('mouseup', @resizeStopped)
     @setTerminalSize()
 
-  resizeTerminal: (e) =>
-    height = window.innerWidth - e.pageY
-    lineHeight = parseInt(@content.find("pre").css("height"))
-    lines = Math.floor(height / lineHeight) - 1
-    lines = 1 if lines < 1
-    @content.css(height: (lines * lineHeight) + 8)
-    @updateTerminalSize()
-
   setTerminalSize: () ->
-    @process?.winsize(@size[0], @size[1])
+    return if !@terminalSize? || @exited
+    window.console.log ['setting', @terminalSize]
+    @process?.winsize(@terminalSize[0], @terminalSize[1])
 
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")

@@ -7,7 +7,6 @@ module.exports =
       activePane = rootView.getActivePane()
       view = @createView()
       activePane.splitDown(view)
-      view.attach()
 
   createView: () ->
     new TerminalView
