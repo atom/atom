@@ -1,0 +1,63 @@
+.terminal {
+  position: relative;
+  z-index: 2;
+  overflow-y: scroll;
+  -webkit-flex: 1;
+
+  .content {
+    font-family: Inconsolata, Monaco, Courier;
+    margin: 2px;
+    position: absolute;
+    top: 0px
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    overflow-x: auto;
+  }
+
+  .hidden-input {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    opacity: 0;
+  }
+
+  .content {
+    pre {
+      display: block;
+      line-height: 1.4em;
+      height: 1.4em;
+      clear: both;
+
+      span.character {
+        display: block;
+        height: 1.4em;
+        text-align: center;
+        float: left;
+        position: relative;
+      }
+    }
+  }
+
+  .cursor {
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+    bottom: 0; right: 0;
+    width: 0.8em;
+    height: 1.4em;
+  }
+
+  .bold {
+    font-weight: bold;
+  }
+
+  .italic {
+    font-style: italic;
+  }
+
+  .underlined {
+    text-decoration: underline;
+  }
+}

@@ -142,3 +142,54 @@ describe 'Child Processes', ->
 
         runs ->
           expect(output.join('')).toBe "/Applications\n"
+
+      describe "when the interactive option is set", ->
+        it "runs the task in a pty session", ->
+          output = []
+
+          waitsForPromise ->
+            options =
+              interactive: true
+              stdout: (data) -> output.push(data)
+
+            p = ChildProcess.exec("/bin/bash", options)
+            p.write("echo $LINES && exit\n", true)
+            p
+
+          runs ->
+            expect(output.join('')).toContain("24")
+
+        it "changes the screen size", ->
+          output = []
+
+          waitsForPromise ->
+            options =
+              interactive: true
+              stdout: (data) -> output.push(data)
+
+            p = ChildProcess.exec("/bin/bash", options)
+            p.winsize(10, 10)
+            p.write("echo $LINES && exit\n", true)
+            p
+
+          runs ->
+            window.console.log output
+            expect(output.join('')).toContain("10")
+
+      describe "write to stdin", ->
+        it "returns a function for writing", ->
+          promise = ChildProcess.exec("pwd")
+          expect(typeof promise.write).toBe("function")
+        it "writes data to the process", ->
+          output = []
+
+          waitsForPromise ->
+            options =
+              stdout: (data) -> output.push(data)
+              stderr: (data) ->
+
+            p = ChildProcess.exec("cat", options)
+            p.write("hello, world\n", true)
+            p
+          runs ->
+            expect(output.join('')).toBe("hello, world\n")

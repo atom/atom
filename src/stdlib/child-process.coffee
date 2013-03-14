@@ -13,7 +13,7 @@ class ChildProccess
       options.stdout = @bufferLines(options.stdout) if options.stdout
       options.stderr = @bufferLines(options.stderr) if options.stderr
 
-    $native.exec command, options, (exitStatus, stdout, stderr) ->
+    callbacks = $native.exec command, options, (exitStatus, stdout, stderr) ->
       options.stdout?(stdout)
       options.stderr?(stderr)
       try
@@ -25,6 +25,7 @@ class ChildProccess
         console.error "In ChildProccess termination callback: ", e.message
         console.error e.stack
 
+    deferred[k] = f for k,f of callbacks
     deferred
 
   @bufferLines: (callback) ->

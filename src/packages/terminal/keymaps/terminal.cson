@@ -1,0 +1,16 @@
+'body':
+  'alt-down': 'terminal:create-split-down'
+
+'.terminal':
+  'enter': 'terminal:enter'
+  'delete': 'terminal:delete'
+  'backspace': 'terminal:backspace'
+  'escape': 'terminal:escape'
+  'tab': 'terminal:tab'
+  'meta-v': 'terminal:paste'
+  'left': 'terminal:left'
+  'right': 'terminal:right'
+  'up': 'terminal:up'
+  'down': 'terminal:down'
+  'home': 'terminal:home'
+  'end': 'terminal:end'
