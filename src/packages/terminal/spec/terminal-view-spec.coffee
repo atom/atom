@@ -10,9 +10,12 @@ fdescribe 'Terminal', ->
   [terminalView] = []
 
   beforeEach ->
-    window.rootView = new RootView(require.resolve('fixtures/sample.js'))
+    window.rootView = new RootView
+    rootView.open('sample.js')
     rootView.enableKeymap()
     terminalView = new TerminalView
+    rootView.getActivePane().addItem(terminalView)
+    rootView.getActivePane().showItem(terminalView)
 
   afterEach ->
     rootView.deactivate()
@@ -27,6 +30,7 @@ fdescribe 'Terminal', ->
         waitsFor ->
           terminalView.exited == true
         runs ->
+          terminalView.update(true)
           expect($(terminalView.content.find("pre.line-1")).text()).toBe("hello, world")
           expect(terminalView.write()).toBeFalsy()
 
@@ -34,7 +38,6 @@ fdescribe 'Terminal', ->
       terminalView.login()
       spyOn(terminalView, "logout").andCallThrough()
       terminalView.detach()
-
       waitsFor ->
         terminalView.exited == true
       runs ->
@@ -49,6 +52,7 @@ fdescribe 'Terminal', ->
   fdescribe "when a line in the buffer is dirty", ->
     it "updates the line item", ->
       terminalView.output("a")
+      terminalView.update(true)
       expect(terminalView.content.find("pre").text()).toBe("a")
     it "creates each character", ->
       terminalView.output("ab")
@@ -56,6 +60,7 @@ fdescribe 'Terminal', ->
     it "removes the line if it is not in the buffer anymore", ->
       terminalView.output("a\nb")
       terminalView.output(TerminalBuffer.escapeSequence("M"))
+      terminalView.update(true)
       expect(terminalView.buffer.numLines()).toBe(1)
       expect(terminalView.content.find("pre").size()).toBe(1)
     it "inserts the line at the right position", ->
@@ -63,9 +68,9 @@ fdescribe 'Terminal', ->
       b.input("a\nb\nc\nd\ne")
       b.renderedAll()
       b.dirtyLines = [b.getLine(2), b.getLine(4)]
-      terminalView.update()
+      terminalView.update(true)
       b.dirtyLines = [b.getLine(1), b.getLine(0), b.getLine(3)]
-      terminalView.update()
+      terminalView.update(true)
       expect(terminalView.content.find("pre").size()).toBe(5)
       expect(terminalView.content.find("pre").text()).toBe("abcde")
 
@@ -73,22 +78,27 @@ fdescribe 'Terminal', ->
       it "sets the text color", ->
         terminalView.output(TerminalBuffer.escapeSequence("31m"))
         terminalView.output("a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").hasClass("color-1")).toBe(true)
       it "sets a higher color", ->
         terminalView.output(TerminalBuffer.escapeSequence("38;5;21m"))
         terminalView.output("a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").css("color")).toBe('rgb(0, 0, 255)')
     describe "background-color", ->
       it "has no background color by default", ->
         terminalView.output("a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").hasClass("background-0")).toBe(false)
       it "sets the background color", ->
         terminalView.output(TerminalBuffer.escapeSequence("41m"))
         terminalView.output("a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").hasClass("background-1")).toBe(true)
       it "sets a higher color", ->
         terminalView.output(TerminalBuffer.escapeSequence("48;5;21m"))
         terminalView.output("a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").css("background-color")).toBe('rgb(0, 0, 255)')
     describe "reversed colors", ->
       it "swaps the foreground and background colors", ->
@@ -96,18 +106,22 @@ fdescribe 'Terminal', ->
         terminalView.output(TerminalBuffer.escapeSequence("41m"))
         terminalView.output(TerminalBuffer.escapeSequence("34m"))
         terminalView.output("a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").hasClass("color-1")).toBe(true)
         expect(terminalView.content.find("pre span").hasClass("background-4")).toBe(true)
 
     describe "text style", ->
       it "sets the style to bold", ->
         terminalView.output("#{TerminalBuffer.escapeSequence("1m")}a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").hasClass("bold")).toBe(true)
       it "sets the style to italic", ->
         terminalView.output("#{TerminalBuffer.escapeSequence("3m")}a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").hasClass("italic")).toBe(true)
       it "sets the style to underlined", ->
         terminalView.output("#{TerminalBuffer.escapeSequence("4m")}a")
+        terminalView.update(true)
         expect(terminalView.content.find("pre span").hasClass("underlined")).toBe(true)
 
   describe "when the alternate buffer is used", ->
@@ -124,6 +138,10 @@ fdescribe 'Terminal', ->
 
   describe "when the cursor position changes", ->
     it "scrolls to the cursor", ->
+      spyOn(terminalView, 'scrollToCursor')
+      terminalView.output("a\n")
+      terminalView.update(true)
+      expect(terminalView.scrollToCursor).toHaveBeenCalled()
 
   describe "when a control key combo is pressed", ->
     it "sends the control event to the process", ->

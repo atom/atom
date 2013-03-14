@@ -22,7 +22,7 @@ class TerminalView extends ScrollView
     @readData = false
     @setTitle()
     @terminalSize = null
-    @timer = false
+    @updateTimer = false
 
     @on 'mousedown', '.title', (e) => @resizeStarted(e)
     @on 'click', =>
@@ -30,8 +30,7 @@ class TerminalView extends ScrollView
     @on 'focus', =>
       @hiddenInput.focus()
       @updateTerminalSize()
-      @scrollToBottom()
-      window.console.log 'focus'
+      @scrollToCursor()
       false
     @on 'textInput', (e) =>
       @input(e.originalEvent.data)
@@ -102,18 +101,19 @@ class TerminalView extends ScrollView
       @content.empty()
       @updateLine(line) for line in @buffer.lines
       @buffer.renderedAll()
-      @scrollToBottom()
+      @scrollToCursor()
       return
-    @timer = false if ignoreTimer
-    if @timer
+    @updateTimer = false if ignoreTimer
+    if @updateTimer
       return
-    else
+    else if !ignoreTimer
       window.setTimeout (=> @update(true)), 100
+      @updateTimer = true
     lines = @buffer.getDirtyLines()
     if lines.length > 0
       @updateLine(line) for line in lines
       @buffer.rendered()
-      @scrollToBottom()
+      @scrollToCursor()
 
   updateTerminalSize: () ->
     tester = $("<pre><span class='character'>a</span></pre>")
@@ -137,14 +137,9 @@ class TerminalView extends ScrollView
   getUri: ->
     "terminal:foo"
 
-  resizeStarted: (e) =>
-    $(document.body).on('mousemove', @resizeTerminal)
-    $(document.body).on('mouseup', @resizeStopped)
-
-  resizeStopped: (e) =>
-    $(document.body).off('mousemove', @resizeTerminal)
-    $(document.body).off('mouseup', @resizeStopped)
-    @setTerminalSize()
+  scrollToCursor: () ->
+    cursor = @content.find("pre span .cursor").parent().position()
+    if cursor? then @scrollTop(cursor.top)
 
   setTerminalSize: () ->
     return if !@terminalSize? || @exited
