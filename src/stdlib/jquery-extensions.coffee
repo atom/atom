@@ -59,12 +59,9 @@ $.fn.trueHeight = ->
 $.fn.trueWidth = ->
   this[0].getBoundingClientRect().width
 
-$.fn.document = (eventDescriptions, optionalDoc) ->
-  if optionalDoc
-    eventName = eventDescriptions
-    eventDescriptions = {}
-    eventDescriptions[eventName] = optionalDoc
-
+$.fn.document = (eventName, docString) ->
+  eventDescriptions = {}
+  eventDescriptions[eventName] = docString
   @data('documentation', {}) unless @data('documentation')
   _.extend(@data('documentation'), eventDescriptions)
 
