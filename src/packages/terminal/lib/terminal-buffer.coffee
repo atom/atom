@@ -119,7 +119,7 @@ class TerminalBuffer
       topLine = @scrollingRegion.firstLine - 1
       bottomLine = topLine + @scrollingRegion.height - 1
     @lines[bottomLine].setDirty()
-    @lines.splice(bottomLine, 1)
+    @lines.splice(bottomLine, 1) if @scrollingRegion?
     @addLineAt(topLine)
     @updateLineNumbers()
   eraseData: (op) ->
@@ -281,7 +281,11 @@ class TerminalBuffer
         when "H" # HTS - Tab set
           @tabstops.push(@cursor.x)
           @tabstops.sort()
-        when "M" then # RI - Reverse index
+        when "M" # RI - Reverse index
+          if @cursor.y <= 1
+            @scrollDown()
+          else
+            @moveCursorY(-1)
         when "N", "O" then # SS2, SS3 - Ignore charset
         when "P" then # DCS - Device control string
         when "V" then # SPA - Start guarded area

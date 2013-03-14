@@ -123,6 +123,17 @@ fdescribe 'Terminal Buffer', ->
           buffer.input("  #{TerminalBuffer.escape}H\n")
           buffer.input("\t")
           expect(buffer.cursor.x).toBe(3)
+      describe "reverse index", ->
+        it "moves the cursor up", ->
+          buffer.input("a\nb\nc\nd")
+          buffer.input("#{TerminalBuffer.escape}M")
+          expect(buffer.cursor.y).toBe(3)
+        it "scrolls the screen up if the cursor is at the top", ->
+          buffer.input("a\nb")
+          buffer.input("#{TerminalBuffer.escape}M")
+          buffer.input("#{TerminalBuffer.escape}M")
+          expect(buffer.cursor.y).toBe(1)
+          expect(buffer.text()).toBe("\na\nb\n")
     describe "cursor movement", ->
       describe "forward", ->
         it "moves the cursor to the right", ->
@@ -315,7 +326,7 @@ fdescribe 'Terminal Buffer', ->
       it "moves lines down", ->
         buffer.input("a\nb")
         buffer.input(TerminalBuffer.escapeSequence("T"))
-        expect(buffer.text()).toBe("\na\n")
+        expect(buffer.text()).toBe("\na\nb\n")
       it "scrolls inside the scrolling region", ->
         buffer.input("a\nb\nc\nd")
         buffer.setScrollingRegion([2,3])

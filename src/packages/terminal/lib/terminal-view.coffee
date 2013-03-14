@@ -31,6 +31,7 @@ class TerminalView extends ScrollView
       @hiddenInput.focus()
       @updateTerminalSize()
       @scrollToBottom()
+      window.console.log 'focus'
       false
     @on 'textInput', (e) =>
       @input(e.originalEvent.data)
@@ -108,9 +109,11 @@ class TerminalView extends ScrollView
       return
     else
       window.setTimeout (=> @update(true)), 100
-    @updateLine(line) for line in @buffer.getDirtyLines()
-    @buffer.rendered()
-    @scrollToBottom()
+    lines = @buffer.getDirtyLines()
+    if lines.length > 0
+      @updateLine(line) for line in lines
+      @buffer.rendered()
+      @scrollToBottom()
 
   updateTerminalSize: () ->
     tester = $("<pre><span class='character'>a</span></pre>")
