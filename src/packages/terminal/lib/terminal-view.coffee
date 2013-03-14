@@ -37,13 +37,10 @@ class TerminalView extends ScrollView
       @input(e.originalEvent.data)
       false
     @on 'keydown', (e) =>
-      isletter = (k) -> (k.charCodeAt(0) >= "a".charCodeAt(0) && k.charCodeAt(0) <= "z".charCodeAt(0)) ||  (k.charCodeAt(0) >= "A".charCodeAt(0) && k.charCodeAt(0) <= "Z".charCodeAt(0))
       keystroke = keymap.keystrokeStringForEvent(e)
-      if keystroke.indexOf("ctrl-") == 0
-        key = keystroke.split("-")[1]
-        if key.length == 1 && isletter(key)
-          @input(TerminalBuffer.ctrl(key))
-          return false
+      if match = keystroke.match /ctrl-([a-zA-Z])/
+        @input(TerminalBuffer.ctrl(match[1]))
+        false
     @subscribe $(window), 'resize', =>
       @updateTerminalSize()
 
