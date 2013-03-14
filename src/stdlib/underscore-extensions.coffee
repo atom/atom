@@ -52,10 +52,14 @@ _.mixin
     regex = RegExp('[' + specials.join('\\') + ']', 'g')
     string.replace(regex, "\\$&");
 
-  humanizeEventName: (eventName) ->
+  humanizeEventName: (eventName, optionalDocString) ->
+    return "GitHub" if eventName.toLowerCase() is "github"
+
     if /:/.test(eventName)
       [namespace, name] = eventName.split(':')
-      return "#{@humanizeEventName(namespace)}: #{@humanizeEventName(name)}"
+      return "#{@humanizeEventName(namespace)}: #{@humanizeEventName(name, optionalDocString)}"
+
+    return optionalDocString if not _.isEmpty(optionalDocString)
 
     words = eventName.split('-')
     words.map(_.capitalize).join(' ')

@@ -59,7 +59,12 @@ $.fn.trueHeight = ->
 $.fn.trueWidth = ->
   this[0].getBoundingClientRect().width
 
-$.fn.document = (eventDescriptions) ->
+$.fn.document = (eventDescriptions, optionalDoc) ->
+  if optionalDoc
+    eventName = eventDescriptions
+    eventDescriptions = {}
+    eventDescriptions[eventName] = optionalDoc
+
   @data('documentation', {}) unless @data('documentation')
   _.extend(@data('documentation'), eventDescriptions)
 
@@ -75,12 +80,26 @@ $.fn.events = ->
   else
     events
 
-$.fn.command = (args...) ->
-  eventName = args[0]
-  documentation = {}
-  documentation[eventName] = _.humanizeEventName(eventName)
-  @document(documentation)
-  @on(args...)
+# Valid calling styles:
+# command(eventName, handler)
+# command(eventName, selector, handler)
+# command(eventName, options, handler)
+# command(eventName, selector, options, handler)
+$.fn.command = (eventName, selector, options, handler) ->
+  if not options? and not handler?
+    handler  = selector
+    selector = null
+  else if not handler?
+    handler = options
+    options = null
+
+  if selector? and typeof(selector) is 'object'
+    handler  = options
+    options  = selector
+    selector = null
+
+  @document(eventName, _.humanizeEventName(eventName, options?["xxx"]))
+  @on(eventName, selector, options?['data'], handler)
 
 $.fn.iconSize = (size) ->
   @width(size).height(size).css('font-size', size)
