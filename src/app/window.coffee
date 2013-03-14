@@ -168,3 +168,10 @@ window.measure = (description, fn) ->
   result = new Date().getTime() - start
   console.log description, result
   value
+
+window.profile = (description, fn) ->
+  measure description, ->
+    console.profile(description)
+    value = fn()
+    console.profileEnd(description)
+    value
