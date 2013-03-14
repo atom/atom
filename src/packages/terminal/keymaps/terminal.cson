@@ -38,3 +38,5 @@
   'right': 'terminal:right'
   'up': 'terminal:up'
   'down': 'terminal:down'
+  'home': 'terminal:home'
+  'end': 'terminal:end'

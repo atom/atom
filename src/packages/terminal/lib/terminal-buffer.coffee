@@ -52,10 +52,8 @@ class TerminalBuffer
       return [screenCoords[0] + (@scrollingRegion.firstLine - 1), screenCoords[1]]
     screenCoords
   setScrollingRegion: (coords) ->
-    oldRegion = @scrollingRegion
     @addLine() for n in [@numLines()+1..coords[0]] if @numLines() < coords[0]
     @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1])
-    if oldRegion? && oldRegion.height < @scrollingRegion.height then # @scrollUp() for n in [1..(@scrollingRegion.height-oldRegion.height)]
     if @numLines() < coords[1]
       @addLine() for n in [@numLines()+1..coords[1]]
     @updateLineNumbers()
@@ -208,7 +206,10 @@ class TerminalBuffer
     @updatedCursor()
   newline: (direction=1) ->
     if @scrollingRegion?
-      @cursor.y += direction
+      if direction > 0
+        @scrollUp()
+      else
+        @cursor.y += direction
       len = @numLines()
       if @cursor.y > len
         @cursor.y = len
@@ -237,6 +238,8 @@ class TerminalBuffer
     # window.console.log [c, c.charCodeAt(0), @numLines()]
     if @inEscapeSequence
       return @inputEscapeSequence(c)
+    @inputChars?= []
+    @inputChars.push(c)
     switch c.charCodeAt(0)
       when 0 then # Ignore NUL
       when 3 then # Ignore ETX
@@ -326,6 +329,12 @@ class TerminalBuffer
       @endWithBell = false
       @escapeSequence = ""
   evaluateEscapeSequence: (type, sequence) ->
+    #if @inputChars.length > 0
+    #  window.console.log _.map @inputChars, (c) ->
+    #    i = c.charCodeAt(0)
+    #    if i < 32 then i
+    #    else c
+    #@inputChars = []
     # window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell

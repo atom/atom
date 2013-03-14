@@ -53,6 +53,8 @@ class TerminalView extends ScrollView
     rootView.command "terminal:right", => @input(TerminalBuffer.escapeSequence("C"))
     rootView.command "terminal:up", => @input(TerminalBuffer.escapeSequence("A"))
     rootView.command "terminal:down", => @input(TerminalBuffer.escapeSequence("B"))
+    rootView.command "terminal:home", => @input(TerminalBuffer.ctrl("a"))
+    rootView.command "terminal:end", => @input(TerminalBuffer.ctrl("e"))
 
   login: ->
     @process = ChildProcess.exec "/bin/bash", interactive: true, cwd: (project.getPath() || "~"), stdout: (data) =>
@@ -156,6 +158,7 @@ class TerminalView extends ScrollView
     l = @content.find("pre.line-#{line.number}")
     if !_.contains(@buffer.lines, line)
       l.remove() if line.number >= @buffer.numLines()
+      return null
     else if !l.size()
       l = $("<pre>").addClass("line-#{line.number}")
       if line.number < 1
@@ -174,12 +177,12 @@ class TerminalView extends ScrollView
           @content.prepend(l)
         else
           @content.append(l)
-    else
-      l.empty()
     l
 
   updateLine: (line) ->
     l = @insertLine(line)
+    return if !l?
+    l.empty()
     for c in line.characters
       character = $("<span>").addClass("character").text(c.char)
       character.append($("<span>").addClass("cursor")) if c.cursor
