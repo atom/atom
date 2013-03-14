@@ -28,6 +28,7 @@ class TerminalView extends ScrollView
       @hiddenInput.focus()
     @on 'focus', =>
       @hiddenInput.focus()
+      @updateTerminalSize()
       @scrollToBottom()
       false
     @on 'textInput', (e) =>
@@ -52,7 +53,6 @@ class TerminalView extends ScrollView
     rootView.command "terminal:down", => @input(TerminalBuffer.escapeSequence("B"))
 
   login: ->
-    window.console.log project.getPath()
     @process = ChildProcess.exec "/bin/bash", interactive: true, cwd: (project.getPath() || "~"), stdout: (data) =>
       @readData = true if !@readData
       @output(data)
@@ -116,7 +116,7 @@ class TerminalView extends ScrollView
     windowHeight = parseInt(@css("height"))
     h = Math.floor(windowHeight / lineHeight) - 1
     w = Math.floor(windowWidth / charWidth) - 1
-    return if h <= 0 || w <= 0
+    return if h <= 0 || w <= 0 || (@terminalSize? && @terminalSize[0] == h && @terminalSize[1] == w)
     @terminalSize = [h, w, charWidth, lineHeight]
     @buffer.setSize([@terminalSize[0], @terminalSize[1]])
     @setTerminalSize()
@@ -187,5 +187,5 @@ class TerminalView extends ScrollView
       @characterColor(character, color, bgcolor)
       for s in ['bold', 'italic', 'underlined']
         character.addClass(s) if c[s] == true
-      character.css(width: @size[2]) if c.bold
+      character.css(width: @terminalSize[2]) if c.bold && @terminalSize?
       l.append character

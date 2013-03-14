@@ -16,7 +16,7 @@ class TerminalBuffer
     base = "a".charCodeAt(0)
     base = "A".charCodeAt(0) if c.charCodeAt(0) < base
     String.fromCharCode(c.charCodeAt(0) - base + 1)
-  @escapeSequence: (sequence) -> "#{@escape}[#{sequence}"
+  @escapeSequence: (sequence,start="[") -> "#{@escape}#{start}#{sequence}"
   constructor: (@view) ->
     @lines = []
     @dirtyLines = []
