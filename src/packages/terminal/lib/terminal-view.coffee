@@ -36,6 +36,16 @@ class TerminalView extends ScrollView
     @on 'textInput', (e) =>
       @input(e.originalEvent.data)
       false
+    @on 'keydown', (e) =>
+      if event.keyIdentifier.indexOf('U+') == 0
+        hexCharCode = event.keyIdentifier[2..]
+        charCode = parseInt(hexCharCode, 16)
+        key = keymap.keyFromCharCode(charCode)
+      else
+        key = event.keyIdentifier.toUpperCase()
+      if event.ctrlKey and key isnt 'CONTROL' and key isnt 'CTRL'
+        @input(TerminalBuffer.ctrl(key))
+        return false
     @subscribe $(window), 'resize', =>
       @updateTerminalSize()
 

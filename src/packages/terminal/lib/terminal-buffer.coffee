@@ -206,12 +206,10 @@ class TerminalBuffer
     @updatedCursor()
   newline: (direction=1) ->
     if @scrollingRegion?
-      if direction > 0
-        @scrollUp()
-      else
-        @cursor.y += direction
+      @cursor.y += direction
       len = @numLines()
-      if @cursor.y > len
+      if @cursor.y >= len
+        @scrollUp()
         @cursor.y = len
       @updatedCursor()
     else
