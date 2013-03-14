@@ -80,13 +80,8 @@ $.fn.events = ->
   else
     events
 
-# Valid calling styles:
-# command(eventName, handler)
-# command(eventName, selector, handler)
-# command(eventName, options, handler)
-# command(eventName, selector, options, handler)
 $.fn.command = (eventName, selector, options, handler) ->
-  if not options? and not handler?
+  if not options?
     handler  = selector
     selector = null
   else if not handler?
@@ -94,11 +89,10 @@ $.fn.command = (eventName, selector, options, handler) ->
     options = null
 
   if selector? and typeof(selector) is 'object'
-    handler  = options
     options  = selector
     selector = null
 
-  @document(eventName, _.humanizeEventName(eventName, options?["xxx"]))
+  @document(eventName, _.humanizeEventName(eventName, options?["doc"]))
   @on(eventName, selector, options?['data'], handler)
 
 $.fn.iconSize = (size) ->
