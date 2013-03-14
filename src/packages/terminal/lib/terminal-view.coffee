@@ -52,7 +52,8 @@ class TerminalView extends ScrollView
     rootView.command "terminal:down", => @input(TerminalBuffer.escapeSequence("B"))
 
   login: ->
-    @process = ChildProcess.exec "/bin/bash", interactive: true, stdout: (data) =>
+    window.console.log project.getPath()
+    @process = ChildProcess.exec "/bin/bash", interactive: true, cwd: (project.getPath() || "~"), stdout: (data) =>
       @readData = true if !@readData
       @output(data)
     @process.done () =>
