@@ -1,5 +1,4 @@
 Snippet = require 'snippets/lib/snippet'
-LoadSnippetsTask = require 'snippets/lib/load-snippets-task'
 RootView = require 'root-view'
 Buffer = require 'text-buffer'
 Editor = require 'editor'
@@ -12,13 +11,12 @@ describe "Snippets extension", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    spyOn(LoadSnippetsTask.prototype, 'start')
 
     packageWithSnippets = window.loadPackage("package-with-snippets")
-
     spyOn(atom, "getLoadedPackages").andCallFake ->
       window.textMatePackages.concat([packageWithSnippets])
 
+    spyOn(require("snippets/lib/snippets"), 'loadAll')
     window.loadPackage("snippets")
 
     editor = rootView.getActiveView()
@@ -239,12 +237,13 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'start')
-      spyOn(LoadSnippetsTask.prototype, 'loadAtomSnippets').andCallFake -> @snippetsLoaded({})
-      spyOn(LoadSnippetsTask.prototype, 'loadTextMateSnippets').andCallFake -> @snippetsLoaded({})
+      jasmine.unspy(window, "setTimeout")
+      jasmine.unspy(snippets, 'loadAll')
+      spyOn(snippets, 'loadAtomSnippets').andCallFake (path, done) -> done()
+      spyOn(snippets, 'loadTextMateSnippets').andCallFake (path, done) -> done()
 
     it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
+      jasmine.unspy(snippets, 'loadAtomSnippets')
       spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
@@ -259,7 +258,7 @@ describe "Snippets extension", ->
         expect(console.warn.calls.length).toBe 1
 
     it "loads snippets from all TextMate packages with snippets", ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
+      jasmine.unspy(snippets, 'loadTextMateSnippets')
       spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
@@ -281,27 +280,10 @@ describe "Snippets extension", ->
         expect(console.warn).toHaveBeenCalled()
         expect(console.warn.calls.length).toBe 1
 
-    it "terminates the worker when loading completes", ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
-      spyOn(console, "warn")
-      spyOn(Worker.prototype, 'terminate').andCallThrough()
+    it "loads CSON snippets from TextMate packages", ->
+      jasmine.unspy(snippets, 'loadTextMateSnippets')
       snippets.loaded = false
       snippets.loadAll()
-
-      waitsFor "all snippets to load", 5000, -> snippets.loaded
-
-      runs ->
-        expect(console.warn).toHaveBeenCalled()
-        expect(console.warn.argsForCall[0]).toMatch /Error reading snippets file '.*?\/spec\/fixtures\/packages\/package-with-snippets\/snippets\/junk-file'/
-        expect(Worker.prototype.terminate).toHaveBeenCalled()
-        expect(Worker.prototype.terminate.calls.length).toBe 1
-
-    it "loads CSON snippets from TextMate packages", ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
-      snippets.loaded = false
-      task = new LoadSnippetsTask(snippets)
-      task.packages = [Package.build(project.resolve('packages/package-with-a-cson-grammar.tmbundle'))]
-      task.start()
 
       waitsFor "CSON snippets to load", 5000, -> snippets.loaded
 

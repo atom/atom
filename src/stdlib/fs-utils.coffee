@@ -273,3 +273,16 @@ module.exports =
       throw new Error(e) if e
       object = data[0]
     object
+
+  readPlistAsync: (path, done) ->
+    plist = require 'plist'
+    fs.readFile path, 'utf8', (err, contents) ->
+      return done(err) if err
+      [parseErr, object] = []
+      # plist has an async api, but it isn't actually synchronous
+      # and it doesn't ever call our callback if there's invalid input
+      plist.parseString contents, (err, data) ->
+        parseErr = err
+        object = data[0] unless err
+      parseErr = "Could not parse plist at path: '#{path}'" unless object
+      done(parseErr, object)

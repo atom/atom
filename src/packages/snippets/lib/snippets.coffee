@@ -1,10 +1,12 @@
 AtomPackage = require 'atom-package'
-fs = require 'fs-utils'
+fs = require 'fs'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 SnippetExpansion = require './snippet-expansion'
 Snippet = require './snippet'
-LoadSnippetsTask = require './load-snippets-task'
+TextMatePackage = require 'text-mate-package'
 CSON = require 'cson'
+async = require 'async'
 
 module.exports =
   snippetsByExtension: {}
@@ -20,19 +22,82 @@ module.exports =
     @loadSnippetsTask?.abort()
 
   loadAll: ->
-    @loadSnippetsTask = new LoadSnippetsTask(this)
-    @loadSnippetsTask.start()
+    packages = atom.getLoadedPackages()
+    packages.push(path: config.configDirPath)
+    async.eachSeries packages, @loadSnippetsFromPackage.bind(this), @doneLoading.bind(this)
 
-  loadDirectory: (snippetsDirPath) ->
-    for snippetsPath in fs.list(snippetsDirPath) when fs.base(snippetsPath).indexOf('.') isnt 0
-      snippets.loadFile(snippetsPath)
+  doneLoading: ->
+    @loaded = true
 
-  loadFile: (snippetsPath) ->
-    try
-      snippets = CSON.readObject(snippetsPath)
-    catch e
-      console.warn "Error reading snippets file '#{snippetsPath}'"
-    @add(snippets)
+  loadSnippetsFromPackage: (pack, done) ->
+    if pack instanceof TextMatePackage
+      @loadTextMateSnippets(pack.path, done)
+    else
+      @loadAtomSnippets(pack.path, done)
+
+  loadAtomSnippets: (path, done) ->
+    snippetsDirPath = fsUtils.join(path, 'snippets')
+
+    loadSnippetFile = (filename, done) =>
+      return done() if filename.indexOf('.') is 0
+      filepath = fsUtils.join(snippetsDirPath, filename)
+      CSON.readObjectAsync filepath, (err, object) =>
+        if err
+          console.warn "Error reading snippets file '#{filepath}': #{err.stack}"
+        else
+          @add(object)
+        done()
+
+    fs.readdir snippetsDirPath, (err, paths) ->
+      async.each(paths, loadSnippetFile, done)
+
+  loadTextMateSnippets: (path, done) ->
+    snippetsDirPath = fsUtils.join(path, 'Snippets')
+
+    loadSnippetFile = (filename, done) =>
+      return done() if filename.indexOf('.') is 0
+
+      filepath = fsUtils.join(snippetsDirPath, filename)
+
+      logError = (err) ->
+        console.warn "Error reading snippets file '#{filepath}': #{err.stack ? err}"
+
+      try
+        readObject =
+          if CSON.isObjectPath(filepath)
+            CSON.readObjectAsync.bind(CSON)
+          else
+            fsUtils.readPlistAsync.bind(fsUtils)
+
+        readObject filepath, (err, object) =>
+          try
+            if err
+              logError(err)
+            else
+              @add(@translateTextmateSnippet(object))
+          catch err
+            logError(err)
+          finally
+            done()
+      catch err
+        logError(err)
+        done()
+
+    return done() unless fsUtils.isDirectory(snippetsDirPath)
+    fs.readdir snippetsDirPath, (err, paths) ->
+      if err
+        console.warn err
+        return done()
+      async.each(paths, loadSnippetFile, done)
+
+  translateTextmateSnippet: ({ scope, name, content, tabTrigger }) ->
+    scope = TextMatePackage.cssSelectorFromScopeSelector(scope) if scope
+    scope ?= '*'
+    snippetsByScope = {}
+    snippetsByName = {}
+    snippetsByScope[scope] = snippetsByName
+    snippetsByName[name] = { prefix: tabTrigger, body: content }
+    snippetsByScope
 
   add: (snippetsBySelector) ->
     for selector, snippetsByName of snippetsBySelector
