@@ -364,11 +364,19 @@ fdescribe 'Terminal Buffer', ->
           expect(buffer.lastLine().lastVisibleCharacter().char).toBe("A")
           expect(buffer.lastLine().lastVisibleCharacter().color).toBe(1)
           expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "31")
+        it "sets the text color to a higher color", ->
+          buffer.input("#{TerminalBuffer.escape}[38;5;100mA")
+          expect(buffer.lastLine().lastVisibleCharacter().char).toBe("A")
+          expect(buffer.lastLine().lastVisibleCharacter().color).toBe(100)
       describe "background color", ->
         it "sets the background color", ->
           buffer.input("#{TerminalBuffer.escape}[41mA")
           expect(buffer.lastLine().lastVisibleCharacter().backgroundColor).toBe(1)
           expect(buffer.evaluateEscapeSequence).toHaveBeenCalledWith("m", "41")
+        it "sets the background color to a higher color", ->
+          buffer.input("#{TerminalBuffer.escape}[48;5;100mA")
+          expect(buffer.lastLine().lastVisibleCharacter().char).toBe("A")
+          expect(buffer.lastLine().lastVisibleCharacter().backgroundColor).toBe(100)
     describe "use alternate screen buffer", ->
       it "uses an alternate screen buffer", ->
         buffer.input("abcdef")

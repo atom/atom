@@ -1,4 +1,5 @@
 _ = require 'underscore'
+ColorTable = require 'terminal/lib/terminal-color-table'
 
 module.exports =
 class TerminalBuffer
@@ -9,6 +10,8 @@ class TerminalBuffer
   @bell: String.fromCharCode(7)
   @escape: String.fromCharCode(27)
   @tab: String.fromCharCode(9)
+  @color: (n) ->
+    ColorTable[n-16]
   @ctrl: (c) ->
     base = "a".charCodeAt(0)
     base = "A".charCodeAt(0) if c.charCodeAt(0) < base
@@ -464,10 +467,16 @@ class TerminalBuffer
             when 27 # Disable reverse
               @reversed = false
             when 28 then # Not hidden
-            when 38, 48 # Ignore closest color to
-              break
+            when 38 # Foreground color from palette
+              if parseInt(seq[1]) == 5
+                @color = parseInt(seq[2])
+              return
             when 39 # Default text color
               @color = 0
+            when 48 # Background color from palette
+              if parseInt(seq[1]) == 5
+                @backgroundColor = parseInt(seq[2])
+              return
             when 49 # Default background color
               @backgroundColor = -1
             else

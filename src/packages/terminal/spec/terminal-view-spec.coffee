@@ -74,6 +74,10 @@ fdescribe 'Terminal', ->
         terminalView.output(TerminalBuffer.escapeSequence("31m"))
         terminalView.output("a")
         expect(terminalView.content.find("pre span").hasClass("color-1")).toBe(true)
+      it "sets a higher color", ->
+        terminalView.output(TerminalBuffer.escapeSequence("38;5;21m"))
+        terminalView.output("a")
+        expect(terminalView.content.find("pre span").css("color")).toBe('rgb(0, 0, 255)')
     describe "background-color", ->
       it "has no background color by default", ->
         terminalView.output("a")
@@ -82,6 +86,10 @@ fdescribe 'Terminal', ->
         terminalView.output(TerminalBuffer.escapeSequence("41m"))
         terminalView.output("a")
         expect(terminalView.content.find("pre span").hasClass("background-1")).toBe(true)
+      it "sets a higher color", ->
+        terminalView.output(TerminalBuffer.escapeSequence("48;5;21m"))
+        terminalView.output("a")
+        expect(terminalView.content.find("pre span").css("background-color")).toBe('rgb(0, 0, 255)')
     describe "reversed colors", ->
       it "swaps the foreground and background colors", ->
         terminalView.output(TerminalBuffer.escapeSequence("7m"))

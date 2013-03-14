@@ -28,7 +28,7 @@ class TerminalView extends ScrollView
       @hiddenInput.focus()
     @on 'focus', =>
       @hiddenInput.focus()
-      @updateTerminalSize()
+      @scrollToBottom()
       false
     @on 'textInput', (e) =>
       @input(e.originalEvent.data)
@@ -140,6 +140,12 @@ class TerminalView extends ScrollView
     return if !@terminalSize? || @exited
     @process?.winsize(@terminalSize[0], @terminalSize[1])
 
+  characterColor: (char, color, bgcolor) ->
+    if color >= 16 then char.css(color: "##{TerminalBuffer.color(color)}")
+    else if color >= 0 then char.addClass("color-#{color}")
+    if bgcolor >= 16 then char.css("background-color": "##{TerminalBuffer.color(bgcolor)}")
+    else if bgcolor >= 0 then char.addClass("background-#{bgcolor}")
+
   updateLine: (line) ->
     l = @content.find("pre.line-#{line.number}")
     if !_.contains(@buffer.lines, line)
@@ -177,7 +183,7 @@ class TerminalView extends ScrollView
         color = 7 if color == -1
         bgcolor = 7 if bgcolor == -1
         [color, bgcolor] = [bgcolor, color]
-      character.addClass("color-#{color}").addClass("background-#{bgcolor}")
+      @characterColor(character, color, bgcolor)
       for s in ['bold', 'italic', 'underlined']
         character.addClass(s) if c[s] == true
       character.css(width: @size[2]) if c.bold
