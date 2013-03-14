@@ -147,12 +147,11 @@ class TerminalView extends ScrollView
     if bgcolor >= 16 then char.css("background-color": "##{TerminalBuffer.color(bgcolor)}")
     else if bgcolor >= 0 then char.addClass("background-#{bgcolor}")
 
-  updateLine: (line) ->
+  insertLine: (line) ->
     l = @content.find("pre.line-#{line.number}")
     if !_.contains(@buffer.lines, line)
       l.remove() if line.number >= @buffer.numLines()
-      return
-    if !l.size()
+    else if !l.size()
       l = $("<pre>").addClass("line-#{line.number}")
       if line.number < 1
         @content.prepend(l)
@@ -164,28 +163,27 @@ class TerminalView extends ScrollView
           if e.length > 0
             e.after(l)
             inserted = true
-          else
           n--
-        if !inserted
-          if line.number - 1 > n
-            @content.prepend(l)
-          else
-            @content.append(l)
+        return l if inserted
+        if line.number - 1 > n
+          @content.prepend(l)
+        else
+          @content.append(l)
     else
       l.empty()
+    l
+
+  updateLine: (line) ->
+    l = @insertLine(line)
     for c in line.characters
       character = $("<span>").addClass("character").text(c.char)
-      if c.cursor
-        cursor = $("<span>").addClass("cursor")
-        character.append(cursor)
-      color = c.color
-      bgcolor = c.backgroundColor
+      character.append($("<span>").addClass("cursor")) if c.cursor
+      [color, bgcolor] = [c.color, c.backgroundColor]
       if c.reversed
         color = 7 if color == -1
         bgcolor = 7 if bgcolor == -1
         [color, bgcolor] = [bgcolor, color]
       @characterColor(character, color, bgcolor)
-      for s in ['bold', 'italic', 'underlined']
-        character.addClass(s) if c[s] == true
+      (character.addClass(s) if c[s] == true) for s in ['bold', 'italic', 'underlined']
       character.css(width: @terminalSize[2]) if c.bold && @terminalSize?
       l.append character
