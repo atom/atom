@@ -77,6 +77,47 @@ describe 'jQuery extensions', ->
         'a1': "A1: Waste perfectly-good steak"
         'a2': null
 
+  describe "$.fn.command(eventName, [selector, options,] handler)", ->
+    [view, handler] = []
+
+    beforeEach ->
+      view = $$ ->
+        @div class: 'a', =>
+          @div class: 'b'
+          @div class: 'c'
+      handler = jasmine.createSpy("commandHandler")
+
+    it "binds the handler to the given event / selector for all argument combinations", ->
+      view.command 'test:foo', handler
+      view.trigger 'test:foo'
+      expect(handler).toHaveBeenCalled()
+      handler.reset()
+
+      view.command 'test:bar', '.b', handler
+      view.find('.b').trigger 'test:bar'
+      view.find('.c').trigger 'test:bar'
+      expect(handler.callCount).toBe 1
+      handler.reset()
+
+      view.command 'test:baz', doc: 'Spaz', handler
+      view.trigger 'test:baz'
+      expect(handler).toHaveBeenCalled()
+      handler.reset()
+
+      view.command 'test:quux', '.c', doc: 'Lorem', handler
+      view.find('.b').trigger 'test:quux'
+      view.find('.c').trigger 'test:quux'
+      expect(handler.callCount).toBe 1
+
+    it "passes the 'data' option through when binding the event handler", ->
+      view.command 'test:foo', data: "bar", handler
+      view.trigger 'test:foo'
+      expect(handler.argsForCall[0][0].data).toBe 'bar'
+
+    it "sets a custom docstring if the 'doc' option is specified", ->
+      view.command 'test:foo', doc: "Foo!", handler
+      expect(view.events()).toEqual 'test:foo': 'Test: Foo!'
+
   describe "$.fn.scrollUp/Down/ToTop/ToBottom", ->
     it "scrolls the element in the specified way if possible", ->
       view = $$ -> @div => _.times 20, => @div('A')
