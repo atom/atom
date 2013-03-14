@@ -116,6 +116,10 @@ describe 'jQuery extensions', ->
       view.command 'test:foo', doc: "Foo!", handler
       expect(view.events()).toEqual 'test:foo': 'Test: Foo!'
 
+    it "capitalizes the 'github' prefix how we like it", ->
+      view.command 'github:spelling', handler
+      expect(view.events()).toEqual 'github:spelling': 'GitHub: Spelling'
+
   describe "$.fn.scrollUp/Down/ToTop/ToBottom", ->
     it "scrolls the element in the specified way if possible", ->
       view = $$ -> @div => _.times 20, => @div('A')

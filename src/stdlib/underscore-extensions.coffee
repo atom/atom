@@ -53,18 +53,19 @@ _.mixin
     string.replace(regex, "\\$&");
 
   humanizeEventName: (eventName, eventDoc) ->
-    return "GitHub" if eventName.toLowerCase() is "github"
-
     [namespace, event]  = eventName.split(':')
     return _.capitalize(namespace) unless event?
 
-    namespaceDoc   = _.undasherize(namespace)
-    eventDoc     ||= _.undasherize(event)
+    namespaceDoc = _.undasherize(namespace)
+    eventDoc ?= _.undasherize(event)
 
     "#{namespaceDoc}: #{eventDoc}"
 
   capitalize: (word) ->
-    word[0].toUpperCase() + word[1..]
+    if word.toLowerCase() is 'github'
+      'GitHub'
+    else
+      word[0].toUpperCase() + word[1..]
 
   pluralize: (count=0, singular, plural=singular+'s') ->
     if count is 1
