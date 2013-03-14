@@ -23,6 +23,7 @@ class TerminalView extends ScrollView
     @setTitle()
     @terminalSize = null
     @updateTimer = false
+    @updateDelay = 100
 
     @on 'mousedown', '.title', (e) => @resizeStarted(e)
     @on 'click', =>
@@ -106,8 +107,8 @@ class TerminalView extends ScrollView
     @updateTimer = false if ignoreTimer
     if @updateTimer
       return
-    else if !ignoreTimer
-      window.setTimeout (=> @update(true)), 100
+    else if !ignoreTimer && @updateDelay > 0
+      window.setTimeout (=> @update(true)), @updateDelay
       @updateTimer = true
     lines = @buffer.getDirtyLines()
     if lines.length > 0
