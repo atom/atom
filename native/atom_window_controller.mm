@@ -26,25 +26,30 @@
   [super dealloc];
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background alwaysUseBundleResourcePath:(BOOL)alwaysUseBundleResourcePath {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background useBundleResourcePath:(BOOL)useBundleResourcePath {
   self = [super initWithWindowNibName:@"AtomWindow"];
   _bootstrapScript = [bootstrapScript retain];
 
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
 
-  _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
-  if (!alwaysUseBundleResourcePath && !_resourcePath) {
-    NSString *defaultRepositoryPath = [@"~/github/atom" stringByStandardizingPath];
-    if ([defaultRepositoryPath characterAtIndex:0] == '/') {
-      BOOL isDir = false;
-      BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
-      if (isDir && exists)
-        _resourcePath = defaultRepositoryPath;
-    }
-  }
-
-  if (alwaysUseBundleResourcePath || !_resourcePath) {
+  if (useBundleResourcePath) {
     _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
+  }
+  else {
+    _resourcePath = [[atomApplication.arguments objectForKey:@"resource-path"] stringByStandardizingPath];
+    if (!_resourcePath) {
+      NSString *defaultRepositoryPath = [@"~/github/atom" stringByStandardizingPath];
+      if ([defaultRepositoryPath characterAtIndex:0] == '/') {
+        BOOL isDir = false;
+        BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
+        if (isDir && exists) {
+          _resourcePath = defaultRepositoryPath;
+        }
+        else {
+          NSLog(@"Warning: No resource path specified and no directory exists at ~/github/atom");
+        }
+      }
+    }
   }
 
   if ([self isDevMode]) {
@@ -99,19 +104,19 @@
   _pathToOpen = [path retain];
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   BOOL useBundleResourcePath = [atomApplication.arguments objectForKey:@"dev"] == nil;
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:useBundleResourcePath];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:useBundleResourcePath];
 }
 
 - (id)initDevWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:false];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:false];
 }
 
 - (id)initInBackground {
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   BOOL useBundleResourcePath = [atomApplication.arguments objectForKey:@"dev"] == nil;
 
-  [self initWithBootstrapScript:@"window-bootstrap" background:YES alwaysUseBundleResourcePath:useBundleResourcePath];
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES useBundleResourcePath:useBundleResourcePath];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorStationary];
@@ -121,13 +126,13 @@
 - (id)initSpecsThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
-  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO alwaysUseBundleResourcePath:NO];
+  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO useBundleResourcePath:NO];
 }
 
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
-  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO alwaysUseBundleResourcePath:NO];
+  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO useBundleResourcePath:NO];
 }
 
 - (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {
@@ -153,9 +158,11 @@
 // have the correct initial size based on the frame's last stored size.
 // HACK: I hate this and want to place this code directly in windowDidLoad
 - (void)attachWebView {
-  NSURL *url = [[NSBundle bundleForClass:self.class] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
-  [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
+
+  NSURL *indexUrl = [[NSURL alloc] initFileURLWithPath:[_resourcePath stringByAppendingPathComponent:@"static/index.html"]];
+  NSLog(@"%@", [indexUrl absoluteString]);
+  [urlString appendString:[indexUrl absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];
   [urlString appendFormat:@"&resourcePath=%@", [self encodeUrlParam:_resourcePath]];
   if ([self isDevMode])
