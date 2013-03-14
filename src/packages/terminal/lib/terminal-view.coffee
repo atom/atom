@@ -22,6 +22,7 @@ class TerminalView extends ScrollView
     @readData = false
     @setTitle()
     @terminalSize = null
+    @timer = false
 
     @on 'mousedown', '.title', (e) => @resizeStarted(e)
     @on 'click', =>
@@ -93,7 +94,7 @@ class TerminalView extends ScrollView
   lastLine: () ->
     $(@content.find("pre").last().get(0))
 
-  update: () ->
+  update: (ignoreTimer=false) ->
     @setTitle(@buffer.title)
     if @buffer.redrawNeeded
       window.lines = @buffer.lines
@@ -102,6 +103,11 @@ class TerminalView extends ScrollView
       @buffer.renderedAll()
       @scrollToBottom()
       return
+    @timer = false if ignoreTimer
+    if @timer
+      return
+    else
+      window.setTimeout (=> @update(true)), 100
     @updateLine(line) for line in @buffer.getDirtyLines()
     @buffer.rendered()
     @scrollToBottom()
