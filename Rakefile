@@ -1,9 +1,9 @@
 ATOM_SRC_PATH = File.dirname(__FILE__)
-BUILD_DIR = 'atom-build'
+BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-xcode-project" do
-  command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
+  command = "xcodebuild -target Atom SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -14,6 +14,7 @@ end
 desc "Create xcode project from gyp file"
 task "create-xcode-project" => "update-cef" do
   `rm -rf atom.xcodeproj`
+  `script/generate-sources-gypi`
   `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
 end
 
@@ -42,13 +43,17 @@ task :install => [:clean, :build] do
   # Install Atom.app
   dest_path =  "/Applications/#{File.basename(path)}"
   `rm -rf #{dest_path}`
-  `cp -r #{path} #{File.expand_path(dest_path)}`
+  `cp -a #{path} #{File.expand_path(dest_path)}`
 
   # Install atom cli
   if File.directory?("/opt/boxen")
     cli_path = "/opt/boxen/bin/atom"
-  else
+  elsif File.directory?("/opt/github")
     cli_path = "/opt/github/bin/atom"
+  elsif File.directory?("/usr/local")
+    cli_path = "/usr/local/bin/atom"
+  else
+    raise "Missing directory for `atom` binary"
   end
 
   FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", cli_path)
@@ -57,18 +62,6 @@ task :install => [:clean, :build] do
   Rake::Task["clone-default-bundles"].invoke()
 
   puts "\033[32mAtom is installed at `#{dest_path}`. Atom cli is installed at `#{cli_path}`\033[0m"
-end
-
-desc "Package up the app for speakeasy"
-task :package => ["setup-codesigning", "build"] do
-  path = application_path()
-  exit 1 if not path
-
-  dest_path = '/tmp/atom-for-speakeasy/Atom.tar.bz2'
-  `mkdir -p $(dirname #{dest_path})`
-  `rm -rf #{dest_path}`
-  `tar --directory $(dirname #{path}) -jcf #{dest_path} $(basename #{path})`
-  `open $(dirname #{dest_path})`
 end
 
 task "setup-codesigning" do
@@ -90,7 +83,7 @@ task :clean do
 end
 
 desc "Run the specs"
-task :test => ["update-cef", "clone-default-bundles", "build"] do
+task :test => ["clean", "update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
     cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH} 2> /dev/null"
@@ -107,7 +100,7 @@ task :benchmark do
 end
 
 task :nof do
-  system %{find . -name *spec.coffee | grep --invert-match --regexp "#{BUILD_DIR}\\|##package-name##" | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
+  system %{find . -name *spec.coffee | grep --invert-match --regexp "#{BUILD_DIR}\\|__package-name__" | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
 end
 
 task :tags do

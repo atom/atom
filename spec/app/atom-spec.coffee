@@ -84,26 +84,26 @@ describe "the `atom` global", ->
     describe "activation", ->
       it "calls activate on the package main with its previous state", ->
         pack = window.loadPackage('package-with-module')
-        spyOn(pack.packageMain, 'activate')
+        spyOn(pack.mainModule, 'activate')
 
         serializedState = rootView.serialize()
         rootView.deactivate()
         RootView.deserialize(serializedState)
         window.loadPackage('package-with-module')
 
-        expect(pack.packageMain.activate).toHaveBeenCalledWith(someNumber: 1)
+        expect(pack.mainModule.activate).toHaveBeenCalledWith(someNumber: 1)
 
     describe "deactivation", ->
       it "deactivates and removes the package module from the package module map", ->
         pack = window.loadPackage('package-with-module')
         expect(atom.activatedAtomPackages.length).toBe 1
-        spyOn(pack.packageMain, "deactivate").andCallThrough()
+        spyOn(pack.mainModule, "deactivate").andCallThrough()
         atom.deactivateAtomPackages()
-        expect(pack.packageMain.deactivate).toHaveBeenCalled()
+        expect(pack.mainModule.deactivate).toHaveBeenCalled()
         expect(atom.activatedAtomPackages.length).toBe 0
 
     describe "serialization", ->
-      it "uses previous serialization state on unactivated packages", ->
+      it "uses previous serialization state on packages whose activation has been deferred", ->
         atom.atomPackageStates['package-with-activation-events'] = {previousData: 'exists'}
         unactivatedPackage = window.loadPackage('package-with-activation-events')
         activatedPackage = window.loadPackage('package-with-module')
@@ -115,7 +115,8 @@ describe "the `atom` global", ->
             'previousData': 'exists'
 
         # ensure serialization occurs when the packageis activated
-        unactivatedPackage.activatePackageMain()
+        unactivatedPackage.deferActivation = false
+        unactivatedPackage.activate()
         expect(atom.serializeAtomPackages()).toEqual
           'package-with-module':
             'someNumber': 1
@@ -124,8 +125,8 @@ describe "the `atom` global", ->
 
       it "absorbs exceptions that are thrown by the package module's serialize methods", ->
         spyOn(console, 'error')
-        window.loadPackage('package-with-module')
-        window.loadPackage('package-with-serialize-error', activateImmediately: true)
+        window.loadPackage('package-with-module', activateImmediately: true)
+        window.loadPackage('package-with-serialize-error',  activateImmediately: true)
 
         packageStates = atom.serializeAtomPackages()
         expect(packageStates['package-with-module']).toEqual someNumber: 1
@@ -141,3 +142,74 @@ describe "the `atom` global", ->
 
       runs ->
         expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+(\.\d+)?$/
+
+  describe "modal native dialogs", ->
+    beforeEach ->
+      spyOn(atom, 'sendMessageToBrowserProcess')
+      atom.sendMessageToBrowserProcess.simulateConfirmation = (buttonText) ->
+        labels = @argsForCall[0][1][2...]
+        callbacks = @argsForCall[0][2]
+        @reset()
+        callbacks[labels.indexOf(buttonText)]()
+        advanceClock 50
+
+      atom.sendMessageToBrowserProcess.simulatePathSelection = (path) ->
+        callback = @argsForCall[0][2]
+        @reset()
+        callback(path)
+        advanceClock 50
+
+    it "only presents one native dialog at a time", ->
+      confirmHandler = jasmine.createSpy("confirmHandler")
+      selectPathHandler = jasmine.createSpy("selectPathHandler")
+
+      atom.confirm "Are you happy?", "really, truly happy?", "Yes", confirmHandler, "No"
+      atom.confirm "Are you happy?", "really, truly happy?", "Yes", confirmHandler, "No"
+      atom.showSaveDialog(selectPathHandler)
+      atom.showSaveDialog(selectPathHandler)
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      atom.sendMessageToBrowserProcess.simulateConfirmation("Yes")
+      expect(confirmHandler).toHaveBeenCalled()
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      atom.sendMessageToBrowserProcess.simulateConfirmation("No")
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      atom.sendMessageToBrowserProcess.simulatePathSelection('/selected/path')
+      expect(selectPathHandler).toHaveBeenCalledWith('/selected/path')
+      selectPathHandler.reset()
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+
+    it "prioritizes dialogs presented as the result of dismissing other dialogs before any previously deferred dialogs", ->
+      atom.confirm "A1", "", "Next", ->
+        atom.confirm "B1", "", "Next", ->
+          atom.confirm "C1", "", "Next", ->
+          atom.confirm "C2", "", "Next", ->
+        atom.confirm "B2", "", "Next", ->
+      atom.confirm "A2", "", "Next", ->
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A1"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "B1"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "C1"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "C2"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "B2"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
+      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A2"
+      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')

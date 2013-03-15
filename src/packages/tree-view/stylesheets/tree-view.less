@@ -1,0 +1,57 @@
+.tree-view-wrapper {
+  position: relative;
+  height: 100%;
+  cursor: default;
+  -webkit-user-select: none;
+  min-width: 50px;
+  z-index: 2;
+
+  .tree-view-resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: col-resize;
+    z-index: 3;
+  }
+}
+
+.tree-view {
+  position: relative;
+  cursor: default;
+  -webkit-user-select: none;
+  overflow: auto;
+  height: 100%;
+
+  .entry {
+    text-wrap: none;
+    white-space: nowrap;
+
+    & > .header,
+    > .name {
+      z-index: 1;
+      position: relative;
+      display: inline-block;
+    }
+  }
+
+  .selected > .highlight {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 24px;
+  }
+
+  .disclosure-arrow {
+    display: inline-block;
+  }
+}
+
+.tree-view-dialog {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}

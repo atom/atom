@@ -39,6 +39,11 @@ class MisspellingView extends View
   getScreenRange: ->
     new Range(@startPosition, @endPosition)
 
+  unsubscribe: ->
+    super
+
+    @editSession.destroyMarker(@marker)
+
   containsCursor: ->
     cursor = @editor.getCursorScreenPosition()
     @getScreenRange().containsPoint(cursor, exclusive: false)

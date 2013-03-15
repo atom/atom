@@ -9,7 +9,7 @@ class Gists
     rootView.command 'gist:create', '.editor', => @createGist()
 
   createGist: (editor) ->
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     return unless editor?
 
     gist = { public: false, files: {} }

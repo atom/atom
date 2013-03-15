@@ -1,3 +1,3 @@
 {
-  "stylesheets": ["first.css", "second.css", "last.css"]
+  "stylesheets": ["first.css", "second.less", "last.css"]
 }

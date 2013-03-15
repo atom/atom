@@ -2,7 +2,6 @@
 .project
 .svn
 .nvm-version
-atom-build
 atom.xcodeproj
 build
 .xcodebuild-info
@@ -10,3 +9,4 @@ node_modules
 npm-debug.log
 /tags
 /cef/
+/sources.gypi

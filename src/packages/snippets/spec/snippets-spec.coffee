@@ -21,8 +21,8 @@ describe "Snippets extension", ->
 
     window.loadPackage("snippets")
 
-    editor = rootView.getActiveEditor()
-    editSession = rootView.getActiveEditSession()
+    editor = rootView.getActiveView()
+    editSession = rootView.getActivePaneItem()
     buffer = editor.getBuffer()
     rootView.simulateDomAttachment()
     rootView.enableKeymap()
@@ -300,7 +300,7 @@ describe "Snippets extension", ->
       jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
       snippets.loaded = false
       task = new LoadSnippetsTask(snippets)
-      task.packages = [Package.build(fixturesProject.resolve('packages/package-with-a-cson-grammar.tmbundle'))]
+      task.packages = [Package.build(project.resolve('packages/package-with-a-cson-grammar.tmbundle'))]
       task.start()
 
       waitsFor "CSON snippets to load", 5000, -> snippets.loaded

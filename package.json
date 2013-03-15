@@ -3,9 +3,10 @@
   "version" : "0.0.0",
 
   "dependencies": {
-    "coffee-script": "1.x",
-    "cson": "1.x"
+    "coffee-script": "1.5"
   },
+
+  "private": true,
 
   "scripts": {
     "preinstall": "true"

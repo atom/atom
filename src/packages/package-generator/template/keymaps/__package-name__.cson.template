@@ -1,0 +1,3 @@
+# DOCUMENT: link to keymap documentation
+'body':
+  'meta-alt-ctrl-o': '__package-name__:toggle'

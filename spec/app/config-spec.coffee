@@ -1,3 +1,4 @@
+Config = require 'config'
 fs = require 'fs'
 
 describe "Config", ->
@@ -133,3 +134,21 @@ describe "Config", ->
         expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
         expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
         expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
+
+  describe "when the config file is not parseable", ->
+    beforeEach ->
+     config.configDirPath = '/tmp/dot-atom-dir'
+     config.configFilePath = fs.join(config.configDirPath, "config.cson")
+     expect(fs.exists(config.configDirPath)).toBeFalsy()
+
+    afterEach ->
+      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+
+    it "logs an error to the console and does not overwrite the config file", ->
+      config.save.reset()
+      spyOn(console, 'error')
+      fs.write(config.configFilePath, "{{{{{")
+      config.loadUserConfig()
+      config.set("hair", "blonde") # trigger a save
+      expect(console.error).toHaveBeenCalled()
+      expect(config.save).not.toHaveBeenCalled()

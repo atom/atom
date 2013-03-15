@@ -8,9 +8,10 @@ describe "WrapGuide", ->
     rootView.open('sample.js')
     window.loadPackage('wrap-guide')
     rootView.attachToDom()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     wrapGuide = rootView.find('.wrap-guide').view()
     editor.width(editor.charWidth * wrapGuide.getDefaultColumn() * 2)
+    editor.trigger 'resize'
 
   describe "@initialize", ->
     it "appends a wrap guide to all existing and new editors", ->
@@ -31,7 +32,8 @@ describe "WrapGuide", ->
     it "updates the wrap guide position", ->
       initial = wrapGuide.position().left
       expect(initial).toBeGreaterThan(0)
-      rootView.trigger('window:increase-font-size')
+      fontSize = config.get("editor.fontSize")
+      config.set("editor.fontSize", fontSize * 2)
       expect(wrapGuide.position().left).toBeGreaterThan(initial)
       expect(wrapGuide).toBeVisible()
 

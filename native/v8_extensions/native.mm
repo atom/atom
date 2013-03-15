@@ -48,6 +48,7 @@ namespace v8_extensions {
                        const CefV8ValueList& arguments,
                        CefRefPtr<CefV8Value>& retval,
                        CefString& exception) {
+    @autoreleasepool {
     if (name == "exists") {
       std::string cc_value = arguments[0]->GetStringValue().ToString();
       const char *path = cc_value.c_str();
@@ -165,8 +166,7 @@ namespace v8_extensions {
     }
     else if (name == "traverseTree") {
       std::string argument = arguments[0]->GetStringValue().ToString();
-      int rootPathLength = argument.size() + 1;
-      char rootPath[rootPathLength];
+      char rootPath[argument.size() + 1];
       strcpy(rootPath, argument.c_str());
       char * const paths[] = {rootPath, NULL};
 
@@ -190,12 +190,8 @@ namespace v8_extensions {
           continue;
         }
 
-        int pathLength = entry->fts_pathlen - rootPathLength;
-        char relative[pathLength + 1];
-        relative[pathLength] = '\0';
-        strncpy(relative, entry->fts_path + rootPathLength, pathLength);
         args.clear();
-        args.push_back(CefV8Value::CreateString(relative));
+        args.push_back(CefV8Value::CreateString(entry->fts_path));
         if (isFile) {
           onFile->ExecuteFunction(onFile, args);
         }
@@ -526,10 +522,8 @@ namespace v8_extensions {
       NSString *word = stringFromCefV8Value(arguments[0]);
       NSSpellChecker *spellChecker = [NSSpellChecker sharedSpellChecker];
       @synchronized(spellChecker) {
-        @autoreleasepool {
-          NSRange range = [spellChecker checkSpellingOfString:word startingAt:0];
-          retval = CefV8Value::CreateBool(range.length > 0);
-        }
+        NSRange range = [spellChecker checkSpellingOfString:word startingAt:0];
+        retval = CefV8Value::CreateBool(range.length > 0);
       }
       return true;
     }
@@ -538,23 +532,22 @@ namespace v8_extensions {
       NSString *misspelling = stringFromCefV8Value(arguments[0]);
       NSSpellChecker *spellChecker = [NSSpellChecker sharedSpellChecker];
       @synchronized(spellChecker) {
-        @autoreleasepool {
-          NSString *language = [spellChecker language];
-          NSRange range;
-          range.location = 0;
-          range.length = [misspelling length];
-          NSArray *guesses = [spellChecker guessesForWordRange:range inString:misspelling language:language inSpellDocumentWithTag:0];
-          CefRefPtr<CefV8Value> v8Guesses = CefV8Value::CreateArray([guesses count]);
-          for (int i = 0; i < [guesses count]; i++) {
-            v8Guesses->SetValue(i, CefV8Value::CreateString([[guesses objectAtIndex:i] UTF8String]));
-          }
-          retval = v8Guesses;
+        NSString *language = [spellChecker language];
+        NSRange range;
+        range.location = 0;
+        range.length = [misspelling length];
+        NSArray *guesses = [spellChecker guessesForWordRange:range inString:misspelling language:language inSpellDocumentWithTag:0];
+        CefRefPtr<CefV8Value> v8Guesses = CefV8Value::CreateArray([guesses count]);
+        for (int i = 0; i < [guesses count]; i++) {
+          v8Guesses->SetValue(i, CefV8Value::CreateString([[guesses objectAtIndex:i] UTF8String]));
         }
+        retval = v8Guesses;
       }
       return true;
     }
 
     return false;
+  }
   };
 
   NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {

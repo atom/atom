@@ -12,6 +12,8 @@ module.exports =
       @createView().toggleBufferFinder()
     rootView.command 'fuzzy-finder:find-under-cursor', =>
       @createView().findUnderCursor()
+    rootView.command 'fuzzy-finder:toggle-git-status-finder', =>
+      @createView().toggleGitFinder()
 
     if project.getPath()?
       LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
@@ -33,9 +35,10 @@ module.exports =
 
   createView:  ->
     unless @fuzzyFinderView
+      @loadPathsTask?.abort()
       FuzzyFinderView  = require 'fuzzy-finder/lib/fuzzy-finder-view'
       @fuzzyFinderView = new FuzzyFinderView()
-      if @projectPaths? and not @fuzzyFinderView.projectPaths?
+      if @projectPaths?.length > 0 and not @fuzzyFinderView.projectPaths?
         @fuzzyFinderView.projectPaths = @projectPaths
         @fuzzyFinderView.reloadProjectPaths = false
     @fuzzyFinderView
