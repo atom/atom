@@ -62,6 +62,7 @@ class PackageGeneratorView extends View
     for path in fs.listTree(templatePath)
       relativePath = path.replace(templatePath, "")
       relativePath = relativePath.replace(/^\//, '')
+      relativePath = relativePath.replace(/\.template$/, '')
       relativePath = @replacePackageNamePlaceholders(relativePath, packageName)
 
       sourcePath = fs.join(@getPackagePath(), relativePath)
@@ -73,7 +74,7 @@ class PackageGeneratorView extends View
         fs.write(sourcePath, content)
 
   replacePackageNamePlaceholders: (string, packageName) ->
-    placeholderRegex = /##(?:(package-name)|([pP]ackageName)|(package_name))##/g
+    placeholderRegex = /__(?:(package-name)|([pP]ackageName)|(package_name))__/g
     string = string.replace placeholderRegex, (match, dash, camel, underscore) ->
       if dash
         _.dasherize(packageName)

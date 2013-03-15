@@ -1,4 +1,6 @@
 'body':
+  'meta-s': 'core:save'
+  'meta-S': 'core:save-as'
   'enter': 'core:confirm'
   'escape': 'core:cancel'
   'meta-w': 'core:close'
@@ -29,6 +31,26 @@
   'ctrl-w w': 'window:focus-next-pane'
   'ctrl-tab': 'window:focus-next-pane'
   'ctrl-meta-f': 'window:toggle-full-screen'
+
+  'ctrl-|': 'pane:split-right'
+  'ctrl-w v': 'pane:split-right'
+  'ctrl--': 'pane:split-down'
+  'ctrl-w s': 'pane:split-down'
+
+  'meta-{': 'pane:show-previous-item'
+  'meta-}': 'pane:show-next-item'
+  'alt-meta-left': 'pane:show-previous-item'
+  'alt-meta-right': 'pane:show-next-item'
+  'meta-1': 'pane:show-item-1'
+  'meta-2': 'pane:show-item-2'
+  'meta-3': 'pane:show-item-3'
+  'meta-4': 'pane:show-item-4'
+  'meta-5': 'pane:show-item-5'
+  'meta-6': 'pane:show-item-6'
+  'meta-7': 'pane:show-item-7'
+  'meta-8': 'pane:show-item-8'
+  'meta-9': 'pane:show-item-9'
+  'meta-T': 'pane:reopen-closed-item'
 
 '.tool-panel':
   'meta-escape': 'tool-panel:unfocus'

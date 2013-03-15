@@ -8,7 +8,7 @@ describe "bracket matching", ->
     rootView.open('sample.js')
     window.loadPackage('bracket-matcher')
     rootView.attachToDom()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     editSession = editor.activeEditSession
     buffer = editSession.buffer
 

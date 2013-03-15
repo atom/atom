@@ -1,0 +1,174 @@
+.editor {
+  overflow: hidden;
+  cursor: text;
+  -webkit-user-select: none;
+  position: relative;
+  z-index: 0;
+  font-family: Inconsolata, Monaco, Courier;
+  line-height: 1.3;
+}
+
+.editor.mini {
+  height: auto;
+  line-height: 25px;
+}
+
+.editor.mini .cursor {
+  width: 2px;
+  line-height: 20px;
+  margin-top: 2px;
+}
+
+.editor .gutter .line-number.cursor-line {
+  opacity: 1;
+}
+
+.editor .gutter {
+  position: absolute;
+  height: 100%;
+  overflow: hidden;
+  text-align: right;
+  cursor: default;
+}
+
+.editor .gutter .line-number {
+  padding-right: .5em;
+  min-width: 35px;
+  box-sizing: border-box;
+  text-align: right;
+  opacity: 0.6;
+}
+
+.editor .gutter .line-numbers {
+  position: relative;
+}
+
+.editor .gutter .line-number.fold.cursor-line {
+  opacity: 1;
+}
+
+.editor .gutter .line-number.fold:after {
+  visibility: visible;
+}
+
+.editor.mini .gutter {
+  display: none;
+}
+
+.editor .gutter .line-number:after {
+  font-size: 0.8em;
+  content: '\f078';
+  font-family: 'Octicons Regular';
+  -webkit-font-smoothing: antialiased;
+  opacity: .8;
+  visibility: hidden;
+}
+
+.editor .fold-marker:after {
+  font-size: .8em;
+  content: '\f09a';
+  opacity: .8;
+  padding-left: .2em;
+  font-family: 'Octicons Regular';
+  -webkit-font-smoothing: antialiased;
+}
+
+.editor .line.cursor-line .fold-marker:after {
+  opacity: 1;
+}
+
+.editor.is-blurred .line.cursor-line {
+  background: rgba(0, 0, 0, 0);
+}
+
+.editor .invisible {
+  opacity: 0.2;
+  font-weight: normal !important;
+  font-style: normal !important;
+}
+
+.editor .indent-guide {
+  opacity: 0.2;
+  display: inline-block;
+  box-shadow: inset 1px 0px;
+}
+
+.editor .vertical-scrollbar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 15px;
+  overflow-y: auto;
+  z-index: 1;
+}
+
+.editor .scroll-view {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.editor.mini .scroll-view {
+  overflow: hidden;
+}
+
+.editor.soft-wrap .scroll-view {
+  overflow-x: hidden;
+}
+
+.editor .underlayer, .editor .lines, .editor .overlayer {
+  width: 100%;
+  height: 100%;
+}
+
+.editor .underlayer {
+  z-index: 0;
+  position: absolute;
+}
+
+.editor .lines {
+  position: relative;
+  z-index: 1;
+}
+
+.editor .overlayer {
+  z-index: 2;
+  position: absolute;
+}
+
+.editor .line span {
+  vertical-align: top;
+}
+
+.editor .cursor {
+  position: absolute;
+  border-left: 1px solid;
+}
+
+.editor .cursor,
+.editor.is-focused .cursor.blink-off {
+  visibility: hidden;
+}
+
+.editor.is-focused .cursor {
+  visibility: visible;
+}
+
+.editor .hidden-input {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+
+.editor .selection .region {
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}

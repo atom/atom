@@ -1,4 +1,5 @@
 $ = require 'jquery'
+{$$} = require 'space-pen'
 _ = require 'underscore'
 TreeView = require 'tree-view/lib/tree-view'
 RootView = require 'root-view'
@@ -49,7 +50,7 @@ describe "TreeView", ->
         rootView.deactivate()
         window.rootView = new RootView()
         rootView.open()
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -65,7 +66,7 @@ describe "TreeView", ->
 
       describe "when the project is assigned a path because a new buffer is saved", ->
         it "creates a root directory view but does not attach to the root view", ->
-          rootView.getActiveEditSession().saveAs("/tmp/test.txt")
+          rootView.getActivePaneItem().saveAs("/tmp/test.txt")
           expect(treeView.hasParent()).toBeFalsy()
           expect(treeView.root.getPath()).toBe require.resolve('/tmp')
           expect(treeView.root.parent()).toMatchSelector(".tree-view")
@@ -75,13 +76,13 @@ describe "TreeView", ->
         rootView.deactivate()
         window.rootView = new RootView
         rootView.open('tree-view.js')
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
     describe "when the root view is opened to a directory", ->
       it "attaches to the root view", ->
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.root).toExist()
 
@@ -174,14 +175,14 @@ describe "TreeView", ->
     describe "if the current file has no path", ->
       it "shows and focuses the tree view, but does not attempt to select a specific file", ->
         rootView.open()
-        expect(rootView.getActiveEditSession().getPath()).toBeUndefined()
+        expect(rootView.getActivePaneItem().getPath()).toBeUndefined()
         rootView.trigger 'tree-view:reveal-active-file'
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.focus).toHaveBeenCalled()
 
     describe "if there is no editor open", ->
       it "shows and focuses the tree view, but does not attempt to select a specific file", ->
-        expect(rootView.getActiveEditSession()).toBeUndefined()
+        expect(rootView.getActivePaneItem()).toBeUndefined()
         rootView.trigger 'tree-view:reveal-active-file'
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.focus).toHaveBeenCalled()
@@ -195,7 +196,7 @@ describe "TreeView", ->
       treeView.trigger 'tool-panel:unfocus'
       expect(treeView).toBeVisible()
       expect(treeView.find(".tree-view")).not.toMatchSelector(':focus')
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+      expect(rootView.getActiveView().isFocused).toBeTruthy()
 
   describe "when core:close is triggered on the tree view", ->
     it "detaches the TreeView, focuses the RootView and does not bubble the core:close event", ->
@@ -262,28 +263,28 @@ describe "TreeView", ->
 
   describe "when a file is single-clicked", ->
     it "selects the files and opens it in the active editor, without changing focus", ->
-      expect(rootView.getActiveEditor()).toBeUndefined()
+      expect(rootView.getActiveView()).toBeUndefined()
 
       sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleJs).toHaveClass 'selected'
-      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
-      expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+      expect(rootView.getActiveView().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
+      expect(rootView.getActiveView().isFocused).toBeFalsy()
 
       sampleTxt.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleTxt).toHaveClass 'selected'
       expect(treeView.find('.selected').length).toBe 1
-      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.txt')
-      expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+      expect(rootView.getActiveView().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.txt')
+      expect(rootView.getActiveView().isFocused).toBeFalsy()
 
   describe "when a file is double-clicked", ->
     it "selects the file and opens it in the active editor on the first click, then changes focus to the active editor on the second", ->
       sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleJs).toHaveClass 'selected'
-      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
-      expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+      expect(rootView.getActiveView().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
+      expect(rootView.getActiveView().isFocused).toBeFalsy()
 
       sampleJs.trigger clickEvent(originalEvent: { detail: 2 })
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+      expect(rootView.getActiveView().isFocused).toBeTruthy()
 
   describe "when a directory is single-clicked", ->
     it "is selected", ->
@@ -299,26 +300,32 @@ describe "TreeView", ->
       expect(subdir).toHaveClass 'selected'
       subdir.trigger clickEvent(originalEvent: { detail: 2 })
       expect(subdir).toHaveClass 'expanded'
-      expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+      expect(rootView.getActiveView().isFocused).toBeFalsy()
 
-  describe "when a new file is opened in the active editor", ->
-    it "is selected in the tree view if the file's entry visible", ->
-      sampleJs.click()
-      rootView.open(require.resolve('fixtures/tree-view/tree-view.txt'))
+  describe "when the active item changes on the active pane", ->
+    describe "when the item has a path", ->
+      it "selects the entry with that path in the tree view if it is visible", ->
+        sampleJs.click()
+        rootView.open(require.resolve('fixtures/tree-view/tree-view.txt'))
 
-      expect(sampleTxt).toHaveClass 'selected'
-      expect(treeView.find('.selected').length).toBe 1
+        expect(sampleTxt).toHaveClass 'selected'
+        expect(treeView.find('.selected').length).toBe 1
 
-    it "selected a file's parent dir if the file's entry is not visible", ->
-      rootView.open(require.resolve('fixtures/tree-view/dir1/sub-dir1/sub-file1'))
+      it "selects the path's parent dir if its entry is not visible", ->
+        rootView.open('dir1/sub-dir1/sub-file1')
+        dirView = treeView.root.find('.directory:contains(dir1)').view()
+        expect(dirView).toHaveClass 'selected'
 
-      dirView = treeView.root.find('.directory:contains(dir1)').view()
-      expect(dirView).toHaveClass 'selected'
+    describe "when the item has no path", ->
+      it "deselects the previously selected entry", ->
+        sampleJs.click()
+        rootView.getActivePane().showItem($$ -> @div('hello'))
+        expect(rootView.find('.selected')).not.toExist()
 
   describe "when a different editor becomes active", ->
     it "selects the file in that is open in that editor", ->
       sampleJs.click()
-      leftEditor = rootView.getActiveEditor()
+      leftEditor = rootView.getActiveView()
       rightEditor = leftEditor.splitRight()
       sampleTxt.click()
 
@@ -569,8 +576,8 @@ describe "TreeView", ->
         it "opens the file in the editor and focuses it", ->
           treeView.root.find('.file:contains(tree-view.js)').click()
           treeView.root.trigger 'tree-view:open-selected-entry'
-          expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
-          expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+          expect(rootView.getActiveView().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
+          expect(rootView.getActiveView().isFocused).toBeTruthy()
 
       describe "when a directory is selected", ->
         it "expands or collapses the directory", ->
@@ -586,7 +593,7 @@ describe "TreeView", ->
       describe "when nothing is selected", ->
         it "does nothing", ->
           treeView.root.trigger 'tree-view:open-selected-entry'
-          expect(rootView.getActiveEditor()).toBeUndefined()
+          expect(rootView.getActiveView()).toBeUndefined()
 
   describe "file modification", ->
     [dirView, fileView, rootDirPath, dirPath, filePath] = []
@@ -650,7 +657,7 @@ describe "TreeView", ->
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.isFile(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
-              expect(rootView.getActiveEditor().getPath()).toBe newPath
+              expect(rootView.getActiveView().getPath()).toBe newPath
 
               waitsFor "tree view to be updated", ->
                 dirView.entries.find("> .file").length > 1
@@ -680,9 +687,9 @@ describe "TreeView", ->
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
-              expect(rootView.getActiveEditor().getPath()).not.toBe newPath
+              expect(rootView.getActiveView().getPath()).not.toBe newPath
               expect(treeView.find(".tree-view")).toMatchSelector(':focus')
-              expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+              expect(rootView.getActiveView().isFocused).toBeFalsy()
               expect(dirView.find('.directory.selected:contains(new)').length).toBe(1)
 
             it "selects the created directory", ->
@@ -693,9 +700,9 @@ describe "TreeView", ->
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
-              expect(rootView.getActiveEditor().getPath()).not.toBe newPath
+              expect(rootView.getActiveView().getPath()).not.toBe newPath
               expect(treeView.find(".tree-view")).toMatchSelector(':focus')
-              expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+              expect(rootView.getActiveView().isFocused).toBeFalsy()
               expect(dirView.find('.directory.selected:contains(new2)').length).toBe(1)
 
           describe "when a file or directory already exists at the given path", ->
@@ -722,7 +729,7 @@ describe "TreeView", ->
             rootView.attachToDom()
             rootView.focus()
             expect(addDialog.parent()).not.toExist()
-            expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+            expect(rootView.getActiveView().isFocused).toBeTruthy()
 
       describe "when a directory is selected", ->
         it "opens an add dialog with the directory's path populated", ->
@@ -839,7 +846,7 @@ describe "TreeView", ->
             rootView.attachToDom()
             rootView.focus()
             expect(moveDialog.parent()).not.toExist()
-            expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+            expect(rootView.getActiveView().isFocused).toBeTruthy()
 
       describe "when a file is selected that's name starts with a '.'", ->
         [dotFilePath, dotFileView, moveDialog] = []
@@ -927,35 +934,47 @@ describe "TreeView", ->
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1
 
   describe "Git status decorations", ->
-    [ignoreFile, modifiedFile, originalFileContent] = []
+    [ignoreFile, newFile, modifiedFile, originalFileContent] = []
 
     beforeEach ->
       config.set "core.hideGitIgnoredFiles", false
       ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
       fs.write(ignoreFile, 'tree-view.js')
-      modifiedFile = fs.join(require.resolve('fixtures/tree-view'), 'tree-view.txt')
+      git.getPathStatus(ignoreFile)
+
+      newFile = fs.join(require.resolve('fixtures/tree-view/dir2'), 'new2')
+      fs.write(newFile, '')
+      git.getPathStatus(newFile)
+
+      modifiedFile = fs.join(require.resolve('fixtures/tree-view/dir1'), 'file1')
       originalFileContent = fs.read(modifiedFile)
       fs.write modifiedFile, 'ch ch changes'
+      git.getPathStatus(modifiedFile)
+
       treeView.updateRoot()
+      treeView.root.entries.find('.directory:contains(dir1)').view().expand()
+      treeView.root.entries.find('.directory:contains(dir2)').view().expand()
 
     afterEach ->
       fs.remove(ignoreFile) if fs.exists(ignoreFile)
+      fs.remove(newFile) if fs.exists(newFile)
       fs.write modifiedFile, originalFileContent
 
     describe "when a file is modified", ->
       it "adds a custom style", ->
-        expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
+        expect(treeView.find('.file:contains(file1)')).toHaveClass 'modified'
 
-      describe "when the window gains focus after the contents are restored to a clean state", ->
-        it "removes the custom style", ->
-          expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
-          fs.write modifiedFile, originalFileContent
-          $(window).trigger 'focus'
-          expect(treeView.find('.file:contains(tree-view.txt)')).not.toHaveClass 'modified'
+    describe "when a directory if modified", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.directory:contains(dir1)')).toHaveClass 'modified'
 
     describe "when a file is new", ->
       it "adds a custom style", ->
         expect(treeView.find('.file:contains(.gitignore)')).toHaveClass 'new'
+
+    describe "when a directory is new", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.directory:contains(dir2)')).toHaveClass 'new'
 
     describe "when a file is ignored", ->
       it "adds a custom style", ->

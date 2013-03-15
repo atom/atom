@@ -1,3 +1,6 @@
+_ = require 'underscore'
+EventEmitter = require 'event-emitter'
+
 module.exports =
 class Task
   aborted: false
@@ -24,7 +27,7 @@ class Task
   error: -> console.error(arguments...)
 
   startWorker: ->
-    @callWorkerMethod 'start'
+    @callWorkerMethod 'start',
       globals:
         resourcePath: window.resourcePath
         navigator:
@@ -49,3 +52,6 @@ class Task
     @abort()
     @worker?.terminate()
     @worker = null
+    @trigger 'task-completed'
+
+_.extend Task.prototype, EventEmitter

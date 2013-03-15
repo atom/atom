@@ -10,18 +10,18 @@ describe "LanguageMode", ->
 
   describe "common behavior", ->
     beforeEach ->
-      editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
+      editSession = project.buildEditSession('sample.js', autoIndent: false)
       { buffer, languageMode } = editSession
 
     describe "language detection", ->
       it "uses the file name as the file type if it has no extension", ->
-        jsEditSession = fixturesProject.buildEditSessionForPath('js', autoIndent: false)
+        jsEditSession = project.buildEditSession('js', autoIndent: false)
         expect(jsEditSession.languageMode.grammar.name).toBe "JavaScript"
         jsEditSession.destroy()
 
   describe "javascript", ->
     beforeEach ->
-      editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
+      editSession = project.buildEditSession('sample.js', autoIndent: false)
       { buffer, languageMode } = editSession
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
@@ -63,7 +63,7 @@ describe "LanguageMode", ->
 
   describe "coffeescript", ->
     beforeEach ->
-      editSession = fixturesProject.buildEditSessionForPath('coffee.coffee', autoIndent: false)
+      editSession = project.buildEditSession('coffee.coffee', autoIndent: false)
       { buffer, languageMode } = editSession
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
@@ -98,7 +98,7 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      editSession = fixturesProject.buildEditSessionForPath('css.css', autoIndent: false)
+      editSession = project.buildEditSession('css.css', autoIndent: false)
       { buffer, languageMode } = editSession
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->

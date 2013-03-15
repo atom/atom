@@ -34,8 +34,7 @@
 
   _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
   if (!alwaysUseBundleResourcePath && !_resourcePath) {
-    NSString *defaultRepositoryPath = @"~/github/atom";
-    defaultRepositoryPath = [defaultRepositoryPath stringByStandardizingPath];
+    NSString *defaultRepositoryPath = [@"~/github/atom" stringByStandardizingPath];
     if ([defaultRepositoryPath characterAtIndex:0] == '/') {
       BOOL isDir = false;
       BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
@@ -45,8 +44,14 @@
   }
 
   if (alwaysUseBundleResourcePath || !_resourcePath) {
-    _resourcePath = [[NSBundle mainBundle] resourcePath];
+    _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   }
+
+  if ([self isDevMode]) {
+    [self displayDevIcon];
+  }
+
+  _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
 
   if (!background) {
@@ -69,7 +74,6 @@
 
 - (id)initDevWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:false];
 }
 
@@ -119,11 +123,13 @@
 // have the correct initial size based on the frame's last stored size.
 // HACK: I hate this and want to place this code directly in windowDidLoad
 - (void)attachWebView {
-  NSURL *url = [[NSBundle mainBundle] resourceURL];
+  NSURL *url = [[NSBundle bundleForClass:self.class] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];
   [urlString appendFormat:@"&resourcePath=%@", [self encodeUrlParam:_resourcePath]];
+  if ([self isDevMode])
+    [urlString appendFormat:@"&devMode=1"];
   if (_exitWhenDone)
     [urlString appendString:@"&exitWhenDone=1"];
   if (_pathToOpen)
@@ -200,6 +206,33 @@
 
   [self autorelease];
   return YES;
+}
+
+- (bool)isDevMode {
+  NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
+  return ![_resourcePath isEqualToString:bundleResourcePath];
+}
+
+- (void)displayDevIcon {
+  NSView *themeFrame = [self.window.contentView superview];
+  NSButton *fullScreenButton = nil;
+  for (NSView *view in themeFrame.subviews) {
+    if (![view isKindOfClass:NSButton.class]) continue;
+    NSButton *button = (NSButton *)view;
+    if (button.action != @selector(toggleFullScreen:)) continue;
+    fullScreenButton = button;
+    break;
+  }
+
+  NSButton *devButton = [[NSButton alloc] init];
+  [devButton setTitle:@"\xF0\x9F\x92\x80"];
+  devButton.autoresizingMask = NSViewMinXMargin | NSViewMinYMargin;
+  devButton.buttonType = NSMomentaryChangeButton;
+  devButton.bordered = NO;
+  [devButton sizeToFit];
+  devButton.frame = NSMakeRect(fullScreenButton.frame.origin.x - devButton.frame.size.width - 5, fullScreenButton.frame.origin.y, devButton.frame.size.width, devButton.frame.size.height);
+
+  [[self.window.contentView superview] addSubview:devButton];
 }
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {

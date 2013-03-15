@@ -1,49 +1,36 @@
-ScrollView = require 'scroll-view'
 fs = require 'fs'
 $ = require 'jquery'
+ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
-  @activate: ->
-    @instance = new MarkdownPreviewView
+  registerDeserializer(this)
+
+  @deserialize: ({path}) ->
+    new MarkdownPreviewView(project.bufferForPath(path))
 
   @content: ->
-    @div class: 'markdown-preview', tabindex: -1, =>
-      @div class: 'markdown-body', outlet: 'markdownBody'
+    @div class: 'markdown-preview', tabindex: -1
 
-  initialize: ->
+  initialize: (@buffer) ->
     super
+    @fetchRenderedMarkdown()
+    @on 'core:move-up', => @scrollUp()
+    @on 'core:move-down', => @scrollDown()
 
-    rootView.command 'markdown-preview:toggle', => @toggle()
-    @on 'blur', => @detach() unless document.activeElement is this[0]
-    @command 'core:cancel', => @detach()
+  serialize: ->
+    deserializer: 'MarkdownPreviewView'
+    path: @buffer.getPath()
 
-  toggle: ->
-    if @hasParent()
-      @detach()
-    else
-      @attach()
+  getTitle: ->
+    "Markdown Preview – #{@buffer.getBaseName()}"
 
-  attach: ->
-    return unless @isMarkdownEditor()
-    rootView.append(this)
-    @markdownBody.html(@getLoadingHtml())
-    @loadHtml()
-    @focus()
+  getUri: ->
+    "markdown-preview:#{@buffer.getPath()}"
 
-  detach: ->
-    return if @detaching
-    @detaching = true
-    super
-    rootView.focus()
-    @detaching = false
-
-  getActiveText: ->
-    rootView.getActiveEditor()?.getText()
-
-  getErrorHtml: (error) ->
-    $$$ ->
+  setErrorHtml: ->
+    @html $$$ ->
       @h2 'Previewing Markdown Failed'
       @h3 'Possible Reasons'
       @ul =>
@@ -52,29 +39,18 @@ class MarkdownPreviewView extends ScrollView
           @a 'github.com', href: 'https://github.com'
           @span '.'
 
-   getLoadingHtml: ->
-     $$$ ->
-       @div class: 'markdown-spinner', 'Loading Markdown...'
+  setLoading: ->
+    @html($$$ -> @div class: 'markdown-spinner', 'Loading Markdown...')
 
-  loadHtml: (text) ->
-    payload =
-       mode: 'markdown'
-       text: @getActiveText()
-    request =
+  fetchRenderedMarkdown: (text) ->
+    @setLoading()
+    $.ajax
       url: 'https://api.github.com/markdown'
       type: 'POST'
       dataType: 'html'
       contentType: 'application/json; charset=UTF-8'
-      data: JSON.stringify(payload)
-      success: (html) => @setHtml(html)
-      error: (jqXhr, error) => @setHtml(@getErrorHtml(error))
-    $.ajax(request)
-
-  setHtml: (html) ->
-    @markdownBody.html(html) if @hasParent()
-
-  isMarkdownEditor: (path) ->
-    editor = rootView.getActiveEditor()
-    return unless editor?
-    return true if editor.getGrammar().scopeName is 'source.gfm'
-    path and fs.isMarkdownExtension(fs.extension(path))
+      data: JSON.stringify
+        mode: 'markdown'
+        text: @buffer.getText()
+      success: (html) => @html(html)
+      error: => @setErrorHtml()

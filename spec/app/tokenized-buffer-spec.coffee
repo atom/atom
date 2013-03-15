@@ -18,7 +18,7 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
-      editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
+      editSession = project.buildEditSession('sample.js', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
       editSession.setVisible(true)
@@ -299,7 +299,7 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
       tabLength = 2
-      editSession = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', { tabLength })
+      editSession = project.buildEditSession('sample-with-tabs.coffee', { tabLength })
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
       editSession.setVisible(true)
@@ -328,7 +328,7 @@ describe "TokenizedBuffer", ->
 
   describe "when a Git commit message file is tokenized", ->
     beforeEach ->
-      editSession =  fixturesProject.buildEditSessionForPath('COMMIT_EDITMSG', autoIndent: false)
+      editSession =  project.buildEditSession('COMMIT_EDITMSG', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
       editSession.setVisible(true)
@@ -355,7 +355,7 @@ describe "TokenizedBuffer", ->
 
   describe "when a C++ source file is tokenized", ->
     beforeEach ->
-      editSession =  fixturesProject.buildEditSessionForPath('includes.cc', autoIndent: false)
+      editSession =  project.buildEditSession('includes.cc', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
       editSession.setVisible(true)
@@ -386,7 +386,7 @@ describe "TokenizedBuffer", ->
 
   describe "when a Ruby source file is tokenized", ->
     beforeEach ->
-      editSession =  fixturesProject.buildEditSessionForPath('hello.rb', autoIndent: false)
+      editSession =  project.buildEditSession('hello.rb', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
       editSession.setVisible(true)
@@ -403,7 +403,7 @@ describe "TokenizedBuffer", ->
 
   describe "when an Objective-C source file is tokenized", ->
     beforeEach ->
-      editSession =  fixturesProject.buildEditSessionForPath('function.mm', autoIndent: false)
+      editSession =  project.buildEditSession('function.mm', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
       editSession.setVisible(true)

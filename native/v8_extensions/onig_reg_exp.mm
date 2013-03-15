@@ -73,32 +73,34 @@ bool OnigRegExp::Execute(const CefString& name,
                             CefRefPtr<CefV8Value>& retval,
                             CefString& exception) {
 
-  if (name == "search") {
-    CefRefPtr<CefV8Value> string = arguments[0];
-    CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
-    OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
-    retval = userData->Search(string, index);
-    return true;
-  }
-  else if (name == "test") {
-    CefRefPtr<CefV8Value> string = arguments[0];
-    CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
-    OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
-    retval = userData->Test(string, index);
-    return true;
-  }
-  else if (name == "buildOnigRegExp") {
-    CefRefPtr<CefV8Value> pattern = arguments[0];
-    CefRefPtr<OnigRegExpUserData> userData = new OnigRegExpUserData(pattern);
-    if (!userData->m_regex) {
-      exception = std::string("Failed to create OnigRegExp from pattern '") + pattern->GetStringValue().ToString() + "'";
+  @autoreleasepool {
+    if (name == "search") {
+      CefRefPtr<CefV8Value> string = arguments[0];
+      CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
+      OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
+      retval = userData->Search(string, index);
+      return true;
     }
-    retval = CefV8Value::CreateObject(NULL);
-    retval->SetUserData((CefRefPtr<CefBase>)userData);
-    return true;
-  }
+    else if (name == "test") {
+      CefRefPtr<CefV8Value> string = arguments[0];
+      CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
+      OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
+      retval = userData->Test(string, index);
+      return true;
+    }
+    else if (name == "buildOnigRegExp") {
+      CefRefPtr<CefV8Value> pattern = arguments[0];
+      CefRefPtr<OnigRegExpUserData> userData = new OnigRegExpUserData(pattern);
+      if (!userData->m_regex) {
+        exception = std::string("Failed to create OnigRegExp from pattern '") + pattern->GetStringValue().ToString() + "'";
+      }
+      retval = CefV8Value::CreateObject(NULL);
+      retval->SetUserData((CefRefPtr<CefBase>)userData);
+      return true;
+    }
 
-  return false;
+    return false;
+  }
 }
 
 } // namespace v8_extensions

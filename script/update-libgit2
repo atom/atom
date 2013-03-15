@@ -3,7 +3,8 @@
 # From root of libgit2 repo:
 # mkdir build
 # cd build
-# cmake .. -DCMAKE_INSTALL_PREFIX=~/repos/atom/git2  -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DCMAKE_BUILD_TYPE=Release
+# cmake .. -DCMAKE_INSTALL_PREFIX=~/github/atom/git2  -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DCMAKE_BUILD_TYPE=Release -DTHREADSAFE=1 -DBUILD_CLAR=OFF
+
 # cmake --build . --target install
 #
 # From root of atom repo:

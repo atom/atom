@@ -11,7 +11,7 @@ always hit `meta-p` to bring up a list of commands that are relevant to the
 currently focused UI element. If there is a key binding for a given command, it
 is also displayed. This is a great way to explore the system and get to know the
 key commands interactively. If you'd like to add or change a binding for a
-command, refer to the [keymaps](#keymaps) section to learn how.
+command, refer to the [key bindings](#customizing-key-bindings) section to learn how.
 
 ![Command Palette](http://f.cl.ly/items/32041o3w471F3C0F0V2O/Screen%20Shot%202013-02-13%20at%207.27.41%20PM.png)
 
@@ -157,10 +157,10 @@ its own namespace.
   - hideGitIgnoredFiles: Whether files in the .gitignore should be hidden
   - ignoredNames: File names to ignore across all of atom (not fully implemented)
   - themes: An array of theme names to load, in cascading order
+  - autosave: Save a resource when its view loses focus
 - editor
   - autoIndent: Enable/disable basic auto-indent (defaults to true)
   - autoIndentOnPaste: Enable/disable auto-indented pasted text (defaults to false)
-  - autosave: Save a file when an editor loses focus
   - nonWordCharacters: A string of non-word characters to define word boundaries
   - fontSize
   - fontFamily

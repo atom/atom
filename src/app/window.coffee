@@ -1,11 +1,13 @@
 fs = require 'fs'
 $ = require 'jquery'
 ChildProcess = require 'child-process'
+{less} = require 'less'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
 
 deserializers = {}
+deferredDeserializers = {}
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
@@ -23,17 +25,17 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  requireStylesheet 'reset.css'
-  requireStylesheet 'atom.css'
-  requireStylesheet 'tabs.css'
-  requireStylesheet 'tree-view.css'
-  requireStylesheet 'status-bar.css'
-  requireStylesheet 'command-panel.css'
-  requireStylesheet 'fuzzy-finder.css'
-  requireStylesheet 'overlay.css'
-  requireStylesheet 'popover-list.css'
-  requireStylesheet 'notification.css'
-  requireStylesheet 'markdown.css'
+  requireStylesheet 'reset.less'
+  requireStylesheet 'atom.less'
+  requireStylesheet 'tabs.less'
+  requireStylesheet 'tree-view.less'
+  requireStylesheet 'status-bar.less'
+  requireStylesheet 'command-panel.less'
+  requireStylesheet 'fuzzy-finder.less'
+  requireStylesheet 'overlay.less'
+  requireStylesheet 'popover-list.less'
+  requireStylesheet 'notification.less'
+  requireStylesheet 'markdown.less'
 
   if nativeStylesheetPath = require.resolve("#{platform}.css")
     requireStylesheet(nativeStylesheetPath)
@@ -42,16 +44,21 @@ window.setUpEnvironment = ->
 window.startup = ->
   if fs.isDirectory('/opt/boxen')
     installAtomCommand('/opt/boxen/bin/atom')
-  else
+  else if fs.isDirectory('/opt/github')
     installAtomCommand('/opt/github/bin/atom')
+  else if fs.isDirectory('/usr/local')
+    installAtomCommand('/usr/local/bin/atom')
+  else
+    console.warn "Failed to install `atom` binary"
 
   handleWindowEvents()
   config.load()
   atom.loadTextPackage()
-  buildProjectAndRootView()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
   atom.loadPackages()
+  buildProjectAndRootView()
+  atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
   $(window).on 'beforeunload', -> shutdown(); false
@@ -65,9 +72,11 @@ window.shutdown = ->
     rootView: rootView.serialize()
   rootView.deactivate()
   project.destroy()
+  git?.destroy()
   $(window).off('focus blur before')
   window.rootView = null
   window.project = null
+  window.git = null
 
 window.installAtomCommand = (commandPath) ->
   return if fs.exists(commandPath)
@@ -78,15 +87,15 @@ window.installAtomCommand = (commandPath) ->
     ChildProcess.exec("chmod u+x '#{commandPath}'")
 
 window.handleWindowEvents = ->
-  $(window).on 'core:close', => window.close()
-  $(window).command 'window:close', => window.close()
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
+  $(window).command 'window:close', => confirmClose()
 
 window.buildProjectAndRootView = ->
   RootView = require 'root-view'
   Project = require 'project'
+  Git = require 'git'
 
   pathToOpen = atom.getPathToOpen()
   windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
@@ -98,14 +107,30 @@ window.buildProjectAndRootView = ->
 
   $(rootViewParentSelector).append(rootView)
 
+  window.git = Git.open(project.getPath())
+  project.on 'path-changed', ->
+    window.git?.destroy()
+    window.git = Git.open(project.getPath())
+
 window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")
 
 window.requireStylesheet = (path) ->
   if fullPath = require.resolve(path)
-    window.applyStylesheet(fullPath, fs.read(fullPath))
-  unless fullPath
+    content = window.loadStylesheet(fullPath)
+    window.applyStylesheet(fullPath, content)
+  else
+    console.log "bad", path
     throw new Error("Could not find a file at path '#{path}'")
+
+window.loadStylesheet = (path) ->
+  content = fs.read(path)
+  if fs.extension(path) == '.less'
+    (new less.Parser).parse content, (e, tree) ->
+      throw new Error(e.message, file, e.line) if e
+      content = tree.toCSS()
+
+  content
 
 window.removeStylesheet = (path) ->
   unless fullPath = require.resolve(path)
@@ -139,8 +164,23 @@ window.registerDeserializers = (args...) ->
 window.registerDeserializer = (klass) ->
   deserializers[klass.name] = klass
 
+window.registerDeferredDeserializer = (name, fn) ->
+  deferredDeserializers[name] = fn
+
+window.unregisterDeserializer = (klass) ->
+  delete deserializers[klass.name]
+
 window.deserialize = (state) ->
-  deserializers[state?.deserializer]?.deserialize(state)
+  if deserializer = getDeserializer(state)
+    return if deserializer.version? and deserializer.version isnt state.version
+    deserializer.deserialize(state)
+
+window.getDeserializer = (state) ->
+  name = state?.deserializer
+  if deferredDeserializers[name]
+    deferredDeserializers[name]()
+    delete deferredDeserializers[name]
+  deserializers[name]
 
 window.measure = (description, fn) ->
   start = new Date().getTime()
@@ -148,3 +188,7 @@ window.measure = (description, fn) ->
   result = new Date().getTime() - start
   console.log description, result
   value
+
+
+confirmClose = ->
+  rootView.confirmClose().done -> window.close()

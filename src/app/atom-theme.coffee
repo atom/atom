@@ -5,10 +5,10 @@ module.exports =
 class AtomTheme extends Theme
 
   loadStylesheet: (stylesheetPath)->
-    @stylesheets[stylesheetPath] = fs.read(stylesheetPath)
+    @stylesheets[stylesheetPath] = window.loadStylesheet(stylesheetPath)
 
   load: ->
-    if fs.extension(@path) is '.css'
+    if fs.extension(@path) in ['.css', '.less']
       @loadStylesheet(@path)
     else
       metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
@@ -17,6 +17,6 @@ class AtomTheme extends Theme
         if stylesheetNames
           @loadStylesheet(fs.join(@path, name)) for name in stylesheetNames
       else
-        @loadStylesheet(stylesheetPath) for stylesheetPath in fs.list(@path, ['.css'])
+        @loadStylesheet(stylesheetPath) for stylesheetPath in fs.list(@path, ['.css', '.less'])
 
     super

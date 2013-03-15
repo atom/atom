@@ -1,5 +1,6 @@
 Git = require 'git'
 fs = require 'fs'
+Task = require 'task'
 
 describe "Git", ->
   repo = null
@@ -21,11 +22,11 @@ describe "Git", ->
   describe ".getPath()", ->
     it "returns the repository path for a .git directory path", ->
       repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
-      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git') + '/'
+      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git')
 
     it "returns the repository path for a repository path", ->
       repo = new Git(require.resolve('fixtures/git/master.git'))
-      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git') + '/'
+      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git')
 
   describe ".getHead()", ->
     it "returns a branch name for a non-empty repository", ->
@@ -126,6 +127,18 @@ describe "Git", ->
       expect(fs.read(path2)).toBe('path 2 is edited')
       expect(repo.isPathModified(path2)).toBeTruthy()
 
+    it "fires a status-changed event if the checkout completes successfully", ->
+      fs.write(path1, '')
+      repo.getPathStatus(path1)
+      statusHandler = jasmine.createSpy('statusHandler')
+      repo.on 'status-changed', statusHandler
+      repo.checkoutHead(path1)
+      expect(statusHandler.callCount).toBe 1
+      expect(statusHandler.argsForCall[0][0..1]).toEqual [path1, 0]
+
+      repo.checkoutHead(path1)
+      expect(statusHandler.callCount).toBe 1
+
   describe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
       repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
@@ -147,3 +160,75 @@ describe "Git", ->
       expect(repo.getDiffStats(path)).toEqual {added: 0, deleted: 0}
       fs.write(path, "#{originalPathText} edited line")
       expect(repo.getDiffStats(path)).toEqual {added: 1, deleted: 1}
+
+  describe ".getPathStatus(path)", ->
+    [path, originalPathText] = []
+
+    beforeEach ->
+      repo = new Git(require.resolve('fixtures/git/working-dir'))
+      path = require.resolve('fixtures/git/working-dir/file.txt')
+      originalPathText = fs.read(path)
+
+    afterEach ->
+      fs.write(path, originalPathText)
+
+    it "trigger a status-changed event when the new status differs from the last cached one", ->
+      statusHandler = jasmine.createSpy("statusHandler")
+      repo.on 'status-changed', statusHandler
+      fs.write(path, '')
+      status = repo.getPathStatus(path)
+      expect(statusHandler.callCount).toBe 1
+      expect(statusHandler.argsForCall[0][0..1]).toEqual [path, status]
+
+      fs.write(path, 'abc')
+      status = repo.getPathStatus(path)
+      expect(statusHandler.callCount).toBe 1
+
+  describe ".refreshStatus()", ->
+    [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
+
+    beforeEach ->
+      repo = new Git(require.resolve('fixtures/git/working-dir'))
+      modifiedPath = project.resolve('git/working-dir/file.txt')
+      originalModifiedPathText = fs.read(modifiedPath)
+      newPath = project.resolve('git/working-dir/untracked.txt')
+      cleanPath = project.resolve('git/working-dir/other.txt')
+      fs.write(newPath, '')
+
+    afterEach ->
+      fs.write(modifiedPath, originalModifiedPathText)
+      fs.remove(newPath) if fs.exists(newPath)
+
+    it "returns status information for all new and modified files", ->
+      fs.write(modifiedPath, 'making this path modified')
+      statusHandler = jasmine.createSpy('statusHandler')
+      repo.on 'statuses-changed', statusHandler
+      repo.refreshStatus()
+
+      waitsFor ->
+        statusHandler.callCount > 0
+
+      runs ->
+        statuses = repo.statuses
+        expect(statuses[cleanPath]).toBeUndefined()
+        expect(repo.isStatusNew(statuses[newPath])).toBeTruthy()
+        expect(repo.isStatusModified(statuses[modifiedPath])).toBeTruthy()
+
+    it "only starts a single web worker at a time and schedules a restart if one is already running", =>
+      fs.write(modifiedPath, 'making this path modified')
+      statusHandler = jasmine.createSpy('statusHandler')
+      repo.on 'statuses-changed', statusHandler
+
+      spyOn(Task.prototype, "start").andCallThrough()
+      repo.refreshStatus()
+      expect(Task.prototype.start.callCount).toBe 1
+      repo.refreshStatus()
+      expect(Task.prototype.start.callCount).toBe 1
+      repo.refreshStatus()
+      expect(Task.prototype.start.callCount).toBe 1
+
+      waitsFor ->
+        statusHandler.callCount > 0
+
+      runs ->
+        expect(Task.prototype.start.callCount).toBe 2
