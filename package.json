@@ -6,6 +6,8 @@
     "coffee-script": "1.5"
   },
 
+  "private": true,
+
   "scripts": {
     "preinstall": "true"
   }

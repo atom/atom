@@ -120,7 +120,7 @@ class CommandPanelView extends View
     @errorMessages.empty()
 
     try
-      @commandInterpreter.eval(command, rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
+      @commandInterpreter.eval(command, rootView.getActivePaneItem()).done ({operationsToPreview, errorMessages}) =>
         @loadingMessage.hide()
         @history.push(command)
         @historyIndex = @history.length
@@ -155,12 +155,12 @@ class CommandPanelView extends View
     @miniEditor.setText(@history[@historyIndex] or '')
 
   repeatRelativeAddress: ->
-    @commandInterpreter.repeatRelativeAddress(rootView.getActiveEditSession())
+    @commandInterpreter.repeatRelativeAddress(rootView.getActivePaneItem())
 
   repeatRelativeAddressInReverse: ->
-    @commandInterpreter.repeatRelativeAddressInReverse(rootView.getActiveEditSession())
+    @commandInterpreter.repeatRelativeAddressInReverse(rootView.getActivePaneItem())
 
   setSelectionAsLastRelativeAddress: ->
-    selection = rootView.getActiveEditor().getSelectedText()
+    selection = rootView.getActiveView().getSelectedText()
     regex = _.escapeRegExp(selection)
     @commandInterpreter.lastRelativeAddress = new CompositeCommand([new RegexAddress(regex)])

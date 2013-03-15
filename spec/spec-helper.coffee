@@ -15,7 +15,7 @@ TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
 RootView = require 'root-view'
 Git = require 'git'
-requireStylesheet "jasmine.css"
+requireStylesheet "jasmine.less"
 fixturePackagesPath = require.resolve('fixtures/packages')
 require.paths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()
@@ -30,9 +30,8 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
   jQuery.fx.off = true
-  window.fixturesProject = new Project(require.resolve('fixtures'))
-  window.project = fixturesProject
-  window.git = Git.open(fixturesProject.getPath())
+  window.project = new Project(require.resolve('fixtures'))
+  window.git = Git.open(project.getPath())
   window.project.on 'path-changed', ->
     window.git?.destroy()
     window.git = Git.open(window.project.getPath())
@@ -56,7 +55,7 @@ beforeEach ->
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
-  spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
+  spyOn(RootView.prototype, 'setTitle').andCallFake (@title) ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
@@ -69,11 +68,13 @@ beforeEach ->
   spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboardContent = text
   spyOn($native, 'readFromPasteboard').andCallFake -> pasteboardContent
 
+  addCustomMatchers(this)
+
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
   if rootView?
-    rootView.deactivate()
+    rootView.deactivate?()
     window.rootView = null
   if project?
     project.destroy()
@@ -83,14 +84,18 @@ afterEach ->
     window.git = null
   $('#jasmine-content').empty()
   ensureNoPathSubscriptions()
+  atom.pendingModals = [[]]
+  atom.presentingModal = false
   waits(0) # yield to ui thread to make screen update more frequently
 
-window.loadPackage = (name, options) ->
+window.loadPackage = (name, options={}) ->
   Package = require 'package'
   packagePath = _.find atom.getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
   if pack = Package.build(packagePath)
     pack.load(options)
     atom.loadedPackages.push(pack)
+    pack.deferActivation = false if options.activateImmediately
+    pack.activate()
   pack
 
 # Specs rely on TextMate bundles (but not atom packages)
@@ -119,6 +124,23 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
 jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].originalValue?
   object[methodName] = object[methodName].originalValue
+
+addCustomMatchers = (spec) ->
+  spec.addMatchers
+    toBeInstanceOf: (expected) ->
+      notText = if @isNot then " not" else ""
+      this.message = => "Expected #{jasmine.pp(@actual)} to#{notText} be instance of #{expected.name} class"
+      @actual instanceof expected
+
+    toHaveLength: (expected) ->
+      notText = if @isNot then " not" else ""
+      this.message = => "Expected object with length #{@actual.length} to#{notText} have length #{expected}"
+      @actual.length == expected
+
+    toExistOnDisk: (expected) ->
+      notText = this.isNot and " not" or ""
+      @message = -> return "Expected path '" + @actual + "'" + notText + " to exist."
+      fs.exists(@actual)
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key

@@ -73,7 +73,7 @@ class BufferChangeOperation
     event = { oldRange, newRange, oldText, newText }
     @updateMarkers(event)
     @buffer.trigger 'changed', event
-    @buffer.scheduleStoppedChangingEvent()
+    @buffer.scheduleModifiedEvents()
     @resumeMarkerObservation()
     @buffer.trigger 'markers-updated'
 

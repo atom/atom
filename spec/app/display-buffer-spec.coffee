@@ -1,11 +1,12 @@
 DisplayBuffer = require 'display-buffer'
 Buffer = require 'buffer'
+_ = require 'underscore'
 
 describe "DisplayBuffer", ->
   [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
-    editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabLength })
+    editSession = project.buildEditSession('sample.js', { tabLength })
     { buffer, displayBuffer } = editSession
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'changed', changeHandler
@@ -55,6 +56,13 @@ describe "DisplayBuffer", ->
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
+        describe "when whitespace is added after the max line length", ->
+          it "adds whitespace to the end of the current line and wraps an empty line", ->
+            fiftyCharacters = _.multiplyString("x", 50)
+            editSession.buffer.setText(fiftyCharacters)
+            editSession.setCursorBufferPosition([0, 51])
+            editSession.insertText(" ")
+
         describe "when the update makes a soft-wrapped line shorter than the max line length", ->
           it "rewraps the line and emits a change event", ->
             buffer.delete([[6, 24], [6, 42]])
@@ -220,7 +228,7 @@ describe "DisplayBuffer", ->
     editSession2 = null
 
     beforeEach ->
-      editSession2 = fixturesProject.buildEditSessionForPath('two-hundred.txt')
+      editSession2 = project.buildEditSession('two-hundred.txt')
       { buffer, displayBuffer } = editSession2
       displayBuffer.on 'changed', changeHandler
 

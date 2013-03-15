@@ -14,16 +14,21 @@ module.exports =
 class EditSession
   registerDeserializer(this)
 
-  @deserialize: (state, project) ->
+  @deserialize: (state) ->
     if fs.exists(state.buffer)
-      session = project.buildEditSessionForPath(state.buffer)
+      session = project.buildEditSession(state.buffer)
     else
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
-      session = project.buildEditSessionForPath(null)
+      session = project.buildEditSession(null)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
     session
+
+  @identifiedBy: 'path'
+
+  @deserializesToSameObject: (state, editSession) ->
+    state.path
 
   scrollTop: 0
   scrollLeft: 0
@@ -43,17 +48,40 @@ class EditSession
     @addCursorAtScreenPosition([0, 0])
 
     @buffer.retain()
-    @subscribe @buffer, "path-changed", => @trigger "path-changed"
+    @subscribe @buffer, "path-changed", =>
+      @project.setPath(fs.directory(@getPath())) unless @project.getPath()?
+      @trigger "title-changed"
+      @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
     @subscribe @buffer, "markers-updated", => @mergeCursors()
+    @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
 
     @preserveCursorPositionOnBufferReload()
 
     @subscribe @displayBuffer, "changed", (e) =>
       @trigger 'screen-lines-changed', e
 
+    @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
+
+  getViewClass: ->
+    require 'editor'
+
+  getTitle: ->
+    if path = @getPath()
+      fs.base(path)
+    else
+      'untitled'
+
+  getLongTitle: ->
+    if path = @getPath()
+      fileName = fs.base(path)
+      directory = fs.base(fs.directory(path))
+      "#{fileName} - #{directory}"
+    else
+      'untitled'
+
   destroy: ->
-    throw new Error("Edit session already destroyed") if @destroyed
+    return if @destroyed
     @destroyed = true
     @unsubscribe()
     @buffer.release()
@@ -130,6 +158,7 @@ class EditSession
   saveAs: (path) -> @buffer.saveAs(path)
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
+  getUri: -> @getPath()
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
   getEofBufferPosition: -> @buffer.getEofPosition()
@@ -814,11 +843,10 @@ class EditSession
   getGrammar: -> @languageMode.grammar
 
   reloadGrammar: ->
-    grammarChanged = @languageMode.reloadGrammar()
-    if grammarChanged
+    if @languageMode.reloadGrammar()
       @unfoldAll()
       @displayBuffer.tokenizedBuffer.resetScreenLines()
-    grammarChanged
+      true
 
   getDebugSnapshot: ->
     [

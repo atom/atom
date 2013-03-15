@@ -1,3 +1,4 @@
+require 'underscore-extensions'
 _ = require 'underscore'
 
 module.exports =
@@ -21,7 +22,8 @@ module.exports =
 
     cson = '[\n'
     for value in array
-      cson += @stringifyIndent(indentLevel + 2)
+      indent = @stringifyIndent(indentLevel + 2)
+      cson += indent
       if _.isString(value)
         cson += @stringifyString(value)
       else if _.isBoolean(value)
@@ -33,13 +35,15 @@ module.exports =
       else if _.isArray(value)
         cson += @stringifyArray(value, indentLevel + 2)
       else if _.isObject(value)
-        cson += @stringifyObject(value, indentLevel + 2)
+        cson += "{\n#{@stringifyObject(value, indentLevel + 4)}\n#{indent}}"
       else
         throw new Error("Unrecognized type for array value: #{value}")
       cson += '\n'
     "#{cson}#{@stringifyIndent(indentLevel)}]"
 
   stringifyObject: (object, indentLevel=0) ->
+    return '{}' if _.isEmpty(object)
+
     cson = ''
     prefix = ''
     for key, value of object

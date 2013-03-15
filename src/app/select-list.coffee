@@ -20,7 +20,7 @@ class SelectList extends View
   cancelling: false
 
   initialize: ->
-    requireStylesheet 'select-list.css'
+    requireStylesheet 'select-list.less'
 
     @miniEditor.getBuffer().on 'changed', => @schedulePopulateList()
     @miniEditor.on 'focusout', => @cancel() unless @cancelling

@@ -7,9 +7,9 @@ describe "CommandLogger", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    commandLogger = window.loadPackage('command-logger').packageMain
+    commandLogger = window.loadPackage('command-logger').mainModule
     commandLogger.eventLog = {}
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
 
   describe "when a command is triggered", ->
     it "records the number of times the command is triggered", ->

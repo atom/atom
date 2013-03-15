@@ -262,7 +262,7 @@ describe "TextMateGrammar", ->
   describe "when the grammar is CSON", ->
     it "loads the grammar and correctly parses a keyword", ->
       spyOn(syntax, 'addGrammar')
-      pack = new TextMatePackage(fixturesProject.resolve("packages/package-with-a-cson-grammar.tmbundle"))
+      pack = new TextMatePackage(project.resolve("packages/package-with-a-cson-grammar.tmbundle"))
       pack.load()
       grammar = pack.grammars[0]
       expect(grammar).toBeTruthy()

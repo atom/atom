@@ -3,15 +3,15 @@ CommandPanelView = require 'command-panel/lib/command-panel-view'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [editor, buffer, commandPanel] = []
+  [editSession, buffer, commandPanel] = []
 
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
     rootView.enableKeymap()
-    editor = rootView.getActiveEditor()
-    buffer = editor.activeEditSession.buffer
-    commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).packageMain
+    editSession = rootView.getActivePaneItem()
+    buffer = editSession.buffer
+    commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).mainModule
     commandPanel = commandPanelMain.commandPanelView
     commandPanel.history = []
     commandPanel.historyIndex = 0
@@ -219,41 +219,41 @@ describe "CommandPanel", ->
     it "repeats the last search command if there is one", ->
       rootView.trigger 'command-panel:repeat-relative-address'
 
-      editor.setCursorScreenPosition([4, 0])
+      editSession.setCursorScreenPosition([4, 0])
 
       commandPanel.execute("/current")
-      expect(editor.getSelection().getBufferRange()).toEqual [[5,6], [5,13]]
+      expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
 
       rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editor.getSelection().getBufferRange()).toEqual [[6,6], [6,13]]
+      expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
 
       commandPanel.execute('s/r/R/g')
 
       rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editor.getSelection().getBufferRange()).toEqual [[6,34], [6,41]]
+      expect(editSession.getSelectedBufferRange()).toEqual [[6,34], [6,41]]
 
       commandPanel.execute('0')
       commandPanel.execute('/sort/ s/r/R/') # this contains a substitution... won't be repeated
 
       rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editor.getSelection().getBufferRange()).toEqual [[3,31], [3,38]]
+      expect(editSession.getSelectedBufferRange()).toEqual [[3,31], [3,38]]
 
   describe "when command-panel:repeat-relative-address-in-reverse is triggered on the root view", ->
     it "it repeats the last relative address in the reverse direction", ->
       rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
 
-      editor.setCursorScreenPosition([6, 0])
+      editSession.setCursorScreenPosition([6, 0])
 
       commandPanel.execute("/current")
-      expect(editor.getSelection().getBufferRange()).toEqual [[6,6], [6,13]]
+      expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
 
       rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
-      expect(editor.getSelection().getBufferRange()).toEqual [[5,6], [5,13]]
+      expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
 
   describe "when command-panel:set-selection-as-regex-address is triggered on the root view", ->
     it "sets the @lastRelativeAddress to a RegexAddress of the current selection", ->
       rootView.open(require.resolve('fixtures/sample.js'))
-      rootView.getActiveEditor().setSelectedBufferRange([[1,21],[1,28]])
+      rootView.getActivePaneItem().setSelectedBufferRange([[1,21],[1,28]])
 
       commandInterpreter = commandPanel.commandInterpreter
       expect(commandInterpreter.lastRelativeAddress).toBeUndefined()
@@ -267,7 +267,7 @@ describe "CommandPanel", ->
       commandPanel.miniEditor.setText("foo")
       commandPanel.miniEditor.setCursorBufferPosition([0, 0])
 
-      rootView.getActiveEditor().trigger "command-panel:find-in-file"
+      rootView.getActiveView().trigger "command-panel:find-in-file"
       expect(commandPanel.attach).toHaveBeenCalled()
       expect(commandPanel.parent).not.toBeEmpty()
       expect(commandPanel.miniEditor.getText()).toBe "/"
@@ -297,8 +297,8 @@ describe "CommandPanel", ->
 
     describe "when the command returns operations to be previewed", ->
       beforeEach ->
+        rootView.getActivePane().remove()
         rootView.attachToDom()
-        editor.remove()
         rootView.trigger 'command-panel:toggle'
         waitsForPromise -> commandPanel.execute('X x/quicksort/')
 
@@ -350,16 +350,14 @@ describe "CommandPanel", ->
         expect(commandPanel).toBeVisible()
         expect(commandPanel.errorMessages).not.toBeVisible()
 
-
     describe "when the command contains an escaped character", ->
       it "executes the command with the escaped character (instead of as a backslash followed by the character)", ->
         rootView.trigger 'command-panel:toggle'
 
         editSession = rootView.open(require.resolve 'fixtures/sample-with-tabs.coffee')
-        editor.edit(editSession)
         commandPanel.miniEditor.setText "/\\tsell"
         commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
-        expect(editor.getSelectedBufferRange()).toEqual [[3,1],[3,6]]
+        expect(editSession.getSelectedBufferRange()).toEqual [[3,1],[3,6]]
 
   describe "when move-up and move-down are triggerred on the editor", ->
     it "navigates forward and backward through the command history", ->
@@ -470,11 +468,11 @@ describe "CommandPanel", ->
 
           previewList.trigger 'core:confirm'
 
-          editSession = rootView.getActiveEditSession()
+          editSession = rootView.getActivePaneItem()
           expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
           expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
           expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
-          expect(editor.isScreenRowVisible(editor.getCursorScreenRow())).toBeTruthy()
+          expect(rootView.getActiveView().isScreenRowVisible(editSession.getCursorScreenRow())).toBeTruthy()
           expect(previewList.focus).toHaveBeenCalled()
 
           expect(executeHandler).not.toHaveBeenCalled()
@@ -496,7 +494,7 @@ describe "CommandPanel", ->
         previewList.find('li.operation:eq(4) span').mousedown()
 
         expect(previewList.getSelectedOperation()).toBe operation
-        editSession = rootView.getActiveEditSession()
+        editSession = rootView.getActivePaneItem()
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
         expect(previewList.focus).toHaveBeenCalled()

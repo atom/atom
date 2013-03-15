@@ -3,7 +3,7 @@ BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
 task :build => "create-xcode-project" do
-  command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
+  command = "xcodebuild -target Atom SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -64,18 +64,6 @@ task :install => [:clean, :build] do
   puts "\033[32mAtom is installed at `#{dest_path}`. Atom cli is installed at `#{cli_path}`\033[0m"
 end
 
-desc "Package up the app for speakeasy"
-task :package => ["setup-codesigning", "build"] do
-  path = application_path()
-  exit 1 if not path
-
-  dest_path = '/tmp/atom-for-speakeasy/Atom.tar.bz2'
-  `mkdir -p $(dirname #{dest_path})`
-  `rm -rf #{dest_path}`
-  `tar --directory $(dirname #{path}) -jcf #{dest_path} $(basename #{path})`
-  `open $(dirname #{dest_path})`
-end
-
 task "setup-codesigning" do
   ENV['CODE_SIGN'] = "Developer ID Application: GitHub"
 end
@@ -95,7 +83,7 @@ task :clean do
 end
 
 desc "Run the specs"
-task :test => ["update-cef", "clone-default-bundles", "build"] do
+task :test => ["clean", "update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
     cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH} 2> /dev/null"
