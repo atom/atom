@@ -149,13 +149,13 @@ class VimState
   editSession: ->
     @vim.editor.activeEditSession
   currentCursorPosition: ->
-    @editSession().getCursorBufferPosition()
+    @editSession()?.getCursorBufferPosition()
   setCursorPosition: (pos) ->
-    @editSession().setCursorBufferPosition(pos)
+    @editSession()?.setCursorBufferPosition(pos)
   insertText: (text) ->
-    @editSession().insertText(text)
+    @editSession()?.insertText(text)
   clearSelection: ->
-    @editSession().clearSelections()
+    @editSession()?.clearSelections()
   expandSelection: ->
     for selection in @editSession().getSelections()
       selection.expandOverLine()

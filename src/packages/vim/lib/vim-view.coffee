@@ -12,7 +12,12 @@ class VimView extends View
 
   @appendToEditorPane: (rootView, editor) ->
     if pane = editor.pane()
-      pane.append(new VimView(rootView, editor))
+      statusbar = pane.find(".status-bar")
+      view = new VimView(rootView, editor)
+      if statusbar.length
+        statusbar.before(view)
+      else
+        pane.append(view)
 
   @content: ->
     @div class: 'vim', =>
