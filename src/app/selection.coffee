@@ -164,7 +164,7 @@ class Selection
     if options.autoIndent
       if text == '\n'
         @editSession.autoIndentBufferRow(newBufferRange.end.row)
-      else
+      else if /\S/.test(text)
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
     newBufferRange

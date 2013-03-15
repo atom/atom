@@ -47,7 +47,7 @@ class StatusBarView extends View
   subscribeToBuffer: ->
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
-    @buffer.on 'contents-modified.status-bar', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
+    @buffer.on 'modified-status-changed.status-bar', (isModified) => @updateBufferHasModifiedText(isModified)
     @buffer.on 'saved.status-bar', => @updateStatusBar()
     @updateStatusBar()
 
@@ -60,8 +60,8 @@ class StatusBarView extends View
   updateGrammarText: ->
     @grammarName.text(@editor.getGrammar().name)
 
-  updateBufferHasModifiedText: (differsFromDisk)->
-    if differsFromDisk
+  updateBufferHasModifiedText: (isModified)->
+    if isModified
       @bufferModified.text('*') unless @isModified
       @isModified = true
     else

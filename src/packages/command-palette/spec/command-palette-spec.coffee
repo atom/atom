@@ -19,8 +19,8 @@ describe "CommandPalette", ->
 
   describe "when command-palette:toggle is triggered on the root view", ->
     it "shows a list of all valid command descriptions, names, and keybindings for the previously focused element", ->
-      keyBindings = _.losslessInvert(keymap.bindingsForElement(rootView.getActiveEditor()))
-      for eventName, description of rootView.getActiveEditor().events()
+      keyBindings = _.losslessInvert(keymap.bindingsForElement(rootView.getActiveView()))
+      for eventName, description of rootView.getActiveView().events()
         eventLi = palette.list.children("[data-event-name='#{eventName}']")
         if description
           expect(eventLi).toExist()
@@ -32,7 +32,7 @@ describe "CommandPalette", ->
           expect(eventLi).not.toExist()
 
     it "displays all commands registerd on the window", ->
-      editorEvents = rootView.getActiveEditor().events()
+      editorEvents = rootView.getActiveView().events()
       windowEvents = $(window).events()
       expect(_.isEmpty(windowEvents)).toBeFalsy()
       for eventName, description of windowEvents
@@ -60,19 +60,19 @@ describe "CommandPalette", ->
       expect(palette.hasParent()).toBeTruthy()
       palette.trigger 'command-palette:toggle'
       expect(palette.hasParent()).toBeFalsy()
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+      expect(rootView.getActiveView().isFocused).toBeTruthy()
 
   describe "when the command palette is cancelled", ->
     it "focuses the root view and detaches the command palette", ->
       expect(palette.hasParent()).toBeTruthy()
       palette.cancel()
       expect(palette.hasParent()).toBeFalsy()
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+      expect(rootView.getActiveView().isFocused).toBeTruthy()
 
   describe "when an command selection is confirmed", ->
     it "detaches the palette, then focuses the previously focused element and emits the selected command on it", ->
       eventHandler = jasmine.createSpy 'eventHandler'
-      activeEditor = rootView.getActiveEditor()
+      activeEditor = rootView.getActiveView()
       {eventName} = palette.array[5]
       activeEditor.preempt eventName, eventHandler
 

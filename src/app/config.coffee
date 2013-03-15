@@ -20,6 +20,7 @@ class Config
   userPackagesDirPath: userPackagesDirPath
   defaultSettings: null
   settings: null
+  configFileHasErrors: null
 
   constructor: ->
     @defaultSettings =
@@ -37,16 +38,16 @@ class Config
     templateConfigDirPath = fs.resolve(window.resourcePath, 'dot-atom')
 
     onConfigDirFile = (path) =>
-      templatePath = fs.join(templateConfigDirPath, path)
-      configPath = fs.join(@configDirPath, path)
-      fs.write(configPath, fs.read(templatePath))
+      relativePath = path.substring(templateConfigDirPath.length + 1)
+      configPath = fs.join(@configDirPath, relativePath)
+      fs.write(configPath, fs.read(path))
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
     configThemeDirPath = fs.join(@configDirPath, 'themes')
     onThemeDirFile = (path) ->
-      templatePath = fs.join(bundledThemesDirPath, path)
-      configPath = fs.join(configThemeDirPath, path)
-      fs.write(configPath, fs.read(templatePath))
+      relativePath = path.substring(bundledThemesDirPath.length + 1)
+      configPath = fs.join(configThemeDirPath, relativePath)
+      fs.write(configPath, fs.read(path))
     fs.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
   load: ->
@@ -55,8 +56,13 @@ class Config
 
   loadUserConfig: ->
     if fs.exists(@configFilePath)
-      userConfig = fs.readObject(@configFilePath)
-      _.extend(@settings, userConfig)
+      try
+        userConfig = fs.readObject(@configFilePath)
+        _.extend(@settings, userConfig)
+      catch e
+        @configFileHasErrors = true
+        console.error "Failed to load user config '#{@configFilePath}'", e.message
+        console.error e.stack
 
   get: (keyPath) ->
     _.valueForKeyPath(@settings, keyPath) ?
@@ -92,6 +98,7 @@ class Config
     subscription
 
   update: ->
+    return if @configFileHasErrors
     @save()
     @trigger 'updated'
 

@@ -8,9 +8,10 @@ describe "WrapGuide", ->
     rootView.open('sample.js')
     window.loadPackage('wrap-guide')
     rootView.attachToDom()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
     wrapGuide = rootView.find('.wrap-guide').view()
     editor.width(editor.charWidth * wrapGuide.getDefaultColumn() * 2)
+    editor.trigger 'resize'
 
   describe "@initialize", ->
     it "appends a wrap guide to all existing and new editors", ->

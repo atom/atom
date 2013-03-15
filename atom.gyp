@@ -39,7 +39,7 @@
     'sources.gypi',
   ],
   'target_defaults': {
-    'default_configuration': 'Debug',
+    'default_configuration': 'Release',
     'configurations': {
       'Debug': {
         'defines': ['DEBUG=1'],
@@ -74,7 +74,7 @@
         'native/mac/speakeasy.pem',
       ],
       'xcode_settings': {
-        'INFOPLIST_FILE': 'native/mac/info.plist',
+        'INFOPLIST_FILE': 'native/mac/Atom-Info.plist',
         'LD_RUNPATH_SEARCH_PATHS': '@executable_path/../Frameworks',
       },
       'conditions': [
@@ -180,6 +180,12 @@
                 'tools/mac/make_more_helpers.sh',
                 'Frameworks',
                 'Atom',
+              ],
+            },
+            {
+              'postbuild_name': 'Print env for Constructicon',
+              'action': [
+                'env',
               ],
             },
           ],

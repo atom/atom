@@ -63,11 +63,11 @@ module.exports =
     paths = []
     if extensions
       onPath = (path) =>
-        paths.push(@join(rootPath, path)) if _.contains(extensions, @extension(path))
+        paths.push(path) if _.contains(extensions, @extension(path))
         false
     else
       onPath = (path) =>
-        paths.push(@join(rootPath, path))
+        paths.push(path)
         false
     @traverseTree(rootPath, onPath, onPath)
     paths
@@ -75,7 +75,7 @@ module.exports =
   listTree: (rootPath) ->
     paths = []
     onPath = (path) =>
-      paths.push(@join(rootPath, path))
+      paths.push(path)
       true
     @traverseTree(rootPath, onPath, onPath)
     paths

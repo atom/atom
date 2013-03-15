@@ -7,7 +7,7 @@ Config = require 'config'
 Project = require 'project'
 
 require 'window'
-requireStylesheet "jasmine.css"
+requireStylesheet "jasmine.less"
 
 # Load TextMate bundles, which specs rely on (but not other packages)
 atom.loadTextMatePackages()
@@ -127,4 +127,3 @@ $.fn.textInput = (data) ->
   event = document.createEvent 'TextEvent'
   event.initTextEvent('textInput', true, true, window, data)
   this.each -> this.dispatchEvent(event)
-

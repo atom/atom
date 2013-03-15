@@ -38,7 +38,7 @@ class GoToLineView extends View
 
   confirm: ->
     lineNumber = @miniEditor.getText()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
 
     @detach()
 
@@ -51,5 +51,5 @@ class GoToLineView extends View
   attach: ->
     @previouslyFocusedElement = $(':focus')
     rootView.append(this)
-    @message.text("Enter a line number 1-#{rootView.getActiveEditor().getLineCount()}")
+    @message.text("Enter a line number 1-#{rootView.getActiveView().getLineCount()}")
     @miniEditor.focus()
