@@ -38,7 +38,7 @@ class TerminalView extends ScrollView
       false
     @on 'keydown', (e) =>
       keystroke = keymap.keystrokeStringForEvent(e)
-      if match = keystroke.match /ctrl-([a-zA-Z])/
+      if match = keystroke.match /^ctrl-([a-zA-Z])$/
         @input(TerminalBuffer.ctrl(match[1]))
         false
     @subscribe $(window), 'resize', =>
