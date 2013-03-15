@@ -9,14 +9,13 @@ module.exports =
 
     paths = []
     isIgnored = (path) ->
+      path = path.substring(rootPath.length + 1)
       for segment in path.split('/')
         return true if _.contains(ignoredNames, segment)
       repo?.isPathIgnored(fs.join(rootPath, path))
     onFile = (path) ->
-      path = path.substring(rootPath.length + 1)
       paths.push(path) unless isIgnored(path)
     onDirectory = (path) ->
-      path = path.substring(rootPath.length + 1)
       not isIgnored(path)
     fs.traverseTree(rootPath, onFile, onDirectory)
 
