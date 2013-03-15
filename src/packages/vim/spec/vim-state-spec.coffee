@@ -42,7 +42,7 @@ class MockVimView
   editor:
     insertText:() ->
 
-describe "Vim state", ->
+fdescribe "Vim state", ->
 
   [target, vim, editor] = []
 
@@ -63,7 +63,7 @@ describe "Vim state", ->
     window.rootView = new RootView()
     rootView.open('sample.js')
     rootView.simulateDomAttachment()
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActivePane().find(".editor").view()
     Vim.activate(rootView)
     vim = editor.vim.state
 
