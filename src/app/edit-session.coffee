@@ -15,6 +15,8 @@ class EditSession
   registerDeserializer(this)
 
   @deserialize: (state) ->
+    project = atom.getActiveProject()
+
     if fs.exists(state.buffer)
       session = project.buildEditSession(state.buffer)
     else

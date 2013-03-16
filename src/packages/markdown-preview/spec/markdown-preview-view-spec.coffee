@@ -3,9 +3,10 @@ $ = require 'jquery'
 {$$$} = require 'space-pen'
 
 describe "MarkdownPreviewView", ->
-  [buffer, preview] = []
+  [project, buffer, preview] = []
 
   beforeEach ->
+    project = atom.getActiveProject()
     spyOn($, 'ajax')
     project.setPath(project.resolve('markdown'))
     buffer = project.bufferForPath('file.markdown')

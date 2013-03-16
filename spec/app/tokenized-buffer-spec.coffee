@@ -5,9 +5,10 @@ Range = require 'range'
 _ = require 'underscore'
 
 describe "TokenizedBuffer", ->
-  [editSession, tokenizedBuffer, buffer, changeHandler] = []
+  [project, editSession, tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
+    project = atom.getActiveProject()
     # enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')

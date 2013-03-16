@@ -3,12 +3,13 @@ Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
 describe "EditSession", ->
-  [buffer, editSession, lineLengths] = []
+  [project, buffer, editSession, lineLengths] = []
 
   convertToHardTabs = (buffer) ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
   beforeEach ->
+    project = atom.getActiveProject()
     editSession = project.buildEditSession('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length

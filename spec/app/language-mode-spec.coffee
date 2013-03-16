@@ -3,7 +3,10 @@ Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
 describe "LanguageMode", ->
-  [editSession, buffer, languageMode] = []
+  [project, editSession, buffer, languageMode] = []
+
+  beforeEach ->
+    project = atom.getActiveProject()
 
   afterEach ->
     editSession.destroy()

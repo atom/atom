@@ -3,12 +3,14 @@ fs = require 'fs'
 {less} = require 'less'
 
 describe "Window", ->
+  project = null
   projectPath = null
 
   beforeEach ->
     spyOn(atom, 'getPathToOpen').andReturn(project.getPath())
     window.handleWindowEvents()
     window.buildProjectAndRootView()
+    project = atom.getActiveProject()
     projectPath = project.getPath()
 
   afterEach ->

@@ -21,6 +21,8 @@ class TreeView extends ScrollView
   selectedPath: null
 
   initialize: (state) ->
+    project = atom.getActiveProject()
+
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
     @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
@@ -76,6 +78,7 @@ class TreeView extends ScrollView
       @focus()
 
   attach: ->
+    project = atom.getActiveProject()
     return unless project.getPath()
     rootView.horizontal.prepend(this)
 
@@ -118,6 +121,8 @@ class TreeView extends ScrollView
     @css(width: e.pageX)
 
   updateRoot: ->
+    project = atom.getActiveProject()
+
     @root?.remove()
 
     if rootDirectory = project.getRootDirectory()
@@ -133,6 +138,8 @@ class TreeView extends ScrollView
       @deselect()
 
   revealActiveFile: ->
+    project = atom.getActiveProject()
+
     @attach()
     @focus()
 
@@ -207,6 +214,8 @@ class TreeView extends ScrollView
       rootView.open(selectedEntry.getPath(), { changeFocus })
 
   moveSelectedEntry: ->
+    project = atom.getActiveProject()
+
     entry = @selectedEntry()
     return unless entry and entry isnt @root
     oldPath = entry.getPath()
@@ -246,6 +255,8 @@ class TreeView extends ScrollView
     )
 
   add: ->
+    project = atom.getActiveProject()
+
     selectedEntry = @selectedEntry() or @root
     selectedPath = selectedEntry.getPath()
     directoryPath = if fs.isFile(selectedPath) then fs.directory(selectedPath) else selectedPath

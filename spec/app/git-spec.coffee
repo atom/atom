@@ -3,9 +3,11 @@ fs = require 'fs'
 Task = require 'task'
 
 describe "Git", ->
+  project = null
   repo = null
 
   beforeEach ->
+    project = atom.getActiveProject()
     fs.remove('/tmp/.git') if fs.isDirectory('/tmp/.git')
 
   afterEach ->

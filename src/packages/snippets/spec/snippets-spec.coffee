@@ -8,8 +8,9 @@ fs = require 'fs'
 Package = require 'package'
 
 describe "Snippets extension", ->
-  [buffer, editor, editSession] = []
+  [project, buffer, editor, editSession] = []
   beforeEach ->
+    project = atom.getActiveProject()
     window.rootView = new RootView
     rootView.open('sample.js')
     spyOn(LoadSnippetsTask.prototype, 'start')

@@ -4,9 +4,10 @@ Pane = require 'pane'
 $ = require 'jquery'
 
 describe "Pane", ->
-  [container, view1, view2, editSession1, editSession2, pane] = []
+  [project, container, view1, view2, editSession1, editSession2, pane] = []
 
   beforeEach ->
+    project = atom.getActiveProject()
     container = new PaneContainer
     view1 = $$ -> @div id: 'view-1', tabindex: -1, 'View 1'
     view2 = $$ -> @div id: 'view-2', tabindex: -1, 'View 2'

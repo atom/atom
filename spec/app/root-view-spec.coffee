@@ -8,9 +8,11 @@ Pane = require 'pane'
 {View, $$} = require 'space-pen'
 
 describe "RootView", ->
+  project = null
   pathToOpen = null
 
   beforeEach ->
+    project = atom.getActiveProject()
     project.setPath(project.resolve('dir'))
     pathToOpen = project.resolve('a')
     window.rootView = new RootView

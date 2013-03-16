@@ -29,12 +29,14 @@ jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of e
 jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
+  project = new Project(require.resolve('fixtures'))
+  atom.setActiveProject(project)
+
   jQuery.fx.off = true
-  window.project = new Project(require.resolve('fixtures'))
   window.git = Git.open(project.getPath())
-  window.project.on 'path-changed', ->
+  project.on 'path-changed', ->
     window.git?.destroy()
-    window.git = Git.open(window.project.getPath())
+    window.git = Git.open(project.getPath())
 
   window.resetTimeouts()
   atom.atomPackageStates = {}
@@ -71,6 +73,8 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
+  project = atom.getActiveProject()
+
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
   if rootView?
@@ -78,7 +82,7 @@ afterEach ->
     window.rootView = null
   if project?
     project.destroy()
-    window.project = null
+    atom.setActiveProject(null)
   if git?
     git.destroy()
     window.git = null

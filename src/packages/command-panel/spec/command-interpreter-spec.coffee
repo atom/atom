@@ -6,9 +6,10 @@ EditSession = require 'edit-session'
 _ = require 'underscore'
 
 describe "CommandInterpreter", ->
-  [interpreter, editSession, buffer] = []
+  [project, interpreter, editSession, buffer] = []
 
   beforeEach ->
+    project = atom.getActiveProject()
     interpreter = new CommandInterpreter(project)
     editSession = project.buildEditSession('sample.js')
     buffer = editSession.buffer

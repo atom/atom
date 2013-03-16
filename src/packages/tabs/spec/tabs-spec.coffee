@@ -22,7 +22,7 @@ describe "Tabs package main", ->
       expect(rootView.panes.find('.pane > .tabs').length).toBe 2
 
 describe "TabBarView", ->
-  [item1, item2, editSession1, pane, tabBar] = []
+  [project, item1, item2, editSession1, pane, tabBar] = []
 
   class TestView extends View
     @deserialize: ({title, longTitle}) -> new TestView(title, longTitle)
@@ -33,6 +33,7 @@ describe "TabBarView", ->
     serialize: -> { deserializer: 'TestView', @title, @longTitle }
 
   beforeEach ->
+    project = atom.getActiveProject()
     registerDeserializer(TestView)
     item1 = new TestView('Item 1')
     item2 = new TestView('Item 2')

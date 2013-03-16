@@ -6,7 +6,10 @@ Editor = require 'editor'
 RootView = require 'root-view'
 
 describe "Autocomplete", ->
+  project = null
+
   beforeEach ->
+    project = atom.getActiveProject()
     window.rootView = new RootView
     rootView.open('sample.js')
     rootView.simulateDomAttachment()
@@ -34,11 +37,13 @@ describe "Autocomplete", ->
       expect(rightEditor.find('.autocomplete')).toExist()
 
 describe "AutocompleteView", ->
+  project = null
   autocomplete = null
   editor = null
   miniEditor = null
 
   beforeEach ->
+    project = atom.getActiveProject()
     window.rootView = new RootView
     editor = new Editor(editSession: project.buildEditSession('sample.js'))
     window.loadPackage('autocomplete')

@@ -30,6 +30,7 @@ class CommandPanelView extends View
   maxSerializedHistorySize: 100
 
   initialize: (state) ->
+    project = atom.getActiveProject()
     @commandInterpreter = new CommandInterpreter(project)
 
     @command 'tool-panel:unfocus', => rootView.focus()
