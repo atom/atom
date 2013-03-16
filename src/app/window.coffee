@@ -9,6 +9,12 @@ require 'space-pen-extensions'
 deserializers = {}
 deferredDeserializers = {}
 
+window.__defineGetter__ 'project', ->
+  atom.getActiveProject()
+
+window.__defineSetter__ 'project', (project) ->
+  atom.setActiveProject(project)
+
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
   Config = require 'config'
