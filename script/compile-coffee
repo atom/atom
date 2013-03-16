@@ -18,4 +18,4 @@ node --version > /dev/null 2>&1 || {
 INPUT_FILE="${1}"
 OUTPUT_DIR=`dirname "$2"`
 
-node_modules/.bin/coffee -c -o "$OUTPUT_DIR" -m "$INPUT_FILE"
+node_modules/.bin/coffee -c -m -o "$OUTPUT_DIR" "$INPUT_FILE"
