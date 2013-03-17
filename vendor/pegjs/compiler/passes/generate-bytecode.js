@@ -329,7 +329,7 @@ module.exports = function(ast, options) {
     action: function(node, context) {
       var env            = { },
           emitCall       = node.expression.type !== "sequence"
-                        || node.expression.elements.length === 0;
+                        || node.expression.elements.length === 0,
           expressionCode = generate(node.expression, {
             sp:     context.sp + (emitCall ? 1 : 0),
             env:    env,
@@ -477,7 +477,7 @@ module.exports = function(ast, options) {
     },
 
     zero_or_more: function(node, context) {
-      var emptyArrayIndex = addConst('[]');
+      var emptyArrayIndex = addConst('[]'),
           expressionCode  = generate(node.expression, {
             sp:     context.sp + 1,
             env:    { },
@@ -493,8 +493,8 @@ module.exports = function(ast, options) {
     },
 
     one_or_more: function(node, context) {
-      var emptyArrayIndex = addConst('[]');
-          nullIndex       = addConst('null');
+      var emptyArrayIndex = addConst('[]'),
+          nullIndex       = addConst('null'),
           expressionCode  = generate(node.expression, {
             sp:     context.sp + 1,
             env:    { },

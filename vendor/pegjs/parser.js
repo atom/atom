@@ -2977,7 +2977,7 @@ module.exports = (function() {
     }
 
 
-      var utils = require("./utils");
+      var utils = require("pegjs/utils");
 
 
     peg$result = peg$startRuleFunction();
