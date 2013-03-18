@@ -14,7 +14,8 @@ describe "Snippets extension", ->
 
     packageWithSnippets = window.loadPackage("package-with-snippets")
     spyOn(atom, "getLoadedPackages").andCallFake ->
-      window.textMatePackages.concat([packageWithSnippets])
+      textMatePackages = window.textMatePackages.filter (pack) -> /package-with-a-cson-grammar|test|textmate-package|javascript/.test(pack.name)
+      textMatePackages.concat([packageWithSnippets])
 
     spyOn(require("snippets/lib/snippets"), 'loadAll')
     window.loadPackage("snippets")
@@ -282,6 +283,7 @@ describe "Snippets extension", ->
 
     it "loads CSON snippets from TextMate packages", ->
       jasmine.unspy(snippets, 'loadTextMateSnippets')
+      spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
 
