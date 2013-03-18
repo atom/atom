@@ -12,12 +12,16 @@ class PreviewList extends ScrollView
 
   operations: null
   viewsForPath: null
+  pixelOverdraw: 100
+  lastRenderedOperationIndex: null
 
   initialize: ->
     super
 
     @on 'core:move-down', => @selectNextOperation(); false
     @on 'core:move-up', => @selectPreviousOperation(); false
+    @on 'scroll', =>
+      @renderOperations() if @scrollBottom() >= (@prop('scrollHeight'))
 
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
@@ -36,15 +40,21 @@ class PreviewList extends ScrollView
   populate: (operations) ->
     @destroyOperations() if @operations
     @operations = operations
+    @lastRenderedOperationIndex = 0
     @empty()
     @viewsForPath = {}
 
-    for operation in operations
+    @show()
+    @renderOperations()
+    @find('.operation:first').addClass('selected')
+
+  renderOperations: ->
+    startingScrollHeight = @prop('scrollHeight')
+    for operation in @operations[@lastRenderedOperationIndex..]
       pathView = @pathViewForPath(operation.getPath())
       pathView.addOperation(operation)
-
-    @show()
-    @find('.operation:first').addClass('selected')
+      @lastRenderedOperationIndex++
+      break if @prop('scrollHeight') >= startingScrollHeight + @pixelOverdraw and @prop('scrollHeight') > @height() + @pixelOverdraw
 
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
