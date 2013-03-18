@@ -24,6 +24,7 @@ class TerminalView extends ScrollView
     @terminalSize = null
     @updateTimer = false
     @updateDelay = 100
+    @cursorLine = 0
 
     @on 'mousedown', '.title', (e) => @resizeStarted(e)
     @on 'click', =>
@@ -121,7 +122,9 @@ class TerminalView extends ScrollView
     if lines.length > 0
       @updateLine(line) for line in lines
       @buffer.rendered()
-      @scrollToCursor()
+      if @buffer.cursor.y != @cursorLine
+        @scrollToCursor()
+        @cursorLine = @buffer.cursor.y
 
   updateTerminalSize: () ->
     tester = $("<pre><span class='character'>a</span></pre>")
@@ -169,7 +172,7 @@ class TerminalView extends ScrollView
       if line.number < 1
         @content.prepend(l)
       else
-        lines = _.sortBy(@content.find("pre"), ((i)-> i.lineNumber = parseInt($(i).attr("line-number"))))
+        lines = _.sortBy(@content.find("pre"), ((i)-> i.lineNumber ?= parseInt($(i).attr("line-number"))))
         lines.reverse()
         n = 0
         for li in lines
@@ -188,7 +191,7 @@ class TerminalView extends ScrollView
     return if !l?
     l.empty()
     for c in line.characters
-      character = $("<span>").addClass("character").text(c.char)
+      character = $("<span>#{c.char}</span>").addClass("character")
       character.append($("<span>").addClass("cursor")) if c.cursor
       [color, bgcolor] = [c.color, c.backgroundColor]
       if c.reversed
