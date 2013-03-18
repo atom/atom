@@ -12,7 +12,7 @@
 
 .terminal .cursor {
   background-color: #000;
-  opacity: 0.5;
+  opacity: 0.35;
   z-index: 2;
 }
 

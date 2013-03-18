@@ -61,8 +61,9 @@ class TerminalBuffer
     @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1], start)
   moveCursorTo: (coords) ->
     @cursor.moveTo(@screenToLine(coords))
-    @updatedCursor()
-  updatedCursor: () ->
+    @updatedCursor(true)
+  updatedCursor: (sgrReset=false) ->
+    @resetSGR() if sgrReset
     n = @numLines()
     if @cursor.y > n
       @addLine(false) for x in [n..(@cursor.line())]
@@ -180,7 +181,7 @@ class TerminalBuffer
     len = @numLines()
     @cursor.y = len if @cursor.y > len
     @cursor.y = 1 if @cursor.y < 1
-    @updatedCursor()
+    @updatedCursor(true)
   tab: (direction=1) ->
     found = false
     if @tabstops.length > 0
@@ -206,17 +207,18 @@ class TerminalBuffer
     @cursor.x = 1 if @cursor.x < 1
     @updatedCursor()
   newline: (direction=1) ->
+    @resetSGR()
     @cursor.y += direction
     @cursor.y = 1 if @cursor.y < 1
     len = @numLines()
     if @scrollingRegion? && @cursor.y > @scrollingRegion.bottom
       @scrollUp() for n in [1..@cursor.y-@scrollingRegion.bottom]
       @cursor.y = @scrollingRegion.bottom
-      @updatedCursor()
+      @updatedCursor(true)
       return
     if @cursor.y > len
       @addLine(!scrollingRegion?) for n in [1..@cursor.y-len]
-    @updatedCursor()
+    @updatedCursor(true)
   insertCharacter: (c) ->
     if @autowrap
       if @cursor.x > @size[1]
@@ -451,7 +453,7 @@ class TerminalBuffer
           when 1049 # Switch to main buffer and restore cursor
             @disableAlternateBuffer()
             @cursor.restore()
-            @updatedCursor()
+            @updatedCursor(true)
           else
             window.console.log "Terminal: Unhandled DECRST #{num}"
       when "m" # SGR - Graphics
