@@ -25,14 +25,18 @@ class TerminalBuffer
     @escapeSequenceStarted = false
     @ignoreEscapeSequence = false
     @endWithBell = false
-    @autowrap = false
-    @insertmode = false
-    @resetSGR()
+    @reset()
     @cursor = new TerminalCursor(this)
     @addLine(false)
     @redrawNeeded = true
     @title = ""
     @size = [24, 80]
+    @tabstops = []
+  reset: ->
+    @autowrap = false
+    @insertmode = false
+    @resetSGR()
+    @scrollingRegion = null
     @tabstops = []
   setSize: (size) ->
     @size = size
@@ -49,16 +53,12 @@ class TerminalBuffer
     l
   screenToLine: (screenCoords) ->
     if @scrollingRegion?
-      return [screenCoords[0] + (@scrollingRegion.firstLine - 1), screenCoords[1]]
+      return [screenCoords[0] + (@scrollingRegion.top - 1), screenCoords[1]]
     screenCoords
   setScrollingRegion: (coords) ->
-    @addLine() for n in [@numLines()+1..coords[0]] if @numLines() < coords[0]
-    @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1])
-    if @numLines() < coords[1]
-      @addLine() for n in [@numLines()+1..coords[1]]
-    @updateLineNumbers()
-    line = @getLine(@scrollingRegion.top - 1)
-    @scrollingRegion.firstLine = if line? then line.number + 1 else 1
+    start = @numLines() - 1
+    if @scrollingRegion? then start = @scrollingRegion.start
+    @scrollingRegion = new TerminalScrollingRegion(coords[0], coords[1], start)
   moveCursorTo: (coords) ->
     @cursor.moveTo(@screenToLine(coords))
     @updatedCursor()
@@ -104,8 +104,8 @@ class TerminalBuffer
     topLine = 0
     bottomLine = @numLines() - 1
     if @scrollingRegion?
-      topLine = @scrollingRegion.firstLine - 1
-      bottomLine = topLine + @scrollingRegion.height - 1
+      topLine = @scrollingRegion.top - 1
+      bottomLine = @scrollingRegion.bottom - 1 if @scrollingRegion.bottom < @numLines()
     @lines[topLine].setDirty()
     @lines.splice(topLine, 1)
     @addLineAt(bottomLine)
@@ -114,10 +114,11 @@ class TerminalBuffer
     topLine = 0
     bottomLine = @numLines() - 1
     if @scrollingRegion?
-      topLine = @scrollingRegion.firstLine - 1
-      bottomLine = topLine + @scrollingRegion.height - 1
-    @lines[bottomLine].setDirty()
-    @lines.splice(bottomLine, 1) if @scrollingRegion?
+      topLine = @scrollingRegion.top - 1
+      bottomLine = @scrollingRegion.bottom - 1
+    if @lines[bottomLine]?
+      @lines[bottomLine].setDirty()
+      @lines.splice(bottomLine, 1) if @scrollingRegion?
     @addLineAt(topLine)
     @updateLineNumbers()
   eraseData: (op) ->
@@ -125,15 +126,15 @@ class TerminalBuffer
     start = 0
     cursorLine = @cursor.line()
     if @scrollingRegion?
-      start = @scrollingRegion.firstLine - 1
-      numLines = start + @scrollingRegion.height - 1
+      start = @scrollingRegion.top - 1
+      numLines = @scrollingRegion.bottom - 1 - start
     @cursorLine()?.erase(@cursor.character(), op)
     if op == 1
-      @getLine(n).erase(0, 2) for n in [start..cursorLine-1]
+      @getLine(n)?.erase(0, 2) for n in [start..cursorLine-1]
     else if op == 2
-      @getLine(n).erase(0, 2) for n in [start..numLines]
+      @getLine(n)?.erase(0, 2) for n in [start..numLines]
     else
-      @getLine(n).erase(0, 2) for n in [cursorLine+1..numLines] if numLines > cursorLine
+      @getLine(n)?.erase(0, 2) for n in [cursorLine+1..numLines] if numLines > cursorLine
   eraseInLine: (op) ->
     @cursorLine().erase(@cursor.character(), op)
     @cursorLine().lastCharacter().cursor = true
@@ -205,19 +206,18 @@ class TerminalBuffer
     @cursor.x = 1 if @cursor.x < 1
     @updatedCursor()
   newline: (direction=1) ->
-    if @scrollingRegion?
-      @cursor.y += direction
-      len = @numLines()
-      if @cursor.y >= len
-        @scrollUp()
-        @cursor.y = len
-      @updatedCursor()
-    else
-      if direction > 0
-        @addLine() for n in [1..direction]
-      else
-        @cursor.y += direction
-        @cursor.y = 1 if @cursor.y < 1
+    @cursor.y += direction
+    @cursor.y = 1 if @cursor.y < 1
+    len = @numLines()
+    if @cursor.y > len
+      if @scrollingRegion?
+        # if @scrollingRegion.bottom > len then @addLineAt(@scrollingRegion.bottom) for [1..@scrollingRegion.bottom-len]
+        if @cursor.y > @scrollingRegion.bottom
+          @scrollUp() for n in [1..@cursor.y-@scrollingRegion.bottom]
+          @cursor.y = @scrollingRegion.bottom
+        else @addLine(false)
+      else @addLine() for n in [1..@cursor.y-len]
+    @updatedCursor()
   insertCharacter: (c) ->
     if @autowrap
       if @cursor.x > @size[1]
@@ -655,6 +655,8 @@ class TerminalCursor
     @x - 1
 
 class TerminalScrollingRegion
-  constructor: (@top, @bottom) ->
-    @firstLine = 1
-    @height = (@bottom - @top) + 1
+  constructor: (top, bottom, @start) ->
+    @size = [top, bottom]
+    @top = @start + top
+    @bottom = @start + bottom
+    @height = (bottom - top) + 1

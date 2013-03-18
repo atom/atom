@@ -165,11 +165,11 @@ class TerminalView extends ScrollView
       l.remove() if line.number >= @buffer.numLines()
       return null
     else if !l.size()
-      l = $("<pre>").addClass("line-#{line.number}")
+      l = $("<pre>").addClass("line-#{line.number}").attr("line-number", line.number)
       if line.number < 1
         @content.prepend(l)
       else
-        lines = _.sortBy(@content.find("pre"), ((i)-> i.lineNumber = parseInt(i.className.match("line-([0-9]+)")[1])))
+        lines = _.sortBy(@content.find("pre"), ((i)-> i.lineNumber = parseInt($(i).attr("line-number"))))
         lines.reverse()
         n = 0
         for li in lines

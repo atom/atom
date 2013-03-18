@@ -56,8 +56,9 @@ fdescribe 'Terminal Buffer', ->
         expect(buffer.numLines()).toBe(2)
       it "scrolls down when scrolling region is active", ->
         buffer.setScrollingRegion([1,3])
-        buffer.inputCharacter('\n')
+        buffer.input('\n\n\n\n\n\n')
         expect(buffer.numLines()).toBe(3)
+        expect(buffer.cursor.y).toBe(3)
     describe "backspace", ->
       it "moves the cursor back by one", ->
         buffer.inputCharacter('a')
@@ -318,7 +319,9 @@ fdescribe 'Terminal Buffer', ->
         buffer.input(TerminalBuffer.escapeSequence("S"))
         expect(buffer.text()).toBe("b\n\n")
       it "scrolls inside the scrolling region", ->
-        buffer.input("a\nb\nc\nd")
+        buffer.input("a")
+        buffer.setScrollingRegion([2,4])
+        buffer.input("\r\nb\r\nc\r\nd")
         buffer.setScrollingRegion([2,3])
         buffer.input(TerminalBuffer.escapeSequence("2S"))
         expect(buffer.text()).toBe("a\n\n\nd\n")
@@ -328,7 +331,9 @@ fdescribe 'Terminal Buffer', ->
         buffer.input(TerminalBuffer.escapeSequence("T"))
         expect(buffer.text()).toBe("\na\nb\n")
       it "scrolls inside the scrolling region", ->
-        buffer.input("a\nb\nc\nd")
+        buffer.input("a")
+        buffer.setScrollingRegion([2,4])
+        buffer.input("\r\nb\r\nc\r\nd")
         buffer.setScrollingRegion([2,3])
         buffer.input(TerminalBuffer.escapeSequence("2T"))
         expect(buffer.text()).toBe("a\n\n\nd\n")
@@ -509,9 +514,11 @@ fdescribe 'Terminal Buffer', ->
         buffer.input("a")
         buffer.setScrollingRegion([1,10])
         expect(buffer.scrollingRegion.height).toBe(10)
-        expect(buffer.numLines()).toBe(10)
-        expect(buffer.scrollingRegion.firstLine).toBe(1)
+        expect(buffer.numLines()).toBe(1)
+        expect(buffer.scrollingRegion.top).toBe(1)
         expect(buffer.screenToLine([1,1])).toEqual([1,1])
+        buffer.input("\nb\nc")
+        expect(buffer.numLines()).toBe(3)
       it "modifies the cursor coordinates", ->
         buffer.setScrollingRegion([10,20])
         buffer.moveCursorTo([10,1])
@@ -522,11 +529,12 @@ fdescribe 'Terminal Buffer', ->
         buffer.setScrollingRegion([1,5])
         buffer.setScrollingRegion([1,10])
         expect(buffer.scrollingRegion.height).toBe(10)
-        expect(buffer.numLines()).toBe(10)
-        expect(buffer.scrollingRegion.firstLine).toBe(1)
+        expect(buffer.numLines()).toBe(1)
+        expect(buffer.scrollingRegion.top).toBe(1)
         expect(buffer.screenToLine([1,1])).toEqual([1,1])
       it "never adds more lines", ->
         buffer.setScrollingRegion([1,3])
+        buffer.input("a\nb\nc\nd\ne")
         buffer.setScrollingRegion([1,2])
         buffer.setScrollingRegion([1,3])
         buffer.setScrollingRegion([1,2])
