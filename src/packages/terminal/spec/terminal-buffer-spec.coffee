@@ -231,6 +231,9 @@ fdescribe 'Terminal Buffer', ->
         buffer.input(TerminalBuffer.escapeSequence("1;5r"))
         expect(buffer.scrollingRegion).toBeTruthy()
         expect(buffer.scrollingRegion.height).toBe(5)
+      it "clears the current scrolling region", ->
+        buffer.input(TerminalBuffer.escapeSequence("1;r"))
+        expect(buffer.scrollingRegion).toBeFalsy()
     describe "clear text", ->
       it "deletes to end of the line", ->
         buffer.input("abcd\nc")

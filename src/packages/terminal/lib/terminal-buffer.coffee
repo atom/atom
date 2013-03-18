@@ -515,7 +515,10 @@ class TerminalBuffer
       when "q" then # DECLL - Ignore load LEDs, DECSCUSR -set cursor style (sp)
       when "r" # DECSTBM - Set scrollable region
         bottom = parseInt(seq[1]) || 1
-        @setScrollingRegion([num,bottom])
+        if num == 1 && bottom == 1
+          @scrollingRegion = null
+        else
+          @setScrollingRegion([num,bottom])
       # when "s" then # DECSLRM - Set left and right margins
       # when "t" then # Window attributes
       else
