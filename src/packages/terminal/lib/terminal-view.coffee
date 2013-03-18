@@ -169,16 +169,15 @@ class TerminalView extends ScrollView
       if line.number < 1
         @content.prepend(l)
       else
-        n = line.number - 1
-        inserted = false
-        while n >= 0 && !inserted
-          e = @content.find("pre.line-#{n}")
-          if e.length > 0
-            e.after(l)
-            inserted = true
-          n--
-        return l if inserted
-        if line.number - 1 > n
+        lines = _.sortBy(@content.find("pre"), ((i)-> i.lineNumber = parseInt(i.className.match("line-([0-9]+)")[1])))
+        lines.reverse()
+        n = 0
+        for li in lines
+          n = li.lineNumber
+          if li.lineNumber < line.number
+            $(li).after(l)
+            return l
+        if line.number < n
           @content.prepend(l)
         else
           @content.append(l)
