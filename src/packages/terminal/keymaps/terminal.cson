@@ -14,3 +14,4 @@
   'down': 'terminal:down'
   'home': 'terminal:home'
   'end': 'terminal:end'
+  'meta-alt-r': 'terminal:reload'

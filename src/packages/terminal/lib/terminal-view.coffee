@@ -45,28 +45,32 @@ class TerminalView extends ScrollView
     @subscribe $(window), 'resize', =>
       @updateTerminalSize()
 
-    rootView.command "terminal:enter", => @input("#{TerminalBuffer.carriageReturn}")
-    rootView.command "terminal:delete", => @input(TerminalBuffer.deleteKey)
-    rootView.command "terminal:backspace", => @input(TerminalBuffer.backspace)
-    rootView.command "terminal:escape", => @input(TerminalBuffer.escape)
-    rootView.command "terminal:tab", => @input(TerminalBuffer.tab)
+    @command "terminal:enter", => @input("#{TerminalBuffer.carriageReturn}")
+    @command "terminal:delete", => @input(TerminalBuffer.deleteKey)
+    @command "terminal:backspace", => @input(TerminalBuffer.backspace)
+    @command "terminal:escape", => @input(TerminalBuffer.escape)
+    @command "terminal:tab", => @input(TerminalBuffer.tab)
     for letter in "abcdefghijklmnopqrstuvwxyz"
       do (letter) =>
         key = TerminalBuffer.ctrl(letter)
-        rootView.command "terminal:ctrl-#{letter}", => @input(key)
-    rootView.command "terminal:paste", => @input(pasteboard.read())
-    rootView.command "terminal:left", => @input(TerminalBuffer.escapeSequence("D"))
-    rootView.command "terminal:right", => @input(TerminalBuffer.escapeSequence("C"))
-    rootView.command "terminal:up", => @input(TerminalBuffer.escapeSequence("A"))
-    rootView.command "terminal:down", => @input(TerminalBuffer.escapeSequence("B"))
-    rootView.command "terminal:home", => @input(TerminalBuffer.ctrl("a"))
-    rootView.command "terminal:end", => @input(TerminalBuffer.ctrl("e"))
+        @command "terminal:ctrl-#{letter}", => @input(key)
+    @command "terminal:paste", => @input(pasteboard.read())
+    @command "terminal:left", => @input(TerminalBuffer.escapeSequence("D"))
+    @command "terminal:right", => @input(TerminalBuffer.escapeSequence("C"))
+    @command "terminal:up", => @input(TerminalBuffer.escapeSequence("A"))
+    @command "terminal:down", => @input(TerminalBuffer.escapeSequence("B"))
+    @command "terminal:home", => @input(TerminalBuffer.ctrl("a"))
+    @command "terminal:end", => @input(TerminalBuffer.ctrl("e"))
+    @command "terminal:reload", => @reload()
 
   login: ->
-    @process = ChildProcess.exec "/bin/bash", interactive: true, cwd: (project.getPath() || "~"), stdout: (data) =>
+    process = ChildProcess.exec "/bin/bash", interactive: true, cwd: (project.getPath() || "~"), stdout: (data) =>
+      return if process != @process
       @readData = true if !@readData
       @output(data)
+    @process = process
     @process.done () =>
+      return if process != @process
       @exited = true
       @write = () -> false
     @write = @process.write
@@ -75,6 +79,13 @@ class TerminalView extends ScrollView
 
   logout: ->
     @write?("", true)
+    @process = null
+
+  reload: ->
+    if !@exited && @process?
+      @logout()
+      @buffer.reset()
+    @login()
 
   attach: ->
     @focus()

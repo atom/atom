@@ -18,6 +18,9 @@ class TerminalBuffer
     String.fromCharCode(c.charCodeAt(0) - base + 1)
   @escapeSequence: (sequence,start="[") -> "#{@escape}#{start}#{sequence}"
   constructor: (@view) ->
+    @size = [24, 80]
+    @reset()
+  reset: ->
     @lines = []
     @dirtyLines = []
     @decsc = [0,0]
@@ -25,18 +28,15 @@ class TerminalBuffer
     @escapeSequenceStarted = false
     @ignoreEscapeSequence = false
     @endWithBell = false
-    @reset()
-    @cursor = new TerminalCursor(this)
-    @addLine(false)
-    @redrawNeeded = true
-    @title = ""
-    @size = [24, 80]
-    @tabstops = []
-  reset: ->
     @autowrap = false
     @insertmode = false
     @resetSGR()
     @scrollingRegion = null
+    @tabstops = []
+    @cursor = new TerminalCursor(this)
+    @addLine(false)
+    @redrawNeeded = true
+    @title = ""
     @tabstops = []
   setSize: (size) ->
     @size = size
@@ -328,13 +328,13 @@ class TerminalBuffer
       @endWithBell = false
       @escapeSequence = ""
   evaluateEscapeSequence: (type, sequence) ->
-    # if @inputChars.length > 0
-    #  window.console.log _.map @inputChars, (c) ->
-    #    i = c.charCodeAt(0)
-    #    if i < 32 then i
-    #    else c
-    # @inputChars = []
-    # window.console.log "Terminal: Escape #{sequence} #{type}"
+    if @inputChars.length > 0
+      window.console.log _.map @inputChars, (c) ->
+        i = c.charCodeAt(0)
+        if i < 32 then i
+        else c
+    @inputChars = []
+    window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
       @title = seq[1]
