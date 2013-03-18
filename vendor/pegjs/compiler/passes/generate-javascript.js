@@ -40,8 +40,9 @@ module.exports = function(ast, options) {
 
   function generateCacheHeader(ruleIndexCode) {
     return [
-      'var key    = peg$currPos * ' + ast.rules.length + ' + ' + ruleIndexCode + ',',
-      '    cached = peg$cache[key];',
+      'var startPos = peg$currPos,',
+      '    key      = peg$currPos * ' + ast.rules.length + ' + ' + ruleIndexCode + ',',
+      '    cached   = peg$cache[key];',
       '',
       'if (cached) {',
       '  peg$currPos = cached.nextPos;',
@@ -54,7 +55,7 @@ module.exports = function(ast, options) {
   function generateCacheFooter(resultCode) {
     return [
       '',
-      'peg$cache[key] = { nextPos: peg$currPos, result: ' + resultCode + ' };'
+      'peg$cache[key] = { currPos: startPos, nextPos: peg$currPos, result: ' + resultCode + ' };'
     ].join('\n');
   }
 
@@ -787,7 +788,7 @@ module.exports = function(ast, options) {
   ].join('\n'));
 
   if (options.cache) {
-    parts.push('        peg$cache = {},');
+    parts.push('        peg$cache = (typeof options.cache === "object") ? options.cache : {},');
   }
 
   parts.push([
