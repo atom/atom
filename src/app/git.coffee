@@ -56,7 +56,10 @@ class Git
       @statusTask.off()
       @statusTask = null
 
-    @repo = null
+    if @repo?
+      @repo.release()
+      @repo = null
+
     @unsubscribe()
 
   getWorkingDirectory: ->
