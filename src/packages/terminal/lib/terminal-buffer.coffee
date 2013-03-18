@@ -209,14 +209,13 @@ class TerminalBuffer
     @cursor.y += direction
     @cursor.y = 1 if @cursor.y < 1
     len = @numLines()
+    if @scrollingRegion? && @cursor.y > @scrollingRegion.bottom
+      @scrollUp() for n in [1..@cursor.y-@scrollingRegion.bottom]
+      @cursor.y = @scrollingRegion.bottom
+      @updatedCursor()
+      return
     if @cursor.y > len
-      if @scrollingRegion?
-        # if @scrollingRegion.bottom > len then @addLineAt(@scrollingRegion.bottom) for [1..@scrollingRegion.bottom-len]
-        if @cursor.y > @scrollingRegion.bottom
-          @scrollUp() for n in [1..@cursor.y-@scrollingRegion.bottom]
-          @cursor.y = @scrollingRegion.bottom
-        else @addLine(false)
-      else @addLine() for n in [1..@cursor.y-len]
+      @addLine(!scrollingRegion?) for n in [1..@cursor.y-len]
     @updatedCursor()
   insertCharacter: (c) ->
     if @autowrap
@@ -327,12 +326,12 @@ class TerminalBuffer
       @endWithBell = false
       @escapeSequence = ""
   evaluateEscapeSequence: (type, sequence) ->
-    #if @inputChars.length > 0
+    # if @inputChars.length > 0
     #  window.console.log _.map @inputChars, (c) ->
     #    i = c.charCodeAt(0)
     #    if i < 32 then i
     #    else c
-    #@inputChars = []
+    # @inputChars = []
     # window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
@@ -554,7 +553,6 @@ class TerminalBufferLine
     @characters[x] = char
     if x == @length() - 1
       @characters.push(@emptyChar())
-    # @characters = _.flatten([@characters.slice(0, x), char, @characters.slice(x, @length())])
     @setDirty()
   appendAt: (c, x) ->
     char = @emptyChar()

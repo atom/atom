@@ -54,11 +54,12 @@ fdescribe 'Terminal Buffer', ->
       it "adds a new line", ->
         buffer.inputCharacter('\n')
         expect(buffer.numLines()).toBe(2)
-      it "scrolls down when scrolling region is active", ->
-        buffer.setScrollingRegion([1,3])
-        buffer.input('\n\n\n\n\n\n')
-        expect(buffer.numLines()).toBe(3)
-        expect(buffer.cursor.y).toBe(3)
+      it "scrolls up at the end of the scrolling region", ->
+        buffer.setScrollingRegion([1,4])
+        buffer.input('a\r\nb\r\nc\r\nd\r\ne\r\nf\r\n')
+        expect(buffer.numLines()).toBe(4)
+        expect(buffer.cursor.y).toBe(4)
+        expect(buffer.text()).toBe("d\ne\nf\n\n")
     describe "backspace", ->
       it "moves the cursor back by one", ->
         buffer.inputCharacter('a')
@@ -545,6 +546,16 @@ fdescribe 'Terminal Buffer', ->
         buffer.setScrollingRegion([1,2])
         buffer.setScrollingRegion([1,3])
         expect(buffer.numLines()).toBe(3)
+      it "never adds more lines 2", ->
+        buffer.setScrollingRegion([1,5])
+        buffer.input("a\r\nb\r\nc\r\nd\r\ne")
+        buffer.setScrollingRegion([1,3])
+        buffer.moveCursorTo([3,1])
+        buffer.newline()
+        buffer.newline()
+        buffer.setScrollingRegion([1,5])
+        expect(buffer.numLines()).toBe(5)
+        expect(buffer.text()).toBe("c\n\n\nd\ne\n")
     describe "when a character is entered at the end of a line", ->
       it "inserts the character on the next line"
     describe "when the screen size changes", ->
