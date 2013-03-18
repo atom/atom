@@ -30,6 +30,7 @@ class PreviewList extends ScrollView
     @children().each (index, element) -> $(element).view().expand()
 
   collapseAllPaths: ->
+    @renderOperations(renderAll: true)
     @children().each (index, element) -> $(element).view().collapse()
 
   destroy: ->
@@ -46,15 +47,17 @@ class PreviewList extends ScrollView
 
     @show()
     @renderOperations()
+
     @find('.operation:first').addClass('selected')
 
-  renderOperations: ->
+  renderOperations: ({renderAll}={}) ->
+    renderAll ?= false
     startingScrollHeight = @prop('scrollHeight')
     for operation in @operations[@lastRenderedOperationIndex..]
       pathView = @pathViewForPath(operation.getPath())
       pathView.addOperation(operation)
       @lastRenderedOperationIndex++
-      break if @prop('scrollHeight') >= startingScrollHeight + @pixelOverdraw and @prop('scrollHeight') > @height() + @pixelOverdraw
+      break if not renderAll and @prop('scrollHeight') >= startingScrollHeight + @pixelOverdraw and @prop('scrollHeight') > @height() + @pixelOverdraw
 
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]

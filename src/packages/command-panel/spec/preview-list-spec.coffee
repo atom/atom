@@ -32,3 +32,14 @@ describe "Preview List", ->
         previewList.trigger('scroll') # Not sure why scroll event isn't being triggered on it's own
         expect(previewList.prop('scrollHeight')).toBeGreaterThan previousScrollHeight
         expect(previewList.find("li").length).toBeGreaterThan previousOperationCount
+
+    it "renders all operations if the preview items are collapsed", ->
+      waitsForPromise ->
+        commandPanelView.execute('X x/so/')
+
+      runs ->
+        expect(previewList.prop('scrollHeight')).toBeGreaterThan previewList.height()
+        previousScrollHeight = previewList.prop('scrollHeight')
+        previousOperationCount = previewList.find("li").length
+        previewList.collapseAllPaths()
+        expect(previewList.find("li").length).toBeGreaterThan previousOperationCount
