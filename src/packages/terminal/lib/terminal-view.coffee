@@ -143,7 +143,7 @@ class TerminalView extends ScrollView
     charWidth = parseInt(tester.find("span").css("width"))
     lineHeight = parseInt(tester.css("height"))
     tester.remove()
-    windowWidth = parseInt(@css("width"))
+    windowWidth = parseInt(@content.css("width"))
     windowHeight = parseInt(@css("height"))
     h = Math.floor(windowHeight / lineHeight) - 1
     w = Math.floor(windowWidth / charWidth) - 1
