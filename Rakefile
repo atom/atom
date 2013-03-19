@@ -36,10 +36,6 @@ task "download-cef-symbols" => "update-cef" do
   sh %{prebuilt-cef/script/download -b 1423 -r 1135 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -s cef}
 end
 
-task "nuke-node-modules" do
-  `rm -rf node_modules`
-end
-
 task "bootstrap" do
   `script/bootstrap`
 end
@@ -89,13 +85,14 @@ task :clean do
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
   `rm -rf /tmp/atom-compiled-scripts`
+  `rm -rf node_modules`
 end
 
 desc "Run the specs"
-task :test => ["nuke-node-modules", "update-cef", "clone-default-bundles", "build"] do
+task :test => ["clean", "update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
-    cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH} 2> /dev/null"
+    cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH}"
     system(cmd)
     exit($?.exitstatus)
   else
