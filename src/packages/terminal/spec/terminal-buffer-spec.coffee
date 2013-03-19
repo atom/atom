@@ -420,13 +420,27 @@ fdescribe 'Terminal Buffer', ->
           buffer.input(TerminalBuffer.escapeSequence("4l"))
           buffer.input("z")
           expect(buffer.text()).toBe("azc\n")
+      describe "cursor modes", ->
+      describe "ansi mode", ->
+      describe "column mode", ->
+        describe "column mode allowed", ->
+      describe "origin mode", ->
+      describe "autorepeat modes", ->
+      describe "newline modes", ->
+      describe "scroll mode", ->
+        it "enables slow scrolling", ->
+          expect(buffer.inMode("scroll")).toBe(false)
+          buffer.input(TerminalBuffer.escapeSequence("?4h"))
+          expect(buffer.inMode("scroll")).toBe(true)
+          buffer.input(TerminalBuffer.escapeSequence("?4l"))
+          expect(buffer.inMode("scroll")).toBe(false)
     describe "dec private mode", ->
       describe "autowrap", ->
         it "enables autowrap", ->
           buffer.input(TerminalBuffer.escapeSequence("?7h"))
-          expect(buffer.autowrap).toBe(true)
+          expect(buffer.inMode("autowrap")).toBe(true)
           buffer.input(TerminalBuffer.escapeSequence("?7l"))
-          expect(buffer.autowrap).toBe(false)
+          expect(buffer.inMode("autowrap")).toBe(false)
       describe "show/hide cursor", ->
         it "determines if the cursor is shown", ->
           buffer.input("a")

@@ -28,8 +28,19 @@ class TerminalBuffer
     @escapeSequenceStarted = false
     @ignoreEscapeSequence = false
     @endWithBell = false
-    @autowrap = false
-    @insertmode = false
+    @modes =
+      ansi: false
+      autorepeat: false
+      autowrap: true
+      column: false
+      column_allowed: false
+      cursor: false
+      insert: false
+      keypad: false
+      newline: false
+      origin: false
+      screen: false
+      scroll: false
     @resetSGR()
     @scrollingRegion = null
     @tabstops = []
@@ -47,6 +58,8 @@ class TerminalBuffer
     @italic = false
     @underlined = false
     @reversed = false
+  inMode: (name) ->
+    @modes[name] != false
   length: () ->
     l = 0
     l += line.length() for line in @lines
@@ -225,7 +238,7 @@ class TerminalBuffer
         @addLine()
     if !@cursorLine()
       @cursor.y = @lastLine().number
-    if !@insertmode
+    if !@inMode('insert')
       @cursorLine().insertAt(c, @cursor.character())
     else
       @cursorLine().appendAt(c, @cursor.character())
@@ -275,8 +288,10 @@ class TerminalBuffer
           @cursor.restore()
           break
         when "9" then # Ignore DECFI - Forward index
-        when "=" then # DECKPAM - Application keypad
-        when ">" then # DECKPNM - Normal keypad
+        when "=" # DECKPAM - Application keypad
+          @modes['keypad'] = true
+        when ">" # DECKPNM - Normal keypad
+          @modes['keypad'] = false
         when "D" then # DEL - Index
         when "E" then # NEL - Next line
         when "F" then # Cursor to lower left
@@ -408,41 +423,56 @@ class TerminalBuffer
           @tabstops = _.without(@tabstops, @cursor.x)
         else if num == 3 # Clear all tabstops
           @tabstops = []
-      when "h" # SM - Set mode
+      when "h", "l" # SM - Set mode, RM - Reset mode
         num = parseInt(seq[0].replace(/^\?/, ''))
+        decprivate = seq[0].indexOf("?") == 0
+        value = type == "h"
         switch num
           when 0 then # Ignore
-          when 1 then # DECCKM - Application cursor keys
-          when 2 then # AM - Keyboard action mode, DECANM
-          when 3 then # DECCOLM - 132 column mode
+          when 1 # DECCKM - Application cursor keys
+            @modes['cursor'] = value
+          when 2 # AM - Keyboard action mode, DECANM
+            @modes['ansi'] = value
+          when 3 # DECCOLM - 132 column mode
+            @modes['column'] = value
           when 4 # IRM - Insert mode, DECSCLM - Slow scroll
-            @insertmode = true
-          when 5 then # DECSCNM - Reverse video
-          when 6 then # DECOM - Origin mode
+            if decprivate
+              @modes['scroll'] = value
+            else
+              @modes['insert'] = value
+          when 5 # DECSCNM - Reverse video
+            @modes['screen'] = value
+          when 6 # DECOM - Origin mode
+            @modes['origin'] = value
           when 7 # DECAWM - Autowrap
-            @autowrap = true
-          when 8 then # DECARM - Auto-repeat keys
+            @modes['autowrap'] = value
+          when 8 # DECARM - Auto-repeat keys
+            @modes['autorepeat'] = value
           when 9, 1000 then # Send mouse x, y on button press
           when 10 then # Show toolbar
           when 12 then # Start blinking cursor
           when 18 then # DECPFF - Print form feeed
           when 19 then # DECPEX - Print extend to fullscreen
           when 20 # LNM - Automatic newline
-           @automaticnewline = true
+           @modes['newline'] = value
           when 25 # DECTCEM - Show cursor
-            @cursor.show = true
+            @cursor.show = value
             @cursor.moved()
           when 30 then # Show scrollbar
           when 35 then # Enable font-shifting
           when 38 then # DECTEK - Tektronix mode
-          when 40 then # Allow 80 -> 132 mode
+          when 40 # Allow 80 -> 132 mode
+            @amodes['column_allowed'] = value
           when 41 then # more(1) fix
           when 42 then # DECNRCM - Notation replacement character sets
           when 44 then # Margin bell
           when 45 then # Reverse wraparound
           when 46 then # Ignore start logging
           when 47, 1047 # Switch to alternate buffer
-            @enableAlternateBuffer()
+            if value
+              @enableAlternateBuffer()
+            else
+              @disableAlternateBuffer()
           when 66 then # DECNKM - Application keypad
           when 67 then # DECBKM - Backarrow sends backspace
           when 69 then # DECLRMM - Left and right margin mode
@@ -467,10 +497,18 @@ class TerminalBuffer
           when 1042 then # Urgency hint on ctrl-G
           when 1043 then # Raise window on ctrl-G
           when 1048 # Store cursor position
-            @cursor.store()
+            if value
+              @cursor.store()
+            else
+              @cursor.restore()
           when 1049 # Store cursor and switch to alternate buffer
-            @cursor.store()
-            @enableAlternateBuffer()
+            if value
+              @cursor.store()
+              @enableAlternateBuffer()
+            else
+              @disableAlternateBuffer()
+              @cursor.restore()
+              @updatedCursor(true)
           when 1050 then # Terminfo/termcap function key mode
           when 1051 then # Sun function key mode
           when 1052 then # HP function key mode
@@ -479,82 +517,8 @@ class TerminalBuffer
           when 1061 then # VT200 keyboard emulation
           when 2004 then # Bracketed paste mode
           else
-            window.console.log "Terminal: Unhandled DECSET #{num}"
+            window.console.log "Terminal: Unhandled #{if value then "DECSET" else "DECRST"} #{num}"
       # when "i" then # MC - Media copy
-      when "l" # RM - Reset mode
-        num = parseInt(seq[0].replace(/^\?/, ''))
-        decprivate = seq[0].indexof("?") == 0
-        switch num
-          when 0 then # Ignore
-          when 1 then # DECCKM - Application cursor keys
-          when 2 then # AM - Keyboard action mode
-          when 3 then # DECCOLM - 132 column mode
-          when 4 # IRM - Replace mode
-            @insertmode = false
-          when 5 then # DECSCNM - Reverse video
-          when 6 then # DECOM - Origin mode
-          when 7 # DECAWM - Autowrap
-            @autowrap = false
-          when 8 then # DECARM - Auto-repeat keys
-          when 9 then # Send mouse x, y on button press
-          when 10 then # Show toolbar
-          when 12 then # Stop blinking cursor
-          when 18 then # DECPFF - Print form feeed
-          when 19 then # DECPEX - Print extend to fullscreen
-          when 20 # LNM - Normal linefeed
-            @automaticnewline = false
-          when 25 # DECTCEM - Hide cursor
-            @cursor.show = false
-            @cursor.moved()
-          when 30 then # Show scrollbar
-          when 35 then # Enable font-shifting
-          when 38 then # DECTEK - Tektronix mode
-          when 40 then # Allow 80 -> 132 mode
-          when 41 then # more(1) fix
-          when 42 then # DECNRCM - Notation replacement character sets
-          when 44 then # Margin bell
-          when 45 then # Reverse wraparound
-          when 46 then # Ignore start logging
-          when 47, 1047 # Switch to main buffer
-            @disableAlternateBuffer()
-          when 66 then # DECNKM - Application keypad
-          when 67 then # DECBKM - Backarrow sends backspace
-          when 69 then # DECLRMM - Left and right margin mode
-          when 95 then # DECNCSM - Do not clear screen when column is reset
-          when 1001 then # Hilite mouse tracking
-          when 1002 then # Cell motion mouse tracking
-          when 1003 then # All mation mouse tracking
-          when 1004 then # Send focus events
-          when 1005 then # UTF-8 mode
-          when 1006 then # SGR mouse mode
-          when 1007 then # Alternate scroll mode
-          when 1010 then # Scroll to bottom on output
-          when 1011 then # Scroll to bottom on keypress
-          when 1015 then # urxvt mouse mode
-          when 1034 then # Interpret meta keys
-          when 1035 then # Numlock and alt modifiers
-          when 1036 then # Esc when meta modifies a key
-          when 1037 then # Send del from keypad delete key
-          when 1039 then # Esc when alt modifies a key
-          when 1040 then # Keep selection when not highlighted
-          when 1041 then # Copy to pasteboard
-          when 1042 then # Urgency hint on ctrl-G
-          when 1043 then # Raise window on ctrl-G
-          when 1048 # Restore cursor position
-            @cursor.restore()
-          when 1049 # Switch to main buffer and restore cursor
-            @disableAlternateBuffer()
-            @cursor.restore()
-            @updatedCursor(true)
-          when 1050 then # Terminfo/termcap function key mode
-          when 1051 then # Sun function key mode
-          when 1052 then # HP function key mode
-          when 1053 then # SCO function key mode
-          when 1060 then # Legacy keyboard emulation
-          when 1061 then # VT200 keyboard emulation
-          when 2004 then # Bracketed paste mode
-          else
-            window.console.log "Terminal: Unhandled DECRST #{num}"
       when "m" # SGR - Graphics
         for s in seq
           i = parseInt(s)
