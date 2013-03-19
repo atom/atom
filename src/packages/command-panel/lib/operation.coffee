@@ -1,7 +1,9 @@
 module.exports =
 class Operation
   constructor: ({@project, @path, @buffer, @bufferRange, @newText, @preserveSelection, @errorMessage}) ->
-    @buffer?.retain()
+    if @buffer?
+      @buffer.retain()
+      @getMarker()
 
   getMarker: ->
     @marker ?= @getBuffer().markRange(@bufferRange)
