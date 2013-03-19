@@ -8,15 +8,7 @@ CSON = require 'cson'
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
-    grammarContent = null
-    if CSON.isObjectPath(path)
-      grammarContent = CSON.readObject(path)
-    else
-      plist.parseString fs.read(path), (e, data) ->
-        throw new Error(e) if e
-        grammarContent = data[0]
-    throw new Error("Failed to load grammar at path `#{path}`") unless grammarContent
-    grammarContent
+    fs.readObject(path)
 
   name: null
   fileTypes: null

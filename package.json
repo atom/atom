@@ -12,7 +12,8 @@
     "d3": "3.0.8",
     "coffee-cache": "0.1.0",
     "pegjs": "0.7.0",
-    "async": "0.2.6"
+    "async": "0.2.6",
+    "plist": "git://github.com/nathansobo/node-plist.git"
   },
 
   "scripts": {
