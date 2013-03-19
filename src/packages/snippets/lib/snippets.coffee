@@ -37,6 +37,7 @@ module.exports =
 
   loadAtomSnippets: (path, done) ->
     snippetsDirPath = fsUtils.join(path, 'snippets')
+    return done() unless fsUtils.isDirectory(snippetsDirPath)
 
     loadSnippetFile = (filename, done) =>
       return done() if filename.indexOf('.') is 0
@@ -53,6 +54,7 @@ module.exports =
 
   loadTextMateSnippets: (path, done) ->
     snippetsDirPath = fsUtils.join(path, 'Snippets')
+    return done() unless fsUtils.isDirectory(snippetsDirPath)
 
     loadSnippetFile = (filename, done) =>
       return done() if filename.indexOf('.') is 0
@@ -83,7 +85,6 @@ module.exports =
         logError(err)
         done()
 
-    return done() unless fsUtils.isDirectory(snippetsDirPath)
     fs.readdir snippetsDirPath, (err, paths) ->
       if err
         console.warn err
