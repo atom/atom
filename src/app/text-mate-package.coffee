@@ -90,11 +90,10 @@ class TextMatePackage extends Package
     preferenceObjects = []
     if fs.exists(@preferencesPath)
       for preferencePath in fs.list(@preferencesPath)
-        @readObjectFromPath preferencePath, (e, object) =>
-          if e
-            console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
-          else
-            preferenceObjects.push(object)
+        try
+          preferenceObjects.push(fs.readObject(preferencePath))
+        catch e
+          console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
     preferenceObjects
 
   propertiesFromTextMateSettings: (textMateSettings) ->

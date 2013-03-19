@@ -268,8 +268,20 @@ module.exports =
 
   readPlist: (path) ->
     plist = require 'plist'
-    object = null
-    plist.parseString @read(path), (e, data) ->
-      throw new Error(e) if e
-      object = data[0]
-    object
+    plist.parseStringSync(@read(path))
+
+  readPlistAsync: (path, done) ->
+    plist = require 'plist'
+    fs.readFile path, 'utf8', (err, contents) ->
+      return done(err) if err
+      try
+        done(null, plist.parseStringSync(contents))
+      catch err
+        done(err)
+
+  readObject: (path) ->
+    cson = require 'cson'
+    if cson.isObjectPath(path)
+      cson.readObject(path)
+    else
+      @readPlist(path)
