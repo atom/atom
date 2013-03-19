@@ -50,7 +50,7 @@ module.exports =
         done()
 
     fs.readdir snippetsDirPath, (err, paths) ->
-      async.each(paths, loadSnippetFile, done)
+      async.eachSeries(paths, loadSnippetFile, done)
 
   loadTextMateSnippets: (path, done) ->
     snippetsDirPath = fsUtils.join(path, 'Snippets')
@@ -89,7 +89,7 @@ module.exports =
       if err
         console.warn err
         return done()
-      async.each(paths, loadSnippetFile, done)
+      async.eachSeries(paths, loadSnippetFile, done)
 
   translateTextmateSnippet: ({ scope, name, content, tabTrigger }) ->
     scope = TextMatePackage.cssSelectorFromScopeSelector(scope) if scope
