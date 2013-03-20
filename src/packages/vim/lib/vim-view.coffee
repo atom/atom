@@ -134,7 +134,7 @@ class VimView extends View
     @insertTransaction = true
   stopTransaction: ->
     if @insertTransaction
-      @editor.activeEditSession.commit()
+      @editor.activeEditSession.commit() if @editor.activeEditSession.buffer.undoManager.currentTransaction?
       @insertTransaction = false
 
   enterInsertMode: (type) ->
