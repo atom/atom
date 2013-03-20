@@ -2051,7 +2051,7 @@ describe "Editor", ->
     [path] = []
 
     beforeEach ->
-      path = "/tmp/grammar-change.txt"
+      path = fs.join(fs.absolute("/tmp"), "grammar-change.txt")
       fs.write(path, "var i;")
 
     afterEach ->
