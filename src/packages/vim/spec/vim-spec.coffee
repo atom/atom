@@ -64,3 +64,16 @@ fdescribe "Vim package", ->
       editor.trigger 'vim:command-mode'
       editor.trigger 'core:undo'
       expect(editor.activeEditSession.buffer.getText()).toBe("abcde")
+
+  describe "leader key", ->
+    it "creates a new virtual key", ->
+      spyOn(keymap, 'handleKeyEvent')
+      editor.trigger 'vim:leader'
+      expect(keymap.handleKeyEvent).toHaveBeenCalled()
+    it "is available for key bindings", ->
+      editor.trigger 'vim:command-mode'
+      keymap.add
+        '.editor':
+          'leader': 'vim:insert-mode'
+      editor.trigger 'vim:leader'
+      expect(vim.inInsertMode()).toBeTruthy()

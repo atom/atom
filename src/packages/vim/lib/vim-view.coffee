@@ -37,7 +37,6 @@ class VimView extends View
     @vim = $(this)
     @visual = false
     @insertTransaction = false
-
     @editor.preempt 'textInput', (e) =>
       return true if @inInsertMode()
       text = e.originalEvent.data
@@ -55,6 +54,7 @@ class VimView extends View
     @editor.command 'vim:visual-mode', => @enterVisualMode()
     @editor.command 'vim:visual-mode-lines', => @enterVisualMode("lines")
     @editor.command 'vim:cancel-command', => @discardCommand()
+    @editor.command 'vim:leader', (e) => @leader(e)
 
     @command 'vim:insert-mode', => @enterInsertMode()
     @command 'vim:unfocus', => @rootView.focus()
@@ -77,6 +77,14 @@ class VimView extends View
 
   cursor: () ->
     @editor.getCursorView()
+
+  leader: (e) ->
+    event =
+      target: e.target
+      keystrokes: 'leader'
+      originalEvent:
+        keyIdentifier: 'U+FFFF'
+    keymap.handleKeyEvent(event)
 
   stateChanged: (state) ->
     if state == "count"

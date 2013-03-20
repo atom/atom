@@ -150,4 +150,5 @@ class Keymap
       when 27 then 'escape'
       when 32 then 'space'
       when 127 then 'delete'
+      when 65535 then 'leader'
       else String.fromCharCode(charCode)
