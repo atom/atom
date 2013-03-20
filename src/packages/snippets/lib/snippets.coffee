@@ -19,7 +19,6 @@ module.exports =
       @enableSnippetsInEditor(editor) if editor.attached
 
   deactivate: ->
-    @loadSnippetsTask?.abort()
 
   loadAll: ->
     packages = atom.getLoadedPackages()
