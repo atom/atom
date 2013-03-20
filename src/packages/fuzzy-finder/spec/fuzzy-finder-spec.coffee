@@ -13,7 +13,7 @@ describe 'FuzzyFinder', ->
     window.rootView = new RootView
     rootView.open('sample.js')
     rootView.enableKeymap()
-    finderView = window.loadPackage("fuzzy-finder").packageMain.createView()
+    finderView = window.loadPackage("fuzzy-finder").mainModule.createView()
 
   describe "file-finder behavior", ->
     describe "toggling", ->

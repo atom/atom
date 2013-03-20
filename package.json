@@ -16,6 +16,8 @@
     "plist": "git://github.com/nathansobo/node-plist.git"
   },
 
+  "private": true,
+
   "scripts": {
     "preinstall": "true"
   }

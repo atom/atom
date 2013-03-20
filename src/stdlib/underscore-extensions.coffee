@@ -52,16 +52,20 @@ _.mixin
     regex = RegExp('[' + specials.join('\\') + ']', 'g')
     string.replace(regex, "\\$&");
 
-  humanizeEventName: (eventName) ->
-    if /:/.test(eventName)
-      [namespace, name] = eventName.split(':')
-      return "#{@humanizeEventName(namespace)}: #{@humanizeEventName(name)}"
+  humanizeEventName: (eventName, eventDoc) ->
+    [namespace, event]  = eventName.split(':')
+    return _.capitalize(namespace) unless event?
 
-    words = eventName.split('-')
-    words.map(_.capitalize).join(' ')
+    namespaceDoc = _.undasherize(namespace)
+    eventDoc ?= _.undasherize(event)
+
+    "#{namespaceDoc}: #{eventDoc}"
 
   capitalize: (word) ->
-    word[0].toUpperCase() + word[1..]
+    if word.toLowerCase() is 'github'
+      'GitHub'
+    else
+      word[0].toUpperCase() + word[1..]
 
   pluralize: (count=0, singular, plural=singular+'s') ->
     if count is 1
@@ -79,6 +83,9 @@ _.mixin
         "-" + letter.toLowerCase()
       else
         "-"
+
+  undasherize: (string) ->
+    string.split('-').map(_.capitalize).join(' ')
 
   underscore: (string) ->
     string = string[0].toLowerCase() + string[1..]

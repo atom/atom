@@ -136,6 +136,43 @@ describe "PaneContainer", ->
         for item in pane.getItems()
           expect(item.saved).toBeTruthy()
 
+  describe ".confirmClose()", ->
+    it "resolves the returned promise after modified files are saved", ->
+      pane1.itemAtIndex(0).isModified = -> true
+      pane2.itemAtIndex(0).isModified = -> true
+      spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSaveFn) -> noSaveFn()
+
+      promiseHandler = jasmine.createSpy("promiseHandler")
+      failedPromiseHandler = jasmine.createSpy("failedPromiseHandler")
+      promise = container.confirmClose()
+      promise.done promiseHandler
+      promise.fail failedPromiseHandler
+
+      waitsFor ->
+        promiseHandler.wasCalled
+
+      runs ->
+        expect(failedPromiseHandler).not.toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
+
+    it "rejects the returned promise if the user cancels saving", ->
+      pane1.itemAtIndex(0).isModified = -> true
+      pane2.itemAtIndex(0).isModified = -> true
+      spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancelFn, f, g) -> cancelFn()
+
+      promiseHandler = jasmine.createSpy("promiseHandler")
+      failedPromiseHandler = jasmine.createSpy("failedPromiseHandler")
+      promise = container.confirmClose()
+      promise.done promiseHandler
+      promise.fail failedPromiseHandler
+
+      waitsFor ->
+        failedPromiseHandler.wasCalled
+
+      runs ->
+        expect(promiseHandler).not.toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
+
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
       newContainer = deserialize(container.serialize())
@@ -146,3 +183,10 @@ describe "PaneContainer", ->
       newContainer.height(200).width(300).attachToDom()
       expect(newContainer.find('.row > :contains(1)').width()).toBe 150
       expect(newContainer.find('.row > .column > :contains(2)').height()).toBe 100
+
+    it "removes empty panes on deserialization", ->
+      # only deserialize pane 1's view successfully
+      TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
+      newContainer = deserialize(container.serialize())
+      expect(newContainer.find('.row, .column')).not.toExist()
+      expect(newContainer.find('> :contains(1)')).toExist()

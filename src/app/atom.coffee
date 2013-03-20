@@ -24,10 +24,10 @@ _.extend atom,
 
   activateAtomPackage: (pack) ->
     @activatedAtomPackages.push(pack)
-    pack.packageMain.activate(@atomPackageStates[pack.name] ? {})
+    pack.mainModule.activate(@atomPackageStates[pack.name] ? {})
 
   deactivateAtomPackages: ->
-    pack.packageMain.deactivate?() for pack in @activatedAtomPackages
+    pack.mainModule.deactivate?() for pack in @activatedAtomPackages
     @activatedAtomPackages = []
 
   serializeAtomPackages: ->
@@ -35,7 +35,7 @@ _.extend atom,
     for pack in @loadedPackages
       if pack in @activatedAtomPackages
         try
-          packageStates[pack.name] = pack.packageMain.serialize?()
+          packageStates[pack.name] = pack.mainModule.serialize?()
         catch e
           console?.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
       else
@@ -60,6 +60,9 @@ _.extend atom,
         pack.load()
 
     new LoadTextMatePackagesTask(textMatePackages).start() if textMatePackages.length > 0
+
+  activatePackages: ->
+    pack.activate() for pack in @loadedPackages
 
   getLoadedPackages: ->
     _.clone(@loadedPackages)

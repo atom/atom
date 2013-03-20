@@ -86,11 +86,11 @@ module.exports =
     paths = []
     if extensions
       onPath = (path) =>
-        paths.push(@join(rootPath, path)) if _.contains(extensions, @extension(path))
+        paths.push(path) if _.contains(extensions, @extension(path))
         false
     else
       onPath = (path) =>
-        paths.push(@join(rootPath, path))
+        paths.push(path)
         false
     @traverseTreeSync(rootPath, onPath, onPath)
     paths
@@ -98,7 +98,7 @@ module.exports =
   listTree: (rootPath) ->
     paths = []
     onPath = (path) =>
-      paths.push(@join(rootPath, path))
+      paths.push(path)
       true
     @traverseTreeSync(rootPath, onPath, onPath)
     paths
@@ -162,9 +162,9 @@ module.exports =
         absolutePath = @join(rootPath, file)
         stats = fs.statSync(absolutePath)
         if stats.isDirectory()
-          traverse(absolutePath, relativePath, onFile, onDirectory) if onDirectory(relativePath)
+          traverse(absolutePath, relativePath, onFile, onDirectory) if onDirectory(absolutePath)
         else if stats.isFile()
-          onFile(relativePath)
+          onFile(absolutePath)
 
     traverse(rootPath, '', onFile, onDirectory)
 

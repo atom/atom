@@ -7,7 +7,7 @@ Config = require 'config'
 Project = require 'project'
 
 require 'window'
-requireStylesheet "jasmine.css"
+requireStylesheet "jasmine.less"
 
 # Load TextMate bundles, which specs rely on (but not other packages)
 atom.loadTextMatePackages()

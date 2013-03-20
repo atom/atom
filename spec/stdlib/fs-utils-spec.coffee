@@ -86,7 +86,7 @@ describe "fs", ->
     it "calls fn for every path in the tree at the given path", ->
       paths = []
       onPath = (path) ->
-        paths.push(fs.join(fixturesDir, path))
+        paths.push(path)
         true
       fs.traverseTreeSync fixturesDir, onPath, onPath
       expect(paths).toEqual fs.listTree(fixturesDir)
@@ -106,14 +106,16 @@ describe "fs", ->
         expect(path).not.toMatch /\/dir\//
 
     it "returns entries if path is a symlink", ->
+      symlinkPath = fs.join(fixturesDir, 'symlink-to-dir')
       symlinkPaths = []
-      onSymlinkPath = (path) -> symlinkPaths.push(path)
+      onSymlinkPath = (path) -> symlinkPaths.push(path.substring(symlinkPath.length + 1))
 
+      regularPath = fs.join(fixturesDir, 'dir')
       paths = []
-      onPath = (path) -> paths.push(path)
+      onPath = (path) -> paths.push(path.substring(regularPath.length + 1))
 
-      fs.traverseTreeSync(fs.join(fixturesDir, 'symlink-to-dir'), onSymlinkPath, onSymlinkPath)
-      fs.traverseTreeSync(fs.join(fixturesDir, 'dir'), onPath, onPath)
+      fs.traverseTreeSync(symlinkPath, onSymlinkPath, onSymlinkPath)
+      fs.traverseTreeSync(regularPath, onPath, onPath)
 
       expect(symlinkPaths).toEqual(paths)
 

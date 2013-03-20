@@ -1,5 +1,6 @@
 $ = require 'jquery'
 fs = require 'fs-utils'
+{less} = require 'less'
 
 describe "Window", ->
   projectPath = null
@@ -34,16 +35,31 @@ describe "Window", ->
         $(window).trigger 'focus'
         expect($("body")).not.toHaveClass("is-blurred")
 
-  describe ".close()", ->
-    it "is triggered by the 'core:close' event", ->
-      spyOn window, 'close'
-      $(window).trigger 'core:close'
-      expect(window.close).toHaveBeenCalled()
+  describe "window:close event", ->
+    describe "when no pane items are modified", ->
+      it "calls window.close", ->
+        spyOn window, 'close'
+        $(window).trigger 'window:close'
+        expect(window.close).toHaveBeenCalled()
 
-    it "is triggered by the 'window:close event'", ->
-      spyOn window, 'close'
-      $(window).trigger 'window:close'
-      expect(window.close).toHaveBeenCalled()
+    describe "when pane items are are modified", ->
+      it "prompts user to save and and calls window.close", ->
+        spyOn(window, 'close')
+        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSave) -> noSave()
+        editSession = rootView.open("sample.js")
+        editSession.insertText("I look different, I feel different.")
+        $(window).trigger 'window:close'
+        expect(window.close).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
+
+      it "prompts user to save and aborts if dialog is canceled", ->
+        spyOn(window, 'close')
+        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancel) -> cancel()
+        editSession = rootView.open("sample.js")
+        editSession.insertText("I look different, I feel different.")
+        $(window).trigger 'window:close'
+        expect(window.close).not.toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
   describe ".reload()", ->
     beforeEach ->
@@ -62,21 +78,45 @@ describe "Window", ->
       expect(atom.confirm).toHaveBeenCalled()
 
   describe "requireStylesheet(path)", ->
-    it "synchronously loads the stylesheet at the given path and installs a style tag for it in the head", ->
-      $('head style[id*="atom.css"]').remove()
+    it "synchronously loads css at the given path and installs a style tag for it in the head", ->
+      cssPath = project.resolve('css.css')
       lengthBefore = $('head style').length
-      requireStylesheet('atom.css')
+
+      requireStylesheet(cssPath)
       expect($('head style').length).toBe lengthBefore + 1
 
-      styleElt = $('head style[id*="atom.css"]')
-
-      fullPath = require.resolve('atom.css')
-      expect(styleElt.attr('id')).toBe fullPath
-      expect(styleElt.text()).toBe fs.read(fullPath)
+      element = $('head style[id*="css.css"]')
+      expect(element.attr('id')).toBe cssPath
+      expect(element.text()).toBe fs.read(cssPath)
 
       # doesn't append twice
-      requireStylesheet('atom.css')
+      requireStylesheet(cssPath)
       expect($('head style').length).toBe lengthBefore + 1
+
+      $('head style[id*="css.css"]').remove()
+
+    it  "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
+      lessPath = project.resolve('sample.less')
+      lengthBefore = $('head style').length
+      requireStylesheet(lessPath)
+      expect($('head style').length).toBe lengthBefore + 1
+
+      element = $('head style[id*="sample.less"]')
+      expect(element.attr('id')).toBe lessPath
+      expect(element.text()).toBe """
+      #header {
+        color: #4d926f;
+      }
+      h2 {
+        color: #4d926f;
+      }
+
+      """
+
+      # doesn't append twice
+      requireStylesheet(lessPath)
+      expect($('head style').length).toBe lengthBefore + 1
+      $('head style[id*="sample.less"]').remove()
 
   describe ".disableStyleSheet(path)", ->
     it "removes styling applied by given stylesheet path", ->

@@ -115,7 +115,7 @@ class CommandPanelView extends View
   escapedCommand: ->
     @miniEditor.getText()
 
-  execute: (command=@escapedCommand())->
+  execute: (command=@escapedCommand()) ->
     @loadingMessage.show()
     @errorMessages.empty()
 

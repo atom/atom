@@ -75,6 +75,9 @@ class RootView extends View
     panes: @panes.serialize()
     packages: atom.serializeAtomPackages()
 
+  confirmClose: ->
+    @panes.confirmClose()
+
   handleFocus: (e) ->
     if @getActivePane()
       @getActivePane().focus()
@@ -115,7 +118,7 @@ class RootView extends View
   updateTitle: ->
     if projectPath = project.getPath()
       if item = @getActivePaneItem()
-        @setTitle("#{item.getTitle()} - #{projectPath}")
+        @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
         @setTitle(projectPath)
     else

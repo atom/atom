@@ -1,3 +1,4 @@
+require 'underscore-extensions'
 _ = require 'underscore'
 fs = require 'fs'
 fsUtils = require 'fs-utils'

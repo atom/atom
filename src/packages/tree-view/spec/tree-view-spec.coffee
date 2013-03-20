@@ -1,4 +1,5 @@
 $ = require 'jquery'
+{$$} = require 'space-pen'
 _ = require 'underscore'
 TreeView = require 'tree-view/lib/tree-view'
 RootView = require 'root-view'
@@ -49,7 +50,7 @@ describe "TreeView", ->
         rootView.deactivate()
         window.rootView = new RootView()
         rootView.open()
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -75,13 +76,13 @@ describe "TreeView", ->
         rootView.deactivate()
         window.rootView = new RootView
         rootView.open('tree-view.js')
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
     describe "when the root view is opened to a directory", ->
       it "attaches to the root view", ->
-        treeView = window.loadPackage("tree-view").packageMain.createView()
+        treeView = window.loadPackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.root).toExist()
 
@@ -301,18 +302,25 @@ describe "TreeView", ->
       expect(subdir).toHaveClass 'expanded'
       expect(rootView.getActiveView().isFocused).toBeFalsy()
 
-  describe "when a new file is opened in the active editor", ->
-    it "selects the file in the tree view if the file's entry visible", ->
-      sampleJs.click()
-      rootView.open(fs.resolveOnLoadPath('fixtures/tree-view/tree-view.txt'))
+  describe "when the active item changes on the active pane", ->
+    describe "when the item has a path", ->
+      it "selects the entry with that path in the tree view if it is visible", ->
+        sampleJs.click()
+        rootView.open(require.resolve('fixtures/tree-view/tree-view.txt'))
 
-      expect(sampleTxt).toHaveClass 'selected'
-      expect(treeView.find('.selected').length).toBe 1
+        expect(sampleTxt).toHaveClass 'selected'
+        expect(treeView.find('.selected').length).toBe 1
 
-    it "selects the file's parent dir if the file's entry is not visible", ->
-      rootView.open('dir1/sub-dir1/sub-file1')
-      dirView = treeView.root.find('.directory:contains(dir1)').view()
-      expect(dirView).toHaveClass 'selected'
+      it "selects the path's parent dir if its entry is not visible", ->
+        rootView.open('dir1/sub-dir1/sub-file1')
+        dirView = treeView.root.find('.directory:contains(dir1)').view()
+        expect(dirView).toHaveClass 'selected'
+
+    describe "when the item has no path", ->
+      it "deselects the previously selected entry", ->
+        sampleJs.click()
+        rootView.getActivePane().showItem($$ -> @div('hello'))
+        expect(rootView.find('.selected')).not.toExist()
 
   describe "when a different editor becomes active", ->
     it "selects the file in that is open in that editor", ->

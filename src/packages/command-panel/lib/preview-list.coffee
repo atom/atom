@@ -11,12 +11,17 @@ class PreviewList extends ScrollView
     @ol class: 'preview-list', tabindex: -1
 
   operations: null
+  viewsForPath: null
+  pixelOverdraw: 100
+  lastRenderedOperationIndex: null
 
   initialize: ->
     super
 
     @on 'core:move-down', => @selectNextOperation(); false
     @on 'core:move-up', => @selectPreviousOperation(); false
+    @on 'scroll', =>
+      @renderOperations() if @scrollBottom() >= (@prop('scrollHeight'))
 
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
@@ -25,6 +30,7 @@ class PreviewList extends ScrollView
     @children().each (index, element) -> $(element).view().expand()
 
   collapseAllPaths: ->
+    @renderOperations(renderAll: true)
     @children().each (index, element) -> $(element).view().collapse()
 
   destroy: ->
@@ -35,23 +41,31 @@ class PreviewList extends ScrollView
   populate: (operations) ->
     @destroyOperations() if @operations
     @operations = operations
+    @lastRenderedOperationIndex = 0
     @empty()
-
-    operation.index = index for operation, index in operations
-    operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
-    for path, operations of operationsByPath
-      @append new PathView({path, operations, previewList: this})
+    @viewsForPath = {}
 
     @show()
-    @find('.operation:first').addClass('selected')
-    @setLineNumberWidth()
+    @renderOperations()
 
-  setLineNumberWidth: ->
-    lineNumbers = @find('.line-number')
-    maxWidth = 0
-    lineNumbers.each (index, element) ->
-      maxWidth = Math.max($(element).outerWidth(), maxWidth)
-    lineNumbers.width(maxWidth)
+    @find('.operation:first').addClass('selected')
+
+  renderOperations: ({renderAll}={}) ->
+    renderAll ?= false
+    startingScrollHeight = @prop('scrollHeight')
+    for operation in @operations[@lastRenderedOperationIndex..]
+      pathView = @pathViewForPath(operation.getPath())
+      pathView.addOperation(operation)
+      @lastRenderedOperationIndex++
+      break if not renderAll and @prop('scrollHeight') >= startingScrollHeight + @pixelOverdraw and @prop('scrollHeight') > @height() + @pixelOverdraw
+
+  pathViewForPath: (path) ->
+    pathView = @viewsForPath[path]
+    if not pathView
+      pathView = new PathView({path: path, previewList: this})
+      @viewsForPath[path] = pathView
+      @append(pathView)
+    pathView
 
   selectNextOperation: ->
     selectedView = @find('.selected').view()

@@ -11,7 +11,7 @@ class Theme
     if fs.exists(name)
       path = name
     else
-      path = fs.resolve(config.themeDirPaths..., name, ['', '.tmTheme', '.css'])
+      path = fs.resolve(config.themeDirPaths..., name, ['', '.tmTheme', '.css', 'less'])
 
     throw new Error("No theme exists named '#{name}'") unless path
 

@@ -134,8 +134,8 @@ describe "Project", ->
         project.getFilePaths().done (foundPaths) -> paths = foundPaths
 
       runs ->
-        expect(paths).not.toContain('a')
-        expect(paths).toContain('b')
+        expect(paths).not.toContain(project.resolve('a'))
+        expect(paths).toContain(project.resolve('b'))
 
     describe "when config.core.hideGitIgnoredFiles is true", ->
       it "ignores files that are present in .gitignore if the project is a git repo", ->
