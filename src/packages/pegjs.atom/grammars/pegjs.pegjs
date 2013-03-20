@@ -1,5 +1,5 @@
 grammar
-  = tokens:( __ / digit* / hexDigit* / letter*) { return token({tokens: tokens}) }
+  = tokens:( digit / hexDigit / letter / __) { return token({tokens: tokens}) }
 
 __ = tokens:(whitespace / eol / comment)*
 

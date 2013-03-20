@@ -3,7 +3,7 @@ TextMatePackage = require 'text-mate-package'
 
 fs = require 'fs'
 
-fdescribe "PEGjs grammar", ->
+describe "PEGjs grammar", ->
   grammar = null
   tmGrammar = null
 
@@ -39,6 +39,15 @@ fdescribe "PEGjs grammar", ->
       expect(tokens[0]).toEqual value: "//", scopes: ["source.pegjs", "comment.line.double-slash.js", "punctuation.definition.comment.js"]
       expect(tokens[1]).toEqual value: "this is a comment", scopes: ["source.pegjs", "punctuation.definition.comment.js"]
 
+    it "parses letters", ->
+      {tokens} = grammar.tokenizeLine("a", 0)
+
+      expect(tokens[0]).toEqual value: "a", scopes: ["source.pegjs"]
+
+      {tokens} = grammar.tokenizeLine("A", 0)
+
+      expect(tokens[0]).toEqual value: "A", scopes: ["source.pegjs"]
+
     it "parses the same as the textmate grammar", ->
       {tokens} = grammar.tokenizeLine(" ", 0)
       tmTokens = tmGrammar.tokenizeLine(" ").tokens
@@ -50,3 +59,4 @@ fdescribe "PEGjs grammar", ->
 
       expect(tokens.value).toEqual tmTokens.value
       expect(tokens.scopes).toEqual tmTokens.scopes
+
