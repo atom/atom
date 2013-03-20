@@ -1,5 +1,23 @@
+grammar
+  = tokens:( __ / digit* / hexDigit* / letter*) { return token({tokens: tokens}) }
 
 __ = tokens:(whitespace / eol / comment)*
+
+digit
+  = [0-9]
+
+hexDigit
+  = [0-9a-fA-F]
+
+letter
+  = lowerCaseLetter
+  / upperCaseLetter
+
+lowerCaseLetter
+  = [a-z]
+
+upperCaseLetter
+  = [A-Z]
 
 /* Modeled after ECMA-262, 5th ed., 7.4. */
 comment "comment"
