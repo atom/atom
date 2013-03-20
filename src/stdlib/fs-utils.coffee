@@ -285,5 +285,8 @@ module.exports =
 
   watchPath: (path, callback) ->
     path = @absolute(path)
-    id = $native.watchPath(path, callback)
+    watchCallback = (eventType, eventPath) =>
+      path = @absolute(eventPath) if eventType is 'move'
+      callback(arguments...)
+    id = $native.watchPath(path, watchCallback)
     unwatch: -> $native.unwatchPath(path, id)
