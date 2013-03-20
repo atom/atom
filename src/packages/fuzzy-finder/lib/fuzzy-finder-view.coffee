@@ -157,15 +157,7 @@ class FuzzyFinderView extends SelectList
       callback = (paths) =>
         @projectPaths = paths
         @reloadProjectPaths = false
-        listedItems =
-          if options.filter?
-            @projectPaths.filter (path) ->
-              path.indexOf(options.filter) >= 0
-          else
-            @projectPaths
-
-        @setArray(listedItems)
-        options.done(listedItems) if options.done?
+        @populateProjectPaths(options)
       @loadPathsTask = new LoadPathsTask(callback)
       @loadPathsTask.start()
 
