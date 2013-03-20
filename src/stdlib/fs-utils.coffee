@@ -5,6 +5,7 @@ _ = require 'underscore'
 fs = require 'fs'
 mkdirp = require 'mkdirp'
 Module = require 'module'
+async = require 'async'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -166,31 +167,31 @@ module.exports =
     traverse(rootPath, '', onFile, onDirectory)
 
   traverseTree: (rootPath, onFile, onDirectory, onDone) ->
-    pathCounter = 0
-    startPath = -> pathCounter++
-    endPath = -> onDone() if --pathCounter is 0
-
-    traverse = (rootPath, onFile, onDirectory) =>
-      startPath()
-      fs.readdir rootPath, (error, files) =>
-        if error or files.length is 0
-          endPath()
-          return
-
-        for file in files
-          path = @join(rootPath, file)
-          do (path) =>
-            startPath()
-            fs.stat path, (error, stats) =>
-              unless error
-                if stats.isFile()
-                  onFile(path)
-                else if stats.isDirectory()
-                  traverse(path, onFile, onDirectory) if onDirectory(path)
-              endPath()
-        endPath()
-
-    traverse(rootPath, onFile, onDirectory)
+    fs.readdir rootPath, (error, files) =>
+      if error
+        onDone()
+      else
+        queue = async.queue (path, callback) =>
+          fs.stat path, (error, stats) =>
+            if error
+              callback(error)
+            else if stats.isFile()
+              onFile(path)
+              callback()
+            else if stats.isDirectory()
+              if onDirectory(path)
+                fs.readdir path, (error, files) =>
+                  if error
+                    callback(error)
+                  else
+                    for file in files
+                      queue.unshift(@join(path, file))
+                    callback()
+              else
+                callback()
+        queue.concurrency = 1
+        queue.drain = onDone
+        queue.push(@join(rootPath, file)) for file in files
 
   md5ForPath: (path) ->
     contents = fs.readFileSync(path)

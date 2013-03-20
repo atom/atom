@@ -140,7 +140,7 @@ class FuzzyFinderView extends SelectList
     @setArray(projectRelativePaths)
 
   populateProjectPaths: (options = {}) ->
-    if @projectPaths?.length > 0
+    if @projectPaths?
       listedItems =
         if options.filter?
           @projectPaths.filter (path) ->
