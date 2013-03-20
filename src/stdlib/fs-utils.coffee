@@ -19,10 +19,7 @@ module.exports =
         home = process.env.HOME
       path = "#{home}#{path.substring(1)}"
     try
-      path = fs.realpathSync(path)
-      if process.platform is 'darwin' and path.indexOf('/private/') is 0
-        path = path.substring(8)
-      path
+      fs.realpathSync(path)
     catch e
       path
 
@@ -285,3 +282,8 @@ module.exports =
       cson.readObject(path)
     else
       @readPlist(path)
+
+  watchPath: (path, callback) ->
+    path = @absolute(path)
+    id = $native.watchPath(path, callback)
+    unwatch: -> $native.unwatchPath(path, id)

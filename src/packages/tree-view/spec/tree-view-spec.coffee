@@ -601,7 +601,7 @@ describe "TreeView", ->
     beforeEach ->
       rootView.deactivate()
 
-      rootDirPath = "/tmp/atom-tests"
+      rootDirPath = fs.join(fs.absolute("/tmp"), "atom-tests")
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
 
       dirPath = fs.join(rootDirPath, "test-dir")
