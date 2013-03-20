@@ -3,7 +3,10 @@ fs = require 'fs'
 _ = require 'underscore'
 
 describe "Project", ->
+  project = null
+
   beforeEach ->
+    project = atom.getActiveProject()
     project.setPath(project.resolve('dir'))
 
   describe "when an edit session is destroyed", ->

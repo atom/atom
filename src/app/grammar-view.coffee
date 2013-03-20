@@ -46,6 +46,8 @@ class GrammarView extends SelectList
     @setArray(grammars)
 
   confirmed: (grammar) ->
+    project = atom.getActiveProject()
+
     @cancel()
     if grammar is @autoDetect
       project.removeGrammarOverrideForPath(@path)

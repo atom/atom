@@ -3,9 +3,11 @@ fs = require 'fs'
 Theme = require 'theme'
 
 describe "@load(name)", ->
+  project = null
   theme = null
 
   beforeEach ->
+    project = atom.getActiveProject()
     $("#jasmine-content").append $("<div class='editor'></div>")
 
   afterEach ->

@@ -15,10 +15,13 @@ class FuzzyFinderView extends SelectList
   allowActiveEditorChange: null
   maxItems: 10
   projectPaths: null
+  project: null
   reloadProjectPaths: true
 
   initialize: ->
     super
+
+    @project = atom.getActiveProject()
 
     @subscribe $(window), 'focus', => @reloadProjectPaths = true
     @observeConfig 'fuzzy-finder.ignoredNames', => @reloadProjectPaths = true
@@ -36,10 +39,12 @@ class FuzzyFinderView extends SelectList
       @splitOpenPath (pane, session) -> pane.splitUp(session)
 
   itemForElement: (path) ->
+    resolvedPath = @project.resolve(path)
+
     $$ ->
       @li =>
         if git?
-          status = git.statuses[project.resolve(path)]
+          status = git.statuses[resolvedPath]
           if git.isStatusNew(status)
             @div class: 'status new'
           else if git.isStatusModified(status)
@@ -70,13 +75,13 @@ class FuzzyFinderView extends SelectList
     path = @getSelectedElement()
     return unless path
     if pane = rootView.getActivePane()
-      fn(pane, project.buildEditSession(path))
+      fn(pane, @project.buildEditSession(path))
     else
       @openPath(path)
 
   confirmed : (path) ->
     return unless path.length
-    if fs.isFile(project.resolve(path))
+    if fs.isFile(@project.resolve(path))
       @cancel()
       @openPath(path)
     else
@@ -87,7 +92,7 @@ class FuzzyFinderView extends SelectList
     if @hasParent()
       @cancel()
     else
-      return unless project.getPath()?
+      return unless @project.getPath()?
       @allowActiveEditorChange = false
       @populateProjectPaths()
       @attach()
@@ -104,7 +109,7 @@ class FuzzyFinderView extends SelectList
     if @hasParent()
       @cancel()
     else
-      return unless project.getPath()? and git?
+      return unless @project.getPath()? and git?
       @allowActiveEditorChange = false
       @populateGitStatusPaths()
       @attach()
@@ -113,7 +118,7 @@ class FuzzyFinderView extends SelectList
     if @hasParent()
       @cancel()
     else
-      return unless project.getPath()?
+      return unless @project.getPath()?
       @allowActiveEditorChange = false
       editor = rootView.getActiveView()
       currentWord = editor.getWordUnderCursor(wordRegex: @filenameRegex)
@@ -136,7 +141,7 @@ class FuzzyFinderView extends SelectList
     projectRelativePaths = []
     for path, status of git.statuses
       continue unless fs.isFile(path)
-      projectRelativePaths.push(project.relativize(path))
+      projectRelativePaths.push(@project.relativize(path))
     @setArray(projectRelativePaths)
 
   populateProjectPaths: (options = {}) ->
@@ -170,7 +175,7 @@ class FuzzyFinderView extends SelectList
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
-    editSessions = project.getEditSessions().filter (editSession)->
+    editSessions = @project.getEditSessions().filter (editSession)->
       editSession.getPath()?
 
     editSessions = _.sortBy editSessions, (editSession) =>
@@ -180,13 +185,13 @@ class FuzzyFinderView extends SelectList
         -(editSession.lastOpened or 1)
 
     @paths = _.map editSessions, (editSession) ->
-      project.relativize editSession.getPath()
+      @project.relativize editSession.getPath()
 
     @setArray(@paths)
 
   getOpenedPaths: ->
     paths = {}
-    for editSession in project.getEditSessions()
+    for editSession in @project.getEditSessions()
       path = editSession.getPath()
       paths[path] = editSession.lastOpened if path?
     paths

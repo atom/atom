@@ -5,9 +5,10 @@ StatusBar = require 'status-bar/lib/status-bar-view'
 fs = require 'fs'
 
 describe "StatusBar", ->
-  [editor, statusBar, buffer] = []
+  [project, editor, statusBar, buffer] = []
 
   beforeEach ->
+    project = atom.getActiveProject()
     window.rootView = new RootView
     rootView.open('sample.js')
     rootView.simulateDomAttachment()

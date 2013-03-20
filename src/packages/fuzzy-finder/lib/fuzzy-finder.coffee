@@ -6,6 +6,8 @@ module.exports =
   loadPathsTask: null
 
   activate: (state) ->
+    project = atom.getActiveProject()
+
     rootView.command 'fuzzy-finder:toggle-file-finder', =>
       @createView().toggleFileFinder()
     rootView.command 'fuzzy-finder:toggle-buffer-finder', =>

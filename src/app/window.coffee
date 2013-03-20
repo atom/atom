@@ -9,6 +9,16 @@ require 'space-pen-extensions'
 deserializers = {}
 deferredDeserializers = {}
 
+window.__defineGetter__ 'project', ->
+  console.warn "Use atom.getActiveProject(), not the 'project' global."
+  console.trace()
+  atom.getActiveProject()
+
+window.__defineSetter__ 'project', (project) ->
+  console.warn "Use atom.setActiveProject(), not the 'project' global."
+  console.trace()
+  atom.setActiveProject(project)
+
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
   Config = require 'config'
@@ -65,6 +75,8 @@ window.startup = ->
   $(window).focus()
 
 window.shutdown = ->
+  project = atom.getActiveProject()
+
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
   atom.setRootViewStateForPath project.getPath(),
@@ -75,7 +87,8 @@ window.shutdown = ->
   git?.destroy()
   $(window).off('focus blur before')
   window.rootView = null
-  window.project = null
+
+  atom.setActiveProject(null)
   window.git = null
 
 window.installAtomCommand = (commandPath) ->
@@ -99,7 +112,8 @@ window.buildProjectAndRootView = ->
 
   pathToOpen = atom.getPathToOpen()
   windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
-  window.project = deserialize(windowState.project) ? new Project(pathToOpen)
+  project = deserialize(windowState.project) ? new Project(pathToOpen)
+  atom.setActiveProject(project)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 
   if !windowState.rootView and (!pathToOpen or fs.isFile(pathToOpen))

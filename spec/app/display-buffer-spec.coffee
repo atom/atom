@@ -3,8 +3,9 @@ Buffer = require 'buffer'
 _ = require 'underscore'
 
 describe "DisplayBuffer", ->
-  [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
+  [project, editSession, displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
+    project = atom.getActiveProject()
     tabLength = 2
     editSession = project.buildEditSession('sample.js', { tabLength })
     { buffer, displayBuffer } = editSession

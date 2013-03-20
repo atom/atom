@@ -41,7 +41,7 @@ class Git
         @refreshIndex()
         @refreshStatus()
 
-    project?.eachBuffer this, (buffer) =>
+    atom.getActiveProject()?.eachBuffer this, (buffer) =>
       bufferStatusHandler = =>
         path = buffer.getPath()
         @getPathStatus(path) if path

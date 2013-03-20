@@ -5,9 +5,11 @@ fs = require 'fs'
 _ = require 'underscore'
 
 describe "TextMateGrammar", ->
+  project = null
   grammar = null
 
   beforeEach ->
+    project = atom.getActiveProject()
     grammar = syntax.grammarForFilePath("hello.coffee")
 
   describe ".tokenizeLine(line, ruleStack)", ->

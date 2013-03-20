@@ -5,6 +5,7 @@ TextMatePackage = require 'text-mate-package'
 Theme = require 'theme'
 LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
 
+activeProject = null
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
@@ -18,6 +19,12 @@ _.extend atom,
   atomPackageStates: {}
   presentingModal: false
   pendingModals: [[]]
+
+  getActiveProject: ->
+    activeProject
+
+  setActiveProject: (project) ->
+    activeProject = project
 
   getPathToOpen: ->
     @getWindowState('pathToOpen') ? window.location.params.pathToOpen

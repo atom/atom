@@ -9,9 +9,10 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
+  [project, buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
+    project = atom.getActiveProject()
     editSession = project.buildEditSession('sample.js')
     buffer = editSession.buffer
     editor = new Editor(editSession)

@@ -6,6 +6,8 @@ class LoadPathsTask extends Task
     super('fuzzy-finder/lib/load-paths-handler')
 
   started: ->
+    project = atom.getActiveProject()
+
     ignoredNames = config.get('fuzzyFinder.ignoredNames') ? []
     ignoredNames = ignoredNames.concat(config.get('core.ignoredNames') ? [])
     excludeGitIgnoredPaths = config.get('core.hideGitIgnoredFiles')

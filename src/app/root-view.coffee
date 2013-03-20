@@ -35,6 +35,8 @@ class RootView extends View
     new RootView({panes})
 
   initialize: ->
+    project = atom.getActiveProject()
+
     @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
@@ -99,6 +101,8 @@ class RootView extends View
     @remove()
 
   open: (path, options = {}) ->
+    project = atom.getActiveProject()
+
     changeFocus = options.changeFocus ? true
     path = project.resolve(path) if path?
     if activePane = @getActivePane()
@@ -116,6 +120,8 @@ class RootView extends View
     editSession
 
   updateTitle: ->
+    project = atom.getActiveProject()
+
     if projectPath = project.getPath()
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
@@ -154,7 +160,7 @@ class RootView extends View
 
   remove: ->
     editor.remove() for editor in @getEditors()
-    project.destroy()
+    atom.getActiveProject().destroy()
     super
 
   saveAll: ->
@@ -174,8 +180,8 @@ class RootView extends View
     @on 'editor:attached', (e, editor) -> callback(editor)
 
   eachEditSession: (callback) ->
-    project.eachEditSession(callback)
+    atom.getActiveProject().eachEditSession(callback)
 
   eachBuffer: (callback) ->
-    project.eachBuffer(callback)
+    atom.getActiveProject().eachBuffer(callback)
 

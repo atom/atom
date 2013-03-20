@@ -112,6 +112,8 @@ class StatusBarView extends View
       @gitStatusIcon.text("+#{@buffer.getLineCount()}")
 
   updatePathText: ->
+    project = atom.getActiveProject()
+
     if path = @editor.getPath()
       @currentPath.text(project.relativize(path))
     else

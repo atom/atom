@@ -7,9 +7,10 @@ Directory = require 'directory'
 fs = require 'fs'
 
 describe "TreeView", ->
-  [treeView, sampleJs, sampleTxt] = []
+  [project, treeView, sampleJs, sampleTxt] = []
 
   beforeEach ->
+    project = atom.getActiveProject()
     project.setPath(project.resolve('tree-view'))
     window.rootView = new RootView
 

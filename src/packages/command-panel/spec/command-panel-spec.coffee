@@ -3,9 +3,10 @@ CommandPanelView = require 'command-panel/lib/command-panel-view'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [editSession, buffer, commandPanel] = []
+  [project, editSession, buffer, commandPanel] = []
 
   beforeEach ->
+    project = atom.getActiveProject()
     window.rootView = new RootView
     rootView.open('sample.js')
     rootView.enableKeymap()
