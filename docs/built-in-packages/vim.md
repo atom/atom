@@ -12,6 +12,20 @@ config.cson:
   "enabled": true
 ```
 
+To set a "leader" key add the following to your custom keymap:
+
+```coffee-script
+'.editor.command-mode':
+  ',': 'vim:leader'
+```
+
+Now you can use the leader key for custom keybindings like this:
+
+```coffee-script
+'.editor.command-mode':
+  'leader s': 'pane:split-down'
+```
+
 ### Supported commands
 
 #### Modes
