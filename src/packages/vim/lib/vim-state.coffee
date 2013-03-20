@@ -39,6 +39,8 @@ class VimOperation
     @vim.state.yankSelection()
   paste: (options={}) ->
     @vim.state.paste(options)
+  startTransaction: ->
+    @vim.state.startTransaction()
 
 module.exports =
 class VimState
@@ -146,6 +148,8 @@ class VimState
     if record? && record.length > 0
       for operation in record
         operation.perform(@target, operation.motion)
+  startTransaction: ->
+    @vim.startTransaction()
   editSession: ->
     @vim.editor.activeEditSession
   currentCursorPosition: ->
@@ -234,6 +238,7 @@ class VimState
     'change': ->
       @performSelectMotion()
       @yank()
+      @startTransaction()
       @performEvent("core:delete")
       @vim.enterInsertMode()
     'delete': ->

@@ -30,6 +30,7 @@ class EventMonitor
 class MockVimView
   constructor: () ->
     @enterCommandMode()
+    @transaction = false
   enterInsertMode: () ->
     @mode = "insert"
   enterCommandMode: () ->
@@ -39,6 +40,8 @@ class MockVimView
   enterAwaitInputMode: () ->
   startedRecording: () ->
   stoppedRecording: () ->
+  startTransaction: () ->
+    @transaction = false
   editor:
     insertText:() ->
 

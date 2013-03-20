@@ -120,6 +120,15 @@ class VimView extends View
     @editor.removeClass("recording")
     @updateCommandLine()
 
+  startTransaction: ->
+    return if @insertTransaction
+    @editor.activeEditSession.transact()
+    @insertTransaction = true
+  stopTransaction: ->
+    if @insertTransaction
+      @editor.activeEditSession.commit()
+      @insertTransaction = false
+
   enterInsertMode: (type) ->
     @resetMode()
     switch type
@@ -132,13 +141,10 @@ class VimView extends View
     @editor.removeClass("command-mode")
     @mode = "insert"
     @updateCommandLine()
-    @editor.activeEditSession.transact()
-    @insertTransaction = true
+    @startTransaction()
 
   enterCommandMode: ->
-    if @insertTransaction
-      @editor.activeEditSession.commit()
-      @insertTransaction = false
+    @stopTransaction()
     @resetMode()
     cursor = @cursor()
     cursor.width = @editor.getFontSize()
