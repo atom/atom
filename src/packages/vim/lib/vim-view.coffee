@@ -36,6 +36,7 @@ class VimView extends View
     @editor.vim = this
     @vim = $(this)
     @visual = false
+    @insertTransaction = false
 
     @editor.preempt 'textInput', (e) =>
       return true if @inInsertMode()
@@ -131,8 +132,13 @@ class VimView extends View
     @editor.removeClass("command-mode")
     @mode = "insert"
     @updateCommandLine()
+    @editor.activeEditSession.transact()
+    @insertTransaction = true
 
   enterCommandMode: ->
+    if @insertTransaction
+      @editor.activeEditSession.commit()
+      @insertTransaction = false
     @resetMode()
     cursor = @cursor()
     cursor.width = @editor.getFontSize()

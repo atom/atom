@@ -53,3 +53,14 @@ fdescribe "Vim package", ->
     it "enters insert mode", ->
       editor.trigger 'vim:insert-mode'
       expect(vim.inInsertMode()).toBeTruthy()
+    it "only creates a single undomanager transaction", ->
+      editor.selectAll()
+      editor.delete()
+      editor.trigger 'vim:insert-mode'
+      editor.insertText(c) for c in "abcde"
+      editor.trigger 'vim:command-mode'
+      editor.trigger 'vim:insert-mode'
+      editor.insertText(c) for c in "fghijk"
+      editor.trigger 'vim:command-mode'
+      editor.trigger 'core:undo'
+      expect(editor.activeEditSession.buffer.getText()).toBe("abcde")
