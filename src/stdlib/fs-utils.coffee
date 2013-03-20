@@ -207,7 +207,7 @@ module.exports =
         if resolvedPath = @resolveExtension(candidatePath, extensions)
           return resolvedPath
       else
-        return candidatePath if @exists(candidatePath)
+        return @absolute(candidatePath) if @exists(candidatePath)
     undefined
 
   resolveOnLoadPath: (args...) ->
@@ -217,10 +217,10 @@ module.exports =
   resolveExtension: (path, extensions) ->
     for extension in extensions
       if extension == ""
-        return path if @exists(path)
+        return @absolute(path) if @exists(path)
       else
         pathWithExtension = path + "." + extension.replace(/^\./, "")
-        return pathWithExtension if @exists(pathWithExtension)
+        return @absolute(pathWithExtension) if @exists(pathWithExtension)
     undefined
 
   isCompressedExtension: (ext) ->
