@@ -1,4 +1,5 @@
 Package = require 'package'
+PEGjsGrammar = require 'pegjs-grammar'
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
@@ -8,12 +9,14 @@ class AtomPackage extends Package
   metadata: null
   mainModule: null
   deferActivation: false
+  grammars: []
 
   load: ->
     try
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
+      @loadGrammars()
       if @deferActivation = @metadata.activationEvents?
         @registerDeferredDeserializers()
       else
@@ -41,6 +44,16 @@ class AtomPackage extends Package
     stylesheetDirPath = fs.join(@path, 'stylesheets')
     for stylesheetPath in fs.list(stylesheetDirPath)
       requireStylesheet(stylesheetPath)
+
+  loadGrammars: (rawGrammars) ->
+    rawGrammars = @metadata['grammars'] unless rawGrammars?
+    @grammars = []
+    for name, md of rawGrammars
+      file    = fs.join(@path, md.grammarFile)
+      grammar = new PEGjsGrammar(name, file, md.fileTypes, md.scopeName)
+
+      @grammars.push(grammar)
+      syntax.addGrammar(grammar)
 
   activate: ->
     if @deferActivation

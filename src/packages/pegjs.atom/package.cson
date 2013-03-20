@@ -1,0 +1,5 @@
+'grammars':
+  'pegjs':
+    'grammarFile': 'grammars/pegjs.pegjs'
+    'fileTypes': ['pegjs']
+    'scopeName':   'source.pegjs'
