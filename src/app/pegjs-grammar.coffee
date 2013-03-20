@@ -1,8 +1,10 @@
 PEG = require('pegjs')
 fs = require('fs')
+_ = require('underscore')
 
 module.exports =
 class PEGjsGrammar
+
   constructor: (@name, @grammarFile, @fileTypes, @scopeName) ->
     @parser = PEG.buildParser fs.read(@grammarFile),
                                 cache:    false
@@ -14,14 +16,33 @@ class PEGjsGrammar
   tokenizeLine: (line, ruleStack=undefined, lineNumber) ->
     @cache = {} if lineNumber == 0
 
-    rawTokens = @parser.parse(line, cache: @cache)
+    rawToken = @parser.parse(line, cache: @cache)
 
-    {tokens: rawTokens.map((token)=> @normalizeToken(token))}
+    {tokens: @normalizeToken(rawToken)}
 
-  normalizeToken: (token) ->
-    switch typeof(token)
-      when typeof("") then value: token, scopes: @buildScopes()
+  normalizeToken: (topLevelToken) ->
+    @flattenTokens(@convertTokens(topLevelToken))
 
-  buildScopes: (scopes...) ->
-    scopes.unshift(@scopeName)
-    scopes
+  convertTokens: (rawTokens...) ->
+    rawTokens.map((rawToken)=>@convertToken(rawToken))
+
+  convertToken: ({text, type}) ->
+    value: text
+    scopes: @buildScopes(type)
+
+  buildScopes: (type) ->
+    scope = [@scopeName]
+    scope.push("source.#{type}") if type
+    scope
+
+  flattenTokens: (treeTokens) ->
+    _.flatten(treeTokens.map((treeToken)=>@flattenToken(treeToken)))
+
+  flattenToken: (parentToken) ->
+    childTokens = parentToken.tokens
+    delete parentToken.tokens
+
+    return [parentToken] if !childTokens || childTokens.length == 0
+
+    input = parentToken.value
+
