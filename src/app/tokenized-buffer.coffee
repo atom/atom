@@ -138,7 +138,7 @@ class TokenizedBuffer
   buildTokenizedScreenLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    { tokens, ruleStack } = @languageMode.tokenizeLine(line, ruleStack, row is 0)
+    { tokens, ruleStack } = @languageMode.tokenizeLine(line, ruleStack, row)
     new ScreenLine({tokens, ruleStack, @tabLength, lineEnding})
 
   lineForScreenRow: (row) ->

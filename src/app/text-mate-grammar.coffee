@@ -35,10 +35,11 @@ class TextMateGrammar
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
       @repository[name] = new Rule(this, data)
 
-  tokenizeLine: (line, ruleStack=[@initialRule], firstLine=false) ->
+  tokenizeLine: (line, ruleStack=[@initialRule], lineNumber=undefined) ->
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
+    firstLine = lineNumber is 0
 
     loop
       scopes = scopesFromStack(ruleStack)
