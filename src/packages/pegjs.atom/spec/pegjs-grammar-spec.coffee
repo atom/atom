@@ -10,6 +10,7 @@ fdescribe "PEGjs grammar", ->
   beforeEach ->
     pack = new AtomPackage(require.resolve("pegjs.atom"))
     pack.load()
+    pack.loadGrammars()
     grammar = pack.grammars[0]
 
     tmPack = new TextMatePackage(require.resolve("pegjs.atom"))

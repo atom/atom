@@ -16,7 +16,7 @@ class AtomPackage extends Package
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
-      @loadGrammars()
+#       @loadGrammars()
       if @deferActivation = @metadata.activationEvents?
         @registerDeferredDeserializers()
       else
