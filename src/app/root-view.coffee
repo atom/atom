@@ -1,10 +1,10 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 Project = require 'project'
 Pane = require 'pane'

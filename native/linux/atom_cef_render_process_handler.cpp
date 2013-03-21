@@ -9,7 +9,6 @@
 void AtomCefRenderProcessHandler::OnWebKitInitialized() {
   new v8_extensions::Atom();
   new v8_extensions::NativeHandler();
-  new v8_extensions::OnigRegExp();
 }
 
 void AtomCefRenderProcessHandler::OnContextCreated(

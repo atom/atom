@@ -2,7 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 RootView = require 'root-view'
 StatusBar = require 'status-bar/lib/status-bar-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "StatusBar", ->
   [editor, statusBar, buffer] = []
@@ -112,7 +112,7 @@ describe "StatusBar", ->
 
     it "displays the current branch for files in repositories", ->
       path = require.resolve('fixtures/git/master.git/HEAD')
-      project.setPath(require.resolve('fixtures/git/master.git'))
+      project.setPath(fs.resolveOnLoadPath('fixtures/git/master.git'))
       rootView.open(path)
       expect(statusBar.branchArea).toBeVisible()
       expect(statusBar.branchLabel.text()).toBe 'master'
@@ -128,7 +128,7 @@ describe "StatusBar", ->
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
-      newPath = fs.join(require.resolve('fixtures/git/working-dir'), 'new.txt')
+      newPath = fs.join(fs.resolveOnLoadPath('fixtures/git/working-dir'), 'new.txt')
       fs.write(newPath, "I'm new here")
       git.getPathStatus(path)
       git.getPathStatus(newPath)

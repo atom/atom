@@ -1,5 +1,6 @@
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
+fs = require 'fs-utils'
 
 module.exports =
 class Task
@@ -10,7 +11,8 @@ class Task
   start: ->
     throw new Error("Task already started") if @worker?
 
-    @worker = new Worker(require.getPath('task-shell'))
+    blob = new Blob(["require('coffee-script'); require('task-shell');"], type: 'text/javascript')
+    @worker = new Worker(URL.createObjectURL(blob))
     @worker.onmessage = ({data}) =>
       if @aborted
         @done()
@@ -29,10 +31,8 @@ class Task
   startWorker: ->
     @callWorkerMethod 'start',
       globals:
-        resourcePath: window.resourcePath
         navigator:
           userAgent: navigator.userAgent
-      requirePath: require.getPath('require')
       handlerPath: @path
 
   started: ->

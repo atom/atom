@@ -1,11 +1,11 @@
 File = require 'file'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe 'File', ->
   [path, file] = []
 
   beforeEach ->
-    path = fs.join(require.resolve('fixtures'), "atom-file-test.txt") # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
+    path = fs.join(fs.resolveOnLoadPath('fixtures'), "atom-file-test.txt") # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
     fs.remove(path) if fs.exists(path)
     fs.write(path, "this is old!")
     file = new File(path)

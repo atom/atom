@@ -1,5 +1,5 @@
 ScrollView = require 'scroll-view'
-d3 = require 'd3.v3'
+d3 = require 'd3'
 _ = require 'underscore'
 $ = require 'jquery'
 

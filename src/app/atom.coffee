@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 Package = require 'package'
 TextMatePackage = require 'text-mate-package'

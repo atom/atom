@@ -85,6 +85,6 @@ describe "CSON", ->
           singleTrailingNewline: true
 
       cson = CSON.stringify(object)
-      {CoffeeScript} = require 'coffee-script'
+      CoffeeScript = require 'coffee-script'
       evaledObject = CoffeeScript.eval(cson, bare: true)
       expect(evaledObject).toEqual object

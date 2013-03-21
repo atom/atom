@@ -1,6 +1,7 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
+CSON = require 'cson'
 
 configDirPath = fs.absolute("~/.atom")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
@@ -9,8 +10,6 @@ vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
 vendoredThemesDirPath = fs.join(resourcePath, "vendor/themes")
 userThemesDirPath = fs.join(configDirPath, "themes")
 userPackagesDirPath = fs.join(configDirPath, "packages")
-
-require.paths.unshift userPackagesDirPath
 
 module.exports =
 class Config
@@ -36,19 +35,18 @@ class Config
     fs.makeDirectory(@configDirPath)
 
     templateConfigDirPath = fs.resolve(window.resourcePath, 'dot-atom')
-
     onConfigDirFile = (path) =>
       relativePath = path.substring(templateConfigDirPath.length + 1)
       configPath = fs.join(@configDirPath, relativePath)
       fs.write(configPath, fs.read(path))
-    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+    fs.traverseTreeSync(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
     configThemeDirPath = fs.join(@configDirPath, 'themes')
     onThemeDirFile = (path) ->
       relativePath = path.substring(bundledThemesDirPath.length + 1)
       configPath = fs.join(configThemeDirPath, relativePath)
       fs.write(configPath, fs.read(path))
-    fs.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
+    fs.traverseTreeSync(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
   load: ->
     @initializeConfigDirectory()
@@ -57,7 +55,7 @@ class Config
   loadUserConfig: ->
     if fs.exists(@configFilePath)
       try
-        userConfig = fs.readObject(@configFilePath)
+        userConfig = CSON.readObject(@configFilePath)
         _.extend(@settings, userConfig)
       catch e
         @configFileHasErrors = true
@@ -103,6 +101,6 @@ class Config
     @trigger 'updated'
 
   save: ->
-    fs.writeObject(@configFilePath, @settings)
+    CSON.writeObject(@configFilePath, @settings)
 
 _.extend Config.prototype, EventEmitter
