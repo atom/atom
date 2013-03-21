@@ -181,7 +181,7 @@
   _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
 }
 
-- (IBAction)toggleDevtools:(id)sender {
+- (IBAction)toggleDevTools:(id)sender {
   if (_devToolsView) {
     [self hideDevTools];
   }

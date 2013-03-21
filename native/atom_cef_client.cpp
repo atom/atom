@@ -134,12 +134,12 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                CefEventHandle os_event) {
   if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'x') {
     browser->GetFocusedFrame()->Cut();
-  }
-  if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'c') {
+  } else if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'c') {
     browser->GetFocusedFrame()->Copy();
-  }
-  if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'v') {
+  } else if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'v') {
     browser->GetFocusedFrame()->Paste();
+  } else {
+    return false;
   }
 
   return true;

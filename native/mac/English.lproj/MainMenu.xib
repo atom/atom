@@ -383,19 +383,19 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBActionConnection" key="connection">
-						<string key="label">toggleDevtools:</string>
-						<reference key="source" ref="1014"/>
-						<reference key="destination" ref="1039208338"/>
-					</object>
-					<int key="connectionID">532</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBActionConnection" key="connection">
 						<string key="label">reloadWindow:</string>
 						<reference key="source" ref="1014"/>
 						<reference key="destination" ref="195519793"/>
 					</object>
 					<int key="connectionID">533</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">toggleDevTools:</string>
+						<reference key="source" ref="1014"/>
+						<reference key="destination" ref="1039208338"/>
+					</object>
+					<int key="connectionID">534</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -693,7 +693,7 @@
 				<reference key="dict.values" ref="755588897"/>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">533</int>
+			<int key="maxID">534</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -771,7 +771,7 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>reloadWindow:</string>
-							<string>toggleDevtools:</string>
+							<string>toggleDevTools:</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
@@ -784,7 +784,7 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>reloadWindow:</string>
-							<string>toggleDevtools:</string>
+							<string>toggleDevTools:</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
@@ -793,7 +793,7 @@
 								<string key="candidateClassName">id</string>
 							</object>
 							<object class="IBActionInfo">
-								<string key="name">toggleDevtools:</string>
+								<string key="name">toggleDevTools:</string>
 								<string key="candidateClassName">id</string>
 							</object>
 						</object>
@@ -849,7 +849,7 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>reloadWindow:</string>
-							<string>toggleDevtools:</string>
+							<string>toggleDevTools:</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
@@ -862,7 +862,7 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>reloadWindow:</string>
-							<string>toggleDevtools:</string>
+							<string>toggleDevTools:</string>
 						</object>
 						<object class="NSArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
@@ -871,7 +871,7 @@
 								<string key="candidateClassName">id</string>
 							</object>
 							<object class="IBActionInfo">
-								<string key="name">toggleDevtools:</string>
+								<string key="name">toggleDevTools:</string>
 								<string key="candidateClassName">id</string>
 							</object>
 						</object>

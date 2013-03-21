@@ -32,7 +32,7 @@ class AtomCefClient;
 - (void)setPidToKillOnClose:(NSNumber *)pid;
 
 - (IBAction)reloadWindow:(id)sender;
-- (IBAction)toggleDevtools:(id)sender;
+- (IBAction)toggleDevTools:(id)sender;
 - (void)showDevTools;
 
 @end
