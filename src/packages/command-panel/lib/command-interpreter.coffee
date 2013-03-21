@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 PEG = require 'pegjs'
 
 module.exports =

@@ -1,7 +1,8 @@
 Package = require 'package'
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 $ = require 'jquery'
+CSON = require 'cson'
 
 module.exports =
 class AtomPackage extends Package
@@ -24,7 +25,7 @@ class AtomPackage extends Package
 
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
-      @metadata = fs.readObject(metadataPath)
+      @metadata = CSON.readObject(metadataPath)
     @metadata ?= {}
 
   loadKeymaps: ->
@@ -55,9 +56,12 @@ class AtomPackage extends Package
 
   requireMainModule: ->
     return @mainModule if @mainModule
-    mainPath = @path
-    mainPath = fs.join(mainPath, @metadata.main) if @metadata.main
-    mainPath = require.resolve(mainPath)
+    mainPath =
+      if @metadata.main
+        fs.join(@path, @metadata.main)
+      else
+        fs.join(@path, 'index')
+    mainPath = fs.resolveExtension(mainPath, ["", _.keys(require.extensions)...])
     @mainModule = require(mainPath) if fs.isFile(mainPath)
 
   registerDeferredDeserializers: ->

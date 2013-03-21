@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs'
+fs = require 'fs-utils'
 plist = require 'plist'
 Theme = require 'theme'
 
@@ -18,10 +18,9 @@ class TextMateTheme extends Theme
     super
 
   buildRulesets: ->
-    plist.parseString fs.read(@path), (error, [{settings}]) =>
-      throw new Error("Error loading theme at '#{@path}': #{error}") if error
-      @buildGlobalSettingsRulesets(settings[0])
-      @buildScopeSelectorRulesets(settings[1..])
+    {settings} = plist.parseFileSync(@path)
+    @buildGlobalSettingsRulesets(settings[0])
+    @buildScopeSelectorRulesets(settings[1..])
 
   getStylesheet: ->
     lines = []

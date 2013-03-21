@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
 Editor = require 'editor'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 
 module.exports =

@@ -1,5 +1,5 @@
 Git = require 'git'
-fs = require 'fs'
+fs = require 'fs-utils'
 Task = require 'task'
 
 describe "Git", ->
@@ -21,39 +21,39 @@ describe "Git", ->
 
   describe ".getPath()", ->
     it "returns the repository path for a .git directory path", ->
-      repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
-      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git')
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/master.git/HEAD'))
+      expect(repo.getPath()).toBe fs.resolveOnLoadPath('fixtures/git/master.git')
 
     it "returns the repository path for a repository path", ->
-      repo = new Git(require.resolve('fixtures/git/master.git'))
-      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git')
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/master.git'))
+      expect(repo.getPath()).toBe fs.resolveOnLoadPath('fixtures/git/master.git')
 
   describe ".getHead()", ->
     it "returns a branch name for a non-empty repository", ->
-      repo = new Git(require.resolve('fixtures/git/master.git'))
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/master.git'))
       expect(repo.getHead()).toBe 'refs/heads/master'
 
   describe ".getShortHead()", ->
     it "returns a branch name for a non-empty repository", ->
-      repo = new Git(require.resolve('fixtures/git/master.git'))
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/master.git'))
       expect(repo.getShortHead()).toBe 'master'
 
   describe ".isPathIgnored(path)", ->
     it "returns true for an ignored path", ->
-      repo = new Git(require.resolve('fixtures/git/ignore.git'))
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/ignore.git'))
       expect(repo.isPathIgnored('a.txt')).toBeTruthy()
 
     it "returns false for a non-ignored path", ->
-      repo = new Git(require.resolve('fixtures/git/ignore.git'))
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/ignore.git'))
       expect(repo.isPathIgnored('b.txt')).toBeFalsy()
 
   describe ".isPathModified(path)", ->
     [repo, path, newPath, originalPathText] = []
 
     beforeEach ->
-      repo = new Git(require.resolve('fixtures/git/working-dir'))
-      path = require.resolve('fixtures/git/working-dir/file.txt')
-      newPath = fs.join(require.resolve('fixtures/git/working-dir'), 'new-path.txt')
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/working-dir'))
+      path = fs.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
+      newPath = fs.join(fs.resolveOnLoadPath('fixtures/git/working-dir'), 'new-path.txt')
       originalPathText = fs.read(path)
 
     afterEach ->
@@ -79,9 +79,9 @@ describe "Git", ->
     [path, newPath] = []
 
     beforeEach ->
-      repo = new Git(require.resolve('fixtures/git/working-dir'))
-      path = require.resolve('fixtures/git/working-dir/file.txt')
-      newPath = fs.join(require.resolve('fixtures/git/working-dir'), 'new-path.txt')
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/working-dir'))
+      path = fs.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
+      newPath = fs.join(fs.resolveOnLoadPath('fixtures/git/working-dir'), 'new-path.txt')
       fs.write(newPath, "i'm new here")
 
     afterEach ->
@@ -98,10 +98,10 @@ describe "Git", ->
     [path1, path2, originalPath1Text, originalPath2Text] = []
 
     beforeEach ->
-      repo = new Git(require.resolve('fixtures/git/working-dir'))
-      path1 = require.resolve('fixtures/git/working-dir/file.txt')
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/working-dir'))
+      path1 = fs.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
       originalPath1Text = fs.read(path1)
-      path2 = require.resolve('fixtures/git/working-dir/other.txt')
+      path2 = fs.resolveOnLoadPath('fixtures/git/working-dir/other.txt')
       originalPath2Text = fs.read(path2)
 
     afterEach ->
@@ -141,7 +141,7 @@ describe "Git", ->
 
   describe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
-      repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/master.git/HEAD'))
       repo.destroy()
       expect(-> repo.getHead()).toThrow()
 
@@ -149,8 +149,8 @@ describe "Git", ->
     [path, originalPathText] = []
 
     beforeEach ->
-      repo = new Git(require.resolve('fixtures/git/working-dir'))
-      path = require.resolve('fixtures/git/working-dir/file.txt')
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/working-dir'))
+      path = fs.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
       originalPathText = fs.read(path)
 
     afterEach ->
@@ -165,8 +165,8 @@ describe "Git", ->
     [path, originalPathText] = []
 
     beforeEach ->
-      repo = new Git(require.resolve('fixtures/git/working-dir'))
-      path = require.resolve('fixtures/git/working-dir/file.txt')
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/working-dir'))
+      path = fs.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
       originalPathText = fs.read(path)
 
     afterEach ->
@@ -188,7 +188,7 @@ describe "Git", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
 
     beforeEach ->
-      repo = new Git(require.resolve('fixtures/git/working-dir'))
+      repo = new Git(fs.resolveOnLoadPath('fixtures/git/working-dir'))
       modifiedPath = project.resolve('git/working-dir/file.txt')
       originalModifiedPathText = fs.read(modifiedPath)
       newPath = project.resolve('git/working-dir/untracked.txt')

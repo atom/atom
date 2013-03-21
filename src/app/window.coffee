@@ -1,7 +1,7 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
-ChildProcess = require 'child-process'
 {less} = require 'less'
+{spawn} = require 'child_process'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -17,7 +17,6 @@ window.setUpEnvironment = ->
   Keymap = require 'keymap'
 
   window.rootViewParentSelector = 'body'
-  window.platform = $native.getPlatform()
   window.config = new Config
   window.syntax = new Syntax
   window.pasteboard = new Pasteboard
@@ -37,7 +36,7 @@ window.setUpEnvironment = ->
   requireStylesheet 'notification.less'
   requireStylesheet 'markdown.less'
 
-  if nativeStylesheetPath = require.resolve("#{platform}.css")
+  if nativeStylesheetPath = fs.resolveOnLoadPath("#{process.platform}.css")
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
@@ -84,7 +83,7 @@ window.installAtomCommand = (commandPath) ->
   bundledCommandPath = fs.resolve(window.resourcePath, 'atom.sh')
   if bundledCommandPath?
     fs.write(commandPath, fs.read(bundledCommandPath))
-    ChildProcess.exec("chmod u+x '#{commandPath}'")
+    spawn("chmod u+x '#{commandPath}'")
 
 window.handleWindowEvents = ->
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
@@ -189,6 +188,12 @@ window.measure = (description, fn) ->
   console.log description, result
   value
 
+window.profile = (description, fn) ->
+  measure description, ->
+    console.profile(description)
+    value = fn()
+    console.profileEnd(description)
+    value
 
 confirmClose = ->
   rootView.confirmClose().done -> window.close()

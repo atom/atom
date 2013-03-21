@@ -7,10 +7,11 @@
 
 self.window = {}
 self.attachEvent = ->
-self.console =
+console =
   warn: -> callTaskMethod 'warn', arguments...
   log: -> callTaskMethod 'log', arguments...
   error: -> callTaskMethod 'error', arguments...
+self.__defineGetter__ 'console', -> console
 
 window.document =
   createElement: ->
@@ -32,12 +33,10 @@ self.callTaskMethod = (method, args...) ->
 
 # The worker's initial handler replaces itself when `start` is invoked
 self.handler =
-  start: ({resourcePath, globals, requirePath, handlerPath}) ->
+  start: ({globals, handlerPath}) ->
     for key, value of globals
       self[key] = value
       window[key] = value
-    importScripts(requirePath)
-    require 'config'
     self.handler = require(handlerPath)
     callTaskMethod 'started'
 

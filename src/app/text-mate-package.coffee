@@ -1,8 +1,9 @@
 Package = require 'package'
-fs = require 'fs'
+fs = require 'fs-utils'
 plist = require 'plist'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
+CSON = require 'cson'
 
 module.exports =
 class TextMatePackage extends Package
@@ -75,27 +76,14 @@ class TextMatePackage extends Package
 
     scopedProperties
 
-  readObjectFromPath: (path, callback) ->
-    object = null
-    error = null
-    if fs.isObjectPath(path)
-      object = fs.readObject(path)
-    else
-      plist.parseString fs.read(path), (e, data) ->
-        error = e
-        object = data[0]
-    error = throw new Error("Failed to load object at path `#{path}`") unless object
-    callback(error, object)
-
   getTextMatePreferenceObjects: ->
     preferenceObjects = []
     if fs.exists(@preferencesPath)
       for preferencePath in fs.list(@preferencesPath)
-        @readObjectFromPath preferencePath, (e, object) =>
-          if e
-            console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
-          else
-            preferenceObjects.push(object)
+        try
+          preferenceObjects.push(fs.readObject(preferencePath))
+        catch e
+          console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
     preferenceObjects
 
   propertiesFromTextMateSettings: (textMateSettings) ->

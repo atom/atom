@@ -1,7 +1,7 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
 Git = require 'git'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 module.exports =
 class FileView extends View

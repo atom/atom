@@ -1,5 +1,5 @@
-fs = require 'fs'
-{CoffeeScript} = require 'coffee-script'
+fs = require 'fs-utils'
+CoffeeScript = require 'coffee-script'
 
 # Settings file looks like:
 #     editor: # name of class
