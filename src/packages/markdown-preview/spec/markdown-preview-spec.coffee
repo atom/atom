@@ -65,3 +65,15 @@ describe "MarkdownPreview package", ->
           expect(pane2.getItems()).toHaveLength 2
           expect(pane2.activeItem).toBe preview
           expect(pane1).toMatchSelector(':has(:focus)')
+
+      describe "when a buffer is modified and saved after a preview item has already been created", ->
+        it "updates the existing preview item", ->
+          rootView.getActiveView().trigger 'markdown-preview:show'
+          [pane1, pane2] = rootView.getPanes()
+          preview = pane2.activeItem
+          pane1.focus()
+
+          preview.fetchRenderedMarkdown.reset()
+          pane1.saveActiveItem = () ->
+          pane1.trigger("core:save")
+          expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()

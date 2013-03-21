@@ -13,6 +13,8 @@ module.exports =
       console.warn("Can not render markdown for #{item.getUri()}")
       return
 
+    activePane.on 'core:save', => @show()
+
     editSession = item
     if nextPane = activePane.getNextPane()
       if preview = nextPane.itemForUri("markdown-preview:#{editSession.getPath()}")
