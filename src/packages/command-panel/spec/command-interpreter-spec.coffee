@@ -1,6 +1,6 @@
 CommandInterpreter = require 'command-panel/lib/command-interpreter'
 Project = require 'project'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 
 _ = require 'underscore'

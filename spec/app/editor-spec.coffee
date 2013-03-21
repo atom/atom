@@ -1,12 +1,12 @@
 EditSession = require 'edit-session'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 Range = require 'range'
 Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
@@ -2051,7 +2051,7 @@ describe "Editor", ->
     [path] = []
 
     beforeEach ->
-      path = "/tmp/grammar-change.txt"
+      path = fs.join(fs.absolute("/tmp"), "grammar-change.txt")
       fs.write(path, "var i;")
 
     afterEach ->

@@ -1,12 +1,12 @@
 {View, $$} = require 'space-pen'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Gutter = require 'gutter'
 Point = require 'point'
 Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -1148,7 +1148,7 @@ class Editor extends View
     new GrammarView(this)
 
   reloadGrammar: ->
-    grammarChanged =  @activeEditSession.reloadGrammar()
+    grammarChanged = @activeEditSession.reloadGrammar()
     if grammarChanged
       @clearRenderedLines()
       @updateDisplay()

@@ -167,5 +167,3 @@ describe "EventEmitter mixin", ->
 
       object.off 'foo'
       expect(object.subscriptionCount()).toBe 2
-
-

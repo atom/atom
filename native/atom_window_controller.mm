@@ -26,25 +26,30 @@
   [super dealloc];
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background alwaysUseBundleResourcePath:(BOOL)alwaysUseBundleResourcePath {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background useBundleResourcePath:(BOOL)useBundleResourcePath {
   self = [super initWithWindowNibName:@"AtomWindow"];
   _bootstrapScript = [bootstrapScript retain];
 
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
 
-  _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
-  if (!alwaysUseBundleResourcePath && !_resourcePath) {
-    NSString *defaultRepositoryPath = [@"~/github/atom" stringByStandardizingPath];
-    if ([defaultRepositoryPath characterAtIndex:0] == '/') {
-      BOOL isDir = false;
-      BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
-      if (isDir && exists)
-        _resourcePath = defaultRepositoryPath;
-    }
-  }
-
-  if (alwaysUseBundleResourcePath || !_resourcePath) {
+  if (useBundleResourcePath) {
     _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
+  }
+  else {
+    _resourcePath = [[atomApplication.arguments objectForKey:@"resource-path"] stringByStandardizingPath];
+    if (!_resourcePath) {
+      NSString *defaultRepositoryPath = [@"~/github/atom" stringByStandardizingPath];
+      if ([defaultRepositoryPath characterAtIndex:0] == '/') {
+        BOOL isDir = false;
+        BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:defaultRepositoryPath isDirectory:&isDir];
+        if (isDir && exists) {
+          _resourcePath = defaultRepositoryPath;
+        }
+        else {
+          NSLog(@"Warning: No resource path specified and no directory exists at ~/github/atom");
+        }
+      }
+    }
   }
 
   if ([self isDevMode]) {
@@ -53,6 +58,36 @@
 
   _resourcePath = [_resourcePath stringByStandardizingPath];
   [_resourcePath retain];
+
+  NSMutableArray *paths = [NSMutableArray arrayWithObjects:
+                            @"src/stdlib",
+                            @"src/app",
+                            @"src/packages",
+                            @"src",
+                            @"vendor",
+                            @"static",
+                            @"node_modules",
+                            nil];
+  NSMutableArray *resourcePaths = [[NSMutableArray alloc] init];
+
+  if (_runningSpecs) {
+    [paths insertObject:@"benchmark" atIndex:0];
+    [paths insertObject:@"spec" atIndex:0];
+    NSString *fixturePackagesDirectory = [NSString stringWithFormat:@"%@/spec/fixtures/packages", _resourcePath];
+    [resourcePaths addObject:fixturePackagesDirectory];
+  }
+
+  NSString *userPackagesDirectory = [@"~/.atom/packages" stringByStandardizingPath];
+  [resourcePaths addObject:userPackagesDirectory];
+
+  for (int i = 0; i < paths.count; i++) {
+    NSString *fullPath = [NSString stringWithFormat:@"%@/%@", _resourcePath, [paths objectAtIndex:i]];
+    [resourcePaths addObject:fullPath];
+  }
+  [resourcePaths addObject:_resourcePath];
+
+  NSString *nodePath = [resourcePaths componentsJoinedByString:@":"];
+  setenv("NODE_PATH", [nodePath UTF8String], TRUE);
 
   if (!background) {
     [self setShouldCascadeWindows:NO];
@@ -69,19 +104,19 @@
   _pathToOpen = [path retain];
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   BOOL useBundleResourcePath = [atomApplication.arguments objectForKey:@"dev"] == nil;
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:useBundleResourcePath];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:useBundleResourcePath];
 }
 
 - (id)initDevWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:false];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:false];
 }
 
 - (id)initInBackground {
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   BOOL useBundleResourcePath = [atomApplication.arguments objectForKey:@"dev"] == nil;
 
-  [self initWithBootstrapScript:@"window-bootstrap" background:YES alwaysUseBundleResourcePath:useBundleResourcePath];
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES useBundleResourcePath:useBundleResourcePath];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorStationary];
@@ -91,13 +126,13 @@
 - (id)initSpecsThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
-  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO alwaysUseBundleResourcePath:NO];
+  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO useBundleResourcePath:NO];
 }
 
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
-  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO alwaysUseBundleResourcePath:NO];
+  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO useBundleResourcePath:NO];
 }
 
 - (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {
@@ -123,9 +158,11 @@
 // have the correct initial size based on the frame's last stored size.
 // HACK: I hate this and want to place this code directly in windowDidLoad
 - (void)attachWebView {
-  NSURL *url = [[NSBundle bundleForClass:self.class] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
-  [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
+
+  NSURL *indexUrl = [[NSURL alloc] initFileURLWithPath:[_resourcePath stringByAppendingPathComponent:@"static/index.html"]];
+  NSLog(@"%@", [indexUrl absoluteString]);
+  [urlString appendString:[indexUrl absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];
   [urlString appendFormat:@"&resourcePath=%@", [self encodeUrlParam:_resourcePath]];
   if ([self isDevMode])
@@ -237,42 +274,30 @@
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
   CefString(&settings.default_encoding) = "UTF-8";
-  settings.remote_fonts_disabled = false;
-  settings.encoding_detector_enabled = false;
-  settings.javascript_disabled = false;
-  settings.javascript_open_windows_disallowed = false;
-  settings.javascript_close_windows_disallowed = false;
-  settings.javascript_access_clipboard_disallowed = false;
-  settings.dom_paste_disabled = true;
-  settings.caret_browsing_enabled = false;
-  settings.java_disabled = true;
-  settings.plugins_disabled = true;
-  settings.universal_access_from_file_urls_allowed = false;
-  settings.file_access_from_file_urls_allowed = false;
-  settings.web_security_disabled = true;
-  settings.xss_auditor_enabled = true;
-  settings.image_load_disabled = false;
-  settings.shrink_standalone_images_to_fit = false;
-  settings.site_specific_quirks_disabled = false;
-  settings.text_area_resize_disabled = false;
-  settings.page_cache_disabled = true;
-  settings.tab_to_links_disabled = true;
-  settings.hyperlink_auditing_disabled = true;
-  settings.user_style_sheet_enabled = false;
-  settings.author_and_user_styles_disabled = false;
-  settings.local_storage_disabled = false;
-  settings.databases_disabled = false;
-  settings.application_cache_disabled = false;
-  settings.webgl_disabled = false;
-  settings.accelerated_compositing_disabled = false;
-  settings.accelerated_layers_disabled = false;
-  settings.accelerated_video_disabled = false;
-  settings.accelerated_2d_canvas_disabled = false;
-//   settings.accelerated_painting_enabled = true;
-//   settings.accelerated_filters_enabled = true;
-  settings.accelerated_plugins_disabled = false;
-  settings.developer_tools_disabled = false;
-//   settings.fullscreen_enabled = true;
+  settings.remote_fonts = STATE_ENABLED;
+  settings.javascript = STATE_ENABLED;
+  settings.javascript_open_windows = STATE_ENABLED;
+  settings.javascript_close_windows = STATE_ENABLED;
+  settings.javascript_access_clipboard = STATE_ENABLED;
+  settings.javascript_dom_paste = STATE_DISABLED;
+  settings.caret_browsing = STATE_DISABLED;
+  settings.java = STATE_DISABLED;
+  settings.plugins = STATE_DISABLED;
+  settings.universal_access_from_file_urls = STATE_DISABLED;
+  settings.file_access_from_file_urls = STATE_DISABLED;
+  settings.web_security = STATE_DISABLED;
+  settings.image_loading = STATE_ENABLED;
+  settings.image_shrink_standalone_to_fit = STATE_DISABLED;
+  settings.text_area_resize = STATE_ENABLED;
+  settings.page_cache = STATE_DISABLED;
+  settings.tab_to_links = STATE_DISABLED;
+  settings.author_and_user_styles = STATE_ENABLED;
+  settings.local_storage = STATE_ENABLED;
+  settings.databases = STATE_ENABLED;
+  settings.application_cache = STATE_ENABLED;
+  settings.webgl = STATE_ENABLED;
+  settings.accelerated_compositing = STATE_ENABLED;
+  settings.developer_tools = STATE_ENABLED;
 }
 
 @end

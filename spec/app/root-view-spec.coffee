@@ -1,8 +1,8 @@
 $ = require 'jquery'
-fs = require 'fs'
+fs = require 'fs-utils'
 Project = require 'project'
 RootView = require 'root-view'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 Pane = require 'pane'
 {View, $$} = require 'space-pen'
@@ -223,7 +223,7 @@ describe "RootView", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editSession = rootView.open('b')
           expect(rootView.getActivePane().activeItem).toBe editSession
-          expect(editSession.getPath()).toBe require.resolve('fixtures/dir/b')
+          expect(editSession.getPath()).toBe fs.resolveOnLoadPath('fixtures/dir/b')
           expect(rootView.getActivePane().focus).toHaveBeenCalled()
 
       describe "when the changeFocus option is false", ->

@@ -1,3 +1,4 @@
+fs = require 'fs-utils'
 TextMatePackage = require 'text-mate-package'
 
 describe "GitHub Flavored Markdown grammar", ->
@@ -5,7 +6,7 @@ describe "GitHub Flavored Markdown grammar", ->
 
   beforeEach ->
     spyOn(syntax, "addGrammar")
-    pack = new TextMatePackage(require.resolve("gfm.tmbundle"))
+    pack = new TextMatePackage(fs.resolveOnLoadPath("gfm.tmbundle"))
     pack.load()
     grammar = pack.grammars[0]
 

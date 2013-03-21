@@ -1,6 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 Specificity = require 'specificity'
 PEG = require 'pegjs'

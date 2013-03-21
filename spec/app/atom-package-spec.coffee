@@ -1,6 +1,6 @@
 RootView = require 'root-view'
 AtomPackage = require 'atom-package'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "AtomPackage", ->
   [packageMainModule, pack] = []
@@ -63,7 +63,7 @@ describe "AtomPackage", ->
       describe "when the package doesn't have an index.coffee", ->
         it "does not throw an exception or log an error", ->
           spyOn(console, "error")
-          spyOn(console, "warn")
+          spyOn(console, "warn").andCallThrough()
           pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-keymaps-manifest'))
 
           expect(-> pack.load()).not.toThrow()

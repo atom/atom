@@ -27,7 +27,7 @@ class SnippetExpansion
     return if @settingTabStop or bufferChanged
     oldTabStops = @tabStopsForBufferPosition(oldBufferPosition)
     newTabStops = @tabStopsForBufferPosition(newBufferPosition)
-    @destroy() unless _.intersect(oldTabStops, newTabStops).length
+    @destroy() unless _.intersection(oldTabStops, newTabStops).length
 
   placeTabStopMarkers: (startPosition, tabStopRanges) ->
     @tabStopMarkers = tabStopRanges.map ({start, end}) =>

@@ -1,3 +1,4 @@
+fs = require 'fs-utils'
 TextMatePackage = require 'text-mate-package'
 
 describe "TOML grammar", ->
@@ -5,7 +6,7 @@ describe "TOML grammar", ->
 
   beforeEach ->
     spyOn(syntax, "addGrammar")
-    pack = new TextMatePackage(require.resolve("toml.tmbundle"))
+    pack = new TextMatePackage(fs.resolveOnLoadPath("toml.tmbundle"))
     pack.load()
     grammar = pack.grammars[0]
 

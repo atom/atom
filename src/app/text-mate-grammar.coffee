@@ -1,22 +1,14 @@
 _ = require 'underscore'
-fs = require 'fs'
+fs = require 'fs-utils'
 plist = require 'plist'
 Token = require 'token'
-OnigRegExp = require 'onig-reg-exp'
-OnigScanner = require 'onig-scanner'
+CSON = require 'cson'
+{OnigRegExp, OnigScanner} = require 'oniguruma'
 
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
-    grammarContent = null
-    if fs.isObjectPath(path)
-      grammarContent = fs.readObject(path)
-    else
-      plist.parseString fs.read(path), (e, data) ->
-        throw new Error(e) if e
-        grammarContent = data[0]
-    throw new Error("Failed to load grammar at path `#{path}`") unless grammarContent
-    grammarContent
+    fs.readObject(path)
 
   name: null
   fileTypes: null
@@ -28,7 +20,7 @@ class TextMateGrammar
   constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
     @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
-    @firstLineRegex = OnigRegExp.create(firstLineMatch) if firstLineMatch
+    @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
 
     for name, data of repository
@@ -111,7 +103,7 @@ class Rule
         regex = pattern.regexSource
       regexes.push regex if regex
 
-    regexScanner = OnigScanner.create(regexes)
+    regexScanner = new OnigScanner(regexes)
     regexScanner.patterns = patterns
     @scannersByBaseGrammarName[baseGrammar.name] = regexScanner unless anchored
     regexScanner
