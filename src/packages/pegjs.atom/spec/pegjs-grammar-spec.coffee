@@ -48,17 +48,30 @@ describe "PEGjs grammar", ->
       expect(tokens[5].value).toEqual tmTokens[5].value
 
     it "parses strings", ->
-      {tokens} = grammar.tokenizeLine("'single quoted string'", 0)
+      {tokens} = grammar.tokenizeLine("_='single quoted string'", 0)
 
-      expect(tokens[0]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.begin.pegjs"]
-      expect(tokens[1]).toEqual value: "single quoted string", scopes: ["source.pegjs", "string.quoted.single.js"]
-      expect(tokens[2]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.end.pegjs"]
+      console.log(tokens)
+      expect(tokens[2]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.begin.pegjs"]
+      expect(tokens[3]).toEqual value: "single quoted string", scopes: ["source.pegjs", "string.quoted.single.js"]
+      expect(tokens[4]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.end.pegjs"]
 
-      {tokens} = grammar.tokenizeLine('"double quoted string"', 0)
+      {tokens:tmTokens} = tmGrammar.tokenizeLine("_='single quoted string'")
 
-      expect(tokens[0]).toEqual value: '"', scopes: ["source.pegjs", "string.quoted.double.js", "punctuation.definition.string.begin.pegjs"]
-      expect(tokens[1]).toEqual value: "double quoted string", scopes: ["source.pegjs", "string.quoted.double.js"]
-      expect(tokens[2]).toEqual value: '"', scopes: ["source.pegjs", "string.quoted.double.js", "punctuation.definition.string.end.pegjs"]
+      expect(tokens[2]).toEqual tmTokens[2]
+      expect(tokens[3]).toEqual tmTokens[3]
+      expect(tokens[4]).toEqual tmTokens[4]
+
+      {tokens} = grammar.tokenizeLine('_="double quoted string"', 0)
+
+      expect(tokens[2]).toEqual value: '"', scopes: ["source.pegjs", "string.quoted.double.pegjs", "punctuation.definition.string.begin.pegjs"]
+      expect(tokens[3]).toEqual value: "double quoted string", scopes: ["source.pegjs", "string.quoted.double.pegjs"]
+      expect(tokens[4]).toEqual value: '"', scopes: ["source.pegjs", "string.quoted.double.pegjs", "punctuation.definition.string.end.pegjs"]
+
+      {tokens:tmTokens} = tmGrammar.tokenizeLine('_="double quoted string"')
+
+      expect(tokens[2]).toEqual tmTokens[2]
+      expect(tokens[3]).toEqual tmTokens[3]
+      expect(tokens[4]).toEqual tmTokens[4]
 
     it "parses actions", ->
       {tokens} = grammar.tokenizeLine("{ var embedded = 'JavaScript'; }", 0)

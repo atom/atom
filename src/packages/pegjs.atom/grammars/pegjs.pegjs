@@ -104,9 +104,9 @@ string "string"
   = string:(doubleQuotedString / singleQuotedString) __
 
 doubleQuotedString
-  = ('"' { return token({type: ["string.quoted.double.js", "punctuation.definition.string.begin.pegjs"]}) })
-    (doubleQuotedCharacter* { return token({type: "string.quoted.double.js"}) })
-    ('"' { return token({type: ["string.quoted.double.js", "punctuation.definition.string.end.pegjs"]}) })
+  = ('"' { return token({type: ["string.quoted.double.pegjs", "punctuation.definition.string.begin.pegjs"]}) })
+    (doubleQuotedCharacter* { return token({type: "string.quoted.double.pegjs"}) })
+    ('"' { return token({type: ["string.quoted.double.pegjs", "punctuation.definition.string.end.pegjs"]}) })
 
 doubleQuotedCharacter
   = simpleDoubleQuotedCharacter
