@@ -1,6 +1,5 @@
 #import <Cocoa/Cocoa.h>
 #import <dispatch/dispatch.h>
-#import <CommonCrypto/CommonDigest.h>
 
 #import "atom_application.h"
 #import "native.h"
