@@ -7,9 +7,13 @@
 }
 
 .terminal .cursor {
-  background-color: #fff;
+  border: 1px solid #fff;
   opacity: 0.35;
   z-index: 2;
+}
+
+.terminal.focused .cursor {
+  background-color: #fff;
 }
 
 .terminal .color-0 {

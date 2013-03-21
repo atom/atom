@@ -33,7 +33,10 @@ class TerminalView extends ScrollView
       @hiddenInput.focus()
       @updateTerminalSize()
       @scrollToCursor()
+      @addClass("focused")
       false
+    @hiddenInput.on 'blur', =>
+      @removeClass("focused")
     @on 'textInput', (e) =>
       @input(e.originalEvent.data)
       false
