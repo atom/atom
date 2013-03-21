@@ -134,7 +134,7 @@ fdescribe 'Terminal', ->
   describe "when a control key combo is pressed", ->
     it "sends the control event to the process", ->
       spyOn(terminalView, "input")
-      rootView.trigger("terminal:ctrl-c")
+      terminalView.trigger("terminal:ctrl-c")
       expect(terminalView.input).toHaveBeenCalledWith(String.fromCharCode(3))
 
   describe "when the terminal view size changes", ->

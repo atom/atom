@@ -343,13 +343,13 @@ class TerminalBuffer
       @endWithBell = false
       @escapeSequence = ""
   evaluateEscapeSequence: (type, sequence) ->
-    if @inputChars.length > 0
-      window.console.log _.map @inputChars, (c) ->
-        i = c.charCodeAt(0)
-        if i < 32 then i
-        else c
-    @inputChars = []
-    window.console.log "Terminal: Escape #{sequence} #{type}"
+#     if @inputChars.length > 0
+#       window.console.log _.map @inputChars, (c) ->
+#         i = c.charCodeAt(0)
+#         if i < 32 then i
+#         else c
+#     @inputChars = []
+#     window.console.log "Terminal: Escape #{sequence} #{type}"
     seq = sequence.split(";")
     if @endWithBell
       @title = seq[1]

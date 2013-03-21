@@ -4,7 +4,7 @@ TerminalBuffer = require 'terminal/lib/terminal-buffer'
 _ = require 'underscore'
 $ = require 'jquery'
 fs = require 'fs'
-ChildProcess = require 'child-process'
+pty = require 'pty.js'
 
 module.exports =
 class TerminalView extends ScrollView
@@ -67,25 +67,28 @@ class TerminalView extends ScrollView
     @command "terminal:reload", => @reload()
 
   login: ->
-    process = ChildProcess.exec "/bin/bash", interactive: true, cwd: (project.getPath() || "~"), stdout: (data) =>
-      return if process != @process
-      @readData = true if !@readData
+    @term = pty.spawn "bash", ["-l"],
+      name: "xterm-256color",
+      cols: 80,
+      rows: 24,
+      cwd: (project.getPath() || process.env.HOME),
+      env: process.env
+    @term.on 'data', (data) =>
+      @readData = true
       @output(data)
-    @process = process
-    @process.done () =>
-      return if process != @process
+    @term.on 'exit', () =>
       @exited = true
       @write = () -> false
-    @write = @process.write
+      @term = null
+    @write = (data) => @term.write(data)
     @exited = false
     @updateTerminalSize()
 
   logout: ->
-    @write?("", true)
-    @process = null
+    @term.kill()
 
   reload: ->
-    if !@exited && @process?
+    if !@exited && @term?
       @logout()
       @buffer.reset()
     @login()
@@ -104,7 +107,7 @@ class TerminalView extends ScrollView
 
   input: (data) ->
     return if @exited
-    @write?(data, false)
+    @write?(data)
 
   output: (data) ->
     if data.length > 0
@@ -168,7 +171,7 @@ class TerminalView extends ScrollView
 
   setTerminalSize: () ->
     return if !@terminalSize? || @exited
-    @process?.winsize(@terminalSize[0], @terminalSize[1])
+    @term?.resize(@terminalSize[1], @terminalSize[0])
 
   characterColor: (char, color, bgcolor) ->
     if color >= 16 then char.css(color: "##{TerminalBuffer.color(color)}")
