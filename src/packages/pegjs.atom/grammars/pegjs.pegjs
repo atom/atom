@@ -58,19 +58,19 @@ nonBraceCharacters
 nonBraceCharacter
   = [^{}]
 
-equals    = "=" __
-colon     = ":" __
-semicolon = ";" __
-slash     = "/" __
-and       = "&" __
-not       = "!" __
-dollar    = "$" __
-question  = "?" __
-star      = "*" __
-plus      = "+" __
-lparen    = "(" __
-rparen    = ")" __
-dot       = "." __
+equals    = ("=" { return token({type: "keyword.operator"}) }) __
+colon     = (":" { return token({type: "keyword.operator"}) }) __
+semicolon = (";" { return token({type: "keyword.operator"}) }) __
+slash     = ("/" { return token({type: "keyword.operator"}) }) __
+and       = ("&" { return token({type: "keyword.operator"}) }) __
+not       = ("!" { return token({type: "keyword.operator"}) }) __
+dollar    = ("$" { return token({type: "keyword.operator"}) }) __
+question  = ("?" { return token({type: "keyword.operator"}) }) __
+star      = ("*" { return token({type: "keyword.operator"}) }) __
+plus      = ("+" { return token({type: "keyword.operator"}) }) __
+lparen    = ("(" { return token({type: "keyword.operator"}) }) __
+rparen    = (")" { return token({type: "keyword.operator"}) }) __
+dot       = ("." { return token({type: "keyword.operator"}) }) __
 
 /*
  * Modeled after ECMA-262, 5th ed., 7.6, but much simplified:

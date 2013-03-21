@@ -86,26 +86,11 @@ describe "PEGjs grammar", ->
       # Can't do embedded grammars :(
       expect(tokens[2]).toEqual tmTokens[11]
 
-    it "parses the same as the textmate grammar", ->
-      {tokens} = grammar.tokenizeLine(" ", 0)
-      tmTokens = tmGrammar.tokenizeLine(" ").tokens
+    it "parses operators", ->
+      {tokens} = grammar.tokenizeLine("_='a'/'b'", 0)
 
-      expect(tokens).toEqual tmTokens
+      expect(tokens[5]).toEqual value: "/", scopes: ["source.pegjs", "keyword.operator"]
 
-      {tokens} = grammar.tokenizeLine("//this is a comment", 0)
-      {tokens: tmTokens} = tmGrammar.tokenizeLine("//this is a comment")
+      {tokens: tmTokens} = tmGrammar.tokenizeLine("_='a'/'b")
 
-      expect(tokens.value).toEqual tmTokens.value
-      expect(tokens.scopes).toEqual tmTokens.scopes
-
-      {tokens} = grammar.tokenizeLine("'single quoted string'", 0)
-      {tokens: tmTokens} = tmGrammar.tokenizeLine("'single quoted string'")
-
-      expect(tokens.value).toEqual tmTokens.value
-      expect(tokens.scopes).toEqual tmTokens.scopes
-
-      {tokens} = grammar.tokenizeLine('"double quoted string"', 0)
-      {tokens: tmTokens} = tmGrammar.tokenizeLine('"double quoted string"')
-
-      expect(tokens.value).toEqual tmTokens.value
-      expect(tokens.scopes).toEqual tmTokens.scopes
+      expect(tokens[5]).toEqual tmTokens[5]
