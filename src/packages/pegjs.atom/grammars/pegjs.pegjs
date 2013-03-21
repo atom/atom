@@ -1,5 +1,46 @@
 grammar
-  = tokens:( action / string / __)
+  = __ initializer:initializer? rules:rule+
+
+initializer
+  = code:action semicolon?
+
+rule
+  = name:identifier displayName:string? equals expression:expression semicolon?
+
+expression
+  = choice
+
+choice
+  = head:sequence tail:(slash sequence)*
+
+sequence
+  = elements:labeled* code:action
+  / elements:labeled*
+
+labeled
+  = label:identifier colon expression:prefixed
+  / prefixed
+
+prefixed
+  = dollar expression:suffixed
+  / and code:action
+  / and expression:suffixed
+  / not code:action
+  / not expression:suffixed
+  / suffixed
+
+suffixed
+  = expression:primary question
+  / expression:primary star
+  / expression:primary plus
+  / primary
+
+primary
+  = name:identifier !(string? equals)
+  / literal
+  / class
+  / dot
+  / lparen expression:expression rparen
 
 /* "Lexical" elements */
 
