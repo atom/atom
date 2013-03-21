@@ -73,7 +73,7 @@ void AtomCefClient::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString
 
 void AtomCefClient::ToggleDevTools(CefRefPtr<CefBrowser> browser) {
   AtomWindowController *windowController = [[browser->GetHost()->GetWindowHandle() window] windowController];
-  [windowController toggleDevTools];
+  [windowController toggleDevtools:nil];
 }
 
 void AtomCefClient::ShowDevTools(CefRefPtr<CefBrowser> browser) {

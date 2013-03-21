@@ -177,7 +177,7 @@
   [self addBrowserToView:self.webView url:[urlString UTF8String] cefHandler:_cefClient];
 }
 
-- (void)toggleDevTools {
+- (IBAction)toggleDevtools:(id)sender {
   if (_devToolsView) {
     [self hideDevTools];
   }

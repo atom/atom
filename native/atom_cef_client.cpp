@@ -144,12 +144,6 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
   if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'v') {
     browser->GetFocusedFrame()->Paste();
   }
-  else if (event.modifiers == (EVENTFLAG_COMMAND_DOWN | EVENTFLAG_ALT_DOWN) && event.unmodified_character == 'i') {
-    ToggleDevTools(browser);
-  }
-  else {
-    return false;
-  }
 
   return true;
 }
