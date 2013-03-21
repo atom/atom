@@ -146,10 +146,6 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
   }
   else if (event.modifiers == (EVENTFLAG_COMMAND_DOWN | EVENTFLAG_ALT_DOWN) && event.unmodified_character == 'i') {
     ToggleDevTools(browser);
-  } else if (event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == '`') {
-    FocusNextWindow();
-  } else if (event.modifiers == (EVENTFLAG_COMMAND_DOWN | EVENTFLAG_SHIFT_DOWN) && event.unmodified_character == '~') {
-    FocusPreviousWindow();
   }
   else {
     return false;

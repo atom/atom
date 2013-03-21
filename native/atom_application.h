@@ -21,10 +21,12 @@ class AtomCefClient;
 - (void)openDev:(NSString *)path;
 - (void)open:(NSString *)path pidToKillWhenWindowCloses:(NSNumber *)pid;
 - (IBAction)runSpecs:(id)sender;
-- (IBAction)runBenchmarks:(id)sender;
 - (void)runSpecsThenExit:(BOOL)exitWhenDone;
-- (NSDictionary *)arguments;
+- (IBAction)runBenchmarks:(id)sender;
 - (void)runBenchmarksThenExit:(BOOL)exitWhenDone;
+- (IBAction)focusOnNextWindow:(id)sender;
+- (IBAction)focusOnPreviousWindow:(id)sender;
+- (NSDictionary *)arguments;
 
 @property (nonatomic, retain) NSDictionary *arguments;
 
