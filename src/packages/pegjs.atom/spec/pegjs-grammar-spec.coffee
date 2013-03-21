@@ -74,7 +74,7 @@ describe "PEGjs grammar", ->
       expect(tokens[4]).toEqual tmTokens[4]
 
     it "parses actions", ->
-      {tokens} = grammar.tokenizeLine("{ var embedded = 'JavaScript'; }", 0)
+      {tokens} = grammar.tokenizeLine("{ var embedded = 'JavaScript'; };_=''", 0)
 
       expect(tokens[0]).toEqual value: "{", scopes: ["source.pegjs", "source.js.embedded.pegjs"]
       expect(tokens[1]).toEqual value: " var embedded = 'JavaScript'; ", scopes: ["source.pegjs"]
