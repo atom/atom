@@ -124,9 +124,22 @@ describe "fs", ->
       expect(fs.md5ForPath(require.resolve('fixtures/sample.js'))).toBe 'dd38087d0d7e3e4802a6d3f9b9745f2b'
 
   describe ".list(path, extensions)", ->
-    it "returns the paths with the specified extensions", ->
-      path = require.resolve('fixtures/css.css')
-      expect(fs.list(fs.resolveOnLoadPath('fixtures'), ['.css'])).toEqual [path]
+    it "returns the absolute paths of entries within the given directory", ->
+      paths = fs.list(project.getPath())
+      expect(paths).toContain project.resolve('css.css')
+      expect(paths).toContain project.resolve('coffee.coffee')
+      expect(paths).toContain project.resolve('two-hundred.txt')
+
+    it "returns undefined for paths that aren't directories or don't exist", ->
+      expect(fs.list(project.resolve('sample.js'))).toBeUndefined()
+      expect(fs.list('/non/existent/directory')).toBeUndefined()
+
+    it "can filter the paths by an optional array of file extensions", ->
+      paths = fs.list(project.getPath(), ['.css', 'coffee'])
+      expect(paths).toContain project.resolve('css.css')
+      expect(paths).toContain project.resolve('coffee.coffee')
+      expect(path).toMatch /(css|coffee)$/ for path in paths
+
   describe ".listAsync(path, [extensions,] callback)", ->
     paths = null
 

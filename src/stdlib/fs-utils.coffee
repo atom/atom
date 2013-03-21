@@ -81,16 +81,10 @@ module.exports =
   # Returns an array with all the names of files contained
   # in the directory path.
   list: (rootPath, extensions) ->
-    paths = []
-    if extensions
-      onPath = (path) =>
-        paths.push(path) if _.contains(extensions, @extension(path))
-        false
-    else
-      onPath = (path) =>
-        paths.push(path)
-        false
-    @traverseTreeSync(rootPath, onPath, onPath)
+    return unless @isDirectory(rootPath)
+    paths = fs.readdirSync(rootPath)
+    paths = @filterExtensions(paths, extensions) if extensions
+    paths = paths.map (path) => @join(rootPath, path)
     paths
 
   listAsync: (rootPath, rest...) ->
