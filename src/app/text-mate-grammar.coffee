@@ -10,6 +10,16 @@ class TextMateGrammar
   @readFromPath: (path) ->
     fs.readPlist(path)
 
+  @load: (path, done) ->
+    fs.readObjectAsync path, (err, object) ->
+      if err
+        done(err)
+      else
+        done(null, new TextMateGrammar(object))
+
+  @loadSync: (path) ->
+    new TextMateGrammar(fs.readObject(path))
+
   name: null
   fileTypes: null
   scopeName: null

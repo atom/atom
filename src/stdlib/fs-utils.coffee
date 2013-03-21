@@ -69,6 +69,15 @@ module.exports =
     catch e
       false
 
+  isDirectoryAsync: (path, done) ->
+    return done(false) unless path?.length > 0
+    fs.exists path, (exists) ->
+      if exists
+        fs.stat path, (err, stat) ->
+          done(stat?.isDirectory() ? false)
+      else
+        done(false)
+
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
@@ -290,6 +299,13 @@ module.exports =
       cson.readObject(path)
     else
       @readPlist(path)
+
+  readObjectAsync: (path, done) ->
+    cson = require 'cson'
+    if cson.isObjectPath(path)
+      cson.readObjectAsync(path, done)
+    else
+      @readPlistAsync(path, done)
 
   watchPath: (path, callback) ->
     path = @absolute(path)

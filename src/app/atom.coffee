@@ -3,7 +3,6 @@ _ = require 'underscore'
 Package = require 'package'
 TextMatePackage = require 'text-mate-package'
 Theme = require 'theme'
-LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
@@ -46,7 +45,7 @@ _.extend atom,
     textPackagePath = _.find @getPackagePaths(), (path) -> fs.base(path) is 'text.tmbundle'
     pack = Package.build(textPackagePath)
     @loadedPackages.push(pack)
-    pack.load()
+    pack.load(sync: true)
 
   loadPackages: ->
     textMatePackages = []
@@ -54,12 +53,7 @@ _.extend atom,
     for path in paths
       pack = Package.build(path)
       @loadedPackages.push(pack)
-      if pack instanceof TextMatePackage
-        textMatePackages.push(pack)
-      else
-        pack.load()
-
-    new LoadTextMatePackagesTask(textMatePackages).start() if textMatePackages.length > 0
+      pack.load()
 
   activatePackages: ->
     pack.activate() for pack in @loadedPackages

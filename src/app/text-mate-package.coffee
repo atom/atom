@@ -5,6 +5,7 @@ plist = require 'plist'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
 CSON = require 'cson'
+async = require 'async'
 
 module.exports =
 class TextMatePackage extends Package
@@ -17,37 +18,38 @@ class TextMatePackage extends Package
     @syntaxesPath = fsUtils.join(@path, "Syntaxes")
     @grammars = []
 
-  load: ->
-    try
+  load: ({sync}={}) ->
+    if sync
+      @loadGrammarsSync()
+    else
       @loadGrammars()
-    catch e
-      console.warn "Failed to load package at '#{@path}'", e.stack
-    this
+    @loadScopedProperties()
+
+  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'cson', 'json']
+
+  loadGrammars: (done) ->
+    fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
+      if isDirectory
+        fsUtils.listAsync @syntaxesPath, @legalGrammarExtensions, (err, paths) =>
+          return console.log("Error loading grammars of TextMate package '#{@path}':", err.stack, err) if err
+          async.eachSeries paths, @loadGrammarAtPath, done
+
+  loadGrammarAtPath: (path, done) =>
+    TextMateGrammar.load path, (err, grammar) =>
+      return console.log("Error loading grammar at path '#{path}':", err.stack ? err) if err
+      @addGrammar(grammar)
+
+  loadGrammarsSync: ->
+    for path in fsUtils.list(@syntaxesPath, @legalGrammarExtensions) ? []
+      @addGrammar(TextMateGrammar.loadSync(path))
+
+  addGrammar: (grammar) ->
+    @grammars.push(grammar)
+    syntax.addGrammar(grammar)
 
   activate: -> # no-op
 
   getGrammars: -> @grammars
-
-  readGrammars: ->
-    grammars = []
-    for grammarPath in fsUtils.list(@syntaxesPath)
-      try
-        grammars.push(TextMateGrammar.readFromPath(grammarPath))
-      catch e
-        console.warn "Failed to load grammar at path '#{grammarPath}'", e.stack
-    grammars
-
-  addGrammar: (rawGrammar) ->
-    grammar = new TextMateGrammar(rawGrammar)
-    @grammars.push(grammar)
-    syntax.addGrammar(grammar)
-
-  loadGrammars: (rawGrammars) ->
-    rawGrammars = @readGrammars() unless rawGrammars?
-
-    @grammars = []
-    @addGrammar(rawGrammar) for rawGrammar in rawGrammars
-    @loadScopedProperties()
 
   loadScopedProperties: ->
     for { selector, properties } in @getScopedProperties()
@@ -70,10 +72,10 @@ class TextMatePackage extends Package
 
   getTextMatePreferenceObjects: ->
     preferenceObjects = []
-    if fs.exists(@preferencesPath)
-      for preferencePath in fs.list(@preferencesPath)
+    if fsUtils.exists(@preferencesPath)
+      for preferencePath in fsUtils.list(@preferencesPath)
         try
-          preferenceObjects.push(fs.readObject(preferencePath))
+          preferenceObjects.push(fsUtils.readObject(preferencePath))
         catch e
           console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
     preferenceObjects
