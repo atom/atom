@@ -141,6 +141,15 @@
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="195519793">
 									<reference key="NSMenu" ref="679500086"/>
+									<string key="NSTitle">Reload</string>
+									<string key="NSKeyEquiv">r</string>
+									<int key="NSKeyEquivModMask">1048576</int>
+									<int key="NSMnemonicLoc">2147483647</int>
+									<reference key="NSOnImage" ref="293900348"/>
+									<reference key="NSMixedImage" ref="169361956"/>
+								</object>
+								<object class="NSMenuItem" id="1039208338">
+									<reference key="NSMenu" ref="679500086"/>
 									<string key="NSTitle">Toogle Devtools</string>
 									<string key="NSKeyEquiv">i</string>
 									<int key="NSKeyEquivModMask">1572864</int>
@@ -376,9 +385,17 @@
 					<object class="IBActionConnection" key="connection">
 						<string key="label">toggleDevtools:</string>
 						<reference key="source" ref="1014"/>
+						<reference key="destination" ref="1039208338"/>
+					</object>
+					<int key="connectionID">532</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">reloadWindow:</string>
+						<reference key="source" ref="1014"/>
 						<reference key="destination" ref="195519793"/>
 					</object>
-					<int key="connectionID">529</int>
+					<int key="connectionID">533</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -564,6 +581,7 @@
 							<reference ref="374313607"/>
 							<reference ref="1054511002"/>
 							<reference ref="905547100"/>
+							<reference ref="1039208338"/>
 						</object>
 						<reference key="parent" ref="550651221"/>
 					</object>
@@ -585,6 +603,11 @@
 					<object class="IBObjectRecord">
 						<int key="objectID">527</int>
 						<reference key="object" ref="905547100"/>
+						<reference key="parent" ref="679500086"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">531</int>
+						<reference key="object" ref="1039208338"/>
 						<reference key="parent" ref="679500086"/>
 					</object>
 				</object>
@@ -620,11 +643,13 @@
 					<string>525.IBPluginDependency</string>
 					<string>526.IBPluginDependency</string>
 					<string>527.IBPluginDependency</string>
+					<string>531.IBPluginDependency</string>
 					<string>56.IBPluginDependency</string>
 					<string>57.IBPluginDependency</string>
 				</object>
 				<object class="NSArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -668,7 +693,7 @@
 				<reference key="dict.values" ref="755588897"/>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">530</int>
+			<int key="maxID">533</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -742,14 +767,35 @@
 					<string key="className">AtomWindowController</string>
 					<string key="superclassName">NSWindowController</string>
 					<object class="NSMutableDictionary" key="actions">
-						<string key="NS.key.0">toggleDevtools:</string>
-						<string key="NS.object.0">id</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>reloadWindow:</string>
+							<string>toggleDevtools:</string>
+						</object>
+						<object class="NSArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
+							<string>id</string>
+						</object>
 					</object>
 					<object class="NSMutableDictionary" key="actionInfosByName">
-						<string key="NS.key.0">toggleDevtools:</string>
-						<object class="IBActionInfo" key="NS.object.0">
-							<string key="name">toggleDevtools:</string>
-							<string key="candidateClassName">id</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>reloadWindow:</string>
+							<string>toggleDevtools:</string>
+						</object>
+						<object class="NSArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<object class="IBActionInfo">
+								<string key="name">reloadWindow:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">toggleDevtools:</string>
+								<string key="candidateClassName">id</string>
+							</object>
 						</object>
 					</object>
 					<object class="NSMutableDictionary" key="outlets">
@@ -799,14 +845,35 @@
 				<object class="IBPartialClassDescription">
 					<string key="className">FirstResponder</string>
 					<object class="NSMutableDictionary" key="actions">
-						<string key="NS.key.0">toggleDevtools:</string>
-						<string key="NS.object.0">id</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>reloadWindow:</string>
+							<string>toggleDevtools:</string>
+						</object>
+						<object class="NSArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
+							<string>id</string>
+						</object>
 					</object>
 					<object class="NSMutableDictionary" key="actionInfosByName">
-						<string key="NS.key.0">toggleDevtools:</string>
-						<object class="IBActionInfo" key="NS.object.0">
-							<string key="name">toggleDevtools:</string>
-							<string key="candidateClassName">id</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>reloadWindow:</string>
+							<string>toggleDevtools:</string>
+						</object>
+						<object class="NSArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<object class="IBActionInfo">
+								<string key="name">reloadWindow:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">toggleDevtools:</string>
+								<string key="candidateClassName">id</string>
+							</object>
 						</object>
 					</object>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">

@@ -31,6 +31,7 @@ class AtomCefClient;
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone;
 - (void)setPidToKillOnClose:(NSNumber *)pid;
 
+- (IBAction)reloadWindow:(id)sender;
 - (IBAction)toggleDevtools:(id)sender;
 - (void)showDevTools;
 

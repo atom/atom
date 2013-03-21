@@ -177,6 +177,10 @@
   [self addBrowserToView:self.webView url:[urlString UTF8String] cefHandler:_cefClient];
 }
 
+- (IBAction)reloadWindow:(id)sender {
+  _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
+}
+
 - (IBAction)toggleDevtools:(id)sender {
   if (_devToolsView) {
     [self hideDevTools];

@@ -132,9 +132,6 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                const CefKeyEvent& event,
                                CefEventHandle os_event) {
-  if (event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'r') {
-    browser->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
-  }
   if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'x') {
     browser->GetFocusedFrame()->Cut();
   }
