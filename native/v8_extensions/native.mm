@@ -23,10 +23,10 @@ namespace v8_extensions {
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
-      "writeToPasteboard", "readFromPasteboard", "quit",
-      "watchPath", "unwatchPath", "getWatchedPaths", "unwatchAllPaths",
-      "moveToTrash", "reload", "setWindowState",
-      "getWindowState", "isMisspelled", "getCorrectionsForMisspelling"
+      "writeToPasteboard", "readFromPasteboard", "quit", "watchPath",
+      "unwatchPath", "getWatchedPaths", "unwatchAllPaths", "moveToTrash",
+      "reload", "setWindowState", "getWindowState", "isMisspelled",
+      "getCorrectionsForMisspelling"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
