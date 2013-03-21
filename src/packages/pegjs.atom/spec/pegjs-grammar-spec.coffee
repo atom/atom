@@ -23,16 +23,6 @@ describe "PEGjs grammar", ->
 
   describe "tokenize strings", ->
 
-    it "parses whitespace", ->
-      {tokens} = grammar.tokenizeLine(" ", 0)
-
-      expect(tokens).toBeTruthy()
-      expect(tokens[0]).toEqual value: " ", scopes: ["source.pegjs"]
-
-      {tokens} = grammar.tokenizeLine("\n", 0)
-
-      expect(tokens[0]).toEqual value: "\n", scopes: ["source.pegjs"]
-
     it "parses comments", ->
       {tokens} = grammar.tokenizeLine("_=''//this is a comment", 0)
 
