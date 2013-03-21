@@ -1,5 +1,5 @@
 $ = require 'jquery'
-fs = require 'fs'
+fs = require 'fs-utils'
 Theme = require 'theme'
 
 describe "@load(name)", ->
@@ -15,7 +15,7 @@ describe "@load(name)", ->
     it "applies the theme's stylesheet to the current window", ->
       expect($(".editor").css("background-color")).not.toBe("rgb(20, 20, 20)")
 
-      themePath = require.resolve(fs.join('fixtures', 'test.tmTheme'))
+      themePath = fs.resolveOnLoadPath(fs.join('fixtures', 'test.tmTheme'))
       theme = Theme.load(themePath)
       expect($(".editor").css("background-color")).toBe("rgb(20, 20, 20)")
 

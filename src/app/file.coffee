@@ -1,6 +1,6 @@
 EventEmitter = require 'event-emitter'
 
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 
 module.exports =
@@ -10,7 +10,7 @@ class File
 
   constructor: (@path) ->
     if @exists() and not fs.isFile(@path)
-      throw new Error(@path + " is a directory")
+      throw new Error("#{@path} is a directory")
 
   setPath: (@path) ->
 
@@ -67,10 +67,12 @@ class File
       @trigger "removed"
 
   subscribeToNativeChangeEvents: ->
-    @watchId = $native.watchPath @path, (eventType, path) =>
+    @watchSubscription = fs.watchPath @path, (eventType, path) =>
       @handleNativeChangeEvent(eventType, path)
 
   unsubscribeFromNativeChangeEvents: ->
-    $native.unwatchPath(@path, @watchId)
+    if @watchSubscription
+      @watchSubscription.unwatch()
+      @watchSubscription = null
 
 _.extend File.prototype, EventEmitter

@@ -1,5 +1,5 @@
 UndoManager = require 'undo-manager'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Range = require 'range'
 
 describe "UndoManager", ->

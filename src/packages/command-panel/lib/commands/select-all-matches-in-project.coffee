@@ -16,7 +16,7 @@ class SelectAllMatchesInProject extends Command
     promise = project.scan @regex, ({path, range}) ->
       operations.push(new Operation(
         project: project
-        buffer: project.bufferForPath(path)
+        path: path
         bufferRange: range
       ))
 

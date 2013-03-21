@@ -1,16 +1,19 @@
-{hex_md5} = require 'md5'
+crypto = require 'crypto'
 
 module.exports =
 class Pasteboard
   signatureForMetadata: null
 
+  md5: (text) ->
+    crypto.createHash('md5').update(text, 'utf8').digest('hex')
+
   write: (text, metadata) ->
-    @signatureForMetadata = hex_md5(text)
+    @signatureForMetadata = @md5(text)
     @metadata = metadata
     $native.writeToPasteboard(text)
 
   read: ->
     text = $native.readFromPasteboard()
     value = [text]
-    value.push(@metadata) if @signatureForMetadata == hex_md5(text)
+    value.push(@metadata) if @signatureForMetadata == @md5(text)
     value

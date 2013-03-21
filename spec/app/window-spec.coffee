@@ -1,5 +1,5 @@
 $ = require 'jquery'
-fs = require 'fs'
+fs = require 'fs-utils'
 {less} = require 'less'
 
 describe "Window", ->

@@ -1,4 +1,4 @@
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 Range = require 'range'
 

@@ -558,7 +558,7 @@ describe "Pane", ->
       expect(row2.height()).toBe 2/3 * container.height()
       expect(pane2.outerWidth()).toBe column1.outerWidth()
       expect(pane2.outerHeight()).toBe 1/3 * container.height()
-      expect(pane2.position().top).toBe row2.height()
+      expect(Math.round(pane2.position().top)).toBe row2.height()
 
       expect(row2.children().length).toBe 2
       column3 = row2.children(':eq(0)').view()
@@ -576,7 +576,7 @@ describe "Pane", ->
       expect(pane4.outerWidth()).toBe column3.width()
       expect(pane4.outerHeight()).toBe 1/3 * container.height()
       expect(pane5.outerWidth()).toBe column3.width()
-      expect(pane5.position().top).toBe pane4.outerHeight()
+      expect(Math.round(pane5.position().top)).toBe pane4.outerHeight()
       expect(pane5.outerHeight()).toBe 1/3 * container.height()
 
       pane5.remove()

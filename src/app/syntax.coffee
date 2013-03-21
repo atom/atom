@@ -2,7 +2,7 @@ _ = require 'underscore'
 jQuery = require 'jquery'
 Specificity = require 'specificity'
 {$$} = require 'space-pen'
-fs = require 'fs'
+fs = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 
 module.exports =

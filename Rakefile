@@ -12,7 +12,7 @@ task :build => "create-xcode-project" do
 end
 
 desc "Create xcode project from gyp file"
-task "create-xcode-project" => "update-cef" do
+task "create-xcode-project" => ["update-cef", "update-node"] do
   `rm -rf atom.xcodeproj`
   `script/generate-sources-gypi`
   `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
@@ -20,15 +20,20 @@ end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
 task "update-cef" => "bootstrap" do
-  exit 1 unless system %{prebuilt-cef/script/download -f cef}
+  exit 1 unless system %{prebuilt-cef/script/download -b 1430 -r 1135 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -f cef}
   Dir.glob('cef/*.gypi').each do |filename|
     `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
   end
 end
 
+desc "Download node binary"
+task "update-node" do
+  `script/update-node`
+end
+
 desc "Download debug symbols for CEF"
 task "download-cef-symbols" => "update-cef" do
-  sh %{prebuilt-cef/script/download -s cef}
+  sh %{prebuilt-cef/script/download -b 1430 -r 1135 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -s cef}
 end
 
 task "bootstrap" do
@@ -80,13 +85,14 @@ task :clean do
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
   `rm -rf /tmp/atom-compiled-scripts`
+  `rm -rf node_modules`
 end
 
 desc "Run the specs"
 task :test => ["clean", "update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
-    cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH} 2> /dev/null"
+    cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH}"
     system(cmd)
     exit($?.exitstatus)
   else
