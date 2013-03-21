@@ -5,7 +5,8 @@ initializer
   = code:action semicolon?
 
 rule
-  = name:identifier displayName:string? equals expression:expression semicolon?
+  = (name:identifier { return token({type: ["source.pegjs.ruleDefinition", "entity.name.type"]}) })
+    displayName:string? equals expression:expression semicolon?
 
 expression
   = choice
@@ -58,7 +59,7 @@ nonBraceCharacters
 nonBraceCharacter
   = [^{}]
 
-equals    = ("=" { return token({type: "keyword.operator"}) }) __
+equals    = ("=" { return token({type: "source.pegjs.ruleDefinition"}) }) __
 colon     = (":" { return token({type: "keyword.operator"}) }) __
 semicolon = (";" { return token({type: "keyword.operator"}) }) __
 slash     = ("/" { return token({type: "keyword.operator"}) }) __

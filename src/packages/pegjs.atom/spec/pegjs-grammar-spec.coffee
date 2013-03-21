@@ -94,3 +94,13 @@ describe "PEGjs grammar", ->
       {tokens: tmTokens} = tmGrammar.tokenizeLine("_='a'/'b")
 
       expect(tokens[5]).toEqual tmTokens[5]
+
+    it "parses rules", ->
+      {tokens} = grammar.tokenizeLine("a='a'", 0)
+
+      expect(tokens[0]).toEqual value: "a", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]
+      expect(tokens[1]).toEqual value: "=", scopes: ["source.pegjs", "source.pegjs.ruleDefinition"]
+
+      {tokens: tmTokens} = tmGrammar.tokenizeLine("a='a'")
+
+      expect(tokens).toEqual tmTokens
