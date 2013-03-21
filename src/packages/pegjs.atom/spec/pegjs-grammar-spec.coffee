@@ -1,19 +1,19 @@
 AtomPackage = require 'atom-package'
 TextMatePackage = require 'text-mate-package'
 
-fs = require 'fs'
+fs = require 'fs-utils'
 
-describe "PEGjs grammar", ->
+fdescribe "PEGjs grammar", ->
   grammar = null
   tmGrammar = null
 
   beforeEach ->
-    pack = new AtomPackage(require.resolve("pegjs.atom"))
+    pack = new AtomPackage(fs.resolveOnLoadPath("pegjs.atom"))
     pack.load()
     pack.loadGrammars()
     grammar = pack.grammars[0]
 
-    tmPack = new TextMatePackage(require.resolve("pegjs.atom"))
+    tmPack = new TextMatePackage(fs.resolveOnLoadPath("pegjs.atom"))
     tmPack.load()
     tmGrammar = tmPack.grammars[0]
 

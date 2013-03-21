@@ -1,5 +1,5 @@
 PEG = require('pegjs')
-fs = require('fs')
+fs = require('fs-utils')
 _ = require('underscore')
 
 module.exports =
