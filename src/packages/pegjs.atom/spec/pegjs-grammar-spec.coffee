@@ -3,7 +3,7 @@ TextMatePackage = require 'text-mate-package'
 
 fs = require 'fs'
 
-describe "PEGjs grammar", ->
+fdescribe "PEGjs grammar", ->
   grammar = null
   tmGrammar = null
 

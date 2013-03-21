@@ -1,5 +1,5 @@
 
-__ = tokens:(whitespace / eol / comment)* { return token({tokens: tokens}) }
+__ = tokens:(whitespace / eol / comment)*
 
 /* Modeled after ECMA-262, 5th ed., 7.4. */
 comment "comment"
@@ -7,8 +7,19 @@ comment "comment"
     { return token({type: "comment", tokens: comment}) }
 
 singleLineComment
-  = "//" (!eolChar .)*
-    { return token({type: 'comment.line.double-slash'}) }
+  = doubleSlash singleLineCommentText
+
+singleLineCommentText
+  = (!eolChar .)* { return token({type: 'punctuation.definition.comment.js'}) }
+
+doubleSlash
+  = "//"
+  {
+    var types = ['comment.line.double-slash.js',
+                 'punctuation.definition.comment.js']
+
+    return token({type: types})
+  }
 
 multiLineComment
   = "/*" (!"*/" .)* "*/" { return token({type: 'comment.block'}) }
@@ -20,12 +31,10 @@ eol "end of line"
   / "\r"
   / "\u2028"
   / "\u2029"
-  { return token() }
 
 eolChar
   = [\n\r\u2028\u2029]
-    { return token() }
 
 /* Modeled after ECMA-262, 5th ed., 7.2. */
 whitespace "whitespace"
-  = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000] { return token() }
+  = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
