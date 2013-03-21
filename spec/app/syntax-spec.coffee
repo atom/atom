@@ -30,6 +30,13 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar(filePath, filePathContents).name).toBe "Ruby"
       expect(fs.read).not.toHaveBeenCalled()
 
+    it "allows the default grammar to be overridden for a path", ->
+      path = '/foo/bar/file.js'
+      expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
+      syntax.setGrammarOverrideForPath(path, 'source.ruby')
+      expect(syntax.selectGrammar(path).name).toBe 'Ruby'
+      syntax.clearGrammarOverrideForPath(path)
+      expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
 
   describe ".getProperty(scopeDescriptor)", ->
     it "returns the property with the most specific scope selector", ->

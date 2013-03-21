@@ -14,6 +14,7 @@ class Syntax
     @grammars = []
     @grammarsByFileType = {}
     @grammarsByScopeName = {}
+    @grammarOverridesByPath = {}
     @globalProperties = {}
     @scopedPropertiesIndex = 0
     @scopedProperties = []
@@ -25,12 +26,25 @@ class Syntax
       @grammarsByFileType[fileType] = grammar
       @grammarsByScopeName[grammar.scopeName] = grammar
 
+  setGrammarOverrideForPath: (path, scopeName) ->
+    @grammarOverridesByPath[path] = scopeName
+
+  clearGrammarOverrideForPath: (path) ->
+    delete @grammarOverridesByPath[path]
+
+  clearGrammarOverrides: ->
+    @grammarOverridesByPath = {}
+
   selectGrammar: (filePath, fileContents) ->
     return @grammarsByFileType["txt"] ? @nullGrammar unless filePath
-    @grammarByFirstLineRegex(filePath, fileContents) ?
+    @grammarOverrideForPath(filePath) ?
+      @grammarByFirstLineRegex(filePath, fileContents) ?
       @grammarByPath(filePath) ?
       @grammarsByFileType["txt"] ?
       @nullGrammar
+
+  grammarOverrideForPath: (path) ->
+    @grammarsByScopeName[@grammarOverridesByPath[path]]
 
   grammarByPath: (path) ->
     pathComponents = path.split(pathSplitRegex)

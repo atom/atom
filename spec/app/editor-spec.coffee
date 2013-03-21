@@ -2036,14 +2036,10 @@ describe "Editor", ->
 
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.buildEditSession(path))
-
       expect(editor.getGrammar().name).toBe 'Plain Text'
-      jsGrammar = syntax.selectGrammar('/tmp/js.js')
-      expect(jsGrammar.name).toBe 'JavaScript'
-
-      project.addGrammarOverrideForPath(path, jsGrammar)
+      syntax.setGrammarOverrideForPath(path, 'source.js')
       expect(editor.reloadGrammar()).toBeTruthy()
-      expect(editor.getGrammar()).toBe jsGrammar
+      expect(editor.getGrammar().name).toBe 'JavaScript'
 
       tokenizedBuffer = editor.activeEditSession.displayBuffer.tokenizedBuffer
       line0 = tokenizedBuffer.lineForScreenRow(0)
@@ -2067,10 +2063,8 @@ describe "Editor", ->
 
       expect(eventHandler).not.toHaveBeenCalled()
 
-      jsGrammar = syntax.selectGrammar('/tmp/js.js')
-      project.addGrammarOverrideForPath(path, jsGrammar)
+      syntax.setGrammarOverrideForPath(path, 'source.js')
       editor.reloadGrammar()
-
       expect(eventHandler).toHaveBeenCalled()
 
   describe ".replaceSelectedText()", ->

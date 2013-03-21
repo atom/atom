@@ -17,10 +17,7 @@ class LanguageMode
     path = @buffer.getPath()
     pathContents = @buffer.cachedDiskContents
     previousGrammar = @grammar
-    if @buffer.project?
-      @grammar = @buffer.project.selectGrammar(path, pathContents)
-    else
-      @grammar = syntax.selectGrammar(path, pathContents)
+    @grammar = syntax.selectGrammar(path, pathContents)
     throw new Error("No grammar found for path: #{path}") unless @grammar
     previousGrammar isnt @grammar
 

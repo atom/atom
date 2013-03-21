@@ -13,7 +13,7 @@ class Project
   registerDeserializer(this)
 
   @deserialize: (state) ->
-    new Project(state.path, state.grammarOverridesByPath)
+    new Project(state.path)
 
   tabLength: 2
   softTabs: true
@@ -21,9 +21,8 @@ class Project
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
-  grammarOverridesByPath: null
 
-  constructor: (path, @grammarOverridesByPath={}) ->
+  constructor: (path) ->
     @setPath(path)
     @editSessions = []
     @buffers = []
@@ -31,22 +30,9 @@ class Project
   serialize: ->
     deserializer: 'Project'
     path: @getPath()
-    grammarOverridesByPath: @grammarOverridesByPath
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
-
-  addGrammarOverrideForPath: (path, grammar) ->
-    @grammarOverridesByPath[path] = grammar.scopeName
-
-  removeGrammarOverrideForPath: (path) ->
-    delete @grammarOverridesByPath[path]
-
-  grammarOverrideForPath: (path) ->
-    syntax.grammarForScopeName(@grammarOverridesByPath[path])
-
-  selectGrammar: (path, contents) ->
-    @grammarOverrideForPath(path) or syntax.selectGrammar(path, contents)
 
   getPath: ->
     @rootDirectory?.path
