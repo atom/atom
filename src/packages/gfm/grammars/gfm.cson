@@ -8,10 +8,6 @@
   'ron'
 ]
 
-'properties':
-  'editor':
-    'increaseIndentPattern': '^\\s*([\\*\\+-])[ \\t]+'
-
 'patterns': [
   {
     'match': '(?:^|\\s)(\\*\\*[^\\*]+\\*\\*)'

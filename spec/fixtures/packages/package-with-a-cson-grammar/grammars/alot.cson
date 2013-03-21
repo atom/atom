@@ -2,10 +2,6 @@
 'name': 'Alot'
 'scopeName': 'source.alot'
 
-'properties':
-  'editor':
-    'increaseIndentPattern': '^a'
-
 'patterns': [
   {
     'captures':

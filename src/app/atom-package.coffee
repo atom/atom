@@ -17,6 +17,7 @@ class AtomPackage extends Package
       @loadKeymaps()
       @loadStylesheets()
       @loadGrammars()
+      @loadScopedProperties()
       if @deferActivation = @metadata.activationEvents?
         @registerDeferredDeserializers()
       else
@@ -47,17 +48,16 @@ class AtomPackage extends Package
 
   loadGrammars: ->
     grammarsDirPath = fs.join(@path, 'grammars')
-    for grammarPath in fs.list(grammarsDirPath)
-      continue unless fs.extension(grammarPath) in ['.cson', '.json']
+    for grammarPath in fs.list(grammarsDirPath, ['.cson', '.json'])
       grammarContent = fs.readObject(grammarPath)
       grammar = new TextMateGrammar(grammarContent)
       syntax.addGrammar(grammar)
-      @loadPropertiesFromGrammar(grammarContent.scopeName, grammarContent.properties)
 
-  loadPropertiesFromGrammar: (scopeSelector, properties) ->
-    return unless properties
-    cssSelector = syntax.cssSelectorFromScopeSelector(scopeSelector)
-    syntax.addProperties(cssSelector, properties)
+  loadScopedProperties: ->
+    scopedPropertiessDirPath = fs.join(@path, 'scoped-properties')
+    for scopedPropertiesPath in fs.list(scopedPropertiessDirPath, ['.cson', '.json'])
+      for selector, properties of fs.readObject(scopedPropertiesPath)
+        syntax.addProperties(selector, properties)
 
   activate: ->
     if @deferActivation
