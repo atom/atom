@@ -181,6 +181,41 @@
   [[AtomWindowController alloc] initBenchmarksThenExit:exitWhenDone];
 }
 
+- (IBAction)focusOnNextWindow:(id)sender {
+  NSArray *windows = [NSApp windows];
+  int count = [windows count];
+  int start = [windows indexOfObject:[NSApp keyWindow]];
+
+  int i = start;
+  while (true) {
+    i = (i + 1) % count;
+    if (i == start) break;
+    NSWindow *window = [windows objectAtIndex:i];
+    if ([window isVisible] && ![window isExcludedFromWindowsMenu]) {
+      [window makeKeyAndOrderFront:nil];
+      break;
+    }
+  }
+}
+
+- (IBAction)focusOnPreviousWindow:(id)sender {
+  NSArray *windows = [NSApp windows];
+  int count = [windows count];
+  int start = [windows indexOfObject:[NSApp keyWindow]];
+
+  int i = start;
+  while (true) {
+    i = i - 1;
+    if (i == 0) i = count -1;
+    if (i == start) break;
+    NSWindow *window = [windows objectAtIndex:i];
+    if ([window isVisible] && ![window isExcludedFromWindowsMenu]) {
+      [window makeKeyAndOrderFront:nil];
+      break;
+    }
+  }
+}
+
 # pragma mark NSApplicationDelegate
 
 - (BOOL)shouldOpenFiles {

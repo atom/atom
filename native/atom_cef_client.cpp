@@ -132,26 +132,13 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                const CefKeyEvent& event,
                                CefEventHandle os_event) {
-  if (event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'r') {
-    browser->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
-  }
   if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'x') {
     browser->GetFocusedFrame()->Cut();
-  }
-  if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'c') {
+  } else if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'c') {
     browser->GetFocusedFrame()->Copy();
-  }
-  if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'v') {
+  } else if (m_HandlePasteboardCommands && event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == 'v') {
     browser->GetFocusedFrame()->Paste();
-  }
-  else if (event.modifiers == (EVENTFLAG_COMMAND_DOWN | EVENTFLAG_ALT_DOWN) && event.unmodified_character == 'i') {
-    ToggleDevTools(browser);
-  } else if (event.modifiers == EVENTFLAG_COMMAND_DOWN && event.unmodified_character == '`') {
-    FocusNextWindow();
-  } else if (event.modifiers == (EVENTFLAG_COMMAND_DOWN | EVENTFLAG_SHIFT_DOWN) && event.unmodified_character == '~') {
-    FocusPreviousWindow();
-  }
-  else {
+  } else {
     return false;
   }
 
