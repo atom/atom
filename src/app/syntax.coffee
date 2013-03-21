@@ -5,6 +5,8 @@ Specificity = require 'specificity'
 fs = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 NullGrammar = require 'null-grammar'
+nodePath = require 'path'
+pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 
 module.exports =
 class Syntax
@@ -25,19 +27,17 @@ class Syntax
 
   selectGrammar: (filePath, fileContents) ->
     return @grammarsByFileType["txt"] ? @nullGrammar unless filePath
+    @grammarByFirstLineRegex(filePath, fileContents) ?
+      @grammarByPath(filePath) ?
+      @grammarsByFileType["txt"] ?
+      @nullGrammar
 
-    extension = fs.extension(filePath)?[1..]
-    if filePath and extension.length == 0
-      extension = fs.base(filePath)
-
-    @grammarByFirstLineRegex(filePath, fileContents) or
-      @grammarsByFileType[extension] or
-      @grammarByFileTypeSuffix(filePath) or
-      @grammarsByFileType["txt"] ? @nullGrammar
-
-  grammarByFileTypeSuffix: (filePath) ->
+  grammarByPath: (path) ->
+    pathComponents = path.split(pathSplitRegex)
     for fileType, grammar of @grammarsByFileType
-      return grammar if _.endsWith(filePath, fileType)
+      fileTypeComponents = fileType.split(pathSplitRegex)
+      pathSuffix = pathComponents[-fileTypeComponents.length..-1]
+      return grammar if _.isEqual(pathSuffix, fileTypeComponents)
 
   grammarByFirstLineRegex: (filePath, fileContents) ->
     try

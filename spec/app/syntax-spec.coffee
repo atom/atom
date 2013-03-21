@@ -2,11 +2,12 @@ fs = require 'fs-utils'
 
 describe "the `syntax` global", ->
   describe ".selectGrammar(filePath)", ->
-    it "uses the filePath's extension to load the correct grammar", ->
-      expect(syntax.selectGrammar("file.js").name).toBe "JavaScript"
-
-    it "uses the filePath's base name if there is no extension", ->
-      expect(syntax.selectGrammar("Rakefile").name).toBe "Ruby"
+    it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
+      expect(syntax.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
+      expect(syntax.selectGrammar("/tmp/.git/config").name).toBe "Git Config" # based on end of the path (.git/config)
+      expect(syntax.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
+      expect(syntax.selectGrammar("curb").name).toBe "Plain Text"
+      expect(syntax.selectGrammar("/hu.git/config").name).toBe "Plain Text"
 
     it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
       filePath = require.resolve("fixtures/shebang")
@@ -29,11 +30,6 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar(filePath, filePathContents).name).toBe "Ruby"
       expect(fs.read).not.toHaveBeenCalled()
 
-    it "uses the grammar's fileType as a suffix of the full filePath if the grammar cannot be determined by shebang line", ->
-      expect(syntax.selectGrammar("/tmp/.git/config").name).toBe "Git Config"
-
-    it "uses plain text if no grammar can be found", ->
-      expect(syntax.selectGrammar("this-is-not-a-real-file").name).toBe "Plain Text"
 
   describe ".getProperty(scopeDescriptor)", ->
     it "returns the property with the most specific scope selector", ->
