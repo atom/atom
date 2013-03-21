@@ -93,6 +93,19 @@ module.exports =
     @traverseTreeSync(rootPath, onPath, onPath)
     paths
 
+  listAsync: (rootPath, rest...) ->
+    extensions = rest.shift() if rest.length > 1
+    done = rest.shift()
+    fs.readdir rootPath, (err, paths) =>
+      return done(err) if err
+      paths = @filterExtensions(paths, extensions) if extensions
+      paths = paths.map (path) => @join(rootPath, path)
+      done(null, paths)
+
+  filterExtensions: (paths, extensions) ->
+    extensions = extensions.map (ext) -> '.' + ext.replace(/^\./, '')
+    paths.filter (path) => _.include(extensions, @extension(path))
+
   listTree: (rootPath) ->
     paths = []
     onPath = (path) =>

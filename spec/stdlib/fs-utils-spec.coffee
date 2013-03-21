@@ -127,3 +127,25 @@ describe "fs", ->
     it "returns the paths with the specified extensions", ->
       path = require.resolve('fixtures/css.css')
       expect(fs.list(fs.resolveOnLoadPath('fixtures'), ['.css'])).toEqual [path]
+  describe ".listAsync(path, [extensions,] callback)", ->
+    paths = null
+
+    it "calls the callback with the absolute paths of entries within the given directory", ->
+      waitsFor (done) ->
+        fs.listAsync project.getPath(), (err, result) ->
+          paths = result
+          done()
+      runs ->
+        expect(paths).toContain project.resolve('css.css')
+        expect(paths).toContain project.resolve('coffee.coffee')
+        expect(paths).toContain project.resolve('two-hundred.txt')
+
+    it "can filter the paths by an optional array of file extensions", ->
+      waitsFor (done) ->
+        fs.listAsync project.getPath(), ['css', '.coffee'], (err, result) ->
+          paths = result
+          done()
+      runs ->
+        expect(paths).toContain project.resolve('css.css')
+        expect(paths).toContain project.resolve('coffee.coffee')
+        expect(path).toMatch /(css|coffee)$/ for path in paths
