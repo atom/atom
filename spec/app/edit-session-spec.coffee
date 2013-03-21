@@ -2049,7 +2049,7 @@ describe "EditSession", ->
     it "reloads the edit session's grammar and re-tokenizes the buffer if it changes", ->
       editSession.destroy()
       grammarToReturn = syntax.grammarByFileTypeSuffix('txt')
-      spyOn(syntax, 'grammarForFilePath').andCallFake -> grammarToReturn
+      spyOn(syntax, 'selectGrammar').andCallFake -> grammarToReturn
 
       editSession = project.buildEditSession('sample.js', autoIndent: false)
       expect(editSession.lineForScreenRow(0).tokens.length).toBe 1

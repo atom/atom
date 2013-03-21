@@ -21,7 +21,7 @@ class Syntax
       @grammarsByFileType[fileType] = grammar
       @grammarsByScopeName[grammar.scopeName] = grammar
 
-  grammarForFilePath: (filePath, fileContents) ->
+  selectGrammar: (filePath, fileContents) ->
     return @grammarsByFileType["txt"] unless filePath
 
     extension = fs.extension(filePath)?[1..]

@@ -2038,7 +2038,7 @@ describe "Editor", ->
       editor.edit(project.buildEditSession(path))
 
       expect(editor.getGrammar().name).toBe 'Plain Text'
-      jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
+      jsGrammar = syntax.selectGrammar('/tmp/js.js')
       expect(jsGrammar.name).toBe 'JavaScript'
 
       project.addGrammarOverrideForPath(path, jsGrammar)
@@ -2067,7 +2067,7 @@ describe "Editor", ->
 
       expect(eventHandler).not.toHaveBeenCalled()
 
-      jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
+      jsGrammar = syntax.selectGrammar('/tmp/js.js')
       project.addGrammarOverrideForPath(path, jsGrammar)
       editor.reloadGrammar()
 
