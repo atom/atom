@@ -18,13 +18,15 @@ exit_unless_npm_exists() {
 exit_unless_xcode_exists
 exit_unless_npm_exists
 
+npm install npm
+
 NODE_DIR="$HOME/.cefode-gyp"
 NODE_VERSION="0.8.21"
 NODE_URL="https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/dist"
 if [ ! -d "node_modules/node-gyp" ]; then
-  npm install node-gyp
+  ./node_modules/.bin/npm install node-gyp
   HOME="$NODE_DIR" ./node_modules/.bin/node-gyp install --target="$NODE_VERSION" --dist-url="$NODE_URL" --arch=ia32
 fi
-HOME="$NODE_DIR" npm install --target="$NODE_VERSION" --arch=ia32
+HOME="$NODE_DIR" ./node_modules/.bin/npm install --target="$NODE_VERSION" --arch=ia32
 git submodule --quiet sync
 git submodule --quiet update --recursive --init
