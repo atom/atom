@@ -1,5 +1,6 @@
 Package = require 'package'
-fs = require 'fs-utils'
+fs = require 'fs'
+fsUtils = require 'fs-utils'
 plist = require 'plist'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
@@ -12,8 +13,8 @@ class TextMatePackage extends Package
 
   constructor: ->
     super
-    @preferencesPath = fs.join(@path, "Preferences")
-    @syntaxesPath = fs.join(@path, "Syntaxes")
+    @preferencesPath = fsUtils.join(@path, "Preferences")
+    @syntaxesPath = fsUtils.join(@path, "Syntaxes")
     @grammars = []
 
   load: ->
@@ -29,7 +30,7 @@ class TextMatePackage extends Package
 
   readGrammars: ->
     grammars = []
-    for grammarPath in fs.list(@syntaxesPath)
+    for grammarPath in fsUtils.list(@syntaxesPath)
       try
         grammars.push(TextMateGrammar.readFromPath(grammarPath))
       catch e
