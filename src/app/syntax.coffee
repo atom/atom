@@ -4,6 +4,7 @@ Specificity = require 'specificity'
 {$$} = require 'space-pen'
 fs = require 'fs-utils'
 EventEmitter = require 'event-emitter'
+NullGrammar = require 'null-grammar'
 
 module.exports =
 class Syntax
@@ -14,6 +15,7 @@ class Syntax
     @globalProperties = {}
     @scopedPropertiesIndex = 0
     @scopedProperties = []
+    @nullGrammar = new NullGrammar
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
@@ -22,7 +24,7 @@ class Syntax
       @grammarsByScopeName[grammar.scopeName] = grammar
 
   selectGrammar: (filePath, fileContents) ->
-    return @grammarsByFileType["txt"] unless filePath
+    return @grammarsByFileType["txt"] ? @nullGrammar unless filePath
 
     extension = fs.extension(filePath)?[1..]
     if filePath and extension.length == 0
@@ -31,7 +33,7 @@ class Syntax
     @grammarByFirstLineRegex(filePath, fileContents) or
       @grammarsByFileType[extension] or
       @grammarByFileTypeSuffix(filePath) or
-      @grammarsByFileType["txt"]
+      @grammarsByFileType["txt"] ? @nullGrammar
 
   grammarByFileTypeSuffix: (filePath) ->
     for fileType, grammar of @grammarsByFileType

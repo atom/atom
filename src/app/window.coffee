@@ -52,7 +52,6 @@ window.startup = ->
 
   handleWindowEvents()
   config.load()
-  atom.loadTextPackage()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
   atom.loadPackages()
