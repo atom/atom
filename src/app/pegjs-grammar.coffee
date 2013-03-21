@@ -55,14 +55,24 @@ class PEGjsGrammar
     scopes: @buildScopes(type)
 
   reduceRules: (rules) ->
-    return rules if rules.length < 2
+    return [] if rules.length == 0
 
-    [first, second, remaining...] = rules
+    [head, tail...] = rules
 
-    if _.isEqual(first.scopes, second.scopes)
-      return @reduceRules([@combineRules(first, second), remaining...])
+    debugger unless head?
+
+    return @reduceRules(tail) unless head.value?.length
+    return [head] if tail.length == 0
+
+    [second, remaining...] = tail
+
+    if @isCombinable(head, second)
+      @reduceRules([@combineRules(head, second), remaining...])
     else
-      [first, @reduceRules([second, remaining...])...]
+      [head, @reduceRules(tail)...]
+
+  isCombinable: (a, b) ->
+    _.isEqual(a.scopes, b.scopes)
 
   combineRules: (a, b) ->
     value: [a.value, b.value].join('')
