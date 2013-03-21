@@ -1,3 +1,4 @@
+TextMateGrammar = require 'text-mate-grammar'
 Package = require 'package'
 fs = require 'fs-utils'
 _ = require 'underscore'
@@ -15,6 +16,7 @@ class AtomPackage extends Package
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
+      @loadGrammars()
       if @deferActivation = @metadata.activationEvents?
         @registerDeferredDeserializers()
       else
@@ -42,6 +44,20 @@ class AtomPackage extends Package
     stylesheetDirPath = fs.join(@path, 'stylesheets')
     for stylesheetPath in fs.list(stylesheetDirPath)
       requireStylesheet(stylesheetPath)
+
+  loadGrammars: ->
+    grammarsDirPath = fs.join(@path, 'grammars')
+    for grammarPath in fs.list(grammarsDirPath)
+      continue unless fs.extension(grammarPath) in ['.cson', '.json']
+      grammarContent = fs.readObject(grammarPath)
+      grammar = new TextMateGrammar(grammarContent)
+      syntax.addGrammar(grammar)
+      @loadPropertiesFromGrammar(grammarContent.scopeName, grammarContent.properties)
+
+  loadPropertiesFromGrammar: (scopeSelector, properties) ->
+    return unless properties
+    cssSelector = syntax.cssSelectorFromScopeSelector(scopeSelector)
+    syntax.addProperties(cssSelector, properties)
 
   activate: ->
     if @deferActivation

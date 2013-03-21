@@ -1,14 +1,13 @@
-fs = require 'fs-utils'
 TextMatePackage = require 'text-mate-package'
 
 describe "GitHub Flavored Markdown grammar", ->
   grammar = null
 
   beforeEach ->
-    spyOn(syntax, "addGrammar")
-    pack = new TextMatePackage(fs.resolveOnLoadPath("gfm.tmbundle"))
-    pack.load()
-    grammar = pack.grammars[0]
+    spyOn(syntax, "addGrammar").andCallThrough()
+    window.loadPackage("gfm")
+    expect(syntax.addGrammar).toHaveBeenCalled()
+    grammar = syntax.addGrammar.argsForCall[0][0]
 
   it "parses the grammar", ->
     expect(grammar).toBeTruthy()

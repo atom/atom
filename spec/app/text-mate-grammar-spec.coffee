@@ -258,14 +258,3 @@ describe "TextMateGrammar", ->
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){if(1){m()}}")
         expect(tokens[5]).toEqual value: "if", scopes: ["source.c", "meta.block.c", "keyword.control.c"]
         expect(tokens[10]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
-
-  describe "when the grammar is CSON", ->
-    it "loads the grammar and correctly parses a keyword", ->
-      spyOn(syntax, 'addGrammar')
-      pack = new TextMatePackage(project.resolve("packages/package-with-a-cson-grammar.tmbundle"))
-      pack.load()
-      grammar = pack.grammars[0]
-      expect(grammar).toBeTruthy()
-      expect(grammar.scopeName).toBe "source.alot"
-      {tokens} = grammar.tokenizeLine("this is alot of code")
-      expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]

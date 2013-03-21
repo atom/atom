@@ -125,4 +125,13 @@ class Syntax
     else
       element[0]
 
+  cssSelectorFromScopeSelector: (scopeSelector) ->
+    scopeSelector.split(', ').map((commaFragment) ->
+      commaFragment.split(' ').map((spaceFragment) ->
+        spaceFragment.split('.').map((dotFragment) ->
+          '.' + dotFragment.replace(/\+/g, '\\+')
+        ).join('')
+      ).join(' ')
+    ).join(', ')
+
 _.extend(Syntax.prototype, EventEmitter)

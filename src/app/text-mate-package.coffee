@@ -10,15 +10,6 @@ class TextMatePackage extends Package
   @testName: (packageName) ->
     /(\.|_|-)tmbundle$/.test(packageName)
 
-  @cssSelectorFromScopeSelector: (scopeSelector) ->
-    scopeSelector.split(', ').map((commaFragment) ->
-      commaFragment.split(' ').map((spaceFragment) ->
-        spaceFragment.split('.').map((dotFragment) ->
-          '.' + dotFragment.replace(/\+/g, '\\+')
-        ).join('')
-      ).join(' ')
-    ).join(', ')
-
   constructor: ->
     super
     @preferencesPath = fs.join(@path, "Preferences")
@@ -66,12 +57,12 @@ class TextMatePackage extends Package
 
     for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
-        selector = @cssSelectorFromScopeSelector(grammar.scopeName)
+        selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
         scopedProperties.push({selector, properties})
 
     for {scope, settings} in @getTextMatePreferenceObjects()
       if properties = @propertiesFromTextMateSettings(settings)
-        selector = @cssSelectorFromScopeSelector(scope) if scope?
+        selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
         scopedProperties.push({selector, properties})
 
     scopedProperties
@@ -101,6 +92,3 @@ class TextMatePackage extends Package
       foldEndPattern: textMateSettings.foldingStopMarker
     )
     { editor: editorProperties } if _.size(editorProperties) > 0
-
-  cssSelectorFromScopeSelector: (scopeSelector) ->
-    @constructor.cssSelectorFromScopeSelector(scopeSelector)

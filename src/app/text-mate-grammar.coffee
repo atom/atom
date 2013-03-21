@@ -8,7 +8,7 @@ CSON = require 'cson'
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
-    fs.readObject(path)
+    fs.readPlist(path)
 
   name: null
   fileTypes: null

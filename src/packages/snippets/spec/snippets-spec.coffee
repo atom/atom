@@ -281,21 +281,6 @@ describe "Snippets extension", ->
         expect(console.warn).toHaveBeenCalled()
         expect(console.warn.calls.length).toBe 1
 
-    it "loads CSON snippets from TextMate packages", ->
-      jasmine.unspy(snippets, 'loadTextMateSnippets')
-      spyOn(console, 'warn')
-      snippets.loaded = false
-      snippets.loadAll()
-
-      waitsFor "CSON snippets to load", 5000, -> snippets.loaded
-
-      runs ->
-        snippet = syntax.getProperty(['.source.alot'], 'snippets.really')
-        expect(snippet).toBeTruthy()
-        expect(snippet.prefix).toBe 'really'
-        expect(snippet.name).toBe 'Really'
-        expect(snippet.body).toBe "I really like  alot"
-
   describe "snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->
       bodyTree = snippets.getBodyParser().parse """
