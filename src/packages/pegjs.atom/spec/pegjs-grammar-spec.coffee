@@ -34,10 +34,18 @@ describe "PEGjs grammar", ->
       expect(tokens[0]).toEqual value: "\n", scopes: ["source.pegjs"]
 
     it "parses comments", ->
-      {tokens} = grammar.tokenizeLine("//this is a comment", 0)
+      {tokens} = grammar.tokenizeLine("_=''//this is a comment", 0)
 
-      expect(tokens[0]).toEqual value: "//", scopes: ["source.pegjs", "comment.line.double-slash.js", "punctuation.definition.comment.js"]
-      expect(tokens[1]).toEqual value: "this is a comment", scopes: ["source.pegjs", "punctuation.definition.comment.js"]
+      console.log(tokens)
+      expect(tokens[4]).toEqual value: "//", scopes: ["source.pegjs", "comment.line.double-slash.js", "punctuation.definition.comment.js"]
+      expect(tokens[5]).toEqual value: "this is a comment", scopes: ["source.pegjs", "punctuation.definition.comment.js"]
+
+      {tokens:tmTokens} = tmGrammar.tokenizeLine("_=''//this is a comment")
+
+      expect(tokens[4]).toEqual tmTokens[4]
+      # the tmbundle builds a comment.line.double-slash.js instead of the
+      # equivalent punctuation.definition.comment
+      expect(tokens[5].value).toEqual tmTokens[5].value
 
     it "parses strings", ->
       {tokens} = grammar.tokenizeLine("'single quoted string'", 0)
