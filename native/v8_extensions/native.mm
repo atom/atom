@@ -25,7 +25,7 @@ namespace v8_extensions {
     const char* methodNames[] = {
       "writeToPasteboard", "readFromPasteboard", "quit",
       "watchPath", "unwatchPath", "getWatchedPaths", "unwatchAllPaths",
-      "moveToTrash", "reload", "getPlatform", "setWindowState",
+      "moveToTrash", "reload", "setWindowState",
       "getWindowState", "isMisspelled", "getCorrectionsForMisspelling"
     };
 
@@ -148,10 +148,6 @@ namespace v8_extensions {
     }
     else if (name == "reload") {
       CefV8Context::GetCurrentContext()->GetBrowser()->ReloadIgnoreCache();
-    }
-    else if (name == "getPlatform") {
-      retval = CefV8Value::CreateString("mac");
-      return true;
     }
 
     else if (name == "setWindowState") {

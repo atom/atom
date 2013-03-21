@@ -17,7 +17,6 @@ window.setUpEnvironment = ->
   Keymap = require 'keymap'
 
   window.rootViewParentSelector = 'body'
-  window.platform = $native.getPlatform()
   window.config = new Config
   window.syntax = new Syntax
   window.pasteboard = new Pasteboard
@@ -37,7 +36,7 @@ window.setUpEnvironment = ->
   requireStylesheet 'notification.less'
   requireStylesheet 'markdown.less'
 
-  if nativeStylesheetPath = require.resolve("#{platform}.css")
+  if nativeStylesheetPath = fs.resolveOnLoadPath("#{process.platform}.css")
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
