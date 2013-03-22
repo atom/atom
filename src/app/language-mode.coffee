@@ -148,7 +148,10 @@ class LanguageMode
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   tokenizeLine: (line, stack, lineNumber) ->
-    {tokens, stack} = @grammar.tokenizeLine(line, stack, lineNumber)
+    if @grammar.batchParser?
+      {tokens, stack} = @grammar.batchTokenizeLine(@buffer, lineNumber)
+    else
+      {tokens, stack} = @grammar.tokenizeLine(line, stack, lineNumber)
 
   increaseIndentRegexForScopes: (scopes) ->
     if increaseIndentPattern = syntax.getProperty(scopes, 'editor.increaseIndentPattern')

@@ -5,12 +5,13 @@ _ = require('underscore')
 
 module.exports =
 class PEGjsGrammar
+  batchParser: true
 
   class TokenTree
     constructor: {@tokens, @type, @text}
 
   class Rule
-    constructor: {@value, @scopeName}
+    constructor: (@grammar, @scopeName) ->
 
   constructor: (@name, @grammarFile, @fileTypes, @scopeName) ->
     @parser = PEG.buildParser fs.read(@grammarFile),
@@ -35,7 +36,7 @@ class PEGjsGrammar
     lineEndedTokens = @pruneTokensRegion(singleLineTokens, lineRegion)
     tokens = @pruneLineEndings(lineEndedTokens)
 
-    {tokens: tokens, stack: []}
+    {tokens: tokens, ruleStack: [new Rule(this, @scopeName)]}
 
   pruneLineEndings: (tokens) ->
     _.map tokens, (token) =>
