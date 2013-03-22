@@ -78,12 +78,13 @@ class TerminalView extends ScrollView
       @output(data)
     @term.on 'exit', () =>
       @exited = true
-      @write = () -> false
       @term.kill()
       @term = null
-    @write = (data) => @term.write(data)
     @exited = false
     @updateTerminalSize()
+
+  write: (data) ->
+    @term?.write(data)
 
   logout: ->
     @term.end(TerminalBuffer.ctrl("d"))
@@ -108,7 +109,7 @@ class TerminalView extends ScrollView
 
   input: (data) ->
     return if @exited
-    @write?(data)
+    @write(data)
 
   output: (data) ->
     if data.length > 0
