@@ -4,6 +4,7 @@ $ = require 'jquery'
 Range = require 'range'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
+ImageEditSession = require 'image-edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 BufferedProcess = require 'buffered-process'
@@ -85,7 +86,10 @@ class Project
   setSoftWrap: (@softWrap) ->
 
   buildEditSession: (filePath, editSessionOptions={}) ->
-    @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
+    if fsUtils.isImageExtension(fsUtils.extension(filePath))
+      new ImageEditSession(filePath)
+    else
+      @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
 
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
