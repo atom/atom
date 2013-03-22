@@ -41,6 +41,7 @@ beforeEach ->
   spyOn(atom, 'saveWindowState')
   spyOn(atom, 'getSavedWindowState').andReturn(null)
   $native.setWindowState('')
+  syntax.clearGrammarOverrides()
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
@@ -107,7 +108,7 @@ window.loadTextMatePackages = ->
   config.packageDirPaths.unshift(fixturePackagesPath)
   window.textMatePackages = []
   for path in atom.getPackagePaths() when TextMatePackage.testName(path)
-    window.textMatePackages.push window.loadPackage(fs.base(path))
+    window.textMatePackages.push window.loadPackage(fs.base(path), sync: true)
 
 window.loadTextMatePackages()
 

@@ -4,16 +4,31 @@ Specificity = require 'specificity'
 {$$} = require 'space-pen'
 fs = require 'fs-utils'
 EventEmitter = require 'event-emitter'
+NullGrammar = require 'null-grammar'
+nodePath = require 'path'
+pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 
 module.exports =
 class Syntax
+  registerDeserializer(this)
+
+  @deserialize: ({grammarOverridesByPath}) ->
+    syntax = new Syntax()
+    syntax.grammarOverridesByPath = grammarOverridesByPath
+    syntax
+
   constructor: ->
     @grammars = []
     @grammarsByFileType = {}
     @grammarsByScopeName = {}
+    @grammarOverridesByPath = {}
     @globalProperties = {}
     @scopedPropertiesIndex = 0
     @scopedProperties = []
+    @nullGrammar = new NullGrammar
+
+  serialize: ->
+    { deserializer: @constructor.name, @grammarOverridesByPath }
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
@@ -21,21 +36,32 @@ class Syntax
       @grammarsByFileType[fileType] = grammar
       @grammarsByScopeName[grammar.scopeName] = grammar
 
-  grammarForFilePath: (filePath, fileContents) ->
-    return @grammarsByFileType["txt"] unless filePath
+  setGrammarOverrideForPath: (path, scopeName) ->
+    @grammarOverridesByPath[path] = scopeName
 
-    extension = fs.extension(filePath)?[1..]
-    if filePath and extension.length == 0
-      extension = fs.base(filePath)
+  clearGrammarOverrideForPath: (path) ->
+    delete @grammarOverridesByPath[path]
 
-    @grammarByFirstLineRegex(filePath, fileContents) or
-      @grammarsByFileType[extension] or
-      @grammarByFileTypeSuffix(filePath) or
-      @grammarsByFileType["txt"]
+  clearGrammarOverrides: ->
+    @grammarOverridesByPath = {}
 
-  grammarByFileTypeSuffix: (filePath) ->
+  selectGrammar: (filePath, fileContents) ->
+    return @grammarsByFileType["txt"] ? @nullGrammar unless filePath
+    @grammarOverrideForPath(filePath) ?
+      @grammarByFirstLineRegex(filePath, fileContents) ?
+      @grammarByPath(filePath) ?
+      @grammarsByFileType["txt"] ?
+      @nullGrammar
+
+  grammarOverrideForPath: (path) ->
+    @grammarsByScopeName[@grammarOverridesByPath[path]]
+
+  grammarByPath: (path) ->
+    pathComponents = path.split(pathSplitRegex)
     for fileType, grammar of @grammarsByFileType
-      return grammar if _.endsWith(filePath, fileType)
+      fileTypeComponents = fileType.split(pathSplitRegex)
+      pathSuffix = pathComponents[-fileTypeComponents.length..-1]
+      return grammar if _.isEqual(pathSuffix, fileTypeComponents)
 
   grammarByFirstLineRegex: (filePath, fileContents) ->
     try

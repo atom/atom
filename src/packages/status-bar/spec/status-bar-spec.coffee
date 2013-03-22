@@ -178,10 +178,9 @@ describe "StatusBar", ->
 
     describe "when the editor's grammar changes", ->
       it "displays the new grammar of the editor", ->
-        textGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'Plain Text'
-        project.addGrammarOverrideForPath(editor.getPath(), textGrammar)
+        syntax.setGrammarOverrideForPath(editor.getPath(), 'text.plain')
         editor.reloadGrammar()
-        expect(statusBar.find('.grammar-name').text()).toBe textGrammar.name
+        expect(statusBar.find('.grammar-name').text()).toBe 'Plain Text'
 
     describe "when clicked", ->
       it "toggles the editor:select-grammar event", ->

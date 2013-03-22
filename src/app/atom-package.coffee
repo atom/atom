@@ -43,19 +43,19 @@ class AtomPackage extends Package
 
   loadStylesheets: ->
     stylesheetDirPath = fs.join(@path, 'stylesheets')
-    for stylesheetPath in fs.list(stylesheetDirPath)
+    for stylesheetPath in fs.list(stylesheetDirPath) ? []
       requireStylesheet(stylesheetPath)
 
   loadGrammars: ->
     grammarsDirPath = fs.join(@path, 'grammars')
-    for grammarPath in fs.list(grammarsDirPath, ['.cson', '.json'])
+    for grammarPath in fs.list(grammarsDirPath, ['.cson', '.json']) ? []
       grammarContent = fs.readObject(grammarPath)
       grammar = new TextMateGrammar(grammarContent)
       syntax.addGrammar(grammar)
 
   loadScopedProperties: ->
     scopedPropertiessDirPath = fs.join(@path, 'scoped-properties')
-    for scopedPropertiesPath in fs.list(scopedPropertiessDirPath, ['.cson', '.json'])
+    for scopedPropertiesPath in fs.list(scopedPropertiessDirPath, ['.cson', '.json']) ? []
       for selector, properties of fs.readObject(scopedPropertiesPath)
         syntax.addProperties(selector, properties)
 

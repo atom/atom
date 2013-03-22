@@ -10,7 +10,7 @@ describe "GitHub Flavored Markdown grammar", ->
     grammar = syntax.addGrammar.argsForCall[0][0]
 
   it "parses the grammar", ->
-    expect(grammar).toBeTruthy()
+    expect(grammar).toBeDefined()
     expect(grammar.scopeName).toBe "source.gfm"
 
   it "tokenizes horizontal rules", ->

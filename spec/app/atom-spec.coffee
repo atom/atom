@@ -63,24 +63,6 @@ describe "the `atom` global", ->
       window.loadPackage("package-with-module")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 1
 
-  describe ".loadPackages()", ->
-    beforeEach ->
-      spyOn(syntax, 'addGrammar')
-
-    it "aborts the worker when all packages have been loaded", ->
-      LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
-      spyOn(LoadTextMatePackagesTask.prototype, 'abort').andCallThrough()
-      eventHandler = jasmine.createSpy('eventHandler')
-      syntax.on 'grammars-loaded', eventHandler
-      config.get("core.disabledPackages").push('textmate-package.tmbundle', 'package-with-snippets')
-      atom.loadPackages()
-
-      waitsFor "all packages to load", 5000, -> eventHandler.callCount > 0
-
-      runs ->
-        expect(LoadTextMatePackagesTask.prototype.abort).toHaveBeenCalled()
-        expect(LoadTextMatePackagesTask.prototype.abort.calls.length).toBe 1
-
   describe "package lifecycle", ->
     describe "activation", ->
       it "calls activate on the package main with its previous state", ->

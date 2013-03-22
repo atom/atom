@@ -22,8 +22,6 @@ class Directory
         directories.push(new Directory(path))
       else if fs.isFile(path)
         files.push(new File(path))
-      else
-        console.error "#{path} is neither a file nor a directory."
 
     directories.concat(files)
 
