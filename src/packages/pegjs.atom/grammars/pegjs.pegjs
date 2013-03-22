@@ -5,8 +5,11 @@ initializer
   = code:action semicolon?
 
 rule
-  = (name:identifier { return token({type: ["source.pegjs.ruleDefinition", "entity.name.type"]}) })
-    displayName:string? equals expression:expression semicolon?
+  = tokens:(name:ruleName displayName:string? equals expression:expression semicolon?)
+  { return token({type: "source.pegjs.ruleDefinition", tokens: tokens}) }
+
+ruleName
+  = identifier { return token({type: "entity.name.type"}) }
 
 expression
   = choice
