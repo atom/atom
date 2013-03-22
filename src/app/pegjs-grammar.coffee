@@ -30,14 +30,11 @@ class PEGjsGrammar
     {tokens: tokens}
 
   convertTokenTree: (tokenTree, scopeStack) ->
-    scopeStack = @combineStacks(scopeStack, tokenTree.type) if tokenTree.type?
+    scopeStack = scopeStack.concat(tokenTree.type) if tokenTree.type?
 
     childTokens = _.flatten(tokenTree.tokens.map((child)=>@convertTokenTree(child, scopeStack)))
 
     @reduceTokens(@collapseTokenTree(tokenTree, childTokens, scopeStack))
-
-  combineStacks: (stack, type) ->
-    stack.concat(type)
 
   collapseTokenTree: (treeToken, childTokens, scopeStack) ->
     return [] if _.isEmpty(childTokens) and !treeToken.text?.length

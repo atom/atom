@@ -34,10 +34,21 @@ fdescribe "PEGjs grammar", ->
       expect(tokens[4]).toEqual tmTokens[4]
       expect(tokens[5]).toEqual tmTokens[5]
 
+      {tokens} = grammar.tokenizeLine("/*comment*/_=''")
+
+      expect(tokens[0]).toEqual value: "/*", scopes: ['source.pegjs', 'comment.block', 'punctuation.definition.comment.pegjs']
+      expect(tokens[1]).toEqual value: "comment", scopes: ['source.pegjs', 'comment.block']
+      expect(tokens[2]).toEqual value: "*/", scopes: ['source.pegjs', 'comment.block', 'punctuation.definition.comment.pegjs']
+
+      {tokens:tmTokens} = tmGrammar.tokenizeLine("/*comment*/")
+
+      expect(tokens[0]).toEqual tmTokens[0]
+      expect(tokens[1]).toEqual tmTokens[1]
+      expect(tokens[2]).toEqual tmTokens[2]
+
     it "parses strings", ->
       {tokens} = grammar.tokenizeLine("_='single quoted string'", 0)
 
-      console.log(tokens)
       expect(tokens[2]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.begin.pegjs"]
       expect(tokens[3]).toEqual value: "single quoted string", scopes: ["source.pegjs", "string.quoted.single.js"]
       expect(tokens[4]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.end.pegjs"]

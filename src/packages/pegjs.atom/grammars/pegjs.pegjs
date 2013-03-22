@@ -204,7 +204,14 @@ doubleSlash
   = "//" { return token({type: 'punctuation.definition.comment.js'})}
 
 multiLineComment
-  = "/*" (!"*/" .)* "*/" { return token({type: 'comment.block'}) }
+  = start:slashStar body:(!"*/" .)* end:starSlash
+    { return token({type: 'comment.block', tokens: [start, body, end]}) }
+
+slashStar
+  = "/*" { return token({type: 'punctuation.definition.comment.pegjs'}) }
+
+starSlash
+  = "*/" { return token({type: 'punctuation.definition.comment.pegjs'}) }
 
 /* Modeled after ECMA-262, 5th ed., 7.3. */
 eol "end of line"
