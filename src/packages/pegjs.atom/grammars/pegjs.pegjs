@@ -19,7 +19,8 @@ sequence
   / elements:labeled*
 
 labeled
-  = label:identifier colon expression:prefixed
+  = (label:identifier { return token({type: "variable.parameter"}) })
+    colon expression:prefixed
   / prefixed
 
 prefixed

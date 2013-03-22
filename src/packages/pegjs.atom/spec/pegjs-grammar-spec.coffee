@@ -104,6 +104,12 @@ fdescribe "PEGjs grammar", ->
 
       expect(tokens).toEqual tmTokens
 
+    it "parses labels", ->
+      {tokens} = grammar.tokenizeLine("a=label:'a'", 0)
+
+      expect(tokens[2]).toEqual value: "label", scopes: ["source.pegjs", "variable.parameter"]
+      expect(tokens[3]).toEqual value: ":", scopes: ["source.pegjs", "keyword.operator"]
+
   describe "batchTokenizeLine", ->
     buffer = null
 
