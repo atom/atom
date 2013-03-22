@@ -8,6 +8,7 @@ describe "Spell check", ->
     rootView.open('sample.js')
     config.set('spell-check.grammars', [])
     window.loadPackage('spell-check', activateImmediately: true)
+    syntax.trigger 'grammars-loaded'
     rootView.attachToDom()
     editor = rootView.getActiveView()
 
