@@ -14,14 +14,65 @@ class PEGjsGrammar
 
   constructor: (@name, @grammarFile, @fileTypes, @scopeName) ->
     @parser = PEG.buildParser fs.read(@grammarFile),
-                                cache:    false
+                                cache:    true
                                 output:   "parser"
                                 optimize: "speed"
                                 plugins:  []
     @parserCache  = {}
 
+  batchTokenizeLine: (buffer, lineNumber) ->
+    @parserCache = {}
+
+    lines = buffer.lines.join('\n')
+    lineRegion = @lineRegion(buffer.lines, lineNumber)
+
+    mixedOutput = @parser.parse(lines, cache: @parserCache)
+    tokenTree = @normalizeOutput(mixedOutput)
+    allTokens = @convertTokenTree(tokenTree, [@scopeName])
+
+    tokens = @pruneTokensRegion(allTokens, lineRegion)
+
+    {tokens: tokens}
+
+  lineRegion: (lines, lineNumber) ->
+    lines = _.map(lines, (line)->"#{line}\n")
+    [
+      start = _.first(lines, lineNumber).join('').length,
+      start + lines[lineNumber].length
+    ]
+
+  pruneTokensRegion: (tokens, region) ->
+    [start, end] = region
+
+    startPositions = []
+    endPositions = []
+
+    iter = (startPosition, token) ->
+      endPosition = startPosition + token.value.length - 1
+      startPositions.push(startPosition)
+      endPositions.push(endPosition)
+      endPosition + 1
+
+    _.reduce(tokens, iter, 0)
+
+    matches = _.filter _.zip(tokens, startPositions, endPositions), ([token, startPos, endPos]) ->
+      startPos >= start and endPos < end
+
+    _.map(matches, ([token, _...])->token)
+
+  buildTokenMap: (tokens) ->
+    tokenMap = {}
+
+    builder = (sum, token) ->
+      tokenMap[sum] = token
+      sum + token.value.length
+
+    _.reduce tokens, builder, 0
+
+    tokenMap
+
   tokenizeLine: (line, ruleStack=undefined, lineNumber) ->
-    @parserCache = {} if lineNumber == 0
+    @parserCache = {}
 
     mixedOutput = @parser.parse(line, cache: @parserCache)
     tokenTree = @normalizeOutput(mixedOutput)

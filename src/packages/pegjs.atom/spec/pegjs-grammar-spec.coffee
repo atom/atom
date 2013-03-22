@@ -1,5 +1,6 @@
 AtomPackage = require 'atom-package'
 TextMatePackage = require 'text-mate-package'
+Buffer = require 'text-buffer'
 
 fs = require 'fs-utils'
 
@@ -21,7 +22,7 @@ fdescribe "PEGjs grammar", ->
     expect(grammar).toBeTruthy()
     expect(grammar.scopeName).toBe "source.pegjs"
 
-  describe "tokenize strings", ->
+  describe "tokenizeLine", ->
 
     it "parses comments", ->
       {tokens} = grammar.tokenizeLine("_=''//this is a comment", 0)
@@ -102,3 +103,36 @@ fdescribe "PEGjs grammar", ->
       {tokens: tmTokens} = tmGrammar.tokenizeLine("a='a'")
 
       expect(tokens).toEqual tmTokens
+
+  describe "batchTokenizeLine", ->
+    buffer = null
+
+    beforeEach ->
+      buffer = new Buffer("")
+
+    it "parses a simple file", ->
+      buffer.append("a = b\n")
+      buffer.append("b = c\n")
+      buffer.append("c = '.'\n")
+
+      {tokens} = grammar.batchTokenizeLine(buffer, 0)
+
+      expect(tokens[0]).toEqual value: "a ", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]
+      expect(tokens[1]).toEqual value: "=", scopes: ["source.pegjs", "source.pegjs.ruleDefinition"]
+      expect(tokens[2]).toEqual value: " b\n", scopes: ["source.pegjs"]
+
+      {tokens} = grammar.batchTokenizeLine(buffer, 1)
+
+      expect(tokens[0]).toEqual value: "b ", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]
+      expect(tokens[1]).toEqual value: "=", scopes: ["source.pegjs", "source.pegjs.ruleDefinition"]
+      expect(tokens[2]).toEqual value: " c\n", scopes: ["source.pegjs"]
+
+      {tokens} = grammar.batchTokenizeLine(buffer, 2)
+
+      expect(tokens[0]).toEqual value: "c ", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]
+      expect(tokens[1]).toEqual value: "=", scopes: ["source.pegjs", "source.pegjs.ruleDefinition"]
+      expect(tokens[2]).toEqual value: " ", scopes: ["source.pegjs"]
+      expect(tokens[3]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.begin.pegjs"]
+      expect(tokens[4]).toEqual value: ".", scopes: ["source.pegjs", "string.quoted.single.js"]
+      expect(tokens[5]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.end.pegjs"]
+      expect(tokens[6]).toEqual value: "\n", scopes: ["source.pegjs"]
