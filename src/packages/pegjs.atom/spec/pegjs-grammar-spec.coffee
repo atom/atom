@@ -58,10 +58,11 @@ a = 'a'
       {tokens} = grammar.tokenizeLine(text, 0)
 
       expect(tokens[0]).toEqual value: "/*", scopes: ['source.pegjs', 'comment.block', 'punctuation.definition.comment.pegjs']
-      expect(tokens[1]).toEqual value:" multi", scopes: ['source.pegjs', 'comment.block']
-      expect(tokens[2]).toEqual value:"line", scopes: ['source.pegjs', 'comment.block']
+      expect(tokens[1]).toEqual value:" multi\n", scopes: ['source.pegjs', 'comment.block']
+      expect(tokens[2]).toEqual value:"line\n", scopes: ['source.pegjs', 'comment.block']
       expect(tokens[3]).toEqual value:"comment ", scopes: ['source.pegjs', 'comment.block']
       expect(tokens[4]).toEqual value: "*/", scopes: ['source.pegjs', 'comment.block', 'punctuation.definition.comment.pegjs']
+
 
     it "parses strings", ->
       {tokens} = grammar.tokenizeLine("_='single quoted string'", 0)
@@ -141,13 +142,13 @@ a = 'a'
 
       expect(tokens[0]).toEqual value: "a ", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]
       expect(tokens[1]).toEqual value: "=", scopes: ["source.pegjs", "source.pegjs.ruleDefinition"]
-      expect(tokens[2]).toEqual value: " b\n", scopes: ["source.pegjs"]
+      expect(tokens[2]).toEqual value: " b", scopes: ["source.pegjs"]
 
       {tokens} = grammar.batchTokenizeLine(buffer, 1)
 
       expect(tokens[0]).toEqual value: "b ", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]
       expect(tokens[1]).toEqual value: "=", scopes: ["source.pegjs", "source.pegjs.ruleDefinition"]
-      expect(tokens[2]).toEqual value: " c\n", scopes: ["source.pegjs"]
+      expect(tokens[2]).toEqual value: " c", scopes: ["source.pegjs"]
 
       {tokens} = grammar.batchTokenizeLine(buffer, 2)
 
@@ -157,7 +158,7 @@ a = 'a'
       expect(tokens[3]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.begin.pegjs"]
       expect(tokens[4]).toEqual value: ".", scopes: ["source.pegjs", "string.quoted.single.js"]
       expect(tokens[5]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.end.pegjs"]
-      expect(tokens[6]).toEqual value: "\n", scopes: ["source.pegjs"]
+      expect(tokens[6]).toEqual value: "", scopes: ["source.pegjs"]
 
     it "parses it's own pegjs file", ->
       buffer.append(fs.read(fs.resolveOnLoadPath("pegjs.atom/grammars/pegjs.pegjs")))

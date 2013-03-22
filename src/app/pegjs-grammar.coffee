@@ -31,10 +31,18 @@ class PEGjsGrammar
     tokenTree = @normalizeOutput(mixedOutput)
     allTokens = @convertTokenTree(tokenTree, [@scopeName])
 
-    tokens = @pruneTokensRegion(allTokens, lineRegion)
-    tokens = @splitMultilineTokens(tokens)
+    singleLineTokens = @splitMultilineTokens(allTokens)
+    lineEndedTokens = @pruneTokensRegion(singleLineTokens, lineRegion)
+    tokens = @pruneLineEndings(lineEndedTokens)
 
     {tokens: tokens, stack: []}
+
+  pruneLineEndings: (tokens) ->
+    _.map tokens, (token) =>
+      if match = token.value.match(/(.*)\n$/)
+        @buildToken(match[1], token.scopes)
+      else
+        token
 
   lineRegion: (lines, lineNumber) ->
     lines = _.map(lines, (line)->"#{line}\n")
@@ -142,7 +150,7 @@ class PEGjsGrammar
 
   splitToken: (token) ->
     [a, b...] = token.value.split("\n")
-    [@buildToken(a, token.scopes), @buildToken(b.join("\n"), token.scopes)]
+    [@buildToken("#{a}\n", token.scopes), @buildToken(b.join("\n"), token.scopes)]
 
   isCombinable: (a, b) ->
     _.isEqual(a.scopes, b.scopes)
