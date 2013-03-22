@@ -119,7 +119,6 @@ window.requireStylesheet = (path) ->
     content = window.loadStylesheet(fullPath)
     window.applyStylesheet(fullPath, content)
   else
-    console.log "bad", path
     throw new Error("Could not find a file at path '#{path}'")
 
 window.loadStylesheet = (path) ->
