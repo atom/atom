@@ -192,7 +192,6 @@ __ = tokens:(whitespace / eol / comment)*
 /* Modeled after ECMA-262, 5th ed., 7.4. */
 comment "comment"
   = comment:(singleLineComment / multiLineComment)
-    { return token({type: "comment", tokens: comment}) }
 
 singleLineComment
   = doubleSlash singleLineCommentText

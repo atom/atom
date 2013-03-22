@@ -1,9 +1,16 @@
 PEG = require('pegjs')
+Token = require('token')
 fs = require('fs-utils')
 _ = require('underscore')
 
 module.exports =
 class PEGjsGrammar
+
+  class TokenTree
+    constructor: {@tokens, @type, @text}
+
+  class Rule
+    constructor: {@value, @scopeName}
 
   constructor: (@name, @grammarFile, @fileTypes, @scopeName) ->
     @parser = PEG.buildParser fs.read(@grammarFile),
@@ -11,99 +18,82 @@ class PEGjsGrammar
                                 output:   "parser"
                                 optimize: "speed"
                                 plugins:  []
-    @cache  = {}
+    @parserCache  = {}
 
   tokenizeLine: (line, ruleStack=undefined, lineNumber) ->
-    @cache = {} if lineNumber == 0
+    @parserCache = {} if lineNumber == 0
 
-    mixedOutput = @parser.parse(line, cache: @cache)
-    tokenDAG = @normalizeOutput(mixedOutput)
-    flatRules = @flattenToRules(tokenDAG)
-    rules = @reduceRules(flatRules)
+    mixedOutput = @parser.parse(line, cache: @parserCache)
+    tokenTree = @normalizeOutput(mixedOutput)
+    tokens = @convertTokenTree(tokenTree, [@scopeName])
 
-    {tokens: rules}
+    {tokens: tokens}
 
-  flattenToRules: (token) ->
-    childRules = _.flatten(token.tokens.map((child)=>@flattenToRules(child)))
+  convertTokenTree: (tokenTree, scopeStack) ->
+    scopeStack = @combineStacks(scopeStack, tokenTree.type) if tokenTree.type?
 
-    @resolveRules(token, childRules)
+    childTokens = _.flatten(tokenTree.tokens.map((child)=>@convertTokenTree(child, scopeStack)))
 
-  resolveRules: (token, childRules) ->
-    return [@buildRule(token.text, token.type)] if childRules.length == 0
+    @reduceTokens(@collapseTokenTree(tokenTree, childTokens, scopeStack))
 
-    childText = childRules.map((childRule)->childRule.value).join('')
+  combineStacks: (stack, type) ->
+    typeStack = if _.isArray(type) then [type...] else [type]
+    stack.concat(typeStack)
 
-    return childRules if childText == token.text
+  collapseTokenTree: (treeToken, childTokens, scopeStack) ->
+    return [] if _.isEmpty(childTokens) and !treeToken.text?.length
+    return [@buildToken(treeToken.text, scopeStack)] if _.isEmpty(childTokens)
 
-    rules = []
-    buf = token.text
+    childText = childTokens.map((childToken)->childToken.value).join('')
 
-    for childRule in childRules
-      if childRule.value?.length
-        [text, buf...] = buf.split(childRule.value)
-        buf = buf.join(childRule.value)
+    return childTokens unless treeToken.text?.length
+    return childTokens if childText == treeToken.text
 
-        if text?.length
-          rules.push(@buildRule(text, token.type))
+    tokens = []
+    buf = treeToken.text
 
-        rules.push(childRule)
+    childTokens.forEach (childToken) ->
+      [text, buf] = buf.split(childToken.value)
+      buf = buf.join(childToken.value)
 
-    rules
+      tokens.push(@buildToken(text, scopeStack)) if text?.length
+      tokens.push(childToken)
 
-  buildRule: (text, type) ->
-    value: text
-    scopes: @buildScopes(type)
+    tokens.push(@buildToken(buf, scopeStack)) if buf?.length
 
-  reduceRules: (rules) ->
-    return [] if rules.length == 0
+    tokens
 
-    [head, tail...] = rules
+  buildToken: (value, scopeStack) ->
+    new Token(value: value, scopes: [scopeStack...])
 
-    debugger unless head?
+  reduceTokens: (tokens) ->
+    return tokens if tokens.length < 2
 
-    return @reduceRules(tail) unless head.value?.length
-    return [head] if tail.length == 0
+    [first, second, remaining...] = tokens
 
-    [second, remaining...] = tail
-
-    if @isCombinable(head, second)
-      @reduceRules([@combineRules(head, second), remaining...])
+    if @isCombinable(first, second)
+      @reduceTokens([@combineTokens(first, second), remaining...])
     else
-      [head, @reduceRules(tail)...]
+      [first, @reduceTokens([second, remaining...])...]
 
   isCombinable: (a, b) ->
     _.isEqual(a.scopes, b.scopes)
 
-  combineRules: (a, b) ->
-    value: [a.value, b.value].join('')
-    scopes: _.uniq(a.scopes, b.scopes)
-
-  buildScopes: (type) ->
-    types = _.flatten([type])
-    types.unshift(@scopeName)
-    _.compact(types)
+  combineTokens: (a, b) ->
+    @buildToken([a.value, b.value].join(''), _.uniq(a.scopes, b.scopes))
 
   normalizeOutput: (output) ->
-    if @isToken(output)
-      @buildDAG(output)
-    else if @isArray(output)
-      @buildDAG({tokens: output})
-    else if @isLiteral(output)
-      @buildDAG({text: output})
+    if _.isArray(output)
+      @buildTokenTree({tokens: output})
+    else if _.isObject(output)
+      @buildTokenTree(output)
+    else if _.isString(output)
+      @buildTokenTree({text: output})
 
-  isToken: (output) ->
-    (typeof output == "object") && (!@isArray(output))
-
-  isArray: (output) ->
-    (output instanceof Array)
-
-  isLiteral: (output) ->
-    (typeof output == "string")
-
-  buildDAG: (parent) ->
-    if @isArray(parent.tokens)
+  buildTokenTree: (parent) ->
+    if _.isArray(parent.tokens)
       outputs = parent.tokens
-    else if @isToken(parent.tokens)
+    else if _.isObject(parent.tokens)
       outputs = [parent.tokens]
     else
       outputs = []
@@ -112,23 +102,4 @@ class PEGjsGrammar
 
     parent.tokens = children
 
-    if children?.length
-      parent.text ?= @textFrom(children)
-      parent.offset ?= @offsetFrom(children)
-      parent.line ?= @lineFrom(children)
-      parent.column ?= @columnFrom(children)
-
-      @determineOffsets(parent, children) if parent.offset?
-      @determineLines(parent, children) if parent.line?
-      @determineColumns(parent, children) if parent.column?
-
     parent
-
-  textFrom: (children) -> children.map((child)->child.text).join('')
-  offsetFrom: (children) -> children.first?.offset
-  lineFrom: (children) -> children.first?.line
-  columnFrom: (children) -> children.first?.column
-
-  determineOffsets: (parent, children) ->
-  determineLines: (parent, children) ->
-  determineColumns: (parent, children) ->
