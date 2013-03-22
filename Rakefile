@@ -28,7 +28,7 @@ end
 
 desc "Download node binary"
 task "update-node" do
-  `script/update-node v0.10.1`
+  `script/update-node v0.8.22`
 end
 
 desc "Download debug symbols for CEF"
