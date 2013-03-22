@@ -12,6 +12,12 @@ class TextMatePackage extends Package
   @testName: (packageName) ->
     /(\.|_|-)tmbundle$/.test(packageName)
 
+  @getLoadQueue: ->
+    return @loadQueue if @loadQueue
+    @loadQueue = async.queue (pack, done) -> pack.loadGrammars(done)
+    @loadQueue.drain = -> syntax.trigger 'grammars-loaded'
+    @loadQueue
+
   constructor: ->
     super
     @preferencesPath = fsUtils.join(@path, "Preferences")
@@ -22,7 +28,7 @@ class TextMatePackage extends Package
     if sync
       @loadGrammarsSync()
     else
-      @loadGrammars()
+      TextMatePackage.getLoadQueue().push(this)
     @loadScopedProperties()
 
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'cson', 'json']
@@ -38,6 +44,7 @@ class TextMatePackage extends Package
     TextMateGrammar.load path, (err, grammar) =>
       return console.log("Error loading grammar at path '#{path}':", err.stack ? err) if err
       @addGrammar(grammar)
+      done()
 
   loadGrammarsSync: ->
     for path in fsUtils.list(@syntaxesPath, @legalGrammarExtensions) ? []
