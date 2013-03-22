@@ -198,13 +198,21 @@ _.extend atom,
     windowState
 
   getWindowState: (keyPath) ->
-    inMemoryState = $native.getWindowState()
-    inMemoryState = null unless inMemoryState.length > 0
-    windowState = JSON.parse(inMemoryState ? localStorage[window.location.params.pathToOpen] ? '{}')
+    windowState = JSON.parse(@getInMemoryWindowState() ? @getSavedWindowState() ? '{}')
     if keyPath
       _.valueForKeyPath(windowState, keyPath)
     else
       windowState
+
+  getInMemoryWindowState: ->
+    inMemoryState = $native.getWindowState()
+    if inMemoryState.length > 0
+      inMemoryState
+    else
+      null
+
+  getSavedWindowState: ->
+    localStorage[window.location.params.pathToOpen]
 
   saveWindowState: ->
     localStorage[@getPathToOpen()] = JSON.stringify(@getWindowState())

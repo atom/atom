@@ -39,6 +39,7 @@ beforeEach ->
   atom.atomPackageStates = {}
   atom.loadedPackages = []
   spyOn(atom, 'saveWindowState')
+  spyOn(atom, 'getSavedWindowState').andReturn(null)
   $native.setWindowState('')
 
   # used to reset keymap after each spec
