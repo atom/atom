@@ -127,7 +127,7 @@ window.loadStylesheet = (path) ->
   content = fs.read(path)
   if fs.extension(path) == '.less'
     (new less.Parser).parse content, (e, tree) ->
-      throw new Error(e.message, file, e.line) if e
+      throw new Error(e.message, path, e.line) if e
       content = tree.toCSS()
 
   content
