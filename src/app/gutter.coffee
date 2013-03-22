@@ -1,5 +1,6 @@
 {View, $$, $$$} = require 'space-pen'
 Range = require 'range'
+_ = require 'underscore'
 
 module.exports =
 class Gutter extends View
@@ -20,18 +21,8 @@ class Gutter extends View
     editor.on 'cursor:moved', highlightLines
     editor.on 'selection:changed', highlightLines
 
-    @calculateWidth()
-
   editor: ->
     @parentView
-
-  calculateLineNumberPadding: ->
-    widthTesterElement = $$ -> @div {class: 'line-number'}, ""
-    widthTesterElement.width(0)
-    @append(widthTesterElement)
-    lineNumberPadding = widthTesterElement.outerWidth()
-    widthTesterElement.remove()
-    lineNumberPadding
 
   updateLineNumbers: (changes, renderFrom, renderTo) ->
     if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
@@ -48,6 +39,7 @@ class Gutter extends View
 
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     editor = @editor()
+    maxDigits = editor.getLineCount().toString().length
     rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
     cursorScreenRow = editor.getCursorScreenPosition().row
@@ -56,24 +48,19 @@ class Gutter extends View
         if row == lastScreenRow
           rowValue = '•'
         else
-          rowValue = row + 1
+          rowValue = (row + 1).toString()
         classes = ['line-number']
         classes.push('fold') if editor.isFoldedAtBufferRow(row)
-        @div rowValue, class: classes.join(' ')
+        @div class: classes.join(' '), =>
+          rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
+          @raw("#{rowValuePadding}#{rowValue}")
+
         lastScreenRow = row
 
-    @calculateWidth()
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow
     @highlightedRows = null
     @highlightLines()
-
-  calculateWidth: ->
-    highestNumberWidth = @editor().getLineCount().toString().length * @editor().charWidth
-    if highestNumberWidth != @highestNumberWidth
-      @highestNumberWidth = highestNumberWidth
-      @lineNumbers.width(highestNumberWidth + @calculateLineNumberPadding())
-      @widthChanged?(@outerWidth())
 
   removeLineHighlights: ->
     return unless @highlightedLineNumbers

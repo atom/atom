@@ -713,8 +713,6 @@ class Editor extends View
     fragment.remove()
 
   updateLayerDimensions: ->
-    @gutter.calculateWidth()
-
     height = @lineHeight * @screenLineCount()
     unless @layerHeight == height
       @renderedLines.height(height)

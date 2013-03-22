@@ -1,6 +1,7 @@
 .editor {
   overflow: hidden;
   cursor: text;
+  display: -webkit-flex;
   -webkit-user-select: none;
   position: relative;
   z-index: 0;
@@ -24,8 +25,6 @@
 }
 
 .editor .gutter {
-  position: absolute;
-  height: 100%;
   overflow: hidden;
   text-align: right;
   cursor: default;
@@ -33,7 +32,7 @@
 
 .editor .gutter .line-number {
   padding-right: .5em;
-  min-width: 35px;
+  padding-left: .5em;
   box-sizing: border-box;
   text-align: right;
   opacity: 0.6;
@@ -104,13 +103,11 @@
 }
 
 .editor .scroll-view {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
   overflow-x: auto;
   overflow-y: hidden;
+  -webkit-flex: 1;
+  min-width: 0;
+  position: relative;
 }
 
 .editor.mini .scroll-view {

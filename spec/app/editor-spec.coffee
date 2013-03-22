@@ -332,12 +332,6 @@ describe "Editor", ->
         expect(selectionRegion.height()).toBe editor.lineHeight
         expect(selectionRegion.width()).toBe 5 * editor.charWidth
 
-      it "updates the gutter width and font size", ->
-        editor.attachToDom()
-        config.set("editor.fontSize", 20)
-        expect(editor.gutter.css('font-size')).toBe "20px"
-        expect(editor.gutter.width()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
-
       it "updates lines if there are unrendered lines", ->
         editor.attachToDom(heightInLines: 5)
         originalLineCount = editor.renderedLines.find(".line").length
@@ -1184,7 +1178,7 @@ describe "Editor", ->
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
             expect(editor.gutter.find('.line-number').length).toBe 8
-            expect(editor.gutter.find('.line-number:last').text()).toBe '8'
+            expect(editor.gutter.find('.line-number:last').intValue()).toBe 8
 
             editor.scrollTop(4 * editor.lineHeight)
             expect(editor.renderedLines.find('.line').length).toBe 10
@@ -1221,16 +1215,16 @@ describe "Editor", ->
             expect(editor.renderedLines.find('.line').length).toBe 10
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
             expect(editor.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
-            expect(editor.gutter.find('.line-number:first').text()).toBe '2'
-            expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+            expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+            expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
             # here we don't scroll far enough to trigger additional rendering
             editor.scrollTop(editor.lineHeight * 5.5) # first visible row will be 5, last will be 10
             expect(editor.renderedLines.find('.line').length).toBe 10
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
             expect(editor.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
-            expect(editor.gutter.find('.line-number:first').text()).toBe '2'
-            expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+            expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+            expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
             editor.scrollTop(editor.lineHeight * 7.5) # first visible row is 7, last will be 12
             expect(editor.renderedLines.find('.line').length).toBe 8
@@ -1590,70 +1584,54 @@ describe "Editor", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
 
-    it "creates a line number element for each visible line, plus overdraw", ->
+    it "creates a line number element for each visible line with &nbsp; padding to the left of the number", ->
       expect(editor.gutter.find('.line-number').length).toBe 8
-      expect(editor.find('.line-number:first').text()).toBe "1"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "8"
+      expect(editor.find('.line-number:first').html()).toBe "&nbsp;1"
+      expect(editor.gutter.find('.line-number:last').html()).toBe "&nbsp;8"
 
       # here we don't scroll far enough to trigger additional rendering
       editor.scrollTop(editor.lineHeight * 1.5)
       expect(editor.renderedLines.find('.line').length).toBe 8
-      expect(editor.gutter.find('.line-number:first').text()).toBe "1"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "8"
+      expect(editor.gutter.find('.line-number:first').html()).toBe "&nbsp;1"
+      expect(editor.gutter.find('.line-number:last').html()).toBe "&nbsp;8"
 
       editor.scrollTop(editor.lineHeight * 3.5)
       expect(editor.renderedLines.find('.line').length).toBe 10
-      expect(editor.gutter.find('.line-number:first').text()).toBe "2"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "11"
-
-    describe "width", ->
-      it "sets the width based on largest line number", ->
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
-
-      it "updates the width and the left position of the scroll view when total number of lines gains a digit", ->
-        editor.setText("")
-
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 1 + editor.gutter.calculateLineNumberPadding())
-        expect(parseInt(editor.scrollView.css('left'))).toBe editor.gutter.outerWidth()
-
-        for i in [1..9] # Ends on an empty line 10
-          editor.insertText "#{i}\n"
-
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
-        expect(parseInt(editor.scrollView.css('left'))).toBe editor.gutter.outerWidth()
+      expect(editor.gutter.find('.line-number:first').html()).toBe "&nbsp;2"
+      expect(editor.gutter.find('.line-number:last').html()).toBe "11"
 
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
         editor.scrollTop(3 * editor.lineHeight)
-        expect(editor.gutter.find('.line-number:first').text()).toBe '2'
-        expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+        expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
         buffer.insert([6, 0], '\n')
 
-        expect(editor.gutter.find('.line-number:first').text()).toBe '2'
-        expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+        expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editor.setSoftWrapColumn(50)
         expect(editor.gutter.find('.line-number').length).toEqual(8)
-        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
-        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '•'
-        expect(editor.gutter.find('.line-number:eq(5)').text()).toBe '5'
+        expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editor.gutter.find('.line-number:eq(4)').html()).toBe '&nbsp;•'
+        expect(editor.gutter.find('.line-number:eq(5)').intValue()).toBe 5
 
     describe "when there are folds", ->
       it "skips line numbers covered by the fold and updates them when the fold changes", ->
         editor.createFold(3, 5)
-        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
-        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
+        expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editor.gutter.find('.line-number:eq(4)').intValue()).toBe 7
 
         buffer.insert([4,0], "\n\n")
-        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
-        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '9'
+        expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editor.gutter.find('.line-number:eq(4)').intValue()).toBe 9
 
         buffer.delete([[3,0], [6,0]])
-        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
-        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '6'
+        expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editor.gutter.find('.line-number:eq(4)').intValue()).toBe 6
 
       it "redraws gutter numbers when lines are unfolded", ->
         setEditorHeightInLines(editor, 20)
@@ -1666,7 +1644,7 @@ describe "Editor", ->
       it "styles folded line numbers", ->
         editor.createFold(3, 5)
         expect(editor.gutter.find('.line-number.fold').length).toBe 1
-        expect(editor.gutter.find('.line-number.fold:eq(0)').text()).toBe '4'
+        expect(editor.gutter.find('.line-number.fold:eq(0)').intValue()).toBe 4
 
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->
@@ -1691,8 +1669,8 @@ describe "Editor", ->
         expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 1}px"
         expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 2}px"
         expect(editor.renderedLines.find('.line').length).toBe 10
-        expect(editor.gutter.find('.line-number:first').text()).toBe "2"
-        expect(editor.gutter.find('.line-number:last').text()).toBe "11"
+        expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
@@ -1707,11 +1685,10 @@ describe "Editor", ->
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 
     describe "when the editor is mini", ->
-      it "hides the gutter and does not change the scroll view's left position", ->
+      it "hides the gutter", ->
         miniEditor = new Editor(mini: true)
         miniEditor.attachToDom()
         expect(miniEditor.gutter).toBeHidden()
-        expect(miniEditor.scrollView.css('left')).toBe '0px'
 
       it "doesn't highlight the only line", ->
         miniEditor = new Editor(mini: true)
@@ -1738,13 +1715,13 @@ describe "Editor", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
-        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 1
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
-        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 2
 
     describe "when there is wrapping", ->
       beforeEach ->
@@ -1755,13 +1732,13 @@ describe "Editor", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
-        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 1
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
-        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 2
 
     describe "when the selection spans multiple lines", ->
       beforeEach ->
@@ -1781,13 +1758,13 @@ describe "Editor", ->
         editor.getSelection().setBufferRange(new Range([0,0],[1,0]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line-number.cursor-line').length).toBe 1
-        expect(editor.find('.line-number.cursor-line').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line').intValue()).toBe 1
 
     it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
       editor.setCursorScreenPosition([1,0])
       editor.backspace()
       expect(editor.find('.line-number.cursor-line').length).toBe 1
-      expect(editor.find('.line-number.cursor-line').text()).toBe "1"
+      expect(editor.find('.line-number.cursor-line').intValue()).toBe 1
 
   describe "line highlighting", ->
     beforeEach ->
