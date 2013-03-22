@@ -194,19 +194,14 @@ comment "comment"
   = comment:(singleLineComment / multiLineComment)
 
 singleLineComment
-  = doubleSlash singleLineCommentText
+  = comment:(doubleSlash singleLineCommentText)
+  { return token({type: 'comment.line.double-slash.js', tokens: comment})}
 
 singleLineCommentText
-  = (!eolChar .)* { return token({type: 'punctuation.definition.comment.js'}) }
+  = (!eolChar .)*
 
 doubleSlash
-  = "//"
-  {
-    var types = ['comment.line.double-slash.js',
-                 'punctuation.definition.comment.js']
-
-    return token({type: types})
-  }
+  = "//" { return token({type: 'punctuation.definition.comment.js'})}
 
 multiLineComment
   = "/*" (!"*/" .)* "*/" { return token({type: 'comment.block'}) }

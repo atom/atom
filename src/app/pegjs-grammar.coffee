@@ -37,8 +37,7 @@ class PEGjsGrammar
     @reduceTokens(@collapseTokenTree(tokenTree, childTokens, scopeStack))
 
   combineStacks: (stack, type) ->
-    typeStack = if _.isArray(type) then [type...] else [type]
-    stack.concat(typeStack)
+    stack.concat(type)
 
   collapseTokenTree: (treeToken, childTokens, scopeStack) ->
     return [] if _.isEmpty(childTokens) and !treeToken.text?.length
