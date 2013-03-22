@@ -1955,6 +1955,18 @@ describe "EditSession", ->
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
 
+    describe "when soft wrap is enabled", ->
+      it "deletes the entire line that the cursor is on", ->
+        editSession.setSoftWrapColumn(10)
+        editSession.setCursorBufferPosition([6])
+
+        line7 = buffer.lineForRow(7)
+        count = buffer.getLineCount()
+        expect(buffer.lineForRow(6)).not.toBe(line7)
+        editSession.deleteLine()
+        expect(buffer.lineForRow(6)).toBe(line7)
+        expect(buffer.getLineCount()).toBe(count - 1)
+
   describe ".transpose()", ->
     it "swaps two characters", ->
       editSession.buffer.setText("abc")
