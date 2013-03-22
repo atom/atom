@@ -31,9 +31,10 @@ class TextMateGrammar
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
-
     loop
       scopes = scopesFromStack(ruleStack)
+      previousRuleStackLength = ruleStack.length
+      previousPosition = position
 
       if line.length == 0
         tokens = [new Token(value: "", scopes: scopes)]
@@ -60,6 +61,10 @@ class TextMateGrammar
             scopes: scopes
           ))
         break
+
+      if position == previousPosition and ruleStack.length == previousRuleStackLength
+        console.error("Popping rule because it loops at column #{position} of line '#{line}'", _.clone(ruleStack))
+        ruleStack.pop()
 
     ruleStack.forEach (rule) -> rule.clearAnchorPosition()
     { tokens, ruleStack }

@@ -258,3 +258,13 @@ describe "TextMateGrammar", ->
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){if(1){m()}}")
         expect(tokens[5]).toEqual value: "if", scopes: ["source.c", "meta.block.c", "keyword.control.c"]
         expect(tokens[10]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
+
+    describe "when the grammar can infinitely loop over a line", ->
+      it "aborts tokenization", ->
+        spyOn(console, 'error')
+        window.loadPackage("package-with-infinite-loop-grammar")
+        grammar = syntax.grammarForFilePath("something.package-with-infinite-loop-grammar")
+        {tokens} = grammar.tokenizeLine("abc")
+        expect(tokens[0].value).toBe "a"
+        expect(tokens[1].value).toBe "bc"
+        expect(console.error).toHaveBeenCalled()
