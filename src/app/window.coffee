@@ -18,7 +18,7 @@ window.setUpEnvironment = ->
 
   window.rootViewParentSelector = 'body'
   window.config = new Config
-  window.syntax = new Syntax
+  window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
   $(document).on 'keydown', keymap.handleKeyEvent
@@ -67,6 +67,7 @@ window.shutdown = ->
   atom.setWindowState('pathToOpen', project.getPath())
   atom.setWindowState('project', project.serialize())
   atom.setWindowState('rootView', rootView.serialize())
+  atom.setWindowState('syntax', syntax.serialize())
   atom.saveWindowState()
   rootView.deactivate()
   project.destroy()

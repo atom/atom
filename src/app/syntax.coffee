@@ -10,6 +10,13 @@ pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 
 module.exports =
 class Syntax
+  registerDeserializer(this)
+
+  @deserialize: ({grammarOverridesByPath}) ->
+    syntax = new Syntax()
+    syntax.grammarOverridesByPath = grammarOverridesByPath
+    syntax
+
   constructor: ->
     @grammars = []
     @grammarsByFileType = {}
@@ -19,6 +26,9 @@ class Syntax
     @scopedPropertiesIndex = 0
     @scopedProperties = []
     @nullGrammar = new NullGrammar
+
+  serialize: ->
+    { deserializer: @constructor.name, @grammarOverridesByPath }
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)

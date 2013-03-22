@@ -135,11 +135,14 @@ describe "Window", ->
       # JSON.stringify removes keys with undefined values
       rootViewState = JSON.parse(JSON.stringify(rootView.serialize()))
       projectState = JSON.parse(JSON.stringify(project.serialize()))
+      syntaxState = JSON.parse(JSON.stringify(syntax.serialize()))
 
       window.shutdown()
 
-      expect(atom.getWindowState().rootView).toEqual rootViewState
-      expect(atom.getWindowState().project).toEqual projectState
+      windowState = atom.getWindowState()
+      expect(windowState.rootView).toEqual rootViewState
+      expect(windowState.project).toEqual projectState
+      expect(windowState.syntax).toEqual syntaxState
 
       expect(atom.saveWindowState).toHaveBeenCalled()
 

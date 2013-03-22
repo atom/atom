@@ -1,6 +1,15 @@
 fs = require 'fs-utils'
 
 describe "the `syntax` global", ->
+  describe "serialization", ->
+    it "remembers grammar overrides by path", ->
+      path = '/foo/bar/file.js'
+      expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
+      syntax.setGrammarOverrideForPath(path, 'source.ruby')
+      syntax2 = deserialize(syntax.serialize())
+      syntax2.addGrammar(grammar) for grammar in syntax.grammars
+      expect(syntax2.selectGrammar(path).name).toBe 'Ruby'
+
   describe ".selectGrammar(filePath)", ->
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
       expect(syntax.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
