@@ -8,9 +8,7 @@ fdescribe 'UI Kit', ->
     window.rootView = new RootView
     # rootView.open('sample.js')
     UIKit = window.loadPackage("ui-kit").mainModule
-    window.console.log UIKit
     view = new UIKit.View()
-
 
   describe "View", ->
     describe "positioning", ->
@@ -56,7 +54,19 @@ fdescribe 'UI Kit', ->
 
   describe "Layout", ->
     describe "when a new layout is created", ->
-      it ""
+      it "assembles a grid of controls", ->
+        layout = new UIKit.Layout ->
+          @row =>
+            @column =>
+              @text "Enter something here:"
+            @column =>
+              @textField()
+          @row =>
+            @column align:"right", =>
+              @button(title:"Save")
+        view.addSubview(layout.content)
+        expect(view.find("button").length).toBe(1)
+        expect(view.find("input").length).toBe(1)
 
   describe "Events", ->
     describe "when a dialog is closed", ->

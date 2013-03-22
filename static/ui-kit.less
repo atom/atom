@@ -1,8 +1,15 @@
 .ui-view {
   position: absolute;
-  border: 1px solid red;
   z-index: 2;
-  background-color: #fff;
+  background: #202123;
+  color: #eee;
+  padding: 10px;
+  z-index: 9999;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  font-size: 16px;
 
   .close-icon {
     font-family: 'Octicons Regular';
@@ -24,10 +31,42 @@
   .close-icon:hover {
     color: #989898;
   }
+
+  .content {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 3px;
+    background: #f5f5f5;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.25) inset;
+  }
+  .row {
+    display: -webkit-flex;
+    margin-bottom: 1em;
+  }
+  .column {
+    display: -webkit-flex;
+    -webkit-flex: 1;
+    -webkit-flex-flow: column;
+  }
+  .align-right {
+    text-align: right;
+  }
+  .ui-control {
+    position: relative;
+  }
+  .ui-control.text-field input {
+    position: absolute;
+    left: 0px; right: 0px;
+    font-size: 16px;
+  }
+  .ui-control.button button {
+    font-size: 16px;
+  }
 }
 
 .ui-view.dialog {
   top: 20px;
-  min-width: 400px;
-  min-height: 200px;
+  left: 50%;
+  width: 500px;
+  margin-left: -250px;
 }
