@@ -47,6 +47,22 @@ fdescribe "PEGjs grammar", ->
       expect(tokens[1]).toEqual tmTokens[1]
       expect(tokens[2]).toEqual tmTokens[2]
 
+    fit "parses multiline comments", ->
+      text = """
+/* multi
+line
+comment */
+a = 'a'
+"""
+
+      {tokens} = grammar.tokenizeLine(text, 0)
+
+      expect(tokens[0]).toEqual value: "/*", scopes: ['source.pegjs', 'comment.block', 'punctuation.definition.comment.pegjs']
+      expect(tokens[1]).toEqual value:" multi", scopes: ['source.pegjs', 'comment.block']
+      expect(tokens[2]).toEqual value:"line", scopes: ['source.pegjs', 'comment.block']
+      expect(tokens[3]).toEqual value:"comment ", scopes: ['source.pegjs', 'comment.block']
+      expect(tokens[4]).toEqual value: "*/", scopes: ['source.pegjs', 'comment.block', 'punctuation.definition.comment.pegjs']
+
     it "parses strings", ->
       {tokens} = grammar.tokenizeLine("_='single quoted string'", 0)
 
@@ -148,4 +164,4 @@ fdescribe "PEGjs grammar", ->
 
       {tokens} = grammar.batchTokenizeLine(buffer, 0)
 
-      expect(tokens[0]).toEqual value: "grammar\n", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]
+      expect(tokens[0]).toEqual value: "grammar", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]

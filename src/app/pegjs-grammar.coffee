@@ -32,8 +32,9 @@ class PEGjsGrammar
     allTokens = @convertTokenTree(tokenTree, [@scopeName])
 
     tokens = @pruneTokensRegion(allTokens, lineRegion)
+    tokens = @splitMultilineTokens(tokens)
 
-    {tokens: tokens}
+    {tokens: tokens, stack: []}
 
   lineRegion: (lines, lineNumber) ->
     lines = _.map(lines, (line)->"#{line}\n")
@@ -78,8 +79,20 @@ class PEGjsGrammar
     mixedOutput = @parser.parse(line, cache: @parserCache)
     tokenTree = @normalizeOutput(mixedOutput)
     tokens = @convertTokenTree(tokenTree, [@scopeName])
+    tokens = @splitMultilineTokens(tokens)
 
     {tokens: tokens}
+
+  splitMultilineTokens: (tokens) ->
+    return [] if tokens.length == 0
+
+    [head, tail...] = tokens
+
+    if @isMultiline(head)
+      [a, b] = @splitToken(head)
+      [a, @splitMultilineTokens([b, tail...])...]
+    else
+      [head, @splitMultilineTokens(tail)...]
 
   convertTokenTree: (tokenTree, scopeStack) ->
     scopeStack = scopeStack.concat(tokenTree.type) if tokenTree.type?
@@ -100,8 +113,8 @@ class PEGjsGrammar
     tokens = []
     buf = treeToken.text
 
-    childTokens.forEach (childToken) ->
-      [text, buf] = buf.split(childToken.value)
+    childTokens.forEach (childToken) =>
+      [text, buf...] = buf.split(childToken.value)
       buf = buf.join(childToken.value)
 
       tokens.push(@buildToken(text, scopeStack)) if text?.length
@@ -119,10 +132,7 @@ class PEGjsGrammar
 
     [first, second, remaining...] = tokens
 
-    if @isMultiline(first)
-      [a, b] = @splitToken(first)
-      [a, @reduceTokens([b, second, remaining...])...]
-    else if @isCombinable(first, second)
+    if @isCombinable(first, second)
       @reduceTokens([@combineTokens(first, second), remaining...])
     else
       [first, @reduceTokens([second, remaining...])...]
@@ -131,11 +141,11 @@ class PEGjsGrammar
     /\n./.test(token.value)
 
   splitToken: (token) ->
-    [a, b] = token.value.split("\n")
-    [@buildToken("#{a}\n", token.scopes), @buildToken(b, token.scopes)]
+    [a, b...] = token.value.split("\n")
+    [@buildToken(a, token.scopes), @buildToken(b.join("\n"), token.scopes)]
 
   isCombinable: (a, b) ->
-    _.isEqual(a.scopes, b.scopes) or /\n./.test(a.value)
+    _.isEqual(a.scopes, b.scopes)
 
   combineTokens: (a, b) ->
     @buildToken([a.value, b.value].join(''), _.uniq(a.scopes, b.scopes))

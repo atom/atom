@@ -210,8 +210,11 @@ doubleSlash
   = "//" { return token({type: 'punctuation.definition.comment.js'})}
 
 multiLineComment
-  = start:slashStar body:(!"*/" .)* end:starSlash
-    { return token({type: 'comment.block', tokens: [start, body, end]}) }
+  = comment:(slashStar multiLineCommentText starSlash)
+    { return token({type: 'comment.block', tokens: comment}) }
+
+multiLineCommentText
+  = (!starSlash .)*
 
 slashStar
   = "/*" { return token({type: 'punctuation.definition.comment.pegjs'}) }
