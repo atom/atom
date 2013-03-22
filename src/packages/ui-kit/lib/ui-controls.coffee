@@ -8,6 +8,9 @@ class UIControl extends View
   @controlContent: ->
   @content: ->
     @div class: "ui-control", => @controlContent()
+  initialize: ->
+    @parentView = null
+  inView: -> @parentView?
 
 
 class UIButton extends UIControl

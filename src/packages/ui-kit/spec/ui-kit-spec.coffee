@@ -13,6 +13,20 @@ fdescribe 'UI Kit', ->
 
 
   describe "View", ->
+    describe "positioning", ->
+      describe "full", ->
+      describe "dialog", ->
+        it "creates a floating dialog window", ->
+          view = new UIKit.View(position:"dialog")
+          view.addToRootView()
+          expect(parseInt(view.css("top"))).not.toBe(0)
+    describe "close icon", ->
+      it "closes the view if it is clicked", ->
+        view = new UIKit.View(position:"dialog")
+        view.addToRootView()
+        view.find(".close-icon").click()
+        expect(view.visible).toBe(false)
+        expect(rootView.find(".ui-view").length).toBe(0)
     describe "when a view is added to the window", ->
     describe "when a view is added to a new pane", ->
     describe "when a view is opened as a dialog", ->
@@ -21,11 +35,11 @@ fdescribe 'UI Kit', ->
           exited = false
           view.runModalDialog (result) ->
             exited = result
-          view.find("button").click()
+          view.close()
           waitsFor ->
             exited == true
           runs ->
-            expect(exited).toBe(true)
+            expect(view.visible).toBe(false)
       describe "alert", ->
       describe "prompt", ->
 
@@ -35,6 +49,10 @@ fdescribe 'UI Kit', ->
         button = new UIKit.Controls.button
         view.addSubview(button)
         expect(view.find("button").length).toBe(1)
+      it "creates a reference to the containing view", ->
+        button = new UIKit.Controls.button
+        view.addSubview(button)
+        expect(button.parentView).toBe(view)
 
   describe "Layout", ->
     describe "when a new layout is created", ->

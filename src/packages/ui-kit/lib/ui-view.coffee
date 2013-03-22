@@ -8,12 +8,28 @@ module.exports =
 class UIView extends View
   @content: ->
     @div class:"ui-view", =>
+      @div class: 'close-icon', outlet:"closeIcon"
       @div class:"header"
       @div class:"content", outlet:"content"
       @div class:"footer"
+  initialize: (options={position:"full"}) ->
+    @visible = false
+    if options.position == "dialog"
+      @addClass("dialog")
+    @closeIcon.on 'click', => @close()
   addSubview: (view) ->
+    view.parentView = this
     @content.append(view)
   addToPane: (pane) ->
   addToRootView: ->
+    rootView.append(this)
+    @visible = true
   runModalDialog: (callback) ->
-  close: ->
+    @addToRootView()
+    @addClass("modal")
+    @modalCallback = callback
+  close: (value=true) ->
+    @modalCallback?(value)
+    @modalCallback = null
+    @visible = false
+    @remove()

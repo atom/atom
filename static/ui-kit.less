@@ -1,2 +1,33 @@
 .ui-view {
+  position: absolute;
+  border: 1px solid red;
+  z-index: 2;
+  background-color: #fff;
+
+  .close-icon {
+    font-family: 'Octicons Regular';
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
+    position: absolute;
+    color: #686868;
+    right: 8px;
+    top: 5px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .close-icon:before {
+    content: "\f081";
+  }
+
+  .close-icon:hover {
+    color: #989898;
+  }
+}
+
+.ui-view.dialog {
+  top: 20px;
+  min-width: 400px;
+  min-height: 200px;
 }
