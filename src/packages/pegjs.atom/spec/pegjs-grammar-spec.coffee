@@ -136,3 +136,10 @@ fdescribe "PEGjs grammar", ->
       expect(tokens[4]).toEqual value: ".", scopes: ["source.pegjs", "string.quoted.single.js"]
       expect(tokens[5]).toEqual value: "'", scopes: ["source.pegjs", "string.quoted.single.js", "punctuation.definition.string.end.pegjs"]
       expect(tokens[6]).toEqual value: "\n", scopes: ["source.pegjs"]
+
+    it "parses it's own pegjs file", ->
+      buffer.append(fs.read(fs.resolveOnLoadPath("pegjs.atom/grammars/pegjs.pegjs")))
+
+      {tokens} = grammar.batchTokenizeLine(buffer, 0)
+
+      expect(tokens[0]).toEqual value: "grammar\n", scopes: ["source.pegjs", "source.pegjs.ruleDefinition", "entity.name.type"]

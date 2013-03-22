@@ -23,7 +23,8 @@ class PEGjsGrammar
   batchTokenizeLine: (buffer, lineNumber) ->
     @parserCache = {}
 
-    lines = buffer.lines.join('\n')
+    lines = buffer.getText()
+
     lineRegion = @lineRegion(buffer.lines, lineNumber)
 
     mixedOutput = @parser.parse(lines, cache: @parserCache)
@@ -118,13 +119,23 @@ class PEGjsGrammar
 
     [first, second, remaining...] = tokens
 
-    if @isCombinable(first, second)
+    if @isMultiline(first)
+      [a, b] = @splitToken(first)
+      [a, @reduceTokens([b, second, remaining...])...]
+    else if @isCombinable(first, second)
       @reduceTokens([@combineTokens(first, second), remaining...])
     else
       [first, @reduceTokens([second, remaining...])...]
 
+  isMultiline: (token) ->
+    /\n./.test(token.value)
+
+  splitToken: (token) ->
+    [a, b] = token.value.split("\n")
+    [@buildToken("#{a}\n", token.scopes), @buildToken(b, token.scopes)]
+
   isCombinable: (a, b) ->
-    _.isEqual(a.scopes, b.scopes)
+    _.isEqual(a.scopes, b.scopes) or /\n./.test(a.value)
 
   combineTokens: (a, b) ->
     @buildToken([a.value, b.value].join(''), _.uniq(a.scopes, b.scopes))

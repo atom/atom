@@ -49,6 +49,7 @@ action "action"
   = ("{" { return token({type: "source.js.embedded.pegjs"}) })
     (braced / nonBraceCharacters)*
     ("}" { return token({type: "source.js.embedded.pegjs"}) })
+    __
 
 braced
   = $("{" (braced / nonBraceCharacters)* "}")
