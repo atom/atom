@@ -35,6 +35,7 @@ window.setUpEnvironment = ->
   requireStylesheet 'popover-list.less'
   requireStylesheet 'notification.less'
   requireStylesheet 'markdown.less'
+  requireStylesheet 'ui-kit.less'
 
   if nativeStylesheetPath = fs.resolveOnLoadPath("#{process.platform}.css")
     requireStylesheet(nativeStylesheetPath)
