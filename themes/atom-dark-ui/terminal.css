@@ -1,5 +1,5 @@
 .terminal {
-  border-top: 1px solid #000;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.05);
   background-color: #000;
 }
 

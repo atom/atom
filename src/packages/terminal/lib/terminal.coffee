@@ -12,4 +12,4 @@ module.exports =
     new TerminalView
 
   serialize: ->
-    true
+    {}

@@ -153,7 +153,7 @@ class TerminalView extends ScrollView
     tester.remove()
     windowWidth = parseInt(@content.css("width"))
     windowHeight = parseInt(@css("height"))
-    h = Math.floor(windowHeight / lineHeight) - 1
+    h = Math.floor(windowHeight / lineHeight)
     w = Math.floor(windowWidth / charWidth) - 1
     return if h <= 0 || w <= 0 || (@terminalSize? && @terminalSize[0] == h && @terminalSize[1] == w)
     @terminalSize = [h, w, charWidth, lineHeight]
