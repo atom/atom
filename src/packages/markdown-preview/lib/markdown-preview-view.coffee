@@ -29,6 +29,9 @@ class MarkdownPreviewView extends ScrollView
   getUri: ->
     "markdown-preview:#{@buffer.getPath()}"
 
+  getPath: ->
+    @buffer.getPath()
+
   setErrorHtml: ->
     @html $$$ ->
       @h2 'Previewing Markdown Failed'
