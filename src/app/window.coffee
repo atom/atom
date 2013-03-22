@@ -56,7 +56,7 @@ window.startup = ->
   keymap.loadBundledKeymaps()
   atom.loadThemes()
   atom.loadPackages()
-  buildProjectAndRootView()
+  deserializeWindowState()
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
@@ -66,9 +66,9 @@ window.startup = ->
 window.shutdown = ->
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
-  atom.setRootViewStateForPath project.getPath(),
-    project: project.serialize()
-    rootView: rootView.serialize()
+  atom.setWindowState('project', project.serialize())
+  atom.setWindowState('rootView', rootView.serialize())
+  atom.saveWindowState()
   rootView.deactivate()
   project.destroy()
   git?.destroy()
@@ -91,13 +91,15 @@ window.handleWindowEvents = ->
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
   $(window).command 'window:close', => confirmClose()
 
-window.buildProjectAndRootView = ->
+window.deserializeWindowState = ->
   RootView = require 'root-view'
   Project = require 'project'
   Git = require 'git'
 
   pathToOpen = atom.getPathToOpen()
-  windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
+
+  windowState = atom.getWindowState()
+
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 

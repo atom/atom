@@ -8,7 +8,7 @@
 
 #import <iostream>
 
-static std::string windowState = "{}";
+static std::string windowState = "";
 static NSLock *windowStateLock = [[NSLock alloc] init];
 
 namespace v8_extensions {

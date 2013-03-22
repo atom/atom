@@ -179,17 +179,6 @@ _.extend atom,
   toggleFullScreen: ->
     @sendMessageToBrowserProcess('toggleFullScreen')
 
-  getRootViewStateForPath: (path) ->
-    if json = localStorage[path]
-      JSON.parse(json)
-
-  setRootViewStateForPath: (path, state) ->
-    return unless path
-    if state?
-      localStorage[path] = JSON.stringify(state)
-    else
-      delete localStorage[path]
-
   sendMessageToBrowserProcess: (name, data=[], callbacks) ->
     messageId = messageIdCounter++
     data.unshift(messageId)
@@ -209,11 +198,16 @@ _.extend atom,
     windowState
 
   getWindowState: (keyPath) ->
-    windowState = JSON.parse($native.getWindowState())
+    inMemoryState = $native.getWindowState()
+    inMemoryState = null unless inMemoryState.length > 0
+    windowState = JSON.parse(inMemoryState ? localStorage[window.location.params.pathToOpen] ? '{}')
     if keyPath
       _.valueForKeyPath(windowState, keyPath)
     else
       windowState
+
+  saveWindowState: ->
+    localStorage[@getPathToOpen()] = JSON.stringify(@getWindowState())
 
   update: ->
     @sendMessageToBrowserProcess('update')

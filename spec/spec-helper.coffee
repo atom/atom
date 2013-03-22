@@ -38,6 +38,8 @@ beforeEach ->
   window.resetTimeouts()
   atom.atomPackageStates = {}
   atom.loadedPackages = []
+  spyOn(atom, 'saveWindowState')
+  $native.setWindowState('')
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
