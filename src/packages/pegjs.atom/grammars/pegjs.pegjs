@@ -121,9 +121,10 @@ simpleDoubleQuotedCharacter
   = !('"' / "\\" / eolChar) char_:.
 
 singleQuotedString
-  = ("'" { return token({type: ["string.quoted.single.js", "punctuation.definition.string.begin.pegjs"]}) })
-    (singleQuotedCharacter* { return token({type: "string.quoted.single.js"}) })
-    ("'" { return token({type: ["string.quoted.single.js", "punctuation.definition.string.end.pegjs"]}) })
+  = string:( ("'" { return token({type: "punctuation.definition.string.begin.pegjs"}) })
+             singleQuotedCharacter*
+             ("'" { return token({type: "punctuation.definition.string.end.pegjs"}) })
+    ) { return token({type: "string.quoted.single.js", tokens: string}) }
 
 singleQuotedCharacter
   = simpleSingleQuotedCharacter
