@@ -160,6 +160,7 @@ class TerminalBuffer
     [@altBuffer, @lines] = [@lines, []]
     @addLine()
     @scrollingRegion = null
+    @setScrollingRegion([1,@size[0]])
     @redrawNeeded = true
     @dirtyLines = []
   disableAlternateBuffer: () ->
