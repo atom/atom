@@ -105,9 +105,11 @@ string "string"
   = string:(doubleQuotedString / singleQuotedString) __
 
 doubleQuotedString
-  = ('"' { return token({type: ["string.quoted.double.pegjs", "punctuation.definition.string.begin.pegjs"]}) })
-    (doubleQuotedCharacter* { return token({type: "string.quoted.double.pegjs"}) })
-    ('"' { return token({type: ["string.quoted.double.pegjs", "punctuation.definition.string.end.pegjs"]}) })
+  = string:(
+      ('"' { return token({type: "punctuation.definition.string.begin.pegjs"}) })
+      doubleQuotedCharacter*
+      ('"' { return token({type: "punctuation.definition.string.end.pegjs"}) })
+    ) { return token({type: "string.quoted.double.pegjs", tokens: string}) }
 
 doubleQuotedCharacter
   = simpleDoubleQuotedCharacter
@@ -121,9 +123,10 @@ simpleDoubleQuotedCharacter
   = !('"' / "\\" / eolChar) char_:.
 
 singleQuotedString
-  = string:( ("'" { return token({type: "punctuation.definition.string.begin.pegjs"}) })
-             singleQuotedCharacter*
-             ("'" { return token({type: "punctuation.definition.string.end.pegjs"}) })
+  = string:(
+      ("'" { return token({type: "punctuation.definition.string.begin.pegjs"}) })
+      singleQuotedCharacter*
+      ("'" { return token({type: "punctuation.definition.string.end.pegjs"}) })
     ) { return token({type: "string.quoted.single.js", tokens: string}) }
 
 singleQuotedCharacter
