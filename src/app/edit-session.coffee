@@ -25,11 +25,6 @@ class EditSession
     session.setCursorScreenPosition(state.cursorScreenPosition)
     session
 
-  @identifiedBy: 'path'
-
-  @deserializesToSameObject: (state, editSession) ->
-    state.path
-
   scrollTop: 0
   scrollLeft: 0
   languageMode: null
