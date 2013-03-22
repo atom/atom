@@ -79,13 +79,14 @@ class TerminalView extends ScrollView
     @term.on 'exit', () =>
       @exited = true
       @write = () -> false
+      @term.kill()
       @term = null
     @write = (data) => @term.write(data)
     @exited = false
     @updateTerminalSize()
 
   logout: ->
-    @term.kill()
+    @term.end(TerminalBuffer.ctrl("d"))
 
   reload: ->
     if !@exited && @term?
