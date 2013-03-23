@@ -2,7 +2,7 @@ Token = require 'token'
 
 module.exports =
 class NullGrammar
-  name: "Null Grammar"
+  name: 'Null Grammar'
   scopeName: 'text.plain.null-grammar'
 
   tokenizeLine: (line) ->
