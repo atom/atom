@@ -13,6 +13,7 @@ _.extend atom,
   loadedThemes: []
   pendingBrowserProcessCallbacks: {}
   loadedPackages: []
+  activePackages: []
   activatedAtomPackages: []
   atomPackageStates: {}
   presentingModal: false
@@ -50,7 +51,12 @@ _.extend atom,
       pack.load()
 
   activatePackages: ->
-    pack.activate() for pack in @loadedPackages
+    for pack in @loadedPackages
+      @activePackages.push(pack)
+      pack.activate()
+
+  isPackageActive: (pack) ->
+    _.include(@activePackages, pack)
 
   getLoadedPackages: ->
     _.clone(@loadedPackages)
