@@ -841,6 +841,7 @@ class EditSession
     if @languageMode.reloadGrammar()
       @unfoldAll()
       @displayBuffer.tokenizedBuffer.resetScreenLines()
+      @trigger 'grammar-changed'
       true
 
   getDebugSnapshot: ->

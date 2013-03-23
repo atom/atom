@@ -395,8 +395,6 @@ class Editor extends View
         e.pageX = @renderedLines.offset().left
         onMouseDown(e)
 
-      @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
-
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
@@ -455,6 +453,9 @@ class Editor extends View
     @activeEditSession.on "path-changed.editor", =>
       @reloadGrammar()
       @trigger 'editor:path-changed'
+
+    @activeEditSession.on "grammar-changed.editor", =>
+      @trigger 'editor:grammar-changed'
 
     @trigger 'editor:path-changed'
     @resetDisplay()
@@ -1150,7 +1151,6 @@ class Editor extends View
     if grammarChanged
       @clearRenderedLines()
       @updateDisplay()
-      @trigger 'editor:grammar-changed'
     grammarChanged
 
   bindToKeyedEvent: (key, event, callback) ->
