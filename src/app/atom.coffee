@@ -37,40 +37,60 @@ _.extend atom,
         try
           packageStates[pack.name] = pack.mainModule.serialize?()
         catch e
+          console.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
       else
         packageStates[pack.name] = @atomPackageStates[pack.name]
     packageStates
 
   loadPackages: ->
-    textMatePackages = []
-    paths = @getPackagePaths().filter (path) -> fs.base(path) isnt 'text.tmbundle'
-    for path in paths
-      pack = Package.build(path)
+    @loadPackage(path) for path in @getPackagePaths() when not @isPackageDisabled(path)
+
+  loadPackage: (id) ->
+    if @isPackageDisabled(id)
+      return console.warn("Tried to load disabled packaged '#{id}'")
+
+    if path = @resolvePackagePath(id)
+      return pack if pack = @getLoadedPackage(id)
+      pack = Package.load(path)
       @loadedPackages.push(pack)
-      pack.load()
+      pack
+    else
+      throw new Error("Could not resolve '#{id}' to a package path")
+
+  resolvePackagePath: _.memoize (id) ->
+    return id if fs.isDirectory(id)
+    path = fs.resolve(config.packageDirPaths..., id)
+    path if fs.isDirectory(path)
+
+  isPackageDisabled: (id) ->
+    if path = @resolvePackagePath(id)
+      _.include(config.get('core.disabledPackages') ? [], fs.base(path))
+
+  getLoadedPackage: (id) ->
+    if path = @resolvePackagePath(id)
+      _.detect @loadedPackages, (pack) -> pack.path is path
+
+  isPackageLoaded: (id) ->
+    @getLoadedPackage(id)?
+
+  isPackageActive: (id) ->
+    if path = @resolvePackagePath(id)
+      _.detect @activePackages, (pack) -> pack.path is path
 
   activatePackages: ->
     for pack in @loadedPackages
       @activePackages.push(pack)
       pack.activate()
 
-  isPackageActive: (pack) ->
-    _.include(@activePackages, pack)
-
   getLoadedPackages: ->
     _.clone(@loadedPackages)
 
   getPackagePaths: ->
-    disabledPackages = config.get("core.disabledPackages") ? []
     packagePaths = []
     for packageDirPath in config.packageDirPaths
       for packagePath in fs.list(packageDirPath)
-        continue if not fs.isDirectory(packagePath)
-        continue if fs.base(packagePath) in disabledPackages
-        continue if packagePath in packagePaths
-        packagePaths.push(packagePath)
-
-    packagePaths
+        packagePaths.push(packagePath) if fs.isDirectory(packagePath)
+    _.uniq(packagePaths)
 
   loadThemes: ->
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']

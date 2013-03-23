@@ -11,6 +11,11 @@ class Package
     else
       new AtomPackage(path)
 
+  @load: (path) ->
+    pack = @build(path)
+    pack.load()
+    pack
+
   name: null
   path: null
 

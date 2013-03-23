@@ -57,7 +57,7 @@ class TextMatePackage extends Package
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    syntax.addGrammar(grammar) if atom.isPackageActive(this)
+    syntax.addGrammar(grammar) if atom.isPackageActive(@path)
 
   getGrammars: -> @grammars
 
