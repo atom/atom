@@ -18,13 +18,13 @@ describe "the `atom` global", ->
 
     it "requires and activates the package's main module if it exists", ->
       spyOn(atom, 'activateAtomPackage').andCallThrough()
-      window.loadPackage("package-with-module")
+      atom.activatePackage("package-with-module")
       expect(atom.activateAtomPackage).toHaveBeenCalled()
 
     it "logs warning instead of throwing an exception if a package fails to load", ->
       config.set("core.disabledPackages", [])
       spyOn(console, "warn")
-      expect(-> window.loadPackage("package-that-throws-an-exception")).not.toThrow()
+      expect(-> atom.activatePackage("package-that-throws-an-exception")).not.toThrow()
       expect(console.warn).toHaveBeenCalled()
 
     describe "keymap loading", ->
@@ -38,7 +38,7 @@ describe "the `atom` global", ->
           expect(keymap.bindingsForElement(element2)['ctrl-z']).toBeUndefined()
           expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
-          window.loadPackage("package-with-module")
+          atom.activatePackage("package-with-module")
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
           expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
@@ -51,7 +51,7 @@ describe "the `atom` global", ->
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
 
-          window.loadPackage("package-with-keymaps-manifest")
+          atom.activatePackage("package-with-keymaps-manifest")
 
           expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe 'keymap-1'
           expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
@@ -60,25 +60,27 @@ describe "the `atom` global", ->
     it "loads stylesheets associated with the package", ->
       stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 0
-      window.loadPackage("package-with-module")
+      atom.activatePackage("package-with-module")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 1
 
   describe "package lifecycle", ->
     describe "activation", ->
       it "calls activate on the package main with its previous state", ->
-        pack = window.loadPackage('package-with-module')
+        pack = atom.activatePackage('package-with-module')
         spyOn(pack.mainModule, 'activate')
 
         serializedState = rootView.serialize()
         rootView.deactivate()
+
+
         RootView.deserialize(serializedState)
-        window.loadPackage('package-with-module')
+        atom.activatePackage('package-with-module')
 
         expect(pack.mainModule.activate).toHaveBeenCalledWith(someNumber: 1)
 
     describe "deactivation", ->
       it "deactivates and removes the package module from the package module map", ->
-        pack = window.loadPackage('package-with-module')
+        pack = atom.activatePackage('package-with-module')
         expect(atom.activatedAtomPackages.length).toBe 1
         spyOn(pack.mainModule, "deactivate").andCallThrough()
         atom.deactivateAtomPackages()
@@ -88,8 +90,8 @@ describe "the `atom` global", ->
     describe "serialization", ->
       it "uses previous serialization state on packages whose activation has been deferred", ->
         atom.atomPackageStates['package-with-activation-events'] = {previousData: 'exists'}
-        unactivatedPackage = window.loadPackage('package-with-activation-events')
-        activatedPackage = window.loadPackage('package-with-module')
+        unactivatedPackage = atom.activatePackage('package-with-activation-events')
+        activatedPackage = atom.activatePackage('package-with-module')
 
         expect(atom.serializeAtomPackages()).toEqual
           'package-with-module':
@@ -108,8 +110,8 @@ describe "the `atom` global", ->
 
       it "absorbs exceptions that are thrown by the package module's serialize methods", ->
         spyOn(console, 'error')
-        window.loadPackage('package-with-module', activateImmediately: true)
-        window.loadPackage('package-with-serialize-error',  activateImmediately: true)
+        atom.activatePackage('package-with-module', immediate: true)
+        atom.activatePackage('package-with-serialize-error',  immediate: true)
 
         packageStates = atom.serializeAtomPackages()
         expect(packageStates['package-with-module']).toEqual someNumber: 1

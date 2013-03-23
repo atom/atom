@@ -11,7 +11,7 @@ describe "Tabs package main", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    window.loadPackage("tabs")
+    atom.activatePackage("tabs")
 
   describe ".activate()", ->
     it "appends a tab bar all existing and new panes", ->

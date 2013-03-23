@@ -262,7 +262,7 @@ describe "TextMateGrammar", ->
     describe "when the grammar can infinitely loop over a line", ->
       it "aborts tokenization", ->
         spyOn(console, 'error')
-        window.loadPackage("package-with-infinite-loop-grammar")
+        atom.activatePackage("package-with-infinite-loop-grammar")
         grammar = syntax.selectGrammar("something.package-with-infinite-loop-grammar")
         {tokens} = grammar.tokenizeLine("abc")
         expect(tokens[0].value).toBe "a"

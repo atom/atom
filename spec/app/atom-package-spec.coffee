@@ -73,14 +73,14 @@ describe "AtomPackage", ->
   describe "when a package is activated", ->
     it "loads config defaults based on the `configDefaults` key", ->
       expect(config.get('package-with-module.numbers.one')).toBeUndefined()
-      window.loadPackage("package-with-module")
+      atom.activatePackage("package-with-module")
       expect(config.get('package-with-module.numbers.one')).toBe 1
       expect(config.get('package-with-module.numbers.two')).toBe 2
 
   describe "when the package has a grammars directory", ->
     it "loads the grammar and correctly parses a keyword", ->
       spyOn(syntax, 'addGrammar')
-      window.loadPackage("package-with-a-cson-grammar")
+      atom.activatePackage("package-with-a-cson-grammar")
       expect(syntax.addGrammar).toHaveBeenCalled()
       grammar = syntax.addGrammar.argsForCall[0][0]
       expect(grammar.scopeName).toBe "source.alot"
@@ -90,7 +90,7 @@ describe "AtomPackage", ->
   describe "when the package has a scoped properties directory", ->
     it "loads the scoped properties", ->
       spyOn(syntax, 'addProperties')
-      window.loadPackage("package-with-scoped-properties")
+      atom.activatePackage("package-with-scoped-properties")
 
       expect(syntax.addProperties).toHaveBeenCalled()
       [selector, properties] = syntax.addProperties.argsForCall[0]

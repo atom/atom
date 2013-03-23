@@ -7,7 +7,7 @@ describe "Spell check", ->
     window.rootView = new RootView
     rootView.open('sample.js')
     config.set('spell-check.grammars', [])
-    window.loadPackage('spell-check', activateImmediately: true)
+    atom.activatePackage('spell-check', immediate: true)
     syntax.trigger 'grammars-loaded'
     rootView.attachToDom()
     editor = rootView.getActiveView()

@@ -12,13 +12,13 @@ describe "Snippets extension", ->
     window.rootView = new RootView
     rootView.open('sample.js')
 
-    packageWithSnippets = window.loadPackage("package-with-snippets")
+    packageWithSnippets = atom.loadPackage("package-with-snippets")
     spyOn(atom, "getLoadedPackages").andCallFake ->
       textMatePackages = window.textMatePackages.filter (pack) -> /package-with-a-cson-grammar|test|textmate-package|javascript/.test(pack.name)
       textMatePackages.concat([packageWithSnippets])
 
     spyOn(require("snippets/lib/snippets"), 'loadAll')
-    window.loadPackage("snippets")
+    atom.activatePackage("snippets")
 
     editor = rootView.getActiveView()
     editSession = rootView.getActivePaneItem()
