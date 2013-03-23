@@ -176,6 +176,16 @@ describe "StatusBar", ->
     it "displays the name of the current grammar", ->
       expect(statusBar.find('.grammar-name').text()).toBe 'JavaScript'
 
+    it "hides the label when the current grammar is the null grammar", ->
+      rootView.attachToDom()
+      editor.activeEditSession.languageMode.grammar = syntax.nullGrammar
+      editor.activeEditSession.trigger 'grammar-changed'
+      expect(statusBar.find('.grammar-name')).toBeHidden()
+      expect(statusBar.find('.grammar-name').text()).toBe ''
+      editor.reloadGrammar()
+      expect(statusBar.find('.grammar-name')).toBeVisible()
+      expect(statusBar.find('.grammar-name').text()).toBe 'JavaScript'
+
     describe "when the editor's grammar changes", ->
       it "displays the new grammar of the editor", ->
         syntax.setGrammarOverrideForPath(editor.getPath(), 'text.plain')
