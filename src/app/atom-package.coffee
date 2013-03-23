@@ -10,6 +10,7 @@ class AtomPackage extends Package
   metadata: null
   keymaps: null
   stylesheets: null
+  grammars: null
   mainModule: null
   deferActivation: false
 
@@ -53,11 +54,10 @@ class AtomPackage extends Package
       @stylesheets.push([stylesheetPath, loadStylesheet(stylesheetPath)])
 
   loadGrammars: ->
+    @grammars = []
     grammarsDirPath = fs.join(@path, 'grammars')
     for grammarPath in fs.list(grammarsDirPath, ['.cson', '.json']) ? []
-      grammarContent = fs.readObject(grammarPath)
-      grammar = new TextMateGrammar(grammarContent)
-      syntax.addGrammar(grammar)
+      @grammars.push(TextMateGrammar.loadSync(grammarPath))
 
   loadScopedProperties: ->
     scopedPropertiessDirPath = fs.join(@path, 'scoped-properties')
@@ -68,6 +68,7 @@ class AtomPackage extends Package
   activate: ->
     keymap.add(map) for map in @keymaps
     applyStylesheet(path, content) for [path, content] in @stylesheets
+    syntax.addGrammar(grammar) for grammar in @grammars
 
     if @deferActivation
       @subscribeToActivationEvents()
