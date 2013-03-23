@@ -78,12 +78,18 @@ _.extend atom,
       _.detect @activePackages, (pack) -> pack.path is path
 
   activatePackages: ->
-    for pack in @loadedPackages
+    @activatePackage(pack.path) for pack in @getLoadedPackages()
+
+  activatePackage: (id) ->
+    if pack = @loadPackage(id)
       @activePackages.push(pack)
       pack.activate()
 
   getLoadedPackages: ->
     _.clone(@loadedPackages)
+
+  getActivePackages: ->
+    _.clone(@activePackages)
 
   getPackagePaths: ->
     packagePaths = []
