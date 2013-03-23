@@ -37,7 +37,6 @@ _.extend atom,
         try
           packageStates[pack.name] = pack.mainModule.serialize?()
         catch e
-          console?.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
       else
         packageStates[pack.name] = @atomPackageStates[pack.name]
     packageStates
