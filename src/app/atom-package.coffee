@@ -8,6 +8,7 @@ CSON = require 'cson'
 module.exports =
 class AtomPackage extends Package
   metadata: null
+  keymaps: null
   mainModule: null
   deferActivation: false
 
@@ -32,18 +33,21 @@ class AtomPackage extends Package
     @metadata ?= {}
 
   loadKeymaps: ->
+    @keymaps = []
+
     keymapsDirPath = fs.join(@path, 'keymaps')
+    keymapExtensions = ['cson', 'json', '']
 
     if @metadata.keymaps
       for path in @metadata.keymaps
-        keymapPath = fs.resolve(keymapsDirPath, path, ['cson', 'json', ''])
-        keymap.load(keymapPath)
+        @keymaps.push(CSON.readObject(fs.resolve(keymapsDirPath, path, keymapExtensions)))
     else
-      keymap.loadDirectory(keymapsDirPath)
+      for path in fs.list(keymapsDirPath, ['cson', 'json', '']) ? []
+        @keymaps.push(CSON.readObject(path))
 
   loadStylesheets: ->
     stylesheetDirPath = fs.join(@path, 'stylesheets')
-    for stylesheetPath in fs.list(stylesheetDirPath) ? []
+    for stylesheetPath in fs.list(stylesheetDirPath, ['css', 'less']) ? []
       requireStylesheet(stylesheetPath)
 
   loadGrammars: ->
@@ -60,15 +64,20 @@ class AtomPackage extends Package
         syntax.addProperties(selector, properties)
 
   activate: ->
+    keymap.add(map) for map in @keymaps
+
     if @deferActivation
       @subscribeToActivationEvents()
     else
-      try
-        if @requireMainModule()
-          config.setDefaults(@name, @mainModule.configDefaults)
-          atom.activateAtomPackage(this)
-      catch e
-        console.warn "Failed to activate package named '#{@name}'", e.stack
+      @activateNow()
+
+  activateNow: ->
+    try
+      if @requireMainModule()
+        config.setDefaults(@name, @mainModule.configDefaults)
+        atom.activateAtomPackage(this)
+    catch e
+      console.warn "Failed to activate package named '#{@name}'", e.stack
 
   requireMainModule: ->
     return @mainModule if @mainModule
@@ -90,7 +99,7 @@ class AtomPackage extends Package
     activateHandler = (event) =>
       bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
       @deferActivation = false
-      @activate()
+      @activateNow()
       $(event.target).trigger(event)
       @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
       @unsubscribeFromActivationEvents(activateHandler)
