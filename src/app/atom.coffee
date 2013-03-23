@@ -45,10 +45,11 @@ _.extend atom,
   activatePackages: ->
     @activatePackage(pack.path) for pack in @getLoadedPackages()
 
-  activatePackage: (id) ->
-    if pack = @loadPackage(id)
+  activatePackage: (id, options) ->
+    if pack = @loadPackage(id, options)
       @activePackages.push(pack)
-      pack.activate()
+      pack.activate(options)
+      pack
 
   isPackageActive: (id) ->
     if path = @resolvePackagePath(id)
@@ -60,7 +61,7 @@ _.extend atom,
   loadPackages: ->
     @loadPackage(path) for path in @getPackagePaths() when not @isPackageDisabled(path)
 
-  loadPackage: (id) ->
+  loadPackage: (id, options) ->
     if @isPackageDisabled(id)
       return console.warn("Tried to load disabled packaged '#{id}'")
 

@@ -65,12 +65,12 @@ class AtomPackage extends Package
       for selector, properties of fs.readObject(scopedPropertiesPath)
         syntax.addProperties(selector, properties)
 
-  activate: ->
+  activate: ({immediate}={}) ->
     keymap.add(map) for map in @keymaps
     applyStylesheet(path, content) for [path, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
 
-    if @deferActivation
+    if @deferActivation and not immediate
       @subscribeToActivationEvents()
     else
       @activateNow()
