@@ -42,6 +42,21 @@ _.extend atom,
         packageStates[pack.name] = @atomPackageStates[pack.name]
     packageStates
 
+  activatePackages: ->
+    @activatePackage(pack.path) for pack in @getLoadedPackages()
+
+  activatePackage: (id) ->
+    if pack = @loadPackage(id)
+      @activePackages.push(pack)
+      pack.activate()
+
+  isPackageActive: (id) ->
+    if path = @resolvePackagePath(id)
+      _.detect @activePackages, (pack) -> pack.path is path
+
+  getActivePackages: ->
+    _.clone(@activePackages)
+
   loadPackages: ->
     @loadPackage(path) for path in @getPackagePaths() when not @isPackageDisabled(path)
 
@@ -62,10 +77,6 @@ _.extend atom,
     path = fs.resolve(config.packageDirPaths..., id)
     path if fs.isDirectory(path)
 
-  isPackageDisabled: (id) ->
-    if path = @resolvePackagePath(id)
-      _.include(config.get('core.disabledPackages') ? [], fs.base(path))
-
   getLoadedPackage: (id) ->
     if path = @resolvePackagePath(id)
       _.detect @loadedPackages, (pack) -> pack.path is path
@@ -73,23 +84,12 @@ _.extend atom,
   isPackageLoaded: (id) ->
     @getLoadedPackage(id)?
 
-  isPackageActive: (id) ->
-    if path = @resolvePackagePath(id)
-      _.detect @activePackages, (pack) -> pack.path is path
-
-  activatePackages: ->
-    @activatePackage(pack.path) for pack in @getLoadedPackages()
-
-  activatePackage: (id) ->
-    if pack = @loadPackage(id)
-      @activePackages.push(pack)
-      pack.activate()
-
   getLoadedPackages: ->
     _.clone(@loadedPackages)
 
-  getActivePackages: ->
-    _.clone(@activePackages)
+  isPackageDisabled: (id) ->
+    if path = @resolvePackagePath(id)
+      _.include(config.get('core.disabledPackages') ? [], fs.base(path))
 
   getPackagePaths: ->
     packagePaths = []
