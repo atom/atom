@@ -9,6 +9,7 @@ module.exports =
 class AtomPackage extends Package
   metadata: null
   keymaps: null
+  stylesheets: null
   mainModule: null
   deferActivation: false
 
@@ -46,9 +47,10 @@ class AtomPackage extends Package
         @keymaps.push(CSON.readObject(path))
 
   loadStylesheets: ->
+    @stylesheets = []
     stylesheetDirPath = fs.join(@path, 'stylesheets')
     for stylesheetPath in fs.list(stylesheetDirPath, ['css', 'less']) ? []
-      requireStylesheet(stylesheetPath)
+      @stylesheets.push([stylesheetPath, loadStylesheet(stylesheetPath)])
 
   loadGrammars: ->
     grammarsDirPath = fs.join(@path, 'grammars')
@@ -65,6 +67,7 @@ class AtomPackage extends Package
 
   activate: ->
     keymap.add(map) for map in @keymaps
+    applyStylesheet(path, content) for [path, content] in @stylesheets
 
     if @deferActivation
       @subscribeToActivationEvents()
