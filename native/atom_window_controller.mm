@@ -161,7 +161,6 @@
   NSMutableString *urlString = [NSMutableString string];
 
   NSURL *indexUrl = [[NSURL alloc] initFileURLWithPath:[_resourcePath stringByAppendingPathComponent:@"static/index.html"]];
-  NSLog(@"%@", [indexUrl absoluteString]);
   [urlString appendString:[indexUrl absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];
   [urlString appendFormat:@"&resourcePath=%@", [self encodeUrlParam:_resourcePath]];
