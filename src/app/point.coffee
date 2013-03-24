@@ -1,10 +1,12 @@
+_ = require 'underscore'
+
 module.exports =
 class Point
   @fromObject: (object) ->
     if object instanceof Point
       object
     else
-      if object instanceof Array
+      if _.isArray(object)
         [row, column] = object
       else
         { row, column } = object
