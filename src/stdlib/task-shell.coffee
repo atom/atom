@@ -1,3 +1,10 @@
+# This file is loaded within Task's worker process. It will attempt to invoke
+# any message with a 'method' and 'args' key on the global `handler` object. The
+# initial `handler` object contains the `start` method, which is called by the
+# task itself to relay information from the window thread and bootstrap the
+# worker's environment. The `start` method then replaces the handler with an
+# object required from the given `handlerPath`.
+
 global.window = {}
 global.attachEvent = ->
 console =

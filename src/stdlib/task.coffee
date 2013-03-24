@@ -4,7 +4,7 @@ EventEmitter = require 'event-emitter'
 fs = require 'fs-utils'
 
 module.exports =
-class ProcessTask
+class Task
   aborted: false
 
   constructor: (@path) ->
@@ -58,4 +58,4 @@ class ProcessTask
     @worker = null
     @trigger 'task-completed'
 
-_.extend ProcessTask.prototype, EventEmitter
+_.extend Task.prototype, EventEmitter
