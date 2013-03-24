@@ -32,8 +32,8 @@ if [[ $LATEST_VERSION != $CURRENT_VERSION ]]; then
   echo "Downloading/extracting cefode u${LATEST_VERSION}..."
   curl --progress-bar "${DISTURL}/cef_binary_latest.zip" > "${TEMP_DIR}/cef.zip"
   unzip -q "${TEMP_DIR}/cef.zip" -d "${TEMP_DIR}"
-  [ -d "${TARGET}" ] || mkdir "${TARGET}"
-  mv "${TEMP_DIR}/${CEF_BASENAME}"/* "${TARGET}"
+  [ -e "${TARGET}" ] && rm -rf "${TARGET}"
+  mv "${TEMP_DIR}/${CEF_BASENAME}" "${TARGET}"
   echo ${LATEST_VERSION} > 'cef/version'
 fi
 
