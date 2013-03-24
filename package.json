@@ -13,6 +13,7 @@
     "coffee-cache": "0.1.0",
     "pegjs": "0.7.0",
     "async": "0.2.6",
+    "nsspellchecker": "0.1.1",
     "plist": "git://github.com/nathansobo/node-plist.git"
   },
 

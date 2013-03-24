@@ -1,3 +1,5 @@
+NSSpellChecker = require 'nsspellchecker'
+
 module.exports =
   findMisspellings: (text) ->
     wordRegex = /(?:^|[\s\[\]])([a-zA-Z']+)(?=[\s\.\[\]]|$)/g
@@ -6,7 +8,7 @@ module.exports =
     for line in text.split('\n')
       while matches = wordRegex.exec(line)
         word = matches[1]
-        continue unless $native.isMisspelled(word)
+        continue unless NSSpellChecker.isMisspelled(word)
         startColumn = matches.index + matches[0].length - word.length
         endColumn = startColumn + word.length
         misspellings.push([[row, startColumn], [row, endColumn]])

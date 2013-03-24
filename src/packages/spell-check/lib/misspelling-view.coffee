@@ -1,6 +1,7 @@
 {View} = require 'space-pen'
 Range = require 'range'
 CorrectionsView = require './corrections-view'
+NSSpellChecker = require 'nsspellchecker'
 
 module.exports =
 class MisspellingView extends View
@@ -30,7 +31,7 @@ class MisspellingView extends View
 
       screenRange = @getScreenRange()
       misspelling = @editor.getTextInRange(@editor.bufferRangeForScreenRange(screenRange))
-      corrections = $native.getCorrectionsForMisspelling(misspelling)
+      corrections = NSSpellChecker.getCorrectionsForMisspelling(misspelling)
       @correctionsView?.remove()
       @correctionsView = new CorrectionsView(@editor, corrections, screenRange)
 
