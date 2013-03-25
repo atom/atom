@@ -1,0 +1,89 @@
+.ui-view {
+  position: absolute;
+  z-index: 2;
+  background: #202123;
+  color: #eee;
+  padding: 10px;
+  z-index: 9999;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  font-size: 16px;
+
+  .hidden-input {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    opacity: 0;
+  }
+
+  .close-icon {
+    font-family: 'Octicons Regular';
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
+    position: absolute;
+    color: #686868;
+    right: 8px;
+    top: 5px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .close-icon:before {
+    content: "\f081";
+  }
+
+  .close-icon:hover {
+    color: #989898;
+  }
+
+  .header h2 {
+    text-align: center;
+  }
+
+  .content {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 3px;
+    background: #f5f5f5;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.25) inset;
+  }
+  .row {
+    display: -webkit-flex;
+    min-height: 1em;
+    margin-bottom: 1em;
+  }
+  .row:last-child {
+    margin-bottom: 0px;
+  }
+  .column {
+    display: -webkit-flex;
+    -webkit-flex: 1;
+    -webkit-flex-flow: column;
+  }
+  .align-right {
+    text-align: right;
+  }
+  .ui-control {
+    position: relative;
+  }
+  .ui-control.text-field input {
+    position: absolute;
+    left: 0px; right: 0px;
+    line-height: 1em;
+    font-size: 16px;
+  }
+  .ui-control.button button {
+    font-size: 16px;
+  }
+}
+
+.ui-view.dialog {
+  top: 20px;
+  left: 50%;
+  width: 500px;
+  margin-left: -250px;
+}
