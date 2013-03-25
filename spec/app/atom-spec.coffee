@@ -1,5 +1,6 @@
 RootView = require 'root-view'
 {$$} = require 'space-pen'
+fs = require 'fs-utils'
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -10,7 +11,7 @@ describe "the `atom` global", ->
 
     beforeEach ->
       extension = require "package-with-module"
-      stylesheetPath = require.resolve("fixtures/packages/package-with-module/stylesheets/styles.css")
+      stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
 
     afterEach ->
       removeStylesheet(stylesheetPath)
@@ -57,28 +58,10 @@ describe "the `atom` global", ->
           expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
     it "loads stylesheets associated with the package", ->
-      stylesheetPath = require.resolve("fixtures/packages/package-with-module/stylesheets/styles.css")
+      stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 0
       window.loadPackage("package-with-module")
       expect(stylesheetElementForId(stylesheetPath).length).toBe 1
-
-  describe ".loadPackages()", ->
-    beforeEach ->
-      spyOn(syntax, 'addGrammar')
-
-    it "aborts the worker when all packages have been loaded", ->
-      LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
-      spyOn(LoadTextMatePackagesTask.prototype, 'abort').andCallThrough()
-      eventHandler = jasmine.createSpy('eventHandler')
-      syntax.on 'grammars-loaded', eventHandler
-      config.get("core.disabledPackages").push('textmate-package.tmbundle', 'package-with-snippets')
-      atom.loadPackages()
-
-      waitsFor "all packages to load", 5000, -> eventHandler.callCount > 0
-
-      runs ->
-        expect(LoadTextMatePackagesTask.prototype.abort).toHaveBeenCalled()
-        expect(LoadTextMatePackagesTask.prototype.abort.calls.length).toBe 1
 
   describe "package lifecycle", ->
     describe "activation", ->

@@ -515,8 +515,6 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     UnwatchPath(name, object, arguments, retval, exception);
   else if (name == "md5ForPath")
     Digest(name, object, arguments, retval, exception);
-  else if (name == "getPlatform")
-    retval = CefV8Value::CreateString("linux");
   else if (name == "lastModified")
     LastModified(name, object, arguments, retval, exception);
   else

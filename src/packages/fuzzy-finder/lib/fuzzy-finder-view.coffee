@@ -2,7 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
-fs = require 'fs'
+fs = require 'fs-utils'
 LoadPathsTask = require './load-paths-task'
 
 module.exports =
@@ -140,7 +140,7 @@ class FuzzyFinderView extends SelectList
     @setArray(projectRelativePaths)
 
   populateProjectPaths: (options = {}) ->
-    if @projectPaths?.length > 0
+    if @projectPaths?
       listedItems =
         if options.filter?
           @projectPaths.filter (path) ->
@@ -157,15 +157,7 @@ class FuzzyFinderView extends SelectList
       callback = (paths) =>
         @projectPaths = paths
         @reloadProjectPaths = false
-        listedItems =
-          if options.filter?
-            @projectPaths.filter (path) ->
-              path.indexOf(options.filter) >= 0
-          else
-            @projectPaths
-
-        @setArray(listedItems)
-        options.done(listedItems) if options.done?
+        @populateProjectPaths(options)
       @loadPathsTask = new LoadPathsTask(callback)
       @loadPathsTask.start()
 

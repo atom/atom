@@ -1,9 +1,8 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 Package = require 'package'
 TextMatePackage = require 'text-mate-package'
 Theme = require 'theme'
-LoadTextMatePackagesTask = require 'load-text-mate-packages-task'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
@@ -42,24 +41,13 @@ _.extend atom,
         packageStates[pack.name] = @atomPackageStates[pack.name]
     packageStates
 
-  loadTextPackage: ->
-    textPackagePath = _.find @getPackagePaths(), (path) -> fs.base(path) is 'text.tmbundle'
-    pack = Package.build(textPackagePath)
-    @loadedPackages.push(pack)
-    pack.load()
-
   loadPackages: ->
     textMatePackages = []
     paths = @getPackagePaths().filter (path) -> fs.base(path) isnt 'text.tmbundle'
     for path in paths
       pack = Package.build(path)
       @loadedPackages.push(pack)
-      if pack instanceof TextMatePackage
-        textMatePackages.push(pack)
-      else
-        pack.load()
-
-    new LoadTextMatePackagesTask(textMatePackages).start() if textMatePackages.length > 0
+      pack.load()
 
   activatePackages: ->
     pack.activate() for pack in @loadedPackages
@@ -179,17 +167,6 @@ _.extend atom,
   toggleFullScreen: ->
     @sendMessageToBrowserProcess('toggleFullScreen')
 
-  getRootViewStateForPath: (path) ->
-    if json = localStorage[path]
-      JSON.parse(json)
-
-  setRootViewStateForPath: (path, state) ->
-    return unless path
-    if state?
-      localStorage[path] = JSON.stringify(state)
-    else
-      delete localStorage[path]
-
   sendMessageToBrowserProcess: (name, data=[], callbacks) ->
     messageId = messageIdCounter++
     data.unshift(messageId)
@@ -209,11 +186,24 @@ _.extend atom,
     windowState
 
   getWindowState: (keyPath) ->
-    windowState = JSON.parse($native.getWindowState())
+    windowState = JSON.parse(@getInMemoryWindowState() ? @getSavedWindowState() ? '{}')
     if keyPath
       _.valueForKeyPath(windowState, keyPath)
     else
       windowState
+
+  getInMemoryWindowState: ->
+    inMemoryState = $native.getWindowState()
+    if inMemoryState.length > 0
+      inMemoryState
+    else
+      null
+
+  getSavedWindowState: ->
+    localStorage[window.location.params.pathToOpen]
+
+  saveWindowState: ->
+    localStorage[@getPathToOpen()] = JSON.stringify(@getWindowState())
 
   update: ->
     @sendMessageToBrowserProcess('update')

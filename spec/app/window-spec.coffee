@@ -1,5 +1,5 @@
 $ = require 'jquery'
-fs = require 'fs'
+fs = require 'fs-utils'
 {less} = require 'less'
 
 describe "Window", ->
@@ -8,12 +8,11 @@ describe "Window", ->
   beforeEach ->
     spyOn(atom, 'getPathToOpen').andReturn(project.getPath())
     window.handleWindowEvents()
-    window.buildProjectAndRootView()
+    window.deserializeWindowState()
     projectPath = project.getPath()
 
   afterEach ->
     window.shutdown()
-    atom.setRootViewStateForPath(projectPath, null)
     $(window).off 'beforeunload'
 
   describe "when the window is loaded", ->
@@ -129,18 +128,23 @@ describe "Window", ->
       expect($(document.body).css('font-weight')).not.toBe("bold")
 
   describe ".shutdown()", ->
-    it "saves the serialized state of the project and root view to the atom object so it can be rehydrated after reload", ->
+    it "saves the serialized state of the window so it can be deserialized after reload", ->
       projectPath = project.getPath()
-      expect(atom.getRootViewStateForPath(projectPath)).toBeUndefined()
+      expect(atom.getWindowState()).toEqual {}
+
       # JSON.stringify removes keys with undefined values
       rootViewState = JSON.parse(JSON.stringify(rootView.serialize()))
       projectState = JSON.parse(JSON.stringify(project.serialize()))
+      syntaxState = JSON.parse(JSON.stringify(syntax.serialize()))
 
       window.shutdown()
 
-      expect(atom.getRootViewStateForPath(projectPath)).toEqual
-        project: projectState
-        rootView: rootViewState
+      windowState = atom.getWindowState()
+      expect(windowState.rootView).toEqual rootViewState
+      expect(windowState.project).toEqual projectState
+      expect(windowState.syntax).toEqual syntaxState
+
+      expect(atom.saveWindowState).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
       rootView.open('sample.js')
@@ -153,10 +157,10 @@ describe "Window", ->
       expect(buffer.subscriptionCount()).toBe 0
 
     it "only serializes window state the first time it is called", ->
-      deactivateSpy = spyOn(atom, "setRootViewStateForPath").andCallThrough()
+
       window.shutdown()
       window.shutdown()
-      expect(atom.setRootViewStateForPath.callCount).toBe 1
+      expect(atom.saveWindowState.callCount).toBe 1
 
   describe ".installAtomCommand(commandPath)", ->
     commandPath = '/tmp/installed-atom-command/atom'

@@ -1,5 +1,4 @@
-Config = require 'config'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "Config", ->
   describe ".get(keyPath) and .set(keyPath, value)", ->
@@ -50,7 +49,7 @@ describe "Config", ->
         config.save()
 
         expect(fs.write.argsForCall[0][0]).toBe(fs.join(config.configDirPath, "config.cson"))
-        {CoffeeScript} = require 'coffee-script'
+        CoffeeScript = require 'coffee-script'
         writtenConfig = CoffeeScript.eval(fs.write.argsForCall[0][1], bare: true)
         expect(writtenConfig).toEqual config.settings
 

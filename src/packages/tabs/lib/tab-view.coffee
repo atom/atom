@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {View} = require 'space-pen'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 module.exports =
 class TabView extends View

@@ -12,12 +12,11 @@ Directory = require 'directory'
 File = require 'file'
 Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
-fs = require 'fs'
+fs = require 'fs-utils'
 RootView = require 'root-view'
 Git = require 'git'
 requireStylesheet "jasmine.less"
-fixturePackagesPath = require.resolve('fixtures/packages')
-require.paths.unshift(fixturePackagesPath)
+fixturePackagesPath = fs.resolveOnLoadPath('fixtures/packages')
 keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
@@ -30,7 +29,7 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
   jQuery.fx.off = true
-  window.project = new Project(require.resolve('fixtures'))
+  window.project = new Project(fs.resolveOnLoadPath('fixtures'))
   window.git = Git.open(project.getPath())
   window.project.on 'path-changed', ->
     window.git?.destroy()
@@ -39,6 +38,10 @@ beforeEach ->
   window.resetTimeouts()
   atom.atomPackageStates = {}
   atom.loadedPackages = []
+  spyOn(atom, 'saveWindowState')
+  spyOn(atom, 'getSavedWindowState').andReturn(null)
+  $native.setWindowState('')
+  syntax.clearGrammarOverrides()
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
@@ -86,6 +89,7 @@ afterEach ->
   ensureNoPathSubscriptions()
   atom.pendingModals = [[]]
   atom.presentingModal = false
+  syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
 
 window.loadPackage = (name, options={}) ->
@@ -104,7 +108,7 @@ window.loadTextMatePackages = ->
   config.packageDirPaths.unshift(fixturePackagesPath)
   window.textMatePackages = []
   for path in atom.getPackagePaths() when TextMatePackage.testName(path)
-    window.textMatePackages.push window.loadPackage(fs.base(path))
+    window.textMatePackages.push window.loadPackage(fs.base(path), sync: true)
 
 window.loadTextMatePackages()
 

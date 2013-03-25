@@ -1,7 +1,9 @@
+TextMateGrammar = require 'text-mate-grammar'
 Package = require 'package'
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 $ = require 'jquery'
+CSON = require 'cson'
 
 module.exports =
 class AtomPackage extends Package
@@ -14,6 +16,8 @@ class AtomPackage extends Package
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
+      @loadGrammars()
+      @loadScopedProperties()
       if @deferActivation = @metadata.activationEvents?
         @registerDeferredDeserializers()
       else
@@ -24,7 +28,7 @@ class AtomPackage extends Package
 
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
-      @metadata = fs.readObject(metadataPath)
+      @metadata = CSON.readObject(metadataPath)
     @metadata ?= {}
 
   loadKeymaps: ->
@@ -39,8 +43,21 @@ class AtomPackage extends Package
 
   loadStylesheets: ->
     stylesheetDirPath = fs.join(@path, 'stylesheets')
-    for stylesheetPath in fs.list(stylesheetDirPath)
+    for stylesheetPath in fs.list(stylesheetDirPath) ? []
       requireStylesheet(stylesheetPath)
+
+  loadGrammars: ->
+    grammarsDirPath = fs.join(@path, 'grammars')
+    for grammarPath in fs.list(grammarsDirPath, ['.cson', '.json']) ? []
+      grammarContent = fs.readObject(grammarPath)
+      grammar = new TextMateGrammar(grammarContent)
+      syntax.addGrammar(grammar)
+
+  loadScopedProperties: ->
+    scopedPropertiessDirPath = fs.join(@path, 'scoped-properties')
+    for scopedPropertiesPath in fs.list(scopedPropertiessDirPath, ['.cson', '.json']) ? []
+      for selector, properties of fs.readObject(scopedPropertiesPath)
+        syntax.addProperties(selector, properties)
 
   activate: ->
     if @deferActivation
@@ -55,9 +72,12 @@ class AtomPackage extends Package
 
   requireMainModule: ->
     return @mainModule if @mainModule
-    mainPath = @path
-    mainPath = fs.join(mainPath, @metadata.main) if @metadata.main
-    mainPath = require.resolve(mainPath)
+    mainPath =
+      if @metadata.main
+        fs.join(@path, @metadata.main)
+      else
+        fs.join(@path, 'index')
+    mainPath = fs.resolveExtension(mainPath, ["", _.keys(require.extensions)...])
     @mainModule = require(mainPath) if fs.isFile(mainPath)
 
   registerDeferredDeserializers: ->

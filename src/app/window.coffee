@@ -1,7 +1,7 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
-ChildProcess = require 'child-process'
 {less} = require 'less'
+{spawn} = require 'child_process'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -17,9 +17,8 @@ window.setUpEnvironment = ->
   Keymap = require 'keymap'
 
   window.rootViewParentSelector = 'body'
-  window.platform = $native.getPlatform()
   window.config = new Config
-  window.syntax = new Syntax
+  window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
   $(document).on 'keydown', keymap.handleKeyEvent
@@ -37,7 +36,7 @@ window.setUpEnvironment = ->
   requireStylesheet 'notification.less'
   requireStylesheet 'markdown.less'
 
-  if nativeStylesheetPath = require.resolve("#{platform}.css")
+  if nativeStylesheetPath = fs.resolveOnLoadPath("#{process.platform}.css")
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
@@ -53,11 +52,10 @@ window.startup = ->
 
   handleWindowEvents()
   config.load()
-  atom.loadTextPackage()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
   atom.loadPackages()
-  buildProjectAndRootView()
+  deserializeWindowState()
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
@@ -67,9 +65,10 @@ window.startup = ->
 window.shutdown = ->
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
-  atom.setRootViewStateForPath project.getPath(),
-    project: project.serialize()
-    rootView: rootView.serialize()
+  atom.setWindowState('project', project.serialize())
+  atom.setWindowState('rootView', rootView.serialize())
+  atom.setWindowState('syntax', syntax.serialize())
+  atom.saveWindowState()
   rootView.deactivate()
   project.destroy()
   git?.destroy()
@@ -84,7 +83,7 @@ window.installAtomCommand = (commandPath) ->
   bundledCommandPath = fs.resolve(window.resourcePath, 'atom.sh')
   if bundledCommandPath?
     fs.write(commandPath, fs.read(bundledCommandPath))
-    ChildProcess.exec("chmod u+x '#{commandPath}'")
+    spawn("chmod u+x '#{commandPath}'")
 
 window.handleWindowEvents = ->
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
@@ -92,13 +91,15 @@ window.handleWindowEvents = ->
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
   $(window).command 'window:close', => confirmClose()
 
-window.buildProjectAndRootView = ->
+window.deserializeWindowState = ->
   RootView = require 'root-view'
   Project = require 'project'
   Git = require 'git'
 
   pathToOpen = atom.getPathToOpen()
-  windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
+
+  windowState = atom.getWindowState()
+
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 
@@ -120,14 +121,13 @@ window.requireStylesheet = (path) ->
     content = window.loadStylesheet(fullPath)
     window.applyStylesheet(fullPath, content)
   else
-    console.log "bad", path
     throw new Error("Could not find a file at path '#{path}'")
 
 window.loadStylesheet = (path) ->
   content = fs.read(path)
   if fs.extension(path) == '.less'
     (new less.Parser).parse content, (e, tree) ->
-      throw new Error(e.message, file, e.line) if e
+      throw new Error(e.message, path, e.line) if e
       content = tree.toCSS()
 
   content
@@ -189,6 +189,12 @@ window.measure = (description, fn) ->
   console.log description, result
   value
 
+window.profile = (description, fn) ->
+  measure description, ->
+    console.profile(description)
+    value = fn()
+    console.profileEnd(description)
+    value
 
 confirmClose = ->
   rootView.confirmClose().done -> window.close()

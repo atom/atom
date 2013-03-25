@@ -1,12 +1,12 @@
 {View, $$} = require 'space-pen'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Gutter = require 'gutter'
 Point = require 'point'
 Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -401,8 +401,6 @@ class Editor extends View
         e.pageX = @renderedLines.offset().left
         onMouseDown(e)
 
-      @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
-
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
@@ -461,6 +459,9 @@ class Editor extends View
     @activeEditSession.on "path-changed.editor", =>
       @reloadGrammar()
       @trigger 'editor:path-changed'
+
+    @activeEditSession.on "grammar-changed.editor", =>
+      @trigger 'editor:grammar-changed'
 
     @trigger 'editor:path-changed'
     @resetDisplay()
@@ -719,8 +720,6 @@ class Editor extends View
     fragment.remove()
 
   updateLayerDimensions: ->
-    @gutter.calculateWidth()
-
     height = @lineHeight * @screenLineCount()
     unless @layerHeight == height
       @renderedLines.height(height)
@@ -1154,11 +1153,10 @@ class Editor extends View
     new GrammarView(this)
 
   reloadGrammar: ->
-    grammarChanged =  @activeEditSession.reloadGrammar()
+    grammarChanged = @activeEditSession.reloadGrammar()
     if grammarChanged
       @clearRenderedLines()
       @updateDisplay()
-      @trigger 'editor:grammar-changed'
     grammarChanged
 
   bindToKeyedEvent: (key, event, callback) ->

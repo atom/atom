@@ -95,6 +95,9 @@ $.fn.command = (eventName, selector, options, handler) ->
 $.fn.iconSize = (size) ->
   @width(size).height(size).css('font-size', size)
 
+$.fn.intValue = ->
+  parseInt(@text())
+
 $.Event.prototype.abortKeyBinding = ->
 $.Event.prototype.currentTargetView = -> $(this.currentTarget).view()
 $.Event.prototype.targetView = -> $(this.target).view()

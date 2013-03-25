@@ -1,5 +1,5 @@
 Point = require 'point'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
@@ -8,7 +8,7 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
 _ = require 'underscore'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 module.exports =
 class EditSession
@@ -24,11 +24,6 @@ class EditSession
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
     session
-
-  @identifiedBy: 'path'
-
-  @deserializesToSameObject: (state, editSession) ->
-    state.path
 
   scrollTop: 0
   scrollLeft: 0
@@ -846,6 +841,7 @@ class EditSession
     if @languageMode.reloadGrammar()
       @unfoldAll()
       @displayBuffer.tokenizedBuffer.resetScreenLines()
+      @trigger 'grammar-changed'
       true
 
   getDebugSnapshot: ->

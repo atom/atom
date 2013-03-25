@@ -1,6 +1,6 @@
 RootView = require 'root-view'
 AtomPackage = require 'atom-package'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "AtomPackage", ->
   [packageMainModule, pack] = []
@@ -63,7 +63,7 @@ describe "AtomPackage", ->
       describe "when the package doesn't have an index.coffee", ->
         it "does not throw an exception or log an error", ->
           spyOn(console, "error")
-          spyOn(console, "warn")
+          spyOn(console, "warn").andCallThrough()
           pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-keymaps-manifest'))
 
           expect(-> pack.load()).not.toThrow()
@@ -76,3 +76,23 @@ describe "AtomPackage", ->
       window.loadPackage("package-with-module")
       expect(config.get('package-with-module.numbers.one')).toBe 1
       expect(config.get('package-with-module.numbers.two')).toBe 2
+
+  describe "when the package has a grammars directory", ->
+    it "loads the grammar and correctly parses a keyword", ->
+      spyOn(syntax, 'addGrammar')
+      window.loadPackage("package-with-a-cson-grammar")
+      expect(syntax.addGrammar).toHaveBeenCalled()
+      grammar = syntax.addGrammar.argsForCall[0][0]
+      expect(grammar.scopeName).toBe "source.alot"
+      {tokens} = grammar.tokenizeLine("this is alot of code")
+      expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
+
+  describe "when the package has a scoped properties directory", ->
+    it "loads the scoped properties", ->
+      spyOn(syntax, 'addProperties')
+      window.loadPackage("package-with-scoped-properties")
+
+      expect(syntax.addProperties).toHaveBeenCalled()
+      [selector, properties] = syntax.addProperties.argsForCall[0]
+      expect(selector).toBe ".source.omg"
+      expect(properties).toEqual {editor: increaseIndentPattern: '^a'}

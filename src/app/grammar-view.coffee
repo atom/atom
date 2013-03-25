@@ -48,9 +48,9 @@ class GrammarView extends SelectList
   confirmed: (grammar) ->
     @cancel()
     if grammar is @autoDetect
-      project.removeGrammarOverrideForPath(@path)
+      syntax.clearGrammarOverrideForPath(@path)
     else
-      project.addGrammarOverrideForPath(@path, grammar)
+      syntax.setGrammarOverrideForPath(@path, grammar.scopeName)
     @editor.reloadGrammar()
 
   attach: ->
