@@ -25,7 +25,7 @@ class UIView extends View
     @command 'ui-view:default-button', =>
       @find("button.default").click()
     @command 'ui-view:cancel-button', =>
-      @find("button.cancel").click()
+      @close(false)
   setTitle: (@title) ->
     @header.empty().append($("<h2>").text(@title))
   addSubview: (view) ->

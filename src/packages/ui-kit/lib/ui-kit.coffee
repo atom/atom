@@ -41,20 +41,7 @@ UIKit =
     view.find(".ui-control.text-field").focus()
     view
   testUIKit: () ->
-    UIKit.prompt "Foo", (result) =>
-    return
-    view = new UIView(position:"dialog")
-    layout = new UIKit.Layout ->
-      @row =>
-        @column =>
-          @text "Enter something here:"
-        @column =>
-          @textField()
-      @row =>
-        @column align:"right", =>
-          @button(title:"Save")
-    view.setTitle("Dialog Test")
-    view.addSubview(layout)
-    view.runModalDialog (result) ->
+    UIKit.alert "Something terrible has happend!"
+    # UIKit.prompt "Question the user should answer", (result) =>
 UILayout.UI = UIKit
 module.exports = UIKit
