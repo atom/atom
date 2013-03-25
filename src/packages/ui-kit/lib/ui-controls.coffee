@@ -9,8 +9,9 @@ class UIControl extends View
   @controlClass: ""
   @content: ->
     @div class: "ui-control #{@controlClass}", => @controlContent()
-  initialize: ->
+  initialize: (options={}) ->
     @parentView = null
+    @action = options.action
   inView: -> @parentView?
   setTitle: (title) ->
     @controlElement?.text(title)
@@ -21,9 +22,14 @@ class UIButton extends UIControl
     @button outlet:"controlElement"
   @controlClass: "button"
   initialize: (options={}) ->
-    @title = options.title
-    @setTitle(@title)
     super
+    @title = options.title
+    @default = options.default
+    @setTitle(@title)
+    if @action?
+      @controlElement.on 'click', => @action.apply(this)
+    if @default == true
+      @controlElement.addClass("default")
 
 class UITextField extends UIControl
   @controlContent: ->

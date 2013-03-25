@@ -8,6 +8,7 @@ module.exports =
 class UIView extends View
   @content: ->
     @div class:"ui-view", =>
+      @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'close-icon', outlet:"closeIcon"
       @div class:"header", outlet:"header"
       @div class:"content", outlet:"content"
@@ -15,17 +16,24 @@ class UIView extends View
   initialize: (options={position:"full"}) ->
     @title = ""
     @visible = false
+    @on 'focus', =>
+      @hiddenInput.focus()
+      false
     if options.position == "dialog"
       @addClass("dialog")
     @closeIcon.on 'click', => @close()
+    @command 'ui-view:default-button', =>
+      @find("button.default").click()
   setTitle: (@title) ->
     @header.empty().append($("<h2>").text(@title))
   addSubview: (view) ->
     view.parentView = this
-    @content.append(view)
+    v = if view.content? then view.content else view
+    @content.append(v)
   addToPane: (pane) ->
   addToRootView: ->
     rootView.append(this)
+    @focus()
     @visible = true
   runModalDialog: (callback) ->
     @addToRootView()

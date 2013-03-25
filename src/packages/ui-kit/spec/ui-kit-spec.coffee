@@ -43,6 +43,12 @@ fdescribe 'UI Kit', ->
           runs ->
             expect(view.visible).toBe(false)
       describe "alert", ->
+        it "creates an alert dialog", ->
+          view = UIKit.alert("Something went wrong!")
+          expect(view.find("button").length).toBe(1)
+          expect(view.find("button").text()).toBe("OK")
+          view.trigger "ui-view:default-button"
+          expect(view.visible).toBe(false)
       describe "prompt", ->
 
   describe "Controls", ->
@@ -68,9 +74,9 @@ fdescribe 'UI Kit', ->
           @row =>
             @column align:"right", =>
               @button(title:"Save")
-        view.addSubview(layout.content)
+        view.addSubview(layout)
         expect(view.find("button").length).toBe(1)
-        expect(view.find("input").length).toBe(1)
+        expect(view.content.find("input").length).toBe(1)
 
   describe "Events", ->
     describe "when a dialog is closed", ->

@@ -1,0 +1,2 @@
+'.ui-view':
+  'enter': 'ui-view:default-button'
