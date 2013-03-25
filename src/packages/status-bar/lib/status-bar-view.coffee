@@ -114,6 +114,9 @@ class StatusBarView extends View
     else if git.isStatusNew(status)
       @gitStatusIcon.addClass('new-status-icon')
       @gitStatusIcon.text("+#{@buffer.getLineCount()}")
+    else if git.isPathIgnored(path)
+      @gitStatusIcon.addClass('ignored-status-icon')
+      @gitStatusIcon.text('')
 
   updatePathText: ->
     if path = @editor.getPath()

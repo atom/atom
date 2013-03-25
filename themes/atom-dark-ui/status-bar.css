@@ -20,3 +20,8 @@
   color: #5293d8;
   display: inline-block;
 }
+
+.status-bar .git-status.octicons.ignored-status-icon {
+  color: #969696;
+  display: inline-block;
+}

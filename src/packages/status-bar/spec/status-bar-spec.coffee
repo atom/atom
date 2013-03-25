@@ -124,12 +124,14 @@ describe "StatusBar", ->
       expect(statusBar.branchLabel.text()).toBe ''
 
   describe "git status label", ->
-    [repo, path, originalPathText, newPath] = []
+    [repo, path, originalPathText, newPath, ignoredPath] = []
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
       newPath = fs.join(fs.resolveOnLoadPath('fixtures/git/working-dir'), 'new.txt')
       fs.write(newPath, "I'm new here")
+      ignoredPath = fs.join(fs.resolveOnLoadPath('fixtures/git/working-dir'), 'ignored.txt')
+      fs.write(ignoredPath, 'ignored.txt')
       git.getPathStatus(path)
       git.getPathStatus(newPath)
       originalPathText = fs.read(path)
@@ -138,6 +140,7 @@ describe "StatusBar", ->
     afterEach ->
       fs.write(path, originalPathText)
       fs.remove(newPath) if fs.exists(newPath)
+      fs.remove(ignoredPath) if fs.exists(ignoredPath)
 
     it "displays the modified icon for a changed file", ->
       fs.write(path, "i've changed for the worse")
@@ -152,6 +155,10 @@ describe "StatusBar", ->
     it "displays the new icon for a new file", ->
       rootView.open(newPath)
       expect(statusBar.gitStatusIcon).toHaveClass('new-status-icon')
+
+    it "displays the ignored icon for an ignored file", ->
+      rootView.open(ignoredPath)
+      expect(statusBar.gitStatusIcon).toHaveClass('ignored-status-icon')
 
     it "updates when a status-changed event occurs", ->
       fs.write(path, "i've changed for the worse")
