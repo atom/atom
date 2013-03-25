@@ -17,6 +17,7 @@ RootView = require 'root-view'
 Git = require 'git'
 requireStylesheet "jasmine"
 fixturePackagesPath = fs.resolveOnLoadPath('fixtures/packages')
+config.packageDirPaths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
@@ -91,16 +92,6 @@ afterEach ->
   atom.presentingModal = false
   syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
-
-# Specs rely on TextMate bundles (but not atom packages)
-window.loadTextMatePackages = ->
-  TextMatePackage = require 'text-mate-package'
-  config.packageDirPaths.unshift(fixturePackagesPath)
-  window.textMatePackages = []
-  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
-    window.textMatePackages.push atom.activatePackage(path, sync: true)
-
-window.loadTextMatePackages()
 
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()

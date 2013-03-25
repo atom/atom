@@ -32,9 +32,14 @@ class Syntax
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    for fileType in grammar.fileTypes
-      @grammarsByFileType[fileType] = grammar
-      @grammarsByScopeName[grammar.scopeName] = grammar
+    @grammarsByFileType[fileType] = grammar for fileType in grammar.fileTypes
+    @grammarsByScopeName[grammar.scopeName] = grammar
+
+  removeGrammar: (grammar) ->
+    if _.include(@grammars, grammar)
+      _.remove(@grammars, grammar)
+      delete @grammarsByFileType[fileType] for fileType in grammar.fileTypes
+      delete @grammarsByScopeName[grammar.scopeName]
 
   setGrammarOverrideForPath: (path, scopeName) ->
     @grammarOverridesByPath[path] = scopeName
@@ -46,7 +51,9 @@ class Syntax
     @grammarOverridesByPath = {}
 
   selectGrammar: (filePath, fileContents) ->
+
     return @grammarsByFileType["txt"] ? @nullGrammar unless filePath
+
     @grammarOverrideForPath(filePath) ?
       @grammarByFirstLineRegex(filePath, fileContents) ?
       @grammarByPath(filePath) ?

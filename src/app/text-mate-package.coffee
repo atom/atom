@@ -36,7 +36,8 @@ class TextMatePackage extends Package
       syntax.addProperties(selector, properties)
 
   deactivate: ->
-    # we should remove grammars and unregister properties, snippets, etc
+    syntax.removeGrammar(grammar) for grammar in @grammars
+    # we should also unregister properties, snippets, etc
 
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage']
 

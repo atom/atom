@@ -4,6 +4,8 @@ describe "Spell check", ->
   [editor] = []
 
   beforeEach ->
+    atom.activatePackage('text.tmbundle', sync: true)
+    atom.activatePackage('javascript.tmbundle', sync: true)
     window.rootView = new RootView
     rootView.open('sample.js')
     config.set('spell-check.grammars', [])

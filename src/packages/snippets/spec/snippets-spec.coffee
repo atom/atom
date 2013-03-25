@@ -9,13 +9,11 @@ Package = require 'package'
 describe "Snippets extension", ->
   [buffer, editor, editSession] = []
   beforeEach ->
+    atom.activatePackage('javascript.tmbundle', sync: true)
     window.rootView = new RootView
     rootView.open('sample.js')
 
     packageWithSnippets = atom.loadPackage("package-with-snippets")
-    spyOn(atom, "getLoadedPackages").andCallFake ->
-      textMatePackages = window.textMatePackages.filter (pack) -> /package-with-a-cson-grammar|test|textmate-package|javascript/.test(pack.name)
-      textMatePackages.concat([packageWithSnippets])
 
     spyOn(require("snippets/lib/snippets"), 'loadAll')
     atom.activatePackage("snippets")
@@ -238,6 +236,9 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
+      atom.loadPackage('textmate-package.tmbundle', sync: true)
+      atom.loadPackage('package-with-snippets')
+
       jasmine.unspy(window, "setTimeout")
       jasmine.unspy(snippets, 'loadAll')
       spyOn(snippets, 'loadAtomSnippets').andCallFake (path, done) -> done()
