@@ -11,6 +11,8 @@ class AtomPackage extends Package
   keymaps: null
   stylesheets: null
   grammars: null
+  mainModulePath: null
+  resolvedMainModulePath: false
   mainModule: null
   deferActivation: false
 
@@ -79,19 +81,33 @@ class AtomPackage extends Package
     try
       if @requireMainModule()
         config.setDefaults(@name, @mainModule.configDefaults)
-        atom.activateAtomPackage(this)
+        @mainModule.activate(atom.getPackageState(@name) ? {})
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
+  serialize: ->
+    try
+      @mainModule?.serialize?()
+    catch e
+      console.error "Error serializing package '#{@name}'", e.stack
+
+  deactivate: ->
+    @mainModule?.deactivate?()
+
   requireMainModule: ->
     return @mainModule if @mainModule
-    mainPath =
+    mainModulePath = @getMainModulePath()
+    @mainModule = require(mainModulePath) if fs.isFile(mainModulePath)
+
+  getMainModulePath: ->
+    return @mainModulePath if @resolvedMainModulePath
+    @resolvedMainModulePath = true
+    mainModulePath =
       if @metadata.main
         fs.join(@path, @metadata.main)
       else
         fs.join(@path, 'index')
-    mainPath = fs.resolveExtension(mainPath, ["", _.keys(require.extensions)...])
-    @mainModule = require(mainPath) if fs.isFile(mainPath)
+    @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []

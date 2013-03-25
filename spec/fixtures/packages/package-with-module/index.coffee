@@ -4,8 +4,8 @@ module.exports =
 
   someNumber: 0
 
-  activate: ->
-    @someNumber = 1
+  activate: ({@someNumber}) ->
+    @someNumber ?= 1
 
   deactivate: ->
 

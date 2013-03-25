@@ -36,7 +36,7 @@ beforeEach ->
     window.git = Git.open(window.project.getPath())
 
   window.resetTimeouts()
-  atom.atomPackageStates = {}
+  atom.packageStates = {}
   atom.loadedPackages = []
   spyOn(atom, 'saveWindowState')
   spyOn(atom, 'getSavedWindowState').andReturn(null)

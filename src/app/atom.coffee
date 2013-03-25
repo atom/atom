@@ -14,33 +14,23 @@ _.extend atom,
   pendingBrowserProcessCallbacks: {}
   loadedPackages: []
   activePackages: []
-  activatedAtomPackages: []
-  atomPackageStates: {}
+  packageStates: {}
   presentingModal: false
   pendingModals: [[]]
 
   getPathToOpen: ->
     @getWindowState('pathToOpen') ? window.location.params.pathToOpen
 
-  activateAtomPackage: (pack) ->
-    @activatedAtomPackages.push(pack)
-    pack.mainModule.activate(@atomPackageStates[pack.name] ? {})
+  getPackageState: (name) ->
+    @packageStates[name]
 
-  deactivateAtomPackages: ->
-    pack.mainModule.deactivate?() for pack in @activatedAtomPackages
-    @activatedAtomPackages = []
+  setPackageState: (name, state) ->
+    @packageStates[name] = state
 
   serializeAtomPackages: ->
-    packageStates = {}
-    for pack in @loadedPackages
-      if pack in @activatedAtomPackages
-        try
-          packageStates[pack.name] = pack.mainModule.serialize?()
-        catch e
-          console.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
-      else
-        packageStates[pack.name] = @atomPackageStates[pack.name]
-    packageStates
+    for pack in @getActivePackages()
+      @setPackageState(pack.name, state) if state = pack.serialize?()
+    @packageStates
 
   activatePackages: ->
     @activatePackage(pack.path) for pack in @getLoadedPackages()
@@ -50,6 +40,21 @@ _.extend atom,
       @activePackages.push(pack)
       pack.activate(options)
       pack
+
+  deactivatePackages: ->
+    @deactivatePackage(pack.path) for pack in @getActivePackages()
+
+  deactivatePackage: (id) ->
+    if pack = @getActivePackage(id)
+      @setPackageState(pack.name, state) if state = pack.serialize?()
+      pack.deactivate()
+      _.remove(@activePackages, pack)
+    else
+      throw new Error("No active package for id '#{id}'")
+
+  getActivePackage: (id) ->
+    if path = @resolvePackagePath(id)
+      _.detect @activePackages, (pack) -> pack.path is path
 
   isPackageActive: (id) ->
     if path = @resolvePackagePath(id)

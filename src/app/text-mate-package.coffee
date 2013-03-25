@@ -36,6 +36,9 @@ class TextMatePackage extends Package
     for { selector, properties } in @scopedProperties
       syntax.addProperties(selector, properties)
 
+  deactivate: ->
+    # we should remove grammars and unregister properties, snippets, etc
+
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'cson', 'json']
 
   loadGrammars: (done) ->

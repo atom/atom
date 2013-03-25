@@ -6,116 +6,100 @@ describe "the `atom` global", ->
   beforeEach ->
     window.rootView = new RootView
 
-  describe "when a package is built and loaded", ->
-    [extension, stylesheetPath] = []
+  describe "package lifecycle methods", ->
+    packageModule = null
 
     beforeEach ->
-      extension = require "package-with-module"
-      stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
+      packageModule = require "package-with-module"
 
     afterEach ->
-      removeStylesheet(stylesheetPath)
+      atom.deactivatePackages()
 
-    it "requires and activates the package's main module if it exists", ->
-      spyOn(atom, 'activateAtomPackage').andCallThrough()
-      atom.activatePackage("package-with-module")
-      expect(atom.activateAtomPackage).toHaveBeenCalled()
+    describe ".activatePackage(id)", ->
+      stylesheetPath = null
 
-    it "logs warning instead of throwing an exception if a package fails to load", ->
-      config.set("core.disabledPackages", [])
-      spyOn(console, "warn")
-      expect(-> atom.activatePackage("package-that-throws-an-exception")).not.toThrow()
-      expect(console.warn).toHaveBeenCalled()
+      beforeEach ->
+        stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
 
-    describe "keymap loading", ->
-      describe "when package.json does not contain a 'keymaps' manifest", ->
-        it "loads all the .cson/.json files in the keymaps directory", ->
-          element1 = $$ -> @div class: 'test-1'
-          element2 = $$ -> @div class: 'test-2'
-          element3 = $$ -> @div class: 'test-3'
+      afterEach ->
+        removeStylesheet(stylesheetPath)
 
-          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
-          expect(keymap.bindingsForElement(element2)['ctrl-z']).toBeUndefined()
-          expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
+      it "requires and activates the package's main module if it exists", ->
+        spyOn(packageModule, 'activate').andCallThrough()
+        atom.activatePackage("package-with-module")
+        expect(packageModule.activate).toHaveBeenCalledWith({})
 
-          atom.activatePackage("package-with-module")
+      it "passes the package its previously serialized state if it exists", ->
+        pack = atom.activatePackage("package-with-module")
+        expect(pack.mainModule.someNumber).not.toBe 77
+        pack.mainModule.someNumber = 77
+        atom.deactivatePackage("package-with-module")
 
-          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
-          expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
-          expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
+        pack.requireMainModule() # deactivating the package nukes its main module, so we require it again to spy on it
+        spyOn(pack.mainModule, 'activate').andCallThrough()
 
-      describe "when package.json contains a 'keymaps' manifest", ->
-        it "loads only the keymaps specified by the manifest, in the specified order", ->
-          element1 = $$ -> @div class: 'test-1'
-          element3 = $$ -> @div class: 'test-3'
+        atom.activatePackage("package-with-module")
+        expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
-          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
+      it "logs warning instead of throwing an exception if a package fails to load", ->
+        config.set("core.disabledPackages", [])
+        spyOn(console, "warn")
+        expect(-> atom.activatePackage("package-that-throws-an-exception")).not.toThrow()
+        expect(console.warn).toHaveBeenCalled()
 
-          atom.activatePackage("package-with-keymaps-manifest")
+      describe "keymap loading", ->
+        describe "when package.json does not contain a 'keymaps' manifest", ->
+          it "loads all the .cson/.json files in the keymaps directory", ->
+            element1 = $$ -> @div class: 'test-1'
+            element2 = $$ -> @div class: 'test-2'
+            element3 = $$ -> @div class: 'test-3'
 
-          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe 'keymap-1'
-          expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
-          expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
+            expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
+            expect(keymap.bindingsForElement(element2)['ctrl-z']).toBeUndefined()
+            expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
-    it "loads stylesheets associated with the package", ->
-      stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
-      expect(stylesheetElementForId(stylesheetPath).length).toBe 0
-      atom.activatePackage("package-with-module")
-      expect(stylesheetElementForId(stylesheetPath).length).toBe 1
+            atom.activatePackage("package-with-module")
 
-  describe "package lifecycle", ->
-    describe "activation", ->
-      it "calls activate on the package main with its previous state", ->
-        pack = atom.activatePackage('package-with-module')
-        spyOn(pack.mainModule, 'activate')
+            expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
+            expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
+            expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
-        serializedState = rootView.serialize()
-        rootView.deactivate()
+        describe "when package.json contains a 'keymaps' manifest", ->
+          it "loads only the keymaps specified by the manifest, in the specified order", ->
+            element1 = $$ -> @div class: 'test-1'
+            element3 = $$ -> @div class: 'test-3'
 
+            expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
 
-        RootView.deserialize(serializedState)
-        atom.activatePackage('package-with-module')
+            atom.activatePackage("package-with-keymaps-manifest")
 
-        expect(pack.mainModule.activate).toHaveBeenCalledWith(someNumber: 1)
+            expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe 'keymap-1'
+            expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
+            expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
-    describe "deactivation", ->
-      it "deactivates and removes the package module from the package module map", ->
-        pack = atom.activatePackage('package-with-module')
-        expect(atom.activatedAtomPackages.length).toBe 1
-        spyOn(pack.mainModule, "deactivate").andCallThrough()
-        atom.deactivateAtomPackages()
+      it "loads stylesheets associated with the package", ->
+        stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
+        expect(stylesheetElementForId(stylesheetPath).length).toBe 0
+        atom.activatePackage("package-with-module")
+        expect(stylesheetElementForId(stylesheetPath).length).toBe 1
+
+    describe ".deactivatePackage(id)", ->
+      it "calls `deactivate` on the package's main module and deletes the package's module reference and require cache entry", ->
+        pack = atom.activatePackage("package-with-module")
+        expect(atom.getActivePackage("package-with-module")).toBe pack
+        spyOn(pack.mainModule, 'deactivate').andCallThrough()
+
+        atom.deactivatePackage("package-with-module")
         expect(pack.mainModule.deactivate).toHaveBeenCalled()
-        expect(atom.activatedAtomPackages.length).toBe 0
-
-    describe "serialization", ->
-      it "uses previous serialization state on packages whose activation has been deferred", ->
-        atom.atomPackageStates['package-with-activation-events'] = {previousData: 'exists'}
-        unactivatedPackage = atom.activatePackage('package-with-activation-events')
-        activatedPackage = atom.activatePackage('package-with-module')
-
-        expect(atom.serializeAtomPackages()).toEqual
-          'package-with-module':
-            'someNumber': 1
-          'package-with-activation-events':
-            'previousData': 'exists'
-
-        # ensure serialization occurs when the packageis activated
-        unactivatedPackage.deferActivation = false
-        unactivatedPackage.activate()
-        expect(atom.serializeAtomPackages()).toEqual
-          'package-with-module':
-            'someNumber': 1
-          'package-with-activation-events':
-            'previousData': 'overwritten'
+        expect(atom.getActivePackage("package-with-module")).toBeUndefined()
 
       it "absorbs exceptions that are thrown by the package module's serialize methods", ->
         spyOn(console, 'error')
         atom.activatePackage('package-with-module', immediate: true)
         atom.activatePackage('package-with-serialize-error',  immediate: true)
-
-        packageStates = atom.serializeAtomPackages()
-        expect(packageStates['package-with-module']).toEqual someNumber: 1
-        expect(packageStates['package-with-serialize-error']).toBeUndefined()
+        atom.deactivatePackages()
+        expect(atom.packageStates['package-with-module']).toEqual someNumber: 1
+        expect(atom.packageStates['package-with-serialize-error']).toBeUndefined()
         expect(console.error).toHaveBeenCalled()
 
   describe ".getVersion(callback)", ->

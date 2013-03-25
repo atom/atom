@@ -76,6 +76,7 @@ describe "TreeView", ->
         rootView.deactivate()
         window.rootView = new RootView
         rootView.open('tree-view.js')
+        atom.packageStates = {}
         treeView = atom.activatePackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()

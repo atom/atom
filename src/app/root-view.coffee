@@ -30,7 +30,7 @@ class RootView extends View
           @subview 'panes', panes ? new PaneContainer
 
   @deserialize: ({ panes, packages, projectPath }) ->
-    atom.atomPackageStates = packages ? {}
+    atom.packageStates = packages ? {}
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes})
 
@@ -95,7 +95,7 @@ class RootView extends View
     @focus() if onDom
 
   deactivate: ->
-    atom.deactivateAtomPackages()
+    atom.deactivatePackages()
     @remove()
 
   open: (path, options = {}) ->
