@@ -67,7 +67,7 @@ _.extend atom,
 
     if path = @resolvePackagePath(id)
       return pack if pack = @getLoadedPackage(id)
-      pack = Package.load(path)
+      pack = Package.load(path, options)
       @loadedPackages.push(pack)
       pack
     else
