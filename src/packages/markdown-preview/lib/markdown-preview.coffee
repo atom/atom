@@ -4,6 +4,7 @@ MarkdownPreviewView = require 'markdown-preview/lib/markdown-preview-view'
 module.exports =
   activate: ->
     rootView.command 'markdown-preview:show', '.editor', => @show()
+    rootView.on 'core:save', ".pane", => @show()
 
   show: ->
     activePane = rootView.getActivePane()
@@ -12,8 +13,6 @@ module.exports =
     if not item instanceof EditSession
       console.warn("Can not render markdown for #{item.getUri()}")
       return
-
-    activePane.on 'core:save', => @show()
 
     editSession = item
     if nextPane = activePane.getNextPane()
