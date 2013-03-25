@@ -9,7 +9,7 @@ class StatusBarView extends View
       @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
-    if pane = editor.pane()
+    if pane = editor.getPane()
       pane.append(new StatusBarView(rootView, editor))
 
   @content: ->

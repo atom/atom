@@ -639,19 +639,19 @@ class Editor extends View
     @requestDisplayUpdate()
 
   splitLeft: (items...) ->
-    @pane()?.splitLeft(items...).activeView
+    @getPane()?.splitLeft(items...).activeView
 
   splitRight: (items...) ->
-    @pane()?.splitRight(items...).activeView
+    @getPane()?.splitRight(items...).activeView
 
   splitUp: (items...) ->
-    @pane()?.splitUp(items...).activeView
+    @getPane()?.splitUp(items...).activeView
 
   splitDown: (items...) ->
-    @pane()?.splitDown(items...).activeView
+    @getPane()?.splitDown(items...).activeView
 
-  pane: ->
-    @closest('.pane').view()
+  getPane: ->
+    @parent('.item-views').parent('.pane').view()
 
   remove: (selector, keepData) ->
     return super if keepData or @removed
