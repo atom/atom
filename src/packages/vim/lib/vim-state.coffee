@@ -206,6 +206,12 @@ class VimState
     'end-of-line': "editor:move-to-end-of-line"
     'next-word': "editor:move-to-beginning-of-next-word"
     'previous-word': "editor:move-to-beginning-of-word"
+    'up-screen': () ->
+      scrollSize = Math.floor((@target.scrollView[0].clientHeight / 2) / @target.lineHeight) || 1
+      @target.activeEditSession.moveCursorUp(scrollSize) for n in [1..@count]
+    'down-screen': () ->
+      scrollSize = Math.floor((@target.scrollView[0].clientHeight / 2) / @target.lineHeight) || 1
+      @target.activeEditSession.moveCursorDown(scrollSize) for n in [1..@count]
     'go-to-line': () ->
       (if n == 1 then @performEvent("core:move-to-top") else @performEvent("core:move-down")) for n in [1..@count]
     'go-to-line-bottom': () ->

@@ -135,6 +135,20 @@ fdescribe "Vim state", ->
         expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(0)
         vim.input("f")
         expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(16)
+    describe "screen motions", ->
+      describe "up", ->
+        it "moves the cursor up by half a screen", ->
+          realEditor()
+          editor.moveCursorDown(3)
+          vim.motion('up-screen')
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(0)
+      describe "down", ->
+        it "moves the cursor down by half a screen", ->
+          realEditor()
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(0)
+          vim.motion('down-screen')
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).not.toBe(0)
+
 
   describe "operations", ->
     describe "execution", ->
