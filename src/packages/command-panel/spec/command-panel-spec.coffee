@@ -28,10 +28,7 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:toggle'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
-      rootViewState = rootView.serialize()
-      rootView.deactivate()
-      window.rootView = RootView.deserialize(rootViewState)
-      rootView.attachToDom()
+      atom.deactivatePackage('command-panel')
       atom.activatePackage('command-panel')
 
       expect(rootView.find('.command-panel')).not.toExist()
@@ -55,13 +52,12 @@ describe "CommandPanel", ->
       expect(commandPanel.history[2]).toBe('/test3')
       expect(commandPanel.historyIndex).toBe(3)
 
-      rootViewState = rootView.serialize()
-      rootView.deactivate()
-      RootView.deserialize(rootViewState).attachToDom()
+      atom.deactivatePackage('command-panel')
       atom.activatePackage('command-panel')
-      rootView.trigger 'command-panel:toggle'
 
+      rootView.trigger 'command-panel:toggle'
       commandPanel = rootView.find('.command-panel').view()
+
       expect(commandPanel.history.length).toBe(2)
       expect(commandPanel.history[0]).toBe('/test2')
       expect(commandPanel.history[1]).toBe('/test3')

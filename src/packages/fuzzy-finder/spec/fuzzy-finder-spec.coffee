@@ -143,8 +143,8 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           rootView.open()
 
-          states = rootView.serialize().packages
-          states = _.map states['fuzzy-finder'], (path, time) -> [ path, time ]
+          atom.deactivatePackage('fuzzy-finder')
+          states = _.map atom.getPackageState('fuzzy-finder'), (path, time) -> [ path, time ]
           states = _.sortBy states, (path, time) -> -time
 
           paths = [ 'sample-with-tabs.coffee', 'sample.txt', 'sample.js' ]

@@ -61,10 +61,12 @@ window.shutdown = ->
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
   atom.setWindowState('project', project.serialize())
-  atom.setWindowState('rootView', rootView.serialize())
   atom.setWindowState('syntax', syntax.serialize())
+  atom.setWindowState('rootView', rootView.serialize())
+  atom.deactivatePackages()
+  atom.setWindowState('packageStates', atom.packageStates)
+  rootView.remove()
   atom.saveWindowState()
-  rootView.deactivate()
   project.destroy()
   git?.destroy()
   $(window).off('focus blur before')
@@ -95,6 +97,7 @@ window.deserializeWindowState = ->
 
   windowState = atom.getWindowState()
 
+  atom.packageStates = windowState.packageStates ? {}
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 

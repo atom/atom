@@ -29,8 +29,7 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @subview 'panes', panes ? new PaneContainer
 
-  @deserialize: ({ panes, packages, projectPath }) ->
-    atom.packageStates = packages ? {}
+  @deserialize: ({ panes }) ->
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes})
 
@@ -73,7 +72,6 @@ class RootView extends View
     version: RootView.version
     deserializer: 'RootView'
     panes: @panes.serialize()
-    packages: atom.serializeAtomPackages()
 
   confirmClose: ->
     @panes.confirmClose()
@@ -93,10 +91,6 @@ class RootView extends View
 
   afterAttach: (onDom) ->
     @focus() if onDom
-
-  deactivate: ->
-    atom.deactivatePackages()
-    @remove()
 
   open: (path, options = {}) ->
     changeFocus = options.changeFocus ? true

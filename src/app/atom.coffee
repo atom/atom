@@ -27,11 +27,6 @@ _.extend atom,
   setPackageState: (name, state) ->
     @packageStates[name] = state
 
-  serializeAtomPackages: ->
-    for pack in @getActivePackages()
-      @setPackageState(pack.name, state) if state = pack.serialize?()
-    @packageStates
-
   activatePackages: ->
     @activatePackage(pack.path) for pack in @getLoadedPackages()
 
