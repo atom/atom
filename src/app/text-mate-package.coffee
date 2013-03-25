@@ -4,7 +4,6 @@ fsUtils = require 'fs-utils'
 plist = require 'plist'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
-CSON = require 'cson'
 async = require 'async'
 
 module.exports =
@@ -39,7 +38,7 @@ class TextMatePackage extends Package
   deactivate: ->
     # we should remove grammars and unregister properties, snippets, etc
 
-  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'cson', 'json']
+  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage']
 
   loadGrammars: (done) ->
     fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
