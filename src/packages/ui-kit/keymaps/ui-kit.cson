@@ -1,2 +1,3 @@
 '.ui-view':
   'enter': 'ui-view:default-button'
+  'escape': 'ui-view:cancel-button'

@@ -25,16 +25,24 @@ class UIButton extends UIControl
     super
     @title = options.title
     @default = options.default
+    @cancel = options.cancel
     @setTitle(@title)
     if @action?
       @controlElement.on 'click', => @action.apply(this)
     if @default == true
       @controlElement.addClass("default")
+    if @cancel == true
+      @controlElement.addClass("cancel")
 
 class UITextField extends UIControl
   @controlContent: ->
     @input outlet:"controlElement"
   @controlClass: "text-field"
+  initialize: (options={}) ->
+    super
+    @on 'focus', =>
+      @controlElement.focus()
+      false
 
 module.exports =
   button: UIButton

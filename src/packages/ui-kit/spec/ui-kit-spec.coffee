@@ -50,7 +50,23 @@ fdescribe 'UI Kit', ->
           view.trigger "ui-view:default-button"
           expect(view.visible).toBe(false)
       describe "prompt", ->
-
+        it "creates a prompt dialog", ->
+          cb = jasmine.createSpy('callback-stub')
+          view = UIKit.prompt("What is 1+1?", cb)
+          expect(view.content.find("input").length).toBe(1)
+          expect(view.find("button").length).toBe(2)
+          expect(view.find("button").first().text()).toBe("Cancel")
+          view.content.find("input").val("2")
+          view.trigger "ui-view:default-button"
+          expect(view.visible).toBe(false)
+          expect(cb).toHaveBeenCalledWith("2")
+        it "dismisses a prompt dialog", ->
+          cb = jasmine.createSpy('callback-stub')
+          view = UIKit.prompt("What is 1+1?", cb)
+          view.content.find("input").val("2")
+          view.trigger "ui-view:cancel-button"
+          expect(view.visible).toBe(false)
+          expect(cb).toHaveBeenCalledWith(false)
   describe "Controls", ->
     describe "when a control is added to the window", ->
       it "creates a html element", ->

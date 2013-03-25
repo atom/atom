@@ -21,8 +21,27 @@ UIKit =
     view.addSubview(layout)
     view.runModalDialog (result) ->
     view
+  prompt: (text, callback, title="Prompt") ->
+    view = new UIView(position:"dialog")
+    layout = new UIKit.Layout ->
+      @row =>
+        @column =>
+          @text text
+      @row =>
+        @column =>
+          @textField()
+      @row =>
+        @column align:"right", =>
+          @button title:"Cancel", cancel:true, action:() -> @parentView.close(false)
+          @button title:"OK", default:true, action:() -> @parentView.close(true)
+    view.setTitle(title)
+    view.addSubview(layout)
+    view.runModalDialog (result) ->
+      callback?(if result == false then result else view.find(".ui-control.text-field input").val())
+    view.find(".ui-control.text-field").focus()
+    view
   testUIKit: () ->
-    UIKit.alert("Foo")
+    UIKit.prompt "Foo", (result) =>
     return
     view = new UIView(position:"dialog")
     layout = new UIKit.Layout ->

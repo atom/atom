@@ -18,9 +18,8 @@ class UILayout
     view =  new klass(options)
     @currentElement.append(view)
     view.parentView = this
-  close: () ->
-    window.console.log 'close'
-    @parentView?.close()
+  close: (value=true) ->
+    @parentView?.close(value)
   row: (callback) ->
     [oldRow, @currentRow] = [@currentRow, @createDiv("row")]
     @currentElement.append(@currentRow)
