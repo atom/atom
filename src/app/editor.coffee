@@ -16,6 +16,7 @@ class Editor extends View
     fontSize: 20
     showInvisibles: false
     showIndentGuide: false
+    showLineNumbers: true
     autoIndent: true
     autoIndentOnPaste: false
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
@@ -156,6 +157,7 @@ class Editor extends View
         'editor:duplicate-line': @duplicateLine
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
         'editor:save-debug-snapshot': @saveDebugSnapshot
+        'editor:toggle-line-numbers': =>  config.set('editor.showLineNumbers', !config.get('editor.showLineNumbers'))
 
     documentation = {}
     for name, method of editorBindings
@@ -316,6 +318,7 @@ class Editor extends View
   backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
+    @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
     @observeConfig 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)

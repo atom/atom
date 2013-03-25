@@ -24,6 +24,9 @@ class Gutter extends View
   editor: ->
     @parentView
 
+  setShowLineNumbers: (showLineNumbers) ->
+    if showLineNumbers then @lineNumbers.show() else @lineNumbers.hide()
+
   updateLineNumbers: (changes, renderFrom, renderTo) ->
     if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
       performUpdate = true

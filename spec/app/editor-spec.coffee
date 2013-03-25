@@ -1707,6 +1707,12 @@ describe "Editor", ->
         miniEditor.setText(" a line with tabs\tand spaces ")
         expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
 
+    describe "when config.editor.showLineNumbers is false", ->
+      it "doesn't render any line numbers", ->
+        expect(editor.gutter.lineNumbers).toBeVisible()
+        config.set("editor.showLineNumbers", false)
+        expect(editor.gutter.lineNumbers).not.toBeVisible()
+
   describe "gutter line highlighting", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
