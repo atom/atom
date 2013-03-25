@@ -268,3 +268,9 @@ describe "TextMateGrammar", ->
         expect(tokens[0].value).toBe "a"
         expect(tokens[1].value).toBe "bc"
         expect(console.error).toHaveBeenCalled()
+
+    describe "when a grammar has a pattern that has back references in the match value", ->
+      it "does not special handle the back references and instead allows oniguruma to resolve them", ->
+        grammar = syntax.selectGrammar("style.scss")
+        {tokens} = grammar.tokenizeLine("@mixin x() { -moz-selector: whatever; }")
+        expect(tokens[9]).toEqual value: "-moz-selector", scopes: ["source.css.scss", "meta.property-list.scss", "meta.property-name.scss"]

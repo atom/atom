@@ -159,10 +159,10 @@ class Pattern
   backReferences: null
   anchored: false
 
-  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule, hasBackReferences}) ->
+  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule, @hasBackReferences}) ->
     @scopeName = name ? contentName # TODO: We need special treatment of contentName
     if match
-      if @hasBackReferences = hasBackReferences ? /\\\d+/.test(match)
+      if (end or @popRule) and @hasBackReferences ?= /\\\d+/.test(match)
         @match = match
       else
         @regexSource = match
