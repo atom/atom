@@ -4,6 +4,7 @@ MarkdownPreviewView = require 'markdown-preview/lib/markdown-preview-view'
 
 describe "MarkdownPreview package", ->
   beforeEach ->
+    window.loadPackage('gfm')
     project.setPath(project.resolve('markdown'))
     window.rootView = new RootView
     atom.activatePackage("markdown-preview", immediate: true)
@@ -16,6 +17,14 @@ describe "MarkdownPreview package", ->
     describe "when the active item is an edit session", ->
       beforeEach ->
         rootView.attachToDom()
+
+      describe "when the edit session does not use the GFM grammar", ->
+        it "does not show a markdown preview", ->
+          rootView.open()
+          expect(rootView.getPanes()).toHaveLength(1)
+          rootView.getActiveView().trigger 'markdown-preview:show'
+          expect(rootView.getPanes()).toHaveLength(1)
+
 
       describe "when a preview item has not been created for the edit session's uri", ->
         describe "when there is more than one pane", ->

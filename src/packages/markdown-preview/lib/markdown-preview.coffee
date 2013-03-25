@@ -15,6 +15,8 @@ module.exports =
       return
 
     editSession = item
+    return unless editSession.getGrammar().scopeName == "source.gfm"
+
     if nextPane = activePane.getNextPane()
       if preview = nextPane.itemForUri("markdown-preview:#{editSession.getPath()}")
         nextPane.showItem(preview)
