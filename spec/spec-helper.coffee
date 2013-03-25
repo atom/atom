@@ -92,23 +92,13 @@ afterEach ->
   syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
 
-window.loadPackage = (name, options={}) ->
-  Package = require 'package'
-  packagePath = _.find atom.getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
-  if pack = Package.build(packagePath)
-    pack.load(options)
-    atom.loadedPackages.push(pack)
-    pack.deferActivation = false if options.activateImmediately
-    pack.activate()
-  pack
-
 # Specs rely on TextMate bundles (but not atom packages)
 window.loadTextMatePackages = ->
   TextMatePackage = require 'text-mate-package'
   config.packageDirPaths.unshift(fixturePackagesPath)
   window.textMatePackages = []
   for path in atom.getPackagePaths() when TextMatePackage.testName(path)
-    window.textMatePackages.push window.loadPackage(fs.base(path), sync: true)
+    window.textMatePackages.push atom.activatePackage(path, sync: true)
 
 window.loadTextMatePackages()
 
