@@ -8,7 +8,7 @@ class File
   path: null
   cachedContents: null
 
-  constructor: (@path) ->
+  constructor: (@path, @symlink=false) ->
     if @exists() and not fs.isFile(@path)
       throw new Error("#{@path} is a directory")
 
