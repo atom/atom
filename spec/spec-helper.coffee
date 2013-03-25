@@ -37,7 +37,6 @@ beforeEach ->
 
   window.resetTimeouts()
   atom.packageStates = {}
-  atom.loadedPackages = []
   spyOn(atom, 'saveWindowState')
   spyOn(atom, 'getSavedWindowState').andReturn(null)
   $native.setWindowState('')
