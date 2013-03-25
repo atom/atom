@@ -445,7 +445,7 @@ class Buffer
     @trigger 'modified-status-changed', modifiedStatus
 
   fileExists: ->
-    @file.exists()
+    @file? && @file.exists()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]

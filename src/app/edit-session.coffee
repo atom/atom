@@ -17,6 +17,8 @@ class EditSession
   @deserialize: (state) ->
     if fs.exists(state.buffer)
       session = project.buildEditSession(state.buffer)
+    else if state.unsavedState
+      session = project.buildEditSessionFromState(state.unsavedState)
     else
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
       session = project.buildEditSession(null)
@@ -92,6 +94,7 @@ class EditSession
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
+    unsavedState: @buffer.getText() if !@buffer.fileExists()
 
   copy: ->
     EditSession.deserialize(@serialize(), @project)
