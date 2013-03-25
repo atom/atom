@@ -20,11 +20,12 @@ describe "MarkdownPreview package", ->
 
       describe "when the edit session does not use the GFM grammar", ->
         it "does not show a markdown preview", ->
+          spyOn(console, 'warn')
           rootView.open()
           expect(rootView.getPanes()).toHaveLength(1)
           rootView.getActiveView().trigger 'markdown-preview:show'
           expect(rootView.getPanes()).toHaveLength(1)
-
+          expect(console.warn).toHaveBeenCalled()
 
       describe "when a preview item has not been created for the edit session's uri", ->
         describe "when there is more than one pane", ->
