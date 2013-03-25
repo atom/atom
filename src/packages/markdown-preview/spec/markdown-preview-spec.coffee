@@ -55,6 +55,15 @@ describe "MarkdownPreview package", ->
             expect(preview.buffer).toBe rootView.getActivePaneItem().buffer
             expect(pane1).toMatchSelector(':has(:focus)')
 
+        describe "when a buffer is saved", ->
+          it "does not show the markdown preview", ->
+            [pane] = rootView.getPanes()
+            pane.focus()
+
+            MarkdownPreviewView.prototype.fetchRenderedMarkdown.reset()
+            pane.trigger("core:save")
+            expect(MarkdownPreviewView.prototype.fetchRenderedMarkdown).not.toHaveBeenCalled()
+
       describe "when a preview item has already been created for the edit session's uri", ->
         it "updates and shows the existing preview item if it isn't displayed", ->
           rootView.getActiveView().trigger 'markdown-preview:show'
@@ -75,14 +84,13 @@ describe "MarkdownPreview package", ->
           expect(pane2.activeItem).toBe preview
           expect(pane1).toMatchSelector(':has(:focus)')
 
-      describe "when a buffer is modified and saved after a preview item has already been created", ->
-        it "updates the existing preview item", ->
-          rootView.getActiveView().trigger 'markdown-preview:show'
-          [pane1, pane2] = rootView.getPanes()
-          preview = pane2.activeItem
-          pane1.focus()
+        describe "when a buffer is saved", ->
+          it "updates the existing preview item", ->
+            rootView.getActiveView().trigger 'markdown-preview:show'
+            [pane1, pane2] = rootView.getPanes()
+            preview = pane2.activeItem
+            pane1.focus()
 
-          preview.fetchRenderedMarkdown.reset()
-          pane1.saveActiveItem = () ->
-          pane1.trigger("core:save")
-          expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()
+            preview.fetchRenderedMarkdown.reset()
+            pane1.trigger("core:save")
+            expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()

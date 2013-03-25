@@ -4,7 +4,7 @@ MarkdownPreviewView = require 'markdown-preview/lib/markdown-preview-view'
 module.exports =
   activate: ->
     rootView.command 'markdown-preview:show', '.editor', => @show()
-    rootView.on 'core:save', ".pane", => @show()
+    rootView.on 'core:save', ".pane", => @show() if @previewExists()
 
   show: ->
     activePane = rootView.getActivePane()
@@ -26,3 +26,8 @@ module.exports =
     else
       activePane.splitRight(new MarkdownPreviewView(editSession.buffer))
     activePane.focus()
+
+  previewExists: ->
+    nextPane = rootView.getActivePane().getNextPane()
+    item = rootView.getActivePane().activeItem
+    nextPane?.itemForUri("markdown-preview:#{item.getPath?()}")
