@@ -19,8 +19,8 @@ UIKit =
       @row =>
         @column align:"right", =>
           @button(title:"Save")
+    view.setTitle("Dialog Test")
     view.addSubview(layout.content)
     view.runModalDialog (result) ->
-      window.console.log "Exited dialog #{result}"
 UILayout.UI = UIKit
 module.exports = UIKit

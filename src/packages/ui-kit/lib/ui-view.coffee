@@ -9,14 +9,17 @@ class UIView extends View
   @content: ->
     @div class:"ui-view", =>
       @div class: 'close-icon', outlet:"closeIcon"
-      @div class:"header"
+      @div class:"header", outlet:"header"
       @div class:"content", outlet:"content"
-      @div class:"footer"
+      @div class:"footer", outlet:"footer"
   initialize: (options={position:"full"}) ->
+    @title = ""
     @visible = false
     if options.position == "dialog"
       @addClass("dialog")
     @closeIcon.on 'click', => @close()
+  setTitle: (@title) ->
+    @header.empty().append($("<h2>").text(@title))
   addSubview: (view) ->
     view.parentView = this
     @content.append(view)

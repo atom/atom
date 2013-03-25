@@ -25,6 +25,10 @@ fdescribe 'UI Kit', ->
         view.find(".close-icon").click()
         expect(view.visible).toBe(false)
         expect(rootView.find(".ui-view").length).toBe(0)
+    describe "title", ->
+      it "sets the title in the header area of the view", ->
+        view.setTitle("Test View")
+        expect(view.find(".header h2").text()).toBe("Test View")
     describe "when a view is added to the window", ->
     describe "when a view is added to a new pane", ->
     describe "when a view is opened as a dialog", ->
