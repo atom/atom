@@ -49,10 +49,12 @@ describe "the `atom` global", ->
             beforeEach ->
               mainModule = require 'package-with-activation-events/index'
               spyOn(mainModule, 'activate').andCallThrough()
+              AtomPackage = require 'atom-package'
+              spyOn(AtomPackage.prototype, 'requireMainModule').andCallThrough()
               pack = atom.activatePackage('package-with-activation-events')
 
             it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
-              expect(pack.mainModule).toBeNull()
+              expect(pack.requireMainModule).not.toHaveBeenCalled()
               expect(mainModule.activate).not.toHaveBeenCalled()
               rootView.trigger 'activation-event'
               expect(mainModule.activate).toHaveBeenCalled()
