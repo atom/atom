@@ -175,6 +175,11 @@ describe "the `atom` global", ->
           atom.activatePackage('ruby.tmbundle', sync: true)
           expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
+        it "translates the package's scoped properties to Atom terms", ->
+          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+          atom.activatePackage('ruby.tmbundle', sync: true)
+          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
+
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
         it "calls `deactivate` on the package's main module", ->
