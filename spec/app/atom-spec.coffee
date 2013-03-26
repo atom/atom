@@ -144,6 +144,12 @@ describe "the `atom` global", ->
           expect(atom.packageStates['package-with-serialization']).toEqual someNumber: 1
           expect(console.error).toHaveBeenCalled()
 
+        it "removes the package's grammars", ->
+          atom.activatePackage('package-with-grammars')
+          atom.deactivatePackage('package-with-grammars')
+          expect(syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
+          expect(syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
+
       describe "texmate packages", ->
         it "removes the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"

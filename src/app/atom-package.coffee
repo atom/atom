@@ -97,6 +97,7 @@ class AtomPackage extends Package
       console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
+    syntax.removeGrammar(grammar) for grammar in @grammars
     @mainModule?.deactivate?()
 
   requireMainModule: ->
