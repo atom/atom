@@ -218,6 +218,12 @@ module.exports =
     pathToResolve = args.pop()
     loadPaths = args
 
+    if pathToResolve[0] is '/'
+      if extensions and resolvedPath = @resolveExtension(pathToResolve, extensions)
+        return resolvedPath
+      else
+        return pathToResolve if @exists(pathToResolve)
+
     for loadPath in loadPaths
       candidatePath = @join(loadPath, pathToResolve)
       if extensions

@@ -88,6 +88,17 @@ describe "TabBarView", ->
       expect(tabBar.getTabs().length).toBe 2
       expect(tabBar.find('.tab:contains(Item 2)')).not.toExist()
 
+    it "updates the titles of the remaining tabs", ->
+      expect(tabBar.tabForItem(item2)).toHaveText 'Item 2'
+      item2.longTitle = '2'
+      item2a = new TestView('Item 2')
+      item2a.longTitle = '2a'
+      pane.showItem(item2a)
+      expect(tabBar.tabForItem(item2)).toHaveText '2'
+      expect(tabBar.tabForItem(item2a)).toHaveText '2a'
+      pane.removeItem(item2a)
+      expect(tabBar.tabForItem(item2)).toHaveText 'Item 2'
+
   describe "when a tab is clicked", ->
     it "shows the associated item on the pane and focuses the pane", ->
       spyOn(pane, 'focus')

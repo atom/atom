@@ -47,9 +47,11 @@ class TabBarView extends SortableList
       tab.insertBefore(followingTab)
     else
       @append(tab)
+    tab.updateTitle()
 
   removeTabForItem: (item) ->
     @tabForItem(item).remove()
+    tab.updateTitle() for tab in @getTabs()
 
   getTabs: ->
     @children('.tab').toArray().map (elt) -> $(elt).view()

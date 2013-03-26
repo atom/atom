@@ -64,3 +64,12 @@ describe "Directory", ->
       runs -> fs.remove(temporaryFilePath)
       waits 20
       runs -> expect(changeHandler.callCount).toBe 0
+
+  it "includes symlink information about entries", ->
+    entries = directory.getEntries()
+    for entry in entries
+      name = entry.getBaseName()
+      if name is 'symlink-to-dir' or name is 'symlink-to-file'
+        expect(entry.symlink).toBeTruthy()
+      else
+        expect(entry.symlink).toBeFalsy()

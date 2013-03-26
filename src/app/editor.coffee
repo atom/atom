@@ -16,6 +16,7 @@ class Editor extends View
     fontSize: 20
     showInvisibles: false
     showIndentGuide: false
+    showLineNumbers: true
     autoIndent: true
     autoIndentOnPaste: false
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
@@ -61,7 +62,7 @@ class Editor extends View
     else
       {editSession, @mini} = (editSessionOrOptions ? {})
 
-    requireStylesheet 'editor.less'
+    requireStylesheet 'editor'
 
     @id = Editor.nextEditorId++
     @lineCache = []
@@ -159,6 +160,7 @@ class Editor extends View
         'editor:duplicate-line': @duplicateLine
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
         'editor:save-debug-snapshot': @saveDebugSnapshot
+        'editor:toggle-line-numbers': =>  config.set('editor.showLineNumbers', !config.get('editor.showLineNumbers'))
 
     documentation = {}
     for name, method of editorBindings
@@ -322,6 +324,7 @@ class Editor extends View
   backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
+    @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
     @observeConfig 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
@@ -642,19 +645,19 @@ class Editor extends View
     @requestDisplayUpdate()
 
   splitLeft: (items...) ->
-    @pane()?.splitLeft(items...).activeView
+    @getPane()?.splitLeft(items...).activeView
 
   splitRight: (items...) ->
-    @pane()?.splitRight(items...).activeView
+    @getPane()?.splitRight(items...).activeView
 
   splitUp: (items...) ->
-    @pane()?.splitUp(items...).activeView
+    @getPane()?.splitUp(items...).activeView
 
   splitDown: (items...) ->
-    @pane()?.splitDown(items...).activeView
+    @getPane()?.splitDown(items...).activeView
 
-  pane: ->
-    @closest('.pane').view()
+  getPane: ->
+    @parent('.item-views').parent('.pane').view()
 
   remove: (selector, keepData) ->
     return super if keepData or @removed
