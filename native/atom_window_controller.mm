@@ -16,6 +16,7 @@
   [_splitView release];
   [_devToolsView release];
   [_webView release];
+  [_devButton release];
   [_bootstrapScript release];
   [_resourcePath release];
   [_pathToOpen release];
@@ -244,6 +245,16 @@
   return YES;
 }
 
+- (void)windowWillEnterFullScreen:(NSNotification *)notification {
+  if (_devButton)
+    [_devButton setHidden:YES];
+}
+
+- (void)windowDidExitFullScreen:(NSNotification *)notification {
+  if (_devButton)
+    [_devButton setHidden:NO];
+}
+
 - (bool)isDevMode {
   NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   return ![_resourcePath isEqualToString:bundleResourcePath];
@@ -260,15 +271,15 @@
     break;
   }
 
-  NSButton *devButton = [[NSButton alloc] init];
-  [devButton setTitle:@"\xF0\x9F\x92\x80"];
-  devButton.autoresizingMask = NSViewMinXMargin | NSViewMinYMargin;
-  devButton.buttonType = NSMomentaryChangeButton;
-  devButton.bordered = NO;
-  [devButton sizeToFit];
-  devButton.frame = NSMakeRect(fullScreenButton.frame.origin.x - devButton.frame.size.width - 5, fullScreenButton.frame.origin.y, devButton.frame.size.width, devButton.frame.size.height);
+  _devButton = [[NSButton alloc] init];
+  [_devButton setTitle:@"\xF0\x9F\x92\x80"];
+  _devButton.autoresizingMask = NSViewMinXMargin | NSViewMinYMargin;
+  _devButton.buttonType = NSMomentaryChangeButton;
+  _devButton.bordered = NO;
+  [_devButton sizeToFit];
+  _devButton.frame = NSMakeRect(fullScreenButton.frame.origin.x - _devButton.frame.size.width - 5, fullScreenButton.frame.origin.y, _devButton.frame.size.width, _devButton.frame.size.height);
 
-  [[self.window.contentView superview] addSubview:devButton];
+  [[self.window.contentView superview] addSubview:_devButton];
 }
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
