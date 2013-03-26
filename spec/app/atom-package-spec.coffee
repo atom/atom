@@ -56,16 +56,6 @@ describe "AtomPackage", ->
       expect(config.get('package-with-module.numbers.one')).toBe 1
       expect(config.get('package-with-module.numbers.two')).toBe 2
 
-  describe "when the package has a grammars directory", ->
-    it "loads the grammar and correctly parses a keyword", ->
-      spyOn(syntax, 'addGrammar')
-      atom.activatePackage("package-with-a-cson-grammar")
-      expect(syntax.addGrammar).toHaveBeenCalled()
-      grammar = syntax.addGrammar.argsForCall[0][0]
-      expect(grammar.scopeName).toBe "source.alot"
-      {tokens} = grammar.tokenizeLine("this is alot of code")
-      expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
-
   describe "when the package has a scoped properties directory", ->
     it "loads the scoped properties", ->
       spyOn(syntax, 'addProperties')

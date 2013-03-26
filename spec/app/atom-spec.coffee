@@ -112,6 +112,12 @@ describe "the `atom` global", ->
               expect(stylesheetElementForId(three)).toExist()
               expect($('#jasmine-content').css('font-size')).toBe '3px'
 
+        describe "grammar loading", ->
+          it "loads the package's grammars", ->
+            atom.activatePackage('package-with-grammars')
+            expect(syntax.selectGrammar('a.alot').name).toBe 'Alot'
+            expect(syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
+
       describe "textmate packages", ->
         it "loads the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
