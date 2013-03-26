@@ -28,7 +28,6 @@ window.setUpEnvironment = ->
   requireStylesheet 'atom.less'
   requireStylesheet 'tabs.less'
   requireStylesheet 'tree-view.less'
-  requireStylesheet 'status-bar.less'
   requireStylesheet 'command-panel.less'
   requireStylesheet 'fuzzy-finder.less'
   requireStylesheet 'overlay.less'
