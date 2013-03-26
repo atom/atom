@@ -122,6 +122,20 @@ Variants:
 
     Event: `vim:motion-go-to-line-bottom`
 
+**Go to screen line**
+
+Key: `H`
+
+Event: `vim:motion-go-to-screen-line`
+
+Variants:
+
+  * Go to screen line from bottom
+
+    Key: `L`
+
+    Event: `vim:motion-go-to-screen-line-bottom`
+
 **Scroll down/up half a screen**
 
 Key: `ctrl-d` `ctrl-u`

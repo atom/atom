@@ -38,6 +38,8 @@
   'G': 'vim:motion-go-to-line-bottom'
   'g g': 'vim:motion-go-to-line'
   'M': 'vim:motion-center-screen'
+  'H': 'vim:motion-go-to-screen-line'
+  'L': 'vim:motion-go-to-screen-line-bottom'
   'ctrl-d': 'vim:motion-down-screen'
   'ctrl-u': 'vim:motion-up-screen'
   'x': 'vim:alias-delete-character'

@@ -61,11 +61,14 @@ fdescribe "Vim state", ->
     editor.state = vim
     vim.editSession = () => target.activeEditSession
 
-  realEditor = () ->
+  realEditor = (simulate=true) ->
     config.set("vim.enabled", true)
     window.rootView = new RootView()
     rootView.open('sample.js')
-    rootView.simulateDomAttachment()
+    if simulate
+      rootView.simulateDomAttachment()
+    else
+      rootView.width(500).height(500).attachToDom()
     editor = rootView.getActivePane().find(".editor").view()
     Vim.activate(rootView)
     vim = editor.vim.state
@@ -154,6 +157,19 @@ fdescribe "Vim state", ->
           expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(0)
           vim.motion('center-screen')
           expect(editor.activeEditSession.getCursor().getBufferPosition().row).not.toBe(0)
+      describe "move cursor to line n", ->
+        it "moves to line n from top", ->
+          realEditor(false)
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(0)
+          vim.count(3)
+          vim.motion('go-to-screen-line')
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(2)
+        it "moves to line n from bottom", ->
+          realEditor(false)
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(0)
+          vim.count(3)
+          vim.motion('go-to-screen-line-bottom')
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(editor.activeEditSession.buffer.lines.length - 4)
 
   describe "operations", ->
     describe "execution", ->

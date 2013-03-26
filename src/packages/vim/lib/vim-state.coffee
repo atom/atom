@@ -219,6 +219,19 @@ class VimState
       position.row = Math.max(0, Math.min(scrollOffset + scrollSize, @target.getLastScreenRow()))
       position.column = 0
       @target.activeEditSession.setCursorScreenPosition(position)
+    'go-to-screen-line': () ->
+      position = @target.getCursorScreenPosition()
+      scrollOffset = Math.ceil((@target.scrollTop() || 0) / @target.lineHeight) || 0
+      position.row = Math.max(0, Math.min(scrollOffset + @count - 1, @target.getLastScreenRow()))
+      position.column = 0
+      @target.activeEditSession.setCursorScreenPosition(position)
+    'go-to-screen-line-bottom': () ->
+      position = @target.getCursorScreenPosition()
+      window.console.log @target.scrollView[0].clientHeight
+      scrollOffset = Math.ceil(((@target.scrollTop() + @target.scrollView[0].clientHeight) || 0) / @target.lineHeight) || 0
+      position.row = Math.max(0, Math.min(scrollOffset, @target.getLastScreenRow()) - @count)
+      position.column = 0
+      @target.activeEditSession.setCursorScreenPosition(position)
     'go-to-line': () ->
       (if n == 1 then @performEvent("core:move-to-top") else @performEvent("core:move-down")) for n in [1..@count]
     'go-to-line-bottom': () ->
