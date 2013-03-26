@@ -8,6 +8,7 @@ BindingSet = require 'binding-set'
 module.exports =
 class Keymap
   bindingSets: null
+  nextBindingSetIndex: 0
   bindingSetsByFirstKeystroke: null
   queuedKeystrokes: null
 
@@ -58,7 +59,7 @@ class Keymap
   bindKeys: (args...) ->
     name = args.shift() if args.length > 2
     [selector, bindings] = args
-    bindingSet = new BindingSet(selector, bindings, @bindingSets.length, name)
+    bindingSet = new BindingSet(selector, bindings, @nextBindingSetIndex++, name)
     @bindingSets.unshift(bindingSet)
     for keystrokes of bindingSet.commandsByKeystrokes
       keystroke = keystrokes.split(' ')[0] # only index by first keystroke
