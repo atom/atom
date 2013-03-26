@@ -44,7 +44,7 @@ class CommandPanelView extends View
     rootView.command 'command-panel:find-in-file', => @attach('/')
     rootView.command 'command-panel:find-in-project', => @attach('Xx/')
     rootView.command 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
-    rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
+    rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
     rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
     @on 'click', '.expand', @onExpandAll
@@ -157,11 +157,8 @@ class CommandPanelView extends View
     @historyIndex++
     @miniEditor.setText(@history[@historyIndex] or '')
 
-  repeatRelativeAddress: ->
-    @commandInterpreter.repeatRelativeAddress(rootView.getActivePaneItem())
-
-  repeatRelativeAddressInReverse: ->
-    @commandInterpreter.repeatRelativeAddressInReverse(rootView.getActivePaneItem())
+  repeatRelativeAddress: (options) ->
+    @commandInterpreter.repeatRelativeAddress(rootView.getActivePaneItem(), options)
 
   setSelectionAsLastRelativeAddress: ->
     selection = rootView.getActiveView().getSelectedText()

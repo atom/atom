@@ -11,8 +11,10 @@ class CommandInterpreter
     @lastRelativeAddress = compositeCommand if compositeCommand.isRelativeAddress()
     compositeCommand.execute(@project, activeEditSession)
 
-  repeatRelativeAddress: (activeEditSession) ->
-    @lastRelativeAddress?.execute(@project, activeEditSession)
+  repeatRelativeAddress: (activeEditSession, {reverse}={}) ->
+    return unless @lastRelativeAddress
+    reverse ?= false
+    previousSelectionRange = activeEditSession.getSelection().getBufferRange()
+    address = if reverse then @lastRelativeAddress.reverse() else @lastRelativeAddress
 
-  repeatRelativeAddressInReverse: (activeEditSession) ->
-    @lastRelativeAddress?.reverse().execute(@project, activeEditSession)
+    address.execute(@project, activeEditSession)
