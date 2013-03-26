@@ -33,11 +33,11 @@ class TextMatePackage extends Package
   activate: ->
     syntax.addGrammar(grammar) for grammar in @grammars
     for { selector, properties } in @scopedProperties
-      syntax.addProperties(selector, properties)
+      syntax.addProperties(@path, selector, properties)
 
   deactivate: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
-    # we should also unregister properties, snippets, etc
+    syntax.removeProperties(@path)
 
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage']
 

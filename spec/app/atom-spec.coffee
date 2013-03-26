@@ -236,6 +236,11 @@ describe "the `atom` global", ->
           atom.deactivatePackage('ruby.tmbundle')
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
+        it "removes the package's scoped properties", ->
+          atom.activatePackage('ruby.tmbundle', sync: true)
+          atom.deactivatePackage('ruby.tmbundle')
+          expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+
   describe ".getVersion(callback)", ->
     it "calls the callback with the current version number", ->
       versionHandler = jasmine.createSpy("versionHandler")
