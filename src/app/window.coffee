@@ -24,14 +24,14 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  requireStylesheet 'reset.less'
-  requireStylesheet 'atom.less'
-  requireStylesheet 'overlay.less'
-  requireStylesheet 'popover-list.less'
-  requireStylesheet 'notification.less'
-  requireStylesheet 'markdown.less'
+  requireStylesheet 'reset'
+  requireStylesheet 'atom'
+  requireStylesheet 'overlay'
+  requireStylesheet 'popover-list'
+  requireStylesheet 'notification'
+  requireStylesheet 'markdown'
 
-  if nativeStylesheetPath = fs.resolveOnLoadPath("#{process.platform}.css")
+  if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
@@ -111,8 +111,14 @@ window.deserializeWindowState = ->
 window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")
 
+window.resolveStylesheet = (path) ->
+  if fs.extension(path).length > 0
+    fs.resolveOnLoadPath(path)
+  else
+    fs.resolveOnLoadPath(path, ['css', 'less'])
+
 window.requireStylesheet = (path) ->
-  if fullPath = require.resolve(path)
+  if fullPath = window.resolveStylesheet(path)
     content = window.loadStylesheet(fullPath)
     window.applyStylesheet(fullPath, content)
   else
@@ -128,7 +134,7 @@ window.loadStylesheet = (path) ->
   content
 
 window.removeStylesheet = (path) ->
-  unless fullPath = require.resolve(path)
+  unless fullPath = window.resolveStylesheet(path)
     throw new Error("Could not find a file at path '#{path}'")
   window.stylesheetElementForId(fullPath).remove()
 

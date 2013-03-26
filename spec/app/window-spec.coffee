@@ -94,7 +94,7 @@ describe "Window", ->
 
       $('head style[id*="css.css"]').remove()
 
-    it  "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
+    it "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
       lessPath = project.resolve('sample.less')
       lengthBefore = $('head style').length
       requireStylesheet(lessPath)
@@ -117,7 +117,16 @@ describe "Window", ->
       expect($('head style').length).toBe lengthBefore + 1
       $('head style[id*="sample.less"]').remove()
 
-  describe ".disableStyleSheet(path)", ->
+    it "supports requiring css and less stylesheets without an explicit extension", ->
+      requireStylesheet 'fixtures/css'
+      expect($('head style[id*="css.css"]').attr('id')).toBe project.resolve('css.css')
+      requireStylesheet 'fixtures/sample'
+      expect($('head style[id*="sample.less"]').attr('id')).toBe project.resolve('sample.less')
+
+      $('head style[id*="css.css"]').remove()
+      $('head style[id*="sample.less"]').remove()
+
+  describe ".removeStylesheet(path)", ->
     it "removes styling applied by given stylesheet path", ->
       cssPath = require.resolve(fs.join("fixtures", "css.css"))
 
