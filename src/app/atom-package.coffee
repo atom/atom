@@ -15,7 +15,6 @@ class AtomPackage extends Package
   mainModulePath: null
   resolvedMainModulePath: false
   mainModule: null
-  deferActivation: false
 
   load: ->
     try
@@ -24,7 +23,7 @@ class AtomPackage extends Package
       @loadStylesheets()
       @loadGrammars()
       @loadScopedProperties()
-      if @deferActivation = @metadata.activationEvents?
+      if @metadata.activationEvents?
         @registerDeferredDeserializers()
       else
         @requireMainModule()
@@ -38,7 +37,7 @@ class AtomPackage extends Package
     syntax.addGrammar(grammar) for grammar in @grammars
     syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
 
-    if @deferActivation and not immediate
+    if @metadata.activationEvents? and not immediate
       @subscribeToActivationEvents()
     else
       @activateNow()
@@ -96,6 +95,7 @@ class AtomPackage extends Package
       console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
+    @unsubscribeFromActivationEvents()
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(path) for [path] in @scopedProperties
     keymap.remove(path) for [path] in @keymaps
@@ -123,25 +123,23 @@ class AtomPackage extends Package
 
   subscribeToActivationEvents: () ->
     return unless @metadata.activationEvents?
-
-    activateHandler = (event) =>
-      bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
-      @deferActivation = false
-      @activateNow()
-      $(event.target).trigger(event)
-      @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
-      @unsubscribeFromActivationEvents(activateHandler)
-
     if _.isArray(@metadata.activationEvents)
-      rootView.command(event, activateHandler) for event in @metadata.activationEvents
+      rootView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
     else
-      rootView.command(event, selector, activateHandler) for event, selector of @metadata.activationEvents
+      rootView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
-  unsubscribeFromActivationEvents: (activateHandler) ->
+  handleActivationEvent: (event) =>
+    bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
+    @activateNow()
+    $(event.target).trigger(event)
+    @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
+    @unsubscribeFromActivationEvents()
+
+  unsubscribeFromActivationEvents: ->
     if _.isArray(@metadata.activationEvents)
-      rootView.off(event, activateHandler) for event in @metadata.activationEvents
+      rootView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
     else
-      rootView.off(event, selector, activateHandler) for event, selector of @metadata.activationEvents
+      rootView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
   disableEventHandlersOnBubblePath: (event) ->
     bubblePathEventHandlers = []
