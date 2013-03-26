@@ -17,4 +17,6 @@ class CommandInterpreter
     previousSelectionRange = activeEditSession.getSelection().getBufferRange()
     address = if reverse then @lastRelativeAddress.reverse() else @lastRelativeAddress
 
-    address.execute(@project, activeEditSession)
+    address.execute(@project, activeEditSession).done ->
+      currentSelectionRange = activeEditSession.getSelection().getBufferRange()
+      $native.beep() if previousSelectionRange.isEqual(currentSelectionRange)

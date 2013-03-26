@@ -212,39 +212,69 @@ describe "CommandPanel", ->
       expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
 
   describe "when command-panel:repeat-relative-address is triggered on the root view", ->
-    it "repeats the last search command if there is one", ->
-      rootView.trigger 'command-panel:repeat-relative-address'
+    describe "when there is more than one match", ->
+      it "repeats the last search command if there is one", ->
+        rootView.trigger 'command-panel:repeat-relative-address'
 
-      editSession.setCursorScreenPosition([4, 0])
+        editSession.setCursorScreenPosition([4, 0])
 
-      commandPanel.execute("/current")
-      expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
+        commandPanel.execute("/current")
+        expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
 
-      rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
+        rootView.trigger 'command-panel:repeat-relative-address'
+        expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
 
-      commandPanel.execute('s/r/R/g')
+        commandPanel.execute('s/r/R/g')
 
-      rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editSession.getSelectedBufferRange()).toEqual [[6,34], [6,41]]
+        rootView.trigger 'command-panel:repeat-relative-address'
+        expect(editSession.getSelectedBufferRange()).toEqual [[6,34], [6,41]]
 
-      commandPanel.execute('0')
-      commandPanel.execute('/sort/ s/r/R/') # this contains a substitution... won't be repeated
+        commandPanel.execute('0')
+        commandPanel.execute('/sort/ s/r/R/') # this contains a substitution... won't be repeated
 
-      rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editSession.getSelectedBufferRange()).toEqual [[3,31], [3,38]]
+        rootView.trigger 'command-panel:repeat-relative-address'
+        expect(editSession.getSelectedBufferRange()).toEqual [[3,31], [3,38]]
+
+    describe "when there is only one match and it is selected", ->
+      it "maintains the current selection and plays a beep", ->
+        editSession.setCursorScreenPosition([0, 0])
+        waitsForPromise ->
+          commandPanel.execute("/Array")
+        runs ->
+          expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
+          spyOn($native, 'beep')
+          rootView.trigger 'command-panel:repeat-relative-address'
+        waitsFor ->
+          $native.beep.callCount > 0
+        runs ->
+          expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
 
   describe "when command-panel:repeat-relative-address-in-reverse is triggered on the root view", ->
-    it "it repeats the last relative address in the reverse direction", ->
-      rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
+    describe "when there is more than one match", ->
+      it "it repeats the last relative address in the reverse direction", ->
+        rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
 
-      editSession.setCursorScreenPosition([6, 0])
+        editSession.setCursorScreenPosition([6, 0])
 
-      commandPanel.execute("/current")
-      expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
+        commandPanel.execute("/current")
+        expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
 
-      rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
-      expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
+        rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
+        expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
+
+    describe "when there is only one match and it is selected", ->
+      it "maintains the current selection and plays a beep", ->
+        editSession.setCursorScreenPosition([0, 0])
+        waitsForPromise ->
+          commandPanel.execute("/Array")
+        runs ->
+          expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
+          spyOn($native, 'beep')
+          rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
+        waitsFor ->
+          $native.beep.callCount > 0
+        runs ->
+          expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
 
   describe "when command-panel:set-selection-as-regex-address is triggered on the root view", ->
     it "sets the @lastRelativeAddress to a RegexAddress of the current selection", ->
