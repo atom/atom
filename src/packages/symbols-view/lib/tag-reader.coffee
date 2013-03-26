@@ -16,7 +16,7 @@ find: (editor) ->
   tagsFile = @getTagsFile(project)
   return [] unless tagsFile
 
-  ctags.findTag(tagsFile, word)
+  ctags.findTags(tagsFile, word)
 
 getAllTags: (project, callback) ->
   deferred = $.Deferred()
