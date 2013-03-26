@@ -8,6 +8,16 @@ describe "the `atom` global", ->
     window.rootView = new RootView
 
   describe "package lifecycle methods", ->
+    describe ".loadPackage(id)", ->
+      describe "when the package has deferred deserializers", ->
+        it "requires the package's main module if one of its deferred deserializers is referenced", ->
+          pack = atom.loadPackage('package-with-activation-events')
+          expect(pack.mainModule).toBeNull()
+          object = deserialize({deserializer: 'Foo', data: 5})
+          expect(pack.mainModule).toBeDefined()
+          expect(object.constructor.name).toBe 'Foo'
+          expect(object.data).toBe 5
+
     describe ".activatePackage(id)", ->
       describe "atom packages", ->
         describe "when the package has a main module", ->
