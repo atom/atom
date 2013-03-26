@@ -7,7 +7,7 @@ module.exports =
     if repo?
       workingDirectoryPath = repo.getWorkingDirectory()
       statuses = {}
-      for path, status of repo.getStatuses()
+      for path, status of repo.getStatus()
         statuses[fs.join(workingDirectoryPath, path)] = status
       upstream = repo.getAheadBehindCount()
       repo.release()
