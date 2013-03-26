@@ -122,6 +122,12 @@ Variants:
 
     Event: `vim:motion-go-to-line-bottom`
 
+**Scroll down/up half a screen**
+
+Key: `ctrl-d` `ctrl-u`
+
+Event: `vim:motion-{down/up}-screen`
+
 **Select next/previous pane**
 
 Key: `ctrl-w l` `ctrl-w h`
@@ -186,7 +192,7 @@ Keys: `J`
 
 Event: `vim:alias-join-lines`
 
-**Record/replay a series of commands in register n**
+**Record/replay a series of actions in register n**
 
 Keys: `q n` `@ n`
 

@@ -1,5 +1,7 @@
 'body':
   'escape': 'vim:command-mode'
+  'ctrl-w l': 'window:focus-next-pane'
+  'ctrl-w h': 'window:focus-previous-pane'
 
 '.editor':
   'escape': 'vim:command-mode'
@@ -37,8 +39,6 @@
   'g g': 'vim:motion-go-to-line'
   'ctrl-d': 'vim:motion-down-screen'
   'ctrl-u': 'vim:motion-up-screen'
-  'ctrl-w l': 'window:focus-next-pane'
-  'ctrl-w h': 'window:focus-previous-pane'
   'x': 'vim:alias-delete-character'
   'D': 'vim:alias-delete-until-end-of-line'
   'J': 'vim:alias-join-lines'
