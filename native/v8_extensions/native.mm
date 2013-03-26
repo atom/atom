@@ -25,7 +25,7 @@ namespace v8_extensions {
       "writeToPasteboard", "readFromPasteboard", "quit", "watchPath",
       "unwatchPath", "getWatchedPaths", "unwatchAllPaths", "moveToTrash",
       "reload", "setWindowState", "getWindowState", "isMisspelled",
-      "getCorrectionsForMisspelling"
+      "getCorrectionsForMisspelling", "beep"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -189,6 +189,10 @@ namespace v8_extensions {
         retval = v8Guesses;
       }
       return true;
+    }
+
+    else if (name == "beep") {
+      NSBeep();
     }
 
     return false;
