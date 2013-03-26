@@ -6,6 +6,8 @@ describe "GrammarView", ->
   [editor, textGrammar, jsGrammar] =  []
 
   beforeEach ->
+    atom.activatePackage('text.tmbundle', sync: true)
+    atom.activatePackage('javascript.tmbundle', sync: true)
     window.rootView = new RootView
     rootView.open('sample.js')
     editor = rootView.getActiveView()

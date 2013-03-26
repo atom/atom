@@ -65,6 +65,9 @@ class CommandPanelView extends View
 
   destroy: ->
     @previewList.destroy()
+    rootView.off "command-panel:toggle-preview command-panel:find-in-file command-panel:find-in-project \
+      command-panel:repeat-relative-address command-panel:repeat-relative-address-in-reverse command-panel:set-selection-as-regex-address"
+    @remove()
 
   toggle: ->
     if @miniEditor.isFocused

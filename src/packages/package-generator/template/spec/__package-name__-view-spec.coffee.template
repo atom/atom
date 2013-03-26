@@ -10,7 +10,7 @@ fdescribe "__PackageName__View", ->
 
   beforeEach ->
     window.rootView = new RootView
-    __packageName__ = window.loadPackage('__packageName__', activateImmediately: true)
+    __packageName__ = atom.activatePackage('__packageName__', immediate: true)
 
   describe "when the __package-name__:toggle event is triggered", ->
     it "attaches and then detaches the view", ->

@@ -32,7 +32,7 @@ describe "StatusBar", ->
 
     describe "when associated with an unsaved buffer", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
-        rootView.deactivate()
+        rootView.remove()
         window.rootView = new RootView
         rootView.open()
         rootView.simulateDomAttachment()
@@ -180,6 +180,11 @@ describe "StatusBar", ->
       expect(statusBar.gitStatusIcon).toHaveText('+1')
 
   describe "grammar label", ->
+    beforeEach ->
+      atom.activatePackage('text.tmbundle', sync: true)
+      atom.activatePackage('javascript.tmbundle', sync: true)
+      syntax.trigger 'grammars-loaded'
+
     it "displays the name of the current grammar", ->
       expect(statusBar.find('.grammar-name').text()).toBe 'JavaScript'
 

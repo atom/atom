@@ -5,7 +5,7 @@ describe "TOML grammar", ->
 
   beforeEach ->
     spyOn(syntax, "addGrammar")
-    window.loadPackage("toml")
+    atom.activatePackage("toml")
     expect(syntax.addGrammar).toHaveBeenCalled()
     grammar = syntax.addGrammar.argsForCall[0][0]
 

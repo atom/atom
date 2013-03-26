@@ -7,7 +7,7 @@ describe 'Package Generator', ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    window.loadPackage("package-generator")
+    atom.activatePackage("package-generator")
 
   describe "when package-generator:generate is triggered", ->
     it "displays a miniEditor", ->

@@ -13,59 +13,91 @@ _.extend atom,
   loadedThemes: []
   pendingBrowserProcessCallbacks: {}
   loadedPackages: []
-  activatedAtomPackages: []
-  atomPackageStates: {}
+  activePackages: []
+  packageStates: {}
   presentingModal: false
   pendingModals: [[]]
 
   getPathToOpen: ->
     @getWindowState('pathToOpen') ? window.location.params.pathToOpen
 
-  activateAtomPackage: (pack) ->
-    @activatedAtomPackages.push(pack)
-    pack.mainModule.activate(@atomPackageStates[pack.name] ? {})
+  getPackageState: (name) ->
+    @packageStates[name]
 
-  deactivateAtomPackages: ->
-    pack.mainModule.deactivate?() for pack in @activatedAtomPackages
-    @activatedAtomPackages = []
-
-  serializeAtomPackages: ->
-    packageStates = {}
-    for pack in @loadedPackages
-      if pack in @activatedAtomPackages
-        try
-          packageStates[pack.name] = pack.mainModule.serialize?()
-        catch e
-          console?.error("Exception serializing '#{pack.name}' package's module\n", e.stack)
-      else
-        packageStates[pack.name] = @atomPackageStates[pack.name]
-    packageStates
-
-  loadPackages: ->
-    textMatePackages = []
-    paths = @getPackagePaths().filter (path) -> fs.base(path) isnt 'text.tmbundle'
-    for path in paths
-      pack = Package.build(path)
-      @loadedPackages.push(pack)
-      pack.load()
+  setPackageState: (name, state) ->
+    @packageStates[name] = state
 
   activatePackages: ->
-    pack.activate() for pack in @loadedPackages
+    @activatePackage(pack.path) for pack in @getLoadedPackages()
+
+  activatePackage: (id, options) ->
+    if pack = @loadPackage(id, options)
+      @activePackages.push(pack)
+      pack.activate(options)
+      pack
+
+  deactivatePackages: ->
+    @deactivatePackage(pack.path) for pack in @getActivePackages()
+
+  deactivatePackage: (id) ->
+    if pack = @getActivePackage(id)
+      @setPackageState(pack.name, state) if state = pack.serialize?()
+      pack.deactivate()
+      _.remove(@activePackages, pack)
+    else
+      throw new Error("No active package for id '#{id}'")
+
+  getActivePackage: (id) ->
+    if path = @resolvePackagePath(id)
+      _.detect @activePackages, (pack) -> pack.path is path
+
+  isPackageActive: (id) ->
+    if path = @resolvePackagePath(id)
+      _.detect @activePackages, (pack) -> pack.path is path
+
+  getActivePackages: ->
+    _.clone(@activePackages)
+
+  loadPackages: ->
+    @loadPackage(path) for path in @getPackagePaths() when not @isPackageDisabled(path)
+
+  loadPackage: (id, options) ->
+    if @isPackageDisabled(id)
+      return console.warn("Tried to load disabled packaged '#{id}'")
+
+    if path = @resolvePackagePath(id)
+      return pack if pack = @getLoadedPackage(id)
+      pack = Package.load(path, options)
+      @loadedPackages.push(pack)
+      pack
+    else
+      throw new Error("Could not resolve '#{id}' to a package path")
+
+  resolvePackagePath: _.memoize (id) ->
+    return id if fs.isDirectory(id)
+    path = fs.resolve(config.packageDirPaths..., id)
+    path if fs.isDirectory(path)
+
+  getLoadedPackage: (id) ->
+    if path = @resolvePackagePath(id)
+      _.detect @loadedPackages, (pack) -> pack.path is path
+
+  isPackageLoaded: (id) ->
+    @getLoadedPackage(id)?
 
   getLoadedPackages: ->
     _.clone(@loadedPackages)
 
+  isPackageDisabled: (id) ->
+    if path = @resolvePackagePath(id)
+      _.include(config.get('core.disabledPackages') ? [], fs.base(path))
+
   getPackagePaths: ->
-    disabledPackages = config.get("core.disabledPackages") ? []
     packagePaths = []
     for packageDirPath in config.packageDirPaths
       for packagePath in fs.list(packageDirPath)
-        continue if not fs.isDirectory(packagePath)
-        continue if fs.base(packagePath) in disabledPackages
-        continue if packagePath in packagePaths
-        packagePaths.push(packagePath)
-
-    packagePaths
+        packagePaths.push(packagePath) if fs.isDirectory(packagePath)
+    _.uniq(packagePaths)
 
   loadThemes: ->
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']

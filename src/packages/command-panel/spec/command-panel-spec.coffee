@@ -11,7 +11,7 @@ describe "CommandPanel", ->
     rootView.enableKeymap()
     editSession = rootView.getActivePaneItem()
     buffer = editSession.buffer
-    commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).mainModule
+    commandPanelMain = atom.activatePackage('command-panel', immediate: true).mainModule
     commandPanel = commandPanelMain.commandPanelView
     commandPanel.history = []
     commandPanel.historyIndex = 0
@@ -28,11 +28,8 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:toggle'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
-      rootViewState = rootView.serialize()
-      rootView.deactivate()
-      window.rootView = RootView.deserialize(rootViewState)
-      rootView.attachToDom()
-      window.loadPackage('command-panel')
+      atom.deactivatePackage('command-panel')
+      atom.activatePackage('command-panel')
 
       expect(rootView.find('.command-panel')).not.toExist()
       rootView.trigger 'command-panel:toggle'
@@ -55,13 +52,12 @@ describe "CommandPanel", ->
       expect(commandPanel.history[2]).toBe('/test3')
       expect(commandPanel.historyIndex).toBe(3)
 
-      rootViewState = rootView.serialize()
-      rootView.deactivate()
-      RootView.deserialize(rootViewState).attachToDom()
-      window.loadPackage('command-panel')
-      rootView.trigger 'command-panel:toggle'
+      atom.deactivatePackage('command-panel')
+      atom.activatePackage('command-panel')
 
+      rootView.trigger 'command-panel:toggle'
       commandPanel = rootView.find('.command-panel').view()
+
       expect(commandPanel.history.length).toBe(2)
       expect(commandPanel.history[0]).toBe('/test2')
       expect(commandPanel.history[1]).toBe('/test3')

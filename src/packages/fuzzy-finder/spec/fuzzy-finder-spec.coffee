@@ -13,7 +13,7 @@ describe 'FuzzyFinder', ->
     window.rootView = new RootView
     rootView.open('sample.js')
     rootView.enableKeymap()
-    finderView = window.loadPackage("fuzzy-finder").mainModule.createView()
+    finderView = atom.activatePackage("fuzzy-finder").mainModule.createView()
 
   describe "file-finder behavior", ->
     describe "toggling", ->
@@ -143,8 +143,8 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           rootView.open()
 
-          states = rootView.serialize().packages
-          states = _.map states['fuzzy-finder'], (path, time) -> [ path, time ]
+          atom.deactivatePackage('fuzzy-finder')
+          states = _.map atom.getPackageState('fuzzy-finder'), (path, time) -> [ path, time ]
           states = _.sortBy states, (path, time) -> -time
 
           paths = [ 'sample-with-tabs.coffee', 'sample.txt', 'sample.js' ]

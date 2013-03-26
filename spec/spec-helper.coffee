@@ -17,6 +17,7 @@ RootView = require 'root-view'
 Git = require 'git'
 requireStylesheet "jasmine"
 fixturePackagesPath = fs.resolveOnLoadPath('fixtures/packages')
+config.packageDirPaths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
@@ -36,12 +37,12 @@ beforeEach ->
     window.git = Git.open(window.project.getPath())
 
   window.resetTimeouts()
-  atom.atomPackageStates = {}
-  atom.loadedPackages = []
+  atom.packageStates = {}
   spyOn(atom, 'saveWindowState')
   spyOn(atom, 'getSavedWindowState').andReturn(null)
   $native.setWindowState('')
   syntax.clearGrammarOverrides()
+  syntax.clearProperties()
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
@@ -76,8 +77,9 @@ beforeEach ->
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
   keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
+  atom.deactivatePackages()
   if rootView?
-    rootView.deactivate?()
+    rootView.remove?()
     window.rootView = null
   if project?
     project.destroy()
@@ -91,26 +93,6 @@ afterEach ->
   atom.presentingModal = false
   syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
-
-window.loadPackage = (name, options={}) ->
-  Package = require 'package'
-  packagePath = _.find atom.getPackagePaths(), (packagePath) -> fs.base(packagePath) == name
-  if pack = Package.build(packagePath)
-    pack.load(options)
-    atom.loadedPackages.push(pack)
-    pack.deferActivation = false if options.activateImmediately
-    pack.activate()
-  pack
-
-# Specs rely on TextMate bundles (but not atom packages)
-window.loadTextMatePackages = ->
-  TextMatePackage = require 'text-mate-package'
-  config.packageDirPaths.unshift(fixturePackagesPath)
-  window.textMatePackages = []
-  for path in atom.getPackagePaths() when TextMatePackage.testName(path)
-    window.textMatePackages.push window.loadPackage(fs.base(path), sync: true)
-
-window.loadTextMatePackages()
 
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()
