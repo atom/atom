@@ -14,6 +14,19 @@ describe "TextMateGrammar", ->
     atom.activatePackage('ruby.tmbundle', sync: true)
     grammar = syntax.selectGrammar("hello.coffee")
 
+  describe "@loadSync(path)", ->
+    it "loads grammars from plists", ->
+      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('packages/text.tmbundle/Syntaxes/Plain text.plist'))
+      expect(grammar.scopeName).toBe "text.plain"
+      {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
+      expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
+
+    it "loads grammars from cson files", ->
+      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
+      expect(grammar.scopeName).toBe "source.alot"
+      {tokens} = grammar.tokenizeLine("this is alot of code")
+      expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
+
   describe ".tokenizeLine(line, ruleStack)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
       it "returns a single token with the correct scope", ->
