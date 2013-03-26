@@ -31,6 +31,24 @@ class AtomPackage extends Package
       console.warn "Failed to load package named '#{@name}'", e.stack
     this
 
+  activate: ({immediate}={}) ->
+    keymap.add(map) for map in @keymaps
+    applyStylesheet(path, content) for [path, content] in @stylesheets
+    syntax.addGrammar(grammar) for grammar in @grammars
+
+    if @deferActivation and not immediate
+      @subscribeToActivationEvents()
+    else
+      @activateNow()
+
+  activateNow: ->
+    try
+      if @requireMainModule()
+        config.setDefaults(@name, @mainModule.configDefaults)
+        @mainModule.activate(atom.getPackageState(@name) ? {})
+    catch e
+      console.warn "Failed to activate package named '#{@name}'", e.stack
+
   loadMetadata: ->
     if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
       @metadata = CSON.readObject(metadataPath)
@@ -66,24 +84,6 @@ class AtomPackage extends Package
     for scopedPropertiesPath in fs.list(scopedPropertiessDirPath, ['.cson', '.json']) ? []
       for selector, properties of fs.readObject(scopedPropertiesPath)
         syntax.addProperties(selector, properties)
-
-  activate: ({immediate}={}) ->
-    keymap.add(map) for map in @keymaps
-    applyStylesheet(path, content) for [path, content] in @stylesheets
-    syntax.addGrammar(grammar) for grammar in @grammars
-
-    if @deferActivation and not immediate
-      @subscribeToActivationEvents()
-    else
-      @activateNow()
-
-  activateNow: ->
-    try
-      if @requireMainModule()
-        config.setDefaults(@name, @mainModule.configDefaults)
-        @mainModule.activate(atom.getPackageState(@name) ? {})
-    catch e
-      console.warn "Failed to activate package named '#{@name}'", e.stack
 
   serialize: ->
     try
