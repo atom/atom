@@ -120,22 +120,22 @@ describe "the `atom` global", ->
 
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
-        it "calls `deactivate` on the package's main module and deletes the package's module reference and require cache entry", ->
-          pack = atom.activatePackage("package-with-module")
-          expect(atom.getActivePackage("package-with-module")).toBe pack
+        it "calls `deactivate` on the package's main module", ->
+          pack = atom.activatePackage("package-with-deactivate")
+          expect(atom.isPackageActive("package-with-deactivate")).toBeTruthy()
           spyOn(pack.mainModule, 'deactivate').andCallThrough()
 
-          atom.deactivatePackage("package-with-module")
+          atom.deactivatePackage("package-with-deactivate")
           expect(pack.mainModule.deactivate).toHaveBeenCalled()
-          expect(atom.getActivePackage("package-with-module")).toBeUndefined()
+          expect(atom.isPackageActive("package-with-module")).toBeFalsy()
 
         it "absorbs exceptions that are thrown by the package module's serialize methods", ->
           spyOn(console, 'error')
-          atom.activatePackage('package-with-module', immediate: true)
           atom.activatePackage('package-with-serialize-error',  immediate: true)
+          atom.activatePackage('package-with-serialization', immediate: true)
           atom.deactivatePackages()
-          expect(atom.packageStates['package-with-module']).toEqual someNumber: 1
           expect(atom.packageStates['package-with-serialize-error']).toBeUndefined()
+          expect(atom.packageStates['package-with-serialization']).toEqual someNumber: 1
           expect(console.error).toHaveBeenCalled()
 
       describe "texmate packages", ->
