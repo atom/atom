@@ -148,7 +148,12 @@ fdescribe "Vim state", ->
           expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(0)
           vim.motion('down-screen')
           expect(editor.activeEditSession.getCursor().getBufferPosition().row).not.toBe(0)
-
+      describe "center", ->
+        it "moves the cursor to the middle line of the screen", ->
+          realEditor()
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(0)
+          vim.motion('center-screen')
+          expect(editor.activeEditSession.getCursor().getBufferPosition().row).not.toBe(0)
 
   describe "operations", ->
     describe "execution", ->

@@ -11,7 +11,7 @@ class VimView extends View
       @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
-    if pane = editor.pane()
+    if pane = editor.getPane()
       if pane.find(".vim").length > 0
         return
       statusbar = pane.find(".status-bar")

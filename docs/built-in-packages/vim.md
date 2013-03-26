@@ -128,6 +128,12 @@ Key: `ctrl-d` `ctrl-u`
 
 Event: `vim:motion-{down/up}-screen`
 
+**Place cursor in the middle of the screen**
+
+Key: `M`
+
+Event: `vim:motion-center-screen`
+
 **Select next/previous pane**
 
 Key: `ctrl-w l` `ctrl-w h`

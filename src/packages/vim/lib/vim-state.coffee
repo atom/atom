@@ -212,6 +212,13 @@ class VimState
     'down-screen': () ->
       scrollSize = Math.floor((@target.scrollView[0].clientHeight / 2) / @target.lineHeight) || 1
       @target.activeEditSession.moveCursorDown(scrollSize) for n in [1..@count]
+    'center-screen': () ->
+      position = @target.getCursorScreenPosition()
+      scrollOffset = Math.ceil((@target.scrollTop() || 0) / @target.lineHeight) || 0
+      scrollSize = Math.floor((@target.scrollView[0].clientHeight / 2) / @target.lineHeight) || 1
+      position.row = Math.max(0, Math.min(scrollOffset + scrollSize, @target.getLastScreenRow()))
+      position.column = 0
+      @target.activeEditSession.setCursorScreenPosition(position)
     'go-to-line': () ->
       (if n == 1 then @performEvent("core:move-to-top") else @performEvent("core:move-down")) for n in [1..@count]
     'go-to-line-bottom': () ->
