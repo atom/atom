@@ -13,7 +13,8 @@
     "coffee-cache": "0.1.0",
     "pegjs": "0.7.0",
     "async": "0.2.6",
-    "plist": "git://github.com/nathansobo/node-plist.git"
+    "plist": "git://github.com/nathansobo/node-plist.git",
+    "nak": "0.2.4"
   },
 
   "private": true,
