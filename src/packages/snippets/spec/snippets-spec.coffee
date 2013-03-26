@@ -236,7 +236,7 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
-      atom.loadPackage('textmate-package.tmbundle', sync: true)
+      atom.loadPackage('package-with-broken-snippets.tmbundle', sync: true)
       atom.loadPackage('package-with-snippets')
 
       jasmine.unspy(window, "setTimeout")
