@@ -48,14 +48,6 @@ describe "AtomPackage", ->
         expect(eventHandler.callCount).toBe 2
         expect(packageMainModule.activate.callCount).toBe 1
 
-
-  describe "when a package is activated", ->
-    it "loads config defaults based on the `configDefaults` key", ->
-      expect(config.get('package-with-module.numbers.one')).toBeUndefined()
-      atom.activatePackage("package-with-module")
-      expect(config.get('package-with-module.numbers.one')).toBe 1
-      expect(config.get('package-with-module.numbers.two')).toBe 2
-
   describe "when the package has a scoped properties directory", ->
     it "loads the scoped properties", ->
       spyOn(syntax, 'addProperties')

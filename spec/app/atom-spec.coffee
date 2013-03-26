@@ -27,6 +27,12 @@ describe "the `atom` global", ->
               expect(indexModule.activate).toHaveBeenCalled()
               expect(pack.mainModule).toBe indexModule
 
+          it "assigns config defaults from the module", ->
+            expect(config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
+            atom.activatePackage('package-with-config-defaults')
+            expect(config.get('package-with-config-defaults.numbers.one')).toBe 1
+            expect(config.get('package-with-config-defaults.numbers.two')).toBe 2
+
         describe "when the package has no main module", ->
           it "does not throw an exception", ->
             spyOn(console, "error")
