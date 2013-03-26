@@ -177,6 +177,12 @@ describe "the `atom` global", ->
           expect(stylesheetElementForId(two)).not.toExist()
           expect(stylesheetElementForId(three)).not.toExist()
 
+        it "removes the package's scoped-properties", ->
+          atom.activatePackage("package-with-scoped-properties")
+          expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+          atom.deactivatePackage("package-with-scoped-properties")
+          expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
+
       describe "texmate packages", ->
         it "removes the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"

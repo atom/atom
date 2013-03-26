@@ -11,6 +11,7 @@ class AtomPackage extends Package
   keymaps: null
   stylesheets: null
   grammars: null
+  scopedProperties: null
   mainModulePath: null
   resolvedMainModulePath: false
   mainModule: null
@@ -35,6 +36,7 @@ class AtomPackage extends Package
     keymap.add(path, map) for [path, map] in @keymaps
     applyStylesheet(path, content) for [path, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
+    syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
 
     if @deferActivation and not immediate
       @subscribeToActivationEvents()
@@ -81,10 +83,11 @@ class AtomPackage extends Package
       @grammars.push(TextMateGrammar.loadSync(grammarPath))
 
   loadScopedProperties: ->
+    @scopedProperties = []
     scopedPropertiessDirPath = fsUtils.join(@path, 'scoped-properties')
     for scopedPropertiesPath in fsUtils.list(scopedPropertiessDirPath, ['.cson', '.json']) ? []
       for selector, properties of fsUtils.readObject(scopedPropertiesPath)
-        syntax.addProperties(selector, properties)
+        @scopedProperties.push([scopedPropertiesPath, selector, properties])
 
   serialize: ->
     try
@@ -94,6 +97,7 @@ class AtomPackage extends Package
 
   deactivate: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
+    syntax.removeProperties(path) for [path] in @scopedProperties
     keymap.remove(path) for [path] in @keymaps
     removeStylesheet(path) for [path] in @stylesheets
     @mainModule?.deactivate?()
