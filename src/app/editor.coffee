@@ -62,7 +62,7 @@ class Editor extends View
     else
       {editSession, @mini} = (editSessionOrOptions ? {})
 
-    requireStylesheet 'editor.less'
+    requireStylesheet 'editor'
 
     @id = Editor.nextEditorId++
     @lineCache = []
