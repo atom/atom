@@ -103,7 +103,7 @@ describe "the `atom` global", ->
               expect(stylesheetElementForId(three)).not.toExist()
               expect($('#jasmine-content').css('font-size')).toBe '1px'
 
-          describe "when the metadata does not contains a 'stylesheets' manifest", ->
+          describe "when the metadata does not contain a 'stylesheets' manifest", ->
             it "loads all stylesheets from the stylesheets directory", ->
               one = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
               two = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
