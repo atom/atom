@@ -1,6 +1,6 @@
 TextMateGrammar = require 'text-mate-grammar'
 Package = require 'package'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 $ = require 'jquery'
 CSON = require 'cson'
@@ -50,39 +50,39 @@ class AtomPackage extends Package
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
   loadMetadata: ->
-    if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
+    if metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['cson', 'json'])
       @metadata = CSON.readObject(metadataPath)
     @metadata ?= {}
 
   loadKeymaps: ->
     @keymaps = []
 
-    keymapsDirPath = fs.join(@path, 'keymaps')
+    keymapsDirPath = fsUtils.join(@path, 'keymaps')
     keymapExtensions = ['cson', 'json', '']
 
     if @metadata.keymaps
       for path in @metadata.keymaps
-        @keymaps.push(CSON.readObject(fs.resolve(keymapsDirPath, path, keymapExtensions)))
+        @keymaps.push(CSON.readObject(fsUtils.resolve(keymapsDirPath, path, keymapExtensions)))
     else
-      for path in fs.list(keymapsDirPath, ['cson', 'json', '']) ? []
+      for path in fsUtils.list(keymapsDirPath, ['cson', 'json', '']) ? []
         @keymaps.push(CSON.readObject(path))
 
   loadStylesheets: ->
     @stylesheets = []
-    stylesheetDirPath = fs.join(@path, 'stylesheets')
-    for stylesheetPath in fs.list(stylesheetDirPath, ['css', 'less']) ? []
+    stylesheetDirPath = fsUtils.join(@path, 'stylesheets')
+    for stylesheetPath in fsUtils.list(stylesheetDirPath, ['css', 'less']) ? []
       @stylesheets.push([stylesheetPath, loadStylesheet(stylesheetPath)])
 
   loadGrammars: ->
     @grammars = []
-    grammarsDirPath = fs.join(@path, 'grammars')
-    for grammarPath in fs.list(grammarsDirPath, ['.cson', '.json']) ? []
+    grammarsDirPath = fsUtils.join(@path, 'grammars')
+    for grammarPath in fsUtils.list(grammarsDirPath, ['.cson', '.json']) ? []
       @grammars.push(TextMateGrammar.loadSync(grammarPath))
 
   loadScopedProperties: ->
-    scopedPropertiessDirPath = fs.join(@path, 'scoped-properties')
-    for scopedPropertiesPath in fs.list(scopedPropertiessDirPath, ['.cson', '.json']) ? []
-      for selector, properties of fs.readObject(scopedPropertiesPath)
+    scopedPropertiessDirPath = fsUtils.join(@path, 'scoped-properties')
+    for scopedPropertiesPath in fsUtils.list(scopedPropertiessDirPath, ['.cson', '.json']) ? []
+      for selector, properties of fsUtils.readObject(scopedPropertiesPath)
         syntax.addProperties(selector, properties)
 
   serialize: ->
@@ -97,17 +97,17 @@ class AtomPackage extends Package
   requireMainModule: ->
     return @mainModule if @mainModule
     mainModulePath = @getMainModulePath()
-    @mainModule = require(mainModulePath) if fs.isFile(mainModulePath)
+    @mainModule = require(mainModulePath) if fsUtils.isFile(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
     @resolvedMainModulePath = true
     mainModulePath =
       if @metadata.main
-        fs.join(@path, @metadata.main)
+        fsUtils.join(@path, @metadata.main)
       else
-        fs.join(@path, 'index')
-    @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+        fsUtils.join(@path, 'index')
+    @mainModulePath = fsUtils.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []
