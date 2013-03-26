@@ -33,6 +33,34 @@ describe "the `atom` global", ->
             expect(config.get('package-with-config-defaults.numbers.one')).toBe 1
             expect(config.get('package-with-config-defaults.numbers.two')).toBe 2
 
+          describe "when the package metadata includes activation events", ->
+            [mainModule, pack] = []
+
+            beforeEach ->
+              mainModule = require 'package-with-activation-events/index'
+              spyOn(mainModule, 'activate').andCallThrough()
+              pack = atom.activatePackage('package-with-activation-events')
+
+            it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
+              expect(pack.mainModule).toBeNull()
+              expect(mainModule.activate).not.toHaveBeenCalled()
+              rootView.trigger 'activation-event'
+              expect(mainModule.activate).toHaveBeenCalled()
+
+            it "triggers the activation event on all handlers registered during activation", ->
+              rootView.open()
+              editor = rootView.getActiveView()
+              eventHandler = jasmine.createSpy("activation-event")
+              editor.command 'activation-event', eventHandler
+              editor.trigger 'activation-event'
+              expect(mainModule.activate.callCount).toBe 1
+              expect(mainModule.activationEventCallCount).toBe 1
+              expect(eventHandler.callCount).toBe 1
+              editor.trigger 'activation-event'
+              expect(mainModule.activationEventCallCount).toBe 2
+              expect(eventHandler.callCount).toBe 2
+              expect(mainModule.activate.callCount).toBe 1
+
         describe "when the package has no main module", ->
           it "does not throw an exception", ->
             spyOn(console, "error")
