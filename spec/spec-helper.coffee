@@ -42,6 +42,7 @@ beforeEach ->
   spyOn(atom, 'getSavedWindowState').andReturn(null)
   $native.setWindowState('')
   syntax.clearGrammarOverrides()
+  syntax.clearProperties()
 
   # used to reset keymap after each spec
   bindingSetsToRestore = _.clone(keymap.bindingSets)
