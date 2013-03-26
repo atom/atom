@@ -2060,7 +2060,9 @@ describe "EditSession", ->
       editSession.buffer.reload()
       expect(editSession.getCursorScreenPosition()).toEqual [0,1]
     it "preserves the current state if the file was not saved yet", ->
-      editSession = project.buildEditSessionFromState('test', autoIndent: false)
+      editSession.destroy()
+      editSession = project.buildEditSession(null, autoIndent: false)
+      editSession.buffer.setText('test')
       editSession = EditSession.deserialize(editSession.serialize())
       expect(editSession.buffer.getText()).toBe('test')
 

@@ -1229,3 +1229,48 @@ describe 'Buffer', ->
         expect(buffer.clipPosition([1, 0])).toEqual [0,9]
         expect(buffer.clipPosition([0,10])).toEqual [0,9]
         expect(buffer.clipPosition([10,Infinity])).toEqual [0,9]
+
+  describe "when the buffer is serialized", ->
+    describe "when the contents of the buffer are saved on disk", ->
+      it "stores the file path", ->
+        data = buffer.serialize()
+        expect(data.path).toBe(buffer.getPath())
+        expect(data.text).toBeFalsy()
+    describe "when the buffer has unsaved changes", ->
+      it "stores the file path and the changed buffer text", ->
+        buffer.setText("abc")
+        data = buffer.serialize()
+        expect(data.path).toBe(buffer.getPath())
+        expect(data.text).toBe("abc")
+    describe "when the buffer has never been saved", ->
+      it "stores the changed buffer text", ->
+        buffer.release()
+        buffer = new Buffer()
+        buffer.setText("abc")
+        data = buffer.serialize()
+        expect(data.path).toBeFalsy()
+        expect(data.text).toBe("abc")
+
+  describe "when a buffer is deserialized", ->
+    reloadBuffer = () ->
+      serialized = buffer.serialize()
+      buffer.release()
+      buffer = Buffer.deserialize(serialized)
+
+    it "loads the contents of the file saved on disk when there are no unsaved changes", ->
+      path = buffer.getPath()
+      reloadBuffer()
+      expect(buffer.getPath()).toBe(path)
+    it "loads the stored changes if the file was modified", ->
+      path = buffer.getPath()
+      buffer.setText("abc")
+      reloadBuffer()
+      expect(buffer.getPath()).toBe(path)
+      expect(buffer.getText()).toBe("abc")
+    it "loads the stored changes if the file was never saved", ->
+      buffer.release()
+      buffer = new Buffer()
+      buffer.setText("abc")
+      reloadBuffer()
+      expect(buffer.getPath()).toBeFalsy()
+      expect(buffer.getText()).toBe("abc")

@@ -87,9 +87,6 @@ class Project
   buildEditSession: (filePath, editSessionOptions={}) ->
     @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
 
-  buildEditSessionFromState: (state, editSessionOptions={}) ->
-    @buildEditSessionForBuffer(@bufferForState(state), editSessionOptions)
-
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
     options.project = this
@@ -140,11 +137,6 @@ class Project
 
     else
       @buildBuffer()
-
-  bufferForState: (state) ->
-    buffer = @buildBuffer()
-    buffer.setText(state) if state
-    buffer
 
   buildBuffer: (filePath) ->
     buffer = new Buffer(filePath, this)

@@ -11,6 +11,7 @@ BufferMarker = require 'buffer-marker'
 module.exports =
 class Buffer
   @idCounter = 1
+  registerDeserializer(this)
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
   undoManager: null
@@ -24,7 +25,13 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
-  constructor: (path, @project) ->
+  @deserialize: (state) ->
+    if state && (state.path? || state.text?)
+      new Buffer(state.path, project, state.text)
+    else
+      new Buffer(null, project)
+
+  constructor: (path, @project, initialText) ->
     @id = @constructor.idCounter++
     @nextMarkerId = 1
     @validMarkers = {}
@@ -35,9 +42,12 @@ class Buffer
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
       @setPath(path)
-      @reload()
+      if initialText?
+        @setText(initialText)
+      else
+        @reload()
     else
-      @setText('')
+      @setText(initialText ? '')
 
     @undoManager = new UndoManager(this)
 
@@ -55,6 +65,11 @@ class Buffer
     @refcount--
     @destroy() if @refcount <= 0
     this
+
+  serialize: ->
+    deserializer: 'TextBuffer'
+    path: @getPath()
+    text: @getText() if @isModified()
 
   hasEditors: -> @refcount > 1
 
