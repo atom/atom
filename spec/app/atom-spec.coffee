@@ -150,6 +150,12 @@ describe "the `atom` global", ->
           expect(syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
           expect(syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
 
+        it "removes the package's keymaps", ->
+          atom.activatePackage('package-with-keymaps')
+          atom.deactivatePackage('package-with-keymaps')
+          expect(keymap.bindingsForElement($$ -> @div class: 'test-1')['ctrl-z']).toBeUndefined()
+          expect(keymap.bindingsForElement($$ -> @div class: 'test-2')['ctrl-z']).toBeUndefined()
+
       describe "texmate packages", ->
         it "removes the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"

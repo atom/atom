@@ -32,7 +32,7 @@ class AtomPackage extends Package
     this
 
   activate: ({immediate}={}) ->
-    keymap.add(map) for map in @keymaps
+    keymap.add(path, map) for [path, map] in @keymaps
     applyStylesheet(path, content) for [path, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
 
@@ -55,21 +55,17 @@ class AtomPackage extends Package
     @metadata ?= {}
 
   loadKeymaps: ->
-    @keymaps = []
+    @keymaps = @getKeymapPaths().map (path) -> [path, CSON.readObject(path)]
 
+  getKeymapPaths: ->
     keymapsDirPath = fsUtils.join(@path, 'keymaps')
-    keymapExtensions = ['cson', 'json', '']
-
     if @metadata.keymaps
-      for path in @metadata.keymaps
-        @keymaps.push(CSON.readObject(fsUtils.resolve(keymapsDirPath, path, keymapExtensions)))
+      @metadata.keymaps.map (name) -> fsUtils.resolve(keymapsDirPath, name, ['cson', 'json', ''])
     else
-      for path in fsUtils.list(keymapsDirPath, ['cson', 'json', '']) ? []
-        @keymaps.push(CSON.readObject(path))
+      fsUtils.list(keymapsDirPath, ['cson', 'json']) ? []
 
   loadStylesheets: ->
-    @stylesheets = []
-    @stylesheets.push([path, loadStylesheet(path)]) for path in @getStylesheetPaths()
+    @stylesheets = @getStylesheetPaths().map (path) -> [path, loadStylesheet(path)]
 
   getStylesheetPaths: ->
     stylesheetDirPath = fsUtils.join(@path, 'stylesheets')
@@ -98,6 +94,7 @@ class AtomPackage extends Package
 
   deactivate: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
+    keymap.remove(path) for [path] in @keymaps
     @mainModule?.deactivate?()
 
   requireMainModule: ->
