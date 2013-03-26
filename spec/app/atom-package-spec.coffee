@@ -48,27 +48,6 @@ describe "AtomPackage", ->
         expect(eventHandler.callCount).toBe 2
         expect(packageMainModule.activate.callCount).toBe 1
 
-    describe "when the package does not specify a main module", ->
-      describe "when the package has an index.coffee", ->
-        it "uses index.coffee as the main module", ->
-          pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-module'))
-          packageMainModule = require 'fixtures/packages/package-with-module'
-          spyOn(packageMainModule, 'activate').andCallThrough()
-
-          expect(packageMainModule.activate).not.toHaveBeenCalled()
-          pack.load()
-          pack.activate()
-          expect(packageMainModule.activate).toHaveBeenCalled()
-
-      describe "when the package doesn't have an index.coffee", ->
-        it "does not throw an exception or log an error", ->
-          spyOn(console, "error")
-          spyOn(console, "warn").andCallThrough()
-          pack = new AtomPackage(fs.resolve(config.packageDirPaths..., 'package-with-keymaps-manifest'))
-
-          expect(-> pack.load()).not.toThrow()
-          expect(console.error).not.toHaveBeenCalled()
-          expect(console.warn).not.toHaveBeenCalled()
 
   describe "when a package is activated", ->
     it "loads config defaults based on the `configDefaults` key", ->

@@ -1,3 +1,4 @@
+$ = require 'jquery'
 RootView = require 'root-view'
 {$$} = require 'space-pen'
 fs = require 'fs-utils'
@@ -7,39 +8,40 @@ describe "the `atom` global", ->
     window.rootView = new RootView
 
   describe "package lifecycle methods", ->
-    packageModule = null
-
-    beforeEach ->
-      packageModule = require "package-with-module"
-
-    afterEach ->
-      atom.deactivatePackages()
-
     describe ".activatePackage(id)", ->
       describe "atom packages", ->
-        stylesheetPath = null
+        describe "when the package has a main module", ->
+          describe "when the metadata specifies a main module path˜", ->
+            it "requires the module at the specified path", ->
+              mainModule = require('package-with-main/main-module')
+              spyOn(mainModule, 'activate')
+              pack = atom.activatePackage('package-with-main')
+              expect(mainModule.activate).toHaveBeenCalled()
+              expect(pack.mainModule).toBe mainModule
 
-        beforeEach ->
-          stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
+          describe "when the metadata does not specify a main module", ->
+            it "requires index.coffee", ->
+              indexModule = require('package-with-index/index')
+              spyOn(indexModule, 'activate')
+              pack = atom.activatePackage('package-with-index')
+              expect(indexModule.activate).toHaveBeenCalled()
+              expect(pack.mainModule).toBe indexModule
 
-        afterEach ->
-          removeStylesheet(stylesheetPath)
-
-        it "requires and activates the package's main module if it exists", ->
-          spyOn(packageModule, 'activate').andCallThrough()
-          atom.activatePackage("package-with-module")
-          expect(packageModule.activate).toHaveBeenCalledWith({})
+        describe "when the package has no main module", ->
+          it "does not throw an exception", ->
+            spyOn(console, "error")
+            spyOn(console, "warn").andCallThrough()
+            expect(-> atom.activatePackage('package-without-module')).not.toThrow()
+            expect(console.error).not.toHaveBeenCalled()
+            expect(console.warn).not.toHaveBeenCalled()
 
         it "passes the package its previously serialized state if it exists", ->
-          pack = atom.activatePackage("package-with-module")
+          pack = atom.activatePackage("package-with-serialization")
           expect(pack.mainModule.someNumber).not.toBe 77
           pack.mainModule.someNumber = 77
-          atom.deactivatePackage("package-with-module")
-
-          pack.requireMainModule() # deactivating the package nukes its main module, so we require it again to spy on it
+          atom.deactivatePackage("package-with-serialization")
           spyOn(pack.mainModule, 'activate').andCallThrough()
-
-          atom.activatePackage("package-with-module")
+          atom.activatePackage("package-with-serialization")
           expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
         it "logs warning instead of throwing an exception if a package fails to load", ->
@@ -49,7 +51,7 @@ describe "the `atom` global", ->
           expect(console.warn).toHaveBeenCalled()
 
         describe "keymap loading", ->
-          describe "when package.json does not contain a 'keymaps' manifest", ->
+          describe "when the metadata does not contain a 'keymaps' manifest", ->
             it "loads all the .cson/.json files in the keymaps directory", ->
               element1 = $$ -> @div class: 'test-1'
               element2 = $$ -> @div class: 'test-2'
@@ -59,13 +61,13 @@ describe "the `atom` global", ->
               expect(keymap.bindingsForElement(element2)['ctrl-z']).toBeUndefined()
               expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
-              atom.activatePackage("package-with-module")
+              atom.activatePackage("package-with-keymaps")
 
               expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
               expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
               expect(keymap.bindingsForElement(element3)['ctrl-z']).toBeUndefined()
 
-          describe "when package.json contains a 'keymaps' manifest", ->
+          describe "when the metadata contains a 'keymaps' manifest", ->
             it "loads only the keymaps specified by the manifest, in the specified order", ->
               element1 = $$ -> @div class: 'test-1'
               element3 = $$ -> @div class: 'test-3'
@@ -78,11 +80,24 @@ describe "the `atom` global", ->
               expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
               expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
-        it "loads stylesheets associated with the package", ->
-          stylesheetPath = fs.resolveOnLoadPath("fixtures/packages/package-with-module/stylesheets/styles.css")
-          expect(stylesheetElementForId(stylesheetPath).length).toBe 0
-          atom.activatePackage("package-with-module")
-          expect(stylesheetElementForId(stylesheetPath).length).toBe 1
+        describe "stylesheet loading", ->
+          describe "when the metadata contains a 'stylesheets' manifest", ->
+            # WIP
+
+          describe "when the metadata does not contains a 'stylesheets' manifest", ->
+            it "loads all stylesheets from the stylesheets directory", ->
+              one = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
+              two = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
+              three = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
+              expect(stylesheetElementForId(one)).not.toExist()
+              expect(stylesheetElementForId(two)).not.toExist()
+              expect(stylesheetElementForId(three)).not.toExist()
+
+              atom.activatePackage("package-with-stylesheets")
+              expect(stylesheetElementForId(one)).toExist()
+              expect(stylesheetElementForId(two)).toExist()
+              expect(stylesheetElementForId(three)).toExist()
+              expect($('#jasmine-content').css('font-size')).toBe '3px'
 
       describe "textmate packages", ->
         it "loads the package's grammars", ->
