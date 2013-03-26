@@ -69,9 +69,14 @@ class AtomPackage extends Package
 
   loadStylesheets: ->
     @stylesheets = []
+    @stylesheets.push([path, loadStylesheet(path)]) for path in @getStylesheetPaths()
+
+  getStylesheetPaths: ->
     stylesheetDirPath = fsUtils.join(@path, 'stylesheets')
-    for stylesheetPath in fsUtils.list(stylesheetDirPath, ['css', 'less']) ? []
-      @stylesheets.push([stylesheetPath, loadStylesheet(stylesheetPath)])
+    if @metadata.stylesheets
+      @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+    else
+      fsUtils.list(stylesheetDirPath, ['css', 'less']) ? []
 
   loadGrammars: ->
     @grammars = []

@@ -35,7 +35,7 @@ describe "the `atom` global", ->
             expect(console.error).not.toHaveBeenCalled()
             expect(console.warn).not.toHaveBeenCalled()
 
-        it "passes the package its previously serialized state if it exists", ->
+        it "passes the activate method the package's previously serialized state if it exists", ->
           pack = atom.activatePackage("package-with-serialization")
           expect(pack.mainModule.someNumber).not.toBe 77
           pack.mainModule.someNumber = 77
@@ -44,7 +44,7 @@ describe "the `atom` global", ->
           atom.activatePackage("package-with-serialization")
           expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
-        it "logs warning instead of throwing an exception if a package fails to load", ->
+        it "logs warning instead of throwing an exception if the package fails to load", ->
           config.set("core.disabledPackages", [])
           spyOn(console, "warn")
           expect(-> atom.activatePackage("package-that-throws-an-exception")).not.toThrow()
@@ -82,7 +82,20 @@ describe "the `atom` global", ->
 
         describe "stylesheet loading", ->
           describe "when the metadata contains a 'stylesheets' manifest", ->
-            # WIP
+            it "loads stylesheets from the stylesheets directory as specified by the manifest", ->
+              one = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/1.css")
+              two = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/2.less")
+              three = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/3.css")
+              expect(stylesheetElementForId(one)).not.toExist()
+              expect(stylesheetElementForId(two)).not.toExist()
+              expect(stylesheetElementForId(three)).not.toExist()
+
+              atom.activatePackage("package-with-stylesheets-manifest")
+
+              expect(stylesheetElementForId(one)).toExist()
+              expect(stylesheetElementForId(two)).toExist()
+              expect(stylesheetElementForId(three)).not.toExist()
+              expect($('#jasmine-content').css('font-size')).toBe '1px'
 
           describe "when the metadata does not contains a 'stylesheets' manifest", ->
             it "loads all stylesheets from the stylesheets directory", ->
