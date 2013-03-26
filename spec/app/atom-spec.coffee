@@ -156,6 +156,16 @@ describe "the `atom` global", ->
           expect(keymap.bindingsForElement($$ -> @div class: 'test-1')['ctrl-z']).toBeUndefined()
           expect(keymap.bindingsForElement($$ -> @div class: 'test-2')['ctrl-z']).toBeUndefined()
 
+        it "removes the package's stylesheets", ->
+          atom.activatePackage('package-with-stylesheets')
+          atom.deactivatePackage('package-with-stylesheets')
+          one = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
+          two = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
+          three = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
+          expect(stylesheetElementForId(one)).not.toExist()
+          expect(stylesheetElementForId(two)).not.toExist()
+          expect(stylesheetElementForId(three)).not.toExist()
+
       describe "texmate packages", ->
         it "removes the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"

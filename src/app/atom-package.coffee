@@ -95,6 +95,7 @@ class AtomPackage extends Package
   deactivate: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
     keymap.remove(path) for [path] in @keymaps
+    removeStylesheet(path) for [path] in @stylesheets
     @mainModule?.deactivate?()
 
   requireMainModule: ->
