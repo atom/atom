@@ -47,13 +47,3 @@ describe "AtomPackage", ->
         expect(packageMainModule.activationEventCallCount).toBe 2
         expect(eventHandler.callCount).toBe 2
         expect(packageMainModule.activate.callCount).toBe 1
-
-  describe "when the package has a scoped properties directory", ->
-    it "loads the scoped properties", ->
-      spyOn(syntax, 'addProperties')
-      atom.activatePackage("package-with-scoped-properties")
-
-      expect(syntax.addProperties).toHaveBeenCalled()
-      [selector, properties] = syntax.addProperties.argsForCall[0]
-      expect(selector).toBe ".source.omg"
-      expect(properties).toEqual {editor: increaseIndentPattern: '^a'}

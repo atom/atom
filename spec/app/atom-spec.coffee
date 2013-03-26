@@ -124,6 +124,11 @@ describe "the `atom` global", ->
             expect(syntax.selectGrammar('a.alot').name).toBe 'Alot'
             expect(syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
 
+        describe "scoped-property loading", ->
+          it "loads the scoped properties", ->
+            atom.activatePackage("package-with-scoped-properties")
+            expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+
       describe "textmate packages", ->
         it "loads the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
