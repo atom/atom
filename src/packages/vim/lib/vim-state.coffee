@@ -51,6 +51,7 @@ class VimState
     @pasteBuffer = {}
     @lastOperation = null
     @lastMotion = null
+    @lastSearchMotion = null
     @countEntered = false
     for m,event of @motionEvents
       do (m, event) =>
@@ -76,6 +77,7 @@ class VimState
           return
     @_operation.perform(@target, m)
     @lastMotion = m if !_.contains(@motionsWithRequiredCount, type)
+    @lastSearchMotion = m if _.contains(@searchMotions, type)
     @resetState()
   defaultMotion: ->
     new VimMotion('line', @motionEvents['line'], @_count, @target)
@@ -143,6 +145,9 @@ class VimState
   input: (text) ->
     @_operation.input = text
     if @_operation.motion?
+      if _.contains(@searchMotions, @_operation.motion.name)
+        @lastSearchMotion = @_operation.motion
+        @_operation.motion.input = text
       @_operation.perform(@target, @_operation.motion)
     else
       @motion("right")
@@ -245,7 +250,6 @@ class VimState
       @target.activeEditSession.setCursorScreenPosition(position)
     'go-to-screen-line-bottom': () ->
       position = @target.getCursorScreenPosition()
-      window.console.log @target.scrollView[0].clientHeight
       scrollOffset = Math.ceil(((@target.scrollTop() + @target.scrollView[0].clientHeight) || 0) / @target.lineHeight) || 0
       position.row = Math.max(0, Math.min(scrollOffset, @target.getLastScreenRow()) - @count)
       position.column = 0
@@ -274,6 +278,11 @@ class VimState
           found = char == @operation.input
         if !@select
           edit.moveCursorLeft()
+    'repeat-last-search': () ->
+      state = @operation.vim.state
+      if state.lastSearchMotion?
+        @operation.input = state.lastSearchMotion.input if state.lastSearchMotion.input?
+        state.lastSearchMotion.perform(@operation)
   commands:
     'q': "core:close"
     'w': "editor:save"
@@ -333,4 +342,5 @@ class VimState
   operationsWithInput: ['change-character', 'start-recording', 'replay-recording']
   motionsWithInput: ['find-character']
   motionsWithRequiredCount: ['go-to-line']
+  searchMotions: ['find-character']
   noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines', 'start-recording', 'stop-recording', 'replay-recording']

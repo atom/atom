@@ -149,6 +149,17 @@ fdescribe "Vim state", ->
         expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(0)
         vim.input("f")
         expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(16)
+    describe "repeat last search", ->
+      it "repeats the last search operation", ->
+        realEditor()
+        expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(0)
+        vim.motion("find-character")
+        vim.input("f")
+        expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(0)
+        expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(16)
+        vim.motion("repeat-last-search")
+        expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(1)
+      it "does not repeat non-search operations", ->
     describe "screen motions", ->
       describe "up", ->
         it "moves the cursor up by half a screen", ->

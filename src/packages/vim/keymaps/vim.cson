@@ -45,6 +45,7 @@
   'L': 'vim:motion-go-to-screen-line-bottom'
   'ctrl-d': 'vim:motion-down-screen'
   'ctrl-u': 'vim:motion-up-screen'
+  ',': 'vim:motion-repeat-last-search'
   'x': 'vim:alias-delete-character'
   'D': 'vim:alias-delete-until-end-of-line'
   'J': 'vim:alias-join-lines'
