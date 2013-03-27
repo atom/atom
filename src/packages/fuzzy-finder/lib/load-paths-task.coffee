@@ -35,3 +35,4 @@ class LoadPathsTask
 
   abort: ->
     @aborted = true
+    
