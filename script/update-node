@@ -4,18 +4,13 @@ set -e
 
 cd "$(dirname $0)/.."
 
+NODE_VERSION=v0.10.1
+[ -z $1 ] || NODE_VERSION=$1
+
 # Test whether we need update.
-if [ -f "node/node" ]; then
+if [ -f "node/node" ] && [[ `node/node --version` == $NODE_VERSION ]] ; then
   exit 0
 fi
-
-if ! DOWNLOAD_PAGE=$(curl -fsSkL http://nodejs.org/download/); then
-  exit 1;
-fi
-
-NODE_VERSION=$(echo "$DOWNLOAD_PAGE" \
-               | awk '/Current version:/ { print }' \
-               | awk -F"[<>]" '{ print $5 }')
 
 case $OSTYPE in
   darwin*) NODE_PLATFORM=darwin ;;
@@ -23,16 +18,10 @@ case $OSTYPE in
   *) echo "Unsupported platform $OSTYPE" && exit 1 ;;
 esac
 
-if uname -a | grep 'x86_64' > /dev/null ; then
-  NODE_ARCH=x64
-else
-  NODE_ARCH=x86
-fi
-
-NODE_DIST_NAME="node-$NODE_VERSION-$NODE_PLATFORM-$NODE_ARCH"
+NODE_DIST_NAME="node-$NODE_VERSION-$NODE_PLATFORM-x86"
 
 # Download node and untar
-NODE_TARBALL_URL="http://nodejs.org/dist/$NODE_VERSION/$NODE_DIST_NAME.tar.gz"
+NODE_TARBALL_URL="https://gh-contractor-zcbenz.s3.amazonaws.com/node/dist/$NODE_DIST_NAME.tar.gz"
 TARGET_DIR='node'
 [ -d "$TARGET_DIR" ] || mkdir "$TARGET_DIR"
 cd "$TARGET_DIR"
