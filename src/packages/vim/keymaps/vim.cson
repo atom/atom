@@ -5,6 +5,7 @@
 
 '.editor':
   'escape': 'vim:command-mode'
+  'ctrl-[': 'vim:command-mode'
   'ctrl-n': 'autocomplete:attach'
   'ctrl-p': 'autocomplete:attach'
 
