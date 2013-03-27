@@ -80,7 +80,7 @@ window.installAtomCommand = (commandPath) ->
   bundledCommandPath = fs.resolve(window.resourcePath, 'atom.sh')
   if bundledCommandPath?
     fs.write(commandPath, fs.read(bundledCommandPath))
-    spawn("chmod u+x '#{commandPath}'")
+    spawn('chmod', ['u+x', commandPath])
 
 window.handleWindowEvents = ->
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()

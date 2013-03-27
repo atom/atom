@@ -1,4 +1,5 @@
 _ = require 'underscore'
+child_process = require 'child_process'
 EventEmitter = require 'event-emitter'
 fs = require 'fs-utils'
 
@@ -11,9 +12,11 @@ class Task
   start: ->
     throw new Error("Task already started") if @worker?
 
-    blob = new Blob(["require('coffee-script'); require('task-shell');"], type: 'text/javascript')
-    @worker = new Worker(URL.createObjectURL(blob))
-    @worker.onmessage = ({data}) =>
+    # Equivalent with node --eval "...".
+    blob = "require('coffee-script'); require('task-shell');"
+    @worker = child_process.fork '--eval', [ blob ], cwd: __dirname
+
+    @worker.on 'message', (data) =>
       if @aborted
         @done()
         return
@@ -22,6 +25,7 @@ class Task
         this[data.method](data.args...)
       else
         @onMessage(data)
+
     @startWorker()
 
   log: -> console.log(arguments...)
@@ -43,14 +47,14 @@ class Task
     @postMessage({method, args})
 
   postMessage: (data) ->
-    @worker.postMessage(data)
+    @worker.send(data)
 
   abort: ->
     @aborted = true
 
   done: ->
     @abort()
-    @worker?.terminate()
+    @worker?.kill()
     @worker = null
     @trigger 'task-completed'
 
