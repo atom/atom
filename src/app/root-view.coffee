@@ -147,12 +147,7 @@ class RootView extends View
   getFocusedPane: ->
     @panes.find('.pane:has(:focus)')
 
-  focusPreviousPane: ->
-    panes = @panes.find('.pane')
-    currentIndex = panes.toArray().indexOf(@getFocusedPane()[0])
-    previousIndex = (currentIndex - 1) % panes.length
-    panes.eq(previousIndex).view().wrappedView.focus()
-
+  focusPreviousPane: -> @panes.focusPreviousPane()
   focusNextPane: -> @panes.focusNextPane()
   getFocusedPane: -> @panes.getFocusedPane()
 
