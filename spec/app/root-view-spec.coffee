@@ -29,7 +29,7 @@ describe "RootView", ->
         buffer = editor1.getBuffer()
         editor1.splitRight()
         viewState = rootView.serialize()
-        rootView.deactivate()
+        rootView.remove()
 
         window.rootView = deserialize(viewState)
         rootView.attachToDom()
@@ -54,7 +54,7 @@ describe "RootView", ->
           pane2.focus()
 
           viewState = rootView.serialize()
-          rootView.deactivate()
+          rootView.remove()
           window.rootView = deserialize(viewState)
           rootView.attachToDom()
 
@@ -91,7 +91,7 @@ describe "RootView", ->
           expect(rootView.getEditors().length).toBe 0
 
           viewState = rootView.serialize()
-          rootView.deactivate()
+          rootView.remove()
           window.rootView = deserialize(viewState)
 
           rootView.attachToDom()
