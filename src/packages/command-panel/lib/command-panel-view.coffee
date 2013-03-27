@@ -119,6 +119,7 @@ class CommandPanelView extends View
     @previewHeader.show()
     @searchLoadingMessage.show()
     @errorMessages.empty()
+    project.previewList = @previewList
 
     try
       @commandInterpreter.eval(command, rootView.getActivePaneItem()).done ({operationsToPreview, errorMessages}) =>
@@ -133,7 +134,7 @@ class CommandPanelView extends View
             @li errorMessage for errorMessage in errorMessages
         else if operationsToPreview?.length
           @previewList.focus()
-          @previewCount.text("#{_.pluralize(operationsToPreview.length, 'match', 'matches')} in #{_.pluralize(@previewList.getPathCount(), 'file')}").show()
+          @previewCount.text("#{_.pluralize(operationsToPreview.length, 'match', 'matches')} in #{_.pluralize(@previewList.getPathCount(operationsToPreview), 'file')}").show()
         else
           @detach()
     catch error

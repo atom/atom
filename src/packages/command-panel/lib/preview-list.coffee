@@ -39,7 +39,6 @@ class PreviewList extends ScrollView
   hasOperations: -> @operations?
 
   populate: (operations) ->
-    debugger;
     @destroyOperations() if @operations
     @operations = operations
     @lastRenderedOperationIndex = 0
@@ -51,6 +50,14 @@ class PreviewList extends ScrollView
 
     @find('.operation:first').addClass('selected')
 
+  populateSingle: (operation) ->
+    @viewsForPath = {}
+
+    @show()
+    @renderOperation(operation)
+
+    @find('.operation:first').addClass('selected')
+
   renderOperations: ({renderAll}={}) ->
     renderAll ?= false
     startingScrollHeight = @prop('scrollHeight')
@@ -59,6 +66,13 @@ class PreviewList extends ScrollView
       pathView.addOperation(operation)
       @lastRenderedOperationIndex++
       break if not renderAll and @prop('scrollHeight') >= startingScrollHeight + @pixelOverdraw and @prop('scrollHeight') > @height() + @pixelOverdraw
+
+  renderOperation: (operation, {renderAll}={}) ->
+    renderAll ?= false
+    startingScrollHeight = @prop('scrollHeight')
+    pathView = @pathViewForPath(operation.getPath())
+    pathView.addOperation(operation)
+ 
 
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
@@ -97,8 +111,8 @@ class PreviewList extends ScrollView
       previousView.addClass('selected')
       previousView.scrollTo()
 
-  getPathCount: ->
-    _.keys(_.groupBy(@operations, (operation) -> operation.getPath())).length
+  getPathCount: (operations=@operations)->
+    _.keys(_.groupBy(operations, (operation) -> operation.getPath())).length
 
   getOperations: ->
     new Array(@operations...)
