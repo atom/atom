@@ -259,7 +259,8 @@ class TerminalBuffer
       when 4 then # Ignore EOT
       when 5 # ENQ
         @view.input(String.fromCharCode(6))
-      when 7 then # Ignore BEL
+      when 7 # BEL
+        $native.beep()
       when 8 then @backspace()
       when 9 # TAB
         @tab()
