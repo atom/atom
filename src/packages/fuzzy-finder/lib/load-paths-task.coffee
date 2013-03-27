@@ -1,5 +1,6 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+BufferedProcess = require 'buffered-process'
+$ = require 'jquery'
 
 module.exports =
 class LoadPathsTask
@@ -13,21 +14,24 @@ class LoadPathsTask
     ignoredNames = ignoredNames.concat(config.get('core.ignoredNames') ? [])
     ignoreGitIgnoredFiles =  config.get('core.hideGitIgnoredFiles')
 
-    paths = []
-    isIgnored = (path) ->
-      for segment in path.split('/')
-        return true if _.contains(ignoredNames, segment)
-      ignoreGitIgnoredFiles and git?.isPathIgnored(fs.join(rootPath, path))
-    onFile = (path) ->
-      return if @aborted
-      path = path.substring(rootPath.length + 1)
-      paths.push(path) unless isIgnored(path)
-    onDirectory = (path) =>
-      not @aborted and not isIgnored(path.substring(rootPath.length + 1))
-    onDone = =>
-      @callback(paths) unless @aborted
+    command = require.resolve 'nak'
+    args = ['-l', rootPath]
+    args.unshift("--addVCSIgnores") if config.get('nak.addVCSIgnores')
+    args.unshift("-d", "#{ignoredNames.join(',')}") if ignoredNames.length > 0
 
-    fs.traverseTree(rootPath, onFile, onDirectory, onDone)
+    paths = []
+    deferred = $.Deferred()
+    exit = (code) =>
+      if code is -1
+        deferred.reject({command, code})
+      else
+        @callback(paths)
+        deferred.resolve()
+    stdout = (data) ->
+      paths = paths.concat(data.split("\n"))
+
+    new BufferedProcess({command, args, stdout, exit})
+    deferred
 
   abort: ->
     @aborted = true

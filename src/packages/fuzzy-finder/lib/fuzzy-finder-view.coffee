@@ -147,7 +147,7 @@ class FuzzyFinderView extends SelectList
             path.indexOf(options.filter) >= 0
         else
           @projectPaths
-      console.log listedItems
+
       @setArray(listedItems)
       options.done(listedItems) if options.done?
     else
