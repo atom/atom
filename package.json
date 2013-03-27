@@ -14,7 +14,8 @@
     "pegjs": "0.7.0",
     "async": "0.2.6",
     "spellchecker": "0.2.0",
-    "plist": "git://github.com/nathansobo/node-plist.git"
+    "plist": "git://github.com/nathansobo/node-plist.git",
+    "space-pen": "git://github.com/nathansobo/space-pen.git"
   },
 
   "private": true,

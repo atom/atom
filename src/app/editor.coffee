@@ -659,7 +659,7 @@ class Editor extends View
     super
     rootView?.focus()
 
-  afterRemove: ->
+  beforeRemove: ->
     @removed = true
     @activeEditSession?.destroy()
     $(window).off(".editor-#{@id}")
