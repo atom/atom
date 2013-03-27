@@ -16,6 +16,7 @@ class Editor extends View
     fontSize: 20
     showInvisibles: false
     showIndentGuide: false
+    showLineNumbers: true
     autoIndent: true
     autoIndentOnPaste: false
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
@@ -61,7 +62,7 @@ class Editor extends View
     else
       {editSession, @mini} = (editSessionOrOptions ? {})
 
-    requireStylesheet 'editor.less'
+    requireStylesheet 'editor'
 
     @id = Editor.nextEditorId++
     @lineCache = []
@@ -156,6 +157,7 @@ class Editor extends View
         'editor:duplicate-line': @duplicateLine
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
         'editor:save-debug-snapshot': @saveDebugSnapshot
+        'editor:toggle-line-numbers': =>  config.set('editor.showLineNumbers', !config.get('editor.showLineNumbers'))
 
     documentation = {}
     for name, method of editorBindings
@@ -316,6 +318,7 @@ class Editor extends View
   backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
+    @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
     @observeConfig 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
@@ -395,8 +398,6 @@ class Editor extends View
         e.pageX = @renderedLines.offset().left
         onMouseDown(e)
 
-      @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
-
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
@@ -455,6 +456,9 @@ class Editor extends View
     @activeEditSession.on "path-changed.editor", =>
       @reloadGrammar()
       @trigger 'editor:path-changed'
+
+    @activeEditSession.on "grammar-changed.editor", =>
+      @trigger 'editor:grammar-changed'
 
     @trigger 'editor:path-changed'
     @resetDisplay()
@@ -635,19 +639,19 @@ class Editor extends View
     @requestDisplayUpdate()
 
   splitLeft: (items...) ->
-    @pane()?.splitLeft(items...).activeView
+    @getPane()?.splitLeft(items...).activeView
 
   splitRight: (items...) ->
-    @pane()?.splitRight(items...).activeView
+    @getPane()?.splitRight(items...).activeView
 
   splitUp: (items...) ->
-    @pane()?.splitUp(items...).activeView
+    @getPane()?.splitUp(items...).activeView
 
   splitDown: (items...) ->
-    @pane()?.splitDown(items...).activeView
+    @getPane()?.splitDown(items...).activeView
 
-  pane: ->
-    @closest('.pane').view()
+  getPane: ->
+    @parent('.item-views').parent('.pane').view()
 
   remove: (selector, keepData) ->
     return super if keepData or @removed
@@ -713,8 +717,6 @@ class Editor extends View
     fragment.remove()
 
   updateLayerDimensions: ->
-    @gutter.calculateWidth()
-
     height = @lineHeight * @screenLineCount()
     unless @layerHeight == height
       @renderedLines.height(height)
@@ -1152,7 +1154,6 @@ class Editor extends View
     if grammarChanged
       @clearRenderedLines()
       @updateDisplay()
-      @trigger 'editor:grammar-changed'
     grammarChanged
 
   bindToKeyedEvent: (key, event, callback) ->

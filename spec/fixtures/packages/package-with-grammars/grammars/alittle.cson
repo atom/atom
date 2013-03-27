@@ -1,0 +1,12 @@
+'fileTypes': ['alittle']
+'name': 'Alittle'
+'scopeName': 'source.alittle'
+
+'patterns': [
+  {
+    'captures':
+      '0':
+        'name': 'keyword.alittle'
+    'match': 'alittle'
+  }
+]

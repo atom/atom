@@ -20,7 +20,7 @@ end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
 task "update-cef" => "bootstrap" do
-  exit 1 unless system %{prebuilt-cef/script/download -b 1430 -r 1135 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -f cef}
+  exit 1 unless system %{script/update-cefode}
   Dir.glob('cef/*.gypi').each do |filename|
     `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
   end
@@ -28,12 +28,12 @@ end
 
 desc "Download node binary"
 task "update-node" do
-  `script/update-node`
+  `script/update-node v0.10.1`
 end
 
 desc "Download debug symbols for CEF"
 task "download-cef-symbols" => "update-cef" do
-  sh %{prebuilt-cef/script/download -b 1430 -r 1135 -d https://gh-contractor-zcbenz.s3.amazonaws.com/cefode/prebuilt-cef -s cef}
+  sh %{script/update-cefode -s}
 end
 
 task "bootstrap" do

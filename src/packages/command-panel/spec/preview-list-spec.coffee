@@ -8,7 +8,7 @@ describe "Preview List", ->
   beforeEach ->
     window.rootView = new RootView()
     rootView.attachToDom()
-    commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).mainModule
+    commandPanelMain = atom.activatePackage('command-panel', immediate: true).mainModule
     commandPanelView = commandPanelMain.commandPanelView
     previewList = commandPanelView.previewList
     rootView.trigger 'command-panel:toggle'

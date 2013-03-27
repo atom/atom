@@ -14,7 +14,7 @@ describe "Autocomplete", ->
   describe "@activate()", ->
     it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
       spyOn(AutocompleteView.prototype, 'initialize').andCallThrough()
-      autocompletePackage = window.loadPackage("autocomplete")
+      autocompletePackage = atom.activatePackage("autocomplete")
       expect(AutocompleteView.prototype.initialize).not.toHaveBeenCalled()
 
       leftEditor = rootView.getActiveView()
@@ -41,7 +41,7 @@ describe "AutocompleteView", ->
   beforeEach ->
     window.rootView = new RootView
     editor = new Editor(editSession: project.buildEditSession('sample.js'))
-    window.loadPackage('autocomplete')
+    atom.activatePackage('autocomplete')
     autocomplete = new AutocompleteView(editor)
     miniEditor = autocomplete.miniEditor
 

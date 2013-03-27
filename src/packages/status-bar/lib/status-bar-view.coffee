@@ -9,7 +9,7 @@ class StatusBarView extends View
       @appendToEditorPane(rootView, editor) if editor.attached
 
   @appendToEditorPane: (rootView, editor) ->
-    if pane = editor.pane()
+    if pane = editor.getPane()
       pane.append(new StatusBarView(rootView, editor))
 
   @content: ->
@@ -58,7 +58,11 @@ class StatusBarView extends View
     @updateStatusText()
 
   updateGrammarText: ->
-    @grammarName.text(@editor.getGrammar().name)
+    grammar = @editor.getGrammar()
+    if grammar is syntax.nullGrammar
+      @grammarName.text('').hide()
+    else
+      @grammarName.text(grammar.name).show()
 
   updateBufferHasModifiedText: (isModified)->
     if isModified
@@ -110,6 +114,9 @@ class StatusBarView extends View
     else if git.isStatusNew(status)
       @gitStatusIcon.addClass('new-status-icon')
       @gitStatusIcon.text("+#{@buffer.getLineCount()}")
+    else if git.isPathIgnored(path)
+      @gitStatusIcon.addClass('ignored-status-icon')
+      @gitStatusIcon.text('')
 
   updatePathText: ->
     if path = @editor.getPath()

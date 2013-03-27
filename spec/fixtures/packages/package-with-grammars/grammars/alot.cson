@@ -1,0 +1,12 @@
+'fileTypes': ['alot', 'foobizbang']
+'name': 'Alot'
+'scopeName': 'source.alot'
+
+'patterns': [
+  {
+    'captures':
+      '0':
+        'name': 'keyword.alot'
+    'match': 'alot'
+  }
+]

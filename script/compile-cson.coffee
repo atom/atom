@@ -8,7 +8,7 @@ unless inputFile?.length > 0
 
 outputFile = process.argv[3]
 unless outputFile?.length > 0
-  console.error("Output file must be second arguments")
+  console.error("Output file must be second argument")
   process.exit(1)
 
 contents = fs.readFileSync(inputFile)?.toString() ? ''

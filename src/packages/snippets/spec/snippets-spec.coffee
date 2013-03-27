@@ -9,16 +9,14 @@ Package = require 'package'
 describe "Snippets extension", ->
   [buffer, editor, editSession] = []
   beforeEach ->
+    atom.activatePackage('javascript.tmbundle', sync: true)
     window.rootView = new RootView
     rootView.open('sample.js')
 
-    packageWithSnippets = window.loadPackage("package-with-snippets")
-    spyOn(atom, "getLoadedPackages").andCallFake ->
-      textMatePackages = window.textMatePackages.filter (pack) -> /package-with-a-cson-grammar|test|textmate-package|javascript/.test(pack.name)
-      textMatePackages.concat([packageWithSnippets])
+    packageWithSnippets = atom.loadPackage("package-with-snippets")
 
     spyOn(require("snippets/lib/snippets"), 'loadAll')
-    window.loadPackage("snippets")
+    atom.activatePackage("snippets")
 
     editor = rootView.getActiveView()
     editSession = rootView.getActivePaneItem()
@@ -238,6 +236,9 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
+      atom.loadPackage('package-with-broken-snippets.tmbundle', sync: true)
+      atom.loadPackage('package-with-snippets')
+
       jasmine.unspy(window, "setTimeout")
       jasmine.unspy(snippets, 'loadAll')
       spyOn(snippets, 'loadAtomSnippets').andCallFake (path, done) -> done()
@@ -280,21 +281,6 @@ describe "Snippets extension", ->
         # warn about invalid.plist
         expect(console.warn).toHaveBeenCalled()
         expect(console.warn.calls.length).toBe 1
-
-    it "loads CSON snippets from TextMate packages", ->
-      jasmine.unspy(snippets, 'loadTextMateSnippets')
-      spyOn(console, 'warn')
-      snippets.loaded = false
-      snippets.loadAll()
-
-      waitsFor "CSON snippets to load", 5000, -> snippets.loaded
-
-      runs ->
-        snippet = syntax.getProperty(['.source.alot'], 'snippets.really')
-        expect(snippet).toBeTruthy()
-        expect(snippet.prefix).toBe 'really'
-        expect(snippet.name).toBe 'Really'
-        expect(snippet.body).toBe "I really like  alot"
 
   describe "snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->

@@ -8,7 +8,17 @@ CSON = require 'cson'
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
-    fs.readObject(path)
+    fs.readPlist(path)
+
+  @load: (path, done) ->
+    fs.readObjectAsync path, (err, object) ->
+      if err
+        done(err)
+      else
+        done(null, new TextMateGrammar(object))
+
+  @loadSync: (path) ->
+    new TextMateGrammar(fs.readObject(path))
 
   name: null
   fileTypes: null
@@ -31,9 +41,10 @@ class TextMateGrammar
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
-
     loop
       scopes = scopesFromStack(ruleStack)
+      previousRuleStackLength = ruleStack.length
+      previousPosition = position
 
       if line.length == 0
         tokens = [new Token(value: "", scopes: scopes)]
@@ -60,6 +71,10 @@ class TextMateGrammar
             scopes: scopes
           ))
         break
+
+      if position == previousPosition and ruleStack.length == previousRuleStackLength
+        console.error("Popping rule because it loops at column #{position} of line '#{line}'", _.clone(ruleStack))
+        ruleStack.pop()
 
     ruleStack.forEach (rule) -> rule.clearAnchorPosition()
     { tokens, ruleStack }
@@ -144,10 +159,10 @@ class Pattern
   backReferences: null
   anchored: false
 
-  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule, hasBackReferences}) ->
+  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule, @hasBackReferences}) ->
     @scopeName = name ? contentName # TODO: We need special treatment of contentName
     if match
-      if @hasBackReferences = hasBackReferences ? /\\\d+/.test(match)
+      if (end or @popRule) and @hasBackReferences ?= /\\\d+/.test(match)
         @match = match
       else
         @regexSource = match

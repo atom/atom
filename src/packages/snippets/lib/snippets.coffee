@@ -91,7 +91,7 @@ module.exports =
       async.eachSeries(paths, loadSnippetFile, done)
 
   translateTextmateSnippet: ({ scope, name, content, tabTrigger }) ->
-    scope = TextMatePackage.cssSelectorFromScopeSelector(scope) if scope
+    scope = syntax.cssSelectorFromScopeSelector(scope) if scope
     scope ?= '*'
     snippetsByScope = {}
     snippetsByName = {}

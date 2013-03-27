@@ -40,8 +40,8 @@ class TreeView extends ScrollView
       else
         @selectActiveFile()
 
-    rootView.on 'pane:active-item-changed pane:became-active', => @selectActiveFile()
-    project.on 'path-changed', => @updateRoot()
+    rootView.on 'pane:active-item-changed.tree-view pane:became-active.tree-view', => @selectActiveFile()
+    project.on 'path-changed.tree-view', => @updateRoot()
     @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()
 
     if @root
@@ -67,6 +67,9 @@ class TreeView extends ScrollView
 
   deactivate: ->
     @root?.unwatchEntries()
+    rootView.off('.tree-view')
+    project.off('.tree-view')
+    @remove()
 
   toggle: ->
     if @hasFocus()

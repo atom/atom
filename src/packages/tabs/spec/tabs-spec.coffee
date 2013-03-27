@@ -11,7 +11,7 @@ describe "Tabs package main", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    window.loadPackage("tabs")
+    atom.activatePackage("tabs")
 
   describe ".activate()", ->
     it "appends a tab bar all existing and new panes", ->
@@ -87,6 +87,17 @@ describe "TabBarView", ->
       pane.removeItem(item2)
       expect(tabBar.getTabs().length).toBe 2
       expect(tabBar.find('.tab:contains(Item 2)')).not.toExist()
+
+    it "updates the titles of the remaining tabs", ->
+      expect(tabBar.tabForItem(item2)).toHaveText 'Item 2'
+      item2.longTitle = '2'
+      item2a = new TestView('Item 2')
+      item2a.longTitle = '2a'
+      pane.showItem(item2a)
+      expect(tabBar.tabForItem(item2)).toHaveText '2'
+      expect(tabBar.tabForItem(item2a)).toHaveText '2a'
+      pane.removeItem(item2a)
+      expect(tabBar.tabForItem(item2)).toHaveText 'Item 2'
 
   describe "when a tab is clicked", ->
     it "shows the associated item on the pane and focuses the pane", ->

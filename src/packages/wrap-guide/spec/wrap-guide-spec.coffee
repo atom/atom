@@ -6,7 +6,7 @@ describe "WrapGuide", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    window.loadPackage('wrap-guide')
+    atom.activatePackage('wrap-guide')
     rootView.attachToDom()
     editor = rootView.getActiveView()
     wrapGuide = rootView.find('.wrap-guide').view()

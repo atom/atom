@@ -9,6 +9,7 @@ describe "EditSession", ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
   beforeEach ->
+    atom.activatePackage('javascript.tmbundle', sync: true)
     editSession = project.buildEditSession('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
@@ -1955,6 +1956,18 @@ describe "EditSession", ->
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
 
+    describe "when soft wrap is enabled", ->
+      it "deletes the entire line that the cursor is on", ->
+        editSession.setSoftWrapColumn(10)
+        editSession.setCursorBufferPosition([6])
+
+        line7 = buffer.lineForRow(7)
+        count = buffer.getLineCount()
+        expect(buffer.lineForRow(6)).not.toBe(line7)
+        editSession.deleteLine()
+        expect(buffer.lineForRow(6)).toBe(line7)
+        expect(buffer.getLineCount()).toBe(count - 1)
+
   describe ".transpose()", ->
     it "swaps two characters", ->
       editSession.buffer.setText("abc")
@@ -2036,13 +2049,14 @@ describe "EditSession", ->
   describe "when the 'grammars-loaded' event is triggered on the syntax global", ->
     it "reloads the edit session's grammar and re-tokenizes the buffer if it changes", ->
       editSession.destroy()
-      grammarToReturn = syntax.grammarByFileTypeSuffix('txt')
-      spyOn(syntax, 'grammarForFilePath').andCallFake -> grammarToReturn
+      jsGrammar = syntax.selectGrammar('a.js')
+      grammarToReturn = syntax.nullGrammar
+      spyOn(syntax, 'selectGrammar').andCallFake -> grammarToReturn
 
       editSession = project.buildEditSession('sample.js', autoIndent: false)
       expect(editSession.lineForScreenRow(0).tokens.length).toBe 1
 
-      grammarToReturn = syntax.grammarByFileTypeSuffix('js')
+      grammarToReturn = jsGrammar
       syntax.trigger 'grammars-loaded'
       expect(editSession.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 

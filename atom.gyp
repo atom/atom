@@ -308,6 +308,7 @@
       'sources': [
         '<@(coffee_sources)',
         '<@(cson_sources)',
+        '<@(less_sources)'
       ],
       'rules': [
         {
@@ -340,6 +341,22 @@
             'script/compile-cson',
             '<(RULE_INPUT_PATH)',
             '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).json',
+          ],
+        },
+        {
+          'rule_name': 'less',
+          'extension': 'less',
+          'inputs': [
+            'script/compile-less',
+          ],
+          'outputs': [
+            '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).css',
+          ],
+          'action': [
+            'sh',
+            'script/compile-less',
+            '<(RULE_INPUT_PATH)',
+            '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).css',
           ],
         },
       ],

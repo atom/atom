@@ -260,9 +260,6 @@ describe "Project", ->
           range: [[1, 3], [1, 5]]
 
   describe "serialization", ->
-    it "restores the project path and grammar overrides", ->
-      jsGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'JavaScript'
-      project.addGrammarOverrideForPath('/a/b.txt', jsGrammar)
+    it "restores the project path", ->
       newProject = Project.deserialize(project.serialize())
       expect(newProject.getPath()).toBe project.getPath()
-      expect(newProject.grammarOverrideForPath('/a/b.txt')).toBe jsGrammar

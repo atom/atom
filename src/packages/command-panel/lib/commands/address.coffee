@@ -6,7 +6,7 @@ module.exports =
 class Address extends Command
   compile: (project, buffer, ranges) ->
     deferred = $.Deferred()
-    deferred.resolve ranges.map (range) =>
+    operations = ranges.map (range) =>
       newRange = @getRange(buffer, range)
 
       new Operation
@@ -15,6 +15,7 @@ class Address extends Command
         bufferRange: newRange
         errorMessage: @errorMessage
 
+    deferred.resolve(operations)
     deferred.promise()
 
   isAddress: -> true

@@ -13,7 +13,7 @@ describe "TreeView", ->
     project.setPath(project.resolve('tree-view'))
     window.rootView = new RootView
 
-    window.loadPackage("tree-view")
+    atom.activatePackage("tree-view")
     rootView.trigger 'tree-view:toggle'
     treeView = rootView.find(".tree-view").view()
     treeView.root = treeView.find('ol > li:first').view()
@@ -47,10 +47,8 @@ describe "TreeView", ->
     describe "when the project has no path", ->
       beforeEach ->
         project.setPath(undefined)
-        rootView.deactivate()
-        window.rootView = new RootView()
-        rootView.open()
-        treeView = window.loadPackage("tree-view").mainModule.createView()
+        atom.deactivatePackage("tree-view")
+        treeView = atom.activatePackage("tree-view").mainModule.createView()
 
       it "does not attach to the root view or create a root node when initialized", ->
         expect(treeView.hasParent()).toBeFalsy()
@@ -66,6 +64,7 @@ describe "TreeView", ->
 
       describe "when the project is assigned a path because a new buffer is saved", ->
         it "creates a root directory view but does not attach to the root view", ->
+          rootView.open()
           rootView.getActivePaneItem().saveAs("/tmp/test.txt")
           expect(treeView.hasParent()).toBeFalsy()
           expect(treeView.root.getPath()).toBe '/tmp'
@@ -73,16 +72,16 @@ describe "TreeView", ->
 
     describe "when the root view is opened to a file path", ->
       it "does not attach to the root view but does create a root node when initialized", ->
-        rootView.deactivate()
-        window.rootView = new RootView
+        atom.deactivatePackage("tree-view")
+        atom.packageStates = {}
         rootView.open('tree-view.js')
-        treeView = window.loadPackage("tree-view").mainModule.createView()
+        treeView = atom.activatePackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeFalsy()
         expect(treeView.root).toExist()
 
     describe "when the root view is opened to a directory", ->
       it "attaches to the root view", ->
-        treeView = window.loadPackage("tree-view").mainModule.createView()
+        treeView = atom.activatePackage("tree-view").mainModule.createView()
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.root).toExist()
 
@@ -91,10 +90,8 @@ describe "TreeView", ->
       treeView.find('.directory:contains(dir1)').click()
       sampleJs.click()
 
-      rootViewState = rootView.serialize()
-      rootView.deactivate()
-      window.rootView = RootView.deserialize(rootViewState)
-      window.loadPackage("tree-view")
+      atom.deactivatePackage("tree-view")
+      atom.activatePackage("tree-view")
       treeView = rootView.find(".tree-view").view()
 
       expect(treeView).toExist()
@@ -105,13 +102,8 @@ describe "TreeView", ->
       rootView.attachToDom()
       treeView.focus()
       expect(treeView.find(".tree-view")).toMatchSelector ':focus'
-
-      rootViewState = rootView.serialize()
-      rootView.deactivate()
-      window.rootView = RootView.deserialize(rootViewState)
-
-      rootView.attachToDom()
-      window.loadPackage("tree-view")
+      atom.deactivatePackage("tree-view")
+      atom.activatePackage("tree-view")
       treeView = rootView.find(".tree-view").view()
       expect(treeView.find(".tree-view")).toMatchSelector ':focus'
 
@@ -599,7 +591,7 @@ describe "TreeView", ->
     [dirView, fileView, rootDirPath, dirPath, filePath] = []
 
     beforeEach ->
-      rootView.deactivate()
+      atom.deactivatePackage('tree-view')
 
       rootDirPath = fs.join(fs.absolute("/tmp"), "atom-tests")
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
@@ -611,8 +603,8 @@ describe "TreeView", ->
       fs.write(filePath, "doesn't matter")
 
       project.setPath(rootDirPath)
-      window.rootView = new RootView(rootDirPath)
-      window.loadPackage('tree-view')
+
+      atom.activatePackage('tree-view')
       rootView.trigger 'tree-view:toggle'
       treeView = rootView.find(".tree-view").view()
       dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
