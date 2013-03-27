@@ -2,6 +2,7 @@ EventEmitter = require 'event-emitter'
 
 fs = require 'fs'
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 
 module.exports =
@@ -44,17 +45,20 @@ class File
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
-  handleNativeChangeEvent: (eventType, path) ->
-    if eventType is "remove"
-      @detectResurrectionAfterDelay()
-    else if eventType is "move"
-      @setPath(path)
-      @trigger "moved"
-    else if eventType is "contents-change"
+  handleNativeChangeEvent: (event, filename) ->
+    console.log event, filename
+    if event is "change"
+      console.log "change", filename
       oldContents = @read()
       newContents = @read(true)
       return if oldContents == newContents
       @trigger 'contents-changed'
+    else if event is "rename"
+      if not filename? # file deleted
+        @detectResurrectionAfterDelay()
+      else # file moved
+        @setPath(path.join(@getPath(), filename))
+        @trigger "moved"
 
   detectResurrectionAfterDelay: ->
     _.delay (=> @detectResurrection()), 50
@@ -62,19 +66,19 @@ class File
   detectResurrection: ->
     if @exists()
       @subscribeToNativeChangeEvents()
-      @handleNativeChangeEvent("contents-change", @getPath())
+      @handleNativeChangeEvent("change")
     else
       @cachedContents = null
       @unsubscribeFromNativeChangeEvents()
       @trigger "removed"
 
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = fsUtils.watchPath @path, (eventType, path) =>
-      @handleNativeChangeEvent(eventType, path)
+    @watchSubscription = fs.watch @path, (event, path) =>
+      @handleNativeChangeEvent(event, path)
 
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription
-      @watchSubscription.unwatch()
+      @watchSubscription.close()
       @watchSubscription = null
 
 _.extend File.prototype, EventEmitter
