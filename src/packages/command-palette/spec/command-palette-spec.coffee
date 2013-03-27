@@ -81,3 +81,20 @@ describe "CommandPalette", ->
       expect(activeEditor.isFocused).toBeTruthy()
       expect(eventHandler).toHaveBeenCalled()
       expect(palette.hasParent()).toBeFalsy()
+
+  describe "when no element has focus", ->
+    it "uses the root view as the element to display and trigger events for", ->
+      rootView.trigger 'command-palette:toggle'
+      $(':focus').blur()
+      rootView.trigger 'command-palette:toggle'
+      keyBindings = _.losslessInvert(keymap.bindingsForElement(rootView.getActiveView()))
+      for eventName, description of rootView.events()
+        eventLi = palette.list.children("[data-event-name='#{eventName}']")
+        if description
+          expect(eventLi).toExist()
+          expect(eventLi.find('.label')).toHaveText(description)
+          expect(eventLi.find('.label').attr('title')).toBe(eventName)
+          for binding in keyBindings[eventName] ? []
+            expect(eventLi.find(".key-binding:contains(#{binding})")).toExist()
+        else
+          expect(eventLi).not.toExist()
