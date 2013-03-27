@@ -14,7 +14,7 @@
     "pegjs": "0.7.0",
     "async": "0.2.6",
     "spellchecker": "0.2.0",
-    "pty.js": "0.2.1",
+    "pty.js": "git://github.com/dylanvee/pty.js.git#1c16ff28a4",
     "plist": "git://github.com/nathansobo/node-plist.git"
   },
 
