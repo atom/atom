@@ -1,4 +1,4 @@
-NSSpellChecker = require 'nsspellchecker'
+SpellChecker = require 'spellchecker'
 
 module.exports =
   findMisspellings: (text) ->
@@ -8,7 +8,7 @@ module.exports =
     for line in text.split('\n')
       while matches = wordRegex.exec(line)
         word = matches[1]
-        continue unless NSSpellChecker.isMisspelled(word)
+        continue unless SpellChecker.isMisspelled(word)
         startColumn = matches.index + matches[0].length - word.length
         endColumn = startColumn + word.length
         misspellings.push([[row, startColumn], [row, endColumn]])
