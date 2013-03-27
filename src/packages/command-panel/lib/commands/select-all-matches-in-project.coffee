@@ -8,21 +8,17 @@ class SelectAllMatchesInProject extends Command
   previewOperations: true
 
   constructor: (pattern) ->
-    debugger;
     @regex = new RegExp(pattern)
 
   compile: (project, buffer, range) ->
     deferred = $.Deferred()
     operations = []
     promise = project.scan @regex, ({path, range}) ->
-      debugger;
-      op = new Operation(
+      operations.push(new Operation(
         project: project
         path: path
         bufferRange: range
-      )
-      deferred.resolve([op])
-      operations.push(op)
+      ))
 
-    promise.done# -> deferred.resolve(operations)
+    promise.done -> deferred.resolve(operations)
     deferred.promise()
