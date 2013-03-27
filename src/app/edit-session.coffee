@@ -584,9 +584,15 @@ class EditSession
     cursor = @addCursor(marker)
     selection = new Selection({editSession: this, marker, cursor})
     @selections.push(selection)
+    selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections()
-    @trigger 'selection-added', selection
-    selection
+    if selection.destroyed
+      for selection in @getSelections()
+        if selection.intersectsBufferRange(selectionBufferRange)
+          return selection
+    else
+      @trigger 'selection-added', selection
+      selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
     options = _.defaults({invalidationStrategy: 'never'}, options)
