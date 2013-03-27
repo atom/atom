@@ -166,6 +166,13 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(rootView.find('.fuzzy-finder')).not.toExist()
 
+      describe "when multiple sessions are opened on the same path", ->
+        it "does not display duplicates for that path in the list", ->
+          rootView.open 'sample.js'
+          rootView.getActivePane().splitRight()
+          rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+          expect(_.pluck(finderView.list.children('li'), 'outerText')).toEqual ['sample.js']
+
     describe "when a path selection is confirmed", ->
       [editor1, editor2] = []
 
