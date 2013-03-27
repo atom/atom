@@ -11,8 +11,8 @@ module.exports =
 class CommandPanelView extends View
   @content: ->
     @div class: 'command-panel tool-panel', =>
-      @div class: 'loading is-loading', outlet: 'loadingMessage', 'Searching...'
       @div class: 'header', outlet: 'previewHeader', =>
+        @span outlet: 'searchLoadingMessage', class: 'loading', 'Searching...'
         @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
           @li class: 'expand', 'Expand All'
           @li class: 'collapse', 'Collapse All'
@@ -53,7 +53,7 @@ class CommandPanelView extends View
     @previewList.hide()
     @previewHeader.hide()
     @errorMessages.hide()
-    @loadingMessage.hide()
+    @searchLoadingMessage.hide()
     @prompt.iconSize(@miniEditor.getFontSize())
 
     @history = state.history ? []
@@ -116,12 +116,13 @@ class CommandPanelView extends View
     @miniEditor.getText()
 
   execute: (command=@escapedCommand()) ->
-    @loadingMessage.show()
+    @previewHeader.show()
+    @searchLoadingMessage.show()
     @errorMessages.empty()
 
     try
       @commandInterpreter.eval(command, rootView.getActivePaneItem()).done ({operationsToPreview, errorMessages}) =>
-        @loadingMessage.hide()
+        @searchLoadingMessage.hide()
         @history.push(command)
         @historyIndex = @history.length
 
@@ -131,8 +132,6 @@ class CommandPanelView extends View
           @errorMessages.append $$ ->
             @li errorMessage for errorMessage in errorMessages
         else if operationsToPreview?.length
-          @previewHeader.show()
-          @previewList.populate(operationsToPreview)
           @previewList.focus()
           @previewCount.text("#{_.pluralize(operationsToPreview.length, 'match', 'matches')} in #{_.pluralize(@previewList.getPathCount(), 'file')}").show()
         else

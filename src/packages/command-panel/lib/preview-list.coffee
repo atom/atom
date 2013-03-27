@@ -39,7 +39,8 @@ class PreviewList extends ScrollView
   hasOperations: -> @operations?
 
   populate: (operations) ->
-    @destroyOperations() if @operations
+    debugger;
+    #@destroyOperations() if @operations
     @operations = operations
     @lastRenderedOperationIndex = 0
     @empty()
