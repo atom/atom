@@ -190,6 +190,12 @@ class VimState
   paste: (options={}) ->
     text = @pasteBuffer[0]
     @insertText(text) if text && text != ''
+  runCommand: (input) ->
+    for c in input
+      if command = @commands[c]
+        @target.trigger(command)
+        true
+    false
   aliases:
     'delete-character':
       motion: 'right'
@@ -268,6 +274,10 @@ class VimState
           found = char == @operation.input
         if !@select
           edit.moveCursorLeft()
+  commands:
+    'q': "core:close"
+    'w': "editor:save"
+    's': "command-panel:replace-in-file"
   operations:
     'move': ->
       @performMotion()

@@ -43,7 +43,6 @@ class PaneContainer extends View
     else
       false
 
-
   makeNextPaneActive: ->
     panes = @getPanes()
     currentIndex = panes.indexOf(@getActivePane())

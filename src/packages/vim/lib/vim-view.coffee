@@ -208,13 +208,6 @@ class VimView extends View
     @updateCommandLine()
 
   executeCommand: () ->
-    @runCommand @miniEditor.getText()
+    @state.runCommand @miniEditor.getText()
     @discardCommand()
     @enterCommandMode()
-
-  runCommand: (input) ->
-    for c in input
-      if command = VimView.commands[c]
-        @editor.trigger command
-        true
-    false

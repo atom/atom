@@ -74,6 +74,11 @@ fdescribe "Vim state", ->
     vim = editor.vim.state
 
 
+  describe "commands", ->
+    it "sends event to target", ->
+      vim.runCommand("q")
+      expect(target.lastEvent()).toBe("core:close")
+
   # http://vimdoc.sourceforge.net/htmldoc/motion.html
   describe "motions", ->
     describe "counts", ->
