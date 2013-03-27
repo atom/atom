@@ -837,12 +837,18 @@ class EditSession
 
   getGrammar: -> @languageMode.grammar
 
+  setGrammar: (grammar) ->
+    @languageMode.grammar = grammar
+    @handleGrammarChange()
+
   reloadGrammar: ->
-    if @languageMode.reloadGrammar()
-      @unfoldAll()
-      @displayBuffer.tokenizedBuffer.resetScreenLines()
-      @trigger 'grammar-changed'
-      true
+    @handleGrammarChange() if @languageMode.reloadGrammar()
+
+  handleGrammarChange: ->
+    @unfoldAll()
+    @displayBuffer.tokenizedBuffer.resetScreenLines()
+    @trigger 'grammar-changed'
+    true
 
   getDebugSnapshot: ->
     [

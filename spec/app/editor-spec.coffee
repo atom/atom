@@ -1709,6 +1709,18 @@ describe "Editor", ->
         miniEditor.setText(" a line with tabs\tand spaces ")
         expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
 
+      it "lets you set the grammar", ->
+        miniEditor = new Editor(mini: true)
+        miniEditor.setText("var something")
+        previousTokens = miniEditor.lineForScreenRow(0).tokens
+        miniEditor.setGrammar(syntax.selectGrammar('something.js'))
+        expect(miniEditor.getGrammar().name).toBe "JavaScript"
+        expect(previousTokens).not.toEqual miniEditor.lineForScreenRow(0).tokens
+
+        # doesn't allow regular editors to set grammars
+        expect(-> editor.setGrammar()).toThrow()
+
+
     describe "when config.editor.showLineNumbers is false", ->
       it "doesn't render any line numbers", ->
         expect(editor.gutter.lineNumbers).toBeVisible()

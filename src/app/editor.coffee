@@ -1143,7 +1143,13 @@ class Editor extends View
     else
       @highlightedLine = null
 
-  getGrammar: -> @activeEditSession.getGrammar()
+  getGrammar: ->
+    @activeEditSession.getGrammar()
+
+  setGrammar: (grammar) ->
+    throw new Error("Only mini-editors can explicity set their grammar") unless @mini
+    @activeEditSession.setGrammar(grammar)
+    @handleGrammarChange()
 
   selectGrammar: ->
     GrammarView = require 'grammar-view'
@@ -1151,10 +1157,12 @@ class Editor extends View
 
   reloadGrammar: ->
     grammarChanged = @activeEditSession.reloadGrammar()
-    if grammarChanged
-      @clearRenderedLines()
-      @updateDisplay()
+    @handleGrammarChange() if grammarChanged
     grammarChanged
+
+  handleGrammarChange: ->
+    @clearRenderedLines()
+    @updateDisplay()
 
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}
