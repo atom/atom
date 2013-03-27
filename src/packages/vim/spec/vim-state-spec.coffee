@@ -130,6 +130,12 @@ fdescribe "Vim state", ->
         vim.motion("go-to-line")
         expect(target.hasEvent("core:move-to-top")).toBe(true)
         expect(target.hasEvent("core:move-down")).toBe(true)
+      it "only starts moving without a count when the motion was performed twice", ->
+        vim.motion("go-to-line")
+        expect(target.hasEvent("core:move-to-top")).toBe(false)
+        vim.motion("go-to-line")
+        expect(target.hasEvent("core:move-to-top")).toBe(true)
+
     describe "find character", ->
       it "moves cursor until it finds character", ->
         realEditor()

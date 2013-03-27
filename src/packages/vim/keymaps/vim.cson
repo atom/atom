@@ -36,7 +36,7 @@
   'e': 'vim:motion-end-of-word'
   'f': 'vim:motion-find-character'
   'G': 'vim:motion-go-to-line-bottom'
-  'g g': 'vim:motion-go-to-line'
+  'g': 'vim:motion-go-to-line'
   'M': 'vim:motion-center-screen'
   'H': 'vim:motion-go-to-screen-line'
   'L': 'vim:motion-go-to-screen-line-bottom'

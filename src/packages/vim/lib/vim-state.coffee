@@ -50,6 +50,8 @@ class VimState
     @recordings = {}
     @pasteBuffer = {}
     @lastOperation = null
+    @lastMotion = null
+    @countEntered = false
     for m,event of @motionEvents
       do (m, event) =>
         @target.command "vim:motion-#{m}", => @motion(m)
@@ -65,19 +67,28 @@ class VimState
     if _.contains(@motionsWithInput, type)
       @_operation.motion = m
       @vim.enterAwaitInputMode()
-    else
-      @_operation.perform(@target, m)
-      @resetState()
+      return
+    else if _.contains(@motionsWithRequiredCount, type)
+      if !@countEntered
+        if @lastMotion? && @lastMotion.name == type
+        else
+          @lastMotion = m
+          return
+    @_operation.perform(@target, m)
+    @lastMotion = m if !_.contains(@motionsWithRequiredCount, type)
+    @resetState()
   defaultMotion: ->
     new VimMotion('line', @motionEvents['line'], @_count, @target)
   addCountDecimal: (n) ->
     @_count = 0 if @state != "count"
+    @countEntered = true
     @enterState "count"
     @_count = @_count * 10 + n if n?
     @stateUpdated()
     @_count
   count: (n) ->
     @_count = n if n?
+    @countEntered = true
     @_count
   visual: (type) ->
     if type?
@@ -109,6 +120,7 @@ class VimState
   resetState: ->
     @enterState "idle"
     @_count = 1
+    @countEntered = false
     if @_operation?.performed
       if !_.contains(@noRepeatOperations, @_operation.name)
         @lastOperation = @_operation
@@ -310,4 +322,5 @@ class VimState
   noModeResetOperations: ['move', 'select', 'enter-visual-normal', 'enter-visual-lines']
   operationsWithInput: ['change-character', 'start-recording', 'replay-recording']
   motionsWithInput: ['find-character']
+  motionsWithRequiredCount: ['go-to-line']
   noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines', 'start-recording', 'stop-recording', 'replay-recording']
