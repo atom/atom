@@ -15,6 +15,33 @@ class VimMotion
   performEvent: (event) ->
     event = @selectEvent(event) if @select
     @target.trigger(event)
+  scrollOffset: ->
+    Math.ceil((@target.scrollTop() || 0) / @target.lineHeight) || 0
+  scrollOffsetBottom: ->
+    Math.ceil(((@target.scrollTop() + @target.scrollView[0].clientHeight) || 0) / @target.lineHeight) || 0
+  scrollSize: ->
+    Math.floor((@target.scrollView[0].clientHeight / 2) / @target.lineHeight) || 1
+  findCharacter: (c, reverse=false) ->
+    edit = @target.activeEditSession
+    for n in [1..@count]
+      found = false
+      oldPos = edit.getCursorBufferPosition()
+      if reverse
+        if @select then edit.selectLeft() else edit.moveCursorLeft()
+      if @select
+        if reverse then edit.selectLeft() else edit.selectRight()
+      else
+        if reverse then edit.moveCursorLeft() else edit.moveCursorRight()
+      while !found
+        if reverse then edit.selectLeft() else edit.selectRight()
+        char = if reverse then _.last(edit.getSelectedText()) else _.last(edit.getSelectedText())
+        edit.clearSelections() if !@select
+        if !char || char == '' || (edit.getCursorBufferPosition().row == 0 && edit.getCursorBufferPosition().column == 0)
+          edit.setCursorBufferPosition(oldPos) if !@select
+          return
+        found = char == c
+      if !@select
+        if !reverse then edit.moveCursorLeft(2) else edit.moveCursorRight()
 
 class VimOperation
   constructor: (@name, @callback, @vim) ->
@@ -230,28 +257,22 @@ class VimState
     'next-word': "editor:move-to-beginning-of-next-word"
     'previous-word': "editor:move-to-beginning-of-word"
     'up-screen': () ->
-      scrollSize = Math.floor((@target.scrollView[0].clientHeight / 2) / @target.lineHeight) || 1
-      @target.activeEditSession.moveCursorUp(scrollSize) for n in [1..@count]
+      @target.activeEditSession.moveCursorUp(@scrollSize()) for n in [1..@count]
     'down-screen': () ->
-      scrollSize = Math.floor((@target.scrollView[0].clientHeight / 2) / @target.lineHeight) || 1
-      @target.activeEditSession.moveCursorDown(scrollSize) for n in [1..@count]
+      @target.activeEditSession.moveCursorDown(@scrollSize()) for n in [1..@count]
     'center-screen': () ->
       position = @target.getCursorScreenPosition()
-      scrollOffset = Math.ceil((@target.scrollTop() || 0) / @target.lineHeight) || 0
-      scrollSize = Math.floor((@target.scrollView[0].clientHeight / 2) / @target.lineHeight) || 1
-      position.row = Math.max(0, Math.min(scrollOffset + scrollSize, @target.getLastScreenRow()))
+      position.row = Math.max(0, Math.min(@scrollOffset() + @scrollSize(), @target.getLastScreenRow()))
       position.column = 0
       @target.activeEditSession.setCursorScreenPosition(position)
     'go-to-screen-line': () ->
       position = @target.getCursorScreenPosition()
-      scrollOffset = Math.ceil((@target.scrollTop() || 0) / @target.lineHeight) || 0
-      position.row = Math.max(0, Math.min(scrollOffset + @count - 1, @target.getLastScreenRow()))
+      position.row = Math.max(0, Math.min(@scrollOffset() + @count - 1, @target.getLastScreenRow()))
       position.column = 0
       @target.activeEditSession.setCursorScreenPosition(position)
     'go-to-screen-line-bottom': () ->
       position = @target.getCursorScreenPosition()
-      scrollOffset = Math.ceil(((@target.scrollTop() + @target.scrollView[0].clientHeight) || 0) / @target.lineHeight) || 0
-      position.row = Math.max(0, Math.min(scrollOffset, @target.getLastScreenRow()) - @count)
+      position.row = Math.max(0, Math.min(@scrollOffsetBottom(), @target.getLastScreenRow()) - @count)
       position.column = 0
       @target.activeEditSession.setCursorScreenPosition(position)
     'go-to-line': () ->
@@ -260,24 +281,9 @@ class VimState
       if @count == 1 then @performEvent("core:move-to-bottom")
       else (if n == 1 then @performEvent("core:move-to-top") else @performEvent("core:move-down")) for n in [1..@count]
     'find-character': () ->
-      edit = @target.activeEditSession
-      for n in [1..@count]
-        found = false
-        oldPos = edit.getCursorBufferPosition()
-        if @select
-          edit.selectRight()
-        else
-          edit.moveCursorRight()
-        while !found
-          edit.selectRight()
-          char = _.last(edit.getSelectedText())
-          edit.clearSelections() if !@select
-          if !char || char == '' || edit.getCursorBufferPosition().row > edit.getEofBufferPosition().row
-            edit.setCursorBufferPosition(oldPos) if !@select
-            return
-          found = char == @operation.input
-        if !@select
-          edit.moveCursorLeft()
+      @findCharacter(@operation.input)
+    'find-character-reverse': () ->
+      @findCharacter(@operation.input, true)
     'repeat-last-search': () ->
       state = @operation.vim.state
       if state.lastSearchMotion?
@@ -340,7 +346,7 @@ class VimState
   noRepeatOperations: ['move', 'select', 'repeat', 'start-recording', 'stop-recording']
   noModeResetOperations: ['move', 'select', 'enter-visual-normal', 'enter-visual-lines']
   operationsWithInput: ['change-character', 'start-recording', 'replay-recording']
-  motionsWithInput: ['find-character']
+  motionsWithInput: ['find-character', 'find-character-reverse']
   motionsWithRequiredCount: ['go-to-line']
   searchMotions: ['find-character']
   noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines', 'start-recording', 'stop-recording', 'replay-recording']

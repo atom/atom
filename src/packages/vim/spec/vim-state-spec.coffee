@@ -149,6 +149,14 @@ fdescribe "Vim state", ->
         expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(0)
         vim.input("f")
         expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(16)
+    describe "find character reverse", ->
+      it "moves cursors back until it finds character", ->
+        realEditor()
+        vim.count(18)
+        vim.motion("right")
+        vim.motion("find-character-reverse")
+        vim.input("t")
+        expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(16)
     describe "repeat last search", ->
       it "repeats the last search operation", ->
         realEditor()

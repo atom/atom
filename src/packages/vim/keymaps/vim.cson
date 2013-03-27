@@ -38,6 +38,7 @@
   'b': 'vim:motion-previous-word'
   'e': 'vim:motion-end-of-word'
   'f': 'vim:motion-find-character'
+  't': 'vim:motion-find-character-reverse'
   'G': 'vim:motion-go-to-line-bottom'
   'g': 'vim:motion-go-to-line'
   'M': 'vim:motion-center-screen'
