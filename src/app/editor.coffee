@@ -590,6 +590,7 @@ class Editor extends View
     @setSoftWrapColumn(softWrapColumn) if @attached
     if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
+      @scrollView.scrollLeft(0)
       @_setSoftWrapColumn = => @setSoftWrapColumn()
       $(window).on "resize.editor-#{@id}", @_setSoftWrapColumn
     else

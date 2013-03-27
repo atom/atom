@@ -977,6 +977,15 @@ describe "Editor", ->
               editor.setCursorScreenPosition([2, 5])
               expect(editor.scrollView.scrollLeft()).toBe 0
 
+  describe "when editor:toggle-soft-wrap is toggled", ->
+    describe "when the text exceeds the editor width and the scroll-view is horizontally scrolled", ->
+      it "wraps the text and renders properly", ->
+        editor.attachToDom(heightInLines: 30, widthInChars: 30)
+        editor.setText("Fashion axe umami jean shorts retro hashtag carles mumblecore. Photo booth skateboard Austin gentrify occupy ethical. Food truck gastropub keffiyeh, squid deep v pinterest literally sustainable salvia scenester messenger bag. Neutra messenger bag flexitarian four loko, shoreditch VHS pop-up tumblr seitan synth master cleanse. Marfa selvage ugh, raw denim authentic try-hard mcsweeney's trust fund fashion axe actually polaroid viral sriracha. Banh mi marfa plaid single-origin coffee. Pickled mumblecore lomo ugh bespoke.")
+        editor.scrollView.scrollLeft(editor.charWidth * 30)
+        editor.trigger "editor:toggle-soft-wrap"
+        expect(editor.scrollView.scrollLeft()).toBe 0
+
   describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->
