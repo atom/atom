@@ -14,9 +14,6 @@ fdescribe "Vim package", ->
     editor = rootView.getActivePane().find(".editor").view()
     vim = editor.vim
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "vim mode pane", ->
     it "attaches to the current and all future editors", ->
       expect(rootView.panes.find('.pane').length).toBe 1
