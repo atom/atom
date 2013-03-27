@@ -1,5 +1,4 @@
 Package = require 'package'
-fs = require 'fs'
 fsUtils = require 'fs-utils'
 plist = require 'plist'
 _ = require 'underscore'
