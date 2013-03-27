@@ -43,7 +43,7 @@ class VimView extends View
       @handleTextInput(text)
       false
     @state = new VimState(@editor, this)
-    @enterInsertMode()
+    @enterCommandMode()
 
     @editor.command "vim:insert-mode", => @enterInsertMode()
     @editor.command "vim:insert-mode-append", => @enterInsertMode("append")
