@@ -13,7 +13,6 @@ class CommandPaletteView extends SelectList
 
   filterKey: 'eventDescription'
 
-  previouslyFocusedElement: null
   keyBindings: null
 
   initialize: ->
