@@ -43,6 +43,7 @@ class CommandPanelView extends View
     rootView.command 'command-panel:toggle-preview', => @togglePreview()
     rootView.command 'command-panel:find-in-file', => @attach('/')
     rootView.command 'command-panel:find-in-project', => @attach('Xx/')
+    rootView.command 'command-panel:replace-in-file', => @attach('s/')
     rootView.command 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
     rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
     rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()

@@ -63,6 +63,8 @@
   'ctrl-r': 'core:redo'
   'escape': 'vim:cancel-command'
   '/': 'command-panel:find-in-file'
+  'n': 'command-panel:repeat-relative-address'
+  'N': 'command-panel:repeat-relative-address-in-reverse'
 
 '.editor.recording':
   'q': 'vim:operation-stop-recording'
