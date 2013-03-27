@@ -18,9 +18,6 @@ fdescribe 'Terminal', ->
     rootView.getActivePane().addItem(terminalView)
     rootView.getActivePane().showItem(terminalView)
 
-  afterEach ->
-    rootView.deactivate()
-
   describe "login", ->
     it "opens a terminal session", ->
       terminalView.login()
