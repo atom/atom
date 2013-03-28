@@ -506,6 +506,17 @@ describe "EditSession", ->
         [selection1] = selections
         expect(selection1.getScreenRange()).toEqual [[3, 10], [7, 4]]
         expect(selection1.isReversed()).toBeTruthy()
+    fdescribe ".selectColumnToScreenPosition(screenPosition)", ->
+      it "creates a selection for each row", ->
+        editSession.setCursorScreenPosition([4, 10])
+        editSession.columnStartRange = null
+        editSession.selectColumnToScreenPosition([5, 27])
+        selections = editSession.getSelections()
+        expect(selections.length).toBe 2
+        [selection1, selection2] = selections
+        expect(selection1.getScreenRange()).toEqual [[4, 10], [4, 27]]
+        expect(selection1.isReversed()).toBeFalsy()
+        expect(selection2.getScreenRange()).toEqual [[5, 10], [5, 27]]
 
     describe ".selectToTop()", ->
       it "selects text from cusor position to the top of the buffer", ->

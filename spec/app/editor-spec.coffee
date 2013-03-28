@@ -637,6 +637,34 @@ describe "Editor", ->
         expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
         expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
 
+    fdescribe "meta-shift-click and drag", ->
+      it "adds an additional cursor on each line", ->
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10], metaKey:true, shiftKey:true)
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [6, 27], metaKey:true, shiftKey:true)
+        editor.renderedLines.trigger 'mouseup'
+
+        selections = editor.getSelections()
+        expect(selections.length).toBe 3
+        [selection1, selection2] = selections
+        expect(selection1.getScreenRange()).toEqual [[4, 10], [4, 27]]
+        expect(selection2.getScreenRange()).toEqual [[5, 10], [5, 27]]
+      it "modifies the range on each line", ->
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10], metaKey:true, shiftKey:true)
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27], metaKey:true, shiftKey:true)
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [6, 13], metaKey:true, shiftKey:true)
+
+        selections = editor.getSelections()
+        expect(selections.length).toBe 3
+        [selection1, selection2, selection3] = selections
+        expect(selection1.getScreenRange()).toEqual [[4, 10], [4, 13]]
+        expect(selection2.getScreenRange()).toEqual [[5, 10], [5, 13]]
+        expect(selection3.getScreenRange()).toEqual [[6, 10], [6, 13]]
+
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 13], metaKey:true, shiftKey:true)
+        editor.renderedLines.trigger 'mouseup'
+        selections = editor.getSelections()
+        expect(selections.length).toBe 2
+
   describe "when text input events are triggered on the hidden input element", ->
     it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
       editor.attachToDom()
