@@ -8,7 +8,7 @@ class Gists
   constructor: ->
     rootView.command 'gist:create', '.editor', => @createGist()
 
-  createGist: (editor) ->
+  createGist: ->
     editor = rootView.getActiveView()
     return unless editor?
 

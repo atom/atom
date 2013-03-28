@@ -12,6 +12,8 @@ describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
+    atom.activatePackage('text.tmbundle', sync: true)
+    atom.activatePackage('javascript.tmbundle', sync: true)
     editSession = project.buildEditSession('sample.js')
     buffer = editSession.buffer
     editor = new Editor(editSession)
@@ -556,6 +558,20 @@ describe "Editor", ->
 
         expect(editor.scrollTop()).toBe 0
 
+      it "ignores non left-click and drags", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        event = mousedownEvent(editor: editor, point: [4, 10])
+        event.originalEvent.which = 2
+        editor.renderedLines.trigger(event)
+        $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
+        $(document).trigger 'mouseup'
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 4, column: 10})
+
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
@@ -975,6 +991,15 @@ describe "Editor", ->
               editor.setCursorScreenPosition([2, 5])
               expect(editor.scrollView.scrollLeft()).toBe 0
 
+  describe "when editor:toggle-soft-wrap is toggled", ->
+    describe "when the text exceeds the editor width and the scroll-view is horizontally scrolled", ->
+      it "wraps the text and renders properly", ->
+        editor.attachToDom(heightInLines: 30, widthInChars: 30)
+        editor.setText("Fashion axe umami jean shorts retro hashtag carles mumblecore. Photo booth skateboard Austin gentrify occupy ethical. Food truck gastropub keffiyeh, squid deep v pinterest literally sustainable salvia scenester messenger bag. Neutra messenger bag flexitarian four loko, shoreditch VHS pop-up tumblr seitan synth master cleanse. Marfa selvage ugh, raw denim authentic try-hard mcsweeney's trust fund fashion axe actually polaroid viral sriracha. Banh mi marfa plaid single-origin coffee. Pickled mumblecore lomo ugh bespoke.")
+        editor.scrollView.scrollLeft(editor.charWidth * 30)
+        editor.trigger "editor:toggle-soft-wrap"
+        expect(editor.scrollView.scrollLeft()).toBe 0
+
   describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->
@@ -1047,90 +1072,6 @@ describe "Editor", ->
           buffer.insert([5,0], "/* */")
           buffer.insert([1,0], "/*")
           expect(editor.renderedLines.find('.line:eq(2) > span:first > span:first')).toMatchSelector '.comment'
-
-      describe "when soft-wrap is enabled", ->
-        beforeEach ->
-          setEditorHeightInLines(editor, 20)
-          setEditorWidthInChars(editor, 50)
-          editor.setSoftWrap(true)
-          expect(editor.activeEditSession.softWrapColumn).toBe 50
-
-        it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
-          expect(editor.renderedLines.find('.line').length).toBe 16
-          expect(editor.renderedLines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
-          expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "right = [];"
-
-          editor.setCursorBufferPosition([3, 51], wrapAtSoftNewlines: true)
-          expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(4)').offset())
-
-          editor.setCursorBufferPosition([4, 0])
-          expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(5)').offset())
-
-          editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
-          [region1, region2] = editor.getSelectionView().regions
-          expect(region1.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(7)').offset().top)
-          expect(region2.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(8)').offset().top)
-
-        it "handles changes to wrapped lines correctly", ->
-          buffer.insert([6, 28], '1234567')
-          expect(editor.renderedLines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
-          expect(editor.renderedLines.find('.line:eq(8)').text()).toBe ': right.push(current);'
-          expect(editor.renderedLines.find('.line:eq(9)').text()).toBe '    }'
-
-        it "changes the max line length and repositions the cursor when the window size changes", ->
-          editor.setCursorBufferPosition([3, 60])
-          setEditorWidthInChars(editor, 40)
-          expect(editor.renderedLines.find('.line').length).toBe 19
-          expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
-          expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
-          expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
-
-        it "does not wrap the lines of any newly assigned buffers", ->
-          otherEditSession = project.buildEditSession()
-          otherEditSession.buffer.setText([1..100].join(''))
-          editor.edit(otherEditSession)
-          expect(editor.renderedLines.find('.line').length).toBe(1)
-
-        it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
-          editor.toggleSoftWrap()
-          expect(editor.renderedLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
-
-          spyOn(editor, 'setSoftWrapColumn')
-          $(window).trigger 'resize'
-          expect(editor.setSoftWrapColumn).not.toHaveBeenCalled()
-
-        it "allows the cursor to move down to the last line", ->
-          _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 0]
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 2]
-
-        it "allows the cursor to move up to a shorter soft wrapped line", ->
-          editor.setCursorScreenPosition([11, 15])
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition()).toEqual [10, 10]
-          editor.moveCursorUp()
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition()).toEqual [8, 15]
-
-        it "it allows the cursor to wrap when moving horizontally past the beginning / end of a wrapped line", ->
-          editor.setCursorScreenPosition([11, 0])
-          editor.moveCursorLeft()
-          expect(editor.getCursorScreenPosition()).toEqual [10, 10]
-
-          editor.moveCursorRight()
-          expect(editor.getCursorScreenPosition()).toEqual [11, 0]
-
-        it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
-          otherEditor = new Editor(editSession: project.buildEditSession('sample.js'))
-          spyOn(otherEditor, 'setSoftWrapColumn')
-
-          otherEditor.setSoftWrap(true)
-          expect(otherEditor.setSoftWrapColumn).not.toHaveBeenCalled()
-
-          otherEditor.simulateDomAttachment()
-          expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
-          otherEditor.remove()
 
     describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
@@ -1580,6 +1521,91 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
+  describe "when soft-wrap is enabled", ->
+    beforeEach ->
+      editor.attachToDom()
+      setEditorHeightInLines(editor, 20)
+      setEditorWidthInChars(editor, 50)
+      editor.setSoftWrap(true)
+      expect(editor.activeEditSession.softWrapColumn).toBe 50
+
+    it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
+      expect(editor.renderedLines.find('.line').length).toBe 16
+      expect(editor.renderedLines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
+      expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "right = [];"
+
+      editor.setCursorBufferPosition([3, 51], wrapAtSoftNewlines: true)
+      expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(4)').offset())
+
+      editor.setCursorBufferPosition([4, 0])
+      expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(5)').offset())
+
+      editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
+      [region1, region2] = editor.getSelectionView().regions
+      expect(region1.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(7)').offset().top)
+      expect(region2.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(8)').offset().top)
+
+    it "handles changes to wrapped lines correctly", ->
+      buffer.insert([6, 28], '1234567')
+      expect(editor.renderedLines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
+      expect(editor.renderedLines.find('.line:eq(8)').text()).toBe ': right.push(current);'
+      expect(editor.renderedLines.find('.line:eq(9)').text()).toBe '    }'
+
+    it "changes the max line length and repositions the cursor when the window size changes", ->
+      editor.setCursorBufferPosition([3, 60])
+      setEditorWidthInChars(editor, 40)
+      expect(editor.renderedLines.find('.line').length).toBe 19
+      expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
+      expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
+      expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
+
+    it "does not wrap the lines of any newly assigned buffers", ->
+      otherEditSession = project.buildEditSession()
+      otherEditSession.buffer.setText([1..100].join(''))
+      editor.edit(otherEditSession)
+      expect(editor.renderedLines.find('.line').length).toBe(1)
+
+    it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
+      editor.toggleSoftWrap()
+      expect(editor.renderedLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
+      spyOn(editor, 'setSoftWrapColumn')
+      $(window).trigger 'resize'
+      expect(editor.setSoftWrapColumn).not.toHaveBeenCalled()
+
+    it "allows the cursor to move down to the last line", ->
+      _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
+      expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 0]
+      editor.moveCursorDown()
+      expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 2]
+
+    it "allows the cursor to move up to a shorter soft wrapped line", ->
+      editor.setCursorScreenPosition([11, 15])
+      editor.moveCursorUp()
+      expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+      editor.moveCursorUp()
+      editor.moveCursorUp()
+      expect(editor.getCursorScreenPosition()).toEqual [8, 15]
+
+    it "it allows the cursor to wrap when moving horizontally past the beginning / end of a wrapped line", ->
+      editor.setCursorScreenPosition([11, 0])
+      editor.moveCursorLeft()
+      expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+
+      editor.moveCursorRight()
+      expect(editor.getCursorScreenPosition()).toEqual [11, 0]
+
+    it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
+      otherEditor = new Editor(editSession: project.buildEditSession('sample.js'))
+      spyOn(otherEditor, 'setSoftWrapColumn')
+
+      otherEditor.setSoftWrap(true)
+      expect(otherEditor.setSoftWrapColumn).not.toHaveBeenCalled()
+
+      otherEditor.simulateDomAttachment()
+      expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
+      otherEditor.remove()
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
@@ -1706,6 +1732,18 @@ describe "Editor", ->
         expect(tab).toBeTruthy()
         miniEditor.setText(" a line with tabs\tand spaces ")
         expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
+
+      it "lets you set the grammar", ->
+        miniEditor = new Editor(mini: true)
+        miniEditor.setText("var something")
+        previousTokens = miniEditor.lineForScreenRow(0).tokens
+        miniEditor.setGrammar(syntax.selectGrammar('something.js'))
+        expect(miniEditor.getGrammar().name).toBe "JavaScript"
+        expect(previousTokens).not.toEqual miniEditor.lineForScreenRow(0).tokens
+
+        # doesn't allow regular editors to set grammars
+        expect(-> editor.setGrammar()).toThrow()
+
 
     describe "when config.editor.showLineNumbers is false", ->
       it "doesn't render any line numbers", ->

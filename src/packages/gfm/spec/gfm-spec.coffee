@@ -5,7 +5,7 @@ describe "GitHub Flavored Markdown grammar", ->
 
   beforeEach ->
     spyOn(syntax, "addGrammar").andCallThrough()
-    window.loadPackage("gfm")
+    atom.activatePackage("gfm")
     expect(syntax.addGrammar).toHaveBeenCalled()
     grammar = syntax.addGrammar.argsForCall[0][0]
 

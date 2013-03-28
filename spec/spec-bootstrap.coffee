@@ -7,4 +7,4 @@ try
   runSpecSuite "spec-suite"
 catch e
   console.error(e.stack)
-  atom.exit(1)
+  atom.exit(1) if window.location.params.exitWhenDone

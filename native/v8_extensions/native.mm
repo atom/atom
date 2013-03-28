@@ -24,8 +24,7 @@ namespace v8_extensions {
     const char* methodNames[] = {
       "writeToPasteboard", "readFromPasteboard", "quit", "watchPath",
       "unwatchPath", "getWatchedPaths", "unwatchAllPaths", "moveToTrash",
-      "reload", "setWindowState", "getWindowState", "isMisspelled",
-      "getCorrectionsForMisspelling"
+      "reload", "setWindowState", "getWindowState", "beep"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -79,8 +78,8 @@ namespace v8_extensions {
 
         CefV8ValueList args;
 
-        args.push_back(CefV8Value::CreateString(std::string([eventType UTF8String], [eventType lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
-        args.push_back(CefV8Value::CreateString(std::string([path UTF8String], [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+        args.push_back(CefV8Value::CreateString(string([eventType UTF8String], [eventType lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+        args.push_back(CefV8Value::CreateString(string([path UTF8String], [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
         function->ExecuteFunction(function, args);
 
         context->Exit();
@@ -92,7 +91,7 @@ namespace v8_extensions {
         retval = CefV8Value::CreateString([watchId UTF8String]);
       }
       else {
-        exception = std::string("Failed to watch path '") + std::string([path UTF8String]) +  std::string("' (it may not exist)");
+        exception = string("Failed to watch path '") + string([path UTF8String]) +  string("' (it may not exist)");
       }
 
       return true;
@@ -138,7 +137,7 @@ namespace v8_extensions {
                                                                      tag:nil];
 
       if (!success) {
-        std::string exception = "Can not move ";
+        string exception = "Can not move ";
         exception += [sourcePath UTF8String];
         exception += " to trash.";
       }
@@ -163,32 +162,8 @@ namespace v8_extensions {
       return true;
     }
 
-    else if (name == "isMisspelled") {
-      NSString *word = stringFromCefV8Value(arguments[0]);
-      NSSpellChecker *spellChecker = [NSSpellChecker sharedSpellChecker];
-      @synchronized(spellChecker) {
-        NSRange range = [spellChecker checkSpellingOfString:word startingAt:0];
-        retval = CefV8Value::CreateBool(range.length > 0);
-      }
-      return true;
-    }
-
-    else if (name == "getCorrectionsForMisspelling") {
-      NSString *misspelling = stringFromCefV8Value(arguments[0]);
-      NSSpellChecker *spellChecker = [NSSpellChecker sharedSpellChecker];
-      @synchronized(spellChecker) {
-        NSString *language = [spellChecker language];
-        NSRange range;
-        range.location = 0;
-        range.length = [misspelling length];
-        NSArray *guesses = [spellChecker guessesForWordRange:range inString:misspelling language:language inSpellDocumentWithTag:0];
-        CefRefPtr<CefV8Value> v8Guesses = CefV8Value::CreateArray([guesses count]);
-        for (int i = 0; i < [guesses count]; i++) {
-          v8Guesses->SetValue(i, CefV8Value::CreateString([[guesses objectAtIndex:i] UTF8String]));
-        }
-        retval = v8Guesses;
-      }
-      return true;
+    else if (name == "beep") {
+      NSBeep();
     }
 
     return false;
@@ -196,7 +171,7 @@ namespace v8_extensions {
   };
 
   NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
-    std::string cc_value = value->GetStringValue().ToString();
+    string cc_value = value->GetStringValue().ToString();
     return [NSString stringWithUTF8String:cc_value.c_str()];
   }
 
@@ -204,7 +179,7 @@ namespace v8_extensions {
     CefV8ValueList arguments;
 
     message = [message stringByAppendingFormat:@"\n%s", exception->GetMessage().ToString().c_str()];
-    arguments.push_back(CefV8Value::CreateString(std::string([message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+    arguments.push_back(CefV8Value::CreateString(string([message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
 
     CefRefPtr<CefV8Value> console = global->GetValue("console");
     console->GetValue("error")->ExecuteFunction(console, arguments);

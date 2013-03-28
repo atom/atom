@@ -31,7 +31,7 @@ class Range
     new Range(@start.copy(), @end.copy())
 
   isEqual: (other) ->
-    if other instanceof Array and other.length == 2
+    if _.isArray(other) and other.length == 2
       other = new Range(other...)
 
     other.start.isEqual(@start) and other.end.isEqual(@end)

@@ -22,7 +22,6 @@ class Syntax
     @grammarsByFileType = {}
     @grammarsByScopeName = {}
     @grammarOverridesByPath = {}
-    @globalProperties = {}
     @scopedPropertiesIndex = 0
     @scopedProperties = []
     @nullGrammar = new NullGrammar
@@ -32,9 +31,14 @@ class Syntax
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    for fileType in grammar.fileTypes
-      @grammarsByFileType[fileType] = grammar
-      @grammarsByScopeName[grammar.scopeName] = grammar
+    @grammarsByFileType[fileType] = grammar for fileType in grammar.fileTypes
+    @grammarsByScopeName[grammar.scopeName] = grammar
+
+  removeGrammar: (grammar) ->
+    if _.include(@grammars, grammar)
+      _.remove(@grammars, grammar)
+      delete @grammarsByFileType[fileType] for fileType in grammar.fileTypes
+      delete @grammarsByScopeName[grammar.scopeName]
 
   setGrammarOverrideForPath: (path, scopeName) ->
     @grammarOverridesByPath[path] = scopeName
@@ -46,7 +50,9 @@ class Syntax
     @grammarOverridesByPath = {}
 
   selectGrammar: (filePath, fileContents) ->
+
     return @grammarsByFileType["txt"] ? @nullGrammar unless filePath
+
     @grammarOverrideForPath(filePath) ?
       @grammarByFirstLineRegex(filePath, fileContents) ?
       @grammarByPath(filePath) ?
@@ -94,18 +100,24 @@ class Syntax
     @grammarsByScopeName[scopeName]
 
   addProperties: (args...) ->
-    selector = args.shift() if args.length > 1
-    properties = args.shift()
+    name = args.shift() if args.length > 2
+    [selector, properties] = args
 
-    if selector
-      @scopedProperties.unshift(
-        selector: selector,
-        properties: properties,
-        specificity: Specificity(selector),
-        index: @scopedPropertiesIndex++
-      )
-    else
-      _.extend(@globalProperties, properties)
+    @scopedProperties.unshift(
+      name: name
+      selector: selector,
+      properties: properties,
+      specificity: Specificity(selector),
+      index: @scopedPropertiesIndex++
+    )
+
+  removeProperties: (name) ->
+    for properties in @scopedProperties.filter((properties) -> properties.name is name)
+      _.remove(@scopedProperties, properties)
+
+  clearProperties: ->
+    @scopedProperties = []
+    @scopedPropertiesIndex = 0
 
   getProperty: (scope, keyPath) ->
     for object in @propertiesForScope(scope, keyPath)
@@ -121,7 +133,7 @@ class Syntax
       while element
         matchingProperties.push(@matchingPropertiesForElement(element, candidates)...)
         element = element.parentNode
-    matchingProperties.concat([@globalProperties])
+    matchingProperties
 
   matchingPropertiesForElement: (element, candidates) ->
     matchingScopedProperties = candidates.filter ({selector}) ->

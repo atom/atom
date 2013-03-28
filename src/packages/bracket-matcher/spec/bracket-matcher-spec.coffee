@@ -6,7 +6,7 @@ describe "bracket matching", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    window.loadPackage('bracket-matcher')
+    atom.activatePackage('bracket-matcher')
     rootView.attachToDom()
     editor = rootView.getActiveView()
     editSession = editor.activeEditSession

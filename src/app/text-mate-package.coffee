@@ -1,10 +1,8 @@
 Package = require 'package'
-fs = require 'fs'
 fsUtils = require 'fs-utils'
 plist = require 'plist'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
-CSON = require 'cson'
 async = require 'async'
 
 module.exports =
@@ -31,7 +29,16 @@ class TextMatePackage extends Package
       TextMatePackage.getLoadQueue().push(this)
     @loadScopedProperties()
 
-  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'cson', 'json']
+  activate: ->
+    syntax.addGrammar(grammar) for grammar in @grammars
+    for { selector, properties } in @scopedProperties
+      syntax.addProperties(@path, selector, properties)
+
+  deactivate: ->
+    syntax.removeGrammar(grammar) for grammar in @grammars
+    syntax.removeProperties(@path)
+
+  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage']
 
   loadGrammars: (done) ->
     fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
@@ -52,30 +59,22 @@ class TextMatePackage extends Package
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    syntax.addGrammar(grammar)
-
-  activate: -> # no-op
+    syntax.addGrammar(grammar) if atom.isPackageActive(@path)
 
   getGrammars: -> @grammars
 
   loadScopedProperties: ->
-    for { selector, properties } in @getScopedProperties()
-      syntax.addProperties(selector, properties)
-
-  getScopedProperties: ->
-    scopedProperties = []
+    @scopedProperties = []
 
     for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
         selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
-        scopedProperties.push({selector, properties})
+        @scopedProperties.push({selector, properties})
 
     for {scope, settings} in @getTextMatePreferenceObjects()
       if properties = @propertiesFromTextMateSettings(settings)
         selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
-        scopedProperties.push({selector, properties})
-
-    scopedProperties
+        @scopedProperties.push({selector, properties})
 
   getTextMatePreferenceObjects: ->
     preferenceObjects = []

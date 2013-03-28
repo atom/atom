@@ -7,7 +7,7 @@ describe "Gists package", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    window.loadPackage('gists')
+    atom.activatePackage('gists')
     editor = rootView.getActiveView()
     spyOn($, 'ajax')
 

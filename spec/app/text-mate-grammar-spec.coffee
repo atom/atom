@@ -8,7 +8,24 @@ describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
+    atom.activatePackage('text.tmbundle', sync: true)
+    atom.activatePackage('javascript.tmbundle', sync: true)
+    atom.activatePackage('coffee-script-tmbundle', sync: true)
+    atom.activatePackage('ruby.tmbundle', sync: true)
     grammar = syntax.selectGrammar("hello.coffee")
+
+  describe "@loadSync(path)", ->
+    it "loads grammars from plists", ->
+      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('packages/text.tmbundle/Syntaxes/Plain text.plist'))
+      expect(grammar.scopeName).toBe "text.plain"
+      {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
+      expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
+
+    it "loads grammars from cson files", ->
+      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
+      expect(grammar.scopeName).toBe "source.alot"
+      {tokens} = grammar.tokenizeLine("this is alot of code")
+      expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
 
   describe ".tokenizeLine(line, ruleStack)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
@@ -192,6 +209,9 @@ describe "TextMateGrammar", ->
 
       describe "when the pattern includes rules from another grammar", ->
         it "parses tokens inside the begin/end patterns based on the included grammar's rules", ->
+          atom.activatePackage('html.tmbundle', sync: true)
+          atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
+
           grammar = syntax.grammarsByFileType["html.erb"]
           {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
 
@@ -248,6 +268,9 @@ describe "TextMateGrammar", ->
       {tokens, ruleStack} = grammar.tokenizeLine(" // second line comment with a single leading space", ruleStack)
 
     describe "when inside a C block", ->
+      beforeEach ->
+        atom.activatePackage('c.tmbundle', sync: true)
+
       it "correctly parses a method. (regression)", ->
         grammar = syntax.selectGrammar("hello.c")
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){m()}")
@@ -262,7 +285,7 @@ describe "TextMateGrammar", ->
     describe "when the grammar can infinitely loop over a line", ->
       it "aborts tokenization", ->
         spyOn(console, 'error')
-        window.loadPackage("package-with-infinite-loop-grammar")
+        atom.activatePackage("package-with-infinite-loop-grammar")
         grammar = syntax.selectGrammar("something.package-with-infinite-loop-grammar")
         {tokens} = grammar.tokenizeLine("abc")
         expect(tokens[0].value).toBe "a"
@@ -271,6 +294,7 @@ describe "TextMateGrammar", ->
 
     describe "when a grammar has a pattern that has back references in the match value", ->
       it "does not special handle the back references and instead allows oniguruma to resolve them", ->
+        atom.activatePackage('sass.tmbundle', sync: true)
         grammar = syntax.selectGrammar("style.scss")
         {tokens} = grammar.tokenizeLine("@mixin x() { -moz-selector: whatever; }")
         expect(tokens[9]).toEqual value: "-moz-selector", scopes: ["source.css.scss", "meta.property-list.scss", "meta.property-name.scss"]

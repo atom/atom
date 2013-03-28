@@ -9,6 +9,7 @@ describe "EditSession", ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
   beforeEach ->
+    atom.activatePackage('javascript.tmbundle', sync: true)
     editSession = project.buildEditSession('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
@@ -394,6 +395,20 @@ describe "EditSession", ->
         it "does not emit a cursor-moved event", ->
           buffer.insert([8, 0], '...')
           expect(cursorMovedHandler).not.toHaveBeenCalled()
+
+    describe "addCursorAtScreenPosition(screenPosition)", ->
+      describe "when a cursor already exists at the position", ->
+        it "returns the existing cursor", ->
+          cursor1 = editSession.addCursorAtScreenPosition([0,2])
+          cursor2 = editSession.addCursorAtScreenPosition([0,2])
+          expect(cursor2.marker).toBe cursor1.marker
+
+    describe "addCursorAtBufferPosition(bufferPosition)", ->
+      describe "when a cursor already exists at the position", ->
+        it "returns the existing cursor", ->
+          cursor1 = editSession.addCursorAtBufferPosition([1,4])
+          cursor2 = editSession.addCursorAtBufferPosition([1,4])
+          expect(cursor2.marker).toBe cursor1.marker
 
   describe "selection", ->
     selection = null
@@ -2048,13 +2063,14 @@ describe "EditSession", ->
   describe "when the 'grammars-loaded' event is triggered on the syntax global", ->
     it "reloads the edit session's grammar and re-tokenizes the buffer if it changes", ->
       editSession.destroy()
-      grammarToReturn = syntax.grammarByPath('a.txt')
+      jsGrammar = syntax.selectGrammar('a.js')
+      grammarToReturn = syntax.nullGrammar
       spyOn(syntax, 'selectGrammar').andCallFake -> grammarToReturn
 
       editSession = project.buildEditSession('sample.js', autoIndent: false)
       expect(editSession.lineForScreenRow(0).tokens.length).toBe 1
 
-      grammarToReturn = syntax.grammarByPath('a.js')
+      grammarToReturn = jsGrammar
       syntax.trigger 'grammars-loaded'
       expect(editSession.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 

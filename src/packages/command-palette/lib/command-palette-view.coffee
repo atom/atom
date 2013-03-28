@@ -13,7 +13,6 @@ class CommandPaletteView extends SelectList
 
   filterKey: 'eventDescription'
 
-  previouslyFocusedElement: null
   keyBindings: null
 
   initialize: ->
@@ -30,10 +29,14 @@ class CommandPaletteView extends SelectList
   attach: ->
     super
 
-    @keyBindings = _.losslessInvert(keymap.bindingsForElement(@previouslyFocusedElement))
+    if @previouslyFocusedElement[0]
+      @eventElement = @previouslyFocusedElement
+    else
+      @eventElement = rootView
+    @keyBindings = _.losslessInvert(keymap.bindingsForElement(@eventElement))
 
     events = []
-    for eventName, eventDescription of _.extend($(window).events(), @previouslyFocusedElement.events())
+    for eventName, eventDescription of _.extend($(window).events(), @eventElement.events())
       events.push({eventName, eventDescription}) if eventDescription
 
     events = _.sortBy events, (e) -> e.eventDescription
@@ -53,4 +56,4 @@ class CommandPaletteView extends SelectList
 
   confirmed: ({eventName}) ->
     @cancel()
-    @previouslyFocusedElement.trigger(eventName)
+    @eventElement.trigger(eventName)
