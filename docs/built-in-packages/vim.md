@@ -102,11 +102,11 @@ Keys: `w` `b`
 
 Event: `vim:motion-{next/previous}-word`
 
-**Find character n**
+**Find character n forward/backward**
 
-Key: `f n`
+Key: `f n` `t n`
 
-Event: `vim:motion-find-character`
+Event: `vim:motion-find-character` `vim:motion-find-character-reverse`
 
 **Go to line**
 
@@ -182,11 +182,25 @@ Key: `c`
 
 Event: `vim:operation-change`
 
+Variants:
+
+  * Substitute character
+
+    Key: `s`
+
+    Event: `vim:alias-substitute-character`
+
+  * Substitute line
+
+    Key: `S`
+
+    Event: `vim:alias-substitute-line`
+
 **Change character**
 
 Key: `r`
 
-Event: `vim:change-character`
+Event: `vim:operation-change-character`
 
 **Repeat last operation**
 
