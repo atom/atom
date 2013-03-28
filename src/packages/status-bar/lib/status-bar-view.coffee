@@ -34,7 +34,7 @@ class StatusBarView extends View
 
     @updateCursorPositionText()
     @subscribe @editor, 'cursor:moved', => @updateCursorPositionText()
-    @subscribe @grammarName, 'click', => @editor.trigger 'editor:select-grammar'
+    @subscribe @grammarName, 'click', => @editor.trigger 'grammar-selector:show'
     @subscribe @editor, 'editor:grammar-changed', => @updateGrammarText()
     if git?
       @subscribe git, 'status-changed', (path, status) =>
