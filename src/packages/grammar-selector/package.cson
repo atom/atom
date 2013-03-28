@@ -1,0 +1,2 @@
+'main': 'lib/grammar-selector'
+'activationEvents': ['grammar-selector:show']

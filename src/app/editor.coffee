@@ -150,7 +150,6 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
-        'editor:select-grammar': @selectGrammar
         'editor:copy-path': @copyPathToPasteboard
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
@@ -1151,10 +1150,6 @@ class Editor extends View
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
     @handleGrammarChange()
-
-  selectGrammar: ->
-    GrammarView = require 'grammar-view'
-    new GrammarView(this)
 
   reloadGrammar: ->
     grammarChanged = @activeEditSession.reloadGrammar()
