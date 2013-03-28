@@ -558,6 +558,20 @@ describe "Editor", ->
 
         expect(editor.scrollTop()).toBe 0
 
+      it "ignores non left-click and drags", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        event = mousedownEvent(editor: editor, point: [4, 10])
+        event.originalEvent.which = 2
+        editor.renderedLines.trigger(event)
+        $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
+        $(document).trigger 'mouseup'
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 4, column: 10})
+
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)

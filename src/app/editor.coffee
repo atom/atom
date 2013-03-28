@@ -373,7 +373,7 @@ class Editor extends View
       else if clickCount == 3
         @activeEditSession.selectLine() unless e.shiftKey
 
-      @selectOnMousemoveUntilMouseup()
+      @selectOnMousemoveUntilMouseup() unless e.originalEvent.which > 1
 
     @renderedLines.on 'mousedown', onMouseDown
 
