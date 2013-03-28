@@ -152,10 +152,10 @@ fdescribe "Vim state", ->
     describe "find character reverse", ->
       it "moves cursors back until it finds character", ->
         realEditor()
-        vim.count(18)
+        vim.count(25)
         vim.motion("right")
         vim.motion("find-character-reverse")
-        vim.input("t")
+        vim.input("f")
         expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(16)
     describe "repeat last search", ->
       it "repeats the last search operation", ->
@@ -167,6 +167,7 @@ fdescribe "Vim state", ->
         expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(16)
         vim.motion("repeat-last-search")
         expect(editor.activeEditSession.getCursor().getBufferPosition().row).toBe(1)
+        expect(editor.activeEditSession.getCursor().getBufferPosition().column).toBe(13)
       it "does not repeat non-search operations", ->
     describe "screen motions", ->
       describe "up", ->

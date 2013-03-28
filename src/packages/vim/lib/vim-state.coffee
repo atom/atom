@@ -41,7 +41,7 @@ class VimMotion
           return
         found = char == c
       if !@select
-        if !reverse then edit.moveCursorLeft(2) else edit.moveCursorRight()
+        if !reverse then edit.moveCursorLeft()
 
 class VimOperation
   constructor: (@name, @callback, @vim) ->
