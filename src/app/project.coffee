@@ -193,7 +193,7 @@ class Project
         readLine(line) if state is 'readingLines'
 
     command = require.resolve 'nak'
-    args = ['--ackmate', "#{regex.source}", @getPath()]
+    args = ['--ackmate', regex.source, @getPath()]
     args.unshift("--addVCSIgnores") if config.get('nak.addVCSIgnores')
     new BufferedProcess({command, args, stdout, exit})
     deferred
