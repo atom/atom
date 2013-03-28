@@ -69,6 +69,7 @@
   '/': 'command-panel:find-in-file'
   'n': 'command-panel:repeat-relative-address'
   'N': 'command-panel:repeat-relative-address-in-reverse'
+  '%': 'editor:go-to-matching-bracket'
 
 '.editor.recording':
   'q': 'vim:operation-stop-recording'
