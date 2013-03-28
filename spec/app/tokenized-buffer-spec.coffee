@@ -1,6 +1,6 @@
 TokenizedBuffer = require 'tokenized-buffer'
 LanguageMode = require 'language-mode'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Range = require 'range'
 _ = require 'underscore'
 
@@ -8,6 +8,7 @@ describe "TokenizedBuffer", ->
   [editSession, tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
+    atom.activatePackage('javascript.tmbundle', sync: true)
     # enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
@@ -298,6 +299,7 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
+      atom.activatePackage('coffee-script-tmbundle', sync: true)
       tabLength = 2
       editSession = project.buildEditSession('sample-with-tabs.coffee', { tabLength })
       buffer = editSession.buffer
@@ -328,6 +330,7 @@ describe "TokenizedBuffer", ->
 
   describe "when a Git commit message file is tokenized", ->
     beforeEach ->
+      atom.activatePackage('git.tmbundle', sync: true)
       editSession =  project.buildEditSession('COMMIT_EDITMSG', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
@@ -355,6 +358,7 @@ describe "TokenizedBuffer", ->
 
   describe "when a C++ source file is tokenized", ->
     beforeEach ->
+      atom.activatePackage('c.tmbundle', sync: true)
       editSession =  project.buildEditSession('includes.cc', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
@@ -403,6 +407,8 @@ describe "TokenizedBuffer", ->
 
   describe "when an Objective-C source file is tokenized", ->
     beforeEach ->
+      atom.activatePackage('c.tmbundle', sync: true)
+      atom.activatePackage('objective-c.tmbundle', sync: true)
       editSession =  project.buildEditSession('function.mm', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer

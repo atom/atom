@@ -1,101 +1,89 @@
 Package = require 'package'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 plist = require 'plist'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
+async = require 'async'
 
 module.exports =
 class TextMatePackage extends Package
   @testName: (packageName) ->
     /(\.|_|-)tmbundle$/.test(packageName)
 
-  @cssSelectorFromScopeSelector: (scopeSelector) ->
-    scopeSelector.split(', ').map((commaFragment) ->
-      commaFragment.split(' ').map((spaceFragment) ->
-        spaceFragment.split('.').map((dotFragment) ->
-          '.' + dotFragment.replace(/\+/g, '\\+')
-        ).join('')
-      ).join(' ')
-    ).join(', ')
+  @getLoadQueue: ->
+    return @loadQueue if @loadQueue
+    @loadQueue = async.queue (pack, done) -> pack.loadGrammars(done)
+    @loadQueue.drain = -> syntax.trigger 'grammars-loaded'
+    @loadQueue
 
   constructor: ->
     super
-    @preferencesPath = fs.join(@path, "Preferences")
-    @syntaxesPath = fs.join(@path, "Syntaxes")
+    @preferencesPath = fsUtils.join(@path, "Preferences")
+    @syntaxesPath = fsUtils.join(@path, "Syntaxes")
     @grammars = []
 
-  load: ->
-    try
-      @loadGrammars()
-    catch e
-      console.warn "Failed to load package at '#{@path}'", e.stack
-    this
+  load: ({sync}={}) ->
+    if sync
+      @loadGrammarsSync()
+    else
+      TextMatePackage.getLoadQueue().push(this)
+    @loadScopedProperties()
 
-  activate: -> # no-op
+  activate: ->
+    syntax.addGrammar(grammar) for grammar in @grammars
+    for { selector, properties } in @scopedProperties
+      syntax.addProperties(@path, selector, properties)
+
+  deactivate: ->
+    syntax.removeGrammar(grammar) for grammar in @grammars
+    syntax.removeProperties(@path)
+
+  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage']
+
+  loadGrammars: (done) ->
+    fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
+      if isDirectory
+        fsUtils.listAsync @syntaxesPath, @legalGrammarExtensions, (err, paths) =>
+          return console.log("Error loading grammars of TextMate package '#{@path}':", err.stack, err) if err
+          async.eachSeries paths, @loadGrammarAtPath, done
+
+  loadGrammarAtPath: (path, done) =>
+    TextMateGrammar.load path, (err, grammar) =>
+      return console.log("Error loading grammar at path '#{path}':", err.stack ? err) if err
+      @addGrammar(grammar)
+      done()
+
+  loadGrammarsSync: ->
+    for path in fsUtils.list(@syntaxesPath, @legalGrammarExtensions) ? []
+      @addGrammar(TextMateGrammar.loadSync(path))
+
+  addGrammar: (grammar) ->
+    @grammars.push(grammar)
+    syntax.addGrammar(grammar) if atom.isPackageActive(@path)
 
   getGrammars: -> @grammars
 
-  readGrammars: ->
-    grammars = []
-    for grammarPath in fs.list(@syntaxesPath)
-      try
-        grammars.push(TextMateGrammar.readFromPath(grammarPath))
-      catch e
-        console.warn "Failed to load grammar at path '#{grammarPath}'", e.stack
-    grammars
-
-  addGrammar: (rawGrammar) ->
-    grammar = new TextMateGrammar(rawGrammar)
-    @grammars.push(grammar)
-    syntax.addGrammar(grammar)
-
-  loadGrammars: (rawGrammars) ->
-    rawGrammars = @readGrammars() unless rawGrammars?
-
-    @grammars = []
-    @addGrammar(rawGrammar) for rawGrammar in rawGrammars
-    @loadScopedProperties()
-
   loadScopedProperties: ->
-    for { selector, properties } in @getScopedProperties()
-      syntax.addProperties(selector, properties)
-
-  getScopedProperties: ->
-    scopedProperties = []
+    @scopedProperties = []
 
     for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
-        selector = @cssSelectorFromScopeSelector(grammar.scopeName)
-        scopedProperties.push({selector, properties})
+        selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
+        @scopedProperties.push({selector, properties})
 
     for {scope, settings} in @getTextMatePreferenceObjects()
       if properties = @propertiesFromTextMateSettings(settings)
-        selector = @cssSelectorFromScopeSelector(scope) if scope?
-        scopedProperties.push({selector, properties})
-
-    scopedProperties
-
-  readObjectFromPath: (path, callback) ->
-    object = null
-    error = null
-    if fs.isObjectPath(path)
-      object = fs.readObject(path)
-    else
-      plist.parseString fs.read(path), (e, data) ->
-        error = e
-        object = data[0]
-    error = throw new Error("Failed to load object at path `#{path}`") unless object
-    callback(error, object)
+        selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
+        @scopedProperties.push({selector, properties})
 
   getTextMatePreferenceObjects: ->
     preferenceObjects = []
-    if fs.exists(@preferencesPath)
-      for preferencePath in fs.list(@preferencesPath)
-        @readObjectFromPath preferencePath, (e, object) =>
-          if e
-            console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
-          else
-            preferenceObjects.push(object)
+    if fsUtils.exists(@preferencesPath)
+      for preferencePath in fsUtils.list(@preferencesPath)
+        try
+          preferenceObjects.push(fsUtils.readObject(preferencePath))
+        catch e
+          console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
     preferenceObjects
 
   propertiesFromTextMateSettings: (textMateSettings) ->
@@ -113,6 +101,3 @@ class TextMatePackage extends Package
       foldEndPattern: textMateSettings.foldingStopMarker
     )
     { editor: editorProperties } if _.size(editorProperties) > 0
-
-  cssSelectorFromScopeSelector: (scopeSelector) ->
-    @constructor.cssSelectorFromScopeSelector(scopeSelector)

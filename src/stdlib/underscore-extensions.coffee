@@ -52,16 +52,20 @@ _.mixin
     regex = RegExp('[' + specials.join('\\') + ']', 'g')
     string.replace(regex, "\\$&");
 
-  humanizeEventName: (eventName) ->
-    if /:/.test(eventName)
-      [namespace, name] = eventName.split(':')
-      return "#{@humanizeEventName(namespace)}: #{@humanizeEventName(name)}"
+  humanizeEventName: (eventName, eventDoc) ->
+    [namespace, event]  = eventName.split(':')
+    return _.capitalize(namespace) unless event?
 
-    words = eventName.split('-')
-    words.map(_.capitalize).join(' ')
+    namespaceDoc = _.undasherize(namespace)
+    eventDoc ?= _.undasherize(event)
+
+    "#{namespaceDoc}: #{eventDoc}"
 
   capitalize: (word) ->
-    word[0].toUpperCase() + word[1..]
+    if word.toLowerCase() is 'github'
+      'GitHub'
+    else
+      word[0].toUpperCase() + word[1..]
 
   pluralize: (count=0, singular, plural=singular+'s') ->
     if count is 1
@@ -79,6 +83,9 @@ _.mixin
         "-" + letter.toLowerCase()
       else
         "-"
+
+  undasherize: (string) ->
+    string.split('-').map(_.capitalize).join(' ')
 
   underscore: (string) ->
     string = string[0].toLowerCase() + string[1..]
@@ -131,3 +138,53 @@ _.mixin
     for key, value of object
       newObject[key] = value if value?
     newObject
+
+originalIsEqual = _.isEqual
+extendedIsEqual = (a, b, aStack=[], bStack=[]) ->
+  return originalIsEqual(a, b) if a is b
+  return originalIsEqual(a, b) if _.isFunction(a) or _.isFunction(b)
+  return a.isEqual(b) if _.isFunction(a?.isEqual)
+  return b.isEqual(a) if _.isFunction(b?.isEqual)
+
+  stackIndex = aStack.length
+  while stackIndex--
+    return bStack[stackIndex] is b if aStack[stackIndex] is a
+  aStack.push(a)
+  bStack.push(b)
+
+  equal = false
+  if _.isArray(a) and _.isArray(b) and a.length is b.length
+    equal = true
+    for aElement, i in a
+      unless extendedIsEqual(aElement, b[i], aStack, bStack)
+        equal = false
+        break
+  else if _.isObject(a) and _.isObject(b)
+    aCtor = a.constructor
+    bCtor = b.constructor
+    aCtorValid = _.isFunction(aCtor) and aCtor instanceof aCtor
+    bCtorValid = _.isFunction(bCtor) and bCtor instanceof bCtor
+    if aCtor isnt bCtor and not (aCtorValid and bCtorValid)
+      equal = false
+    else
+      aKeyCount = 0
+      equal = true
+      for key, aValue of a
+        continue unless _.has(a, key)
+        aKeyCount++
+        unless _.has(b, key) and extendedIsEqual(aValue, b[key], aStack, bStack)
+          equal = false
+          break
+      if equal
+        bKeyCount = 0
+        for key, bValue of b
+          bKeyCount++ if _.has(b, key)
+        equal = aKeyCount is bKeyCount
+  else
+    equal = originalIsEqual(a, b)
+
+  aStack.pop()
+  bStack.pop()
+  equal
+
+_.isEqual = (a, b) -> extendedIsEqual(a, b)

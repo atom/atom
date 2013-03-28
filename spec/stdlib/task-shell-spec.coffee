@@ -2,7 +2,7 @@ Task = require 'task'
 
 describe "Task shell", ->
   describe "populating the window with fake properties", ->
-    describe "when jQuery is loaded in a web worker", ->
+    describe "when jQuery is loaded in a child process", ->
       it "doesn't log to the console", ->
         spyOn(console, 'log')
         spyOn(console, 'error')
@@ -14,7 +14,7 @@ describe "Task shell", ->
 
         task = new JQueryTask()
         task.start()
-        waitsFor "web worker to start and jquery to be required", 5000, ->
+        waitsFor "child process to start and jquery to be required", 5000, ->
           task.jqueryLoaded
         runs ->
           expect(task.jqueryLoaded).toBeTruthy()

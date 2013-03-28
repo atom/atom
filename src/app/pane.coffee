@@ -324,5 +324,5 @@ class Pane extends View
     container.adjustPaneDimensions()
     container.trigger 'pane:removed', [this]
 
-  afterRemove: ->
+  beforeRemove: ->
     item.destroy?() for item in @getItems()

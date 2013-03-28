@@ -7,4 +7,9 @@ COMPILED_SOURCES_DIR="${1}"
 RESOUCES_PATH="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
 
 # Copy non-coffee files into bundle
-rsync --archive --recursive --exclude="src/**/*.coffee" --exclude="src/**/*.cson" src static vendor spec benchmark themes dot-atom atom.sh "${COMPILED_SOURCES_DIR}/" "$RESOUCES_PATH"
+rsync --archive --recursive \
+      --exclude="src/**/*.coffee" --exclude="src/**/*.cson" \
+      --exclude="src/**/*.less" --exclude="static/*.less" \
+      --exclude="node_modules/less" \
+      node_modules src static vendor spec benchmark themes dot-atom atom.sh \
+      "${COMPILED_SOURCES_DIR}/" "$RESOUCES_PATH"

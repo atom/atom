@@ -1,20 +1,29 @@
+TextMateGrammar = require 'text-mate-grammar'
 Package = require 'package'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 $ = require 'jquery'
+CSON = require 'cson'
 
 module.exports =
 class AtomPackage extends Package
   metadata: null
+  keymaps: null
+  stylesheets: null
+  grammars: null
+  scopedProperties: null
+  mainModulePath: null
+  resolvedMainModulePath: false
   mainModule: null
-  deferActivation: false
 
   load: ->
     try
       @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
-      if @deferActivation = @metadata.activationEvents?
+      @loadGrammars()
+      @loadScopedProperties()
+      if @metadata.activationEvents?
         @registerDeferredDeserializers()
       else
         @requireMainModule()
@@ -22,43 +31,91 @@ class AtomPackage extends Package
       console.warn "Failed to load package named '#{@name}'", e.stack
     this
 
+  activate: ({immediate}={}) ->
+    keymap.add(path, map) for [path, map] in @keymaps
+    applyStylesheet(path, content) for [path, content] in @stylesheets
+    syntax.addGrammar(grammar) for grammar in @grammars
+    syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
+
+    if @metadata.activationEvents? and not immediate
+      @subscribeToActivationEvents()
+    else
+      @activateNow()
+
+  activateNow: ->
+    try
+      if @requireMainModule()
+        config.setDefaults(@name, @mainModule.configDefaults)
+        @mainModule.activate(atom.getPackageState(@name) ? {})
+    catch e
+      console.warn "Failed to activate package named '#{@name}'", e.stack
+
   loadMetadata: ->
-    if metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
-      @metadata = fs.readObject(metadataPath)
+    if metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['cson', 'json'])
+      @metadata = CSON.readObject(metadataPath)
     @metadata ?= {}
 
   loadKeymaps: ->
-    keymapsDirPath = fs.join(@path, 'keymaps')
+    @keymaps = @getKeymapPaths().map (path) -> [path, CSON.readObject(path)]
 
+  getKeymapPaths: ->
+    keymapsDirPath = fsUtils.join(@path, 'keymaps')
     if @metadata.keymaps
-      for path in @metadata.keymaps
-        keymapPath = fs.resolve(keymapsDirPath, path, ['cson', 'json', ''])
-        keymap.load(keymapPath)
+      @metadata.keymaps.map (name) -> fsUtils.resolve(keymapsDirPath, name, ['cson', 'json', ''])
     else
-      keymap.loadDirectory(keymapsDirPath)
+      fsUtils.list(keymapsDirPath, ['cson', 'json']) ? []
 
   loadStylesheets: ->
-    stylesheetDirPath = fs.join(@path, 'stylesheets')
-    for stylesheetPath in fs.list(stylesheetDirPath)
-      requireStylesheet(stylesheetPath)
+    @stylesheets = @getStylesheetPaths().map (path) -> [path, loadStylesheet(path)]
 
-  activate: ->
-    if @deferActivation
-      @subscribeToActivationEvents()
+  getStylesheetPaths: ->
+    stylesheetDirPath = fsUtils.join(@path, 'stylesheets')
+    if @metadata.stylesheets
+      @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
     else
-      try
-        if @requireMainModule()
-          config.setDefaults(@name, @mainModule.configDefaults)
-          atom.activateAtomPackage(this)
-      catch e
-        console.warn "Failed to activate package named '#{@name}'", e.stack
+      fsUtils.list(stylesheetDirPath, ['css', 'less']) ? []
+
+  loadGrammars: ->
+    @grammars = []
+    grammarsDirPath = fsUtils.join(@path, 'grammars')
+    for grammarPath in fsUtils.list(grammarsDirPath, ['.cson', '.json']) ? []
+      @grammars.push(TextMateGrammar.loadSync(grammarPath))
+
+  loadScopedProperties: ->
+    @scopedProperties = []
+    scopedPropertiessDirPath = fsUtils.join(@path, 'scoped-properties')
+    for scopedPropertiesPath in fsUtils.list(scopedPropertiessDirPath, ['.cson', '.json']) ? []
+      for selector, properties of fsUtils.readObject(scopedPropertiesPath)
+        @scopedProperties.push([scopedPropertiesPath, selector, properties])
+
+  serialize: ->
+    try
+      @mainModule?.serialize?()
+    catch e
+      console.error "Error serializing package '#{@name}'", e.stack
+
+  deactivate: ->
+    @unsubscribeFromActivationEvents()
+    syntax.removeGrammar(grammar) for grammar in @grammars
+    syntax.removeProperties(path) for [path] in @scopedProperties
+    keymap.remove(path) for [path] in @keymaps
+    removeStylesheet(path) for [path] in @stylesheets
+    @mainModule?.deactivate?()
 
   requireMainModule: ->
     return @mainModule if @mainModule
-    mainPath = @path
-    mainPath = fs.join(mainPath, @metadata.main) if @metadata.main
-    mainPath = require.resolve(mainPath)
-    @mainModule = require(mainPath) if fs.isFile(mainPath)
+    mainModulePath = @getMainModulePath()
+    @mainModule = require(mainModulePath) if fsUtils.isFile(mainModulePath)
+
+  getMainModulePath: ->
+    return @mainModulePath if @resolvedMainModulePath
+    @resolvedMainModulePath = true
+    mainModulePath =
+      if @metadata.main
+        fsUtils.join(@path, @metadata.main)
+      else
+        fsUtils.join(@path, 'index')
+    @mainModulePath = fsUtils.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   registerDeferredDeserializers: ->
     for deserializerName in @metadata.deferredDeserializers ? []
@@ -66,25 +123,23 @@ class AtomPackage extends Package
 
   subscribeToActivationEvents: () ->
     return unless @metadata.activationEvents?
-
-    activateHandler = (event) =>
-      bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
-      @deferActivation = false
-      @activate()
-      $(event.target).trigger(event)
-      @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
-      @unsubscribeFromActivationEvents(activateHandler)
-
     if _.isArray(@metadata.activationEvents)
-      rootView.command(event, activateHandler) for event in @metadata.activationEvents
+      rootView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
     else
-      rootView.command(event, selector, activateHandler) for event, selector of @metadata.activationEvents
+      rootView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
-  unsubscribeFromActivationEvents: (activateHandler) ->
+  handleActivationEvent: (event) =>
+    bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
+    @activateNow()
+    $(event.target).trigger(event)
+    @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
+    @unsubscribeFromActivationEvents()
+
+  unsubscribeFromActivationEvents: ->
     if _.isArray(@metadata.activationEvents)
-      rootView.off(event, activateHandler) for event in @metadata.activationEvents
+      rootView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
     else
-      rootView.off(event, selector, activateHandler) for event, selector of @metadata.activationEvents
+      rootView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
   disableEventHandlersOnBubblePath: (event) ->
     bubblePathEventHandlers = []

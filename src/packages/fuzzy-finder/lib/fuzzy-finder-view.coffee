@@ -2,7 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
-fs = require 'fs'
+fs = require 'fs-utils'
 LoadPathsTask = require './load-paths-task'
 
 module.exports =
@@ -139,7 +139,7 @@ class FuzzyFinderView extends SelectList
     @setArray(paths)
 
   populateProjectPaths: (options = {}) ->
-    if @projectPaths?.length > 0
+    if @projectPaths?
       listedItems =
         if options.filter?
           @projectPaths.filter (path) ->
@@ -156,21 +156,15 @@ class FuzzyFinderView extends SelectList
       callback = (paths) =>
         @projectPaths = paths
         @reloadProjectPaths = false
-        listedItems =
-          if options.filter?
-            @projectPaths.filter (path) ->
-              path.indexOf(options.filter) >= 0
-          else
-            @projectPaths
-
-        @setArray(listedItems)
-        options.done(listedItems) if options.done?
+        @populateProjectPaths(options)
       @loadPathsTask = new LoadPathsTask(callback)
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
-    editSessions = project.getEditSessions().filter (editSession)->
+    editSessions = project.getEditSessions().filter (editSession) ->
       editSession.getPath()?
+    editSessions = _.uniq editSessions, (editSession) ->
+      editSession.getPath()
 
     editSessions = _.sortBy editSessions, (editSession) =>
       if editSession is rootView.getActivePaneItem()

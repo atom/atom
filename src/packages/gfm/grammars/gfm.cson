@@ -1,0 +1,79 @@
+'name': 'GitHub Markdown'
+'scopeName': 'source.gfm'
+'fileTypes': [
+  'markdown'
+  'md'
+  'mkd'
+  'mkdown'
+  'ron'
+]
+
+'patterns': [
+  {
+    'match': '(?:^|\\s)(\\*\\*[^\\*]+\\*\\*)'
+    'captures':
+      '1': 'name': 'markup.bold.gfm'
+  }
+  {
+    'match': '(?:^|\\s)(__[^_]+__)'
+    'captures':
+      '1': 'name': 'markup.bold.gfm'
+  }
+  {
+    'match': '(?:^|\\s)(\\*[^\\*]+\\*)'
+    'captures':
+      '1': 'name': 'markup.italic.gfm'
+  }
+  {
+    'match': '(?:^|\\s)(_[^_]+_)'
+    'captures':
+      '1': 'name': 'markup.italic.gfm'
+  }
+  {
+    'match': '^#{1,6}\\s+.+$'
+    'name': 'markup.heading.gfm'
+  }
+  {
+    'match': '\\:[^\\:\\s]+\\:'
+    'name': 'string.emoji.gfm'
+  }
+  {
+    'match': '^\\s*[\\*]{3,}\\s*$'
+    'name': 'comment.hr.gfm'
+  }
+  {
+    'match': '^\\s*[-]{3,}\\s*$'
+    'name': 'comment.hr.gfm'
+  }
+  {
+    'begin': '^```.*$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.raw.gfm'
+  }
+  {
+    'match': '`[^`]+`'
+    'name': 'markup.raw.gfm'
+  }
+  {
+    'match': '\\!?\\[([^\\]]*)\\]\\(([^\\)]+)\\)'
+    'name': 'link'
+    'captures':
+      '1': 'name': 'entity.gfm'
+      '2': 'name': 'markup.underline.gfm'
+  }
+  {
+    'match': '^\\s*([\\*\\+-])[ \\t]+'
+    'captures':
+      '1': 'name': 'variable.list.gfm'
+  }
+  {
+    'match': '^\\s*(>)(.*)'
+    'captures':
+      '1': 'name': 'support.quote.gfm'
+      '2': 'name': 'comment.quote.gfm'
+  }
+]

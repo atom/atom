@@ -1,7 +1,37 @@
 require 'underscore-extensions'
 _ = require 'underscore'
+fs = require 'fs'
+fsUtils = require 'fs-utils'
 
 module.exports =
+  isObjectPath: (path) ->
+    extension = fsUtils.extension(path)
+    extension is '.cson' or extension is '.json'
+
+  readObject: (path) ->
+    @parseObject(path, fsUtils.read(path))
+
+  readObjectAsync: (path, done) ->
+    fs.readFile path, 'utf8', (err, contents) =>
+      return done(err) if err?
+      try done(null, @parseObject(path, contents))
+      catch err
+        done(err)
+
+  parseObject: (path, contents) ->
+    if fsUtils.extension(path) is '.cson'
+      CoffeeScript = require 'coffee-script'
+      CoffeeScript.eval(contents, bare: true)
+    else
+      JSON.parse(contents)
+
+  writeObject: (path, object) ->
+    if fsUtils.extension(path) is '.cson'
+      content = @stringify(object)
+    else
+      content = JSON.stringify(object, undefined, 2)
+    fsUtils.write(path, "#{content}\n")
+
   stringifyIndent: (level=0) -> _.multiplyString(' ', Math.max(level, 0))
 
   stringifyString: (string) ->

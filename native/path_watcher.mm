@@ -99,7 +99,6 @@ static NSMutableArray *gPathWatchers;
 }
 
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback callbackId:(NSString *)callbackId {
-  path = [path stringByStandardizingPath];
   @synchronized(self) {
     if (![self createKeventForPath:path]) {
       NSLog(@"WARNING: Failed to create kevent for path '%@'", path);
@@ -119,8 +118,6 @@ static NSMutableArray *gPathWatchers;
 }
 
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error {
-  path = [path stringByStandardizingPath];
-
   @synchronized(self) {
     NSMutableDictionary *callbacks = [_callbacksByPath objectForKey:path];
 
@@ -154,8 +151,6 @@ static NSMutableArray *gPathWatchers;
 }
 
 - (bool)createKeventForPath:(NSString *)path {
-  path = [path stringByStandardizingPath];
-
   @synchronized(self) {
     if ([_fileDescriptorsByPath objectForKey:path]) {
       NSLog(@"we already have a kevent");
@@ -182,8 +177,6 @@ static NSMutableArray *gPathWatchers;
 }
 
 - (void)removeKeventForPath:(NSString *)path {
-  path = [path stringByStandardizingPath];
-
   @synchronized(self) {
     NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
     if (!fdNumber) {
@@ -245,7 +238,7 @@ static NSMutableArray *gPathWatchers;
         char pathBuffer[MAXPATHLEN];
         fcntl((int)event.ident, F_GETPATH, &pathBuffer);
         close(event.ident);
-        newPath = [[NSString stringWithUTF8String:pathBuffer] stringByStandardizingPath];
+        newPath = [NSString stringWithUTF8String:pathBuffer];
         if (!newPath) {
           NSLog(@"WARNING: Ignoring rename event for deleted file '%@'", path);
           continue;

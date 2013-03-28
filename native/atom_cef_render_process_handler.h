@@ -16,17 +16,6 @@ class AtomCefRenderProcessHandler : public CefRenderProcessHandler {
   virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                        CefProcessId source_process,
                                        CefRefPtr<CefProcessMessage> message) OVERRIDE;
-  virtual void OnWorkerContextCreated(int worker_id,
-                                      const CefString& url,
-                                      CefRefPtr<CefV8Context> context) OVERRIDE;
-  virtual void OnWorkerContextReleased(int worker_id,
-                                       const CefString& url,
-                                       CefRefPtr<CefV8Context> context) OVERRIDE;
-  virtual void OnWorkerUncaughtException(int worker_id,
-                                         const CefString& url,
-                                         CefRefPtr<CefV8Context> context,
-                                         CefRefPtr<CefV8Exception> exception,
-                                         CefRefPtr<CefV8StackTrace> stackTrace) OVERRIDE;
 
   void Reload(CefRefPtr<CefBrowser> browser);
   void Shutdown(CefRefPtr<CefBrowser> browser);
@@ -37,4 +26,3 @@ class AtomCefRenderProcessHandler : public CefRenderProcessHandler {
 };
 
 #endif  // ATOM_CEF_RENDER_PROCESS_HANDLER_H_
-

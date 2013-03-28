@@ -59,7 +59,9 @@ $.fn.trueHeight = ->
 $.fn.trueWidth = ->
   this[0].getBoundingClientRect().width
 
-$.fn.document = (eventDescriptions) ->
+$.fn.document = (eventName, docString) ->
+  eventDescriptions = {}
+  eventDescriptions[eventName] = docString
   @data('documentation', {}) unless @data('documentation')
   _.extend(@data('documentation'), eventDescriptions)
 
@@ -75,15 +77,26 @@ $.fn.events = ->
   else
     events
 
-$.fn.command = (args...) ->
-  eventName = args[0]
-  documentation = {}
-  documentation[eventName] = _.humanizeEventName(eventName)
-  @document(documentation)
-  @on(args...)
+$.fn.command = (eventName, selector, options, handler) ->
+  if not options?
+    handler  = selector
+    selector = null
+  else if not handler?
+    handler = options
+    options = null
+
+  if selector? and typeof(selector) is 'object'
+    options  = selector
+    selector = null
+
+  @document(eventName, _.humanizeEventName(eventName, options?["doc"]))
+  @on(eventName, selector, options?['data'], handler)
 
 $.fn.iconSize = (size) ->
   @width(size).height(size).css('font-size', size)
+
+$.fn.intValue = ->
+  parseInt(@text())
 
 $.Event.prototype.abortKeyBinding = ->
 $.Event.prototype.currentTargetView = -> $(this.currentTarget).view()

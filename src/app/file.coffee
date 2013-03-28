@@ -1,6 +1,7 @@
 EventEmitter = require 'event-emitter'
 
 fs = require 'fs'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 module.exports =
@@ -8,33 +9,34 @@ class File
   path: null
   cachedContents: null
 
-  constructor: (@path) ->
-    if @exists() and not fs.isFile(@path)
-      throw new Error(@path + " is a directory")
+  constructor: (@path, @symlink=false) ->
+    try
+      if fs.statSync(@path).isDirectory()
+        throw new Error("#{@path} is a directory")
 
   setPath: (@path) ->
 
   getPath: -> @path
 
   getBaseName: ->
-    fs.base(@path)
+    fsUtils.base(@path)
 
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fs.write(@getPath(), text)
+    fsUtils.write(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   read: (flushCache)->
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
-      @cachedContents = fs.read(@getPath())
+      @cachedContents = fsUtils.read(@getPath())
     else
       @cachedContents
 
   exists: ->
-    fs.exists(@getPath())
+    fsUtils.exists(@getPath())
 
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
@@ -67,10 +69,12 @@ class File
       @trigger "removed"
 
   subscribeToNativeChangeEvents: ->
-    @watchId = $native.watchPath @path, (eventType, path) =>
+    @watchSubscription = fsUtils.watchPath @path, (eventType, path) =>
       @handleNativeChangeEvent(eventType, path)
 
   unsubscribeFromNativeChangeEvents: ->
-    $native.unwatchPath(@path, @watchId)
+    if @watchSubscription
+      @watchSubscription.unwatch()
+      @watchSubscription = null
 
 _.extend File.prototype, EventEmitter

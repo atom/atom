@@ -1,7 +1,7 @@
 Range = require 'range'
 _ = require 'underscore'
 require 'underscore-extensions'
-OnigRegExp = require 'onig-reg-exp'
+{OnigRegExp} = require 'oniguruma'
 
 module.exports =
 class LanguageMode
@@ -17,10 +17,7 @@ class LanguageMode
     path = @buffer.getPath()
     pathContents = @buffer.cachedDiskContents
     previousGrammar = @grammar
-    if @buffer.project?
-      @grammar = @buffer.project.grammarForFilePath(path, pathContents)
-    else
-      @grammar = syntax.grammarForFilePath(path, pathContents)
+    @grammar = syntax.selectGrammar(path, pathContents)
     throw new Error("No grammar found for path: #{path}") unless @grammar
     previousGrammar isnt @grammar
 
@@ -30,13 +27,13 @@ class LanguageMode
 
     buffer = @editSession.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
-    commentStartRegex = OnigRegExp.create("^(\\s*)(#{commentStartRegexString})")
+    commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
     shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
     if commentEndString = syntax.getProperty(scopes, "editor.commentEnd")
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
-        commentEndRegex = OnigRegExp.create("(#{commentEndRegexString})(\\s*)$")
+        commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
         startMatch =  commentStartRegex.search(buffer.lineForRow(start))
         endMatch = commentEndRegex.search(buffer.lineForRow(end))
         if startMatch and endMatch
@@ -152,12 +149,12 @@ class LanguageMode
 
   increaseIndentRegexForScopes: (scopes) ->
     if increaseIndentPattern = syntax.getProperty(scopes, 'editor.increaseIndentPattern')
-      OnigRegExp.create(increaseIndentPattern)
+      new OnigRegExp(increaseIndentPattern)
 
   decreaseIndentRegexForScopes: (scopes) ->
     if decreaseIndentPattern = syntax.getProperty(scopes, 'editor.decreaseIndentPattern')
-      OnigRegExp.create(decreaseIndentPattern)
+      new OnigRegExp(decreaseIndentPattern)
 
   foldEndRegexForScopes: (scopes) ->
     if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
-      OnigRegExp.create(foldEndPattern)
+      new OnigRegExp(foldEndPattern)

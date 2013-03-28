@@ -44,7 +44,7 @@ class CommandPanelView extends View
     rootView.command 'command-panel:find-in-file', => @attach('/')
     rootView.command 'command-panel:find-in-project', => @attach('Xx/')
     rootView.command 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
-    rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
+    rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
     rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
     @on 'click', '.expand', @onExpandAll
@@ -65,6 +65,9 @@ class CommandPanelView extends View
 
   destroy: ->
     @previewList.destroy()
+    rootView.off "command-panel:toggle-preview command-panel:find-in-file command-panel:find-in-project \
+      command-panel:repeat-relative-address command-panel:repeat-relative-address-in-reverse command-panel:set-selection-as-regex-address"
+    @remove()
 
   toggle: ->
     if @miniEditor.isFocused
@@ -115,7 +118,7 @@ class CommandPanelView extends View
   escapedCommand: ->
     @miniEditor.getText()
 
-  execute: (command=@escapedCommand())->
+  execute: (command=@escapedCommand()) ->
     @loadingMessage.show()
     @errorMessages.empty()
 
@@ -138,6 +141,7 @@ class CommandPanelView extends View
         else
           @detach()
     catch error
+      @loadingMessage.hide()
       if error.name is "SyntaxError"
         @flashError()
         return
@@ -154,11 +158,8 @@ class CommandPanelView extends View
     @historyIndex++
     @miniEditor.setText(@history[@historyIndex] or '')
 
-  repeatRelativeAddress: ->
-    @commandInterpreter.repeatRelativeAddress(rootView.getActivePaneItem())
-
-  repeatRelativeAddressInReverse: ->
-    @commandInterpreter.repeatRelativeAddressInReverse(rootView.getActivePaneItem())
+  repeatRelativeAddress: (options) ->
+    @commandInterpreter.repeatRelativeAddress(rootView.getActivePaneItem(), options)
 
   setSelectionAsLastRelativeAddress: ->
     selection = rootView.getActiveView().getSelectedText()

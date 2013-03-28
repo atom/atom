@@ -1,14 +1,31 @@
 TextMateGrammar = require 'text-mate-grammar'
 TextMatePackage = require 'text-mate-package'
 plist = require 'plist'
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 
 describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
-    grammar = syntax.grammarForFilePath("hello.coffee")
+    atom.activatePackage('text.tmbundle', sync: true)
+    atom.activatePackage('javascript.tmbundle', sync: true)
+    atom.activatePackage('coffee-script-tmbundle', sync: true)
+    atom.activatePackage('ruby.tmbundle', sync: true)
+    grammar = syntax.selectGrammar("hello.coffee")
+
+  describe "@loadSync(path)", ->
+    it "loads grammars from plists", ->
+      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('packages/text.tmbundle/Syntaxes/Plain text.plist'))
+      expect(grammar.scopeName).toBe "text.plain"
+      {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
+      expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
+
+    it "loads grammars from cson files", ->
+      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
+      expect(grammar.scopeName).toBe "source.alot"
+      {tokens} = grammar.tokenizeLine("this is alot of code")
+      expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
 
   describe ".tokenizeLine(line, ruleStack)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
@@ -31,7 +48,7 @@ describe "TextMateGrammar", ->
 
     describe "when the line doesn't match any patterns", ->
       it "returns the entire line as a single simple token with the grammar's scope", ->
-        textGrammar = syntax.grammarForFilePath('foo.txt')
+        textGrammar = syntax.selectGrammar('foo.txt')
         {tokens} = textGrammar.tokenizeLine("abc def")
         expect(tokens.length).toBe 1
 
@@ -108,14 +125,14 @@ describe "TextMateGrammar", ->
 
     describe "when the line matches no patterns", ->
       it "does not infinitely loop", ->
-        grammar = syntax.grammarForFilePath("sample.txt")
+        grammar = syntax.selectGrammar("sample.txt")
         {tokens} = grammar.tokenizeLine('hoo')
         expect(tokens.length).toBe 1
         expect(tokens[0]).toEqual value: 'hoo',  scopes: ["text.plain", "meta.paragraph.text"]
 
     describe "when the line matches a pattern with a 'contentName'", ->
       it "creates tokens using the content of contentName as the token name", ->
-        grammar = syntax.grammarForFilePath("sample.txt")
+        grammar = syntax.selectGrammar("sample.txt")
         {tokens} = grammar.tokenizeLine('ok, cool')
         expect(tokens[0]).toEqual value: 'ok, cool',  scopes: ["text.plain", "meta.paragraph.text"]
 
@@ -192,6 +209,9 @@ describe "TextMateGrammar", ->
 
       describe "when the pattern includes rules from another grammar", ->
         it "parses tokens inside the begin/end patterns based on the included grammar's rules", ->
+          atom.activatePackage('html.tmbundle', sync: true)
+          atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
+
           grammar = syntax.grammarsByFileType["html.erb"]
           {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
 
@@ -243,29 +263,38 @@ describe "TextMateGrammar", ->
       expect(tokens[1].value).toBe " a singleLineComment"
 
     it "does not loop infinitely (regression)", ->
-      grammar = syntax.grammarForFilePath("hello.js")
+      grammar = syntax.selectGrammar("hello.js")
       {tokens, ruleStack} = grammar.tokenizeLine("// line comment")
       {tokens, ruleStack} = grammar.tokenizeLine(" // second line comment with a single leading space", ruleStack)
 
     describe "when inside a C block", ->
+      beforeEach ->
+        atom.activatePackage('c.tmbundle', sync: true)
+
       it "correctly parses a method. (regression)", ->
-        grammar = syntax.grammarForFilePath("hello.c")
+        grammar = syntax.selectGrammar("hello.c")
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){m()}")
         expect(tokens[5]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
 
       it "correctly parses nested blocks. (regression)", ->
-        grammar = syntax.grammarForFilePath("hello.c")
+        grammar = syntax.selectGrammar("hello.c")
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){if(1){m()}}")
         expect(tokens[5]).toEqual value: "if", scopes: ["source.c", "meta.block.c", "keyword.control.c"]
         expect(tokens[10]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
 
-  describe "when the grammar is CSON", ->
-    it "loads the grammar and correctly parses a keyword", ->
-      spyOn(syntax, 'addGrammar')
-      pack = new TextMatePackage(project.resolve("packages/package-with-a-cson-grammar.tmbundle"))
-      pack.load()
-      grammar = pack.grammars[0]
-      expect(grammar).toBeTruthy()
-      expect(grammar.scopeName).toBe "source.alot"
-      {tokens} = grammar.tokenizeLine("this is alot of code")
-      expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
+    describe "when the grammar can infinitely loop over a line", ->
+      it "aborts tokenization", ->
+        spyOn(console, 'error')
+        atom.activatePackage("package-with-infinite-loop-grammar")
+        grammar = syntax.selectGrammar("something.package-with-infinite-loop-grammar")
+        {tokens} = grammar.tokenizeLine("abc")
+        expect(tokens[0].value).toBe "a"
+        expect(tokens[1].value).toBe "bc"
+        expect(console.error).toHaveBeenCalled()
+
+    describe "when a grammar has a pattern that has back references in the match value", ->
+      it "does not special handle the back references and instead allows oniguruma to resolve them", ->
+        atom.activatePackage('sass.tmbundle', sync: true)
+        grammar = syntax.selectGrammar("style.scss")
+        {tokens} = grammar.tokenizeLine("@mixin x() { -moz-selector: whatever; }")
+        expect(tokens[9]).toEqual value: "-moz-selector", scopes: ["source.css.scss", "meta.property-list.scss", "meta.property-name.scss"]

@@ -271,7 +271,7 @@ class Selection
     if @isEmpty()
       start = @cursor.getScreenRow()
       range = @editSession.bufferRowsForScreenRows(start, start + 1)
-      if range[1]
+      if range[1] > range[0]
         @editSession.buffer.deleteRows(range[0], range[1] - 1)
       else
         @editSession.buffer.deleteRow(range[0])

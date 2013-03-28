@@ -1,11 +1,12 @@
 DisplayBuffer = require 'display-buffer'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 _ = require 'underscore'
 
 describe "DisplayBuffer", ->
   [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
+    atom.activatePackage('javascript.tmbundle', sync: true)
     editSession = project.buildEditSession('sample.js', { tabLength })
     { buffer, displayBuffer } = editSession
     changeHandler = jasmine.createSpy 'changeHandler'

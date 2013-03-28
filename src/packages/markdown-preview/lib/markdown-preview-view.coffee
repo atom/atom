@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
@@ -28,6 +28,9 @@ class MarkdownPreviewView extends ScrollView
 
   getUri: ->
     "markdown-preview:#{@buffer.getPath()}"
+
+  getPath: ->
+    @buffer.getPath()
 
   setErrorHtml: ->
     @html $$$ ->

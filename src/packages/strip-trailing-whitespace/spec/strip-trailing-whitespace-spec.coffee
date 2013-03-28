@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "StripTrailingWhitespace", ->
   [editor, path] = []
@@ -10,7 +10,7 @@ describe "StripTrailingWhitespace", ->
     window.rootView = new RootView
     rootView.open(path)
 
-    window.loadPackage('strip-trailing-whitespace')
+    atom.activatePackage('strip-trailing-whitespace')
     rootView.focus()
     editor = rootView.getActiveView()
 

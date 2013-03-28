@@ -1,10 +1,6 @@
 #import <iostream>
 #import "native/v8_extensions/atom.h"
 #import "native/v8_extensions/native.h"
-#import "native/v8_extensions/onig_reg_exp.h"
-#import "native/v8_extensions/onig_scanner.h"
-#import "native/v8_extensions/git.h"
-#import "native/v8_extensions/tags.h"
 #import "native/message_translation.h"
 #import "path_watcher.h"
 #import "atom_cef_render_process_handler.h"
@@ -23,27 +19,6 @@ void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browse
                                                     CefRefPtr<CefFrame> frame,
                                                     CefRefPtr<CefV8Context> context) {
   [PathWatcher removePathWatcherForContext:context];
-}
-
-void AtomCefRenderProcessHandler::OnWorkerContextCreated(int worker_id,
-                                                         const CefString& url,
-                                                         CefRefPtr<CefV8Context> context) {
-  InjectExtensionsIntoV8Context(context);
-}
-
-void AtomCefRenderProcessHandler::OnWorkerContextReleased(int worker_id,
-                                                          const CefString& url,
-                                                          CefRefPtr<CefV8Context> context) {
-}
-
-void AtomCefRenderProcessHandler::OnWorkerUncaughtException(int worker_id,
-                                                            const CefString& url,
-                                                            CefRefPtr<CefV8Context> context,
-                                                            CefRefPtr<CefV8Exception> exception,
-                                                            CefRefPtr<CefV8StackTrace> stackTrace) {
-
-  std::string message = exception->GetMessage().ToString();
-  NSLog(@"Exception throw in worker thread %s", message.c_str());
 }
 
 bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
@@ -122,8 +97,4 @@ void AtomCefRenderProcessHandler::InjectExtensionsIntoV8Context(CefRefPtr<CefV8C
   // these objects are deleted when the context removes all references to them
   (new v8_extensions::Atom())->CreateContextBinding(context);
   (new v8_extensions::Native())->CreateContextBinding(context);
-  (new v8_extensions::Git())->CreateContextBinding(context);
-  (new v8_extensions::OnigRegExp())->CreateContextBinding(context);
-  (new v8_extensions::OnigScanner())->CreateContextBinding(context);
-  (new v8_extensions::Tags())->CreateContextBinding(context);
 }

@@ -4,7 +4,7 @@ Directory = require 'directory'
 DirectoryView = require './directory-view'
 FileView = require './file-view'
 Dialog = require './dialog'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -40,8 +40,8 @@ class TreeView extends ScrollView
       else
         @selectActiveFile()
 
-    rootView.on 'pane:active-item-changed pane:became-active', => @selectActiveFile()
-    project.on 'path-changed', => @updateRoot()
+    rootView.on 'pane:active-item-changed.tree-view pane:became-active.tree-view', => @selectActiveFile()
+    project.on 'path-changed.tree-view', => @updateRoot()
     @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()
 
     if @root
@@ -67,6 +67,9 @@ class TreeView extends ScrollView
 
   deactivate: ->
     @root?.unwatchEntries()
+    rootView.off('.tree-view')
+    project.off('.tree-view')
+    @remove()
 
   toggle: ->
     if @hasFocus()
@@ -222,6 +225,14 @@ class TreeView extends ScrollView
       iconClass: 'move'
       onConfirm: (newPath) =>
         newPath = project.resolve(newPath)
+        if oldPath is newPath
+          dialog.close()
+          return
+
+        if fs.exists(newPath)
+          dialog.showError("Error: #{newPath} already exists. Try a different path.")
+          return
+
         directoryPath = fs.directory(newPath)
         try
           fs.makeTree(directoryPath) unless fs.exists(directoryPath)

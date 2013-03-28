@@ -2,40 +2,72 @@ _ = require 'underscore'
 jQuery = require 'jquery'
 Specificity = require 'specificity'
 {$$} = require 'space-pen'
-fs = require 'fs'
+fs = require 'fs-utils'
 EventEmitter = require 'event-emitter'
+NullGrammar = require 'null-grammar'
+nodePath = require 'path'
+pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 
 module.exports =
 class Syntax
+  registerDeserializer(this)
+
+  @deserialize: ({grammarOverridesByPath}) ->
+    syntax = new Syntax()
+    syntax.grammarOverridesByPath = grammarOverridesByPath
+    syntax
+
   constructor: ->
     @grammars = []
     @grammarsByFileType = {}
     @grammarsByScopeName = {}
-    @globalProperties = {}
+    @grammarOverridesByPath = {}
     @scopedPropertiesIndex = 0
     @scopedProperties = []
+    @nullGrammar = new NullGrammar
+
+  serialize: ->
+    { deserializer: @constructor.name, @grammarOverridesByPath }
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    for fileType in grammar.fileTypes
-      @grammarsByFileType[fileType] = grammar
-      @grammarsByScopeName[grammar.scopeName] = grammar
+    @grammarsByFileType[fileType] = grammar for fileType in grammar.fileTypes
+    @grammarsByScopeName[grammar.scopeName] = grammar
 
-  grammarForFilePath: (filePath, fileContents) ->
-    return @grammarsByFileType["txt"] unless filePath
+  removeGrammar: (grammar) ->
+    if _.include(@grammars, grammar)
+      _.remove(@grammars, grammar)
+      delete @grammarsByFileType[fileType] for fileType in grammar.fileTypes
+      delete @grammarsByScopeName[grammar.scopeName]
 
-    extension = fs.extension(filePath)?[1..]
-    if filePath and extension.length == 0
-      extension = fs.base(filePath)
+  setGrammarOverrideForPath: (path, scopeName) ->
+    @grammarOverridesByPath[path] = scopeName
 
-    @grammarByFirstLineRegex(filePath, fileContents) or
-      @grammarsByFileType[extension] or
-      @grammarByFileTypeSuffix(filePath) or
-      @grammarsByFileType["txt"]
+  clearGrammarOverrideForPath: (path) ->
+    delete @grammarOverridesByPath[path]
 
-  grammarByFileTypeSuffix: (filePath) ->
+  clearGrammarOverrides: ->
+    @grammarOverridesByPath = {}
+
+  selectGrammar: (filePath, fileContents) ->
+
+    return @grammarsByFileType["txt"] ? @nullGrammar unless filePath
+
+    @grammarOverrideForPath(filePath) ?
+      @grammarByFirstLineRegex(filePath, fileContents) ?
+      @grammarByPath(filePath) ?
+      @grammarsByFileType["txt"] ?
+      @nullGrammar
+
+  grammarOverrideForPath: (path) ->
+    @grammarsByScopeName[@grammarOverridesByPath[path]]
+
+  grammarByPath: (path) ->
+    pathComponents = path.split(pathSplitRegex)
     for fileType, grammar of @grammarsByFileType
-      return grammar if _.endsWith(filePath, fileType)
+      fileTypeComponents = fileType.split(pathSplitRegex)
+      pathSuffix = pathComponents[-fileTypeComponents.length..-1]
+      return grammar if _.isEqual(pathSuffix, fileTypeComponents)
 
   grammarByFirstLineRegex: (filePath, fileContents) ->
     try
@@ -68,18 +100,24 @@ class Syntax
     @grammarsByScopeName[scopeName]
 
   addProperties: (args...) ->
-    selector = args.shift() if args.length > 1
-    properties = args.shift()
+    name = args.shift() if args.length > 2
+    [selector, properties] = args
 
-    if selector
-      @scopedProperties.unshift(
-        selector: selector,
-        properties: properties,
-        specificity: Specificity(selector),
-        index: @scopedPropertiesIndex++
-      )
-    else
-      _.extend(@globalProperties, properties)
+    @scopedProperties.unshift(
+      name: name
+      selector: selector,
+      properties: properties,
+      specificity: Specificity(selector),
+      index: @scopedPropertiesIndex++
+    )
+
+  removeProperties: (name) ->
+    for properties in @scopedProperties.filter((properties) -> properties.name is name)
+      _.remove(@scopedProperties, properties)
+
+  clearProperties: ->
+    @scopedProperties = []
+    @scopedPropertiesIndex = 0
 
   getProperty: (scope, keyPath) ->
     for object in @propertiesForScope(scope, keyPath)
@@ -95,7 +133,7 @@ class Syntax
       while element
         matchingProperties.push(@matchingPropertiesForElement(element, candidates)...)
         element = element.parentNode
-    matchingProperties.concat([@globalProperties])
+    matchingProperties
 
   matchingPropertiesForElement: (element, candidates) ->
     matchingScopedProperties = candidates.filter ({selector}) ->
@@ -124,5 +162,14 @@ class Syntax
       deepestChild[0]
     else
       element[0]
+
+  cssSelectorFromScopeSelector: (scopeSelector) ->
+    scopeSelector.split(', ').map((commaFragment) ->
+      commaFragment.split(' ').map((spaceFragment) ->
+        spaceFragment.split('.').map((dotFragment) ->
+          '.' + dotFragment.replace(/\+/g, '\\+')
+        ).join('')
+      ).join(' ')
+    ).join(', ')
 
 _.extend(Syntax.prototype, EventEmitter)

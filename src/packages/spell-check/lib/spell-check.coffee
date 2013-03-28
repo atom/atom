@@ -9,10 +9,10 @@ module.exports =
     ]
 
   activate: ->
-    if syntax.grammars.length > 1
-      @subscribeToEditors()
-    else
-      syntax.on 'grammars-loaded', => @subscribeToEditors()
+    syntax.on 'grammars-loaded.spell-check', => @subscribeToEditors()
+
+  deactivate: ->
+    syntax.off '.spell-check'
 
   subscribeToEditors: ->
     rootView.eachEditor (editor) ->

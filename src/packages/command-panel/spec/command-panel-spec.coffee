@@ -11,7 +11,7 @@ describe "CommandPanel", ->
     rootView.enableKeymap()
     editSession = rootView.getActivePaneItem()
     buffer = editSession.buffer
-    commandPanelMain = window.loadPackage('command-panel', activateImmediately: true).mainModule
+    commandPanelMain = atom.activatePackage('command-panel', immediate: true).mainModule
     commandPanel = commandPanelMain.commandPanelView
     commandPanel.history = []
     commandPanel.historyIndex = 0
@@ -28,11 +28,8 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:toggle'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
-      rootViewState = rootView.serialize()
-      rootView.deactivate()
-      window.rootView = RootView.deserialize(rootViewState)
-      rootView.attachToDom()
-      window.loadPackage('command-panel')
+      atom.deactivatePackage('command-panel')
+      atom.activatePackage('command-panel')
 
       expect(rootView.find('.command-panel')).not.toExist()
       rootView.trigger 'command-panel:toggle'
@@ -55,13 +52,12 @@ describe "CommandPanel", ->
       expect(commandPanel.history[2]).toBe('/test3')
       expect(commandPanel.historyIndex).toBe(3)
 
-      rootViewState = rootView.serialize()
-      rootView.deactivate()
-      RootView.deserialize(rootViewState).attachToDom()
-      window.loadPackage('command-panel')
-      rootView.trigger 'command-panel:toggle'
+      atom.deactivatePackage('command-panel')
+      atom.activatePackage('command-panel')
 
+      rootView.trigger 'command-panel:toggle'
       commandPanel = rootView.find('.command-panel').view()
+
       expect(commandPanel.history.length).toBe(2)
       expect(commandPanel.history[0]).toBe('/test2')
       expect(commandPanel.history[1]).toBe('/test3')
@@ -216,39 +212,69 @@ describe "CommandPanel", ->
       expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
 
   describe "when command-panel:repeat-relative-address is triggered on the root view", ->
-    it "repeats the last search command if there is one", ->
-      rootView.trigger 'command-panel:repeat-relative-address'
+    describe "when there is more than one match", ->
+      it "repeats the last search command if there is one", ->
+        rootView.trigger 'command-panel:repeat-relative-address'
 
-      editSession.setCursorScreenPosition([4, 0])
+        editSession.setCursorScreenPosition([4, 0])
 
-      commandPanel.execute("/current")
-      expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
+        commandPanel.execute("/current")
+        expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
 
-      rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
+        rootView.trigger 'command-panel:repeat-relative-address'
+        expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
 
-      commandPanel.execute('s/r/R/g')
+        commandPanel.execute('s/r/R/g')
 
-      rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editSession.getSelectedBufferRange()).toEqual [[6,34], [6,41]]
+        rootView.trigger 'command-panel:repeat-relative-address'
+        expect(editSession.getSelectedBufferRange()).toEqual [[6,34], [6,41]]
 
-      commandPanel.execute('0')
-      commandPanel.execute('/sort/ s/r/R/') # this contains a substitution... won't be repeated
+        commandPanel.execute('0')
+        commandPanel.execute('/sort/ s/r/R/') # this contains a substitution... won't be repeated
 
-      rootView.trigger 'command-panel:repeat-relative-address'
-      expect(editSession.getSelectedBufferRange()).toEqual [[3,31], [3,38]]
+        rootView.trigger 'command-panel:repeat-relative-address'
+        expect(editSession.getSelectedBufferRange()).toEqual [[3,31], [3,38]]
+
+    describe "when there is only one match and it is selected", ->
+      it "maintains the current selection and plays a beep", ->
+        editSession.setCursorScreenPosition([0, 0])
+        waitsForPromise ->
+          commandPanel.execute("/Array")
+        runs ->
+          expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
+          spyOn($native, 'beep')
+          rootView.trigger 'command-panel:repeat-relative-address'
+        waitsFor ->
+          $native.beep.callCount > 0
+        runs ->
+          expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
 
   describe "when command-panel:repeat-relative-address-in-reverse is triggered on the root view", ->
-    it "it repeats the last relative address in the reverse direction", ->
-      rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
+    describe "when there is more than one match", ->
+      it "it repeats the last relative address in the reverse direction", ->
+        rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
 
-      editSession.setCursorScreenPosition([6, 0])
+        editSession.setCursorScreenPosition([6, 0])
 
-      commandPanel.execute("/current")
-      expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
+        commandPanel.execute("/current")
+        expect(editSession.getSelectedBufferRange()).toEqual [[6,6], [6,13]]
 
-      rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
-      expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
+        rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
+        expect(editSession.getSelectedBufferRange()).toEqual [[5,6], [5,13]]
+
+    describe "when there is only one match and it is selected", ->
+      it "maintains the current selection and plays a beep", ->
+        editSession.setCursorScreenPosition([0, 0])
+        waitsForPromise ->
+          commandPanel.execute("/Array")
+        runs ->
+          expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
+          spyOn($native, 'beep')
+          rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
+        waitsFor ->
+          $native.beep.callCount > 0
+        runs ->
+          expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
 
   describe "when command-panel:set-selection-as-regex-address is triggered on the root view", ->
     it "sets the @lastRelativeAddress to a RegexAddress of the current selection", ->
@@ -319,13 +345,15 @@ describe "CommandPanel", ->
         # there shouldn't be any dangling operations after this
 
     describe "if the command is malformed", ->
-      it "adds and removes an error class to the command panel and does not close it", ->
+      it "adds and removes an error class to the command panel and does not close it or display a loading message", ->
+        rootView.attachToDom()
         rootView.trigger 'command-panel:toggle'
         commandPanel.miniEditor.insertText 'garbage-command!!'
 
         commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
         expect(commandPanel.parent()).toExist()
         expect(commandPanel).toHaveClass 'error'
+        expect(commandPanel.loadingMessage).toBeHidden()
 
         advanceClock 400
 
