@@ -176,7 +176,7 @@ class Project
 
       for [column, length] in matchPositions
         range = new Range([row, column], [row, column + length])
-        match = lineText.substr(column, length)
+        match = lineText.substr(column + 1, length)
         iterator({path, range, match})
 
     deferred = $.Deferred()
@@ -195,6 +195,7 @@ class Project
     command = require.resolve 'nak'
     args = ['--ackmate', regex.source, @getPath()]
     args.unshift("--addVCSIgnores") if config.get('nak.addVCSIgnores')
+    #console.log(args)
     new BufferedProcess({command, args, stdout, exit})
     deferred
 

@@ -251,12 +251,12 @@ describe "Project", ->
 
         expect(iterator.argsForCall[0][0]).toEqual
           path: project.resolve('a')
-          match: 'aaa'
+          match: 'aa '
           range: [[0, 0], [0, 3]]
 
         expect(iterator.argsForCall[1][0]).toEqual
           path: project.resolve('a')
-          match: 'aa'
+          match: 'a '
           range: [[1, 3], [1, 5]]
 
   describe "serialization", ->
