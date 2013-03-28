@@ -6,8 +6,8 @@
 '.editor':
   'escape': 'vim:command-mode'
   'ctrl-[': 'vim:command-mode'
-  'ctrl-n': 'autocomplete:attach'
-  'ctrl-p': 'autocomplete:attach'
+  'ctrl-n': 'vim:autocomplete'
+  'ctrl-p': 'vim:autocomplete-reverse'
 
 '.editor.command-mode':
   '1': 'vim:count-add-1'

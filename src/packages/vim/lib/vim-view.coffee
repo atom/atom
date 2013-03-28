@@ -55,6 +55,8 @@ class VimView extends View
     @editor.command 'vim:visual-mode-lines', => @enterVisualMode("lines")
     @editor.command 'vim:cancel-command', => @discardCommand()
     @editor.command 'vim:leader', (e) => @leader(e)
+    @editor.command 'vim:autocomplete', => @autocomplete()
+    @editor.command 'vim:autocomplete-reverse', => @autocomplete(true)
 
     @command 'vim:insert-mode', => @enterInsertMode()
     @command 'vim:unfocus', => @rootView.focus()
@@ -211,3 +213,12 @@ class VimView extends View
     @state.runCommand @miniEditor.getText()
     @discardCommand()
     @enterCommandMode()
+
+  autocomplete: (reverse=false) ->
+    if @autocompleting()
+      @editor.trigger(if reverse then "autocomplete:previous" else "autocomplete:next")
+    else
+      @editor.trigger("autocomplete:attach")
+
+  autocompleting: () ->
+    @editor.find(".autocomplete").length > 0

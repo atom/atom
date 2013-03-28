@@ -27,6 +27,8 @@ class AutocompleteView extends SelectList
   handleEvents: ->
     @editor.on 'editor:path-changed', => @setCurrentBuffer(@editor.getBuffer())
     @editor.command 'autocomplete:attach', => @attach()
+    @editor.command 'autocomplete:next', => @selectNextItem()
+    @editor.command 'autocomplete:previous', => @selectPreviousItem()
 
     @miniEditor.preempt 'textInput', (e) =>
       text = e.originalEvent.data

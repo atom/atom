@@ -74,3 +74,19 @@ fdescribe "Vim package", ->
           'leader': 'vim:insert-mode'
       editor.trigger 'vim:leader'
       expect(vim.inInsertMode()).toBeTruthy()
+
+  describe "autocomplete", ->
+    it "opens the autocomplete panel", ->
+      spyOn(editor, 'trigger')
+      vim.autocomplete()
+      expect(editor.trigger).toHaveBeenCalledWith('autocomplete:attach')
+    it "selects the next element in the autocomplete panel", ->
+      spyOn(editor, 'trigger')
+      spyOn(vim, 'autocompleting').andReturn(true)
+      vim.autocomplete()
+      expect(editor.trigger).toHaveBeenCalledWith('autocomplete:next')
+    it "selects the previous element in the autocomplete panel", ->
+      spyOn(editor, 'trigger')
+      spyOn(vim, 'autocompleting').andReturn(true)
+      vim.autocomplete(true)
+      expect(editor.trigger).toHaveBeenCalledWith('autocomplete:previous')
