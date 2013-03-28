@@ -2,7 +2,7 @@ GrammarSelector = require '../lib/grammar-selector'
 RootView = require 'root-view'
 _ = require 'underscore'
 
-fdescribe "GrammarSelector", ->
+describe "GrammarSelector", ->
   [editor, textGrammar, jsGrammar] =  []
 
   beforeEach ->
