@@ -18,7 +18,7 @@ class LoadPathsTask
     args = ['-l', rootPath]
     args.unshift("--addVCSIgnores") if config.get('nak.addVCSIgnores')
     args.unshift("-d", "#{ignoredNames.join(',')}") if ignoredNames.length > 0
-
+    
     paths = []
     deferred = $.Deferred()
     exit = (code) =>
@@ -28,7 +28,7 @@ class LoadPathsTask
         @callback(paths)
         deferred.resolve()
     stdout = (data) ->
-      paths = paths.concat(data.split("\n"))
+      paths = paths.concat(_.compact(data.split("\n")))
 
     new BufferedProcess({command, args, stdout, exit})
     deferred

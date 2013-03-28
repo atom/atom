@@ -365,7 +365,7 @@ describe 'FuzzyFinder', ->
         expect(finderView).toBeVisible()
         expect(rootView.find('.fuzzy-finder input:focus')).toExist()
 
-    it "opens a file directly when there is a single match", ->
+    fit "opens a file directly when there is a single match", ->
       editor.setText("sample.txt")
       jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:find-under-cursor'
@@ -379,7 +379,7 @@ describe 'FuzzyFinder', ->
 
       runs ->
         expect(finderView).not.toBeVisible()
-        expect(openedPath).toBe "sample.txt"
+        expect(openedPath).toBe "#{project.getPath()}/sample.txt"
 
     it "displays an error when the word under the cursor doesn't match any files", ->
       editor.setText("moogoogaipan")
