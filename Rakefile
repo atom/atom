@@ -84,7 +84,7 @@ task :clean do
   output = `xcodebuild clean`
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
-  `rm -rf /tmp/atom-compiled-scripts`
+  `rm -rf /tmp/atom-coffee-cache`
   `rm -rf node_modules`
   `rm -rf cef`
 end
