@@ -41,7 +41,7 @@ task "bootstrap" do
 end
 
 desc "Copies Atom.app to /Applications and creates `atom` cli app"
-task :install => [:clean, :build] do
+task :install => [:build] do
   path = application_path()
   exit 1 if not path
 
