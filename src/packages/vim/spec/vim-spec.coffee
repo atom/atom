@@ -90,3 +90,9 @@ fdescribe "Vim package", ->
       spyOn(vim, 'autocompleting').andReturn(true)
       vim.autocomplete(true)
       expect(editor.trigger).toHaveBeenCalledWith('autocomplete:previous')
+
+  describe "search word", ->
+    it "foo", ->
+      spyOn(editor, 'trigger')
+      vim.searchWord()
+      expect(editor.trigger).toHaveBeenCalledWith("command-panel:find-in-file")

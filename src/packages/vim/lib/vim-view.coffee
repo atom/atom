@@ -57,6 +57,7 @@ class VimView extends View
     @editor.command 'vim:leader', (e) => @leader(e)
     @editor.command 'vim:autocomplete', => @autocomplete()
     @editor.command 'vim:autocomplete-reverse', => @autocomplete(true)
+    @editor.command 'vim:search-word', => @searchWord()
 
     @command 'vim:insert-mode', => @enterInsertMode()
     @command 'vim:unfocus', => @rootView.focus()
@@ -222,3 +223,10 @@ class VimView extends View
 
   autocompleting: () ->
     @editor.find(".autocomplete").length > 0
+
+  searchWord: () ->
+    @editor.selectWord()
+    word = @editor.getSelectedText()
+    @editor.clearSelections()
+    @editor.trigger("command-panel:find-in-file")
+    rootView.find(".command-panel").view()?.miniEditor.setText("/#{word}")

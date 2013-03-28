@@ -66,6 +66,7 @@
   'V': 'vim:visual-mode-lines'
   'ctrl-r': 'core:redo'
   'escape': 'vim:cancel-command'
+  '*': 'vim:search-word'
   '/': 'command-panel:find-in-file'
   'n': 'command-panel:repeat-relative-address'
   'N': 'command-panel:repeat-relative-address-in-reverse'
