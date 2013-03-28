@@ -86,6 +86,7 @@ task :clean do
   `rm -rf #{BUILD_DIR}`
   `rm -rf /tmp/atom-compiled-scripts`
   `rm -rf node_modules`
+  `rm -rf cef`
 end
 
 desc "Run the specs"

@@ -584,9 +584,15 @@ class EditSession
     cursor = @addCursor(marker)
     selection = new Selection({editSession: this, marker, cursor})
     @selections.push(selection)
+    selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections()
-    @trigger 'selection-added', selection
-    selection
+    if selection.destroyed
+      for selection in @getSelections()
+        if selection.intersectsBufferRange(selectionBufferRange)
+          return selection
+    else
+      @trigger 'selection-added', selection
+      selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
     options = _.defaults({invalidationStrategy: 'never'}, options)
@@ -837,12 +843,18 @@ class EditSession
 
   getGrammar: -> @languageMode.grammar
 
+  setGrammar: (grammar) ->
+    @languageMode.grammar = grammar
+    @handleGrammarChange()
+
   reloadGrammar: ->
-    if @languageMode.reloadGrammar()
-      @unfoldAll()
-      @displayBuffer.tokenizedBuffer.resetScreenLines()
-      @trigger 'grammar-changed'
-      true
+    @handleGrammarChange() if @languageMode.reloadGrammar()
+
+  handleGrammarChange: ->
+    @unfoldAll()
+    @displayBuffer.tokenizedBuffer.resetScreenLines()
+    @trigger 'grammar-changed'
+    true
 
   getDebugSnapshot: ->
     [

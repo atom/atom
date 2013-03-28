@@ -396,6 +396,20 @@ describe "EditSession", ->
           buffer.insert([8, 0], '...')
           expect(cursorMovedHandler).not.toHaveBeenCalled()
 
+    describe "addCursorAtScreenPosition(screenPosition)", ->
+      describe "when a cursor already exists at the position", ->
+        it "returns the existing cursor", ->
+          cursor1 = editSession.addCursorAtScreenPosition([0,2])
+          cursor2 = editSession.addCursorAtScreenPosition([0,2])
+          expect(cursor2.marker).toBe cursor1.marker
+
+    describe "addCursorAtBufferPosition(bufferPosition)", ->
+      describe "when a cursor already exists at the position", ->
+        it "returns the existing cursor", ->
+          cursor1 = editSession.addCursorAtBufferPosition([1,4])
+          cursor2 = editSession.addCursorAtBufferPosition([1,4])
+          expect(cursor2.marker).toBe cursor1.marker
+
   describe "selection", ->
     selection = null
 

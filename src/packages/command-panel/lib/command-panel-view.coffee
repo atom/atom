@@ -142,6 +142,7 @@ class CommandPanelView extends View
         else
           @detach()
     catch error
+      @loadingMessage.hide()
       if error.name is "SyntaxError"
         @flashError()
         return
