@@ -291,7 +291,7 @@ class VimState
         state.lastSearchMotion.perform(@operation)
   commands:
     'q': "core:close"
-    'w': "editor:save"
+    'w': "core:save"
     's': "command-panel:replace-in-file"
   operations:
     'move': ->
