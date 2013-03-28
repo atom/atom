@@ -50,6 +50,8 @@
   'x': 'vim:alias-delete-character'
   'D': 'vim:alias-delete-until-end-of-line'
   'J': 'vim:alias-join-lines'
+  's': "vim:alias-substitute-character"
+  'S': "vim:alias-substitute-line"
   'u': 'core:undo'
   'c': 'vim:operation-change'
   'd': 'vim:operation-delete'

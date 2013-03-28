@@ -246,6 +246,12 @@ class VimState
       beforeMotion: 'end-of-line'
       motion: 'right'
       operation: 'delete'
+    'substitute-character':
+      motion: 'right'
+      operation: 'change'
+    'substitute-line':
+      motion: 'line'
+      operation: 'change'
   motionEvents:
     left: "core:move-left"
     right: "core:move-right"
