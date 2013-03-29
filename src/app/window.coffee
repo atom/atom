@@ -1,5 +1,6 @@
 fs = require 'fs-utils'
 $ = require 'jquery'
+_ = require 'underscore'
 {less} = require 'less'
 {spawn} = require 'child_process'
 require 'jquery-extensions'
@@ -36,12 +37,9 @@ window.setUpEnvironment = ->
 
 # This method is only called when opening a real application window
 window.startup = ->
-  if fs.isDirectory('/opt/boxen')
-    installAtomCommand('/opt/boxen/bin/atom')
-  else if fs.isDirectory('/opt/github')
-    installAtomCommand('/opt/github/bin/atom')
-  else if fs.isDirectory('/usr/local')
-    installAtomCommand('/usr/local/bin/atom')
+  directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fs.isDirectory(dir)
+  if directory
+    installAtomCommand(fs.join(directory, 'bin/atom'))
   else
     console.warn "Failed to install `atom` binary"
 
