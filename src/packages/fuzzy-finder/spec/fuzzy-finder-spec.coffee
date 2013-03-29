@@ -365,7 +365,7 @@ describe 'FuzzyFinder', ->
         expect(finderView).toBeVisible()
         expect(rootView.find('.fuzzy-finder input:focus')).toExist()
 
-    fit "opens a file directly when there is a single match", ->
+    it "opens a file directly when there is a single match", ->
       editor.setText("sample.txt")
       jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:find-under-cursor'
