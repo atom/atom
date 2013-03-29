@@ -1,5 +1,6 @@
 {
   'variables': {
+    'version': '2.0',
     'pkg-config': 'pkg-config',
     'chromium_code': 1,
     'use_aura%': 0,
@@ -42,6 +43,7 @@
       },
     },
     'xcode_settings': {
+      'VERSION': "<(version)",
       'CLANG_CXX_LANGUAGE_STANDARD' : 'c++0x',
       'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
       'COMBINE_HIDPI_IMAGES': 'YES', # Removes 'Validate Project Settings' warning
