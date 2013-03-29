@@ -48,7 +48,7 @@ class TextMateGrammar
       previousRuleStackLength = ruleStack.length
       previousPosition = position
 
-      if tokens.length >= (@maxTokensPerLine - 1)
+      if tokens.length >= (@getMaxTokensPerLine() - 1)
         token = new Token(value: line[position..], scopes: scopes)
         tokens.push token
         ruleStack = originalRuleStack
@@ -86,6 +86,9 @@ class TextMateGrammar
 
     ruleStack.forEach (rule) -> rule.clearAnchorPosition()
     { tokens, ruleStack }
+
+  getMaxTokensPerLine: ->
+    @maxTokensPerLine
 
 class Rule
   grammar: null

@@ -302,7 +302,7 @@ describe "TextMateGrammar", ->
     describe "when a line has more tokens than `maxTokensPerLine`", ->
       it "creates a final token with the remaining text and resets the ruleStack to match the begining of the line", ->
         grammar = syntax.selectGrammar("hello.js")
-        grammar.maxTokensPerLine = 5
+        spyOn(grammar, 'getMaxTokensPerLine').andCallFake -> 5
         originalRuleStack = [grammar.initialRule, grammar.initialRule, grammar.initialRule]
         {tokens, ruleStack} = grammar.tokenizeLine("one(two(three(four(five(_param_)))))", originalRuleStack)
         expect(tokens.length).toBe 5
