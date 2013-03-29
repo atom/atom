@@ -45,20 +45,46 @@ class File
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
-  handleNativeChangeEvent: (event, filename) ->
-    console.log event, filename
+  handleNativeChangeEvent: (event, path) ->
     if event is "change"
-      console.log "change", filename
       oldContents = @read()
       newContents = @read(true)
       return if oldContents == newContents
-      @trigger 'contents-changed'
+      @trigger "contents-changed"
     else if event is "rename"
-      if not filename? # file deleted
+      if not path? # file deleted
+        @unsubscribeFromNativeChangeEvents()
         @detectResurrectionAfterDelay()
-      else # file moved
-        @setPath(path.join(@getPath(), filename))
-        @trigger "moved"
+      else
+        # This is how Vim did an atomic file save:
+        # 1. rename /path/file to /path/file~
+        # 2. write content to /path/file
+        # 3. remove /path/file~
+        #
+        # So after receiving a rename event, we should first unsubscribe the
+        # fs.watch, otherwise it's possible that we will then receive a delete
+        # event before we find out whether it's an atomic write.
+        @unsubscribeFromNativeChangeEvents()
+
+        # Then we should wait a while to give external editor a chance to write
+        # content back, and then check whether it's an atomic write or a real
+        # file renaming.
+        setTimeout =>
+          # Is the original file still there?
+          fs.stat @getPath(), (err, stats) =>
+            if not err? # atomic write
+              @subscribeToNativeChangeEvents()
+              @handleNativeChangeEvent("change", null)
+            else
+              # Is the path passed by rename event real?
+              fs.stat path, (err) =>
+                if err? # file is deleted after rename
+                  @handleNativeChangeEvent("rename", null)
+                else # file is renamed
+                  @setPath(path)
+                  @subscribeToNativeChangeEvents()
+                  @trigger "moved"
+          , 100
 
   detectResurrectionAfterDelay: ->
     _.delay (=> @detectResurrection()), 50
@@ -66,14 +92,14 @@ class File
   detectResurrection: ->
     if @exists()
       @subscribeToNativeChangeEvents()
-      @handleNativeChangeEvent("change")
+      @handleNativeChangeEvent("change", null)
     else
       @cachedContents = null
       @unsubscribeFromNativeChangeEvents()
       @trigger "removed"
 
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = fs.watch @path, (event, path) =>
+    @watchSubscription = fs.watch @getPath(), (event, path) =>
       @handleNativeChangeEvent(event, path)
 
   unsubscribeFromNativeChangeEvents: ->
