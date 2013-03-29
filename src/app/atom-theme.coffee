@@ -16,7 +16,9 @@ class AtomTheme extends Theme
       if fs.isFile(metadataPath)
         stylesheetNames = CSON.readObject(metadataPath)?.stylesheets
         if stylesheetNames
-          @loadStylesheet(fs.join(@path, name)) for name in stylesheetNames
+          for name in stylesheetNames
+            filename = fs.resolveExtension(fs.join(@path, name), ['.css', '.less', ''])
+            @loadStylesheet(filename)
       else
         @loadStylesheet(stylesheetPath) for stylesheetPath in fs.list(@path, ['.css', '.less'])
 
