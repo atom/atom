@@ -2,32 +2,36 @@ ChildProcess = require 'child_process'
 
 module.exports =
 class BufferedProcess
+  process: null
+  killed: false
+
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
-    process = ChildProcess.spawn(command, args, options)
+    @process = ChildProcess.spawn(command, args, options)
 
     stdoutClosed = true
     stderrClosed = true
     processExited = true
     exitCode = 0
     triggerExitCallback = ->
+      return if @killed
       if stdoutClosed and stderrClosed and processExited
         exit?(exitCode)
 
     if stdout
       stdoutClosed = false
-      @bufferStream process.stdout, stdout, ->
+      @bufferStream @process.stdout, stdout, ->
         stdoutClosed = true
         triggerExitCallback()
 
     if stderr
       stderrClosed = false
-      @bufferStream process.stderr, stderr, ->
+      @bufferStream @process.stderr, stderr, ->
         stderrClosed = true
         triggerExitCallback()
 
     if exit
       processExited = false
-      process.on 'exit', (code) ->
+      @process.on 'exit', (code) ->
         exitCode = code
         processExited = true
         triggerExitCallback()
@@ -36,7 +40,8 @@ class BufferedProcess
     stream.setEncoding('utf8')
     buffered = ''
 
-    stream.on 'data', (data) ->
+    stream.on 'data', (data) =>
+      return if @killed
       buffered += data
       lastNewlineIndex = buffered.lastIndexOf('\n')
       if lastNewlineIndex isnt -1
@@ -44,5 +49,11 @@ class BufferedProcess
         buffered = buffered.substring(lastNewlineIndex + 1)
 
     stream.on 'close', =>
+      return if @killed
       onLines(buffered) if buffered.length > 0
       onDone()
+
+  kill: ->
+    @killed = true
+    @process.kill()
+    @process = null

@@ -30,8 +30,11 @@ class LoadPathsTask
     stdout = (data) ->
       paths = paths.concat(_.compact(data.split("\n")))
 
-    new BufferedProcess({command, args, stdout, exit})
+    @process = new BufferedProcess({command, args, stdout, exit})
     deferred
 
   abort: ->
     @aborted = true
+    if @process?
+      @process.kill()
+      @process = null
