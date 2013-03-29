@@ -17,7 +17,7 @@ class LoadPathsTask
     command = require.resolve 'nak'
     args = ['-l', rootPath]
     args.unshift("--addVCSIgnores") if config.get('nak.addVCSIgnores')
-    args.unshift("-d", "#{ignoredNames.join(',')}") if ignoredNames.length > 0
+    args.unshift("-d", ignoredNames.join(',')) if ignoredNames.length > 0
 
     paths = []
     deferred = $.Deferred()
