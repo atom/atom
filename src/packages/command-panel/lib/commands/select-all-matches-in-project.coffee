@@ -13,11 +13,12 @@ class SelectAllMatchesInProject extends Command
   compile: (project, buffer, range) ->
     deferred = $.Deferred()
     operations = []
-    promise = project.scan @regex, ({path, range}) ->
+    promise = project.scan @regex, ({path, range, match, lineText}) ->
       op = new Operation(
         project: project
         path: path
         bufferRange: range
+        lineText: lineText
       )
       project.previewList.populateSingle(op)
       operations.push(op)

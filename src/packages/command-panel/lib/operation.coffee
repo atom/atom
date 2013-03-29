@@ -1,6 +1,6 @@
 module.exports =
 class Operation
-  constructor: ({@project, @path, @buffer, @bufferRange, @newText, @preserveSelection, @errorMessage}) ->
+  constructor: ({@project, @path, @buffer, @bufferRange, @lineText, @newText, @preserveSelection, @errorMessage}) ->
     if @buffer?
       @buffer.retain()
       @getMarker()
@@ -23,11 +23,10 @@ class Operation
     @getBufferRange() unless @preserveSelection
 
   preview: ->
-    range = @getBuffer().getMarkerRange(@getMarker())
-    line = @getBuffer().lineForRow(range.start.row)
-    prefix = line[0...range.start.column]
-    match = line[range.start.column...range.end.column]
-    suffix = line[range.end.column..]
+    range = @bufferRange
+    prefix = @lineText[0...range.start.column]
+    match = @lineText[range.start.column + 1...range.end.column]
+    suffix = @lineText[range.end.column..]
 
     {prefix, suffix, match, range}
 

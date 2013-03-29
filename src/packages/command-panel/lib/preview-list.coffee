@@ -1,7 +1,6 @@
 $ = require 'jquery'
 ScrollView = require 'scroll-view'
 _ = require 'underscore'
-fs = require 'fs-utils'
 PathView = require './path-view'
 OperationView = require './operation-view'
 
@@ -73,7 +72,6 @@ class PreviewList extends ScrollView
     pathView = @pathViewForPath(operation.getPath())
     pathView.addOperation(operation)
  
-
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
     if not pathView
