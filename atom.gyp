@@ -1,6 +1,6 @@
 {
   'variables': {
-    'version': '2.0',
+    'version': '2.0.<!(git log -1 --format="%h")',
     'pkg-config': 'pkg-config',
     'chromium_code': 1,
     'use_aura%': 0,
