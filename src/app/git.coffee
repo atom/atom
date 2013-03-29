@@ -112,6 +112,9 @@ class Git
   getDiffStats: (path) ->
     @getRepo().getDiffStats(@relativize(path))
 
+  getHeadBlob: (path) ->
+    @getRepo().getHeadBlob(@relativize(path))
+    
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))
 
