@@ -26,6 +26,7 @@ class TextMateGrammar
   repository: null
   initialRule: null
   firstLineRegex: null
+  maxTokensPerLine: 100
 
   constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
     @initialRule = new Rule(this, {@scopeName, patterns})
@@ -38,6 +39,7 @@ class TextMateGrammar
       @repository[name] = new Rule(this, data)
 
   tokenizeLine: (line, ruleStack=[@initialRule], firstLine=false) ->
+    originalRuleStack = ruleStack
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
@@ -45,6 +47,12 @@ class TextMateGrammar
       scopes = scopesFromStack(ruleStack)
       previousRuleStackLength = ruleStack.length
       previousPosition = position
+
+      if tokens.length >= (@maxTokensPerLine - 1)
+        token = new Token(value: line[position..], scopes: scopes)
+        tokens.push token
+        ruleStack = originalRuleStack
+        break
 
       if line.length == 0
         tokens = [new Token(value: "", scopes: scopes)]

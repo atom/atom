@@ -298,3 +298,13 @@ describe "TextMateGrammar", ->
         grammar = syntax.selectGrammar("style.scss")
         {tokens} = grammar.tokenizeLine("@mixin x() { -moz-selector: whatever; }")
         expect(tokens[9]).toEqual value: "-moz-selector", scopes: ["source.css.scss", "meta.property-list.scss", "meta.property-name.scss"]
+
+    describe "when a line has more tokens than `maxTokensPerLine`", ->
+      it "creates a final token with the remaining text and resets the ruleStack to match the begining of the line", ->
+        grammar = syntax.selectGrammar("hello.js")
+        grammar.maxTokensPerLine = 5
+        originalRuleStack = [grammar.initialRule, grammar.initialRule, grammar.initialRule]
+        {tokens, ruleStack} = grammar.tokenizeLine("one(two(three(four(five(_param_)))))", originalRuleStack)
+        expect(tokens.length).toBe 5
+        expect(tokens[4].value).toBe "three(four(five(_param_)))))"
+        expect(ruleStack).toEqual originalRuleStack
