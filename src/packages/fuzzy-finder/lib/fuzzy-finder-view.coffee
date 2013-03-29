@@ -60,7 +60,7 @@ class FuzzyFinderView extends SelectList
           typeClass = 'text-name'
 
         @span fs.base(path), class: "file label #{typeClass}"
-        if folder = fs.directory(path)
+        if folder = fs.directory(project.relativize(path))
           @span " - #{folder}/", class: 'directory'
 
   openPath: (path) ->
