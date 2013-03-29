@@ -195,7 +195,6 @@ class Project
     command = require.resolve 'nak'
     args = ['--ackmate', regex.source, @getPath()]
     args.unshift("--addVCSIgnores") if config.get('nak.addVCSIgnores')
-    #console.log(args)
     new BufferedProcess({command, args, stdout, exit})
     deferred
 
