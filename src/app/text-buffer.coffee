@@ -168,7 +168,7 @@ class Buffer
     new Point(lastRow, @lineLengthForRow(lastRow))
 
   characterIndexForPosition: (position) ->
-    position = Point.fromObject(position)
+    position = @clipPosition(position)
 
     index = 0
     for row in [0...position.row]

@@ -724,6 +724,7 @@ describe 'Buffer', ->
       expect(buffer.characterIndexForPosition([1, 0])).toBe 30
       expect(buffer.characterIndexForPosition([2, 0])).toBe 61
       expect(buffer.characterIndexForPosition([12, 2])).toBe 408
+      expect(buffer.characterIndexForPosition([Infinity])).toBe 408
 
     describe "when the buffer contains crlf line endings", ->
       it "returns the total number of characters that precede the given position", ->
