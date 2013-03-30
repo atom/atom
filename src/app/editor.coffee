@@ -393,10 +393,6 @@ class Editor extends View
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
 
-      @gutter.on 'mousedown', (e) =>
-        e.pageX = @renderedLines.offset().left
-        onMouseDown(e)
-
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
