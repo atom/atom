@@ -6,6 +6,7 @@ PreviewList = require './preview-list'
 Editor = require 'editor'
 {SyntaxError} = require('pegjs').parser
 _ = require 'underscore'
+$ = require 'jquery'
 
 module.exports =
 class CommandPanelView extends View
@@ -14,7 +15,6 @@ class CommandPanelView extends View
       @div class: 'header', outlet: 'previewHeader', =>
         @span outlet: 'searchLoadingMessage', class: 'loading', 'Searching...'
         @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
-          @li class: 'expand', 'Expand All'
           @li class: 'collapse', 'Collapse All'
         @span outlet: 'previewCount', class: 'preview-count'
 
@@ -54,6 +54,7 @@ class CommandPanelView extends View
     @previewHeader.hide()
     @errorMessages.hide()
     @searchLoadingMessage.hide()
+    @expandCollapse.hide()
     @prompt.iconSize(@miniEditor.getFontSize())
 
     @history = state.history ? []
@@ -92,11 +93,17 @@ class CommandPanelView extends View
         @miniEditor.focus()
 
   onExpandAll: (event) =>
-    @previewList.expandAllPaths()
+    elButton = $(event.currentTarget)
+    @previewList.expandAllPaths()   
+    elButton.removeClass("expand").addClass("collapse")
+    elButton.text("Collapse All")
     @previewList.focus()
 
   onCollapseAll: (event) =>
+    elButton = $(event.currentTarget)
     @previewList.collapseAllPaths()
+    elButton.removeClass("collapse").addClass("expand")
+    elButton.text("Expand All")
     @previewList.focus()
 
   attach: (text='', options={}) ->
@@ -123,10 +130,11 @@ class CommandPanelView extends View
     @searchLoadingMessage.show()
     @errorMessages.empty()
     project.previewList = @previewList
-
+    
     try
       @commandInterpreter.eval(command, rootView.getActivePaneItem()).done ({operationsToPreview, errorMessages}) =>
         @searchLoadingMessage.hide()
+        @expandCollapse.show()
         @history.push(command)
         @historyIndex = @history.length
 

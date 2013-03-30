@@ -19,8 +19,6 @@ class PreviewList extends ScrollView
 
     @on 'core:move-down', => @selectNextOperation(); false
     @on 'core:move-up', => @selectPreviousOperation(); false
-    @on 'scroll', =>
-      @renderOperations() if @scrollBottom() >= (@prop('scrollHeight'))
 
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
@@ -29,7 +27,6 @@ class PreviewList extends ScrollView
     @children().each (index, element) -> $(element).view().expand()
 
   collapseAllPaths: ->
-    @renderOperations(renderAll: true)
     @children().each (index, element) -> $(element).view().collapse()
 
   destroy: ->
@@ -50,7 +47,7 @@ class PreviewList extends ScrollView
     @find('.operation:first').addClass('selected')
 
   populateSingle: (operation) ->
-    @viewsForPath = {}
+    @viewsForPath ||= {}
 
     @show()
     @renderOperation(operation)
@@ -66,14 +63,14 @@ class PreviewList extends ScrollView
       @lastRenderedOperationIndex++
       break if not renderAll and @prop('scrollHeight') >= startingScrollHeight + @pixelOverdraw and @prop('scrollHeight') > @height() + @pixelOverdraw
 
-  renderOperation: (operation, {renderAll}={}) ->
-    renderAll ?= false
+  renderOperation: (operation) ->
     startingScrollHeight = @prop('scrollHeight')
     pathView = @pathViewForPath(operation.getPath())
     pathView.addOperation(operation)
  
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
+    console.log(path)
     if not pathView
       pathView = new PathView({path: path, previewList: this})
       @viewsForPath[path] = pathView
