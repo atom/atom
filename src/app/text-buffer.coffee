@@ -145,6 +145,9 @@ class Buffer
   lineLengthForRow: (row) ->
     @lines[row].length
 
+  lineEndingLengthForRow: (row) ->
+    (@lineEndingForRow(row) ? '').length
+
   rangeForRow: (row, { includeNewline } = {}) ->
     if includeNewline and row < @getLastRow()
       new Range([row, 0], [row + 1, 0])
@@ -168,12 +171,13 @@ class Buffer
     position = Point.fromObject(position)
 
     index = 0
-    index += @lineLengthForRow(row) + 1 for row in [0...position.row]
+    for row in [0...position.row]
+      index += @lineLengthForRow(row) + Math.max(@lineEndingLengthForRow(row), 1)
     index + position.column
 
   positionForCharacterIndex: (index) ->
     row = 0
-    while index >= (lineLength = @lineLengthForRow(row) + 1)
+    while index >= (lineLength = @lineLengthForRow(row) + Math.max(@lineEndingLengthForRow(row), 1))
       index -= lineLength
       row++
 
@@ -358,7 +362,7 @@ class Buffer
     @scanInRange(regex, @getRange(), iterator)
 
   scanInRange: (regex, range, iterator, reverse=false) ->
-    range = Range.fromObject(range)
+    range = @clipRange(range)
     global = regex.global
     flags = "gm"
     flags += "i" if regex.ignoreCase
