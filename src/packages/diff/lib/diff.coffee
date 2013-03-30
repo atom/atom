@@ -1,6 +1,8 @@
 $ = require 'jquery'
+EditSession = require 'edit-session'
 {View, $$} = require 'space-pen'
 diff = require 'diff'
+DiffView = require 'diff/lib/diff-view'
 
 module.exports =
 class Diff extends View
@@ -10,28 +12,35 @@ class Diff extends View
     rootView.command 'diff:toggle-diff', '.editor', => @toggleDiff()
 
   toggleDiff: ->
-    if @active
-      @hideDiff()
-    else
-      @active = true
-      @showDiff()
+    # if @active
+    #   @hideDiff()
+    # else
+    #   @active = true
+    #   @showDiff()
 
   showDiff: ->
-    @editor = rootView.getActiveView()
-    return unless @editor?
-    
-    buffer = @editor.getBuffer()
-    path = buffer.file.path
+    # @activePane = rootView.getActivePane()
+    # @item = @activePane.activeItem
 
-    @diskContents = buffer.cachedDiskContents
+    # if not @item instanceof EditSession
+    #   console.warn("Can not render markdown for #{item.getUri()}")
+    #   return
 
-    changes = diff.diffWords(@diskContents, git.getHeadBlob(path))
-    result = @convertChanges(changes)
+    # editSession = @item
 
-    @editor.setText(result)
+    #@activePane.showItem(new DiffView(editSession.buffer))
+    # buffer = @editor.getBuffer()
+    # path = buffer.file.path
+
+    # @diskContents = buffer.cachedDiskContents
+
+    # changes = diff.diffWords(@diskContents, git.getHeadBlob(path))
+    # result = @convertChanges(changes)
+
+    # @editor.setText(result)
 
   hideDiff: ->
-    @editor.setText(@diskContents)
+    @activePane.showItem(@item)
     @active = false
 
   convertChanges: (changes) ->
@@ -53,3 +62,6 @@ class Diff extends View
 
     return ret.join("");
 
+
+  destroy: ->
+    @hideDiff()
