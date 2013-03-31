@@ -130,7 +130,7 @@ class CommandPanelView extends View
     @searchLoadingMessage.show()
     @errorMessages.empty()
     project.previewList = @previewList
-    
+
     try
       @commandInterpreter.eval(command, rootView.getActivePaneItem()).done ({operationsToPreview, errorMessages}) =>
         @searchLoadingMessage.hide()
@@ -149,7 +149,7 @@ class CommandPanelView extends View
         else
           @detach()
     catch error
-      @loadingMessage.hide()
+      @searchLoadingMessage.hide()
       if error.name is "SyntaxError"
         @flashError()
         return

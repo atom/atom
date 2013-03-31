@@ -70,7 +70,6 @@ class PreviewList extends ScrollView
  
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
-    console.log(path)
     if not pathView
       pathView = new PathView({path: path, previewList: this})
       @viewsForPath[path] = pathView
