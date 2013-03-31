@@ -188,7 +188,7 @@ describe "Project", ->
         runs ->
           expect(paths).not.toContain('ignored/ignored.txt')
 
-  describe ".scan(options, callback)", ->
+  fdescribe ".scan(options, callback)", ->
     describe "when called with a regex", ->
       it "calls the callback with all regex matches in all files in the project", ->
         matches = []
@@ -253,11 +253,13 @@ describe "Project", ->
           path: project.resolve('a')
           match: 'aa '
           range: [[0, 0], [0, 3]]
+          lineText: 'aaa bbb'
 
         expect(iterator.argsForCall[1][0]).toEqual
           path: project.resolve('a')
           match: 'a '
           range: [[1, 3], [1, 5]]
+          lineText: 'cc aa cc'
 
   describe "serialization", ->
     it "restores the project path", ->

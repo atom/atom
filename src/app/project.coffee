@@ -176,7 +176,8 @@ class Project
 
       for [column, length] in matchPositions
         range = new Range([row, column], [row, column + length])
-        iterator({path, range, lineText})
+        match = lineText.substr(column + 1, length)
+        iterator({path, range, match, lineText})
 
     deferred = $.Deferred()
     exit = (code) ->
