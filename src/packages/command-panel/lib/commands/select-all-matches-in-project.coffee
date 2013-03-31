@@ -14,14 +14,12 @@ class SelectAllMatchesInProject extends Command
     deferred = $.Deferred()
     operations = []
     promise = project.scan @regex, ({path, range, match, lineText}) ->
-      op = new Operation(
+      operations.push(new Operation(
         project: project
         path: path
         bufferRange: range
         lineText: lineText
       )
-      project.previewList.populateSingle(op)
-      operations.push(op)
 
     promise.done -> deferred.resolve(operations)
     deferred.promise()

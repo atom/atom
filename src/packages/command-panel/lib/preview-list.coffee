@@ -19,7 +19,8 @@ class PreviewList extends ScrollView
 
     @on 'core:move-down', => @selectNextOperation(); false
     @on 'core:move-up', => @selectPreviousOperation(); false
-
+    @on 'scroll', =>
+      @renderOperations() if @scrollBottom() >= (@prop('scrollHeight'))
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
 
@@ -27,6 +28,7 @@ class PreviewList extends ScrollView
     @children().each (index, element) -> $(element).view().expand()
 
   collapseAllPaths: ->
+    @renderOperations(renderAll: true)
     @children().each (index, element) -> $(element).view().collapse()
 
   destroy: ->
@@ -46,14 +48,6 @@ class PreviewList extends ScrollView
 
     @find('.operation:first').addClass('selected')
 
-  populateSingle: (operation) ->
-    @viewsForPath ||= {}
-
-    @lastRenderedOperationIndex ||= 0
-    @renderOperation(operation)
-
-    @find('.operation:first').addClass('selected')
-
   renderOperations: ({renderAll}={}) ->
     renderAll ?= false
     startingScrollHeight = @prop('scrollHeight')
@@ -62,12 +56,6 @@ class PreviewList extends ScrollView
       pathView.addOperation(operation)
       @lastRenderedOperationIndex++
       break if not renderAll and @prop('scrollHeight') >= startingScrollHeight + @pixelOverdraw and @prop('scrollHeight') > @height() + @pixelOverdraw
-
-  renderOperation: (operation) ->
-    startingScrollHeight = @prop('scrollHeight')
-    pathView = @pathViewForPath(operation.getPath())
-    pathView.addOperation(operation)
-    @lastRenderedOperationIndex++
  
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
@@ -106,8 +94,8 @@ class PreviewList extends ScrollView
       previousView.addClass('selected')
       previousView.scrollTo()
 
-  getPathCount: (operations=@operations)->
-    _.keys(_.groupBy(operations, (operation) -> operation.getPath())).length
+  getPathCount: ->
+    _.keys(_.groupBy(@operations, (operation) -> operation.getPath())).length
 
   getOperations: ->
     new Array(@operations...)
