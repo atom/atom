@@ -192,7 +192,7 @@ class Project
         readPath(line) if state is 'readingPath'
         readLine(line) if state is 'readingLines'
 
-    command = require.resolve('ag')
+    command = require.resolve('nak')
     args = ['--ackmate', regex.source, @getPath()]
     new BufferedProcess({command, args, stdout, exit})
     deferred
