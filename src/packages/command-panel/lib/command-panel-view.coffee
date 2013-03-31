@@ -144,6 +144,7 @@ class CommandPanelView extends View
           @errorMessages.append $$ ->
             @li errorMessage for errorMessage in errorMessages
         else if operationsToPreview?.length
+          @previewList.show()
           @previewList.focus()
           @previewCount.text("#{_.pluralize(operationsToPreview.length, 'match', 'matches')} in #{_.pluralize(@previewList.getPathCount(operationsToPreview), 'file')}").show()
         else

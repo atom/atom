@@ -49,7 +49,7 @@ class PreviewList extends ScrollView
   populateSingle: (operation) ->
     @viewsForPath ||= {}
 
-    @show()
+    @lastRenderedOperationIndex ||= 0
     @renderOperation(operation)
 
     @find('.operation:first').addClass('selected')
@@ -67,6 +67,7 @@ class PreviewList extends ScrollView
     startingScrollHeight = @prop('scrollHeight')
     pathView = @pathViewForPath(operation.getPath())
     pathView.addOperation(operation)
+    @lastRenderedOperationIndex++
  
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
