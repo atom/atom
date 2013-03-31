@@ -56,6 +56,7 @@ class TreeView extends ScrollView
   afterAttach: (onDom) ->
     @focus() if @focusAfterAttach
     @scrollTop(@scrollTopAfterAttach) if @scrollTopAfterAttach > 0
+    @find('.selected > .highlight').width(@treeViewList[0].scrollWidth)
 
   serialize: ->
     directoryExpansionStates: @root?.serializeEntryExpansionStates()
@@ -304,10 +305,11 @@ class TreeView extends ScrollView
     entry = entry.view() unless entry instanceof View
     @selectedPath = entry.getPath()
     @deselect()
+    entry.children('.highlight').width(@treeViewList[0].scrollWidth)
     entry.addClass('selected')
 
   deselect: ->
-    @treeViewList.find('.selected').removeClass('selected')
+    @treeViewList.find('.selected').removeClass('selected').children('.highlight').width('')
 
   scrollTop: (top) ->
     if top

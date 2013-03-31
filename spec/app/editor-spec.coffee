@@ -572,6 +572,20 @@ describe "Editor", ->
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 4, column: 10})
 
+      it "ignores ctrl-click and drags", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        event = mousedownEvent(editor: editor, point: [4, 10])
+        event.ctrlKey = true
+        editor.renderedLines.trigger(event)
+        $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
+        $(document).trigger 'mouseup'
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 4, column: 10})
+
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
@@ -2031,23 +2045,40 @@ describe "Editor", ->
         event.originalEvent = {detail: 1}
         event.shiftKey = true
         editor.gutter.find(".line-number:eq(1)").trigger event
-        expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [1,0]]
+        expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [2,0]]
 
     describe "when mousing down and then moving across multiple lines before mousing up", ->
-      it "selects the lines", ->
-        mousedownEvent = $.Event("mousedown")
-        mousedownEvent.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
-        mousedownEvent.originalEvent = {detail: 1}
-        editor.gutter.find(".line-number:eq(1)").trigger mousedownEvent
+      describe "when selecting from top to bottom", ->
+        it "selects the lines", ->
+          mousedownEvent = $.Event("mousedown")
+          mousedownEvent.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+          mousedownEvent.originalEvent = {detail: 1}
+          editor.gutter.find(".line-number:eq(1)").trigger mousedownEvent
 
-        mousemoveEvent = $.Event("mousemove")
-        mousemoveEvent.pageY = editor.gutter.find(".line-number:eq(5)").offset().top
-        mousemoveEvent.originalEvent = {detail: 1}
-        editor.gutter.find(".line-number:eq(5)").trigger mousemoveEvent
+          mousemoveEvent = $.Event("mousemove")
+          mousemoveEvent.pageY = editor.gutter.find(".line-number:eq(5)").offset().top
+          mousemoveEvent.originalEvent = {detail: 1}
+          editor.gutter.find(".line-number:eq(5)").trigger mousemoveEvent
 
-        $(document).trigger 'mouseup'
+          $(document).trigger 'mouseup'
 
-        expect(editor.getSelection().getScreenRange()).toEqual [[1,0], [5,30]]
+          expect(editor.getSelection().getScreenRange()).toEqual [[1,0], [6,0]]
+
+      describe "when selecting from bottom to top", ->
+        it "selects the lines", ->
+          mousedownEvent = $.Event("mousedown")
+          mousedownEvent.pageY = editor.gutter.find(".line-number:eq(5)").offset().top
+          mousedownEvent.originalEvent = {detail: 1}
+          editor.gutter.find(".line-number:eq(5)").trigger mousedownEvent
+
+          mousemoveEvent = $.Event("mousemove")
+          mousemoveEvent.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+          mousemoveEvent.originalEvent = {detail: 1}
+          editor.gutter.find(".line-number:eq(1)").trigger mousemoveEvent
+
+          $(document).trigger 'mouseup'
+
+          expect(editor.getSelection().getScreenRange()).toEqual [[1,0], [6,0]]
 
   describe "when clicking below the last line", ->
     beforeEach ->

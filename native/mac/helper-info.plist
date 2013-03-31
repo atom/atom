@@ -4,6 +4,10 @@
 <dict>
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
+  <key>CFBundleShortVersionString</key>
+  <string>$VERSION</string>
+  <key>CFBundleVersion</key>
+  <string>$VERSION</string>
   <key>CFBundleDisplayName</key>
   <string>${EXECUTABLE_NAME}</string>
   <key>CFBundleExecutable</key>

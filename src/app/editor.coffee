@@ -373,7 +373,7 @@ class Editor extends View
       else if clickCount == 3
         @activeEditSession.selectLine() unless e.shiftKey
 
-      @selectOnMousemoveUntilMouseup() unless e.originalEvent.which > 1
+      @selectOnMousemoveUntilMouseup() unless e.ctrlKey or e.originalEvent.which > 1
 
     @renderedLines.on 'mousedown', onMouseDown
 
@@ -392,10 +392,6 @@ class Editor extends View
     unless @mini
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
-
-      @gutter.on 'mousedown', (e) =>
-        e.pageX = @renderedLines.offset().left
-        onMouseDown(e)
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0

@@ -724,6 +724,14 @@ describe 'Buffer', ->
       expect(buffer.characterIndexForPosition([1, 0])).toBe 30
       expect(buffer.characterIndexForPosition([2, 0])).toBe 61
       expect(buffer.characterIndexForPosition([12, 2])).toBe 408
+      expect(buffer.characterIndexForPosition([Infinity])).toBe 408
+
+    describe "when the buffer contains crlf line endings", ->
+      it "returns the total number of characters that precede the given position", ->
+        buffer.setText("line1\r\nline2\nline3\r\nline4")
+        expect(buffer.characterIndexForPosition([1])).toBe 7
+        expect(buffer.characterIndexForPosition([2])).toBe 13
+        expect(buffer.characterIndexForPosition([3])).toBe 20
 
   describe ".positionForCharacterIndex(position)", ->
     it "returns the position based on character index", ->
@@ -733,6 +741,13 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
+
+    describe "when the buffer contains crlf line endings", ->
+      it "returns the position based on character index", ->
+        buffer.setText("line1\r\nline2\nline3\r\nline4")
+        expect(buffer.positionForCharacterIndex(7)).toEqual [1, 0]
+        expect(buffer.positionForCharacterIndex(13)).toEqual [2, 0]
+        expect(buffer.positionForCharacterIndex(20)).toEqual [3, 0]
 
   describe "markers", ->
     describe "marker creation", ->

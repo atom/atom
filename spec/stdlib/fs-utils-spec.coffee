@@ -130,9 +130,9 @@ describe "fs", ->
       expect(paths).toContain project.resolve('coffee.coffee')
       expect(paths).toContain project.resolve('two-hundred.txt')
 
-    it "returns undefined for paths that aren't directories or don't exist", ->
-      expect(fs.list(project.resolve('sample.js'))).toBeUndefined()
-      expect(fs.list('/non/existent/directory')).toBeUndefined()
+    it "returns an empty array for paths that aren't directories or don't exist", ->
+      expect(fs.list(project.resolve('sample.js'))).toEqual []
+      expect(fs.list('/non/existent/directory')).toEqual []
 
     it "can filter the paths by an optional array of file extensions", ->
       paths = fs.list(project.getPath(), ['.css', 'coffee'])
