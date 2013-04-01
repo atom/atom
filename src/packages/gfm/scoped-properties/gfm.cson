@@ -1,3 +1,0 @@
-'.source.gfm':
-  'editor':
-    'increaseIndentPattern': '^\\s*([\\*\\+-])[ \\t]+'
