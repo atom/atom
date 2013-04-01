@@ -163,7 +163,13 @@ class Editor extends View
       do (name, method) =>
         @command name, => method.call(this); false
 
+  # Public: Retrieves a single cursor
+  #
+  # Returns [Cursor].
   getCursor: -> @activeEditSession.getCursor()
+  # Public: Retrieves a list of all the cursors.
+  #
+  # Returns {[Cursor]}.
   getCursors: -> @activeEditSession.getCursors()
   addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)
   addCursorAtBufferPosition: (bufferPosition) -> @activeEditSession.addCursorAtBufferPosition(bufferPosition)
