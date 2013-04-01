@@ -32,32 +32,13 @@ class Diff extends View
 
     @diskContents = buffer.cachedDiskContents
 
-    changes = diff.diffWords(git.getHeadBlob(path), @diskContents)
+    changes = diff.diffLines(git.getHeadBlob(path), @diskContents)
 
-    @activePane.showItem(new DiffView(buffer, @convertChanges(changes)))
+    @activePane.showItem(new DiffView(buffer, diff.convertChangesToXML(changes)))
 
   hideDiff: ->
     @activePane.showItem(@item)
     @active = false
-
-  convertChanges: (changes) ->
-    ret = []
-    changesLength = changes.length
-
-    for change in changes
-      if (change.added)
-        ret.push("<ins>")
-      else if (change.removed)
-        ret.push("<del>")
-
-      ret.push(change.value)
-
-      if (change.added)
-        ret.push("</ins>")
-      else if (change.removed)
-        ret.push("</del>")
-
-    return ret.join("");
 
 
   destroy: ->

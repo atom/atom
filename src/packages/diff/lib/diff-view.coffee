@@ -11,7 +11,7 @@ class DiffView extends ScrollView
     new DiffView(project.bufferForPath(path))
 
   @content: ->
-    @div class: 'diff-preview', tabindex: -1
+    @div class: 'editor diff', tabindex: -1
 
   initialize: (@buffer, @changes) ->
     super
