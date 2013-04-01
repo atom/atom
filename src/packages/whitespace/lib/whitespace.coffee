@@ -5,8 +5,8 @@ module.exports =
   whitespaceBeforeSave: (buffer) ->
     buffer.on 'will-be-saved', ->
       buffer.transact ->
-        buffer.scan /[ \t]+$/g, (match, range, { replace }) ->
-          replace('')
+        buffer.scan /[ \t]+$/g, (match, range, { replace }) -> replace('')
+
         if config.get('whitespace.singleTrailingNewline')
           if buffer.getLastLine() is ''
             row = buffer.getLastRow() - 1

@@ -11,12 +11,12 @@ describe "Whitespace", ->
     rootView.open(path)
 
     atom.activatePackage('whitespace')
+
     rootView.focus()
     editor = rootView.getActiveView()
 
   afterEach ->
     fs.remove(path) if fs.exists(path)
-    rootView.remove()
 
   it "strips trailing whitespace before an editor saves a buffer", ->
     spyOn(fs, 'write')
