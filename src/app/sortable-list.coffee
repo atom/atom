@@ -7,38 +7,40 @@ class SortableList extends View
 
   initialize: ->
     @on 'dragstart', '.sortable', @onDragStart
-    @on 'dragend',   '.sortable', @onDragEnd
-    @on 'dragover',  '.sortable', @onDragOver
-    @on 'dragenter', '.sortable', @onDragEnter
-    @on 'dragleave', '.sortable', @onDragLeave
-    @on 'drop',      '.sortable', @onDrop
+    @on 'dragend', '.sortable', @onDragEnd
+    @on 'dragover', @onDragOver
+    @on 'drop', @onDrop
 
   onDragStart: (event) =>
     unless @shouldAllowDrag(event)
       event.preventDefault()
       return
 
-    el = @getSortableElement(event)
+    el = $(event.target).closest('.sortable')
     el.addClass 'is-dragging'
     event.originalEvent.dataTransfer.setData 'sortable-index', el.index()
 
   onDragEnd: (event) =>
-    @getSortableElement(event).removeClass 'is-dragging'
-
-  onDragEnter: (event) =>
-    event.preventDefault()
+    @find(".is-dragging").removeClass 'is-dragging'
 
   onDragOver: (event) =>
     event.preventDefault()
-    @getSortableElement(event).addClass 'is-drop-target'
+    currentDropTargetIndex = @find(".is-drop-target").index()
+    newDropTargetIndex = @getDropTargetIndex(event)
 
-  onDragLeave: (event) =>
-    @getSortableElement(event).removeClass 'is-drop-target'
+    if newDropTargetIndex != currentDropTargetIndex
+      @children().removeClass 'is-drop-target drop-target-is-after'
+      sortableObjects = @find(".sortable")
+      if newDropTargetIndex < sortableObjects.length
+        sortableObjects.eq(newDropTargetIndex).addClass 'is-drop-target'
+      else
+        sortableObjects.eq(newDropTargetIndex - 1).addClass 'drop-target-is-after'
 
   onDrop: (event) =>
     return false if !@shouldAllowDrop(event)
     event.stopPropagation()
-    @find('.is-drop-target').removeClass 'is-drop-target'
+    @children('.is-drop-target').removeClass 'is-drop-target'
+    @children('.drop-target-is-after').removeClass 'drop-target-is-after'
 
   shouldAllowDrag: (event) ->
     true
@@ -46,9 +48,15 @@ class SortableList extends View
   shouldAllowDrop: (event) ->
     true
 
-  getDroppedElement: (event) ->
-    index = event.originalEvent.dataTransfer.getData('sortable-index')
-    @find(".sortable:eq(#{index})")
+  getDropTargetIndex: (event) ->
+    el = $(event.target).closest('.sortable')
+    el = $(event.target).find('.sortable').last()  if el.length == 0
 
-  getSortableElement: (event) ->
-    $(event.target).closest('.sortable')
+    elementCenter = el.offset().left + el.width() / 2
+
+    if event.originalEvent.pageX < elementCenter
+      el.index()
+    else if el.next().length > 0
+      el.next().index()
+    else
+      el.index() + 1

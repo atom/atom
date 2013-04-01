@@ -86,15 +86,15 @@ class TabBarView extends SortableList
     fromIndex     = parseInt(dataTransfer.getData('sortable-index'))
     fromPaneIndex = parseInt(dataTransfer.getData('from-pane-index'))
     fromPane      = @paneContainer.paneAtIndex(fromPaneIndex)
-    toIndex       = @getSortableElement(event).index()
+    toIndex       = @getDropTargetIndex(event)
     toPane        = $(event.target).closest('.pane').view()
     draggedTab    = fromPane.find(".tabs .sortable:eq(#{fromIndex})").view()
     item          = draggedTab.item
 
     if toPane is fromPane
-      toIndex++ if fromIndex > toIndex
+      toIndex-- if fromIndex < toIndex
       toPane.moveItem(item, toIndex)
     else
-      fromPane.moveItemToPane(item, toPane, toIndex)
+      fromPane.moveItemToPane(item, toPane, toIndex--)
     toPane.showItem(item)
     toPane.focus()
