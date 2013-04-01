@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 fs = require 'fs-utils'
 
-describe "StripTrailingWhitespace", ->
+describe "Whitespace", ->
   [editor, path] = []
 
   beforeEach ->
@@ -10,7 +10,7 @@ describe "StripTrailingWhitespace", ->
     window.rootView = new RootView
     rootView.open(path)
 
-    atom.activatePackage('strip-trailing-whitespace')
+    atom.activatePackage('whitespace')
     rootView.focus()
     editor = rootView.getActiveView()
 
@@ -34,15 +34,15 @@ describe "StripTrailingWhitespace", ->
     editor.getBuffer().save()
     expect(editor.getText()).toBe 'Some text.\n'
 
-  describe "stripTrailingWhitespace.singleTrailingNewline config", ->
+  describe "whitespace.singleTrailingNewline config", ->
     [originalConfigValue] = []
     beforeEach ->
-      originalConfigValue = config.get("stripTrailingWhitespace.singleTrailingNewline")
-      config.set("stripTrailingWhitespace.singleTrailingNewline", true)
+      originalConfigValue = config.get("whitespace.singleTrailingNewline")
+      config.set("whitespace.singleTrailingNewline", true)
       config.update()
 
     afterEach ->
-      config.set("stripTrailingWhitespace.singleTrailingNewline", originalConfigValue)
+      config.set("whitespace.singleTrailingNewline", originalConfigValue)
       config.update()
 
     it "adds a trailing newline when there is no trailing newline", ->
