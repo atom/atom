@@ -4,56 +4,50 @@ ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
 
 module.exports =
-class MarkdownPreviewView extends ScrollView
+class DiffView extends ScrollView
   registerDeserializer(this)
 
   @deserialize: ({path}) ->
-    new MarkdownPreviewView(project.bufferForPath(path))
+    new DiffView(project.bufferForPath(path))
 
   @content: ->
-    @div class: 'markdown-preview', tabindex: -1
+    @div class: 'diff-preview', tabindex: -1
 
-  initialize: (@buffer) ->
+  initialize: (@buffer, @changes) ->
     super
-    @fetchRenderedMarkdown()
+    @createDiffView()
     @on 'core:move-up', => @scrollUp()
     @on 'core:move-down', => @scrollDown()
 
   serialize: ->
-    deserializer: 'MarkdownPreviewView'
+    deserializer: 'DiffView'
     path: @buffer.getPath()
 
   getTitle: ->
-    "Markdown Preview – #{@buffer.getBaseName()}"
+    "Diff – #{@buffer.getBaseName()}"
 
   getUri: ->
-    "markdown-preview:#{@buffer.getPath()}"
+    "diff:#{@buffer.getPath()}"
 
   getPath: ->
     @buffer.getPath()
 
   setErrorHtml: ->
     @html $$$ ->
-      @h2 'Previewing Markdown Failed'
-      @h3 'Possible Reasons'
-      @ul =>
-        @li =>
-          @span 'You aren\'t online or are unable to reach '
-          @a 'github.com', href: 'https://github.com'
-          @span '.'
+      @h2 'Diff Failed'
 
   setLoading: ->
-    @html($$$ -> @div class: 'markdown-spinner', 'Loading Markdown...')
+    @html($$$ -> @div class: 'diff-spinner', 'Loading Diff...')
 
-  fetchRenderedMarkdown: (text) ->
-    @setLoading()
-    $.ajax
-      url: 'https://api.github.com/markdown'
-      type: 'POST'
-      dataType: 'html'
-      contentType: 'application/json; charset=UTF-8'
-      data: JSON.stringify
-        mode: 'markdown'
-        text: @buffer.getText()
-      success: (html) => @html(html)
-      error: => @setErrorHtml()
+  createDiffView: ->
+    @html("<pre>" + @changes + "</pre>")
+    # $.ajax
+    #   url: 'https://api.github.com/markdown'
+    #   type: 'POST'
+    #   dataType: 'html'
+    #   contentType: 'application/json; charset=UTF-8'
+    #   data: JSON.stringify
+    #     mode: 'markdown'
+    #     text: @buffer.getText()
+    #   success: (html) => @html(html)
+    #   error: => @setErrorHtml()

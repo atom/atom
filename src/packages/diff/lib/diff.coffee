@@ -12,32 +12,29 @@ class Diff extends View
     rootView.command 'diff:toggle-diff', '.editor', => @toggleDiff()
 
   toggleDiff: ->
-    # if @active
-    #   @hideDiff()
-    # else
-    #   @active = true
-    #   @showDiff()
+    console.log(@active)
+    if @active
+      @hideDiff()
+    else
+      @active = true
+      @showDiff()
 
   showDiff: ->
-    # @activePane = rootView.getActivePane()
-    # @item = @activePane.activeItem
+    @activePane = rootView.getActivePane()
+    @item = @activePane.activeItem
 
-    # if not @item instanceof EditSession
-    #   console.warn("Can not render markdown for #{item.getUri()}")
-    #   return
+    if not @item instanceof EditSession
+      console.warn("Can not render diff for #{item.getUri()}")
+      return
 
-    # editSession = @item
+    buffer = @item.buffer
+    path = buffer.file.path
 
-    #@activePane.showItem(new DiffView(editSession.buffer))
-    # buffer = @editor.getBuffer()
-    # path = buffer.file.path
+    @diskContents = buffer.cachedDiskContents
 
-    # @diskContents = buffer.cachedDiskContents
+    changes = diff.diffWords(git.getHeadBlob(path), @diskContents)
 
-    # changes = diff.diffWords(@diskContents, git.getHeadBlob(path))
-    # result = @convertChanges(changes)
-
-    # @editor.setText(result)
+    @activePane.showItem(new DiffView(buffer, @convertChanges(changes)))
 
   hideDiff: ->
     @activePane.showItem(@item)
