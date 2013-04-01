@@ -26,28 +26,5 @@ class DiffView extends ScrollView
   getTitle: ->
     "Diff – #{@buffer.getBaseName()}"
 
-  getUri: ->
-    "diff:#{@buffer.getPath()}"
-
-  getPath: ->
-    @buffer.getPath()
-
-  setErrorHtml: ->
-    @html $$$ ->
-      @h2 'Diff Failed'
-
-  setLoading: ->
-    @html($$$ -> @div class: 'diff-spinner', 'Loading Diff...')
-
   createDiffView: ->
     @html("<pre>" + @changes + "</pre>")
-    # $.ajax
-    #   url: 'https://api.github.com/markdown'
-    #   type: 'POST'
-    #   dataType: 'html'
-    #   contentType: 'application/json; charset=UTF-8'
-    #   data: JSON.stringify
-    #     mode: 'markdown'
-    #     text: @buffer.getText()
-    #   success: (html) => @html(html)
-    #   error: => @setErrorHtml()
