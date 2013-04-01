@@ -37,14 +37,14 @@ describe "Whitespace", ->
     editor.getBuffer().save()
     expect(editor.getText()).toBe 'Some text.\n'
 
-  describe "whitespace.singleTrailingNewline config", ->
+  describe "whitespace.ensureSingleTrailingNewline config", ->
     [originalConfigValue] = []
     beforeEach ->
-      originalConfigValue = config.get("whitespace.singleTrailingNewline")
+      originalConfigValue = config.get("whitespace.ensureSingleTrailingNewline")
       expect(originalConfigValue).toBe true
 
     afterEach ->
-      config.set("whitespace.singleTrailingNewline", originalConfigValue)
+      config.set("whitespace.ensureSingleTrailingNewline", originalConfigValue)
       config.update()
 
     it "adds a trailing newline when there is no trailing newline", ->
@@ -72,8 +72,8 @@ describe "Whitespace", ->
       editor.getBuffer().save()
       expect(editor.getText()).toBe "\n"
 
-    it "does not add trailing newline if singleTrailingNewline is false", ->
-      config.set("whitespace.singleTrailingNewline", false)
+    it "does not add trailing newline if ensureSingleTrailingNewline is false", ->
+      config.set("whitespace.ensureSingleTrailingNewline", false)
       config.update()
 
       editor.insertText "no trailing newline"
