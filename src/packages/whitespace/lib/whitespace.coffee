@@ -2,6 +2,9 @@ module.exports =
   activate: ->
     rootView.eachBuffer (buffer) => @whitespaceBeforeSave(buffer)
 
+  configDefaults:
+    singleTrailingNewline: true
+
   whitespaceBeforeSave: (buffer) ->
     buffer.on 'will-be-saved', ->
       buffer.transact ->

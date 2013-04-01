@@ -21,6 +21,9 @@ describe "Whitespace", ->
   it "strips trailing whitespace before an editor saves a buffer", ->
     spyOn(fs, 'write')
 
+    config.set("whitespace.ensureSingleTrailingNewline", false)
+    config.update()
+
     # works for buffers that are already open when extension is initialized
     editor.insertText("foo   \nbar\t   \n\nbaz")
     editor.getBuffer().save()
