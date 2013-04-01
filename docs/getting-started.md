@@ -173,8 +173,8 @@ its own namespace.
   - showInvisibles: Whether to render placeholders for invisible characters (defaults to false)
 - fuzzyFinder
   - ignoredNames: Files to ignore *only* in the fuzzy-finder
-- stripTrailingWhitespace
-  - singleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
+- whitespace
+  - ensureSingleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
 - wrapGuide
   - columns: Array of hashes with a `pattern` and `column` key to match the
              the path of the current editor to a column position.

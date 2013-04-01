@@ -81,8 +81,8 @@ describe "CSON", ->
         fontSize: 20
         core:
           themes: ['a', 'b']
-        stripTrailingWhitespace:
-          singleTrailingNewline: true
+        whitespace:
+          ensureSingleTrailingNewline: true
 
       cson = CSON.stringify(object)
       CoffeeScript = require 'coffee-script'
