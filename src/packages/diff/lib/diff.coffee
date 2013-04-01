@@ -32,7 +32,7 @@ class Diff extends View
 
     @diskContents = buffer.cachedDiskContents
 
-    changes = diff.diffLines(git.getHeadBlob(path), @diskContents)
+    changes = diff.diffWords(git.getHeadBlob(path), @diskContents)
 
     @activePane.showItem(new DiffView(buffer, diff.convertChangesToXML(changes)))
 
