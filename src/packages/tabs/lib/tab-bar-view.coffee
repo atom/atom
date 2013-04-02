@@ -1,15 +1,18 @@
 $ = require 'jquery'
+{View} = require 'space-pen'
 _ = require 'underscore'
-SortableList = require 'sortable-list'
 TabView = require './tab-view'
 
 module.exports =
-class TabBarView extends SortableList
+class TabBarView extends View
   @content: ->
-    @ul class: "tabs #{@viewClass()}"
+    @ul class: "tabs sortable-list"
 
   initialize: (@pane) ->
-    super
+    @on 'dragstart', '.sortable', @onDragStart
+    @on 'dragend', '.sortable', @onDragEnd
+    @on 'dragover', @onDragOver
+    @on 'drop', @onDrop
 
     @paneContainer = @pane.getContainer()
     @addTabForItem(item) for item in @pane.getItems()
@@ -74,13 +77,39 @@ class TabBarView extends SortableList
     (@paneContainer.getPanes().length > 1) or (@pane.getItems().length > 1)
 
   onDragStart: (event) =>
-    super
+    unless @shouldAllowDrag(event)
+      event.preventDefault()
+      return
+
+    el = $(event.target).closest('.sortable')
+    el.addClass 'is-dragging'
+    event.originalEvent.dataTransfer.setData 'sortable-index', el.index()
+
     pane = $(event.target).closest('.pane')
     paneIndex = @paneContainer.indexOfPane(pane)
     event.originalEvent.dataTransfer.setData 'from-pane-index', paneIndex
 
+  onDragEnd: (event) =>
+    @find(".is-dragging").removeClass 'is-dragging'
+
+  onDragOver: (event) =>
+    event.preventDefault()
+    currentDropTargetIndex = @find(".is-drop-target").index()
+    newDropTargetIndex = @getDropTargetIndex(event)
+
+    if newDropTargetIndex != currentDropTargetIndex
+      @children().removeClass 'is-drop-target drop-target-is-after'
+      sortableObjects = @find(".sortable")
+      if newDropTargetIndex < sortableObjects.length
+        sortableObjects.eq(newDropTargetIndex).addClass 'is-drop-target'
+      else
+        sortableObjects.eq(newDropTargetIndex - 1).addClass 'drop-target-is-after'
+
+
   onDrop: (event) =>
-    super
+    event.stopPropagation()
+    @children('.is-drop-target').removeClass 'is-drop-target'
+    @children('.drop-target-is-after').removeClass 'drop-target-is-after'
 
     dataTransfer  = event.originalEvent.dataTransfer
     fromIndex     = parseInt(dataTransfer.getData('sortable-index'))
@@ -98,3 +127,16 @@ class TabBarView extends SortableList
       fromPane.moveItemToPane(item, toPane, toIndex--)
     toPane.showItem(item)
     toPane.focus()
+
+  getDropTargetIndex: (event) ->
+    el = $(event.target).closest('.sortable')
+    el = $(event.target).find('.sortable').last()  if el.length == 0
+
+    elementCenter = el.offset().left + el.width() / 2
+
+    if event.originalEvent.pageX < elementCenter
+      el.index()
+    else if el.next().length > 0
+      el.next().index()
+    else
+      el.index() + 1
