@@ -127,19 +127,17 @@ class Project
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
 
-  bufferForPath: (filePath) ->
+  bufferForPath: (filePath, text) ->
     if filePath?
       filePath = @resolve(filePath)
       if filePath
         buffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
-        buffer or @buildBuffer(filePath)
-      else
-
+        buffer or @buildBuffer(filePath, text)
     else
-      @buildBuffer()
+      @buildBuffer(null, text)
 
-  buildBuffer: (filePath) ->
-    buffer = new Buffer(filePath)
+  buildBuffer: (filePath, text) ->
+    buffer = new Buffer(filePath, text)
     @buffers.push buffer
     @trigger 'buffer-created', buffer
     buffer

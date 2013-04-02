@@ -25,11 +25,8 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
-  @deserialize: (state) ->
-    if state && (state.path? || state.text?)
-      new Buffer(state.path, state.text)
-    else
-      new Buffer(null)
+  @deserialize: ({path, text}) ->
+    project.bufferForPath(path, text)
 
   constructor: (path, initialText) ->
     @id = @constructor.idCounter++
