@@ -92,8 +92,8 @@ class CommandPanelView extends View
         @miniEditor.focus()
 
   onExpandAll: (event) =>
-     @previewList.expandAllPaths()
-     @previewList.focus()
+    @previewList.expandAllPaths()
+    @previewList.focus()
 
   onCollapseAll: (event) =>
     @previewList.collapseAllPaths()
