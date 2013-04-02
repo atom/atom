@@ -302,6 +302,15 @@ class VimState
       if state.lastSearchMotion?
         @operation.input = state.lastSearchMotion.input if state.lastSearchMotion.input?
         state.lastSearchMotion.perform(@operation)
+    'up-first-character': () ->
+      @performEvent("core:move-up") for n in [1..@count]
+      @performEvent("editor:move-to-first-character-of-line")
+    'down-first-character': () ->
+      @performEvent("core:move-down") for n in [1..@count]
+      @performEvent("editor:move-to-first-character-of-line")
+    'down-first-character-minus-one': () ->
+      @performEvent("core:move-down") for n in [2..@count]
+      @performEvent("editor:move-to-first-character-of-line")
   commands:
     'q': "core:close"
     'w': "core:save"

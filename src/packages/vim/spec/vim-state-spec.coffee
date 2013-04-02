@@ -38,6 +38,9 @@ class MockVimView
   exitVisualMode: () ->
     @visual = false
   enterAwaitInputMode: () ->
+  inInsertMode: -> @mode is "insert"
+  inCommandMode: -> @mode is "command"
+  inVisualMode: -> @mode is "command" && @visual
   startedRecording: () ->
   stoppedRecording: () ->
   startTransaction: () ->
