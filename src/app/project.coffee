@@ -165,9 +165,9 @@ class Project
         state = 'readingPath'
         path = null
       else
-        colonIndex = line.indexOf(': ')
+        colonIndex = line.indexOf(':')
         matchInfo = line.substring(0, colonIndex)
-        lineText = line.substring(colonIndex + 2)
+        lineText = line.substring(colonIndex + 1)
         readMatches(matchInfo, lineText)
 
     readMatches = (matchInfo, lineText) ->
