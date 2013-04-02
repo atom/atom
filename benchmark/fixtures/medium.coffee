@@ -145,7 +145,7 @@ generate_html = (source, sections) ->
 
 # Require our external dependencies, including **Showdown.js**
 # (the JavaScript implementation of Markdown).
-fs       = require 'fs'
+fs       = require 'fs-utils'
 path     = require 'path'
 showdown = require('./../vendor/showdown').Showdown
 {spawn, exec} = require 'child_process'

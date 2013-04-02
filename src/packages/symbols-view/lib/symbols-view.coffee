@@ -3,7 +3,7 @@ SelectList = require 'select-list'
 TagGenerator = require './tag-generator'
 TagReader = require './tag-reader'
 Point = require 'point'
-fs = require 'fs'
+fs = require 'fs-utils'
 $ = require 'jquery'
 
 module.exports =
@@ -41,12 +41,10 @@ class SymbolsView extends SelectList
       @attach()
 
   populateFileSymbols: ->
-    tags = []
-    callback = (tag) -> tags.push tag
     path = rootView.getActiveView().getPath()
     @list.empty()
     @setLoading("Generating symbols...")
-    new TagGenerator(path, callback).generate().done =>
+    new TagGenerator(path).generate().done (tags) =>
       if tags.length > 0
         @miniEditor.show()
         @maxItem = Infinity

@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 
 module.exports =
 class Package
@@ -10,6 +10,11 @@ class Package
       new TextMatePackage(path)
     else
       new AtomPackage(path)
+
+  @load: (path, options) ->
+    pack = @build(path)
+    pack.load(options)
+    pack
 
   name: null
   path: null

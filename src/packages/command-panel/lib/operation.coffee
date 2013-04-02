@@ -1,22 +1,30 @@
 module.exports =
 class Operation
-  constructor: ({@project, @buffer, bufferRange, @newText, @preserveSelection, @errorMessage}) ->
-    @buffer.retain()
-    @marker = @buffer.markRange(bufferRange)
+  constructor: ({@project, @path, @buffer, @bufferRange, @newText, @preserveSelection, @errorMessage}) ->
+    if @buffer?
+      @buffer.retain()
+      @getMarker()
+
+  getMarker: ->
+    @marker ?= @getBuffer().markRange(@bufferRange)
+
+  getBuffer: ->
+    @buffer ?= @project.bufferForPath(@path).retain()
 
   getPath: ->
-    @project.relativize(@buffer.getPath())
+    path = @path ? @getBuffer().getPath()
+    @project.relativize(path)
 
   getBufferRange: ->
-    @buffer.getMarkerRange(@marker)
+    @getBuffer().getMarkerRange(@getMarker())
 
   execute: (editSession) ->
-    @buffer.change(@getBufferRange(), @newText) if @newText
+    @getBuffer().change(@getBufferRange(), @newText) if @newText
     @getBufferRange() unless @preserveSelection
 
   preview: ->
-    range = @buffer.getMarkerRange(@marker)
-    line = @buffer.lineForRow(range.start.row)
+    range = @getBuffer().getMarkerRange(@getMarker())
+    line = @getBuffer().lineForRow(range.start.row)
     prefix = line[0...range.start.column]
     match = line[range.start.column...range.end.column]
     suffix = line[range.end.column..]
@@ -24,5 +32,5 @@ class Operation
     {prefix, suffix, match, range}
 
   destroy: ->
-    @buffer.destroyMarker(@marker)
-    @buffer.release()
+    @buffer?.destroyMarker(@marker) if @marker?
+    @buffer?.release()

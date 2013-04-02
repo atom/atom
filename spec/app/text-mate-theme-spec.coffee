@@ -1,4 +1,4 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 plist = require 'plist'
 TextMateTheme = require 'text-mate-theme'
 Theme = require 'theme'
@@ -7,7 +7,7 @@ describe "TextMateTheme", ->
   [theme, themePath] = []
 
   beforeEach ->
-    themePath = require.resolve(fs.join('fixtures', 'test.tmTheme'))
+    themePath = fs.resolveOnLoadPath(fs.join('fixtures', 'test.tmTheme'))
     theme = Theme.load(themePath)
 
   afterEach ->

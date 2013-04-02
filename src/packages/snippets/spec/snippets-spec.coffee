@@ -1,25 +1,22 @@
 Snippet = require 'snippets/lib/snippet'
-LoadSnippetsTask = require 'snippets/lib/load-snippets-task'
 RootView = require 'root-view'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 _ = require 'underscore'
-fs = require 'fs'
+fs = require 'fs-utils'
 Package = require 'package'
 
 describe "Snippets extension", ->
   [buffer, editor, editSession] = []
   beforeEach ->
+    atom.activatePackage('javascript.tmbundle', sync: true)
     window.rootView = new RootView
     rootView.open('sample.js')
-    spyOn(LoadSnippetsTask.prototype, 'start')
 
-    packageWithSnippets = window.loadPackage("package-with-snippets")
+    packageWithSnippets = atom.loadPackage("package-with-snippets")
 
-    spyOn(atom, "getLoadedPackages").andCallFake ->
-      window.textMatePackages.concat([packageWithSnippets])
-
-    window.loadPackage("snippets")
+    spyOn(require("snippets/lib/snippets"), 'loadAll')
+    atom.activatePackage("snippets")
 
     editor = rootView.getActiveView()
     editSession = rootView.getActivePaneItem()
@@ -239,12 +236,16 @@ describe "Snippets extension", ->
 
   describe "snippet loading", ->
     beforeEach ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'start')
-      spyOn(LoadSnippetsTask.prototype, 'loadAtomSnippets').andCallFake -> @snippetsLoaded({})
-      spyOn(LoadSnippetsTask.prototype, 'loadTextMateSnippets').andCallFake -> @snippetsLoaded({})
+      atom.loadPackage('package-with-broken-snippets.tmbundle', sync: true)
+      atom.loadPackage('package-with-snippets')
+
+      jasmine.unspy(window, "setTimeout")
+      jasmine.unspy(snippets, 'loadAll')
+      spyOn(snippets, 'loadAtomSnippets').andCallFake (path, done) -> done()
+      spyOn(snippets, 'loadTextMateSnippets').andCallFake (path, done) -> done()
 
     it "loads non-hidden snippet files from all atom packages with snippets directories, logging a warning if a file can't be parsed", ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
+      jasmine.unspy(snippets, 'loadAtomSnippets')
       spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
@@ -259,7 +260,7 @@ describe "Snippets extension", ->
         expect(console.warn.calls.length).toBe 1
 
     it "loads snippets from all TextMate packages with snippets", ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
+      jasmine.unspy(snippets, 'loadTextMateSnippets')
       spyOn(console, 'warn')
       snippets.loaded = false
       snippets.loadAll()
@@ -280,37 +281,6 @@ describe "Snippets extension", ->
         # warn about invalid.plist
         expect(console.warn).toHaveBeenCalled()
         expect(console.warn.calls.length).toBe 1
-
-    it "terminates the worker when loading completes", ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'loadAtomSnippets')
-      spyOn(console, "warn")
-      spyOn(Worker.prototype, 'terminate').andCallThrough()
-      snippets.loaded = false
-      snippets.loadAll()
-
-      waitsFor "all snippets to load", 5000, -> snippets.loaded
-
-      runs ->
-        expect(console.warn).toHaveBeenCalled()
-        expect(console.warn.argsForCall[0]).toMatch /Error reading snippets file '.*?\/spec\/fixtures\/packages\/package-with-snippets\/snippets\/junk-file'/
-        expect(Worker.prototype.terminate).toHaveBeenCalled()
-        expect(Worker.prototype.terminate.calls.length).toBe 1
-
-    it "loads CSON snippets from TextMate packages", ->
-      jasmine.unspy(LoadSnippetsTask.prototype, 'loadTextMateSnippets')
-      snippets.loaded = false
-      task = new LoadSnippetsTask(snippets)
-      task.packages = [Package.build(project.resolve('packages/package-with-a-cson-grammar.tmbundle'))]
-      task.start()
-
-      waitsFor "CSON snippets to load", 5000, -> snippets.loaded
-
-      runs ->
-        snippet = syntax.getProperty(['.source.alot'], 'snippets.really')
-        expect(snippet).toBeTruthy()
-        expect(snippet.prefix).toBe 'really'
-        expect(snippet.name).toBe 'Really'
-        expect(snippet.body).toBe "I really like  alot"
 
   describe "snippet body parser", ->
     it "breaks a snippet body into lines, with each line containing tab stops at the appropriate position", ->

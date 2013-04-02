@@ -1,14 +1,14 @@
 RootView = require 'root-view'
 SymbolsView = require 'symbols-view/lib/symbols-view'
 TagGenerator = require 'symbols-view/lib/tag-generator'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "SymbolsView", ->
   [symbolsView, setArraySpy] = []
 
   beforeEach ->
     window.rootView = new RootView
-    window.loadPackage("symbols-view")
+    atom.activatePackage("symbols-view")
 
     rootView.attachToDom()
     setArraySpy = spyOn(SymbolsView.prototype, 'setArray').andCallThrough()
@@ -83,13 +83,12 @@ describe "SymbolsView", ->
 
   it "moves the cursor to the selected function", ->
     tags = []
+
     waitsForPromise ->
-      tags = []
       path = require.resolve('fixtures/sample.js')
-      callback = (tag) ->
-        tags.push tag
-      generator = new TagGenerator(path, callback)
-      generator.generate()
+      generator = new TagGenerator(path)
+      generator.generate().done (generatedTags) ->
+        tags = generatedTags
 
     runs ->
       rootView.open('sample.js')
@@ -108,10 +107,9 @@ describe "SymbolsView", ->
 
       waitsForPromise ->
         path = require.resolve('fixtures/sample.js')
-        callback = (tag) ->
-          tags.push tag
-        generator = new TagGenerator(path, callback)
-        generator.generate()
+        generator = new TagGenerator(path)
+        generator.generate().done (generatedTags) ->
+          tags = generatedTags
 
       runs ->
         expect(tags.length).toBe 2
@@ -125,10 +123,9 @@ describe "SymbolsView", ->
 
       waitsForPromise ->
         path = require.resolve('fixtures/sample.txt')
-        callback = (tag) ->
-          tags.push tag
-        generator = new TagGenerator(path, callback)
-        generator.generate()
+        generator = new TagGenerator(path)
+        generator.generate().done (generatedTags) ->
+          tags = generatedTags
 
       runs ->
         expect(tags.length).toBe 0

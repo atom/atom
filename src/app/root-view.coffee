@@ -1,10 +1,10 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs'
+fs = require 'fs-utils'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 Project = require 'project'
 Pane = require 'pane'
@@ -29,8 +29,7 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @subview 'panes', panes ? new PaneContainer
 
-  @deserialize: ({ panes, packages, projectPath }) ->
-    atom.atomPackageStates = packages ? {}
+  @deserialize: ({ panes }) ->
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes})
 
@@ -73,7 +72,6 @@ class RootView extends View
     version: RootView.version
     deserializer: 'RootView'
     panes: @panes.serialize()
-    packages: atom.serializeAtomPackages()
 
   confirmClose: ->
     @panes.confirmClose()
@@ -93,10 +91,6 @@ class RootView extends View
 
   afterAttach: (onDom) ->
     @focus() if onDom
-
-  deactivate: ->
-    atom.deactivateAtomPackages()
-    @remove()
 
   open: (path, options = {}) ->
     changeFocus = options.changeFocus ? true

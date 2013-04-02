@@ -1,4 +1,0 @@
-'name': 'embedded image'
-'scope': 'source.gfm'
-'tabTrigger': 'img'
-'content': '![$1]($2)$0'

@@ -1,5 +1,5 @@
 Point = require 'point'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
@@ -8,7 +8,7 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
 _ = require 'underscore'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 module.exports =
 class EditSession
@@ -24,11 +24,6 @@ class EditSession
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
     session
-
-  @identifiedBy: 'path'
-
-  @deserializesToSameObject: (state, editSession) ->
-    state.path
 
   scrollTop: 0
   scrollLeft: 0
@@ -589,9 +584,15 @@ class EditSession
     cursor = @addCursor(marker)
     selection = new Selection({editSession: this, marker, cursor})
     @selections.push(selection)
+    selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections()
-    @trigger 'selection-added', selection
-    selection
+    if selection.destroyed
+      for selection in @getSelections()
+        if selection.intersectsBufferRange(selectionBufferRange)
+          return selection
+    else
+      @trigger 'selection-added', selection
+      selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
     options = _.defaults({invalidationStrategy: 'never'}, options)
@@ -842,11 +843,18 @@ class EditSession
 
   getGrammar: -> @languageMode.grammar
 
+  setGrammar: (grammar) ->
+    @languageMode.grammar = grammar
+    @handleGrammarChange()
+
   reloadGrammar: ->
-    if @languageMode.reloadGrammar()
-      @unfoldAll()
-      @displayBuffer.tokenizedBuffer.resetScreenLines()
-      true
+    @handleGrammarChange() if @languageMode.reloadGrammar()
+
+  handleGrammarChange: ->
+    @unfoldAll()
+    @displayBuffer.tokenizedBuffer.resetScreenLines()
+    @trigger 'grammar-changed'
+    true
 
   getDebugSnapshot: ->
     [

@@ -1,11 +1,11 @@
 Directory = require 'directory'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe "Directory", ->
   directory = null
 
   beforeEach ->
-    directory = new Directory(require.resolve('fixtures'))
+    directory = new Directory(fs.resolveOnLoadPath('fixtures'))
 
   afterEach ->
     directory.off()
@@ -14,7 +14,7 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fs.join(require.resolve('fixtures'), 'temporary')
+      temporaryFilePath = fs.join(fs.resolveOnLoadPath('fixtures'), 'temporary')
       fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     afterEach ->
@@ -65,3 +65,11 @@ describe "Directory", ->
       waits 20
       runs -> expect(changeHandler.callCount).toBe 0
 
+  it "includes symlink information about entries", ->
+    entries = directory.getEntries()
+    for entry in entries
+      name = entry.getBaseName()
+      if name is 'symlink-to-dir' or name is 'symlink-to-file'
+        expect(entry.symlink).toBeTruthy()
+      else
+        expect(entry.symlink).toBeFalsy()

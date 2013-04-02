@@ -41,7 +41,7 @@ module.exports =
 
   goToMatchingPair: (editor) ->
     return unless @pairHighlighted
-    return unless underlayer = editor.pane()?.find('.underlayer')
+    return unless underlayer = editor.getPane()?.find('.underlayer')
 
     position = editor.getCursorBufferPosition()
     previousPosition = position.translate([0, -1])
@@ -127,7 +127,7 @@ module.exports =
     startPairPosition
 
   updateMatch: (editor) ->
-    return unless underlayer = editor.pane()?.find('.underlayer')
+    return unless underlayer = editor.getPane()?.find('.underlayer')
 
     @hideHighlightViews(editor) if @pairHighlighted
     @pairHighlighted = false

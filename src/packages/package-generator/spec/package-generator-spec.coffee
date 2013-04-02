@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-fs = require 'fs'
+fs = require 'fs-utils'
 
 describe 'Package Generator', ->
   [packageGenerator] = []
@@ -7,7 +7,7 @@ describe 'Package Generator', ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    window.loadPackage("package-generator")
+    atom.activatePackage("package-generator")
 
   describe "when package-generator:generate is triggered", ->
     it "displays a miniEditor", ->

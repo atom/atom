@@ -1,5 +1,6 @@
 {
   'variables': {
+    'version': '2.0.<!(git log -1 --format="%h")',
     'pkg-config': 'pkg-config',
     'chromium_code': 1,
     'use_aura%': 0,
@@ -22,20 +23,13 @@
       '@executable_path/libcef.dylib',
       '@rpath/Chromium Embedded Framework.framework/Libraries/libcef.dylib',
       '-change',
-      '@executable_path/../Frameworks/CocoaOniguruma.framework/Versions/A/CocoaOniguruma',
-      '@rpath/CocoaOniguruma.framework/Versions/A/CocoaOniguruma',
-      '-change',
       '@loader_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle',
       '@rpath/Sparkle.framework/Versions/A/Sparkle',
-      '-change',
-      '@executable_path/libgit2.0.17.0.dylib',
-      '@rpath/libgit2.framework/Libraries/libgit2.0.17.0.dylib',
       '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
     ],
   },
   'includes': [
     'cef/cef_paths2.gypi',
-    'git2/libgit2.gypi',
     'sources.gypi',
   ],
   'target_defaults': {
@@ -49,6 +43,7 @@
       },
     },
     'xcode_settings': {
+      'VERSION': "<(version)",
       'CLANG_CXX_LANGUAGE_STANDARD' : 'c++0x',
       'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
       'COMBINE_HIDPI_IMAGES': 'YES', # Removes 'Validate Project Settings' warning
@@ -142,20 +137,20 @@
               'files': [
                 '<(PRODUCT_DIR)/Atom Helper.app',
                 '<(PRODUCT_DIR)/Atom.framework',
-                'native/frameworks/CocoaOniguruma.framework',
                 'native/frameworks/Sparkle.framework',
-              ],
-            },
-            {
-              'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/libgit2.framework/Libraries',
-              'files': [
-                'git2/frameworks/libgit2.0.17.0.dylib',
               ],
             },
             {
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework',
               'files': [
                 'cef/Resources',
+              ],
+            },
+            {
+              # Copy node binary for worker process support.
+              'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Resources',
+              'files': [
+                'node/node',
               ],
             },
           ],
@@ -231,7 +226,7 @@
         'INFOPLIST_FILE': 'native/mac/framework-info.plist',
         'LD_DYLIB_INSTALL_NAME': '@rpath/Atom.framework/Atom',
       },
-      'include_dirs': [ '.', 'cef', 'git2' ],
+      'include_dirs': [ '.', 'cef' ],
       'mac_framework_dirs': [ 'native/frameworks' ],
       'sources': [
         '<@(includes_common)',
@@ -257,24 +252,12 @@
         'native/path_watcher.mm',
         'native/v8_extensions/atom.h',
         'native/v8_extensions/atom.mm',
-        'native/v8_extensions/git.h',
-        'native/v8_extensions/git.mm',
         'native/v8_extensions/native.h',
         'native/v8_extensions/native.mm',
-        'native/v8_extensions/onig_reg_exp.h',
-        'native/v8_extensions/onig_reg_exp.mm',
-        'native/v8_extensions/onig_scanner.h',
-        'native/v8_extensions/onig_scanner.mm',
-        'native/v8_extensions/readtags.c',
-        'native/v8_extensions/readtags.h',
-        'native/v8_extensions/tags.h',
-        'native/v8_extensions/tags.mm',
       ],
       'link_settings': {
         'libraries': [
           '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
-          'git2/frameworks/libgit2.0.17.0.dylib',
-          'native/frameworks/CocoaOniguruma.framework',
           'native/frameworks/Sparkle.framework',
         ],
       },
@@ -326,6 +309,7 @@
       'sources': [
         '<@(coffee_sources)',
         '<@(cson_sources)',
+        '<@(less_sources)'
       ],
       'rules': [
         {
@@ -358,6 +342,22 @@
             'script/compile-cson',
             '<(RULE_INPUT_PATH)',
             '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).json',
+          ],
+        },
+        {
+          'rule_name': 'less',
+          'extension': 'less',
+          'inputs': [
+            'script/compile-less',
+          ],
+          'outputs': [
+            '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).css',
+          ],
+          'action': [
+            'sh',
+            'script/compile-less',
+            '<(RULE_INPUT_PATH)',
+            '<(compiled_sources_dir)/<(RULE_INPUT_DIRNAME)/<(RULE_INPUT_ROOT).css',
           ],
         },
       ],

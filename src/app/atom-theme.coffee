@@ -1,5 +1,6 @@
-fs = require 'fs'
+fs = require 'fs-utils'
 Theme = require 'theme'
+CSON = require 'cson'
 
 module.exports =
 class AtomTheme extends Theme
@@ -13,9 +14,11 @@ class AtomTheme extends Theme
     else
       metadataPath = fs.resolveExtension(fs.join(@path, 'package'), ['cson', 'json'])
       if fs.isFile(metadataPath)
-        stylesheetNames = fs.readObject(metadataPath)?.stylesheets
+        stylesheetNames = CSON.readObject(metadataPath)?.stylesheets
         if stylesheetNames
-          @loadStylesheet(fs.join(@path, name)) for name in stylesheetNames
+          for name in stylesheetNames
+            filename = fs.resolveExtension(fs.join(@path, name), ['.css', '.less', ''])
+            @loadStylesheet(filename)
       else
         @loadStylesheet(stylesheetPath) for stylesheetPath in fs.list(@path, ['.css', '.less'])
 

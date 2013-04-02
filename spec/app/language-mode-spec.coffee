@@ -1,5 +1,5 @@
 Project = require 'project'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 
 describe "LanguageMode", ->
@@ -10,6 +10,7 @@ describe "LanguageMode", ->
 
   describe "common behavior", ->
     beforeEach ->
+      atom.activatePackage('javascript.tmbundle', sync: true)
       editSession = project.buildEditSession('sample.js', autoIndent: false)
       { buffer, languageMode } = editSession
 
@@ -21,6 +22,7 @@ describe "LanguageMode", ->
 
   describe "javascript", ->
     beforeEach ->
+      atom.activatePackage('javascript.tmbundle', sync: true)
       editSession = project.buildEditSession('sample.js', autoIndent: false)
       { buffer, languageMode } = editSession
 
@@ -60,9 +62,9 @@ describe "LanguageMode", ->
         expect(languageMode.suggestedIndentForBufferRow(2)).toBe 2
         expect(languageMode.suggestedIndentForBufferRow(9)).toBe 1
 
-
   describe "coffeescript", ->
     beforeEach ->
+      atom.activatePackage('coffee-script-tmbundle', sync: true)
       editSession = project.buildEditSession('coffee.coffee', autoIndent: false)
       { buffer, languageMode } = editSession
 
@@ -98,6 +100,7 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
+      atom.activatePackage('css.tmbundle', sync: true)
       editSession = project.buildEditSession('css.css', autoIndent: false)
       { buffer, languageMode } = editSession
 
