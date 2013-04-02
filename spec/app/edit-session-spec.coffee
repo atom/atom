@@ -570,7 +570,7 @@ describe "EditSession", ->
         expect(selection2.getBufferRange()).toEqual [[11,3], [11,44]]
         expect(selection2.isReversed()).toBeFalsy()
 
-    describe ".selectLine()", ->
+    fdescribe ".selectLine()", ->
       it "selects the entire line (including newlines) at given row", ->
          editSession.setCursorScreenPosition([1, 2])
          editSession.selectLine()
@@ -580,6 +580,12 @@ describe "EditSession", ->
          editSession.setCursorScreenPosition([12, 2])
          editSession.selectLine()
          expect(editSession.getSelectedBufferRange()).toEqual [[12,0], [12,2]]
+      it "selects multiple entire lines when called multiple times", ->
+        editSession.setCursorScreenPosition([1, 2])
+        editSession.selectLine()
+        editSession.selectLine()
+        expect(editSession.getSelectedBufferRange()).toEqual [[1,0], [3,0]]
+        expect(editSession.getSelectedText().split('\n')[1]).toBe "    if (items.length <= 1) return items;"
 
     describe ".selectToBeginningOfWord()", ->
       it "selects text from cusor position to beginning of word", ->
