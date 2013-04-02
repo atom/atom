@@ -114,6 +114,10 @@ task :tags do
   system %{find src native cef vendor -not -name "*spec.coffee" -type f -print0 | xargs -0 ctags}
 end
 
+task :docs do
+  system %{./biscotto src/app/}
+end
+
 def application_path
   applications = FileList["#{BUILD_DIR}/**/Atom.app"]
   if applications.size == 0
