@@ -8,6 +8,8 @@
   'ctrl-[': 'vim:command-mode'
   'ctrl-n': 'vim:autocomplete'
   'ctrl-p': 'vim:autocomplete-reverse'
+
+'.editor.insert-mode':
   'left': 'vim:motion-left'
   'down': 'vim:motion-down'
   'up': 'vim:motion-up'
@@ -38,6 +40,7 @@
   'right': 'vim:motion-right'
   '0': 'vim:motion-beginning-of-line'
   '$': 'vim:motion-end-of-line'
+  '^': 'vim:motion-first-character'
   'w': 'vim:motion-next-word'
   'b': 'vim:motion-previous-word'
   'e': 'vim:motion-end-of-word'

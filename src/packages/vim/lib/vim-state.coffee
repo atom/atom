@@ -262,7 +262,11 @@ class VimState
     down: "core:move-down"
     line: "editor:move-line"
     'beginning-of-line': "editor:move-to-beginning-of-line"
-    'end-of-line': "editor:move-to-end-of-line"
+    'end-of-line': () ->
+      if @count > 1
+        @performEvent("core:move-down") for n in [1..@count-1]
+      @performEvent("editor:move-to-end-of-line")
+    'first-character': "editor:move-to-first-character-of-line"
     'next-word': "editor:move-to-beginning-of-next-word"
     'previous-word': "editor:move-to-beginning-of-word"
     'up-screen': () ->
