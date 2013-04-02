@@ -139,7 +139,7 @@ class Project
       @buildBuffer()
 
   buildBuffer: (filePath) ->
-    buffer = new Buffer(filePath, this)
+    buffer = new Buffer(filePath)
     @buffers.push buffer
     @trigger 'buffer-created', buffer
     buffer

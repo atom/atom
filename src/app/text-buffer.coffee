@@ -27,11 +27,11 @@ class Buffer
 
   @deserialize: (state) ->
     if state && (state.path? || state.text?)
-      new Buffer(state.path, project, state.text)
+      new Buffer(state.path, state.text)
     else
-      new Buffer(null, project)
+      new Buffer(null)
 
-  constructor: (path, @project, initialText) ->
+  constructor: (path, initialText) ->
     @id = @constructor.idCounter++
     @nextMarkerId = 1
     @validMarkers = {}
@@ -55,7 +55,7 @@ class Buffer
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
     @file?.off()
     @destroyed = true
-    @project?.removeBuffer(this)
+    project?.removeBuffer(this)
 
   retain: ->
     @refcount++
