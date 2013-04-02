@@ -75,6 +75,7 @@ class Project
     fs.absolute filePath
 
   relativize: (fullPath) ->
+    return fullPath unless fullPath.lastIndexOf(@getPath()) is 0
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
   getSoftTabs: -> @softTabs
