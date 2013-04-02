@@ -15,9 +15,8 @@ class EditSession
   registerDeserializer(this)
 
   @deserialize: (state) ->
-    if fs.exists(state.buffer)
-      session = project.buildEditSession(state.buffer)
-    else
+    session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
+    if !session?
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
       session = project.buildEditSession(null)
     session.setScrollTop(state.scrollTop)
@@ -88,7 +87,7 @@ class EditSession
 
   serialize: ->
     deserializer: 'EditSession'
-    buffer: @buffer.getPath()
+    buffer: @buffer.serialize()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
