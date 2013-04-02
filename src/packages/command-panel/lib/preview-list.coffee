@@ -56,7 +56,7 @@ class PreviewList extends ScrollView
       pathView.addOperation(operation)
       @lastRenderedOperationIndex++
       break if not renderAll and @prop('scrollHeight') >= startingScrollHeight + @pixelOverdraw and @prop('scrollHeight') > @height() + @pixelOverdraw
- 
+
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
     if not pathView
