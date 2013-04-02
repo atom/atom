@@ -2059,12 +2059,6 @@ describe "EditSession", ->
       editSession.setCursorScreenPosition([0, 1])
       editSession.buffer.reload()
       expect(editSession.getCursorScreenPosition()).toEqual [0,1]
-    it "preserves the current state if the file was not saved yet", ->
-      editSession.destroy()
-      editSession = project.buildEditSession(null, autoIndent: false)
-      editSession.buffer.setText('test')
-      editSession = EditSession.deserialize(editSession.serialize())
-      expect(editSession.buffer.getText()).toBe('test')
 
   describe "when the 'grammars-loaded' event is triggered on the syntax global", ->
     it "reloads the edit session's grammar and re-tokenizes the buffer if it changes", ->
