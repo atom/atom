@@ -1236,12 +1236,14 @@ describe 'Buffer', ->
         data = buffer.serialize()
         expect(data.path).toBe(buffer.getPath())
         expect(data.text).toBeFalsy()
+
     describe "when the buffer has unsaved changes", ->
       it "stores the file path and the changed buffer text", ->
         buffer.setText("abc")
         data = buffer.serialize()
         expect(data.path).toBe(buffer.getPath())
         expect(data.text).toBe("abc")
+
     describe "when the buffer has never been saved", ->
       it "stores the changed buffer text", ->
         buffer.release()
@@ -1261,12 +1263,14 @@ describe 'Buffer', ->
       path = buffer.getPath()
       reloadBuffer()
       expect(buffer.getPath()).toBe(path)
+
     it "loads the stored changes if the file was modified", ->
       path = buffer.getPath()
       buffer.setText("abc")
       reloadBuffer()
       expect(buffer.getPath()).toBe(path)
       expect(buffer.getText()).toBe("abc")
+
     it "loads the stored changes if the file was never saved", ->
       buffer.release()
       buffer = new Buffer()
