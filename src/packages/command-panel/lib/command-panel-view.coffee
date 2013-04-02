@@ -6,7 +6,6 @@ PreviewList = require './preview-list'
 Editor = require 'editor'
 {SyntaxError} = require('pegjs').parser
 _ = require 'underscore'
-$ = require 'jquery'
 
 module.exports =
 class CommandPanelView extends View
@@ -15,6 +14,7 @@ class CommandPanelView extends View
       @div class: 'loading is-loading', outlet: 'loadingMessage', 'Searching...'
       @div class: 'header', outlet: 'previewHeader', =>
         @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
+          @li class: 'expand', 'Expand All'
           @li class: 'collapse', 'Collapse All'
         @span outlet: 'previewCount', class: 'preview-count'
 
@@ -92,17 +92,11 @@ class CommandPanelView extends View
         @miniEditor.focus()
 
   onExpandAll: (event) =>
-    elButton = $(event.currentTarget)
-    @previewList.expandAllPaths()   
-    elButton.removeClass("expand").addClass("collapse")
-    elButton.text("Collapse All")
-    @previewList.focus()
+     @previewList.expandAllPaths()
+     @previewList.focus()
 
   onCollapseAll: (event) =>
-    elButton = $(event.currentTarget)
     @previewList.collapseAllPaths()
-    elButton.removeClass("collapse").addClass("expand")
-    elButton.text("Expand All")
     @previewList.focus()
 
   attach: (text='', options={}) ->
