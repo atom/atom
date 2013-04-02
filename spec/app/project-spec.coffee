@@ -247,17 +247,17 @@ describe "Project", ->
 
         stdout = BufferedProcess.prototype.bufferStream.argsForCall[0][1]
         stdout ":#{fs.resolveOnLoadPath('fixtures/dir/a')}\n"
-        stdout "1;0 3:aaa bbb\n2;3 2:cc aa cc\n"
+        stdout "1;0 3: aaa bbb\n2;3 2: cc aa cc\n"
 
         expect(iterator.argsForCall[0][0]).toEqual
           path: project.resolve('a')
-          match: 'aa '
+          match: 'aaa'
           range: [[0, 0], [0, 3]]
           lineText: 'aaa bbb'
 
         expect(iterator.argsForCall[1][0]).toEqual
           path: project.resolve('a')
-          match: 'a '
+          match: 'aa'
           range: [[1, 3], [1, 5]]
           lineText: 'cc aa cc'
 
