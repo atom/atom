@@ -45,11 +45,11 @@ class VimView extends View
     @state = new VimState(@editor, this)
     @enterCommandMode()
 
-    @editor.command "vim:insert-mode", => @enterInsertMode()
-    @editor.command "vim:insert-mode-append", => @enterInsertMode("append")
-    @editor.command "vim:insert-mode-next-line", => @enterInsertMode("next-line")
-    @editor.command "vim:insert-mode-previous-line", => @enterInsertMode("previous-line")
-    @editor.command "vim:command-mode", => @enterCommandMode()
+    @editor.command 'vim:command-mode', => @state.operation("command")
+    @editor.command 'vim:insert-mode', => @state.operation("insert")
+    @editor.command 'vim:insert-mode-append', => @state.alias("insert-append")
+    @editor.command 'vim:insert-mode-next-line', => @state.alias("insert-line-down")
+    @editor.command 'vim:insert-mode-previous-line', => @state.alias("insert-line-up")
     @editor.command 'vim:ex-mode', => @enterExMode()
     @editor.command 'vim:visual-mode', => @enterVisualMode()
     @editor.command 'vim:visual-mode-lines', => @enterVisualMode("lines")
@@ -60,7 +60,6 @@ class VimView extends View
     @editor.command 'vim:search-word', => @searchWord()
     @editor.command 'vim:matching-bracket', => @matchingBracket()
 
-    @command 'vim:insert-mode', => @enterInsertMode()
     @command 'vim:unfocus', => @rootView.focus()
     @command 'core:close', => @discardCommand()
     @command 'vim:execute', => @executeCommand()
@@ -138,29 +137,23 @@ class VimView extends View
     @insertTransaction = true
   stopTransaction: ->
     if @insertTransaction
-      @editor.activeEditSession.commit() if @editor.activeEditSession.buffer.undoManager.currentTransaction?
+      if @editor.activeEditSession.buffer.undoManager.currentTransaction?
+        @lastTransaction = @editor.activeEditSession.buffer.undoManager.currentTransaction
+        @editor.commit()
       @insertTransaction = false
 
-  enterInsertMode: (type) ->
+  enterInsertMode: ->
     @resetMode()
-    switch type
-      when 'append' then @state.motion("right")
-      when 'next-line' then @state.alias("insert-line-down")
-      when 'previous-line' then @state.alias("insert-line-up")
-    cursor = @cursor()
-    cursor.width = 1
-    cursor.updateDisplay()
     @editor.removeClass("command-mode")
     @mode = "insert"
+    @updateCursor()
     @updateCommandLine()
     @startTransaction()
 
   enterCommandMode: ->
     @stopTransaction()
     @resetMode()
-    cursor = @cursor()
-    cursor.width = @editor.getFontSize()
-    cursor.updateDisplay()
+    @updateCursor()
     @updateCommandLine()
 
   enterExMode: ->
@@ -206,6 +199,11 @@ class VimView extends View
         @prompt.text(@state.count())
       else
         @prompt.text(">")
+
+  updateCursor: ->
+    cursor = @cursor()
+    cursor.width = @editor.getFontSize()
+    cursor.updateDisplay()
 
   addInput: (input) ->
     @runCommand input

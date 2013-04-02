@@ -235,6 +235,9 @@ class VimState
     'delete-until-end-of-line':
       motion: 'end-of-line'
       operation: 'delete'
+    'insert-append':
+      motion: 'right'
+      operation: 'insert'
     'insert-line-up':
       motion: 'beginning-of-line'
       operation: 'insert-line'
@@ -300,6 +303,10 @@ class VimState
     'w': "core:save"
     's': "command-panel:replace-in-file"
   operations:
+    'insert': ->
+      @vim.enterInsertMode()
+    'command': ->
+      @vim.enterCommandMode()
     'move': ->
       @performMotion()
     'select': ->
@@ -321,6 +328,7 @@ class VimState
       @textInput(@input)
     'insert-line': ->
       @performMotion()
+      @vim.enterInsertMode()
       @performEvent("editor:newline")
     'repeat': (state) ->
       return if !state.lastOperation?
@@ -355,4 +363,4 @@ class VimState
   motionsWithInput: ['find-character', 'find-character-reverse']
   motionsWithRequiredCount: ['go-to-line']
   searchMotions: ['find-character']
-  noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines', 'start-recording', 'stop-recording', 'replay-recording']
+  noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines', 'start-recording', 'stop-recording', 'replay-recording', 'insert', 'command']
