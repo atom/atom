@@ -307,6 +307,12 @@ class VimState
       @vim.enterInsertMode()
     'command': ->
       @vim.enterCommandMode()
+    'visual': ->
+      @vim.enterVisualMode()
+    'visual-lines': ->
+      @vim.enterVisualMode("lines")
+    'ex': ->
+      @vim.enterExMode()
     'move': ->
       @performMotion()
     'select': ->
@@ -363,4 +369,4 @@ class VimState
   motionsWithInput: ['find-character', 'find-character-reverse']
   motionsWithRequiredCount: ['go-to-line']
   searchMotions: ['find-character']
-  noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines', 'start-recording', 'stop-recording', 'replay-recording', 'insert', 'command']
+  noMotionOperations: ['repeat', 'paste', 'paste-before', 'enter-visual-normal', 'enter-visual-lines', 'start-recording', 'stop-recording', 'replay-recording', 'insert', 'command', 'visual', 'ex']
