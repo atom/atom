@@ -253,13 +253,11 @@ describe "Project", ->
           path: project.resolve('a')
           match: 'aaa'
           range: [[0, 0], [0, 3]]
-          lineText: 'aaa bbb'
 
         expect(iterator.argsForCall[1][0]).toEqual
           path: project.resolve('a')
           match: 'aa'
           range: [[1, 3], [1, 5]]
-          lineText: 'cc aa cc'
 
   describe "serialization", ->
     it "restores the project path", ->
