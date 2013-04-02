@@ -23,7 +23,7 @@ class Operation
     @getBufferRange() unless @preserveSelection
 
   preview: ->
-    range = @bufferRange
+    range = @getBufferRange()
     prefix = @lineText[0...range.start.column]
     match = @lineText[range.start.column...range.end.column]
     suffix = @lineText[range.end.column..]
