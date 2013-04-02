@@ -48,7 +48,7 @@ class MockVimView
   editor:
     insertText:() ->
 
-fdescribe "Vim state", ->
+describe "Vim state", ->
 
   [target, vim, editor] = []
 
