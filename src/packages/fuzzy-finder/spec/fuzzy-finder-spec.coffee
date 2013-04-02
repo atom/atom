@@ -145,6 +145,7 @@ describe 'FuzzyFinder', ->
 
           atom.deactivatePackage('fuzzy-finder')
           states = _.map atom.getPackageState('fuzzy-finder'), (path, time) -> [ path, time ]
+          expect(states.length).toBe 3
           states = _.sortBy states, (path, time) -> -time
 
           paths = [ 'sample-with-tabs.coffee', 'sample.txt', 'sample.js' ]
