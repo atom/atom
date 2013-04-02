@@ -218,6 +218,7 @@ class VimView extends View
     if @autocompleting()
       @editor.trigger(if reverse then "autocomplete:previous" else "autocomplete:next")
     else
+      @stopTransaction()
       @editor.trigger("autocomplete:attach")
 
   autocompleting: () ->
