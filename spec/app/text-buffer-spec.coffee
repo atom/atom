@@ -9,7 +9,7 @@ describe 'Buffer', ->
   beforeEach ->
     filePath = require.resolve('fixtures/sample.js')
     fileContents = fs.read(filePath)
-    buffer = new Buffer(filePath)
+    buffer = project.bufferForPath(filePath)
 
   afterEach ->
     buffer?.release()
@@ -23,11 +23,11 @@ describe 'Buffer', ->
       describe "when a file exists for the path", ->
         it "loads the contents of that file", ->
           filePath = require.resolve 'fixtures/sample.txt'
-          buffer = new Buffer(filePath)
+          buffer = project.bufferForPath(filePath)
           expect(buffer.getText()).toBe fs.read(filePath)
 
         it "is not modified and has no undo history", ->
-          buffer = new Buffer(filePath)
+          buffer = project.bufferForPath(filePath)
           expect(buffer.isModified()).toBeFalsy()
           expect(buffer.undoManager.undoHistory.length).toBe 0
 
@@ -35,11 +35,11 @@ describe 'Buffer', ->
         it "throws an exception", ->
           filePath = "does-not-exist.txt"
           expect(fs.exists(filePath)).toBeFalsy()
-          expect(-> new Buffer(filePath)).toThrow()
+          expect(-> project.bufferForPath(filePath)).toThrow()
 
     describe "when no path is given", ->
       it "creates an empty buffer", ->
-        buffer = new Buffer
+        buffer = project.bufferForPath(null)
         expect(buffer .getText()).toBe ""
 
   describe "path-changed event", ->
@@ -49,7 +49,7 @@ describe 'Buffer', ->
       path = fs.join(fs.resolveOnLoadPath("fixtures"), "atom-manipulate-me")
       newPath = "#{path}-i-moved"
       fs.write(path, "")
-      bufferToChange = new Buffer(path)
+      bufferToChange = project.bufferForPath(path)
       eventHandler = jasmine.createSpy('eventHandler')
       bufferToChange.on 'path-changed', eventHandler
 
@@ -78,7 +78,7 @@ describe 'Buffer', ->
       path = "/tmp/tmp.txt"
       fs.write(path, "first")
       buffer.release()
-      buffer = new Buffer(path).retain()
+      buffer = project.bufferForPath(path).retain()
 
     afterEach ->
       buffer.release()
@@ -150,7 +150,8 @@ describe 'Buffer', ->
     beforeEach ->
       path = "/tmp/atom-file-to-delete.txt"
       fs.write(path, 'delete me')
-      bufferToDelete = new Buffer(path)
+      bufferToDelete = project.bufferForPath(path)
+      path = bufferToDelete.getPath() # symlinks may have been converted
 
       expect(bufferToDelete.getPath()).toBe path
       expect(bufferToDelete.isModified()).toBeFalsy()
@@ -207,7 +208,7 @@ describe 'Buffer', ->
       buffer.release()
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, 'delete me')
-      buffer = new Buffer(filePath)
+      buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -220,7 +221,7 @@ describe 'Buffer', ->
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, '')
       buffer.release()
-      buffer = new Buffer(filePath)
+      buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -244,7 +245,7 @@ describe 'Buffer', ->
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, '')
       buffer.release()
-      buffer = new Buffer(filePath)
+      buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -265,12 +266,12 @@ describe 'Buffer', ->
 
     it "returns false for an empty buffer with no path", ->
       buffer.release()
-      buffer = new Buffer()
+      buffer = project.bufferForPath(null)
       expect(buffer.isModified()).toBeFalsy()
 
     it "returns true for a non-empty buffer with no path", ->
        buffer.release()
-       buffer = new Buffer()
+       buffer = project.bufferForPath(null)
        buffer.setText('a')
        expect(buffer.isModified()).toBeTruthy()
        buffer.setText('\n')
@@ -420,7 +421,7 @@ describe 'Buffer', ->
       beforeEach ->
         filePath = '/tmp/temp.txt'
         fs.write(filePath, "")
-        saveBuffer = new Buffer filePath
+        saveBuffer = project.bufferForPath(filePath)
         saveBuffer.setText("blah")
 
       it "saves the contents of the buffer to the path", ->
@@ -454,7 +455,7 @@ describe 'Buffer', ->
 
     describe "when the buffer has no path", ->
       it "throws an exception", ->
-        saveBuffer = new Buffer
+        saveBuffer = project.bufferForPath(null)
         saveBuffer.setText "hi"
         expect(-> saveBuffer.save()).toThrow()
 
@@ -478,7 +479,7 @@ describe 'Buffer', ->
       filePath = '/tmp/temp.txt'
       fs.remove filePath if fs.exists(filePath)
 
-      saveAsBuffer = new Buffer().retain()
+      saveAsBuffer = project.bufferForPath(null).retain()
       eventHandler = jasmine.createSpy('eventHandler')
       saveAsBuffer.on 'path-changed', eventHandler
 
@@ -493,7 +494,7 @@ describe 'Buffer', ->
       newPath = "/tmp/new.txt"
       fs.write(originalPath, "")
 
-      saveAsBuffer = new Buffer(originalPath).retain()
+      saveAsBuffer = project.bufferForPath(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
       saveAsBuffer.on 'changed', changeHandler
       saveAsBuffer.saveAs(newPath)
@@ -1247,7 +1248,7 @@ describe 'Buffer', ->
     describe "when the buffer has never been saved", ->
       it "stores the changed buffer text", ->
         buffer.release()
-        buffer = new Buffer()
+        buffer = project.bufferForPath(null)
         buffer.setText("abc")
         data = buffer.serialize()
         expect(data.path).toBeFalsy()
@@ -1273,7 +1274,7 @@ describe 'Buffer', ->
 
     it "loads the stored changes if the file was never saved", ->
       buffer.release()
-      buffer = new Buffer()
+      buffer = project.bufferForPath(null)
       buffer.setText("abc")
       reloadBuffer()
       expect(buffer.getPath()).toBeFalsy()
