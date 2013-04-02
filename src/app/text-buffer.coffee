@@ -41,10 +41,12 @@ class Buffer
       @setPath(path)
       if initialText?
         @setText(initialText)
+        @updateCachedDiskContents()
       else
         @reload()
     else
       @setText(initialText ? '')
+
 
     @undoManager = new UndoManager(this)
 

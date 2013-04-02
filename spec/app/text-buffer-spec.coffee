@@ -1251,11 +1251,14 @@ describe 'Buffer', ->
     describe "when the serialized buffer had unsaved changes", ->
       it "restores the previous unsaved state of the buffer", ->
         path = buffer.getPath()
+        previousText = buffer.getText()
         buffer.setText("abc")
         reloadBuffer()
         expect(serializedState.text).toBe "abc"
         expect(buffer.getPath()).toBe(path)
         expect(buffer.getText()).toBe("abc")
+        buffer.setText(previousText)
+        expect(buffer.isModified()).toBeFalsy()
 
     describe "when the serialized buffer was unsaved and had no path", ->
       it "restores the previous unsaved state of the buffer", ->
