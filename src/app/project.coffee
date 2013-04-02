@@ -164,9 +164,9 @@ class Project
         state = 'readingPath'
         path = null
       else
-        colonIndex = line.indexOf(':')
+        colonIndex = line.indexOf(': ')
         matchInfo = line.substring(0, colonIndex)
-        lineText = line.substring(colonIndex + 1)
+        lineText = line.substring(colonIndex + 2)
         readMatches(matchInfo, lineText)
 
     readMatches = (matchInfo, lineText) ->
@@ -176,7 +176,7 @@ class Project
 
       for [column, length] in matchPositions
         range = new Range([row, column], [row, column + length])
-        match = lineText.substr(column + 1, length)
+        match = lineText.substr(column, length)
         iterator({path, range, match, lineText})
 
     deferred = $.Deferred()
