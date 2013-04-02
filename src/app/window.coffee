@@ -147,15 +147,7 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
       $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
 window.reload = ->
-  if rootView?.getModifiedBuffers().length > 0
-    atom.confirm(
-      "There are unsaved buffers, reload anyway?",
-      "You will lose all unsaved changes if you reload",
-      "Reload", (-> $native.reload()),
-      "Cancel"
-    )
-  else
-    $native.reload()
+  $native.reload()
 
 window.onerror = ->
   atom.showDevTools()

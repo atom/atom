@@ -60,22 +60,6 @@ describe "Window", ->
         expect(window.close).not.toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
-  describe ".reload()", ->
-    beforeEach ->
-      spyOn($native, "reload")
-
-    it "returns false when no buffers are modified", ->
-      window.reload()
-      expect($native.reload).toHaveBeenCalled()
-
-    it "shows an alert when a modifed buffer exists", ->
-      rootView.open('sample.js')
-      rootView.getActiveView().insertText("hi")
-      spyOn(atom, "confirm")
-      window.reload()
-      expect($native.reload).not.toHaveBeenCalled()
-      expect(atom.confirm).toHaveBeenCalled()
-
   describe "requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->
       cssPath = project.resolve('css.css')
