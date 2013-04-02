@@ -188,7 +188,7 @@ describe "Project", ->
         runs ->
           expect(paths).not.toContain('ignored/ignored.txt')
 
-  fdescribe ".scan(options, callback)", ->
+  describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
       it "calls the callback with all regex matches in all files in the project", ->
         matches = []
