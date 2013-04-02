@@ -202,7 +202,7 @@ class VimView extends View
 
   updateCursor: ->
     cursor = @cursor()
-    cursor.width = @editor.getFontSize()
+    cursor.width = if @inInsertMode() then 1 else @editor.getFontSize()
     cursor.updateDisplay()
 
   addInput: (input) ->
