@@ -3,7 +3,7 @@
   "version" : "0.0.0",
 
   "dependencies": {
-    "coffee-script": "1.5",
+    "coffee-script": "1.6.2",
     "ctags": "0.3.0",
     "oniguruma": "0.8.0",
     "mkdirp": "0.3.5",

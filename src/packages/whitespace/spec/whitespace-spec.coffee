@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 fs = require 'fs-utils'
 
-describe "StripTrailingWhitespace", ->
+describe "Whitespace", ->
   [editor, path] = []
 
   beforeEach ->
@@ -10,16 +10,19 @@ describe "StripTrailingWhitespace", ->
     window.rootView = new RootView
     rootView.open(path)
 
-    atom.activatePackage('strip-trailing-whitespace')
+    atom.activatePackage('whitespace')
+
     rootView.focus()
     editor = rootView.getActiveView()
 
   afterEach ->
     fs.remove(path) if fs.exists(path)
-    rootView.remove()
 
   it "strips trailing whitespace before an editor saves a buffer", ->
     spyOn(fs, 'write')
+
+    config.set("whitespace.ensureSingleTrailingNewline", false)
+    config.update()
 
     # works for buffers that are already open when extension is initialized
     editor.insertText("foo   \nbar\t   \n\nbaz")
@@ -34,15 +37,14 @@ describe "StripTrailingWhitespace", ->
     editor.getBuffer().save()
     expect(editor.getText()).toBe 'Some text.\n'
 
-  describe "stripTrailingWhitespace.singleTrailingNewline config", ->
+  describe "whitespace.ensureSingleTrailingNewline config", ->
     [originalConfigValue] = []
     beforeEach ->
-      originalConfigValue = config.get("stripTrailingWhitespace.singleTrailingNewline")
-      config.set("stripTrailingWhitespace.singleTrailingNewline", true)
-      config.update()
+      originalConfigValue = config.get("whitespace.ensureSingleTrailingNewline")
+      expect(originalConfigValue).toBe true
 
     afterEach ->
-      config.set("stripTrailingWhitespace.singleTrailingNewline", originalConfigValue)
+      config.set("whitespace.ensureSingleTrailingNewline", originalConfigValue)
       config.update()
 
     it "adds a trailing newline when there is no trailing newline", ->
@@ -69,3 +71,12 @@ describe "StripTrailingWhitespace", ->
       editor.insertText "\n"
       editor.getBuffer().save()
       expect(editor.getText()).toBe "\n"
+
+    it "does not add trailing newline if ensureSingleTrailingNewline is false", ->
+      config.set("whitespace.ensureSingleTrailingNewline", false)
+      config.update()
+
+      editor.insertText "no trailing newline"
+      editor.getBuffer().save()
+      expect(editor.getText()).toBe "no trailing newline"
+

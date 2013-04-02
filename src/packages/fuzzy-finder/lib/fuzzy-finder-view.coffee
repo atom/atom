@@ -39,7 +39,7 @@ class FuzzyFinderView extends SelectList
     $$ ->
       @li =>
         if git?
-          status = git.statuses[project.resolve(path)]
+          status = git.statuses[path]
           if git.isStatusNew(status)
             @div class: 'status new'
           else if git.isStatusModified(status)
@@ -60,7 +60,7 @@ class FuzzyFinderView extends SelectList
           typeClass = 'text-name'
 
         @span fs.base(path), class: "file label #{typeClass}"
-        if folder = fs.directory(project.relativize(path))
+        if folder = project.relativize(fs.directory(path))
           @span " - #{folder}/", class: 'directory'
 
   openPath: (path) ->
@@ -76,7 +76,7 @@ class FuzzyFinderView extends SelectList
 
   confirmed : (path) ->
     return unless path.length
-    if fs.isFile(project.resolve(path))
+    if fs.isFile(path)
       @cancel()
       @openPath(path)
     else
@@ -133,11 +133,10 @@ class FuzzyFinderView extends SelectList
             @miniEditor.setText(currentWord)
 
   populateGitStatusPaths: ->
-    projectRelativePaths = []
-    for path, status of git.statuses
-      continue unless fs.isFile(path)
-      projectRelativePaths.push(project.relativize(path))
-    @setArray(projectRelativePaths)
+    paths = []
+    paths.push(path) for path, status of git.statuses when fs.isFile(path)
+
+    @setArray(paths)
 
   populateProjectPaths: (options = {}) ->
     if @projectPaths?
@@ -147,7 +146,6 @@ class FuzzyFinderView extends SelectList
             path.indexOf(options.filter) >= 0
         else
           @projectPaths
-
       @setArray(listedItems)
       options.done(listedItems) if options.done?
     else
@@ -165,8 +163,6 @@ class FuzzyFinderView extends SelectList
   populateOpenBufferPaths: ->
     editSessions = project.getEditSessions().filter (editSession) ->
       editSession.getPath()?
-    editSessions = _.uniq editSessions, (editSession) ->
-      editSession.getPath()
 
     editSessions = _.sortBy editSessions, (editSession) =>
       if editSession is rootView.getActivePaneItem()
@@ -174,17 +170,10 @@ class FuzzyFinderView extends SelectList
       else
         -(editSession.lastOpened or 1)
 
-    @paths = _.map editSessions, (editSession) ->
-      project.relativize editSession.getPath()
+    @paths = []
+    @paths.push(editSession.getPath()) for editSession in editSessions
 
-    @setArray(@paths)
-
-  getOpenedPaths: ->
-    paths = {}
-    for editSession in project.getEditSessions()
-      path = editSession.getPath()
-      paths[path] = editSession.lastOpened if path?
-    paths
+    @setArray(_.uniq(@paths))
 
   detach: ->
     super

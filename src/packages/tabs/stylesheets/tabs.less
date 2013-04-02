@@ -83,11 +83,10 @@
 
 }
 
-.tab.is-drop-target:after {
+.tab.is-drop-target:before, .tab.drop-target-is-after:after {
+  content: "";
   position: absolute;
   top: 0;
-  right: -2px;
-  content: "";
   z-index: 999;
   display: inline-block;
   width: 2px;
@@ -96,15 +95,30 @@
   background: #0098ff;
 }
 
-.tab.is-drop-target:before {
+.tab.is-drop-target:after, .tab.drop-target-is-after:before {
   content: "";
   position: absolute;
+  top: 30px;
+  z-index: 9999;
   width: 4px;
   height: 4px;
   background: #0098ff;
-  right: -4px;
-  top: 30px;
   border-radius: 4px;
-  z-index: 9999;
   border: 1px solid transparent;
+}
+
+.tab.is-drop-target:before {
+  left: -2px;
+}
+
+.tab.is-drop-target:after {
+  left: -4px;
+}
+
+.tab.drop-target-is-after:before {
+  right: -4px;
+}
+
+.tab.drop-target-is-after:after {
+  right: -2px;
 }
