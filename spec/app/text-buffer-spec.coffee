@@ -1231,51 +1231,37 @@ describe 'Buffer', ->
         expect(buffer.clipPosition([0,10])).toEqual [0,9]
         expect(buffer.clipPosition([10,Infinity])).toEqual [0,9]
 
-  describe "when the buffer is serialized", ->
-    describe "when the contents of the buffer are saved on disk", ->
-      it "stores the file path", ->
-        data = buffer.serialize()
-        expect(data.path).toBe(buffer.getPath())
-        expect(data.text).toBeFalsy()
+  describe "serialization", ->
+    serializedState = null
 
-    describe "when the buffer has unsaved changes", ->
-      it "stores the file path and the changed buffer text", ->
-        buffer.setText("abc")
-        data = buffer.serialize()
-        expect(data.path).toBe(buffer.getPath())
-        expect(data.text).toBe("abc")
-
-    describe "when the buffer has never been saved", ->
-      it "stores the changed buffer text", ->
-        buffer.release()
-        buffer = project.bufferForPath(null)
-        buffer.setText("abc")
-        data = buffer.serialize()
-        expect(data.path).toBeFalsy()
-        expect(data.text).toBe("abc")
-
-  describe "when a buffer is deserialized", ->
     reloadBuffer = () ->
-      serialized = buffer.serialize()
+      serializedState = buffer.serialize()
       buffer.release()
-      buffer = Buffer.deserialize(serialized)
+      buffer = Buffer.deserialize(serializedState)
 
-    it "loads the contents of the file saved on disk when there are no unsaved changes", ->
-      path = buffer.getPath()
-      reloadBuffer()
-      expect(buffer.getPath()).toBe(path)
+    describe "when the serialized buffer had no unsaved changes", ->
+      it "loads the current contents of the file at the serialized path", ->
+        path = buffer.getPath()
+        text = buffer.getText()
+        reloadBuffer()
+        expect(serializedState.text).toBeUndefined()
+        expect(buffer.getPath()).toBe(path)
+        expect(buffer.getText()).toBe(text)
 
-    it "loads the stored changes if the file was modified", ->
-      path = buffer.getPath()
-      buffer.setText("abc")
-      reloadBuffer()
-      expect(buffer.getPath()).toBe(path)
-      expect(buffer.getText()).toBe("abc")
+    describe "when the serialized buffer had unsaved changes", ->
+      it "restores the previous unsaved state of the buffer", ->
+        path = buffer.getPath()
+        buffer.setText("abc")
+        reloadBuffer()
+        expect(serializedState.text).toBe "abc"
+        expect(buffer.getPath()).toBe(path)
+        expect(buffer.getText()).toBe("abc")
 
-    it "loads the stored changes if the file was never saved", ->
-      buffer.release()
-      buffer = project.bufferForPath(null)
-      buffer.setText("abc")
-      reloadBuffer()
-      expect(buffer.getPath()).toBeFalsy()
-      expect(buffer.getText()).toBe("abc")
+    describe "when the serialized buffer was unsaved and had no path", ->
+      it "restores the previous unsaved state of the buffer", ->
+        buffer.setPath(undefined)
+        buffer.setText("abc")
+        reloadBuffer()
+        expect(serializedState.path).toBeUndefined()
+        expect(buffer.getPath()).toBeUndefined()
+        expect(buffer.getText()).toBe("abc")
