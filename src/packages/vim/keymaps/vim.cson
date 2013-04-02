@@ -8,6 +8,10 @@
   'ctrl-[': 'vim:command-mode'
   'ctrl-n': 'vim:autocomplete'
   'ctrl-p': 'vim:autocomplete-reverse'
+  'left': 'vim:motion-left'
+  'down': 'vim:motion-down'
+  'up': 'vim:motion-up'
+  'right': 'vim:motion-right'
 
 '.editor.command-mode':
   '1': 'vim:count-add-1'

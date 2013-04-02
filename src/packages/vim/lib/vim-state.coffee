@@ -314,6 +314,7 @@ class VimState
     'ex': ->
       @vim.enterExMode()
     'move': ->
+      @vim.transaction() if @vim.inInsertMode()
       @performMotion()
     'select': ->
       @performSelectMotion()
