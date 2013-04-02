@@ -10,6 +10,7 @@ fs = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
+# Public: Represents the visual pane in Atom.
 module.exports =
 class Editor extends View
   @configDefaults:
@@ -56,6 +57,13 @@ class Editor extends View
   newSelections: null
   redrawOnReattach: false
 
+  # Public: The constructor for setting up an `Editor` instance.
+  #
+  # editSessionOrOptions - Either an {EditSession}, or an object with one property, `mini`.  
+  #                        If `mini` is `true`, a "miniature" `EditSession` is constructed. 
+  #                        Typically, this is ideal for scenarios where you need an Atom editor, 
+  #                        but without all the chrome, like scrollbars, gutter, _e.t.c._.
+  #
   initialize: (editSessionOrOptions) ->
     if editSessionOrOptions instanceof EditSession
       editSession = editSessionOrOptions
@@ -87,6 +95,9 @@ class Editor extends View
     else
       throw new Error("Must supply an EditSession or mini: true")
 
+  # Internal: Sets up the core Atom commands.
+  #
+  # Some commands are excluded from mini-editors.
   bindKeys: ->
     editorBindings =
       'core:move-left': @moveCursorLeft
@@ -165,27 +176,54 @@ class Editor extends View
 
   # Public: Retrieves a single cursor
   #
-  # Returns [Cursor].
+  # Returns a {Cursor}.
   getCursor: -> @activeEditSession.getCursor()
-  # Public: Retrieves a list of all the cursors.
+  # Public: Retrieves an array of all the cursors.
   #
-  # Returns {[Cursor]}.
+  # Returns a {[Cursor]}.
   getCursors: -> @activeEditSession.getCursors()
+  # Public: Adds a cursor at the provided `screenPosition`.
+  #
+  # screenPosition - An {Array} of two numbers: the screen row, and the screen column.
+  #
+  # Returns the new {Cursor}.
   addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)
+  # Public: Adds a cursor at the provided `bufferPosition`.
+  #
+  # bufferPosition - An {Array} of two numbers: the buffer row, and the buffer column.
+  #
+  # Returns the new {Cursor}.
   addCursorAtBufferPosition: (bufferPosition) -> @activeEditSession.addCursorAtBufferPosition(bufferPosition)
+  # Public: Moves every cursor up one row.
   moveCursorUp: -> @activeEditSession.moveCursorUp()
+  # Public: Moves every cursor down one row.
   moveCursorDown: -> @activeEditSession.moveCursorDown()
+  # Public: Moves every cursor left one column.
   moveCursorLeft: -> @activeEditSession.moveCursorLeft()
+  # Public: Moves every cursor right one column.
   moveCursorRight: -> @activeEditSession.moveCursorRight()
+  # Public: Moves every cursor to the beginning of the current word.
   moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
+  # Public: Moves every cursor to the end of the current word.
   moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
+  # Public: Moves every cursor to the top of the buffer.
   moveCursorToTop: -> @activeEditSession.moveCursorToTop()
+  # Public: Moves every cursor to the bottom of the buffer.
   moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
+  # Public: Moves every cursor to the beginning of the line.
   moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
+  # Public: Moves every cursor to the first non-whitespace character of the line.
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
+  # Public: Moves every cursor to the end of the line.
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
+  # Public: Moves the selected line up one row.
   moveLineUp: -> @activeEditSession.moveLineUp()
+  # Public: Moves the selected line down one row.
   moveLineDown: -> @activeEditSession.moveLineDown()
+  # Public: Sets the cursor based on a given screen position.
+  #
+  # position - An {Array} of two numbers: the screen row, and the screen column.
+  # options - An object with the following properties:
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   duplicateLine: -> @activeEditSession.duplicateLine()
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()

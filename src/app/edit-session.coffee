@@ -371,6 +371,7 @@ class EditSession
   toggleLineCommentsForBufferRows: (start, end) ->
     @languageMode.toggleLineCommentsForBufferRows(start, end)
 
+  # Public: Moves the selected line up one row.
   moveLineUp: ->
     selection = @getSelectedBufferRange()
     return if selection.start.row is 0
@@ -404,6 +405,7 @@ class EditSession
 
       @setSelectedBufferRange(selection.translate([-1]), preserveFolds: true)
 
+  # Public: Moves the selected line down one row.
   moveLineDown: ->
     selection = @getSelectedBufferRange()
     lastRow = @buffer.getLastRow()
@@ -553,18 +555,37 @@ class EditSession
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
 
+  # Public: Returns `true` if there are multiple cursors in the edit session.
+  #
+  # Returns a {Boolean}.
   hasMultipleCursors: ->
     @getCursors().length > 1
 
+  # Public: Retrieves an array of all the cursors.
+  #
+  # Returns a {[Cursor]}.
   getCursors: -> new Array(@cursors...)
 
+  # Public: Retrieves a single cursor
+  #
+  # Returns a {Cursor}.
   getCursor: ->
     _.last(@cursors)
 
+  # Public: Adds a cursor at the provided `screenPosition`.
+  #
+  # screenPosition - An {Array} of two numbers: the screen row, and the screen column.
+  #
+  # Returns the new {Cursor}.
   addCursorAtScreenPosition: (screenPosition) ->
     marker = @markScreenPosition(screenPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
 
+  # Public: Adds a cursor at the provided `bufferPosition`.
+  #
+  # bufferPosition - An {Array} of two numbers: the buffer row, and the buffer column.
+  #
+  # Returns the new {Cursor}.
   addCursorAtBufferPosition: (bufferPosition) ->
     marker = @markBufferPosition(bufferPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
@@ -686,30 +707,39 @@ class EditSession
   getWordUnderCursor: (options) ->
     @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
 
+  # Public: Moves every cursor up one row.
   moveCursorUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount)
 
+  # Public: Moves every cursor down one row.
   moveCursorDown: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveDown(lineCount)
 
+  # Public: Moves every cursor left one column.
   moveCursorLeft: ->
     @moveCursors (cursor) -> cursor.moveLeft()
 
+  # Public: Moves every cursor right one column.
   moveCursorRight: ->
     @moveCursors (cursor) -> cursor.moveRight()
 
+  # Public: Moves every cursor to the top of the buffer.
   moveCursorToTop: ->
     @moveCursors (cursor) -> cursor.moveToTop()
 
+  # Public: Moves every cursor to the bottom of the buffer.
   moveCursorToBottom: ->
     @moveCursors (cursor) -> cursor.moveToBottom()
 
+  # Public: Moves every cursor to the beginning of the line.
   moveCursorToBeginningOfLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
 
+  # Public: Moves every cursor to the first non-whitespace character of the line.
   moveCursorToFirstCharacterOfLine: ->
     @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
 
+  # Public: Moves every cursor to the end of the line.
   moveCursorToEndOfLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfLine()
 
