@@ -78,8 +78,8 @@ describe 'FuzzyFinder', ->
         expect(rootView.getActiveView()).toBe editor2
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
-        finderView.confirmed('dir/a')
         expectedPath = project.resolve('dir/a')
+        finderView.confirmed(expectedPath)
 
         expect(finderView.hasParent()).toBeFalsy()
         expect(editor1.getPath()).not.toBe expectedPath
@@ -189,7 +189,7 @@ describe 'FuzzyFinder', ->
       describe "when the active pane has an item for the selected path", ->
         it "switches to the item for the selected path", ->
           expectedPath = project.resolve('sample.txt')
-          finderView.confirmed('sample.txt')
+          finderView.confirmed(expectedPath)
 
           expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).not.toBe expectedPath
@@ -205,7 +205,7 @@ describe 'FuzzyFinder', ->
           expect(rootView.getActiveView()).toBe editor1
 
           expectedPath = project.resolve('sample.txt')
-          finderView.confirmed('sample.txt')
+          finderView.confirmed(expectedPath)
 
           expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).toBe expectedPath
@@ -380,7 +380,7 @@ describe 'FuzzyFinder', ->
 
       runs ->
         expect(finderView).not.toBeVisible()
-        expect(openedPath).toBe "sample.txt"
+        expect(openedPath).toBe project.resolve("sample.txt")
 
     it "displays an error when the word under the cursor doesn't match any files", ->
       editor.setText("moogoogaipan")
