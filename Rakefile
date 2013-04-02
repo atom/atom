@@ -41,7 +41,7 @@ task "bootstrap" do
 end
 
 desc "Copies Atom.app to /Applications and creates `atom` cli app"
-task :install => [:clean, :build] do
+task :install => [:build] do
   path = application_path()
   exit 1 if not path
 
@@ -84,7 +84,7 @@ task :clean do
   output = `xcodebuild clean`
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
-  `rm -rf /tmp/atom-compiled-scripts`
+  `rm -rf /tmp/atom-coffee-cache`
   `rm -rf node_modules`
   `rm -rf cef`
 end

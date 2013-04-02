@@ -90,7 +90,7 @@ module.exports =
   # Returns an array with all the names of files contained
   # in the directory path.
   list: (rootPath, extensions) ->
-    return unless @isDirectory(rootPath)
+    return [] unless @isDirectory(rootPath)
     paths = fs.readdirSync(rootPath)
     paths = @filterExtensions(paths, extensions) if extensions
     paths = paths.map (path) => @join(rootPath, path)

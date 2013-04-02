@@ -9,7 +9,7 @@ class FileView extends View
   @content: ({file} = {}) ->
     @li class: 'file entry', =>
       @span file.getBaseName(), class: 'name', outlet: 'fileName'
-      @span '', class: 'highlight'
+      @span class: 'highlight'
 
   file: null
 
