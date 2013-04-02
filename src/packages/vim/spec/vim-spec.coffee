@@ -92,7 +92,19 @@ fdescribe "Vim package", ->
       expect(editor.trigger).toHaveBeenCalledWith('autocomplete:previous')
 
   describe "search word", ->
-    it "foo", ->
+    it "opens the find in file panel", ->
       spyOn(editor, 'trigger')
       vim.searchWord()
       expect(editor.trigger).toHaveBeenCalledWith("command-panel:find-in-file")
+
+  describe "matching bracket", ->
+    it "moves cursor to matching bracket", ->
+      spyOn(editor, 'trigger')
+      vim.matchingBracket()
+      expect(editor.trigger).toHaveBeenCalledWith("editor:go-to-matching-bracket")
+    describe "when in visual mode", ->
+      it "selects to the matching bracket", ->
+        editor.trigger 'vim:visual-mode'
+        spyOn(editor, 'trigger')
+        vim.matchingBracket()
+        expect(editor.trigger).toHaveBeenCalledWith("editor:select-to-matching-bracket")

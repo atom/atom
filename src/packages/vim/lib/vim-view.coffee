@@ -58,6 +58,7 @@ class VimView extends View
     @editor.command 'vim:autocomplete', => @autocomplete()
     @editor.command 'vim:autocomplete-reverse', => @autocomplete(true)
     @editor.command 'vim:search-word', => @searchWord()
+    @editor.command 'vim:matching-bracket', => @matchingBracket()
 
     @command 'vim:insert-mode', => @enterInsertMode()
     @command 'vim:unfocus', => @rootView.focus()
@@ -230,3 +231,6 @@ class VimView extends View
     @editor.clearSelections()
     @editor.trigger("command-panel:find-in-file")
     rootView.find(".command-panel").view()?.miniEditor.setText("/#{word}")
+
+  matchingBracket: () ->
+    @editor.trigger("editor:#{if @inVisualMode() then 'select' else 'go'}-to-matching-bracket")
