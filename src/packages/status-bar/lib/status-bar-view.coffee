@@ -6,7 +6,7 @@ module.exports =
 class StatusBarView extends View
   @activate: ->
     rootView.eachEditor (editor) =>
-      @appendToEditorPane(rootView, editor) if editor.attached
+      @appendToEditorPane(rootView, editor) if editor.attached && !editor.hasClass("mini")
 
   @appendToEditorPane: (rootView, editor) ->
     if pane = editor.getPane()

@@ -1005,6 +1005,18 @@ describe "Editor", ->
               editor.setCursorScreenPosition([2, 5])
               expect(editor.scrollView.scrollLeft()).toBe 0
 
+    describe "cursor width", ->
+      beforeEach ->
+        editor.attachToDom()
+      it "is set to 1 by default", ->
+        cursorView = editor.getCursorView()
+        expect(cursorView.width).toBe 1
+      it "changes the width of the cursor", ->
+        cursorView = editor.getCursorView()
+        cursorView.width = 20
+        cursorView.updateDisplay()
+        expect(cursorView.css("width")).toBe "10px"
+
   describe "when editor:toggle-soft-wrap is toggled", ->
     describe "when the text exceeds the editor width and the scroll-view is horizontally scrolled", ->
       it "wraps the text and renders properly", ->
