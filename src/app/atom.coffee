@@ -246,6 +246,12 @@ _.extend atom,
   getUpdateStatus: (callback) ->
     @sendMessageToBrowserProcess('getUpdateStatus', [], callback)
 
+  crashMainProcess: ->
+    @sendMessageToBrowserProcess('crash')
+
+  crashRenderProcess: ->
+    $native.crash()
+
   requireUserInitScript: ->
     userInitScriptPath = fsUtils.join(config.configDirPath, "user.coffee")
     try

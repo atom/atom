@@ -87,6 +87,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "getVersion") {
     GetVersion(messageId, browser);
   }
+  else if (name == "crash") {
+    __builtin_trap();
+  }
   else {
     return false;
   }
