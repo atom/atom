@@ -82,7 +82,7 @@ class RootView extends View
       @getActivePane().focus()
       false
     else
-      @setTitle(null)
+      @updateTitle()
       focusableChild = this.find("[tabindex=-1]:visible:first")
       if focusableChild.length
         focusableChild.focus()
@@ -115,7 +115,7 @@ class RootView extends View
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
-        @setTitle(projectPath)
+        @setTitle("atom - #{projectPath}")
     else
       @setTitle('untitled')
 

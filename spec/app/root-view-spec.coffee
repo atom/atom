@@ -175,10 +175,10 @@ describe "RootView", ->
           expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
 
       describe "when the last pane item is removed", ->
-        it "sets the title to the project's path", ->
+        it "update the title to contain the project's path", ->
           rootView.getActivePane().remove()
           expect(rootView.getActivePaneItem()).toBeUndefined()
-          expect(rootView.title).toBe project.getPath()
+          expect(rootView.title).toBe "atom -#{project.getPath()}"
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
