@@ -8,7 +8,7 @@ class SelectAllMatchesInProject extends Command
   previewOperations: true
 
   constructor: (pattern) ->
-    @regex = new RegExp(pattern, 'g')
+    @regex = new RegExp(pattern)
 
   compile: (project, buffer, range) ->
     deferred = $.Deferred()

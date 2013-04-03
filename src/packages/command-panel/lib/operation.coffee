@@ -23,7 +23,7 @@ class Operation
     @getBufferRange() unless @preserveSelection
 
   preview: ->
-    range = @getBuffer().getMarkerRange(@getMarker())
+    range = @getBufferRange()
     line = @getBuffer().lineForRow(range.start.row)
     prefix = line[0...range.start.column]
     match = line[range.start.column...range.end.column]
