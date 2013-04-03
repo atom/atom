@@ -4,8 +4,6 @@ $ = require 'jquery'
 
 module.exports =
 class LoadPathsTask
-  aborted: false
-
   constructor: (@callback) ->
 
   start: ->
@@ -34,7 +32,6 @@ class LoadPathsTask
     deferred
 
   abort: ->
-    @aborted = true
     if @process?
       @process.kill()
       @process = null
