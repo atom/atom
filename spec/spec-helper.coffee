@@ -95,8 +95,8 @@ afterEach ->
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
-  fs.closeAllFsWatchers()
-  fsWatchers = fs.getAllFsWatchers()
+  fsUtils.closeAllFsWatchers()
+  fsWatchers = fsUtils.getAllFsWatchers()
   if fsWatchers.length > 0
     paths = fsWatchers.map (watcher) -> watcher.path
     throw new Error("Leaking FSWatchers: " + paths.join(", "))

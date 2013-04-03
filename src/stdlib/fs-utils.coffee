@@ -334,7 +334,7 @@ module.exports =
     watcher
 
   getAllFsWatchers: ->
-    return fsWatchers
+    fsWatchers
 
   closeAllFsWatchers: ->
     fsWatchersCopy = fsWatchers.slice(0)

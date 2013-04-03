@@ -164,7 +164,7 @@ describe "Editor", ->
       runs ->
         timers.setTimeout ->
           fsUtils.write(path, "a file change")
-        ,10
+        , 100
 
       waitsFor ->
         contentsConflictedHandler.callCount > 0
