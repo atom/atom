@@ -225,7 +225,10 @@ class Editor extends View
   # position - An {Array} of two numbers: the screen row, and the screen column.
   # options - An object with the following properties:
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
+  # Public: Duplicates the current line.
   duplicateLine: -> @activeEditSession.duplicateLine()
+  # Public: Duplicates the current line.
+
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
