@@ -14,6 +14,8 @@ module.exports =
 class EditSession
   registerDeserializer(this)
 
+  @version: 1
+
   @deserialize: (state) ->
     session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
     if !session?
@@ -87,6 +89,7 @@ class EditSession
 
   serialize: ->
     deserializer: 'EditSession'
+    version: @constructor.version
     buffer: @buffer.serialize()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
