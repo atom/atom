@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 plist = require 'plist'
 Token = require 'token'
 CSON = require 'cson'
@@ -8,17 +8,17 @@ CSON = require 'cson'
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
-    fs.readPlist(path)
+    fsUtils.readPlist(path)
 
   @load: (path, done) ->
-    fs.readObjectAsync path, (err, object) ->
+    fsUtils.readObjectAsync path, (err, object) ->
       if err
         done(err)
       else
         done(null, new TextMateGrammar(object))
 
   @loadSync: (path) ->
-    new TextMateGrammar(fs.readObject(path))
+    new TextMateGrammar(fsUtils.readObject(path))
 
   name: null
   fileTypes: null

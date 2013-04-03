@@ -6,7 +6,7 @@ Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
@@ -83,7 +83,7 @@ describe "Editor", ->
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
       path = "/tmp/atom-changed-file.txt"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       editSession = project.buildEditSession(path)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
@@ -93,7 +93,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fs.write(path, "a file change")
+      fsUtils.write(path, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -147,7 +147,7 @@ describe "Editor", ->
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       path = "/tmp/atom-changed-file.txt"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       tempEditSession = project.buildEditSession(path)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
@@ -156,7 +156,7 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fs.write(path, "a file change")
+      fsUtils.write(path, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -228,10 +228,10 @@ describe "Editor", ->
     path = null
     beforeEach ->
       path = "/tmp/something.txt"
-      fs.write(path, path)
+      fsUtils.write(path, path)
 
     afterEach ->
-      fs.remove(path) if fs.exists(path)
+      fsUtils.remove(path) if fsUtils.exists(path)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
@@ -390,7 +390,7 @@ describe "Editor", ->
           editor.clearFontFamily()
 
         it "positions the cursor to the clicked row and column", ->
-          {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
+          {top, left} = editor.pixelOffsUtilsetForScreenPosition([3, 30])
           editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
           expect(editor.getCursorScreenPosition()).toEqual [3, 30]
 
@@ -786,7 +786,7 @@ describe "Editor", ->
         setEditorHeightInLines(editor, 4)
 
       describe "if autoscroll is true", ->
-        it "centers the viewport on the selection if its vertical center is currently offscreen", ->
+        it "centers the viewport on the selection if its vertical center is currently offsUtilscreen", ->
           editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
           expect(editor.scrollTop()).toBe 0
 
@@ -1197,7 +1197,7 @@ describe "Editor", ->
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
         describe "when scrolling more than the editors height", ->
-          it "removes lines that are offscreen and not in range of the overdraw and builds lines that become visible", ->
+          it "removes lines that are offsUtilscreen and not in range of the overdraw and builds lines that become visible", ->
             editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
             expect(editor.renderedLines.find('.line').length).toBe 8
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
@@ -2003,11 +2003,11 @@ describe "Editor", ->
 
     beforeEach ->
       path = project.resolve('git/working-dir/file.txt')
-      originalPathText = fs.read(path)
+      originalPathText = fsUtils.read(path)
       editor.edit(project.buildEditSession(path))
 
     afterEach ->
-      fs.write(path, originalPathText)
+      fsUtils.write(path, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
@@ -2103,11 +2103,11 @@ describe "Editor", ->
     [path] = []
 
     beforeEach ->
-      path = fs.join(fs.absolute("/tmp"), "grammar-change.txt")
-      fs.write(path, "var i;")
+      path = fsUtils.join(fsUtils.absolute("/tmp"), "grammar-change.txt")
+      fsUtils.write(path, "var i;")
 
     afterEach ->
-      fs.remove(path) if fs.exists(path)
+      fsUtils.remove(path) if fsUtils.exists(path)
 
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.buildEditSession(path))
@@ -2451,12 +2451,12 @@ describe "Editor", ->
     it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
       saveDialogCallback = null
       spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fs, 'write')
+      spyOn(fsUtils, 'write')
 
       editor.trigger 'editor:save-debug-snapshot'
 
       expect(atom.showSaveDialog).toHaveBeenCalled()
       saveDialogCallback('/tmp/state')
-      expect(fs.write).toHaveBeenCalled()
-      expect(fs.write.argsForCall[0][0]).toBe '/tmp/state'
-      expect(typeof fs.write.argsForCall[0][1]).toBe 'string'
+      expect(fsUtils.write).toHaveBeenCalled()
+      expect(fsUtils.write.argsForCall[0][0]).toBe '/tmp/state'
+      expect(typeof fsUtils.write.argsForCall[0][1]).toBe 'string'

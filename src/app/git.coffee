@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 Subscriber = require 'subscriber'
 EventEmitter = require 'event-emitter'
 RepositoryStatusTask = require 'repository-status-task'
@@ -48,7 +48,7 @@ class Git
   refreshIndex: -> @getRepo().refreshIndex()
 
   getPath: ->
-    @path ?= fs.absolute(@getRepo().getPath())
+    @path ?= fsUtils.absolute(@getRepo().getPath())
 
   destroy: ->
     if @statusTask?

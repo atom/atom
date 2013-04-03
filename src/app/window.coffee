@@ -1,4 +1,4 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 {less} = require 'less'
@@ -32,14 +32,14 @@ window.setUpEnvironment = ->
   requireStylesheet 'notification'
   requireStylesheet 'markdown'
 
-  if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
+  if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
 window.startup = ->
-  directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fs.isDirectory(dir)
+  directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
   if directory
-    installAtomCommand(fs.join(directory, 'bin/atom'))
+    installAtomCommand(fsUtils.join(directory, 'bin/atom'))
   else
     console.warn "Failed to install `atom` binary"
 
@@ -73,11 +73,11 @@ window.shutdown = ->
   window.git = null
 
 window.installAtomCommand = (commandPath) ->
-  return if fs.exists(commandPath)
+  return if fsUtils.exists(commandPath)
 
-  bundledCommandPath = fs.resolve(window.resourcePath, 'atom.sh')
+  bundledCommandPath = fsUtils.resolve(window.resourcePath, 'atom.sh')
   if bundledCommandPath?
-    fs.write(commandPath, fs.read(bundledCommandPath))
+    fsUtils.write(commandPath, fsUtils.read(bundledCommandPath))
     spawn('chmod', ['u+x', commandPath])
 
 window.handleWindowEvents = ->
@@ -99,7 +99,7 @@ window.deserializeWindowState = ->
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 
-  if !windowState.rootView and (!pathToOpen or fs.isFile(pathToOpen))
+  if !windowState.rootView and (!pathToOpen or fsUtils.isFile(pathToOpen))
     rootView.open(pathToOpen)
 
   $(rootViewParentSelector).append(rootView)
@@ -113,10 +113,10 @@ window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")
 
 window.resolveStylesheet = (path) ->
-  if fs.extension(path).length > 0
-    fs.resolveOnLoadPath(path)
+  if fsUtils.extension(path).length > 0
+    fsUtils.resolveOnLoadPath(path)
   else
-    fs.resolveOnLoadPath(path, ['css', 'less'])
+    fsUtils.resolveOnLoadPath(path, ['css', 'less'])
 
 window.requireStylesheet = (path) ->
   if fullPath = window.resolveStylesheet(path)
@@ -126,8 +126,8 @@ window.requireStylesheet = (path) ->
     throw new Error("Could not find a file at path '#{path}'")
 
 window.loadStylesheet = (path) ->
-  content = fs.read(path)
-  if fs.extension(path) == '.less'
+  content = fsUtils.read(path)
+  if fsUtils.extension(path) == '.less'
     (new less.Parser).parse content, (e, tree) ->
       throw new Error(e.message, path, e.line) if e
       content = tree.toCSS()

@@ -1,4 +1,4 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class Package
@@ -20,4 +20,4 @@ class Package
   path: null
 
   constructor: (@path) ->
-    @name = fs.base(@path)
+    @name = fsUtils.base(@path)

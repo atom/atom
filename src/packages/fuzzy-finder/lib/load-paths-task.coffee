@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class LoadPathsTask
@@ -18,7 +18,7 @@ class LoadPathsTask
       path = path.substring(rootPath.length + 1)
       for segment in path.split('/')
         return true if _.contains(ignoredNames, segment)
-      ignoreGitIgnoredFiles and git?.isPathIgnored(fs.join(rootPath, path))
+      ignoreGitIgnoredFiles and git?.isPathIgnored(fsUtils.join(rootPath, path))
     onFile = (path) ->
       return if @aborted
       paths.push(path) unless isIgnored(path)
@@ -27,7 +27,7 @@ class LoadPathsTask
     onDone = =>
       @callback(paths) unless @aborted
 
-    fs.traverseTree(rootPath, onFile, onDirectory, onDone)
+    fsUtils.traverseTree(rootPath, onFile, onDirectory, onDone)
 
   abort: ->
     @aborted = true

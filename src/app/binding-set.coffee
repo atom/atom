@@ -1,6 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 Specificity = require 'specificity'
 PEG = require 'pegjs'
@@ -17,7 +17,7 @@ class BindingSet
   name: null
 
   constructor: (@selector, commandsByKeystrokes, @index, @name) ->
-    BindingSet.parser ?= PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
+    BindingSet.parser ?= PEG.buildParser(fsUtils.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(@selector)
     @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)
 

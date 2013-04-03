@@ -1,5 +1,5 @@
 {View} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 OperationView = require './operation-view'
 $ = require 'jquery'
 
@@ -7,7 +7,7 @@ module.exports =
 class PathView extends View
   @content: ({path, previewList} = {}) ->
     classes = ['path']
-    classes.push('readme') if fs.isReadmePath(path)
+    classes.push('readme') if fsUtils.isReadmePath(path)
     @li class: classes.join(' '), =>
       @div outlet: 'pathDetails', class: 'path-details', =>
         @span class: 'path-name', path

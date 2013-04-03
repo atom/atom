@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
@@ -174,4 +174,3 @@ class RootView extends View
 
   eachBuffer: (callback) ->
     project.eachBuffer(callback)
-

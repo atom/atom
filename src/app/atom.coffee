@@ -1,4 +1,4 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 Package = require 'package'
 TextMatePackage = require 'text-mate-package'
@@ -74,9 +74,9 @@ _.extend atom,
       throw new Error("Could not resolve '#{id}' to a package path")
 
   resolvePackagePath: _.memoize (id) ->
-    return id if fs.isDirectory(id)
-    path = fs.resolve(config.packageDirPaths..., id)
-    path if fs.isDirectory(path)
+    return id if fsUtils.isDirectory(id)
+    path = fsUtils.resolve(config.packageDirPaths..., id)
+    path if fsUtils.isDirectory(path)
 
   getLoadedPackage: (id) ->
     if path = @resolvePackagePath(id)
@@ -90,13 +90,13 @@ _.extend atom,
 
   isPackageDisabled: (id) ->
     if path = @resolvePackagePath(id)
-      _.include(config.get('core.disabledPackages') ? [], fs.base(path))
+      _.include(config.get('core.disabledPackages') ? [], fsUtils.base(path))
 
   getPackagePaths: ->
     packagePaths = []
     for packageDirPath in config.packageDirPaths
-      for packagePath in fs.list(packageDirPath)
-        packagePaths.push(packagePath) if fs.isDirectory(packagePath)
+      for packagePath in fsUtils.list(packageDirPath)
+        packagePaths.push(packagePath) if fsUtils.isDirectory(packagePath)
     _.uniq(packagePaths)
 
   loadThemes: ->
@@ -109,8 +109,8 @@ _.extend atom,
     @loadedThemes.push Theme.load(name)
 
   loadUserStylesheet: ->
-    userStylesheetPath = fs.resolve(fs.join(config.configDirPath, 'user'), ['css', 'less'])
-    if fs.isFile(userStylesheetPath)
+    userStylesheetPath = fsUtils.resolve(fsUtils.join(config.configDirPath, 'user'), ['css', 'less'])
+    if fsUtils.isFile(userStylesheetPath)
       userStyleesheetContents = loadStylesheet(userStylesheetPath)
       applyStylesheet(userStylesheetPath, userStyleesheetContents, 'userTheme')
 
@@ -247,9 +247,9 @@ _.extend atom,
     @sendMessageToBrowserProcess('getUpdateStatus', [], callback)
 
   requireUserInitScript: ->
-    userInitScriptPath = fs.join(config.configDirPath, "user.coffee")
+    userInitScriptPath = fsUtils.join(config.configDirPath, "user.coffee")
     try
-      require userInitScriptPath if fs.isFile(userInitScriptPath)
+      require userInitScriptPath if fsUtils.isFile(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 

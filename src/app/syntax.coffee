@@ -2,7 +2,7 @@ _ = require 'underscore'
 jQuery = require 'jquery'
 Specificity = require 'specificity'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 NullGrammar = require 'null-grammar'
 nodePath = require 'path'
@@ -71,7 +71,7 @@ class Syntax
 
   grammarByFirstLineRegex: (filePath, fileContents) ->
     try
-      fileContents ?= fs.read(filePath)
+      fileContents ?= fsUtils.read(filePath)
     catch e
       return
 

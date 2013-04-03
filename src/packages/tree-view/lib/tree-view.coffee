@@ -4,7 +4,7 @@ Directory = require 'directory'
 DirectoryView = require './directory-view'
 FileView = require './file-view'
 Dialog = require './dialog'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -230,14 +230,14 @@ class TreeView extends ScrollView
           dialog.close()
           return
 
-        if fs.exists(newPath)
+        if fsUtils.exists(newPath)
           dialog.showError("Error: #{newPath} already exists. Try a different path.")
           return
 
-        directoryPath = fs.directory(newPath)
+        directoryPath = fsUtils.directory(newPath)
         try
-          fs.makeTree(directoryPath) unless fs.exists(directoryPath)
-          fs.move(oldPath, newPath)
+          fsUtils.makeTree(directoryPath) unless fsUtils.exists(directoryPath)
+          fsUtils.move(oldPath, newPath)
           dialog.close()
         catch e
           dialog.showError("Error: #{e.message} Try a different path.")
@@ -254,13 +254,13 @@ class TreeView extends ScrollView
       "You are deleting #{entry.getPath()}",
       "Move to Trash", (=> $native.moveToTrash(entry.getPath())),
       "Cancel", null
-      "Delete", (=> fs.remove(entry.getPath()))
+      "Delete", (=> fsUtils.remove(entry.getPath()))
     )
 
   add: ->
     selectedEntry = @selectedEntry() or @root
     selectedPath = selectedEntry.getPath()
-    directoryPath = if fs.isFile(selectedPath) then fs.directory(selectedPath) else selectedPath
+    directoryPath = if fsUtils.isFile(selectedPath) then fsUtils.directory(selectedPath) else selectedPath
     relativeDirectoryPath = project.relativize(directoryPath)
     relativeDirectoryPath += '/' if relativeDirectoryPath.length > 0
 
@@ -274,16 +274,16 @@ class TreeView extends ScrollView
         endsWithDirectorySeparator = /\/$/.test(relativePath)
         path = project.resolve(relativePath)
         try
-          if fs.exists(path)
-            pathType = if fs.isFile(path) then "file" else "directory"
+          if fsUtils.exists(path)
+            pathType = if fsUtils.isFile(path) then "file" else "directory"
             dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path.")
           else if endsWithDirectorySeparator
-            fs.makeTree(path)
+            fsUtils.makeTree(path)
             dialog.cancel()
             @entryForPath(path).buildEntries()
             @selectEntryForPath(path)
           else
-            fs.write(path, "")
+            fsUtils.write(path, "")
             rootView.open(path)
             dialog.close()
         catch e

@@ -4,7 +4,7 @@ LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
 _ = require 'underscore'
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe 'FuzzyFinder', ->
   [finderView] = []
@@ -57,7 +57,7 @@ describe 'FuzzyFinder', ->
           runs ->
             expect(finderView.list.children('li').length).toBe paths.length
             for path in paths
-              expect(finderView.list.find("li:contains(#{fs.base(path)})")).toExist()
+              expect(finderView.list.find("li:contains(#{fsUtils.base(path)})")).toExist()
             expect(finderView.list.children().first()).toHaveClass 'selected'
             expect(finderView.find(".loading")).not.toBeVisible()
 
@@ -218,16 +218,16 @@ describe 'FuzzyFinder', ->
       editor = rootView.getActiveView()
       originalText = editor.getText()
       originalPath = editor.getPath()
-      fs.write(originalPath, 'making a change for the better')
+      fsUtils.write(originalPath, 'making a change for the better')
       git.getPathStatus(originalPath)
 
       newPath = project.resolve('newsample.js')
-      fs.write(newPath, '')
+      fsUtils.write(newPath, '')
       git.getPathStatus(newPath)
 
     afterEach ->
-      fs.write(originalPath, originalText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fsUtils.write(originalPath, originalText)
+      fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
     it "displays all new and modified paths", ->
       expect(rootView.find('.fuzzy-finder')).not.toExist()
@@ -468,11 +468,11 @@ describe 'FuzzyFinder', ->
       originalText = editor.getText()
       originalPath = editor.getPath()
       newPath = project.resolve('newsample.js')
-      fs.write(newPath, '')
+      fsUtils.write(newPath, '')
 
     afterEach ->
-      fs.write(originalPath, originalText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fsUtils.write(originalPath, originalText)
+      fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
     describe "when a modified file is shown in the list", ->
       it "displays the modified icon", ->

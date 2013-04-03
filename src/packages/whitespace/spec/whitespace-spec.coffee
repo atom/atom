@@ -1,12 +1,12 @@
 RootView = require 'root-view'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "Whitespace", ->
   [editor, path] = []
 
   beforeEach ->
     path = "/tmp/atom-whitespace.txt"
-    fs.write(path, "")
+    fsUtils.write(path, "")
     window.rootView = new RootView
     rootView.open(path)
 
@@ -16,10 +16,10 @@ describe "Whitespace", ->
     editor = rootView.getActiveView()
 
   afterEach ->
-    fs.remove(path) if fs.exists(path)
+    fsUtils.remove(path) if fsUtils.exists(path)
 
   it "strips trailing whitespace before an editor saves a buffer", ->
-    spyOn(fs, 'write')
+    spyOn(fsUtils, 'write')
 
     config.set("whitespace.ensureSingleTrailingNewline", false)
     config.update()
@@ -79,4 +79,3 @@ describe "Whitespace", ->
       editor.insertText "no trailing newline"
       editor.getBuffer().save()
       expect(editor.getText()).toBe "no trailing newline"
-
