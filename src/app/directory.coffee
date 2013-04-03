@@ -39,7 +39,7 @@ class Directory
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = fs.watch @path, (event) =>
+    @watchSubscription = fsUtils.watch @path, (event) =>
       @trigger "contents-changed" if event is "rename"
 
   unsubscribeFromNativeChangeEvents: ->

@@ -95,10 +95,11 @@ afterEach ->
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
-  watchedPaths = $native.getWatchedPaths()
-  $native.unwatchAllPaths()
-  if watchedPaths.length > 0
-    throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
+  fs.closeAllFsWatchers()
+  fsWatchers = fs.getAllFsWatchers()
+  if fsWatchers.length > 0
+    paths = fsWatchers.map (watcher) -> watcher.path
+    throw new Error("Leaking FSWatchers: " + paths.join(", "))
 
 emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
 jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->

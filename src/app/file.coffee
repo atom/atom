@@ -98,7 +98,7 @@ class File
       @trigger "removed"
 
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = fs.watch @getPath(), (event, path) =>
+    @watchSubscription = fsUtils.watch @getPath(), (event, path) =>
       @handleNativeChangeEvent(event, path)
 
   unsubscribeFromNativeChangeEvents: ->
