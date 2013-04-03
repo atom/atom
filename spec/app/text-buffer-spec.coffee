@@ -546,7 +546,7 @@ describe 'Buffer', ->
     describe "when given a regex with a ignore case flag", ->
       it "does a case-insensitive search", ->
         matches = []
-        buffer.scanInRange /cuRRent/i, [[0,0], [12,0]], (match, range) ->
+        buffer.scanInRange /cuRRent/i, [[0,0], [12,0]], ({match, range}) ->
           matches.push(match)
         expect(matches.length).toBe 1
 
@@ -554,7 +554,7 @@ describe 'Buffer', ->
       it "calls the iterator with the first match for the given regex in the given range", ->
         matches = []
         ranges = []
-        buffer.scanInRange /cu(rr)ent/, [[4,0], [6,44]], (match, range) ->
+        buffer.scanInRange /cu(rr)ent/, [[4,0], [6,44]], ({match, range}) ->
           matches.push(match)
           ranges.push(range)
 
@@ -569,7 +569,7 @@ describe 'Buffer', ->
       it "calls the iterator with each match for the given regex in the given range", ->
         matches = []
         ranges = []
-        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range) ->
+        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({match, range}) ->
           matches.push(match)
           ranges.push(range)
 
@@ -593,7 +593,7 @@ describe 'Buffer', ->
         it "calls the iterator with the truncated match", ->
           matches = []
           ranges = []
-          buffer.scanInRange /cu(r*)/g, [[4,0], [6,9]], (match, range) ->
+          buffer.scanInRange /cu(r*)/g, [[4,0], [6,9]], ({match, range}) ->
             matches.push(match)
             ranges.push(range)
 
@@ -612,7 +612,7 @@ describe 'Buffer', ->
         it "calls the iterator with the truncated match", ->
           matches = []
           ranges = []
-          buffer.scanInRange /cu(r*)e/g, [[4,0], [6,9]], (match, range) ->
+          buffer.scanInRange /cu(r*)e/g, [[4,0], [6,9]], ({match, range}) ->
             matches.push(match)
             ranges.push(range)
 
@@ -626,7 +626,7 @@ describe 'Buffer', ->
     describe "when the iterator calls the 'replace' control function with a replacement string", ->
       it "replaces each occurrence of the regex match with the string", ->
         ranges = []
-        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { replace }) ->
+        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({range, replace}) ->
           ranges.push(range)
           replace("foo")
 
@@ -638,7 +638,7 @@ describe 'Buffer', ->
         expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
 
       it "allows the match to be replaced with the empty string", ->
-        buffer.scanInRange /current/g, [[4,0], [6,59]], (match, range, { replace }) ->
+        buffer.scanInRange /current/g, [[4,0], [6,59]], ({replace}) ->
           replace("")
 
         expect(buffer.lineForRow(5)).toBe '       = items.shift();'
@@ -647,7 +647,7 @@ describe 'Buffer', ->
     describe "when the iterator calls the 'stop' control function", ->
       it "stops the traversal", ->
         ranges = []
-        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { stop }) ->
+        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({range, stop}) ->
           ranges.push(range)
           stop() if ranges.length == 2
 
@@ -658,7 +658,7 @@ describe 'Buffer', ->
       it "calls the iterator with the last match for the given regex in the given range", ->
         matches = []
         ranges = []
-        buffer.backwardsScanInRange /cu(rr)ent/, [[4,0], [6,44]], (match, range) ->
+        buffer.backwardsScanInRange /cu(rr)ent/, [[4,0], [6,44]], ({match, range}) ->
           matches.push(match)
           ranges.push(range)
 
@@ -673,7 +673,7 @@ describe 'Buffer', ->
       it "calls the iterator with each match for the given regex in the given range, starting with the last match", ->
         matches = []
         ranges = []
-        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range) ->
+        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({match, range}) ->
           matches.push(match)
           ranges.push(range)
 
@@ -695,7 +695,7 @@ describe 'Buffer', ->
     describe "when the iterator calls the 'replace' control function with a replacement string", ->
       it "replaces each occurrence of the regex match with the string", ->
         ranges = []
-        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { replace }) ->
+        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({range, replace}) ->
           ranges.push(range)
           replace("foo") unless range.start.isEqual([6,6])
 
@@ -709,7 +709,7 @@ describe 'Buffer', ->
     describe "when the iterator calls the 'stop' control function", ->
       it "stops the traversal", ->
         ranges = []
-        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { stop }) ->
+        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({range, stop}) ->
           ranges.push(range)
           stop() if ranges.length == 2
 

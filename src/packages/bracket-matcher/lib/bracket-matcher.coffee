@@ -102,7 +102,7 @@ module.exports =
     regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     endPairPosition = null
     unpairedCount = 0
-    buffer.scanInRange regex, scanRange, (match, range, {stop}) =>
+    buffer.scanInRange regex, scanRange, ({match, range, stop}) =>
       if match[0] is startPair
         unpairedCount++
       else if match[0] is endPair
@@ -116,7 +116,7 @@ module.exports =
     regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     startPairPosition = null
     unpairedCount = 0
-    buffer.backwardsScanInRange regex, scanRange, (match, range, {stop}) =>
+    buffer.backwardsScanInRange regex, scanRange, ({match, range, stop}) =>
       if match[0] is endPair
         unpairedCount++
       else if match[0] is startPair

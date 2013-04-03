@@ -133,20 +133,20 @@ class Cursor
 
   moveToFirstCharacterOfLine: ->
     position = @getBufferPosition()
-    range = @getCurrentLineBufferRange()
+    scanRange = @getCurrentLineBufferRange()
     newPosition = null
-    @editSession.scanInRange /^\s*/, range, (match, matchRange) =>
-      newPosition = matchRange.end
+    @editSession.scanInRange /^\s*/, scanRange, ({range}) =>
+      newPosition = range.end
     return unless newPosition
     newPosition = [position.row, 0] if newPosition.isEqual(position)
     @setBufferPosition(newPosition)
 
   skipLeadingWhitespace: ->
     position = @getBufferPosition()
-    range = @getCurrentLineBufferRange()
+    scanRange = @getCurrentLineBufferRange()
     endOfLeadingWhitespace = null
-    @editSession.scanInRange /^[ \t]*/, range, (match, matchRange) =>
-      endOfLeadingWhitespace = matchRange.end
+    @editSession.scanInRange /^[ \t]*/, scanRange, ({range}) =>
+      endOfLeadingWhitespace = range.end
 
     @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
 
@@ -164,12 +164,12 @@ class Cursor
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
     previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
-    range = [[previousNonBlankRow, 0], currentBufferPosition]
+    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editSession.backwardsScanInRange (options.wordRegex ? @wordRegExp()), range, (match, matchRange, { stop }) =>
-      if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
-        beginningOfWordPosition = matchRange.start
+    @editSession.backwardsScanInRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
+        beginningOfWordPosition = range.start
       if not beginningOfWordPosition?.isEqual(currentBufferPosition)
         stop()
 
@@ -178,12 +178,12 @@ class Cursor
   getEndOfCurrentWordBufferPosition: (options = {}) ->
     allowNext = options.allowNext ? true
     currentBufferPosition = @getBufferPosition()
-    range = [currentBufferPosition, @editSession.getEofBufferPosition()]
+    scanRange = [currentBufferPosition, @editSession.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editSession.scanInRange (options.wordRegex ? @wordRegExp()), range, (match, matchRange, { stop }) =>
-      if matchRange.start.isLessThanOrEqual(currentBufferPosition) or allowNext
-        endOfWordPosition = matchRange.end
+    @editSession.scanInRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      if range.start.isLessThanOrEqual(currentBufferPosition) or allowNext
+        endOfWordPosition = range.end
       if not endOfWordPosition?.isEqual(currentBufferPosition)
         stop()
 

@@ -404,7 +404,7 @@ class Buffer
       range = new Range(startPosition, endPosition)
       keepLooping = true
       replacementText = null
-      iterator(match, range, { stop, replace })
+      iterator({match, range, stop, replace })
 
       if replacementText?
         @change(range, replacementText)
