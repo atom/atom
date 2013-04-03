@@ -251,8 +251,6 @@
         'native/message_translation.cpp',
         'native/message_translation.h',
         'native/message_translation.h',
-        'native/path_watcher.h',
-        'native/path_watcher.mm',
         'native/v8_extensions/atom.h',
         'native/v8_extensions/atom.mm',
         'native/v8_extensions/native.h',
