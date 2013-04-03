@@ -13,7 +13,7 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
       syntax.setGrammarOverrideForPath(path, 'source.ruby')
       syntax2 = deserialize(syntax.serialize())
-      syntax2.addGrammar(grammar) for grammar in syntax.grammars
+      syntax2.addGrammar(grammar) for grammar in syntax.grammars when grammar isnt syntax.nullGrammar
       expect(syntax2.selectGrammar(path).name).toBe 'Ruby'
 
   describe ".selectGrammar(filePath)", ->

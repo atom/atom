@@ -5,8 +5,6 @@ Specificity = require 'specificity'
 fsUtils = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 NullGrammar = require 'null-grammar'
-nodePath = require 'path'
-pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 
 module.exports =
 class Syntax
@@ -18,13 +16,13 @@ class Syntax
     syntax
 
   constructor: ->
-    @grammars = []
+    @nullGrammar = new NullGrammar
+    @grammars = [@nullGrammar]
     @grammarsByFileType = {}
     @grammarsByScopeName = {}
     @grammarOverridesByPath = {}
     @scopedPropertiesIndex = 0
     @scopedProperties = []
-    @nullGrammar = new NullGrammar
 
   serialize: ->
     { deserializer: @constructor.name, @grammarOverridesByPath }
@@ -50,51 +48,10 @@ class Syntax
     @grammarOverridesByPath = {}
 
   selectGrammar: (filePath, fileContents) ->
-
-    return @grammarsByFileType["txt"] ? @nullGrammar unless filePath
-
-    @grammarOverrideForPath(filePath) ?
-      @grammarByFirstLineRegex(filePath, fileContents) ?
-      @grammarByPath(filePath) ?
-      @grammarsByFileType["txt"] ?
-      @nullGrammar
+    _.max @grammars, (grammar) -> grammar.getScore(filePath, fileContents)
 
   grammarOverrideForPath: (path) ->
-    @grammarsByScopeName[@grammarOverridesByPath[path]]
-
-  grammarByPath: (path) ->
-    pathComponents = path.split(pathSplitRegex)
-    for fileType, grammar of @grammarsByFileType
-      fileTypeComponents = fileType.split(pathSplitRegex)
-      pathSuffix = pathComponents[-fileTypeComponents.length..-1]
-      return grammar if _.isEqual(pathSuffix, fileTypeComponents)
-
-  grammarByFirstLineRegex: (filePath, fileContents) ->
-    try
-      fileContents ?= fsUtils.read(filePath)
-    catch e
-      return
-
-    return unless fileContents
-
-    lines = fileContents.split('\n')
-    _.find @grammars, (grammar) ->
-      regex = grammar.firstLineRegex
-      return unless regex?
-
-      escaped = false
-      numberOfNewlinesInRegex = 0
-      for character in regex.source
-        switch character
-          when '\\'
-            escaped = !escaped
-          when 'n'
-            numberOfNewlinesInRegex++ if escaped
-            escaped = false
-          else
-            escaped = false
-
-      regex.test(lines[0..numberOfNewlinesInRegex].join('\n'))
+    @grammarOverridesByPath[path]
 
   grammarForScopeName: (scopeName) ->
     @grammarsByScopeName[scopeName]
