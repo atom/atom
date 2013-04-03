@@ -1,8 +1,8 @@
+fs = require 'fs'
 fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 {less} = require 'less'
-{spawn} = require 'child_process'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -78,7 +78,7 @@ window.installAtomCommand = (commandPath) ->
   bundledCommandPath = fsUtils.resolve(window.resourcePath, 'atom.sh')
   if bundledCommandPath?
     fsUtils.write(commandPath, fsUtils.read(bundledCommandPath))
-    spawn('chmod', ['u+x', commandPath])
+    fs.chmod(commandPath, 0o755, commandPath)
 
 window.handleWindowEvents = ->
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
