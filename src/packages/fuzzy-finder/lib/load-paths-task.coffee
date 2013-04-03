@@ -13,9 +13,9 @@ class LoadPathsTask
     ignoreGitIgnoredFiles =  config.get('core.hideGitIgnoredFiles')
 
     command = require.resolve 'nak'
-    args = ['-l', rootPath]
+    args = ['--list', rootPath]
     args.unshift('--addVCSIgnores') if config.get('nak.addVCSIgnores')
-    args.unshift('-d', ignoredNames.join(',')) if ignoredNames.length > 0
+    args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
     args.unshift('--follow')
 
     paths = []
