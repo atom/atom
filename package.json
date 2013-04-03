@@ -13,7 +13,7 @@
     "coffee-cache": "0.1.0",
     "pegjs": "0.7.0",
     "async": "0.2.6",
-    "nak": "0.2.10",
+    "nak": "0.2.11",
     "spellchecker": "0.2.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
     "space-pen": "git://github.com/nathansobo/space-pen.git"
