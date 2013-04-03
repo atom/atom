@@ -25,6 +25,9 @@
       '-change',
       '@loader_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle',
       '@rpath/Sparkle.framework/Versions/A/Sparkle',
+      '-change',
+      '@executable_path/../Frameworks/Quincy.framework/Versions/A/Quincy',
+      '@rpath/Quincy.framework/Versions/A/Quincy',
       '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
     ],
   },
@@ -138,6 +141,7 @@
                 '<(PRODUCT_DIR)/Atom Helper.app',
                 '<(PRODUCT_DIR)/Atom.framework',
                 'native/frameworks/Sparkle.framework',
+                'native/frameworks/Quincy.framework'
               ],
             },
             {
@@ -259,6 +263,7 @@
         'libraries': [
           '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
           'native/frameworks/Sparkle.framework',
+          'native/frameworks/Quincy.framework',
         ],
       },
       'mac_bundle_resources': [

@@ -5,6 +5,7 @@
 #import "native/atom_cef_app.h"
 #import <getopt.h>
 #import <Sparkle/Sparkle.h>
+#import <Quincy/BWQuincyManager.h>
 
 @implementation AtomApplication
 
@@ -207,6 +208,11 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  BWQuincyManager *manager = [BWQuincyManager sharedQuincyManager];
+  [manager setCompanyName:@"GitHub"];
+  [manager setSubmissionURL:@"https://speakeasy.githubapp.com/submit_crash_log"];
+  [manager setAutoSubmitCrashReport:YES];
+
   if (!_filesOpened && [self shouldOpenFiles]) {
     NSString *path = [self.arguments objectForKey:@"path"];
     NSNumber *pid = [self.arguments objectForKey:@"wait"] ? [self.arguments objectForKey:@"pid"] : nil;
