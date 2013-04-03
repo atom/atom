@@ -9,11 +9,10 @@ class LoadPathsTask
     rootPath = project.getPath()
     ignoredNames = config.get('fuzzyFinder.ignoredNames') ? []
     ignoredNames = ignoredNames.concat(config.get('core.ignoredNames') ? [])
-    ignoreGitIgnoredFiles =  config.get('core.hideGitIgnoredFiles')
 
     command = require.resolve 'nak'
     args = ['--list', rootPath]
-    args.unshift('--addVCSIgnores') if config.get('nak.addVCSIgnores')
+    args.unshift('--addVCSIgnores') if config.get('fuzzyFinder.hideVcsIgnoredPaths')
     args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
     args.unshift('--follow')
 
