@@ -135,11 +135,11 @@ class Pane extends View
     @trigger 'pane:item-added', [item, index]
     item
 
-  destroyActiveItem: =>
-    @destroyItem(@activeItem)
+  destroyActiveItem: (promptToSave=true) =>
+    @destroyItem(@activeItem, promptToSave)
     false
 
-  destroyItem: (item) ->
+  destroyItem: (item, promptToSave=true) ->
     container = @getContainer()
     reallyDestroyItem = =>
       @removeItem(item)
@@ -148,7 +148,7 @@ class Pane extends View
 
     @autosaveItem(item)
 
-    if item.isModified?()
+    if promptToSave && item.isModified?()
       @promptToSaveItem(item, reallyDestroyItem)
     else
       reallyDestroyItem()
