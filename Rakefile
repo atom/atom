@@ -115,7 +115,7 @@ task :tags do
 end
 
 task :docs do
-  system %{./biscotto src/app/}
+  system %{./biscotto -j ~/Development/biscotto/out.json src/app/}
 end
 
 def application_path
