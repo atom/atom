@@ -270,9 +270,10 @@ class Buffer
     @trigger 'will-be-saved'
     @setPath(path)
     @cachedDiskContents = @getText()
-    @file.write(@getText())
-    @triggerModifiedStatusChanged(false)
-    @trigger 'saved'
+    @file.write @getText(), (err) ->
+      throw err if err?
+      @triggerModifiedStatusChanged(false)
+      @trigger 'saved'
 
   isModified: ->
     if @file

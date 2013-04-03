@@ -21,11 +21,15 @@ class File
   getBaseName: ->
     fsUtils.base(@path)
 
-  write: (text) ->
+  write: (text, callback) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fsUtils.write(@getPath(), text)
-    @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
+    fsUtils.writeAsync @getPath(), text, (err) ->
+      if err?
+        callback(err)
+      else
+        @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
+        callback(null)
 
   read: (flushCache)->
     if not @exists()

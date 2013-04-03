@@ -155,6 +155,13 @@ module.exports =
     mkdirp.sync(@directory(path))
     fs.writeFileSync(path, content)
 
+  writeAsync: (path, content, callback) ->
+    mkdirp.sync @directory(path), (err) ->
+      if err?
+        callback(err)
+      else
+        fs.writeFile(path, content, callback)
+
   makeDirectory: (path) ->
     fs.mkdirSync(path)
 
