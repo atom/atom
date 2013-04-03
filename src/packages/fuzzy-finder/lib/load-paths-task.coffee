@@ -1,6 +1,5 @@
 _ = require 'underscore'
 BufferedProcess = require 'buffered-process'
-$ = require 'jquery'
 
 module.exports =
 class LoadPathsTask
@@ -19,18 +18,12 @@ class LoadPathsTask
     args.unshift('--follow')
 
     paths = []
-    deferred = $.Deferred()
-    exit = (code) =>
-      if code is -1
-        deferred.reject({command, code})
-      else
-        @callback(paths)
-        deferred.resolve()
+    exit = =>
+      @callback(paths)
     stdout = (data) ->
       paths.push(_.compact(data.split('\n'))...)
 
     @process = new BufferedProcess({command, args, stdout, exit})
-    deferred
 
   abort: ->
     if @process?
