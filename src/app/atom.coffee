@@ -109,9 +109,10 @@ _.extend atom,
     @loadedThemes.push Theme.load(name)
 
   loadUserStylesheet: ->
-    userStylesheetPath = fs.join(config.configDirPath, 'user.css')
+    userStylesheetPath = fs.resolve(fs.join(config.configDirPath, 'user'), ['css', 'less'])
     if fs.isFile(userStylesheetPath)
-      applyStylesheet(userStylesheetPath, fs.read(userStylesheetPath), 'userTheme')
+      userStyleesheetContents = loadStylesheet(userStylesheetPath)
+      applyStylesheet(userStylesheetPath, userStyleesheetContents, 'userTheme')
 
   getAtomThemeStylesheets: ->
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
