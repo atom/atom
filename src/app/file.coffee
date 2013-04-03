@@ -2,7 +2,6 @@ EventEmitter = require 'event-emitter'
 
 fs = require 'fs'
 fsUtils = require 'fs-utils'
-path = require 'path'
 _ = require 'underscore'
 
 module.exports =
@@ -76,7 +75,7 @@ class File
               @subscribeToNativeChangeEvents()
               @handleNativeChangeEvent("change", null)
             else
-              # Is the path passed by rename event real?
+              # Is the path passed by rename event still there?
               fs.stat path, (err) =>
                 if err? # file is deleted after rename
                   @handleNativeChangeEvent("rename", null)
@@ -84,7 +83,7 @@ class File
                   @setPath(path)
                   @subscribeToNativeChangeEvents()
                   @trigger "moved"
-          , 100
+        , 100
 
   detectResurrectionAfterDelay: ->
     _.delay (=> @detectResurrection()), 50

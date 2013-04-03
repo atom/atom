@@ -2,6 +2,7 @@ Project = require 'project'
 Buffer = require 'text-buffer'
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
+timers = require 'timers'
 
 describe 'Buffer', ->
   [filePath, fileContents, buffer] = []
@@ -65,8 +66,13 @@ describe 'Buffer', ->
       expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
     it "triggers a `path-changed` event when the file is moved", ->
+      jasmine.unspy(window, "setTimeout")
       fsUtils.remove(newPath) if fsUtils.exists(newPath)
-      fsUtils.move(path, newPath)
+
+      runs ->
+        timers.setTimeout ->
+          fsUtils.move(path, newPath)
+        , 100
 
       waitsFor "buffer path change", ->
         eventHandler.callCount > 0
@@ -101,7 +107,11 @@ describe 'Buffer', ->
       it "changes the memory contents of the buffer to match the new disk contents and triggers a 'changed' event", ->
         changeHandler = jasmine.createSpy('changeHandler')
         buffer.on 'changed', changeHandler
-        fsUtils.write(path, "second")
+
+        runs ->
+          timers.setTimeout ->
+            fsUtils.write(path, "second")
+          , 100
 
         expect(changeHandler.callCount).toBe 0
         waitsFor "file to trigger change event", ->
@@ -119,9 +129,12 @@ describe 'Buffer', ->
       it "leaves the buffer in a modified state (does not update its memory contents)", ->
         fileChangeHandler = jasmine.createSpy('fileChange')
         buffer.file.on 'contents-changed', fileChangeHandler
-
         buffer.insert([0, 0], "a change")
-        fsUtils.write(path, "second")
+
+        runs ->
+          timers.setTimeout ->
+            fsUtils.write(path, "second")
+          , 100
 
         expect(fileChangeHandler.callCount).toBe 0
         waitsFor "file to trigger 'contents-changed' event", ->
@@ -136,10 +149,14 @@ describe 'Buffer', ->
         buffer.insert([0, 0], "a second change")
 
         handler = jasmine.createSpy('fileChange')
-        fsUtils.write(path, "second")
         buffer.on 'contents-conflicted', handler
-
         expect(handler.callCount).toBe 0
+
+        runs ->
+          timers.setTimeout ->
+            fsUtils.write(path, "second")
+          , 100
+
         waitsFor ->
           handler.callCount > 0
 
@@ -160,7 +177,12 @@ describe 'Buffer', ->
 
       removeHandler = jasmine.createSpy('removeHandler')
       bufferToDelete.file.on 'removed', removeHandler
-      fsUtils.remove(path)
+
+      runs ->
+        timers.setTimeout ->
+          fsUtils.remove(path)
+        , 100
+
       waitsFor "file to be removed", ->
         removeHandler.callCount > 0
 
@@ -176,10 +198,14 @@ describe 'Buffer', ->
       expect(bufferToDelete.fileExists()).toBeTruthy()
       expect(bufferToDelete.isInConflict()).toBeFalsy()
 
-      fsUtils.write(path, 'moo')
-
       changeHandler = jasmine.createSpy('changeHandler')
       bufferToDelete.on 'changed', changeHandler
+
+      runs ->
+        timers.setTimeout ->
+          fsUtils.write(path, 'moo')
+        , 100
+
       waitsFor 'change event', ->
         changeHandler.callCount > 0
 
@@ -214,7 +240,10 @@ describe 'Buffer', ->
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
-      fsUtils.remove(filePath)
+      runs ->
+        timers.setTimeout ->
+          fsUtils.remove(filePath)
+        , 100
 
       waitsFor "modified status to change", -> modifiedHandler.callCount
       runs -> expect(buffer.isModified()).toBe true
@@ -528,13 +557,20 @@ describe 'Buffer', ->
       saveAsBuffer.saveAs(newPath)
       expect(changeHandler).not.toHaveBeenCalled()
 
-      fsUtils.write(originalPath, "should not trigger buffer event")
-      waits 20
       runs ->
-        expect(changeHandler).not.toHaveBeenCalled()
-        fsUtils.write(newPath, "should trigger buffer event")
+        timers.setTimeout ->
+          fsUtils.write(originalPath, "should not trigger buffer event")
+        , 100
 
-      waitsFor ->
+      runs ->
+        timers.setTimeout ->
+          expect(changeHandler).not.toHaveBeenCalled()
+          timers.setTimeout ->
+            fsUtils.write(newPath, "should trigger buffer event")
+          , 100
+        , 200
+
+      waitsFor "change event", ->
         changeHandler.callCount > 0
 
   describe ".getTextInRange(range)", ->
