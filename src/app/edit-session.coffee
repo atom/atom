@@ -163,8 +163,8 @@ class EditSession
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
-  scanInRange: (args...) -> @buffer.scanInRange(args...)
-  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
   isModified: -> @buffer.isModified()
   hasEditors: -> @buffer.hasEditors()
 
@@ -245,7 +245,7 @@ class EditSession
 
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @softTabs
-    @scanInRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
+    @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
 
   cutToEndOfLine: ->
     maintainPasteboard = false

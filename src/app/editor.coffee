@@ -315,8 +315,8 @@ class Editor extends View
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
-  scanInRange: (args...) -> @getBuffer().scanInRange(args...)
-  backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
     @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
