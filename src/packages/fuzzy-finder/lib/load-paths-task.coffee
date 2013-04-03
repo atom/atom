@@ -17,8 +17,11 @@ class LoadPathsTask
     args.unshift('--follow')
 
     paths = []
-    exit = =>
-      @callback(paths)
+    exit = (code) =>
+      if code is 0
+        @callback(paths)
+      else
+        @callback([])
     stdout = (data) ->
       paths.push(_.compact(data.split('\n'))...)
 
