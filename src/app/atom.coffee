@@ -233,10 +233,12 @@ _.extend atom,
       null
 
   getSavedWindowState: ->
-    localStorage[window.location.params.pathToOpen]
+    if pathToOpen = window.location.params.pathToOpen
+      localStorage[pathToOpen]
 
   saveWindowState: ->
-    localStorage[@getPathToOpen()] = JSON.stringify(@getWindowState())
+    if pathToOpen = @getPathToOpen()
+      localStorage[pathToOpen] = JSON.stringify(@getWindowState())
 
   update: ->
     @sendMessageToBrowserProcess('update')
