@@ -18,7 +18,6 @@ class Syntax
   constructor: ->
     @nullGrammar = new NullGrammar
     @grammars = [@nullGrammar]
-    @grammarsByFileType = {}
     @grammarsByScopeName = {}
     @grammarOverridesByPath = {}
     @scopedPropertiesIndex = 0
@@ -29,14 +28,11 @@ class Syntax
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    @grammarsByFileType[fileType] = grammar for fileType in grammar.fileTypes
     @grammarsByScopeName[grammar.scopeName] = grammar
 
   removeGrammar: (grammar) ->
-    if _.include(@grammars, grammar)
-      _.remove(@grammars, grammar)
-      delete @grammarsByFileType[fileType] for fileType in grammar.fileTypes
-      delete @grammarsByScopeName[grammar.scopeName]
+    _.remove(@grammars, grammar)
+    delete @grammarsByScopeName[grammar.scopeName]
 
   setGrammarOverrideForPath: (path, scopeName) ->
     @grammarOverridesByPath[path] = scopeName
