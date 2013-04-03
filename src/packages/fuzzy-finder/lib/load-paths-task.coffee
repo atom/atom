@@ -12,7 +12,7 @@ class LoadPathsTask
 
     command = require.resolve 'nak'
     args = ['--list', rootPath]
-    args.unshift('--addVCSIgnores') if config.get('fuzzyFinder.hideVcsIgnoredPaths')
+    args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
     args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
     args.unshift('--follow')
 

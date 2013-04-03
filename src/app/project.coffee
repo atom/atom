@@ -193,7 +193,7 @@ class Project
 
     command = require.resolve('nak')
     args = ['--ackmate', regex.source, @getPath()]
-    args.unshift("--addVCSIgnores") if config.get('nak.addVCSIgnores')
+    args.unshift("--addVCSIgnores") if config.get('core.excludeVcsIgnoredPaths')
     new BufferedProcess({command, args, stdout, exit})
     deferred
 
