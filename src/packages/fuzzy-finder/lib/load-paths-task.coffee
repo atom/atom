@@ -26,7 +26,7 @@ class LoadPathsTask
         @callback(paths)
         deferred.resolve()
     stdout = (data) ->
-      paths.push.apply(paths, _.compact(data.split('\n')))
+      paths.push(_.compact(data.split('\n'))...)
 
     @process = new BufferedProcess({command, args, stdout, exit})
     deferred
