@@ -146,7 +146,12 @@ class TerminalBuffer
     if op == 1
       @getLine(n)?.erase(0, 2) for n in [start..cursorLine-1]
     else if op == 2
-      @getLine(n)?.erase(0, 2) for n in [start..numLines]
+      if !@scrollingRegion?
+        @lines = []
+        @addLine(false)
+        @redrawNeeded = true
+      else
+        @getLine(n)?.erase(0, 2) for n in [start..numLines]
     else
       @getLine(n)?.erase(0, 2) for n in [cursorLine+1..numLines] if numLines > cursorLine
   eraseInLine: (op) ->

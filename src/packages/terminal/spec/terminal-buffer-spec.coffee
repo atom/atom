@@ -266,7 +266,7 @@ fdescribe 'Terminal Buffer', ->
         buffer.input("ab\nc")
         buffer.moveCursorTo([1,2])
         buffer.input(TerminalBuffer.escapeSequence("2J"))
-        expect(buffer.text()).toBe("\n\n")
+        expect(buffer.text()).toBe("\n")
       it "only clears inside the scrolling region", ->
         buffer.input("ab")
         buffer.setScrollingRegion([2,3])
