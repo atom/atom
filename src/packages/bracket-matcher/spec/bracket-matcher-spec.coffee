@@ -86,6 +86,17 @@ describe "bracket matching", ->
         editor.trigger "editor:go-to-matching-bracket"
         expect(editor.getCursorBufferPosition()).toEqual [0, 28]
 
+  describe "when editor:select-to-matching-bracket is triggered", ->
+    it " selects until the next matched bracket", ->
+      editor.moveCursorToEndOfLine()
+      editor.moveCursorLeft()
+      editor.trigger "editor:select-to-matching-bracket"
+      expect(editor.getCursorBufferPosition()).toEqual [12, 1]
+      selections = editor.getSelections()
+      expect(selections.length).toBe(1)
+      range = selections[0].getBufferRange()
+      expect(range).toEqual([[0,28], [12,1]])
+
   describe "matching bracket insertion", ->
     beforeEach ->
       editSession.buffer.setText("")
