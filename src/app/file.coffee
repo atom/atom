@@ -24,12 +24,17 @@ class File
   write: (text, callback) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fsUtils.writeAsync @getPath(), text, (err) ->
+    done = (err) =>
       if err?
         callback(err)
       else
         @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
         callback(null)
+    fsUtils.writeAsync @getPath(), text, (err) =>
+      if err?.code is "EACCES"
+        fsUtils.writeWithPrivileges @getPath(), text, done
+      else
+        done(err)
 
   read: (flushCache)->
     if not @exists()

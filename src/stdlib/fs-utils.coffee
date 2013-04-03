@@ -2,6 +2,7 @@
 # http://ringojs.org/api/v0.8/fs/
 
 _ = require 'underscore'
+exec = require('child_process').exec
 fs = require 'fs'
 mkdirp = require 'mkdirp'
 Module = require 'module'
@@ -156,11 +157,23 @@ module.exports =
     fs.writeFileSync(path, content)
 
   writeAsync: (path, content, callback) ->
-    mkdirp.sync @directory(path), (err) ->
+    mkdirp @directory(path), (err) ->
       if err?
         callback(err)
       else
         fs.writeFile(path, content, callback)
+
+  writeWithPrivileges: (path, content, callback) ->
+    mkdirp @directory(path), (err) ->
+      if err?
+        callback(err)
+      else
+        authopen = exec "/usr/libexec/authopen -w #{path}", (err, stdout, stderr) ->
+          if err?
+            callback(new Error(stderr))
+          else
+            callback(null)
+        authopen.stdin.end(content)
 
   makeDirectory: (path) ->
     fs.mkdirSync(path)
