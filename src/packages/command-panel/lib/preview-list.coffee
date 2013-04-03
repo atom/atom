@@ -112,6 +112,8 @@ class PreviewList extends ScrollView
     @scrollTop(top) if top < @scrollTop()
 
   scrollToBottom: ->
+    @renderOperations(renderAll: true)
+
     super()
 
     @find('.selected').removeClass('selected')

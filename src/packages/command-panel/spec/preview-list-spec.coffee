@@ -54,3 +54,14 @@ describe "Preview List", ->
         previousOperationCount = previewList.find("li").length
         previewList.trigger 'command-panel:collapse-result'
         expect(previewList.find("li").length).toBeGreaterThan previousOperationCount
+
+    it "renders all operations when core:move-to-bottom is triggered", ->
+      waitsForPromise ->
+        commandPanelView.execute('X x/so/')
+
+      runs ->
+        expect(previewList.prop('scrollHeight')).toBeGreaterThan previewList.height()
+        previousScrollHeight = previewList.prop('scrollHeight')
+        previewList.trigger 'core:move-to-bottom'
+        liCount = previewList.getPathCount() + previewList.getOperations().length
+        expect(previewList.find("li").length).toBe liCount
