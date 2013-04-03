@@ -43,3 +43,14 @@ describe "Preview List", ->
         previousOperationCount = previewList.find("li").length
         previewList.collapseAllPaths()
         expect(previewList.find("li").length).toBeGreaterThan previousOperationCount
+
+    it "renders more operations when a preview item is collapsed", ->
+      waitsForPromise ->
+        commandPanelView.execute('X x/so/')
+
+      runs ->
+        expect(previewList.prop('scrollHeight')).toBeGreaterThan previewList.height()
+        previousScrollHeight = previewList.prop('scrollHeight')
+        previousOperationCount = previewList.find("li").length
+        previewList.trigger 'command-panel:collapse-result'
+        expect(previewList.find("li").length).toBeGreaterThan previousOperationCount

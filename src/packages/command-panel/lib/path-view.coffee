@@ -17,9 +17,11 @@ class PathView extends View
   initialize: ({@previewList}) ->
     @pathDetails.on 'mousedown', => @toggle(true)
     @subscribe @previewList, 'command-panel:collapse-result', =>
-      @collapse(true) if @isSelected()
+      if @isSelected()
+        @collapse()
+        @previewList.renderOperations()
     @subscribe @previewList, 'command-panel:expand-result', =>
-      @expand(true) if @isSelected()
+      @expand() if @isSelected()
     @subscribe @previewList, 'core:confirm', =>
       if @hasClass('selected')
         @toggle(true)
@@ -36,30 +38,22 @@ class PathView extends View
     @previewList.find('.selected').removeClass('selected')
     @addClass('selected')
 
-  toggle: (animate) ->
+  toggle: ->
     if @hasClass('is-collapsed')
-      @expand(animate)
+      @expand()
     else
-      @collapse(animate)
+      @collapse()
 
-  expand: (animate=false) ->
-    if animate
-      @matches.show 100, => @removeClass 'is-collapsed'
-    else
-      @matches.show()
-      @removeClass 'is-collapsed'
+  expand: ->
+    @matches.show()
+    @removeClass 'is-collapsed'
 
   scrollTo: ->
     top = @previewList.scrollTop() + @offset().top - @previewList.offset().top
     bottom = top + @pathDetails.outerHeight()
     @previewList.scrollTo(top, bottom)
 
-  collapse: (animate=false) ->
-    if animate
-      @matches.hide 100, =>
-        @addClass 'is-collapsed'
-        @setSelected() if @isSelected()
-    else
-      @matches.hide()
-      @addClass 'is-collapsed'
-      @setSelected() if @isSelected()
+  collapse: ->
+    @matches.hide()
+    @addClass 'is-collapsed'
+    @setSelected() if @isSelected()
