@@ -4,7 +4,7 @@ MarkdownPreviewView = require 'markdown-preview/lib/markdown-preview-view'
 
 describe "MarkdownPreview package", ->
   beforeEach ->
-    window.loadPackage('gfm')
+    atom.activatePackage('gfm')
     project.setPath(project.resolve('markdown'))
     window.rootView = new RootView
     atom.activatePackage("markdown-preview", immediate: true)
