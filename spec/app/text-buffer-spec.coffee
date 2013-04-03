@@ -9,7 +9,7 @@ describe 'Buffer', ->
   beforeEach ->
     filePath = require.resolve('fixtures/sample.js')
     fileContents = fs.read(filePath)
-    buffer = new Buffer(filePath)
+    buffer = project.bufferForPath(filePath)
 
   afterEach ->
     buffer?.release()
@@ -23,11 +23,11 @@ describe 'Buffer', ->
       describe "when a file exists for the path", ->
         it "loads the contents of that file", ->
           filePath = require.resolve 'fixtures/sample.txt'
-          buffer = new Buffer(filePath)
+          buffer = project.bufferForPath(filePath)
           expect(buffer.getText()).toBe fs.read(filePath)
 
         it "is not modified and has no undo history", ->
-          buffer = new Buffer(filePath)
+          buffer = project.bufferForPath(filePath)
           expect(buffer.isModified()).toBeFalsy()
           expect(buffer.undoManager.undoHistory.length).toBe 0
 
@@ -35,11 +35,11 @@ describe 'Buffer', ->
         it "throws an exception", ->
           filePath = "does-not-exist.txt"
           expect(fs.exists(filePath)).toBeFalsy()
-          expect(-> new Buffer(filePath)).toThrow()
+          expect(-> project.bufferForPath(filePath)).toThrow()
 
     describe "when no path is given", ->
       it "creates an empty buffer", ->
-        buffer = new Buffer
+        buffer = project.bufferForPath(null)
         expect(buffer .getText()).toBe ""
 
   describe "path-changed event", ->
@@ -49,7 +49,7 @@ describe 'Buffer', ->
       path = fs.join(fs.resolveOnLoadPath("fixtures"), "atom-manipulate-me")
       newPath = "#{path}-i-moved"
       fs.write(path, "")
-      bufferToChange = new Buffer(path)
+      bufferToChange = project.bufferForPath(path)
       eventHandler = jasmine.createSpy('eventHandler')
       bufferToChange.on 'path-changed', eventHandler
 
@@ -78,7 +78,7 @@ describe 'Buffer', ->
       path = "/tmp/tmp.txt"
       fs.write(path, "first")
       buffer.release()
-      buffer = new Buffer(path).retain()
+      buffer = project.bufferForPath(path).retain()
 
     afterEach ->
       buffer.release()
@@ -150,7 +150,8 @@ describe 'Buffer', ->
     beforeEach ->
       path = "/tmp/atom-file-to-delete.txt"
       fs.write(path, 'delete me')
-      bufferToDelete = new Buffer(path)
+      bufferToDelete = project.bufferForPath(path)
+      path = bufferToDelete.getPath() # symlinks may have been converted
 
       expect(bufferToDelete.getPath()).toBe path
       expect(bufferToDelete.isModified()).toBeFalsy()
@@ -207,7 +208,7 @@ describe 'Buffer', ->
       buffer.release()
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, 'delete me')
-      buffer = new Buffer(filePath)
+      buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -220,7 +221,7 @@ describe 'Buffer', ->
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, '')
       buffer.release()
-      buffer = new Buffer(filePath)
+      buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -244,7 +245,7 @@ describe 'Buffer', ->
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, '')
       buffer.release()
-      buffer = new Buffer(filePath)
+      buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
@@ -265,12 +266,12 @@ describe 'Buffer', ->
 
     it "returns false for an empty buffer with no path", ->
       buffer.release()
-      buffer = new Buffer()
+      buffer = project.bufferForPath(null)
       expect(buffer.isModified()).toBeFalsy()
 
     it "returns true for a non-empty buffer with no path", ->
        buffer.release()
-       buffer = new Buffer()
+       buffer = project.bufferForPath(null)
        buffer.setText('a')
        expect(buffer.isModified()).toBeTruthy()
        buffer.setText('\n')
@@ -420,7 +421,7 @@ describe 'Buffer', ->
       beforeEach ->
         filePath = '/tmp/temp.txt'
         fs.write(filePath, "")
-        saveBuffer = new Buffer filePath
+        saveBuffer = project.bufferForPath(filePath)
         saveBuffer.setText("blah")
 
       it "saves the contents of the buffer to the path", ->
@@ -454,7 +455,7 @@ describe 'Buffer', ->
 
     describe "when the buffer has no path", ->
       it "throws an exception", ->
-        saveBuffer = new Buffer
+        saveBuffer = project.bufferForPath(null)
         saveBuffer.setText "hi"
         expect(-> saveBuffer.save()).toThrow()
 
@@ -478,7 +479,7 @@ describe 'Buffer', ->
       filePath = '/tmp/temp.txt'
       fs.remove filePath if fs.exists(filePath)
 
-      saveAsBuffer = new Buffer().retain()
+      saveAsBuffer = project.bufferForPath(null).retain()
       eventHandler = jasmine.createSpy('eventHandler')
       saveAsBuffer.on 'path-changed', eventHandler
 
@@ -493,7 +494,7 @@ describe 'Buffer', ->
       newPath = "/tmp/new.txt"
       fs.write(originalPath, "")
 
-      saveAsBuffer = new Buffer(originalPath).retain()
+      saveAsBuffer = project.bufferForPath(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
       saveAsBuffer.on 'changed', changeHandler
       saveAsBuffer.saveAs(newPath)
@@ -724,6 +725,14 @@ describe 'Buffer', ->
       expect(buffer.characterIndexForPosition([1, 0])).toBe 30
       expect(buffer.characterIndexForPosition([2, 0])).toBe 61
       expect(buffer.characterIndexForPosition([12, 2])).toBe 408
+      expect(buffer.characterIndexForPosition([Infinity])).toBe 408
+
+    describe "when the buffer contains crlf line endings", ->
+      it "returns the total number of characters that precede the given position", ->
+        buffer.setText("line1\r\nline2\nline3\r\nline4")
+        expect(buffer.characterIndexForPosition([1])).toBe 7
+        expect(buffer.characterIndexForPosition([2])).toBe 13
+        expect(buffer.characterIndexForPosition([3])).toBe 20
 
   describe ".positionForCharacterIndex(position)", ->
     it "returns the position based on character index", ->
@@ -733,6 +742,13 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
+
+    describe "when the buffer contains crlf line endings", ->
+      it "returns the position based on character index", ->
+        buffer.setText("line1\r\nline2\nline3\r\nline4")
+        expect(buffer.positionForCharacterIndex(7)).toEqual [1, 0]
+        expect(buffer.positionForCharacterIndex(13)).toEqual [2, 0]
+        expect(buffer.positionForCharacterIndex(20)).toEqual [3, 0]
 
   describe "markers", ->
     describe "marker creation", ->
@@ -1214,3 +1230,47 @@ describe 'Buffer', ->
         expect(buffer.clipPosition([1, 0])).toEqual [0,9]
         expect(buffer.clipPosition([0,10])).toEqual [0,9]
         expect(buffer.clipPosition([10,Infinity])).toEqual [0,9]
+
+  describe "serialization", ->
+    serializedState = null
+
+    reloadBuffer = () ->
+      serializedState = buffer.serialize()
+      buffer.release()
+      buffer = Buffer.deserialize(serializedState)
+
+    describe "when the serialized buffer had no unsaved changes", ->
+      it "loads the current contents of the file at the serialized path", ->
+        path = buffer.getPath()
+        text = buffer.getText()
+        reloadBuffer()
+        expect(serializedState.text).toBeUndefined()
+        expect(buffer.getPath()).toBe(path)
+        expect(buffer.getText()).toBe(text)
+
+    describe "when the serialized buffer had unsaved changes", ->
+      it "restores the previous unsaved state of the buffer", ->
+        path = buffer.getPath()
+        previousText = buffer.getText()
+        buffer.setText("abc")
+        reloadBuffer()
+        expect(serializedState.text).toBe "abc"
+        expect(buffer.getPath()).toBe(path)
+        expect(buffer.getText()).toBe("abc")
+        buffer.setText(previousText)
+        expect(buffer.isModified()).toBeFalsy()
+
+    describe "when the serialized buffer was unsaved and had no path", ->
+      it "restores the previous unsaved state of the buffer", ->
+        buffer.setPath(undefined)
+        buffer.setText("abc")
+        reloadBuffer()
+        expect(serializedState.path).toBeUndefined()
+        expect(buffer.getPath()).toBeUndefined()
+        expect(buffer.getText()).toBe("abc")
+
+    it "never deserializes two separate instances of the same buffer", ->
+      serializedState = buffer.serialize()
+      buffer.release()
+      buffer = Buffer.deserialize(serializedState)
+      expect(Buffer.deserialize(serializedState)).toBe buffer

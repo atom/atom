@@ -122,6 +122,7 @@ class Editor extends View
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:select-line': @selectLine
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
       'editor:lower-case': @lowerCase
@@ -150,7 +151,6 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
-        'editor:select-grammar': @selectGrammar
         'editor:copy-path': @copyPathToPasteboard
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
@@ -212,6 +212,7 @@ class Editor extends View
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectWord: -> @activeEditSession.selectWord()
+  selectLine: -> @activeEditSession.selectLine()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   transpose: -> @activeEditSession.transpose()
   upperCase: -> @activeEditSession.upperCase()
@@ -374,7 +375,7 @@ class Editor extends View
       else if clickCount == 3
         @activeEditSession.selectLine() unless e.shiftKey
 
-      @selectOnMousemoveUntilMouseup()
+      @selectOnMousemoveUntilMouseup() unless e.ctrlKey or e.originalEvent.which > 1
 
     @renderedLines.on 'mousedown', onMouseDown
 
@@ -393,10 +394,6 @@ class Editor extends View
     unless @mini
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
-
-      @gutter.on 'mousedown', (e) =>
-        e.pageX = @renderedLines.offset().left
-        onMouseDown(e)
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
@@ -590,6 +587,7 @@ class Editor extends View
     @setSoftWrapColumn(softWrapColumn) if @attached
     if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
+      @scrollView.scrollLeft(0)
       @_setSoftWrapColumn = => @setSoftWrapColumn()
       $(window).on "resize.editor-#{@id}", @_setSoftWrapColumn
     else
@@ -659,7 +657,7 @@ class Editor extends View
     super
     rootView?.focus()
 
-  afterRemove: ->
+  beforeRemove: ->
     @removed = true
     @activeEditSession?.destroy()
     $(window).off(".editor-#{@id}")
@@ -1143,18 +1141,22 @@ class Editor extends View
     else
       @highlightedLine = null
 
-  getGrammar: -> @activeEditSession.getGrammar()
+  getGrammar: ->
+    @activeEditSession.getGrammar()
 
-  selectGrammar: ->
-    GrammarView = require 'grammar-view'
-    new GrammarView(this)
+  setGrammar: (grammar) ->
+    throw new Error("Only mini-editors can explicity set their grammar") unless @mini
+    @activeEditSession.setGrammar(grammar)
+    @handleGrammarChange()
 
   reloadGrammar: ->
     grammarChanged = @activeEditSession.reloadGrammar()
-    if grammarChanged
-      @clearRenderedLines()
-      @updateDisplay()
+    @handleGrammarChange() if grammarChanged
     grammarChanged
+
+  handleGrammarChange: ->
+    @clearRenderedLines()
+    @updateDisplay()
 
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}

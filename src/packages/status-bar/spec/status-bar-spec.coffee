@@ -205,8 +205,8 @@ describe "StatusBar", ->
         expect(statusBar.find('.grammar-name').text()).toBe 'Plain Text'
 
     describe "when clicked", ->
-      it "toggles the editor:select-grammar event", ->
+      it "toggles the grammar-selector:show event", ->
         eventHandler = jasmine.createSpy('eventHandler')
-        editor.on 'editor:select-grammar', eventHandler
+        editor.on 'grammar-selector:show', eventHandler
         statusBar.find('.grammar-name').click()
         expect(eventHandler).toHaveBeenCalled()

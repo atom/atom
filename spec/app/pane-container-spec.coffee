@@ -39,6 +39,18 @@ describe "PaneContainer", ->
       container.focusNextPane()
       expect(pane1.activeItem).toMatchSelector ':focus'
 
+  describe ".focusPreviousPane()", ->
+    it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
+      container.attachToDom()
+      container.focusPreviousPane()
+      expect(pane3.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane2.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane1.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane3.activeItem).toMatchSelector ':focus'
+
   describe ".getActivePane()", ->
     it "returns the most-recently focused pane", ->
       focusStealer = $$ -> @div tabindex: -1, "focus stealer"

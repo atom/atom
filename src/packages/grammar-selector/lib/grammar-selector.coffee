@@ -1,18 +1,23 @@
 SelectList = require 'select-list'
+Editor = require 'editor'
 {$$} = require 'space-pen'
 
 module.exports =
-class GrammarView extends SelectList
+class GrammarSelector extends SelectList
+  @viewClass: -> "#{super} grammar-selector from-top overlay mini"
 
-  @viewClass: -> "#{super} grammar-view from-top overlay mini"
+  @activate: ->
+    rootView.command 'grammar-selector:show', '.editor', => new GrammarSelector()
 
   filterKey: 'name'
 
-  initialize: (@editor) ->
+  initialize: ->
+    @editor = rootView.getActiveView()
+    return unless @editor instanceof Editor
     @currentGrammar = @editor.getGrammar()
     @path = @editor.getPath()
     @autoDetect = name: 'Auto Detect'
-    @command 'editor:select-grammar', =>
+    @command 'grammar-selector:show', =>
       @cancel()
       false
     super
@@ -55,6 +60,5 @@ class GrammarView extends SelectList
 
   attach: ->
     super
-
     rootView.append(this)
     @miniEditor.focus()

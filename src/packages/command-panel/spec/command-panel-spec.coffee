@@ -345,13 +345,15 @@ describe "CommandPanel", ->
         # there shouldn't be any dangling operations after this
 
     describe "if the command is malformed", ->
-      it "adds and removes an error class to the command panel and does not close it", ->
+      it "adds and removes an error class to the command panel and does not close it or display a loading message", ->
+        rootView.attachToDom()
         rootView.trigger 'command-panel:toggle'
         commandPanel.miniEditor.insertText 'garbage-command!!'
 
         commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
         expect(commandPanel.parent()).toExist()
         expect(commandPanel).toHaveClass 'error'
+        expect(commandPanel.loadingMessage).toBeHidden()
 
         advanceClock 400
 

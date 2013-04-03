@@ -4,16 +4,18 @@ MarkdownPreviewView = require 'markdown-preview/lib/markdown-preview-view'
 module.exports =
   activate: ->
     rootView.command 'markdown-preview:show', '.editor', => @show()
+    rootView.on 'core:save', ".pane", => @show() if @previewExists()
 
   show: ->
     activePane = rootView.getActivePane()
-    item = activePane.activeItem
+    editSession = activePane.activeItem
 
-    if not item instanceof EditSession
-      console.warn("Can not render markdown for #{item.getUri()}")
+    isEditSession = editSession instanceof EditSession
+    hasMarkdownGrammar = editSession.getGrammar().scopeName == "source.gfm"
+    if not isEditSession or not hasMarkdownGrammar
+      console.warn("Can not render markdown for '#{editSession.getUri() ? 'untitled'}'")
       return
 
-    editSession = item
     if nextPane = activePane.getNextPane()
       if preview = nextPane.itemForUri("markdown-preview:#{editSession.getPath()}")
         nextPane.showItem(preview)
@@ -23,3 +25,8 @@ module.exports =
     else
       activePane.splitRight(new MarkdownPreviewView(editSession.buffer))
     activePane.focus()
+
+  previewExists: ->
+    nextPane = rootView.getActivePane().getNextPane()
+    item = rootView.getActivePane().activeItem
+    nextPane?.itemForUri("markdown-preview:#{item.getPath?()}")

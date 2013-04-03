@@ -11,6 +11,7 @@ BufferMarker = require 'buffer-marker'
 module.exports =
 class Buffer
   @idCounter = 1
+  registerDeserializer(this)
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
   undoManager: null
@@ -24,7 +25,10 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
-  constructor: (path, @project) ->
+  @deserialize: ({path, text}) ->
+    project.bufferForPath(path, text)
+
+  constructor: (path, initialText) ->
     @id = @constructor.idCounter++
     @nextMarkerId = 1
     @validMarkers = {}
@@ -35,9 +39,14 @@ class Buffer
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
       @setPath(path)
-      @reload()
+      if initialText?
+        @setText(initialText)
+        @updateCachedDiskContents()
+      else
+        @reload()
     else
-      @setText('')
+      @setText(initialText ? '')
+
 
     @undoManager = new UndoManager(this)
 
@@ -45,7 +54,7 @@ class Buffer
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
     @file?.off()
     @destroyed = true
-    @project?.removeBuffer(this)
+    project?.removeBuffer(this)
 
   retain: ->
     @refcount++
@@ -55,6 +64,11 @@ class Buffer
     @refcount--
     @destroy() if @refcount <= 0
     this
+
+  serialize: ->
+    deserializer: 'TextBuffer'
+    path: @getPath()
+    text: @getText() if @isModified()
 
   hasEditors: -> @refcount > 1
 
@@ -145,6 +159,9 @@ class Buffer
   lineLengthForRow: (row) ->
     @lines[row].length
 
+  lineEndingLengthForRow: (row) ->
+    (@lineEndingForRow(row) ? '').length
+
   rangeForRow: (row, { includeNewline } = {}) ->
     if includeNewline and row < @getLastRow()
       new Range([row, 0], [row + 1, 0])
@@ -165,15 +182,16 @@ class Buffer
     new Point(lastRow, @lineLengthForRow(lastRow))
 
   characterIndexForPosition: (position) ->
-    position = Point.fromObject(position)
+    position = @clipPosition(position)
 
     index = 0
-    index += @lineLengthForRow(row) + 1 for row in [0...position.row]
+    for row in [0...position.row]
+      index += @lineLengthForRow(row) + Math.max(@lineEndingLengthForRow(row), 1)
     index + position.column
 
   positionForCharacterIndex: (index) ->
     row = 0
-    while index >= (lineLength = @lineLengthForRow(row) + 1)
+    while index >= (lineLength = @lineLengthForRow(row) + Math.max(@lineEndingLengthForRow(row), 1))
       index -= lineLength
       row++
 
@@ -358,7 +376,7 @@ class Buffer
     @scanInRange(regex, @getRange(), iterator)
 
   scanInRange: (regex, range, iterator, reverse=false) ->
-    range = Range.fromObject(range)
+    range = @clipRange(range)
     global = regex.global
     flags = "gm"
     flags += "i" if regex.ignoreCase
@@ -441,7 +459,7 @@ class Buffer
     @trigger 'modified-status-changed', modifiedStatus
 
   fileExists: ->
-    @file.exists()
+    @file? && @file.exists()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]

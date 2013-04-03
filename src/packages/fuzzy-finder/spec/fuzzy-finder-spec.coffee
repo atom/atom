@@ -78,8 +78,8 @@ describe 'FuzzyFinder', ->
         expect(rootView.getActiveView()).toBe editor2
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
-        finderView.confirmed('dir/a')
         expectedPath = project.resolve('dir/a')
+        finderView.confirmed(expectedPath)
 
         expect(finderView.hasParent()).toBeFalsy()
         expect(editor1.getPath()).not.toBe expectedPath
@@ -145,6 +145,7 @@ describe 'FuzzyFinder', ->
 
           atom.deactivatePackage('fuzzy-finder')
           states = _.map atom.getPackageState('fuzzy-finder'), (path, time) -> [ path, time ]
+          expect(states.length).toBe 3
           states = _.sortBy states, (path, time) -> -time
 
           paths = [ 'sample-with-tabs.coffee', 'sample.txt', 'sample.js' ]
@@ -166,6 +167,13 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(rootView.find('.fuzzy-finder')).not.toExist()
 
+      describe "when multiple sessions are opened on the same path", ->
+        it "does not display duplicates for that path in the list", ->
+          rootView.open 'sample.js'
+          rootView.getActivePane().splitRight()
+          rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+          expect(_.pluck(finderView.list.children('li'), 'outerText')).toEqual ['sample.js']
+
     describe "when a path selection is confirmed", ->
       [editor1, editor2] = []
 
@@ -181,7 +189,7 @@ describe 'FuzzyFinder', ->
       describe "when the active pane has an item for the selected path", ->
         it "switches to the item for the selected path", ->
           expectedPath = project.resolve('sample.txt')
-          finderView.confirmed('sample.txt')
+          finderView.confirmed(expectedPath)
 
           expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).not.toBe expectedPath
@@ -197,7 +205,7 @@ describe 'FuzzyFinder', ->
           expect(rootView.getActiveView()).toBe editor1
 
           expectedPath = project.resolve('sample.txt')
-          finderView.confirmed('sample.txt')
+          finderView.confirmed(expectedPath)
 
           expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).toBe expectedPath
@@ -372,7 +380,7 @@ describe 'FuzzyFinder', ->
 
       runs ->
         expect(finderView).not.toBeVisible()
-        expect(openedPath).toBe "sample.txt"
+        expect(openedPath).toBe project.resolve("sample.txt")
 
     it "displays an error when the word under the cursor doesn't match any files", ->
       editor.setText("moogoogaipan")

@@ -15,9 +15,8 @@ class EditSession
   registerDeserializer(this)
 
   @deserialize: (state) ->
-    if fs.exists(state.buffer)
-      session = project.buildEditSession(state.buffer)
-    else
+    session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
+    if !session?
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
       session = project.buildEditSession(null)
     session.setScrollTop(state.scrollTop)
@@ -88,7 +87,7 @@ class EditSession
 
   serialize: ->
     deserializer: 'EditSession'
-    buffer: @buffer.getPath()
+    buffer: @buffer.serialize()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
@@ -584,9 +583,15 @@ class EditSession
     cursor = @addCursor(marker)
     selection = new Selection({editSession: this, marker, cursor})
     @selections.push(selection)
+    selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections()
-    @trigger 'selection-added', selection
-    selection
+    if selection.destroyed
+      for selection in @getSelections()
+        if selection.intersectsBufferRange(selectionBufferRange)
+          return selection
+    else
+      @trigger 'selection-added', selection
+      selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
     options = _.defaults({invalidationStrategy: 'never'}, options)
@@ -837,12 +842,18 @@ class EditSession
 
   getGrammar: -> @languageMode.grammar
 
+  setGrammar: (grammar) ->
+    @languageMode.grammar = grammar
+    @handleGrammarChange()
+
   reloadGrammar: ->
-    if @languageMode.reloadGrammar()
-      @unfoldAll()
-      @displayBuffer.tokenizedBuffer.resetScreenLines()
-      @trigger 'grammar-changed'
-      true
+    @handleGrammarChange() if @languageMode.reloadGrammar()
+
+  handleGrammarChange: ->
+    @unfoldAll()
+    @displayBuffer.tokenizedBuffer.resetScreenLines()
+    @trigger 'grammar-changed'
+    true
 
   getDebugSnapshot: ->
     [
