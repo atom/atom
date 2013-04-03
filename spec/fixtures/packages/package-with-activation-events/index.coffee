@@ -10,5 +10,4 @@ module.exports =
   activate: ->
     @activateCallCount++
     rootView.getActiveView()?.command 'activation-event', =>
-      console.log "ACTIVATION EVENT"
       @activationEventCallCount++
