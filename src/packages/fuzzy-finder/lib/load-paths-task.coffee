@@ -4,8 +4,6 @@ $ = require 'jquery'
 
 module.exports =
 class LoadPathsTask
-  aborted: false
-
   constructor: (@callback) ->
 
   start: ->
@@ -16,8 +14,8 @@ class LoadPathsTask
 
     command = require.resolve 'nak'
     args = ['-l', rootPath]
-    args.unshift("--addVCSIgnores") if config.get('nak.addVCSIgnores')
-    args.unshift("-d", ignoredNames.join(',')) if ignoredNames.length > 0
+    args.unshift('--addVCSIgnores') if config.get('nak.addVCSIgnores')
+    args.unshift('-d', ignoredNames.join(',')) if ignoredNames.length > 0
 
     paths = []
     deferred = $.Deferred()
@@ -28,13 +26,12 @@ class LoadPathsTask
         @callback(paths)
         deferred.resolve()
     stdout = (data) ->
-      paths = paths.concat(_.compact(data.split("\n")))
+      paths.push(_.compact(data.split('\n'))...)
 
     @process = new BufferedProcess({command, args, stdout, exit})
     deferred
 
   abort: ->
-    @aborted = true
     if @process?
       @process.kill()
       @process = null

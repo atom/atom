@@ -60,6 +60,17 @@ describe 'FuzzyFinder', ->
             expect(finderView.list.children().first()).toHaveClass 'selected'
             expect(finderView.find(".loading")).not.toBeVisible()
 
+        it "includes symlinked file paths", ->
+          rootView.attachToDom()
+          finderView.maxItems = Infinity
+          rootView.trigger 'fuzzy-finder:toggle-file-finder'
+
+          waitsFor "all project paths to load", 5000, ->
+            not finderView.reloadProjectPaths
+
+          runs ->
+            expect(finderView.list.find("li:contains(symlink-to-file)")).toExist()
+
       describe "when root view's project has no path", ->
         beforeEach ->
           project.setPath(null)
