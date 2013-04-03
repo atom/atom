@@ -120,6 +120,8 @@ class CommandPanelView extends View
 
   execute: (command=@escapedCommand()) ->
     @loadingMessage.show()
+    @previewList.hide()
+    @previewHeader.hide()
     @errorMessages.empty()
 
     try
