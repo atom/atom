@@ -2113,7 +2113,7 @@ describe "Editor", ->
       editor.edit(project.buildEditSession(path))
       expect(editor.getGrammar().name).toBe 'Plain Text'
       syntax.setGrammarOverrideForPath(path, 'source.js')
-      expect(editor.reloadGrammar()).toBeTruthy()
+      editor.reloadGrammar()
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
       tokenizedBuffer = editor.activeEditSession.displayBuffer.tokenizedBuffer

@@ -2,6 +2,7 @@ Range = require 'range'
 _ = require 'underscore'
 require 'underscore-extensions'
 {OnigRegExp} = require 'oniguruma'
+EventEmitter = require 'event-emitter'
 
 module.exports =
 class LanguageMode
@@ -12,14 +13,18 @@ class LanguageMode
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @reloadGrammar()
+    syntax.on 'grammars-loaded', => @reloadGrammar()
+
+  setGrammar: (grammar) ->
+    return if grammar is @grammar
+    @grammar = grammar
+    @trigger 'grammar-changed', grammar
 
   reloadGrammar: ->
-    path = @buffer.getPath()
-    pathContents = @buffer.cachedDiskContents
-    previousGrammar = @grammar
-    @grammar = syntax.selectGrammar(path, pathContents)
-    throw new Error("No grammar found for path: #{path}") unless @grammar
-    previousGrammar isnt @grammar
+    if grammar = syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar)
+    else
+      throw new Error("No grammar found for path: #{path}")
 
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
@@ -158,3 +163,5 @@ class LanguageMode
   foldEndRegexForScopes: (scopes) ->
     if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
       new OnigRegExp(foldEndPattern)
+
+_.extend LanguageMode.prototype, EventEmitter

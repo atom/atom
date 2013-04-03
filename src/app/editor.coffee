@@ -1147,16 +1147,9 @@ class Editor extends View
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
-    @handleGrammarChange()
 
   reloadGrammar: ->
-    grammarChanged = @activeEditSession.reloadGrammar()
-    @handleGrammarChange() if grammarChanged
-    grammarChanged
-
-  handleGrammarChange: ->
-    @clearRenderedLines()
-    @updateDisplay()
+    @activeEditSession.reloadGrammar()
 
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}

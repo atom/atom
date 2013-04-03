@@ -57,7 +57,7 @@ class EditSession
     @subscribe @displayBuffer, "changed", (e) =>
       @trigger 'screen-lines-changed', e
 
-    @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
+    @languageMode.on 'grammar-changed', => @handleGrammarChange()
 
   getViewClass: ->
     require 'editor'
@@ -846,17 +846,14 @@ class EditSession
   getGrammar: -> @languageMode.grammar
 
   setGrammar: (grammar) ->
-    @languageMode.grammar = grammar
-    @handleGrammarChange()
+    @languageMode.setGrammar(grammar)
 
   reloadGrammar: ->
-    @handleGrammarChange() if @languageMode.reloadGrammar()
+    @languageMode.reloadGrammar()
 
   handleGrammarChange: ->
     @unfoldAll()
-    @displayBuffer.tokenizedBuffer.resetScreenLines()
     @trigger 'grammar-changed'
-    true
 
   getDebugSnapshot: ->
     [
