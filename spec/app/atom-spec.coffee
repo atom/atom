@@ -249,7 +249,7 @@ describe "the `atom` global", ->
         versionHandler.callCount > 0
 
       runs ->
-        expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+\.\w+$/
+        expect(versionHandler.argsForCall[0][0]).toBeDefined()
 
   describe "modal native dialogs", ->
     beforeEach ->
