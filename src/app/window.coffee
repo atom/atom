@@ -85,6 +85,7 @@ window.handleWindowEvents = ->
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
   $(window).command 'window:close', => confirmClose()
+  $(window).command 'window:reload', => reload()
 
 window.deserializeWindowState = ->
   RootView = require 'root-view'
