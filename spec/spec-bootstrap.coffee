@@ -6,5 +6,5 @@ try
   document.title = "Spec Suite"
   runSpecSuite "spec-suite"
 catch e
-  console.error(e.stack)
+  console.error(e.stack ? e)
   atom.exit(1) if window.location.params.exitWhenDone

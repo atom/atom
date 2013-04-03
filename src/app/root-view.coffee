@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
@@ -53,6 +53,7 @@ class RootView extends View
       config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
     @command 'window:focus-next-pane', => @focusNextPane()
+    @command 'window:focus-previous-pane', => @focusPreviousPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
       config.set("editor.showInvisibles", !config.get("editor.showInvisibles"))
@@ -143,6 +144,7 @@ class RootView extends View
   getActiveView: ->
     @panes.getActiveView()
 
+  focusPreviousPane: -> @panes.focusPreviousPane()
   focusNextPane: -> @panes.focusNextPane()
   getFocusedPane: -> @panes.getFocusedPane()
 
@@ -172,4 +174,3 @@ class RootView extends View
 
   eachBuffer: (callback) ->
     project.eachBuffer(callback)
-

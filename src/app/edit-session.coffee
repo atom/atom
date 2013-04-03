@@ -8,16 +8,17 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class EditSession
   registerDeserializer(this)
 
+  @version: 1
+
   @deserialize: (state) ->
-    if fs.exists(state.buffer)
-      session = project.buildEditSession(state.buffer)
-    else
+    session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
+    if !session?
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
       session = project.buildEditSession(null)
     session.setScrollTop(state.scrollTop)
@@ -44,7 +45,7 @@ class EditSession
 
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
-      @project.setPath(fs.directory(@getPath())) unless @project.getPath()?
+      @project.setPath(fsUtils.directory(@getPath())) unless @project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
@@ -63,14 +64,14 @@ class EditSession
 
   getTitle: ->
     if path = @getPath()
-      fs.base(path)
+      fsUtils.base(path)
     else
       'untitled'
 
   getLongTitle: ->
     if path = @getPath()
-      fileName = fs.base(path)
-      directory = fs.base(fs.directory(path))
+      fileName = fsUtils.base(path)
+      directory = fsUtils.base(fsUtils.directory(path))
       "#{fileName} - #{directory}"
     else
       'untitled'
@@ -88,7 +89,8 @@ class EditSession
 
   serialize: ->
     deserializer: 'EditSession'
-    buffer: @buffer.getPath()
+    version: @constructor.version
+    buffer: @buffer.serialize()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
@@ -161,8 +163,8 @@ class EditSession
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
-  scanInRange: (args...) -> @buffer.scanInRange(args...)
-  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
   isModified: -> @buffer.isModified()
   hasEditors: -> @buffer.hasEditors()
 
@@ -243,7 +245,7 @@ class EditSession
 
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @softTabs
-    @scanInRange /\t/, bufferRange, (match, range, {replace}) => replace(@getTabText())
+    @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
 
   cutToEndOfLine: ->
     maintainPasteboard = false

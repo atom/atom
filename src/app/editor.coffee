@@ -6,7 +6,7 @@ Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -122,6 +122,7 @@ class Editor extends View
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:select-line': @selectLine
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
       'editor:lower-case': @lowerCase
@@ -211,6 +212,7 @@ class Editor extends View
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectWord: -> @activeEditSession.selectWord()
+  selectLine: -> @activeEditSession.selectLine()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   transpose: -> @activeEditSession.transpose()
   upperCase: -> @activeEditSession.upperCase()
@@ -313,8 +315,8 @@ class Editor extends View
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
-  scanInRange: (args...) -> @getBuffer().scanInRange(args...)
-  backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
     @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
@@ -1096,7 +1098,7 @@ class Editor extends View
     range.detach()
     leftPixels
 
-  pixelOffsetForScreenPosition: (position) ->
+  pixelOffsUtilsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
     offset = @renderedLines.offset()
     {top: top + offset.top, left: left + offset.left}
@@ -1179,7 +1181,7 @@ class Editor extends View
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
-      fs.write(path, @getDebugSnapshot()) if path
+      fsUtils.write(path, @getDebugSnapshot()) if path
 
   getDebugSnapshot: ->
     [

@@ -1,4 +1,3 @@
-fs = require 'fs-utils'
 $ = require 'jquery'
 ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
@@ -32,15 +31,20 @@ class MarkdownPreviewView extends ScrollView
   getPath: ->
     @buffer.getPath()
 
-  setErrorHtml: ->
+  setErrorHtml: (result)->
+    try failureMessage = JSON.parse(result.responseText).message
+
     @html $$$ ->
       @h2 'Previewing Markdown Failed'
-      @h3 'Possible Reasons'
-      @ul =>
-        @li =>
-          @span 'You aren\'t online or are unable to reach '
-          @a 'github.com', href: 'https://github.com'
-          @span '.'
+      if failureMessage?
+        @h3 failureMessage
+      else
+        @h3 'Possible Reasons'
+        @ul =>
+          @li =>
+            @span 'You aren\'t online or are unable to reach '
+            @a 'github.com', href: 'https://github.com'
+            @span '.'
 
   setLoading: ->
     @html($$$ -> @div class: 'markdown-spinner', 'Loading Markdown...')
@@ -56,4 +60,4 @@ class MarkdownPreviewView extends ScrollView
         mode: 'markdown'
         text: @buffer.getText()
       success: (html) => @html(html)
-      error: => @setErrorHtml()
+      error: (result) => @setErrorHtml(result)

@@ -1,4 +1,4 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "the `syntax` global", ->
   beforeEach ->
@@ -44,10 +44,10 @@ describe "the `syntax` global", ->
 
     it "doesn't read the file when the file contents are specified", ->
       filePath = require.resolve("fixtures/shebang")
-      filePathContents = fs.read(filePath)
-      spyOn(fs, 'read').andCallThrough()
+      filePathContents = fsUtils.read(filePath)
+      spyOn(fsUtils, 'read').andCallThrough()
       expect(syntax.selectGrammar(filePath, filePathContents).name).toBe "Ruby"
-      expect(fs.read).not.toHaveBeenCalled()
+      expect(fsUtils.read).not.toHaveBeenCalled()
 
     it "allows the default grammar to be overridden for a path", ->
       path = '/foo/bar/file.js'

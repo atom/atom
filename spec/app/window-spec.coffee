@@ -1,5 +1,5 @@
 $ = require 'jquery'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 {less} = require 'less'
 
 describe "Window", ->
@@ -60,22 +60,6 @@ describe "Window", ->
         expect(window.close).not.toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
-  describe ".reload()", ->
-    beforeEach ->
-      spyOn($native, "reload")
-
-    it "returns false when no buffers are modified", ->
-      window.reload()
-      expect($native.reload).toHaveBeenCalled()
-
-    it "shows an alert when a modifed buffer exists", ->
-      rootView.open('sample.js')
-      rootView.getActiveView().insertText("hi")
-      spyOn(atom, "confirm")
-      window.reload()
-      expect($native.reload).not.toHaveBeenCalled()
-      expect(atom.confirm).toHaveBeenCalled()
-
   describe "requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->
       cssPath = project.resolve('css.css')
@@ -86,7 +70,7 @@ describe "Window", ->
 
       element = $('head style[id*="css.css"]')
       expect(element.attr('id')).toBe cssPath
-      expect(element.text()).toBe fs.read(cssPath)
+      expect(element.text()).toBe fsUtils.read(cssPath)
 
       # doesn't append twice
       requireStylesheet(cssPath)
@@ -128,7 +112,7 @@ describe "Window", ->
 
   describe ".removeStylesheet(path)", ->
     it "removes styling applied by given stylesheet path", ->
-      cssPath = require.resolve(fs.join("fixtures", "css.css"))
+      cssPath = require.resolve(fsUtils.join("fixtures", "css.css"))
 
       expect($(document.body).css('font-weight')).not.toBe("bold")
       requireStylesheet(cssPath)
@@ -175,14 +159,14 @@ describe "Window", ->
     commandPath = '/tmp/installed-atom-command/atom'
 
     afterEach ->
-      fs.remove(commandPath) if fs.exists(commandPath)
+      fsUtils.remove(commandPath) if fsUtils.exists(commandPath)
 
     describe "when the command path doesn't exist", ->
       it "copies atom.sh to the specified path", ->
-        expect(fs.exists(commandPath)).toBeFalsy()
+        expect(fsUtils.exists(commandPath)).toBeFalsy()
         window.installAtomCommand(commandPath)
-        expect(fs.exists(commandPath)).toBeTruthy()
-        expect(fs.read(commandPath).length).toBeGreaterThan 1
+        expect(fsUtils.exists(commandPath)).toBeTruthy()
+        expect(fsUtils.read(commandPath).length).toBeGreaterThan 1
 
   describe ".deserialize(state)", ->
     class Foo

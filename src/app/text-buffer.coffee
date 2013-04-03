@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 File = require 'file'
 Point = require 'point'
 Range = require 'range'
@@ -11,6 +11,7 @@ BufferMarker = require 'buffer-marker'
 module.exports =
 class Buffer
   @idCounter = 1
+  registerDeserializer(this)
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
   undoManager: null
@@ -24,7 +25,10 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
-  constructor: (path, @project) ->
+  @deserialize: ({path, text}) ->
+    project.bufferForPath(path, text)
+
+  constructor: (path, initialText) ->
     @id = @constructor.idCounter++
     @nextMarkerId = 1
     @validMarkers = {}
@@ -33,11 +37,16 @@ class Buffer
     @lineEndings = []
 
     if path
-      throw "Path '#{path}' does not exist" unless fs.exists(path)
+      throw "Path '#{path}' does not exist" unless fsUtils.exists(path)
       @setPath(path)
-      @reload()
+      if initialText?
+        @setText(initialText)
+        @updateCachedDiskContents()
+      else
+        @reload()
     else
-      @setText('')
+      @setText(initialText ? '')
+
 
     @undoManager = new UndoManager(this)
 
@@ -45,7 +54,7 @@ class Buffer
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
     @file?.off()
     @destroyed = true
-    @project?.removeBuffer(this)
+    project?.removeBuffer(this)
 
   retain: ->
     @refcount++
@@ -55,6 +64,11 @@ class Buffer
     @refcount--
     @destroy() if @refcount <= 0
     this
+
+  serialize: ->
+    deserializer: 'TextBuffer'
+    path: @getPath()
+    text: @getText() if @isModified()
 
   hasEditors: -> @refcount > 1
 
@@ -390,7 +404,7 @@ class Buffer
       range = new Range(startPosition, endPosition)
       keepLooping = true
       replacementText = null
-      iterator(match, range, { stop, replace })
+      iterator({match, range, stop, replace })
 
       if replacementText?
         @change(range, replacementText)
@@ -445,7 +459,7 @@ class Buffer
     @trigger 'modified-status-changed', modifiedStatus
 
   fileExists: ->
-    @file.exists()
+    @file? && @file.exists()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
