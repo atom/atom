@@ -5,10 +5,12 @@ _ = require 'underscore'
 module.exports =
 class Selection
   wordwise: false
+  editSession: null
   initialScreenRange: null
+  goalBufferRange: null
   needsAutoscroll: null
 
-  constructor: ({@cursor, @marker, @editSession}) ->
+  constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
     @editSession.observeMarker @marker, => @screenRangeChanged()
     @cursor.on 'destroyed.selection', =>
@@ -149,10 +151,10 @@ class Selection
     @modifySelection => @cursor.moveToEndOfWord()
 
   addSelectionBelow: ->
-    range = @getBufferRange().copy()
+    range = (@goalBufferRange ? @getBufferRange()).copy()
     range.start.row++
     range.end.row++
-    @editSession.addSelectionForBufferRange(range)
+    @editSession.addSelectionForBufferRange(range, goalBufferRange: range)
 
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()

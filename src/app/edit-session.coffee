@@ -585,7 +585,7 @@ class EditSession
     unless options.preserveFolds
       @destroyFoldsIntersectingBufferRange(@getMarkerBufferRange(marker))
     cursor = @addCursor(marker)
-    selection = new Selection({editSession: this, marker, cursor})
+    selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections()
@@ -600,7 +600,7 @@ class EditSession
   addSelectionForBufferRange: (bufferRange, options={}) ->
     options = _.defaults({invalidationStrategy: 'never'}, options)
     marker = @markBufferRange(bufferRange, options)
-    @addSelection(marker)
+    @addSelection(marker, options)
 
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)

@@ -720,6 +720,18 @@ describe "EditSession", ->
           [[4, 25], [4, 29]]
         ]
 
+      it "honors the original selection's region when adding across shorter lines", ->
+        editSession.setSelectedBufferRange([[3, 22], [3, 38]])
+        editSession.addSelectionBelow()
+        editSession.addSelectionBelow()
+        editSession.addSelectionBelow()
+        expect(editSession.getSelectedBufferRanges()).toEqual [
+          [[3, 22], [3, 38]]
+          [[4, 22], [4, 29]]
+          [[5, 22], [5, 30]]
+          [[6, 22], [6, 38]]
+        ]
+
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
 
