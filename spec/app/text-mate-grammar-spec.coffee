@@ -138,7 +138,7 @@ describe "TextMateGrammar", ->
 
     describe "when the line matches a pattern with no `name` or `contentName`", ->
       it "creates tokens without adding a new scope", ->
-        grammar = syntax.grammarsByFileType["rb"]
+        grammar = syntax.selectGrammar('foo.rb')
         {tokens} = grammar.tokenizeLine('%w|oh \\look|')
         expect(tokens.length).toBe 5
         expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
@@ -183,7 +183,7 @@ describe "TextMateGrammar", ->
 
       describe "when the end pattern contains a back reference", ->
         it "constructs the end rule based on its back-references to captures in the begin rule", ->
-          grammar = syntax.grammarsByFileType["rb"]
+          grammar = syntax.selectGrammar('foo.rb')
           {tokens} = grammar.tokenizeLine('%w|oh|,')
           expect(tokens.length).toBe 4
           expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
@@ -192,7 +192,7 @@ describe "TextMateGrammar", ->
           expect(tokens[3]).toEqual value: ',',  scopes: ["source.ruby", "punctuation.separator.object.ruby"]
 
         it "allows the rule containing that end pattern to be pushed to the stack multiple times", ->
-          grammar = syntax.grammarsByFileType["rb"]
+          grammar = syntax.selectGrammar('foo.rb')
           {tokens} = grammar.tokenizeLine('%Q+matz had some #{%Q-crazy ideas-} for ruby syntax+ # damn.')
           expect(tokens[0]).toEqual value: '%Q+', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
           expect(tokens[1]).toEqual value: 'matz had some ', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby"]
@@ -212,7 +212,7 @@ describe "TextMateGrammar", ->
           atom.activatePackage('html.tmbundle', sync: true)
           atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
-          grammar = syntax.grammarsByFileType["html.erb"]
+          grammar = syntax.selectGrammar('foo.html.erb')
           {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
 
           expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
