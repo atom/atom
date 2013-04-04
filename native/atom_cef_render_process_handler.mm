@@ -55,14 +55,14 @@ void AtomCefRenderProcessHandler::Reload(CefRefPtr<CefBrowser> browser) {
 }
 
 void AtomCefRenderProcessHandler::Shutdown(CefRefPtr<CefBrowser> browser) {
-    CefRefPtr<CefV8Context> context = browser->GetMainFrame()->GetV8Context();
-    CefRefPtr<CefV8Value> global = context->GetGlobal();
+  CefRefPtr<CefV8Context> context = browser->GetMainFrame()->GetV8Context();
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
 
-    context->Enter();
-    CefV8ValueList arguments;
-    CefRefPtr<CefV8Value> shutdownFunction = global->GetValue("shutdown");
-    shutdownFunction->ExecuteFunction(global, arguments);
-    context->Exit();
+  context->Enter();
+  CefV8ValueList arguments;
+  CefRefPtr<CefV8Value> shutdownFunction = global->GetValue("shutdown");
+  shutdownFunction->ExecuteFunction(global, arguments);
+  context->Exit();
 }
 
 bool AtomCefRenderProcessHandler::CallMessageReceivedHandler(CefRefPtr<CefV8Context> context, CefRefPtr<CefProcessMessage> message) {
