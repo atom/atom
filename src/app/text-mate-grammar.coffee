@@ -1,24 +1,25 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 plist = require 'plist'
 Token = require 'token'
-CSON = require 'cson'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
+nodePath = require 'path'
+pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
-    fs.readPlist(path)
+    fsUtils.readPlist(path)
 
   @load: (path, done) ->
-    fs.readObjectAsync path, (err, object) ->
+    fsUtils.readObjectAsync path, (err, object) ->
       if err
         done(err)
       else
         done(null, new TextMateGrammar(object))
 
   @loadSync: (path) ->
-    new TextMateGrammar(fs.readObject(path))
+    new TextMateGrammar(fsUtils.readObject(path))
 
   name: null
   fileTypes: null
@@ -37,6 +38,43 @@ class TextMateGrammar
     for name, data of repository
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
       @repository[name] = new Rule(this, data)
+
+  getScore: (path, contents) ->
+    contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)
+
+    if syntax.grammarOverrideForPath(path) is @scopeName
+      3
+    else if @matchesContents(contents)
+      2
+    else if @matchesPath(path)
+      1
+    else
+      -1
+
+  matchesContents: (contents) ->
+    return false unless contents? and @firstLineRegex?
+
+    escaped = false
+    numberOfNewlinesInRegex = 0
+    for character in @firstLineRegex.source
+      switch character
+        when '\\'
+          escaped = !escaped
+        when 'n'
+          numberOfNewlinesInRegex++ if escaped
+          escaped = false
+        else
+          escaped = false
+    lines = contents.split('\n')
+    @firstLineRegex.test(lines[0..numberOfNewlinesInRegex].join('\n'))
+
+  matchesPath: (path) ->
+    return false unless path?
+    pathComponents = path.split(pathSplitRegex)
+    _.find @fileTypes, (fileType) ->
+      fileTypeComponents = fileType.split(pathSplitRegex)
+      pathSuffix = pathComponents[-fileTypeComponents.length..-1]
+      _.isEqual(pathSuffix, fileTypeComponents)
 
   tokenizeLine: (line, ruleStack=[@initialRule], firstLine=false) ->
     originalRuleStack = ruleStack

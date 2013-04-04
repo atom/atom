@@ -15,12 +15,12 @@ class Substitution extends Command
   compile: (project, buffer, ranges) ->
     deferred = $.Deferred()
     operations = []
-    for range in ranges
-      buffer.scanInRange @regex, range, (match, matchRange) =>
+    for scanRange in ranges
+      buffer.scanInRange @regex, scanRange, ({range}) =>
         operations.push(new Operation(
           project: project
           buffer: buffer
-          bufferRange: matchRange
+          bufferRange: range
           newText: @replacementText
           preserveSelection: true
         ))

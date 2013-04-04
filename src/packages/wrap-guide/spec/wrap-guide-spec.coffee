@@ -1,4 +1,5 @@
 RootView = require 'root-view'
+Editor = require 'editor'
 
 describe "WrapGuide", ->
   [editor, wrapGuide] = []
@@ -62,3 +63,8 @@ describe "WrapGuide", ->
       editor.width(10)
       wrapGuide.updateGuide()
       expect(wrapGuide).toBeHidden()
+
+  it "only attaches to editors that are part of a pane", ->
+    editor2 = new Editor(mini: true)
+    editor.overlayer.append(editor2)
+    expect(editor2.find('.wrap-guide').length).toBe 0

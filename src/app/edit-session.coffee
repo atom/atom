@@ -8,11 +8,13 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class EditSession
   registerDeserializer(this)
+
+  @version: 1
 
   @deserialize: (state) ->
     session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
@@ -43,7 +45,7 @@ class EditSession
 
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
-      @project.setPath(fs.directory(@getPath())) unless @project.getPath()?
+      @project.setPath(fsUtils.directory(@getPath())) unless @project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
@@ -55,21 +57,21 @@ class EditSession
     @subscribe @displayBuffer, "changed", (e) =>
       @trigger 'screen-lines-changed', e
 
-    @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
+    @languageMode.on 'grammar-changed', => @handleGrammarChange()
 
   getViewClass: ->
     require 'editor'
 
   getTitle: ->
     if path = @getPath()
-      fs.base(path)
+      fsUtils.base(path)
     else
       'untitled'
 
   getLongTitle: ->
     if path = @getPath()
-      fileName = fs.base(path)
-      directory = fs.base(fs.directory(path))
+      fileName = fsUtils.base(path)
+      directory = fsUtils.base(fsUtils.directory(path))
       "#{fileName} - #{directory}"
     else
       'untitled'
@@ -81,12 +83,14 @@ class EditSession
     @buffer.release()
     selection.destroy() for selection in @getSelections()
     @displayBuffer.destroy()
+    @languageMode.destroy()
     @project?.removeEditSession(this)
     @trigger 'destroyed'
     @off()
 
   serialize: ->
     deserializer: 'EditSession'
+    version: @constructor.version
     buffer: @buffer.serialize()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
@@ -160,8 +164,8 @@ class EditSession
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
-  scanInRange: (args...) -> @buffer.scanInRange(args...)
-  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
   isModified: -> @buffer.isModified()
   hasEditors: -> @buffer.hasEditors()
 
@@ -242,7 +246,7 @@ class EditSession
 
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @softTabs
-    @scanInRange /\t/, bufferRange, (match, range, {replace}) => replace(@getTabText())
+    @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
 
   cutToEndOfLine: ->
     maintainPasteboard = false
@@ -843,17 +847,14 @@ class EditSession
   getGrammar: -> @languageMode.grammar
 
   setGrammar: (grammar) ->
-    @languageMode.grammar = grammar
-    @handleGrammarChange()
+    @languageMode.setGrammar(grammar)
 
   reloadGrammar: ->
-    @handleGrammarChange() if @languageMode.reloadGrammar()
+    @languageMode.reloadGrammar()
 
   handleGrammarChange: ->
     @unfoldAll()
-    @displayBuffer.tokenizedBuffer.resetScreenLines()
     @trigger 'grammar-changed'
-    true
 
   getDebugSnapshot: ->
     [

@@ -1,6 +1,6 @@
 Project = require 'project'
 Buffer = require 'text-buffer'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 describe 'Buffer', ->
@@ -8,7 +8,7 @@ describe 'Buffer', ->
 
   beforeEach ->
     filePath = require.resolve('fixtures/sample.js')
-    fileContents = fs.read(filePath)
+    fileContents = fsUtils.read(filePath)
     buffer = project.bufferForPath(filePath)
 
   afterEach ->
@@ -24,7 +24,7 @@ describe 'Buffer', ->
         it "loads the contents of that file", ->
           filePath = require.resolve 'fixtures/sample.txt'
           buffer = project.bufferForPath(filePath)
-          expect(buffer.getText()).toBe fs.read(filePath)
+          expect(buffer.getText()).toBe fsUtils.read(filePath)
 
         it "is not modified and has no undo history", ->
           buffer = project.bufferForPath(filePath)
@@ -34,7 +34,7 @@ describe 'Buffer', ->
       describe "when no file exists for the path", ->
         it "throws an exception", ->
           filePath = "does-not-exist.txt"
-          expect(fs.exists(filePath)).toBeFalsy()
+          expect(fsUtils.exists(filePath)).toBeFalsy()
           expect(-> project.bufferForPath(filePath)).toThrow()
 
     describe "when no path is given", ->
@@ -46,25 +46,25 @@ describe 'Buffer', ->
     [path, newPath, bufferToChange, eventHandler] = []
 
     beforeEach ->
-      path = fs.join(fs.resolveOnLoadPath("fixtures"), "atom-manipulate-me")
+      path = fsUtils.join(fsUtils.resolveOnLoadPath("fixtures"), "atom-manipulate-me")
       newPath = "#{path}-i-moved"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       bufferToChange = project.bufferForPath(path)
       eventHandler = jasmine.createSpy('eventHandler')
       bufferToChange.on 'path-changed', eventHandler
 
     afterEach ->
       bufferToChange.destroy()
-      fs.remove(path) if fs.exists(path)
-      fs.remove(newPath) if fs.exists(newPath)
+      fsUtils.remove(path) if fsUtils.exists(path)
+      fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
     it "triggers a `path-changed` event when path is changed", ->
       bufferToChange.saveAs(newPath)
       expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
     it "triggers a `path-changed` event when the file is moved", ->
-      fs.remove(newPath) if fs.exists(newPath)
-      fs.move(path, newPath)
+      fsUtils.remove(newPath) if fsUtils.exists(newPath)
+      fsUtils.move(path, newPath)
 
       waitsFor "buffer path change", ->
         eventHandler.callCount > 0
@@ -76,14 +76,14 @@ describe 'Buffer', ->
     path = null
     beforeEach ->
       path = "/tmp/tmp.txt"
-      fs.write(path, "first")
+      fsUtils.write(path, "first")
       buffer.release()
       buffer = project.bufferForPath(path).retain()
 
     afterEach ->
       buffer.release()
       buffer = null
-      fs.remove(path) if fs.exists(path)
+      fsUtils.remove(path) if fsUtils.exists(path)
 
     it "does not trigger a change event when Atom modifies the file", ->
       buffer.insert([0,0], "HELLO!")
@@ -99,7 +99,7 @@ describe 'Buffer', ->
       it "changes the memory contents of the buffer to match the new disk contents and triggers a 'changed' event", ->
         changeHandler = jasmine.createSpy('changeHandler')
         buffer.on 'changed', changeHandler
-        fs.write(path, "second")
+        fsUtils.write(path, "second")
 
         expect(changeHandler.callCount).toBe 0
         waitsFor "file to trigger change event", ->
@@ -119,7 +119,7 @@ describe 'Buffer', ->
         buffer.file.on 'contents-changed', fileChangeHandler
 
         buffer.insert([0, 0], "a change")
-        fs.write(path, "second")
+        fsUtils.write(path, "second")
 
         expect(fileChangeHandler.callCount).toBe 0
         waitsFor "file to trigger 'contents-changed' event", ->
@@ -134,7 +134,7 @@ describe 'Buffer', ->
         buffer.insert([0, 0], "a second change")
 
         handler = jasmine.createSpy('fileChange')
-        fs.write(path, "second")
+        fsUtils.write(path, "second")
         buffer.on 'contents-conflicted', handler
 
         expect(handler.callCount).toBe 0
@@ -149,7 +149,7 @@ describe 'Buffer', ->
 
     beforeEach ->
       path = "/tmp/atom-file-to-delete.txt"
-      fs.write(path, 'delete me')
+      fsUtils.write(path, 'delete me')
       bufferToDelete = project.bufferForPath(path)
       path = bufferToDelete.getPath() # symlinks may have been converted
 
@@ -158,7 +158,7 @@ describe 'Buffer', ->
 
       removeHandler = jasmine.createSpy('removeHandler')
       bufferToDelete.file.on 'removed', removeHandler
-      fs.remove(path)
+      fsUtils.remove(path)
       waitsFor "file to be removed", ->
         removeHandler.callCount > 0
 
@@ -174,7 +174,7 @@ describe 'Buffer', ->
       expect(bufferToDelete.fileExists()).toBeTruthy()
       expect(bufferToDelete.isInConflict()).toBeFalsy()
 
-      fs.write(path, 'moo')
+      fsUtils.write(path, 'moo')
 
       changeHandler = jasmine.createSpy('changeHandler')
       bufferToDelete.on 'changed', changeHandler
@@ -207,19 +207,19 @@ describe 'Buffer', ->
     it "reports the modified status changing to true after the underlying file is deleted", ->
       buffer.release()
       filePath = "/tmp/atom-tmp-file"
-      fs.write(filePath, 'delete me')
+      fsUtils.write(filePath, 'delete me')
       buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
 
-      fs.remove(filePath)
+      fsUtils.remove(filePath)
 
       waitsFor "modified status to change", -> modifiedHandler.callCount
       runs -> expect(buffer.isModified()).toBe true
 
     it "reports the modified status changing to false after a modified buffer is saved", ->
       filePath = "/tmp/atom-tmp-file"
-      fs.write(filePath, '')
+      fsUtils.write(filePath, '')
       buffer.release()
       buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
@@ -243,7 +243,7 @@ describe 'Buffer', ->
 
     it "reports the modified status changing to false after a modified buffer is reloaded", ->
       filePath = "/tmp/atom-tmp-file"
-      fs.write(filePath, '')
+      fsUtils.write(filePath, '')
       buffer.release()
       buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
@@ -420,16 +420,16 @@ describe 'Buffer', ->
 
       beforeEach ->
         filePath = '/tmp/temp.txt'
-        fs.write(filePath, "")
+        fsUtils.write(filePath, "")
         saveBuffer = project.bufferForPath(filePath)
         saveBuffer.setText("blah")
 
       it "saves the contents of the buffer to the path", ->
         saveBuffer.setText 'Buffer contents!'
         saveBuffer.save()
-        expect(fs.read(filePath)).toEqual 'Buffer contents!'
+        expect(fsUtils.read(filePath)).toEqual 'Buffer contents!'
 
-      it "fires will-be-saved and saved events around the call to fs.write", ->
+      it "fires will-be-saved and saved events around the call to fsUtils.write", ->
         events = []
         beforeSave1 = -> events.push('beforeSave1')
         beforeSave2 = -> events.push('beforeSave2')
@@ -438,12 +438,12 @@ describe 'Buffer', ->
 
         saveBuffer.on 'will-be-saved', beforeSave1
         saveBuffer.on 'will-be-saved', beforeSave2
-        spyOn(fs, 'write').andCallFake -> events.push 'fs.write'
+        spyOn(fsUtils, 'write').andCallFake -> events.push 'fsUtils.write'
         saveBuffer.on 'saved', afterSave1
         saveBuffer.on 'saved', afterSave2
 
         saveBuffer.save()
-        expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fs.write', 'afterSave1', 'afterSave2']
+        expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fsUtils.write', 'afterSave1', 'afterSave2']
 
       it "fires will-reload and reloaded events when reloaded", ->
         events = []
@@ -477,7 +477,7 @@ describe 'Buffer', ->
 
     it "saves the contents of the buffer to the path", ->
       filePath = '/tmp/temp.txt'
-      fs.remove filePath if fs.exists(filePath)
+      fsUtils.remove filePath if fsUtils.exists(filePath)
 
       saveAsBuffer = project.bufferForPath(null).retain()
       eventHandler = jasmine.createSpy('eventHandler')
@@ -485,14 +485,14 @@ describe 'Buffer', ->
 
       saveAsBuffer.setText 'Buffer contents!'
       saveAsBuffer.saveAs(filePath)
-      expect(fs.read(filePath)).toEqual 'Buffer contents!'
+      expect(fsUtils.read(filePath)).toEqual 'Buffer contents!'
 
       expect(eventHandler).toHaveBeenCalledWith(saveAsBuffer)
 
     it "stops listening to events on previous path and begins listening to events on new path", ->
       originalPath = "/tmp/original.txt"
       newPath = "/tmp/new.txt"
-      fs.write(originalPath, "")
+      fsUtils.write(originalPath, "")
 
       saveAsBuffer = project.bufferForPath(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
@@ -500,11 +500,11 @@ describe 'Buffer', ->
       saveAsBuffer.saveAs(newPath)
       expect(changeHandler).not.toHaveBeenCalled()
 
-      fs.write(originalPath, "should not trigger buffer event")
+      fsUtils.write(originalPath, "should not trigger buffer event")
       waits 20
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
-        fs.write(newPath, "should trigger buffer event")
+        fsUtils.write(newPath, "should trigger buffer event")
 
       waitsFor ->
         changeHandler.callCount > 0
@@ -546,7 +546,7 @@ describe 'Buffer', ->
     describe "when given a regex with a ignore case flag", ->
       it "does a case-insensitive search", ->
         matches = []
-        buffer.scanInRange /cuRRent/i, [[0,0], [12,0]], (match, range) ->
+        buffer.scanInRange /cuRRent/i, [[0,0], [12,0]], ({match, range}) ->
           matches.push(match)
         expect(matches.length).toBe 1
 
@@ -554,7 +554,7 @@ describe 'Buffer', ->
       it "calls the iterator with the first match for the given regex in the given range", ->
         matches = []
         ranges = []
-        buffer.scanInRange /cu(rr)ent/, [[4,0], [6,44]], (match, range) ->
+        buffer.scanInRange /cu(rr)ent/, [[4,0], [6,44]], ({match, range}) ->
           matches.push(match)
           ranges.push(range)
 
@@ -569,7 +569,7 @@ describe 'Buffer', ->
       it "calls the iterator with each match for the given regex in the given range", ->
         matches = []
         ranges = []
-        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range) ->
+        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({match, range}) ->
           matches.push(match)
           ranges.push(range)
 
@@ -593,7 +593,7 @@ describe 'Buffer', ->
         it "calls the iterator with the truncated match", ->
           matches = []
           ranges = []
-          buffer.scanInRange /cu(r*)/g, [[4,0], [6,9]], (match, range) ->
+          buffer.scanInRange /cu(r*)/g, [[4,0], [6,9]], ({match, range}) ->
             matches.push(match)
             ranges.push(range)
 
@@ -612,7 +612,7 @@ describe 'Buffer', ->
         it "calls the iterator with the truncated match", ->
           matches = []
           ranges = []
-          buffer.scanInRange /cu(r*)e/g, [[4,0], [6,9]], (match, range) ->
+          buffer.scanInRange /cu(r*)e/g, [[4,0], [6,9]], ({match, range}) ->
             matches.push(match)
             ranges.push(range)
 
@@ -626,7 +626,7 @@ describe 'Buffer', ->
     describe "when the iterator calls the 'replace' control function with a replacement string", ->
       it "replaces each occurrence of the regex match with the string", ->
         ranges = []
-        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { replace }) ->
+        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({range, replace}) ->
           ranges.push(range)
           replace("foo")
 
@@ -638,7 +638,7 @@ describe 'Buffer', ->
         expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
 
       it "allows the match to be replaced with the empty string", ->
-        buffer.scanInRange /current/g, [[4,0], [6,59]], (match, range, { replace }) ->
+        buffer.scanInRange /current/g, [[4,0], [6,59]], ({replace}) ->
           replace("")
 
         expect(buffer.lineForRow(5)).toBe '       = items.shift();'
@@ -647,7 +647,7 @@ describe 'Buffer', ->
     describe "when the iterator calls the 'stop' control function", ->
       it "stops the traversal", ->
         ranges = []
-        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { stop }) ->
+        buffer.scanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({range, stop}) ->
           ranges.push(range)
           stop() if ranges.length == 2
 
@@ -658,7 +658,7 @@ describe 'Buffer', ->
       it "calls the iterator with the last match for the given regex in the given range", ->
         matches = []
         ranges = []
-        buffer.backwardsScanInRange /cu(rr)ent/, [[4,0], [6,44]], (match, range) ->
+        buffer.backwardsScanInRange /cu(rr)ent/, [[4,0], [6,44]], ({match, range}) ->
           matches.push(match)
           ranges.push(range)
 
@@ -673,7 +673,7 @@ describe 'Buffer', ->
       it "calls the iterator with each match for the given regex in the given range, starting with the last match", ->
         matches = []
         ranges = []
-        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range) ->
+        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({match, range}) ->
           matches.push(match)
           ranges.push(range)
 
@@ -695,7 +695,7 @@ describe 'Buffer', ->
     describe "when the iterator calls the 'replace' control function with a replacement string", ->
       it "replaces each occurrence of the regex match with the string", ->
         ranges = []
-        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { replace }) ->
+        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({range, replace}) ->
           ranges.push(range)
           replace("foo") unless range.start.isEqual([6,6])
 
@@ -709,7 +709,7 @@ describe 'Buffer', ->
     describe "when the iterator calls the 'stop' control function", ->
       it "stops the traversal", ->
         ranges = []
-        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { stop }) ->
+        buffer.backwardsScanInRange /cu(rr)ent/g, [[4,0], [6,59]], ({range, stop}) ->
           ranges.push(range)
           stop() if ranges.length == 2
 

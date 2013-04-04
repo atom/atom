@@ -3,7 +3,6 @@ RootView = require 'root-view'
 Buffer = require 'text-buffer'
 Editor = require 'editor'
 _ = require 'underscore'
-fs = require 'fs-utils'
 Package = require 'package'
 
 describe "Snippets extension", ->

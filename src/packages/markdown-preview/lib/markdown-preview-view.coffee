@@ -1,4 +1,3 @@
-fs = require 'fs-utils'
 $ = require 'jquery'
 ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'

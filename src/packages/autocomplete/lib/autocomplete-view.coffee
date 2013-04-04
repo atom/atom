@@ -144,7 +144,7 @@ class AutocompleteView extends SelectList
     lineRange = [[selectionRange.start.row, 0], [selectionRange.end.row, @editor.lineLengthForBufferRow(selectionRange.end.row)]]
     [prefix, suffix] = ["", ""]
 
-    @currentBuffer.scanInRange @wordRegex, lineRange, (match, range, {stop}) ->
+    @currentBuffer.scanInRange @wordRegex, lineRange, ({match, range, stop}) ->
       stop() if range.start.isGreaterThan(selectionRange.end)
 
       if range.intersectsWith(selectionRange)

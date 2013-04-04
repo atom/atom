@@ -12,11 +12,11 @@ Directory = require 'directory'
 File = require 'file'
 Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 RootView = require 'root-view'
 Git = require 'git'
 requireStylesheet "jasmine"
-fixturePackagesPath = fs.resolveOnLoadPath('fixtures/packages')
+fixturePackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
 config.packageDirPaths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
@@ -30,7 +30,7 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
   jQuery.fx.off = true
-  window.project = new Project(fs.resolveOnLoadPath('fixtures'))
+  window.project = new Project(fsUtils.resolveOnLoadPath('fixtures'))
   window.git = Git.open(project.getPath())
   window.project.on 'path-changed', ->
     window.git?.destroy()
@@ -126,7 +126,7 @@ addCustomMatchers = (spec) ->
     toExistOnDisk: (expected) ->
       notText = this.isNot and " not" or ""
       @message = -> return "Expected path '" + @actual + "'" + notText + " to exist."
-      fs.exists(@actual)
+      fsUtils.exists(@actual)
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
@@ -241,5 +241,5 @@ $.fn.textInput = (data) ->
     event = jQuery.event.fix(event)
     $(this).trigger(event)
 
-unless fs.md5ForPath(require.resolve('fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
+unless fsUtils.md5ForPath(require.resolve('fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
   throw new Error("Sample.js is modified")

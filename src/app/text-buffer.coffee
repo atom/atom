@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 File = require 'file'
 Point = require 'point'
 Range = require 'range'
@@ -37,9 +37,8 @@ class Buffer
     @lineEndings = []
 
     if path
-      # throw "Path '#{path}' does not exist" unless fs.exists(path)
-      if fs.exists(path)
-        @setPath(path)
+      throw "Path '#{path}' does not exist" unless fsUtils.exists(path)
+      @setPath(path)
       if initialText?
         @setText(initialText)
         @updateCachedDiskContents()
@@ -406,7 +405,7 @@ class Buffer
       range = new Range(startPosition, endPosition)
       keepLooping = true
       replacementText = null
-      iterator(match, range, { stop, replace })
+      iterator({match, range, stop, replace })
 
       if replacementText?
         @change(range, replacementText)

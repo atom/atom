@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 SymbolsView = require 'symbols-view/lib/symbols-view'
 TagGenerator = require 'symbols-view/lib/tag-generator'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "SymbolsView", ->
   [symbolsView, setArraySpy] = []
@@ -162,11 +162,11 @@ describe "SymbolsView", ->
 
       beforeEach ->
         renamedPath = project.resolve("tagged-duplicate-renamed.js")
-        fs.remove(renamedPath) if fs.exists(renamedPath)
-        fs.move(project.resolve("tagged-duplicate.js"), renamedPath)
+        fsUtils.remove(renamedPath) if fsUtils.exists(renamedPath)
+        fsUtils.move(project.resolve("tagged-duplicate.js"), renamedPath)
 
       afterEach ->
-        fs.move(renamedPath, project.resolve("tagged-duplicate.js"))
+        fsUtils.move(renamedPath, project.resolve("tagged-duplicate.js"))
 
       it "doesn't display the tag", ->
         rootView.open("tagged.js")
@@ -205,11 +205,11 @@ describe "SymbolsView", ->
 
         beforeEach ->
           renamedPath = project.resolve("tagged-renamed.js")
-          fs.remove(renamedPath) if fs.exists(renamedPath)
-          fs.move(project.resolve("tagged.js"), renamedPath)
+          fsUtils.remove(renamedPath) if fsUtils.exists(renamedPath)
+          fsUtils.move(project.resolve("tagged.js"), renamedPath)
 
         afterEach ->
-          fs.move(renamedPath, project.resolve("tagged.js"))
+          fsUtils.move(renamedPath, project.resolve("tagged.js"))
 
         it "doesn't open the editor", ->
           rootView.trigger "symbols-view:toggle-project-symbols"

@@ -13,7 +13,6 @@ class TextMatePackage extends Package
   @getLoadQueue: ->
     return @loadQueue if @loadQueue
     @loadQueue = async.queue (pack, done) -> pack.loadGrammars(done)
-    @loadQueue.drain = -> syntax.trigger 'grammars-loaded'
     @loadQueue
 
   constructor: ->

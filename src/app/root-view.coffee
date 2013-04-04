@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
@@ -82,7 +82,7 @@ class RootView extends View
       @getActivePane().focus()
       false
     else
-      @setTitle(null)
+      @updateTitle()
       focusableChild = this.find("[tabindex=-1]:visible:first")
       if focusableChild.length
         focusableChild.focus()
@@ -115,7 +115,7 @@ class RootView extends View
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
-        @setTitle(projectPath)
+        @setTitle("atom - #{projectPath}")
     else
       @setTitle('untitled')
 
@@ -174,4 +174,3 @@ class RootView extends View
 
   eachBuffer: (callback) ->
     project.eachBuffer(callback)
-

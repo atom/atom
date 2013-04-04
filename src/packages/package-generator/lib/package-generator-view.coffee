@@ -2,7 +2,7 @@
 Editor = require 'editor'
 $ = require 'jquery'
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class PackageGeneratorView extends View
@@ -24,7 +24,7 @@ class PackageGeneratorView extends View
     @previouslyFocusedElement = $(':focus')
     @message.text("Enter package path")
     placeholderName = "package-name"
-    @miniEditor.setText(fs.join(config.userPackagesDirPath, placeholderName));
+    @miniEditor.setText(fsUtils.join(config.userPackagesDirPath, placeholderName));
     pathLength = @miniEditor.getText().length
     @miniEditor.setSelectedBufferRange([[0, pathLength - placeholderName.length], [0, pathLength]])
 
@@ -44,11 +44,11 @@ class PackageGeneratorView extends View
 
   getPackagePath: ->
     packagePath = @miniEditor.getText()
-    packageName = _.dasherize(fs.base(packagePath))
-    fs.join(fs.directory(packagePath), packageName)
+    packageName = _.dasherize(fsUtils.base(packagePath))
+    fsUtils.join(fsUtils.directory(packagePath), packageName)
 
   validPackagePath: ->
-    if fs.exists(@getPackagePath())
+    if fsUtils.exists(@getPackagePath())
       @error.text("Path already exists at '#{@getPackagePath()}'")
       @error.show()
       false
@@ -56,22 +56,22 @@ class PackageGeneratorView extends View
       true
 
   createPackageFiles: ->
-    templatePath = fs.resolveOnLoadPath(fs.join("package-generator", "template"))
-    packageName = fs.base(@getPackagePath())
+    templatePath = fsUtils.resolveOnLoadPath(fsUtils.join("package-generator", "template"))
+    packageName = fsUtils.base(@getPackagePath())
 
-    for path in fs.listTree(templatePath)
+    for path in fsUtils.listTree(templatePath)
       relativePath = path.replace(templatePath, "")
       relativePath = relativePath.replace(/^\//, '')
       relativePath = relativePath.replace(/\.template$/, '')
       relativePath = @replacePackageNamePlaceholders(relativePath, packageName)
 
-      sourcePath = fs.join(@getPackagePath(), relativePath)
-      if fs.isDirectory(path)
-        fs.makeTree(sourcePath)
-      if fs.isFile(path)
-        fs.makeTree(fs.directory(sourcePath))
-        content = @replacePackageNamePlaceholders(fs.read(path), packageName)
-        fs.write(sourcePath, content)
+      sourcePath = fsUtils.join(@getPackagePath(), relativePath)
+      if fsUtils.isDirectory(path)
+        fsUtils.makeTree(sourcePath)
+      if fsUtils.isFile(path)
+        fsUtils.makeTree(fsUtils.directory(sourcePath))
+        content = @replacePackageNamePlaceholders(fsUtils.read(path), packageName)
+        fsUtils.write(sourcePath, content)
 
   replacePackageNamePlaceholders: (string, packageName) ->
     placeholderRegex = /__(?:(package-name)|([pP]ackageName)|(package_name))__/g

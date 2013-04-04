@@ -24,7 +24,7 @@ namespace v8_extensions {
     const char* methodNames[] = {
       "writeToPasteboard", "readFromPasteboard", "quit", "watchPath",
       "unwatchPath", "getWatchedPaths", "unwatchAllPaths", "moveToTrash",
-      "reload", "setWindowState", "getWindowState", "beep"
+      "reload", "setWindowState", "getWindowState", "beep", "crash"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -164,6 +164,10 @@ namespace v8_extensions {
 
     else if (name == "beep") {
       NSBeep();
+    }
+
+    else if (name == "crash") {
+      __builtin_trap();
     }
 
     return false;

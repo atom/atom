@@ -1,4 +1,4 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 $ = require 'jquery'
 Range = require 'range'
@@ -41,7 +41,7 @@ class Project
     @rootDirectory?.off()
 
     if path?
-      directory = if fs.isDirectory(path) then path else fs.directory(path)
+      directory = if fsUtils.isDirectory(path) then path else fsUtils.directory(path)
       @rootDirectory = new Directory(directory)
     else
       @rootDirectory = null
@@ -56,7 +56,7 @@ class Project
     paths = []
     onFile = (path) => paths.push(path) unless @isPathIgnored(path)
     onDirectory = -> true
-    fs.traverseTreeSync(@getPath(), onFile, onDirectory)
+    fsUtils.traverseTreeSync(@getPath(), onFile, onDirectory)
     deferred.resolve(paths)
     deferred.promise()
 
@@ -68,11 +68,11 @@ class Project
     @ignoreRepositoryPath(path)
 
   ignoreRepositoryPath: (path) ->
-    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fs.join(@getPath(), path))
+    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
 
   resolve: (filePath) ->
-    filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
-    fs.absolute filePath
+    filePath = fsUtils.join(@getPath(), filePath) unless filePath[0] == '/'
+    fsUtils.absolute filePath
 
   relativize: (fullPath) ->
     return fullPath unless fullPath.lastIndexOf(@getPath()) is 0
@@ -191,8 +191,9 @@ class Project
         readPath(line) if state is 'readingPath'
         readLine(line) if state is 'readingLines'
 
-    command = require.resolve('ag')
+    command = require.resolve('nak')
     args = ['--ackmate', regex.source, @getPath()]
+    args.unshift("--addVCSIgnores") if config.get('core.excludeVcsIgnoredPaths')
     new BufferedProcess({command, args, stdout, exit})
     deferred
 

@@ -23,6 +23,7 @@ class TokenizedBuffer
     @id = @constructor.idCounter++
     @resetScreenLines()
     @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
+    @languageMode.on 'grammar-changed', => @resetScreenLines()
 
   resetScreenLines: ->
     @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())

@@ -1,7 +1,7 @@
 $ = require 'jquery'
 RootView = require 'root-view'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -129,9 +129,9 @@ describe "the `atom` global", ->
         describe "stylesheet loading", ->
           describe "when the metadata contains a 'stylesheets' manifest", ->
             it "loads stylesheets from the stylesheets directory as specified by the manifest", ->
-              one = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/1.css")
-              two = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/2.less")
-              three = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/3.css")
+              one = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/1.css")
+              two = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/2.less")
+              three = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/3.css")
               expect(stylesheetElementForId(one)).not.toExist()
               expect(stylesheetElementForId(two)).not.toExist()
               expect(stylesheetElementForId(three)).not.toExist()
@@ -145,9 +145,9 @@ describe "the `atom` global", ->
 
           describe "when the metadata does not contain a 'stylesheets' manifest", ->
             it "loads all stylesheets from the stylesheets directory", ->
-              one = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
-              two = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
-              three = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
+              one = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
+              two = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
+              three = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
               expect(stylesheetElementForId(one)).not.toExist()
               expect(stylesheetElementForId(two)).not.toExist()
               expect(stylesheetElementForId(three)).not.toExist()
@@ -215,9 +215,9 @@ describe "the `atom` global", ->
         it "removes the package's stylesheets", ->
           atom.activatePackage('package-with-stylesheets')
           atom.deactivatePackage('package-with-stylesheets')
-          one = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
-          two = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
-          three = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
+          one = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
+          two = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
+          three = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
           expect(stylesheetElementForId(one)).not.toExist()
           expect(stylesheetElementForId(two)).not.toExist()
           expect(stylesheetElementForId(three)).not.toExist()
@@ -249,7 +249,7 @@ describe "the `atom` global", ->
         versionHandler.callCount > 0
 
       runs ->
-        expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+\.\w+$/
+        expect(versionHandler.argsForCall[0][0]).toBeDefined()
 
   describe "modal native dialogs", ->
     beforeEach ->

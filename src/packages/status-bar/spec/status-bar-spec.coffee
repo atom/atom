@@ -2,7 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 RootView = require 'root-view'
 StatusBar = require 'status-bar/lib/status-bar-view'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "StatusBar", ->
   [editor, statusBar, buffer] = []
@@ -57,7 +57,7 @@ describe "StatusBar", ->
   describe "when the buffer content has changed from the content on disk", ->
     it "disables the buffer modified indicator on save", ->
       path = "/tmp/atom-whitespace.txt"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       rootView.open(path)
       expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
@@ -107,12 +107,12 @@ describe "StatusBar", ->
 
   describe "git branch label", ->
     beforeEach ->
-      fs.remove('/tmp/.git') if fs.isDirectory('/tmp/.git')
+      fsUtils.remove('/tmp/.git') if fsUtils.isDirectory('/tmp/.git')
       rootView.attachToDom()
 
     it "displays the current branch for files in repositories", ->
       path = require.resolve('fixtures/git/master.git/HEAD')
-      project.setPath(fs.resolveOnLoadPath('fixtures/git/master.git'))
+      project.setPath(fsUtils.resolveOnLoadPath('fixtures/git/master.git'))
       rootView.open(path)
       expect(statusBar.branchArea).toBeVisible()
       expect(statusBar.branchLabel.text()).toBe 'master'
@@ -128,22 +128,22 @@ describe "StatusBar", ->
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
-      newPath = fs.join(fs.resolveOnLoadPath('fixtures/git/working-dir'), 'new.txt')
-      fs.write(newPath, "I'm new here")
-      ignoredPath = fs.join(fs.resolveOnLoadPath('fixtures/git/working-dir'), 'ignored.txt')
-      fs.write(ignoredPath, 'ignored.txt')
+      newPath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'new.txt')
+      fsUtils.write(newPath, "I'm new here")
+      ignoredPath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'ignored.txt')
+      fsUtils.write(ignoredPath, 'ignored.txt')
       git.getPathStatus(path)
       git.getPathStatus(newPath)
-      originalPathText = fs.read(path)
+      originalPathText = fsUtils.read(path)
       rootView.attachToDom()
 
     afterEach ->
-      fs.write(path, originalPathText)
-      fs.remove(newPath) if fs.exists(newPath)
-      fs.remove(ignoredPath) if fs.exists(ignoredPath)
+      fsUtils.write(path, originalPathText)
+      fsUtils.remove(newPath) if fsUtils.exists(newPath)
+      fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
 
     it "displays the modified icon for a changed file", ->
-      fs.write(path, "i've changed for the worse")
+      fsUtils.write(path, "i've changed for the worse")
       git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
@@ -161,16 +161,16 @@ describe "StatusBar", ->
       expect(statusBar.gitStatusIcon).toHaveClass('ignored-status-icon')
 
     it "updates when a status-changed event occurs", ->
-      fs.write(path, "i've changed for the worse")
+      fsUtils.write(path, "i've changed for the worse")
       git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
-      fs.write(path, originalPathText)
+      fsUtils.write(path, originalPathText)
       git.getPathStatus(path)
       expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
 
     it "displays the diff stat for modified files", ->
-      fs.write(path, "i've changed for the worse")
+      fsUtils.write(path, "i've changed for the worse")
       git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveText('+1,-1')
@@ -183,7 +183,6 @@ describe "StatusBar", ->
     beforeEach ->
       atom.activatePackage('text.tmbundle', sync: true)
       atom.activatePackage('javascript.tmbundle', sync: true)
-      syntax.trigger 'grammars-loaded'
 
     it "displays the name of the current grammar", ->
       expect(statusBar.find('.grammar-name').text()).toBe 'JavaScript'

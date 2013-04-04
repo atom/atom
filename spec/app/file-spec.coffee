@@ -1,33 +1,33 @@
 File = require 'file'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe 'File', ->
   [path, file] = []
 
   beforeEach ->
-    path = fs.join(fs.resolveOnLoadPath('fixtures'), "atom-file-test.txt") # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
-    fs.remove(path) if fs.exists(path)
-    fs.write(path, "this is old!")
+    path = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures'), "atom-file-test.txt") # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
+    fsUtils.remove(path) if fsUtils.exists(path)
+    fsUtils.write(path, "this is old!")
     file = new File(path)
     file.read()
 
   afterEach ->
     file.off()
-    fs.remove(path) if fs.exists(path)
+    fsUtils.remove(path) if fsUtils.exists(path)
 
   describe "when the contents of the file change", ->
     it "triggers 'contents-changed' event handlers", ->
       changeHandler = null
       changeHandler = jasmine.createSpy('changeHandler')
       file.on 'contents-changed', changeHandler
-      fs.write(file.getPath(), "this is new!")
+      fsUtils.write(file.getPath(), "this is new!")
 
       waitsFor "change event", ->
         changeHandler.callCount > 0
 
       runs ->
         changeHandler.reset()
-        fs.write(file.getPath(), "this is newer!")
+        fsUtils.write(file.getPath(), "this is newer!")
 
       waitsFor "second change event", ->
         changeHandler.callCount > 0
@@ -37,7 +37,7 @@ describe 'File', ->
       removeHandler = null
       removeHandler = jasmine.createSpy('removeHandler')
       file.on 'removed', removeHandler
-      fs.remove(file.getPath())
+      fsUtils.remove(file.getPath())
 
       waitsFor "remove event", ->
         removeHandler.callCount > 0
@@ -46,11 +46,11 @@ describe 'File', ->
     newPath = null
 
     beforeEach ->
-      newPath = fs.join(fs.directory(path), "atom-file-was-moved-test.txt")
+      newPath = fsUtils.join(fsUtils.directory(path), "atom-file-was-moved-test.txt")
 
     afterEach ->
-      if fs.exists(newPath)
-        fs.remove(newPath)
+      if fsUtils.exists(newPath)
+        fsUtils.remove(newPath)
         waitsFor "remove event", (done) -> file.on 'removed', done
 
     it "it updates its path", ->
@@ -58,7 +58,7 @@ describe 'File', ->
       moveHandler = jasmine.createSpy('moveHandler')
       file.on 'moved', moveHandler
 
-      fs.move(path, newPath)
+      fsUtils.move(path, newPath)
 
       waitsFor "move event", ->
         moveHandler.callCount > 0
@@ -74,14 +74,14 @@ describe 'File', ->
       changeHandler = jasmine.createSpy('changeHandler')
       file.on 'contents-changed', changeHandler
 
-      fs.move(path, newPath)
+      fsUtils.move(path, newPath)
 
       waitsFor "move event", ->
         moveHandler.callCount > 0
 
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
-        fs.write(file.getPath(), "this is new!")
+        fsUtils.write(file.getPath(), "this is new!")
 
       waitsFor "change event", ->
         changeHandler.callCount > 0
@@ -98,12 +98,12 @@ describe 'File', ->
 
       expect(changeHandler).not.toHaveBeenCalled()
 
-      fs.remove(path)
+      fsUtils.remove(path)
 
       expect(changeHandler).not.toHaveBeenCalled()
       waits 20
       runs ->
-        fs.write(path, "HE HAS RISEN!")
+        fsUtils.write(path, "HE HAS RISEN!")
         expect(changeHandler).not.toHaveBeenCalled()
 
       waitsFor "resurrection change event", ->
@@ -111,7 +111,7 @@ describe 'File', ->
 
       runs ->
         expect(removeHandler).not.toHaveBeenCalled()
-        fs.write(path, "Hallelujah!")
+        fsUtils.write(path, "Hallelujah!")
         changeHandler.reset()
 
       waitsFor "post-resurrection change event", ->

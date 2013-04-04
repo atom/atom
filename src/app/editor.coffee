@@ -6,7 +6,7 @@ Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -319,8 +319,8 @@ class Editor extends View
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
-  scanInRange: (args...) -> @getBuffer().scanInRange(args...)
-  backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
     @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
@@ -1102,7 +1102,7 @@ class Editor extends View
     range.detach()
     leftPixels
 
-  pixelOffsetForScreenPosition: (position) ->
+  pixelOffsUtilsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
     offset = @renderedLines.offset()
     {top: top + offset.top, left: left + offset.left}
@@ -1151,16 +1151,9 @@ class Editor extends View
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
-    @handleGrammarChange()
 
   reloadGrammar: ->
-    grammarChanged = @activeEditSession.reloadGrammar()
-    @handleGrammarChange() if grammarChanged
-    grammarChanged
-
-  handleGrammarChange: ->
-    @clearRenderedLines()
-    @updateDisplay()
+    @activeEditSession.reloadGrammar()
 
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}
@@ -1185,7 +1178,7 @@ class Editor extends View
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
-      fs.write(path, @getDebugSnapshot()) if path
+      fsUtils.write(path, @getDebugSnapshot()) if path
 
   getDebugSnapshot: ->
     [
