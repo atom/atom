@@ -29,6 +29,7 @@ class Syntax
   addGrammar: (grammar) ->
     @grammars.push(grammar)
     @grammarsByScopeName[grammar.scopeName] = grammar
+    @trigger 'grammar-added', grammar
 
   removeGrammar: (grammar) ->
     _.remove(@grammars, grammar)

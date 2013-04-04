@@ -9,15 +9,19 @@ class LanguageMode
   buffer = null
   grammar = null
   editSession = null
+  currentGrammarScore: null
 
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @reloadGrammar()
-    syntax.on 'grammars-loaded', => @reloadGrammar()
+    syntax.on 'grammar-added', (grammar) =>
+      newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
-  setGrammar: (grammar) ->
+  setGrammar: (grammar, score) ->
     return if grammar is @grammar
     @grammar = grammar
+    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @trigger 'grammar-changed', grammar
 
   reloadGrammar: ->

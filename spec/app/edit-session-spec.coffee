@@ -2060,18 +2060,18 @@ describe "EditSession", ->
       editSession.buffer.reload()
       expect(editSession.getCursorScreenPosition()).toEqual [0,1]
 
-  describe "when the 'grammars-loaded' event is triggered on the syntax global", ->
-    it "reloads the edit session's grammar and re-tokenizes the buffer if it changes", ->
+  describe "when a better-matched grammar is added to syntax", ->
+    it "switches to the better-matched grammar and re-tokenizes the buffer", ->
       editSession.destroy()
       jsGrammar = syntax.selectGrammar('a.js')
-      grammarToReturn = syntax.nullGrammar
-      spyOn(syntax, 'selectGrammar').andCallFake -> grammarToReturn
+      syntax.removeGrammar(jsGrammar)
 
       editSession = project.buildEditSession('sample.js', autoIndent: false)
+      expect(editSession.getGrammar()).toBe syntax.nullGrammar
       expect(editSession.lineForScreenRow(0).tokens.length).toBe 1
 
-      grammarToReturn = jsGrammar
-      syntax.trigger 'grammars-loaded'
+      syntax.addGrammar(jsGrammar)
+      expect(editSession.getGrammar()).toBe jsGrammar
       expect(editSession.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
   describe "auto-indent", ->
