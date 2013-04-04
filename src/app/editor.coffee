@@ -122,6 +122,7 @@ class Editor extends View
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:add-selection-below': @addSelectionBelow
       'editor:select-line': @selectLine
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
@@ -211,6 +212,7 @@ class Editor extends View
   selectAll: -> @activeEditSession.selectAll()
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+  addSelectionBelow: -> @activeEditSession.addSelectionBelow()
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectWord: -> @activeEditSession.selectWord()

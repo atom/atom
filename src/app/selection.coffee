@@ -148,6 +148,12 @@ class Selection
   selectToEndOfWord: ->
     @modifySelection => @cursor.moveToEndOfWord()
 
+  addSelectionBelow: ->
+    range = @getBufferRange().copy()
+    range.start.row++
+    range.end.row++
+    @editSession.addSelectionForBufferRange(range)
+
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)

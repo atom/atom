@@ -708,6 +708,18 @@ describe "EditSession", ->
           expect(editSession.selectMarker('bogus')).toBeFalsy()
           expect(editSession.getSelectedBufferRange()).toEqual rangeBefore
 
+    describe ".addSelectionBelow()", ->
+      it "selects the same region of the line below current selections if possible", ->
+        editSession.setSelectedBufferRange([[3, 16], [3, 21]])
+        editSession.addSelectionForBufferRange([[3, 25], [3, 34]])
+        editSession.addSelectionBelow()
+        expect(editSession.getSelectedBufferRanges()).toEqual [
+          [[3, 16], [3, 21]]
+          [[3, 25], [3, 34]]
+          [[4, 16], [4, 21]]
+          [[4, 25], [4, 29]]
+        ]
+
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
 

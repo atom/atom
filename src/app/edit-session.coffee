@@ -761,6 +761,9 @@ class EditSession
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
 
+  addSelectionBelow: ->
+    @expandSelectionsForward (selection) => selection.addSelectionBelow()
+
   transpose: ->
     @mutateSelectedText (selection) =>
       if selection.isEmpty()
