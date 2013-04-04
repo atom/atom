@@ -43,12 +43,10 @@ class TextMateGrammar
     contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)
 
     if syntax.grammarOverrideForPath(path) is @scopeName
-      Infinity
-    else if @matchesContents(contents)
       3
-    else if @matchesPath(path)
+    else if @matchesContents(contents)
       2
-    else if @isTextGrammar()
+    else if @matchesPath(path)
       1
     else
       -1
@@ -77,9 +75,6 @@ class TextMateGrammar
       fileTypeComponents = fileType.split(pathSplitRegex)
       pathSuffix = pathComponents[-fileTypeComponents.length..-1]
       _.isEqual(pathSuffix, fileTypeComponents)
-
-  isTextGrammar: ->
-    @scopeName is 'text.plain'
 
   tokenizeLine: (line, ruleStack=[@initialRule], firstLine=false) ->
     originalRuleStack = ruleStack
