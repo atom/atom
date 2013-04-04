@@ -30,7 +30,7 @@ CURRENT_VERSION=`cat cef/version 2>&1`
 
 if [[ $LATEST_VERSION != $CURRENT_VERSION ]]; then
   echo "Downloading/extracting cefode2 u${LATEST_VERSION}..."
-  if [ -z "$CI_BUILD" ]; then
+  if [ -t 1 ] ; then # If run from the terminal
     CURL_ARGS="--progress-bar"
   else
     CURL_ARGS="-fsS"
