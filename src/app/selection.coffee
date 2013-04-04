@@ -4,10 +4,12 @@ _ = require 'underscore'
 
 module.exports =
 class Selection
-  wordwise: false
+  cursor: null
+  marker: null
   editSession: null
   initialScreenRange: null
   goalBufferRange: null
+  wordwise: false
   needsAutoscroll: null
 
   constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
