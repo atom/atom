@@ -2159,3 +2159,40 @@ describe "EditSession", ->
       expect(buffer.getMarkerCount()).toBeGreaterThan 0
       editSession.destroy()
       expect(buffer.getMarkerCount()).toBe 0
+
+  describe ".joinLine()", ->
+    describe "when no text is selected", ->
+      describe "when the line below isn't empty", ->
+        it "joins the line below with the current line separated by a space and moves the cursor to the start of line that was moved up", ->
+          editSession.joinLine()
+          expect(editSession.lineForBufferRow(0)).toBe 'var quicksort = function () { var sort = function(items) {'
+          expect(editSession.getCursorBufferPosition()).toEqual [0, 30]
+
+      describe "when the line below is empty", ->
+        it "deletes the line below and moves the cursor to the end of the line", ->
+          editSession.setCursorBufferPosition([9])
+          editSession.joinLine()
+          expect(editSession.lineForBufferRow(9)).toBe '  };'
+          expect(editSession.lineForBufferRow(10)).toBe '  return sort(Array.apply(this, arguments));'
+          expect(editSession.getCursorBufferPosition()).toEqual [9, 4]
+
+      describe "when the cursor is on the last row", ->
+        it "does nothing", ->
+          editSession.setCursorBufferPosition([Infinity, Infinity])
+          editSession.joinLine()
+          expect(editSession.lineForBufferRow(12)).toBe '};'
+
+    describe "when text is selected", ->
+      describe "when the selection does not span multiple lines", ->
+        it "joins the line below with the current line separated by a space and retains the selected text", ->
+          editSession.setSelectedBufferRange([[0, 1], [0, 3]])
+          editSession.joinLine()
+          expect(editSession.lineForBufferRow(0)).toBe 'var quicksort = function () { var sort = function(items) {'
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [0, 3]]
+
+      describe "when the selection spans multiple lines", ->
+        it "joins all selected lines separated by a space and retains the selected text", ->
+          editSession.setSelectedBufferRange([[9, 3], [12, 1]])
+          editSession.joinLine()
+          expect(editSession.lineForBufferRow(9)).toBe '  }; return sort(Array.apply(this, arguments)); };'
+          expect(editSession.getSelectedBufferRange()).toEqual [[9, 3], [9, 49]]

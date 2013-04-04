@@ -286,6 +286,31 @@ class Selection
         end--
       @editSession.buffer.deleteRows(start, end)
 
+  joinLine: ->
+    selectedRange = @getBufferRange()
+    if selectedRange.isEmpty()
+      return if selectedRange.start.row is @editSession.buffer.getLastRow()
+    else
+      joinMarker = @editSession.markBufferRange(selectedRange, invalidationStrategy: 'never')
+
+    rowCount = Math.max(1, selectedRange.getRowCount() - 1)
+    for row in [0...rowCount]
+      @cursor.setBufferPosition([selectedRange.start.row])
+      @cursor.moveToEndOfLine()
+      nextRow = selectedRange.start.row + 1
+      if nextRow <= @editSession.buffer.getLastRow() and @editSession.buffer.lineLengthForRow(nextRow) > 0
+        @insertText(' ')
+        @cursor.moveToEndOfLine()
+      @modifySelection =>
+        @cursor.moveRight()
+        @cursor.moveToFirstCharacterOfLine()
+      @deleteSelectedText()
+
+    if joinMarker?
+      newSelectedRange = @editSession.getMarkerBufferRange(joinMarker)
+      @setBufferRange(newSelectedRange)
+      @editSession.destroyMarker(joinMarker)
+
   outdentSelectedRows: ->
     [start, end] = @getBufferRowRange()
     buffer = @editSession.buffer

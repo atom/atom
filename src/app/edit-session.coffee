@@ -778,6 +778,9 @@ class EditSession
   lowerCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) => text.toLowerCase()
 
+  joinLine: ->
+    @mutateSelectedText (selection) -> selection.joinLine()
+
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()
 
