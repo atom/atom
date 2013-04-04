@@ -944,7 +944,6 @@ describe "TreeView", ->
       git.getPathStatus(modifiedFile)
 
       treeView.updateRoot()
-      treeView.root.entries.find('.directory:contains(dir1)').view().expand()
       treeView.root.entries.find('.directory:contains(dir2)').view().expand()
 
     afterEach ->
@@ -954,6 +953,7 @@ describe "TreeView", ->
 
     describe "when a file is modified", ->
       it "adds a custom style", ->
+        treeView.root.entries.find('.directory:contains(dir1)').view().expand()
         expect(treeView.find('.file:contains(file1)')).toHaveClass 'modified'
 
     describe "when a directory if modified", ->
