@@ -47,7 +47,6 @@ class Buffer
     else
       @setText(initialText ? '')
 
-
     @undoManager = new UndoManager(this)
 
   destroy: ->
