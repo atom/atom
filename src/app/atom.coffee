@@ -208,9 +208,13 @@ _.extend atom,
     originalSendMessageToBrowserProcess(name, data)
 
   receiveMessageFromBrowserProcess: (name, data) ->
-    if name is 'reply'
-      [messageId, callbackIndex] = data.shift()
-      @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+    switch name
+      when 'reply'
+        [messageId, callbackIndex] = data.shift()
+        @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+      when 'openPath'
+        path = data[0]
+        rootView?.open(path) if fsUtils.isFile(path)
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()

@@ -215,6 +215,16 @@
   _cefClient->GetBrowser()->GetHost()->SetFocus(true);
 }
 
+- (void)openPath:(NSString*)path {
+  if (_cefClient && _cefClient->GetBrowser()) {
+    CefRefPtr<CefProcessMessage> openMessage = CefProcessMessage::Create("openPath");
+    CefRefPtr<CefListValue> openArguments = openMessage->GetArgumentList();
+    openArguments->SetSize(1);
+    openArguments->SetString(0, [path UTF8String]);
+    _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, openMessage);
+  }
+}
+
 - (void)setPidToKillOnClose:(NSNumber *)pid {
   _pidToKillOnClose = [pid retain];
 }
