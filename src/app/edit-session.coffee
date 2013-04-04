@@ -83,6 +83,7 @@ class EditSession
     @buffer.release()
     selection.destroy() for selection in @getSelections()
     @displayBuffer.destroy()
+    @languageMode.destroy()
     @project?.removeEditSession(this)
     @trigger 'destroyed'
     @off()

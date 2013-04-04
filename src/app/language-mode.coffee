@@ -3,6 +3,7 @@ _ = require 'underscore'
 require 'underscore-extensions'
 {OnigRegExp} = require 'oniguruma'
 EventEmitter = require 'event-emitter'
+Subscriber = require 'subscriber'
 
 module.exports =
 class LanguageMode
@@ -14,9 +15,12 @@ class LanguageMode
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @reloadGrammar()
-    syntax.on 'grammar-added', (grammar) =>
+    @subscribe syntax, 'grammar-added', (grammar) =>
       newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
+
+  destroy: ->
+    @unsubscribe()
 
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
@@ -169,3 +173,4 @@ class LanguageMode
       new OnigRegExp(foldEndPattern)
 
 _.extend LanguageMode.prototype, EventEmitter
+_.extend LanguageMode.prototype, Subscriber
