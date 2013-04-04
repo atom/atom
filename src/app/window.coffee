@@ -25,6 +25,12 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
+  ignoreEvents = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  $(document).on 'dragover', ignoreEvents
+  $(document).on 'drop', ignoreEvents
+
   requireStylesheet 'reset'
   requireStylesheet 'atom'
   requireStylesheet 'overlay'
