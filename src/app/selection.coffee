@@ -243,7 +243,10 @@ class Selection
     @deleteSelectedText()
 
   backspaceToBeginningOfLine: ->
-    @selectToBeginningOfLine()
+    if @isEmpty() and @cursor.isAtBeginningOfLine()
+      @selectLeft()
+    else
+      @selectToBeginningOfLine()
     @deleteSelectedText()
 
   delete: ->

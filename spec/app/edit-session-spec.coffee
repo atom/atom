@@ -1283,9 +1283,11 @@ describe "EditSession", ->
           expect(cursor1.getBufferPosition()).toEqual [1, 0]
           expect(cursor2.getBufferPosition()).toEqual [2, 0]
 
-          editSession.backspaceToBeginningOfLine()
-          expect(buffer.lineForRow(1)).toBe 'ems) {'
-          expect(cursor1.getBufferPosition()).toEqual [1, 0]
+        describe "when at the beginning of the line", ->
+          it "deletes the newline", ->
+            editSession.setCursorBufferPosition([2])
+            editSession.backspaceToBeginningOfLine()
+            expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
       describe "when text is selected", ->
         it "still deletes all text to begginning of the line", ->
