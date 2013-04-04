@@ -157,6 +157,7 @@ class Editor extends View
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
         'editor:duplicate-line': @duplicateLine
+        'editor:join-line': @joinLine
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
         'editor:save-debug-snapshot': @saveDebugSnapshot
         'editor:toggle-line-numbers': =>  config.set('editor.showLineNumbers', !config.get('editor.showLineNumbers'))
@@ -186,6 +187,7 @@ class Editor extends View
   moveLineDown: -> @activeEditSession.moveLineDown()
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   duplicateLine: -> @activeEditSession.duplicateLine()
+  joinLine: -> @activeEditSession.joinLine()
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
