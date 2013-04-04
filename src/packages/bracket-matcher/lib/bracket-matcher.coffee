@@ -30,8 +30,6 @@ module.exports =
     editor.on 'cursor:moved.bracket-matcher', => @updateMatch(editor)
     editor.command 'editor:go-to-matching-bracket.bracket-matcher', =>
       @goToMatchingPair(editor)
-    editor.command 'editor:select-to-matching-bracket.bracket-matcher', =>
-      @selectToMatchingPair(editor)
     editor.on 'editor:will-be-removed', => editor.off('.bracket-matcher')
     editor.startHighlightView = @addHighlightView(editor)
     editor.endHighlightView = @addHighlightView(editor)
@@ -58,24 +56,6 @@ module.exports =
       editor.setCursorBufferPosition(startPosition.translate([0, 1]))
     else if previousPosition.isEqual(endPosition)
       editor.setCursorBufferPosition(startPosition)
-
-  selectToMatchingPair: (editor) ->
-    return unless @pairHighlighted
-    return unless underlayer = editor.getPane()?.find('.underlayer')
-
-    position = editor.getCursorBufferPosition()
-    previousPosition = position.translate([0, -1])
-    startPosition = underlayer.find('.bracket-matcher:first').data('bufferPosition')
-    endPosition = underlayer.find('.bracket-matcher:last').data('bufferPosition')
-
-    if position.isEqual(startPosition)
-      editor.selectToScreenPosition(editor.screenPositionForBufferPosition(endPosition.translate([0, 1])))
-    else if previousPosition.isEqual(startPosition)
-      editor.selectToScreenPosition(editor.screenPositionForBufferPosition(endPosition))
-    else if position.isEqual(endPosition)
-      editor.selectToScreenPosition(editor.screenPositionForBufferPosition(startPosition.translate([0, 1])))
-    else if previousPosition.isEqual(endPosition)
-      editor.selectToScreenPosition(editor.screenPositionForBufferPosition(startPosition))
 
   moveHighlightViews: (editor, bufferRange) ->
     { start, end } = Range.fromObject(bufferRange)
