@@ -719,6 +719,8 @@ describe "EditSession", ->
           [[4, 16], [4, 21]]
           [[4, 25], [4, 29]]
         ]
+        for cursor in editSession.getCursors()
+          expect(cursor.isVisible()).toBeFalsy()
 
       it "honors the original selection's region when adding across shorter lines", ->
         editSession.setSelectedBufferRange([[3, 22], [3, 38]])

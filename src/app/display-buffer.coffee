@@ -400,6 +400,9 @@ class DisplayBuffer
   isMarkerReversed: (id) ->
     @buffer.isMarkerReversed(id)
 
+  doesMarkerHaveTail: (id) ->
+    @buffer.doesMarkerHaveTail(id)
+
   observeMarker: (id, callback) ->
     @getMarker(id).observe(callback)
 

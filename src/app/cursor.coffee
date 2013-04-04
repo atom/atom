@@ -12,9 +12,9 @@ class Cursor
   needsAutoscroll: null
 
   constructor: ({@editSession, @marker}) ->
+    @updateVisibility()
     @editSession.observeMarker @marker, (e) =>
-      @setVisible(@selection.isEmpty())
-
+      @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
       {bufferChanged} = e
@@ -58,6 +58,9 @@ class Cursor
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
     unless fn()
       @trigger 'autoscrolled' if @needsAutoscroll
+
+  updateVisibility: ->
+    @setVisible(not @editSession.doesMarkerHaveTail(@marker))
 
   setVisible: (visible) ->
     if @visible != visible
