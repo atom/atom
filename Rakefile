@@ -114,8 +114,14 @@ task :tags do
   system %{find src native cef vendor -not -name "*spec.coffee" -type f -print0 | xargs -0 ctags}
 end
 
+desc "Builds the API docs"
 task :docs do
   system %{./biscotto -j ~/Development/biscotto/out.json src/app/}
+end
+
+desc "Lists the stats for API doc coverage"
+task :docsStats do
+  system %{./biscotto --statsOnly src/app/}
 end
 
 def application_path
