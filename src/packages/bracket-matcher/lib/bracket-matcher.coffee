@@ -42,6 +42,7 @@ module.exports =
   goToMatchingPair: (editor) ->
     return unless @pairHighlighted
     return unless underlayer = editor.getPane()?.find('.underlayer')
+    return unless underlayer.isVisible()
 
     position = editor.getCursorBufferPosition()
     previousPosition = position.translate([0, -1])
