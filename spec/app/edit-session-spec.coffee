@@ -748,11 +748,18 @@ describe "EditSession", ->
           editSession.addSelectionBelow()
           editSession.selectLeft()
           editSession.addSelectionBelow()
+          expect(editSession.getSelectedBufferRanges()).toEqual [
+            [[3, 22], [3, 37]]
+            [[4, 22], [4, 29]]
+            [[5, 22], [5, 28]]
+          ]
+
+          # goal range from previous add selection is honored next time
           editSession.addSelectionBelow()
           expect(editSession.getSelectedBufferRanges()).toEqual [
             [[3, 22], [3, 37]]
             [[4, 22], [4, 29]]
-            [[5, 22], [5, 29]]
+            [[5, 22], [5, 30]] # select to end of line 5 because line 4's goal range was reset by line 3 previously
             [[6, 22], [6, 28]]
           ]
 

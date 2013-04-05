@@ -394,6 +394,10 @@ class Selection
 
   merge: (otherSelection, options) ->
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
+    if @goalBufferRange and otherSelection.goalBufferRange
+      @goalBufferRange = @goalBufferRange.union(otherSelection.goalBufferRange)
+    else if otherSelection.goalBufferRange
+      @goalBufferRange = otherSelection.goalBufferRange
     otherSelection.destroy()
 
 _.extend Selection.prototype, EventEmitter
