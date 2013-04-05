@@ -780,7 +780,7 @@ class Editor extends View
 
   updateCursorViews: ->
     if @newCursors.length > 0
-      @addCursorView(cursor) for cursor in @newCursors
+      @addCursorView(cursor) for cursor in @newCursors when not cursor.destroyed
       @syncCursorAnimations()
       @newCursors = []
 
@@ -792,7 +792,7 @@ class Editor extends View
 
   updateSelectionViews: ->
     if @newSelections.length > 0
-      @addSelectionView(selection) for selection in @newSelections
+      @addSelectionView(selection) for selection in @newSelections when not selection.destroyed
       @newSelections = []
 
     for selectionView in @getSelectionViews()

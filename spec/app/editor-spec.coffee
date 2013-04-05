@@ -765,6 +765,18 @@ describe "Editor", ->
         expect(editor.getSelectionViews().length).toBe 1
         expect(editor.find('.region').length).toBe 3
 
+    describe "when a selection is added and removed before the display is updated", ->
+      it "does not attempt to render the selection", ->
+        # don't update display until we request it
+        jasmine.unspy(editor, 'requestDisplayUpdate')
+        spyOn(editor, 'requestDisplayUpdate')
+
+        editSession = editor.activeEditSession
+        selection = editSession.addSelectionForBufferRange([[3, 0], [3, 4]])
+        selection.destroy()
+        editor.updateDisplay()
+        expect(editor.getSelectionViews().length).toBe 1
+
     describe "when the selection is created with the selectAll event", ->
       it "does not scroll to the end of the buffer", ->
         editor.height(150)

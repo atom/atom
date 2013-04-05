@@ -34,6 +34,7 @@ class Cursor
     @needsAutoscroll = true
 
   destroy: ->
+    @destroyed = true
     @editSession.destroyMarker(@marker)
     @editSession.removeCursor(this)
     @trigger 'destroyed'
