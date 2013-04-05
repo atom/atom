@@ -424,24 +424,39 @@ class Editor extends View
 
   logCursorScope: ->
     console.log @activeEditSession.getCursorScopes()
-
+  # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
   pageDown: ->
     newScrollTop = @scrollTop() + @scrollView[0].clientHeight
     @activeEditSession.moveCursorDown(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
+
+  # Public: Emulates the "page up" key, where the frst row of a buffer scrolls to become the last.
   pageUp: ->
     newScrollTop = @scrollTop() - @scrollView[0].clientHeight
     @activeEditSession.moveCursorUp(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
 
+  # Public: Gets the number of actual page rows existing in an editor.
+  #
+  # Returns a {Number}.
   getPageRows: ->
     Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
 
+  # Public: Set whether invisible characters are shown.
+  #
+  # showInvisibles - A {Boolean} which, if `true`, show invisible characters
   setShowInvisibles: (showInvisibles) ->
     return if showInvisibles == @showInvisibles
     @showInvisibles = showInvisibles
     @resetDisplay()
 
+  # Public: Defines which characters are invisible.
+  #
+  # invisibles - A hash defining the invisible characters: The defaults are:
+  #              :eol - `\u00ac`
+  #              :space - `\u00b7`
+  #              :tab - `\u00bb`
+  #              :cr - `\u00a4`
   setInvisibles: (@invisibles={}) ->
     _.defaults @invisibles,
       eol: '\u00ac'
@@ -450,20 +465,54 @@ class Editor extends View
       cr: '\u00a4'
     @resetDisplay()
 
+  # Public: Sets whether you want to show the indentation guides.
+  #
+  # showIndentGuide - A {Boolean} you can set to `true` if you want to see the indentation guides.
   setShowIndentGuide: (showIndentGuide) ->
     return if showIndentGuide == @showIndentGuide
     @showIndentGuide = showIndentGuide
     @resetDisplay()
 
+  # Public: Checks out the current HEAD revision of the file.
   checkoutHead: -> @getBuffer().checkoutHead()
+  # Public: Replaces the current buffer contents.
+  #
+  # text - A {String} containing the new buffer contents.
   setText: (text) -> @getBuffer().setText(text)
+  # Public: Retrieves the current buffer contents.
+  #
+  # Returns a {String}.
   getText: -> @getBuffer().getText()
+  # Public: Retrieves the current buffer's file path.
+  #
+  # Returns a {String}.
   getPath: -> @activeEditSession?.getPath()
+  # Public: Gets the number of lines in a file. 
+  #
+  # Returns a {Number}.
   getLineCount: -> @getBuffer().getLineCount()
+  # Public: Gets the row number of the last line.
+  #
+  # Returns a {Number}.
   getLastBufferRow: -> @getBuffer().getLastRow()
+  # Public: Given a range, returns the lines of text within it.
+  #
+  # range - A {Range} object specifying your points of interest
+  #
+  # Returns a {String} of the combined lines.
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
   getEofPosition: -> @getBuffer().getEofPosition()
+  # Public: Given a row, returns the line of text.
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {String}.
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
+  # Public: Given a row, returns the length of the line of text.
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {Number}.
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
   scanInRange: (args...) -> @getBuffer().scanInRange(args...)
@@ -477,6 +526,7 @@ class Editor extends View
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
 
+  # Internal: Responsible for handling events made to the editor.
   handleEvents: ->
     @on 'focus', =>
       @hiddenInput.focus()
@@ -614,12 +664,21 @@ class Editor extends View
     if @attached and @activeEditSession.buffer.isInConflict()
       _.defer => @showBufferConflictAlert(@activeEditSession) # Display after editSession has a chance to display
 
+  # Internal: Retrieves the currently active session.
+  #
+  # Returns an {EditSession}.
   getModel: ->
     @activeEditSession
 
+  # Internal: Set the new active session.
+  #
+  # editSession - The new {EditSession} to use.
   setModel: (editSession) ->
     @edit(editSession)
 
+  # Public: Retrieves the {EditSession}'s buffer.
+  #
+  # Returns the current {Buffer}.
   getBuffer: -> @activeEditSession.buffer
 
   showBufferConflictAlert: (editSession) ->
@@ -721,9 +780,11 @@ class Editor extends View
     @activeEditSession.setScrollTop(@scrollTop())
     @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
 
+  # Public: Activates soft tabs in the editor.
   toggleSoftTabs: ->
     @activeEditSession.setSoftTabs(not @activeEditSession.softTabs)
 
+  # Public: Activates soft wraps in the editor.
   toggleSoftWrap: ->
     @setSoftWrap(not @activeEditSession.getSoftWrap())
 
@@ -733,6 +794,11 @@ class Editor extends View
     else
       Infinity
 
+  # Public: Sets the soft wrap column for the editor.
+  #
+  # softWrap - A {Boolean} which, if `true`, sets soft wraps
+  # softWrapColumn - A {Number} indicating the length of a line in the editor when soft 
+  # wrapping turns on
   setSoftWrap: (softWrap, softWrapColumn=undefined) ->
     @activeEditSession.setSoftWrap(softWrap)
     @setSoftWrapColumn(softWrapColumn) if @attached
@@ -745,6 +811,9 @@ class Editor extends View
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
 
+  # Public: Sets the font size for the editor.
+  #
+  # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
     headTag = $("head")
     styleTag = headTag.find("style.font-size")
@@ -759,9 +828,15 @@ class Editor extends View
     else
       @redrawOnReattach = @attached
 
+  # Public: Retrieves the font size for the editor.
+  #
+  # Returns a {Number} indicating the font size in pixels.
   getFontSize: ->
     parseInt(@css("font-size"))
 
+  # Public: Sets the font family for the editor.
+  #
+  # fontFamily - A {String} identifying the CSS `font-family`,
   setFontFamily: (fontFamily) ->
     return if fontFamily == undefined
     headTag = $("head")
@@ -773,11 +848,16 @@ class Editor extends View
     styleTag.text(".editor {font-family: #{fontFamily}}")
     @redraw()
 
+  # Public: Gets the font family for the editor.
+  #
+  # Returns a {String} identifying the CSS `font-family`,
   getFontFamily: -> @css("font-family")
 
+  # Public: Clears the CSS `font-family` property from the editor.
   clearFontFamily: ->
     $('head style.editor-font-family').remove()
 
+  # Public: Clears the CSS `font-family` property from the editor.
   redraw: ->
     return unless @hasParent()
     return unless @attached
@@ -1282,6 +1362,7 @@ class Editor extends View
 
     new Point(row, column)
 
+  # Public: Highlights the current line the cursor is on.
   highlightCursorLine: ->
     return if @mini
 
@@ -1292,14 +1373,21 @@ class Editor extends View
     else
       @highlightedLine = null
 
+  # Public: Retrieves the current {EditSession}'s grammar.
+  #
+  # Returns a {String} indicating the {LanguageMode}'s grammar rules.
   getGrammar: ->
     @activeEditSession.getGrammar()
 
+  # Public: Sets the current {EditSession}'s grammar. This only works for mini-editors.
+  #
+  # grammar - A {String} indicating the {LanguageMode}'s grammar rules.
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
     @handleGrammarChange()
 
+  # Public: Reloads the current grammar.
   reloadGrammar: ->
     grammarChanged = @activeEditSession.reloadGrammar()
     @handleGrammarChange() if grammarChanged

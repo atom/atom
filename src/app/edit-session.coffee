@@ -151,7 +151,13 @@ class EditSession
 
   save: -> @buffer.save()
   saveAs: (path) -> @buffer.saveAs(path)
+  # Public: Retrieves the current buffer's file extension.
+  #
+  # Returns a {String}.
   getFileExtension: -> @buffer.getExtension()
+  # Public: Retrieves the current buffer's file path.
+  #
+  # Returns a {String}.
   getPath: -> @buffer.getPath()
   getUri: -> @getPath()
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
@@ -977,8 +983,14 @@ class EditSession
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
 
+  # Public: Retrieves the current {EditSession}'s grammar.
+  #
+  # Returns a {String} indicating the {LanguageMode}'s grammar rules.
   getGrammar: -> @languageMode.grammar
 
+  # Public: Sets the current {EditSession}'s grammar.
+  #
+  # grammar - A {String} indicating the {LanguageMode}'s grammar rules.
   setGrammar: (grammar) ->
     @languageMode.grammar = grammar
     @handleGrammarChange()

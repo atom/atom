@@ -100,21 +100,35 @@ class Buffer
 
     @trigger "path-changed", this
 
+  # Public: Retrieves the current buffer's file extension.
+  #
+  # Returns a {String}.
   getExtension: ->
     if @getPath()
       @getPath().split('/').pop().split('.').pop()
     else
       null
 
+  # Public: Retrieves the cached buffer contents.
+  #
+  # Returns a {String}.
   getText: ->
     @cachedMemoryContents ?= @getTextInRange(@getRange())
 
+  # Public: Replaces the current buffer contents.
+  #
+  # text - A {String} containing the new buffer contents.
   setText: (text) ->
     @change(@getRange(), text, normalizeLineEndings: false)
 
   getRange: ->
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
+  # Public: Given a range, returns the lines of text within it.
+  #
+  # range - A {Range} object specifying your points of interest
+  #
+  # Returns a {String} of the combined lines.
   getTextInRange: (range) ->
     range = @clipRange(range)
     if range.start.row == range.end.row
@@ -130,9 +144,17 @@ class Buffer
 
     return multipleLines.join ''
 
+  # Public: Gets all the lines in a file.
+  #
+  # Returns an {Array} of {String}s.
   getLines: ->
     @lines
 
+  # Public: Given a row, returns the line of text.
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {String}.
   lineForRow: (row) ->
     @lines[row]
 
@@ -141,7 +163,12 @@ class Buffer
 
   suggestedLineEndingForRow: (row) ->
     @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
-
+    
+  # Public: Given a row, returns the length of the line of text.
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {Number}.
   lineLengthForRow: (row) ->
     @lines[row].length
 
@@ -154,9 +181,15 @@ class Buffer
     else
       new Range([row, 0], [row, @lineLengthForRow(row)])
 
+  # Public: Gets the number of lines in a file. 
+  #
+  # Returns a {Number}.
   getLineCount: ->
     @getLines().length
 
+  # Public: Gets the row number of the last line.
+  #
+  # Returns a {Number}.
   getLastRow: ->
     @getLines().length - 1
 
@@ -425,6 +458,7 @@ class Buffer
         return match[0][0] != '\t'
     undefined
 
+  # Public: Checks out the current HEAD revision of the file.
   checkoutHead: ->
     path = @getPath()
     return unless path
