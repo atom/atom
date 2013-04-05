@@ -169,6 +169,23 @@ class Selection
       @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
       break
 
+  addSelectionAbove: ->
+    range = (@goalBufferRange ? @getBufferRange()).copy()
+    previousRow = range.end.row - 1
+
+    for row in [previousRow..0]
+      range.start.row = row
+      range.end.row = row
+      clippedRange = @editSession.clipBufferRange(range)
+
+      if range.isEmpty()
+        continue if range.end.column > 0 and clippedRange.end.column is 0
+      else
+        continue if clippedRange.isEmpty()
+
+      @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+      break
+
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)

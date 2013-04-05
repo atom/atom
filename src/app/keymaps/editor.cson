@@ -10,6 +10,7 @@
   'ctrl-{': 'editor:fold-all'
   'ctrl-}': 'editor:unfold-all'
   'ctrl-shift-down': 'editor:add-selection-below'
+  'ctrl-shift-up': 'editor:add-selection-above'
   'alt-meta-ctrl-f': 'editor:fold-selection'
   'shift-tab': 'editor:outdent-selected-rows'
   'meta-[': 'editor:outdent-selected-rows'

@@ -770,6 +770,9 @@ class EditSession
   addSelectionBelow: ->
     @expandSelectionsForward (selection) => selection.addSelectionBelow()
 
+  addSelectionAbove: ->
+    @expandSelectionsBackward (selection) => selection.addSelectionAbove()
+
   transpose: ->
     @mutateSelectedText (selection) =>
       if selection.isEmpty()
