@@ -407,7 +407,7 @@ class Selection
     @getBufferRange().intersectsWith(bufferRange)
 
   intersectsWith: (otherSelection) ->
-    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
+    @getBufferRange().intersectsWith(otherSelection.getBufferRange())
 
   merge: (otherSelection, options) ->
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
