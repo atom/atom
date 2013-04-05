@@ -60,7 +60,7 @@ class Editor extends View
     if editSessionOrOptions instanceof EditSession
       editSession = editSessionOrOptions
     else
-      {editSession, @mini} = (editSessionOrOptions ? {})
+      {editSession, @mini} = editSessionOrOptions ? {}
 
     requireStylesheet 'editor'
 
