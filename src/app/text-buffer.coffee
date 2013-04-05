@@ -339,8 +339,8 @@ class Buffer
   isMarkerReversed: (id) ->
     @validMarkers[id]?.isReversed()
 
-  doesMarkerHaveTail: (id) ->
-    @validMarkers[id]?.hasTail()
+  isMarkerRangeEmpty: (id) ->
+    @validMarkers[id]?.isRangeEmpty()
 
   observeMarker: (id, callback) ->
     @validMarkers[id]?.observe(callback)

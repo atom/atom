@@ -61,7 +61,7 @@ class Cursor
       @trigger 'autoscrolled' if @needsAutoscroll
 
   updateVisibility: ->
-    @setVisible(not @editSession.doesMarkerHaveTail(@marker))
+    @setVisible(@editSession.isMarkerRangeEmpty(@marker))
 
   setVisible: (visible) ->
     if @visible != visible

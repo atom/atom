@@ -556,8 +556,8 @@ class EditSession
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
 
-  doesMarkerHaveTail: (args...) ->
-    @displayBuffer.doesMarkerHaveTail(args...)
+  isMarkerRangeEmpty: (args...) ->
+    @displayBuffer.isMarkerRangeEmpty(args...)
 
   hasMultipleCursors: ->
     @getCursors().length > 1
