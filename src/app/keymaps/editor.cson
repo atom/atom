@@ -32,5 +32,5 @@
   'escape': 'core:cancel'
   'meta-w': 'core:cancel'
 
-'.editor !important':
+'.editor !important, .editor.mini !important':
   'escape': 'editor:consolidate-selections'
