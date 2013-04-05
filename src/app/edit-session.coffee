@@ -626,13 +626,16 @@ class EditSession
     _.remove(@selections, selection)
 
   clearSelections: ->
-    lastSelection = @getLastSelection()
-    for selection in @getSelections() when selection != lastSelection
-      selection.destroy()
-    lastSelection.clear()
+    @consolidateSelections()
+    @getSelection().clear()
 
-  clearAllSelections: ->
-    selection.destroy() for selection in @getSelections()
+  consolidateSelections: ->
+    selections = @getSelections()
+    if selections.length > 1
+      selection.destroy() for selection in selections[0...-1]
+      true
+    else
+      false
 
   getSelections: -> new Array(@selections...)
 

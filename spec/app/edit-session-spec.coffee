@@ -792,6 +792,20 @@ describe "EditSession", ->
             [[10, 0], [10, 0]]
           ]
 
+    describe ".consolidateSelections()", ->
+      it "destroys all selections but the most recent, returning true if any selections were destroyed", ->
+        editSession.setSelectedBufferRange([[3, 16], [3, 21]])
+        selection1 = editSession.getSelection()
+        selection2 = editSession.addSelectionForBufferRange([[3, 25], [3, 34]])
+        selection3 = editSession.addSelectionForBufferRange([[8, 4], [8, 10]])
+
+        expect(editSession.getSelections()).toEqual [selection1, selection2, selection3]
+        expect(editSession.consolidateSelections()).toBeTruthy()
+        expect(editSession.getSelections()).toEqual [selection3]
+        expect(selection3.isEmpty()).toBeFalsy()
+        expect(editSession.consolidateSelections()).toBeFalsy()
+        expect(editSession.getSelections()).toEqual [selection3]
+
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
 
