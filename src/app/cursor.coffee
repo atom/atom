@@ -88,6 +88,7 @@ class Cursor
 
   clearSelection: ->
     if @selection
+      @selection.goalBufferRange = null
       @selection.clear() unless @selection.retainSelection
 
   getScreenRow: ->
