@@ -156,17 +156,18 @@ class Selection
     range = (@goalBufferRange ? @getBufferRange()).copy()
     nextRow = range.end.row + 1
 
-    if range.isEmpty()
-      range.start.row = nextRow
-      range.end.row = nextRow
+    for row in [nextRow..@editSession.getLastBufferRow()]
+      range.start.row = row
+      range.end.row = row
+      clippedRange = @editSession.clipBufferRange(range)
+
+      if range.isEmpty()
+        continue if range.end.column > 0 and clippedRange.end.column is 0
+      else
+        continue if clippedRange.isEmpty()
+
       @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
-    else
-      for row in [nextRow..@editSession.getLastBufferRow()]
-        range.start.row = row
-        range.end.row = row
-        unless @editSession.clipBufferRange(range).isEmpty()
-          @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
-          break
+      break
 
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()

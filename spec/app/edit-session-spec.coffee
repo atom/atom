@@ -769,6 +769,22 @@ describe "EditSession", ->
             [[6, 36], [6, 36]]
           ]
 
+        it "skips empty lines when the column is non-zero", ->
+          editSession.setCursorBufferPosition([9, 4])
+          editSession.addSelectionBelow()
+          expect(editSession.getSelectedBufferRanges()).toEqual [
+            [[9, 4], [9, 4]]
+            [[11, 4], [11, 4]]
+          ]
+
+        it "does not skip empty lines when the column is zero", ->
+          editSession.setCursorBufferPosition([9, 0])
+          editSession.addSelectionBelow()
+          expect(editSession.getSelectedBufferRanges()).toEqual [
+            [[9, 0], [9, 0]]
+            [[10, 0], [10, 0]]
+          ]
+
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
 
