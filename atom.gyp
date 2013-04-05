@@ -269,6 +269,13 @@
         'native/mac/English.lproj/AtomWindow.xib',
         'native/mac/English.lproj/MainMenu.xib',
       ],
+      'conditions': [
+        ['CODE_SIGN', {
+          'defines': [
+            'CODE_SIGNING_ENABLED=1',
+          ],
+        }],
+      ],
       'postbuilds': [
         {
           'postbuild_name': 'Copy Static Files',
