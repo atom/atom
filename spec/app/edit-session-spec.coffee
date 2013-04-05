@@ -736,10 +736,8 @@ describe "EditSession", ->
 
       it "clears selection goal ranges when the selection changes", ->
         editSession.setSelectedBufferRange([[3, 22], [3, 38]])
-        console.log "1"
         editSession.addSelectionBelow()
         editSession.selectLeft()
-        console.log "2"
         editSession.addSelectionBelow()
         editSession.addSelectionBelow()
         expect(editSession.getSelectedBufferRanges()).toEqual [
