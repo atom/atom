@@ -765,6 +765,18 @@ describe "Editor", ->
         expect(editor.getSelectionViews().length).toBe 1
         expect(editor.find('.region').length).toBe 3
 
+    describe "when a selection is added and removed before the display is updated", ->
+      it "does not attempt to render the selection", ->
+        # don't update display until we request it
+        jasmine.unspy(editor, 'requestDisplayUpdate')
+        spyOn(editor, 'requestDisplayUpdate')
+
+        editSession = editor.activeEditSession
+        selection = editSession.addSelectionForBufferRange([[3, 0], [3, 4]])
+        selection.destroy()
+        editor.updateDisplay()
+        expect(editor.getSelectionViews().length).toBe 1
+
     describe "when the selection is created with the selectAll event", ->
       it "does not scroll to the end of the buffer", ->
         editor.height(150)
@@ -2460,3 +2472,19 @@ describe "Editor", ->
       expect(fsUtils.write).toHaveBeenCalled()
       expect(fsUtils.write.argsForCall[0][0]).toBe '/tmp/state'
       expect(typeof fsUtils.write.argsForCall[0][1]).toBe 'string'
+
+  describe "when the escape key is pressed on the editor", ->
+    it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->
+      keymap.bindKeys '.editor', 'escape': 'test-event'
+      testEventHandler = jasmine.createSpy("testEventHandler")
+
+      editor.on 'test-event', testEventHandler
+      editor.activeEditSession.addSelectionForBufferRange([[3, 0], [3, 0]])
+      expect(editor.activeEditSession.getSelections().length).toBe 2
+
+      editor.trigger(keydownEvent('escape'))
+      expect(editor.activeEditSession.getSelections().length).toBe 1
+      expect(testEventHandler).not.toHaveBeenCalled()
+
+      editor.trigger(keydownEvent('escape'))
+      expect(testEventHandler).toHaveBeenCalled()

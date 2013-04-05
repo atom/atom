@@ -104,6 +104,7 @@ class Editor extends View
       'editor:move-to-previous-word': @moveCursorToPreviousWord
       'editor:select-word': @selectWord
       'editor:newline': @insertNewline
+      'editor:consolidate-selections': @consolidateSelections
       'editor:indent': @indent
       'editor:auto-indent': @autoIndent
       'editor:indent-selected-rows': @indentSelectedRows
@@ -122,6 +123,8 @@ class Editor extends View
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:add-selection-below': @addSelectionBelow
+      'editor:add-selection-above': @addSelectionAbove
       'editor:select-line': @selectLine
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
@@ -163,7 +166,7 @@ class Editor extends View
     documentation = {}
     for name, method of editorBindings
       do (name, method) =>
-        @command name, => method.call(this); false
+        @command name, (e) => method.call(this, e); false
 
   getCursor: -> @activeEditSession.getCursor()
   getCursors: -> @activeEditSession.getCursors()
@@ -211,6 +214,8 @@ class Editor extends View
   selectAll: -> @activeEditSession.selectAll()
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+  addSelectionBelow: -> @activeEditSession.addSelectionBelow()
+  addSelectionAbove: -> @activeEditSession.addSelectionAbove()
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectWord: -> @activeEditSession.selectWord()
@@ -230,6 +235,7 @@ class Editor extends View
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
+  consolidateSelections: (e) -> e.abortKeyBinding() unless @activeEditSession.consolidateSelections()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
   indent: (options) -> @activeEditSession.indent(options)
@@ -778,7 +784,7 @@ class Editor extends View
 
   updateCursorViews: ->
     if @newCursors.length > 0
-      @addCursorView(cursor) for cursor in @newCursors
+      @addCursorView(cursor) for cursor in @newCursors when not cursor.destroyed
       @syncCursorAnimations()
       @newCursors = []
 
@@ -790,11 +796,11 @@ class Editor extends View
 
   updateSelectionViews: ->
     if @newSelections.length > 0
-      @addSelectionView(selection) for selection in @newSelections
+      @addSelectionView(selection) for selection in @newSelections when not selection.destroyed
       @newSelections = []
 
     for selectionView in @getSelectionViews()
-      if selectionView.destroyed
+      if selectionView.needsRemoval
         selectionView.remove()
       else
         selectionView.updateDisplay()
