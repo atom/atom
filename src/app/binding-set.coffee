@@ -19,7 +19,7 @@ class BindingSet
   constructor: (selector, commandsByKeystrokes, @index, @name) ->
     BindingSet.parser ?= PEG.buildParser(fsUtils.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(selector)
-    @selector = selector.replace(/\s*!important\s*$/, '')
+    @selector = selector.replace(/!important/g, '')
     @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)
 
   commandForEvent: (event) ->
