@@ -246,7 +246,7 @@
 
 - (BOOL)windowShouldClose:(NSNotification *)notification {
   if (_cefClient && _cefClient->GetBrowser()) {
-    _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("shutdown"));
+    _cefClient->GetBrowser()->GetHost()->CloseBrowser(false);
   }
 
   if (_pidToKillOnClose) kill([_pidToKillOnClose intValue], SIGQUIT);

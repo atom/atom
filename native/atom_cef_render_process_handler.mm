@@ -30,10 +30,6 @@ bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser>
     Reload(browser);
     return true;
   }
-  else if (name == "shutdown") {
-    Shutdown(browser);
-    return true;
-  }
   else {
     return CallMessageReceivedHandler(browser->GetMainFrame()->GetV8Context(), message);
   }
@@ -51,17 +47,6 @@ void AtomCefRenderProcessHandler::Reload(CefRefPtr<CefBrowser> browser) {
   if (!reloadFunction->IsFunction() || reloadFunction->HasException()) {
     browser->ReloadIgnoreCache();
   }
-  context->Exit();
-}
-
-void AtomCefRenderProcessHandler::Shutdown(CefRefPtr<CefBrowser> browser) {
-  CefRefPtr<CefV8Context> context = browser->GetMainFrame()->GetV8Context();
-  CefRefPtr<CefV8Value> global = context->GetGlobal();
-
-  context->Enter();
-  CefV8ValueList arguments;
-  CefRefPtr<CefV8Value> shutdownFunction = global->GetValue("shutdown");
-  shutdownFunction->ExecuteFunction(global, arguments);
   context->Exit();
 }
 
