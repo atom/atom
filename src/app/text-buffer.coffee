@@ -37,13 +37,14 @@ class Buffer
     @lineEndings = []
 
     if path
-      throw "Path '#{path}' does not exist" unless fsUtils.exists(path)
       @setPath(path)
       if initialText?
         @setText(initialText)
         @updateCachedDiskContents()
-      else
+      else if fsUtils.exists(path)
         @reload()
+      else
+        @setText('')
     else
       @setText(initialText ? '')
 

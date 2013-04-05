@@ -213,7 +213,7 @@ _.extend atom,
         @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
       when 'openPath'
         path = data[0]
-        rootView?.open(path) if fsUtils.isFile(path)
+        rootView?.open(path)
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
