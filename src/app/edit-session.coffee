@@ -171,10 +171,30 @@ class EditSession
   screenRangeForBufferRange: (range) -> @displayBuffer.screenRangeForBufferRange(range)
   bufferRangeForScreenRange: (range) -> @displayBuffer.bufferRangeForScreenRange(range)
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
+  # Public: Gets the line for the given screen row.
+  #
+  # screenRow - A {Number} indicating the screen row.
+  #
+  # Returns a {String}.
   lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
+  # Public: Gets the lines for the given screen row boundaries.
+  #
+  # start - A {Number} indicating the beginning screen row.
+  # start - A {Number} indicating the ending screen row.
+  #
+  # Returns an {Array} of {String}s.
   linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
+  # Public: Gets the number of screen rows.
+  #
+  # Returns a {Number}.
   screenLineCount: -> @displayBuffer.lineCount()
+  # Public: Gets the length of the longest screen line.
+  #
+  # Returns a {Number}.
   maxScreenLineLength: -> @displayBuffer.maxLineLength()
+  # Public: Gets the text in the last screen row.
+  #
+  # Returns a {String}.
   getLastScreenRow: -> @displayBuffer.getLastRow()
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
@@ -186,19 +206,25 @@ class EditSession
 
   shouldAutoIndentPastedText: ->
     config.get("editor.autoIndentOnPaste")
-
+  # Public: Inserts text at the current cursor positions.
+  #
+  # text - A {String} representing the text to insert.
+  # options - A set of options equivalent to {Selection.insertText}.
   insertText: (text, options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
 
+  # Public: Inserts a new line at the current cursor positions.
   insertNewline: ->
     @insertText('\n')
 
+  # Public: Inserts a new line below the current cursor positions.
   insertNewlineBelow: ->
     @transact =>
       @moveCursorToEndOfLine()
       @insertNewline()
 
+  # Public: Inserts a new line above the current cursor positions.
   insertNewlineAbove: ->
     @transact =>
       onFirstLine = @getCursorBufferPosition().row is 0
@@ -207,31 +233,42 @@ class EditSession
       @insertNewline()
       @moveCursorUp() if onFirstLine
 
+  # Public: Indents the current line.
+  #
+  # options - A set of options equivalent to {Selection.indent}.
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
 
+  # Public: Performs a backspace, removing the character found behind the cursor position.
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
 
+  # Public: Performs a backspace to the beginning of the current word, removing characters found there.
   backspaceToBeginningOfWord: ->
     @mutateSelectedText (selection) -> selection.backspaceToBeginningOfWord()
 
+  # Public: Performs a backspace to the beginning of the current line, removing characters found there.
   backspaceToBeginningOfLine: ->
     @mutateSelectedText (selection) -> selection.backspaceToBeginningOfLine()
 
+  # Public: Performs a delete, removing the character found behind the cursor position.
   delete: ->
     @mutateSelectedText (selection) -> selection.delete()
 
+  # Public: Performs a delete to the end of the current word, removing characters found there.
   deleteToEndOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
 
+  # Public: Performs a delete to the end of the current line, removing characters found there.
   deleteLine: ->
     @mutateSelectedText (selection) -> selection.deleteLine()
 
+  # Public: Indents the selected rows.
   indentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.indentSelectedRows()
 
+  # Public: Outdents the selected rows.
   outdentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.outdentSelectedRows()
 
@@ -245,24 +282,32 @@ class EditSession
     return unless @softTabs
     @scanInRange /\t/, bufferRange, (match, range, {replace}) => replace(@getTabText())
 
+  # Public: Performs a cut to the end of the current line. 
+  #
+  # Characters are removed, but the text remains in the clipboard.
   cutToEndOfLine: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
       selection.cutToEndOfLine(maintainPasteboard)
       maintainPasteboard = true
 
+  # Public: Cuts the selected text.
   cutSelectedText: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
       selection.cut(maintainPasteboard)
       maintainPasteboard = true
 
+  # Public: Copies the selected text.
   copySelectedText: ->
     maintainPasteboard = false
     for selection in @getSelections()
       selection.copy(maintainPasteboard)
       maintainPasteboard = true
 
+  # Public: Pastes the text in the clipboard.
+  #
+  # options - A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
     options.normalizeIndent ?= true
     options.autoIndent ?= @shouldAutoIndentPastedText()
@@ -272,9 +317,11 @@ class EditSession
 
     @insertText(text, options)
 
+  # Public: Undos the last {Buffer} change.
   undo: ->
     @buffer.undo(this)
 
+  # Public: Redos the last {Buffer} change.
   redo: ->
     @buffer.redo(this)
 
@@ -299,12 +346,15 @@ class EditSession
   abort: ->
     @buffer.abort()
 
+  # Public: Folds all the rows.
   foldAll: ->
     @displayBuffer.foldAll()
 
+  # Public: Unfolds all the rows.
   unfoldAll: ->
     @displayBuffer.unfoldAll()
 
+  # Public: Folds the current row.
   foldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @foldBufferRow(bufferRow)
@@ -312,6 +362,7 @@ class EditSession
   foldBufferRow: (bufferRow) ->
     @displayBuffer.foldBufferRow(bufferRow)
 
+  # Public: Unfolds the current row.
   unfoldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @unfoldBufferRow(bufferRow)
@@ -337,13 +388,22 @@ class EditSession
     fold.destroy()
     @setCursorBufferPosition([fold.startRow, 0])
 
+  # Public: Determines if the given row that the cursor is at is folded.
+  #
+  # Returns `true` if the row is folded, `false` otherwise.
   isFoldedAtCursorRow: ->
     @isFoldedAtScreenRow(@getCursorScreenRow())
-
+  # Public: Determines if the given buffer row is folded.
+  #
+  # screenRow - A {Number} indicating the buffer row.
+  # Returns `true` if the buffer row is folded, `false` otherwise.
   isFoldedAtBufferRow: (bufferRow) ->
     screenRow = @screenPositionForBufferPosition([bufferRow]).row
     @isFoldedAtScreenRow(screenRow)
-
+  # Public: Determines if the given screen row is folded.
+  #
+  # screenRow - A {Number} indicating the screen row.
+  # Returns `true` if the screen row is folded, `false` otherwise.
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow)?.fold?
 
@@ -637,15 +697,20 @@ class EditSession
         @addSelectionForBufferRange(bufferRange, options)
     @mergeIntersectingSelections(options)
 
+  # Public: Unselects a given selection.
+  #
+  # selection - The {Selection} to remove.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
 
+  # Public: Clears every selection. TODO
   clearSelections: ->
     lastSelection = @getLastSelection()
     for selection in @getSelections() when selection != lastSelection
       selection.destroy()
     lastSelection.clear()
 
+  # Public: Clears every selection.  TODO
   clearAllSelections: ->
     selection.destroy() for selection in @getSelections()
 
@@ -670,19 +735,33 @@ class EditSession
   selectionIntersectsBufferRange: (bufferRange) ->
     _.any @getSelections(), (selection) ->
       selection.intersectsBufferRange(bufferRange)
-
+  # Public: Moves every cursor to a given screen position.
+  #
+  # position - An {Array} of two numbers: the screen row, and the screen column.
+  # options - An object with properties based on {Cursor.changePosition}
+  #
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
-
+  # Public: Gets the current screen position.
+  #
+  # Returns an {Array} of two numbers: the screen row, and the screen column.
   getCursorScreenPosition: ->
     @getCursor().getScreenPosition()
-
+  # Public: Gets the current cursor's screen row.
+  #
+  # Returns the screen row.
   getCursorScreenRow: ->
     @getCursor().getScreenRow()
-
+  # Public: Moves every cursor to a given buffer position.
+  #
+  # position - An {Array} of two numbers: the buffer row, and the buffer column.
+  # options - An object with properties based on {Cursor.changePosition}
+  #
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
-
+  # Public: Gets the current buffer position.
+  #
+  # Returns an {Array} of two numbers: the buffer row, and the buffer column.
   getCursorBufferPosition: ->
     @getCursor().getBufferPosition()
 
@@ -694,7 +773,9 @@ class EditSession
 
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
-
+  # Public: Gets the currently selected text.
+  #
+  # Returns a {String}.
   getSelectedText: ->
     @getLastSelection().getText()
 
@@ -703,7 +784,11 @@ class EditSession
 
   getCurrentParagraphBufferRange: ->
     @getCursor().getCurrentParagraphBufferRange()
-
+  # Public: Gets the word located under the cursor.
+  #
+  # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
+  #
+  # Returns a {String}.
   getWordUnderCursor: (options) ->
     @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
 
@@ -753,41 +838,57 @@ class EditSession
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
+  # Public: Selects the text from the current cursor position to a given position.
+  #
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
     @mergeIntersectingSelections(reverse: lastSelection.isReversed())
-
+  # Public: Selects the text one position right of the cursor.
   selectRight: ->
     @expandSelectionsForward (selection) => selection.selectRight()
-
+  # Public: Selects the text one position left of the cursor.
   selectLeft: ->
     @expandSelectionsBackward (selection) => selection.selectLeft()
 
+  # Public: Selects all the text one position above the cursor.
   selectUp: ->
     @expandSelectionsBackward (selection) => selection.selectUp()
 
+  # Public: Selects all the text one position below the cursor.
   selectDown: ->
     @expandSelectionsForward (selection) => selection.selectDown()
 
+  # Public: Selects all the text from the current cursor position to the top of the buffer.
   selectToTop: ->
     @expandSelectionsBackward (selection) => selection.selectToTop()
 
+  # Public: Selects all the text in the buffer.
   selectAll: ->
     @expandSelectionsForward (selection) => selection.selectAll()
 
+  # Public: Selects all the text from the current cursor position to the bottom of the buffer.
   selectToBottom: ->
     @expandSelectionsForward (selection) => selection.selectToBottom()
 
+  # Public: Selects all the text from the current cursor position to the beginning of the line.
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
 
+  # Public: Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()
 
+  # Public: Selects the current line.
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
 
+  # Public: Transposes the current text selections.
+  #
+  # This only works if there is more than one selection. Each selection is transferred
+  # to the position of the selection after it. The last selection is transferred to the
+  # position of the first.
   transpose: ->
     @mutateSelectedText (selection) =>
       if selection.isEmpty()
@@ -799,21 +900,26 @@ class EditSession
       else
         selection.insertText selection.getText().split('').reverse().join('')
 
+  # Public: Turns the current selection into upper case.
   upperCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) => text.toUpperCase()
 
+  # Public: Turns the current selection into lower case.
   lowerCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) => text.toLowerCase()
 
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()
 
+  # Public: Selects all the text from the current cursor position to the beginning of the word.
   selectToBeginningOfWord: ->
     @expandSelectionsBackward (selection) => selection.selectToBeginningOfWord()
 
+  # Public: Selects all the text from the current cursor position to the end of the word.
   selectToEndOfWord: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfWord()
 
+  # Public: Selects the current word.
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()
 

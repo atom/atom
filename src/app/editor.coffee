@@ -223,90 +223,197 @@ class Editor extends View
   # Public: Sets the cursor based on a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with the following properties:
+  # options - An object with properties based on {Cursor.changePosition}.
+  #
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   # Public: Duplicates the current line.
   duplicateLine: -> @activeEditSession.duplicateLine()
-  # Public: Duplicates the current line.
-
+  # Public: Gets the current screen position.
+  #
+  # Returns an {Array} of two numbers: the screen row, and the screen column.
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
+  # Public: Gets the current screen row.
+  #
+  # Returns a {Number}.
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
+  # Public: Sets the cursor based on a given buffer position.
+  #
+  # position - An {Array} of two numbers: the buffer row, and the buffer column.
+  # options - An object with properties based on {Cursor.changePosition}.
+  #
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
+  # Public: Gets the current buffer position.
+  #
+  # Returns an {Array} of two numbers: the buffer row, and the buffer column.
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
   getCurrentParagraphBufferRange: -> @activeEditSession.getCurrentParagraphBufferRange()
+  # Public: Gets the word located under the cursor.
+  #
+  # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
+  #
+  # Returns a {String}.
   getWordUnderCursor: (options) -> @activeEditSession.getWordUnderCursor(options)
 
   getSelection: (index) -> @activeEditSession.getSelection(index)
   getSelections: -> @activeEditSession.getSelections()
   getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
   getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
+  # Public: Gets the currently selected text.
+  #
+  # Returns a {String}.
   getSelectedText: -> @activeEditSession.getSelectedText()
   getSelectedBufferRanges: -> @activeEditSession.getSelectedBufferRanges()
   getSelectedBufferRange: -> @activeEditSession.getSelectedBufferRange()
   setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
   setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
   addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
+  # Public: Selects the text one position right of the cursor.
   selectRight: -> @activeEditSession.selectRight()
+  # Public: Selects the text one position left of the cursor.
   selectLeft: -> @activeEditSession.selectLeft()
+  # Public: Selects all the text one position above the cursor.
   selectUp: -> @activeEditSession.selectUp()
+  # Public: Selects all the text one position below the cursor.
   selectDown: -> @activeEditSession.selectDown()
+  # Public: Selects all the text from the current cursor position to the top of the buffer.
   selectToTop: -> @activeEditSession.selectToTop()
+  # Public: Selects all the text from the current cursor position to the bottom of the buffer.
   selectToBottom: -> @activeEditSession.selectToBottom()
+  # Public: Selects all the text in the buffer.
   selectAll: -> @activeEditSession.selectAll()
+  # Public: Selects all the text from the current cursor position to the beginning of the line.
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
+  # Public: Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+  # Public: Selects all the text from the current cursor position to the beginning of the word.
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
+  # Public: Selects all the text from the current cursor position to the end of the word.
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
+  # Public: Selects the current word.
   selectWord: -> @activeEditSession.selectWord()
+  # Public: Selects the text from the current cursor position to a given position.
+  #
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
+  # Public: Transposes the current text selections.
+  #
+  # This only works if there is more than one selection. Each selection is transferred
+  # to the position of the selection after it. The last selection is transferred to the
+  # position of the first.
   transpose: -> @activeEditSession.transpose()
+  # Public: Turns the current selection into upper case.
   upperCase: -> @activeEditSession.upperCase()
+  # Public: Turns the current selection into lower case.
   lowerCase: -> @activeEditSession.lowerCase()
+  # Public: Clears every selection. TODO
   clearSelections: -> @activeEditSession.clearSelections()
 
+  # Public: Performs a backspace, removing the character found behind the cursor position.
   backspace: -> @activeEditSession.backspace()
+  # Public: Performs a backspace to the beginning of the current word, removing characters found there.
   backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
+  # Public: Performs a backspace to the beginning of the current line, removing characters found there.
   backspaceToBeginningOfLine: -> @activeEditSession.backspaceToBeginningOfLine()
+  # Public: Performs a delete, removing the character found ahead the cursor position.
   delete: -> @activeEditSession.delete()
+  # Public: Performs a delete to the end of the current word, removing characters found there.
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
+  # Public: Performs a delete to the end of the current line, removing characters found there.
   deleteLine: -> @activeEditSession.deleteLine()
+  # Public: Performs a cut to the end of the current line. 
+  #
+  # Characters are removed, but the text remains in the clipboard.
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
+  # Public: Inserts text at the current cursor positions.
+  #
+  # text - A {String} representing the text to insert.
+  # options - A set of options equivalent to {Selection.insertText}.
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
+  # Public: Inserts a new line at the current cursor positions.
   insertNewline: -> @activeEditSession.insertNewline()
+  # Public: Inserts a new line below the current cursor positions.
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
+  # Public: Inserts a new line above the current cursor positions.
   insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
+  # Public: Indents the current line.
+  #
+  # options - A set of options equivalent to {Selection.indent}.
   indent: (options) -> @activeEditSession.indent(options)
-  autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows(options)
+  # Public: TODO
+  autoIndent: -> @activeEditSession.autoIndentSelectedRows()
+  # Public: Indents the selected rows.
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
+  # Public: Outdents the selected rows.
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
+  # Public: Cuts the selected text.
   cutSelection: -> @activeEditSession.cutSelectedText()
+  # Public: Copies the selected text.
   copySelection: -> @activeEditSession.copySelectedText()
-  paste: -> @activeEditSession.pasteText()
+  # Public: Pastes the text in the clipboard.
+  #
+  # options - A set of options equivalent to {Selection.insertText}.
+  paste: (options) -> @activeEditSession.pasteText(options)
+  # Public: Undos the last {Buffer} change.
   undo: -> @activeEditSession.undo()
+  # Public: Redos the last {Buffer} change.
   redo: -> @activeEditSession.redo()
   transact: (fn) -> @activeEditSession.transact(fn)
   commit: -> @activeEditSession.commit()
   abort: -> @activeEditSession.abort()
   createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
+  # Public: Folds the current row.
   foldCurrentRow: -> @activeEditSession.foldCurrentRow()
+  # Public: Unfolds the current row.
   unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
+  # Public: Folds all the rows.
   foldAll: -> @activeEditSession.foldAll()
+  # Public: Unfolds all the rows.
   unfoldAll: -> @activeEditSession.unfoldAll()
   foldSelection: -> @activeEditSession.foldSelection()
   destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
+  # Public: Determines if the given screen row is folded.
+  #
+  # screenRow - A {Number} indicating the screen row.
+  # Returns `true` if the screen row is folded, `false` otherwise.
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
+  # Public: Determines if the given buffer row is folded.
+  #
+  # screenRow - A {Number} indicating the buffer row.
+  # Returns `true` if the buffer row is folded, `false` otherwise.
   isFoldedAtBufferRow: (bufferRow) -> @activeEditSession.isFoldedAtBufferRow(bufferRow)
+  # Public: Determines if the given row that the cursor is at is folded.
+  #
+  # Returns `true` if the row is folded, `false` otherwise.
   isFoldedAtCursorRow: -> @activeEditSession.isFoldedAtCursorRow()
 
+  # Public: Gets the line for the given screen row.
+  #
+  # screenRow - A {Number} indicating the screen row.
+  #
+  # Returns a {String}.
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
+  # Public: Gets the lines for the given screen row boundaries.
+  #
+  # start - A {Number} indicating the beginning screen row.
+  # start - A {Number} indicating the ending screen row.
+  #
+  # Returns an {Array} of {String}s.
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
+  # Public: Gets the number of screen rows.
+  #
+  # Returns a {Number}.
   screenLineCount: -> @activeEditSession.screenLineCount()
   setSoftWrapColumn: (softWrapColumn) ->
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
-
+  # Public: Gets the length of the longest screen line.
+  #
+  # Returns a {Number}.
   maxScreenLineLength: -> @activeEditSession.maxScreenLineLength()
+  # Public: Gets the text in the last screen row.
+  #
+  # Returns a {String}.
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
   clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)
   screenPositionForBufferPosition: (position, options) -> @activeEditSession.screenPositionForBufferPosition(position, options)
@@ -314,7 +421,6 @@ class Editor extends View
   screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
-  getLastScreenRow: -> @activeEditSession.getLastScreenRow()
 
   logCursorScope: ->
     console.log @activeEditSession.getCursorScopes()

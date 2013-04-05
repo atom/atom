@@ -37,18 +37,31 @@ class Cursor
     @editSession.destroyMarker(@marker)
     @editSession.removeCursor(this)
     @trigger 'destroyed'
-
+  # Public: Moves a cursor to a given screen position.
+  #
+  # position - An {Array} of two numbers: the screen row, and the screen column.
+  # options - An object with properties based on {Cursor.changePosition}
+  #
   setScreenPosition: (screenPosition, options={}) ->
     @changePosition options, =>
       @editSession.setMarkerHeadScreenPosition(@marker, screenPosition, options)
 
+  # Public: Gets the current screen position.
+  #
+  # Returns an {Array} of two numbers: the screen row, and the screen column.
   getScreenPosition: ->
     @editSession.getMarkerHeadScreenPosition(@marker)
-
+  # Public: Moves a cursor to a given buffer position.
+  #
+  # position - An {Array} of two numbers: the screen row, and the screen column.
+  # options - An object with properties based on {Cursor.changePosition}
+  #
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
       @editSession.setMarkerHeadBufferPosition(@marker, bufferPosition, options)
-
+  # Public: Gets the current buffer position.
+  #
+  # Returns an {Array} of two numbers: the buffer row, and the buffer column.
   getBufferPosition: ->
     @editSession.getMarkerHeadBufferPosition(@marker)
 
@@ -188,7 +201,11 @@ class Cursor
         stop()
 
     endOfWordPosition or currentBufferPosition
-
+  # Public: Gets the word located under the cursor.
+  #
+  # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
+  #
+  # Returns a {String}.
   getCurrentWordBufferRange: (options={}) ->
     startOptions = _.extend(_.clone(options), allowPrevious: false)
     endOptions = _.extend(_.clone(options), allowNext: false)
