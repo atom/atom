@@ -154,9 +154,13 @@ class Selection
 
   addSelectionBelow: ->
     range = (@goalBufferRange ? @getBufferRange()).copy()
-    range.start.row++
-    range.end.row++
-    @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+    nextRow = range.end.row + 1
+    for row in [nextRow..@editSession.getLastBufferRow()]
+      range.start.row = row
+      range.end.row = row
+      unless @editSession.clipBufferRange(range).isEmpty()
+        @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+        break
 
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()

@@ -709,43 +709,52 @@ describe "EditSession", ->
           expect(editSession.getSelectedBufferRange()).toEqual rangeBefore
 
     describe ".addSelectionBelow()", ->
-      it "selects the same region of the line below current selections if possible", ->
-        editSession.setSelectedBufferRange([[3, 16], [3, 21]])
-        editSession.addSelectionForBufferRange([[3, 25], [3, 34]])
-        editSession.addSelectionBelow()
-        expect(editSession.getSelectedBufferRanges()).toEqual [
-          [[3, 16], [3, 21]]
-          [[3, 25], [3, 34]]
-          [[4, 16], [4, 21]]
-          [[4, 25], [4, 29]]
-        ]
-        for cursor in editSession.getCursors()
-          expect(cursor.isVisible()).toBeFalsy()
+      describe "when the selection is non-empty", ->
+        it "selects the same region of the line below current selections if possible", ->
+          editSession.setSelectedBufferRange([[3, 16], [3, 21]])
+          editSession.addSelectionForBufferRange([[3, 25], [3, 34]])
+          editSession.addSelectionBelow()
+          expect(editSession.getSelectedBufferRanges()).toEqual [
+            [[3, 16], [3, 21]]
+            [[3, 25], [3, 34]]
+            [[4, 16], [4, 21]]
+            [[4, 25], [4, 29]]
+          ]
+          for cursor in editSession.getCursors()
+            expect(cursor.isVisible()).toBeFalsy()
 
-      it "honors the original selection's range (goal range) when adding across shorter lines", ->
-        editSession.setSelectedBufferRange([[3, 22], [3, 38]])
-        editSession.addSelectionBelow()
-        editSession.addSelectionBelow()
-        editSession.addSelectionBelow()
-        expect(editSession.getSelectedBufferRanges()).toEqual [
-          [[3, 22], [3, 38]]
-          [[4, 22], [4, 29]]
-          [[5, 22], [5, 30]]
-          [[6, 22], [6, 38]]
-        ]
+        it "skips lines that are too short to create a non-empty selection", ->
+          editSession.setSelectedBufferRange([[3, 31], [3, 38]])
+          editSession.addSelectionBelow()
+          expect(editSession.getSelectedBufferRanges()).toEqual [
+            [[3, 31], [3, 38]]
+            [[6, 31], [6, 38]]
+          ]
 
-      it "clears selection goal ranges when the selection changes", ->
-        editSession.setSelectedBufferRange([[3, 22], [3, 38]])
-        editSession.addSelectionBelow()
-        editSession.selectLeft()
-        editSession.addSelectionBelow()
-        editSession.addSelectionBelow()
-        expect(editSession.getSelectedBufferRanges()).toEqual [
-          [[3, 22], [3, 37]]
-          [[4, 22], [4, 29]]
-          [[5, 22], [5, 29]]
-          [[6, 22], [6, 28]]
-        ]
+        it "honors the original selection's range (goal range) when adding across shorter lines", ->
+          editSession.setSelectedBufferRange([[3, 22], [3, 38]])
+          editSession.addSelectionBelow()
+          editSession.addSelectionBelow()
+          editSession.addSelectionBelow()
+          expect(editSession.getSelectedBufferRanges()).toEqual [
+            [[3, 22], [3, 38]]
+            [[4, 22], [4, 29]]
+            [[5, 22], [5, 30]]
+            [[6, 22], [6, 38]]
+          ]
+
+        it "clears selection goal ranges when the selection changes", ->
+          editSession.setSelectedBufferRange([[3, 22], [3, 38]])
+          editSession.addSelectionBelow()
+          editSession.selectLeft()
+          editSession.addSelectionBelow()
+          editSession.addSelectionBelow()
+          expect(editSession.getSelectedBufferRanges()).toEqual [
+            [[3, 22], [3, 37]]
+            [[4, 22], [4, 29]]
+            [[5, 22], [5, 29]]
+            [[6, 22], [6, 28]]
+          ]
 
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]

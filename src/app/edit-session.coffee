@@ -125,8 +125,8 @@ class EditSession
   getTabLength: -> @displayBuffer.getTabLength()
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
-  clipBufferPosition: (bufferPosition) ->
-    @buffer.clipPosition(bufferPosition)
+  clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
+  clipBufferRange: (range) -> @buffer.clipRange(range)
 
   indentationForBufferRow: (bufferRow) ->
     @indentLevelForLine(@lineForBufferRow(bufferRow))
