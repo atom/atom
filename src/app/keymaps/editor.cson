@@ -31,3 +31,6 @@
   'enter': 'core:confirm',
   'escape': 'core:cancel'
   'meta-w': 'core:cancel'
+
+'.editor !important':
+  'escape': 'editor:consolidate-selections'

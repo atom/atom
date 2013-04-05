@@ -104,6 +104,7 @@ class Editor extends View
       'editor:move-to-previous-word': @moveCursorToPreviousWord
       'editor:select-word': @selectWord
       'editor:newline': @insertNewline
+      'editor:consolidate-selections': @consolidateSelections
       'editor:indent': @indent
       'editor:auto-indent': @autoIndent
       'editor:indent-selected-rows': @indentSelectedRows
@@ -164,7 +165,7 @@ class Editor extends View
     documentation = {}
     for name, method of editorBindings
       do (name, method) =>
-        @command name, => method.call(this); false
+        @command name, (e) => method.call(this, e); false
 
   getCursor: -> @activeEditSession.getCursor()
   getCursors: -> @activeEditSession.getCursors()
@@ -232,6 +233,7 @@ class Editor extends View
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
+  consolidateSelections: (e) -> e.abortKeyBinding() unless @activeEditSession.consolidateSelections()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
   indent: (options) -> @activeEditSession.indent(options)
