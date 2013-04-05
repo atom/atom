@@ -796,7 +796,7 @@ class Editor extends View
       @newSelections = []
 
     for selectionView in @getSelectionViews()
-      if selectionView.destroyed
+      if selectionView.needsRemoval
         selectionView.remove()
       else
         selectionView.updateDisplay()
