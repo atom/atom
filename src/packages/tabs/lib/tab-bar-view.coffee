@@ -81,7 +81,7 @@ class TabBarView extends View
       event.preventDefault()
       return
 
-    event.originalEvent.dataTransfer.setData 'atom-event', true
+    event.originalEvent.dataTransfer.setData 'atom-event', 'true'
 
     el = $(event.target).closest('.sortable')
     el.addClass 'is-dragging'
@@ -95,7 +95,7 @@ class TabBarView extends View
     @find(".is-dragging").removeClass 'is-dragging'
 
   onDragOver: (event) =>
-    unless event.originalEvent.dataTransfer.getData('atom-event') == true
+    unless event.originalEvent.dataTransfer.getData('atom-event') is 'true'
       event.preventDefault()
       event.stopPropagation()
       return
@@ -114,7 +114,7 @@ class TabBarView extends View
 
 
   onDrop: (event) =>
-    unless event.originalEvent.dataTransfer.getData('atom-event') == true
+    unless event.originalEvent.dataTransfer.getData('atom-event') is 'true'
       event.preventDefault()
       event.stopPropagation()
       return
