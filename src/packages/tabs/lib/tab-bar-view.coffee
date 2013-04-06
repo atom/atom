@@ -98,6 +98,8 @@ class TabBarView extends View
 
   onDragEnd: (event) =>
     @find(".is-dragging").removeClass 'is-dragging'
+    @children('.is-drop-target').removeClass 'is-drop-target'
+    @children('.drop-target-is-after').removeClass 'drop-target-is-after'
 
   onDragOver: (event) =>
     unless event.originalEvent.dataTransfer.getData('atom-event') is 'true'
@@ -125,8 +127,6 @@ class TabBarView extends View
       return
 
     event.stopPropagation()
-    @children('.is-drop-target').removeClass 'is-drop-target'
-    @children('.drop-target-is-after').removeClass 'drop-target-is-after'
 
     dataTransfer  = event.originalEvent.dataTransfer
     fromIndex     = parseInt(dataTransfer.getData('sortable-index'))
