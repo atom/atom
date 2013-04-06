@@ -7,6 +7,7 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+timers = require 'timers'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
@@ -93,7 +94,8 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fsUtils.write(path, "a file change")
+      runs ->
+        timers.setImmediate -> fsUtils.write(path, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -156,7 +158,10 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fsUtils.write(path, "a file change")
+
+      runs ->
+        timers.setImmediate -> fsUtils.write(path, "a file change")
+
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -2028,7 +2033,8 @@ describe "Editor", ->
       fileChangeHandler = jasmine.createSpy('fileChange')
       editor.getBuffer().file.on 'contents-changed', fileChangeHandler
 
-      editor.checkoutHead()
+      runs ->
+        timers.setImmediate -> editor.checkoutHead()
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0

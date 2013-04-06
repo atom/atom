@@ -7,6 +7,14 @@ mkdirp = require 'mkdirp'
 Module = require 'module'
 async = require 'async'
 
+# Store all FSWatcher.
+fsWatchers = []
+
+# Make sure all FSWatcher are freed before reloading.
+if window?.addEventListener?
+  window.addEventListener 'unload', ->
+    module.exports.closeAllFsWatchers()
+
 module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
@@ -313,10 +321,23 @@ module.exports =
     else
       @readPlistAsync(path, done)
 
-  watchPath: (path, callback) ->
-    path = @absolute(path)
-    watchCallback = (eventType, eventPath) =>
-      path = @absolute(eventPath) if eventType is 'move'
-      callback(arguments...)
-    id = $native.watchPath(path, watchCallback)
-    unwatch: -> $native.unwatchPath(path, id)
+  watch: (path, cb) ->
+    watcher = fs.watch(path, cb)
+    watcher.path = path
+    fsWatchers.push(watcher)
+
+    close = watcher.close
+    watcher.close = ->
+      fsWatchers = fsWatchers.filter (w) -> w isnt watcher
+      close.call(watcher)
+
+    watcher
+
+  getAllFsWatchers: ->
+    fsWatchers
+
+  closeAllFsWatchers: ->
+    fsWatchersCopy = fsWatchers.slice(0)
+    for watcher in fsWatchersCopy
+      watcher.close()
+
