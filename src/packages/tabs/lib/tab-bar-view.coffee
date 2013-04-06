@@ -91,6 +91,11 @@ class TabBarView extends View
     paneIndex = @paneContainer.indexOfPane(pane)
     event.originalEvent.dataTransfer.setData 'from-pane-index', paneIndex
 
+    item = @pane.getItems()[el.index()]
+    if item.getPath?
+      event.originalEvent.dataTransfer.setData 'text/uri-list', 'file://' + item.getPath()
+      event.originalEvent.dataTransfer.setData 'text/plain', item.getPath()
+
   onDragEnd: (event) =>
     @find(".is-dragging").removeClass 'is-dragging'
 
