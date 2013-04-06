@@ -549,11 +549,9 @@ describe 'Buffer', ->
       runs ->
         timers.setImmediate -> fsUtils.write(originalPath, "should not trigger buffer event")
 
-      waits 20
-
-      runs ->
-        expect(changeHandler).not.toHaveBeenCalled()
-        timers.setImmediate -> fsUtils.write(newPath, "should trigger buffer event")
+        timers.setImmediate ->
+          expect(changeHandler).not.toHaveBeenCalled()
+          timers.setImmediate -> fsUtils.write(newPath, "should trigger buffer event")
 
       waitsFor "change event", ->
         changeHandler.callCount > 0

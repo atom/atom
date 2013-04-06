@@ -30,7 +30,9 @@ describe 'File', ->
 
       runs ->
         changeHandler.reset()
-        timers.setImmediate -> fsUtils.write(file.getPath(), "this is newer!")
+        timers.setTimeout ->
+          fsUtils.write(file.getPath(), "this is newer!")
+        , 500
 
       waitsFor "second change event", ->
         changeHandler.callCount > 0
@@ -90,7 +92,9 @@ describe 'File', ->
 
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
-        timers.setImmediate -> fsUtils.write(file.getPath(), "this is new!")
+        timers.setTimeout ->
+          fsUtils.write(file.getPath(), "this is new!")
+        , 500
 
       waitsFor "change event", ->
         changeHandler.callCount > 0
