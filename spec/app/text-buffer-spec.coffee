@@ -70,9 +70,7 @@ describe 'Buffer', ->
       fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.move(path, newPath)
-        , 100
+        timers.setImmediate -> fsUtils.move(path, newPath)
 
       waitsFor "buffer path change", ->
         eventHandler.callCount > 0
@@ -109,9 +107,7 @@ describe 'Buffer', ->
         buffer.on 'changed', changeHandler
 
         runs ->
-          timers.setTimeout ->
-            fsUtils.write(path, "second")
-          , 100
+          timers.setImmediate -> fsUtils.write(path, "second")
 
         expect(changeHandler.callCount).toBe 0
         waitsFor "file to trigger change event", ->
@@ -132,9 +128,7 @@ describe 'Buffer', ->
         buffer.insert([0, 0], "a change")
 
         runs ->
-          timers.setTimeout ->
-            fsUtils.write(path, "second")
-          , 100
+          timers.setImmediate -> fsUtils.write(path, "second")
 
         expect(fileChangeHandler.callCount).toBe 0
         waitsFor "file to trigger 'contents-changed' event", ->
@@ -150,14 +144,13 @@ describe 'Buffer', ->
 
         handler = jasmine.createSpy('fileChange')
         buffer.on 'contents-conflicted', handler
-        expect(handler.callCount).toBe 0
 
         runs ->
-          timers.setTimeout ->
-            fsUtils.write(path, "second")
-          , 100
+          timers.setImmediate -> fsUtils.write(path, "second")
 
-        waitsFor ->
+        expect(handler.callCount).toBe 0
+
+        waitsFor "change event", ->
           handler.callCount > 0
 
         runs ->
@@ -167,6 +160,7 @@ describe 'Buffer', ->
     [path, bufferToDelete] = []
 
     beforeEach ->
+      jasmine.unspy(window, "setTimeout")
       path = "/tmp/atom-file-to-delete.txt"
       fsUtils.write(path, 'delete me')
       bufferToDelete = project.bufferForPath(path)
@@ -179,9 +173,7 @@ describe 'Buffer', ->
       bufferToDelete.file.on 'removed', removeHandler
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.remove(path)
-        , 100
+        timers.setImmediate -> fsUtils.remove(path)
 
       waitsFor "file to be removed", ->
         removeHandler.callCount > 0
@@ -202,9 +194,7 @@ describe 'Buffer', ->
       bufferToDelete.on 'changed', changeHandler
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.write(path, 'moo')
-        , 100
+        timers.setImmediate -> fsUtils.write(path, 'moo')
 
       waitsFor 'change event', ->
         changeHandler.callCount > 0
@@ -241,9 +231,7 @@ describe 'Buffer', ->
       buffer.on 'modified-status-changed', modifiedHandler
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.remove(filePath)
-        , 100
+        timers.setImmediate -> fsUtils.remove(filePath)
 
       waitsFor "modified status to change", -> modifiedHandler.callCount
       runs -> expect(buffer.isModified()).toBe true
@@ -547,6 +535,7 @@ describe 'Buffer', ->
       expect(eventHandler).toHaveBeenCalledWith(saveAsBuffer)
 
     it "stops listening to events on previous path and begins listening to events on new path", ->
+      jasmine.unspy(window, "setTimeout")
       originalPath = "/tmp/original.txt"
       newPath = "/tmp/new.txt"
       fsUtils.write(originalPath, "")
@@ -558,17 +547,13 @@ describe 'Buffer', ->
       expect(changeHandler).not.toHaveBeenCalled()
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.write(originalPath, "should not trigger buffer event")
-        , 100
+        timers.setImmediate -> fsUtils.write(originalPath, "should not trigger buffer event")
+
+      waits 20
 
       runs ->
-        timers.setTimeout ->
-          expect(changeHandler).not.toHaveBeenCalled()
-          timers.setTimeout ->
-            fsUtils.write(newPath, "should trigger buffer event")
-          , 100
-        , 200
+        expect(changeHandler).not.toHaveBeenCalled()
+        timers.setImmediate -> fsUtils.write(newPath, "should trigger buffer event")
 
       waitsFor "change event", ->
         changeHandler.callCount > 0

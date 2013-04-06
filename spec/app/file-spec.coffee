@@ -23,18 +23,14 @@ describe 'File', ->
       file.on 'contents-changed', changeHandler
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.write(file.getPath(), "this is new!")
-        , 100
+        timers.setImmediate -> fsUtils.write(file.getPath(), "this is new!")
 
       waitsFor "change event", ->
         changeHandler.callCount > 0
 
       runs ->
         changeHandler.reset()
-        timers.setTimeout ->
-          fsUtils.write(file.getPath(), "this is newer!")
-        , 100
+        timers.setImmediate -> fsUtils.write(file.getPath(), "this is newer!")
 
       waitsFor "second change event", ->
         changeHandler.callCount > 0
@@ -46,9 +42,7 @@ describe 'File', ->
       file.on 'removed', removeHandler
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.remove(file.getPath())
-        , 100
+        timers.setImmediate -> fsUtils.remove(file.getPath())
 
       waitsFor "remove event", ->
         removeHandler.callCount > 0
@@ -66,15 +60,12 @@ describe 'File', ->
 
     it "it updates its path", ->
       jasmine.unspy(window, "setTimeout")
-
       moveHandler = null
       moveHandler = jasmine.createSpy('moveHandler')
       file.on 'moved', moveHandler
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.move(path, newPath)
-        , 100
+        timers.setImmediate -> fsUtils.move(path, newPath)
 
       waitsFor "move event", ->
         moveHandler.callCount > 0
@@ -84,7 +75,6 @@ describe 'File', ->
 
     it "maintains 'contents-changed' events set on previous path", ->
       jasmine.unspy(window, "setTimeout")
-
       moveHandler = null
       moveHandler = jasmine.createSpy('moveHandler')
       file.on 'moved', moveHandler
@@ -93,18 +83,14 @@ describe 'File', ->
       file.on 'contents-changed', changeHandler
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.move(path, newPath)
-        , 100
+        timers.setImmediate -> fsUtils.move(path, newPath)
 
       waitsFor "move event", ->
         moveHandler.callCount > 0
 
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
-        timers.setTimeout ->
-          fsUtils.write(file.getPath(), "this is new!")
-        , 100
+        timers.setImmediate -> fsUtils.write(file.getPath(), "this is new!")
 
       waitsFor "change event", ->
         changeHandler.callCount > 0
@@ -122,26 +108,20 @@ describe 'File', ->
       expect(changeHandler).not.toHaveBeenCalled()
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.remove(path)
-        , 100
+        timers.setImmediate -> fsUtils.remove(path)
 
-      expect(changeHandler).not.toHaveBeenCalled()
       waits 20
+
       runs ->
-        timers.setTimeout ->
-          fsUtils.write(path, "HE HAS RISEN!")
-        , 100
         expect(changeHandler).not.toHaveBeenCalled()
+        fsUtils.write(path, "HE HAS RISEN!")
 
       waitsFor "resurrection change event", ->
         changeHandler.callCount == 1
 
       runs ->
         expect(removeHandler).not.toHaveBeenCalled()
-        timers.setTimeout ->
-          fsUtils.write(path, "Hallelujah!")
-        , 100
+        timers.setImmediate -> fsUtils.write(path, "Hallelujah!")
         changeHandler.reset()
 
       waitsFor "post-resurrection change event", ->

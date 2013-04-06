@@ -95,9 +95,7 @@ describe "Editor", ->
       spyOn(atom, "confirm")
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.write(path, "a file change")
-        , 100
+        timers.setImmediate -> fsUtils.write(path, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -162,9 +160,7 @@ describe "Editor", ->
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
 
       runs ->
-        timers.setTimeout ->
-          fsUtils.write(path, "a file change")
-        , 100
+        timers.setImmediate -> fsUtils.write(path, "a file change")
 
       waitsFor ->
         contentsConflictedHandler.callCount > 0
@@ -2038,9 +2034,7 @@ describe "Editor", ->
       editor.getBuffer().file.on 'contents-changed', fileChangeHandler
 
       runs ->
-        timers.setTimeout ->
-          editor.checkoutHead()
-        , 100
+        timers.setImmediate -> editor.checkoutHead()
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
