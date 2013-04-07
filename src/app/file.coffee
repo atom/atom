@@ -2,6 +2,7 @@ EventEmitter = require 'event-emitter'
 
 fs = require 'fs'
 fsUtils = require 'fs-utils'
+pathWatcher = require 'pathwatcher'
 _ = require 'underscore'
 
 module.exports =
@@ -45,12 +46,13 @@ class File
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   handleNativeChangeEvent: (eventType, path) ->
-    if eventType is "remove"
+    if eventType is "delete"
+      @unsubscribeFromNativeChangeEvents()
       @detectResurrectionAfterDelay()
-    else if eventType is "move"
+    else if eventType is "rename"
       @setPath(path)
       @trigger "moved"
-    else if eventType is "contents-change"
+    else if eventType is "change"
       oldContents = @read()
       newContents = @read(true)
       return if oldContents == newContents
@@ -62,19 +64,18 @@ class File
   detectResurrection: ->
     if @exists()
       @subscribeToNativeChangeEvents()
-      @handleNativeChangeEvent("contents-change", @getPath())
+      @handleNativeChangeEvent("change", @getPath())
     else
       @cachedContents = null
-      @unsubscribeFromNativeChangeEvents()
       @trigger "removed"
 
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = fsUtils.watchPath @path, (eventType, path) =>
+    @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
       @handleNativeChangeEvent(eventType, path)
 
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription
-      @watchSubscription.unwatch()
+      @watchSubscription.close()
       @watchSubscription = null
 
 _.extend File.prototype, EventEmitter

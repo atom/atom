@@ -312,11 +312,3 @@ module.exports =
       cson.readObjectAsync(path, done)
     else
       @readPlistAsync(path, done)
-
-  watchPath: (path, callback) ->
-    path = @absolute(path)
-    watchCallback = (eventType, eventPath) =>
-      path = @absolute(eventPath) if eventType is 'move'
-      callback(arguments...)
-    id = $native.watchPath(path, watchCallback)
-    unwatch: -> $native.unwatchPath(path, id)
