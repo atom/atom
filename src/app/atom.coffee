@@ -126,6 +126,9 @@ _.extend atom,
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)
 
+  restartRendererProcess: ->
+    @sendMessageToBrowserProcess('restartRendererProcess')
+
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     wrapCallback = (callback) => => @dismissModal(callback)
     @presentModal =>

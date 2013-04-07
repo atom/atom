@@ -154,7 +154,14 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
       $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
 window.reload = ->
-  $native.reload()
+  timesReloaded = process.global.timesReloaded ? 0
+  ++timesReloaded
+
+  if timesReloaded > 3
+    atom.restartRendererProcess()
+  else
+    $native.reload()
+    process.global.timesReloaded = timesReloaded
 
 window.onerror = ->
   atom.showDevTools()
