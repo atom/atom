@@ -65,6 +65,8 @@ describe 'Buffer', ->
       expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
     it "triggers a `path-changed` event when the file is moved", ->
+      jasmine.unspy(window, "setTimeout")
+
       fsUtils.remove(newPath) if fsUtils.exists(newPath)
       fsUtils.move(path, newPath)
 

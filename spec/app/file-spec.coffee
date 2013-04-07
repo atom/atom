@@ -54,6 +54,7 @@ describe 'File', ->
         waitsFor "remove event", (done) -> file.on 'removed', done
 
     it "it updates its path", ->
+      jasmine.unspy(window, "setTimeout")
       moveHandler = null
       moveHandler = jasmine.createSpy('moveHandler')
       file.on 'moved', moveHandler
@@ -67,6 +68,7 @@ describe 'File', ->
         expect(file.getPath()).toBe newPath
 
     it "maintains 'contents-changed' events set on previous path", ->
+      jasmine.unspy(window, "setTimeout")
       moveHandler = null
       moveHandler = jasmine.createSpy('moveHandler')
       file.on 'moved', moveHandler

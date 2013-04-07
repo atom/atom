@@ -2,7 +2,6 @@
 #import "native/v8_extensions/atom.h"
 #import "native/v8_extensions/native.h"
 #import "native/message_translation.h"
-#import "path_watcher.h"
 #import "atom_cef_render_process_handler.h"
 
 
@@ -18,7 +17,6 @@ void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser
 void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browser,
                                                     CefRefPtr<CefFrame> frame,
                                                     CefRefPtr<CefV8Context> context) {
-  [PathWatcher removePathWatcherForContext:context];
 }
 
 bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
