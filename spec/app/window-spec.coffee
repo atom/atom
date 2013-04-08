@@ -198,3 +198,31 @@ describe "Window", ->
           expect(deserialize({ deserializer: 'Foo', version: 3, name: 'Bar' })).toBeUndefined()
           expect(deserialize({ deserializer: 'Foo', version: 1, name: 'Bar' })).toBeUndefined()
           expect(deserialize({ deserializer: 'Foo', name: 'Bar' })).toBeUndefined()
+
+  describe "drag and drop", ->
+    buildDragEvent = (type, files) ->
+      dataTransfer =
+        files: files
+        data: {}
+        setData: (key, value) -> @data[key] = value
+        getData: (key) -> @data[key]
+
+      event = $.Event(type)
+      event.originalEvent = { dataTransfer }
+      event.preventDefault = ->
+      event.stopPropagation = ->
+      event
+
+    describe "when a file is dragged to window", ->
+      it "opens it", ->
+        spyOn(atom, "open")
+        event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
+        window.onDrop(event)
+        expect(atom.open.callCount).toBe 2
+
+    describe "when a non-file is dragged to window", ->
+      it "does nothing", ->
+        spyOn(atom, "open")
+        event = buildDragEvent("drop", [])
+        window.onDrop(event)
+        expect(atom.open).not.toHaveBeenCalled()
