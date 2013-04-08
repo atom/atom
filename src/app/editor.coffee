@@ -1086,7 +1086,7 @@ class Editor extends View
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
   pixelPositionForScreenPosition: (position) ->
-    return { top: 0, left: 0 } unless @isOnDom()
+    return { top: 0, left: 0 } unless @isOnDom() and @isVisible()
     {row, column} = Point.fromObject(position)
     actualRow = Math.floor(row)
 

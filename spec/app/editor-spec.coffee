@@ -2037,6 +2037,25 @@ describe "Editor", ->
       runs ->
         expect(editor.getText()).toBe(originalPathText)
 
+
+  describe ".pixelPositionForBufferPosition(position)", ->
+    describe "when the editor is detached", ->
+      it "returns top and left values of 0", ->
+        expect(editor.isOnDom()).toBeFalsy()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
+
+    describe "when the editor is invisible", ->
+      it "returns top and left values of 0", ->
+        editor.attachToDom()
+        editor.hide()
+        expect(editor.isVisible()).toBeFalsy()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
+
+    describe "when the editor is attached and visible", ->
+      it "returns the top and left pixel positions", ->
+        editor.attachToDom()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 40, left: 70
+
   describe "when clicking in the gutter", ->
     beforeEach ->
       editor.attachToDom()
