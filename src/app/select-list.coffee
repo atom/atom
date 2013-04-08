@@ -142,6 +142,7 @@ class SelectList extends View
 
   cancelled: ->
     @miniEditor.setText('')
+    @miniEditor.updateDisplay()
 
   cancel: ->
     @list.empty()
