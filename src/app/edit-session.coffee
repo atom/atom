@@ -156,6 +156,7 @@ class EditSession
   saveAs: (path) -> @buffer.saveAs(path)
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
+  getBuffer: -> @buffer
   getUri: -> @getPath()
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)

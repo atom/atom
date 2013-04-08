@@ -3,6 +3,7 @@ _ = require 'underscore'
 RootView = require 'root-view'
 StatusBar = require 'status-bar/lib/status-bar-view'
 fsUtils = require 'fs-utils'
+{$$} = require 'space-pen'
 
 describe "StatusBar", ->
   [editor, statusBar, buffer] = []
@@ -102,7 +103,7 @@ describe "StatusBar", ->
 
   describe "when the associated editor's cursor position changes", ->
     it "updates the cursor position in the status bar", ->
-      editor.attachToDom()
+      rootView.attachToDom()
       editor.setCursorScreenPosition([1, 2])
       editor.updateDisplay()
       expect(statusBar.cursorPosition.text()).toBe '2,3'
@@ -194,7 +195,6 @@ describe "StatusBar", ->
       editor.activeEditSession.languageMode.grammar = syntax.nullGrammar
       editor.activeEditSession.trigger 'grammar-changed'
       expect(statusBar.find('.grammar-name')).toBeHidden()
-      expect(statusBar.find('.grammar-name').text()).toBe ''
       editor.reloadGrammar()
       expect(statusBar.find('.grammar-name')).toBeVisible()
       expect(statusBar.find('.grammar-name').text()).toBe 'JavaScript'
@@ -211,3 +211,26 @@ describe "StatusBar", ->
         editor.on 'grammar-selector:show', eventHandler
         statusBar.find('.grammar-name').click()
         expect(eventHandler).toHaveBeenCalled()
+
+  describe "when the active item view does not implement getCursorBufferPosition()", ->
+    it "hides the cursor position view", ->
+      rootView.attachToDom()
+      view = $$ -> @div id: 'view', tabindex: -1, 'View'
+      editor.getPane().showItem(view)
+      expect(statusBar.cursorPosition).toBeHidden()
+
+  describe "when the active item implements getTitle() but not getPath()", ->
+    it "displays the title", ->
+      rootView.attachToDom()
+      view = $$ -> @div id: 'view', tabindex: -1, 'View'
+      view.getTitle = => 'View Title'
+      editor.getPane().showItem(view)
+      expect(statusBar.currentPath.text()).toBe 'View Title'
+      expect(statusBar.currentPath).toBeVisible()
+
+  describe "when the active item neither getTitle() nor getPath()", ->
+    it "hides the path view", ->
+      rootView.attachToDom()
+      view = $$ -> @div id: 'view', tabindex: -1, 'View'
+      editor.getPane().showItem(view)
+      expect(statusBar.currentPath).toBeHidden()
