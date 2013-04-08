@@ -728,6 +728,9 @@ class EditSession
   moveCursorToEndOfWord: ->
     @moveCursors (cursor) -> cursor.moveToEndOfWord()
 
+  moveCursorToBeginningOfNextWord: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
+
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
@@ -801,6 +804,9 @@ class EditSession
 
   selectToEndOfWord: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfWord()
+
+  selectToBeginningOfNextWord: ->
+    @expandSelectionsForward (selection) => selection.selectToBeginningOfNextWord()
 
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()
