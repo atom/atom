@@ -783,7 +783,9 @@ class Editor extends View
   updateDisplay: (options={}) ->
     return unless @attached and @activeEditSession
     return if @activeEditSession.destroyed
-    return unless @isVisible()
+    unless @isVisible()
+      @redrawOnReattach = true
+      return
 
     @updateRenderedLines()
     @highlightCursorLine()

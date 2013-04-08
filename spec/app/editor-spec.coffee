@@ -2515,3 +2515,21 @@ describe "Editor", ->
 
         runs ->
           expect(editor.renderedLines.find('.line').text()).toBe 'hidden changes'
+
+      it "redraws the editor when it is next reattached", ->
+        editor.attachToDom()
+        editor.hide()
+        editor.setText('hidden changes')
+        editor.setCursorBufferPosition([0,4])
+        editor.detach()
+
+        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+        editor.on 'editor:display-updated', displayUpdatedHandler
+        editor.show()
+        editor.attachToDom()
+
+        waitsFor ->
+          displayUpdatedHandler.callCount is 1
+
+        runs ->
+          expect(editor.renderedLines.find('.line').text()).toBe 'hidden changes'
