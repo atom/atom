@@ -7,7 +7,7 @@ module.exports =
   subscribeToCommand: (view, eventName, callback) ->
     view.command eventName, callback
     @subscriptions ?= []
-    @subscriptions.push(cancel: -> view.off view, callback)
+    @subscriptions.push(cancel: -> view.off eventName, callback)
 
   unsubscribe: ->
     subscription.cancel() for subscription in @subscriptions ? []
