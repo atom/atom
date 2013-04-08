@@ -9,6 +9,8 @@ class ImageView extends ScrollView
       @img outlet: 'image'
 
   initialize: (imageEditSession) ->
+    super
+
     requireStylesheet 'image-view'
 
     @image.load =>
