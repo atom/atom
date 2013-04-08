@@ -58,15 +58,24 @@ class EditSession
 
     @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
 
+  # Internal
   getViewClass: ->
     require 'editor'
 
+  # Public: Retrieves the filename of the open file.
+  #
+  # Returns a {String}.
   getTitle: ->
     if path = @getPath()
       fs.base(path)
     else
       'untitled'
 
+  # Public: Retrieves the filename of the open file, followed by a dash, then the file's directory.
+  #
+  # If the file is brand new, the title is `untitled`.
+  #
+  # Returns a {String}.
   getLongTitle: ->
     if path = @getPath()
       fileName = fs.base(path)
@@ -93,9 +102,21 @@ class EditSession
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
 
+  # Internal: Creates a copy of the current {EditSession}.
+  #
+  # Returns an identical `EditSession`.
   copy: ->
     EditSession.deserialize(@serialize(), @project)
 
+  # Public: Compares two `EditSession`s to determine equality.
+  #
+  # Equality is based on the condition that:
+  #
+  # * the two {Buffer}s are the same
+  # * the two `scrollTop` and `scrollLeft` property are the same
+  # * the two {Cursor} screen positions are the same
+  #
+  # Returns a {Boolean}.
   isEqual: (other) ->
     return false unless other instanceof EditSession
     @buffer == other.buffer and
@@ -103,37 +124,88 @@ class EditSession
       @scrollLeft == other.getScrollLeft() and
       @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
 
+
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
+  # Public: Defines the value of the `EditSession`'s `scrollTop` property.
+  #
+  # scrollTop - A {Number} defining the `scrollTop`, in pixels.
   setScrollTop: (@scrollTop) ->
+  # Public: Gets the value of the `EditSession`'s `scrollTop` property.
+  #
+  # Returns a {Number} defining the `scrollTop`, in pixels.
   getScrollTop: -> @scrollTop
 
+  # Public: Defines the value of the `EditSession`'s `scrollLeft` property.
+  #
+  # scrollLeft - A {Number} defining the `scrollLeft`, in pixels.
   setScrollLeft: (@scrollLeft) ->
+  # Public: Gets the value of the `EditSession`'s `scrollLeft` property.
+  #
+  # Returns a {Number} defining the `scrollLeft`, in pixels.
   getScrollLeft: -> @scrollLeft
 
+  # Public: Defines the limit at which the buffer begins to soft wrap text.
+  #
+  # softWrapColumn - A {Number} defining the soft wrap limit.
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
+  # Public: Defines whether to use soft tabs.
+  #
+  # softTabs - A {Boolean} which, if `true`, indicates that you want soft tabs.
   setSoftTabs: (@softTabs) ->
-
+  # Public: Retrieves whether soft tabs are enabled.
+  #
+  # Returns a {Boolean}.
   getSoftWrap: -> @softWrap
+  # Public: Defines whether to use soft wrapping of text.
+  #
+  # softTabs - A {Boolean} which, if `true`, indicates that you want soft wraps.
   setSoftWrap: (@softWrap) ->
 
+  # Public: Retrieves that character used to indicate a tab.
+  # 
+  # If soft tabs are enabled, this is a space (`" "`) times the {.getTabLength} value.
+  # Otherwise, it's a tab (`\t`).
+  #
+  # Returns a {String}.
   getTabText: -> @buildIndentString(1)
 
+  # Public: Retrieves the current tab length.
+  #
+  # Returns a {Number}.
   getTabLength: -> @displayBuffer.getTabLength()
+
+  # Public: Specifies the tab length.
+  #
+  # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
   clipBufferPosition: (bufferPosition) ->
     @buffer.clipPosition(bufferPosition)
 
+  # Public: Given a buffer row, this retrieves the indentation level.
+  #
+  # bufferRow - A {Number} indicating the buffer row.
+  #
+  # Returns the indentation level as a {Number}.
   indentationForBufferRow: (bufferRow) ->
     @indentLevelForLine(@lineForBufferRow(bufferRow))
 
+  # Public: This specifies the new indentation level for a buffer row.
+  #
+  # bufferRow - A {Number} indicating the buffer row.
+  # newLevel - A {Number} indicating the new indentation level.
   setIndentationForBufferRow: (bufferRow, newLevel) ->
     currentLevel = @indentationForBufferRow(bufferRow)
     currentIndentString = @buildIndentString(currentLevel)
     newIndentString = @buildIndentString(newLevel)
     @buffer.change([[bufferRow, 0], [bufferRow, currentIndentString.length]], newIndentString)
 
+  # Internal: Given a line, this gets the indentation level.
+  #
+  # line - A {String} in the current {Buffer}.
+  #
+  # Returns a {Number}.
   indentLevelForLine: (line) ->
     if match = line.match(/^[\t ]+/)
       leadingWhitespace = match[0]
@@ -143,13 +215,18 @@ class EditSession
     else
       0
 
+  # Internal: Constructs the string used for tabs.
   buildIndentString: (number) ->
     if @softTabs
       _.multiplyString(" ", number * @getTabLength())
     else
       _.multiplyString("\t", Math.floor(number))
 
+  # Public: Saves the buffer.
   save: -> @buffer.save()
+  # Public: Saves the buffer at a specific path.
+  #
+  # path - The path to save at.
   saveAs: (path) -> @buffer.saveAs(path)
   # Public: Retrieves the current buffer's file extension.
   #
@@ -159,22 +236,88 @@ class EditSession
   #
   # Returns a {String}.
   getPath: -> @buffer.getPath()
+  # Public: Retrieves the current buffer's file path.
+  #
+  # Returns a {String}.
   getUri: -> @getPath()
+  # Public: Given a buffer row, identifies if it is blank.
+  #
+  # bufferRow - A buffer row {Number} to check
+  #
+  # Returns a {Boolean}.
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
+  # Public: Given a buffer row, this finds the next row that's blank.
+  #
+  # bufferRow - A buffer row {Number} to check
+  #
+  # Returns a {Number}, or `null` if there's no other blank row.
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
+  # Public: Finds the last point in the current buffer.
+  #
+  # Returns a {Point} representing the last position.
   getEofBufferPosition: -> @buffer.getEofPosition()
+  # Public: Finds the last line in the current buffer.
+  #
+  # Returns a {Number}.
   getLastBufferRow: -> @buffer.getLastRow()
+  # Public: Given a buffer row, this retrieves the range for that line.
+  #
+  # row - A {Number} identifying the row
+  # options - A hash with one key, `includeNewline`, which specifies whether you 
+  #           want to include the trailing newline
+  #
+  # Returns a {Range}.
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
+  # Public: Given a buffer row, this retrieves that line.
+  #
+  # row - A {Number} identifying the row
+  #
+  # Returns a {String}.
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  # Public: Given a buffer row, this retrieves that line's length.
+  #
+  # row - A {Number} identifying the row
+  #
+  # Returns a {Number}.
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
+  # Public: Identifies if the buffer was modified.
+  #
+  # Returns a {Boolean}.
   isModified: -> @buffer.isModified()
+  # Public: Identifies if the buffer has editors.
+  #
+  # Returns a {Boolean}.
   hasEditors: -> @buffer.hasEditors()
 
+  # Public: Given a buffer position, this converts it into a screen position.
+  #
+  # bufferPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {LineMap.clipScreenPosition}.
+  #
+  # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # screenPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {LineMap.clipScreenPosition}.
+  #
+  # Returns a {Point}. 
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # range - The {Range} to convert
+  #
+  # Returns a {Range}.
   screenRangeForBufferRange: (range) -> @displayBuffer.screenRangeForBufferRange(range)
+  # Public: Given a screen range, this converts it into a buffer position.
+  #
+  # range - The {Range} to convert
+  #
+  # Returns a {Range}.
   bufferRangeForScreenRange: (range) -> @displayBuffer.bufferRangeForScreenRange(range)
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
   # Public: Gets the line for the given screen row.
@@ -186,7 +329,7 @@ class EditSession
   # Public: Gets the lines for the given screen row boundaries.
   #
   # start - A {Number} indicating the beginning screen row.
-  # start - A {Number} indicating the ending screen row.
+  # end - A {Number} indicating the ending screen row.
   #
   # Returns an {Array} of {String}s.
   linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
@@ -402,6 +545,7 @@ class EditSession
   # Public: Determines if the given buffer row is folded.
   #
   # screenRow - A {Number} indicating the buffer row.
+  #
   # Returns `true` if the buffer row is folded, `false` otherwise.
   isFoldedAtBufferRow: (bufferRow) ->
     screenRow = @screenPositionForBufferPosition([bufferRow]).row
@@ -409,6 +553,7 @@ class EditSession
   # Public: Determines if the given screen row is folded.
   #
   # screenRow - A {Number} indicating the screen row.
+  #
   # Returns `true` if the screen row is folded, `false` otherwise.
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow)?.fold?

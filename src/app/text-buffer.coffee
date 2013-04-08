@@ -56,6 +56,9 @@ class Buffer
     @destroy() if @refcount <= 0
     this
 
+  # Public: Identifies if the buffer has editors.
+  #
+  # Returns a {Boolean}.
   hasEditors: -> @refcount > 1
 
   subscribeToFile: ->
@@ -163,7 +166,7 @@ class Buffer
 
   suggestedLineEndingForRow: (row) ->
     @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
-    
+
   # Public: Given a row, returns the length of the line of text.
   #
   # row - A {Number} indicating the row.
@@ -174,7 +177,14 @@ class Buffer
 
   lineEndingLengthForRow: (row) ->
     (@lineEndingForRow(row) ? '').length
-
+    
+  # Public: Given a buffer row, this retrieves the range for that line.
+  #
+  # row - A {Number} identifying the row
+  # options - A hash with one key, `includeNewline`, which specifies whether you 
+  #           want to include the trailing newline
+  #
+  # Returns a {Range}.
   rangeForRow: (row, { includeNewline } = {}) ->
     if includeNewline and row < @getLastRow()
       new Range([row, 0], [row + 1, 0])
@@ -193,9 +203,15 @@ class Buffer
   getLastRow: ->
     @getLines().length - 1
 
+  # Public: Finds the last line in the current buffer.
+  #
+  # Returns a {String}.
   getLastLine: ->
     @lineForRow(@getLastRow())
 
+  # Public: Finds the last point in the current buffer.
+  #
+  # Returns a {Point} representing the last position.
   getEofPosition: ->
     lastRow = @getLastRow()
     new Point(lastRow, @lineLengthForRow(lastRow))
@@ -280,9 +296,13 @@ class Buffer
   commit: -> @undoManager.commit()
   abort: -> @undoManager.abort()
 
+  # Public: Saves the buffer.
   save: ->
     @saveAs(@getPath()) if @isModified()
 
+  # Public: Saves the buffer at a specific path.
+  #
+  # path - The path to save at.
   saveAs: (path) ->
     unless path then throw new Error("Can't save buffer with no file path")
 
@@ -293,6 +313,9 @@ class Buffer
     @triggerModifiedStatusChanged(false)
     @trigger 'saved'
 
+  # Public: Identifies if the buffer was modified.
+  #
+  # Returns a {Boolean}.
   isModified: ->
     if @file
       @getText() != @cachedDiskContents
@@ -434,6 +457,11 @@ class Buffer
   backwardsScanInRange: (regex, range, iterator) ->
     @scanInRange regex, range, iterator, true
 
+  # Public: Given a row, identifies if it is blank.
+  #
+  # row - A row {Number} to check
+  #
+  # Returns a {Boolean}.
   isRowBlank: (row) ->
     not /\S/.test @lineForRow(row)
 
@@ -445,6 +473,11 @@ class Buffer
       return row unless @isRowBlank(row)
     null
 
+  # Public: Given a row, this finds the next row that's blank.
+  #
+  # startRow - A row {Number} to check
+  #
+  # Returns a {Number}, or `null` if there's no other blank row.
   nextNonBlankRow: (startRow) ->
     lastRow = @getLastRow()
     if startRow < lastRow

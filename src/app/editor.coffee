@@ -375,11 +375,13 @@ class Editor extends View
   # Public: Determines if the given screen row is folded.
   #
   # screenRow - A {Number} indicating the screen row.
+  #
   # Returns `true` if the screen row is folded, `false` otherwise.
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
   # Public: Determines if the given buffer row is folded.
   #
   # screenRow - A {Number} indicating the buffer row.
+  #
   # Returns `true` if the buffer row is folded, `false` otherwise.
   isFoldedAtBufferRow: (bufferRow) -> @activeEditSession.isFoldedAtBufferRow(bufferRow)
   # Public: Determines if the given row that the cursor is at is folded.
@@ -396,7 +398,7 @@ class Editor extends View
   # Public: Gets the lines for the given screen row boundaries.
   #
   # start - A {Number} indicating the beginning screen row.
-  # start - A {Number} indicating the ending screen row.
+  # end - A {Number} indicating the ending screen row.
   #
   # Returns an {Array} of {String}s.
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)

@@ -222,9 +222,15 @@ class DisplayBuffer
   scopesForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopesForPosition(bufferPosition)
 
+  # Public: Retrieves the current tab length.
+  #
+  # Returns a {Number}.
   getTabLength: ->
     @tokenizedBuffer.getTabLength()
 
+  # Public: Specifies the tab length.
+  #
+  # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
 
