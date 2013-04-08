@@ -221,7 +221,7 @@ class Editor extends View
   addSelectionAbove: -> @activeEditSession.addSelectionAbove()
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
-  selectToBeginningOfNextWord: -> @activeEditSession.selectBeginningOfNextWord()
+  selectToBeginningOfNextWord: -> @activeEditSession.selectToBeginningOfNextWord()
   selectWord: -> @activeEditSession.selectWord()
   selectLine: -> @activeEditSession.selectLine()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)

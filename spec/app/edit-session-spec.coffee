@@ -648,6 +648,25 @@ describe "EditSession", ->
         expect(selection2.getBufferRange()).toEqual [[3,48], [3,50]]
         expect(selection2.isReversed()).toBeFalsy()
 
+    describe ".selectToBeginningOfNextWord()", ->
+      it "selects text from cusor position to beginning of next word", ->
+        editSession.setCursorScreenPosition [0,4]
+        editSession.addCursorAtScreenPosition [3,48]
+
+        editSession.selectToBeginningOfNextWord()
+
+        expect(editSession.getCursors().length).toBe 2
+        [cursor1, cursor2] = editSession.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,14]
+        expect(cursor2.getBufferPosition()).toEqual [3,51]
+
+        expect(editSession.getSelections().length).toBe 2
+        [selection1, selection2] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,4], [0,14]]
+        expect(selection1.isReversed()).toBeFalsy()
+        expect(selection2.getBufferRange()).toEqual [[3,48], [3,51]]
+        expect(selection2.isReversed()).toBeFalsy()
+
     describe ".selectWord()", ->
       describe "when the cursor is inside a word", ->
         it "selects the entire word", ->
