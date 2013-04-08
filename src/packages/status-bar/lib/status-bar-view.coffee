@@ -29,7 +29,7 @@ class StatusBarView extends View
       @updatePathText()
 
     @subscribe @pane, 'cursor:moved', => @updateCursorPositionText()
-    @subscribe @grammarName, 'click', => @pane.viewForActiveItem().trigger 'grammar-selector:show'
+    @subscribe @grammarName, 'click', => @pane.activeView.trigger 'grammar-selector:show'
     @subscribe @pane, 'editor:grammar-changed', => @updateGrammarText()
 
     if git?
@@ -59,7 +59,7 @@ class StatusBarView extends View
     @updateCursorPositionText()
 
   updateGrammarText: ->
-    grammar = @pane.viewForActiveItem().getGrammar?()
+    grammar = @pane.activeView.getGrammar?()
     if not grammar? or grammar is syntax.nullGrammar
       @grammarName.hide()
     else
@@ -131,7 +131,7 @@ class StatusBarView extends View
       @currentPath.hide()
 
   updateCursorPositionText: ->
-    if position = @pane.viewForActiveItem().getCursorBufferPosition?()
+    if position = @pane.activeView.getCursorBufferPosition?()
       @cursorPosition.text("#{position.row + 1},#{position.column + 1}").show()
     else
       @cursorPosition.hide()
