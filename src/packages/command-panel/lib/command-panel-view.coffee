@@ -39,13 +39,13 @@ class CommandPanelView extends View
     @command 'core:move-up', => @navigateBackwardInHistory()
     @command 'core:move-down', => @navigateForwardInHistory()
 
-    rootView.command 'command-panel:toggle', => @toggle()
-    rootView.command 'command-panel:toggle-preview', => @togglePreview()
-    rootView.command 'command-panel:find-in-file', => @attach('/')
-    rootView.command 'command-panel:find-in-project', => @attach('Xx/')
-    rootView.command 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
-    rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
-    rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
+    @subscribeToCommand rootView, 'command-panel:toggle', => @toggle()
+    @subscribeToCommand rootView, 'command-panel:toggle-preview', => @togglePreview()
+    @subscribeToCommand rootView, 'command-panel:find-in-file', => @attach('/')
+    @subscribeToCommand rootView, 'command-panel:find-in-project', => @attach('Xx/')
+    @subscribeToCommand rootView, 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
+    @subscribeToCommand rootView, 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
+    @subscribeToCommand rootView, 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
     @on 'click', '.expand', @onExpandAll
     @on 'click', '.collapse', @onCollapseAll
