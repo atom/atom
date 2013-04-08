@@ -58,7 +58,7 @@ class Pane extends View
 
     return if @attached
     @attached = true
-    @trigger 'pane:attached'
+    @trigger 'pane:attached', [this]
 
   makeActive: ->
     for pane in @getContainer().getPanes() when pane isnt this
