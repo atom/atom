@@ -1,4 +1,6 @@
 ScrollView = require 'scroll-view'
+_ = require 'underscore'
+$ = require 'jquery'
 
 module.exports =
 class ImageView extends ScrollView
@@ -16,6 +18,7 @@ class ImageView extends ScrollView
       @centerImage()
     @setPath(imageEditSession?.getPath())
 
+    @subscribe $(window), 'resize', _.debounce((=> @centerImage()), 300)
     @command 'image-view:zoom-in', => @zoomIn()
     @command 'image-view:zoom-out', => @zoomOut()
     @command 'image-view:reset-zoom', => @resetZoom()
