@@ -1,8 +1,17 @@
 fsUtils = require 'fs-utils'
+_ = require 'underscore'
 
 module.exports=
 class ImageEditSession
   registerDeserializer(this)
+
+  @canOpen: (path) ->
+    _.indexOf([
+      '.gif'
+      '.jpeg'
+      '.jpg'
+      '.png'
+    ], fsUtils.extension(path), true) >= 0
 
   @deserialize: (state) ->
     if fsUtils.exists(state.path)

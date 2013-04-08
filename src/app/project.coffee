@@ -86,7 +86,7 @@ class Project
   setSoftWrap: (@softWrap) ->
 
   buildEditSession: (filePath, editSessionOptions={}) ->
-    if fsUtils.isImageExtension(fsUtils.extension(filePath))
+    if ImageEditSession.canOpen(filePath)
       new ImageEditSession(filePath)
     else
       @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
