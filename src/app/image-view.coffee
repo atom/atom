@@ -9,8 +9,16 @@ class ImageView extends ScrollView
   initialize: (imageEditSession) ->
     requireStylesheet 'image-view'
 
-    @image.load => @updateSize()
+    @image.load =>
+      @originalHeight = @image.height()
+      @originalWidth = @image.width()
+      @loaded = true
+      @centerImage()
     @setPath(imageEditSession?.getPath())
+
+    @command 'image-view:zoom-in', => @zoomIn()
+    @command 'image-view:zoom-out', => @zoomOut()
+    @command 'image-view:reset-zoom', => @resetZoom()
 
   afterAttach: (onDom) ->
     return unless onDom
@@ -20,19 +28,21 @@ class ImageView extends ScrollView
       @subscribe pane, 'pane:active-item-changed', (event, item) =>
         wasActive = @active
         @active = @is(pane.activeView)
-        @updateSize() if @active and not wasActive
+        @centerImage() if @active and not wasActive
 
-  updateSize: ->
-    return unless @isVisible()
+  centerImage: ->
+    return unless @loaded and @isVisible()
 
     @image.css
-      'margin-left': -@image.width() / 2
-      'margin-top': -@image.height() / 2
+      'top': Math.max((@height() - @image.outerHeight()) / 2, 0)
+      'left': Math.max((@width() - @image.outerWidth()) / 2, 0)
     @image.show()
 
   setPath: (path) ->
     if path?
-      @image.hide().attr('src', path) if @image.attr('src') isnt path
+      if @image.attr('src') isnt path
+        @loaded = false
+        @image.hide().attr('src', path)
     else
       @image.hide()
 
@@ -41,3 +51,25 @@ class ImageView extends ScrollView
 
   getPane: ->
     @parent('.item-views').parent('.pane').view()
+
+  adjustSize: (factor) ->
+    return unless @loaded and @isVisible()
+
+    newWidth = @image.width() * factor
+    newHeight = @image.height() * factor
+    @image.width(newWidth)
+    @image.height(newHeight)
+    @centerImage()
+
+  zoomOut: ->
+    @adjustSize(0.9)
+
+  zoomIn: ->
+    @adjustSize(1.1)
+
+  resetZoom: ->
+    return unless @loaded and @isVisible()
+
+    @image.width(@originalWidth)
+    @image.height(@originalHeight)
+    @centerImage()
