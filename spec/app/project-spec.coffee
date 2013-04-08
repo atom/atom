@@ -259,6 +259,32 @@ describe "Project", ->
           match: 'aa'
           range: [[1, 3], [1, 5]]
 
+      describe "when the core.excludeVcsIgnoredPaths config is truthy", ->
+        [projectPath, ignoredPath] = []
+
+        beforeEach ->
+          projectPath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir')
+          ignoredPath = fsUtils.join(projectPath, 'ignored.txt')
+          fsUtils.write(ignoredPath, 'this match should not be included')
+
+        afterEach ->
+          fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
+
+        it "excludes ignored files", ->
+          project.setPath(projectPath)
+          config.set('core.excludeVcsIgnoredPaths', true)
+          paths = []
+          matches = []
+          waitsForPromise ->
+            project.scan /match/, ({path, match, range}) ->
+              paths.push(path)
+              matches.push(match)
+
+          runs ->
+            expect(paths.length).toBe 0
+            expect(matches.length).toBe 0
+
+
   describe "serialization", ->
     it "restores the project path", ->
       newProject = Project.deserialize(project.serialize())

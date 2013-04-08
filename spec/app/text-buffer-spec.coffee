@@ -32,10 +32,12 @@ describe 'Buffer', ->
           expect(buffer.undoManager.undoHistory.length).toBe 0
 
       describe "when no file exists for the path", ->
-        it "throws an exception", ->
+        it "is modified and is initially empty", ->
           filePath = "does-not-exist.txt"
           expect(fsUtils.exists(filePath)).toBeFalsy()
-          expect(-> project.bufferForPath(filePath)).toThrow()
+          buffer = project.bufferForPath(filePath)
+          expect(buffer.isModified()).toBeTruthy()
+          expect(buffer.getText()).toBe ''
 
     describe "when no path is given", ->
       it "creates an empty buffer", ->
@@ -63,6 +65,8 @@ describe 'Buffer', ->
       expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
     it "triggers a `path-changed` event when the file is moved", ->
+      jasmine.unspy(window, "setTimeout")
+
       fsUtils.remove(newPath) if fsUtils.exists(newPath)
       fsUtils.move(path, newPath)
 
@@ -264,18 +268,44 @@ describe 'Buffer', ->
       expect(modifiedHandler).toHaveBeenCalledWith(true)
       expect(buffer.isModified()).toBe true
 
+    it "reports the modified status changing to false after a buffer to a non-existent file is saved", ->
+      filePath = "/tmp/atom-tmp-file"
+      fsUtils.remove(filePath) if fsUtils.exists(filePath)
+      expect(fsUtils.exists(filePath)).toBeFalsy()
+      buffer.release()
+      buffer = project.bufferForPath(filePath)
+      modifiedHandler = jasmine.createSpy("modifiedHandler")
+      buffer.on 'modified-status-changed', modifiedHandler
+
+      buffer.insert([0,0], "hi")
+      advanceClock(buffer.stoppedChangingDelay)
+      expect(buffer.isModified()).toBe true
+      modifiedHandler.reset()
+
+      buffer.save()
+      expect(fsUtils.exists(filePath)).toBeTruthy()
+
+      expect(modifiedHandler).toHaveBeenCalledWith(false)
+      expect(buffer.isModified()).toBe false
+      modifiedHandler.reset()
+
+      buffer.insert([0, 0], 'x')
+      advanceClock(buffer.stoppedChangingDelay)
+      expect(modifiedHandler).toHaveBeenCalledWith(true)
+      expect(buffer.isModified()).toBe true
+
     it "returns false for an empty buffer with no path", ->
       buffer.release()
       buffer = project.bufferForPath(null)
       expect(buffer.isModified()).toBeFalsy()
 
     it "returns true for a non-empty buffer with no path", ->
-       buffer.release()
-       buffer = project.bufferForPath(null)
-       buffer.setText('a')
-       expect(buffer.isModified()).toBeTruthy()
-       buffer.setText('\n')
-       expect(buffer.isModified()).toBeTruthy()
+      buffer.release()
+      buffer = project.bufferForPath(null)
+      buffer.setText('a')
+      expect(buffer.isModified()).toBeTruthy()
+      buffer.setText('\n')
+      expect(buffer.isModified()).toBeTruthy()
 
   describe ".getLines()", ->
     it "returns an array of lines in the text contents", ->

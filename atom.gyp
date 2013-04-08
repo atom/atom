@@ -251,8 +251,6 @@
         'native/message_translation.cpp',
         'native/message_translation.h',
         'native/message_translation.h',
-        'native/path_watcher.h',
-        'native/path_watcher.mm',
         'native/v8_extensions/atom.h',
         'native/v8_extensions/atom.mm',
         'native/v8_extensions/native.h',
@@ -268,6 +266,13 @@
       'mac_bundle_resources': [
         'native/mac/English.lproj/AtomWindow.xib',
         'native/mac/English.lproj/MainMenu.xib',
+      ],
+      'conditions': [
+        ['CODE_SIGN', {
+          'defines': [
+            'CODE_SIGNING_ENABLED=1',
+          ],
+        }],
       ],
       'postbuilds': [
         {

@@ -13,6 +13,7 @@ File = require 'file'
 Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
 fsUtils = require 'fs-utils'
+pathwatcher = require 'pathwatcher'
 RootView = require 'root-view'
 Git = require 'git'
 requireStylesheet "jasmine"
@@ -95,8 +96,8 @@ afterEach ->
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
-  watchedPaths = $native.getWatchedPaths()
-  $native.unwatchAllPaths()
+  watchedPaths = pathwatcher.getWatchedPaths()
+  pathwatcher.closeAllWatchers()
   if watchedPaths.length > 0
     throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
 

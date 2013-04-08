@@ -125,8 +125,8 @@ class EditSession
   getTabLength: -> @displayBuffer.getTabLength()
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
-  clipBufferPosition: (bufferPosition) ->
-    @buffer.clipPosition(bufferPosition)
+  clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
+  clipBufferRange: (range) -> @buffer.clipRange(range)
 
   indentationForBufferRow: (bufferRow) ->
     @indentLevelForLine(@lineForBufferRow(bufferRow))
@@ -556,6 +556,9 @@ class EditSession
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
 
+  isMarkerRangeEmpty: (args...) ->
+    @displayBuffer.isMarkerRangeEmpty(args...)
+
   hasMultipleCursors: ->
     @getCursors().length > 1
 
@@ -585,10 +588,10 @@ class EditSession
     unless options.preserveFolds
       @destroyFoldsIntersectingBufferRange(@getMarkerBufferRange(marker))
     cursor = @addCursor(marker)
-    selection = new Selection({editSession: this, marker, cursor})
+    selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
-    @mergeIntersectingSelections()
+    @mergeIntersectingSelections() unless options.suppressMerge
     if selection.destroyed
       for selection in @getSelections()
         if selection.intersectsBufferRange(selectionBufferRange)
@@ -600,7 +603,7 @@ class EditSession
   addSelectionForBufferRange: (bufferRange, options={}) ->
     options = _.defaults({invalidationStrategy: 'never'}, options)
     marker = @markBufferRange(bufferRange, options)
-    @addSelection(marker)
+    @addSelection(marker, options)
 
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
@@ -623,13 +626,16 @@ class EditSession
     _.remove(@selections, selection)
 
   clearSelections: ->
-    lastSelection = @getLastSelection()
-    for selection in @getSelections() when selection != lastSelection
-      selection.destroy()
-    lastSelection.clear()
+    @consolidateSelections()
+    @getSelection().clear()
 
-  clearAllSelections: ->
-    selection.destroy() for selection in @getSelections()
+  consolidateSelections: ->
+    selections = @getSelections()
+    if selections.length > 1
+      selection.destroy() for selection in selections[0...-1]
+      true
+    else
+      false
 
   getSelections: -> new Array(@selections...)
 
@@ -760,6 +766,12 @@ class EditSession
 
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
+
+  addSelectionBelow: ->
+    @expandSelectionsForward (selection) => selection.addSelectionBelow()
+
+  addSelectionAbove: ->
+    @expandSelectionsBackward (selection) => selection.addSelectionAbove()
 
   transpose: ->
     @mutateSelectedText (selection) =>

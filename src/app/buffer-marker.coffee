@@ -27,6 +27,9 @@ class BufferMarker
   isReversed: ->
     @tailPosition? and @headPosition.isLessThan(@tailPosition)
 
+  isRangeEmpty: ->
+    @getHeadPosition().isEqual(@getTailPosition())
+
   getRange: ->
     if @tailPosition
       new Range(@tailPosition, @headPosition)

@@ -34,8 +34,12 @@
     'name': 'markup.heading.gfm'
   }
   {
-    'match': '\\:[^\\:\\s]+\\:'
+    'match': '(\\:)([^\\:\\s]+)(\\:)'
     'name': 'string.emoji.gfm'
+    'captures':
+      '1': 'name': 'string.emoji.start.gfm'
+      '2': 'name': 'string.emoji.word.gfm'
+      '3': 'name': 'string.emoji.end.gfm'
   }
   {
     'match': '^\\s*[\\*]{3,}\\s*$'

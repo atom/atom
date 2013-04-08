@@ -25,6 +25,12 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
+  ignoreEvents = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  $(document).on 'dragover', ignoreEvents
+  $(document).on 'drop', ignoreEvents
+
   requireStylesheet 'reset'
   requireStylesheet 'atom'
   requireStylesheet 'overlay'
@@ -148,7 +154,16 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
       $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
 window.reload = ->
-  $native.reload()
+  timesReloaded = process.global.timesReloaded ? 0
+  ++timesReloaded
+
+  restartValue = if window.location.search.indexOf('spec-bootstrap') == -1 then 10 else 3
+
+  if timesReloaded > restartValue
+    atom.restartRendererProcess()
+  else
+    $native.reload()
+    process.global.timesReloaded = timesReloaded
 
 window.onerror = ->
   atom.showDevTools()

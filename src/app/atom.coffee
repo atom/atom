@@ -1,7 +1,6 @@
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 Package = require 'package'
-TextMatePackage = require 'text-mate-package'
 Theme = require 'theme'
 
 messageIdCounter = 1
@@ -127,6 +126,9 @@ _.extend atom,
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)
 
+  restartRendererProcess: ->
+    @sendMessageToBrowserProcess('restartRendererProcess')
+
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     wrapCallback = (callback) => => @dismissModal(callback)
     @presentModal =>
@@ -208,9 +210,13 @@ _.extend atom,
     originalSendMessageToBrowserProcess(name, data)
 
   receiveMessageFromBrowserProcess: (name, data) ->
-    if name is 'reply'
-      [messageId, callbackIndex] = data.shift()
-      @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+    switch name
+      when 'reply'
+        [messageId, callbackIndex] = data.shift()
+        @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+      when 'openPath'
+        path = data[0]
+        rootView?.open(path)
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()

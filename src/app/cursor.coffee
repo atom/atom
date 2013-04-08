@@ -12,9 +12,9 @@ class Cursor
   needsAutoscroll: null
 
   constructor: ({@editSession, @marker}) ->
+    @updateVisibility()
     @editSession.observeMarker @marker, (e) =>
-      @setVisible(@selection.isEmpty())
-
+      @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
       {bufferChanged} = e
@@ -34,6 +34,7 @@ class Cursor
     @needsAutoscroll = true
 
   destroy: ->
+    @destroyed = true
     @editSession.destroyMarker(@marker)
     @editSession.removeCursor(this)
     @trigger 'destroyed'
@@ -58,6 +59,9 @@ class Cursor
     @needsAutoscroll = options.autoscroll ? @isLastCursor()
     unless fn()
       @trigger 'autoscrolled' if @needsAutoscroll
+
+  updateVisibility: ->
+    @setVisible(@editSession.isMarkerRangeEmpty(@marker))
 
   setVisible: (visible) ->
     if @visible != visible
@@ -84,6 +88,7 @@ class Cursor
 
   clearSelection: ->
     if @selection
+      @selection.goalBufferRange = null
       @selection.clear() unless @selection.retainSelection
 
   getScreenRow: ->
