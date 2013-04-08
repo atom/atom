@@ -1,10 +1,10 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 Project = require 'project'
 Pane = require 'pane'
@@ -29,8 +29,7 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @subview 'panes', panes ? new PaneContainer
 
-  @deserialize: ({ panes, packages, projectPath }) ->
-    atom.atomPackageStates = packages ? {}
+  @deserialize: ({ panes }) ->
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes})
 
@@ -54,6 +53,7 @@ class RootView extends View
       config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
     @command 'window:focus-next-pane', => @focusNextPane()
+    @command 'window:focus-previous-pane', => @focusPreviousPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
       config.set("editor.showInvisibles", !config.get("editor.showInvisibles"))
@@ -73,7 +73,6 @@ class RootView extends View
     version: RootView.version
     deserializer: 'RootView'
     panes: @panes.serialize()
-    packages: atom.serializeAtomPackages()
 
   confirmClose: ->
     @panes.confirmClose()
@@ -83,7 +82,7 @@ class RootView extends View
       @getActivePane().focus()
       false
     else
-      @setTitle(null)
+      @updateTitle()
       focusableChild = this.find("[tabindex=-1]:visible:first")
       if focusableChild.length
         focusableChild.focus()
@@ -94,19 +93,12 @@ class RootView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  deactivate: ->
-    atom.deactivateAtomPackages()
-    @remove()
-
   open: (path, options = {}) ->
     changeFocus = options.changeFocus ? true
     path = project.resolve(path) if path?
     if activePane = @getActivePane()
-      if editSession = activePane.itemForUri(path)
-        activePane.showItem(editSession)
-      else
-        editSession = project.buildEditSession(path)
-        activePane.showItem(editSession)
+      editSession = activePane.itemForUri(path) ? project.buildEditSession(path)
+      activePane.showItem(editSession)
     else
       editSession = project.buildEditSession(path)
       activePane = new Pane(editSession)
@@ -120,7 +112,7 @@ class RootView extends View
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
-        @setTitle(projectPath)
+        @setTitle("atom - #{projectPath}")
     else
       @setTitle('untitled')
 
@@ -149,6 +141,7 @@ class RootView extends View
   getActiveView: ->
     @panes.getActiveView()
 
+  focusPreviousPane: -> @panes.focusPreviousPane()
   focusNextPane: -> @panes.focusNextPane()
   getFocusedPane: -> @panes.getFocusedPane()
 
@@ -178,4 +171,3 @@ class RootView extends View
 
   eachBuffer: (callback) ->
     project.eachBuffer(callback)
-

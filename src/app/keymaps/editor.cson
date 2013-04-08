@@ -9,6 +9,8 @@
   'ctrl-]': 'editor:unfold-current-row'
   'ctrl-{': 'editor:fold-all'
   'ctrl-}': 'editor:unfold-all'
+  'alt-shift-down': 'editor:add-selection-below'
+  'alt-shift-up': 'editor:add-selection-above'
   'alt-meta-ctrl-f': 'editor:fold-selection'
   'shift-tab': 'editor:outdent-selected-rows'
   'meta-[': 'editor:outdent-selected-rows'
@@ -20,13 +22,16 @@
   'meta-U': 'editor:lower-case'
   'alt-meta-w': 'editor:close-other-edit-sessions'
   'meta-P': 'editor:close-all-edit-sessions'
-  'meta-L': 'editor:select-grammar'
   'ctrl-C': 'editor:copy-path'
   'ctrl-meta-up': 'editor:move-line-up'
   'ctrl-meta-down': 'editor:move-line-down'
   'meta-D': 'editor:duplicate-line'
+  'ctrl-J': 'editor:join-line'
 
 '.editor.mini':
   'enter': 'core:confirm',
   'escape': 'core:cancel'
   'meta-w': 'core:cancel'
+
+'.editor !important, .editor.mini !important':
+  'escape': 'editor:consolidate-selections'

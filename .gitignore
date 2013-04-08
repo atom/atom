@@ -1,3 +1,4 @@
+*.swp
 .DS_Store
 .project
 .svn
@@ -7,6 +8,7 @@ build
 .xcodebuild-info
 node_modules
 npm-debug.log
-/tags
+tags
 /cef/
 /sources.gypi
+/node/

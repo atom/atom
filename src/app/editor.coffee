@@ -1,12 +1,12 @@
 {View, $$} = require 'space-pen'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Gutter = require 'gutter'
 Point = require 'point'
 Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -16,6 +16,7 @@ class Editor extends View
     fontSize: 20
     showInvisibles: false
     showIndentGuide: false
+    showLineNumbers: true
     autoIndent: true
     autoIndentOnPaste: false
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
@@ -59,9 +60,9 @@ class Editor extends View
     if editSessionOrOptions instanceof EditSession
       editSession = editSessionOrOptions
     else
-      {editSession, @mini} = (editSessionOrOptions ? {})
+      {editSession, @mini} = editSessionOrOptions ? {}
 
-    requireStylesheet 'editor.less'
+    requireStylesheet 'editor'
 
     @id = Editor.nextEditorId++
     @lineCache = []
@@ -103,6 +104,7 @@ class Editor extends View
       'editor:move-to-previous-word': @moveCursorToPreviousWord
       'editor:select-word': @selectWord
       'editor:newline': @insertNewline
+      'editor:consolidate-selections': @consolidateSelections
       'editor:indent': @indent
       'editor:auto-indent': @autoIndent
       'editor:indent-selected-rows': @indentSelectedRows
@@ -121,6 +123,9 @@ class Editor extends View
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:add-selection-below': @addSelectionBelow
+      'editor:add-selection-above': @addSelectionAbove
+      'editor:select-line': @selectLine
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
       'editor:lower-case': @lowerCase
@@ -149,18 +154,19 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
-        'editor:select-grammar': @selectGrammar
         'editor:copy-path': @copyPathToPasteboard
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
         'editor:duplicate-line': @duplicateLine
+        'editor:join-line': @joinLine
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
         'editor:save-debug-snapshot': @saveDebugSnapshot
+        'editor:toggle-line-numbers': =>  config.set('editor.showLineNumbers', !config.get('editor.showLineNumbers'))
 
     documentation = {}
     for name, method of editorBindings
       do (name, method) =>
-        @command name, => method.call(this); false
+        @command name, (e) => method.call(this, e); false
 
   getCursor: -> @activeEditSession.getCursor()
   getCursors: -> @activeEditSession.getCursors()
@@ -181,6 +187,7 @@ class Editor extends View
   moveLineDown: -> @activeEditSession.moveLineDown()
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   duplicateLine: -> @activeEditSession.duplicateLine()
+  joinLine: -> @activeEditSession.joinLine()
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
@@ -207,9 +214,12 @@ class Editor extends View
   selectAll: -> @activeEditSession.selectAll()
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+  addSelectionBelow: -> @activeEditSession.addSelectionBelow()
+  addSelectionAbove: -> @activeEditSession.addSelectionAbove()
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectWord: -> @activeEditSession.selectWord()
+  selectLine: -> @activeEditSession.selectLine()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   transpose: -> @activeEditSession.transpose()
   upperCase: -> @activeEditSession.upperCase()
@@ -225,6 +235,7 @@ class Editor extends View
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
+  consolidateSelections: (e) -> e.abortKeyBinding() unless @activeEditSession.consolidateSelections()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
   indent: (options) -> @activeEditSession.indent(options)
@@ -312,10 +323,11 @@ class Editor extends View
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
-  scanInRange: (args...) -> @getBuffer().scanInRange(args...)
-  backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
+    @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
     @observeConfig 'editor.showIndentGuide', (showIndentGuide) => @setShowIndentGuide(showIndentGuide)
     @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
@@ -371,7 +383,7 @@ class Editor extends View
       else if clickCount == 3
         @activeEditSession.selectLine() unless e.shiftKey
 
-      @selectOnMousemoveUntilMouseup()
+      @selectOnMousemoveUntilMouseup() unless e.ctrlKey or e.originalEvent.which > 1
 
     @renderedLines.on 'mousedown', onMouseDown
 
@@ -390,12 +402,6 @@ class Editor extends View
     unless @mini
       @gutter.widthChanged = (newWidth) =>
         @scrollView.css('left', newWidth + 'px')
-
-      @gutter.on 'mousedown', (e) =>
-        e.pageX = @renderedLines.offset().left
-        onMouseDown(e)
-
-      @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
@@ -455,6 +461,9 @@ class Editor extends View
     @activeEditSession.on "path-changed.editor", =>
       @reloadGrammar()
       @trigger 'editor:path-changed'
+
+    @activeEditSession.on "grammar-changed.editor", =>
+      @trigger 'editor:grammar-changed'
 
     @trigger 'editor:path-changed'
     @resetDisplay()
@@ -586,6 +595,7 @@ class Editor extends View
     @setSoftWrapColumn(softWrapColumn) if @attached
     if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
+      @scrollView.scrollLeft(0)
       @_setSoftWrapColumn = => @setSoftWrapColumn()
       $(window).on "resize.editor-#{@id}", @_setSoftWrapColumn
     else
@@ -635,19 +645,19 @@ class Editor extends View
     @requestDisplayUpdate()
 
   splitLeft: (items...) ->
-    @pane()?.splitLeft(items...).activeView
+    @getPane()?.splitLeft(items...).activeView
 
   splitRight: (items...) ->
-    @pane()?.splitRight(items...).activeView
+    @getPane()?.splitRight(items...).activeView
 
   splitUp: (items...) ->
-    @pane()?.splitUp(items...).activeView
+    @getPane()?.splitUp(items...).activeView
 
   splitDown: (items...) ->
-    @pane()?.splitDown(items...).activeView
+    @getPane()?.splitDown(items...).activeView
 
-  pane: ->
-    @closest('.pane').view()
+  getPane: ->
+    @parent('.item-views').parent('.pane').view()
 
   remove: (selector, keepData) ->
     return super if keepData or @removed
@@ -655,7 +665,7 @@ class Editor extends View
     super
     rootView?.focus()
 
-  afterRemove: ->
+  beforeRemove: ->
     @removed = true
     @activeEditSession?.destroy()
     $(window).off(".editor-#{@id}")
@@ -713,8 +723,6 @@ class Editor extends View
     fragment.remove()
 
   updateLayerDimensions: ->
-    @gutter.calculateWidth()
-
     height = @lineHeight * @screenLineCount()
     unless @layerHeight == height
       @renderedLines.height(height)
@@ -776,7 +784,7 @@ class Editor extends View
 
   updateCursorViews: ->
     if @newCursors.length > 0
-      @addCursorView(cursor) for cursor in @newCursors
+      @addCursorView(cursor) for cursor in @newCursors when not cursor.destroyed
       @syncCursorAnimations()
       @newCursors = []
 
@@ -788,11 +796,11 @@ class Editor extends View
 
   updateSelectionViews: ->
     if @newSelections.length > 0
-      @addSelectionView(selection) for selection in @newSelections
+      @addSelectionView(selection) for selection in @newSelections when not selection.destroyed
       @newSelections = []
 
     for selectionView in @getSelectionViews()
-      if selectionView.destroyed
+      if selectionView.needsRemoval
         selectionView.remove()
       else
         selectionView.updateDisplay()
@@ -1098,7 +1106,7 @@ class Editor extends View
     range.detach()
     leftPixels
 
-  pixelOffsetForScreenPosition: (position) ->
+  pixelOffsUtilsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
     offset = @renderedLines.offset()
     {top: top + offset.top, left: left + offset.left}
@@ -1141,19 +1149,15 @@ class Editor extends View
     else
       @highlightedLine = null
 
-  getGrammar: -> @activeEditSession.getGrammar()
+  getGrammar: ->
+    @activeEditSession.getGrammar()
 
-  selectGrammar: ->
-    GrammarView = require 'grammar-view'
-    new GrammarView(this)
+  setGrammar: (grammar) ->
+    throw new Error("Only mini-editors can explicity set their grammar") unless @mini
+    @activeEditSession.setGrammar(grammar)
 
   reloadGrammar: ->
-    grammarChanged =  @activeEditSession.reloadGrammar()
-    if grammarChanged
-      @clearRenderedLines()
-      @updateDisplay()
-      @trigger 'editor:grammar-changed'
-    grammarChanged
+    @activeEditSession.reloadGrammar()
 
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}
@@ -1178,7 +1182,7 @@ class Editor extends View
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
-      fs.write(path, @getDebugSnapshot()) if path
+      fsUtils.write(path, @getDebugSnapshot()) if path
 
   getDebugSnapshot: ->
     [

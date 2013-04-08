@@ -1,22 +1,25 @@
 _ = require 'underscore'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 plist = require 'plist'
 Token = require 'token'
-OnigRegExp = require 'onig-reg-exp'
-OnigScanner = require 'onig-scanner'
+{OnigRegExp, OnigScanner} = require 'oniguruma'
+nodePath = require 'path'
+pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
-    grammarContent = null
-    if fs.isObjectPath(path)
-      grammarContent = fs.readObject(path)
-    else
-      plist.parseString fs.read(path), (e, data) ->
-        throw new Error(e) if e
-        grammarContent = data[0]
-    throw new Error("Failed to load grammar at path `#{path}`") unless grammarContent
-    grammarContent
+    fsUtils.readPlist(path)
+
+  @load: (path, done) ->
+    fsUtils.readObjectAsync path, (err, object) ->
+      if err
+        done(err)
+      else
+        done(null, new TextMateGrammar(object))
+
+  @loadSync: (path) ->
+    new TextMateGrammar(fsUtils.readObject(path))
 
   name: null
   fileTypes: null
@@ -24,24 +27,70 @@ class TextMateGrammar
   repository: null
   initialRule: null
   firstLineRegex: null
+  maxTokensPerLine: 100
 
   constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
     @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
-    @firstLineRegex = OnigRegExp.create(firstLineMatch) if firstLineMatch
+    @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
 
     for name, data of repository
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
       @repository[name] = new Rule(this, data)
 
+  getScore: (path, contents) ->
+    contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)
+
+    if syntax.grammarOverrideForPath(path) is @scopeName
+      3
+    else if @matchesContents(contents)
+      2
+    else if @matchesPath(path)
+      1
+    else
+      -1
+
+  matchesContents: (contents) ->
+    return false unless contents? and @firstLineRegex?
+
+    escaped = false
+    numberOfNewlinesInRegex = 0
+    for character in @firstLineRegex.source
+      switch character
+        when '\\'
+          escaped = !escaped
+        when 'n'
+          numberOfNewlinesInRegex++ if escaped
+          escaped = false
+        else
+          escaped = false
+    lines = contents.split('\n')
+    @firstLineRegex.test(lines[0..numberOfNewlinesInRegex].join('\n'))
+
+  matchesPath: (path) ->
+    return false unless path?
+    pathComponents = path.split(pathSplitRegex)
+    _.find @fileTypes, (fileType) ->
+      fileTypeComponents = fileType.split(pathSplitRegex)
+      pathSuffix = pathComponents[-fileTypeComponents.length..-1]
+      _.isEqual(pathSuffix, fileTypeComponents)
+
   tokenizeLine: (line, ruleStack=[@initialRule], firstLine=false) ->
+    originalRuleStack = ruleStack
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
-
     loop
       scopes = scopesFromStack(ruleStack)
+      previousRuleStackLength = ruleStack.length
+      previousPosition = position
+
+      if tokens.length >= (@getMaxTokensPerLine() - 1)
+        token = new Token(value: line[position..], scopes: scopes)
+        tokens.push token
+        ruleStack = originalRuleStack
+        break
 
       if line.length == 0
         tokens = [new Token(value: "", scopes: scopes)]
@@ -69,8 +118,15 @@ class TextMateGrammar
           ))
         break
 
+      if position == previousPosition and ruleStack.length == previousRuleStackLength
+        console.error("Popping rule because it loops at column #{position} of line '#{line}'", _.clone(ruleStack))
+        ruleStack.pop()
+
     ruleStack.forEach (rule) -> rule.clearAnchorPosition()
     { tokens, ruleStack }
+
+  getMaxTokensPerLine: ->
+    @maxTokensPerLine
 
 class Rule
   grammar: null
@@ -111,7 +167,7 @@ class Rule
         regex = pattern.regexSource
       regexes.push regex if regex
 
-    regexScanner = OnigScanner.create(regexes)
+    regexScanner = new OnigScanner(regexes)
     regexScanner.patterns = patterns
     @scannersByBaseGrammarName[baseGrammar.name] = regexScanner unless anchored
     regexScanner
@@ -152,10 +208,10 @@ class Pattern
   backReferences: null
   anchored: false
 
-  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule, hasBackReferences}) ->
+  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule, @hasBackReferences}) ->
     @scopeName = name ? contentName # TODO: We need special treatment of contentName
     if match
-      if @hasBackReferences = hasBackReferences ? /\\\d+/.test(match)
+      if (end or @popRule) and @hasBackReferences ?= /\\\d+/.test(match)
         @match = match
       else
         @regexSource = match

@@ -18,13 +18,16 @@ class SpellCheckView extends View
 
     @subscribeToBuffer()
 
-  subscribeToBuffer: ->
+  unsubscribeFromBuffer: ->
     @destroyViews()
     @task?.abort()
 
     if @buffer?
       @buffer.off '.spell-check'
       @buffer = null
+
+  subscribeToBuffer: ->
+    @unsubscribeFromBuffer()
 
     if @spellCheckCurrentGrammar()
       @buffer = @editor.getBuffer()
@@ -47,6 +50,10 @@ class SpellCheckView extends View
       @append(view)
 
   updateMisspellings: ->
+    unless @editor.activeEditSession?
+      @unsubscribeFromBuffer()
+      return
+
     @task?.abort()
 
     callback = (misspellings) =>

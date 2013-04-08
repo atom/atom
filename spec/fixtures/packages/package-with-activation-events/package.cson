@@ -1,3 +1,2 @@
 'activationEvents': ['activation-event']
 'deferredDeserializers': ['Foo']
-'main': 'main'

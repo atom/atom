@@ -1,7 +1,7 @@
 $ = require 'jquery'
 AutocompleteView = require 'autocomplete/lib/autocomplete-view'
 Autocomplete = require 'autocomplete/lib/autocomplete'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 RootView = require 'root-view'
 
@@ -14,7 +14,7 @@ describe "Autocomplete", ->
   describe "@activate()", ->
     it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
       spyOn(AutocompleteView.prototype, 'initialize').andCallThrough()
-      autocompletePackage = window.loadPackage("autocomplete")
+      autocompletePackage = atom.activatePackage("autocomplete")
       expect(AutocompleteView.prototype.initialize).not.toHaveBeenCalled()
 
       leftEditor = rootView.getActiveView()
@@ -41,7 +41,7 @@ describe "AutocompleteView", ->
   beforeEach ->
     window.rootView = new RootView
     editor = new Editor(editSession: project.buildEditSession('sample.js'))
-    window.loadPackage('autocomplete')
+    atom.activatePackage('autocomplete')
     autocomplete = new AutocompleteView(editor)
     miniEditor = autocomplete.miniEditor
 
@@ -288,6 +288,9 @@ describe "AutocompleteView", ->
       expect(editor.lineForBufferRow(10)).toBe matchToSelect.text()
 
   describe "when the mini-editor receives keyboard input", ->
+    beforeEach ->
+      editor.attachToDom()
+
     describe "when text is removed from the mini-editor", ->
       it "reloads the match list based on the mini-editor's text", ->
         editor.getBuffer().insert([10,0] ,"t")

@@ -3,7 +3,7 @@ SelectList = require 'select-list'
 TagGenerator = require './tag-generator'
 TagReader = require './tag-reader'
 Point = require 'point'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 
 module.exports =
@@ -30,7 +30,7 @@ class SymbolsView extends SelectList
         if position
           text = "Line #{position.row + 1}"
         else
-          text = fs.base(file)
+          text = fsUtils.base(file)
         @div text, class: 'right function-details'
 
   toggleFileSymbols: ->
@@ -41,12 +41,10 @@ class SymbolsView extends SelectList
       @attach()
 
   populateFileSymbols: ->
-    tags = []
-    callback = (tag) -> tags.push tag
     path = rootView.getActiveView().getPath()
     @list.empty()
     @setLoading("Generating symbols...")
-    new TagGenerator(path, callback).generate().done =>
+    new TagGenerator(path).generate().done (tags) =>
       if tags.length > 0
         @miniEditor.show()
         @maxItem = Infinity
@@ -77,7 +75,7 @@ class SymbolsView extends SelectList
         setTimeout (=> @cancel()), 2000
 
   confirmed : (tag) ->
-    if tag.file and not fs.isFile(project.resolve(tag.file))
+    if tag.file and not fsUtils.isFile(project.resolve(tag.file))
       @setError('Selected file does not exist')
       setTimeout((=> @setError()), 2000)
     else
@@ -106,8 +104,8 @@ class SymbolsView extends SelectList
     pattern = $.trim(tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '')) # Remove leading /^ and trailing $/
     return unless pattern
     file = project.resolve(tag.file)
-    return unless fs.isFile(file)
-    for line, index in fs.read(file).split('\n')
+    return unless fsUtils.isFile(file)
+    for line, index in fsUtils.read(file).split('\n')
       return new Point(index, 0) if pattern is $.trim(line)
 
   goToDeclaration: ->
@@ -125,7 +123,7 @@ class SymbolsView extends SelectList
         continue unless position
         tags.push
           file: match.file
-          name: fs.base(match.file)
+          name: fsUtils.base(match.file)
           position: position
       @miniEditor.show()
       @setArray(tags)

@@ -41,7 +41,8 @@ module.exports =
 
   goToMatchingPair: (editor) ->
     return unless @pairHighlighted
-    return unless underlayer = editor.pane()?.find('.underlayer')
+    return unless underlayer = editor.getPane()?.find('.underlayer')
+    return unless underlayer.isVisible()
 
     position = editor.getCursorBufferPosition()
     previousPosition = position.translate([0, -1])
@@ -102,7 +103,7 @@ module.exports =
     regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     endPairPosition = null
     unpairedCount = 0
-    buffer.scanInRange regex, scanRange, (match, range, {stop}) =>
+    buffer.scanInRange regex, scanRange, ({match, range, stop}) =>
       if match[0] is startPair
         unpairedCount++
       else if match[0] is endPair
@@ -116,18 +117,17 @@ module.exports =
     regex = new RegExp("[#{_.escapeRegExp(startPair + endPair)}]", 'g')
     startPairPosition = null
     unpairedCount = 0
-    scanner = (match, range, {stop}) =>
+    buffer.backwardsScanInRange regex, scanRange, ({match, range, stop}) =>
       if match[0] is endPair
         unpairedCount++
       else if match[0] is startPair
         unpairedCount--
         startPairPosition = range.start
         stop() if unpairedCount < 0
-    buffer.scanInRange(regex, scanRange, scanner, true)
     startPairPosition
 
   updateMatch: (editor) ->
-    return unless underlayer = editor.pane()?.find('.underlayer')
+    return unless underlayer = editor.getPane()?.find('.underlayer')
 
     @hideHighlightViews(editor) if @pairHighlighted
     @pairHighlighted = false

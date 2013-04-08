@@ -1,11 +1,13 @@
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
+LoadTagsTask = require './load-tags-task'
+ctags = require 'ctags'
 
 module.exports =
 
 getTagsFile: (project) ->
   tagsFile = project.resolve("tags") or project.resolve("TAGS")
-  return tagsFile if fs.isFile(tagsFile)
+  return tagsFile if fsUtils.isFile(tagsFile)
 
 find: (editor) ->
   word = editor.getTextInRange(editor.getCursor().getCurrentWordBufferRange())
@@ -14,14 +16,11 @@ find: (editor) ->
   tagsFile = @getTagsFile(project)
   return [] unless tagsFile
 
-  $tags.find(tagsFile, word) or []
+  ctags.findTags(tagsFile, word)
 
 getAllTags: (project, callback) ->
   deferred = $.Deferred()
-  tagsFile = @getTagsFile(project)
-  if tagsFile
-    $tags.getAllTagsAsync tagsFile, (tags) =>
-      deferred.resolve(tags)
-  else
-    deferred.resolve([])
+  callback = (tags=[]) =>
+    deferred.resolve(tags)
+  new LoadTagsTask(callback).start()
   deferred.promise()

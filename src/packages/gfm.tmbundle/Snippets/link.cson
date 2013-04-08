@@ -1,4 +1,0 @@
-'name': 'link'
-'scope': 'source.gfm'
-'tabTrigger': 'l'
-'content': '[$1]($2)$0'

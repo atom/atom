@@ -1,5 +1,4 @@
 require 'benchmark-helper'
-fs = require 'fs'
 $ = require 'jquery'
 _ = require 'underscore'
 TokenizedBuffer = require 'tokenized-buffer'

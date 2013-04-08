@@ -1,5 +1,5 @@
-Git = require 'git'
-fs = require 'fs'
+Git = require 'git-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
   loadStatuses: (path) ->
@@ -7,10 +7,10 @@ module.exports =
     if repo?
       workingDirectoryPath = repo.getWorkingDirectory()
       statuses = {}
-      for path, status of repo.getRepo().getStatuses()
-        statuses[fs.join(workingDirectoryPath, path)] = status
-      upstream = repo.getAheadBehindCounts()
-      repo.destroy()
+      for path, status of repo.getStatus()
+        statuses[fsUtils.join(workingDirectoryPath, path)] = status
+      upstream = repo.getAheadBehindCount()
+      repo.release()
     else
       upstream = {}
       statuses = {}

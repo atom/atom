@@ -1,6 +1,7 @@
 Project = require 'project'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
+BufferedProcess = require 'buffered-process'
 
 describe "Project", ->
   beforeEach ->
@@ -28,12 +29,12 @@ describe "Project", ->
       editSession = project.buildEditSession()
       editSession.saveAs('/tmp/atom-test-save-sets-project-path')
       expect(project.getPath()).toBe '/tmp'
-      fs.remove('/tmp/atom-test-save-sets-project-path')
+      fsUtils.remove('/tmp/atom-test-save-sets-project-path')
 
   describe ".buildEditSession(path)", ->
     [absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
-      absolutePath = require.resolve('fixtures/dir/a')
+      absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
       newBufferHandler = jasmine.createSpy('newBufferHandler')
       project.on 'buffer-created', newBufferHandler
       newEditSessionHandler = jasmine.createSpy('newEditSessionHandler')
@@ -85,30 +86,30 @@ describe "Project", ->
 
   describe ".resolve(path)", ->
     it "returns an absolute path based on the project's root", ->
-      absolutePath = require.resolve('fixtures/dir/a')
+      absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
       expect(project.resolve('a')).toBe absolutePath
       expect(project.resolve(absolutePath + '/../a')).toBe absolutePath
       expect(project.resolve('a/../a')).toBe absolutePath
 
   describe ".relativize(path)", ->
     it "returns an relative path based on the project's root", ->
-      absolutePath = require.resolve('fixtures/dir')
-      expect(project.relativize(fs.join(absolutePath, "b"))).toBe "b"
-      expect(project.relativize(fs.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
-      expect(project.relativize(fs.join(absolutePath, "file.coffee"))).toBe "file.coffee"
+      absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir')
+      expect(project.relativize(fsUtils.join(absolutePath, "b"))).toBe "b"
+      expect(project.relativize(fsUtils.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
+      expect(project.relativize(fsUtils.join(absolutePath, "file.coffee"))).toBe "file.coffee"
 
   describe ".setPath(path)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
-        project.setPath(require.resolve('fixtures/dir/a'))
-        expect(project.getPath()).toEqual require.resolve('fixtures/dir')
-        expect(project.getRootDirectory().path).toEqual require.resolve('fixtures/dir')
+        project.setPath(fsUtils.resolveOnLoadPath('fixtures/dir/a'))
+        expect(project.getPath()).toEqual fsUtils.resolveOnLoadPath('fixtures/dir')
+        expect(project.getRootDirectory().path).toEqual fsUtils.resolveOnLoadPath('fixtures/dir')
 
     describe "when path is a directory", ->
       it "sets its path to the directory and updates the root directory", ->
-        project.setPath(require.resolve('fixtures/dir/a-dir'))
-        expect(project.getPath()).toEqual require.resolve('fixtures/dir/a-dir')
-        expect(project.getRootDirectory().path).toEqual require.resolve('fixtures/dir/a-dir')
+        project.setPath(fsUtils.resolveOnLoadPath('fixtures/dir/a-dir'))
+        expect(project.getPath()).toEqual fsUtils.resolveOnLoadPath('fixtures/dir/a-dir')
+        expect(project.getRootDirectory().path).toEqual fsUtils.resolveOnLoadPath('fixtures/dir/a-dir')
 
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
@@ -117,7 +118,7 @@ describe "Project", ->
         expect(project.getRootDirectory()?).toBeFalsy()
 
   describe ".getFilePaths()", ->
-    it "asynchronously returns file paths using a promise", ->
+    it "returns file paths using a promise", ->
       paths = null
       waitsForPromise ->
         project.getFilePaths().done (foundPaths) -> paths = foundPaths
@@ -126,36 +127,36 @@ describe "Project", ->
         expect(paths.length).toBeGreaterThan 0
 
     it "ignores files that return true from atom.ignorePath(path)", ->
-      spyOn(project, 'isPathIgnored').andCallFake (path) -> fs.base(path).match /a$/
+      spyOn(project, 'isPathIgnored').andCallFake (path) -> fsUtils.base(path).match /a$/
 
       paths = null
       waitsForPromise ->
         project.getFilePaths().done (foundPaths) -> paths = foundPaths
 
       runs ->
-        expect(paths).not.toContain('a')
-        expect(paths).toContain('b')
+        expect(paths).not.toContain(project.resolve('a'))
+        expect(paths).toContain(project.resolve('b'))
 
     describe "when config.core.hideGitIgnoredFiles is true", ->
       it "ignores files that are present in .gitignore if the project is a git repo", ->
         config.set "core.hideGitIgnoredFiles", true
-        project.setPath(require.resolve('fixtures/git/working-dir'))
+        project.setPath(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'))
         paths = null
         waitsForPromise ->
           project.getFilePaths().done (foundPaths) -> paths = foundPaths
 
-      runs ->
+        runs ->
           expect(paths).not.toContain('ignored.txt')
 
     describe "ignored file name", ->
       ignoredFile = null
 
       beforeEach ->
-        ignoredFile = fs.join(require.resolve('fixtures/dir'), 'ignored.txt')
-        fs.write(ignoredFile, "")
+        ignoredFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored.txt')
+        fsUtils.write(ignoredFile, "")
 
       afterEach ->
-        fs.remove(ignoredFile)
+        fsUtils.remove(ignoredFile)
 
       it "ignores ignored.txt file", ->
         paths = null
@@ -171,11 +172,11 @@ describe "Project", ->
       ignoredFile = null
 
       beforeEach ->
-        ignoredFile = fs.join(require.resolve('fixtures/dir'), 'ignored/ignored.txt')
-        fs.write(ignoredFile, "")
+        ignoredFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored/ignored.txt')
+        fsUtils.write(ignoredFile, "")
 
       afterEach ->
-        fs.remove(ignoredFile)
+        fsUtils.remove(ignoredFile)
 
       it "ignores ignored folder", ->
         paths = null
@@ -221,7 +222,7 @@ describe "Project", ->
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
-        project.setPath(require.resolve('fixtures/evil-files'))
+        project.setPath(fsUtils.resolveOnLoadPath('fixtures/evil-files'))
         paths = []
         matches = []
         waitsForPromise ->
@@ -236,16 +237,16 @@ describe "Project", ->
           expect(paths[1]).toMatch /file with spaces.txt$/
           expect(paths[2]).toMatch /goddam\nnewlines$/m
           expect(paths[3]).toMatch /quote".txt$/m
-          expect(fs.base(paths[4])).toBe "utfa\u0306.md"
+          expect(fsUtils.base(paths[4])).toBe "utfa\u0306.md"
 
       it "handles breaks in the search subprocess's output following the filename", ->
-        spyOn $native, 'exec'
+        spyOn(BufferedProcess.prototype, 'bufferStream')
 
         iterator = jasmine.createSpy('iterator')
         project.scan /a+/, iterator
 
-        stdout = $native.exec.argsForCall[0][1].stdout
-        stdout ":#{require.resolve('fixtures/dir/a')}\n"
+        stdout = BufferedProcess.prototype.bufferStream.argsForCall[0][1]
+        stdout ":#{fsUtils.resolveOnLoadPath('fixtures/dir/a')}\n"
         stdout "1;0 3:aaa bbb\n2;3 2:cc aa cc\n"
 
         expect(iterator.argsForCall[0][0]).toEqual
@@ -258,10 +259,33 @@ describe "Project", ->
           match: 'aa'
           range: [[1, 3], [1, 5]]
 
+      describe "when the core.excludeVcsIgnoredPaths config is truthy", ->
+        [projectPath, ignoredPath] = []
+
+        beforeEach ->
+          projectPath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir')
+          ignoredPath = fsUtils.join(projectPath, 'ignored.txt')
+          fsUtils.write(ignoredPath, 'this match should not be included')
+
+        afterEach ->
+          fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
+
+        it "excludes ignored files", ->
+          project.setPath(projectPath)
+          config.set('core.excludeVcsIgnoredPaths', true)
+          paths = []
+          matches = []
+          waitsForPromise ->
+            project.scan /match/, ({path, match, range}) ->
+              paths.push(path)
+              matches.push(match)
+
+          runs ->
+            expect(paths.length).toBe 0
+            expect(matches.length).toBe 0
+
+
   describe "serialization", ->
-    it "restores the project path and grammar overrides", ->
-      jsGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'JavaScript'
-      project.addGrammarOverrideForPath('/a/b.txt', jsGrammar)
+    it "restores the project path", ->
       newProject = Project.deserialize(project.serialize())
       expect(newProject.getPath()).toBe project.getPath()
-      expect(newProject.grammarOverrideForPath('/a/b.txt')).toBe jsGrammar

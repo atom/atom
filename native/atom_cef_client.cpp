@@ -87,6 +87,12 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "getVersion") {
     GetVersion(messageId, browser);
   }
+  else if (name == "crash") {
+    __builtin_trap();
+  }
+  else if (name == "restartRendererProcess") {
+    RestartRendererProcess(browser);
+  }
   else {
     return false;
   }
@@ -248,4 +254,12 @@ bool AtomCefClient::Save(const std::string& path, const std::string& data) {
   fwrite(data.c_str(), data.size(), 1, f);
   fclose(f);
   return true;
+}
+
+void AtomCefClient::RestartRendererProcess(CefRefPtr<CefBrowser> browser) {
+  // Navigating to the same URL has the effect of restarting the renderer
+  // process, because cefode has overridden ContentBrowserClient's
+  // ShouldSwapProcessesForNavigation method.
+  CefRefPtr<CefFrame> frame = browser->GetFocusedFrame();
+  frame->LoadURL(frame->GetURL());
 }

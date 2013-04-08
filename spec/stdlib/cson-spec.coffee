@@ -81,10 +81,10 @@ describe "CSON", ->
         fontSize: 20
         core:
           themes: ['a', 'b']
-        stripTrailingWhitespace:
-          singleTrailingNewline: true
+        whitespace:
+          ensureSingleTrailingNewline: true
 
       cson = CSON.stringify(object)
-      {CoffeeScript} = require 'coffee-script'
+      CoffeeScript = require 'coffee-script'
       evaledObject = CoffeeScript.eval(cson, bare: true)
       expect(evaledObject).toEqual object

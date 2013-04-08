@@ -5,6 +5,7 @@
 #import "native/atom_cef_app.h"
 #import <getopt.h>
 #import <Sparkle/Sparkle.h>
+#import <Quincy/BWQuincyManager.h>
 
 @implementation AtomApplication
 
@@ -142,12 +143,34 @@
 }
 
 - (void)open:(NSString *)path pidToKillWhenWindowCloses:(NSNumber *)pid {
-  for (NSWindow *window in [self windows]) {
-    if (![window isExcludedFromWindowsMenu]) {
-      AtomWindowController *controller = [window windowController];
-      if ([path isEqualToString:controller.pathToOpen]) {
-        [window makeKeyAndOrderFront:nil];
-        return;
+  BOOL openingDirectory = false;
+  [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&openingDirectory];
+
+  if (!pid) {
+    for (NSWindow *window in [self windows]) {
+      if (![window isExcludedFromWindowsMenu]) {
+        AtomWindowController *controller = [window windowController];
+        if (!openingDirectory) {
+          BOOL openedPathIsDirectory = false;
+          [[NSFileManager defaultManager] fileExistsAtPath:controller.pathToOpen isDirectory:&openedPathIsDirectory];
+          NSString *projectPath = NULL;
+          if (openedPathIsDirectory) {
+            projectPath = [NSString stringWithFormat:@"%@/", controller.pathToOpen];
+          }
+          else {
+            projectPath = [controller.pathToOpen stringByDeletingLastPathComponent];
+          }
+          if ([path hasPrefix:projectPath]) {
+            [window makeKeyAndOrderFront:nil];
+            [controller openPath:path];
+            return;
+          }
+        }
+
+        if ([path isEqualToString:controller.pathToOpen]) {
+          [window makeKeyAndOrderFront:nil];
+          return;
+        }
       }
     }
   }
@@ -207,6 +230,11 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  BWQuincyManager *manager = [BWQuincyManager sharedQuincyManager];
+  [manager setCompanyName:@"GitHub"];
+  [manager setSubmissionURL:@"https://speakeasy.githubapp.com/submit_crash_log"];
+  [manager setAutoSubmitCrashReport:YES];
+
   if (!_filesOpened && [self shouldOpenFiles]) {
     NSString *path = [self.arguments objectForKey:@"path"];
     NSNumber *pid = [self.arguments objectForKey:@"wait"] ? [self.arguments objectForKey:@"pid"] : nil;
@@ -226,12 +254,14 @@
   }
   else {
     _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
-    if (![self.arguments objectForKey:@"dev"]) {
-      SUUpdater.sharedUpdater.delegate = self;
-      SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
-      SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
-      [SUUpdater.sharedUpdater checkForUpdatesInBackground];
-    }
+
+#if defined(CODE_SIGNING_ENABLED)
+    SUUpdater.sharedUpdater.delegate = self;
+    SUUpdater.sharedUpdater.automaticallyChecksForUpdates = YES;
+    SUUpdater.sharedUpdater.automaticallyDownloadsUpdates = YES;
+    [SUUpdater.sharedUpdater checkForUpdatesInBackground];
+#endif
+
   }
 }
 

@@ -1,5 +1,6 @@
 Keymap = require 'keymap'
 $ = require 'jquery'
+{$$} = require 'space-pen'
 RootView = require 'root-view'
 
 describe "Keymap", ->
@@ -112,7 +113,8 @@ describe "Keymap", ->
         describe "when the matching selectors differ in specificity", ->
           it "triggers the binding for the most specific selector", ->
             keymap.bindKeys 'div .child-node', 'x': 'foo'
-            keymap.bindKeys '.command-mode .child-node', 'x': 'baz'
+            keymap.bindKeys '.command-mode .child-node !important', 'x': 'baz'
+            keymap.bindKeys '.command-mode .child-node', 'x': 'quux'
             keymap.bindKeys '.child-node', 'x': 'bar'
 
             fooHandler = jasmine.createSpy 'fooHandler'
@@ -234,7 +236,7 @@ describe "Keymap", ->
       it "returns false to prevent the browser from transferring focus", ->
         expect(keymap.handleKeyEvent(keydownEvent('U+0009', target: fragment[0]))).toBe false
 
-  describe ".bindKeys(selector, hash)", ->
+  describe ".bindKeys(selector, bindings)", ->
     it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
       fooHandler = jasmine.createSpy('fooHandler')
       fragment.on 'foo', fooHandler
@@ -248,6 +250,24 @@ describe "Keymap", ->
       result = keymap.handleKeyEvent(keydownEvent('-', ctrlKey: true, altKey: true, target: fragment[0]))
       expect(result).toBe(false)
       expect(fooHandler).toHaveBeenCalled()
+
+  describe ".remove(name)", ->
+    it "removes the binding set with the given selector and bindings", ->
+      keymap.add 'nature',
+        '.green':
+          'ctrl-c': 'cultivate'
+        '.brown':
+          'ctrl-h': 'harvest'
+
+      expect(keymap.bindingsForElement($$ -> @div class: 'green')).toEqual { 'ctrl-c': 'cultivate' }
+      expect(keymap.bindingsForElement($$ -> @div class: 'brown')).toEqual { 'ctrl-h': 'harvest' }
+
+      keymap.remove('nature')
+
+      expect(keymap.bindingsForElement($$ -> @div class: 'green')).toEqual {}
+      expect(keymap.bindingsForElement($$ -> @div class: 'brown')).toEqual {}
+      expect(keymap.bindingSetsByFirstKeystroke['ctrl-c']).toEqual []
+      expect(keymap.bindingSetsByFirstKeystroke['ctrl-h']).toEqual []
 
   describe ".keystrokeStringForEvent(event)", ->
     describe "when no modifiers are pressed", ->

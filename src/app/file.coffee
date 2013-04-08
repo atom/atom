@@ -1,6 +1,8 @@
 EventEmitter = require 'event-emitter'
 
 fs = require 'fs'
+fsUtils = require 'fs-utils'
+pathWatcher = require 'pathwatcher'
 _ = require 'underscore'
 
 module.exports =
@@ -8,33 +10,34 @@ class File
   path: null
   cachedContents: null
 
-  constructor: (@path) ->
-    if @exists() and not fs.isFile(@path)
-      throw new Error(@path + " is a directory")
+  constructor: (@path, @symlink=false) ->
+    try
+      if fs.statSync(@path).isDirectory()
+        throw new Error("#{@path} is a directory")
 
   setPath: (@path) ->
 
   getPath: -> @path
 
   getBaseName: ->
-    fs.base(@path)
+    fsUtils.base(@path)
 
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fs.write(@getPath(), text)
+    fsUtils.write(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   read: (flushCache)->
     if not @exists()
       @cachedContents = null
     else if not @cachedContents? or flushCache
-      @cachedContents = fs.read(@getPath())
+      @cachedContents = fsUtils.read(@getPath())
     else
       @cachedContents
 
   exists: ->
-    fs.exists(@getPath())
+    fsUtils.exists(@getPath())
 
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
@@ -43,12 +46,13 @@ class File
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   handleNativeChangeEvent: (eventType, path) ->
-    if eventType is "remove"
+    if eventType is "delete"
+      @unsubscribeFromNativeChangeEvents()
       @detectResurrectionAfterDelay()
-    else if eventType is "move"
+    else if eventType is "rename"
       @setPath(path)
       @trigger "moved"
-    else if eventType is "contents-change"
+    else if eventType is "change"
       oldContents = @read()
       newContents = @read(true)
       return if oldContents == newContents
@@ -60,17 +64,18 @@ class File
   detectResurrection: ->
     if @exists()
       @subscribeToNativeChangeEvents()
-      @handleNativeChangeEvent("contents-change", @getPath())
+      @handleNativeChangeEvent("change", @getPath())
     else
       @cachedContents = null
-      @unsubscribeFromNativeChangeEvents()
       @trigger "removed"
 
   subscribeToNativeChangeEvents: ->
-    @watchId = $native.watchPath @path, (eventType, path) =>
+    @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
       @handleNativeChangeEvent(eventType, path)
 
   unsubscribeFromNativeChangeEvents: ->
-    $native.unwatchPath(@path, @watchId)
+    if @watchSubscription
+      @watchSubscription.close()
+      @watchSubscription = null
 
 _.extend File.prototype, EventEmitter

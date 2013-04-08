@@ -6,6 +6,7 @@ class AtomCefClient;
   NSSplitView *_splitView;
   NSView *_devToolsView;
   NSView *_webView;
+  NSButton *_devButton;
   NSString *_bootstrapScript;
   NSString *_resourcePath;
   NSString *_pathToOpen;
@@ -33,5 +34,6 @@ class AtomCefClient;
 
 - (void)toggleDevTools;
 - (void)showDevTools;
+- (void)openPath:(NSString*)path;
 
 @end

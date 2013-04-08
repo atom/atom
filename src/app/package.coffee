@@ -1,4 +1,4 @@
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class Package
@@ -11,8 +11,13 @@ class Package
     else
       new AtomPackage(path)
 
+  @load: (path, options) ->
+    pack = @build(path)
+    pack.load(options)
+    pack
+
   name: null
   path: null
 
   constructor: (@path) ->
-    @name = fs.base(@path)
+    @name = fsUtils.base(@path)

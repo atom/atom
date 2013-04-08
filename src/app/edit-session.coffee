@@ -1,5 +1,5 @@
 Point = require 'point'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
@@ -8,27 +8,23 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
 _ = require 'underscore'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class EditSession
   registerDeserializer(this)
 
+  @version: 1
+
   @deserialize: (state) ->
-    if fs.exists(state.buffer)
-      session = project.buildEditSession(state.buffer)
-    else
+    session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
+    if !session?
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
       session = project.buildEditSession(null)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
     session
-
-  @identifiedBy: 'path'
-
-  @deserializesToSameObject: (state, editSession) ->
-    state.path
 
   scrollTop: 0
   scrollLeft: 0
@@ -49,7 +45,7 @@ class EditSession
 
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
-      @project.setPath(fs.directory(@getPath())) unless @project.getPath()?
+      @project.setPath(fsUtils.directory(@getPath())) unless @project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
@@ -61,21 +57,21 @@ class EditSession
     @subscribe @displayBuffer, "changed", (e) =>
       @trigger 'screen-lines-changed', e
 
-    @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
+    @languageMode.on 'grammar-changed', => @handleGrammarChange()
 
   getViewClass: ->
     require 'editor'
 
   getTitle: ->
     if path = @getPath()
-      fs.base(path)
+      fsUtils.base(path)
     else
       'untitled'
 
   getLongTitle: ->
     if path = @getPath()
-      fileName = fs.base(path)
-      directory = fs.base(fs.directory(path))
+      fileName = fsUtils.base(path)
+      directory = fsUtils.base(fsUtils.directory(path))
       "#{fileName} - #{directory}"
     else
       'untitled'
@@ -87,13 +83,15 @@ class EditSession
     @buffer.release()
     selection.destroy() for selection in @getSelections()
     @displayBuffer.destroy()
+    @languageMode.destroy()
     @project?.removeEditSession(this)
     @trigger 'destroyed'
     @off()
 
   serialize: ->
     deserializer: 'EditSession'
-    buffer: @buffer.getPath()
+    version: @constructor.version
+    buffer: @buffer.serialize()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
@@ -127,8 +125,8 @@ class EditSession
   getTabLength: -> @displayBuffer.getTabLength()
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
-  clipBufferPosition: (bufferPosition) ->
-    @buffer.clipPosition(bufferPosition)
+  clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
+  clipBufferRange: (range) -> @buffer.clipRange(range)
 
   indentationForBufferRow: (bufferRow) ->
     @indentLevelForLine(@lineForBufferRow(bufferRow))
@@ -166,8 +164,8 @@ class EditSession
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
-  scanInRange: (args...) -> @buffer.scanInRange(args...)
-  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
   isModified: -> @buffer.isModified()
   hasEditors: -> @buffer.hasEditors()
 
@@ -248,7 +246,7 @@ class EditSession
 
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @softTabs
-    @scanInRange /\t/, bufferRange, (match, range, {replace}) => replace(@getTabText())
+    @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
 
   cutToEndOfLine: ->
     maintainPasteboard = false
@@ -558,6 +556,9 @@ class EditSession
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
 
+  isMarkerRangeEmpty: (args...) ->
+    @displayBuffer.isMarkerRangeEmpty(args...)
+
   hasMultipleCursors: ->
     @getCursors().length > 1
 
@@ -587,16 +588,22 @@ class EditSession
     unless options.preserveFolds
       @destroyFoldsIntersectingBufferRange(@getMarkerBufferRange(marker))
     cursor = @addCursor(marker)
-    selection = new Selection({editSession: this, marker, cursor})
+    selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
     @selections.push(selection)
-    @mergeIntersectingSelections()
-    @trigger 'selection-added', selection
-    selection
+    selectionBufferRange = selection.getBufferRange()
+    @mergeIntersectingSelections() unless options.suppressMerge
+    if selection.destroyed
+      for selection in @getSelections()
+        if selection.intersectsBufferRange(selectionBufferRange)
+          return selection
+    else
+      @trigger 'selection-added', selection
+      selection
 
   addSelectionForBufferRange: (bufferRange, options={}) ->
     options = _.defaults({invalidationStrategy: 'never'}, options)
     marker = @markBufferRange(bufferRange, options)
-    @addSelection(marker)
+    @addSelection(marker, options)
 
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
@@ -619,13 +626,16 @@ class EditSession
     _.remove(@selections, selection)
 
   clearSelections: ->
-    lastSelection = @getLastSelection()
-    for selection in @getSelections() when selection != lastSelection
-      selection.destroy()
-    lastSelection.clear()
+    @consolidateSelections()
+    @getSelection().clear()
 
-  clearAllSelections: ->
-    selection.destroy() for selection in @getSelections()
+  consolidateSelections: ->
+    selections = @getSelections()
+    if selections.length > 1
+      selection.destroy() for selection in selections[0...-1]
+      true
+    else
+      false
 
   getSelections: -> new Array(@selections...)
 
@@ -757,6 +767,12 @@ class EditSession
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
 
+  addSelectionBelow: ->
+    @expandSelectionsForward (selection) => selection.addSelectionBelow()
+
+  addSelectionAbove: ->
+    @expandSelectionsBackward (selection) => selection.addSelectionAbove()
+
   transpose: ->
     @mutateSelectedText (selection) =>
       if selection.isEmpty()
@@ -773,6 +789,9 @@ class EditSession
 
   lowerCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) => text.toLowerCase()
+
+  joinLine: ->
+    @mutateSelectedText (selection) -> selection.joinLine()
 
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()
@@ -842,11 +861,15 @@ class EditSession
 
   getGrammar: -> @languageMode.grammar
 
+  setGrammar: (grammar) ->
+    @languageMode.setGrammar(grammar)
+
   reloadGrammar: ->
-    if @languageMode.reloadGrammar()
-      @unfoldAll()
-      @displayBuffer.tokenizedBuffer.resetScreenLines()
-      true
+    @languageMode.reloadGrammar()
+
+  handleGrammarChange: ->
+    @unfoldAll()
+    @trigger 'grammar-changed'
 
   getDebugSnapshot: ->
     [

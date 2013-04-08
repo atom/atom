@@ -1,28 +1,38 @@
 Range = require 'range'
 _ = require 'underscore'
 require 'underscore-extensions'
-OnigRegExp = require 'onig-reg-exp'
+{OnigRegExp} = require 'oniguruma'
+EventEmitter = require 'event-emitter'
+Subscriber = require 'subscriber'
 
 module.exports =
 class LanguageMode
   buffer = null
   grammar = null
   editSession = null
+  currentGrammarScore: null
 
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @reloadGrammar()
+    @subscribe syntax, 'grammar-added', (grammar) =>
+      newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
+
+  destroy: ->
+    @unsubscribe()
+
+  setGrammar: (grammar, score) ->
+    return if grammar is @grammar
+    @grammar = grammar
+    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
+    @trigger 'grammar-changed', grammar
 
   reloadGrammar: ->
-    path = @buffer.getPath()
-    pathContents = @buffer.cachedDiskContents
-    previousGrammar = @grammar
-    if @buffer.project?
-      @grammar = @buffer.project.grammarForFilePath(path, pathContents)
+    if grammar = syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar)
     else
-      @grammar = syntax.grammarForFilePath(path, pathContents)
-    throw new Error("No grammar found for path: #{path}") unless @grammar
-    previousGrammar isnt @grammar
+      throw new Error("No grammar found for path: #{path}")
 
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
@@ -30,13 +40,13 @@ class LanguageMode
 
     buffer = @editSession.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
-    commentStartRegex = OnigRegExp.create("^(\\s*)(#{commentStartRegexString})")
+    commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
     shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
     if commentEndString = syntax.getProperty(scopes, "editor.commentEnd")
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
-        commentEndRegex = OnigRegExp.create("(#{commentEndRegexString})(\\s*)$")
+        commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
         startMatch =  commentStartRegex.search(buffer.lineForRow(start))
         endMatch = commentEndRegex.search(buffer.lineForRow(end))
         if startMatch and endMatch
@@ -152,12 +162,15 @@ class LanguageMode
 
   increaseIndentRegexForScopes: (scopes) ->
     if increaseIndentPattern = syntax.getProperty(scopes, 'editor.increaseIndentPattern')
-      OnigRegExp.create(increaseIndentPattern)
+      new OnigRegExp(increaseIndentPattern)
 
   decreaseIndentRegexForScopes: (scopes) ->
     if decreaseIndentPattern = syntax.getProperty(scopes, 'editor.decreaseIndentPattern')
-      OnigRegExp.create(decreaseIndentPattern)
+      new OnigRegExp(decreaseIndentPattern)
 
   foldEndRegexForScopes: (scopes) ->
     if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
-      OnigRegExp.create(foldEndPattern)
+      new OnigRegExp(foldEndPattern)
+
+_.extend LanguageMode.prototype, EventEmitter
+_.extend LanguageMode.prototype, Subscriber

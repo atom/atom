@@ -1,17 +1,19 @@
 EditSession = require 'edit-session'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 Editor = require 'editor'
 Range = require 'range'
 Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
+    atom.activatePackage('text.tmbundle', sync: true)
+    atom.activatePackage('javascript.tmbundle', sync: true)
     editSession = project.buildEditSession('sample.js')
     buffer = editSession.buffer
     editor = new Editor(editSession)
@@ -81,7 +83,7 @@ describe "Editor", ->
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
       path = "/tmp/atom-changed-file.txt"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       editSession = project.buildEditSession(path)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
@@ -91,7 +93,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fs.write(path, "a file change")
+      fsUtils.write(path, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -145,7 +147,7 @@ describe "Editor", ->
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       path = "/tmp/atom-changed-file.txt"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       tempEditSession = project.buildEditSession(path)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
@@ -154,7 +156,7 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fs.write(path, "a file change")
+      fsUtils.write(path, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -226,10 +228,10 @@ describe "Editor", ->
     path = null
     beforeEach ->
       path = "/tmp/something.txt"
-      fs.write(path, path)
+      fsUtils.write(path, path)
 
     afterEach ->
-      fs.remove(path) if fs.exists(path)
+      fsUtils.remove(path) if fsUtils.exists(path)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
@@ -332,12 +334,6 @@ describe "Editor", ->
         expect(selectionRegion.height()).toBe editor.lineHeight
         expect(selectionRegion.width()).toBe 5 * editor.charWidth
 
-      it "updates the gutter width and font size", ->
-        editor.attachToDom()
-        config.set("editor.fontSize", 20)
-        expect(editor.gutter.css('font-size')).toBe "20px"
-        expect(editor.gutter.width()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
-
       it "updates lines if there are unrendered lines", ->
         editor.attachToDom(heightInLines: 5)
         originalLineCount = editor.renderedLines.find(".line").length
@@ -394,7 +390,7 @@ describe "Editor", ->
           editor.clearFontFamily()
 
         it "positions the cursor to the clicked row and column", ->
-          {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
+          {top, left} = editor.pixelOffsUtilsetForScreenPosition([3, 30])
           editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
           expect(editor.getCursorScreenPosition()).toEqual [3, 30]
 
@@ -561,6 +557,34 @@ describe "Editor", ->
         fn() for fn in intervalFns
 
         expect(editor.scrollTop()).toBe 0
+
+      it "ignores non left-click and drags", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        event = mousedownEvent(editor: editor, point: [4, 10])
+        event.originalEvent.which = 2
+        editor.renderedLines.trigger(event)
+        $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
+        $(document).trigger 'mouseup'
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 4, column: 10})
+
+      it "ignores ctrl-click and drags", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        event = mousedownEvent(editor: editor, point: [4, 10])
+        event.ctrlKey = true
+        editor.renderedLines.trigger(event)
+        $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
+        $(document).trigger 'mouseup'
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 4, column: 10})
 
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
@@ -741,6 +765,18 @@ describe "Editor", ->
         expect(editor.getSelectionViews().length).toBe 1
         expect(editor.find('.region').length).toBe 3
 
+    describe "when a selection is added and removed before the display is updated", ->
+      it "does not attempt to render the selection", ->
+        # don't update display until we request it
+        jasmine.unspy(editor, 'requestDisplayUpdate')
+        spyOn(editor, 'requestDisplayUpdate')
+
+        editSession = editor.activeEditSession
+        selection = editSession.addSelectionForBufferRange([[3, 0], [3, 4]])
+        selection.destroy()
+        editor.updateDisplay()
+        expect(editor.getSelectionViews().length).toBe 1
+
     describe "when the selection is created with the selectAll event", ->
       it "does not scroll to the end of the buffer", ->
         editor.height(150)
@@ -762,7 +798,7 @@ describe "Editor", ->
         setEditorHeightInLines(editor, 4)
 
       describe "if autoscroll is true", ->
-        it "centers the viewport on the selection if its vertical center is currently offscreen", ->
+        it "centers the viewport on the selection if its vertical center is currently offsUtilscreen", ->
           editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
           expect(editor.scrollTop()).toBe 0
 
@@ -981,6 +1017,15 @@ describe "Editor", ->
               editor.setCursorScreenPosition([2, 5])
               expect(editor.scrollView.scrollLeft()).toBe 0
 
+  describe "when editor:toggle-soft-wrap is toggled", ->
+    describe "when the text exceeds the editor width and the scroll-view is horizontally scrolled", ->
+      it "wraps the text and renders properly", ->
+        editor.attachToDom(heightInLines: 30, widthInChars: 30)
+        editor.setText("Fashion axe umami jean shorts retro hashtag carles mumblecore. Photo booth skateboard Austin gentrify occupy ethical. Food truck gastropub keffiyeh, squid deep v pinterest literally sustainable salvia scenester messenger bag. Neutra messenger bag flexitarian four loko, shoreditch VHS pop-up tumblr seitan synth master cleanse. Marfa selvage ugh, raw denim authentic try-hard mcsweeney's trust fund fashion axe actually polaroid viral sriracha. Banh mi marfa plaid single-origin coffee. Pickled mumblecore lomo ugh bespoke.")
+        editor.scrollView.scrollLeft(editor.charWidth * 30)
+        editor.trigger "editor:toggle-soft-wrap"
+        expect(editor.scrollView.scrollLeft()).toBe 0
+
   describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->
@@ -1054,90 +1099,6 @@ describe "Editor", ->
           buffer.insert([1,0], "/*")
           expect(editor.renderedLines.find('.line:eq(2) > span:first > span:first')).toMatchSelector '.comment'
 
-      describe "when soft-wrap is enabled", ->
-        beforeEach ->
-          setEditorHeightInLines(editor, 20)
-          setEditorWidthInChars(editor, 50)
-          editor.setSoftWrap(true)
-          expect(editor.activeEditSession.softWrapColumn).toBe 50
-
-        it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
-          expect(editor.renderedLines.find('.line').length).toBe 16
-          expect(editor.renderedLines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
-          expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "right = [];"
-
-          editor.setCursorBufferPosition([3, 51], wrapAtSoftNewlines: true)
-          expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(4)').offset())
-
-          editor.setCursorBufferPosition([4, 0])
-          expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(5)').offset())
-
-          editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
-          [region1, region2] = editor.getSelectionView().regions
-          expect(region1.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(7)').offset().top)
-          expect(region2.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(8)').offset().top)
-
-        it "handles changes to wrapped lines correctly", ->
-          buffer.insert([6, 28], '1234567')
-          expect(editor.renderedLines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
-          expect(editor.renderedLines.find('.line:eq(8)').text()).toBe ': right.push(current);'
-          expect(editor.renderedLines.find('.line:eq(9)').text()).toBe '    }'
-
-        it "changes the max line length and repositions the cursor when the window size changes", ->
-          editor.setCursorBufferPosition([3, 60])
-          setEditorWidthInChars(editor, 40)
-          expect(editor.renderedLines.find('.line').length).toBe 19
-          expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
-          expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
-          expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
-
-        it "does not wrap the lines of any newly assigned buffers", ->
-          otherEditSession = project.buildEditSession()
-          otherEditSession.buffer.setText([1..100].join(''))
-          editor.edit(otherEditSession)
-          expect(editor.renderedLines.find('.line').length).toBe(1)
-
-        it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
-          editor.toggleSoftWrap()
-          expect(editor.renderedLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
-
-          spyOn(editor, 'setSoftWrapColumn')
-          $(window).trigger 'resize'
-          expect(editor.setSoftWrapColumn).not.toHaveBeenCalled()
-
-        it "allows the cursor to move down to the last line", ->
-          _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 0]
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 2]
-
-        it "allows the cursor to move up to a shorter soft wrapped line", ->
-          editor.setCursorScreenPosition([11, 15])
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition()).toEqual [10, 10]
-          editor.moveCursorUp()
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition()).toEqual [8, 15]
-
-        it "it allows the cursor to wrap when moving horizontally past the beginning / end of a wrapped line", ->
-          editor.setCursorScreenPosition([11, 0])
-          editor.moveCursorLeft()
-          expect(editor.getCursorScreenPosition()).toEqual [10, 10]
-
-          editor.moveCursorRight()
-          expect(editor.getCursorScreenPosition()).toEqual [11, 0]
-
-        it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
-          otherEditor = new Editor(editSession: project.buildEditSession('sample.js'))
-          spyOn(otherEditor, 'setSoftWrapColumn')
-
-          otherEditor.setSoftWrap(true)
-          expect(otherEditor.setSoftWrapColumn).not.toHaveBeenCalled()
-
-          otherEditor.simulateDomAttachment()
-          expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
-          otherEditor.remove()
-
     describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
@@ -1184,7 +1145,7 @@ describe "Editor", ->
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
             expect(editor.gutter.find('.line-number').length).toBe 8
-            expect(editor.gutter.find('.line-number:last').text()).toBe '8'
+            expect(editor.gutter.find('.line-number:last').intValue()).toBe 8
 
             editor.scrollTop(4 * editor.lineHeight)
             expect(editor.renderedLines.find('.line').length).toBe 10
@@ -1221,16 +1182,16 @@ describe "Editor", ->
             expect(editor.renderedLines.find('.line').length).toBe 10
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
             expect(editor.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
-            expect(editor.gutter.find('.line-number:first').text()).toBe '2'
-            expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+            expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+            expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
             # here we don't scroll far enough to trigger additional rendering
             editor.scrollTop(editor.lineHeight * 5.5) # first visible row will be 5, last will be 10
             expect(editor.renderedLines.find('.line').length).toBe 10
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
             expect(editor.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
-            expect(editor.gutter.find('.line-number:first').text()).toBe '2'
-            expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+            expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+            expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
             editor.scrollTop(editor.lineHeight * 7.5) # first visible row is 7, last will be 12
             expect(editor.renderedLines.find('.line').length).toBe 8
@@ -1248,7 +1209,7 @@ describe "Editor", ->
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
         describe "when scrolling more than the editors height", ->
-          it "removes lines that are offscreen and not in range of the overdraw and builds lines that become visible", ->
+          it "removes lines that are offsUtilscreen and not in range of the overdraw and builds lines that become visible", ->
             editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
             expect(editor.renderedLines.find('.line').length).toBe 8
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
@@ -1586,74 +1547,143 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
+  describe "when soft-wrap is enabled", ->
+    beforeEach ->
+      editor.attachToDom()
+      setEditorHeightInLines(editor, 20)
+      setEditorWidthInChars(editor, 50)
+      editor.setSoftWrap(true)
+      expect(editor.activeEditSession.softWrapColumn).toBe 50
+
+    it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
+      expect(editor.renderedLines.find('.line').length).toBe 16
+      expect(editor.renderedLines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
+      expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "right = [];"
+
+      editor.setCursorBufferPosition([3, 51], wrapAtSoftNewlines: true)
+      expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(4)').offset())
+
+      editor.setCursorBufferPosition([4, 0])
+      expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(5)').offset())
+
+      editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
+      [region1, region2] = editor.getSelectionView().regions
+      expect(region1.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(7)').offset().top)
+      expect(region2.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(8)').offset().top)
+
+    it "handles changes to wrapped lines correctly", ->
+      buffer.insert([6, 28], '1234567')
+      expect(editor.renderedLines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
+      expect(editor.renderedLines.find('.line:eq(8)').text()).toBe ': right.push(current);'
+      expect(editor.renderedLines.find('.line:eq(9)').text()).toBe '    }'
+
+    it "changes the max line length and repositions the cursor when the window size changes", ->
+      editor.setCursorBufferPosition([3, 60])
+      setEditorWidthInChars(editor, 40)
+      expect(editor.renderedLines.find('.line').length).toBe 19
+      expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
+      expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
+      expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
+
+    it "does not wrap the lines of any newly assigned buffers", ->
+      otherEditSession = project.buildEditSession()
+      otherEditSession.buffer.setText([1..100].join(''))
+      editor.edit(otherEditSession)
+      expect(editor.renderedLines.find('.line').length).toBe(1)
+
+    it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
+      editor.toggleSoftWrap()
+      expect(editor.renderedLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
+      spyOn(editor, 'setSoftWrapColumn')
+      $(window).trigger 'resize'
+      expect(editor.setSoftWrapColumn).not.toHaveBeenCalled()
+
+    it "allows the cursor to move down to the last line", ->
+      _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
+      expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 0]
+      editor.moveCursorDown()
+      expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 2]
+
+    it "allows the cursor to move up to a shorter soft wrapped line", ->
+      editor.setCursorScreenPosition([11, 15])
+      editor.moveCursorUp()
+      expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+      editor.moveCursorUp()
+      editor.moveCursorUp()
+      expect(editor.getCursorScreenPosition()).toEqual [8, 15]
+
+    it "it allows the cursor to wrap when moving horizontally past the beginning / end of a wrapped line", ->
+      editor.setCursorScreenPosition([11, 0])
+      editor.moveCursorLeft()
+      expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+
+      editor.moveCursorRight()
+      expect(editor.getCursorScreenPosition()).toEqual [11, 0]
+
+    it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
+      otherEditor = new Editor(editSession: project.buildEditSession('sample.js'))
+      spyOn(otherEditor, 'setSoftWrapColumn')
+
+      otherEditor.setSoftWrap(true)
+      expect(otherEditor.setSoftWrapColumn).not.toHaveBeenCalled()
+
+      otherEditor.simulateDomAttachment()
+      expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
+      otherEditor.remove()
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
 
-    it "creates a line number element for each visible line, plus overdraw", ->
+    it "creates a line number element for each visible line with &nbsp; padding to the left of the number", ->
       expect(editor.gutter.find('.line-number').length).toBe 8
-      expect(editor.find('.line-number:first').text()).toBe "1"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "8"
+      expect(editor.find('.line-number:first').html()).toBe "&nbsp;1"
+      expect(editor.gutter.find('.line-number:last').html()).toBe "&nbsp;8"
 
       # here we don't scroll far enough to trigger additional rendering
       editor.scrollTop(editor.lineHeight * 1.5)
       expect(editor.renderedLines.find('.line').length).toBe 8
-      expect(editor.gutter.find('.line-number:first').text()).toBe "1"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "8"
+      expect(editor.gutter.find('.line-number:first').html()).toBe "&nbsp;1"
+      expect(editor.gutter.find('.line-number:last').html()).toBe "&nbsp;8"
 
       editor.scrollTop(editor.lineHeight * 3.5)
       expect(editor.renderedLines.find('.line').length).toBe 10
-      expect(editor.gutter.find('.line-number:first').text()).toBe "2"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "11"
-
-    describe "width", ->
-      it "sets the width based on largest line number", ->
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
-
-      it "updates the width and the left position of the scroll view when total number of lines gains a digit", ->
-        editor.setText("")
-
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 1 + editor.gutter.calculateLineNumberPadding())
-        expect(parseInt(editor.scrollView.css('left'))).toBe editor.gutter.outerWidth()
-
-        for i in [1..9] # Ends on an empty line 10
-          editor.insertText "#{i}\n"
-
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
-        expect(parseInt(editor.scrollView.css('left'))).toBe editor.gutter.outerWidth()
+      expect(editor.gutter.find('.line-number:first').html()).toBe "&nbsp;2"
+      expect(editor.gutter.find('.line-number:last').html()).toBe "11"
 
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
         editor.scrollTop(3 * editor.lineHeight)
-        expect(editor.gutter.find('.line-number:first').text()).toBe '2'
-        expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+        expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
         buffer.insert([6, 0], '\n')
 
-        expect(editor.gutter.find('.line-number:first').text()).toBe '2'
-        expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+        expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editor.setSoftWrapColumn(50)
         expect(editor.gutter.find('.line-number').length).toEqual(8)
-        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
-        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '•'
-        expect(editor.gutter.find('.line-number:eq(5)').text()).toBe '5'
+        expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editor.gutter.find('.line-number:eq(4)').html()).toBe '&nbsp;•'
+        expect(editor.gutter.find('.line-number:eq(5)').intValue()).toBe 5
 
     describe "when there are folds", ->
       it "skips line numbers covered by the fold and updates them when the fold changes", ->
         editor.createFold(3, 5)
-        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
-        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
+        expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editor.gutter.find('.line-number:eq(4)').intValue()).toBe 7
 
         buffer.insert([4,0], "\n\n")
-        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
-        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '9'
+        expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editor.gutter.find('.line-number:eq(4)').intValue()).toBe 9
 
         buffer.delete([[3,0], [6,0]])
-        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
-        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '6'
+        expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
+        expect(editor.gutter.find('.line-number:eq(4)').intValue()).toBe 6
 
       it "redraws gutter numbers when lines are unfolded", ->
         setEditorHeightInLines(editor, 20)
@@ -1666,7 +1696,7 @@ describe "Editor", ->
       it "styles folded line numbers", ->
         editor.createFold(3, 5)
         expect(editor.gutter.find('.line-number.fold').length).toBe 1
-        expect(editor.gutter.find('.line-number.fold:eq(0)').text()).toBe '4'
+        expect(editor.gutter.find('.line-number.fold:eq(0)').intValue()).toBe 4
 
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->
@@ -1691,8 +1721,8 @@ describe "Editor", ->
         expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 1}px"
         expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 2}px"
         expect(editor.renderedLines.find('.line').length).toBe 10
-        expect(editor.gutter.find('.line-number:first').text()).toBe "2"
-        expect(editor.gutter.find('.line-number:last').text()).toBe "11"
+        expect(editor.gutter.find('.line-number:first').intValue()).toBe 2
+        expect(editor.gutter.find('.line-number:last').intValue()).toBe 11
 
     describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
       it "updates the line numbers to reflect the shorter buffer", ->
@@ -1707,11 +1737,10 @@ describe "Editor", ->
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 
     describe "when the editor is mini", ->
-      it "hides the gutter and does not change the scroll view's left position", ->
+      it "hides the gutter", ->
         miniEditor = new Editor(mini: true)
         miniEditor.attachToDom()
         expect(miniEditor.gutter).toBeHidden()
-        expect(miniEditor.scrollView.css('left')).toBe '0px'
 
       it "doesn't highlight the only line", ->
         miniEditor = new Editor(mini: true)
@@ -1730,6 +1759,24 @@ describe "Editor", ->
         miniEditor.setText(" a line with tabs\tand spaces ")
         expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
 
+      it "lets you set the grammar", ->
+        miniEditor = new Editor(mini: true)
+        miniEditor.setText("var something")
+        previousTokens = miniEditor.lineForScreenRow(0).tokens
+        miniEditor.setGrammar(syntax.selectGrammar('something.js'))
+        expect(miniEditor.getGrammar().name).toBe "JavaScript"
+        expect(previousTokens).not.toEqual miniEditor.lineForScreenRow(0).tokens
+
+        # doesn't allow regular editors to set grammars
+        expect(-> editor.setGrammar()).toThrow()
+
+
+    describe "when config.editor.showLineNumbers is false", ->
+      it "doesn't render any line numbers", ->
+        expect(editor.gutter.lineNumbers).toBeVisible()
+        config.set("editor.showLineNumbers", false)
+        expect(editor.gutter.lineNumbers).not.toBeVisible()
+
   describe "gutter line highlighting", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
@@ -1738,13 +1785,13 @@ describe "Editor", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
-        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 1
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
-        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 2
 
     describe "when there is wrapping", ->
       beforeEach ->
@@ -1755,13 +1802,13 @@ describe "Editor", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
-        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 1
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
         expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
-        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').intValue()).toBe 2
 
     describe "when the selection spans multiple lines", ->
       beforeEach ->
@@ -1781,13 +1828,13 @@ describe "Editor", ->
         editor.getSelection().setBufferRange(new Range([0,0],[1,0]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line-number.cursor-line').length).toBe 1
-        expect(editor.find('.line-number.cursor-line').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line').intValue()).toBe 1
 
     it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
       editor.setCursorScreenPosition([1,0])
       editor.backspace()
       expect(editor.find('.line-number.cursor-line').length).toBe 1
-      expect(editor.find('.line-number.cursor-line').text()).toBe "1"
+      expect(editor.find('.line-number.cursor-line').intValue()).toBe 1
 
   describe "line highlighting", ->
     beforeEach ->
@@ -1968,11 +2015,11 @@ describe "Editor", ->
 
     beforeEach ->
       path = project.resolve('git/working-dir/file.txt')
-      originalPathText = fs.read(path)
+      originalPathText = fsUtils.read(path)
       editor.edit(project.buildEditSession(path))
 
     afterEach ->
-      fs.write(path, originalPathText)
+      fsUtils.write(path, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
@@ -2010,23 +2057,40 @@ describe "Editor", ->
         event.originalEvent = {detail: 1}
         event.shiftKey = true
         editor.gutter.find(".line-number:eq(1)").trigger event
-        expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [1,0]]
+        expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [2,0]]
 
     describe "when mousing down and then moving across multiple lines before mousing up", ->
-      it "selects the lines", ->
-        mousedownEvent = $.Event("mousedown")
-        mousedownEvent.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
-        mousedownEvent.originalEvent = {detail: 1}
-        editor.gutter.find(".line-number:eq(1)").trigger mousedownEvent
+      describe "when selecting from top to bottom", ->
+        it "selects the lines", ->
+          mousedownEvent = $.Event("mousedown")
+          mousedownEvent.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+          mousedownEvent.originalEvent = {detail: 1}
+          editor.gutter.find(".line-number:eq(1)").trigger mousedownEvent
 
-        mousemoveEvent = $.Event("mousemove")
-        mousemoveEvent.pageY = editor.gutter.find(".line-number:eq(5)").offset().top
-        mousemoveEvent.originalEvent = {detail: 1}
-        editor.gutter.find(".line-number:eq(5)").trigger mousemoveEvent
+          mousemoveEvent = $.Event("mousemove")
+          mousemoveEvent.pageY = editor.gutter.find(".line-number:eq(5)").offset().top
+          mousemoveEvent.originalEvent = {detail: 1}
+          editor.gutter.find(".line-number:eq(5)").trigger mousemoveEvent
 
-        $(document).trigger 'mouseup'
+          $(document).trigger 'mouseup'
 
-        expect(editor.getSelection().getScreenRange()).toEqual [[1,0], [5,30]]
+          expect(editor.getSelection().getScreenRange()).toEqual [[1,0], [6,0]]
+
+      describe "when selecting from bottom to top", ->
+        it "selects the lines", ->
+          mousedownEvent = $.Event("mousedown")
+          mousedownEvent.pageY = editor.gutter.find(".line-number:eq(5)").offset().top
+          mousedownEvent.originalEvent = {detail: 1}
+          editor.gutter.find(".line-number:eq(5)").trigger mousedownEvent
+
+          mousemoveEvent = $.Event("mousemove")
+          mousemoveEvent.pageY = editor.gutter.find(".line-number:eq(1)").offset().top
+          mousemoveEvent.originalEvent = {detail: 1}
+          editor.gutter.find(".line-number:eq(1)").trigger mousemoveEvent
+
+          $(document).trigger 'mouseup'
+
+          expect(editor.getSelection().getScreenRange()).toEqual [[1,0], [6,0]]
 
   describe "when clicking below the last line", ->
     beforeEach ->
@@ -2051,22 +2115,18 @@ describe "Editor", ->
     [path] = []
 
     beforeEach ->
-      path = "/tmp/grammar-change.txt"
-      fs.write(path, "var i;")
+      path = fsUtils.join(fsUtils.absolute("/tmp"), "grammar-change.txt")
+      fsUtils.write(path, "var i;")
 
     afterEach ->
-      fs.remove(path) if fs.exists(path)
+      fsUtils.remove(path) if fsUtils.exists(path)
 
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.buildEditSession(path))
-
       expect(editor.getGrammar().name).toBe 'Plain Text'
-      jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
-      expect(jsGrammar.name).toBe 'JavaScript'
-
-      project.addGrammarOverrideForPath(path, jsGrammar)
-      expect(editor.reloadGrammar()).toBeTruthy()
-      expect(editor.getGrammar()).toBe jsGrammar
+      syntax.setGrammarOverrideForPath(path, 'source.js')
+      editor.reloadGrammar()
+      expect(editor.getGrammar().name).toBe 'JavaScript'
 
       tokenizedBuffer = editor.activeEditSession.displayBuffer.tokenizedBuffer
       line0 = tokenizedBuffer.lineForScreenRow(0)
@@ -2090,10 +2150,8 @@ describe "Editor", ->
 
       expect(eventHandler).not.toHaveBeenCalled()
 
-      jsGrammar = syntax.grammarForFilePath('/tmp/js.js')
-      project.addGrammarOverrideForPath(path, jsGrammar)
+      syntax.setGrammarOverrideForPath(path, 'source.js')
       editor.reloadGrammar()
-
       expect(eventHandler).toHaveBeenCalled()
 
   describe ".replaceSelectedText()", ->
@@ -2405,12 +2463,28 @@ describe "Editor", ->
     it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
       saveDialogCallback = null
       spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fs, 'write')
+      spyOn(fsUtils, 'write')
 
       editor.trigger 'editor:save-debug-snapshot'
 
       expect(atom.showSaveDialog).toHaveBeenCalled()
       saveDialogCallback('/tmp/state')
-      expect(fs.write).toHaveBeenCalled()
-      expect(fs.write.argsForCall[0][0]).toBe '/tmp/state'
-      expect(typeof fs.write.argsForCall[0][1]).toBe 'string'
+      expect(fsUtils.write).toHaveBeenCalled()
+      expect(fsUtils.write.argsForCall[0][0]).toBe '/tmp/state'
+      expect(typeof fsUtils.write.argsForCall[0][1]).toBe 'string'
+
+  describe "when the escape key is pressed on the editor", ->
+    it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->
+      keymap.bindKeys '.editor', 'escape': 'test-event'
+      testEventHandler = jasmine.createSpy("testEventHandler")
+
+      editor.on 'test-event', testEventHandler
+      editor.activeEditSession.addSelectionForBufferRange([[3, 0], [3, 0]])
+      expect(editor.activeEditSession.getSelections().length).toBe 2
+
+      editor.trigger(keydownEvent('escape'))
+      expect(editor.activeEditSession.getSelections().length).toBe 1
+      expect(testEventHandler).not.toHaveBeenCalled()
+
+      editor.trigger(keydownEvent('escape'))
+      expect(testEventHandler).toHaveBeenCalled()

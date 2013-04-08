@@ -1,11 +1,11 @@
 Directory = require 'directory'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 
 describe "Directory", ->
   directory = null
 
   beforeEach ->
-    directory = new Directory(require.resolve('fixtures'))
+    directory = new Directory(fsUtils.resolveOnLoadPath('fixtures'))
 
   afterEach ->
     directory.off()
@@ -14,11 +14,11 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fs.join(require.resolve('fixtures'), 'temporary')
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      temporaryFilePath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures'), 'temporary')
+      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
 
     afterEach ->
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
 
     it "triggers 'contents-changed' event handlers", ->
       changeHandler = null
@@ -26,13 +26,13 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fs.write(temporaryFilePath, '')
+        fsUtils.write(temporaryFilePath, '')
 
       waitsFor "first change", -> changeHandler.callCount > 0
 
       runs ->
         changeHandler.reset()
-        fs.remove(temporaryFilePath)
+        fsUtils.remove(temporaryFilePath)
 
       waitsFor "second change", -> changeHandler.callCount > 0
 
@@ -40,11 +40,11 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fs.join(directory.path, 'temporary')
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      temporaryFilePath = fsUtils.join(directory.path, 'temporary')
+      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
 
     afterEach ->
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
 
     it "no longer triggers events", ->
       changeHandler = null
@@ -52,7 +52,7 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fs.write(temporaryFilePath, '')
+        fsUtils.write(temporaryFilePath, '')
 
       waitsFor "change event", -> changeHandler.callCount > 0
 
@@ -61,7 +61,15 @@ describe "Directory", ->
         directory.off()
       waits 20
 
-      runs -> fs.remove(temporaryFilePath)
+      runs -> fsUtils.remove(temporaryFilePath)
       waits 20
       runs -> expect(changeHandler.callCount).toBe 0
 
+  it "includes symlink information about entries", ->
+    entries = directory.getEntries()
+    for entry in entries
+      name = entry.getBaseName()
+      if name is 'symlink-to-dir' or name is 'symlink-to-file'
+        expect(entry.symlink).toBeTruthy()
+      else
+        expect(entry.symlink).toBeFalsy()

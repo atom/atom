@@ -1,6 +1,7 @@
 fs = require 'fs'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
-ChildProcess = require 'child-process'
+_ = require 'underscore'
 {less} = require 'less'
 require 'jquery-extensions'
 require 'underscore-extensions'
@@ -17,47 +18,43 @@ window.setUpEnvironment = ->
   Keymap = require 'keymap'
 
   window.rootViewParentSelector = 'body'
-  window.platform = $native.getPlatform()
   window.config = new Config
-  window.syntax = new Syntax
+  window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  requireStylesheet 'reset.less'
-  requireStylesheet 'atom.less'
-  requireStylesheet 'tabs.less'
-  requireStylesheet 'tree-view.less'
-  requireStylesheet 'status-bar.less'
-  requireStylesheet 'command-panel.less'
-  requireStylesheet 'fuzzy-finder.less'
-  requireStylesheet 'overlay.less'
-  requireStylesheet 'popover-list.less'
-  requireStylesheet 'notification.less'
-  requireStylesheet 'markdown.less'
+  ignoreEvents = (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  $(document).on 'dragover', ignoreEvents
+  $(document).on 'drop', ignoreEvents
 
-  if nativeStylesheetPath = require.resolve("#{platform}.css")
+  requireStylesheet 'reset'
+  requireStylesheet 'atom'
+  requireStylesheet 'overlay'
+  requireStylesheet 'popover-list'
+  requireStylesheet 'notification'
+  requireStylesheet 'markdown'
+
+  if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
 window.startup = ->
-  if fs.isDirectory('/opt/boxen')
-    installAtomCommand('/opt/boxen/bin/atom')
-  else if fs.isDirectory('/opt/github')
-    installAtomCommand('/opt/github/bin/atom')
-  else if fs.isDirectory('/usr/local')
-    installAtomCommand('/usr/local/bin/atom')
+  directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
+  if directory
+    installAtomCommand(fsUtils.join(directory, 'bin/atom'))
   else
     console.warn "Failed to install `atom` binary"
 
   handleWindowEvents()
   config.load()
-  atom.loadTextPackage()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
   atom.loadPackages()
-  buildProjectAndRootView()
+  deserializeWindowState()
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
@@ -67,10 +64,13 @@ window.startup = ->
 window.shutdown = ->
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
-  atom.setRootViewStateForPath project.getPath(),
-    project: project.serialize()
-    rootView: rootView.serialize()
-  rootView.deactivate()
+  atom.setWindowState('project', project.serialize())
+  atom.setWindowState('syntax', syntax.serialize())
+  atom.setWindowState('rootView', rootView.serialize())
+  atom.deactivatePackages()
+  atom.setWindowState('packageStates', atom.packageStates)
+  rootView.remove()
+  atom.saveWindowState()
   project.destroy()
   git?.destroy()
   $(window).off('focus blur before')
@@ -79,30 +79,34 @@ window.shutdown = ->
   window.git = null
 
 window.installAtomCommand = (commandPath) ->
-  return if fs.exists(commandPath)
+  return if fsUtils.exists(commandPath)
 
-  bundledCommandPath = fs.resolve(window.resourcePath, 'atom.sh')
+  bundledCommandPath = fsUtils.resolve(window.resourcePath, 'atom.sh')
   if bundledCommandPath?
-    fs.write(commandPath, fs.read(bundledCommandPath))
-    ChildProcess.exec("chmod u+x '#{commandPath}'")
+    fsUtils.write(commandPath, fsUtils.read(bundledCommandPath))
+    fs.chmod(commandPath, 0o755, commandPath)
 
 window.handleWindowEvents = ->
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
   $(window).command 'window:close', => confirmClose()
+  $(window).command 'window:reload', => reload()
 
-window.buildProjectAndRootView = ->
+window.deserializeWindowState = ->
   RootView = require 'root-view'
   Project = require 'project'
   Git = require 'git'
 
   pathToOpen = atom.getPathToOpen()
-  windowState = atom.getRootViewStateForPath(pathToOpen) ? {}
+
+  windowState = atom.getWindowState()
+
+  atom.packageStates = windowState.packageStates ? {}
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 
-  if !windowState.rootView and (!pathToOpen or fs.isFile(pathToOpen))
+  if !windowState.rootView and (!pathToOpen or fsUtils.isFile(pathToOpen))
     rootView.open(pathToOpen)
 
   $(rootViewParentSelector).append(rootView)
@@ -115,25 +119,30 @@ window.buildProjectAndRootView = ->
 window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")
 
+window.resolveStylesheet = (path) ->
+  if fsUtils.extension(path).length > 0
+    fsUtils.resolveOnLoadPath(path)
+  else
+    fsUtils.resolveOnLoadPath(path, ['css', 'less'])
+
 window.requireStylesheet = (path) ->
-  if fullPath = require.resolve(path)
+  if fullPath = window.resolveStylesheet(path)
     content = window.loadStylesheet(fullPath)
     window.applyStylesheet(fullPath, content)
   else
-    console.log "bad", path
     throw new Error("Could not find a file at path '#{path}'")
 
 window.loadStylesheet = (path) ->
-  content = fs.read(path)
-  if fs.extension(path) == '.less'
+  content = fsUtils.read(path)
+  if fsUtils.extension(path) == '.less'
     (new less.Parser).parse content, (e, tree) ->
-      throw new Error(e.message, file, e.line) if e
+      throw new Error(e.message, path, e.line) if e
       content = tree.toCSS()
 
   content
 
 window.removeStylesheet = (path) ->
-  unless fullPath = require.resolve(path)
+  unless fullPath = window.resolveStylesheet(path)
     throw new Error("Could not find a file at path '#{path}'")
   window.stylesheetElementForId(fullPath).remove()
 
@@ -145,15 +154,16 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
       $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
 window.reload = ->
-  if rootView?.getModifiedBuffers().length > 0
-    atom.confirm(
-      "There are unsaved buffers, reload anyway?",
-      "You will lose all unsaved changes if you reload",
-      "Reload", (-> $native.reload()),
-      "Cancel"
-    )
+  timesReloaded = process.global.timesReloaded ? 0
+  ++timesReloaded
+
+  restartValue = if window.location.search.indexOf('spec-bootstrap') == -1 then 10 else 3
+
+  if timesReloaded > restartValue
+    atom.restartRendererProcess()
   else
     $native.reload()
+    process.global.timesReloaded = timesReloaded
 
 window.onerror = ->
   atom.showDevTools()
@@ -189,6 +199,12 @@ window.measure = (description, fn) ->
   console.log description, result
   value
 
+window.profile = (description, fn) ->
+  measure description, ->
+    console.profile(description)
+    value = fn()
+    console.profileEnd(description)
+    value
 
 confirmClose = ->
   rootView.confirmClose().done -> window.close()

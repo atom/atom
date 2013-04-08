@@ -4,14 +4,13 @@ RootView = require 'root-view'
 Pane = require 'pane'
 PaneContainer = require 'pane-container'
 TabBarView = require 'tabs/lib/tab-bar-view'
-fs = require 'fs'
 {View} = require 'space-pen'
 
 describe "Tabs package main", ->
   beforeEach ->
     window.rootView = new RootView
     rootView.open('sample.js')
-    window.loadPackage("tabs")
+    atom.activatePackage("tabs")
 
   describe ".activate()", ->
     it "appends a tab bar all existing and new panes", ->
@@ -87,6 +86,17 @@ describe "TabBarView", ->
       pane.removeItem(item2)
       expect(tabBar.getTabs().length).toBe 2
       expect(tabBar.find('.tab:contains(Item 2)')).not.toExist()
+
+    it "updates the titles of the remaining tabs", ->
+      expect(tabBar.tabForItem(item2)).toHaveText 'Item 2'
+      item2.longTitle = '2'
+      item2a = new TestView('Item 2')
+      item2a.longTitle = '2a'
+      pane.showItem(item2a)
+      expect(tabBar.tabForItem(item2)).toHaveText '2'
+      expect(tabBar.tabForItem(item2a)).toHaveText '2a'
+      pane.removeItem(item2a)
+      expect(tabBar.tabForItem(item2)).toHaveText 'Item 2'
 
   describe "when a tab is clicked", ->
     it "shows the associated item on the pane and focuses the pane", ->
@@ -224,6 +234,20 @@ describe "TabBarView", ->
           expect(pane.activeItem).toBe item1
           expect(pane.focus).toHaveBeenCalled()
 
+      describe "when it is dropped on the tab bar", ->
+        it "moves the tab and its item to the end", ->
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item2
+          spyOn(pane, 'focus')
+
+          [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar)
+          tabBar.onDragStart(dragStartEvent)
+          tabBar.onDrop(dropEvent)
+
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 2", "Item 1"]
+          expect(pane.getItems()).toEqual [editSession1, item2, item1]
+
     describe "when a tab is dragged to a different pane", ->
       [pane2, tabBar2, item2b] = []
 
@@ -254,3 +278,19 @@ describe "TabBarView", ->
         expect(pane2.getItems()).toEqual [item2b, item1]
         expect(pane2.activeItem).toBe item1
         expect(pane2.focus).toHaveBeenCalled()
+
+    describe 'when a non-tab is dragged to pane', ->
+      it 'has no effect', ->
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [item1, editSession1, item2]
+        expect(pane.activeItem).toBe item2
+        spyOn(pane, 'focus')
+
+        [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar.tabAtIndex(0))
+        tabBar.onDrop(dropEvent)
+
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [item1, editSession1, item2]
+        expect(pane.activeItem).toBe item2
+        expect(pane.focus).not.toHaveBeenCalled()
+

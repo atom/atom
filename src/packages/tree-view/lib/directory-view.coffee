@@ -11,7 +11,7 @@ class DirectoryView extends View
       @div outlet: 'header', class: 'header', =>
         @span class: 'disclosure-arrow', outlet: 'disclosureArrow'
         @span directory.getBaseName(), class: 'name', outlet: 'directoryName'
-      @span "", class: 'highlight'
+      @span class: 'highlight'
 
   directory: null
   entries: null
@@ -30,7 +30,7 @@ class DirectoryView extends View
           iconClass = 'submodule-icon'
         else
           @subscribe git, 'status-changed', (path, status) =>
-            @updateStatus() if path.substring("#{@getPath()}/") is 0
+            @updateStatus() if path.indexOf("#{@getPath()}/") is 0
           @subscribe git, 'statuses-changed', =>
             @updateStatus()
           @updateStatus()

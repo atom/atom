@@ -20,7 +20,7 @@ class SelectList extends View
   cancelling: false
 
   initialize: ->
-    requireStylesheet 'select-list.less'
+    requireStylesheet 'select-list'
 
     @miniEditor.getBuffer().on 'changed', => @schedulePopulateList()
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
@@ -45,7 +45,9 @@ class SelectList extends View
 
   schedulePopulateList: ->
     clearTimeout(@scheduleTimeout)
-    @scheduleTimeout = setTimeout((=> @populateList()), @inputThrottle)
+    populateCallback = =>
+      @populateList() if @isOnDom()
+    @scheduleTimeout = setTimeout(populateCallback,  @inputThrottle)
 
   setArray: (@array) ->
     @populateList()

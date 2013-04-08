@@ -34,6 +34,9 @@ $.fn.pageDown = ->
 $.fn.isOnDom = ->
   @closest(document.body).length is 1
 
+$.fn.isVisible = ->
+  @is(':visible')
+
 $.fn.containsElement = (element) ->
   (element[0].compareDocumentPosition(this[0]) & 8) == 8
 
@@ -94,6 +97,9 @@ $.fn.command = (eventName, selector, options, handler) ->
 
 $.fn.iconSize = (size) ->
   @width(size).height(size).css('font-size', size)
+
+$.fn.intValue = ->
+  parseInt(@text())
 
 $.Event.prototype.abortKeyBinding = ->
 $.Event.prototype.currentTargetView = -> $(this.currentTarget).view()

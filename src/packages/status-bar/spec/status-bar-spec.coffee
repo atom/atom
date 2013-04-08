@@ -2,7 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 RootView = require 'root-view'
 StatusBar = require 'status-bar/lib/status-bar-view'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 
 describe "StatusBar", ->
   [editor, statusBar, buffer] = []
@@ -32,7 +32,7 @@ describe "StatusBar", ->
 
     describe "when associated with an unsaved buffer", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
-        rootView.deactivate()
+        rootView.remove()
         window.rootView = new RootView
         rootView.open()
         rootView.simulateDomAttachment()
@@ -57,7 +57,7 @@ describe "StatusBar", ->
   describe "when the buffer content has changed from the content on disk", ->
     it "disables the buffer modified indicator on save", ->
       path = "/tmp/atom-whitespace.txt"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       rootView.open(path)
       expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
@@ -107,12 +107,12 @@ describe "StatusBar", ->
 
   describe "git branch label", ->
     beforeEach ->
-      fs.remove('/tmp/.git') if fs.isDirectory('/tmp/.git')
+      fsUtils.remove('/tmp/.git') if fsUtils.isDirectory('/tmp/.git')
       rootView.attachToDom()
 
     it "displays the current branch for files in repositories", ->
       path = require.resolve('fixtures/git/master.git/HEAD')
-      project.setPath(require.resolve('fixtures/git/master.git'))
+      project.setPath(fsUtils.resolveOnLoadPath('fixtures/git/master.git'))
       rootView.open(path)
       expect(statusBar.branchArea).toBeVisible()
       expect(statusBar.branchLabel.text()).toBe 'master'
@@ -124,23 +124,26 @@ describe "StatusBar", ->
       expect(statusBar.branchLabel.text()).toBe ''
 
   describe "git status label", ->
-    [repo, path, originalPathText, newPath] = []
+    [repo, path, originalPathText, newPath, ignoredPath] = []
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
-      newPath = fs.join(require.resolve('fixtures/git/working-dir'), 'new.txt')
-      fs.write(newPath, "I'm new here")
+      newPath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'new.txt')
+      fsUtils.write(newPath, "I'm new here")
+      ignoredPath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'ignored.txt')
+      fsUtils.write(ignoredPath, 'ignored.txt')
       git.getPathStatus(path)
       git.getPathStatus(newPath)
-      originalPathText = fs.read(path)
+      originalPathText = fsUtils.read(path)
       rootView.attachToDom()
 
     afterEach ->
-      fs.write(path, originalPathText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fsUtils.write(path, originalPathText)
+      fsUtils.remove(newPath) if fsUtils.exists(newPath)
+      fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
 
     it "displays the modified icon for a changed file", ->
-      fs.write(path, "i've changed for the worse")
+      fsUtils.write(path, "i've changed for the worse")
       git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
@@ -153,17 +156,21 @@ describe "StatusBar", ->
       rootView.open(newPath)
       expect(statusBar.gitStatusIcon).toHaveClass('new-status-icon')
 
+    it "displays the ignored icon for an ignored file", ->
+      rootView.open(ignoredPath)
+      expect(statusBar.gitStatusIcon).toHaveClass('ignored-status-icon')
+
     it "updates when a status-changed event occurs", ->
-      fs.write(path, "i've changed for the worse")
+      fsUtils.write(path, "i've changed for the worse")
       git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
-      fs.write(path, originalPathText)
+      fsUtils.write(path, originalPathText)
       git.getPathStatus(path)
       expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
 
     it "displays the diff stat for modified files", ->
-      fs.write(path, "i've changed for the worse")
+      fsUtils.write(path, "i've changed for the worse")
       git.getPathStatus(path)
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveText('+1,-1')
@@ -173,19 +180,32 @@ describe "StatusBar", ->
       expect(statusBar.gitStatusIcon).toHaveText('+1')
 
   describe "grammar label", ->
+    beforeEach ->
+      atom.activatePackage('text.tmbundle', sync: true)
+      atom.activatePackage('javascript.tmbundle', sync: true)
+
     it "displays the name of the current grammar", ->
+      expect(statusBar.find('.grammar-name').text()).toBe 'JavaScript'
+
+    it "hides the label when the current grammar is the null grammar", ->
+      rootView.attachToDom()
+      editor.activeEditSession.languageMode.grammar = syntax.nullGrammar
+      editor.activeEditSession.trigger 'grammar-changed'
+      expect(statusBar.find('.grammar-name')).toBeHidden()
+      expect(statusBar.find('.grammar-name').text()).toBe ''
+      editor.reloadGrammar()
+      expect(statusBar.find('.grammar-name')).toBeVisible()
       expect(statusBar.find('.grammar-name').text()).toBe 'JavaScript'
 
     describe "when the editor's grammar changes", ->
       it "displays the new grammar of the editor", ->
-        textGrammar = _.find syntax.grammars, (grammar) -> grammar.name is 'Plain Text'
-        project.addGrammarOverrideForPath(editor.getPath(), textGrammar)
+        syntax.setGrammarOverrideForPath(editor.getPath(), 'text.plain')
         editor.reloadGrammar()
-        expect(statusBar.find('.grammar-name').text()).toBe textGrammar.name
+        expect(statusBar.find('.grammar-name').text()).toBe 'Plain Text'
 
     describe "when clicked", ->
-      it "toggles the editor:select-grammar event", ->
+      it "toggles the grammar-selector:show event", ->
         eventHandler = jasmine.createSpy('eventHandler')
-        editor.on 'editor:select-grammar', eventHandler
+        editor.on 'grammar-selector:show', eventHandler
         statusBar.find('.grammar-name').click()
         expect(eventHandler).toHaveBeenCalled()

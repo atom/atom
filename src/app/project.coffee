@@ -1,19 +1,19 @@
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 $ = require 'jquery'
 Range = require 'range'
-Buffer = require 'buffer'
+Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
-ChildProcess = require 'child-process'
+BufferedProcess = require 'buffered-process'
 
 module.exports =
 class Project
   registerDeserializer(this)
 
   @deserialize: (state) ->
-    new Project(state.path, state.grammarOverridesByPath)
+    new Project(state.path)
 
   tabLength: 2
   softTabs: true
@@ -21,9 +21,8 @@ class Project
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
-  grammarOverridesByPath: null
 
-  constructor: (path, @grammarOverridesByPath={}) ->
+  constructor: (path) ->
     @setPath(path)
     @editSessions = []
     @buffers = []
@@ -31,22 +30,9 @@ class Project
   serialize: ->
     deserializer: 'Project'
     path: @getPath()
-    grammarOverridesByPath: @grammarOverridesByPath
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
-
-  addGrammarOverrideForPath: (path, grammar) ->
-    @grammarOverridesByPath[path] = grammar.scopeName
-
-  removeGrammarOverrideForPath: (path) ->
-    delete @grammarOverridesByPath[path]
-
-  grammarOverrideForPath: (path) ->
-    syntax.grammarForScopeName(@grammarOverridesByPath[path])
-
-  grammarForFilePath: (path, contents) ->
-    @grammarOverrideForPath(path) or syntax.grammarForFilePath(path, contents)
 
   getPath: ->
     @rootDirectory?.path
@@ -55,7 +41,7 @@ class Project
     @rootDirectory?.off()
 
     if path?
-      directory = if fs.isDirectory(path) then path else fs.directory(path)
+      directory = if fsUtils.isDirectory(path) then path else fsUtils.directory(path)
       @rootDirectory = new Directory(directory)
     else
       @rootDirectory = null
@@ -67,9 +53,11 @@ class Project
 
   getFilePaths: ->
     deferred = $.Deferred()
-    fs.getAllFilePathsAsync @getPath(), (paths) =>
-      paths = paths.filter (path) => not @isPathIgnored(path)
-      deferred.resolve(paths)
+    paths = []
+    onFile = (path) => paths.push(path) unless @isPathIgnored(path)
+    onDirectory = -> true
+    fsUtils.traverseTreeSync(@getPath(), onFile, onDirectory)
+    deferred.resolve(paths)
     deferred.promise()
 
   isPathIgnored: (path) ->
@@ -80,13 +68,14 @@ class Project
     @ignoreRepositoryPath(path)
 
   ignoreRepositoryPath: (path) ->
-    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fs.join(@getPath(), path))
+    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
 
   resolve: (filePath) ->
-    filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
-    fs.absolute filePath
+    filePath = fsUtils.join(@getPath(), filePath) unless filePath[0] == '/'
+    fsUtils.absolute filePath
 
   relativize: (fullPath) ->
+    return fullPath unless fullPath.lastIndexOf(@getPath()) is 0
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
   getSoftTabs: -> @softTabs
@@ -138,19 +127,17 @@ class Project
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
 
-  bufferForPath: (filePath) ->
+  bufferForPath: (filePath, text) ->
     if filePath?
       filePath = @resolve(filePath)
       if filePath
         buffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
-        buffer or @buildBuffer(filePath)
-      else
-
+        buffer or @buildBuffer(filePath, text)
     else
-      @buildBuffer()
+      @buildBuffer(null, text)
 
-  buildBuffer: (filePath) ->
-    buffer = new Buffer(filePath, this)
+  buildBuffer: (filePath, text) ->
+    buffer = new Buffer(filePath, text)
     @buffers.push buffer
     @trigger 'buffer-created', buffer
     buffer
@@ -159,9 +146,7 @@ class Project
     _.remove(@buffers, buffer)
 
   scan: (regex, iterator) ->
-    command = "#{require.resolve('ag')} --ackmate '#{regex.source}' '#{@getPath()}'"
     bufferedData = ""
-
     state = 'readingPath'
     path = null
 
@@ -193,11 +178,23 @@ class Project
         match = lineText.substr(column, length)
         iterator({path, range, match})
 
-    ChildProcess.exec command , bufferLines: true, stdout: (data) ->
+    deferred = $.Deferred()
+    exit = (code) ->
+      if code is -1
+        deferred.reject({command, code})
+      else
+        deferred.resolve()
+    stdout = (data) ->
       lines = data.split('\n')
       lines.pop() # the last segment is a spurious '' because data always ends in \n due to bufferLines: true
       for line in lines
         readPath(line) if state is 'readingPath'
         readLine(line) if state is 'readingLines'
+
+    command = require.resolve('nak')
+    args = ['--ackmate', regex.source, @getPath()]
+    args.unshift("--addVCSIgnores") if config.get('core.excludeVcsIgnoredPaths')
+    new BufferedProcess({command, args, stdout, exit})
+    deferred
 
 _.extend Project.prototype, EventEmitter

@@ -1,6 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
-fs = require 'fs'
+fsUtils = require 'fs-utils'
 
 Specificity = require 'specificity'
 PEG = require 'pegjs'
@@ -14,10 +14,12 @@ class BindingSet
   commandsByKeystrokes: null
   commandForEvent: null
   parser: null
+  name: null
 
-  constructor: (@selector, commandsByKeystrokes, @index) ->
-    BindingSet.parser ?= PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
-    @specificity = Specificity(@selector)
+  constructor: (selector, commandsByKeystrokes, @index, @name) ->
+    BindingSet.parser ?= PEG.buildParser(fsUtils.read(require.resolve 'keystroke-pattern.pegjs'))
+    @specificity = Specificity(selector)
+    @selector = selector.replace(/!important/g, '')
     @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)
 
   commandForEvent: (event) ->
