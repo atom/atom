@@ -1,3 +1,4 @@
+RootView = require 'root-view'
 EditSession = require 'edit-session'
 Buffer = require 'text-buffer'
 Editor = require 'editor'
@@ -2488,3 +2489,29 @@ describe "Editor", ->
 
       editor.trigger(keydownEvent('escape'))
       expect(testEventHandler).toHaveBeenCalled()
+
+  describe "when the editor is attached but invisible", ->
+    describe "when the editor's text is changed", ->
+      it "redraws the editor when it is next shown", ->
+        window.rootView = new RootView
+        rootView.open('sample.js')
+        rootView.attachToDom()
+        editor = rootView.getActiveView()
+
+        view = $$ -> @div id: 'view', tabindex: -1, 'View'
+        editor.getPane().showItem(view)
+        expect(editor.isVisible()).toBeFalsy()
+
+        editor.setText('hidden changes')
+        editor.setCursorBufferPosition([0,4])
+
+        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+        editor.on 'editor:display-updated', displayUpdatedHandler
+        editor.getPane().showItem(editor.getModel())
+        expect(editor.isVisible()).toBeTruthy()
+
+        waitsFor ->
+          displayUpdatedHandler.callCount is 1
+
+        runs ->
+          expect(editor.renderedLines.find('.line').text()).toBe 'hidden changes'
