@@ -102,7 +102,9 @@ describe "StatusBar", ->
 
   describe "when the associated editor's cursor position changes", ->
     it "updates the cursor position in the status bar", ->
+      editor.attachToDom()
       editor.setCursorScreenPosition([1, 2])
+      editor.updateDisplay()
       expect(statusBar.cursorPosition.text()).toBe '2,3'
 
   describe "git branch label", ->
