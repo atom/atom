@@ -148,7 +148,7 @@ class Pane extends View
 
     @autosaveItem(item)
 
-    if item.isModified?()
+    if item.shouldPromptToSave?()
       @promptToSaveItem(item, reallyDestroyItem)
     else
       reallyDestroyItem()

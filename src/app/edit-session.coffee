@@ -168,7 +168,7 @@ class EditSession
   scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
   isModified: -> @buffer.isModified()
-  hasEditors: -> @buffer.hasEditors()
+  shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
 
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
