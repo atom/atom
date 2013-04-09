@@ -1,3 +1,4 @@
+RootView = require 'root-view'
 EditSession = require 'edit-session'
 Buffer = require 'text-buffer'
 Editor = require 'editor'
@@ -2036,6 +2037,25 @@ describe "Editor", ->
       runs ->
         expect(editor.getText()).toBe(originalPathText)
 
+
+  describe ".pixelPositionForBufferPosition(position)", ->
+    describe "when the editor is detached", ->
+      it "returns top and left values of 0", ->
+        expect(editor.isOnDom()).toBeFalsy()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
+
+    describe "when the editor is invisible", ->
+      it "returns top and left values of 0", ->
+        editor.attachToDom()
+        editor.hide()
+        expect(editor.isVisible()).toBeFalsy()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
+
+    describe "when the editor is attached and visible", ->
+      it "returns the top and left pixel positions", ->
+        editor.attachToDom()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 40, left: 70
+
   describe "when clicking in the gutter", ->
     beforeEach ->
       editor.attachToDom()
@@ -2488,3 +2508,47 @@ describe "Editor", ->
 
       editor.trigger(keydownEvent('escape'))
       expect(testEventHandler).toHaveBeenCalled()
+
+  describe "when the editor is attached but invisible", ->
+    describe "when the editor's text is changed", ->
+      it "redraws the editor when it is next shown", ->
+        window.rootView = new RootView
+        rootView.open('sample.js')
+        rootView.attachToDom()
+        editor = rootView.getActiveView()
+
+        view = $$ -> @div id: 'view', tabindex: -1, 'View'
+        editor.getPane().showItem(view)
+        expect(editor.isVisible()).toBeFalsy()
+
+        editor.setText('hidden changes')
+        editor.setCursorBufferPosition([0,4])
+
+        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+        editor.on 'editor:display-updated', displayUpdatedHandler
+        editor.getPane().showItem(editor.getModel())
+        expect(editor.isVisible()).toBeTruthy()
+
+        waitsFor ->
+          displayUpdatedHandler.callCount is 1
+
+        runs ->
+          expect(editor.renderedLines.find('.line').text()).toBe 'hidden changes'
+
+      it "redraws the editor when it is next reattached", ->
+        editor.attachToDom()
+        editor.hide()
+        editor.setText('hidden changes')
+        editor.setCursorBufferPosition([0,4])
+        editor.detach()
+
+        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+        editor.on 'editor:display-updated', displayUpdatedHandler
+        editor.show()
+        editor.attachToDom()
+
+        waitsFor ->
+          displayUpdatedHandler.callCount is 1
+
+        runs ->
+          expect(editor.renderedLines.find('.line').text()).toBe 'hidden changes'

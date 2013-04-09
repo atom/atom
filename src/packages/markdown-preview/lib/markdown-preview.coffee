@@ -1,10 +1,9 @@
 EditSession = require 'edit-session'
-MarkdownPreviewView = require 'markdown-preview/lib/markdown-preview-view'
+MarkdownPreviewView = require './markdown-preview-view'
 
 module.exports =
   activate: ->
     rootView.command 'markdown-preview:show', '.editor', => @show()
-    rootView.on 'core:save', ".pane", => @show() if @previewExists()
 
   show: ->
     activePane = rootView.getActivePane()
@@ -16,17 +15,19 @@ module.exports =
       console.warn("Can not render markdown for '#{editSession.getUri() ? 'untitled'}'")
       return
 
-    if nextPane = activePane.getNextPane()
-      if preview = nextPane.itemForUri("markdown-preview:#{editSession.getPath()}")
-        nextPane.showItem(preview)
-        preview.fetchRenderedMarkdown()
-      else
-        nextPane.showItem(new MarkdownPreviewView(editSession.buffer))
+    {previewPane, previewItem} = @getExistingPreview(editSession)
+    if previewItem?
+      previewPane.showItem(previewItem)
+      previewItem.fetchRenderedMarkdown()
+    else if nextPane = activePane.getNextPane()
+      nextPane.showItem(new MarkdownPreviewView(editSession.buffer))
     else
       activePane.splitRight(new MarkdownPreviewView(editSession.buffer))
     activePane.focus()
 
-  previewExists: ->
-    nextPane = rootView.getActivePane().getNextPane()
-    item = rootView.getActivePane().activeItem
-    nextPane?.itemForUri("markdown-preview:#{item.getPath?()}")
+  getExistingPreview: (editSession) ->
+    uri = "markdown-preview:#{editSession.getPath()}"
+    for previewPane in rootView.getPanes()
+      previewItem = previewPane.itemForUri(uri)
+      return {previewPane, previewItem} if previewItem?
+    {}

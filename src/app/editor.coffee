@@ -442,6 +442,13 @@ class Editor extends View
     @subscribe $(window), "resize.editor-#{@id}", => @requestDisplayUpdate()
     @focus() if @isFocused
 
+    if pane = @getPane()
+      @active = @is(pane.activeView)
+      @subscribe pane, 'pane:active-item-changed', (event, item) =>
+        wasActive = @active
+        @active = @is(pane.activeView)
+        @redraw() if @active and not wasActive
+
     @resetDisplay()
 
     @trigger 'editor:attached', [this]
@@ -771,6 +778,7 @@ class Editor extends View
 
   requestDisplayUpdate: ->
     return if @pendingDisplayUpdate
+    return unless @isVisible()
     @pendingDisplayUpdate = true
     _.nextTick =>
       @updateDisplay()
@@ -779,6 +787,10 @@ class Editor extends View
   updateDisplay: (options={}) ->
     return unless @attached and @activeEditSession
     return if @activeEditSession.destroyed
+    unless @isVisible()
+      @redrawOnReattach = true
+      return
+
     @updateRenderedLines()
     @highlightCursorLine()
     @updateCursorViews()
@@ -916,9 +928,8 @@ class Editor extends View
 
     if intactRanges.length == 0
       @renderedLines.empty()
-    else
+    else if currentLine = renderedLines.firstChild
       domPosition = 0
-      currentLine = renderedLines.firstChild
       for intactRange in intactRanges
         while intactRange.domStart > domPosition
           currentLine = killLine(currentLine)
@@ -1079,7 +1090,7 @@ class Editor extends View
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
   pixelPositionForScreenPosition: (position) ->
-    return { top: 0, left: 0 } unless @isOnDom()
+    return { top: 0, left: 0 } unless @isOnDom() and @isVisible()
     {row, column} = Point.fromObject(position)
     actualRow = Math.floor(row)
 

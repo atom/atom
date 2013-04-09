@@ -162,6 +162,10 @@ class RootView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
+  eachPane: (callback) ->
+    callback(pane) for pane in @getPanes()
+    @on 'pane:attached', (e, pane) -> callback(pane)
+
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     @on 'editor:attached', (e, editor) -> callback(editor)

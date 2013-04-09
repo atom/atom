@@ -35,3 +35,9 @@
 
 '.editor !important, .editor.mini !important':
   'escape': 'editor:consolidate-selections'
+
+'.image-view':
+  'meta-+': 'image-view:zoom-in'
+  'meta-=': 'image-view:zoom-in'
+  'meta--': 'image-view:zoom-out'
+  'meta-0': 'image-view:reset-zoom'

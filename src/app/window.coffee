@@ -25,12 +25,6 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  ignoreEvents = (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  $(document).on 'dragover', ignoreEvents
-  $(document).on 'drop', ignoreEvents
-
   requireStylesheet 'reset'
   requireStylesheet 'atom'
   requireStylesheet 'overlay'
@@ -50,6 +44,7 @@ window.startup = ->
     console.warn "Failed to install `atom` binary"
 
   handleWindowEvents()
+  handleDragDrop()
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
@@ -92,6 +87,18 @@ window.handleWindowEvents = ->
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
   $(window).command 'window:close', => confirmClose()
   $(window).command 'window:reload', => reload()
+
+window.handleDragDrop = ->
+  $(document).on 'dragover', (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  $(document).on 'drop', onDrop
+
+window.onDrop = (e) ->
+  e.preventDefault()
+  e.stopPropagation()
+  for file in e.originalEvent.dataTransfer.files
+    atom.open(file.path)
 
 window.deserializeWindowState = ->
   RootView = require 'root-view'

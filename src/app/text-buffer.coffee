@@ -70,7 +70,7 @@ class Buffer
     path: @getPath()
     text: @getText() if @isModified()
 
-  hasEditors: -> @refcount > 1
+  hasMultipleEditors: -> @refcount > 1
 
   subscribeToFile: ->
     @file.on "contents-changed", =>

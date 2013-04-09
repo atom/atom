@@ -62,7 +62,7 @@ describe "MarkdownPreview package", ->
             pane.focus()
 
             MarkdownPreviewView.prototype.fetchRenderedMarkdown.reset()
-            pane.trigger("core:save")
+            pane.activeItem.buffer.trigger 'saved'
             expect(MarkdownPreviewView.prototype.fetchRenderedMarkdown).not.toHaveBeenCalled()
 
       describe "when a preview item has already been created for the edit session's uri", ->
@@ -86,12 +86,30 @@ describe "MarkdownPreview package", ->
           expect(pane1).toMatchSelector(':has(:focus)')
 
         describe "when a buffer is saved", ->
-          it "updates the existing preview item", ->
-            rootView.getActiveView().trigger 'markdown-preview:show'
-            [pane1, pane2] = rootView.getPanes()
-            preview = pane2.activeItem
-            pane1.focus()
+          describe "when the preview is in the same pane", ->
+            it "updates the preview but does not make it active", ->
+              rootView.getActiveView().trigger 'markdown-preview:show'
+              [pane1, pane2] = rootView.getPanes()
+              pane2.moveItemToPane(pane2.activeItem, pane1, 1)
+              pane1.showItemAtIndex(1)
+              pane1.showItemAtIndex(0)
+              preview = pane1.itemAtIndex(1)
 
-            preview.fetchRenderedMarkdown.reset()
-            pane1.trigger("core:save")
-            expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()
+              preview.fetchRenderedMarkdown.reset()
+              pane1.activeItem.buffer.trigger 'saved'
+              expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()
+              expect(pane1.activeItem).not.toBe preview
+
+          describe "when the preview is not in the same pane", ->
+            it "updates the preview and makes it active", ->
+              rootView.getActiveView().trigger 'markdown-preview:show'
+              [pane1, pane2] = rootView.getPanes()
+              preview = pane2.activeItem
+              pane2.showItem($$ -> @div id: 'view', tabindex: -1, 'View')
+              expect(pane2.activeItem).not.toBe preview
+              pane1.focus()
+
+              preview.fetchRenderedMarkdown.reset()
+              pane1.activeItem.buffer.trigger 'saved'
+              expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()
+              expect(pane2.activeItem).toBe preview

@@ -58,7 +58,7 @@ class Pane extends View
 
     return if @attached
     @attached = true
-    @trigger 'pane:attached'
+    @trigger 'pane:attached', [this]
 
   makeActive: ->
     for pane in @getContainer().getPanes() when pane isnt this
@@ -148,7 +148,7 @@ class Pane extends View
 
     @autosaveItem(item)
 
-    if promptToSave && item.isModified?()
+    if item.shouldPromptToSave?()
       @promptToSaveItem(item, reallyDestroyItem)
     else
       reallyDestroyItem()
@@ -214,7 +214,9 @@ class Pane extends View
     @trigger 'pane:item-moved', [item, newIndex]
 
   moveItemToPane: (item, pane, index) ->
+    @isMovingItem = true
     @removeItem(item)
+    @isMovingItem = false
     pane.addItem(item, index)
 
   itemForUri: (uri) ->
@@ -235,8 +237,12 @@ class Pane extends View
         delete @viewsByClassName[viewClass.name]
 
     if @items.length > 0
-      viewToRemove?.remove()
+      if @isMovingItem and item is viewToRemove
+        viewToRemove?.detach()
+      else
+        viewToRemove?.remove()
     else
+      viewToRemove?.detach() if @isMovingItem and item is viewToRemove
       @remove()
 
   viewForItem: (item) ->

@@ -2406,3 +2406,13 @@ describe "EditSession", ->
           editSession.joinLine()
           expect(editSession.lineForBufferRow(9)).toBe '  }; return sort(Array.apply(this, arguments)); };'
           expect(editSession.getSelectedBufferRange()).toEqual [[9, 3], [9, 49]]
+
+  describe ".shouldPromptToSave()", ->
+    it "returns false when an edit session's buffer is in use by more than one session", ->
+      expect(editSession.shouldPromptToSave()).toBeFalsy()
+      buffer.setText('changed')
+      expect(editSession.shouldPromptToSave()).toBeTruthy()
+      editSession2 = project.buildEditSession('sample.js', autoIndent: false)
+      expect(editSession.shouldPromptToSave()).toBeFalsy()
+      editSession2.destroy()
+      expect(editSession.shouldPromptToSave()).toBeTruthy()

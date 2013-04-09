@@ -110,7 +110,8 @@ describe "PaneContainer", ->
         expect(pane1.activeItem).toEqual item3
 
     describe "when there is no active pane", ->
-      it "attaches a new pane with the reconstructed last pane item", ->
+      it "attaches a new pane with the reconstructed last pane item and focuses it", ->
+        container.attachToDom()
         pane1.remove()
         pane2.remove()
         item3 = pane3.activeItem
@@ -120,6 +121,7 @@ describe "PaneContainer", ->
         container.reopenItem()
 
         expect(container.getActivePane().activeItem).toEqual item3
+        expect(container.getActivePane().activeView).toMatchSelector ':focus'
 
     it "does not reopen an item that is already open", ->
       item3 = pane3.activeItem
