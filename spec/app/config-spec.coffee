@@ -110,7 +110,7 @@ describe "Config", ->
       config.set("foo.bar.baz", "i'm back")
       expect(observeHandler).toHaveBeenCalledWith("i'm back")
 
-  describe "initializeConfigDirectory()", ->
+  describe ".initializeConfigDirectory()", ->
     beforeEach ->
       config.configDirPath = '/tmp/dot-atom-dir'
       expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
@@ -148,20 +148,21 @@ describe "Config", ->
           expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
           expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
 
-  describe "when the config file is not parseable", ->
-    beforeEach ->
-     config.configDirPath = '/tmp/dot-atom-dir'
-     config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
-     expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
+  describe ".loadUserConfig()", ->
+    describe "when the config file cannot be parsed", ->
+      beforeEach ->
+       config.configDirPath = '/tmp/dot-atom-dir'
+       config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
+       expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
 
-    afterEach ->
-      fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
+      afterEach ->
+        fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
 
-    it "logs an error to the console and does not overwrite the config file", ->
-      config.save.reset()
-      spyOn(console, 'error')
-      fsUtils.write(config.configFilePath, "{{{{{")
-      config.loadUserConfig()
-      config.set("hair", "blonde") # trigger a save
-      expect(console.error).toHaveBeenCalled()
-      expect(config.save).not.toHaveBeenCalled()
+      it "logs an error to the console and does not overwrite the config file", ->
+        config.save.reset()
+        spyOn(console, 'error')
+        fsUtils.write(config.configFilePath, "{{{{{")
+        config.loadUserConfig()
+        config.set("hair", "blonde") # trigger a save
+        expect(console.error).toHaveBeenCalled()
+        expect(config.save).not.toHaveBeenCalled()
