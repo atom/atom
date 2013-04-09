@@ -21,6 +21,12 @@ class LanguageMode
     throw new Error("No grammar found for path: #{path}") unless @grammar
     previousGrammar isnt @grammar
 
+  # Public: Wraps the lines between two rows in comments.
+  #
+  # If the language doesn't have comment, nothing happens.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
     return unless commentStartString = syntax.getProperty(scopes, "editor.commentStart")
@@ -83,6 +89,13 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
+  # Public: Given a buffer row, this returns a suggested indentation level.
+  #
+  # The indentation level provided is based on the current {LangugaeMode}. 
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow) ->
     currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
     scopes = @editSession.scopesForBufferPosition([bufferRow, 0])
@@ -102,13 +115,23 @@ class LanguageMode
 
     Math.max(desiredIndentLevel, currentIndentLevel)
 
+  # Public: Indents all the rows between two buffer row numbers.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at
   autoIndentBufferRows: (startRow, endRow) ->
     @autoIndentBufferRow(row) for row in [startRow..endRow]
 
+  # Public: Given a buffer row, this indents it.
+  #
+  # bufferRow - The row {Number}
   autoIndentBufferRow: (bufferRow) ->
     @autoIncreaseIndentForBufferRow(bufferRow)
     @autoDecreaseIndentForBufferRow(bufferRow)
 
+  # Public: Given a buffer row, this increases the indentation.
+  #
+  # bufferRow - The row {Number}
   autoIncreaseIndentForBufferRow: (bufferRow) ->
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
     return unless precedingRow?
@@ -124,6 +147,9 @@ class LanguageMode
     if desiredIndentLevel > currentIndentLevel
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
+  # Public: Given a buffer row, this decreases the indentation.
+  #
+  # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     scopes = @editSession.scopesForBufferPosition([bufferRow, 0])
     increaseIndentRegex = @increaseIndentRegexForScopes(scopes)

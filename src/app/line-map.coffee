@@ -76,7 +76,14 @@ class LineMap
     else
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
-
+    
+  # Public: Given a buffer position, this converts it into a screen position.
+  #
+  # bufferPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {LineMap.clipScreenPosition}.
+  #
+  # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options={}) ->
     { row, column } = Point.fromObject(bufferPosition)
     [screenRow, screenLines] = @screenRowAndScreenLinesForBufferRow(row)
@@ -109,7 +116,13 @@ class LineMap
       currentBufferRow = nextBufferRow
 
     [screenRow, screenLines]
-
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # screenPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {LineMap.clipScreenPosition}.
+  #
+  # Returns a {Point}. 
   bufferPositionForScreenPosition: (screenPosition, options) ->
     { row, column } = @clipScreenPosition(Point.fromObject(screenPosition), options)
     [bufferRow, screenLine] = @bufferRowAndScreenLineForScreenRow(row)
@@ -125,13 +138,21 @@ class LineMap
         bufferRow += screenLine.bufferRows
 
     [bufferRow, screenLine]
-
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # bufferRange - The {Range} to convert
+  #
+  # Returns a {Range}.
   screenRangeForBufferRange: (bufferRange) ->
     bufferRange = Range.fromObject(bufferRange)
     start = @screenPositionForBufferPosition(bufferRange.start)
     end = @screenPositionForBufferPosition(bufferRange.end)
     new Range(start, end)
-
+  # Public: Given a screen range, this converts it into a buffer position.
+  #
+  # screenRange - The {Range} to convert
+  #
+  # Returns a {Range}.
   bufferRangeForScreenRange: (screenRange) ->
     screenRange = Range.fromObject(screenRange)
     start = @bufferPositionForScreenPosition(screenRange.start)

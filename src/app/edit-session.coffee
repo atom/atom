@@ -58,7 +58,7 @@ class EditSession
 
     @subscribe syntax, 'grammars-loaded', => @reloadGrammar()
 
-  # Internal
+  # Internal:
   getViewClass: ->
     require 'editor'
 
@@ -309,16 +309,16 @@ class EditSession
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
   # Public: Given a buffer range, this converts it into a screen position.
   #
-  # range - The {Range} to convert
+  # bufferRange - The {Range} to convert
   #
   # Returns a {Range}.
-  screenRangeForBufferRange: (range) -> @displayBuffer.screenRangeForBufferRange(range)
+  screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
   # Public: Given a screen range, this converts it into a buffer position.
   #
-  # range - The {Range} to convert
+  # screenRange - The {Range} to convert
   #
   # Returns a {Range}.
-  bufferRangeForScreenRange: (range) -> @displayBuffer.bufferRangeForScreenRange(range)
+  bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
   # Public: Gets the line for the given screen row.
   #
@@ -349,10 +349,14 @@ class EditSession
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
   getCursorScopes: -> @getCursor().getScopes()
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
-
+  # Public: Determines whether the {Editor} will auto indent rows.
+  #
+  # Returns a {Boolean}.
   shouldAutoIndent: ->
     config.get("editor.autoIndent")
-
+  # Public: Determines whether the {Editor} will auto indent pasted text.
+  #
+  # Returns a {Boolean}.
   shouldAutoIndentPastedText: ->
     config.get("editor.autoIndentOnPaste")
   # Public: Inserts text at the current cursor positions.
@@ -474,6 +478,7 @@ class EditSession
   redo: ->
     @buffer.redo(this)
 
+  # Internal:
   transact: (fn) ->
     isNewTransaction = @buffer.transact()
     oldSelectedRanges = @getSelectedBufferRanges()
@@ -485,6 +490,7 @@ class EditSession
       @commit() if isNewTransaction
       result
 
+  # Internal:
   commit: ->
     newSelectedRanges = @getSelectedBufferRanges()
     @pushOperation
@@ -492,6 +498,7 @@ class EditSession
         editSession?.setSelectedBufferRanges(newSelectedRanges)
     @buffer.commit()
 
+  # Internal:
   abort: ->
     @buffer.abort()
 
@@ -508,6 +515,9 @@ class EditSession
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @foldBufferRow(bufferRow)
 
+  # Public: Given a buffer row, this folds it.
+  #
+  # bufferRow - A {Number} indicating the buffer row
   foldBufferRow: (bufferRow) ->
     @displayBuffer.foldBufferRow(bufferRow)
 
@@ -516,22 +526,39 @@ class EditSession
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @unfoldBufferRow(bufferRow)
 
+  # Public: Given a buffer row, this unfolds it.
+  #
+  # bufferRow - A {Number} indicating the buffer row
   unfoldBufferRow: (bufferRow) ->
     @displayBuffer.unfoldBufferRow(bufferRow)
 
+  # Public: Folds all selections.
   foldSelection: ->
     selection.fold() for selection in @getSelections()
 
+  # Public: Creates a new fold between two row numbers.
+  #
+  # startRow - The row {Number} to start folding at
+  # endRow - The row {Number} to end the fold
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
 
+  # Public: Removes any folds found that contain the given buffer row.
+  #
+  # bufferRow - The buffer row {Number} to check against
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
 
+  # Public: Removes any folds found that intersect the given buffer row.
+  #
+  # bufferRow - The buffer row {Number} to check against
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     for row in [bufferRange.start.row..bufferRange.end.row]
       @destroyFoldsContainingBufferRow(row)
 
+  # Public: Given the id of a fold, this removes it.
+  #
+  # foldId - The fold id {Number} to remove
   destroyFold: (foldId) ->
     fold = @displayBuffer.foldsById[foldId]
     fold.destroy()
@@ -542,14 +569,16 @@ class EditSession
   # Returns `true` if the row is folded, `false` otherwise.
   isFoldedAtCursorRow: ->
     @isFoldedAtScreenRow(@getCursorScreenRow())
+
   # Public: Determines if the given buffer row is folded.
   #
-  # screenRow - A {Number} indicating the buffer row.
+  # bufferRow - A {Number} indicating the buffer row.
   #
   # Returns `true` if the buffer row is folded, `false` otherwise.
   isFoldedAtBufferRow: (bufferRow) ->
     screenRow = @screenPositionForBufferPosition([bufferRow]).row
     @isFoldedAtScreenRow(screenRow)
+
   # Public: Determines if the given screen row is folded.
   #
   # screenRow - A {Number} indicating the screen row.
@@ -558,27 +587,69 @@ class EditSession
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow)?.fold?
 
+  # Public: Given a buffer row, this returns the largest fold that includes it.
+  #
+  # Largest is defined as the fold whose difference between its start and end points 
+  # are the greatest.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns a {Fold}.
   largestFoldContainingBufferRow: (bufferRow) ->
     @displayBuffer.largestFoldContainingBufferRow(bufferRow)
 
+  # Public: Given a screen row, this returns the largest fold that starts there.
+  #
+  # Largest is defined as the fold whose difference between its start and end points 
+  # are the greatest.
+  #
+  # screenRow - A {Number} indicating the screen row
+  #
+  # Returns a {Fold}.
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
+  # Public: Given a buffer row, this returns a suggested indentation level.
+  #
+  # The indentation level provided is based on the current {LangugaeMode}. 
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow) ->
     @languageMode.suggestedIndentForBufferRow(bufferRow)
 
+  # Public: Indents all the rows between two buffer rows.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at
   autoIndentBufferRows: (startRow, endRow) ->
     @languageMode.autoIndentBufferRows(startRow, endRow)
 
+  # Public: Given a buffer row, this indents it.
+  #
+  # bufferRow - The row {Number}
   autoIndentBufferRow: (bufferRow) ->
     @languageMode.autoIndentBufferRow(bufferRow)
 
+  # Public: Given a buffer row, this increases the indentation.
+  #
+  # bufferRow - The row {Number}
   autoIncreaseIndentForBufferRow: (bufferRow) ->
     @languageMode.autoIncreaseIndentForBufferRow(bufferRow)
 
+  # Public: Given a buffer row, this decreases the indentation.
+  #
+  # bufferRow - The row {Number}
   autoDecreaseIndentForRow: (bufferRow) ->
     @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
+  # Public: Wraps the lines between two rows in comments.
+  #
+  # If the language doesn't have comments, nothing happens.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at
   toggleLineCommentsForBufferRows: (start, end) ->
     @languageMode.toggleLineCommentsForBufferRows(start, end)
 

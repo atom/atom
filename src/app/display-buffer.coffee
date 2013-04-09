@@ -90,6 +90,9 @@ class DisplayBuffer
       endRow = currentRow
     return [startRow, endRow] if startRow isnt endRow
 
+  # Public: Given a buffer row, this folds it.
+  #
+  # bufferRow - A {Number} indicating the buffer row
   foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       rowRange = @rowRangeForCommentAtBufferRow(currentRow)
@@ -103,9 +106,16 @@ class DisplayBuffer
 
       return
 
+  # Public: Given a buffer row, this unfolds it.
+  #
+  # bufferRow - A {Number} indicating the buffer row
   unfoldBufferRow: (bufferRow) ->
     @largestFoldContainingBufferRow(bufferRow)?.destroy()
 
+  # Public: Creates a new fold between two row numbers.
+  #
+  # startRow - The row {Number} to start folding at
+  # endRow - The row {Number} to end the fold
   createFold: (startRow, endRow) ->
     return fold if fold = @foldFor(startRow, endRow)
     fold = new Fold(this, startRow, endRow)
@@ -154,6 +164,9 @@ class DisplayBuffer
 
       @triggerChanged({ start, end, screenDelta, bufferDelta })
 
+  # Public: Removes any folds found that contain the given buffer row.
+  #
+  # bufferRow - The buffer row {Number} to check against
   destroyFoldsContainingBufferRow: (bufferRow) ->
     for row, folds of @activeFolds
       for fold in new Array(folds...)
@@ -170,13 +183,37 @@ class DisplayBuffer
     delete @foldsById[fold.id]
     delete @activeFolds[bufferRow] if folds.length == 0
 
+  # Public: Given a buffer row, this returns the largest fold that starts there.
+  #
+  # Largest is defined as the fold whose difference between its start and end points 
+  # are the greatest.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns a {Fold}.
   largestFoldStartingAtBufferRow: (bufferRow) ->
     return unless folds = @activeFolds[bufferRow]
     (folds.sort (a, b) -> b.endRow - a.endRow)[0]
 
+  # Public: Given a screen row, this returns the largest fold that starts there.
+  #
+  # Largest is defined as the fold whose difference between its start and end points 
+  # are the greatest.
+  #
+  # screenRow - A {Number} indicating the screen row
+  #
+  # Returns a {Fold}.
   largestFoldStartingAtScreenRow: (screenRow) ->
     @largestFoldStartingAtBufferRow(@bufferRowForScreenRow(screenRow))
 
+  # Public: Given a buffer row, this returns the largest fold that includes it.
+  #
+  # Largest is defined as the fold whose difference between its start and end points 
+  # are the greatest.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns a {Fold}.
   largestFoldContainingBufferRow: (bufferRow) ->
     largestFold = null
     for currentBufferRow in [bufferRow..0]
@@ -197,10 +234,18 @@ class DisplayBuffer
 
   bufferRowForScreenRow: (screenRow) ->
     @lineMap.bufferPositionForScreenPosition([screenRow, 0]).row
-
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # bufferRange - The {Range} to convert
+  #
+  # Returns a {Range}.
   screenRangeForBufferRange: (bufferRange) ->
     @lineMap.screenRangeForBufferRange(bufferRange)
-
+  # Public: Given a screen range, this converts it into a buffer position.
+  #
+  # screenRange - The {Range} to convert
+  #
+  # Returns a {Range}.
   bufferRangeForScreenRange: (screenRange) ->
     @lineMap.bufferRangeForScreenRange(screenRange)
 
@@ -213,9 +258,22 @@ class DisplayBuffer
   maxLineLength: ->
     @lineMap.maxScreenLineLength
 
+  # Public: Given a buffer position, this converts it into a screen position.
+  #
+  # bufferPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {LineMap.clipScreenPosition}.
+  #
+  # Returns a {Point}.
   screenPositionForBufferPosition: (position, options) ->
     @lineMap.screenPositionForBufferPosition(position, options)
-
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # screenPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {LineMap.clipScreenPosition}.
+  #
+  # Returns a {Point}. 
   bufferPositionForScreenPosition: (position, options) ->
     @lineMap.bufferPositionForScreenPosition(position, options)
 
