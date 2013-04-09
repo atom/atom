@@ -115,14 +115,26 @@ task :tags do
 end
 
 namespace :docs do
-  desc "Builds the API docs"
-  task :build do
-    system %{./biscotto -j ~/Development/biscotto/out.json src/app/}
-  end
+  namespace :build do
+    desc "Builds the API docs in src/app"
+    task :app do
+      system %{./biscotto src/app/}
+    end
 
-  desc "Lists the stats for API doc coverage"
-  task :stats do
-    system %{./biscotto --statsOnly src/app/}
+    desc "Lists the stats for API doc coverage in src/app"
+    task :stats do
+      system %{./biscotto --statsOnly src/app/}
+    end
+
+    desc "Builds the API docs in src/package"
+    task :package do
+      system %{./biscotto src/package/}
+    end
+
+    desc "Lists the stats for API doc coverage in src/package"
+    task :stats do
+      system %{./biscotto --statsOnly src/package/}
+    end
   end
 end
 
