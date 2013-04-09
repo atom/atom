@@ -425,9 +425,37 @@ class Editor extends View
   # Returns a {String}.
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
   clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)
+
+  # Public: Given a buffer position, this converts it into a screen position.
+  #
+  # bufferPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {LineMap.clipScreenPosition}.
+  #
+  # Returns a {Point}.
   screenPositionForBufferPosition: (position, options) -> @activeEditSession.screenPositionForBufferPosition(position, options)
+  
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # screenPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {LineMap.clipScreenPosition}.
+  #
+  # Returns a {Point}. 
   bufferPositionForScreenPosition: (position, options) -> @activeEditSession.bufferPositionForScreenPosition(position, options)
+  
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # bufferRange - The {Range} to convert
+  #
+  # Returns a {Range}.
   screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
+  
+  # Public: Given a screen range, this converts it into a buffer position.
+  #
+  # screenRange - The {Range} to convert
+  #
+  # Returns a {Range}.
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
@@ -520,7 +548,7 @@ class Editor extends View
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
   # Public: Given a row, returns the length of the line of text.
   #
-  # row - A {Number} indicating the row.
+  # row - A {Number} indicating the row
   #
   # Returns a {Number}.
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
@@ -612,6 +640,7 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
+  # Internal:
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
     moveHandler = (event = lastMoveEvent) =>
@@ -630,6 +659,7 @@ class Editor extends View
       @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
 
+  # Internal:
   afterAttach: (onDom) ->
     return unless onDom
     @redraw() if @redrawOnReattach
@@ -652,6 +682,7 @@ class Editor extends View
 
     @trigger 'editor:attached', [this]
 
+  # Internal:
   edit: (editSession) ->
     return if editSession is @activeEditSession
 
@@ -698,6 +729,7 @@ class Editor extends View
   # Returns the current {Buffer}.
   getBuffer: -> @activeEditSession.buffer
 
+  # Internal:
   showBufferConflictAlert: (editSession) ->
     atom.confirm(
       editSession.getPath(),
@@ -706,6 +738,7 @@ class Editor extends View
       "Cancel"
     )
 
+  # Internal:
   scrollTop: (scrollTop, options={}) ->
     return @cachedScrollTop or 0 unless scrollTop?
     maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
@@ -722,21 +755,38 @@ class Editor extends View
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
 
+  # Internal:
   scrollBottom: (scrollBottom) ->
     if scrollBottom?
       @scrollTop(scrollBottom - @scrollView.height())
     else
       @scrollTop() + @scrollView.height()
 
+  # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
     @scrollBottom(@screenLineCount() * @lineHeight)
 
+  # Public: Scrolls the editor to the given buffer position.
+  #
+  # bufferPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - A hash matching the options available to {.scrollToPixelPosition}
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForBufferPosition(bufferPosition), options)
 
+  # Public: Scrolls the editor to the given screen position.
+  #
+  # screenPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - A hash matching the options available to {.scrollToPixelPosition}
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForScreenPosition(screenPosition), options)
 
+  # Public: Scrolls the editor to the given pixel position.
+  #
+  # bufferPosition - An object that represents a pixel position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - A hash matching the options available to {.scrollVertically}
   scrollToPixelPosition: (pixelPosition, options) ->
     return unless @attached
     @scrollVertically(pixelPosition, options)
@@ -1315,9 +1365,21 @@ class Editor extends View
   toggleLineCommentsInSelection: ->
     @activeEditSession.toggleLineCommentsInSelection()
 
+  # Public: Converts a buffer position to a pixel position.
+  #
+  # position - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #
+  # Returns an object with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForBufferPosition: (position) ->
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
+  # Public: Converts a screen position to a pixel position.
+  #
+  # position - An object that represents a screen position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #
+  # Returns an object with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (position) ->
     return { top: 0, left: 0 } unless @isOnDom() and @isVisible()
     {row, column} = Point.fromObject(position)
@@ -1432,10 +1494,12 @@ class Editor extends View
     path = @getPath()
     pasteboard.write(path) if path?
 
+  # Internal:
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
       fsUtils.write(path, @getDebugSnapshot()) if path
 
+  # Internal:
   getDebugSnapshot: ->
     [
       "Debug Snapshot: #{@getPath()}"
@@ -1444,6 +1508,7 @@ class Editor extends View
       @getBuffer().getDebugSnapshot()
     ].join('\n\n')
 
+  # Internal:
   getRenderedLinesDebugSnapshot: ->
     lines = ['Rendered Lines:']
     firstRenderedScreenRow = @firstRenderedScreenRow
@@ -1451,9 +1516,11 @@ class Editor extends View
       lines.push "#{firstRenderedScreenRow + n}: #{$(this).text()}"
     lines.join('\n')
 
+  # Internal:
   logScreenLines: (start, end) ->
     @activeEditSession.logScreenLines(start, end)
 
+  # Internal:
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->
       console.log n, $(this).text()

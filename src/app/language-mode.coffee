@@ -104,7 +104,7 @@ class LanguageMode
 
   # Public: Given a buffer row, this returns a suggested indentation level.
   #
-  # The indentation level provided is based on the current {LangugaeMode}. 
+  # The indentation level provided is based on the current {LanguageMode}. 
   #
   # bufferRow - A {Number} indicating the buffer row
   #
