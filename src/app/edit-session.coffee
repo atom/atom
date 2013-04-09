@@ -723,6 +723,7 @@ class EditSession
 
       @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
 
+  # Public: Duplicates the current line.
   duplicateLine: ->
     return unless @getSelection().isEmpty()
 
@@ -746,9 +747,11 @@ class EditSession
       @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
       @foldCurrentRow() if cursorRowFolded
 
+  # Internal:
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
 
+  # Internal:
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) =>
@@ -760,81 +763,109 @@ class EditSession
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
+  # Internal:
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
-
+      
+  # Internal:
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
-
+      
+  # Internal:
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
-
+      
+  # Internal:
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
-
+      
+  # Internal:
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
-
+      
+  # Internal:
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
+  # Public: Gets the number of markers in the buffer.
+  #
+  # Returns a {Number}.
   getMarkerCount: ->
     @buffer.getMarkerCount()
-
+      
+  # Internal:
   getMarkerScreenRange: (args...) ->
     @displayBuffer.getMarkerScreenRange(args...)
-
+      
+  # Internal:
   setMarkerScreenRange: (args...) ->
     @displayBuffer.setMarkerScreenRange(args...)
-
+      
+  # Internal:
   getMarkerBufferRange: (args...) ->
     @displayBuffer.getMarkerBufferRange(args...)
-
+      
+  # Internal:
   setMarkerBufferRange: (args...) ->
     @displayBuffer.setMarkerBufferRange(args...)
-
+      
+  # Internal:
   getMarkerScreenPosition: (args...) ->
     @displayBuffer.getMarkerScreenPosition(args...)
-
+      
+  # Internal:
   getMarkerBufferPosition: (args...) ->
     @displayBuffer.getMarkerBufferPosition(args...)
-
+      
+  # Internal:
   getMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.getMarkerHeadScreenPosition(args...)
-
+      
+  # Internal:
   setMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.setMarkerHeadScreenPosition(args...)
-
+      
+  # Internal:
   getMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.getMarkerHeadBufferPosition(args...)
-
+      
+  # Internal:
   setMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.setMarkerHeadBufferPosition(args...)
-
+      
+  # Internal:
   getMarkerTailScreenPosition: (args...) ->
     @displayBuffer.getMarkerTailScreenPosition(args...)
-
+      
+  # Internal:
   setMarkerTailScreenPosition: (args...) ->
     @displayBuffer.setMarkerTailScreenPosition(args...)
-
+      
+  # Internal:
   getMarkerTailBufferPosition: (args...) ->
     @displayBuffer.getMarkerTailBufferPosition(args...)
-
+      
+  # Internal:
   setMarkerTailBufferPosition: (args...) ->
     @displayBuffer.setMarkerTailBufferPosition(args...)
-
+      
+  # Internal:
   observeMarker: (args...) ->
     @displayBuffer.observeMarker(args...)
-
+      
+  # Internal:
   placeMarkerTail: (args...) ->
     @displayBuffer.placeMarkerTail(args...)
-
+      
+  # Internal:
   clearMarkerTail: (args...) ->
     @displayBuffer.clearMarkerTail(args...)
-
+      
+  # Internal:
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
-
+      
+  # Internal:
   isMarkerRangeEmpty: (args...) ->
     @displayBuffer.isMarkerRangeEmpty(args...)
     

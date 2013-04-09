@@ -42,9 +42,9 @@ class Buffer
         @setText(initialText)
         @updateCachedDiskContents()
       else if fsUtils.exists(path)
-      @reload()
-    else
-      @setText('')
+        @reload()
+      else
+        @setText('')
     else
       @setText(initialText ? '')
 
