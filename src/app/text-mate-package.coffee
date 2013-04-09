@@ -38,6 +38,8 @@ class TextMatePackage extends Package
     for { selector, properties } in @scopedProperties
       syntax.addProperties(@path, selector, properties)
 
+  activateConfig: -> # noop
+
   deactivate: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(@path)

@@ -37,11 +37,7 @@ class AtomPackage extends Package
     this
 
   activate: ({immediate}={}) ->
-    keymap.add(path, map) for [path, map] in @keymaps
-    applyStylesheet(path, content) for [path, content] in @stylesheets
-    syntax.addGrammar(grammar) for grammar in @grammars
-    syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
-
+    @activateResources()
     if @metadata.activationEvents? and not immediate
       @subscribeToActivationEvents()
     else
@@ -54,6 +50,18 @@ class AtomPackage extends Package
         @mainModule.activate(atom.getPackageState(@name) ? {})
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
+
+  activateConfig: ->
+    @activateResources()
+    if @requireMainModule()
+      config.setDefaults(@name, @mainModule.configDefaults)
+      @mainModule?.activateConfig?()
+
+  activateResources: ->
+    keymap.add(path, map) for [path, map] in @keymaps
+    applyStylesheet(path, content) for [path, content] in @stylesheets
+    syntax.addGrammar(grammar) for grammar in @grammars
+    syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
 
   loadMetadata: ->
     if metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['json', 'cson'])
@@ -101,11 +109,18 @@ class AtomPackage extends Package
 
   deactivate: ->
     @unsubscribeFromActivationEvents()
+    @deactivateResources()
+    @mainModule?.deactivate?()
+
+  deactivateConfig: ->
+    @deactivateResources()
+    @mainModule?.deactivateConfig?()
+
+  deactivateResources: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(path) for [path] in @scopedProperties
     keymap.remove(path) for [path] in @keymaps
     removeStylesheet(path) for [path] in @stylesheets
-    @mainModule?.deactivate?()
 
   requireMainModule: ->
     return @mainModule if @mainModule

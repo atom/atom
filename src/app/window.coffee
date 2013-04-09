@@ -63,6 +63,7 @@ window.startConfigWindow = ->
   atom.loadThemes()
   atom.loadPackages()
   deserializeConfigWindow()
+  atom.activatePackageConfigs()
   keymap.loadUserKeymaps()
 
 window.shutdown = ->
