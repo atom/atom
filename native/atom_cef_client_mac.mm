@@ -74,6 +74,10 @@ void AtomCefClient::NewWindow() {
   [(AtomApplication *)[AtomApplication sharedApplication] open:nil];
 }
 
+void AtomCefClient::OpenConfig() {
+  [(AtomApplication *)[AtomApplication sharedApplication] openConfig];
+}
+
 void AtomCefClient::Confirm(int replyId,
                             std::string message,
                             std::string detailedMessage,

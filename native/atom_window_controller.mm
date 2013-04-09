@@ -11,6 +11,7 @@
 @synthesize webView=_webView;
 @synthesize devToolsView=_devToolsView;
 @synthesize pathToOpen=_pathToOpen;
+@synthesize isConfig=_isConfig;
 
 - (void)dealloc {
   [_splitView release];
@@ -129,6 +130,11 @@
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
   return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO useBundleResourcePath:NO];
+}
+
+- (id)initConfig {
+  _isConfig = true;
+  return [self initWithBootstrapScript:@"config-bootstrap" background:NO useBundleResourcePath:![self isDevMode]];
 }
 
 - (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {

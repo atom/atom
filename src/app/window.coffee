@@ -30,6 +30,7 @@ window.setUpEnvironment = ->
   keymap.bindDefaultKeys()
 
   requireStylesheet 'atom'
+  requireStylesheet 'config'
 
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
@@ -54,6 +55,15 @@ window.startEditorWindow = ->
   atom.requireUserInitScript()
   $(window).on 'beforeunload', -> shutdown(); false
   $(window).focus()
+
+window.startConfigWindow = ->
+  handleWindowEvents()
+  config.load()
+  keymap.loadBundledKeymaps()
+  atom.loadThemes()
+  atom.loadPackages()
+  deserializeConfigWindow()
+  keymap.loadUserKeymaps()
 
 window.shutdown = ->
   return if not project and not rootView
@@ -129,6 +139,11 @@ window.deserializeEditorWindow = ->
   project.on 'path-changed', ->
     window.git?.destroy()
     window.git = Git.open(project.getPath())
+
+window.deserializeConfigWindow = ->
+  ConfigView = require 'config-view'
+  window.configView = new ConfigView()
+  $(rootViewParentSelector).append(configView)
 
 window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")
