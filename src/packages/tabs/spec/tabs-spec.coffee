@@ -301,4 +301,3 @@ describe "TabBarView", ->
 
         expect(dragStartEvent.originalEvent.dataTransfer.getData("text/plain")).toEqual editSession1.getPath()
         expect(dragStartEvent.originalEvent.dataTransfer.getData("text/uri-list")).toEqual 'file://' + editSession1.getPath()
-
