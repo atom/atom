@@ -196,7 +196,7 @@ class Cursor
       if not endOfWordPosition?.isEqual(currentBufferPosition)
         stop()
 
-    endOfWordPosition or currentBufferPosition
+    endOfWordPosition ? currentBufferPosition
 
   getBeginningOfNextWordBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
