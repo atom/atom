@@ -77,11 +77,8 @@ class TabBarView extends View
     (@paneContainer.getPanes().length > 1) or (@pane.getItems().length > 1)
 
   onDragStart: (event) =>
-    unless @shouldAllowDrag(event)
-      event.preventDefault()
-      return
-
-    event.originalEvent.dataTransfer.setData 'atom-event', 'true'
+    if @shouldAllowDrag()
+      event.originalEvent.dataTransfer.setData 'atom-event', 'true'
 
     el = $(event.target).closest('.sortable')
     el.addClass 'is-dragging'
