@@ -57,6 +57,7 @@ beforeEach ->
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
   config.set "core.disabledPackages", ["package-that-throws-an-exception"]
+  config.save.reset()
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
