@@ -149,19 +149,28 @@ describe "Config", ->
           expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
 
   describe ".loadUserConfig()", ->
-    describe "when the config file cannot be parsed", ->
+    beforeEach ->
+      config.configDirPath = '/tmp/dot-atom-dir'
+      config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
+      expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
+
+    afterEach ->
+      fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
+
+    describe "when the config file contains valid cson", ->
       beforeEach ->
-       config.configDirPath = '/tmp/dot-atom-dir'
-       config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
-       expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
+        fsUtils.write(config.configFilePath, "foo: bar: 'baz'")
 
-      afterEach ->
-        fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
+      it "updates the config data based on the file contents", ->
+        config.loadUserConfig()
+        expect(config.get("foo.bar")).toBe 'baz'
 
-      it "logs an error to the console and does not overwrite the config file", ->
-        config.save.reset()
+    describe "when the config file contains invalid cson", ->
+      beforeEach ->
         spyOn(console, 'error')
         fsUtils.write(config.configFilePath, "{{{{{")
+
+      it "logs an error to the console and does not overwrite the config file on a subsequent save", ->
         config.loadUserConfig()
         config.set("hair", "blonde") # trigger a save
         expect(console.error).toHaveBeenCalled()
