@@ -214,7 +214,9 @@ class Pane extends View
     @trigger 'pane:item-moved', [item, newIndex]
 
   moveItemToPane: (item, pane, index) ->
+    @isMovingItem = true
     @removeItem(item)
+    @isMovingItem = false
     pane.addItem(item, index)
 
   itemForUri: (uri) ->
@@ -235,8 +237,12 @@ class Pane extends View
         delete @viewsByClassName[viewClass.name]
 
     if @items.length > 0
-      viewToRemove?.remove()
+      if @isMovingItem and item is viewToRemove
+        viewToRemove?.detach()
+      else
+        viewToRemove?.remove()
     else
+      viewToRemove?.detach() if @isMovingItem and item is viewToRemove
       @remove()
 
   viewForItem: (item) ->
