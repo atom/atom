@@ -6,7 +6,7 @@ TabView = require './tab-view'
 module.exports =
 class TabBarView extends View
   @content: ->
-    @ul class: "tabs sortable-list"
+    @ul tabindex: -1, class: "tabs sortable-list"
 
   initialize: (@pane) ->
     @on 'dragstart', '.sortable', @onDragStart
