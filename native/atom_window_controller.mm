@@ -103,9 +103,7 @@
 
 - (id)initWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  BOOL useBundleResourcePath = [atomApplication.arguments objectForKey:@"dev"] == nil;
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:useBundleResourcePath];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:![self isDevMode]];
 }
 
 - (id)initDevWithPath:(NSString *)path {
@@ -114,10 +112,7 @@
 }
 
 - (id)initInBackground {
-  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  BOOL useBundleResourcePath = [atomApplication.arguments objectForKey:@"dev"] == nil;
-
-  [self initWithBootstrapScript:@"window-bootstrap" background:YES useBundleResourcePath:useBundleResourcePath];
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES useBundleResourcePath:![self isDevMode]];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorStationary];
@@ -271,7 +266,7 @@
     [_devButton setHidden:NO];
 }
 
-- (bool)isDevMode {
+- (BOOL)isDevMode {
   NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   return ![_resourcePath isEqualToString:bundleResourcePath];
 }
