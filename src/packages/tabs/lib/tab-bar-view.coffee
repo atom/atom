@@ -77,11 +77,8 @@ class TabBarView extends View
     (@paneContainer.getPanes().length > 1) or (@pane.getItems().length > 1)
 
   onDragStart: (event) =>
-    unless @shouldAllowDrag(event)
-      event.preventDefault()
-      return
-
-    event.originalEvent.dataTransfer.setData 'atom-event', 'true'
+    if @shouldAllowDrag()
+      event.originalEvent.dataTransfer.setData 'atom-event', 'true'
 
     el = $(event.target).closest('.sortable')
     el.addClass 'is-dragging'
@@ -91,8 +88,15 @@ class TabBarView extends View
     paneIndex = @paneContainer.indexOfPane(pane)
     event.originalEvent.dataTransfer.setData 'from-pane-index', paneIndex
 
+    item = @pane.getItems()[el.index()]
+    if item.getPath?
+      event.originalEvent.dataTransfer.setData 'text/uri-list', 'file://' + item.getPath()
+      event.originalEvent.dataTransfer.setData 'text/plain', item.getPath()
+
   onDragEnd: (event) =>
     @find(".is-dragging").removeClass 'is-dragging'
+    @children('.is-drop-target').removeClass 'is-drop-target'
+    @children('.drop-target-is-after').removeClass 'drop-target-is-after'
 
   onDragOver: (event) =>
     unless event.originalEvent.dataTransfer.getData('atom-event') is 'true'
@@ -120,8 +124,6 @@ class TabBarView extends View
       return
 
     event.stopPropagation()
-    @children('.is-drop-target').removeClass 'is-drop-target'
-    @children('.drop-target-is-after').removeClass 'drop-target-is-after'
 
     dataTransfer  = event.originalEvent.dataTransfer
     fromIndex     = parseInt(dataTransfer.getData('sortable-index'))

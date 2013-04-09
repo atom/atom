@@ -279,8 +279,8 @@ describe "TabBarView", ->
         expect(pane2.activeItem).toBe item1
         expect(pane2.focus).toHaveBeenCalled()
 
-    describe 'when a non-tab is dragged to pane', ->
-      it 'has no effect', ->
+    describe "when a non-tab is dragged to pane", ->
+      it "has no effect", ->
         expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
         expect(pane.getItems()).toEqual [item1, editSession1, item2]
         expect(pane.activeItem).toBe item2
@@ -293,4 +293,12 @@ describe "TabBarView", ->
         expect(pane.getItems()).toEqual [item1, editSession1, item2]
         expect(pane.activeItem).toBe item2
         expect(pane.focus).not.toHaveBeenCalled()
+
+    describe "when a tab is dragged out of application", ->
+      it "should carry file's information", ->
+        [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(1), tabBar.tabAtIndex(1))
+        tabBar.onDragStart(dragStartEvent)
+
+        expect(dragStartEvent.originalEvent.dataTransfer.getData("text/plain")).toEqual editSession1.getPath()
+        expect(dragStartEvent.originalEvent.dataTransfer.getData("text/uri-list")).toEqual 'file://' + editSession1.getPath()
 
