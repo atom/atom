@@ -57,6 +57,15 @@ _.extend atom,
   getActivePackages: ->
     _.clone(@activePackages)
 
+  activatePackageConfigs: ->
+    @activatePackageConfig(pack.path) for pack in @getLoadedPackages()
+
+  activatePackageConfig: (id, options) ->
+    if pack = @loadPackage(id, options)
+      @activePackages.push(pack)
+      pack.activateConfig()
+      pack
+
   loadPackages: ->
     @loadPackage(path) for path in @getPackagePaths() when not @isPackageDisabled(path)
 
