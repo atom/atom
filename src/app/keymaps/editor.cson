@@ -27,6 +27,7 @@
   'ctrl-meta-down': 'editor:move-line-down'
   'meta-D': 'editor:duplicate-line'
   'ctrl-J': 'editor:join-line'
+  'meta-<': 'editor:scroll-to-cursor'
 
 '.editor.mini':
   'enter': 'core:confirm',

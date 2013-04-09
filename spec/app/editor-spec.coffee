@@ -2552,3 +2552,14 @@ describe "Editor", ->
 
         runs ->
           expect(editor.renderedLines.find('.line').text()).toBe 'hidden changes'
+
+  describe "editor:scroll-to-cursor", ->
+    it "scrolls to and centers the editor on the cursor's position", ->
+      editor.attachToDom(heightInLines: 3)
+      editor.setCursorBufferPosition([1, 2])
+      editor.scrollToBottom()
+      expect(editor.getFirstVisibleScreenRow()).not.toBe 0
+      expect(editor.getLastVisibleScreenRow()).not.toBe 2
+      editor.trigger('editor:scroll-to-cursor')
+      expect(editor.getFirstVisibleScreenRow()).toBe 0
+      expect(editor.getLastVisibleScreenRow()).toBe 2

@@ -164,6 +164,7 @@ class Editor extends View
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
         'editor:save-debug-snapshot': @saveDebugSnapshot
         'editor:toggle-line-numbers': =>  config.set('editor.showLineNumbers', !config.get('editor.showLineNumbers'))
+        'editor:scroll-to-cursor': @scrollToCursorPosition
 
     documentation = {}
     for name, method of editorBindings
@@ -522,6 +523,9 @@ class Editor extends View
 
   scrollToBottom: ->
     @scrollBottom(@screenLineCount() * @lineHeight)
+
+  scrollToCursorPosition: ->
+    @scrollToBufferPosition(@getCursorBufferPosition(), center: true)
 
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForBufferPosition(bufferPosition), options)
