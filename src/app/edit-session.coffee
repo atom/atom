@@ -904,12 +904,22 @@ class EditSession
     marker = @markBufferPosition(bufferPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
 
+  # Public: Adds a cursor to the `EditSession`.
+  #
+  # marker - The marker where the cursor should be added
+  #
+  # Returns the new {Cursor}.
   addCursor: (marker) ->
     cursor = new Cursor(editSession: this, marker: marker)
     @cursors.push(cursor)
     @trigger 'cursor-added', cursor
     cursor
 
+  # Public: Removes a cursor from the `EditSession`.
+  #
+  # cursor - The cursor to remove
+  #
+  # Returns the array of {Cursor}s, minus the one just removed.
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 
