@@ -1,6 +1,5 @@
 {
   'variables': {
-    'version': '2.0.<!(git log -1 --format="%h")',
     'pkg-config': 'pkg-config',
     'chromium_code': 1,
     'use_aura%': 0,
@@ -25,6 +24,9 @@
       '-change',
       '@loader_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle',
       '@rpath/Sparkle.framework/Versions/A/Sparkle',
+      '-change',
+      '@executable_path/../Frameworks/Quincy.framework/Versions/A/Quincy',
+      '@rpath/Quincy.framework/Versions/A/Quincy',
       '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
     ],
   },
@@ -43,7 +45,7 @@
       },
     },
     'xcode_settings': {
-      'VERSION': "<(version)",
+      'VERSION': "<!(git rev-parse --short HEAD)",
       'CLANG_CXX_LANGUAGE_STANDARD' : 'c++0x',
       'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
       'COMBINE_HIDPI_IMAGES': 'YES', # Removes 'Validate Project Settings' warning
@@ -138,6 +140,7 @@
                 '<(PRODUCT_DIR)/Atom Helper.app',
                 '<(PRODUCT_DIR)/Atom.framework',
                 'native/frameworks/Sparkle.framework',
+                'native/frameworks/Quincy.framework'
               ],
             },
             {
@@ -172,7 +175,7 @@
               # is marked for no PIE (ASLR).
               'postbuild_name': 'Make More Helpers',
               'action': [
-                'tools/mac/make_more_helpers.sh',
+                'script/make_more_helpers.sh',
                 'Frameworks',
                 'Atom',
               ],
@@ -248,8 +251,6 @@
         'native/message_translation.cpp',
         'native/message_translation.h',
         'native/message_translation.h',
-        'native/path_watcher.h',
-        'native/path_watcher.mm',
         'native/v8_extensions/atom.h',
         'native/v8_extensions/atom.mm',
         'native/v8_extensions/native.h',
@@ -259,11 +260,19 @@
         'libraries': [
           '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
           'native/frameworks/Sparkle.framework',
+          'native/frameworks/Quincy.framework',
         ],
       },
       'mac_bundle_resources': [
         'native/mac/English.lproj/AtomWindow.xib',
         'native/mac/English.lproj/MainMenu.xib',
+      ],
+      'conditions': [
+        ['CODE_SIGN', {
+          'defines': [
+            'CODE_SIGNING_ENABLED=1',
+          ],
+        }],
       ],
       'postbuilds': [
         {

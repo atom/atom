@@ -4,11 +4,15 @@ _ = require 'underscore'
 
 module.exports =
 class Selection
-  wordwise: false
+  cursor: null
+  marker: null
+  editSession: null
   initialScreenRange: null
+  goalBufferRange: null
+  wordwise: false
   needsAutoscroll: null
 
-  constructor: ({@cursor, @marker, @editSession}) ->
+  constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
     @editSession.observeMarker @marker, => @screenRangeChanged()
     @cursor.on 'destroyed.selection', =>
@@ -148,6 +152,40 @@ class Selection
   selectToEndOfWord: ->
     @modifySelection => @cursor.moveToEndOfWord()
 
+  addSelectionBelow: ->
+    range = (@goalBufferRange ? @getBufferRange()).copy()
+    nextRow = range.end.row + 1
+
+    for row in [nextRow..@editSession.getLastBufferRow()]
+      range.start.row = row
+      range.end.row = row
+      clippedRange = @editSession.clipBufferRange(range)
+
+      if range.isEmpty()
+        continue if range.end.column > 0 and clippedRange.end.column is 0
+      else
+        continue if clippedRange.isEmpty()
+
+      @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+      break
+
+  addSelectionAbove: ->
+    range = (@goalBufferRange ? @getBufferRange()).copy()
+    previousRow = range.end.row - 1
+
+    for row in [previousRow..0]
+      range.start.row = row
+      range.end.row = row
+      clippedRange = @editSession.clipBufferRange(range)
+
+      if range.isEmpty()
+        continue if range.end.column > 0 and clippedRange.end.column is 0
+      else
+        continue if clippedRange.isEmpty()
+
+      @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+      break
+
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
@@ -243,7 +281,10 @@ class Selection
     @deleteSelectedText()
 
   backspaceToBeginningOfLine: ->
-    @selectToBeginningOfLine()
+    if @isEmpty() and @cursor.isAtBeginningOfLine()
+      @selectLeft()
+    else
+      @selectToBeginningOfLine()
     @deleteSelectedText()
 
   delete: ->
@@ -282,6 +323,31 @@ class Selection
       if end isnt @editSession.buffer.getLastRow() and range.end.column is 0
         end--
       @editSession.buffer.deleteRows(start, end)
+
+  joinLine: ->
+    selectedRange = @getBufferRange()
+    if selectedRange.isEmpty()
+      return if selectedRange.start.row is @editSession.buffer.getLastRow()
+    else
+      joinMarker = @editSession.markBufferRange(selectedRange, invalidationStrategy: 'never')
+
+    rowCount = Math.max(1, selectedRange.getRowCount() - 1)
+    for row in [0...rowCount]
+      @cursor.setBufferPosition([selectedRange.start.row])
+      @cursor.moveToEndOfLine()
+      nextRow = selectedRange.start.row + 1
+      if nextRow <= @editSession.buffer.getLastRow() and @editSession.buffer.lineLengthForRow(nextRow) > 0
+        @insertText(' ')
+        @cursor.moveToEndOfLine()
+      @modifySelection =>
+        @cursor.moveRight()
+        @cursor.moveToFirstCharacterOfLine()
+      @deleteSelectedText()
+
+    if joinMarker?
+      newSelectedRange = @editSession.getMarkerBufferRange(joinMarker)
+      @setBufferRange(newSelectedRange)
+      @editSession.destroyMarker(joinMarker)
 
   outdentSelectedRows: ->
     [start, end] = @getBufferRowRange()
@@ -341,10 +407,14 @@ class Selection
     @getBufferRange().intersectsWith(bufferRange)
 
   intersectsWith: (otherSelection) ->
-    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
+    @getBufferRange().intersectsWith(otherSelection.getBufferRange())
 
   merge: (otherSelection, options) ->
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
+    if @goalBufferRange and otherSelection.goalBufferRange
+      @goalBufferRange = @goalBufferRange.union(otherSelection.goalBufferRange)
+    else if otherSelection.goalBufferRange
+      @goalBufferRange = otherSelection.goalBufferRange
     otherSelection.destroy()
 
 _.extend Selection.prototype, EventEmitter

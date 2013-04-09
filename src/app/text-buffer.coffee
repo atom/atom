@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 File = require 'file'
 Point = require 'point'
 Range = require 'range'
@@ -11,6 +11,7 @@ BufferMarker = require 'buffer-marker'
 module.exports =
 class Buffer
   @idCounter = 1
+  registerDeserializer(this)
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
   undoManager: null
@@ -24,7 +25,10 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
-  constructor: (path, @project) ->
+  @deserialize: ({path, text}) ->
+    project.bufferForPath(path, text)
+
+  constructor: (path, initialText) ->
     @id = @constructor.idCounter++
     @nextMarkerId = 1
     @validMarkers = {}
@@ -33,11 +37,16 @@ class Buffer
     @lineEndings = []
 
     if path
-      throw "Path '#{path}' does not exist" unless fs.exists(path)
       @setPath(path)
+      if initialText?
+        @setText(initialText)
+        @updateCachedDiskContents()
+      else if fsUtils.exists(path)
       @reload()
     else
       @setText('')
+    else
+      @setText(initialText ? '')
 
     @undoManager = new UndoManager(this)
 
@@ -45,7 +54,7 @@ class Buffer
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
     @file?.off()
     @destroyed = true
-    @project?.removeBuffer(this)
+    project?.removeBuffer(this)
 
   retain: ->
     @refcount++
@@ -56,10 +65,12 @@ class Buffer
     @destroy() if @refcount <= 0
     this
 
-  # Public: Identifies if the buffer has editors.
-  #
-  # Returns a {Boolean}.
-  hasEditors: -> @refcount > 1
+  serialize: ->
+    deserializer: 'TextBuffer'
+    path: @getPath()
+    text: @getText() if @isModified()
+
+  hasMultipleEditors: -> @refcount > 1
 
   subscribeToFile: ->
     @file.on "contents-changed", =>
@@ -177,7 +188,7 @@ class Buffer
 
   lineEndingLengthForRow: (row) ->
     (@lineEndingForRow(row) ? '').length
-    
+
   # Public: Given a buffer row, this retrieves the range for that line.
   #
   # row - A {Number} identifying the row
@@ -381,6 +392,9 @@ class Buffer
   isMarkerReversed: (id) ->
     @validMarkers[id]?.isReversed()
 
+  isMarkerRangeEmpty: (id) ->
+    @validMarkers[id]?.isRangeEmpty()
+
   observeMarker: (id, callback) ->
     @validMarkers[id]?.observe(callback)
 
@@ -446,7 +460,7 @@ class Buffer
       range = new Range(startPosition, endPosition)
       keepLooping = true
       replacementText = null
-      iterator(match, range, { stop, replace })
+      iterator({match, range, stop, replace })
 
       if replacementText?
         @change(range, replacementText)
@@ -511,8 +525,11 @@ class Buffer
     @previousModifiedStatus = modifiedStatus
     @trigger 'modified-status-changed', modifiedStatus
 
+  # Public: Checks to see if a file exists.
+  #
+  # Returns a {Boolean}.
   fileExists: ->
-    @file.exists()
+    @file? && @file.exists()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]

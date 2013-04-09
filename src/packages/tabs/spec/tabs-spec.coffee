@@ -4,7 +4,6 @@ RootView = require 'root-view'
 Pane = require 'pane'
 PaneContainer = require 'pane-container'
 TabBarView = require 'tabs/lib/tab-bar-view'
-fs = require 'fs-utils'
 {View} = require 'space-pen'
 
 describe "Tabs package main", ->
@@ -235,6 +234,20 @@ describe "TabBarView", ->
           expect(pane.activeItem).toBe item1
           expect(pane.focus).toHaveBeenCalled()
 
+      describe "when it is dropped on the tab bar", ->
+        it "moves the tab and its item to the end", ->
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+          expect(pane.getItems()).toEqual [item1, editSession1, item2]
+          expect(pane.activeItem).toBe item2
+          spyOn(pane, 'focus')
+
+          [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar)
+          tabBar.onDragStart(dragStartEvent)
+          tabBar.onDrop(dropEvent)
+
+          expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["sample.js", "Item 2", "Item 1"]
+          expect(pane.getItems()).toEqual [editSession1, item2, item1]
+
     describe "when a tab is dragged to a different pane", ->
       [pane2, tabBar2, item2b] = []
 
@@ -265,3 +278,19 @@ describe "TabBarView", ->
         expect(pane2.getItems()).toEqual [item2b, item1]
         expect(pane2.activeItem).toBe item1
         expect(pane2.focus).toHaveBeenCalled()
+
+    describe 'when a non-tab is dragged to pane', ->
+      it 'has no effect', ->
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [item1, editSession1, item2]
+        expect(pane.activeItem).toBe item2
+        spyOn(pane, 'focus')
+
+        [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar.tabAtIndex(0))
+        tabBar.onDrop(dropEvent)
+
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [item1, editSession1, item2]
+        expect(pane.activeItem).toBe item2
+        expect(pane.focus).not.toHaveBeenCalled()
+

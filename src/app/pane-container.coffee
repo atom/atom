@@ -32,6 +32,17 @@ class PaneContainer extends View
     else
       false
 
+  focusPreviousPane: ->
+    panes = @getPanes()
+    if panes.length > 1
+      currentIndex = panes.indexOf(@getFocusedPane())
+      previousIndex = currentIndex - 1
+      previousIndex = panes.length - 1 if previousIndex < 0
+      panes[previousIndex].focus()
+      true
+    else
+      false
+
   makeNextPaneActive: ->
     panes = @getPanes()
     currentIndex = panes.indexOf(@getActivePane())
@@ -44,7 +55,9 @@ class PaneContainer extends View
         activePane.showItem(deserialize(lastItemState))
         true
       else
-        @append(new Pane(deserialize(lastItemState)))
+        newPane = new Pane(deserialize(lastItemState))
+        @append(newPane)
+        newPane.focus()
 
   itemDestroyed: (item) ->
     state = item.serialize?()

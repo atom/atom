@@ -39,6 +39,18 @@ describe "PaneContainer", ->
       container.focusNextPane()
       expect(pane1.activeItem).toMatchSelector ':focus'
 
+  describe ".focusPreviousPane()", ->
+    it "focuses the pane preceding the focused pane or the last pane if no pane has focus", ->
+      container.attachToDom()
+      container.focusPreviousPane()
+      expect(pane3.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane2.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane1.activeItem).toMatchSelector ':focus'
+      container.focusPreviousPane()
+      expect(pane3.activeItem).toMatchSelector ':focus'
+
   describe ".getActivePane()", ->
     it "returns the most-recently focused pane", ->
       focusStealer = $$ -> @div tabindex: -1, "focus stealer"
@@ -98,7 +110,8 @@ describe "PaneContainer", ->
         expect(pane1.activeItem).toEqual item3
 
     describe "when there is no active pane", ->
-      it "attaches a new pane with the reconstructed last pane item", ->
+      it "attaches a new pane with the reconstructed last pane item and focuses it", ->
+        container.attachToDom()
         pane1.remove()
         pane2.remove()
         item3 = pane3.activeItem
@@ -108,6 +121,7 @@ describe "PaneContainer", ->
         container.reopenItem()
 
         expect(container.getActivePane().activeItem).toEqual item3
+        expect(container.getActivePane().activeView).toMatchSelector ':focus'
 
     it "does not reopen an item that is already open", ->
       item3 = pane3.activeItem

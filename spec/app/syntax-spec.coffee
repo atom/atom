@@ -1,4 +1,4 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "the `syntax` global", ->
   beforeEach ->
@@ -13,7 +13,7 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
       syntax.setGrammarOverrideForPath(path, 'source.ruby')
       syntax2 = deserialize(syntax.serialize())
-      syntax2.addGrammar(grammar) for grammar in syntax.grammars
+      syntax2.addGrammar(grammar) for grammar in syntax.grammars when grammar isnt syntax.nullGrammar
       expect(syntax2.selectGrammar(path).name).toBe 'Ruby'
 
   describe ".selectGrammar(filePath)", ->
@@ -23,8 +23,8 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar("file.js").name).toBe "JavaScript" # based on extension (.js)
       expect(syntax.selectGrammar("/tmp/.git/config").name).toBe "Git Config" # based on end of the path (.git/config)
       expect(syntax.selectGrammar("Rakefile").name).toBe "Ruby" # based on the file's basename (Rakefile)
-      expect(syntax.selectGrammar("curb").name).toBe "Plain Text"
-      expect(syntax.selectGrammar("/hu.git/config").name).toBe "Plain Text"
+      expect(syntax.selectGrammar("curb").name).toBe "Null Grammar"
+      expect(syntax.selectGrammar("/hu.git/config").name).toBe "Null Grammar"
 
     it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
       filePath = require.resolve("fixtures/shebang")
@@ -37,17 +37,17 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar("dummy.coffee", fileContent).name).toBe "CoffeeScript"
 
       fileContent = '<?xml version="1.0" encoding="UTF-8"?>'
-      expect(syntax.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Plain Text"
+      expect(syntax.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Null Grammar"
 
       fileContent += '\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
       expect(syntax.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Property List (XML)"
 
     it "doesn't read the file when the file contents are specified", ->
       filePath = require.resolve("fixtures/shebang")
-      filePathContents = fs.read(filePath)
-      spyOn(fs, 'read').andCallThrough()
+      filePathContents = fsUtils.read(filePath)
+      spyOn(fsUtils, 'read').andCallThrough()
       expect(syntax.selectGrammar(filePath, filePathContents).name).toBe "Ruby"
-      expect(fs.read).not.toHaveBeenCalled()
+      expect(fsUtils.read).not.toHaveBeenCalled()
 
     it "allows the default grammar to be overridden for a path", ->
       path = '/foo/bar/file.js'

@@ -464,6 +464,9 @@ class DisplayBuffer
   isMarkerReversed: (id) ->
     @buffer.isMarkerReversed(id)
 
+  isMarkerRangeEmpty: (id) ->
+    @buffer.isMarkerRangeEmpty(id)
+
   observeMarker: (id, callback) ->
     @getMarker(id).observe(callback)
 

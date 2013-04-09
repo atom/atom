@@ -257,6 +257,13 @@ describe "Pane", ->
         expect(pane2.getItems()).toEqual [view3, editSession1]
         expect(editSession1.destroyed).toBeFalsy()
 
+    describe "when the item is a jQuery object", ->
+      it "preserves data by detaching instead of removing", ->
+        view1.data('preservative', 1234)
+        pane.moveItemToPane(view1, pane2, 1)
+        pane2.showItemAtIndex(1)
+        expect(pane2.activeView.data('preservative')).toBe 1234
+
   describe "core:close", ->
     it "destroys the active item and does not bubble the event", ->
       containerCloseHandler = jasmine.createSpy("containerCloseHandler")

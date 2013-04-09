@@ -34,5 +34,6 @@ class AtomCefClient;
 
 - (void)toggleDevTools;
 - (void)showDevTools;
+- (void)openPath:(NSString*)path;
 
 @end

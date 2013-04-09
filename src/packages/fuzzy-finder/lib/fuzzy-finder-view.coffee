@@ -2,7 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 LoadPathsTask = require './load-paths-task'
 
 module.exports =
@@ -39,28 +39,28 @@ class FuzzyFinderView extends SelectList
     $$ ->
       @li =>
         if git?
-          status = git.statuses[project.resolve(path)]
+          status = git.statuses[path]
           if git.isStatusNew(status)
             @div class: 'status new'
           else if git.isStatusModified(status)
             @div class: 'status modified'
 
-        ext = fs.extension(path)
-        if fs.isReadmePath(path)
+        ext = fsUtils.extension(path)
+        if fsUtils.isReadmePath(path)
           typeClass = 'readme-name'
-        else if fs.isCompressedExtension(ext)
+        else if fsUtils.isCompressedExtension(ext)
           typeClass = 'compressed-name'
-        else if fs.isImageExtension(ext)
+        else if fsUtils.isImageExtension(ext)
           typeClass = 'image-name'
-        else if fs.isPdfExtension(ext)
+        else if fsUtils.isPdfExtension(ext)
           typeClass = 'pdf-name'
-        else if fs.isBinaryExtension(ext)
+        else if fsUtils.isBinaryExtension(ext)
           typeClass = 'binary-name'
         else
           typeClass = 'text-name'
 
-        @span fs.base(path), class: "file label #{typeClass}"
-        if folder = fs.directory(path)
+        @span fsUtils.base(path), class: "file label #{typeClass}"
+        if folder = project.relativize(fsUtils.directory(path))
           @span " - #{folder}/", class: 'directory'
 
   openPath: (path) ->
@@ -76,7 +76,7 @@ class FuzzyFinderView extends SelectList
 
   confirmed : (path) ->
     return unless path.length
-    if fs.isFile(project.resolve(path))
+    if fsUtils.isFile(path)
       @cancel()
       @openPath(path)
     else
@@ -133,11 +133,10 @@ class FuzzyFinderView extends SelectList
             @miniEditor.setText(currentWord)
 
   populateGitStatusPaths: ->
-    projectRelativePaths = []
-    for path, status of git.statuses
-      continue unless fs.isFile(path)
-      projectRelativePaths.push(project.relativize(path))
-    @setArray(projectRelativePaths)
+    paths = []
+    paths.push(path) for path, status of git.statuses when fsUtils.isFile(path)
+
+    @setArray(paths)
 
   populateProjectPaths: (options = {}) ->
     if @projectPaths?
@@ -164,8 +163,6 @@ class FuzzyFinderView extends SelectList
   populateOpenBufferPaths: ->
     editSessions = project.getEditSessions().filter (editSession) ->
       editSession.getPath()?
-    editSessions = _.uniq editSessions, (editSession) ->
-      editSession.getPath()
 
     editSessions = _.sortBy editSessions, (editSession) =>
       if editSession is rootView.getActivePaneItem()
@@ -173,17 +170,10 @@ class FuzzyFinderView extends SelectList
       else
         -(editSession.lastOpened or 1)
 
-    @paths = _.map editSessions, (editSession) ->
-      project.relativize editSession.getPath()
+    @paths = []
+    @paths.push(editSession.getPath()) for editSession in editSessions
 
-    @setArray(@paths)
-
-  getOpenedPaths: ->
-    paths = {}
-    for editSession in project.getEditSessions()
-      path = editSession.getPath()
-      paths[path] = editSession.lastOpened if path?
-    paths
+    @setArray(_.uniq(@paths))
 
   detach: ->
     super

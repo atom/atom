@@ -3,7 +3,7 @@
   "version" : "0.0.0",
 
   "dependencies": {
-    "coffee-script": "1.5",
+    "coffee-script": "1.6.2",
     "ctags": "0.3.0",
     "oniguruma": "0.8.0",
     "mkdirp": "0.3.5",
@@ -13,7 +13,9 @@
     "coffee-cache": "0.1.0",
     "pegjs": "0.7.0",
     "async": "0.2.6",
+    "nak": "0.2.12",
     "spellchecker": "0.2.0",
+    "pathwatcher": "0.1.5",
     "plist": "git://github.com/nathansobo/node-plist.git",
     "space-pen": "git://github.com/nathansobo/space-pen.git"
   },

@@ -1,33 +1,33 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+BufferedProcess = require 'buffered-process'
 
 module.exports =
 class LoadPathsTask
-  aborted: false
-
   constructor: (@callback) ->
 
   start: ->
     rootPath = project.getPath()
     ignoredNames = config.get('fuzzyFinder.ignoredNames') ? []
     ignoredNames = ignoredNames.concat(config.get('core.ignoredNames') ? [])
-    ignoreGitIgnoredFiles =  config.get('core.hideGitIgnoredFiles')
+
+    command = require.resolve 'nak'
+    args = ['--list', rootPath]
+    args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
+    args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
+    args.unshift('--follow')
 
     paths = []
-    isIgnored = (path) ->
-      for segment in path.split('/')
-        return true if _.contains(ignoredNames, segment)
-      ignoreGitIgnoredFiles and git?.isPathIgnored(fs.join(rootPath, path))
-    onFile = (path) ->
-      return if @aborted
-      path = path.substring(rootPath.length + 1)
-      paths.push(path) unless isIgnored(path)
-    onDirectory = (path) =>
-      not @aborted and not isIgnored(path.substring(rootPath.length + 1))
-    onDone = =>
-      @callback(paths) unless @aborted
+    exit = (code) =>
+      if code is 0
+        @callback(paths)
+      else
+        @callback([])
+    stdout = (data) ->
+      paths.push(_.compact(data.split('\n'))...)
 
-    fs.traverseTree(rootPath, onFile, onDirectory, onDone)
+    @process = new BufferedProcess({command, args, stdout, exit})
 
   abort: ->
-    @aborted = true
+    if @process?
+      @process.kill()
+      @process = null

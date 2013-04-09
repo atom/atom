@@ -1,7 +1,7 @@
 _ = require 'underscore'
 child_process = require 'child_process'
 EventEmitter = require 'event-emitter'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class Task

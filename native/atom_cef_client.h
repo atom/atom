@@ -99,6 +99,7 @@ class AtomCefClient : public CefClient,
   void EndTracing();
 
   bool Save(const std::string& path, const std::string& data);
+  void RestartRendererProcess(CefRefPtr<CefBrowser> browser);
 
  protected:
   CefRefPtr<CefBrowser> m_Browser;

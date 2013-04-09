@@ -78,7 +78,9 @@ describe "GitHub Flavored Markdown grammar", ->
   it "tokenizies an :emoji:", ->
     {tokens} = grammar.tokenizeLine("this is :no_good:")
     expect(tokens[0]).toEqual value: "this is ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: ":no_good:", scopes: ["source.gfm", "string.emoji.gfm"]
+    expect(tokens[1]).toEqual value: ":", scopes: ["source.gfm", "string.emoji.gfm", "string.emoji.start.gfm"]
+    expect(tokens[2]).toEqual value: "no_good", scopes: ["source.gfm", "string.emoji.gfm", "string.emoji.word.gfm"]
+    expect(tokens[3]).toEqual value: ":", scopes: ["source.gfm", "string.emoji.gfm", "string.emoji.end.gfm"]
 
     {tokens} = grammar.tokenizeLine("this is :no good:")
     expect(tokens[0]).toEqual value: "this is :no good:", scopes: ["source.gfm"]
@@ -132,10 +134,3 @@ describe "GitHub Flavored Markdown grammar", ->
     {tokens} = grammar.tokenizeLine("> Quotation")
     expect(tokens[0]).toEqual value: ">", scopes: ["source.gfm", "support.quote.gfm"]
     expect(tokens[1]).toEqual value: " Quotation", scopes: ["source.gfm", "comment.quote.gfm"]
-
-  describe "auto indent", ->
-    it "indents newlines entered after list lines", ->
-      config.set('editor.autoIndent', true)
-      editSession = project.buildEditSession('gfm.md')
-      editSession.insertNewlineBelow()
-      expect(editSession.buffer.lineForRow(1)).toBe '    '

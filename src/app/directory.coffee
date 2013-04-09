@@ -1,6 +1,7 @@
 _ = require 'underscore'
 fs = require 'fs'
 fsUtils = require 'fs-utils'
+pathWatcher = require 'pathwatcher'
 File = require 'file'
 EventEmitter = require 'event-emitter'
 
@@ -39,12 +40,12 @@ class Directory
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   subscribeToNativeChangeEvents: ->
-    @watchSubscription = fsUtils.watchPath @path, (eventType) =>
-      @trigger "contents-changed" if eventType is "contents-change"
+    @watchSubscription = pathWatcher.watch @path, (eventType) =>
+      @trigger "contents-changed" if eventType is "change"
 
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription?
-      @watchSubscription.unwatch()
+      @watchSubscription.close()
       @watchSubscription = null
 
 _.extend Directory.prototype, EventEmitter

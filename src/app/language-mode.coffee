@@ -2,24 +2,37 @@ Range = require 'range'
 _ = require 'underscore'
 require 'underscore-extensions'
 {OnigRegExp} = require 'oniguruma'
+EventEmitter = require 'event-emitter'
+Subscriber = require 'subscriber'
 
 module.exports =
 class LanguageMode
   buffer = null
   grammar = null
   editSession = null
+  currentGrammarScore: null
 
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @reloadGrammar()
+    @subscribe syntax, 'grammar-added', (grammar) =>
+      newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
+
+  destroy: ->
+    @unsubscribe()
+
+  setGrammar: (grammar, score) ->
+    return if grammar is @grammar
+    @grammar = grammar
+    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
+    @trigger 'grammar-changed', grammar
 
   reloadGrammar: ->
-    path = @buffer.getPath()
-    pathContents = @buffer.cachedDiskContents
-    previousGrammar = @grammar
-    @grammar = syntax.selectGrammar(path, pathContents)
-    throw new Error("No grammar found for path: #{path}") unless @grammar
-    previousGrammar isnt @grammar
+    if grammar = syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar)
+    else
+      throw new Error("No grammar found for path: #{path}")
 
   # Public: Wraps the lines between two rows in comments.
   #
@@ -184,3 +197,6 @@ class LanguageMode
   foldEndRegexForScopes: (scopes) ->
     if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
       new OnigRegExp(foldEndPattern)
+
+_.extend LanguageMode.prototype, EventEmitter
+_.extend LanguageMode.prototype, Subscriber

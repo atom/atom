@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
@@ -53,6 +53,7 @@ class RootView extends View
       config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
     @command 'window:focus-next-pane', => @focusNextPane()
+    @command 'window:focus-previous-pane', => @focusPreviousPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
       config.set("editor.showInvisibles", !config.get("editor.showInvisibles"))
@@ -81,7 +82,7 @@ class RootView extends View
       @getActivePane().focus()
       false
     else
-      @setTitle(null)
+      @updateTitle()
       focusableChild = this.find("[tabindex=-1]:visible:first")
       if focusableChild.length
         focusableChild.focus()
@@ -96,11 +97,8 @@ class RootView extends View
     changeFocus = options.changeFocus ? true
     path = project.resolve(path) if path?
     if activePane = @getActivePane()
-      if editSession = activePane.itemForUri(path)
-        activePane.showItem(editSession)
-      else
-        editSession = project.buildEditSession(path)
-        activePane.showItem(editSession)
+      editSession = activePane.itemForUri(path) ? project.buildEditSession(path)
+      activePane.showItem(editSession)
     else
       editSession = project.buildEditSession(path)
       activePane = new Pane(editSession)
@@ -114,7 +112,7 @@ class RootView extends View
       if item = @getActivePaneItem()
         @setTitle("#{item.getTitle?() ? 'untitled'} - #{projectPath}")
       else
-        @setTitle(projectPath)
+        @setTitle("atom - #{projectPath}")
     else
       @setTitle('untitled')
 
@@ -143,6 +141,7 @@ class RootView extends View
   getActiveView: ->
     @panes.getActiveView()
 
+  focusPreviousPane: -> @panes.focusPreviousPane()
   focusNextPane: -> @panes.focusNextPane()
   getFocusedPane: -> @panes.getFocusedPane()
 
@@ -163,6 +162,10 @@ class RootView extends View
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
+  eachPane: (callback) ->
+    callback(pane) for pane in @getPanes()
+    @on 'pane:attached', (e, pane) -> callback(pane)
+
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     @on 'editor:attached', (e, editor) -> callback(editor)
@@ -172,4 +175,3 @@ class RootView extends View
 
   eachBuffer: (callback) ->
     project.eachBuffer(callback)
-

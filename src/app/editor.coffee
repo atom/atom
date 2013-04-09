@@ -6,7 +6,7 @@ Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -68,7 +68,7 @@ class Editor extends View
     if editSessionOrOptions instanceof EditSession
       editSession = editSessionOrOptions
     else
-      {editSession, @mini} = (editSessionOrOptions ? {})
+      {editSession, @mini} = editSessionOrOptions ? {}
 
     requireStylesheet 'editor'
 
@@ -115,6 +115,7 @@ class Editor extends View
       'editor:move-to-previous-word': @moveCursorToPreviousWord
       'editor:select-word': @selectWord
       'editor:newline': @insertNewline
+      'editor:consolidate-selections': @consolidateSelections
       'editor:indent': @indent
       'editor:auto-indent': @autoIndent
       'editor:indent-selected-rows': @indentSelectedRows
@@ -133,6 +134,9 @@ class Editor extends View
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:add-selection-below': @addSelectionBelow
+      'editor:add-selection-above': @addSelectionAbove
+      'editor:select-line': @selectLine
       'editor:transpose': @transpose
       'editor:upper-case': @upperCase
       'editor:lower-case': @lowerCase
@@ -165,6 +169,7 @@ class Editor extends View
         'editor:move-line-up': @moveLineUp
         'editor:move-line-down': @moveLineDown
         'editor:duplicate-line': @duplicateLine
+        'editor:join-line': @joinLine
         'editor:toggle-indent-guide': => config.set('editor.showIndentGuide', !config.get('editor.showIndentGuide'))
         'editor:save-debug-snapshot': @saveDebugSnapshot
         'editor:toggle-line-numbers': =>  config.set('editor.showLineNumbers', !config.get('editor.showLineNumbers'))
@@ -172,7 +177,7 @@ class Editor extends View
     documentation = {}
     for name, method of editorBindings
       do (name, method) =>
-        @command name, => method.call(this); false
+        @command name, (e) => method.call(this, e); false
 
   # Public: Retrieves a single cursor
   #
@@ -228,9 +233,6 @@ class Editor extends View
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   # Public: Duplicates the current line.
   duplicateLine: -> @activeEditSession.duplicateLine()
-  # Public: Gets the current screen position.
-  #
-  # Returns an {Array} of two numbers: the screen row, and the screen column.
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   # Public: Gets the current screen row.
   #
@@ -285,15 +287,14 @@ class Editor extends View
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
   # Public: Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
-  # Public: Selects all the text from the current cursor position to the beginning of the word.
+  addSelectionBelow: -> @activeEditSession.addSelectionBelow()
+  addSelectionAbove: -> @activeEditSession.addSelectionAbove()
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   # Public: Selects all the text from the current cursor position to the end of the word.
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   # Public: Selects the current word.
   selectWord: -> @activeEditSession.selectWord()
-  # Public: Selects the text from the current cursor position to a given position.
-  #
-  # position - An instance of {Point}, with a given `row` and `column`.
+  selectLine: -> @activeEditSession.selectLine()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   # Public: Transposes the current text selections.
   #
@@ -331,6 +332,7 @@ class Editor extends View
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   # Public: Inserts a new line at the current cursor positions.
   insertNewline: -> @activeEditSession.insertNewline()
+  consolidateSelections: (e) -> e.abortKeyBinding() unless @activeEditSession.consolidateSelections()
   # Public: Inserts a new line below the current cursor positions.
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   # Public: Inserts a new line above the current cursor positions.
@@ -423,6 +425,7 @@ class Editor extends View
   screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
+  getLastScreenRow: -> @activeEditSession.getLastScreenRow()
 
   logCursorScope: ->
     console.log @activeEditSession.getCursorScopes()
@@ -517,8 +520,8 @@ class Editor extends View
   # Returns a {Number}.
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
-  scanInRange: (args...) -> @getBuffer().scanInRange(args...)
-  backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
+  scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
+  backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
     @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
@@ -632,6 +635,13 @@ class Editor extends View
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
     @subscribe $(window), "resize.editor-#{@id}", => @requestDisplayUpdate()
     @focus() if @isFocused
+
+    if pane = @getPane()
+      @active = @is(pane.activeView)
+      @subscribe pane, 'pane:active-item-changed', (event, item) =>
+        wasActive = @active
+        @active = @is(pane.activeView)
+        @redraw() if @active and not wasActive
 
     @resetDisplay()
 
@@ -992,6 +1002,7 @@ class Editor extends View
 
   requestDisplayUpdate: ->
     return if @pendingDisplayUpdate
+    return unless @isVisible()
     @pendingDisplayUpdate = true
     _.nextTick =>
       @updateDisplay()
@@ -1000,6 +1011,10 @@ class Editor extends View
   updateDisplay: (options={}) ->
     return unless @attached and @activeEditSession
     return if @activeEditSession.destroyed
+    unless @isVisible()
+      @redrawOnReattach = true
+      return
+
     @updateRenderedLines()
     @highlightCursorLine()
     @updateCursorViews()
@@ -1009,7 +1024,7 @@ class Editor extends View
 
   updateCursorViews: ->
     if @newCursors.length > 0
-      @addCursorView(cursor) for cursor in @newCursors
+      @addCursorView(cursor) for cursor in @newCursors when not cursor.destroyed
       @syncCursorAnimations()
       @newCursors = []
 
@@ -1021,11 +1036,11 @@ class Editor extends View
 
   updateSelectionViews: ->
     if @newSelections.length > 0
-      @addSelectionView(selection) for selection in @newSelections
+      @addSelectionView(selection) for selection in @newSelections when not selection.destroyed
       @newSelections = []
 
     for selectionView in @getSelectionViews()
-      if selectionView.destroyed
+      if selectionView.needsRemoval
         selectionView.remove()
       else
         selectionView.updateDisplay()
@@ -1137,9 +1152,8 @@ class Editor extends View
 
     if intactRanges.length == 0
       @renderedLines.empty()
-    else
+    else if currentLine = renderedLines.firstChild
       domPosition = 0
-      currentLine = renderedLines.firstChild
       for intactRange in intactRanges
         while intactRange.domStart > domPosition
           currentLine = killLine(currentLine)
@@ -1300,7 +1314,7 @@ class Editor extends View
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
   pixelPositionForScreenPosition: (position) ->
-    return { top: 0, left: 0 } unless @isOnDom()
+    return { top: 0, left: 0 } unless @isOnDom() and @isVisible()
     {row, column} = Point.fromObject(position)
     actualRow = Math.floor(row)
 
@@ -1331,7 +1345,7 @@ class Editor extends View
     range.detach()
     leftPixels
 
-  pixelOffsetForScreenPosition: (position) ->
+  pixelOffsUtilsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
     offset = @renderedLines.offset()
     {top: top + offset.top, left: left + offset.left}
@@ -1387,17 +1401,10 @@ class Editor extends View
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
-    @handleGrammarChange()
 
   # Public: Reloads the current grammar.
   reloadGrammar: ->
-    grammarChanged = @activeEditSession.reloadGrammar()
-    @handleGrammarChange() if grammarChanged
-    grammarChanged
-
-  handleGrammarChange: ->
-    @clearRenderedLines()
-    @updateDisplay()
+    @activeEditSession.reloadGrammar()
 
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}
@@ -1422,7 +1429,7 @@ class Editor extends View
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
-      fs.write(path, @getDebugSnapshot()) if path
+      fsUtils.write(path, @getDebugSnapshot()) if path
 
   getDebugSnapshot: ->
     [

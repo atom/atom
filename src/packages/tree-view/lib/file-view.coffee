@@ -1,7 +1,7 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
 Git = require 'git'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class FileView extends View
@@ -17,16 +17,16 @@ class FileView extends View
     if @file.symlink
       @fileName.addClass('symlink-icon')
     else
-      extension = fs.extension(@getPath())
-      if fs.isReadmePath(@getPath())
+      extension = fsUtils.extension(@getPath())
+      if fsUtils.isReadmePath(@getPath())
         @fileName.addClass('readme-icon')
-      else if fs.isCompressedExtension(extension)
+      else if fsUtils.isCompressedExtension(extension)
         @fileName.addClass('compressed-icon')
-      else if fs.isImageExtension(extension)
+      else if fsUtils.isImageExtension(extension)
         @fileName.addClass('image-icon')
-      else if fs.isPdfExtension(extension)
+      else if fsUtils.isPdfExtension(extension)
         @fileName.addClass('pdf-icon')
-      else if fs.isBinaryExtension(extension)
+      else if fsUtils.isBinaryExtension(extension)
         @fileName.addClass('binary-icon')
       else
         @fileName.addClass('text-icon')

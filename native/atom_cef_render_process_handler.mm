@@ -2,7 +2,6 @@
 #import "native/v8_extensions/atom.h"
 #import "native/v8_extensions/native.h"
 #import "native/message_translation.h"
-#import "path_watcher.h"
 #import "atom_cef_render_process_handler.h"
 
 
@@ -18,7 +17,6 @@ void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser
 void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browser,
                                                     CefRefPtr<CefFrame> frame,
                                                     CefRefPtr<CefV8Context> context) {
-  [PathWatcher removePathWatcherForContext:context];
 }
 
 bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
@@ -28,10 +26,6 @@ bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser>
 
   if (name == "reload") {
     Reload(browser);
-    return true;
-  }
-  else if (name == "shutdown") {
-    Shutdown(browser);
     return true;
   }
   else {
@@ -52,17 +46,6 @@ void AtomCefRenderProcessHandler::Reload(CefRefPtr<CefBrowser> browser) {
     browser->ReloadIgnoreCache();
   }
   context->Exit();
-}
-
-void AtomCefRenderProcessHandler::Shutdown(CefRefPtr<CefBrowser> browser) {
-    CefRefPtr<CefV8Context> context = browser->GetMainFrame()->GetV8Context();
-    CefRefPtr<CefV8Value> global = context->GetGlobal();
-
-    context->Enter();
-    CefV8ValueList arguments;
-    CefRefPtr<CefV8Value> shutdownFunction = global->GetValue("shutdown");
-    shutdownFunction->ExecuteFunction(global, arguments);
-    context->Exit();
 }
 
 bool AtomCefRenderProcessHandler::CallMessageReceivedHandler(CefRefPtr<CefV8Context> context, CefRefPtr<CefProcessMessage> message) {

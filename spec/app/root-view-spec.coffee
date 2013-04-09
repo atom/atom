@@ -1,5 +1,5 @@
 $ = require 'jquery'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 Project = require 'project'
 RootView = require 'root-view'
 Buffer = require 'text-buffer'
@@ -83,7 +83,7 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
-          expect(rootView.title).toBe "#{fs.base(editor2.getPath())} - #{project.getPath()}"
+          expect(rootView.title).toBe "#{fsUtils.base(editor2.getPath())} - #{project.getPath()}"
 
       describe "where there are no open editors", ->
         it "constructs the view with no open editors", ->
@@ -175,10 +175,10 @@ describe "RootView", ->
           expect(rootView.title).toBe "#{item.getTitle()} - #{project.getPath()}"
 
       describe "when the last pane item is removed", ->
-        it "sets the title to the project's path", ->
+        it "update the title to contain the project's path", ->
           rootView.getActivePane().remove()
           expect(rootView.getActivePaneItem()).toBeUndefined()
-          expect(rootView.title).toBe project.getPath()
+          expect(rootView.title).toBe "atom - #{project.getPath()}"
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
@@ -223,7 +223,7 @@ describe "RootView", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editSession = rootView.open('b')
           expect(rootView.getActivePane().activeItem).toBe editSession
-          expect(editSession.getPath()).toBe fs.resolveOnLoadPath('fixtures/dir/b')
+          expect(editSession.getPath()).toBe fsUtils.resolveOnLoadPath('fixtures/dir/b')
           expect(rootView.getActivePane().focus).toHaveBeenCalled()
 
       describe "when the changeFocus option is false", ->
@@ -354,3 +354,31 @@ describe "RootView", ->
       rootView.open(require.resolve('fixtures/sample.txt'))
       expect(count).toBe 1
       expect(callbackBuffer).toBe rootView.getActiveView().getBuffer()
+
+  describe ".eachPane(callback)", ->
+    beforeEach ->
+      rootView.attachToDom()
+
+    it "invokes the callback for all existing panes", ->
+      count = 0
+      callbackPane = null
+      callback = (pane) ->
+        callbackPane = pane
+        count++
+      rootView.eachPane(callback)
+      expect(count).toBe 1
+      expect(callbackPane).toBe rootView.getActivePane()
+
+    it "invokes the callback for new panes", ->
+      count = 0
+      callbackPane = null
+      callback = (pane) ->
+        callbackPane = pane
+        count++
+
+      rootView.eachPane(callback)
+      count = 0
+      callbackPane = null
+      rootView.getActiveView().splitRight()
+      expect(count).toBe 1
+      expect(callbackPane).toBe rootView.getActivePane()

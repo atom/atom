@@ -1,7 +1,6 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 Package = require 'package'
-TextMatePackage = require 'text-mate-package'
 Theme = require 'theme'
 
 messageIdCounter = 1
@@ -74,9 +73,9 @@ _.extend atom,
       throw new Error("Could not resolve '#{id}' to a package path")
 
   resolvePackagePath: _.memoize (id) ->
-    return id if fs.isDirectory(id)
-    path = fs.resolve(config.packageDirPaths..., id)
-    path if fs.isDirectory(path)
+    return id if fsUtils.isDirectory(id)
+    path = fsUtils.resolve(config.packageDirPaths..., id)
+    path if fsUtils.isDirectory(path)
 
   getLoadedPackage: (id) ->
     if path = @resolvePackagePath(id)
@@ -90,13 +89,13 @@ _.extend atom,
 
   isPackageDisabled: (id) ->
     if path = @resolvePackagePath(id)
-      _.include(config.get('core.disabledPackages') ? [], fs.base(path))
+      _.include(config.get('core.disabledPackages') ? [], fsUtils.base(path))
 
   getPackagePaths: ->
     packagePaths = []
     for packageDirPath in config.packageDirPaths
-      for packagePath in fs.list(packageDirPath)
-        packagePaths.push(packagePath) if fs.isDirectory(packagePath)
+      for packagePath in fsUtils.list(packageDirPath)
+        packagePaths.push(packagePath) if fsUtils.isDirectory(packagePath)
     _.uniq(packagePaths)
 
   loadThemes: ->
@@ -109,9 +108,10 @@ _.extend atom,
     @loadedThemes.push Theme.load(name)
 
   loadUserStylesheet: ->
-    userStylesheetPath = fs.join(config.configDirPath, 'user.css')
-    if fs.isFile(userStylesheetPath)
-      applyStylesheet(userStylesheetPath, fs.read(userStylesheetPath), 'userTheme')
+    userStylesheetPath = fsUtils.resolve(fsUtils.join(config.configDirPath, 'user'), ['css', 'less'])
+    if fsUtils.isFile(userStylesheetPath)
+      userStyleesheetContents = loadStylesheet(userStylesheetPath)
+      applyStylesheet(userStylesheetPath, userStyleesheetContents, 'userTheme')
 
   getAtomThemeStylesheets: ->
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
@@ -125,6 +125,9 @@ _.extend atom,
 
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)
+
+  restartRendererProcess: ->
+    @sendMessageToBrowserProcess('restartRendererProcess')
 
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     wrapCallback = (callback) => => @dismissModal(callback)
@@ -207,9 +210,13 @@ _.extend atom,
     originalSendMessageToBrowserProcess(name, data)
 
   receiveMessageFromBrowserProcess: (name, data) ->
-    if name is 'reply'
-      [messageId, callbackIndex] = data.shift()
-      @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+    switch name
+      when 'reply'
+        [messageId, callbackIndex] = data.shift()
+        @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+      when 'openPath'
+        path = data[0]
+        rootView?.open(path)
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
@@ -232,10 +239,12 @@ _.extend atom,
       null
 
   getSavedWindowState: ->
-    localStorage[window.location.params.pathToOpen]
+    if pathToOpen = window.location.params.pathToOpen
+      localStorage[pathToOpen]
 
   saveWindowState: ->
-    localStorage[@getPathToOpen()] = JSON.stringify(@getWindowState())
+    if pathToOpen = @getPathToOpen()
+      localStorage[pathToOpen] = JSON.stringify(@getWindowState())
 
   update: ->
     @sendMessageToBrowserProcess('update')
@@ -243,10 +252,16 @@ _.extend atom,
   getUpdateStatus: (callback) ->
     @sendMessageToBrowserProcess('getUpdateStatus', [], callback)
 
+  crashMainProcess: ->
+    @sendMessageToBrowserProcess('crash')
+
+  crashRenderProcess: ->
+    $native.crash()
+
   requireUserInitScript: ->
-    userInitScriptPath = fs.join(config.configDirPath, "user.coffee")
+    userInitScriptPath = fsUtils.join(config.configDirPath, "user.coffee")
     try
-      require userInitScriptPath if fs.isFile(userInitScriptPath)
+      require userInitScriptPath if fsUtils.isFile(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 

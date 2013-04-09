@@ -124,6 +124,9 @@ describe "SelectList", ->
         expect(selectList.confirmed).toHaveBeenCalledWith(array[2])
 
     describe "when there is no item selected (because the list is empty)", ->
+      beforeEach ->
+        selectList.attachToDom()
+
       it "does not trigger the confirmed hook", ->
         miniEditor.insertText("i will never match anything")
         window.advanceClock(selectList.inputThrottle)

@@ -1,5 +1,5 @@
 EditSession = require 'edit-session'
-MarkdownPreviewView = require 'markdown-preview/lib/markdown-preview-view'
+MarkdownPreviewView = require './markdown-preview-view'
 
 module.exports =
   activate: ->
@@ -7,13 +7,14 @@ module.exports =
 
   show: ->
     activePane = rootView.getActivePane()
-    item = activePane.activeItem
+    editSession = activePane.activeItem
 
-    if not item instanceof EditSession
-      console.warn("Can not render markdown for #{item.getUri()}")
+    isEditSession = editSession instanceof EditSession
+    hasMarkdownGrammar = editSession.getGrammar().scopeName == "source.gfm"
+    if not isEditSession or not hasMarkdownGrammar
+      console.warn("Can not render markdown for '#{editSession.getUri() ? 'untitled'}'")
       return
 
-    editSession = item
     if nextPane = activePane.getNextPane()
       if preview = nextPane.itemForUri("markdown-preview:#{editSession.getPath()}")
         nextPane.showItem(preview)

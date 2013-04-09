@@ -1,3 +1,4 @@
+RootView = require 'root-view'
 EditSession = require 'edit-session'
 Buffer = require 'text-buffer'
 Editor = require 'editor'
@@ -6,7 +7,7 @@ Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
@@ -83,7 +84,7 @@ describe "Editor", ->
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
       path = "/tmp/atom-changed-file.txt"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       editSession = project.buildEditSession(path)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
@@ -93,7 +94,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fs.write(path, "a file change")
+      fsUtils.write(path, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -147,7 +148,7 @@ describe "Editor", ->
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       path = "/tmp/atom-changed-file.txt"
-      fs.write(path, "")
+      fsUtils.write(path, "")
       tempEditSession = project.buildEditSession(path)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
@@ -156,7 +157,7 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fs.write(path, "a file change")
+      fsUtils.write(path, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -228,10 +229,10 @@ describe "Editor", ->
     path = null
     beforeEach ->
       path = "/tmp/something.txt"
-      fs.write(path, path)
+      fsUtils.write(path, path)
 
     afterEach ->
-      fs.remove(path) if fs.exists(path)
+      fsUtils.remove(path) if fsUtils.exists(path)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
@@ -390,7 +391,7 @@ describe "Editor", ->
           editor.clearFontFamily()
 
         it "positions the cursor to the clicked row and column", ->
-          {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
+          {top, left} = editor.pixelOffsUtilsetForScreenPosition([3, 30])
           editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
           expect(editor.getCursorScreenPosition()).toEqual [3, 30]
 
@@ -765,6 +766,18 @@ describe "Editor", ->
         expect(editor.getSelectionViews().length).toBe 1
         expect(editor.find('.region').length).toBe 3
 
+    describe "when a selection is added and removed before the display is updated", ->
+      it "does not attempt to render the selection", ->
+        # don't update display until we request it
+        jasmine.unspy(editor, 'requestDisplayUpdate')
+        spyOn(editor, 'requestDisplayUpdate')
+
+        editSession = editor.activeEditSession
+        selection = editSession.addSelectionForBufferRange([[3, 0], [3, 4]])
+        selection.destroy()
+        editor.updateDisplay()
+        expect(editor.getSelectionViews().length).toBe 1
+
     describe "when the selection is created with the selectAll event", ->
       it "does not scroll to the end of the buffer", ->
         editor.height(150)
@@ -786,7 +799,7 @@ describe "Editor", ->
         setEditorHeightInLines(editor, 4)
 
       describe "if autoscroll is true", ->
-        it "centers the viewport on the selection if its vertical center is currently offscreen", ->
+        it "centers the viewport on the selection if its vertical center is currently offsUtilscreen", ->
           editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
           expect(editor.scrollTop()).toBe 0
 
@@ -1197,7 +1210,7 @@ describe "Editor", ->
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
         describe "when scrolling more than the editors height", ->
-          it "removes lines that are offscreen and not in range of the overdraw and builds lines that become visible", ->
+          it "removes lines that are offsUtilscreen and not in range of the overdraw and builds lines that become visible", ->
             editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
             expect(editor.renderedLines.find('.line').length).toBe 8
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
@@ -2003,11 +2016,11 @@ describe "Editor", ->
 
     beforeEach ->
       path = project.resolve('git/working-dir/file.txt')
-      originalPathText = fs.read(path)
+      originalPathText = fsUtils.read(path)
       editor.edit(project.buildEditSession(path))
 
     afterEach ->
-      fs.write(path, originalPathText)
+      fsUtils.write(path, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
@@ -2023,6 +2036,25 @@ describe "Editor", ->
 
       runs ->
         expect(editor.getText()).toBe(originalPathText)
+
+
+  describe ".pixelPositionForBufferPosition(position)", ->
+    describe "when the editor is detached", ->
+      it "returns top and left values of 0", ->
+        expect(editor.isOnDom()).toBeFalsy()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
+
+    describe "when the editor is invisible", ->
+      it "returns top and left values of 0", ->
+        editor.attachToDom()
+        editor.hide()
+        expect(editor.isVisible()).toBeFalsy()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 0, left: 0
+
+    describe "when the editor is attached and visible", ->
+      it "returns the top and left pixel positions", ->
+        editor.attachToDom()
+        expect(editor.pixelPositionForBufferPosition([2,7])).toEqual top: 40, left: 70
 
   describe "when clicking in the gutter", ->
     beforeEach ->
@@ -2103,17 +2135,17 @@ describe "Editor", ->
     [path] = []
 
     beforeEach ->
-      path = fs.join(fs.absolute("/tmp"), "grammar-change.txt")
-      fs.write(path, "var i;")
+      path = fsUtils.join(fsUtils.absolute("/tmp"), "grammar-change.txt")
+      fsUtils.write(path, "var i;")
 
     afterEach ->
-      fs.remove(path) if fs.exists(path)
+      fsUtils.remove(path) if fsUtils.exists(path)
 
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.buildEditSession(path))
       expect(editor.getGrammar().name).toBe 'Plain Text'
       syntax.setGrammarOverrideForPath(path, 'source.js')
-      expect(editor.reloadGrammar()).toBeTruthy()
+      editor.reloadGrammar()
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
       tokenizedBuffer = editor.activeEditSession.displayBuffer.tokenizedBuffer
@@ -2451,12 +2483,72 @@ describe "Editor", ->
     it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
       saveDialogCallback = null
       spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fs, 'write')
+      spyOn(fsUtils, 'write')
 
       editor.trigger 'editor:save-debug-snapshot'
 
       expect(atom.showSaveDialog).toHaveBeenCalled()
       saveDialogCallback('/tmp/state')
-      expect(fs.write).toHaveBeenCalled()
-      expect(fs.write.argsForCall[0][0]).toBe '/tmp/state'
-      expect(typeof fs.write.argsForCall[0][1]).toBe 'string'
+      expect(fsUtils.write).toHaveBeenCalled()
+      expect(fsUtils.write.argsForCall[0][0]).toBe '/tmp/state'
+      expect(typeof fsUtils.write.argsForCall[0][1]).toBe 'string'
+
+  describe "when the escape key is pressed on the editor", ->
+    it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->
+      keymap.bindKeys '.editor', 'escape': 'test-event'
+      testEventHandler = jasmine.createSpy("testEventHandler")
+
+      editor.on 'test-event', testEventHandler
+      editor.activeEditSession.addSelectionForBufferRange([[3, 0], [3, 0]])
+      expect(editor.activeEditSession.getSelections().length).toBe 2
+
+      editor.trigger(keydownEvent('escape'))
+      expect(editor.activeEditSession.getSelections().length).toBe 1
+      expect(testEventHandler).not.toHaveBeenCalled()
+
+      editor.trigger(keydownEvent('escape'))
+      expect(testEventHandler).toHaveBeenCalled()
+
+  describe "when the editor is attached but invisible", ->
+    describe "when the editor's text is changed", ->
+      it "redraws the editor when it is next shown", ->
+        window.rootView = new RootView
+        rootView.open('sample.js')
+        rootView.attachToDom()
+        editor = rootView.getActiveView()
+
+        view = $$ -> @div id: 'view', tabindex: -1, 'View'
+        editor.getPane().showItem(view)
+        expect(editor.isVisible()).toBeFalsy()
+
+        editor.setText('hidden changes')
+        editor.setCursorBufferPosition([0,4])
+
+        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+        editor.on 'editor:display-updated', displayUpdatedHandler
+        editor.getPane().showItem(editor.getModel())
+        expect(editor.isVisible()).toBeTruthy()
+
+        waitsFor ->
+          displayUpdatedHandler.callCount is 1
+
+        runs ->
+          expect(editor.renderedLines.find('.line').text()).toBe 'hidden changes'
+
+      it "redraws the editor when it is next reattached", ->
+        editor.attachToDom()
+        editor.hide()
+        editor.setText('hidden changes')
+        editor.setCursorBufferPosition([0,4])
+        editor.detach()
+
+        displayUpdatedHandler = jasmine.createSpy("displayUpdatedHandler")
+        editor.on 'editor:display-updated', displayUpdatedHandler
+        editor.show()
+        editor.attachToDom()
+
+        waitsFor ->
+          displayUpdatedHandler.callCount is 1
+
+        runs ->
+          expect(editor.renderedLines.find('.line').text()).toBe 'hidden changes'

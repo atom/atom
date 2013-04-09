@@ -45,7 +45,9 @@ class SelectList extends View
 
   schedulePopulateList: ->
     clearTimeout(@scheduleTimeout)
-    @scheduleTimeout = setTimeout((=> @populateList()), @inputThrottle)
+    populateCallback = =>
+      @populateList() if @isOnDom()
+    @scheduleTimeout = setTimeout(populateCallback,  @inputThrottle)
 
   setArray: (@array) ->
     @populateList()
@@ -140,6 +142,7 @@ class SelectList extends View
 
   cancelled: ->
     @miniEditor.setText('')
+    @miniEditor.updateDisplay()
 
   cancel: ->
     @list.empty()

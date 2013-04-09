@@ -113,7 +113,8 @@ describe "Keymap", ->
         describe "when the matching selectors differ in specificity", ->
           it "triggers the binding for the most specific selector", ->
             keymap.bindKeys 'div .child-node', 'x': 'foo'
-            keymap.bindKeys '.command-mode .child-node', 'x': 'baz'
+            keymap.bindKeys '.command-mode .child-node !important', 'x': 'baz'
+            keymap.bindKeys '.command-mode .child-node', 'x': 'quux'
             keymap.bindKeys '.child-node', 'x': 'bar'
 
             fooHandler = jasmine.createSpy 'fooHandler'

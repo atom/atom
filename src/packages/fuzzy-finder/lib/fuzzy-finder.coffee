@@ -31,7 +31,12 @@ module.exports =
     @projectPaths = null
 
   serialize: ->
-    @fuzzyFinderView?.getOpenedPaths()
+    if @fuzzyFinderView?
+      paths = {}
+      for editSession in project.getEditSessions()
+        path = editSession.getPath()
+        paths[path] = editSession.lastOpened if path?
+      paths
 
   createView:  ->
     unless @fuzzyFinderView
