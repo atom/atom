@@ -130,10 +130,12 @@ class Editor extends View
       'editor:move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
       'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord
       'editor:move-to-end-of-word': @moveCursorToEndOfWord
+      'editor:move-to-beginning-of-next-word': @moveCursorToBeginningOfNextWord
       'editor:select-to-end-of-line': @selectToEndOfLine
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:select-to-beginning-of-next-word': @selectToBeginningOfNextWord
       'editor:add-selection-below': @addSelectionBelow
       'editor:add-selection-above': @addSelectionAbove
       'editor:select-line': @selectLine
@@ -211,7 +213,8 @@ class Editor extends View
   moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
   # Public: Moves every cursor to the end of the current word.
   moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
-  # Public: Moves every cursor to the top of the buffer.
+  # Public: Moves the cursor to the beginning of the next word.
+  moveCursorToBeginningOfNextWord: -> @activeEditSession.moveCursorToBeginningOfNextWord()
   moveCursorToTop: -> @activeEditSession.moveCursorToTop()
   # Public: Moves every cursor to the bottom of the buffer.
   moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
@@ -233,6 +236,7 @@ class Editor extends View
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   # Public: Duplicates the current line.
   duplicateLine: -> @activeEditSession.duplicateLine()
+  joinLine: -> @activeEditSession.joinLine()
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   # Public: Gets the current screen row.
   #
@@ -292,7 +296,8 @@ class Editor extends View
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   # Public: Selects all the text from the current cursor position to the end of the word.
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
-  # Public: Selects the current word.
+  # Public: Selects all the text from the current cursor position to the beginning of the next word.
+  selectToBeginningOfNextWord: -> @activeEditSession.selectToBeginningOfNextWord()
   selectWord: -> @activeEditSession.selectWord()
   selectLine: -> @activeEditSession.selectLine()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
@@ -342,7 +347,7 @@ class Editor extends View
   # options - A set of options equivalent to {Selection.indent}.
   indent: (options) -> @activeEditSession.indent(options)
   # Public: TODO
-  autoIndent: -> @activeEditSession.autoIndentSelectedRows()
+  autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows()
   # Public: Indents the selected rows.
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   # Public: Outdents the selected rows.

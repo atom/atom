@@ -766,23 +766,23 @@ class EditSession
   # Internal:
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
-      
+
   # Internal:
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
-      
+
   # Internal:
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
-      
+
   # Internal:
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
-      
+
   # Internal:
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
-      
+
   # Internal:
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
@@ -792,83 +792,83 @@ class EditSession
   # Returns a {Number}.
   getMarkerCount: ->
     @buffer.getMarkerCount()
-      
+
   # Internal:
   getMarkerScreenRange: (args...) ->
     @displayBuffer.getMarkerScreenRange(args...)
-      
+
   # Internal:
   setMarkerScreenRange: (args...) ->
     @displayBuffer.setMarkerScreenRange(args...)
-      
+
   # Internal:
   getMarkerBufferRange: (args...) ->
     @displayBuffer.getMarkerBufferRange(args...)
-      
+
   # Internal:
   setMarkerBufferRange: (args...) ->
     @displayBuffer.setMarkerBufferRange(args...)
-      
+
   # Internal:
   getMarkerScreenPosition: (args...) ->
     @displayBuffer.getMarkerScreenPosition(args...)
-      
+
   # Internal:
   getMarkerBufferPosition: (args...) ->
     @displayBuffer.getMarkerBufferPosition(args...)
-      
+
   # Internal:
   getMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.getMarkerHeadScreenPosition(args...)
-      
+
   # Internal:
   setMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.setMarkerHeadScreenPosition(args...)
-      
+
   # Internal:
   getMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.getMarkerHeadBufferPosition(args...)
-      
+
   # Internal:
   setMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.setMarkerHeadBufferPosition(args...)
-      
+
   # Internal:
   getMarkerTailScreenPosition: (args...) ->
     @displayBuffer.getMarkerTailScreenPosition(args...)
-      
+
   # Internal:
   setMarkerTailScreenPosition: (args...) ->
     @displayBuffer.setMarkerTailScreenPosition(args...)
-      
+
   # Internal:
   getMarkerTailBufferPosition: (args...) ->
     @displayBuffer.getMarkerTailBufferPosition(args...)
-      
+
   # Internal:
   setMarkerTailBufferPosition: (args...) ->
     @displayBuffer.setMarkerTailBufferPosition(args...)
-      
+
   # Internal:
   observeMarker: (args...) ->
     @displayBuffer.observeMarker(args...)
-      
+
   # Internal:
   placeMarkerTail: (args...) ->
     @displayBuffer.placeMarkerTail(args...)
-      
+
   # Internal:
   clearMarkerTail: (args...) ->
     @displayBuffer.clearMarkerTail(args...)
-      
+
   # Internal:
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
-      
+
   # Internal:
   isMarkerRangeEmpty: (args...) ->
     @displayBuffer.isMarkerRangeEmpty(args...)
-    
+
   # Public: Returns `true` if there are multiple cursors in the edit session.
   #
   # Returns a {Boolean}.
@@ -1090,6 +1090,9 @@ class EditSession
   moveCursorToEndOfWord: ->
     @moveCursors (cursor) -> cursor.moveToEndOfWord()
 
+  moveCursorToBeginningOfNextWord: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
+
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
@@ -1184,6 +1187,10 @@ class EditSession
   selectToEndOfWord: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfWord()
 
+  # Public: Selects all the text from the current cursor position to the beginning of the next word.
+  selectToBeginningOfNextWord: ->
+    @expandSelectionsForward (selection) => selection.selectToBeginningOfNextWord()
+  
   # Public: Selects the current word.
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()

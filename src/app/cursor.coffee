@@ -178,6 +178,10 @@ class Cursor
     if position = @getEndOfCurrentWordBufferPosition()
       @setBufferPosition(position)
 
+  moveToBeginningOfNextWord: ->
+    if position = @getBeginningOfNextWordBufferPosition()
+      @setBufferPosition(position)
+
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
@@ -205,7 +209,20 @@ class Cursor
       if not endOfWordPosition?.isEqual(currentBufferPosition)
         stop()
 
-    endOfWordPosition or currentBufferPosition
+    endOfWordPosition ? currentBufferPosition
+
+  getBeginningOfNextWordBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    start = if @isSurroundedByWhitespace() then currentBufferPosition else @getEndOfCurrentWordBufferPosition()
+    scanRange = [start, @editSession.getEofBufferPosition()]
+
+    beginningOfNextWordPosition = null
+    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      beginningOfNextWordPosition = range.start
+      stop()
+
+    beginningOfNextWordPosition or currentBufferPosition
+
   # Public: Gets the word located under the cursor.
   #
   # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.

@@ -152,6 +152,9 @@ class Selection
   selectToEndOfWord: ->
     @modifySelection => @cursor.moveToEndOfWord()
 
+  selectToBeginningOfNextWord: ->
+    @modifySelection => @cursor.moveToBeginningOfNextWord()
+
   addSelectionBelow: ->
     range = (@goalBufferRange ? @getBufferRange()).copy()
     nextRow = range.end.row + 1
