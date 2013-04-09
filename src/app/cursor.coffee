@@ -165,6 +165,10 @@ class Cursor
     if position = @getEndOfCurrentWordBufferPosition()
       @setBufferPosition(position)
 
+  moveToBeginningOfNextWord: ->
+    if position = @getBeginningOfNextWordBufferPosition()
+      @setBufferPosition(position)
+
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
@@ -193,6 +197,18 @@ class Cursor
         stop()
 
     endOfWordPosition or currentBufferPosition
+
+  getBeginningOfNextWordBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    start = if @isSurroundedByWhitespace() then currentBufferPosition else @getEndOfCurrentWordBufferPosition()
+    scanRange = [start, @editSession.getEofBufferPosition()]
+
+    beginningOfNextWordPosition = null
+    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      beginningOfNextWordPosition = range.start
+      stop()
+
+    beginningOfNextWordPosition or currentBufferPosition
 
   getCurrentWordBufferRange: (options={}) ->
     startOptions = _.extend(_.clone(options), allowPrevious: false)
