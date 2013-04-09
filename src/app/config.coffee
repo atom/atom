@@ -4,6 +4,7 @@ EventEmitter = require 'event-emitter'
 CSON = require 'cson'
 fs = require 'fs'
 async = require 'async'
+pathWatcher = require 'pathwatcher'
 
 configDirPath = fsUtils.absolute("~/.atom")
 bundledPackagesDirPath = fsUtils.join(resourcePath, "src/packages")
@@ -67,16 +68,27 @@ class Config
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
+    @observeUserConfig()
 
   loadUserConfig: ->
     if fsUtils.exists(@configFilePath)
       try
         userConfig = CSON.readObject(@configFilePath)
         _.extend(@settings, userConfig)
+        @configFileHasErrors = false
+        @trigger 'updated'
       catch e
         @configFileHasErrors = true
         console.error "Failed to load user config '#{@configFilePath}'", e.message
         console.error e.stack
+
+  observeUserConfig: ->
+    @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
+      @loadUserConfig() if eventType is 'change' and @watchSubscription?
+
+  unobserveUserConfig: ->
+    @watchSubscription?.close()
+    @watchSubscription = null
 
   # Public: Retrieves the setting for the given key.
   #
