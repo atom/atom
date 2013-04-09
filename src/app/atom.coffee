@@ -126,6 +126,9 @@ _.extend atom,
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)
 
+  openConfig: ->
+    @sendMessageToBrowserProcess('openConfig')
+
   restartRendererProcess: ->
     @sendMessageToBrowserProcess('restartRendererProcess')
 

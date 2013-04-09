@@ -18,16 +18,19 @@ class AtomCefClient;
 
   BOOL _runningSpecs;
   BOOL _exitWhenDone;
+  BOOL _isConfig;
 }
 
 @property (nonatomic, retain) IBOutlet NSSplitView *splitView;
 @property (nonatomic, retain) IBOutlet NSView *webView;
 @property (nonatomic, retain) IBOutlet NSView *devToolsView;
 @property (nonatomic, retain) NSString *pathToOpen;
+@property (nonatomic) BOOL isConfig;
 
 - (id)initWithPath:(NSString *)path;
 - (id)initDevWithPath:(NSString *)path;
 - (id)initInBackground;
+- (id)initConfig;
 - (id)initSpecsThenExit:(BOOL)exitWhenDone;
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone;
 - (void)setPidToKillOnClose:(NSNumber *)pid;

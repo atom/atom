@@ -20,6 +20,7 @@ class AtomCefClient;
 - (void)open:(NSString *)path;
 - (void)openDev:(NSString *)path;
 - (void)open:(NSString *)path pidToKillWhenWindowCloses:(NSNumber *)pid;
+- (void)openConfig;
 - (IBAction)runSpecs:(id)sender;
 - (IBAction)runBenchmarks:(id)sender;
 - (void)runSpecsThenExit:(BOOL)exitWhenDone;

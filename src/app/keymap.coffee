@@ -40,7 +40,7 @@ class Keymap
         'alt-meta-i': 'toggle-dev-tools'
 
     $(document).command 'new-window', => atom.newWindow()
-    $(document).command 'open-user-configuration', => atom.open(config.configDirPath)
+    $(document).command 'open-user-configuration', => atom.openConfig()
     $(document).command 'open', => atom.open()
     $(document).command 'open-dev', => atom.openDev()
 
