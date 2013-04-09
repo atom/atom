@@ -321,3 +321,14 @@ describe "the `atom` global", ->
       expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
       expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A2"
       atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+
+  fdescribe "API documentation", ->
+    it "meets a minimum threshold", ->
+      versionHandler = jasmine.createSpy("versionHandler")
+      atom.getVersion(versionHandler)
+      waitsFor ->
+        versionHandler.callCount > 0
+
+      runs ->
+        expect(versionHandler.argsForCall[0][0]).toBeDefined()
