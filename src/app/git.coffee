@@ -95,11 +95,7 @@ class Git
     @isStatusNew(@getPathStatus(path))
 
   relativize: (path) ->
-    workingDirectory = @getWorkingDirectory()
-    if workingDirectory and path.indexOf("#{workingDirectory}/") is 0
-      path.substring(workingDirectory.length + 1)
-    else
-      path
+    @getRepo().relativize(path)
 
   getShortHead: ->
     @getRepo().getShortHead()
