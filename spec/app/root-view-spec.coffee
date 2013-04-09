@@ -354,31 +354,3 @@ describe "RootView", ->
       rootView.open(require.resolve('fixtures/sample.txt'))
       expect(count).toBe 1
       expect(callbackBuffer).toBe rootView.getActiveView().getBuffer()
-
-  describe ".eachPane(callback)", ->
-    beforeEach ->
-      rootView.attachToDom()
-
-    it "invokes the callback for all existing panes", ->
-      count = 0
-      callbackPane = null
-      callback = (pane) ->
-        callbackPane = pane
-        count++
-      rootView.eachPane(callback)
-      expect(count).toBe 1
-      expect(callbackPane).toBe rootView.getActivePane()
-
-    it "invokes the callback for new panes", ->
-      count = 0
-      callbackPane = null
-      callback = (pane) ->
-        callbackPane = pane
-        count++
-
-      rootView.eachPane(callback)
-      count = 0
-      callbackPane = null
-      rootView.getActiveView().splitRight()
-      expect(count).toBe 1
-      expect(callbackPane).toBe rootView.getActivePane()
