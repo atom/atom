@@ -25,7 +25,6 @@ keymap.bindKeys '*',
   'meta-w': 'close'
   'alt-meta-i': 'show-console'
 $(document).on 'close', -> window.close()
-$(document).on 'show-console', -> atom.toggleDevTools()
 
 defaultCount = 100
 window.pbenchmark = (args...) -> window.benchmark(args..., profile: true)

@@ -39,7 +39,6 @@ class RootView extends View
     new RootView({panes})
 
   initialize: ->
-    @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body

@@ -23,7 +23,6 @@ keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 $(window).on 'core:close', -> window.close()
-$(window).on 'toggle-dev-tools', (e) -> atom.toggleDevTools()
 $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
