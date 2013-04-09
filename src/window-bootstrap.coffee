@@ -4,6 +4,6 @@ require 'atom'
 require 'window'
 
 window.setUpEnvironment()
-window.startup()
+window.startEditorWindow()
 setTimeout((-> atom.show()), 0)
 console.log "Load time: #{new Date().getTime() - date}"
