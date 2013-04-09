@@ -35,7 +35,7 @@ window.setUpEnvironment = ->
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
-window.startup = ->
+window.startEditorWindow = ->
   directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
   if directory
     installAtomCommand(fsUtils.join(directory, 'bin/atom'))
@@ -48,7 +48,7 @@ window.startup = ->
   keymap.loadBundledKeymaps()
   atom.loadThemes()
   atom.loadPackages()
-  deserializeWindowState()
+  deserializeEditorWindow()
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
@@ -107,7 +107,7 @@ window.onDrop = (e) ->
   for file in e.originalEvent.dataTransfer.files
     atom.open(file.path)
 
-window.deserializeWindowState = ->
+window.deserializeEditorWindow = ->
   RootView = require 'root-view'
   Project = require 'project'
   Git = require 'git'
