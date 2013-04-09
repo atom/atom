@@ -96,8 +96,7 @@ class Buffer
     @trigger 'reloaded'
 
   updateCachedDiskContents: ->
-    if @file?
-      @cachedDiskContents = @file.read()
+    @cachedDiskContents = @file.read()
 
   getBaseName: ->
     @file?.getBaseName()
