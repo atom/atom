@@ -97,26 +97,57 @@ class Project
   ignoreRepositoryPath: (path) ->
     config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
 
+  # Public: Given a path, this resolves it relative to the project directory.
+  #
+  # filePath - The {String} name of the path to convert
+  #
+  # Returns a {String}.
   resolve: (filePath) ->
     filePath = fsUtils.join(@getPath(), filePath) unless filePath[0] == '/'
     fsUtils.absolute filePath
 
+  # Public: Given a path, this makes it relative to the project directory.
+  #
+  # filePath - The {String} name of the path to convert
+  #
+  # Returns a {String}.
   relativize: (fullPath) ->
     return fullPath unless fullPath.lastIndexOf(@getPath()) is 0
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
+  # Public: Identifies if the project is using soft tabs.
+  #
+  # Returns a {Boolean}.
   getSoftTabs: -> @softTabs
+
+  # Public: Sets the project to use soft tabs.
+  #
+  # softTabs - A {Boolean} which, if `true`, sets soft tabs
   setSoftTabs: (@softTabs) ->
 
+  # Public: Identifies if the project is using soft wrapping.
+  #
+  # Returns a {Boolean}.
   getSoftWrap: -> @softWrap
+
+  # Public: Sets the project to use soft wrapping.
+  #
+  # softTabs - A {Boolean} which, if `true`, sets soft wrapping
   setSoftWrap: (@softWrap) ->
 
+  # Public: Given a path to a file, this constructs and associates a new {EditSession}.
+  #
+  # filePath - The {String} path of the file to associate with
+  # editSessionOptions - Options that you can pass to the `EditSession` constructor
+  #
+  # Returns an {EditSession}.
   buildEditSession: (filePath, editSessionOptions={}) ->
     if ImageEditSession.canOpen(filePath)
       new ImageEditSession(filePath)
     else
       @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
 
+  # Internal:
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
     options.project = this
@@ -126,27 +157,39 @@ class Project
     @trigger 'edit-session-created', editSession
     editSession
 
+  # Internal:
   defaultEditSessionOptions: ->
     tabLength: @tabLength
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()
 
+  # Public: Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
+  #
+  # Returns an {Array} of {EditSession}s.
   getEditSessions: ->
     new Array(@editSessions...)
 
+  # Internal:
   eachEditSession: (callback) ->
     callback(editSession) for editSession in @getEditSessions()
     @on 'edit-session-created', (editSession) -> callback(editSession)
-
+  
+  # Public: Removes an {EditSession} association from the project.
+  #
+  # Returns the removed {EditSession}.
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
-
+  
+  # Public: Retrieves all the {Buffer}s in the project; that is, the buffers for all open files.
+  #
+  # Returns an {Array} of {Buffer}s.
   getBuffers: ->
     buffers = []
     for editSession in @editSessions when not _.include(buffers, editSession.buffer)
       buffers.push editSession.buffer
     buffers
 
+  # Internal:
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
@@ -157,6 +200,15 @@ class Project
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
 
+  # Public: Given a file path, this retrieves or creates a new {Buffer}.
+  #
+  # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
+  # `text` is used as the contents of the new buffer.
+  #
+  # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
+  # text - The {String} text to use as a buffer, if the file doesn't have any contents
+  #
+  # Returns the {Buffer}.
   bufferForPath: (filePath, text) ->
     if filePath?
       filePath = @resolve(filePath)
@@ -166,6 +218,12 @@ class Project
     else
       @buildBuffer(null, text)
 
+  # Public: Given a file path, this sets its {Buffer}.
+  #
+  # filePath - A {String} representing a path
+  # text - The {String} text to use as a buffer
+  #
+  # Returns the {Buffer}.
   buildBuffer: (filePath, text) ->
     buffer = new Buffer(filePath, text)
     @buffers.push buffer
@@ -175,6 +233,10 @@ class Project
   removeBuffer: (buffer) ->
     _.remove(@buffers, buffer)
 
+  # Public: Performs a search across all the files in the project.
+  #
+  # regex - A {RegExp} to search with
+  # iterator - A {Function} callback on each file found
   scan: (regex, iterator) ->
     bufferedData = ""
     state = 'readingPath'
