@@ -163,7 +163,7 @@ class Pane extends View
     uri = item.getUri()
     atom.confirm(
       "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
-      "Your changes will be lost if close this item without saving."
+      "Your changes will be lost if you close this item without saving."
       "Save", => @saveItem(item, nextAction)
       "Cancel", cancelAction
       "Don't Save", nextAction
