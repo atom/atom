@@ -8,6 +8,10 @@ UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 BufferMarker = require 'buffer-marker'
 
+# Public: Represents the contents of a file.
+#
+# The `Buffer` is often associated with a {File}. However, this is not always
+# the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class Buffer
   @idCounter = 1
@@ -28,6 +32,10 @@ class Buffer
   @deserialize: ({path, text}) ->
     project.bufferForPath(path, text)
 
+  # Public: Creates a new buffer.
+  #
+  # path - A {String} representing the file path
+  # initialText - A {String} setting the starting text
   constructor: (path, initialText) ->
     @id = @constructor.idCounter++
     @nextMarkerId = 1
@@ -72,6 +80,7 @@ class Buffer
 
   hasMultipleEditors: -> @refcount > 1
 
+  # Internal:
   subscribeToFile: ->
     @file.on "contents-changed", =>
       if @isModified()
@@ -88,6 +97,9 @@ class Buffer
     @file.on "moved", =>
       @trigger "path-changed", this
 
+  # Public: Reloads a file in the {EditSession}.
+  #
+  # Essentially, this performs a force read of the file.
   reload: ->
     @trigger 'will-reload'
     @updateCachedDiskContents()
@@ -95,15 +107,27 @@ class Buffer
     @triggerModifiedStatusChanged(false)
     @trigger 'reloaded'
 
+  # Public: Rereads the contents of the file, and stores them in the cache.
+  #
+  # Essentially, this performs a force read of the file on disk.
   updateCachedDiskContents: ->
     @cachedDiskContents = @file.read()
 
+  # Public: Gets the file's basename--that is, the file without any directory information.
+  #
+  # Returns a {String}.
   getBaseName: ->
     @file?.getBaseName()
 
+  # Public: Retrieves the path for the file.
+  #
+  # Returns a {String}.
   getPath: ->
     @file?.getPath()
 
+  # Public: Sets the path for the file.
+  #
+  # path - A {String} representing the new file path
   setPath: (path) ->
     return if path == @getPath()
 
@@ -135,6 +159,9 @@ class Buffer
   setText: (text) ->
     @change(@getRange(), text, normalizeLineEndings: false)
 
+  # Public: Gets the range of the buffer contents.
+  #
+  # Returns a new {Range}, from `[0, 0]` to the end of the buffer.
   getRange: ->
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
@@ -243,9 +270,16 @@ class Buffer
 
     new Point(row, index)
 
+  # Public: Given a row, this deletes it from the buffer.
+  #
+  # row - A {Number} representing the row to delete
   deleteRow: (row) ->
     @deleteRows(row, row)
 
+  # Public: Deletes a range of rows from the buffer.
+  #
+  # start - A {Number} representing the starting row
+  # end - A {Number} representing the ending row
   deleteRows: (start, end) ->
     startPoint = null
     endPoint = null
@@ -261,15 +295,26 @@ class Buffer
 
     @delete(new Range(startPoint, endPoint))
 
+  # Public: Adds text to the end of the buffer.
+  #
+  # text - A {String} of text to add
   append: (text) ->
     @insert(@getEofPosition(), text)
 
+  # Public: Adds text to a specific point in the buffer
+  #
+  # point - A {Point} in the buffer to insert into
+  # text - A {String} of text to add
   insert: (point, text) ->
     @change(new Range(point, point), text)
 
+  # Public: Deletes text from the buffer
+  #
+  # range - A {Range} whose text to delete
   delete: (range) ->
     @change(range, '')
 
+  # Internal:
   change: (oldRange, newText, options) ->
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
@@ -295,14 +340,22 @@ class Buffer
     prefix: @lines[range.start.row][0...range.start.column]
     suffix: @lines[range.end.row][range.end.column..]
 
+  # Internal:
   pushOperation: (operation, editSession) ->
     if @undoManager
       @undoManager.pushOperation(operation, editSession)
     else
       operation.do()
 
+  # Internal:
   transact: (fn) ->  @undoManager.transact(fn)
+  # Public: Undos the last operation.
+  #
+  # editSession - The {EditSession} associated with the buffer.
   undo: (editSession) -> @undoManager.undo(editSession)
+  # Public: Redos the last operation.
+  #
+  # editSession - The {EditSession} associated with the buffer.
   redo: (editSession) -> @undoManager.redo(editSession)
   commit: -> @undoManager.commit()
   abort: -> @undoManager.abort()
@@ -333,13 +386,22 @@ class Buffer
     else
       not @isEmpty()
 
+  # Public: Identifies if a buffer is in a git conflict with `HEAD`.
+  #
+  # Returns a {Boolean}.
   isInConflict: -> @conflict
 
+  # Public: Identifies if a buffer is empty.
+  #
+  # Returns a {Boolean}.
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
   getMarkers: ->
     _.values(@validMarkers)
 
+  # Public: Retrieves the quantity of markers in a buffer.
+  #
+  # Returns a {Number}.
   getMarkerCount: ->
     _.size(@validMarkers)
 
@@ -479,6 +541,12 @@ class Buffer
   isRowBlank: (row) ->
     not /\S/.test @lineForRow(row)
 
+  # Public: Given a row, this finds the next row above it that's empty.
+  #
+  # startRow - A {Number} identifying the row to start checking at
+  #
+  # Returns the row {Number} of the first blank row.
+  # Returns `null` if there's no other blank row.
   previousNonBlankRow: (startRow) ->
     return null if startRow == 0
 
@@ -491,7 +559,8 @@ class Buffer
   #
   # startRow - A row {Number} to check
   #
-  # Returns a {Number}, or `null` if there's no other blank row.
+  # Returns the row {Number} of the next blank row.
+  # Returns `null` if there's no other blank row.
   nextNonBlankRow: (startRow) ->
     lastRow = @getLastRow()
     if startRow < lastRow
@@ -499,18 +568,22 @@ class Buffer
         return row unless @isRowBlank(row)
     null
 
+  # Public: Identifies if the buffer has soft tabs anywhere.
+  #
+  # Returns a {Boolean},
   usesSoftTabs: ->
     for line in @getLines()
       if match = line.match(/^\s/)
         return match[0][0] != '\t'
     undefined
 
-  # Public: Checks out the current HEAD revision of the file.
+  # Public: Checks out the current `HEAD` revision of the file.
   checkoutHead: ->
     path = @getPath()
     return unless path
     git?.checkoutHead(path)
 
+  # Internal:
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
     stoppedChangingCallback = =>
@@ -520,6 +593,7 @@ class Buffer
       @triggerModifiedStatusChanged(modifiedStatus)
     @stoppedChangingTimeout = setTimeout(stoppedChangingCallback, @stoppedChangingDelay)
 
+  # Internal:
   triggerModifiedStatusChanged: (modifiedStatus) ->
     return if modifiedStatus is @previousModifiedStatus
     @previousModifiedStatus = modifiedStatus
@@ -531,11 +605,13 @@ class Buffer
   fileExists: ->
     @file? && @file.exists()
 
+  # Internal:
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
       line = @lineForRow(row)
       console.log row, line, line.length
 
+  # Internal:
   getDebugSnapshot: ->
     lines = ['Buffer:']
     for row in [0..@getLastRow()]

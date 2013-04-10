@@ -5,17 +5,35 @@ pathWatcher = require 'pathwatcher'
 File = require 'file'
 EventEmitter = require 'event-emitter'
 
+# Public: Represents a directory in the project.
+#
+# Directories contain an array of {File}s.
 module.exports =
 class Directory
   path: null
 
+  # Public: Creates a new directory.
+  #
+  # path - A {String} representing the file directory
+  # symlink - A {Boolean} indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
 
+  # Public: Retrieves the basename of the directory.
+  #
+  # Returns a {String}.
   getBaseName: ->
     fsUtils.base(@path)
 
+  # Public: Retrieves the directory's path.
+  #
+  # Returns a {String}.
   getPath: -> @path
 
+  # Public: Retrieves the file entries in the directory.
+  #
+  # This does follow symlinks.
+  #
+  # Returns an {Array} of {Files}.
   getEntries: ->
     directories = []
     files = []
@@ -33,16 +51,20 @@ class Directory
 
     directories.concat(files)
 
+  # Internal:
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @subscriptionCount() == 1
 
+  # Internal:
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
+  # Internal:
   subscribeToNativeChangeEvents: ->
     @watchSubscription = pathWatcher.watch @path, (eventType) =>
       @trigger "contents-changed" if eventType is "change"
-
+  
+  # Internal:
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription?
       @watchSubscription.close()
