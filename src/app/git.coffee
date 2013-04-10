@@ -123,7 +123,7 @@ class Git
         @statusTask = null
       @statusTask.start()
 
-  getDirectoryStatus: (directoryPath) ->
+  getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{directoryPath}/"
     directoryStatus = 0
     for path, status of @statuses
@@ -132,6 +132,9 @@ class Git
 
   getAheadBehindCounts: ->
     @getRepo().getAheadBehindCount()
+
+  getLineDiffs: (path, text) ->
+    @getRepo().getLineDiffs(@relativize(path), text)
 
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter
