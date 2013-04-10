@@ -56,3 +56,20 @@
   'meta-escape': 'tool-panel:unfocus'
   'escape': 'core:close'
   'meta-w': 'noop'
+
+# allow standard input fields to work correctly
+'input:not(.hidden-input)':
+  'left': 'native!'
+  'right': 'native!'
+  'tab': 'native!'
+  'shift-tab': 'native!'
+  'shift-left': 'native!'
+  'shift-right': 'native!'
+  'backspace': 'native!'
+  'shift-backspace': 'native!'
+  'delete': 'native!'
+  'meta-z': 'native!'
+  'meta-Z': 'native!'
+  'meta-x': 'native!'
+  'meta-c': 'native!'
+  'meta-v': 'native!'
