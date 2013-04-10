@@ -113,7 +113,9 @@ class Keymap
         candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
         for bindingSet in candidateBindingSets
           command = bindingSet.commandForEvent(event)
-          if command
+          if command is 'native!'
+            return true
+          else if command
             continue if @triggerCommandEvent(event, command)
             return false
           else if command == false

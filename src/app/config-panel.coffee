@@ -7,10 +7,10 @@ class ConfigPanel extends View
     @bindFormFields()
 
   bindFormFields: ->
-    for input in @find('input[name]').toArray()
+    for input in @find('input[id]').toArray()
       do (input) =>
         input = $(input)
-        name = input.attr('name')
+        name = input.attr('id')
         type = input.attr('type')
         @observeConfig name, (value) -> input.val(value) if value
         input.on 'change', ->

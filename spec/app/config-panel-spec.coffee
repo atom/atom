@@ -5,9 +5,9 @@ describe "ConfigPanel", ->
     class TestPanel extends ConfigPanel
       @content: ->
         @div =>
-          @input outlet: 'intInput', name: 'foo.int', type: 'int'
-          @input outlet: 'floatInput', name: 'foo.float', type: 'float'
-          @input outlet: 'stringInput', name: 'foo.string', type: 'string'
+          @input outlet: 'intInput', id: 'foo.int', type: 'int'
+          @input outlet: 'floatInput', id: 'foo.float', type: 'float'
+          @input outlet: 'stringInput', id: 'foo.string', type: 'string'
 
     config.set('foo.int', 22)
 
