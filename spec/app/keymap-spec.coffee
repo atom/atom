@@ -165,6 +165,14 @@ describe "Keymap", ->
           expect(deleteCharHandler).not.toHaveBeenCalled()
           expect(insertCharHandler).not.toHaveBeenCalled()
 
+      describe "when the event matches a 'native!' binding", ->
+        it "returns true, allowing the browser's native key handling to process the event", ->
+          keymap.bindKeys '.grandchild-node', 'x': 'native!'
+          nativeHandler = jasmine.createSpy("nativeHandler")
+          fragment.on 'native!', nativeHandler
+          expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment.find('.grandchild-node')[0]))).toBe true
+          expect(nativeHandler).not.toHaveBeenCalled()
+
     describe "when at least one binding partially matches the event's keystroke", ->
       [quitHandler, closeOtherWindowsHandler] = []
 
