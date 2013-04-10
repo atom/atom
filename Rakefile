@@ -126,14 +126,14 @@ namespace :docs do
       system %{./biscotto --statsOnly src/app/}
     end
 
-    desc "Builds the API docs in src/package"
-    task :package do
-      system %{./biscotto src/package/}
+    desc "Builds the API docs in src/packages"
+    task :packages do
+      system %{./biscotto src/packages/}
     end
 
-    desc "Lists the stats for API doc coverage in src/package"
+    desc "Lists the stats for API doc coverage in src/packages"
     task :stats do
-      system %{./biscotto --statsOnly src/package/}
+      system %{./biscotto --statsOnly src/packages/}
     end
   end
 end
