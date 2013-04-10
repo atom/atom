@@ -5,6 +5,13 @@ EditorConfigPanel = require 'editor-config-panel'
 
 module.exports =
 class ConfigView extends View
+  registerDeserializer(this)
+
+  @deserialize: ({activePanelName}) ->
+    view = new ConfigView()
+    view.showPanel(activePanelName)
+    view
+
   @content: ->
     @div id: 'config-view', =>
       @ol id: 'panel-menu', outlet: 'panelMenu'
@@ -25,10 +32,22 @@ class ConfigView extends View
     panel.hide()
     @panelsByName[name] = panel
     @panels.append(panel)
-    @showPanel(name) if _.values(@panelsByName).length == 1
+    @showPanel(name) if @getPanelCount() is 1 or @panelToShow is name
+
+  getPanelCount: ->
+    _.values(@panelsByName).length
 
   showPanel: (name) ->
-    @panels.children().hide()
-    @panelMenu.children('.active').removeClass('active')
-    @panelsByName[name].show()
-    @panelMenu.children("[name='#{name}']").addClass('active')
+    if @panelsByName[name]
+      @panels.children().hide()
+      @panelMenu.children('.active').removeClass('active')
+      @panelsByName[name].show()
+      @panelMenu.children("[name='#{name}']").addClass('active')
+      @activePanelName = name
+      @panelToShow = null
+    else
+      @panelToShow = name
+
+  serialize: ->
+    deserializer: @constructor.name
+    activePanelName: @activePanelName

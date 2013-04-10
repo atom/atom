@@ -7,6 +7,23 @@ describe "ConfigView", ->
   beforeEach ->
     configView = new ConfigView
 
+  describe "serialization", ->
+    it "remembers which panel was visible", ->
+      configView.showPanel('Editor')
+      newConfigView = deserialize(configView.serialize())
+      configView.remove()
+      newConfigView.attachToDom()
+      expect(newConfigView.activePanelName).toBe 'Editor'
+
+    it "shows the previously active panel if it is added after deserialization", ->
+      configView.addPanel('Panel 1', $$ -> @div id: 'panel-1')
+      configView.showPanel('Panel 1')
+      newConfigView = deserialize(configView.serialize())
+      configView.remove()
+      newConfigView.attachToDom()
+      newConfigView.addPanel('Panel 1', $$ -> @div id: 'panel-1')
+      expect(newConfigView.activePanelName).toBe 'Panel 1'
+
   describe ".addPanel(name, view)", ->
     it "adds a menu entry to the left and a panel that can be activated by clicking it", ->
       configView.addPanel('Panel 1', $$ -> @div id: 'panel-1')

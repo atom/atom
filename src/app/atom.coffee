@@ -251,12 +251,16 @@ _.extend atom,
       null
 
   getSavedWindowState: ->
-    if pathToOpen = window.location.params.pathToOpen
-      localStorage[pathToOpen]
+    storageKey = switch @windowMode
+      when 'editor' then window.location.params.pathToOpen
+      when 'config' then 'config'
+    localStorage[storageKey] if storageKey
 
   saveWindowState: ->
-    if pathToOpen = @getPathToOpen()
-      localStorage[pathToOpen] = JSON.stringify(@getWindowState())
+    storageKey = switch @windowMode
+      when 'editor' then @getPathToOpen()
+      when 'config' then 'config'
+    localStorage[storageKey] = JSON.stringify(@getWindowState())
 
   update: ->
     @sendMessageToBrowserProcess('update')

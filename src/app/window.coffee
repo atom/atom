@@ -43,6 +43,7 @@ window.startEditorWindow = ->
   else
     console.warn "Failed to install `atom` binary"
 
+  atom.windowMode = 'editor'
   handleWindowEvents()
   handleDragDrop()
   config.load()
@@ -53,10 +54,11 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  $(window).on 'beforeunload', -> shutdown(); false
+  $(window).on 'beforeunload', -> unloadEditorWindow(); false
   $(window).focus()
 
 window.startConfigWindow = ->
+  atom.windowMode = 'config'
   handleWindowEvents()
   config.load()
   keymap.loadBundledKeymaps()
@@ -65,8 +67,10 @@ window.startConfigWindow = ->
   deserializeConfigWindow()
   atom.activatePackageConfigs()
   keymap.loadUserKeymaps()
+  $(window).on 'beforeunload', -> unloadConfigWindow(); false
+  $(window).focus()
 
-window.shutdown = ->
+window.unloadEditorWindow = ->
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
   atom.setWindowState('project', project.serialize())
@@ -98,6 +102,14 @@ window.installAtomCommand = (commandPath, done) ->
               console.warn "Failed to install `atom` binary", error
             else
               fs.chmod(commandPath, 0o755, commandPath)
+
+window.unloadConfigWindow = ->
+  return if not configView
+  atom.setWindowState('configView', configView.serialize())
+  atom.saveWindowState()
+  configView.remove()
+  window.configView = null
+  $(window).off('focus blur before')
 
 window.handleWindowEvents = ->
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
@@ -143,7 +155,8 @@ window.deserializeEditorWindow = ->
 
 window.deserializeConfigWindow = ->
   ConfigView = require 'config-view'
-  window.configView = new ConfigView()
+  windowState = atom.getWindowState()
+  window.configView = deserialize(windowState.configView) ? new ConfigView()
   $(rootViewParentSelector).append(configView)
 
 window.stylesheetElementForId = (id) ->
