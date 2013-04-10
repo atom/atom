@@ -15,7 +15,8 @@ desc "Create xcode project from gyp file"
 task "create-xcode-project" => ["update-cef", "update-node"] do
   `rm -rf atom.xcodeproj`
   `script/generate-sources-gypi`
-  `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
+  version = %{-D version="#{ENV['VERSION']}"} if ENV['VERSION']
+  `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" #{version} atom.gyp`
 end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
