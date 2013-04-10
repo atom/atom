@@ -2,6 +2,9 @@ $ = require 'jquery'
 RootView = require 'root-view'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
+Exec = require('child_process').exec
+_ = require 'underscore'
+Project = require 'project'
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -324,11 +327,40 @@ describe "the `atom` global", ->
 
 
   fdescribe "API documentation", ->
-    it "meets a minimum threshold", ->
-      versionHandler = jasmine.createSpy("versionHandler")
-      atom.getVersion(versionHandler)
+    it "meets a minimum threshold for /app (with no errors)", ->
+      docRunner = jasmine.createSpy("docRunner")
+      Exec "cd #{project.resolve('../..')} && rake docs:app:stats", docRunner
       waitsFor ->
-        versionHandler.callCount > 0
+        docRunner.callCount > 0
 
       runs ->
-        expect(versionHandler.argsForCall[0][0]).toBeDefined()
+        # error
+        expect(docRunner.argsForCall[0][0]).toBeNull()
+
+        results = docRunner.argsForCall[0][1].split("\n")
+        results.pop()
+
+        coverage = parseFloat _.last(results).match(/.+?%/)
+        expect(coverage).toBeGreaterThan 85
+
+        # stderr
+        expect(docRunner.argsForCall[0][2]).toBe ''
+
+    it "meets a minimum threshold for /packages (with no errors)", ->
+      docRunner = jasmine.createSpy("docRunner")
+      Exec "cd #{project.resolve('../..')} && rake docs:packages:stats", docRunner
+      waitsFor ->
+        docRunner.callCount > 0
+
+      runs ->
+        # error
+        expect(docRunner.argsForCall[0][0]).toBeNull()
+
+        results = docRunner.argsForCall[0][1].split("\n")
+        results.pop()
+
+        coverage = parseFloat _.last(results).match(/.+?%/)
+        expect(coverage).toBeGreaterThan 85
+
+        # stderr
+        expect(docRunner.argsForCall[0][2]).toBe ''
