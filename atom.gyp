@@ -3,6 +3,7 @@
     'pkg-config': 'pkg-config',
     'chromium_code': 1,
     'version%': "<!(git rev-parse --short HEAD)",
+    'code_sign%': 0,
     'use_aura%': 0,
     'conditions': [
       ['OS=="win"', {
@@ -76,8 +77,8 @@
         'LD_RUNPATH_SEARCH_PATHS': '@executable_path/../Frameworks',
       },
       'conditions': [
-        ['CODE_SIGN' , {
-          'xcode_settings': {'CODE_SIGN_IDENTITY': "<(CODE_SIGN)"},
+        ['code_sign' , {
+          'xcode_settings': {'CODE_SIGN_IDENTITY': "<(code_sign)"},
         }],
         ['OS=="win" and win_use_allocator_shim==1', {
           'dependencies': [
@@ -269,7 +270,7 @@
         'native/mac/English.lproj/MainMenu.xib',
       ],
       'conditions': [
-        ['CODE_SIGN', {
+        ['code_sign', {
           'defines': [
             'CODE_SIGNING_ENABLED=1',
           ],
