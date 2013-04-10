@@ -9,6 +9,10 @@ EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 BufferedProcess = require 'buffered-process'
 
+# Public: Represents a project that's opened in Atom.
+#
+# Ultimately, a project is a git directory that's been opened. It's a collection
+# of directories and files that you can operate on.
 module.exports =
 class Project
   registerDeserializer(this)
@@ -35,9 +39,15 @@ class Project
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
 
+  # Public: Retrieves the project path.
+  #
+  # Returns a {String}.
   getPath: ->
     @rootDirectory?.path
 
+  # Public: Sets the project path.
+  #
+  # path - A {String} representing the new path
   setPath: (path) ->
     @rootDirectory?.off()
 
@@ -49,9 +59,15 @@ class Project
 
     @trigger "path-changed"
 
+  # Public: Retrieves the name of the root directory.
+  #
+  # Returns a {String}.
   getRootDirectory: ->
     @rootDirectory
 
+  # Public: Retrieves the names of every file (that's not `git ignore`d) in the project.
+  #
+  # Returns an {Array} of {String}s.
   getFilePaths: ->
     deferred = $.Deferred()
     paths = []
@@ -61,6 +77,11 @@ class Project
     deferred.resolve(paths)
     deferred.promise()
 
+  # Public: Identifies if a path is ignored.
+  #
+  # path - The {String} name of the path to check
+  #
+  # Returns a {Boolean}.
   isPathIgnored: (path) ->
     for segment in path.split("/")
       ignoredNames = config.get("core.ignoredNames") or []
@@ -68,6 +89,11 @@ class Project
 
     @ignoreRepositoryPath(path)
 
+  # Public: Identifies if a path is ignored.
+  #
+  # path - The {String} name of the path to check
+  #
+  # Returns a {Boolean}.
   ignoreRepositoryPath: (path) ->
     config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
 
