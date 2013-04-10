@@ -12,7 +12,11 @@ class ConfigPanel extends View
         input = $(input)
         name = input.attr('id')
         type = input.attr('type')
-        @observeConfig name, (value) -> input.val(value) if value
+        @observeConfig name, (value) ->
+          if type is 'checkbox'
+            input.attr('checked', value)
+          else
+            input.val(value) if value
         input.on 'change', ->
           value = input.val()
           config.set name, switch type
@@ -20,5 +24,7 @@ class ConfigPanel extends View
               parseInt(value)
             when 'float'
               parseFloat(value)
+            when 'checkbox'
+              !!input.attr('checked')
             else
               value
