@@ -1,7 +1,16 @@
 _ = require 'underscore'
 
+# Public: Represents a coordinate in the editor.
+#
+# Each `Point` is actually an object with two properties: `row` and `column`.
 module.exports =
 class Point
+
+  # Public: Constructs a `Point` from a given object.
+  #
+  # object - This can be an {Array} (`[startRow, startColumn, endRow, endColumn]`) or an object `{row, column}`
+  #
+  # Returns the new {Point}.
   @fromObject: (object) ->
     if object instanceof Point
       object
@@ -13,6 +22,15 @@ class Point
 
       new Point(row, column)
 
+  # Public: Identifies which `Point` is smaller.
+  #
+  # "Smaller" means that both the `row` and `column` values of one `Point` are less than or equal
+  # to the other.
+  #
+  # point1 - The first {Point} to check
+  # point2 - The second {Point} to check
+  #
+  # Returns the smaller {Point}.
   @min: (point1, point2) ->
     point1 = @fromObject(point1)
     point2 = @fromObject(point2)
@@ -21,11 +39,25 @@ class Point
     else
       point2
 
+  # Public: Creates a new `Point` object.
+  #
+  # row - A {Number} indicating the row (default: 0)
+  # column - A {Number} indicating the column (default: 0)
+  #
+  # Returns a {Point},
   constructor: (@row=0, @column=0) ->
 
+  # Public: Creates an identical copy of the `Point`.
+  #
+  # Returns a duplicate {Point}.
   copy: ->
     new Point(@row, @column)
 
+  # Public: Adds the `column`s of two `Point`s together.
+  #
+  # other - The {Point} to add with
+  #
+  # Returns the new {Point}.
   add: (other) ->
     other = Point.fromObject(other)
     row = @row + other.row
@@ -36,10 +68,24 @@ class Point
 
     new Point(row, column)
 
+  # Public: Moves a `Point`.
+  #
+  # In other words, the `row` values and `column` values are added to each other.
+  #
+  # other - The {Point} to add with
+  #
+  # Returns the new {Point}.
   translate: (other) ->
     other = Point.fromObject(other)
     new Point(@row + other.row, @column + other.column)
 
+  # Public: Creates two new `Point`s, split down a `column` value.
+  #
+  # In other words, given a point, this creates `Point(0, column)` and `Point(row, column)`.
+  #
+  # column - The {Number} to split at
+  #
+  # Returns an {Array} of two {Point}s.
   splitAt: (column) ->
     if @row == 0
       rightColumn = @column - column
@@ -48,6 +94,17 @@ class Point
 
     [new Point(0, column), new Point(@row, rightColumn)]
 
+  # Internal: Compares two `Point`s.
+  #
+  # other - The {Point} to compare against
+  #
+  # Returns a {Number} matching the following rules:
+  # * If the first `row` is greater than `other.row`, returns `1`.
+  # * If the first `row` is less than `other.row`, returns `-1`.
+  # * If the first `column` is greater than `other.column`, returns `1`.
+  # * If the first `column` is less than `other.column`, returns `-1`.
+  # 
+  # Otherwise, returns `0`.
   compare: (other) ->
     if @row > other.row
       1
@@ -61,31 +118,60 @@ class Point
       else
         0
 
+  # Public: Identifies if two `Point`s are equal.
+  #
+  # other - The {Point} to compare against
+  #
+  # Returns a {Boolean}.
   isEqual: (other) ->
     return false unless other
     other = Point.fromObject(other)
     @row == other.row and @column == other.column
 
+  # Public: Identifies if one `Point` is less than another.
+  #
+  # other - The {Point} to compare against
+  #
+  # Returns a {Boolean}.
   isLessThan: (other) ->
     @compare(other) < 0
 
+  # Public: Identifies if one `Point` is less than or equal to another.
+  #
+  # other - The {Point} to compare against
+  #
+  # Returns a {Boolean}.
   isLessThanOrEqual: (other) ->
     @compare(other) <= 0
 
+  # Public: Identifies if one `Point` is greater than another.
+  #
+  # other - The {Point} to compare against
+  #
+  # Returns a {Boolean}.
   isGreaterThan: (other) ->
     @compare(other) > 0
 
+  # Public: Identifies if one `Point` is greater than or equal to another.
+  #
+  # other - The {Point} to compare against
+  #
+  # Returns a {Boolean}.
   isGreaterThanOrEqual: (other) ->
     @compare(other) >= 0
 
+  # Internal:
   inspect: ->
     "(#{@row}, #{@column})"
 
+  # Internal:
   toString: ->
     "#{@row},#{@column}"
 
+  # Internal:
   toArray: ->
     [@row, @column]
 
+  # Internal:
   serialize: ->
     @toArray()

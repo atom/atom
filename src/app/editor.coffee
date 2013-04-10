@@ -10,7 +10,9 @@ fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 
-# Public: Represents the visual pane in Atom.
+# Public: Represents the entire visual pane in Atom.
+# 
+# The Editor manages the {EditSession}, which manages the file buffers.
 module.exports =
 class Editor extends View
   @configDefaults:

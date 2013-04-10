@@ -10,6 +10,7 @@ Range = require 'range'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
 
+# Public: `EditSession`s manage the states between file {Buffers}, and the project as a whole.
 module.exports =
 class EditSession
   registerDeserializer(this)

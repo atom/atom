@@ -3,6 +3,7 @@ Range = require 'range'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
+# Public: The `Cursor` class represents the little blinking line identifying where text can be inserted.
 module.exports =
 class Cursor
   screenPosition: null
@@ -38,34 +39,40 @@ class Cursor
     @editSession.destroyMarker(@marker)
     @editSession.removeCursor(this)
     @trigger 'destroyed'
+
   # Public: Moves a cursor to a given screen position.
   #
-  # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with properties based on {Cursor.changePosition}
+  # screenPosition - An {Array} of two numbers: the screen row, and the screen column.
+  # options - An object with the following keys:
+  #           :autoscroll - A {Boolean} which, if `true`, scrolls the {EditSession} to wherever the cursor moves to
   #
   setScreenPosition: (screenPosition, options={}) ->
     @changePosition options, =>
       @editSession.setMarkerHeadScreenPosition(@marker, screenPosition, options)
 
-  # Public: Gets the current screen position.
+  # Public: Gets the screen position of the cursor.
   #
   # Returns an {Array} of two numbers: the screen row, and the screen column.
   getScreenPosition: ->
     @editSession.getMarkerHeadScreenPosition(@marker)
+
   # Public: Moves a cursor to a given buffer position.
   #
-  # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with properties based on {Cursor.changePosition}
+  # bufferPosition - An {Array} of two numbers: the buffer row, and the buffer column.
+  # options - An object with the following keys:
+  #           :autoscroll - A {Boolean} which, if `true`, scrolls the {EditSession} to wherever the cursor moves to
   #
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
       @editSession.setMarkerHeadBufferPosition(@marker, bufferPosition, options)
+
   # Public: Gets the current buffer position.
   #
   # Returns an {Array} of two numbers: the buffer row, and the buffer column.
   getBufferPosition: ->
     @editSession.getMarkerHeadBufferPosition(@marker)
 
+  # Internal: 
   changePosition: (options, fn) ->
     @goalColumn = null
     @clearSelection()
@@ -73,82 +80,125 @@ class Cursor
     unless fn()
       @trigger 'autoscrolled' if @needsAutoscroll
 
+  # Internal:
   updateVisibility: ->
     @setVisible(@editSession.isMarkerRangeEmpty(@marker))
 
+  # Public: Sets the visibility of the cursor.
+  #
+  # visible - A {Boolean} indicating whether the cursor should be visible
   setVisible: (visible) ->
     if @visible != visible
       @visible = visible
       @needsAutoscroll ?= true if @visible and @isLastCursor()
       @trigger 'visibility-changed', @visible
 
+  # Public: Retrieves the visibility of the cursor.
+  #
+  # Returns a {Boolean}.
   isVisible: -> @visible
 
+  # Public: Identifies what the cursor considers a "word" RegExp.
+  #
+  # Returns a {RegExp}.
   wordRegExp: ->
     nonWordCharacters = config.get("editor.nonWordCharacters")
     new RegExp("^[\t ]*$|[^\\s#{_.escapeRegExp(nonWordCharacters)}]+|[#{_.escapeRegExp(nonWordCharacters)}]+", "g")
 
+  # Public: Identifies if this cursor is the last in the {EditSession}.
+  #
+  # Returns a {Boolean}.
   isLastCursor: ->
     this == @editSession.getCursor()
 
+  # Public: Identifies if the cursor is surrounded by whitespace.
+  #
+  # "Surrounded" here means that all characters before and after the cursor is whitespace.
+  #
+  # Returns a {Boolean}.
   isSurroundedByWhitespace: ->
     {row, column} = @getBufferPosition()
     range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
     /^\s+$/.test @editSession.getTextInBufferRange(range)
 
+  # Public: Removes the setting for auto-scroll.
   clearAutoscroll: ->
     @needsAutoscroll = null
 
+  # Public: Deselects whatever the cursor is selecting.
   clearSelection: ->
     if @selection
       @selection.goalBufferRange = null
       @selection.clear() unless @selection.retainSelection
 
+  # Public: Retrieves the cursor's screen row.
+  #
+  # Returns a {Number}.
   getScreenRow: ->
     @getScreenPosition().row
 
+  # Public: Retrieves the cursor's screen column.
+  #
+  # Returns a {Number}.
   getScreenColumn: ->
     @getScreenPosition().column
 
+  # Public: Retrieves the cursor's buffer row.
+  #
+  # Returns a {Number}.
   getBufferRow: ->
     @getBufferPosition().row
 
+  # Public: Retrieves the cursor's buffer column.
+  #
+  # Returns a {Number}.
   getBufferColumn: ->
     @getBufferPosition().column
 
+  # Public: Retrieves the cursor's buffer row text.
+  #
+  # Returns a {String}.
   getCurrentBufferLine: ->
     @editSession.lineForBufferRow(@getBufferRow())
 
+  # Public: Moves the cursor up one screen row.
   moveUp: (rowCount = 1) ->
     { row, column } = @getScreenPosition()
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row - rowCount, column: column})
     @goalColumn = column
 
+  # Public: Moves the cursor down one screen row.
   moveDown: (rowCount = 1) ->
     { row, column } = @getScreenPosition()
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row + rowCount, column: column})
     @goalColumn = column
 
+  # Public: Moves the cursor left one screen column.
   moveLeft: ->
     { row, column } = @getScreenPosition()
     [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
     @setScreenPosition({row, column})
 
+  # Public: Moves the cursor right one screen column.
   moveRight: ->
     { row, column } = @getScreenPosition()
     @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
+  # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
     @setBufferPosition([0,0])
 
+  # Public: Moves the cursor to the bottom of the buffer.
   moveToBottom: ->
     @setBufferPosition(@editSession.getEofBufferPosition())
 
+  # Public: Moves the cursor to the beginning of the buffer line.
   moveToBeginningOfLine: ->
     @setBufferPosition([@getBufferRow(), 0])
 
+  # Public: Moves the cursor to the beginning of the first character in the line.
   moveToFirstCharacterOfLine: ->
     position = @getBufferPosition()
     scanRange = @getCurrentLineBufferRange()
@@ -159,6 +209,7 @@ class Cursor
     newPosition = [position.row, 0] if newPosition.isEqual(position)
     @setBufferPosition(newPosition)
 
+  # Public: Moves the cursor to the beginning of the buffer line, skipping all whitespace.
   skipLeadingWhitespace: ->
     position = @getBufferPosition()
     scanRange = @getCurrentLineBufferRange()
@@ -168,20 +219,30 @@ class Cursor
 
     @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
 
+  # Public: Moves the cursor to the end of the buffer line.
   moveToEndOfLine: ->
     @setBufferPosition([@getBufferRow(), Infinity])
 
+  # Public: Moves the cursor to the beginning of the word.
   moveToBeginningOfWord: ->
     @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())
 
+  # Public: Moves the cursor to the end of the word.
   moveToEndOfWord: ->
     if position = @getEndOfCurrentWordBufferPosition()
       @setBufferPosition(position)
 
+  # Public: Moves the cursor to the beginning of the next word.
   moveToBeginningOfNextWord: ->
     if position = @getBeginningOfNextWordBufferPosition()
       @setBufferPosition(position)
 
+  # Public: Retrieves the buffer position of where the current word starts.
+  #
+  # options - A hash with one option:
+  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #
+  # Returns a {Range}.
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
@@ -197,6 +258,12 @@ class Cursor
 
     beginningOfWordPosition or currentBufferPosition
 
+  # Public: Retrieves the buffer position of where the current word ends.
+  #
+  # options - A hash with one option:
+  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #
+  # Returns a {Range}.
   getEndOfCurrentWordBufferPosition: (options = {}) ->
     allowNext = options.allowNext ? true
     currentBufferPosition = @getBufferPosition()
@@ -211,6 +278,12 @@ class Cursor
 
     endOfWordPosition ? currentBufferPosition
 
+  # Public: Retrieves the buffer position of where the next word starts.
+  #
+  # options - A hash with one option:
+  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #
+  # Returns a {Range}.
   getBeginningOfNextWordBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     start = if @isSurroundedByWhitespace() then currentBufferPosition else @getEndOfCurrentWordBufferPosition()
@@ -233,9 +306,19 @@ class Cursor
     endOptions = _.extend(_.clone(options), allowNext: false)
     new Range(@getBeginningOfCurrentWordBufferPosition(startOptions), @getEndOfCurrentWordBufferPosition(endOptions))
 
+  # Public: Retrieves the range for the current line.
+  #
+  # options - A hash with the same keys as {EditSession.bufferRangeForBufferRow}
+  #
+  # Returns a {Range}.
   getCurrentLineBufferRange: (options) ->
     @editSession.bufferRangeForBufferRow(@getBufferRow(), options)
 
+  # Public: Retrieves the range for the current paragraph.
+  #
+  # A paragraph is defined as a block of text surrounded by two empty lines.
+  #
+  # Returns a {Range}.
   getCurrentParagraphBufferRange: ->
     row = @getBufferRow()
     return unless /\w/.test(@editSession.lineForBufferRow(row))
@@ -256,15 +339,24 @@ class Cursor
   getCurrentWordPrefix: ->
     @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
 
+  # Public: Identifies if the cursor is at the start of a line.
+  #
+  # Returns a {Boolean}.
   isAtBeginningOfLine: ->
     @getBufferPosition().column == 0
 
+  # Public: Retrieves the indentation level of the current line.
+  #
+  # Returns a {Number}.
   getIndentLevel: ->
     if @editSession.softTabs
       @getBufferColumn() / @editSession.getTabLength()
     else
       @getBufferColumn()
 
+  # Public: Identifies if the cursor is at the end of a line.
+  #
+  # Returns a {Boolean}.
   isAtEndOfLine: ->
     @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
 
