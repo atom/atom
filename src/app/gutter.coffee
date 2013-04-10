@@ -76,7 +76,7 @@ class Gutter extends View
           rowValue = (row + 1).toString()
         classes = ['line-number']
         classes.push('fold') if editor.isFoldedAtBufferRow(row)
-        @div class: classes.join(' '), =>
+        @div lineNumber: row, class: classes.join(' '), =>
           rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
           @raw("#{rowValuePadding}#{rowValue}")
 

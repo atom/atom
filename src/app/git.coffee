@@ -60,7 +60,7 @@ class Git
 
   # Public: Reread the index to update any values that have changed since the last time the index was read.
   refreshIndex: -> @getRepo().refreshIndex()
-  
+
   # Public: Retrieves the path of the repository.
   #
   # Returns a {String}.
@@ -219,7 +219,7 @@ class Git
   # path - The {String} path to check
   #
   # Returns a {Number} representing the status.
-  getDirectoryStatus: (directoryPath) ->
+  getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{directoryPath}/"
     directoryStatus = 0
     for path, status of @statuses
@@ -233,6 +233,9 @@ class Git
   # Returnsan object with two keys, `ahead` and `behind`. These will always be greater than 0.
   getAheadBehindCounts: ->
     @getRepo().getAheadBehindCount()
+
+  getLineDiffs: (path, text) ->
+    @getRepo().getLineDiffs(@relativize(path), text)
 
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter
