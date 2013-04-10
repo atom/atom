@@ -1,6 +1,7 @@
 {View, $$} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'
+EditorConfigPanel = require 'editor-config-panel'
 
 module.exports =
 class ConfigView extends View
@@ -14,6 +15,9 @@ class ConfigView extends View
     document.title = "Atom Configuration"
     @on 'click', '#panel-menu li', (e) =>
       @showPanel($(e.target).attr('name'))
+
+    @addPanel('General', $$ -> @div "General")
+    @addPanel('Editor', new EditorConfigPanel)
 
   addPanel: (name, panel) ->
     panelItem = $$ -> @li name: name, name

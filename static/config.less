@@ -1,4 +1,36 @@
 #config-view {
   height: 100%;
   width: 100%;
+  background: white;
+  display: -webkit-flex;
+
+  #panel-menu {
+    background: #f3f3f3;
+
+    li {
+      width: 100px;
+      padding: 10px;
+      background: #ddd;
+      box-sizing: border-box;
+      cursor: pointer;
+
+      &.active {
+        background: #aaa;
+      }
+    }
+  }
+
+  #panels {
+    -webkit-flex: 1;
+    > div {
+      padding: 10px;
+    }
+
+    label {
+      display: inline-block;
+      width: 80px;
+      text-align: right;
+      margin-right: 5px;
+    }
+  }
 }
