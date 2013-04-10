@@ -117,9 +117,9 @@ task :tags do
 end
 
 namespace :docs do
-  namespace :build do
+  namespace :app do
     desc "Builds the API docs in src/app"
-    task :app do
+    task :build do
       system %{./biscotto src/app/}
     end
 
@@ -127,9 +127,11 @@ namespace :docs do
     task :stats do
       system %{./biscotto --statsOnly src/app/}
     end
+  end
 
+  namespace :packages do
     desc "Builds the API docs in src/packages"
-    task :packages do
+    task :build do
       system %{./biscotto src/packages/}
     end
 
