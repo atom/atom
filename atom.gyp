@@ -2,6 +2,8 @@
   'variables': {
     'pkg-config': 'pkg-config',
     'chromium_code': 1,
+    'version%': "<!(git rev-parse --short HEAD)",
+    'code_sign%': 0,
     'use_aura%': 0,
     'conditions': [
       ['OS=="win"', {
@@ -45,7 +47,7 @@
       },
     },
     'xcode_settings': {
-      'VERSION': "<!(git rev-parse --short HEAD)",
+      'VERSION': "<(version)",
       'CLANG_CXX_LANGUAGE_STANDARD' : 'c++0x',
       'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
       'COMBINE_HIDPI_IMAGES': 'YES', # Removes 'Validate Project Settings' warning
@@ -75,8 +77,8 @@
         'LD_RUNPATH_SEARCH_PATHS': '@executable_path/../Frameworks',
       },
       'conditions': [
-        ['CODE_SIGN' , {
-          'xcode_settings': {'CODE_SIGN_IDENTITY': "<(CODE_SIGN)"},
+        ['code_sign' , {
+          'xcode_settings': {'CODE_SIGN_IDENTITY': "<(code_sign)"},
         }],
         ['OS=="win" and win_use_allocator_shim==1', {
           'dependencies': [
@@ -268,7 +270,7 @@
         'native/mac/English.lproj/MainMenu.xib',
       ],
       'conditions': [
-        ['CODE_SIGN', {
+        ['code_sign', {
           'defines': [
             'CODE_SIGNING_ENABLED=1',
           ],
