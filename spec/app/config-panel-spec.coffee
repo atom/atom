@@ -18,12 +18,8 @@ describe "ConfigPanel", ->
 
     config.set('foo.int', 10)
     expect(panel.intInput.val()).toBe '10'
-    expect(panel.floatInput.val()).toBe ''
-    expect(panel.stringInput.val()).toBe ''
 
     config.set('foo.string', 'hey')
-    expect(panel.intInput.val()).toBe '10'
-    expect(panel.floatInput.val()).toBe ''
     expect(panel.stringInput.val()).toBe 'hey'
 
     panel.intInput.val('90.2').change()
