@@ -12,7 +12,7 @@ describe "Window", ->
     projectPath = project.getPath()
 
   afterEach ->
-    window.shutdown()
+    window.unloadEditorWindow()
     $(window).off 'beforeunload'
 
   describe "when the window is loaded", ->
@@ -120,7 +120,7 @@ describe "Window", ->
       removeStylesheet(cssPath)
       expect($(document.body).css('font-weight')).not.toBe("bold")
 
-  describe ".shutdown()", ->
+  describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       projectPath = project.getPath()
       expect(atom.getWindowState()).toEqual {}
@@ -130,7 +130,7 @@ describe "Window", ->
       projectState = JSON.parse(JSON.stringify(project.serialize()))
       syntaxState = JSON.parse(JSON.stringify(syntax.serialize()))
 
-      window.shutdown()
+      window.unloadEditorWindow()
 
       windowState = atom.getWindowState()
       expect(windowState.rootView).toEqual rootViewState
@@ -145,14 +145,14 @@ describe "Window", ->
       rootView.getActivePane().splitRight()
       expect(window.rootView.find('.editor').length).toBe 2
 
-      window.shutdown()
+      window.unloadEditorWindow()
 
       expect(buffer.subscriptionCount()).toBe 0
 
     it "only serializes window state the first time it is called", ->
 
-      window.shutdown()
-      window.shutdown()
+      window.unloadEditorWindow()
+      window.unloadEditorWindow()
       expect(atom.saveWindowState.callCount).toBe 1
 
   describe ".installAtomCommand(commandPath)", ->
