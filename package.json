@@ -18,7 +18,8 @@
     "pathwatcher": "0.3.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
     "space-pen": "git://github.com/nathansobo/space-pen.git",
-    "less": "git://github.com/nathansobo/less.js.git"
+    "less": "git://github.com/nathansobo/less.js.git",
+    "jqueryui-browser": "1.10.2"
   },
 
   "devDependencies" : {
