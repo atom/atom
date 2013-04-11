@@ -116,6 +116,18 @@ _.extend atom,
     @loadTheme(themeName) for themeName in themeNames
     @loadUserStylesheet()
 
+  getAvailableThemePaths: ->
+    themePaths = []
+    for themeDirPath in config.themeDirPaths
+
+      console.log fsUtils.list(themeDirPath)
+
+      themePaths.push(fsUtils.list(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
+    _.uniq(themePaths)
+
+  getAvailableThemeNames: ->
+    fsUtils.base(path).split('.')[0] for path in @getAvailableThemePaths()
+
   loadTheme: (name) ->
     @loadedThemes.push Theme.load(name)
 

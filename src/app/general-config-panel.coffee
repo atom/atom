@@ -19,8 +19,13 @@ class GeneralConfigPanel extends ConfigPanel
         @div "Packages"
         @ol id: 'package-list', outlet: 'packageList'
 
+      @div class: 'row', =>
+        @div "Themes"
+        @ol id: 'available-theme-list', outlet: 'availableThemeList'
+
   initialize: ->
     @populatePackageList()
+    @populateThemeLists()
     @packageList.on 'change', 'input[type=checkbox]', (e) ->
       checkbox = $(e.target)
       name = checkbox.closest('li').attr('name')
@@ -44,3 +49,8 @@ class GeneralConfigPanel extends ConfigPanel
     @packageList.find("input[type='checkbox']").attr('checked', true)
     for name in disabledPackages
       @packageList.find("li[name='#{name}'] input[type='checkbox']").attr('checked', false)
+
+  populateThemeLists: ->
+    for name in atom.getAvailableThemeNames()
+      @availableThemeList.append $$ ->
+        @li name: name, name
