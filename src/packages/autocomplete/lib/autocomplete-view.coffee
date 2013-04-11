@@ -1,3 +1,4 @@
+$ = require 'jquery'
 {$$} = require 'space-pen'
 Range = require 'range'
 SelectList = require 'select-list'
@@ -22,7 +23,8 @@ class AutocompleteView extends SelectList
 
   itemForElement: (match) ->
     $$ ->
-      @li match.word
+      @li =>
+        @span match.word
 
   handleEvents: ->
     @editor.on 'editor:path-changed', => @setCurrentBuffer(@editor.getBuffer())
@@ -156,7 +158,15 @@ class AutocompleteView extends SelectList
 
     {prefix, suffix}
 
+  afterAttach: (onDom) ->
+    if onDom
+      widestCompletion = 0
+      @list.find('span').each ->
+        widestCompletion = Math.max(widestCompletion, $(this).outerWidth())
+      @list.width(widestCompletion)
+      @width(@list.outerWidth())
+
   populateList: ->
-    super()
+    super
 
     @setPosition()
