@@ -10,6 +10,22 @@
   background: white;
   display: -webkit-flex;
 
+  .octicons:before {
+    font-family: 'Octicons Regular';
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+    -webkit-font-smoothing: antialiased;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+
+  .close-icon:before {
+    content: "\f081";
+  }
+
   #panel-menu {
     background: #f3f3f3;
 
@@ -32,6 +48,10 @@
 
     .pull-left {
       float: left;
+    }
+
+    .pull-right {
+      float: right;
     }
 
     > div {
@@ -77,7 +97,16 @@
           input[type='checkbox'] {
             margin-right: 10px;
           }
+
+          .close-icon {
+            display: none;
+          }
         }
+      }
+
+      #enabled-theme-list li:hover .close-icon {
+        display: inline-block;
+        cursor: pointer;
       }
     }
 
