@@ -54,13 +54,13 @@ class GitDiffView
 
     hunks = @diffs[@editor.getPath()] ? []
     linesHighlighted = 0
-    for hunk in hunks
-      if hunk.oldLines is 0 and hunk.newLines > 0
-        for row in [hunk.newStart...hunk.newStart + hunk.newLines]
+    for {oldStart, newStart, oldLines, newLines} in hunks
+      if oldLines is 0 and newLines > 0
+        for row in [newStart...newStart + newLines]
           linesHighlighted += @gutter.find(".line-number[lineNumber=#{row - 1}]").addClass('git-line-added').length
-      else if hunk.newLines is 0 and hunk.oldLines > 0
-        linesHighlighted += @gutter.find(".line-number[lineNumber=#{hunk.newStart - 1}]").addClass('git-line-removed').length
+      else if newLines is 0 and oldLines > 0
+        linesHighlighted += @gutter.find(".line-number[lineNumber=#{newStart - 1}]").addClass('git-line-removed').length
       else
-        for row in [hunk.newStart...hunk.newStart + hunk.newLines]
+        for row in [newStart...newStart + newLines]
           linesHighlighted += @gutter.find(".line-number[lineNumber=#{row - 1}]").addClass('git-line-modified').length
     @gutter.hasGitLineDiffs = linesHighlighted > 0
