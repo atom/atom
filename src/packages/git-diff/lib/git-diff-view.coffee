@@ -13,10 +13,10 @@ class GitDiffView
     @editor.on 'editor:display-updated', => @renderDiffs()
     git.on 'statuses-changed', =>
       @diffs = {}
-      @scheduleDiffs()
+      @scheduleUpdate()
     git.on 'status-changed', (path) =>
       delete @diffs[path]
-      @scheduleDiffs() if path is @editor.getPath()
+      @scheduleUpdate() if path is @editor.getPath()
 
     @subscribeToBuffer()
 
@@ -28,15 +28,15 @@ class GitDiffView
       @buffer = null
 
     if @buffer = @editor.getBuffer()
-      @scheduleDiffs() unless @diffs[@buffer.getPath()]?
-      @buffer.on 'contents-modified.git-diff', =>
-        @generateDiffs()
-        @renderDiffs()
+      @scheduleUpdate() unless @diffs[@buffer.getPath()]?
+      @buffer.on 'contents-modified.git-diff', => @updateDiffs()
 
-  scheduleDiffs: ->
-    _.nextTick =>
-      @generateDiffs()
-      @renderDiffs()
+  scheduleUpdate: ->
+    _.nextTick => @updateDiffs()
+
+  updateDiffs: ->
+    @generateDiffs()
+    @renderDiffs()
 
   generateDiffs: ->
     if path = @buffer.getPath()
