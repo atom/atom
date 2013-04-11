@@ -1,6 +1,6 @@
 GeneralConfigPanel = require 'general-config-panel'
 
-fdescribe "GeneralConfigPanel", ->
+describe "GeneralConfigPanel", ->
   [panel, configObserver, observeSubscription] = []
 
   beforeEach ->
@@ -35,7 +35,7 @@ fdescribe "GeneralConfigPanel", ->
         expect(panel.find("li[name='wrap-guide'] input[type='checkbox']").attr('checked')).toBeFalsy()
 
     describe "when a checkbox is unchecked", ->
-      fit "adds the package name to the disabled packages array", ->
+      it "adds the package name to the disabled packages array", ->
         panel.find("li[name='tree-view'] input[type='checkbox']").attr('checked', false).change()
         expect(configObserver).toHaveBeenCalledWith(['toml', 'wrap-guide', 'tree-view'])
 
