@@ -31,3 +31,7 @@ class EditorConfigPanel extends ConfigPanel
       @div class: 'row', =>
         @label for: 'editor.showInvisibles', "Show Invisible Characters:"
         @input id: 'editor.showInvisibles', type: 'checkbox'
+
+      @div class: 'row', =>
+        @label for: 'editor.nonWordCharacters', "Non-Word Characters:"
+        @input id: 'editor.nonWordCharacters', size: 50
