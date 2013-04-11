@@ -1,3 +1,9 @@
+.clearfix() {
+  zoom: 1;
+  &:before { content: ''; display: block; }
+  &:after { content: ''; display: table; clear: both; }
+}
+
 #config-view {
   height: 100%;
   width: 100%;
@@ -23,33 +29,50 @@
   #panels {
     -webkit-flex: 1;
     overflow-y: auto;
+
+    .pull-left {
+      float: left;
+    }
+
     > div {
       padding: 20px;
 
       .section {
         margin-bottom: 20px;
+        .clearfix();
+      }
+
+      .list-wrapper {
+        width: 300px;
+        margin-right: 10px;
       }
 
       .list-header {
         box-sizing: border-box;
         background: #eee;
-        width: 300px;
         padding: 10px;
         border: 1px solid #ccc;
       }
 
+      li.ui-draggable-dragging {
+        width: 300px;
+        background: white;
+        border: 1px solid #eee;
+        padding: 10px;
+      }
+
       ol {
         box-sizing: border-box;
-        width: 300px;
         height: 400px;
         overflow-y:  auto;
         border: 1px solid #ccc;
         border-top-width: 0;
+        background: #fafafa;
 
         li {
           padding: 10px;
-          border-top: 1px solid #eee;
-          &:first-child { border-bottom-width: 0px; }
+          border-bottom: 1px solid #eee;
+          background: white;
 
           input[type='checkbox'] {
             margin-right: 10px;
