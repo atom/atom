@@ -10,8 +10,8 @@ class GitDiffView
     @gutter = @editor.gutter
     @diffs = {}
 
-    @subscribe @editor, 'editor:path-changed', => @subscribeToBuffer()
-    @subscribe @editor, 'editor:display-updated', => @renderDiffs()
+    @subscribe @editor, 'editor:path-changed', @subscribeToBuffer
+    @subscribe @editor, 'editor:display-updated', @renderDiffs
     @subscribe git, 'statuses-changed', =>
       @diffs = {}
       @scheduleUpdate()
@@ -23,22 +23,26 @@ class GitDiffView
 
   beforeRemove: ->
     @unsubscribe()
+    @unsubscribeFromBuffer()
 
-  subscribeToBuffer: ->
+  unsubscribeFromBuffer: ->
     if @buffer?
       @removeDiffs()
       delete @diffs[@buffer.getPath()] if @buffer.destroyed
-      @buffer.off '.git-diff'
+      @buffer.off 'contents-modified', @updateDiffs
       @buffer = null
+
+  subscribeToBuffer: =>
+    @unsubscribeFromBuffer()
 
     if @buffer = @editor.getBuffer()
       @scheduleUpdate() unless @diffs[@buffer.getPath()]?
-      @buffer.on 'contents-modified.git-diff', => @updateDiffs()
+      @buffer.on 'contents-modified', @updateDiffs
 
   scheduleUpdate: ->
-    _.nextTick => @updateDiffs()
+    _.nextTick(@updateDiffs)
 
-  updateDiffs: ->
+  updateDiffs: =>
     @generateDiffs()
     @renderDiffs()
 
@@ -46,12 +50,12 @@ class GitDiffView
     if path = @buffer.getPath()
       @diffs[path] = git?.getLineDiffs(path, @buffer.getText())
 
-  removeDiffs: ->
+  removeDiffs: =>
     if @gutter.hasGitLineDiffs
       @gutter.find('.line-number').removeClass('git-line-added git-line-modified git-line-removed')
       @gutter.hasGitLineDiffs = false
 
-  renderDiffs: ->
+  renderDiffs: =>
     return unless @gutter.isVisible()
 
     @removeDiffs()
