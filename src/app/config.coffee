@@ -11,6 +11,10 @@ vendoredThemesDirPath = fsUtils.join(resourcePath, "vendor/themes")
 userThemesDirPath = fsUtils.join(configDirPath, "themes")
 userPackagesDirPath = fsUtils.join(configDirPath, "packages")
 
+# Public: Handles all of Atom's configuration details.
+#
+# This includes loading and setting options, as well as reading from the
+# user's configuration file.
 module.exports =
 class Config
   configDirPath: configDirPath

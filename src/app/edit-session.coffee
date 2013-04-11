@@ -10,7 +10,7 @@ Range = require 'range'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
 
-# Public: `EditSession`s manage the states between file {Buffers}, and the project as a whole.
+# Public: `EditSession`s manage the states between file {Buffer}s, and the project as a whole.
 module.exports =
 class EditSession
   registerDeserializer(this)
@@ -168,7 +168,7 @@ class EditSession
 
   # Public: Retrieves that character used to indicate a tab.
   # 
-  # If soft tabs are enabled, this is a space (`" "`) times the {.getTabLength} value.
+  # If soft tabs are enabled, this is a space (`" "`) times the {#getTabLength} value.
   # Otherwise, it's a tab (`\t`).
   #
   # Returns a {String}.
@@ -294,7 +294,7 @@ class EditSession
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap.clipScreenPosition}.
+  # options - The same options available to {LineMap#clipScreenPosition}.
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
@@ -303,7 +303,7 @@ class EditSession
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap.clipScreenPosition}.
+  # options - The same options available to {LineMap#clipScreenPosition}.
   #
   # Returns a {Point}. 
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
@@ -368,7 +368,7 @@ class EditSession
   # Public: Inserts text at the current cursor positions.
   #
   # text - A {String} representing the text to insert.
-  # options - A set of options equivalent to {Selection.insertText}.
+  # options - A set of options equivalent to {Selection#insertText}.
   insertText: (text, options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
@@ -394,7 +394,7 @@ class EditSession
 
   # Public: Indents the current line.
   #
-  # options - A set of options equivalent to {Selection.indent}.
+  # options - A set of options equivalent to {Selection#indent}.
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
@@ -437,7 +437,7 @@ class EditSession
   autoIndentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
-  # Given a buffer range, this converts all `\t` characters to the appopriate {.getTabText} value.
+  # Given a buffer range, this converts all `\t` characters to the appopriate {#getTabText} value.
   #
   # bufferRange - The {Range} to perform the replace in
   normalizeTabsInBufferRange: (bufferRange) ->
@@ -469,7 +469,7 @@ class EditSession
 
   # Public: Pastes the text in the clipboard.
   #
-  # options - A set of options equivalent to {Selection.insertText}.
+  # options - A set of options equivalent to {Selection#insertText}.
   pasteText: (options={}) ->
     options.normalizeIndent ?= true
     options.autoIndent ?= @shouldAutoIndentPastedText()
@@ -1051,7 +1051,7 @@ class EditSession
   # Public: Moves every cursor to a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with properties based on {Cursor.changePosition}
+  # options - An object with properties based on {Cursor#changePosition}
   #
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
@@ -1071,7 +1071,7 @@ class EditSession
   # Public: Moves every cursor to a given buffer position.
   #
   # position - An {Array} of two numbers: the buffer row, and the buffer column.
-  # options - An object with properties based on {Cursor.changePosition}
+  # options - An object with properties based on {Cursor#changePosition}
   #
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
@@ -1119,7 +1119,7 @@ class EditSession
     @getCursor().getCurrentParagraphBufferRange()
   # Public: Gets the word located under the cursor.
   #
-  # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
+  # options - An object with properties based on {Cursor#getBeginningOfCurrentWordBufferPosition}.
   #
   # Returns a {String}.
   getWordUnderCursor: (options) ->

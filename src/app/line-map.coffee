@@ -81,7 +81,7 @@ class LineMap
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap.clipScreenPosition}.
+  # options - The same options available to {#clipScreenPosition}.
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options={}) ->
@@ -120,7 +120,7 @@ class LineMap
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap.clipScreenPosition}.
+  # options - The same options available to {#clipScreenPosition}.
   #
   # Returns a {Point}. 
   bufferPositionForScreenPosition: (screenPosition, options) ->
@@ -138,6 +138,7 @@ class LineMap
         bufferRow += screenLine.bufferRows
 
     [bufferRow, screenLine]
+    
   # Public: Given a buffer range, this converts it into a screen position.
   #
   # bufferRange - The {Range} to convert

@@ -262,7 +262,7 @@ class DisplayBuffer
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap.clipScreenPosition}.
+  # options - The same options available to {LineMap#clipScreenPosition}.
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (position, options) ->
@@ -271,7 +271,7 @@ class DisplayBuffer
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap.clipScreenPosition}.
+  # options - The same options available to {LineMap#clipScreenPosition}.
   #
   # Returns a {Point}. 
   bufferPositionForScreenPosition: (position, options) ->

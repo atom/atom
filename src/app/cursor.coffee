@@ -298,7 +298,7 @@ class Cursor
 
   # Public: Gets the word located under the cursor.
   #
-  # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
+  # options - An object with properties based on {#getBeginningOfCurrentWordBufferPosition}.
   #
   # Returns a {String}.
   getCurrentWordBufferRange: (options={}) ->
@@ -308,7 +308,7 @@ class Cursor
 
   # Public: Retrieves the range for the current line.
   #
-  # options - A hash with the same keys as {EditSession.bufferRangeForBufferRow}
+  # options - A hash with the same keys as {EditSession#bufferRangeForBufferRow}
   #
   # Returns a {Range}.
   getCurrentLineBufferRange: (options) ->
