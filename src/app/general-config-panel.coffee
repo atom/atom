@@ -30,7 +30,7 @@ class GeneralConfigPanel extends ConfigPanel
 
       @div class: 'section', =>
         @div class: 'list-wrapper pull-left', =>
-          @div class: 'list-header', "Enabled Themes"
+          @div class: 'list-header', "Enabled Themes (Drag from right)"
           @ol id: 'enabled-theme-list', outlet: 'enabledThemeList'
 
         @div class: 'list-wrapper pull-left', =>
