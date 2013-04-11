@@ -67,7 +67,7 @@ _.extend atom,
       pack
 
   loadPackages: ->
-    @loadPackage(path) for path in @getPackagePaths() when not @isPackageDisabled(path)
+    @loadPackage(path) for path in @getAvailablePackagePaths() when not @isPackageDisabled(path)
 
   loadPackage: (id, options) ->
     if @isPackageDisabled(id)
@@ -100,12 +100,15 @@ _.extend atom,
     if path = @resolvePackagePath(id)
       _.include(config.get('core.disabledPackages') ? [], fsUtils.base(path))
 
-  getPackagePaths: ->
+  getAvailablePackagePaths: ->
     packagePaths = []
     for packageDirPath in config.packageDirPaths
       for packagePath in fsUtils.list(packageDirPath)
         packagePaths.push(packagePath) if fsUtils.isDirectory(packagePath)
     _.uniq(packagePaths)
+
+  getAvailablePackageNames: ->
+    fsUtils.base(path) for path in @getAvailablePackagePaths()
 
   loadThemes: ->
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
