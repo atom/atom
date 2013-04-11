@@ -119,9 +119,6 @@ _.extend atom,
   getAvailableThemePaths: ->
     themePaths = []
     for themeDirPath in config.themeDirPaths
-
-      console.log fsUtils.list(themeDirPath)
-
       themePaths.push(fsUtils.list(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
     _.uniq(themePaths)
 
