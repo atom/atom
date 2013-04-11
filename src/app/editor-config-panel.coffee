@@ -25,9 +25,5 @@ class EditorConfigPanel extends ConfigPanel
         @input id: 'editor.autoIndentOnPaste', type: 'checkbox'
 
       @div class: 'row', =>
-        @label for: 'editor.autosave', "Autosave on Unfocus:"
-        @input id: 'editor.autosave', type: 'checkbox'
-
-      @div class: 'row', =>
         @label for: 'editor.showInvisibles', "Show Invisible Characters:"
         @input id: 'editor.showInvisibles', type: 'checkbox'

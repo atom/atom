@@ -1,6 +1,7 @@
 {View, $$} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'
+GeneralConfigPanel = require 'general-config-panel'
 EditorConfigPanel = require 'editor-config-panel'
 
 module.exports =
@@ -23,7 +24,7 @@ class ConfigView extends View
     @on 'click', '#panel-menu li', (e) =>
       @showPanel($(e.target).attr('name'))
 
-    @addPanel('General', $$ -> @div "General")
+    @addPanel('General', new GeneralConfigPanel)
     @addPanel('Editor', new EditorConfigPanel)
 
   addPanel: (name, panel) ->
