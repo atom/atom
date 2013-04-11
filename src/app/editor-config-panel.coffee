@@ -25,5 +25,9 @@ class EditorConfigPanel extends ConfigPanel
         @input id: 'editor.autoIndentOnPaste', type: 'checkbox'
 
       @div class: 'row', =>
+        @label for: 'editor.showLineNumbers', "Show Line Numbers:"
+        @input id: 'editor.showLineNumbers', type: 'checkbox'
+
+      @div class: 'row', =>
         @label for: 'editor.showInvisibles', "Show Invisible Characters:"
         @input id: 'editor.showInvisibles', type: 'checkbox'
