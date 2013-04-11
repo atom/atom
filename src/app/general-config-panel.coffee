@@ -14,7 +14,7 @@ delete window.jQuery
 module.exports =
 class GeneralConfigPanel extends ConfigPanel
   @content: ->
-    @div class: 'config-panel', =>
+    @div id: 'general-config-panel', class: 'config-panel', =>
       @div class: 'row', =>
         @label for: 'core.hideGitIgnoredFiles', "Hide files in .gitignore:"
         @input id: 'core.hideGitIgnoredFiles', type: 'checkbox'
@@ -24,12 +24,18 @@ class GeneralConfigPanel extends ConfigPanel
         @input id: 'core.autosave', type: 'checkbox'
 
       @div class: 'section', =>
-        @div class: 'list-header', "Enabled Packages"
-        @ol id: 'package-list', outlet: 'packageList'
+        @div class: 'list-wrapper', =>
+          @div class: 'list-header', "Enabled Packages"
+          @ol id: 'package-list', outlet: 'packageList'
 
       @div class: 'section', =>
-        @div class: 'list-header', "Available Themes"
-        @ol id: 'available-theme-list', outlet: 'availableThemeList'
+        @div class: 'list-wrapper pull-left', =>
+          @div class: 'list-header', "Enabled Themes"
+          @ol id: 'enabled-theme-list', outlet: 'enabledThemeList'
+
+        @div class: 'list-wrapper pull-left', =>
+          @div class: 'list-header', "Available Themes"
+          @ol id: 'available-theme-list', outlet: 'availableThemeList'
 
   initialize: ->
     @populatePackageList()
@@ -60,5 +66,16 @@ class GeneralConfigPanel extends ConfigPanel
 
   populateThemeLists: ->
     for name in atom.getAvailableThemeNames()
-      @availableThemeList.append $$ ->
+      @availableThemeList.append(
+        $$(-> @li name: name, name).draggable(
+          connectToSortable: '#enabled-theme-list'
+          appendTo: '#general-config-panel'
+          helper: 'clone'
+        )
+      )
+
+    for name in config.get("core.themes")
+      @enabledThemeList.append $$ ->
         @li name: name, name
+
+    @enabledThemeList.sortable()
