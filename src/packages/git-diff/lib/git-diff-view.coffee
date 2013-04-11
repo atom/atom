@@ -1,4 +1,5 @@
 _ = require 'underscore'
+Subscriber = require 'subscriber'
 
 module.exports =
 class GitDiffView
@@ -9,16 +10,19 @@ class GitDiffView
     @gutter = @editor.gutter
     @diffs = {}
 
-    @editor.on 'editor:path-changed', => @subscribeToBuffer()
-    @editor.on 'editor:display-updated', => @renderDiffs()
-    git.on 'statuses-changed', =>
+    @subscribe @editor, 'editor:path-changed', => @subscribeToBuffer()
+    @subscribe @editor, 'editor:display-updated', => @renderDiffs()
+    @subscribe git, 'statuses-changed', =>
       @diffs = {}
       @scheduleUpdate()
-    git.on 'status-changed', (path) =>
+    @subscribe git, 'status-changed', (path) =>
       delete @diffs[path]
       @scheduleUpdate() if path is @editor.getPath()
 
     @subscribeToBuffer()
+
+  beforeRemove: ->
+    @unsubscribe()
 
   subscribeToBuffer: ->
     if @buffer?
@@ -64,3 +68,5 @@ class GitDiffView
         for row in [newStart...newStart + newLines]
           linesHighlighted += @gutter.find(".line-number[lineNumber=#{row - 1}]").addClass('git-line-modified').length
     @gutter.hasGitLineDiffs = linesHighlighted > 0
+
+_.extend GitDiffView.prototype, Subscriber
