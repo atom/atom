@@ -154,7 +154,7 @@ its own namespace.
 ### Glossary of Config Keys
 
 - core
-  - disablePackages: An array of package names to disable
+  - disabledPackages: An array of package names to disable
   - hideGitIgnoredFiles: Whether files in the .gitignore should be hidden
   - ignoredNames: File names to ignore across all of atom (not fully implemented)
   - themes: An array of theme names to load, in cascading order
