@@ -24,7 +24,38 @@
     -webkit-flex: 1;
     overflow-y: auto;
     > div {
-      padding: 10px;
+      padding: 20px;
+
+      .section {
+        margin-bottom: 20px;
+      }
+
+      .list-header {
+        box-sizing: border-box;
+        background: #eee;
+        width: 300px;
+        padding: 10px;
+        border: 1px solid #ccc;
+      }
+
+      ol {
+        box-sizing: border-box;
+        width: 300px;
+        height: 400px;
+        overflow-y:  auto;
+        border: 1px solid #ccc;
+        border-top-width: 0;
+
+        li {
+          padding: 10px;
+          border-top: 1px solid #eee;
+          &:first-child { border-bottom-width: 0px; }
+
+          input[type='checkbox'] {
+            margin-right: 10px;
+          }
+        }
+      }
     }
 
     .row {

@@ -15,12 +15,12 @@ class GeneralConfigPanel extends ConfigPanel
         @label for: 'core.autosave', "Autosave on unfocus:"
         @input id: 'core.autosave', type: 'checkbox'
 
-      @div class: 'row', =>
-        @div "Packages"
+      @div class: 'section', =>
+        @div class: 'list-header', "Enabled Packages"
         @ol id: 'package-list', outlet: 'packageList'
 
-      @div class: 'row', =>
-        @div "Themes"
+      @div class: 'section', =>
+        @div class: 'list-header', "Available Themes"
         @ol id: 'available-theme-list', outlet: 'availableThemeList'
 
   initialize: ->
