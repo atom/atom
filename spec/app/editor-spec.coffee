@@ -2563,3 +2563,15 @@ describe "Editor", ->
       editor.trigger('editor:scroll-to-cursor')
       expect(editor.getFirstVisibleScreenRow()).toBe 0
       expect(editor.getLastVisibleScreenRow()).toBe 2
+
+  describe "when the editor is removed", ->
+    it "fires a editor:will-be-removed event", ->
+      window.rootView = new RootView
+      rootView.open('sample.js')
+      rootView.attachToDom()
+      editor = rootView.getActiveView()
+
+      willBeRemovedHandler = jasmine.createSpy('fileChange')
+      editor.on 'editor:will-be-removed', willBeRemovedHandler
+      editor.getPane().destroyActiveItem()
+      expect(willBeRemovedHandler).toHaveBeenCalled()
