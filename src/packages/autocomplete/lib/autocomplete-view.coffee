@@ -160,7 +160,7 @@ class AutocompleteView extends SelectList
 
   afterAttach: (onDom) ->
     if onDom
-      widestCompletion = 0
+      widestCompletion = parseInt(@css('min-width')) or 0
       @list.find('span').each ->
         widestCompletion = Math.max(widestCompletion, $(this).outerWidth())
       @list.width(widestCompletion)
