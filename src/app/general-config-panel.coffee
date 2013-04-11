@@ -66,16 +66,21 @@ class GeneralConfigPanel extends ConfigPanel
 
   populateThemeLists: ->
     for name in atom.getAvailableThemeNames()
-      @availableThemeList.append(
-        $$(-> @li name: name, name).draggable(
-          connectToSortable: '#enabled-theme-list'
-          appendTo: '#general-config-panel'
-          helper: 'clone'
-        )
-      )
+      @availableThemeList.append(@buildThemeLi(name, draggable: true))
 
     for name in config.get("core.themes")
-      @enabledThemeList.append $$ ->
-        @li name: name, name
+      @enabledThemeList.append(@buildThemeLi(name))
 
     @enabledThemeList.sortable()
+
+  buildThemeLi: (name, {draggable} = {}) ->
+    li = $$ ->
+      @li name: name, =>
+        @div class: 'octicons close-icon pull-right'
+        @text name
+    if draggable
+      li.draggable
+        connectToSortable: '#enabled-theme-list'
+        appendTo: '#general-config-panel'
+        helper: 'clone'
+    li
