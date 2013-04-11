@@ -340,7 +340,10 @@ describe "the `atom` global", ->
         results = docRunner.argsForCall[0][1].split("\n")
         results.pop()
 
-        coverage = parseFloat _.last(results).match(/.+?%/)
+        errors = parseInt results.pop().match(/\d+/)
+        expect(errors).toBe 0
+
+        coverage = parseFloat results.pop().match(/.+?%/)
         expect(coverage).toBeGreaterThan 85
 
         # stderr
@@ -359,7 +362,10 @@ describe "the `atom` global", ->
         results = docRunner.argsForCall[0][1].split("\n")
         results.pop()
 
-        coverage = parseFloat _.last(results).match(/.+?%/)
+        errors = parseInt results.pop().match(/\d+/)
+        expect(errors).toBe 0
+
+        coverage = parseFloat results.pop().match(/.+?%/)
         expect(coverage).toBeGreaterThan 85
 
         # stderr
