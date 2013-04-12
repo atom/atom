@@ -284,6 +284,22 @@ describe "Project", ->
             expect(paths.length).toBe 0
             expect(matches.length).toBe 0
 
+      it "includes files and folders that begin with a '.'", ->
+        projectPath = '/tmp/atom-tests/folder-with-dot-file'
+        filePath = fsUtils.join(projectPath, '.text')
+        fsUtils.write(filePath, 'match this')
+        project.setPath(projectPath)
+        paths = []
+        matches = []
+        waitsForPromise ->
+          project.scan /match this/, ({path, match, range}) ->
+            paths.push(path)
+            matches.push(match)
+
+        runs ->
+          expect(paths.length).toBe 1
+          expect(paths[0]).toBe filePath
+          expect(matches.length).toBe 1
 
   describe "serialization", ->
     it "restores the project path", ->
