@@ -120,7 +120,7 @@ namespace :docs do
   namespace :app do
     desc "Builds the API docs in src/app"
     task :build do
-      system %{./biscotto src/app/}
+      system %{./biscotto -o docs/api src/app/}
     end
 
     desc "Lists the stats for API doc coverage in src/app"
@@ -132,7 +132,7 @@ namespace :docs do
   namespace :packages do
     desc "Builds the API docs in src/packages"
     task :build do
-      system %{./biscotto src/packages/}
+      system %{./biscotto -o docs/api src/packages/}
     end
 
     desc "Lists the stats for API doc coverage in src/packages"
