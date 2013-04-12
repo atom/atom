@@ -19,7 +19,7 @@
     "plist": "git://github.com/nathansobo/node-plist.git",
     "space-pen": "git://github.com/nathansobo/space-pen.git",
     "less": "git://github.com/nathansobo/less.js.git",
-    "jqueryui-browser": "1.10.2"
+    "jqueryui-browser": "1.10.2-1"
   },
 
   "devDependencies" : {
