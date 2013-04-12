@@ -726,7 +726,7 @@ class Editor extends View
     @overlayer.append(view)
 
   calculateDimensions: ->
-    fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
+    fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)
 
     lineRect = fragment[0].getBoundingClientRect()
@@ -1052,7 +1052,7 @@ class Editor extends View
 
     attributePairs = []
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
-    line.push("<pre #{attributePairs.join(' ')}>")
+    line.push("<div #{attributePairs.join(' ')}>")
 
     invisibles = @invisibles if @showInvisibles
 
@@ -1081,7 +1081,7 @@ class Editor extends View
 
     line.push("<span class='fold-marker'/>") if fold
 
-    line.push('</pre>')
+    line.push('</div>')
     line.join('')
 
   lineElementForScreenRow: (screenRow) ->
