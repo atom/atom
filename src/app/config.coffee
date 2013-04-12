@@ -13,8 +13,8 @@ userPackagesDirPath = fsUtils.join(configDirPath, "packages")
 
 # Public: Handles all of Atom's configuration details.
 #
-# This includes loading and setting options, as well as reading from the
-# user's configuration file.
+# This includes loading and setting default options, as well as reading from the
+# user's configuration file. 
 module.exports =
 class Config
   configDirPath: configDirPath
@@ -70,15 +70,30 @@ class Config
         console.error "Failed to load user config '#{@configFilePath}'", e.message
         console.error e.stack
 
+  # Public: Retrieves the setting for the given key.
+  #
+  # keyPath - The {String} name of the key to retrieve
+  #
+  # Returns the value from Atom's default settings, the user's configuration file,
+  # or `null` if the key doesn't exist in either. 
   get: (keyPath) ->
     _.valueForKeyPath(@settings, keyPath) ?
       _.valueForKeyPath(@defaultSettings, keyPath)
 
+  # Public: Sets the value for a configuration setting.
+  #
+  # This value is stored in Atom's internal configuration file. 
+  #
+  # keyPath - The {String} name of the key
+  # value - The value of the setting
+  #
+  # Returns the `value`.
   set: (keyPath, value) ->
     _.setValueForKeyPath(@settings, keyPath, value)
     @update()
     value
 
+  #  Internal:
   setDefaults: (keyPath, defaults) ->
     keys = keyPath.split('.')
     hash = @defaultSettings
@@ -89,6 +104,13 @@ class Config
     _.extend hash, defaults
     @update()
 
+  # Public: Establishes an event listener for a given key.
+  #
+  # Whenever the value of the key is changed, a callback is fired.
+  #
+  # keyPath - The {String} name of the key to watch
+  # callback - The {Function} that fires when the. It is given a single argument, `value`,
+  #            which is the new value of `keyPath`.
   observe: (keyPath, callback) ->
     value = @get(keyPath)
     previousValue = _.clone(value)
@@ -103,11 +125,13 @@ class Config
     callback(value)
     subscription
 
+  # Internal:
   update: ->
     return if @configFileHasErrors
     @save()
     @trigger 'updated'
 
+  # Internal:
   save: ->
     CSON.writeObject(@configFilePath, @settings)
 
