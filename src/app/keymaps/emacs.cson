@@ -7,6 +7,8 @@
   'ctrl-N': 'core:select-down'
   'ctrl-F': 'core:select-right'
   'ctrl-B': 'core:select-left'
+  'alt-ctrl-n': 'editor:add-selection-below'
+  'alt-ctrl-p': 'editor:add-selection-above'
   'ctrl-h': 'core:backspace'
   'ctrl-d': 'core:delete'
 

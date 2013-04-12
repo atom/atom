@@ -1,16 +1,17 @@
 ctags = require 'ctags'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
+path = require 'path'
 
 module.exports =
-  getTagsFile: (path) ->
-    tagsFile = fs.join(path, "tags")
-    return tagsFile if fs.isFile(tagsFile)
+  getTagsFile: (tagsFilePath) ->
+    tagsFile = path.join(tagsFilePath, "tags")
+    return tagsFile if fsUtils.isFile(tagsFile)
 
-    tagsFile = fs.join(path, "TAGS")
-    return tagsFile if fs.isFile(tagsFile)
+    tagsFile = path.join(tagsFilePath, "TAGS")
+    return tagsFile if fsUtils.isFile(tagsFile)
 
-  loadTags: (path) ->
-    tagsFile = @getTagsFile(path)
+  loadTags: (tagsFilePath) ->
+    tagsFile = @getTagsFile(tagsFilePath)
     if tagsFile
       callTaskMethod("tagsLoaded", ctags.getTags(tagsFile))
     else

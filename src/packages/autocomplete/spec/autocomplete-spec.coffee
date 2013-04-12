@@ -416,3 +416,12 @@ describe "AutocompleteView", ->
 
       editor.trigger 'core:move-up'
       expect(editor.getCursorBufferPosition().row).toBe 0
+
+  it "sets the width of the view to be wide enough to contain the longest completion without scrolling", ->
+    editor.attachToDom()
+    editor.insertText('thisIsAReallyReallyReallyLongCompletion ')
+    editor.moveCursorToBottom()
+    editor.insertNewline
+    editor.insertText('t')
+    autocomplete.attach()
+    expect(autocomplete.list.prop('scrollWidth')).toBe autocomplete.list.width()

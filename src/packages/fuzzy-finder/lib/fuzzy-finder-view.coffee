@@ -2,7 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 LoadPathsTask = require './load-paths-task'
 
 module.exports =
@@ -45,22 +45,22 @@ class FuzzyFinderView extends SelectList
           else if git.isStatusModified(status)
             @div class: 'status modified'
 
-        ext = fs.extension(path)
-        if fs.isReadmePath(path)
+        ext = fsUtils.extension(path)
+        if fsUtils.isReadmePath(path)
           typeClass = 'readme-name'
-        else if fs.isCompressedExtension(ext)
+        else if fsUtils.isCompressedExtension(ext)
           typeClass = 'compressed-name'
-        else if fs.isImageExtension(ext)
+        else if fsUtils.isImageExtension(ext)
           typeClass = 'image-name'
-        else if fs.isPdfExtension(ext)
+        else if fsUtils.isPdfExtension(ext)
           typeClass = 'pdf-name'
-        else if fs.isBinaryExtension(ext)
+        else if fsUtils.isBinaryExtension(ext)
           typeClass = 'binary-name'
         else
           typeClass = 'text-name'
 
-        @span fs.base(path), class: "file label #{typeClass}"
-        if folder = project.relativize(fs.directory(path))
+        @span fsUtils.base(path), class: "file label #{typeClass}"
+        if folder = project.relativize(fsUtils.directory(path))
           @span " - #{folder}/", class: 'directory'
 
   openPath: (path) ->
@@ -76,7 +76,7 @@ class FuzzyFinderView extends SelectList
 
   confirmed : (path) ->
     return unless path.length
-    if fs.isFile(path)
+    if fsUtils.isFile(path)
       @cancel()
       @openPath(path)
     else
@@ -134,7 +134,7 @@ class FuzzyFinderView extends SelectList
 
   populateGitStatusPaths: ->
     paths = []
-    paths.push(path) for path, status of git.statuses when fs.isFile(path)
+    paths.push(path) for path, status of git.statuses when fsUtils.isFile(path)
 
     @setArray(paths)
 

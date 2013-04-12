@@ -78,7 +78,9 @@ describe "GitHub Flavored Markdown grammar", ->
   it "tokenizies an :emoji:", ->
     {tokens} = grammar.tokenizeLine("this is :no_good:")
     expect(tokens[0]).toEqual value: "this is ", scopes: ["source.gfm"]
-    expect(tokens[1]).toEqual value: ":no_good:", scopes: ["source.gfm", "string.emoji.gfm"]
+    expect(tokens[1]).toEqual value: ":", scopes: ["source.gfm", "string.emoji.gfm", "string.emoji.start.gfm"]
+    expect(tokens[2]).toEqual value: "no_good", scopes: ["source.gfm", "string.emoji.gfm", "string.emoji.word.gfm"]
+    expect(tokens[3]).toEqual value: ":", scopes: ["source.gfm", "string.emoji.gfm", "string.emoji.end.gfm"]
 
     {tokens} = grammar.tokenizeLine("this is :no good:")
     expect(tokens[0]).toEqual value: "this is :no good:", scopes: ["source.gfm"]

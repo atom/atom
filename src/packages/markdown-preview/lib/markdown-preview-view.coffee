@@ -1,4 +1,3 @@
-fs = require 'fs-utils'
 $ = require 'jquery'
 ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
@@ -15,9 +14,19 @@ class MarkdownPreviewView extends ScrollView
 
   initialize: (@buffer) ->
     super
+
     @fetchRenderedMarkdown()
     @on 'core:move-up', => @scrollUp()
     @on 'core:move-down', => @scrollDown()
+
+  afterAttach: (onDom) ->
+    @subscribe @buffer, 'saved', =>
+      @fetchRenderedMarkdown()
+      pane = @getPane()
+      pane.showItem(this) if pane? and pane isnt rootView.getActivePane()
+
+  getPane: ->
+    @parent('.item-views').parent('.pane').view()
 
   serialize: ->
     deserializer: 'MarkdownPreviewView'

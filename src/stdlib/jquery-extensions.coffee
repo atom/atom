@@ -34,6 +34,9 @@ $.fn.pageDown = ->
 $.fn.isOnDom = ->
   @closest(document.body).length is 1
 
+$.fn.isVisible = ->
+  @is(':visible')
+
 $.fn.containsElement = (element) ->
   (element[0].compareDocumentPosition(this[0]) & 8) == 8
 

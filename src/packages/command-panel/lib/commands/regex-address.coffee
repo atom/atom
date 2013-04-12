@@ -24,12 +24,12 @@ class RegexAddress extends Address
 
     rangeToReturn = null
     scanMethodName = if @isReversed then "backwardsScanInRange" else "scanInRange"
-    buffer[scanMethodName] @regex, rangeToSearch, (match, range) ->
+    buffer[scanMethodName] @regex, rangeToSearch, ({range}) ->
       rangeToReturn = range
 
     if not rangeToReturn
       rangeToSearch = if @isReversed then rangeAfter else rangeBefore
-      buffer[scanMethodName] @regex, rangeToSearch, (match, range) ->
+      buffer[scanMethodName] @regex, rangeToSearch, ({range}) ->
         rangeToReturn = range
 
     if not rangeToReturn

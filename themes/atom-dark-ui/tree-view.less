@@ -11,7 +11,8 @@
 }
 
 .tree-view .directory.selected > .header > .name,
-.tree-view .selected > .name {
+.tree-view .selected > .name,
+.tree-view .selected > .header > .disclosure-arrow {
   color: #d2d2d2;
 }
 
@@ -39,7 +40,9 @@
 
 .tree-view .entry:hover,
 .tree-view .directory .header:hover .name,
-.tree-view .directory .header:hover .disclosure-arrow  {
+.tree-view .directory .header:hover .disclosure-arrow,
+.tree-view .selected > .directory > .header .disclosure-arrow,
+.tree-view .selected > .directory > .header:hover .disclosure-arrow  {
   color: #ebebeb;
 }
 

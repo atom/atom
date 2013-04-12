@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 File = require 'file'
 Point = require 'point'
 Range = require 'range'
@@ -37,16 +37,16 @@ class Buffer
     @lineEndings = []
 
     if path
-      throw "Path '#{path}' does not exist" unless fs.exists(path)
       @setPath(path)
       if initialText?
         @setText(initialText)
         @updateCachedDiskContents()
-      else
+      else if fsUtils.exists(path)
         @reload()
+      else
+        @setText('')
     else
       @setText(initialText ? '')
-
 
     @undoManager = new UndoManager(this)
 
@@ -70,7 +70,7 @@ class Buffer
     path: @getPath()
     text: @getText() if @isModified()
 
-  hasEditors: -> @refcount > 1
+  hasMultipleEditors: -> @refcount > 1
 
   subscribeToFile: ->
     @file.on "contents-changed", =>
@@ -339,6 +339,9 @@ class Buffer
   isMarkerReversed: (id) ->
     @validMarkers[id]?.isReversed()
 
+  isMarkerRangeEmpty: (id) ->
+    @validMarkers[id]?.isRangeEmpty()
+
   observeMarker: (id, callback) ->
     @validMarkers[id]?.observe(callback)
 
@@ -404,7 +407,7 @@ class Buffer
       range = new Range(startPosition, endPosition)
       keepLooping = true
       replacementText = null
-      iterator(match, range, { stop, replace })
+      iterator({match, range, stop, replace })
 
       if replacementText?
         @change(range, replacementText)

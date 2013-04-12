@@ -15,7 +15,9 @@ desc "Create xcode project from gyp file"
 task "create-xcode-project" => ["update-cef", "update-node"] do
   `rm -rf atom.xcodeproj`
   `script/generate-sources-gypi`
-  `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
+  version = %{-D version="#{ENV['VERSION']}"} if ENV['VERSION']
+  code_sign = %{-D code_sign="#{ENV['CODE_SIGN']}"} if ENV['CODE_SIGN']
+  `gyp --depth=. #{code_sign} #{version} atom.gyp`
 end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
@@ -28,7 +30,7 @@ end
 
 desc "Download node binary"
 task "update-node" do
-  `script/update-node v0.10.1`
+  `script/update-node v0.10.3`
 end
 
 desc "Download debug symbols for CEF"
@@ -90,7 +92,7 @@ task :clean do
 end
 
 desc "Run the specs"
-task :test => ["clean", "update-cef", "clone-default-bundles", "build"] do
+task :test => ["update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
     cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH}"

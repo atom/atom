@@ -1,5 +1,5 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 Subscriber = require 'subscriber'
 EventEmitter = require 'event-emitter'
 RepositoryStatusTask = require 'repository-status-task'
@@ -48,7 +48,7 @@ class Git
   refreshIndex: -> @getRepo().refreshIndex()
 
   getPath: ->
-    @path ?= fs.absolute(@getRepo().getPath())
+    @path ?= fsUtils.absolute(@getRepo().getPath())
 
   destroy: ->
     if @statusTask?
@@ -95,11 +95,7 @@ class Git
     @isStatusNew(@getPathStatus(path))
 
   relativize: (path) ->
-    workingDirectory = @getWorkingDirectory()
-    if workingDirectory and path.indexOf("#{workingDirectory}/") is 0
-      path.substring(workingDirectory.length + 1)
-    else
-      path
+    @getRepo().relativize(path)
 
   getShortHead: ->
     @getRepo().getShortHead()
@@ -127,7 +123,7 @@ class Git
         @statusTask = null
       @statusTask.start()
 
-  getDirectoryStatus: (directoryPath) ->
+  getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{directoryPath}/"
     directoryStatus = 0
     for path, status of @statuses
@@ -136,6 +132,9 @@ class Git
 
   getAheadBehindCounts: ->
     @getRepo().getAheadBehindCount()
+
+  getLineDiffs: (path, text) ->
+    @getRepo().getLineDiffs(@relativize(path), text)
 
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter

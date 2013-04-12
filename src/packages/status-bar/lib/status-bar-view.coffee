@@ -5,12 +5,8 @@ $ = require 'jquery'
 module.exports =
 class StatusBarView extends View
   @activate: ->
-    rootView.eachEditor (editor) =>
-      @appendToEditorPane(rootView, editor) if editor.attached
-
-  @appendToEditorPane: (rootView, editor) ->
-    if pane = editor.getPane()
-      pane.append(new StatusBarView(rootView, editor))
+    rootView.eachPane (pane) =>
+      pane.append(new StatusBarView(rootView, pane))
 
   @content: ->
     @div class: 'status-bar', =>
@@ -26,45 +22,58 @@ class StatusBarView extends View
       @span class: 'cursor-position', outlet: 'cursorPosition'
       @span class: 'grammar-name', outlet: 'grammarName'
 
-  initialize: (rootView, @editor) ->
+  initialize: (rootView, @pane) ->
     @updatePathText()
-    @editor.on 'editor:path-changed', =>
+    @subscribe @pane, 'pane:active-item-changed', =>
       @subscribeToBuffer()
       @updatePathText()
 
-    @updateCursorPositionText()
-    @subscribe @editor, 'cursor:moved', => @updateCursorPositionText()
-    @subscribe @grammarName, 'click', => @editor.trigger 'grammar-selector:show'
-    @subscribe @editor, 'editor:grammar-changed', => @updateGrammarText()
+    @subscribe @pane, 'cursor:moved', => @updateCursorPositionText()
+    @subscribe @grammarName, 'click', => @pane.activeView.trigger 'grammar-selector:show'
+    @subscribe @pane, 'editor:grammar-changed', => @updateGrammarText()
+
     if git?
       @subscribe git, 'status-changed', (path, status) =>
-        @updateStatusBar() if path is @buffer?.getPath()
-      @subscribe git, 'statuses-changed', =>
-        @updateStatusBar()
+        @updateStatusBar() if path is @getActiveItemPath()
+      @subscribe git, 'statuses-changed', @updateStatusBar
 
     @subscribeToBuffer()
 
+  beforeRemove: ->
+    @unsubscribeFromBuffer()
+
+  getActiveItemPath: ->
+    @pane.activeItem?.getPath?()
+
+  unsubscribeFromBuffer: ->
+    if @buffer?
+      @buffer.off 'modified-status-changed', @updateBufferHasModifiedText
+      @buffer.off 'saved', @updateStatusBar
+      @buffer = null
+
   subscribeToBuffer: ->
-    @buffer?.off '.status-bar'
-    @buffer = @editor.getBuffer()
-    @buffer.on 'modified-status-changed.status-bar', (isModified) => @updateBufferHasModifiedText(isModified)
-    @buffer.on 'saved.status-bar', => @updateStatusBar()
+    @unsubscribeFromBuffer()
+    if @buffer = @pane.activeItem.getBuffer?()
+      @buffer.on 'modified-status-changed', @updateBufferHasModifiedText
+      @buffer.on 'saved', @updateStatusBar
+
     @updateStatusBar()
 
-  updateStatusBar: ->
+  updateStatusBar: =>
     @updateGrammarText()
     @updateBranchText()
-    @updateBufferHasModifiedText(@buffer.isModified())
+    @updateBufferHasModifiedText(@buffer?.isModified())
     @updateStatusText()
+    @updateCursorPositionText()
 
   updateGrammarText: ->
-    grammar = @editor.getGrammar()
-    if grammar is syntax.nullGrammar
-      @grammarName.text('').hide()
+    grammar = @pane.activeView.getGrammar?()
+    if not grammar? or grammar is syntax.nullGrammar
+      @grammarName.hide()
     else
       @grammarName.text(grammar.name).show()
 
-  updateBufferHasModifiedText: (isModified)->
+  updateBufferHasModifiedText: (isModified) =>
     if isModified
       @bufferModified.text('*') unless @isModified
       @isModified = true
@@ -73,7 +82,7 @@ class StatusBarView extends View
       @isModified = false
 
   updateBranchText: ->
-    path = @editor.getPath()
+    path = @getActiveItemPath()
     @branchArea.hide()
     return unless path
 
@@ -82,7 +91,7 @@ class StatusBarView extends View
     @branchArea.show() if head
 
   updateStatusText: ->
-    path = @editor.getPath()
+    path = @getActiveItemPath()
     @gitStatusIcon.removeClass()
     return unless path
 
@@ -113,17 +122,24 @@ class StatusBarView extends View
         @gitStatusIcon.text('')
     else if git.isStatusNew(status)
       @gitStatusIcon.addClass('new-status-icon')
-      @gitStatusIcon.text("+#{@buffer.getLineCount()}")
+      if @buffer?
+        @gitStatusIcon.text("+#{@buffer.getLineCount()}")
+      else
+        @gitStatusIcon.text('')
     else if git.isPathIgnored(path)
       @gitStatusIcon.addClass('ignored-status-icon')
       @gitStatusIcon.text('')
 
   updatePathText: ->
-    if path = @editor.getPath()
-      @currentPath.text(project.relativize(path))
+    if path = @getActiveItemPath()
+      @currentPath.text(project.relativize(path)).show()
+    else if title = @pane.activeItem.getTitle?()
+      @currentPath.text(title).show()
     else
-      @currentPath.text('untitled')
+      @currentPath.hide()
 
   updateCursorPositionText: ->
-    { row, column } = @editor.getCursorBufferPosition()
-    @cursorPosition.text("#{row + 1},#{column + 1}")
+    if position = @pane.activeView.getCursorBufferPosition?()
+      @cursorPosition.text("#{position.row + 1},#{position.column + 1}").show()
+    else
+      @cursorPosition.hide()

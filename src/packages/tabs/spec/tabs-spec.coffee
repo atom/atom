@@ -4,7 +4,6 @@ RootView = require 'root-view'
 Pane = require 'pane'
 PaneContainer = require 'pane-container'
 TabBarView = require 'tabs/lib/tab-bar-view'
-fs = require 'fs-utils'
 {View} = require 'space-pen'
 
 describe "Tabs package main", ->
@@ -279,3 +278,26 @@ describe "TabBarView", ->
         expect(pane2.getItems()).toEqual [item2b, item1]
         expect(pane2.activeItem).toBe item1
         expect(pane2.focus).toHaveBeenCalled()
+
+    describe "when a non-tab is dragged to pane", ->
+      it "has no effect", ->
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [item1, editSession1, item2]
+        expect(pane.activeItem).toBe item2
+        spyOn(pane, 'focus')
+
+        [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(0), tabBar.tabAtIndex(0))
+        tabBar.onDrop(dropEvent)
+
+        expect(tabBar.getTabs().map (tab) -> tab.text()).toEqual ["Item 1", "sample.js", "Item 2"]
+        expect(pane.getItems()).toEqual [item1, editSession1, item2]
+        expect(pane.activeItem).toBe item2
+        expect(pane.focus).not.toHaveBeenCalled()
+
+    describe "when a tab is dragged out of application", ->
+      it "should carry file's information", ->
+        [dragStartEvent, dropEvent] = buildDragEvents(tabBar.tabAtIndex(1), tabBar.tabAtIndex(1))
+        tabBar.onDragStart(dragStartEvent)
+
+        expect(dragStartEvent.originalEvent.dataTransfer.getData("text/plain")).toEqual editSession1.getPath()
+        expect(dragStartEvent.originalEvent.dataTransfer.getData("text/uri-list")).toEqual 'file://' + editSession1.getPath()

@@ -1,15 +1,15 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 CSON = require 'cson'
 
-configDirPath = fs.absolute("~/.atom")
-bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
-bundledThemesDirPath = fs.join(resourcePath, "themes")
-vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
-vendoredThemesDirPath = fs.join(resourcePath, "vendor/themes")
-userThemesDirPath = fs.join(configDirPath, "themes")
-userPackagesDirPath = fs.join(configDirPath, "packages")
+configDirPath = fsUtils.absolute("~/.atom")
+bundledPackagesDirPath = fsUtils.join(resourcePath, "src/packages")
+bundledThemesDirPath = fsUtils.join(resourcePath, "themes")
+vendoredPackagesDirPath = fsUtils.join(resourcePath, "vendor/packages")
+vendoredThemesDirPath = fsUtils.join(resourcePath, "vendor/themes")
+userThemesDirPath = fsUtils.join(configDirPath, "themes")
+userPackagesDirPath = fsUtils.join(configDirPath, "packages")
 
 module.exports =
 class Config
@@ -26,34 +26,34 @@ class Config
       core: _.clone(require('root-view').configDefaults)
       editor: _.clone(require('editor').configDefaults)
     @settings = {}
-    @configFilePath = fs.resolve(configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= fs.join(configDirPath, 'config.cson')
+    @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
+    @configFilePath ?= fsUtils.join(configDirPath, 'config.cson')
 
   initializeConfigDirectory: ->
-    return if fs.exists(@configDirPath)
+    return if fsUtils.exists(@configDirPath)
 
-    fs.makeDirectory(@configDirPath)
+    fsUtils.makeDirectory(@configDirPath)
 
-    templateConfigDirPath = fs.resolve(window.resourcePath, 'dot-atom')
+    templateConfigDirPath = fsUtils.resolve(window.resourcePath, 'dot-atom')
     onConfigDirFile = (path) =>
       relativePath = path.substring(templateConfigDirPath.length + 1)
-      configPath = fs.join(@configDirPath, relativePath)
-      fs.write(configPath, fs.read(path))
-    fs.traverseTreeSync(templateConfigDirPath, onConfigDirFile, (path) -> true)
+      configPath = fsUtils.join(@configDirPath, relativePath)
+      fsUtils.write(configPath, fsUtils.read(path))
+    fsUtils.traverseTreeSync(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
-    configThemeDirPath = fs.join(@configDirPath, 'themes')
+    configThemeDirPath = fsUtils.join(@configDirPath, 'themes')
     onThemeDirFile = (path) ->
       relativePath = path.substring(bundledThemesDirPath.length + 1)
-      configPath = fs.join(configThemeDirPath, relativePath)
-      fs.write(configPath, fs.read(path))
-    fs.traverseTreeSync(bundledThemesDirPath, onThemeDirFile, (path) -> true)
+      configPath = fsUtils.join(configThemeDirPath, relativePath)
+      fsUtils.write(configPath, fsUtils.read(path))
+    fsUtils.traverseTreeSync(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
 
   loadUserConfig: ->
-    if fs.exists(@configFilePath)
+    if fsUtils.exists(@configFilePath)
       try
         userConfig = CSON.readObject(@configFilePath)
         _.extend(@settings, userConfig)

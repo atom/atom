@@ -30,7 +30,7 @@ class DirectoryView extends View
           iconClass = 'submodule-icon'
         else
           @subscribe git, 'status-changed', (path, status) =>
-            @updateStatus() if path.substring("#{@getPath()}/") is 0
+            @updateStatus() if path.indexOf("#{@getPath()}/") is 0
           @subscribe git, 'statuses-changed', =>
             @updateStatus()
           @updateStatus()

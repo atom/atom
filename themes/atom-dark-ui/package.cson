@@ -8,5 +8,6 @@
   'command-panel'
   'command-logger'
   'blurred'
+  'image-view'
   'terminal'
 ]

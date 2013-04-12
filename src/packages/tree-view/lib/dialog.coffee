@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
 Editor = require 'editor'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 
 module.exports =
@@ -21,8 +21,8 @@ class Dialog extends View
     @miniEditor.setText(path)
 
     if select
-      extension = fs.extension(path)
-      baseName = fs.base(path)
+      extension = fsUtils.extension(path)
+      baseName = fsUtils.base(path)
       if baseName is extension
         selectionEnd = path.length
       else

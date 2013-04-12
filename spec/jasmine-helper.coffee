@@ -1,8 +1,8 @@
 window.nakedLoad = (file) ->
-  fs = require 'fs-utils'
+  fsUtils = require 'fs-utils'
   file = require.resolve(file)
-  code = fs.read(file)
-  if fs.extension(file) is '.coffee'
+  code = fsUtils.read(file)
+  if fsUtils.extension(file) is '.coffee'
     require('coffee-script').eval(code, filename: file)
   else
     window.eval("#{code}\n//@ sourceURL=#{file}")

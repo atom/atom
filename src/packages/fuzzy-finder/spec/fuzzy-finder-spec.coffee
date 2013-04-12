@@ -4,7 +4,7 @@ LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
 _ = require 'underscore'
 $ = require 'jquery'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe 'FuzzyFinder', ->
   [finderView] = []
@@ -43,7 +43,6 @@ describe 'FuzzyFinder', ->
         it "shows all relative file paths for the current project and selects the first", ->
           rootView.attachToDom()
           finderView.maxItems = Infinity
-          jasmine.unspy(window, "setTimeout")
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           paths = null
           expect(finderView.find(".loading")).toBeVisible()
@@ -57,9 +56,20 @@ describe 'FuzzyFinder', ->
           runs ->
             expect(finderView.list.children('li').length).toBe paths.length
             for path in paths
-              expect(finderView.list.find("li:contains(#{fs.base(path)})")).toExist()
+              expect(finderView.list.find("li:contains(#{fsUtils.base(path)})")).toExist()
             expect(finderView.list.children().first()).toHaveClass 'selected'
             expect(finderView.find(".loading")).not.toBeVisible()
+
+        it "includes symlinked file paths", ->
+          rootView.attachToDom()
+          finderView.maxItems = Infinity
+          rootView.trigger 'fuzzy-finder:toggle-file-finder'
+
+          waitsFor "all project paths to load", 5000, ->
+            not finderView.reloadProjectPaths
+
+          runs ->
+            expect(finderView.list.find("li:contains(symlink-to-file)")).toExist()
 
       describe "when root view's project has no path", ->
         beforeEach ->
@@ -218,16 +228,16 @@ describe 'FuzzyFinder', ->
       editor = rootView.getActiveView()
       originalText = editor.getText()
       originalPath = editor.getPath()
-      fs.write(originalPath, 'making a change for the better')
+      fsUtils.write(originalPath, 'making a change for the better')
       git.getPathStatus(originalPath)
 
       newPath = project.resolve('newsample.js')
-      fs.write(newPath, '')
+      fsUtils.write(newPath, '')
       git.getPathStatus(newPath)
 
     afterEach ->
-      fs.write(originalPath, originalText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fsUtils.write(originalPath, originalText)
+      fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
     it "displays all new and modified paths", ->
       expect(rootView.find('.fuzzy-finder')).not.toExist()
@@ -280,7 +290,6 @@ describe 'FuzzyFinder', ->
   describe "cached file paths", ->
     it "caches file paths after first time", ->
       spyOn(LoadPathsTask.prototype, "start").andCallThrough()
-      jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
@@ -300,7 +309,6 @@ describe 'FuzzyFinder', ->
 
     it "doesn't cache buffer paths", ->
       spyOn(project, "getEditSessions").andCallThrough()
-      jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
       waitsFor ->
@@ -320,7 +328,6 @@ describe 'FuzzyFinder', ->
 
     it "busts the cache when the window gains focus", ->
       spyOn(LoadPathsTask.prototype, "start").andCallThrough()
-      jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
@@ -337,7 +344,6 @@ describe 'FuzzyFinder', ->
   describe "path ignoring", ->
     it "ignores paths that match entries in config.fuzzyFinder.ignoredNames", ->
       config.set("fuzzyFinder.ignoredNames", ["tree-view.js"])
-      jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
       finderView.maxItems = Infinity
 
@@ -356,7 +362,6 @@ describe 'FuzzyFinder', ->
 
     it "opens the fuzzy finder window when there are multiple matches", ->
       editor.setText("sample")
-      jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:find-under-cursor'
 
       waitsFor ->
@@ -368,7 +373,6 @@ describe 'FuzzyFinder', ->
 
     it "opens a file directly when there is a single match", ->
       editor.setText("sample.txt")
-      jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:find-under-cursor'
 
       openedPath = null
@@ -386,7 +390,6 @@ describe 'FuzzyFinder', ->
       editor.setText("moogoogaipan")
       editor.setCursorBufferPosition([0,5])
 
-      jasmine.unspy(window, "setTimeout")
       rootView.trigger 'fuzzy-finder:find-under-cursor'
 
       waitsFor ->
@@ -468,11 +471,11 @@ describe 'FuzzyFinder', ->
       originalText = editor.getText()
       originalPath = editor.getPath()
       newPath = project.resolve('newsample.js')
-      fs.write(newPath, '')
+      fsUtils.write(newPath, '')
 
     afterEach ->
-      fs.write(originalPath, originalText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fsUtils.write(originalPath, originalText)
+      fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
     describe "when a modified file is shown in the list", ->
       it "displays the modified icon", ->

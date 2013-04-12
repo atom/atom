@@ -1,7 +1,7 @@
 TextMateGrammar = require 'text-mate-grammar'
 TextMatePackage = require 'text-mate-package'
 plist = require 'plist'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 describe "TextMateGrammar", ->
@@ -16,13 +16,13 @@ describe "TextMateGrammar", ->
 
   describe "@loadSync(path)", ->
     it "loads grammars from plists", ->
-      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('packages/text.tmbundle/Syntaxes/Plain text.plist'))
+      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('packages/text.tmbundle/Syntaxes/Plain text.plist'))
       expect(grammar.scopeName).toBe "text.plain"
       {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
       expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
 
     it "loads grammars from cson files", ->
-      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
+      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
       expect(grammar.scopeName).toBe "source.alot"
       {tokens} = grammar.tokenizeLine("this is alot of code")
       expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
@@ -138,7 +138,7 @@ describe "TextMateGrammar", ->
 
     describe "when the line matches a pattern with no `name` or `contentName`", ->
       it "creates tokens without adding a new scope", ->
-        grammar = syntax.grammarsByFileType["rb"]
+        grammar = syntax.selectGrammar('foo.rb')
         {tokens} = grammar.tokenizeLine('%w|oh \\look|')
         expect(tokens.length).toBe 5
         expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
@@ -183,7 +183,7 @@ describe "TextMateGrammar", ->
 
       describe "when the end pattern contains a back reference", ->
         it "constructs the end rule based on its back-references to captures in the begin rule", ->
-          grammar = syntax.grammarsByFileType["rb"]
+          grammar = syntax.selectGrammar('foo.rb')
           {tokens} = grammar.tokenizeLine('%w|oh|,')
           expect(tokens.length).toBe 4
           expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
@@ -192,7 +192,7 @@ describe "TextMateGrammar", ->
           expect(tokens[3]).toEqual value: ',',  scopes: ["source.ruby", "punctuation.separator.object.ruby"]
 
         it "allows the rule containing that end pattern to be pushed to the stack multiple times", ->
-          grammar = syntax.grammarsByFileType["rb"]
+          grammar = syntax.selectGrammar('foo.rb')
           {tokens} = grammar.tokenizeLine('%Q+matz had some #{%Q-crazy ideas-} for ruby syntax+ # damn.')
           expect(tokens[0]).toEqual value: '%Q+', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
           expect(tokens[1]).toEqual value: 'matz had some ', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby"]
@@ -212,7 +212,7 @@ describe "TextMateGrammar", ->
           atom.activatePackage('html.tmbundle', sync: true)
           atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
-          grammar = syntax.grammarsByFileType["html.erb"]
+          grammar = syntax.selectGrammar('foo.html.erb')
           {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
 
           expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]

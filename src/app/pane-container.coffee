@@ -55,7 +55,9 @@ class PaneContainer extends View
         activePane.showItem(deserialize(lastItemState))
         true
       else
-        @append(new Pane(deserialize(lastItemState)))
+        newPane = new Pane(deserialize(lastItemState))
+        @append(newPane)
+        newPane.focus()
 
   itemDestroyed: (item) ->
     state = item.serialize?()

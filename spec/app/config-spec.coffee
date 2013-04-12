@@ -1,4 +1,4 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "Config", ->
   describe ".get(keyPath) and .set(keyPath, value)", ->
@@ -19,38 +19,38 @@ describe "Config", ->
 
   describe ".save()", ->
     beforeEach ->
-      spyOn(fs, 'write')
+      spyOn(fsUtils, 'write')
       jasmine.unspy config, 'save'
 
     describe "when ~/.atom/config.json exists", ->
       it "writes any non-default properties to ~/.atom/config.json", ->
-        config.configFilePath = fs.join(config.configDirPath, "config.json")
+        config.configFilePath = fsUtils.join(config.configDirPath, "config.json")
         config.set("a.b.c", 1)
         config.set("a.b.d", 2)
         config.set("x.y.z", 3)
         config.setDefaults("a.b", e: 4, f: 5)
 
-        fs.write.reset()
+        fsUtils.write.reset()
         config.save()
 
-        expect(fs.write.argsForCall[0][0]).toBe(fs.join(config.configDirPath, "config.json"))
-        writtenConfig = JSON.parse(fs.write.argsForCall[0][1])
+        expect(fsUtils.write.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.json"))
+        writtenConfig = JSON.parse(fsUtils.write.argsForCall[0][1])
         expect(writtenConfig).toEqual config.settings
 
     describe "when ~/.atom/config.json doesn't exist", ->
       it "writes any non-default properties to ~/.atom/config.cson", ->
-        config.configFilePath = fs.join(config.configDirPath, "config.cson")
+        config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
         config.set("a.b.c", 1)
         config.set("a.b.d", 2)
         config.set("x.y.z", 3)
         config.setDefaults("a.b", e: 4, f: 5)
 
-        fs.write.reset()
+        fsUtils.write.reset()
         config.save()
 
-        expect(fs.write.argsForCall[0][0]).toBe(fs.join(config.configDirPath, "config.cson"))
+        expect(fsUtils.write.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.cson"))
         CoffeeScript = require 'coffee-script'
-        writtenConfig = CoffeeScript.eval(fs.write.argsForCall[0][1], bare: true)
+        writtenConfig = CoffeeScript.eval(fsUtils.write.argsForCall[0][1], bare: true)
         expect(writtenConfig).toEqual config.settings
 
   describe ".setDefaults(keyPath, defaults)", ->
@@ -113,40 +113,40 @@ describe "Config", ->
   describe "initializeConfigDirectory()", ->
     beforeEach ->
       config.configDirPath = '/tmp/dot-atom-dir'
-      expect(fs.exists(config.configDirPath)).toBeFalsy()
+      expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+      fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
 
     describe "when the configDirPath doesn't exist", ->
       it "copies the contents of dot-atom to ~/.atom", ->
         config.initializeConfigDirectory()
-        expect(fs.exists(config.configDirPath)).toBeTruthy()
-        expect(fs.exists(fs.join(config.configDirPath, 'packages'))).toBeTruthy()
-        expect(fs.exists(fs.join(config.configDirPath, 'snippets'))).toBeTruthy()
-        expect(fs.exists(fs.join(config.configDirPath, 'themes'))).toBeTruthy()
-        expect(fs.isFile(fs.join(config.configDirPath, 'config.cson'))).toBeTruthy()
+        expect(fsUtils.exists(config.configDirPath)).toBeTruthy()
+        expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'packages'))).toBeTruthy()
+        expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'snippets'))).toBeTruthy()
+        expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'themes'))).toBeTruthy()
+        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
       it "copies the bundles themes to ~/.atom", ->
         config.initializeConfigDirectory()
-        expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
-        expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
-        expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
-        expect(fs.isFile(fs.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
+        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
+        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
+        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
+        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
 
   describe "when the config file is not parseable", ->
     beforeEach ->
      config.configDirPath = '/tmp/dot-atom-dir'
-     config.configFilePath = fs.join(config.configDirPath, "config.cson")
-     expect(fs.exists(config.configDirPath)).toBeFalsy()
+     config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
+     expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
 
     afterEach ->
-      fs.remove('/tmp/dot-atom-dir') if fs.exists('/tmp/dot-atom-dir')
+      fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
 
     it "logs an error to the console and does not overwrite the config file", ->
       config.save.reset()
       spyOn(console, 'error')
-      fs.write(config.configFilePath, "{{{{{")
+      fsUtils.write(config.configFilePath, "{{{{{")
       config.loadUserConfig()
       config.set("hair", "blonde") # trigger a save
       expect(console.error).toHaveBeenCalled()
