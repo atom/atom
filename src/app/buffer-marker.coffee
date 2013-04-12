@@ -24,6 +24,11 @@ class BufferMarker
         @setTailPosition(range.start) unless options.noTail
         @setHeadPosition(range.end)
 
+  # Public: Identifies if the ending position of a marker is greater than the starting position.
+  #
+  # This can happen when, for example, you highlight text "up" in a {Buffer}.
+  #
+  # Returns a {Boolean}.
   isReversed: ->
     @tailPosition? and @headPosition.isLessThan(@tailPosition)
 

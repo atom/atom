@@ -4,6 +4,8 @@ EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
 # Public: The `Cursor` class represents the little blinking line identifying where text can be inserted.
+#
+# Cursors have some metadata attached in the form of a {BufferMarker}.
 module.exports =
 class Cursor
   screenPosition: null

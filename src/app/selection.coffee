@@ -2,6 +2,7 @@ Range = require 'range'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
+# Public: Represents a selection in the {EditSession}.
 module.exports =
 class Selection
   cursor: null
@@ -12,6 +13,7 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
+  # Internal:
   constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
     @editSession.observeMarker @marker, => @screenRangeChanged()
@@ -19,6 +21,7 @@ class Selection
       @cursor = null
       @destroy()
 
+  # Internal:
   destroy: ->
     return if @destroyed
     @destroyed = true
@@ -26,33 +29,60 @@ class Selection
     @trigger 'destroyed' unless @editSession.destroyed
     @cursor?.destroy()
 
+  # Internal:
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
     if @isEmpty()
       @wordwise = false
       @linewise = false
 
+  # Public: Identifies if the selection is highlighting anything.
+  #
+  # Returns a {Boolean}.
   isEmpty: ->
     @getBufferRange().isEmpty()
 
+  # Public: Identifies if the selection is reversed, that is, it is highlighting "up."
+  #
+  # Returns a {Boolean}.
   isReversed: ->
     @editSession.isMarkerReversed(@marker)
 
+  # Public: Identifies if the selection is a single line.
+  #
+  # Returns a {Boolean}.
   isSingleScreenLine: ->
     @getScreenRange().isSingleLine()
 
+  # Internal:
   clearAutoscroll: ->
     @needsAutoscroll = null
 
+  # Public: Retrieves the screen range for the selection.
+  #
+  # Returns a {Range}.
   getScreenRange: ->
     @editSession.getMarkerScreenRange(@marker)
 
+  # Public: Modifies the screen range for the selection.
+  #
+  # screenRange - The new {Range} to select
+  # options - A hash of options matching those found in {#setBufferRange}
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@editSession.bufferRangeForScreenRange(screenRange), options)
 
+  # Public: Retrieves the buffer range for the selection.
+  #
+  # Returns a {Range}.
   getBufferRange: ->
     @editSession.getMarkerBufferRange(@marker)
 
+  # Public: Modifies the buffer range for the selection.
+  #
+  # screenRange - The new {Range} to select
+  # options - A hash of options with the following keys:
+  #           :preserveFolds - if `true`, the fold settings are preserved after the selection moves
+  #           :autoscroll - if `true`, the {EditSession} scrolls to the new selection
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
@@ -62,6 +92,9 @@ class Selection
       @cursor.needsAutoscroll = false if options.autoscroll?
       @editSession.setMarkerBufferRange(@marker, bufferRange, options)
 
+  # Public: Retrieves the starting and ending buffer rows the selection is highlighting.
+  #
+  # Returns an {Array} of two {Number}s: the starting row, and the ending row.
   getBufferRowRange: ->
     range = @getBufferRange()
     start = range.start.row
@@ -69,16 +102,24 @@ class Selection
     end = Math.max(start, end - 1) if range.end.column == 0
     [start, end]
 
+  # Internal:
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @trigger 'screen-range-changed', screenRange
 
+  # Public: Retrieves the text in the selection.
+  #
+  # Returns a {String}.
   getText: ->
     @editSession.buffer.getTextInRange(@getBufferRange())
 
+  # Public: Clears the selection, moving the marker to move to the head.
   clear: ->
     @editSession.clearMarkerTail(@marker)
 
+  # Public: Modifies the selection to mark the current word.
+  #
+  # Returns a {Range}.
   selectWord: ->
     options = {}
     options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
@@ -90,6 +131,9 @@ class Selection
   expandOverWord: ->
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
+  # Public: Selects an entire line in the {Buffer}.
+  #
+  # row - The line {Number} to select (default: the row of the cursor)
   selectLine: (row=@cursor.getBufferPosition().row) ->
     range = @editSession.bufferRangeForBufferRow(row, includeNewline: true)
     @setBufferRange(range)
@@ -101,6 +145,9 @@ class Selection
     range = @getBufferRange().union(@cursor.getCurrentLineBufferRange(includeNewline: true))
     @setBufferRange(range)
 
+  # Public: Selects the text from the current cursor position to a given screen position.
+  #
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
     @modifySelection =>
       if @initialScreenRange
@@ -116,45 +163,61 @@ class Selection
       else if @wordwise
         @expandOverWord()
 
+  # Public: Selects the text from the current cursor position to a given buffer position.
+  #
+  # position - An instance of {Point}, with a given `row` and `column`.
   selectToBufferPosition: (position) ->
     @modifySelection => @cursor.setBufferPosition(position)
 
+  # Public: Selects the text one position right of the cursor.
   selectRight: ->
     @modifySelection => @cursor.moveRight()
 
+  # Public: Selects the text one position left of the cursor.
   selectLeft: ->
     @modifySelection => @cursor.moveLeft()
 
+  # Public: Selects all the text one position above the cursor.
   selectUp: ->
     @modifySelection => @cursor.moveUp()
 
+  # Public: Selects all the text one position below the cursor.
   selectDown: ->
     @modifySelection => @cursor.moveDown()
 
+  # Public: Selects all the text from the current cursor position to the top of the buffer.
   selectToTop: ->
     @modifySelection => @cursor.moveToTop()
 
+  # Public: Selects all the text from the current cursor position to the bottom of the buffer.
   selectToBottom: ->
     @modifySelection => @cursor.moveToBottom()
 
+  # Public: Selects all the text in the buffer.
   selectAll: ->
     @setBufferRange(@editSession.buffer.getRange(), autoscroll: false)
 
+  # Public: Selects all the text from the current cursor position to the beginning of the line.
   selectToBeginningOfLine: ->
     @modifySelection => @cursor.moveToBeginningOfLine()
 
+  # Public: Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: ->
     @modifySelection => @cursor.moveToEndOfLine()
 
+  # Public: Selects all the text from the current cursor position to the beginning of the word.
   selectToBeginningOfWord: ->
     @modifySelection => @cursor.moveToBeginningOfWord()
 
+  # Public: Selects all the text from the current cursor position to the end of the word.
   selectToEndOfWord: ->
     @modifySelection => @cursor.moveToEndOfWord()
 
+  # Public: Selects all the text from the current cursor position to the beginning of the next word.
   selectToBeginningOfNextWord: ->
     @modifySelection => @cursor.moveToBeginningOfNextWord()
 
+  # Public: Moves the selection down one row.
   addSelectionBelow: ->
     range = (@goalBufferRange ? @getBufferRange()).copy()
     nextRow = range.end.row + 1
@@ -172,6 +235,7 @@ class Selection
       @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
       break
 
+  # Public: Moves the selection up one row.
   addSelectionAbove: ->
     range = (@goalBufferRange ? @getBufferRange()).copy()
     previousRow = range.end.row - 1
@@ -189,6 +253,13 @@ class Selection
       @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
       break
 
+  # Public: Replaces text at the current selection.
+  #
+  # text - A {String} representing the text to add
+  # options - A hash containing the following options:
+  #           :normalizeIndent - TODO
+  #           :select - if `true`, selects the newly added text
+  #           :autoIndent - if `true`, indents the newly added text appropriately
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
@@ -210,6 +281,10 @@ class Selection
 
     newBufferRange
 
+  # Public: Indents the selection.
+  #
+  # options - A hash with one key, `autoIndent`. If `true`, the indentation is 
+  #           performed appropriately. Otherwise, {EditSession#getTabText} is used
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
@@ -225,6 +300,7 @@ class Selection
     else
       @indentSelectedRows()
 
+  # Public: If the selection spans multiple rows, indents all of them.
   indentSelectedRows: ->
     [start, end] = @getBufferRowRange()
     for row in [start..end]
@@ -270,6 +346,7 @@ class Selection
     desiredIndentString = @editSession.buildIndentString(desiredIndentLevel)
     line.replace(/^[\t ]*/, desiredIndentString)
 
+  # Public: Performs a backspace, removing the character found behind the selection.
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
       if @cursor.isAtBeginningOfLine() and @editSession.isFoldedAtScreenRow(@cursor.getScreenRow() - 1)
@@ -279,10 +356,12 @@ class Selection
 
     @deleteSelectedText()
 
+  # Public: Performs a backspace to the beginning of the current word, removing characters found there.
   backspaceToBeginningOfWord: ->
     @selectToBeginningOfWord() if @isEmpty()
     @deleteSelectedText()
 
+  # Public: Performs a backspace to the beginning of the current line, removing characters found there.
   backspaceToBeginningOfLine: ->
     if @isEmpty() and @cursor.isAtBeginningOfLine()
       @selectLeft()
@@ -290,6 +369,7 @@ class Selection
       @selectToBeginningOfLine()
     @deleteSelectedText()
 
+  # Public: Performs a delete, removing the character found ahead of the cursor position.
   delete: ->
     if @isEmpty()
       if @cursor.isAtEndOfLine() and fold = @editSession.largestFoldStartingAtScreenRow(@cursor.getScreenRow() + 1)
@@ -298,10 +378,12 @@ class Selection
         @selectRight()
     @deleteSelectedText()
 
+  # Public: Performs a delete to the end of the current word, removing characters found there.
   deleteToEndOfWord: ->
     @selectToEndOfWord() if @isEmpty()
     @deleteSelectedText()
 
+  # Public: Deletes the selected text.
   deleteSelectedText: ->
     bufferRange = @getBufferRange()
     if fold = @editSession.largestFoldContainingBufferRow(bufferRange.end.row)
@@ -311,6 +393,7 @@ class Selection
     @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
     @cursor?.setBufferPosition(bufferRange.start)
 
+  # Public: Deletes the line.
   deleteLine: ->
     if @isEmpty()
       start = @cursor.getScreenRow()
@@ -327,6 +410,9 @@ class Selection
         end--
       @editSession.buffer.deleteRows(start, end)
 
+  # Public: Joins the current line with the one below it.
+  #
+  # If there selection spans more than one line, all the lines are joined together.
   joinLine: ->
     selectedRange = @getBufferRange()
     if selectedRange.isEmpty()

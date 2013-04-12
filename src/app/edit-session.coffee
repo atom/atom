@@ -381,10 +381,10 @@ class EditSession
   shouldAutoIndentPastedText: ->
     config.get("editor.autoIndentOnPaste")
 
-  # Public: Inserts text at the current cursor positions.
+  # Public: Inserts text at the current cursor positions
   #
   # text - A {String} representing the text to insert.
-  # options - A set of options equivalent to {Selection#insertText}.
+  # options - A set of options equivalent to {Selection#insertText}
   insertText: (text, options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
@@ -427,7 +427,7 @@ class EditSession
   backspaceToBeginningOfLine: ->
     @mutateSelectedText (selection) -> selection.backspaceToBeginningOfLine()
 
-  # Public: Performs a delete, removing the character found behind the cursor position.
+  # Public: Performs a delete, removing the character found ahead of the cursor position.
   delete: ->
     @mutateSelectedText (selection) -> selection.delete()
 
@@ -435,7 +435,7 @@ class EditSession
   deleteToEndOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
 
-  # Public: Performs a delete to the end of the current line, removing characters found there.
+  # Public: Deletes the entire line.
   deleteLine: ->
     @mutateSelectedText (selection) -> selection.deleteLine()
 
@@ -890,7 +890,11 @@ class EditSession
   clearMarkerTail: (args...) ->
     @displayBuffer.clearMarkerTail(args...)
 
-  # Internal:
+  # Public: Identifies if markers are reversed, that is, they are highlighting "up."
+  #
+  # args - {String}s specifying the id of a {BufferMarker} 
+  #
+  # Returns a {Boolean}.
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
 
@@ -1211,7 +1215,7 @@ class EditSession
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
-  # Public: Selects the text from the current cursor position to a given position.
+  # Public: Selects the text from the current cursor position to a given screen position.
   #
   # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
