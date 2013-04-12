@@ -81,6 +81,11 @@ class Buffer
     path: @getPath()
     text: @getText() if @isModified()
 
+  # Public: Identifies if the buffer belongs to multiple editors.
+  #
+  # For example, if the {Editor} was split.
+  #
+  # Returns a {Boolean}. 
   hasMultipleEditors: -> @refcount > 1
 
   # Internal:

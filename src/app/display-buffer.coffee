@@ -62,6 +62,12 @@ class DisplayBuffer
   getLines: ->
     @lineMap.linesForScreenRows(0, @lineMap.lastScreenRow())
 
+  # Public: Given a starting and ending row, this converts every row into a buffer position.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at (default: {#getLastRow})
+  #
+  # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow) ->
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
@@ -253,6 +259,9 @@ class DisplayBuffer
   lineCount: ->
     @lineMap.screenLineCount()
 
+  # Public: Gets the number of the last row in the buffer.
+  #
+  # Returns a {Number}.
   getLastRow: ->
     @lineCount() - 1
 

@@ -90,6 +90,7 @@ class EditSession
     else
       'untitled'
 
+  # Internal:
   destroy: ->
     return if @destroyed
     @destroyed = true
@@ -102,6 +103,7 @@ class EditSession
     @trigger 'destroyed'
     @off()
 
+  # Internal:
   serialize: ->
     deserializer: 'EditSession'
     version: @constructor.version
@@ -291,7 +293,11 @@ class EditSession
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
   scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
+  # Public: Identifies if the {Buffer} is modified (and not saved).
+  #
+  # Returns a {Boolean}.
   isModified: -> @buffer.isModified()
+  # Internal:
   shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
 
   # Public: Given a buffer position, this converts it into a screen position.
@@ -348,10 +354,16 @@ class EditSession
   #
   # Returns a {Number}.
   maxScreenLineLength: -> @displayBuffer.maxLineLength()
-  # Public: Gets the text in the last screen row.
+  # Public: Gets the number of the last row in the buffer.
   #
-  # Returns a {String}.
+  # Returns a {Number}.
   getLastScreenRow: -> @displayBuffer.getLastRow()
+  # Public: Given a starting and ending row, this converts every row into a buffer position.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at (default: {#getLastScreenRow})
+  #
+  # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
   getCursorScopes: -> @getCursor().getScopes()
@@ -739,6 +751,8 @@ class EditSession
       @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
 
   # Public: Duplicates the current line.
+  #
+  # If more than one cursor is present, only the most recently added one is considered.
   duplicateLine: ->
     return unless @getSelection().isEmpty()
 
@@ -960,7 +974,7 @@ class EditSession
       @trigger 'selection-added', selection
       selection
 
-  # Public: Given a buffer range, adds a new selection for it.
+  # Public: Given a buffer range, this adds a new selection for it.
   #
   # bufferRange - A {Range} in the buffer
   # options - A hash of options
@@ -971,9 +985,17 @@ class EditSession
     marker = @markBufferRange(bufferRange, options)
     @addSelection(marker, options)
 
+  # Public: Given a buffer range, this removes all previous selections and creates a new selection for it.
+  #
+  # bufferRange - A {Range} in the buffer
+  # options - A hash of options
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
+  # Public: Given an array of buffer ranges, this removes all previous selections and creates new selections for them.
+  #
+  # bufferRanges - An {Array} of {Range}s in the buffer
+  # options - A hash of options
   setSelectedBufferRanges: (bufferRanges, options={}) ->
     throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
 
@@ -1028,7 +1050,7 @@ class EditSession
   getLastSelection: ->
     _.last(@selections)
 
-  # Public: Gets all selections, ordered by position in the buffer.
+  # Public: Gets all selections, ordered by their position in the buffer.
   #
   # Returns an {Array} of {Selection}s.
   getSelectionsOrderedByBufferPosition: ->
@@ -1080,27 +1102,29 @@ class EditSession
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
-  # Public: Gets the current buffer position.
+  # Public: Gets the current buffer position of the cursor.
   #
   # Returns an {Array} of two numbers: the buffer row, and the buffer column.
   getCursorBufferPosition: ->
     @getCursor().getBufferPosition()
 
-  # Public: Gets the screen range of the last (most recently added) {Selection}.
+  # Public: Gets the screen range of the  most recently added {Selection}.
   #
   # Returns a {Range}.
   getSelectedScreenRange: ->
     @getLastSelection().getScreenRange()
 
-  # Public: Gets the buffer range of the last (most recently added) {Selection}.
+  # Public: Gets the buffer range of the most recently added {Selection}.
   #
   # Returns a {Range}.
   getSelectedBufferRange: ->
     @getLastSelection().getBufferRange()
 
-  # Public: Gets the buffer range of the last {Selection} in the buffer.
+  # Public: Gets the buffer ranges of all the {Selection}s.
   #
-  # Returns a {Range}.
+  # This is ordered by their buffer position.
+  #
+  # Returns an {Array} of {Range}s.
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
 
@@ -1118,9 +1142,14 @@ class EditSession
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
 
+  # Public: Retrieves the range for the current paragraph.
+  #
+  # A paragraph is defined as a block of text surrounded by empty lines.
+  #
+  # Returns a {Range}.
   getCurrentParagraphBufferRange: ->
-
     @getCursor().getCurrentParagraphBufferRange()
+
   # Public: Gets the word located under the cursor.
   #
   # options - An object with properties based on {Cursor#getBeginningOfCurrentWordBufferPosition}.
@@ -1230,9 +1259,11 @@ class EditSession
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
 
+  # Public: Moves the current selection down one row.
   addSelectionBelow: ->
     @expandSelectionsForward (selection) => selection.addSelectionBelow()
 
+  # Public: Moves the current selection up one row.
   addSelectionAbove: ->
     @expandSelectionsBackward (selection) => selection.addSelectionAbove()
 
@@ -1260,6 +1291,10 @@ class EditSession
   lowerCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) => text.toLowerCase()
 
+  # Public: Joins the current line with the one below it.
+  #
+  # Multiple cursors are considered equally. If there's a selection in the editor,
+  # all the lines are joined together.
   joinLine: ->
     @mutateSelectedText (selection) -> selection.joinLine()
 

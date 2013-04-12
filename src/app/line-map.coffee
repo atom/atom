@@ -31,7 +31,13 @@ class LineMap
 
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
-
+    
+  # Public: Given a starting and ending row, this converts every row into a buffer position.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at (default: {#lastScreenRow})
+  #
+  # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow()) ->
     bufferRows = []
     bufferRow = 0
