@@ -177,6 +177,10 @@
   [self addBrowserToView:self.webView url:[urlString UTF8String] cefHandler:_cefClient];
 }
 
+- (BOOL)isBrowserUsable {
+  return _cefClient && !_cefClient->IsClosed() && _cefClient->GetBrowser();
+}
+
 - (void)toggleDevTools {
   if (_devToolsView) {
     [self hideDevTools];
@@ -188,22 +192,21 @@
 
 - (void)showDevTools {
   if (_devToolsView) return;
+  if (![self isBrowserUsable]) return;
 
-  if (_cefClient && _cefClient->GetBrowser()) {
-    NSRect webViewFrame = _webView.frame;
-    NSRect devToolsViewFrame = _webView.frame;
-    devToolsViewFrame.size.height = NSHeight(webViewFrame) / 3;
-    webViewFrame.size.height = NSHeight(webViewFrame) - NSHeight(devToolsViewFrame);
-    [_webView setFrame:webViewFrame];
-    _devToolsView = [[NSView alloc] initWithFrame:devToolsViewFrame];
+  NSRect webViewFrame = _webView.frame;
+  NSRect devToolsViewFrame = _webView.frame;
+  devToolsViewFrame.size.height = NSHeight(webViewFrame) / 3;
+  webViewFrame.size.height = NSHeight(webViewFrame) - NSHeight(devToolsViewFrame);
+  [_webView setFrame:webViewFrame];
+  _devToolsView = [[NSView alloc] initWithFrame:devToolsViewFrame];
 
-    [_splitView addSubview:_devToolsView];
-    [_splitView adjustSubviews];
+  [_splitView addSubview:_devToolsView];
+  [_splitView adjustSubviews];
 
-    _cefDevToolsClient = new AtomCefClient(true, true);
-    std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
-    [self addBrowserToView:_devToolsView url:devtools_url.c_str() cefHandler:_cefDevToolsClient];
-  }
+  _cefDevToolsClient = new AtomCefClient(true, true);
+  std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
+  [self addBrowserToView:_devToolsView url:devtools_url.c_str() cefHandler:_cefDevToolsClient];
 }
 
 - (void)hideDevTools {
@@ -212,17 +215,19 @@
   [_devToolsView release];
   _devToolsView = nil;
   _cefDevToolsClient = NULL;
-  _cefClient->GetBrowser()->GetHost()->SetFocus(true);
+  if ([self isBrowserUsable]) {
+    _cefClient->GetBrowser()->GetHost()->SetFocus(true);
+  }
 }
 
 - (void)openPath:(NSString*)path {
-  if (_cefClient && _cefClient->GetBrowser()) {
-    CefRefPtr<CefProcessMessage> openMessage = CefProcessMessage::Create("openPath");
-    CefRefPtr<CefListValue> openArguments = openMessage->GetArgumentList();
-    openArguments->SetSize(1);
-    openArguments->SetString(0, [path UTF8String]);
-    _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, openMessage);
-  }
+  if (![self isBrowserUsable]) return;
+
+  CefRefPtr<CefProcessMessage> openMessage = CefProcessMessage::Create("openPath");
+  CefRefPtr<CefListValue> openArguments = openMessage->GetArgumentList();
+  openArguments->SetSize(1);
+  openArguments->SetString(0, [path UTF8String]);
+  _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, openMessage);
 }
 
 - (void)setPidToKillOnClose:(NSNumber *)pid {
@@ -239,14 +244,15 @@
 }
 
 - (void)windowDidBecomeMain:(NSNotification *)notification {
-  if (_cefClient && _cefClient->GetBrowser()) {
+  if ([self isBrowserUsable]) {
     _cefClient->GetBrowser()->GetHost()->SetFocus(true);
   }
 }
 
 - (BOOL)windowShouldClose:(NSNotification *)notification {
-  if (_cefClient && _cefClient->GetBrowser()) {
+  if ([self isBrowserUsable]) {
     _cefClient->GetBrowser()->GetHost()->CloseBrowser(false);
+    return NO;
   }
 
   if (_pidToKillOnClose) kill([_pidToKillOnClose intValue], SIGQUIT);
