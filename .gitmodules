@@ -76,3 +76,6 @@
 [submodule "vendor/packages/Go.tmbundle"]
 	path = vendor/packages/Go.tmbundle
 	url = https://github.com/rsms/Go.tmbundle
+[submodule "vendor/bootstrap"]
+	path = vendor/bootstrap
+	url = https://github.com/twitter/bootstrap
