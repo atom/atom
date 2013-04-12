@@ -19,6 +19,7 @@ class SelectList extends View
   inputThrottle: 50
   cancelling: false
 
+  # Internal:
   initialize: ->
     requireStylesheet 'select-list'
 

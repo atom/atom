@@ -26,6 +26,7 @@ class Editor extends View
 
   @nextEditorId: 1
 
+  # Internal: Establishes the DOM for the editor.
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
       @subview 'gutter', new Gutter
@@ -37,6 +38,7 @@ class Editor extends View
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
+  # Internal: Defines the classes available to the editor. 
   @classes: ({mini} = {}) ->
     classes = ['editor']
     classes.push 'mini' if mini
@@ -234,7 +236,7 @@ class Editor extends View
   # Public: Sets the cursor based on a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with properties based on {Cursor#changePosition}.
+  # options - An object with properties based on {Cursor#setScreenPosition}.
   #
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   # Public: Duplicates the current line.
@@ -248,7 +250,7 @@ class Editor extends View
   # Public: Sets the cursor based on a given buffer position.
   #
   # position - An {Array} of two numbers: the buffer row, and the buffer column.
-  # options - An object with properties based on {Cursor#changePosition}.
+  # options - An object with properties based on {Cursor#setBufferPosition}.
   #
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
   # Public: Gets the current buffer position.

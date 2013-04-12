@@ -17,6 +17,7 @@ class EditSession
 
   @version: 1
 
+  # Internal:
   @deserialize: (state) ->
     session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
     if !session?
@@ -36,6 +37,7 @@ class EditSession
   softTabs: true
   softWrap: false
 
+  # Internal:
   constructor: ({@project, @buffer, tabLength, softTabs, @softWrap }) ->
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
@@ -1051,7 +1053,7 @@ class EditSession
   # Public: Moves every cursor to a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with properties based on {Cursor#changePosition}
+  # options - An object with properties based on {Cursor#setScreenPosition}
   #
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
@@ -1071,7 +1073,7 @@ class EditSession
   # Public: Moves every cursor to a given buffer position.
   #
   # position - An {Array} of two numbers: the buffer row, and the buffer column.
-  # options - An object with properties based on {Cursor#changePosition}
+  # options - An object with properties based on {Cursor#setBufferPosition}
   #
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)

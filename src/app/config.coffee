@@ -25,6 +25,7 @@ class Config
   settings: null
   configFileHasErrors: null
 
+  # Internal:
   constructor: ->
     @defaultSettings =
       core: _.clone(require('root-view').configDefaults)
@@ -33,6 +34,7 @@ class Config
     @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= fsUtils.join(configDirPath, 'config.cson')
 
+  # Internal:
   initializeConfigDirectory: ->
     return if fsUtils.exists(@configDirPath)
 
@@ -52,10 +54,12 @@ class Config
       fsUtils.write(configPath, fsUtils.read(path))
     fsUtils.traverseTreeSync(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
+  # Internal:
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
 
+  # Internal:
   loadUserConfig: ->
     if fsUtils.exists(@configFilePath)
       try

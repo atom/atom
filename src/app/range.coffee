@@ -35,6 +35,10 @@ class Range
     pointB = new Point(point.row + rowDelta, point.column + columnDelta)
     new Range(pointA, pointB)
 
+  # Public: Creates a new `Range` object based on two {Point}s.
+  #
+  # pointA - The first {Point} (default: `0, 0`)
+  # pointB - The second {Point} (default: `0, 0`)
   constructor: (pointA = new Point(0, 0), pointB = new Point(0, 0)) ->
     pointA = Point.fromObject(pointA)
     pointB = Point.fromObject(pointB)

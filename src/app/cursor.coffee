@@ -12,6 +12,7 @@ class Cursor
   visible: true
   needsAutoscroll: null
 
+  # Internal:
   constructor: ({@editSession, @marker}) ->
     @updateVisibility()
     @editSession.observeMarker @marker, (e) =>
@@ -34,6 +35,7 @@ class Cursor
       @editSession.trigger 'cursor-moved', movedEvent
     @needsAutoscroll = true
 
+  # Internal:
   destroy: ->
     @destroyed = true
     @editSession.destroyMarker(@marker)

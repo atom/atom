@@ -6,6 +6,7 @@ module.exports =
 class PaneContainer extends View
   registerDeserializer(this)
 
+  # Internal:
   @deserialize: ({root}) ->
     container = new PaneContainer
     container.append(deserialize(root)) if root

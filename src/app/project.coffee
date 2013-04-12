@@ -17,6 +17,7 @@ module.exports =
 class Project
   registerDeserializer(this)
 
+  # Internal:
   @deserialize: (state) ->
     new Project(state.path)
 
@@ -27,15 +28,20 @@ class Project
   editSessions: null
   ignoredPathRegexes: null
 
+  # Public: Establishes a new project at a given path.
+  #
+  # path - The {String} name of the path
   constructor: (path) ->
     @setPath(path)
     @editSessions = []
     @buffers = []
 
+  # Internal:
   serialize: ->
     deserializer: 'Project'
     path: @getPath()
 
+  # Internal:
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
 

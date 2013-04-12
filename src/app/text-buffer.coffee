@@ -29,6 +29,7 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
+  # Internal:
   @deserialize: ({path, text}) ->
     project.bufferForPath(path, text)
 
@@ -58,6 +59,7 @@ class Buffer
 
     @undoManager = new UndoManager(this)
 
+  # Internal:
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
     @file?.off()
@@ -73,6 +75,7 @@ class Buffer
     @destroy() if @refcount <= 0
     this
 
+  # Internal:
   serialize: ->
     deserializer: 'TextBuffer'
     path: @getPath()

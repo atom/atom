@@ -12,13 +12,15 @@ class ImageEditSession
       '.jpg'
       '.png'
     ], fsUtils.extension(path), true) >= 0
-
+  
+  # Internal:
   @deserialize: (state) ->
     if fsUtils.exists(state.path)
       project.buildEditSession(state.path)
     else
       console.warn "Could not build edit session for path '#{state.path}' because that file no longer exists"
 
+  # Internal: Establishes a new image viewer.
   constructor: (@path) ->
 
   serialize: ->

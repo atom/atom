@@ -12,13 +12,17 @@ class LanguageMode
   editSession = null
   currentGrammarScore: null
 
+  # Public: Sets up a `LanguageMode` for the given {EditSession}.
+  #
+  # editSession - The {EditSession} to associate with
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @reloadGrammar()
     @subscribe syntax, 'grammar-added', (grammar) =>
       newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
-
+  
+  # Internal:
   destroy: ->
     @unsubscribe()
 

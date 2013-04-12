@@ -7,6 +7,9 @@ class PaneRow extends PaneAxis
   @content: ->
     @div class: 'row'
 
+  # Public: Retrieves the pane class name.
+  #
+  # Returns a {String}.
   className: ->
     "PaneRow"
 
