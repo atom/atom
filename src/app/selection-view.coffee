@@ -4,6 +4,8 @@ Range = require 'range'
 
 module.exports =
 class SelectionView extends View
+
+  # Internal: Establishes the DOM for the selection view.
   @content: ->
     @div class: 'selection'
 

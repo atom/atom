@@ -7,6 +7,7 @@ class UndoManager
   redoHistory: null
   currentTransaction: null
 
+  # Internal: 
   constructor: ->
     @clear()
 

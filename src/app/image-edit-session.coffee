@@ -5,6 +5,11 @@ module.exports=
 class ImageEditSession
   registerDeserializer(this)
 
+  # Public: Identifies if a path can be opened by the image viewer.
+  #
+  # path - The {String} name of the path to check
+  #
+  # Returns a {Boolean}.
   @canOpen: (path) ->
     _.indexOf([
       '.gif'
@@ -23,13 +28,20 @@ class ImageEditSession
   # Internal: Establishes a new image viewer.
   constructor: (@path) ->
 
+  # Internal:
   serialize: ->
     deserializer: 'ImageEditSession'
     path: @path
 
+  # Internal:
   getViewClass: ->
     require 'image-view'
 
+  # Public: Retrieves the filename of the open file.
+  #
+  # This is `'untitled'` if the file is new and not saved to the disk.
+  # 
+  # Returns a {String}.
   getTitle: ->
     if path = @getPath()
       fsUtils.base(path)

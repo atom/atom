@@ -98,6 +98,15 @@ class Range
   add: (point) ->
     new Range(@start.add(point), @end.add(point))
 
+  # Public: Moves a `Range`.
+  #
+  # In other words, the starting and ending `row` values, and the starting and ending
+  # `column` values, are added to each other.
+  #
+  # startPoint - The {Point} to move the `Range`s `start` by
+  # endPoint - The {Point} to move the `Range`s `end` by
+  #
+  # Returns the new {Range}.
   translate: (startPoint, endPoint=startPoint) ->
     new Range(@start.translate(startPoint), @end.translate(endPoint))
 

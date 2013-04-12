@@ -5,6 +5,8 @@ _ = require 'underscore'
 
 module.exports =
 class Gutter extends View
+
+  # Internal:
   @content: ->
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
@@ -22,9 +24,13 @@ class Gutter extends View
     @getEditor().on 'selection:changed', highlightLines
     @on 'mousedown', (e) => @handleMouseEvents(e)
 
+  # Public: Retrieves the containing {Editor}.
+  #
+  # Returns an {Editor}.
   getEditor: ->
     @parentView
 
+  # Internal:
   beforeRemove: ->
     $(document).off(".gutter-#{@getEditor().id}")
 

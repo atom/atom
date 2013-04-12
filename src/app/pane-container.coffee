@@ -13,12 +13,15 @@ class PaneContainer extends View
     container.removeEmptyPanes()
     container
 
+  # Internal: The DOM of the pane container.
   @content: ->
     @div id: 'panes'
 
+  # Internal:
   initialize: ->
     @destroyedItemStates = []
 
+  # Internal:
   serialize: ->
     deserializer: 'PaneContainer'
     root: @getRoot()?.serialize()

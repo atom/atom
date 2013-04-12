@@ -9,6 +9,7 @@ class DisplayBufferMarker
   tailScreenPosition: null
   valid: true
 
+  # Internal:
   constructor: ({@id, @displayBuffer}) ->
     @buffer = @displayBuffer.buffer
 

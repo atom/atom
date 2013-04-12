@@ -5,6 +5,7 @@ _ = require 'underscore'
 
 module.exports =
 class CursorView extends View
+  # Internal:
   @content: ->
     @pre class: 'cursor idle', => @raw '&nbsp;'
 

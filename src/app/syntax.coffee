@@ -10,6 +10,7 @@ module.exports =
 class Syntax
   registerDeserializer(this)
 
+  # Internal:
   @deserialize: ({grammarOverridesByPath}) ->
     syntax = new Syntax()
     syntax.grammarOverridesByPath = grammarOverridesByPath

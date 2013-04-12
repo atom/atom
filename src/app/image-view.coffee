@@ -4,10 +4,13 @@ $ = require 'jquery'
 
 module.exports =
 class ImageView extends ScrollView
+
+  # Internal:
   @content: ->
     @div class: 'image-view', tabindex: -1, =>
       @img outlet: 'image'
 
+  # Internal:
   initialize: (imageEditSession) ->
     super
 

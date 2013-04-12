@@ -19,6 +19,7 @@ class DisplayBuffer
   foldsById: null
   markers: null
 
+  # Internal:
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
     @languageMode = options.languageMode

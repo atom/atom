@@ -68,6 +68,8 @@ class EditSession
 
   # Public: Retrieves the filename of the open file.
   #
+  # This is `'untitled'` if the file is new and not saved to the disk.
+  # 
   # Returns a {String}.
   getTitle: ->
     if path = @getPath()

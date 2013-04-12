@@ -156,6 +156,7 @@ class TokenizedBuffer
     token = @screenLines[position.row].tokenAtBufferColumn(position.column)
     token.scopes
 
+  # Internal:
   destroy: ->
     @buffer.off ".tokenized-buffer#{@id}"
 
@@ -219,14 +220,19 @@ class TokenizedBuffer
             stop()
     position
 
+  # Public: Gets the row number of the last line.
+  #
+  # Returns a {Number}.
   getLastRow: ->
     @buffer.getLastRow()
 
+  # Internal:
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]
       line = @lineForScreenRow(row).text
       console.log row, line, line.length
 
+  # Internal:
   getDebugSnapshot: ->
     lines = ["Tokenized Buffer:"]
     for screenLine, row in @linesForScreenRows(0, @getLastRow())

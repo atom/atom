@@ -6,10 +6,13 @@ PaneColumn = require 'pane-column'
 
 module.exports =
 class Pane extends View
+
+  # Internal: Defines the pane's DOM.
   @content: (wrappedView) ->
     @div class: 'pane', =>
       @div class: 'item-views', outlet: 'itemViews'
 
+  # Internal:
   @deserialize: ({items, focused, activeItemUri}) ->
     deserializedItems = _.compact(items.map((item) -> deserialize(item)))
     pane = new Pane(deserializedItems...)

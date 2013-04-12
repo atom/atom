@@ -4,9 +4,12 @@ PaneAxis = require 'pane-axis'
 
 module.exports =
 class PaneColumn extends PaneAxis
+
+  # Internal:
   @content: ->
     @div class: 'column'
 
+  # Internal:
   className: ->
     "PaneColumn"
 
