@@ -12,7 +12,7 @@ module.exports =
 class TreeView extends ScrollView
   @content: (rootView) ->
     @div class: 'tree-view-wrapper', =>
-      @ol class: 'tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
+      @ol class: 'list-unstyled tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
       @div class: 'tree-view-resizer', outlet: 'resizer'
 
   root: null
@@ -56,7 +56,6 @@ class TreeView extends ScrollView
   afterAttach: (onDom) ->
     @focus() if @focusAfterAttach
     @scrollTop(@scrollTopAfterAttach) if @scrollTopAfterAttach > 0
-    @find('.selected > .highlight').width(@treeViewList[0].scrollWidth)
 
   serialize: ->
     directoryExpansionStates: @root?.serializeEntryExpansionStates()
@@ -111,12 +110,10 @@ class TreeView extends ScrollView
   resizeStarted: (e) =>
     $(document.body).on('mousemove', @resizeTreeView)
     $(document.body).on('mouseup', @resizeStopped)
-    @css(overflow: 'hidden')
 
   resizeStopped: (e) =>
     $(document.body).off('mousemove', @resizeTreeView)
     $(document.body).off('mouseup', @resizeStopped)
-    @css(overflow: 'auto')
 
   resizeTreeView: (e) =>
     @css(width: e.pageX)
@@ -305,11 +302,10 @@ class TreeView extends ScrollView
     entry = entry.view() unless entry instanceof View
     @selectedPath = entry.getPath()
     @deselect()
-    entry.children('.highlight').width(@treeViewList[0].scrollWidth)
     entry.addClass('selected')
 
   deselect: ->
-    @treeViewList.find('.selected').removeClass('selected').children('.highlight').width('')
+    @treeViewList.find('.selected').removeClass('selected')
 
   scrollTop: (top) ->
     if top

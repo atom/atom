@@ -1,147 +1,10 @@
-.tree-view .entries {
-  margin-left: 12px;
-}
-
-.tree-view .entries .file .name {
-  margin-left: 20px;
-}
-
-.tree-view .file .name,
-.tree-view .directory .header {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-right: 10px;
-}
-
-.tree-view .directory .header {
-  padding-left: 5px;
-}
-
-.tree-view-dialog {
-  padding: 5px;
-}
-
-.tree-view-dialog .prompt {
-  padding-bottom: 3px;
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.tree-view-dialog .prompt span {
-  position: relative;
-  top: -1px;
-}
-
-.tree-view-dialog .prompt:before {
-  font-family: 'Octicons Regular';
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  margin-right: 3px;
-  -webkit-font-smoothing: antialiased;
-}
-
-.tree-view-dialog .prompt.add-file:before {
-  content: "\f086";
-}
-
-.tree-view-dialog .prompt.add-directory:before {
-  content: "\f095";
-}
-
-.tree-view-dialog .prompt.move:before {
-  content: "\f03e";
-}
-
-.tree-view .directory .header .name,
-.tree-view .file .name {
-  position: relative;
-  padding-left: 21px;
-}
-
-.tree-view .directory .header .name:before,
-.tree-view .file .name:before {
-  font-family: 'Octicons Regular';
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  margin-right: 5px;
-  -webkit-font-smoothing: antialiased;
-  position: absolute;
-  left: 0;
-}
-
-.tree-view .disclosure-arrow:before {
-  font-family: 'Octicons Regular';
-  font-size: 12px;
-  width: 12px;
-  height: 12px;
-  line-height: 16px;
-  margin-right: 3px;
-  -webkit-font-smoothing: antialiased;
-}
-
-.tree-view .directory .header .directory-icon:before {
-  content: "\f016";
-  top: -5px;
-}
-
-.tree-view .directory .header .repository-icon:before {
-  content: "\f001";
-  top: -4px;
-}
-
-.tree-view .directory .header .submodule-icon:before {
-  content: "\f017";
-  top: -5px;
-}
-
-.tree-view .file .text-icon:before {
-  content: "\f011";
-  top: -2px;
-}
-
-.tree-view .file .image-icon:before {
-  content: "\f012";
-  top: -2px;
-}
-
-.tree-view .file .compressed-icon:before {
-  content: "\f013";
-  top: -2px;
-}
-
-.tree-view .file .pdf-icon:before {
-  content: "\f014";
-  top: -2px;
-}
-
-.tree-view .file .readme-icon:before {
-  content: "\f007";
-  top: -2px;
-}
-
-.tree-view .file .binary-icon:before {
-  content: "\f094";
-  top: -2px;
-}
-
-.tree-view .file .symlink-icon:before {
-  content: "\f09b";
-  top: -2px;
-}
-
-.tree-view .directory > .header .disclosure-arrow:before {
-  content: "\f05a";
-}
-
-.tree-view .directory.expanded > .header .disclosure-arrow:before {
-  content: "\f05b";
-}
+@import "bootstrap/less/variables.less";
+@import "octicon-mixins.less";
 
 .tree-view-wrapper {
   position: relative;
   height: 100%;
+  overflow: hidden;
   cursor: default;
   -webkit-user-select: none;
   min-width: 50px;
@@ -159,40 +22,101 @@
 }
 
 .tree-view {
-  position: relative;
-  cursor: default;
-  -webkit-user-select: none;
-  overflow: auto;
+  @item-line-height: @line-height-base * 1.25;
+  @disclosure-arrow-size: 12px;
+  @icon-margin: @line-height-base / 4;
+
   height: 100%;
+  width: 100%;
+  overflow: scroll;
+  position: relative;
+  padding: 0 @icon-margin;
+  cursor: default;
 
   .entry {
     text-wrap: none;
     white-space: nowrap;
 
-    & > .header,
-    > .name {
-      z-index: 1;
+    .name {
       position: relative;
-      display: inline-block;
+      z-index: 1;
+    }
+
+    &.selected > .highlight {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: @item-line-height;
     }
   }
 
-  .selected > .highlight {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 24px;
+  .directory {
+    > .header {
+      line-height: @item-line-height;
+      .disclosure-arrow { margin-right: @icon-margin; }
+    }
+
+    .entries {
+      margin-left: 12px;
+    }
   }
 
-  .disclosure-arrow {
-    display: inline-block;
+  .file {
+    line-height: @item-line-height;
+
+    .name {
+      margin-left: @disclosure-arrow-size + @icon-margin;
+    }
+  }
+
+  // icons
+  .name:before {
+    margin-right: @icon-margin;
+    position: relative;
+    top: 1px;
+  }
+
+  .directory > .header {
+    .disclosure-arrow {
+      .mini-icon(arr-collapsed, @disclosure-arrow-size);
+      position: relative;
+    }
+    .directory-icon { .mini-icon(directory); }
+    .repository-icon { .mini-icon(public-repo); }
+    .submodule-icon { .mini-icon(submodule); }
+  }
+
+  .directory.expanded > .header {
+    .disclosure-arrow { .mini-icon(arr-expanded, @disclosure-arrow-size); }
+  }
+
+  .file {
+    .text-icon { .mini-icon(text-file); }
+    .image-icon { .mini-icon(download-media); }
+    .compressed-icon { .mini-icon(download-zip); }
+    .pdf-icon { .mini-icon(download-pdf); }
+    .readme-icon { .mini-icon(readme); }
+    .binary-icon { .mini-icon(binary-file); }
+    .symlink-icon { .mini-icon(symlink); }
   }
 }
 
+
 .tree-view-dialog {
+  padding: 5px;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 99;
+
+  .prompt {
+    padding-bottom: 3px;
+    font-size: 12px;
+    line-height: 16px;
+    &:before { margin-right: @line-height-base / 4; }
+    &.add-file { .mini-icon(new-file); }
+    &.add-directory { .mini-icon(create-directory); }
+    &.prompt.move { .mini-icon(arr-right); }
+  }
 }
