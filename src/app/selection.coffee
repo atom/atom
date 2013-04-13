@@ -492,12 +492,26 @@ class Selection
   placeTail: ->
     @editSession.placeMarkerTail(@marker)
 
+  # Public: Identifies if a selection intersects with a given buffer range.
+  #
+  # bufferRange - A {Range} to check against
+  #
+  # Returns a {Boolean}.
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)
 
+  # Public: Identifies if a selection intersects with another selection.
+  #
+  # otherSelection - A `Selection` to check against
+  #
+  # Returns a {Boolean}.
   intersectsWith: (otherSelection) ->
     @getBufferRange().intersectsWith(otherSelection.getBufferRange())
 
+  # Public: Merges two selections together.
+  #
+  # otherSelection - A `Selection` to merge with
+  # options - A hash of options matching those found in {#setBufferRange}
   merge: (otherSelection, options) ->
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
     if @goalBufferRange and otherSelection.goalBufferRange
