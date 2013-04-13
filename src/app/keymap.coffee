@@ -5,6 +5,19 @@ CSON = require 'cson'
 
 BindingSet = require 'binding-set'
 
+# Internal: Associates keymaps with actions.
+#
+# Keymaps are defined in a CSON format. A typical keymap looks something like this:
+#
+# ```cson
+# 'body':
+#  'ctrl-l': 'package:do-something'
+#'.someClass':
+#  'enter': 'package:confirm'
+# ```
+#
+# As a key, you define the DOM element you want to work on, using CSS notation. For that
+# key, you define one or more key:value pairs, associating keystrokes with a command to execute.
 module.exports =
 class Keymap
   bindingSets: null
@@ -12,10 +25,12 @@ class Keymap
   bindingSetsByFirstKeystroke: null
   queuedKeystrokes: null
 
+  # Internal:
   constructor: ->
     @bindingSets = []
     @bindingSetsByFirstKeystroke = {}
 
+  # Internal:
   bindDefaultKeys: ->
     @add
       'body':
@@ -31,31 +46,37 @@ class Keymap
     $(document).command 'open', => atom.open()
     $(document).command 'open-dev', => atom.openDev()
 
+  # Internal:
   loadBundledKeymaps: ->
     @loadDirectory(fsUtils.resolveOnLoadPath('keymaps'))
 
   loadUserKeymaps: ->
     @loadDirectory(fsUtils.join(config.configDirPath, 'keymaps'))
 
+  # Internal: Loads all the keys in a package.
   loadDirectory: (directoryPath) ->
     @load(filePath) for filePath in fsUtils.list(directoryPath, ['.cson', '.json'])
-
+    
+  # Internal: Loads keys at a specific path.
   load: (path) ->
     @add(path, CSON.readObject(path))
-
+    
+  # Internal: Force adds a keymapping.
   add: (args...) ->
     name = args.shift() if args.length > 1
     keymap = args.shift()
     for selector, bindings of keymap
       @bindKeys(name, selector, bindings)
-
+    
+  # Internal: Removes a keymapping by name.
   remove: (name) ->
     for bindingSet in @bindingSets.filter((bindingSet) -> bindingSet.name is name)
       _.remove(@bindingSets, bindingSet)
       for keystrokes of bindingSet.commandsByKeystrokes
         keystroke = keystrokes.split(' ')[0]
         _.remove(@bindingSetsByFirstKeystroke[keystroke], bindingSet)
-
+    
+  # Internal:
   bindKeys: (args...) ->
     name = args.shift() if args.length > 2
     [selector, bindings] = args
@@ -65,7 +86,8 @@ class Keymap
       keystroke = keystrokes.split(' ')[0] # only index by first keystroke
       @bindingSetsByFirstKeystroke[keystroke] ?= []
       @bindingSetsByFirstKeystroke[keystroke].push(bindingSet)
-
+    
+  # Internal:
   unbindKeys: (selector, bindings) ->
     bindingSet = _.detect @bindingSets, (bindingSet) ->
       bindingSet.selector is selector and bindingSet.bindings is bindings
@@ -73,7 +95,8 @@ class Keymap
     if bindingSet
       console.log "binding set", bindingSet
       _.remove(@bindingSets, bindingSet)
-
+  
+  # Internal:
   bindingsForElement: (element) ->
     keystrokeMap = {}
     currentNode = $(element)
@@ -85,6 +108,7 @@ class Keymap
 
     keystrokeMap
 
+  # Internal:
   handleKeyEvent: (event) =>
     event.keystrokes = @multiKeystrokeStringForEvent(event)
     isMultiKeystroke = @queuedKeystrokes?
@@ -113,6 +137,7 @@ class Keymap
     return false if isMultiKeystroke
     return false if firstKeystroke is 'tab'
 
+  # Internal:
   bindingSetsForNode: (node, candidateBindingSets = @bindingSets) ->
     bindingSets = candidateBindingSets.filter (set) -> node.is(set.selector)
     bindingSets.sort (a, b) ->
@@ -121,6 +146,7 @@ class Keymap
       else
         b.specificity - a.specificity
 
+  # Internal:
   triggerCommandEvent: (keyEvent, commandName) ->
     keyEvent.target = rootView[0] if keyEvent.target == document.body and window.rootView
     commandEvent = $.Event(commandName)
@@ -132,6 +158,7 @@ class Keymap
     $(keyEvent.target).trigger(commandEvent)
     aborted
 
+  # Internal:
   multiKeystrokeStringForEvent: (event) ->
     currentKeystroke = @keystrokeStringForEvent(event)
     if @queuedKeystrokes
@@ -163,6 +190,7 @@ class Keymap
 
     [modifiers..., key].join('-')
 
+  # Internal:
   keyFromCharCode: (charCode) ->
     switch charCode
       when 8 then 'backspace'

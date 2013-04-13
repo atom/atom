@@ -141,12 +141,12 @@ class Project
   # softTabs - A {Boolean} which, if `true`, sets soft wrapping
   setSoftWrap: (@softWrap) ->
 
-  # Public: Given a path to a file, this constructs and associates a new {EditSession}.
+  # Public: Given a path to a file, this constructs and associates a new `EditSession`, showing the file.
   #
   # filePath - The {String} path of the file to associate with
   # editSessionOptions - Options that you can pass to the `EditSession` constructor
   #
-  # Returns an {EditSession}.
+  # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
   buildEditSession: (filePath, editSessionOptions={}) ->
     if ImageEditSession.canOpen(filePath)
       new ImageEditSession(filePath)

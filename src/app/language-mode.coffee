@@ -44,6 +44,8 @@ class LanguageMode
   #
   # startRow - The row {Number} to start at
   # endRow - The row {Number} to end at
+  #
+  # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
     return unless commentStartString = syntax.getProperty(scopes, "editor.commentStart")

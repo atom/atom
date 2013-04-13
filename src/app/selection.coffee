@@ -450,17 +450,29 @@ class Selection
     [start, end] = @getBufferRowRange()
     @editSession.autoIndentBufferRows(start, end)
 
+  # Public: Wraps the selected lines in comments.
+  #
+  # Returns an {Array} of the commented {Ranges}.
   toggleLineComments: ->
     @editSession.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
+  # Public: Performs a cut operation on the selection, until the end of the line.
+  #
+  # maintainPasteboard - A {Boolean} indicating TODO
   cutToEndOfLine: (maintainPasteboard) ->
     @selectToEndOfLine() if @isEmpty()
     @cut(maintainPasteboard)
 
+  # Public: Performs a cut operation on the selection.
+  #
+  # maintainPasteboard - A {Boolean} indicating TODO
   cut: (maintainPasteboard=false) ->
     @copy(maintainPasteboard)
     @delete()
 
+  # Public: Performs a copy operation on the selection.
+  #
+  # maintainPasteboard - A {Boolean} indicating TODO
   copy: (maintainPasteboard=false) ->
     return if @isEmpty()
     text = @editSession.buffer.getTextInRange(@getBufferRange())
@@ -472,6 +484,7 @@ class Selection
 
     pasteboard.write(text, metadata)
 
+  # Public: Folds the selection.
   fold: ->
     range = @getBufferRange()
     @editSession.createFold(range.start.row, range.end.row)

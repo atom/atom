@@ -34,6 +34,7 @@ class DisplayBuffer
 
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
+  # Internal:
   buildLineMap: ->
     @lineMap = new LineMap
     @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
@@ -45,6 +46,9 @@ class DisplayBuffer
     @trigger 'changed', eventProperties
     @resumeMarkerObservers()
 
+  # Public: Defines the limit at which the buffer begins to soft wrap text.
+  #
+  # softWrapColumn - A {Number} defining the soft wrap limit.
   setSoftWrapColumn: (@softWrapColumn) ->
     start = 0
     end = @getLastRow()
@@ -52,13 +56,27 @@ class DisplayBuffer
     screenDelta = @getLastRow() - end
     bufferDelta = 0
     @triggerChanged({ start, end, screenDelta, bufferDelta })
-
+  
+  # Public: Gets the line for the given screen row.
+  #
+  # screenRow - A {Number} indicating the screen row.
+  #
+  # Returns a {String}.
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
 
+  # Public: Gets the lines for the given screen row boundaries.
+  #
+  # startRow - A {Number} indicating the beginning screen row.
+  # endRow - A {Number} indicating the ending screen row.
+  #
+  # Returns an {Array} of {String}s.
   linesForRows: (startRow, endRow) ->
     @lineMap.linesForScreenRows(startRow, endRow)
 
+  # Public: Gets the lines in the buffer.
+  #
+  # Returns an {Array} of {String}s.
   getLines: ->
     @lineMap.linesForScreenRows(0, @lineMap.lastScreenRow())
 
@@ -123,6 +141,8 @@ class DisplayBuffer
   #
   # startRow - The row {Number} to start folding at
   # endRow - The row {Number} to end the fold
+  #
+  # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
     return fold if fold = @foldFor(startRow, endRow)
     fold = new Fold(this, startRow, endRow)
@@ -256,6 +276,9 @@ class DisplayBuffer
   bufferRangeForScreenRange: (screenRange) ->
     @lineMap.bufferRangeForScreenRange(screenRange)
 
+  # Public: Gets the number of lines in the buffer.
+  #
+  # Returns a {Number}.
   lineCount: ->
     @lineMap.screenLineCount()
 
@@ -265,6 +288,9 @@ class DisplayBuffer
   getLastRow: ->
     @lineCount() - 1
 
+  # Public: Gets the length of the longest screen line.
+  #
+  # Returns a {Number}.
   maxLineLength: ->
     @lineMap.maxScreenLineLength
 
@@ -286,7 +312,12 @@ class DisplayBuffer
   # Returns a {Point}. 
   bufferPositionForScreenPosition: (position, options) ->
     @lineMap.bufferPositionForScreenPosition(position, options)
-
+    
+  # Public: Retrieves the grammar's token scopes for a buffer position.
+  #
+  # bufferPosition - A {Point} in the {Buffer}
+  #
+  # Returns an {Array} of {String}s.
   scopesForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopesForPosition(bufferPosition)
 
@@ -490,13 +521,16 @@ class DisplayBuffer
     for marker in @getMarkers()
       marker.notifyObservers(bufferChanged: false)
 
+  # Internal:
   destroy: ->
     @tokenizedBuffer.destroy()
     @buffer.off 'markers-updated', @handleMarkersUpdated
 
+  # Internal:
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
 
+  # Internal:
   getDebugSnapshot: ->
     lines = ["Display Buffer:"]
     for screenLine, row in @lineMap.linesForScreenRows(0, @getLastRow())

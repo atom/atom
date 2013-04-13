@@ -498,9 +498,19 @@ class Buffer
 
     matches
 
+  # Public: Scans for text in the buffer, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # iterator - A {Function} that's called on each match
   scan: (regex, iterator) ->
     @scanInRange(regex, @getRange(), iterator)
 
+  # Public: Scans for text in a given range, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # range - A {Range} in the buffer to search within
+  # iterator - A {Function} that's called on each match
+  # reverse - A {Boolean} indicating if the search should be backwards (default: `false`)
   scanInRange: (regex, range, iterator, reverse=false) ->
     range = @clipRange(range)
     global = regex.global
@@ -538,6 +548,11 @@ class Buffer
 
       break unless global and keepLooping
 
+  # Public: Scans for text in a given range _backwards_, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # range - A {Range} in the buffer to search within
+  # iterator - A {Function} that's called on each match
   backwardsScanInRange: (regex, range, iterator) ->
     @scanInRange regex, range, iterator, true
 

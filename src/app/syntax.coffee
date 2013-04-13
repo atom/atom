@@ -16,6 +16,7 @@ class Syntax
     syntax.grammarOverridesByPath = grammarOverridesByPath
     syntax
 
+  # Internal:
   constructor: ->
     @nullGrammar = new NullGrammar
     @grammars = [@nullGrammar]
@@ -24,6 +25,7 @@ class Syntax
     @scopedPropertiesIndex = 0
     @scopedProperties = []
 
+  # Internal:
   serialize: ->
     { deserializer: @constructor.name, @grammarOverridesByPath }
 

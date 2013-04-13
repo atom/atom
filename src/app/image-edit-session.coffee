@@ -1,6 +1,9 @@
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
+# Public: Manages the states between {Editor}s, images, and the project as a whole.
+#
+# Essentially, the graphical version of a {EditSession}.
 module.exports=
 class ImageEditSession
   registerDeserializer(this)
@@ -48,9 +51,20 @@ class ImageEditSession
     else
       'untitled'
 
+  # Public: Retrieves the URI of the current image.
+  #
+  # Returns a {String}.
   getUri: -> @path
 
+  # Public: Retrieves the path of the current image.
+  #
+  # Returns a {String}.
   getPath: -> @path
 
+  # Public: Compares two `ImageEditSession`s to determine equality.
+  #
+  # Equality is based on the condition that the two URIs are the same.
+  #
+  # Returns a {Boolean}.
   isEqual: (other) ->
     other instanceof ImageEditSession and @getUri() is other.getUri()

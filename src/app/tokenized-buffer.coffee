@@ -18,6 +18,7 @@ class TokenizedBuffer
   invalidRows: null
   visible: false
 
+  # Internal:
   constructor: (@buffer, { @languageMode, @tabLength }) ->
     @tabLength ?= 2
     @id = @constructor.idCounter++
@@ -33,9 +34,15 @@ class TokenizedBuffer
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
+  # Public: Retrieves the current tab length.
+  #
+  # Returns a {Number}.
   getTabLength: ->
     @tabLength
 
+  # Public: Specifies the tab length.
+  #
+  # tabLength - A {Number} that defines the new tab length.
   setTabLength: (@tabLength) ->
     lastRow = @buffer.getLastRow()
     @screenLines = @buildPlaceholderScreenLinesForRows(0, lastRow)

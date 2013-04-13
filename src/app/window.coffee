@@ -10,7 +10,7 @@ require 'space-pen-extensions'
 deserializers = {}
 deferredDeserializers = {}
 
-# This method is called in any window needing a general environment, including specs
+# Internal: This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
   Config = require 'config'
   Syntax = require 'syntax'
@@ -35,7 +35,7 @@ window.setUpEnvironment = ->
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
 
-# This method is only called when opening a real application window
+# Internal: This method is only called when opening a real application window
 window.startup = ->
   directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
   if directory
@@ -213,5 +213,6 @@ window.profile = (description, fn) ->
     console.profileEnd(description)
     value
 
+# Public: Shows a dialog asking if the window was _really_ meant to be closed.
 confirmClose = ->
   rootView.confirmClose().done -> window.close()

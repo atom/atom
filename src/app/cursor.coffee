@@ -364,6 +364,9 @@ class Cursor
   isAtEndOfLine: ->
     @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
 
+  # Public: Retrieves the grammar's token scopes for the line.
+  #
+  # Returns an {Array} of {String}s.
   getScopes: ->
     @editSession.scopesForBufferPosition(@getBufferPosition())
 

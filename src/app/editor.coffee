@@ -431,6 +431,12 @@ class Editor extends View
   transact: (fn) -> @activeEditSession.transact(fn)
   commit: -> @activeEditSession.commit()
   abort: -> @activeEditSession.abort()
+  # Public: Creates a new fold between two row numbers.
+  #
+  # startRow - The row {Number} to start folding at
+  # endRow - The row {Number} to end the fold
+  #
+  # Returns the new {Fold}.
   createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
   # Public: Folds the current row.
   foldCurrentRow: -> @activeEditSession.foldCurrentRow()
@@ -636,7 +642,17 @@ class Editor extends View
   #
   # Returns a {Range}.
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
+  # Public: Scans for text in the buffer, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # range - A {Range} in the buffer to search within
+  # iterator - A {Function} that's called on each match
   scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
+  # Public: Scans for text in the buffer _backwards_, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # range - A {Range} in the buffer to search within
+  # iterator - A {Function} that's called on each match
   backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   # Internal:
@@ -1090,6 +1106,7 @@ class Editor extends View
   appendToLinesView: (view) ->
     @overlayer.append(view)
 
+  # Internal:
   calculateDimensions: ->
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)

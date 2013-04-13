@@ -3,6 +3,9 @@ Range = require 'range'
 $ = require 'jquery'
 _ = require 'underscore'
 
+# Public: Represents the portion of the {Editor} containing row numbers.
+#
+# The gutter also indicates if rows are folded.
 module.exports =
 class Gutter extends View
 
@@ -15,6 +18,7 @@ class Gutter extends View
   lastScreenRow: -1
   highestNumberWidth: null
 
+  # Internal:
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
@@ -34,6 +38,7 @@ class Gutter extends View
   beforeRemove: ->
     $(document).off(".gutter-#{@getEditor().id}")
 
+  # Internal:
   handleMouseEvents: (e) ->
     editor = @getEditor()
     startRow = editor.screenPositionFromMouseEvent(e).row
@@ -52,9 +57,13 @@ class Gutter extends View
     $(document).on "mousemove.gutter-#{@getEditor().id}", moveHandler
     $(document).one "mouseup.gutter-#{@getEditor().id}", => $(document).off 'mousemove', moveHandler
 
+  # Public: Defines whether to show the gutter or not.
+  #
+  # showLineNumbers - A {Boolean} which, if `false`, hides the gutter
   setShowLineNumbers: (showLineNumbers) ->
     if showLineNumbers then @lineNumbers.show() else @lineNumbers.hide()
 
+  # Internal:
   updateLineNumbers: (changes, renderFrom, renderTo) ->
     if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
       performUpdate = true
@@ -67,7 +76,8 @@ class Gutter extends View
           break
 
     @renderLineNumbers(renderFrom, renderTo) if performUpdate
-
+  
+  # Internal:
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     editor = @getEditor()
     maxDigits = editor.getLineCount().toString().length
@@ -93,6 +103,7 @@ class Gutter extends View
     @highlightedRows = null
     @highlightLines()
 
+  # Internal:
   removeLineHighlights: ->
     return unless @highlightedLineNumbers
     for line in @highlightedLineNumbers
@@ -100,6 +111,7 @@ class Gutter extends View
       line.classList.remove('cursor-line-no-selection')
     @highlightedLineNumbers = null
 
+  # Internal:
   addLineHighlight: (row, emptySelection) ->
     return if row < @firstScreenRow or row > @lastScreenRow
     @highlightedLineNumbers ?= []
@@ -108,6 +120,7 @@ class Gutter extends View
       highlightedLineNumber.classList.add('cursor-line-no-selection') if emptySelection
       @highlightedLineNumbers.push(highlightedLineNumber)
 
+  # Internal:
   highlightLines: ->
     if @getEditor().getSelection().isEmpty()
       row = @getEditor().getCursorScreenPosition().row

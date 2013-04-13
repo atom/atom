@@ -1,10 +1,10 @@
 Range = require 'range'
 Point = require 'point'
 
-# Public: Represents a fold in the {Gutter}.
+# Public: Represents a fold that's hiding text from the screen. 
 #
-# Folds hide away text from the screen. They're the primary reason
-# that screen ranges and buffer ranges vary.
+# Folds are the primary reason that screen ranges and buffer ranges vary. Their
+# creation is managed by the {DisplayBuffer}.
 module.exports =
 class Fold
   @idCounter: 1

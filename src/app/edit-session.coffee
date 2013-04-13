@@ -10,7 +10,7 @@ Range = require 'range'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
 
-# Public: `EditSession`s manage the states between file {Buffer}s, and the project as a whole.
+# Public: An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
 module.exports =
 class EditSession
   registerDeserializer(this)
@@ -250,6 +250,9 @@ class EditSession
   #
   # Returns a {String}.
   getBuffer: -> @buffer
+  # Public: Retrieves the current buffer's URI.
+  #
+  # Returns a {String}.
   getUri: -> @getPath()
   # Public: Given a buffer row, identifies if it is blank.
   #
@@ -291,7 +294,17 @@ class EditSession
   #
   # Returns a {Number}.
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
+  # Public: Scans for text in the buffer, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # range - A {Range} in the buffer to search within
+  # iterator - A {Function} that's called on each match
   scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+  # Public: Scans for text in the buffer _backwards_, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # range - A {Range} in the buffer to search within
+  # iterator - A {Function} that's called on each match
   backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
   # Public: Identifies if the {Buffer} is modified (and not saved).
   #
@@ -365,8 +378,17 @@ class EditSession
   #
   # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
+  # Public: Retrieves the grammar's token scopes for a buffer position.
+  #
+  # bufferPosition - A {Point} in the {Buffer}
+  #
+  # Returns an {Array} of {String}s.
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+  # Public: Retrieves the grammar's token scopes for the line with the most recently added cursor.
+  #
+  # Returns an {Array} of {String}s.
   getCursorScopes: -> @getCursor().getScopes()
+  # Internal:
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   # Public: Determines whether the {Editor} will auto indent rows.
@@ -565,6 +587,8 @@ class EditSession
   #
   # startRow - The row {Number} to start folding at
   # endRow - The row {Number} to end the fold
+  #
+  # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
 
@@ -675,6 +699,8 @@ class EditSession
   #
   # startRow - The row {Number} to start at
   # endRow - The row {Number} to end at
+  #
+  # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
     @languageMode.toggleLineCommentsForBufferRows(start, end)
 
@@ -1334,6 +1360,7 @@ class EditSession
   markersForBufferPosition: (bufferPosition) ->
     @buffer.markersForPosition(bufferPosition)
 
+  # Internal:
   mergeCursors: ->
     positions = []
     for cursor in @getCursors()

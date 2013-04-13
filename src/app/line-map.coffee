@@ -25,10 +25,21 @@ class LineMap
 
     for screenLine in maxLengthCandidates
       @maxScreenLineLength = Math.max(@maxScreenLineLength, screenLine.text.length)
-
+  
+  # Public: Gets the line for the given screen row.
+  #
+  # screenRow - A {Number} indicating the screen row.
+  #
+  # Returns a {String}.
   lineForScreenRow: (row) ->
     @screenLines[row]
 
+  # Public: Gets the lines for the given screen row boundaries.
+  #
+  # start - A {Number} indicating the beginning screen row.
+  # end - A {Number} indicating the ending screen row.
+  #
+  # Returns an {Array} of {String}s.
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
     
@@ -166,6 +177,7 @@ class LineMap
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
+  # Internal:
   logLines: (start=0, end=@screenLineCount() - 1)->
     for row in [start..end]
       line = @lineForScreenRow(row).text
