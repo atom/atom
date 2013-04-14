@@ -226,6 +226,7 @@ class Editor extends View
   selectWord: -> @activeEditSession.selectWord()
   selectLine: -> @activeEditSession.selectLine()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
+  selectColumnToScreenPosition: (position) -> @activeEditSession.selectColumnToScreenPosition(position)
   transpose: -> @activeEditSession.transpose()
   upperCase: -> @activeEditSession.upperCase()
   lowerCase: -> @activeEditSession.lowerCase()
@@ -377,10 +378,15 @@ class Editor extends View
 
       screenPosition = @screenPositionFromMouseEvent(e)
       if clickCount == 1
-        if e.metaKey
+        if e.shiftKey
+          if e.metaKey
+            @setCursorScreenPosition(screenPosition)
+            @activeEditSession.columnStartRange = null
+            @column = true
+          else
+            @selectToScreenPosition(screenPosition)
+        else if e.metaKey
           @addCursorAtScreenPosition(screenPosition)
-        else if e.shiftKey
-          @selectToScreenPosition(screenPosition)
         else
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
@@ -418,7 +424,10 @@ class Editor extends View
     lastMoveEvent = null
     moveHandler = (event = lastMoveEvent) =>
       if event
-        @selectToScreenPosition(@screenPositionFromMouseEvent(event))
+        if @column
+          @selectColumnToScreenPosition(@screenPositionFromMouseEvent(event))
+        else
+          @selectToScreenPosition(@screenPositionFromMouseEvent(event))
         lastMoveEvent = event
 
     $(document).on "mousemove.editor-#{@id}", moveHandler
@@ -428,9 +437,11 @@ class Editor extends View
       clearInterval(interval)
       $(document).off 'mousemove', moveHandler
       reverse = @activeEditSession.getLastSelection().isReversed()
-      @activeEditSession.mergeIntersectingSelections({reverse})
+      if !@column
+        @activeEditSession.mergeIntersectingSelections({reverse})
       @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
+      @column = false
 
   afterAttach: (onDom) ->
     return unless onDom

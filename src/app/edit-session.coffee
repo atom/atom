@@ -736,10 +736,29 @@ class EditSession
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
-  selectToScreenPosition: (position) ->
+  selectToScreenPosition: (position, mergeAfter=true) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
-    @mergeIntersectingSelections(reverse: lastSelection.isReversed())
+    if mergeAfter
+      @mergeIntersectingSelections(reverse: lastSelection.isReversed())
+
+  selectColumnToScreenPosition: (position) ->
+    @columnStartRange ?= @getLastSelection().getScreenRange().start
+    size = (if position.column? then position.column else position[1]) - @columnStartRange.column
+    startRow = @columnStartRange.row
+    endRow = if position.row? then position.row else position[0]
+    @clearSelections()
+    @moveCursors (cursor) => cursor.setScreenPosition(@columnStartRange)
+    for row in [startRow..endRow]
+      startPosition = _.clone(@columnStartRange)
+      startPosition.row = row
+      endPosition = _.clone(@columnStartRange)
+      endPosition.column = startPosition.column + size
+      endPosition.row = row
+      marker = @markScreenPosition(startPosition, invalidationStrategy: 'never')
+      @addSelection(marker)
+      @selectToScreenPosition(endPosition, false)
+
 
   selectRight: ->
     @expandSelectionsForward (selection) => selection.selectRight()
