@@ -32,9 +32,11 @@ class SelectList extends View
     @on 'core:move-to-top', =>
       @selectItem(@list.find('li:first'))
       @list.scrollToTop()
+      false
     @on 'core:move-to-bottom', =>
       @selectItem(@list.find('li:last'))
       @list.scrollToBottom()
+      false
     @on 'core:confirm', => @confirmSelection()
     @on 'core:cancel', => @cancel()
 

@@ -11,27 +11,30 @@ class SpellCheckView extends View
   views: []
 
   initialize: (@editor) ->
-    @subscribe @editor, 'editor:path-changed', => @subscribeToBuffer()
-    @subscribe @editor, 'editor:grammar-changed', => @subscribeToBuffer()
-    @observeConfig 'editor.fontSize', => @subscribeToBuffer()
-    @observeConfig 'spell-check.grammars', => @subscribeToBuffer()
+    @subscribe @editor, 'editor:path-changed', @subscribeToBuffer
+    @subscribe @editor, 'editor:grammar-changed', @subscribeToBuffer
+    @observeConfig 'editor.fontSize', @subscribeToBuffer
+    @observeConfig 'spell-check.grammars', @subscribeToBuffer
 
     @subscribeToBuffer()
+
+  beforeRemove: ->
+    @unsubscribeFromBuffer()
 
   unsubscribeFromBuffer: ->
     @destroyViews()
     @task?.abort()
 
     if @buffer?
-      @buffer.off '.spell-check'
+      @buffer.off 'contents-modified', @updateMisspellings
       @buffer = null
 
-  subscribeToBuffer: ->
+  subscribeToBuffer: =>
     @unsubscribeFromBuffer()
 
     if @spellCheckCurrentGrammar()
       @buffer = @editor.getBuffer()
-      @buffer.on 'contents-modified.spell-check', => @updateMisspellings()
+      @buffer.on 'contents-modified', @updateMisspellings
       @updateMisspellings()
 
   spellCheckCurrentGrammar: ->
@@ -49,11 +52,7 @@ class SpellCheckView extends View
       @views.push(view)
       @append(view)
 
-  updateMisspellings: ->
-    unless @editor.activeEditSession?
-      @unsubscribeFromBuffer()
-      return
-
+  updateMisspellings: =>
     @task?.abort()
 
     callback = (misspellings) =>

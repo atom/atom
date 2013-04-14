@@ -164,13 +164,11 @@ window.reload = ->
   timesReloaded = process.global.timesReloaded ? 0
   ++timesReloaded
 
-  restartValue = if window.location.search.indexOf('spec-bootstrap') == -1 then 10 else 3
-
-  if timesReloaded > restartValue
+  if timesReloaded > 3
     atom.restartRendererProcess()
   else
-    $native.reload()
     process.global.timesReloaded = timesReloaded
+    $native.reload()
 
 window.onerror = ->
   atom.showDevTools()

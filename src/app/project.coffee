@@ -290,7 +290,7 @@ class Project
         readLine(line) if state is 'readingLines'
 
     command = require.resolve('nak')
-    args = ['--ackmate', regex.source, @getPath()]
+    args = ['--hidden', '--ackmate', regex.source, @getPath()]
     args.unshift("--addVCSIgnores") if config.get('core.excludeVcsIgnoredPaths')
     new BufferedProcess({command, args, stdout, exit})
     deferred

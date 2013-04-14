@@ -35,23 +35,31 @@ class StatusBarView extends View
     if git?
       @subscribe git, 'status-changed', (path, status) =>
         @updateStatusBar() if path is @getActiveItemPath()
-      @subscribe git, 'statuses-changed', =>
-        @updateStatusBar()
+      @subscribe git, 'statuses-changed', @updateStatusBar
 
     @subscribeToBuffer()
+
+  beforeRemove: ->
+    @unsubscribeFromBuffer()
 
   getActiveItemPath: ->
     @pane.activeItem?.getPath?()
 
+  unsubscribeFromBuffer: ->
+    if @buffer?
+      @buffer.off 'modified-status-changed', @updateBufferHasModifiedText
+      @buffer.off 'saved', @updateStatusBar
+      @buffer = null
+
   subscribeToBuffer: ->
-    @buffer?.off '.status-bar'
+    @unsubscribeFromBuffer()
     if @buffer = @pane.activeItem.getBuffer?()
-      @buffer.on 'modified-status-changed.status-bar', (isModified) => @updateBufferHasModifiedText(isModified)
-      @buffer.on 'saved.status-bar', => @updateStatusBar()
+      @buffer.on 'modified-status-changed', @updateBufferHasModifiedText
+      @buffer.on 'saved', @updateStatusBar
 
     @updateStatusBar()
 
-  updateStatusBar: ->
+  updateStatusBar: =>
     @updateGrammarText()
     @updateBranchText()
     @updateBufferHasModifiedText(@buffer?.isModified())
@@ -65,7 +73,7 @@ class StatusBarView extends View
     else
       @grammarName.text(grammar.name).show()
 
-  updateBufferHasModifiedText: (isModified)->
+  updateBufferHasModifiedText: (isModified) =>
     if isModified
       @bufferModified.text('*') unless @isModified
       @isModified = true

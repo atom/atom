@@ -1057,11 +1057,11 @@ class Editor extends View
 
   remove: (selector, keepData) ->
     return super if keepData or @removed
-    @trigger 'editor:will-be-removed'
     super
     rootView?.focus()
 
   beforeRemove: ->
+    @trigger 'editor:will-be-removed'
     @removed = true
     @activeEditSession?.destroy()
     $(window).off(".editor-#{@id}")

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# exit on subprocess errors
+set -o errexit
+
 exit_unless_xcode_exists() {
   if [ ! -d /Applications/Xcode.app ]; then
     echo "ERROR: Atom requires Xcode"

@@ -265,11 +265,13 @@
   }
 }
 
-- (void)applicationWillTerminate:(NSNotification *)notification {
+- (NSApplicationTerminateReply)applicationShouldTerminate:
+      (NSApplication *)sender {
   for (NSWindow *window in [self windows]) {
     [window performClose:self];
   }
-  CefShutdown();
+
+  return NSTerminateCancel;
 }
 
 # pragma mark CefAppProtocol

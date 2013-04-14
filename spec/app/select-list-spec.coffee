@@ -169,14 +169,24 @@ describe "SelectList", ->
       expect(selectList.detach).toHaveBeenCalled()
 
   describe "the core:move-to-top event", ->
-    it "scrolls to the top and selects the first element", ->
+    it "scrolls to the top, selects the first element, and does not bubble the event", ->
+      selectList.attachToDom()
+      moveToTopHandler = jasmine.createSpy("moveToTopHandler")
+      selectList.parent().on 'core:move-to-top', moveToTopHandler
+
       selectList.trigger 'core:move-down'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
       selectList.trigger 'core:move-to-top'
       expect(list.find('li:first')).toHaveClass 'selected'
+      expect(moveToTopHandler).not.toHaveBeenCalled()
 
   describe "the core:move-to-bottom event", ->
-    it "scrolls to the bottom and selects the last element", ->
+    it "scrolls to the bottom, selects the last element, and does not bubble the event", ->
+      selectList.attachToDom()
+      moveToBottomHandler = jasmine.createSpy("moveToBottomHandler")
+      selectList.parent().on 'core:move-to-bottom', moveToBottomHandler
+
       expect(list.find('li:first')).toHaveClass 'selected'
       selectList.trigger 'core:move-to-bottom'
       expect(list.find('li:last')).toHaveClass 'selected'
+      expect(moveToBottomHandler).not.toHaveBeenCalled()
