@@ -20,8 +20,8 @@
     "space-pen": "git://github.com/nathansobo/space-pen.git"
   },
 
-  "devDependencies": {
-    
+  "devDependencies" : {
+    "biscotto" : "0.2.0"
   },
 
   "private": true,

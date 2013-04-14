@@ -120,24 +120,24 @@ namespace :docs do
   namespace :app do
     desc "Builds the API docs in src/app"
     task :build do
-      system %{./biscotto -o docs/api src/app/}
+      system %{./node_modules/biscotto/bin/biscotto -o docs/api src/app/}
     end
 
     desc "Lists the stats for API doc coverage in src/app"
     task :stats do
-      system %{./biscotto --statsOnly src/app/}
+      system %{./node_modules/biscotto/bin/biscotto --statsOnly src/app/}
     end
   end
 
   namespace :packages do
     desc "Builds the API docs in src/packages"
     task :build do
-      system %{./biscotto -o docs/api src/packages/}
+      system %{./node_modules/biscotto/bin/biscotto -o docs/api src/packages/}
     end
 
     desc "Lists the stats for API doc coverage in src/packages"
     task :stats do
-      system %{./biscotto --statsOnly src/packages/}
+      system %{./node_modules/biscotto/bin/biscotto --statsOnly src/packages/}
     end
   end
 end
