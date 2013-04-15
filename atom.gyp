@@ -41,9 +41,10 @@
     'configurations': {
       'Debug': {
         'defines': ['DEBUG=1'],
-        'xcode_settings': { 'GCC_OPTIMIZATION_LEVEL' : '0' },
+        'xcode_settings': { 'GCC_OPTIMIZATION_LEVEL' : '0', 'ALWAYS_SEARCH_USER_PATHS': '0' },
       },
       'Release': {
+      'xcode_settings': { 'ALWAYS_SEARCH_USER_PATHS': '0' },
       },
     },
     'xcode_settings': {

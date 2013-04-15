@@ -31,6 +31,7 @@ window.setUpEnvironment = ->
   requireStylesheet 'popover-list'
   requireStylesheet 'notification'
   requireStylesheet 'markdown'
+  requireStylesheet 'terminal'
 
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
