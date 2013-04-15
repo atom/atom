@@ -1,87 +1,55 @@
+@import "bootstrap/less/variables.less";
+@import "octicon-mixins.less";
+
+@close-icon-size: 11px;
+
 .tabs {
-  font: caption;
   display: -webkit-flex;
-  -webkit-box-align: center;
-}
-
-.tab {
   -webkit-user-select: none;
-  -webkit-user-drag: element;
-  cursor: default;
-  -webkit-flex: 1;
-  width: 175px;
-  max-width: 175px;
-  min-width: 40px;
-  box-sizing: border-box;
-  text-shadow: -1px -1px 0 #000;
-  font-size: 11px;
-  padding: 5px 10px;
-  position: relative;
-}
+  margin: 0;
 
-.tab.active {
-  -webkit-flex: 2;
-}
+  .tab {
+    line-height: 30px;
+    font-size: 11px;
+    position: relative;
+    padding-left: 10px;
+    padding-right: 10px + @close-icon-size + 2px;
+    -webkit-user-drag: element;
+    -webkit-flex: 1;
+    max-width: 175px;
+    min-width: 40px;
 
-.tab .title {
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  padding: 3px 10px 3px 0;
-}
+    &.active {
+      -webkit-flex: 2;
+    }
 
-.tab .close-icon {
-  font-family: 'Octicons Regular';
-  font-size: 12px;
-  width: 12px;
-  height: 12px;
-  cursor: pointer;
-  position: absolute;
-  color: rgba(255, 255, 255, 0.5);
-  right: 8px;
-  top: 5px;
-  -webkit-font-smoothing: antialiased;
-}
+    .title {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
 
-.tab .close-icon:before {
-  content: "\f081";
-}
+    .close-icon {
+      .mini-icon(x, @close-icon-size);
+      position: absolute;
+      top: 0px;
+      right: 10px;
+      cursor: pointer;
+    }
 
-.tab .close-icon:hover {
-  color: #fff;
-}
-
-.tab.modified .close-icon {
-  top: 11px;
-  width: 5px;
-  height: 5px;
-  right: 9px;
-  border: 2px solid #66a6ff;
-  border-radius: 12px;
-}
-
-.tab.modified .close-icon:before {
-  content: "";
-}
-
-.tab.modified:hover .close-icon {
-  border: none;
-  width: 12px;
-  height: 12px;
-  right: 8px;
-  top: 5px;
-}
-
-.tab.modified:hover .close-icon:before {
-  content: "\f081";
-  color: #66a6ff;
+    &.modified:not(:hover) .close-icon {
+      &:before { content: "" }
+      top: 11px;
+      right: 11px;
+      width: 8px;
+      height: 8px;
+      border: 2px solid #66a6ff;
+      border-radius: 12px;
+    }
+  }
 }
 
 /* Drag and Drop */
-.tab.is-dragging {
-
-}
 
 .tab.is-drop-target:before, .tab.drop-target-is-after:after {
   content: "";
