@@ -15,6 +15,7 @@ class LoadPathsTask
     args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
     args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
     args.unshift('--follow')
+    args.unshift('--hidden')
 
     paths = []
     exit = (code) =>

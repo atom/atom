@@ -86,6 +86,7 @@ class AtomCefClient : public CefClient,
   // CefLifeSpanHandler methods
   virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
   virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+  virtual bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
 
 
   // CefLoadHandler methods
@@ -100,11 +101,13 @@ class AtomCefClient : public CefClient,
 
   bool Save(const std::string& path, const std::string& data);
   void RestartRendererProcess(CefRefPtr<CefBrowser> browser);
+  bool IsClosed() { return m_IsClosed; };
 
  protected:
   CefRefPtr<CefBrowser> m_Browser;
   bool m_HandlePasteboardCommands = false;
   bool m_IgnoreTitleChanges = false;
+  bool m_IsClosed = false;
 
   void FocusNextWindow();
   void FocusPreviousWindow();

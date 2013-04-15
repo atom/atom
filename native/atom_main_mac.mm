@@ -32,6 +32,7 @@ int AtomMain(int argc, char* argv[]) {
     [mainNib instantiateWithOwner:application topLevelObjects:nil];
 
     CefRunMessageLoop();
+    CefShutdown();
   }
 
   return 0;

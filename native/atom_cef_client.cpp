@@ -1,6 +1,7 @@
 #include <sstream>
 #include <iostream>
 #include <assert.h>
+#include "include/cef_app.h"
 #include "include/cef_path_util.h"
 #include "include/cef_process_util.h"
 #include "include/cef_task.h"
@@ -14,7 +15,9 @@
 #define REQUIRE_IO_THREAD()   assert(CefCurrentlyOn(TID_IO));
 #define REQUIRE_FILE_THREAD() assert(CefCurrentlyOn(TID_FILE));
 
-AtomCefClient::AtomCefClient(){
+static int numberOfOpenBrowsers = 0;
+
+AtomCefClient::AtomCefClient() {
 }
 
 AtomCefClient::AtomCefClient(bool handlePasteboardCommands, bool ignoreTitleChanges) {
@@ -167,17 +170,22 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
 //  REQUIRE_UI_THREAD(); // When uncommented this fails when app is terminated
   m_Browser = NULL;
+  numberOfOpenBrowsers--;
+  if (numberOfOpenBrowsers == 0) {
+    CefQuitMessageLoop();
+  }
 }
 
 void AtomCefClient::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
 
   AutoLock lock_scope(this);
-  if (!m_Browser.get())   {
+  if (!m_Browser.get()) {
     m_Browser = browser;
   }
 
   GetBrowser()->GetHost()->SetFocus(true);
+  numberOfOpenBrowsers++;
 }
 
 void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,
