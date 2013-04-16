@@ -11,9 +11,10 @@ _ = require 'underscore'
 module.exports =
 class TreeView extends ScrollView
   @content: (rootView) ->
-    @div class: 'tree-view-wrapper', =>
-      @ol class: 'list-unstyled tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
-      @div class: 'tree-view-resizer', outlet: 'resizer'
+    @div class: 'tree-view-resizer', =>
+      @div class: 'tree-view-scroller', =>
+        @ol class: 'list-unstyled tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
+      @div class: 'tree-view-resize-handle', outlet: 'resizeHandle'
 
   root: null
   focusAfterAttach: false
@@ -23,7 +24,7 @@ class TreeView extends ScrollView
   initialize: (state) ->
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
-    @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
+    @on 'mousedown', '.tree-view-resize-handle', (e) => @resizeStarted(e)
     @command 'core:move-up', => @moveUp()
     @command 'core:move-down', => @moveDown()
     @command 'core:close', => @detach(); false
