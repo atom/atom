@@ -734,7 +734,6 @@ class Editor extends View
     @lineHeight = lineRect.height
     @charWidth = charRect.width
     @charHeight = charRect.height
-    @height(@lineHeight) if @mini
     fragment.remove()
 
   updateLayerDimensions: ->
