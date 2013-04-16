@@ -13,7 +13,7 @@ class TreeView extends ScrollView
   @content: (rootView) ->
     @div class: 'tree-view-resizer', =>
       @div class: 'tree-view-scroller', outlet: 'scroller', =>
-        @ol class: 'list-unstyled tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
+        @ol class: 'list-unstyled tree-view tool-panel', tabindex: -1, outlet: 'list'
       @div class: 'tree-view-resize-handle', outlet: 'resizeHandle'
 
   root: null
@@ -89,10 +89,10 @@ class TreeView extends ScrollView
     rootView.focus()
 
   focus: ->
-    @treeViewList.focus()
+    @list.focus()
 
   hasFocus: ->
-    @treeViewList.is(':focus')
+    @list.is(':focus')
 
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()
@@ -124,7 +124,7 @@ class TreeView extends ScrollView
 
     if rootDirectory = project.getRootDirectory()
       @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: project)
-      @treeViewList.append(@root)
+      @list.append(@root)
     else
       @root = null
 
@@ -160,7 +160,7 @@ class TreeView extends ScrollView
       else
         bestMatchEntry
 
-    @treeViewList.find(".entry").toArray().reduce(fn, @root)
+    @list.find(".entry").toArray().reduce(fn, @root)
 
   selectEntryForPath: (path) ->
     @selectEntry(@entryForPath(path))
@@ -187,7 +187,7 @@ class TreeView extends ScrollView
       else
         @selectEntry(selectedEntry.parents('.directory').first())
     else
-      @selectEntry(@treeViewList.find('.entry').last())
+      @selectEntry(@list.find('.entry').last())
 
     @scrollToEntry(@selectedEntry())
 
@@ -296,7 +296,7 @@ class TreeView extends ScrollView
     rootView.append(dialog)
 
   selectedEntry: ->
-    @treeViewList.find('.selected')?.view()
+    @list.find('.selected')?.view()
 
   selectEntry: (entry) ->
     return false unless entry.get(0)
@@ -306,7 +306,7 @@ class TreeView extends ScrollView
     entry.addClass('selected')
 
   deselect: ->
-    @treeViewList.find('.selected').removeClass('selected')
+    @list.find('.selected').removeClass('selected')
 
   scrollTop: (top) ->
     if top?
