@@ -108,7 +108,6 @@ class BufferMarker
   updatePosition: (position, bufferChange, isHead) ->
     { oldRange, newRange } = bufferChange
 
-    return position if oldRange.containsPoint(position, exclusive: true)
     return position if not isHead and oldRange.start.isEqual(position)
     return position if position.isLessThan(oldRange.end)
 
