@@ -139,7 +139,8 @@ describe "CommandPanel", ->
             expect(commandPanel.previewList).toBeVisible()
 
           it  "shows the expand and collapse all buttons", ->
-            expect(commandPanel.find('.expand-collapse')).toBeVisible()
+            expect(commandPanel.collapseAll).toBeVisible()
+            expect(commandPanel.expandAll).toBeVisible()
 
           describe "when the preview list is focused", ->
             it "hides the command panel", ->
