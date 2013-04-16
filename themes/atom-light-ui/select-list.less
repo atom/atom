@@ -3,39 +3,48 @@
   border: 1px solid #c6c6c6;
   color: #323232;
   box-shadow: 0 0 10px #555;
-}
 
-.select-list ol {
-  border: 1px solid #d2d2d2;
-}
+  .error {
+    color: white;
+    text-shadow: 0 1px 0 #4E0000;
+  }
 
-.select-list ol li {
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #ccc;
-}
+  ol {
+    border: 1px solid #d2d2d2;
 
-.select-list li:hover {
-  background-color: #f9f9f9;
-}
+    li {
+      background-color: #f5f5f5;
+      border-bottom: 1px solid #ccc;
+    }
 
-.select-list ol .selected {
-  background-color: #e0e0e0;
-}
+    li:hover {
+      background-color: #f9f9f9;
+    }
 
-.select-list .right,
-.select-list .directory {
-  color: #777;
-}
+    li.active-item:before {
+      color: #9d9d9d;
+    }
 
-.select-list ol .selected .right,
-.select-list ol .selected .directory {
-  color: #333;
-}
+    .selected {
+      background-color: #e0e0e0;
+    }
 
-.select-list .modified {
-  color: #f78a46;
-}
+    .selected .right,
+    .selected .directory {
+      color: #333;
+    }
 
-.select-list .new {
-  color: #5293d8;
+    .right,
+    .directory {
+      color: #777;
+    }
+
+    .modified {
+      color: #f78a46;
+    }
+
+    .new {
+      color: #5293d8;
+    }
+  }
 }
