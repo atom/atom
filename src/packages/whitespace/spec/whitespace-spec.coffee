@@ -79,3 +79,10 @@ describe "Whitespace", ->
       editor.insertText "no trailing newline"
       editor.getBuffer().save()
       expect(editor.getText()).toBe "no trailing newline"
+
+    it "does not move the cursor when the new line is added", ->
+      editor.insertText "foo"
+      expect(editor.getCursorBufferPosition()).toEqual([0,3])
+      editor.getBuffer().save()
+      expect(editor.getText()).toBe "foo\n"
+      expect(editor.getCursorBufferPosition()).toEqual([0,3])
