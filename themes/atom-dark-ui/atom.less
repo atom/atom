@@ -1,3 +1,5 @@
+@import "bootstrap/less/mixins.less";
+
 html, body,
 #root-view {
   font: caption;
@@ -23,4 +25,9 @@ html, body,
 
 .wrap-guide {
   background: rgba(150, 150, 150, 0.1);
+}
+
+.btn {
+  .btn-pseudo-states(#19191a, #1a1b1c);
+  color: #969696;
 }

@@ -13,9 +13,8 @@ class CommandPanelView extends View
     @div class: 'command-panel tool-panel', =>
       @div class: 'loading is-loading', outlet: 'loadingMessage', 'Searching...'
       @div class: 'header', outlet: 'previewHeader', =>
-        @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
-          @li outlet: 'expandAll', 'Expand All'
-          @li outlet: 'collapseAll', 'Collapse All'
+        @button outlet: 'collapseAll', class: 'btn btn-mini pull-right', 'Collapse All'
+        @button outlet: 'expandAll', class: 'btn btn-mini pull-right', 'Expand All'
         @span outlet: 'previewCount', class: 'preview-count'
 
       @subview 'previewList', new PreviewList(rootView)
