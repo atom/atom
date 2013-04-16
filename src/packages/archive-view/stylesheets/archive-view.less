@@ -1,0 +1,52 @@
+@import "bootstrap/less/variables.less";
+@import "octicon-mixins.less";
+
+.archive-view {
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  position: relative;
+  display: -webkit-flex;
+  @icon-margin: @line-height-base / 4;
+
+  .archive-container {
+    height:100%;
+    width: 100%;
+    padding: 5px;
+
+    .loading-message {
+      .mini-icon(hourglass);
+
+      &:before {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-right: 5px;
+      }
+    }
+
+    .entry {
+      padding: 5px;
+
+      > .entry {
+        margin-left: 5px;
+      }
+
+      &:before {
+        margin-right: @icon-margin;
+      }
+
+      &.file {
+        .mini-icon(text-file);
+      }
+
+      &.directory {
+        .mini-icon(directory);
+      }
+
+      &.symlink {
+        .mini-icon(symlink);
+      }
+    }
+  }
+}
