@@ -101,11 +101,11 @@ describe "TreeView", ->
     it "restores the focus state of the tree view", ->
       rootView.attachToDom()
       treeView.focus()
-      expect(treeView.find(".tree-view")).toMatchSelector ':focus'
+      expect(treeView.treeViewList).toMatchSelector ':focus'
       atom.deactivatePackage("tree-view")
       atom.activatePackage("tree-view")
       treeView = rootView.find(".tree-view").view()
-      expect(treeView.find(".tree-view")).toMatchSelector ':focus'
+      expect(treeView.treeViewList).toMatchSelector ':focus'
 
     it "restores the scroll top when toggled", ->
       rootView.height(5)
@@ -142,14 +142,14 @@ describe "TreeView", ->
           rootView.focus()
           rootView.trigger 'tree-view:toggle'
           expect(treeView).toBeVisible()
-          expect(treeView.find(".tree-view")).toMatchSelector(':focus')
+          expect(treeView.treeViewList).toMatchSelector(':focus')
 
     describe "when the tree view is hidden", ->
       it "shows and focuses the tree view", ->
         treeView.detach()
         rootView.trigger 'tree-view:toggle'
         expect(treeView.hasParent()).toBeTruthy()
-        expect(treeView.find(".tree-view")).toMatchSelector(':focus')
+        expect(treeView.treeViewList).toMatchSelector(':focus')
 
   describe "when tree-view:reveal-current-file is triggered on the root view", ->
     beforeEach ->
@@ -184,10 +184,10 @@ describe "TreeView", ->
       rootView.open() # When we trigger 'tool-panel:unfocus' below, we want an editor to become focused
       rootView.attachToDom()
       treeView.focus()
-      expect(treeView.find(".tree-view")).toMatchSelector(':focus')
+      expect(treeView.treeViewList).toMatchSelector(':focus')
       treeView.trigger 'tool-panel:unfocus'
       expect(treeView).toBeVisible()
-      expect(treeView.find(".tree-view")).not.toMatchSelector(':focus')
+      expect(treeView.treeViewList).not.toMatchSelector(':focus')
       expect(rootView.getActiveView().isFocused).toBeTruthy()
 
   describe "when core:close is triggered on the tree view", ->
@@ -428,7 +428,7 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
+        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
 
@@ -452,7 +452,7 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
+        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.trigger 'core:move-to-bottom'
@@ -468,7 +468,7 @@ describe "TreeView", ->
         treeView.height(5)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
+        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.scrollToBottom()
@@ -483,7 +483,7 @@ describe "TreeView", ->
         treeView.height(5)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
+        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.trigger 'core:page-down'
@@ -494,7 +494,7 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.find(".tree-view").prop('scrollHeight')).toBeGreaterThan treeView.find(".tree-view").outerHeight()
+        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
 
         treeView.moveDown()
         expect(treeView.scrollTop()).toBe 0
