@@ -2,7 +2,7 @@ fs = require 'fs'
 fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
-{less} = require 'less'
+less = require 'less'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -25,12 +25,7 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  requireStylesheet 'reset'
   requireStylesheet 'atom'
-  requireStylesheet 'overlay'
-  requireStylesheet 'popover-list'
-  requireStylesheet 'notification'
-  requireStylesheet 'markdown'
 
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
@@ -142,7 +137,12 @@ window.requireStylesheet = (path) ->
 window.loadStylesheet = (path) ->
   content = fsUtils.read(path)
   if fsUtils.extension(path) == '.less'
-    (new less.Parser).parse content, (e, tree) ->
+    parser = new less.Parser
+      syncImport: true
+      paths: config.lessSearchPaths
+      filename: path
+
+    parser.parse content, (e, tree) ->
       throw new Error(e.message, path, e.line) if e
       content = tree.toCSS()
 

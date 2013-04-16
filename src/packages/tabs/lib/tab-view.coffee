@@ -6,8 +6,8 @@ module.exports =
 class TabView extends View
   @content: ->
     @li class: 'tab sortable', =>
-      @span class: 'title', outlet: 'title'
-      @span class: 'close-icon'
+      @div class: 'title', outlet: 'title'
+      @div class: 'close-icon'
 
   initialize: (@item, @pane) ->
     @item.on? 'title-changed', => @updateTitle()

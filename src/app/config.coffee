@@ -17,6 +17,7 @@ class Config
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath, vendoredThemesDirPath]
   packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
+  lessSearchPaths: [fsUtils.join(resourcePath, 'static'), fsUtils.join(resourcePath, 'vendor')]
   defaultSettings: null
   settings: null
   configFileHasErrors: null

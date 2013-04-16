@@ -8,7 +8,7 @@ class AtomReporter extends View
     @div id: 'HTMLReporter', class: 'jasmine_reporter', =>
       @div outlet: 'specPopup', class: "spec-popup"
       @div outlet: "suites"
-      @ul outlet: "symbolSummary", class: 'symbolSummary'
+      @ul outlet: "symbolSummary", class: 'symbolSummary list-unstyled'
       @div outlet: "status", class: 'status', =>
         @div outlet: "time", class: 'time'
         @div outlet: "specCount", class: 'spec-count'

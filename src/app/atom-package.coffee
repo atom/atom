@@ -28,7 +28,7 @@ class AtomPackage extends Package
       else
         @requireMainModule()
     catch e
-      console.warn "Failed to load package named '#{@name}'", e.stack
+      console.warn "Failed to load package named '#{@name}'", e.stack ? e
     this
 
   activate: ({immediate}={}) ->

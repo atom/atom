@@ -17,7 +17,8 @@
     "spellchecker": "0.3.0",
     "pathwatcher": "0.3.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
-    "space-pen": "git://github.com/nathansobo/space-pen.git"
+    "space-pen": "git://github.com/nathansobo/space-pen.git",
+    "less": "git://github.com/nathansobo/less.js.git"
   },
 
   "private": true,
