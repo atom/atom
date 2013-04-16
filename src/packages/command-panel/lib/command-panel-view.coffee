@@ -14,8 +14,8 @@ class CommandPanelView extends View
       @div class: 'loading is-loading', outlet: 'loadingMessage', 'Searching...'
       @div class: 'header', outlet: 'previewHeader', =>
         @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
-          @li 'Expand All'
-          @li 'Collapse All'
+          @li outlet: 'expandAll', 'Expand All'
+          @li outlet: 'collapseAll', 'Collapse All'
         @span outlet: 'previewCount', class: 'preview-count'
 
       @subview 'previewList', new PreviewList(rootView)
@@ -47,8 +47,8 @@ class CommandPanelView extends View
     @subscribeToCommand rootView, 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
     @subscribeToCommand rootView, 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
-    @on 'click', '.expand', @onExpandAll
-    @on 'click', '.collapse', @onCollapseAll
+    @expandAll.on 'click', @onExpandAll
+    @collapseAll.on 'click', @onCollapseAll
 
     @previewList.hide()
     @previewHeader.hide()
