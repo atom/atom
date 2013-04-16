@@ -456,7 +456,7 @@ describe "TreeView", ->
 
         expect(treeView.scrollTop()).toBe 0
         treeView.trigger 'core:move-to-bottom'
-        expect(treeView.scrollBottom()).toBe treeView.find(".tree-view").prop('scrollHeight')
+        expect(treeView.scrollBottom()).toBe treeView.root.outerHeight()
 
       it "selects the last entry", ->
         expect(treeView.root).toHaveClass 'selected'
@@ -501,7 +501,7 @@ describe "TreeView", ->
 
         entryCount = treeView.find(".entry").length
         _.times entryCount, -> treeView.moveDown()
-        expect(treeView.scrollBottom()).toBe treeView.find(".tree-view").prop('scrollHeight')
+        expect(treeView.scrollBottom()).toBe treeView.root.outerHeight()
 
         _.times entryCount, -> treeView.moveUp()
         expect(treeView.scrollTop()).toBe 0
