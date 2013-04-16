@@ -438,7 +438,6 @@ class Editor extends View
     return if @attached
     @attached = true
     @calculateDimensions()
-    @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
     @subscribe $(window), "resize.editor-#{@id}", => @requestDisplayUpdate()
     @focus() if @isFocused
