@@ -428,7 +428,7 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
+        expect(treeView.treeViewList.outerHeight()).toBeGreaterThan treeView.scroller.outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
 
@@ -452,7 +452,7 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
+        expect(treeView.treeViewList.outerHeight()).toBeGreaterThan treeView.scroller.outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.trigger 'core:move-to-bottom'
@@ -468,7 +468,7 @@ describe "TreeView", ->
         treeView.height(5)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
+        expect(treeView.treeViewList.outerHeight()).toBeGreaterThan treeView.scroller.outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.scrollToBottom()
@@ -483,7 +483,7 @@ describe "TreeView", ->
         treeView.height(5)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
+        expect(treeView.treeViewList.outerHeight()).toBeGreaterThan treeView.scroller.outerHeight()
 
         expect(treeView.scrollTop()).toBe 0
         treeView.trigger 'core:page-down'
@@ -494,14 +494,16 @@ describe "TreeView", ->
         treeView.height(100)
         treeView.attachToDom()
         $(element).view().expand() for element in treeView.find('.directory')
-        expect(treeView.treeViewList.prop('scrollHeight')).toBeGreaterThan treeView.treeViewList.outerHeight()
+        expect(treeView.treeViewList.outerHeight()).toBeGreaterThan treeView.scroller.outerHeight()
 
         treeView.moveDown()
         expect(treeView.scrollTop()).toBe 0
 
         entryCount = treeView.find(".entry").length
+        entryHeight = treeView.find('.file').height()
+
         _.times entryCount, -> treeView.moveDown()
-        expect(treeView.scrollBottom()).toBe treeView.root.outerHeight()
+        expect(treeView.scrollBottom()).toBeGreaterThan (entryCount * entryHeight) - 1
 
         _.times entryCount, -> treeView.moveUp()
         expect(treeView.scrollTop()).toBe 0

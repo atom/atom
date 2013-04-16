@@ -12,7 +12,7 @@ module.exports =
 class TreeView extends ScrollView
   @content: (rootView) ->
     @div class: 'tree-view-resizer', =>
-      @div class: 'tree-view-scroller', =>
+      @div class: 'tree-view-scroller', outlet: 'scroller', =>
         @ol class: 'list-unstyled tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
       @div class: 'tree-view-resize-handle', outlet: 'resizeHandle'
 
@@ -309,33 +309,30 @@ class TreeView extends ScrollView
     @treeViewList.find('.selected').removeClass('selected')
 
   scrollTop: (top) ->
-    if top
-      @treeViewList.scrollTop(top)
+    if top?
+      @scroller.scrollTop(top)
     else
-      @treeViewList.scrollTop()
+      @scroller.scrollTop()
 
   scrollBottom: (bottom) ->
-    if bottom
-      @treeViewList.scrollBottom(bottom)
+    if bottom?
+      @scroller.scrollBottom(bottom)
     else
-      @treeViewList.scrollBottom()
+      @scroller.scrollBottom()
 
   scrollToEntry: (entry) ->
     displayElement = if entry instanceof DirectoryView then entry.header else entry
-    top = @scrollTop() + displayElement.position().top
+    top = displayElement.position().top
     bottom = top + displayElement.outerHeight()
     if bottom > @scrollBottom()
-      @treeViewList.scrollBottom(bottom)
+      @scrollBottom(bottom)
     if top < @scrollTop()
-      @treeViewList.scrollTop(top)
+      @scrollTop(top)
 
   scrollToBottom: ->
-    super()
-
     @selectEntry(@root.find('.entry:last')) if @root
     @scrollToEntry(@root.find('.entry:last')) if @root
 
   scrollToTop: ->
-    super()
     @selectEntry(@root) if @root
-    @treeViewList.scrollTop(0)
+    @scrollTop(0)
