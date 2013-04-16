@@ -135,18 +135,28 @@ window.requireStylesheet = (path) ->
     throw new Error("Could not find a file at path '#{path}'")
 
 window.loadStylesheet = (path) ->
-  content = fsUtils.read(path)
   if fsUtils.extension(path) == '.less'
-    parser = new less.Parser
-      syncImport: true
-      paths: config.lessSearchPaths
-      filename: path
+    loadLessStylesheet(path)
+  else
+    fsUtils.read(path)
 
-    parser.parse content, (e, tree) ->
-      throw new Error(e.message, path, e.line) if e
+window.loadLessStylesheet = (path) ->
+  parser = new less.Parser
+    syncImport: true
+    paths: config.lessSearchPaths
+    filename: path
+  try
+    content = null
+    parser.parse fsUtils.read(path), (e, tree) ->
+      throw e if e?
       content = tree.toCSS()
-
-  content
+    content
+  catch e
+    console.error """
+      Error compiling less stylesheet: #{path}
+      Line number: #{e.line}
+      #{e.message}
+    """
 
 window.removeStylesheet = (path) ->
   unless fullPath = window.resolveStylesheet(path)
