@@ -1,4 +1,5 @@
-jQuery = require('jquery');
+(function(jQuery) {
+
 jasmine.JQuery = function() {};
 
 jasmine.JQuery.browserTagCaseIndependentHtml = function(html) {
@@ -174,4 +175,4 @@ beforeEach(function() {
 afterEach(function() {
   jasmine.JQuery.events.cleanUp();
 });
-
+})(require('jquery'));
