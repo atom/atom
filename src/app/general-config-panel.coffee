@@ -68,7 +68,7 @@ class GeneralConfigPanel extends ConfigPanel
     for name in atom.getAvailableThemeNames()
       @availableThemeList.append(@buildThemeLi(name, draggable: true))
 
-    for name in config.get("core.themes")
+    for name in config.get("core.themes") ? []
       @enabledThemeList.append(@buildThemeLi(name))
 
     @enabledThemeList.sortable()
