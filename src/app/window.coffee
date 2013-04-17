@@ -30,7 +30,6 @@ window.setUpEnvironment = ->
   keymap.bindDefaultKeys()
 
   requireStylesheet 'atom'
-  requireStylesheet 'config'
 
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
