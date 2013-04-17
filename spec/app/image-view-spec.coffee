@@ -8,7 +8,7 @@ describe "ImageView", ->
     path = project.resolve('binary-file.png')
     view = new ImageView()
     view.attachToDom()
-    view.parent().height(100)
+    view.height(100)
 
   it "displays the image for a path", ->
     view.setModel(new ImageEditSession(path))

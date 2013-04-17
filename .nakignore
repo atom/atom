@@ -1,3 +1,4 @@
 tags
 node_modules
 vendor/packages
+.git

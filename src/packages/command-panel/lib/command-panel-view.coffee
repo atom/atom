@@ -13,9 +13,8 @@ class CommandPanelView extends View
     @div class: 'command-panel tool-panel', =>
       @div class: 'loading is-loading', outlet: 'loadingMessage', 'Searching...'
       @div class: 'header', outlet: 'previewHeader', =>
-        @ul outlet: 'expandCollapse', class: 'expand-collapse', =>
-          @li class: 'expand', 'Expand All'
-          @li class: 'collapse', 'Collapse All'
+        @button outlet: 'collapseAll', class: 'btn btn-mini pull-right', 'Collapse All'
+        @button outlet: 'expandAll', class: 'btn btn-mini pull-right', 'Expand All'
         @span outlet: 'previewCount', class: 'preview-count'
 
       @subview 'previewList', new PreviewList(rootView)
@@ -47,8 +46,8 @@ class CommandPanelView extends View
     @subscribeToCommand rootView, 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
     @subscribeToCommand rootView, 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
-    @on 'click', '.expand', @onExpandAll
-    @on 'click', '.collapse', @onCollapseAll
+    @expandAll.on 'click', @onExpandAll
+    @collapseAll.on 'click', @onCollapseAll
 
     @previewList.hide()
     @previewHeader.hide()

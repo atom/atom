@@ -26,7 +26,7 @@ class SymbolsView extends SelectList
   itemForElement: ({position, name, file}) ->
     $$ ->
       @li =>
-        @div name, class: 'label'
+        @span name
         if position
           text = "Line #{position.row + 1}"
         else

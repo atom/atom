@@ -7,7 +7,7 @@ module.exports =
 class CursorView extends View
   # Internal:
   @content: ->
-    @pre class: 'cursor idle', => @raw '&nbsp;'
+    @div class: 'cursor idle', => @raw '&nbsp;'
 
   blinkPeriod: 800
   editor: null

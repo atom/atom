@@ -1,11 +1,12 @@
 module.exports =
   activate: ->
-    rootView.eachBuffer (buffer) => @whitespaceBeforeSave(buffer)
+    rootView.eachEditSession (editSession) => @whitespaceBeforeSave(editSession)
 
   configDefaults:
     ensureSingleTrailingNewline: true
 
-  whitespaceBeforeSave: (buffer) ->
+  whitespaceBeforeSave: (editSession) ->
+    buffer = editSession.buffer
     buffer.on 'will-be-saved', ->
       buffer.transact ->
         buffer.scan /[ \t]+$/g, ({replace}) -> replace('')
@@ -16,4 +17,6 @@ module.exports =
             while row and buffer.lineForRow(row) is ''
               buffer.deleteRow(row--)
           else
+            selectedBufferRanges = editSession.getSelectedBufferRanges()
             buffer.append('\n')
+            editSession.setSelectedBufferRanges(selectedBufferRanges)

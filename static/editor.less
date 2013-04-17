@@ -30,7 +30,6 @@
   cursor: default;
   min-width: 1em;
   box-sizing: border-box;
-  text-align: right;
 }
 
 .editor .gutter .line-number {
@@ -139,6 +138,10 @@
   position: absolute;
 }
 
+.editor .line {
+  white-space: pre;
+}
+
 .editor .line span {
   vertical-align: top;
 }
@@ -158,11 +161,14 @@
 }
 
 .editor .hidden-input {
+  padding: 0;
+  border: 0;
   position: absolute;
   z-index: -1;
   top: 0;
   left: 0;
   opacity: 0;
+  width: 1px;
 }
 
 .editor .selection .region {

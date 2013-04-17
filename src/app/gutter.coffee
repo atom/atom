@@ -16,7 +16,6 @@ class Gutter extends View
 
   firstScreenRow: Infinity
   lastScreenRow: -1
-  highestNumberWidth: null
 
   # Internal:
   afterAttach: (onDom) ->

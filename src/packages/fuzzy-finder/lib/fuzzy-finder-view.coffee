@@ -59,7 +59,7 @@ class FuzzyFinderView extends SelectList
         else
           typeClass = 'text-name'
 
-        @span fsUtils.base(path), class: "file label #{typeClass}"
+        @span fsUtils.base(path), class: "file #{typeClass}"
         if folder = project.relativize(fsUtils.directory(path))
           @span " - #{folder}/", class: 'directory'
 

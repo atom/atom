@@ -1,86 +1,10 @@
-html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
+@import "bootstrap/less/bootstrap.less";
+@import "root-view.less";
+@import "overlay.less";
+@import "popover-list.less";
+@import "notification.less";
+@import "markdown.less";
 
-#root-view {
-  height: 100%;
-  overflow: hidden;
-  position: relative;
-
-  #horizontal {
-    display: -webkit-flex;
-    height: 100%;
-  }
-
-  #vertical {
-    display: -webkit-flex;
-    -webkit-flex: 1;
-    -webkit-flex-flow: column;
-  }
-}
-
-#panes {
-  position: relative;
-  -webkit-flex: 1;
-
-  .column {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-y: hidden;
-  }
-
-  .row {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-x: hidden;
-  }
-
-  .pane {
-    position: absolute;
-    display: -webkit-flex;
-    -webkit-flex-flow: column;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    box-sizing: border-box;
-  }
-
-  .pane .item-views {
-    -webkit-flex: 1;
-    display: -webkit-flex;
-    -webkit-flex-flow: column;
-  }
-
-  .pane .item-views > * {
-    -webkit-flex: 1;
-    min-height: 0;
-  }
-}
-
-@font-face {
-  font-family: 'Octicons Regular';
-  src: url("octicons-regular-webfont.woff") format("woff");
-  font-weight: normal;
-  font-style: normal;
-}
-
-.is-loading {
-  background-image: url(images/spinner.svg);
-  background-repeat: no-repeat;
-  width: 14px;
-  height: 14px;
-  opacity: 0.5;
-  background-size: contain;
-  position: relative;
-  display: inline-block;
-  padding-left: 19px;
+:focus {
+  outline: none;
 }

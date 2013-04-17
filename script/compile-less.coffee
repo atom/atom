@@ -5,7 +5,7 @@ global.document =
 global.location =
   port: 80
 
-{less} = require '../vendor/less'
+less = require 'less'
 fs = require 'fs'
 
 inputFile = process.argv[2]
@@ -19,7 +19,19 @@ unless outputFile?.length > 0
   process.exit(1)
 
 contents = fs.readFileSync(inputFile)?.toString() ? ''
-(new less.Parser).parse contents, (e, tree) ->
-  console.error(e.stack or e) if e
-  process.exit(1) if e
-  fs.writeFileSync(outputFile, tree.toCSS())
+
+parser = new less.Parser
+  syncImport: true
+  paths: [fs.realpathSync("#{__dirname}/../static"), fs.realpathSync("#{__dirname}/../vendor")]
+  filename: inputFile
+
+logErrorAndExit = (e) ->
+  console.error("Error compiling less file '#{inputFile}':", e.message)
+  process.exit(1)
+
+parser.parse contents, (e, tree) ->
+  logErrorAndExit(e) if e
+  try
+    fs.writeFileSync(outputFile, tree.toCSS())
+  catch e
+    logErrorAndExit(e)

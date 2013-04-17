@@ -107,14 +107,13 @@ class BufferMarker
 
   handleBufferChange: (bufferChange) ->
     @consolidateObserverNotifications true, =>
-      @setHeadPosition(@updatePosition(@headPosition, bufferChange, false), clip: false, bufferChanged: true)
-      @setTailPosition(@updatePosition(@tailPosition, bufferChange, true), clip: false, bufferChanged: true) if @tailPosition
+      @setHeadPosition(@updatePosition(@headPosition, bufferChange, true), clip: false, bufferChanged: true)
+      @setTailPosition(@updatePosition(@tailPosition, bufferChange, false), clip: false, bufferChanged: true) if @tailPosition
 
-  updatePosition: (position, bufferChange, isFirstPoint) ->
+  updatePosition: (position, bufferChange, isHead) ->
     { oldRange, newRange } = bufferChange
 
-    return position if oldRange.containsPoint(position, exclusive: true)
-    return position if isFirstPoint and oldRange.start.isEqual(position)
+    return position if not isHead and oldRange.start.isEqual(position)
     return position if position.isLessThan(oldRange.end)
 
     newRow = newRange.end.row

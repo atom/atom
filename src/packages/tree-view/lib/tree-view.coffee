@@ -11,9 +11,10 @@ _ = require 'underscore'
 module.exports =
 class TreeView extends ScrollView
   @content: (rootView) ->
-    @div class: 'tree-view-wrapper', =>
-      @ol class: 'tree-view tool-panel', tabindex: -1, outlet: 'treeViewList'
-      @div class: 'tree-view-resizer', outlet: 'resizer'
+    @div class: 'tree-view-resizer', =>
+      @div class: 'tree-view-scroller', outlet: 'scroller', =>
+        @ol class: 'list-unstyled tree-view tool-panel', tabindex: -1, outlet: 'list'
+      @div class: 'tree-view-resize-handle', outlet: 'resizeHandle'
 
   root: null
   focusAfterAttach: false
@@ -23,7 +24,7 @@ class TreeView extends ScrollView
   initialize: (state) ->
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
-    @on 'mousedown', '.tree-view-resizer', (e) => @resizeStarted(e)
+    @on 'mousedown', '.tree-view-resize-handle', (e) => @resizeStarted(e)
     @command 'core:move-up', => @moveUp()
     @command 'core:move-down', => @moveDown()
     @command 'core:close', => @detach(); false
@@ -56,7 +57,6 @@ class TreeView extends ScrollView
   afterAttach: (onDom) ->
     @focus() if @focusAfterAttach
     @scrollTop(@scrollTopAfterAttach) if @scrollTopAfterAttach > 0
-    @find('.selected > .highlight').width(@treeViewList[0].scrollWidth)
 
   serialize: ->
     directoryExpansionStates: @root?.serializeEntryExpansionStates()
@@ -89,10 +89,10 @@ class TreeView extends ScrollView
     rootView.focus()
 
   focus: ->
-    @treeViewList.focus()
+    @list.focus()
 
   hasFocus: ->
-    @treeViewList.is(':focus')
+    @list.is(':focus')
 
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()
@@ -111,12 +111,10 @@ class TreeView extends ScrollView
   resizeStarted: (e) =>
     $(document.body).on('mousemove', @resizeTreeView)
     $(document.body).on('mouseup', @resizeStopped)
-    @css(overflow: 'hidden')
 
   resizeStopped: (e) =>
     $(document.body).off('mousemove', @resizeTreeView)
     $(document.body).off('mouseup', @resizeStopped)
-    @css(overflow: 'auto')
 
   resizeTreeView: (e) =>
     @css(width: e.pageX)
@@ -126,7 +124,7 @@ class TreeView extends ScrollView
 
     if rootDirectory = project.getRootDirectory()
       @root = new DirectoryView(directory: rootDirectory, isExpanded: true, project: project)
-      @treeViewList.append(@root)
+      @list.append(@root)
     else
       @root = null
 
@@ -162,7 +160,7 @@ class TreeView extends ScrollView
       else
         bestMatchEntry
 
-    @treeViewList.find(".entry").toArray().reduce(fn, @root)
+    @list.find(".entry").toArray().reduce(fn, @root)
 
   selectEntryForPath: (path) ->
     @selectEntry(@entryForPath(path))
@@ -189,7 +187,7 @@ class TreeView extends ScrollView
       else
         @selectEntry(selectedEntry.parents('.directory').first())
     else
-      @selectEntry(@treeViewList.find('.entry').last())
+      @selectEntry(@list.find('.entry').last())
 
     @scrollToEntry(@selectedEntry())
 
@@ -298,47 +296,43 @@ class TreeView extends ScrollView
     rootView.append(dialog)
 
   selectedEntry: ->
-    @treeViewList.find('.selected')?.view()
+    @list.find('.selected')?.view()
 
   selectEntry: (entry) ->
     return false unless entry.get(0)
     entry = entry.view() unless entry instanceof View
     @selectedPath = entry.getPath()
     @deselect()
-    entry.children('.highlight').width(@treeViewList[0].scrollWidth)
     entry.addClass('selected')
 
   deselect: ->
-    @treeViewList.find('.selected').removeClass('selected').children('.highlight').width('')
+    @list.find('.selected').removeClass('selected')
 
   scrollTop: (top) ->
-    if top
-      @treeViewList.scrollTop(top)
+    if top?
+      @scroller.scrollTop(top)
     else
-      @treeViewList.scrollTop()
+      @scroller.scrollTop()
 
   scrollBottom: (bottom) ->
-    if bottom
-      @treeViewList.scrollBottom(bottom)
+    if bottom?
+      @scroller.scrollBottom(bottom)
     else
-      @treeViewList.scrollBottom()
+      @scroller.scrollBottom()
 
   scrollToEntry: (entry) ->
     displayElement = if entry instanceof DirectoryView then entry.header else entry
-    top = @scrollTop() + displayElement.position().top
+    top = displayElement.position().top
     bottom = top + displayElement.outerHeight()
     if bottom > @scrollBottom()
-      @treeViewList.scrollBottom(bottom)
+      @scrollBottom(bottom)
     if top < @scrollTop()
-      @treeViewList.scrollTop(top)
+      @scrollTop(top)
 
   scrollToBottom: ->
-    super()
-
     @selectEntry(@root.find('.entry:last')) if @root
     @scrollToEntry(@root.find('.entry:last')) if @root
 
   scrollToTop: ->
-    super()
     @selectEntry(@root) if @root
-    @treeViewList.scrollTop(0)
+    @scrollTop(0)

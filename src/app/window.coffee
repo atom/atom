@@ -2,7 +2,7 @@ fs = require 'fs'
 fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
-{less} = require 'less'
+less = require 'less'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -25,12 +25,7 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  requireStylesheet 'reset'
   requireStylesheet 'atom'
-  requireStylesheet 'overlay'
-  requireStylesheet 'popover-list'
-  requireStylesheet 'notification'
-  requireStylesheet 'markdown'
 
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
@@ -140,13 +135,28 @@ window.requireStylesheet = (path) ->
     throw new Error("Could not find a file at path '#{path}'")
 
 window.loadStylesheet = (path) ->
-  content = fsUtils.read(path)
   if fsUtils.extension(path) == '.less'
-    (new less.Parser).parse content, (e, tree) ->
-      throw new Error(e.message, path, e.line) if e
-      content = tree.toCSS()
+    loadLessStylesheet(path)
+  else
+    fsUtils.read(path)
 
-  content
+window.loadLessStylesheet = (path) ->
+  parser = new less.Parser
+    syncImport: true
+    paths: config.lessSearchPaths
+    filename: path
+  try
+    content = null
+    parser.parse fsUtils.read(path), (e, tree) ->
+      throw e if e?
+      content = tree.toCSS()
+    content
+  catch e
+    console.error """
+      Error compiling less stylesheet: #{path}
+      Line number: #{e.line}
+      #{e.message}
+    """
 
 window.removeStylesheet = (path) ->
   unless fullPath = window.resolveStylesheet(path)
