@@ -404,10 +404,6 @@ class Editor extends View
     @verticalScrollbar.on 'scroll', =>
       @scrollTop(@verticalScrollbar.scrollTop(), adjustVerticalScrollbar: false)
 
-    unless @mini
-      @gutter.widthChanged = (newWidth) =>
-        @scrollView.css('left', newWidth + 'px')
-
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
