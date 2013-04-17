@@ -3,6 +3,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 GeneralConfigPanel = require 'general-config-panel'
 EditorConfigPanel = require 'editor-config-panel'
+PackageConfigPanel = require 'package-config-panel'
 
 module.exports =
 class ConfigView extends View
@@ -26,6 +27,7 @@ class ConfigView extends View
 
     @addPanel('General', new GeneralConfigPanel)
     @addPanel('Editor', new EditorConfigPanel)
+    @addPanel('Installed Packages', new PackageConfigPanel)
 
   addPanel: (name, panel) ->
     panelItem = $$ -> @li name: name, => @a name
