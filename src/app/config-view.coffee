@@ -15,20 +15,20 @@ class ConfigView extends View
 
   @content: ->
     @div id: 'config-view', =>
-      @ol id: 'panel-menu', outlet: 'panelMenu'
+      @ul id: 'panels-menu', class: 'nav nav-pills nav-stacked', outlet: 'panelMenu'
       @div id: 'panels', outlet: 'panels'
 
   initialize: ->
     @panelsByName = {}
     document.title = "Atom Configuration"
-    @on 'click', '#panel-menu li', (e) =>
-      @showPanel($(e.target).attr('name'))
+    @on 'click', '#panels-menu li a', (e) =>
+      @showPanel($(e.target).closest('li').attr('name'))
 
     @addPanel('General', new GeneralConfigPanel)
     @addPanel('Editor', new EditorConfigPanel)
 
   addPanel: (name, panel) ->
-    panelItem = $$ -> @li name: name, name
+    panelItem = $$ -> @li name: name, => @a name
     @panelMenu.append(panelItem)
     panel.hide()
     @panelsByName[name] = panel
