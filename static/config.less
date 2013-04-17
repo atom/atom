@@ -5,8 +5,9 @@
   display: -webkit-flex;
 
   #panels-menu {
-    margin: 10px;
     width: 150px;
+    margin-top: @line-height-base;
+    margin-left: @line-height-base;
 
     li a {
       cursor: pointer;
@@ -15,23 +16,11 @@
 
   #panels {
     -webkit-flex: 1;
+    padding: @line-height-base;
+    position: relative;
     overflow-y: auto;
 
-    .pull-left {
-      float: left;
-    }
-
-    .pull-right {
-      float: right;
-    }
-
     > div {
-      padding: 20px;
-
-      .section {
-        margin-bottom: 20px;
-      }
-
       .list-wrapper {
         width: 300px;
         margin-right: 10px;
@@ -78,17 +67,6 @@
         display: inline-block;
         cursor: pointer;
       }
-    }
-
-    .row {
-      margin-bottom: 10px;
-    }
-
-    label {
-      display: inline-block;
-      width: 180px;
-      text-align: right;
-      margin-right: 5px;
     }
   }
 }
