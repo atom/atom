@@ -1,5 +1,9 @@
 #!/bin/sh
-open -a /Applications/Atom.app -n --args --executed-from="$(pwd)" --pid=$$ $@
+ATOM_PATH=/Applications/Atom.app
+
+if [ ! -d $ATOM_PATH ]; then sleep 5; fi # Wait for Atom to reappear, Sparkle may be replacing it.
+
+open -a $ATOM_PATH -n --args --executed-from="$(pwd)" --pid=$$ $@
 
 # Used to exit process when atom is used as $EDITOR
 on_die() {
