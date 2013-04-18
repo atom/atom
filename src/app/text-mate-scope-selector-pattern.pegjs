@@ -18,24 +18,20 @@ segment
 
 scope
   = first:segment others:("." segment)* {
-    return function(scopes) {
+    return function(scope) {
       var segments = [first];
       for (var i = 0; i < others.length; i++)
         segments.push(others[i][1]);
-      for (var i = 0; i < scopes.length; i++) {
-        var scopeSegments = scopes[i].split(".");
-        if (scopeSegments.length < segments.length)
-          continue;
-        var allSegmentsMatch = true;
-        for (var j = 0; j < segments.length; j++)
-          if (!segments[j](scopeSegments[j])) {
-            allSegmentsMatch = false;
-            break;
-          }
-        if (allSegmentsMatch)
-          return true;
-      }
-      return false;
+
+      var scopeSegments = scope.split(".");
+      if (scopeSegments.length < segments.length)
+        return false;
+
+      var allSegmentsMatch = true;
+      for (var j = 0; j < segments.length; j++)
+        if (!segments[j](scopeSegments[j]))
+          return false;
+      return true;
     }
   }
 
