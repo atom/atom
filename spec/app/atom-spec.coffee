@@ -325,7 +325,6 @@ describe "the `atom` global", ->
       expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A2"
       atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
 
-
   describe "API documentation", ->
     it "meets a minimum threshold for /app (with no errors)", ->
       docRunner = jasmine.createSpy("docRunner")
