@@ -28,8 +28,8 @@ scope
         return false;
 
       var allSegmentsMatch = true;
-      for (var j = 0; j < segments.length; j++)
-        if (!segments[j](scopeSegments[j]))
+      for (var i = 0; i < segments.length; i++)
+        if (!segments[i](scopeSegments[i]))
           return false;
       return true;
     }
