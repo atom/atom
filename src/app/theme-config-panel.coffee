@@ -15,7 +15,9 @@ module.exports =
 class ThemeConfigPanel extends ConfigPanel
   @content: ->
     @div id: 'themes-config', =>
-      @legend "Themes"
+      @legend =>
+        @text "Themes"
+        @small id: 'description', class: 'pull-right text-right text-muted', "Multiple cascading themes can be enabled, with later themes taking precedence."
       @div id: 'theme-picker', =>
         @div class: 'panel', =>
           @div class: 'panel-heading', "Enabled Themes"
