@@ -150,6 +150,9 @@
     for (NSWindow *window in [self windows]) {
       if (![window isExcludedFromWindowsMenu]) {
         AtomWindowController *controller = [window windowController];
+        if (!controller.pathToOpen) {
+          continue;
+        }
         if (!openingDirectory) {
           BOOL openedPathIsDirectory = false;
           [[NSFileManager defaultManager] fileExistsAtPath:controller.pathToOpen isDirectory:&openedPathIsDirectory];
