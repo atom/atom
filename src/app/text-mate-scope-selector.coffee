@@ -15,4 +15,4 @@ class TextMateScopeSelector
     @matcher = TextMateScopeSelector.createParser().parse(@selector)
 
   matches: (scopes) ->
-    @matcher(scopes)
+    @matcher.matches(scopes)

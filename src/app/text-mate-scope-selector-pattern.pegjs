@@ -1,55 +1,28 @@
-start = _ match:(selector) _ {
-  return match;
+{
+  var matchers = require('text-mate-scope-selector-matchers');
+}
+
+start = _ selector:(selector) _ {
+  return selector;
 }
 
 segment
   = _ segment:[a-zA-Z0-9]+ _ {
-    var segment = segment.join("");
-    return function(scope) {
-      return scope === segment;
-    };
+    return new matchers.SegmentMatcher(segment);
   }
 
   / _ scopeName:[\*] _ {
-    return function() {
-      return true;
-    };
+    return new matchers.AsterixMatcher();
   }
 
 scope
   = first:segment others:("." segment)* {
-    return function(scope) {
-      var segments = [first];
-      for (var i = 0; i < others.length; i++)
-        segments.push(others[i][1]);
-
-      var scopeSegments = scope.split(".");
-      if (scopeSegments.length < segments.length)
-        return false;
-
-      for (var i = 0; i < segments.length; i++)
-        if (!segments[i](scopeSegments[i]))
-          return false;
-      return true;
-    }
+    return new matchers.ScopeMatcher(first, others);
   }
 
 path
   = first:scope others:(_ scope)* {
-    return function(scopes) {
-      var scopeMatchers = [first];
-      for (var i = 0; i < others.length; i++)
-        scopeMatchers.push(others[i][1]);
-
-      var matcher = scopeMatchers.shift();
-      for (var i = 0; i < scopes.length; i++) {
-        if (matcher(scopes[i]))
-          matcher = scopeMatchers.shift();
-        if (!matcher)
-          return true;
-      }
-      return false;
-    }
+    return new matchers.PathMatcher(first, others);
   }
 
 expression
@@ -61,30 +34,15 @@ expression
 
 composite
   = left:expression  _ operator:[|&-] _ right:composite {
-      switch(operator) {
-        case "|":
-          return function(scopes) {
-            return left(scopes) || right(scopes);
-          };
-        case "&":
-          return function(scopes) {
-            return left(scopes) && right(scopes);
-          };
-        case "-":
-          return function(scopes) {
-            return left(scopes) && !right(scopes);
-          };
-      }
-    }
+    return new matchers.CompositeMatcher(left, operator, right);
+  }
 
   / expression
 
 selector
   = left:composite _ "," _ right:selector {
-      return function(scopes) {
-        return left(scopes) || right(scopes);
-      };
-    }
+    return new matchers.OrMatcher(left, right);
+  }
 
   / composite
 
