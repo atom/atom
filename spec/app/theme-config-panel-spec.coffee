@@ -36,3 +36,8 @@ describe "ThemeConfigPanel", ->
         panel.enabledThemes.sortable('option', 'receive')(null, helper: dragHelper[0])
         panel.enabledThemes.sortable('option', 'update')()
         expect(config.get('core.themes')).toEqual ['atom-dark-ui', 'atom-dark-syntax']
+
+  describe "when the 'core.config' key is updated", ->
+    it "refreshes the enabled themes list", ->
+      config.set('core.themes', ['atom-light-ui', 'atom-light-syntax'])
+      expect(panel.getEnabledThemeNames()).toEqual ['atom-light-ui', 'atom-light-syntax']
