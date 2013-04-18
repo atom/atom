@@ -172,6 +172,17 @@ class Rule
 
   clearAnchorPosition: -> @anchorPosition = -1
 
+  createScanner: (patterns, firstLine, position) ->
+    anchored = false
+    regexes = _.map patterns, (pattern) =>
+      anchored = true if pattern.anchored
+      pattern.getRegex(firstLine, position, @anchorPosition)
+
+    scanner = new OnigScanner(regexes)
+    scanner.patterns = patterns
+    scanner.anchored = anchored
+    scanner
+
   getScanner: (ruleStack, baseGrammar, position, firstLine) ->
     return scanner if scanner = @scannersByBaseGrammarName[baseGrammar.name]
 
@@ -183,16 +194,10 @@ class Rule
         patterns.push(injection.patterns...)
         injected = true
 
-    anchored = false
-    regexes = _.map patterns, (pattern) =>
-      anchored = true if pattern.anchored
-      pattern.getRegex(firstLine, position, @anchorPosition)
-
-    regexScanner = new OnigScanner(regexes)
-    regexScanner.patterns = patterns
-    unless anchored or injected
-      @scannersByBaseGrammarName[baseGrammar.name] = regexScanner
-    regexScanner
+    scanner = @createScanner(patterns, firstLine, position)
+    unless scanner.anchored or injected
+      @scannersByBaseGrammarName[baseGrammar.name] = scanner
+    scanner
 
   getNextTokens: (ruleStack, line, position, firstLine) ->
     baseGrammar = ruleStack[0].grammar
