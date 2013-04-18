@@ -35,7 +35,7 @@ class TextMateGrammar
   maxTokensPerLine: 100
 
   constructor: ({ @name, @fileTypes, @scopeName, injections, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
-    injections = @parseInjections(injections)
+    injections = new Injections(this, injections)
     @initialRule = new Rule(this, {@scopeName, patterns, injections})
     @repository = {}
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
@@ -44,18 +44,6 @@ class TextMateGrammar
     for name, data of repository
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
       @repository[name] = new Rule(this, data)
-
-  parseInjections: (injections={}) ->
-    parsedInjections = []
-    for injectionKey, injectionValue of injections
-      continue unless injectionValue?.patterns?.length > 0
-      injectionPatterns = []
-      for pattern in injectionValue.patterns
-        injectionPatterns.push(new Pattern(this, pattern))
-      parsedInjections.push
-        patterns: injectionPatterns
-        matcher: new TextMateScopeSelector(injectionKey)
-    parsedInjections
 
   getScore: (path, contents) ->
     contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)
@@ -146,6 +134,28 @@ class TextMateGrammar
   getMaxTokensPerLine: ->
     @maxTokensPerLine
 
+class Injections
+  @injections: null
+
+  constructor: (grammar, injections={}) ->
+    @injections = []
+    for selector, values of injections
+      continue unless values?.patterns?.length > 0
+      patterns = []
+      for pattern in values.patterns
+        patterns.push(new Pattern(grammar, pattern))
+      @injections.push
+        selector: new TextMateScopeSelector(selector)
+        patterns: patterns
+
+  getPatterns: (ruleStack, patterns) ->
+    if @injections.length > 0
+      scopes = scopesFromStack(ruleStack)
+      for injection in @injections
+        if injection.selector.matches(scopes)
+          patterns.push(injection.patterns...)
+    patterns
+
 class Rule
   grammar: null
   scopeName: null
@@ -154,9 +164,8 @@ class Rule
   createEndPattern: null
   anchorPosition: -1
 
-  constructor: (@grammar, {@scopeName, patterns, injections, @endPattern}) ->
+  constructor: (@grammar, {@scopeName, patterns, @injections, @endPattern}) ->
     patterns ?= []
-    @injections = injections ? []
     @patterns = patterns.map (pattern) => new Pattern(grammar, pattern)
     @patterns.unshift(@endPattern) if @endPattern and !@endPattern.hasBackReferences
     @scannersByBaseGrammarName = {}
@@ -188,11 +197,7 @@ class Rule
 
     injected = false
     patterns = @getIncludedPatterns(baseGrammar)
-    scopes = scopesFromStack(ruleStack)
-    for injection in @injections
-      if injection.matcher.matches(scopes)
-        patterns.push(injection.patterns...)
-        injected = true
+    @injections?.getPatterns(ruleStack, patterns)
 
     scanner = @createScanner(patterns, firstLine, position)
     unless scanner.anchored or injected
