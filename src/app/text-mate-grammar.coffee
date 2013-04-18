@@ -139,22 +139,39 @@ class Injections
 
   constructor: (grammar, injections={}) ->
     @injections = []
+    @scanners = {}
     for selector, values of injections
       continue unless values?.patterns?.length > 0
       patterns = []
-      for pattern in values.patterns
-        patterns.push(new Pattern(grammar, pattern))
+      anchored = false
+      for regex in values.patterns
+        pattern = new Pattern(grammar, regex)
+        anchored = true if pattern.anchored
+        patterns.push(pattern)
       @injections.push
+        anchored: anchored
         selector: new TextMateScopeSelector(selector)
         patterns: patterns
 
-  getPatterns: (ruleStack, patterns) ->
-    if @injections.length > 0
-      scopes = scopesFromStack(ruleStack)
-      for injection in @injections
-        if injection.selector.matches(scopes)
-          patterns.push(injection.patterns...)
-    patterns
+  getScanner: (injection, firstLine, position, anchorPosition) ->
+    return injection.scanner if injection.scanner?
+
+    regexes = _.map injection.patterns, (pattern) ->
+      pattern.getRegex(firstLine, position, @anchorPosition)
+    scanner = new OnigScanner(regexes)
+    scanner.patterns = injection.patterns
+    scanner.anchored = injection.anchored
+    injection.scanner = scanner unless scanner.anchored
+    scanner
+
+  getScanners: (ruleStack, firstLine, position, anchorPosition) ->
+    scanners = []
+    scopes = scopesFromStack(ruleStack)
+    for injection in @injections
+      if injection.selector.matches(scopes)
+        scanner = @getScanner(injection, firstLine, position, anchorPosition)
+        scanners.push(scanner)
+    scanners
 
 class Rule
   grammar: null
@@ -192,24 +209,34 @@ class Rule
     scanner.anchored = anchored
     scanner
 
-  getScanner: (ruleStack, baseGrammar, position, firstLine) ->
+  getScanner: (baseGrammar, position, firstLine) ->
     return scanner if scanner = @scannersByBaseGrammarName[baseGrammar.name]
 
     injected = false
     patterns = @getIncludedPatterns(baseGrammar)
-    @injections?.getPatterns(ruleStack, patterns)
-
     scanner = @createScanner(patterns, firstLine, position)
     unless scanner.anchored or injected
       @scannersByBaseGrammarName[baseGrammar.name] = scanner
     scanner
 
+  scanInjections: (ruleStack, line, position, firstLine) ->
+    if @injections?
+      scanners = @injections.getScanners(ruleStack, position, firstLine, @anchorPosition)
+      for scanner in scanners
+        result = scanner.findNextMatch(line, position)
+        return {scanner, result} if result?
+    {}
+
   getNextTokens: (ruleStack, line, position, firstLine) ->
+    # Add a `\n` to appease patterns that contain '\n' explicitly
+    lineWithNewline = "#{line}\n"
     baseGrammar = ruleStack[0].grammar
 
-    scanner = @getScanner(ruleStack, baseGrammar, position, firstLine)
-    # Add a `\n` to appease patterns that contain '\n' explicitly
-    return null unless result = scanner.findNextMatch("#{line}\n", position)
+    scanner = @getScanner(baseGrammar, position, firstLine)
+    result = scanner.findNextMatch(lineWithNewline, position)
+    unless result?
+      {scanner, result} = @scanInjections(ruleStack, lineWithNewline, position, firstLine)
+    return null unless result?
     { index, captureIndices } = result
     # Since the `\n' (added above) is not part of the line, truncate captures to the line's actual length
     lineLength = line.length
