@@ -326,32 +326,10 @@ describe "the `atom` global", ->
       atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
 
 
-  fdescribe "API documentation", ->
+  describe "API documentation", ->
     it "meets a minimum threshold for /app (with no errors)", ->
       docRunner = jasmine.createSpy("docRunner")
       Exec "cd #{project.resolve('../..')} && rake docs:app:stats", docRunner
-      waitsFor ->
-        docRunner.callCount > 0
-
-      runs ->
-        # error
-        expect(docRunner.argsForCall[0][0]).toBeNull()
-
-        results = docRunner.argsForCall[0][1].split("\n")
-        results.pop()
-
-        errors = parseInt results.pop().match(/\d+/)
-        expect(errors).toBe 0
-
-        coverage = parseFloat results.pop().match(/.+?%/)
-        expect(coverage).toBeGreaterThan 85
-
-        # stderr
-        expect(docRunner.argsForCall[0][2]).toBe ''
-
-    it "meets a minimum threshold for /packages (with no errors)", ->
-      docRunner = jasmine.createSpy("docRunner")
-      Exec "cd #{project.resolve('../..')} && rake docs:packages:stats", docRunner
       waitsFor ->
         docRunner.callCount > 0
 
