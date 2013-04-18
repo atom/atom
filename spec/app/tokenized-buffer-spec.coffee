@@ -443,3 +443,27 @@ describe "TokenizedBuffer", ->
 
       expect(tokens[2].value).toBe '@"'
       expect(tokens[2].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c", "string.quoted.double.objc", "punctuation.definition.string.begin.objc"]
+
+  describe "when the grammar has injections", ->
+    beforeEach ->
+      atom.activatePackage('php.tmbundle', sync: true)
+      editSession = project.buildEditSession('hello.php', autoIndent: false)
+      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      editSession.setVisible(true)
+      fullyTokenize(tokenizedBuffer)
+
+    afterEach ->
+      editSession.destroy()
+
+    it "correctly includes the injected patterns when tokenizing", ->
+      functionLine = tokenizedBuffer.lineForScreenRow(0)
+      { tokens } = functionLine
+
+      expect(tokens[0].value).toBe "<?php"
+      expect(tokens[0].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "punctuation.section.embedded.begin.php"]
+
+      expect(tokens[2].value).toBe "function"
+      expect(tokens[2].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
+
+      expect(tokens[4].value).toBe "hello"
+      expect(tokens[4].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "entity.name.function.php"]

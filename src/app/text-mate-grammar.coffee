@@ -5,6 +5,7 @@ Token = require 'token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 nodePath = require 'path'
 pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
+TextMateScopeSelector = require 'text-mate-scope-selector'
 
 ###
 # Internal #
@@ -33,8 +34,9 @@ class TextMateGrammar
   firstLineRegex: null
   maxTokensPerLine: 100
 
-  constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
-    @initialRule = new Rule(this, {@scopeName, patterns})
+  constructor: ({ @name, @fileTypes, @scopeName, injections, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
+    injections = @parseInjections(injections)
+    @initialRule = new Rule(this, {@scopeName, patterns, injections})
     @repository = {}
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
@@ -42,6 +44,18 @@ class TextMateGrammar
     for name, data of repository
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
       @repository[name] = new Rule(this, data)
+
+  parseInjections: (injections={}) ->
+    parsedInjections = []
+    for injectionKey, injectionValue of injections
+      continue unless injectionValue?.patterns?.length > 0
+      injectionPatterns = []
+      for pattern in injectionValue.patterns
+        injectionPatterns.push(new Pattern(this, pattern))
+      parsedInjections.push
+        patterns: injectionPatterns
+        matcher: new TextMateScopeSelector(injectionKey)
+    parsedInjections
 
   getScore: (path, contents) ->
     contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)
@@ -140,8 +154,9 @@ class Rule
   createEndPattern: null
   anchorPosition: -1
 
-  constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
+  constructor: (@grammar, {@scopeName, patterns, injections, @endPattern}) ->
     patterns ?= []
+    @injections = injections ? []
     @patterns = patterns.map (pattern) => new Pattern(grammar, pattern)
     @patterns.unshift(@endPattern) if @endPattern and !@endPattern.hasBackReferences
     @scannersByBaseGrammarName = {}
@@ -157,12 +172,19 @@ class Rule
 
   clearAnchorPosition: -> @anchorPosition = -1
 
-  getScanner: (baseGrammar, position, firstLine) ->
+  getScanner: (ruleStack, baseGrammar, position, firstLine) ->
     return scanner if scanner = @scannersByBaseGrammarName[baseGrammar.name]
 
     anchored = false
+    injected = true
     regexes = []
     patterns = @getIncludedPatterns(baseGrammar)
+    scopes = scopesFromStack(ruleStack)
+    for injection in @injections
+      if injection.matcher.matches(scopes)
+        patterns.push(injection.patterns...)
+        injected = true
+
     patterns.forEach (pattern) =>
       if pattern.anchored
         anchored = true
@@ -173,14 +195,14 @@ class Rule
 
     regexScanner = new OnigScanner(regexes)
     regexScanner.patterns = patterns
-    @scannersByBaseGrammarName[baseGrammar.name] = regexScanner unless anchored
+    unless anchored or injected
+      @scannersByBaseGrammarName[baseGrammar.name] = regexScanner
     regexScanner
 
   getNextTokens: (ruleStack, line, position, firstLine) ->
     baseGrammar = ruleStack[0].grammar
-    patterns = @getIncludedPatterns(baseGrammar)
 
-    scanner = @getScanner(baseGrammar, position, firstLine)
+    scanner = @getScanner(ruleStack, baseGrammar, position, firstLine)
     # Add a `\n` to appease patterns that contain '\n' explicitly
     return null unless result = scanner.findNextMatch("#{line}\n", position)
     { index, captureIndices } = result
@@ -191,7 +213,7 @@ class Rule
       value
 
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
-    nextTokens = patterns[index].handleMatch(ruleStack, line, captureIndices)
+    nextTokens = scanner.patterns[index].handleMatch(ruleStack, line, captureIndices)
     { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
 
   getRuleToPush: (line, beginPatternCaptureIndices) ->
