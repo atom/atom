@@ -1,8 +1,8 @@
 _ = require 'underscore'
 
+# Internal: The object in charge of managing redo and undo operations.
 module.exports =
 
-# Internal: The object in charge of managing redo and undo operations.
 class UndoManager
   undoHistory: null
   redoHistory: null
