@@ -33,3 +33,9 @@ describe "TextMateScopeSelector", ->
     expect(new TextMateScopeSelector('(a,b) | (c, d)').matches(['c'])).toBeTruthy()
     expect(new TextMateScopeSelector('(a,b) | (c, d)').matches(['d'])).toBeTruthy()
     expect(new TextMateScopeSelector('(a,b) | (c, d)').matches(['e'])).toBeFalsy()
+
+  it "matches paths", ->
+    expect(new TextMateScopeSelector('a b').matches(['a', 'b'])).toBeTruthy()
+    expect(new TextMateScopeSelector('a b').matches(['b', 'a'])).toBeFalsy()
+    expect(new TextMateScopeSelector('a c').matches(['a', 'b', 'c', 'd', 'e'])).toBeTruthy()
+    expect(new TextMateScopeSelector('a b e').matches(['a', 'b', 'c', 'd', 'e'])).toBeTruthy()

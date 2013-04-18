@@ -39,8 +39,26 @@ scope
     }
   }
 
+path
+  = first:scope others:(_ scope)* {
+    return function(scopes) {
+      var scopeMatchers = [first];
+      for (var i = 0; i < others.length; i++)
+        scopeMatchers.push(others[i][1]);
+
+      var matcher = scopeMatchers.shift();
+      for (var i = 0; i < scopes.length; i++) {
+        if (matcher(scopes[i]))
+          matcher = scopeMatchers.shift();
+        if (!matcher)
+          return true;
+      }
+      return false;
+    }
+  }
+
 expression
-  = scope
+  = path
 
   / "(" _ selector:selector _ ")" {
     return selector;
