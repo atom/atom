@@ -60,26 +60,11 @@ class ImageView extends ScrollView
     else
       @image.hide()
 
-  # Internal:
-  setModel: (imageEditSession) ->
-    @setPath(imageEditSession?.getPath())
-
-
   # Public: Retrieve's the {Editor}'s pane.
   #
   # Returns a {Pane}.
   getPane: ->
     @parent('.item-views').parent('.pane').view()
-
-  # Internal: 
-  adjustSize: (factor) ->
-    return unless @loaded and @isVisible()
-
-    newWidth = @image.width() * factor
-    newHeight = @image.height() * factor
-    @image.width(newWidth)
-    @image.height(newHeight)
-    @centerImage()
 
   # Public: Zooms the image out.
   #
@@ -100,3 +85,19 @@ class ImageView extends ScrollView
     @image.width(@originalWidth)
     @image.height(@originalHeight)
     @centerImage()
+
+  ###
+  # Internal #
+  ###
+
+  adjustSize: (factor) ->
+    return unless @loaded and @isVisible()
+
+    newWidth = @image.width() * factor
+    newHeight = @image.height() * factor
+    @image.width(newWidth)
+    @image.height(newHeight)
+    @centerImage()
+
+  setModel: (imageEditSession) ->
+    @setPath(imageEditSession?.getPath())

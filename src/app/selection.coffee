@@ -13,7 +13,10 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
     @editSession.observeMarker @marker, => @screenRangeChanged()
@@ -21,7 +24,6 @@ class Selection
       @cursor = null
       @destroy()
 
-  # Internal:
   destroy: ->
     return if @destroyed
     @destroyed = true
@@ -29,12 +31,18 @@ class Selection
     @trigger 'destroyed' unless @editSession.destroyed
     @cursor?.destroy()
 
-  # Internal:
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
     if @isEmpty()
       @wordwise = false
       @linewise = false
+
+  clearAutoscroll: ->
+    @needsAutoscroll = null
+    
+  ###
+  # Public #
+  ###
 
   # Public: Identifies if the selection is highlighting anything.
   #
@@ -53,10 +61,6 @@ class Selection
   # Returns a {Boolean}.
   isSingleScreenLine: ->
     @getScreenRange().isSingleLine()
-
-  # Internal:
-  clearAutoscroll: ->
-    @needsAutoscroll = null
 
   # Public: Retrieves the screen range for the selection.
   #

@@ -2,12 +2,12 @@ _ = require 'underscore'
 
 module.exports =
 
+# Internal: The object in charge of managing redo and undo operations.
 class UndoManager
   undoHistory: null
   redoHistory: null
   currentTransaction: null
 
-  # Internal: 
   constructor: ->
     @clear()
 

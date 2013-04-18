@@ -7,12 +7,14 @@ PaneColumn = require 'pane-column'
 module.exports =
 class Pane extends View
 
-  # Internal: Defines the pane's DOM.
+  ###
+  # Internal #
+  ###
+
   @content: (wrappedView) ->
     @div class: 'pane', =>
       @div class: 'item-views', outlet: 'itemViews'
 
-  # Internal:
   @deserialize: ({items, focused, activeItemUri}) ->
     deserializedItems = _.compact(items.map((item) -> deserialize(item)))
     pane = new Pane(deserializedItems...)
@@ -62,6 +64,10 @@ class Pane extends View
     return if @attached
     @attached = true
     @trigger 'pane:attached', [this]
+
+  ###
+  # Public #
+  ###
 
   makeActive: ->
     for pane in @getContainer().getPanes() when pane isnt this

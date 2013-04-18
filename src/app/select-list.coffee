@@ -6,7 +6,10 @@ fuzzyFilter = require 'fuzzy-filter'
 module.exports =
 class SelectList extends View
 
-  # Internal: Establishes the DOM for the selection list.
+  ###
+  # Internal #
+  ###
+
   @content: ->
     @div class: @viewClass(), =>
       @subview 'miniEditor', new Editor(mini: true)
@@ -21,7 +24,6 @@ class SelectList extends View
   inputThrottle: 50
   cancelling: false
 
-  # Internal:
   initialize: ->
     requireStylesheet 'select-list'
 

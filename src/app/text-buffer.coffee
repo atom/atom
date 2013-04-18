@@ -29,10 +29,6 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
-  # Internal:
-  @deserialize: ({path, text}) ->
-    project.bufferForPath(path, text)
-
   # Public: Creates a new buffer.
   #
   # path - A {String} representing the file path
@@ -59,7 +55,10 @@ class Buffer
 
     @undoManager = new UndoManager(this)
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
     @file?.off()
@@ -75,20 +74,14 @@ class Buffer
     @destroy() if @refcount <= 0
     this
 
-  # Internal:
   serialize: ->
     deserializer: 'TextBuffer'
     path: @getPath()
     text: @getText() if @isModified()
 
-  # Public: Identifies if the buffer belongs to multiple editors.
-  #
-  # For example, if the {Editor} was split.
-  #
-  # Returns a {Boolean}. 
-  hasMultipleEditors: -> @refcount > 1
+  @deserialize: ({path, text}) ->
+    project.bufferForPath(path, text)
 
-  # Internal:
   subscribeToFile: ->
     @file.on "contents-changed", =>
       if @isModified()
@@ -104,6 +97,17 @@ class Buffer
 
     @file.on "moved", =>
       @trigger "path-changed", this
+      
+  ###
+  # Public #
+  ###
+
+  # Public: Identifies if the buffer belongs to multiple editors.
+  #
+  # For example, if the {Editor} was split.
+  #
+  # Returns a {Boolean}. 
+  hasMultipleEditors: -> @refcount > 1
 
   # Public: Reloads a file in the {EditSession}.
   #

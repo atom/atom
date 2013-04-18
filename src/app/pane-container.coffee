@@ -6,25 +6,29 @@ module.exports =
 class PaneContainer extends View
   registerDeserializer(this)
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   @deserialize: ({root}) ->
     container = new PaneContainer
     container.append(deserialize(root)) if root
     container.removeEmptyPanes()
     container
 
-  # Internal: The DOM of the pane container.
   @content: ->
     @div id: 'panes'
 
-  # Internal:
   initialize: ->
     @destroyedItemStates = []
 
-  # Internal:
   serialize: ->
     deserializer: 'PaneContainer'
     root: @getRoot()?.serialize()
+ 
+  ###
+  # Public #
+  ###
 
   focusNextPane: ->
     panes = @getPanes()

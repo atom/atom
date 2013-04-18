@@ -4,7 +4,7 @@ $ = require 'jquery'
 # Internal:
 module.exports =
 class PaneAxis extends View
-  # Internal:
+
   @deserialize: ({children}) ->
     childViews = children.map (child) -> deserialize(child)
     new this(childViews)

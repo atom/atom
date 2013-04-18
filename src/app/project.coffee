@@ -17,10 +17,6 @@ module.exports =
 class Project
   registerDeserializer(this)
 
-  # Internal:
-  @deserialize: (state) ->
-    new Project(state.path)
-
   tabLength: 2
   softTabs: true
   softWrap: false
@@ -36,14 +32,23 @@ class Project
     @editSessions = []
     @buffers = []
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   serialize: ->
     deserializer: 'Project'
     path: @getPath()
 
-  # Internal:
+  @deserialize: (state) ->
+    new Project(state.path)
+
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
+
+  ###
+  # Public #
+  ###
 
   # Public: Retrieves the project path.
   #
@@ -153,7 +158,16 @@ class Project
     else
       @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
 
-  # Internal:
+  # Public: Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
+  #
+  # Returns an {Array} of {EditSession}s.
+  getEditSessions: ->
+    new Array(@editSessions...)
+
+  ###
+  # Internal #
+  ###
+
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
     options.project = this
@@ -163,23 +177,29 @@ class Project
     @trigger 'edit-session-created', editSession
     editSession
 
-  # Internal:
   defaultEditSessionOptions: ->
     tabLength: @tabLength
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()
 
-  # Public: Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
-  #
-  # Returns an {Array} of {EditSession}s.
-  getEditSessions: ->
-    new Array(@editSessions...)
-
-  # Internal:
   eachEditSession: (callback) ->
     callback(editSession) for editSession in @getEditSessions()
     @on 'edit-session-created', (editSession) -> callback(editSession)
   
+  eachBuffer: (args...) ->
+    subscriber = args.shift() if args.length > 1
+    callback = args.shift()
+
+    callback(buffer) for buffer in @getBuffers()
+    if subscriber
+      subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
+    else
+      @on 'buffer-created', (buffer) -> callback(buffer)
+
+  ###
+  # Public #
+  ###
+
   # Public: Removes an {EditSession} association from the project.
   #
   # Returns the removed {EditSession}.
@@ -194,17 +214,6 @@ class Project
     for editSession in @editSessions when not _.include(buffers, editSession.buffer)
       buffers.push editSession.buffer
     buffers
-
-  # Internal:
-  eachBuffer: (args...) ->
-    subscriber = args.shift() if args.length > 1
-    callback = args.shift()
-
-    callback(buffer) for buffer in @getBuffers()
-    if subscriber
-      subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
-    else
-      @on 'buffer-created', (buffer) -> callback(buffer)
 
   # Public: Given a file path, this retrieves or creates a new {Buffer}.
   #
@@ -236,6 +245,9 @@ class Project
     @trigger 'buffer-created', buffer
     buffer
 
+  # Public: Removes a {Buffer} association from the project.
+  #
+  # Returns the removed {Buffer}.
   removeBuffer: (buffer) ->
     _.remove(@buffers, buffer)
 

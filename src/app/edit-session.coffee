@@ -67,30 +67,6 @@ class EditSession
   getViewClass: ->
     require 'editor'
 
-  # Public: Retrieves the filename of the open file.
-  #
-  # This is `'untitled'` if the file is new and not saved to the disk.
-  # 
-  # Returns a {String}.
-  getTitle: ->
-    if path = @getPath()
-      fsUtils.base(path)
-    else
-      'untitled'
-
-  # Public: Retrieves the filename of the open file, followed by a dash, then the file's directory.
-  #
-  # If the file is brand new, the title is `untitled`.
-  #
-  # Returns a {String}.
-  getLongTitle: ->
-    if path = @getPath()
-      fileName = fsUtils.base(path)
-      directory = fsUtils.base(fsUtils.directory(path))
-      "#{fileName} - #{directory}"
-    else
-      'untitled'
-
   destroy: ->
     return if @destroyed
     @destroyed = true
@@ -116,6 +92,34 @@ class EditSession
   # Returns an identical `EditSession`.
   copy: ->
     EditSession.deserialize(@serialize(), @project)
+
+  ###
+  # Public #
+  ###
+
+  # Public: Retrieves the filename of the open file.
+  #
+  # This is `'untitled'` if the file is new and not saved to the disk.
+  # 
+  # Returns a {String}.
+  getTitle: ->
+    if path = @getPath()
+      fsUtils.base(path)
+    else
+      'untitled'
+
+  # Public: Retrieves the filename of the open file, followed by a dash, then the file's directory.
+  #
+  # If the file is brand new, the title is `untitled`.
+  #
+  # Returns a {String}.
+  getLongTitle: ->
+    if path = @getPath()
+      fileName = fsUtils.base(path)
+      directory = fsUtils.base(fsUtils.directory(path))
+      "#{fileName} - #{directory}"
+    else
+      'untitled'
 
   # Public: Compares two `EditSession`s to determine equality.
   #
@@ -309,7 +313,10 @@ class EditSession
   #
   # Returns a {Boolean}.
   isModified: -> @buffer.isModified()
-  # Internal:
+  # Public: Identifies if the modified buffer should let you know if it's closing
+  # without being saved.
+  #
+  # Returns a {Boolean}.
   shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
 
   # Public: Given a buffer position, this converts it into a screen position.
@@ -524,7 +531,10 @@ class EditSession
   redo: ->
     @buffer.redo(this)
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   transact: (fn) ->
     isNewTransaction = @buffer.transact()
     oldSelectedRanges = @getSelectedBufferRanges()
@@ -536,7 +546,6 @@ class EditSession
       @commit() if isNewTransaction
       result
 
-  # Internal:
   commit: ->
     newSelectedRanges = @getSelectedBufferRanges()
     @pushOperation
@@ -544,9 +553,12 @@ class EditSession
         editSession?.setSelectedBufferRanges(newSelectedRanges)
     @buffer.commit()
 
-  # Internal:
   abort: ->
     @buffer.abort()
+
+  ###
+  # Public #
+  ###
 
   # Public: Folds all the rows.
   foldAll: ->

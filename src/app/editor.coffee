@@ -26,7 +26,10 @@ class Editor extends View
 
   @nextEditorId: 1
 
-  # Internal: Establishes the DOM for the editor.
+  ###
+  # Internal #
+  ### 
+
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
       @subview 'gutter', new Gutter
@@ -38,7 +41,6 @@ class Editor extends View
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
-  # Internal: Defines the classes available to the editor. 
   @classes: ({mini} = {}) ->
     classes = ['editor']
     classes.push 'mini' if mini
@@ -185,6 +187,10 @@ class Editor extends View
     for name, method of editorBindings
       do (name, method) =>
         @command name, (e) => method.call(this, e); false
+
+  ###
+  # Public #
+  ###
 
   # Public: Retrieves a single cursor
   #

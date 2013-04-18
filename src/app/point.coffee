@@ -160,10 +160,6 @@ class Point
   isGreaterThanOrEqual: (other) ->
     @compare(other) >= 0
 
-  # Internal:
-  inspect: ->
-    "(#{@row}, #{@column})"
-
   # Public: Converts the {Point} to a String.
   #
   # Returns a {String}.
@@ -176,6 +172,13 @@ class Point
   toArray: ->
     [@row, @column]
 
+  ###
+  # Internal #
+  ###
+  
+  inspect: ->
+    "(#{@row}, #{@column})"
+    
   # Internal:
   serialize: ->
     @toArray()
