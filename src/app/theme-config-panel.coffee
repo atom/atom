@@ -33,7 +33,8 @@ class ThemeConfigPanel extends ConfigPanel
       @enabledThemes.append(@buildThemeLi(name))
 
     @enabledThemes.sortable
-      receive: @receiveEnabledTheme
+      receive: (e, ui) => @enabledThemeReceived($(ui.helper))
+      update: => @enabledThemesUpdated()
 
   buildThemeLi: (name, {draggable} = {}) ->
     li = $$ ->
@@ -50,7 +51,16 @@ class ThemeConfigPanel extends ConfigPanel
     else
       li
 
-  receiveEnabledTheme: (e, ui) =>
-    name = $(ui.helper).attr('name')
+  enabledThemeReceived: (helper) ->
+    console.log "RECEIVE", helper
+    name = helper.attr('name')
     @enabledThemes.find("[name='#{name}']:not('.ui-draggable')").remove()
     @enabledThemes.find(".ui-draggable").removeClass('ui-draggable')
+
+  enabledThemesUpdated: ->
+    console.log "enabledThemesUpdated"
+    console.log @getEnabledThemeNames()
+    config.set('core.themes', @getEnabledThemeNames())
+
+  getEnabledThemeNames: ->
+    $(li).attr('name') for li in @enabledThemes.children().toArray()
