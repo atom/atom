@@ -446,6 +446,7 @@ describe "TokenizedBuffer", ->
 
   describe "when the grammar has injections", ->
     beforeEach ->
+      atom.activatePackage('html.tmbundle', sync: true)
       atom.activatePackage('php.tmbundle', sync: true)
       editSession = project.buildEditSession('hello.php', autoIndent: false)
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
@@ -456,14 +457,25 @@ describe "TokenizedBuffer", ->
       editSession.destroy()
 
     it "correctly includes the injected patterns when tokenizing", ->
-      functionLine = tokenizedBuffer.lineForScreenRow(0)
-      { tokens } = functionLine
+      { tokens } = tokenizedBuffer.lineForScreenRow(0)
 
-      expect(tokens[0].value).toBe "<?php"
-      expect(tokens[0].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "punctuation.section.embedded.begin.php"]
+      expect(tokens[3].value).toBe "<?php"
+      expect(tokens[3].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "punctuation.section.embedded.begin.php"]
 
-      expect(tokens[2].value).toBe "function"
-      expect(tokens[2].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
+      expect(tokens[5].value).toBe "function"
+      expect(tokens[5].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
 
-      expect(tokens[4].value).toBe "hello"
-      expect(tokens[4].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "entity.name.function.php"]
+      expect(tokens[7].value).toBe "hello"
+      expect(tokens[7].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "entity.name.function.php"]
+
+      expect(tokens[14].value).toBe "?"
+      expect(tokens[14].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "punctuation.section.embedded.end.php", "source.php"]
+
+      expect(tokens[15].value).toBe ">"
+      expect(tokens[15].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "punctuation.section.embedded.end.php"]
+
+      expect(tokens[16].value).toBe "</"
+      expect(tokens[16].scopes).toEqual ["text.html.php", "meta.tag.block.any.html", "punctuation.definition.tag.begin.html"]
+
+      expect(tokens[17].value).toBe "div"
+      expect(tokens[17].scopes).toEqual ["text.html.php", "meta.tag.block.any.html", "entity.name.tag.block.any.html"]

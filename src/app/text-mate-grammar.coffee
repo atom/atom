@@ -35,8 +35,8 @@ class TextMateGrammar
   maxTokensPerLine: 100
 
   constructor: ({ @name, @fileTypes, @scopeName, injections, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
-    injections = new Injections(this, injections)
-    @initialRule = new Rule(this, {@scopeName, patterns, injections})
+    @injections = new Injections(this, injections)
+    @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
@@ -181,7 +181,7 @@ class Rule
   createEndPattern: null
   anchorPosition: -1
 
-  constructor: (@grammar, {@scopeName, patterns, @injections, @endPattern}) ->
+  constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
     patterns ?= []
     @patterns = patterns.map (pattern) => new Pattern(grammar, pattern)
     @patterns.unshift(@endPattern) if @endPattern and !@endPattern.hasBackReferences
@@ -218,30 +218,46 @@ class Rule
     scanner
 
   scanInjections: (ruleStack, line, position, firstLine) ->
-    if @injections?
-      scanners = @injections.getScanners(ruleStack, position, firstLine, @anchorPosition)
+    baseGrammar = ruleStack[0].grammar
+    if injections = baseGrammar.injections
+      scanners = injections.getScanners(ruleStack, position, firstLine, @anchorPosition)
       for scanner in scanners
         result = scanner.findNextMatch(line, position)
-        return {scanner, result} if result?
-    {}
+        result?.scanner = scanner
+        return result if result?
 
-  getNextTokens: (ruleStack, line, position, firstLine) ->
-    # Add a `\n` to appease patterns that contain '\n' explicitly
+  normalizeCaptureIndices: (line, captureIndices) ->
+    lineLength = line.length
+    for value, index in captureIndices
+      if index % 3 isnt 0 and value > lineLength
+        captureIndices[index] = lineLength
+
+  findNextMatch: (ruleStack, line, position, firstLine) ->
     lineWithNewline = "#{line}\n"
     baseGrammar = ruleStack[0].grammar
 
     scanner = @getScanner(baseGrammar, position, firstLine)
     result = scanner.findNextMatch(lineWithNewline, position)
-    unless result?
-      {scanner, result} = @scanInjections(ruleStack, lineWithNewline, position, firstLine)
-    return null unless result?
-    { index, captureIndices } = result
-    # Since the `\n' (added above) is not part of the line, truncate captures to the line's actual length
-    lineLength = line.length
-    captureIndices = captureIndices.map (value, index) ->
-      value = lineLength if index % 3 != 0 and value > lineLength
-      value
+    result?.scanner = scanner
+    @normalizeCaptureIndices(line, result.captureIndices) if result?
 
+    injectionResult = @scanInjections(ruleStack, lineWithNewline, position, firstLine)
+    @normalizeCaptureIndices(line, injectionResult.captureIndices) if injectionResult?
+
+    if result? and injectionResult?
+      resultStartPosition = result.captureIndices[1]
+      injectionResultStartPosition = injectionResult.captureIndices[1]
+      if injectionResultStartPosition < resultStartPosition
+        injectionResult
+      else
+        result
+    else
+      result ? injectionResult
+
+  getNextTokens: (ruleStack, line, position, firstLine) ->
+    result = @findNextMatch(ruleStack, line, position, firstLine)
+    return null unless result?
+    { index, captureIndices, scanner } = result
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
     nextTokens = scanner.patterns[index].handleMatch(ruleStack, line, captureIndices)
     { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }

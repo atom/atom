@@ -1,1 +1,1 @@
-<?php function hello() {} ?>
+<div><?php function hello() {} ?></div>
