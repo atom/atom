@@ -159,7 +159,7 @@ window.deserializeConfigWindow = ->
   $(rootViewParentSelector).append(configView)
 
 window.stylesheetElementForId = (id) ->
-  $("head style[id='#{id}']")
+  $("""head style[id="#{id}"]""")
 
 window.resolveStylesheet = (path) ->
   if fsUtils.extension(path).length > 0
