@@ -398,24 +398,10 @@ class Pattern
 
   getTokensForCaptureRule: (rule, line, captureStart, captureEnd, scopes, stack) ->
     line = line.substring(captureStart, captureEnd)
-    lineLength = line.length
-    position = 0
-    stack = [stack..., rule]
-    tokens = []
-    while position < lineLength
-      nextTokens = rule.getNextTokens(stack, line, position, false)
-      break unless nextTokens?
-      break if nextTokens.tokensEndPosition <= position
-      if nextTokens.tokensStartPosition > position
-        tokens.push(new Token(
-          value: line[position...nextTokens.tokensStartPosition]
-          scopes: scopes
-        ))
-      position = nextTokens.tokensEndPosition
-      tokens.push(nextTokens.nextTokens...)
-
-    {tokens, tokensEndPosition: captureStart + position}
-
+    {tokens} = rule.grammar.tokenizeLine(line, [stack..., rule])
+    matchLength = 0
+    matchLength += token.value.length for token in tokens
+    {captureTokens: tokens, matchEndPosition: captureStart + matchLength}
 
   getTokensForCaptureIndices: (line, captureIndices, scopes, stack) ->
     [parentCaptureIndex, parentCaptureStart, parentCaptureEnd] = shiftCapture(captureIndices)
@@ -425,9 +411,9 @@ class Pattern
       scopes = scopes.concat(scope)
 
     if captureRule = @captures[parentCaptureIndex]?.rule
-      ruleTokens = @getTokensForCaptureRule(captureRule, line, parentCaptureStart, parentCaptureEnd, scopes, stack)
-      tokens.push(ruleTokens.tokens...)
-      parentCaptureStart = ruleTokens.tokensEndPosition
+      {captureTokens, matchEndPosition} = @getTokensForCaptureRule(captureRule, line, parentCaptureStart, parentCaptureEnd, scopes, stack)
+      tokens.push(captureTokens...)
+      parentCaptureStart = matchEndPosition
 
     previousChildCaptureEnd = parentCaptureStart
     while captureIndices.length and captureIndices[1] < parentCaptureEnd
