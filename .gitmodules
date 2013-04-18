@@ -79,3 +79,6 @@
 [submodule "vendor/bootstrap"]
 	path = vendor/bootstrap
 	url = https://github.com/twitter/bootstrap
+[submodule "vendor/packages/pegjs.tmbundle"]
+	path = vendor/packages/pegjs.tmbundle
+	url = https://github.com/alexstrat/PEGjs.tmbundle
