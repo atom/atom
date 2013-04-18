@@ -18,58 +18,90 @@
 
   #panels {
     -webkit-flex: 1;
+    -webkit-flex-flow: column;
+    display: -webkit-flex;
     padding: @line-height-base;
     position: relative;
     overflow-y: auto;
 
     > div {
-      .list-wrapper {
-        width: 300px;
-        margin-right: 10px;
-      }
+      -webkit-flex: 1;
+    }
+  }
 
-      .list-header {
-        box-sizing: border-box;
-        background: #eee;
-        padding: 10px;
-        border: 1px solid #ccc;
-      }
+  #themes-config {
+    height: 100%;
+    display: -webkit-flex;
+    -webkit-flex-flow: column;
 
-      li.ui-draggable-dragging, li.ui-sortable-helper {
-        width: 300px;
-        background: white;
-        border: 1px solid #eee;
-        padding: 10px;
-      }
+    #theme-picker {
+      -webkit-flex: 1;
+      display: -webkit-flex;
+      min-height: 0;
 
-      ol {
-        box-sizing: border-box;
-        height: 400px;
-        overflow-y:  auto;
-        border: 1px solid #ccc;
-        border-top-width: 0;
-        background: #fafafa;
+      .panel {
+        -webkit-flex: 1;
+        display: -webkit-flex;
+        -webkit-flex-flow: column;
+        min-height: 0;
+        &:first-child { margin-right: @line-height-base / 2; }
+        &:last-child { margin-left: @line-height-base / 2; }
 
-        li {
-          padding: 10px;
-          border-bottom: 1px solid #eee;
-          background: white;
+        .panel-heading {
+          margin-bottom: 0;
+        }
 
-          input[type='checkbox'] {
-            margin-right: 10px;
-          }
+        ol {
+          margin-top: 0;
+          -webkit-flex: 1;
+          min-height: 0;
+          overflow: auto;
 
-          .close-icon {
-            display: none;
+          li {
+            &:first-child { border-top: 0; }
           }
         }
       }
-
-      #enabled-theme-list li:hover .close-icon {
-        display: inline-block;
-        cursor: pointer;
-      }
     }
+
+    li.ui-draggable-dragging, li.ui-sortable-helper {
+      border: 0;
+      box-sizing: content-box;
+      background: white;
+      border-radius: 0;
+      box-shadow: 0 0 5px rgba(0, 0, 0, .5);
+    }
+
+/*    li.ui-draggable-dragging, li.ui-sortable-helper {
+      width: 300px;
+      background: white;
+      border: 1px solid #eee;
+      padding: 10px;
+    }
+
+    ol {
+      box-sizing: border-box;
+      height: 400px;
+      overflow-y:  auto;
+      border: 1px solid #ccc;
+      border-top-width: 0;
+      background: #fafafa;
+
+      li {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        background: white;
+
+        input[type='checkbox'] {
+          margin-right: 10px;
+        }
+
+        .close-icon {
+          display: none;
+        }
+      }
+    }*/
+
   }
 
   #packages {
