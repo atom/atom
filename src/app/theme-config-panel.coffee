@@ -32,7 +32,8 @@ class ThemeConfigPanel extends ConfigPanel
     for name in config.get("core.themes") ? []
       @enabledThemes.append(@buildThemeLi(name))
 
-    @enabledThemes.sortable()
+    @enabledThemes.sortable
+      receive: @receiveEnabledTheme
 
   buildThemeLi: (name, {draggable} = {}) ->
     li = $$ ->
@@ -48,3 +49,8 @@ class ThemeConfigPanel extends ConfigPanel
           target.clone().width(target.width())
     else
       li
+
+  receiveEnabledTheme: (e, ui) =>
+    name = $(ui.helper).attr('name')
+    @enabledThemes.find("[name='#{name}']:not('.ui-draggable')").remove()
+    @enabledThemes.find(".ui-draggable").removeClass('ui-draggable')
