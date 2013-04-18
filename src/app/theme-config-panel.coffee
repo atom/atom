@@ -38,10 +38,14 @@ class ThemeConfigPanel extends ConfigPanel
       receive: (e, ui) => @enabledThemeReceived($(ui.helper))
       update: => @enabledThemesUpdated()
 
+    @on "click", "#enabled-themes .disable-theme", (e) =>
+      $(e.target).closest('li').remove()
+      @enabledThemesUpdated()
+
   buildThemeLi: (name, {draggable} = {}) ->
     li = $$ ->
       @li class: 'list-group-item', name: name, =>
-        @div class: 'octicons close-icon pull-right'
+        @div class: 'disable-theme pull-right'
         @text name
     if draggable
       li.draggable
