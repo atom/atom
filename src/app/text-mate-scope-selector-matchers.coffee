@@ -28,8 +28,8 @@ class ScopeMatcher
 
 class PathMatcher
   constructor: (first, others) ->
-      @matchers = [first]
-      @matchers.push(matcher[1]) for matcher in others
+    @matchers = [first]
+    @matchers.push(matcher[1]) for matcher in others
 
   matches: (scopes) ->
     matcher = @matchers.shift()
