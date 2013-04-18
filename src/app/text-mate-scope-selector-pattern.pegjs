@@ -27,7 +27,6 @@ scope
       if (scopeSegments.length < segments.length)
         return false;
 
-      var allSegmentsMatch = true;
       for (var i = 0; i < segments.length; i++)
         if (!segments[i](scopeSegments[i]))
           return false;
