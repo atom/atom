@@ -29,8 +29,10 @@ class ThemeConfigPanel extends ConfigPanel
     for name in atom.getAvailableThemeNames()
       @availableThemes.append(@buildThemeLi(name, draggable: true))
 
-    for name in config.get("core.themes") ? []
-      @enabledThemes.append(@buildThemeLi(name))
+    @observeConfig "core.themes", (enabledThemes) =>
+      @enabledThemes.empty()
+      for name in enabledThemes ? []
+        @enabledThemes.append(@buildThemeLi(name))
 
     @enabledThemes.sortable
       receive: (e, ui) => @enabledThemeReceived($(ui.helper))
