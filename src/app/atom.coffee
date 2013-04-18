@@ -111,7 +111,7 @@ _.extend atom,
     fsUtils.base(path) for path in @getAvailablePackagePaths()
 
   loadThemes: ->
-    themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
+    themeNames = config.get("core.themes")
     themeNames = [themeNames] unless _.isArray(themeNames)
     @loadTheme(themeName) for themeName in themeNames
     @loadUserStylesheet()

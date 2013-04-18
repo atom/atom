@@ -23,6 +23,7 @@ class RootView extends View
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
     disabledPackages: []
+    themes: ['atom-dark-ui', 'atom-dark-syntax']
 
   ###
   # Internal:
