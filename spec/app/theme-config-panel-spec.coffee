@@ -37,6 +37,12 @@ describe "ThemeConfigPanel", ->
         panel.enabledThemes.sortable('option', 'update')()
         expect(config.get('core.themes')).toEqual ['atom-dark-ui', 'atom-dark-syntax']
 
+  describe "when the disable icon is clicked on a theme li", ->
+    it "removes the theme from the list and the 'core.themes' array", ->
+      panel.enabledThemes.find('li:first .disable-theme').click()
+      expect(panel.getEnabledThemeNames()).toEqual ['atom-dark-syntax']
+      expect(config.get('core.themes')).toEqual ['atom-dark-syntax']
+
   describe "when the 'core.config' key is updated", ->
     it "refreshes the enabled themes list", ->
       config.set('core.themes', ['atom-light-ui', 'atom-light-syntax'])

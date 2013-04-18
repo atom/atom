@@ -1,4 +1,5 @@
 @import "bootstrap/less/variables.less";
+@import "octicon-mixins.less";
 
 #config-view {
   height: 100%;
@@ -58,7 +59,17 @@
           overflow: auto;
 
           li {
+            padding-right: 15px;
             &:first-child { border-top: 0; }
+          }
+        }
+
+        #enabled-themes {
+          li:hover .disable-theme {
+            .mini-icon(x);
+            color: #888;
+            cursor: pointer;
+            &:hover { color: #000; }
           }
         }
       }
