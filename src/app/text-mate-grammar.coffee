@@ -176,7 +176,7 @@ class Rule
     return scanner if scanner = @scannersByBaseGrammarName[baseGrammar.name]
 
     anchored = false
-    injected = true
+    injected = false
     regexes = []
     patterns = @getIncludedPatterns(baseGrammar)
     scopes = scopesFromStack(ruleStack)
