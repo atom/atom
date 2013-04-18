@@ -32,9 +32,10 @@ class PathMatcher
     @matchers.push(matcher[1]) for matcher in others
 
   matches: (scopes) ->
-    matcher = @matchers.shift()
+    index = 0
+    matcher = @matchers[index]
     for scope in scopes
-      matcher = @matchers.shift() if matcher.matches(scope)
+      matcher = @matchers[++index] if matcher.matches(scope)
       return true unless matcher?
     false
 
