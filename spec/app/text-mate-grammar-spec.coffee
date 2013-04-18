@@ -308,3 +308,26 @@ describe "TextMateGrammar", ->
         expect(tokens.length).toBe 5
         expect(tokens[4].value).toBe "three(four(five(_param_)))))"
         expect(ruleStack).toEqual originalRuleStack
+
+    describe "when a grammar's captures has patterns", ->
+      beforeEach ->
+        atom.activatePackage('php.tmbundle', sync: true)
+
+      it "matches the patterns and includes the scope specified as the pattern's match name", ->
+        grammar = syntax.selectGrammar("hello.php")
+        {tokens} = grammar.tokenizeLine("<?php public final function meth() {} ?>")
+
+        expect(tokens[2].value).toBe "public"
+        expect(tokens[2].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.modifier.php"]
+
+        expect(tokens[3].value).toBe " "
+        expect(tokens[3].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php"]
+
+        expect(tokens[4].value).toBe "final"
+        expect(tokens[4].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.modifier.php"]
+
+        expect(tokens[5].value).toBe " "
+        expect(tokens[5].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php"]
+
+        expect(tokens[6].value).toBe "function"
+        expect(tokens[6].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
