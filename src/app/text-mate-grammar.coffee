@@ -212,11 +212,9 @@ class Rule
   getScanner: (baseGrammar, position, firstLine) ->
     return scanner if scanner = @scannersByBaseGrammarName[baseGrammar.name]
 
-    injected = false
     patterns = @getIncludedPatterns(baseGrammar)
     scanner = @createScanner(patterns, firstLine, position)
-    unless scanner.anchored or injected
-      @scannersByBaseGrammarName[baseGrammar.name] = scanner
+    @scannersByBaseGrammarName[baseGrammar.name] = scanner unless scanner.anchored
     scanner
 
   scanInjections: (ruleStack, line, position, firstLine) ->
