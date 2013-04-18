@@ -68,15 +68,16 @@ class File
   exists: ->
     fsUtils.exists(@getPath())
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
   
-  # Internal:
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
-  # Internal:
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "delete"
       @unsubscribeFromNativeChangeEvents()
@@ -90,11 +91,9 @@ class File
       return if oldContents == newContents
       @trigger 'contents-changed'
 
-  # Internal:
   detectResurrectionAfterDelay: ->
     _.delay (=> @detectResurrection()), 50
 
-  # Internal:
   detectResurrection: ->
     if @exists()
       @subscribeToNativeChangeEvents()
@@ -103,12 +102,10 @@ class File
       @cachedContents = null
       @trigger "removed"
 
-  # Internal:
   subscribeToNativeChangeEvents: ->
     @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
       @handleNativeChangeEvent(eventType, path)
 
-  # Internal:
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription
       @watchSubscription.close()

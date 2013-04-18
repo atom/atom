@@ -24,19 +24,20 @@ class RootView extends View
     ignoredNames: [".git", ".svn", ".DS_Store"]
     disabledPackages: []
 
+  ###
   # Internal:
+  ###
+
   @content: ({panes}={}) ->
     @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @subview 'panes', panes ? new PaneContainer
           
-  # Internal:
   @deserialize: ({ panes }) ->
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes})
 
-  # Internal:
   initialize: ->
     @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
@@ -73,17 +74,11 @@ class RootView extends View
     @command 'pane:reopen-closed-item', =>
       @panes.reopenItem()
 
-  # Internal:
   serialize: ->
     version: RootView.version
     deserializer: 'RootView'
     panes: @panes.serialize()
 
-  # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
-  confirmClose: ->
-    @panes.confirmClose()
-
-  # Internal:
   handleFocus: (e) ->
     if @getActivePane()
       @getActivePane().focus()
@@ -96,9 +91,17 @@ class RootView extends View
         false
       else
         true
-  # Internal:
+
   afterAttach: (onDom) ->
     @focus() if onDom
+
+  ###
+  # Public #
+  ###
+
+  # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
+  confirmClose: ->
+    @panes.confirmClose()
 
   # Public: Given a filepath, this opens it in Atom.
   #

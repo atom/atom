@@ -237,7 +237,7 @@ class Editor extends View
   # Public: Sets the cursor based on a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with properties based on {Cursor#setScreenPosition}.
+  # options - An object with properties based on {Cursor.setScreenPosition}.
   #
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
   # Public: Duplicates the current line.
@@ -260,7 +260,7 @@ class Editor extends View
   # Public: Sets the cursor based on a given buffer position.
   #
   # position - An {Array} of two numbers: the buffer row, and the buffer column.
-  # options - An object with properties based on {Cursor#setBufferPosition}.
+  # options - An object with properties based on {Cursor.setBufferPosition}.
   #
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
   # Public: Gets the current buffer position of the cursor.
@@ -275,7 +275,7 @@ class Editor extends View
   getCurrentParagraphBufferRange: -> @activeEditSession.getCurrentParagraphBufferRange()
   # Public: Gets the word located under the cursor.
   #
-  # options - An object with properties based on {Cursor#getBeginningOfCurrentWordBufferPosition}.
+  # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
   #
   # Returns a {String}.
   getWordUnderCursor: (options) -> @activeEditSession.getWordUnderCursor(options)
@@ -396,7 +396,7 @@ class Editor extends View
   # Public: Inserts text at the current cursor positions.
   #
   # text - A {String} representing the text to insert.
-  # options - A set of options equivalent to {Selection#insertText}.
+  # options - A set of options equivalent to {Selection.insertText}.
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
   # Public: Inserts a new line at the current cursor positions.
   insertNewline: -> @activeEditSession.insertNewline()
@@ -408,7 +408,7 @@ class Editor extends View
   insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
   # Public: Indents the current line.
   #
-  # options - A set of options equivalent to {Selection#indent}.
+  # options - A set of options equivalent to {Selection.indent}.
   indent: (options) -> @activeEditSession.indent(options)
   # Public: TODO
   autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows()
@@ -422,7 +422,7 @@ class Editor extends View
   copySelection: -> @activeEditSession.copySelectedText()
   # Public: Pastes the text in the clipboard.
   #
-  # options - A set of options equivalent to {Selection#insertText}.
+  # options - A set of options equivalent to {Selection.insertText}.
   paste: (options) -> @activeEditSession.pasteText(options)
   # Public: Undos the last {Buffer} change.
   undo: -> @activeEditSession.undo()
@@ -500,7 +500,7 @@ class Editor extends View
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap#clipScreenPosition}.
+  # options - The same options available to {DisplayBuffer.screenPositionForBufferPosition}.
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (position, options) -> @activeEditSession.screenPositionForBufferPosition(position, options)
@@ -509,7 +509,7 @@ class Editor extends View
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap#clipScreenPosition}.
+  # options - The same options available to {DisplayBuffer.bufferPositionForScreenPosition}.
   #
   # Returns a {Point}. 
   bufferPositionForScreenPosition: (position, options) -> @activeEditSession.bufferPositionForScreenPosition(position, options)
@@ -530,7 +530,7 @@ class Editor extends View
   # Public: Given a starting and ending row, this converts every row into a buffer position.
   #
   # startRow - The row {Number} to start at
-  # endRow - The row {Number} to end at (default: {#getLastScreenRow})
+  # endRow - The row {Number} to end at (default: {.getLastScreenRow})
   #
   # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
@@ -868,7 +868,7 @@ class Editor extends View
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - A hash matching the options available to {#scrollToPixelPosition}
+  # options - A hash matching the options available to {.scrollToPixelPosition}
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForBufferPosition(bufferPosition), options)
 
@@ -876,20 +876,22 @@ class Editor extends View
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - A hash matching the options available to {#scrollToPixelPosition}
+  # options - A hash matching the options available to {.scrollToPixelPosition}
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForScreenPosition(screenPosition), options)
 
   # Public: Scrolls the editor to the given pixel position.
   #
-  # bufferPosition - An object that represents a pixel position. It can be either
+  # pixelPosition - An object that represents a pixel position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - A hash matching the options available to {#scrollVertically}
+  # options - A hash with the following keys:
+  #          :center - if `true`, the position is scrolled such that it's in the center of the editor
   scrollToPixelPosition: (pixelPosition, options) ->
     return unless @attached
     @scrollVertically(pixelPosition, options)
     @scrollHorizontally(pixelPosition)
 
+  # Internal: Scrolls the editor vertically to a given position.
   scrollVertically: (pixelPosition, {center}={}) ->
     scrollViewHeight = @scrollView.height()
     scrollTop = @scrollTop()
@@ -910,6 +912,7 @@ class Editor extends View
       else if desiredTop < scrollTop
         @scrollTop(desiredTop)
 
+  # Internal: Scrolls the editor horizontally to a given position.
   scrollHorizontally: (pixelPosition) ->
     return if @activeEditSession.getSoftWrap()
 
@@ -1609,12 +1612,14 @@ class Editor extends View
     path = @getPath()
     pasteboard.write(path) if path?
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
       fsUtils.write(path, @getDebugSnapshot()) if path
 
-  # Internal:
   getDebugSnapshot: ->
     [
       "Debug Snapshot: #{@getPath()}"
@@ -1623,7 +1628,6 @@ class Editor extends View
       @getBuffer().getDebugSnapshot()
     ].join('\n\n')
 
-  # Internal:
   getRenderedLinesDebugSnapshot: ->
     lines = ['Rendered Lines:']
     firstRenderedScreenRow = @firstRenderedScreenRow
@@ -1631,11 +1635,9 @@ class Editor extends View
       lines.push "#{firstRenderedScreenRow + n}: #{$(this).text()}"
     lines.join('\n')
 
-  # Internal:
   logScreenLines: (start, end) ->
     @activeEditSession.logScreenLines(start, end)
 
-  # Internal:
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->
       console.log n, $(this).text()

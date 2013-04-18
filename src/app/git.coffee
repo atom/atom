@@ -28,6 +28,10 @@ class Git
   upstream: null
   statusTask: null
 
+  ###
+  # Internal #
+  ###
+
   # Internal: Creates a new `Git` object.
   #
   # path - The {String} representing the path to your git working directory
@@ -55,6 +59,22 @@ class Git
       @subscribe buffer, 'saved', bufferStatusHandler
       @subscribe buffer, 'reloaded', bufferStatusHandler
 
+  destroy: ->
+    if @statusTask?
+      @statusTask.abort()
+      @statusTask.off()
+      @statusTask = null
+
+    if @repo?
+      @repo.release()
+      @repo = null
+
+    @unsubscribe()
+
+  ###
+  # Public #
+  ###
+
   # Public: Retrieves the git repository.
   #
   # Returns a new `Repository`.
@@ -71,19 +91,6 @@ class Git
   # Returns a {String}.
   getPath: ->
     @path ?= fsUtils.absolute(@getRepo().getPath())
-
-  # Internal:
-  destroy: ->
-    if @statusTask?
-      @statusTask.abort()
-      @statusTask.off()
-      @statusTask = null
-
-    if @repo?
-      @repo.release()
-      @repo = null
-
-    @unsubscribe()
 
   # Public: Retrieves the working directory of the repository.
   #
@@ -163,7 +170,7 @@ class Git
   relativize: (path) ->
     @getRepo().relativize(path)
 
-  # Public: Retrieves a shortened version of {#getHead}. 
+  # Public: Retrieves a shortened version of {.getHead}. 
   #
   # This removes the leading segments of `refs/heads`, `refs/tags`, or `refs/remotes`.
   # It also shortenes the SHA-1 of a detached `HEAD` to 7 characters.

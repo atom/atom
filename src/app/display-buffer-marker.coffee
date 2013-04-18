@@ -9,9 +9,16 @@ class DisplayBufferMarker
   tailScreenPosition: null
   valid: true
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   constructor: ({@id, @displayBuffer}) ->
     @buffer = @displayBuffer.buffer
+
+  ###
+  # Public #
+  ###
 
   getScreenRange: ->
     @displayBuffer.screenRangeForBufferRange(@getBufferRange(), wrapAtSoftNewlines: true)
@@ -56,6 +63,10 @@ class DisplayBufferMarker
 
   clearTail: ->
     @buffer.clearMarkerTail(@id)
+
+  ###
+  # Internal #
+  ###
 
   observe: (callback) ->
     @observeBufferMarkerIfNeeded()

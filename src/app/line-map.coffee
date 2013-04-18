@@ -1,6 +1,7 @@
 Point = require 'point'
 Range = require 'range'
 
+# Internal: Responsible for doing the translations between screen positions and buffer positions.
 module.exports =
 class LineMap
   maxScreenLineLength: 0
@@ -46,7 +47,7 @@ class LineMap
   # Public: Given a starting and ending row, this converts every row into a buffer position.
   #
   # startRow - The row {Number} to start at
-  # endRow - The row {Number} to end at (default: {#lastScreenRow})
+  # endRow - The row {Number} to end at (default: {.lastScreenRow})
   #
   # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow()) ->
@@ -61,7 +62,10 @@ class LineMap
 
   screenLineCount: ->
     @screenLines.length
-
+    
+  # Retrieves the last row number in the buffer.
+  #
+  # Returns an {Integer}.
   lastScreenRow: ->
     @screenLineCount() - 1
 
@@ -98,7 +102,7 @@ class LineMap
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {#clipScreenPosition}.
+  # options - The same options available to {.clipScreenPosition}.
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options={}) ->
@@ -137,7 +141,7 @@ class LineMap
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {#clipScreenPosition}.
+  # options - The same options available to {.clipScreenPosition}.
   #
   # Returns a {Point}. 
   bufferPositionForScreenPosition: (screenPosition, options) ->

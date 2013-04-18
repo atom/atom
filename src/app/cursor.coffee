@@ -14,7 +14,9 @@ class Cursor
   visible: true
   needsAutoscroll: null
 
-  # Internal:
+  ###
+  # Internal #
+  ###
   constructor: ({@editSession, @marker}) ->
     @updateVisibility()
     @editSession.observeMarker @marker, (e) =>
@@ -37,12 +39,15 @@ class Cursor
       @editSession.trigger 'cursor-moved', movedEvent
     @needsAutoscroll = true
 
-  # Internal:
   destroy: ->
     @destroyed = true
     @editSession.destroyMarker(@marker)
     @editSession.removeCursor(this)
     @trigger 'destroyed'
+
+  ###
+  # Public #
+  ###
 
   # Public: Moves a cursor to a given screen position.
   #
@@ -76,7 +81,6 @@ class Cursor
   getBufferPosition: ->
     @editSession.getMarkerHeadBufferPosition(@marker)
 
-  # Internal: 
   changePosition: (options, fn) ->
     @goalColumn = null
     @clearSelection()
@@ -84,7 +88,6 @@ class Cursor
     unless fn()
       @trigger 'autoscrolled' if @needsAutoscroll
 
-  # Internal:
   updateVisibility: ->
     @setVisible(@editSession.isMarkerRangeEmpty(@marker))
 
@@ -302,7 +305,7 @@ class Cursor
 
   # Public: Gets the word located under the cursor.
   #
-  # options - An object with properties based on {#getBeginningOfCurrentWordBufferPosition}.
+  # options - An object with properties based on {.getBeginningOfCurrentWordBufferPosition}.
   #
   # Returns a {String}.
   getCurrentWordBufferRange: (options={}) ->
@@ -312,7 +315,7 @@ class Cursor
 
   # Public: Retrieves the range for the current line.
   #
-  # options - A hash with the same keys as {EditSession#bufferRangeForBufferRow}
+  # options - A hash with the same keys as {EditSession.bufferRangeForBufferRow}
   #
   # Returns a {Range}.
   getCurrentLineBufferRange: (options) ->

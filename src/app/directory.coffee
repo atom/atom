@@ -51,20 +51,20 @@ class Directory
 
     directories.concat(files)
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @subscriptionCount() == 1
 
-  # Internal:
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
-  # Internal:
   subscribeToNativeChangeEvents: ->
     @watchSubscription = pathWatcher.watch @path, (eventType) =>
       @trigger "contents-changed" if eventType is "change"
   
-  # Internal:
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription?
       @watchSubscription.close()

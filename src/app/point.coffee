@@ -164,11 +164,15 @@ class Point
   inspect: ->
     "(#{@row}, #{@column})"
 
-  # Internal:
+  # Public: Converts the {Point} to a String.
+  #
+  # Returns a {String}.
   toString: ->
     "#{@row},#{@column}"
 
-  # Internal:
+  # Public: Converts the {Point} to an Array.
+  #
+  # Returns an {Array}.
   toArray: ->
     [@row, @column]
 

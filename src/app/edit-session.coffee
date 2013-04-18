@@ -15,9 +15,12 @@ module.exports =
 class EditSession
   registerDeserializer(this)
 
+  ###
+  # Internal #
+  ###
+
   @version: 1
 
-  # Internal:
   @deserialize: (state) ->
     session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
     if !session?
@@ -37,7 +40,6 @@ class EditSession
   softTabs: true
   softWrap: false
 
-  # Internal:
   constructor: ({@project, @buffer, tabLength, softTabs, @softWrap }) ->
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
@@ -62,7 +64,6 @@ class EditSession
 
     @languageMode.on 'grammar-changed', => @handleGrammarChange()
 
-  # Internal:
   getViewClass: ->
     require 'editor'
 
@@ -90,7 +91,6 @@ class EditSession
     else
       'untitled'
 
-  # Internal:
   destroy: ->
     return if @destroyed
     @destroyed = true
@@ -103,7 +103,6 @@ class EditSession
     @trigger 'destroyed'
     @off()
 
-  # Internal:
   serialize: ->
     deserializer: 'EditSession'
     version: @constructor.version
@@ -174,7 +173,7 @@ class EditSession
 
   # Public: Retrieves that character used to indicate a tab.
   # 
-  # If soft tabs are enabled, this is a space (`" "`) times the {#getTabLength} value.
+  # If soft tabs are enabled, this is a space (`" "`) times the {.getTabLength} value.
   # Otherwise, it's a tab (`\t`).
   #
   # Returns a {String}.
@@ -317,7 +316,7 @@ class EditSession
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap#clipScreenPosition}.
+  # options - The same options available to {DisplayBuffer.screenPositionForBufferPosition}.
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
@@ -326,7 +325,7 @@ class EditSession
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {LineMap#clipScreenPosition}.
+  # options - The same options available to {DisplayBuffer.bufferPositionForScreenPosition}.
   #
   # Returns a {Point}. 
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
@@ -374,7 +373,7 @@ class EditSession
   # Public: Given a starting and ending row, this converts every row into a buffer position.
   #
   # startRow - The row {Number} to start at
-  # endRow - The row {Number} to end at (default: {#getLastScreenRow})
+  # endRow - The row {Number} to end at (default: {.getLastScreenRow})
   #
   # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
@@ -406,7 +405,7 @@ class EditSession
   # Public: Inserts text at the current cursor positions
   #
   # text - A {String} representing the text to insert.
-  # options - A set of options equivalent to {Selection#insertText}
+  # options - A set of options equivalent to {Selection.insertText}
   insertText: (text, options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
@@ -432,7 +431,7 @@ class EditSession
 
   # Public: Indents the current line.
   #
-  # options - A set of options equivalent to {Selection#indent}.
+  # options - A set of options equivalent to {Selection.indent}.
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
@@ -475,7 +474,7 @@ class EditSession
   autoIndentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
-  # Given a buffer range, this converts all `\t` characters to the appopriate {#getTabText} value.
+  # Given a buffer range, this converts all `\t` characters to the appopriate {.getTabText} value.
   #
   # bufferRange - The {Range} to perform the replace in
   normalizeTabsInBufferRange: (bufferRange) ->
@@ -507,7 +506,7 @@ class EditSession
 
   # Public: Pastes the text in the clipboard.
   #
-  # options - A set of options equivalent to {Selection#insertText}.
+  # options - A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
     options.normalizeIndent ?= true
     options.autoIndent ?= @shouldAutoIndentPastedText()
@@ -802,11 +801,14 @@ class EditSession
       @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
       @foldCurrentRow() if cursorRowFolded
 
-  # Internal:
+
+  ###
+  # Internal #
+  ###
+
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
 
-  # Internal:
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) =>
@@ -818,27 +820,25 @@ class EditSession
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
-  # Internal:
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
 
-  # Internal:
+  ###
+  # Public #
+  ###
+
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
-  # Internal:
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
-  # Internal:
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # Internal:
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
-  # Internal:
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
@@ -848,71 +848,54 @@ class EditSession
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
-  # Internal:
   getMarkerScreenRange: (args...) ->
     @displayBuffer.getMarkerScreenRange(args...)
 
-  # Internal:
   setMarkerScreenRange: (args...) ->
     @displayBuffer.setMarkerScreenRange(args...)
 
-  # Internal:
   getMarkerBufferRange: (args...) ->
     @displayBuffer.getMarkerBufferRange(args...)
 
-  # Internal:
   setMarkerBufferRange: (args...) ->
     @displayBuffer.setMarkerBufferRange(args...)
 
-  # Internal:
   getMarkerScreenPosition: (args...) ->
     @displayBuffer.getMarkerScreenPosition(args...)
 
-  # Internal:
   getMarkerBufferPosition: (args...) ->
     @displayBuffer.getMarkerBufferPosition(args...)
 
-  # Internal:
   getMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.getMarkerHeadScreenPosition(args...)
 
-  # Internal:
   setMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.setMarkerHeadScreenPosition(args...)
 
-  # Internal:
   getMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.getMarkerHeadBufferPosition(args...)
 
-  # Internal:
   setMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.setMarkerHeadBufferPosition(args...)
 
-  # Internal:
   getMarkerTailScreenPosition: (args...) ->
     @displayBuffer.getMarkerTailScreenPosition(args...)
 
-  # Internal:
   setMarkerTailScreenPosition: (args...) ->
     @displayBuffer.setMarkerTailScreenPosition(args...)
 
-  # Internal:
   getMarkerTailBufferPosition: (args...) ->
     @displayBuffer.getMarkerTailBufferPosition(args...)
 
-  # Internal:
   setMarkerTailBufferPosition: (args...) ->
     @displayBuffer.setMarkerTailBufferPosition(args...)
 
-  # Internal:
   observeMarker: (args...) ->
     @displayBuffer.observeMarker(args...)
 
-  # Internal:
   placeMarkerTail: (args...) ->
     @displayBuffer.placeMarkerTail(args...)
 
-  # Internal:
   clearMarkerTail: (args...) ->
     @displayBuffer.clearMarkerTail(args...)
 
@@ -924,7 +907,6 @@ class EditSession
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
 
-  # Internal:
   isMarkerRangeEmpty: (args...) ->
     @displayBuffer.isMarkerRangeEmpty(args...)
 
@@ -1051,7 +1033,6 @@ class EditSession
     @consolidateSelections()
     @getSelection().clear()
 
-  # Internal:
   consolidateSelections: ->
     selections = @getSelections()
     if selections.length > 1
@@ -1107,7 +1088,7 @@ class EditSession
   # Public: Moves every cursor to a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with properties based on {Cursor#setScreenPosition}
+  # options - An object with properties based on {Cursor.setScreenPosition}
   #
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
@@ -1127,7 +1108,7 @@ class EditSession
   # Public: Moves every cursor to a given buffer position.
   #
   # position - An {Array} of two numbers: the buffer row, and the buffer column.
-  # options - An object with properties based on {Cursor#setBufferPosition}
+  # options - An object with properties based on {Cursor.setBufferPosition}
   #
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
@@ -1182,7 +1163,7 @@ class EditSession
 
   # Public: Gets the word located under the cursor.
   #
-  # options - An object with properties based on {Cursor#getBeginningOfCurrentWordBufferPosition}.
+  # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
   #
   # Returns a {String}.
   getWordUnderCursor: (options) ->

@@ -13,15 +13,16 @@ class Fold
   startRow: null
   endRow: null
 
-  # Internal: 
+  ###
+  # Internal #
+  ###
+
   constructor: (@displayBuffer, @startRow, @endRow) ->
     @id = @constructor.idCounter++
 
-  # Internal: 
   destroy: ->
     @displayBuffer.destroyFold(this)
 
-  # Internal: 
   inspect: ->
     "Fold(#{@startRow}, #{@endRow})"
 
@@ -44,7 +45,6 @@ class Fold
   getBufferRowCount: ->
     @endRow - @startRow + 1
 
-  # Internal:
   handleBufferChange: (event) ->
     oldStartRow = @startRow
 
@@ -75,7 +75,6 @@ class Fold
   isContainedByFold: (fold) ->
     @isContainedByRange(fold.getBufferRange())
 
-  # Internal:
   getRowDelta: (event, row) ->
     { newRange, oldRange } = event
 

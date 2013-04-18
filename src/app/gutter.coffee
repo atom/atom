@@ -9,7 +9,10 @@ _ = require 'underscore'
 module.exports =
 class Gutter extends View
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   @content: ->
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
@@ -17,7 +20,6 @@ class Gutter extends View
   firstScreenRow: Infinity
   lastScreenRow: -1
 
-  # Internal:
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
@@ -27,17 +29,9 @@ class Gutter extends View
     @getEditor().on 'selection:changed', highlightLines
     @on 'mousedown', (e) => @handleMouseEvents(e)
 
-  # Public: Retrieves the containing {Editor}.
-  #
-  # Returns an {Editor}.
-  getEditor: ->
-    @parentView
-
-  # Internal:
   beforeRemove: ->
     $(document).off(".gutter-#{@getEditor().id}")
 
-  # Internal:
   handleMouseEvents: (e) ->
     editor = @getEditor()
     startRow = editor.screenPositionFromMouseEvent(e).row
@@ -56,13 +50,26 @@ class Gutter extends View
     $(document).on "mousemove.gutter-#{@getEditor().id}", moveHandler
     $(document).one "mouseup.gutter-#{@getEditor().id}", => $(document).off 'mousemove', moveHandler
 
+  ###
+  # Public #
+  ###
+
+  # Public: Retrieves the containing {Editor}.
+  #
+  # Returns an {Editor}.
+  getEditor: ->
+    @parentView
+
   # Public: Defines whether to show the gutter or not.
   #
   # showLineNumbers - A {Boolean} which, if `false`, hides the gutter
   setShowLineNumbers: (showLineNumbers) ->
     if showLineNumbers then @lineNumbers.show() else @lineNumbers.hide()
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   updateLineNumbers: (changes, renderFrom, renderTo) ->
     if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
       performUpdate = true
@@ -76,7 +83,6 @@ class Gutter extends View
 
     @renderLineNumbers(renderFrom, renderTo) if performUpdate
   
-  # Internal:
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     editor = @getEditor()
     maxDigits = editor.getLineCount().toString().length
@@ -102,7 +108,6 @@ class Gutter extends View
     @highlightedRows = null
     @highlightLines()
 
-  # Internal:
   removeLineHighlights: ->
     return unless @highlightedLineNumbers
     for line in @highlightedLineNumbers
@@ -110,7 +115,6 @@ class Gutter extends View
       line.classList.remove('cursor-line-no-selection')
     @highlightedLineNumbers = null
 
-  # Internal:
   addLineHighlight: (row, emptySelection) ->
     return if row < @firstScreenRow or row > @lastScreenRow
     @highlightedLineNumbers ?= []
@@ -119,7 +123,6 @@ class Gutter extends View
       highlightedLineNumber.classList.add('cursor-line-no-selection') if emptySelection
       @highlightedLineNumbers.push(highlightedLineNumber)
 
-  # Internal:
   highlightLines: ->
     if @getEditor().getSelection().isEmpty()
       row = @getEditor().getCursorScreenPosition().row

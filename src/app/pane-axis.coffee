@@ -1,6 +1,7 @@
 $ = require 'jquery'
 {View} = require 'space-pen'
 
+# Internal:
 module.exports =
 class PaneAxis extends View
   # Internal:
@@ -8,10 +9,9 @@ class PaneAxis extends View
     childViews = children.map (child) -> deserialize(child)
     new this(childViews)
 
-  # Internal:
   initialize: (children=[]) ->
     @append(children...)
-  # Internal:
+
   serialize: ->
     deserializer: @className()
     children: @childViewStates()

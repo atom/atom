@@ -3,9 +3,9 @@ Point = require 'point'
 Range = require 'range'
 _ = require 'underscore'
 
+# Internal:
 module.exports =
 class CursorView extends View
-  # Internal:
   @content: ->
     @div class: 'cursor idle', => @raw '&nbsp;'
 

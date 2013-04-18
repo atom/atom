@@ -67,7 +67,7 @@ class Selection
   # Public: Modifies the screen range for the selection.
   #
   # screenRange - The new {Range} to select
-  # options - A hash of options matching those found in {#setBufferRange}
+  # options - A hash of options matching those found in {.setBufferRange}
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@editSession.bufferRangeForScreenRange(screenRange), options)
 
@@ -524,7 +524,7 @@ class Selection
   # Public: Merges two selections together.
   #
   # otherSelection - A `Selection` to merge with
-  # options - A hash of options matching those found in {#setBufferRange}
+  # options - A hash of options matching those found in {.setBufferRange}
   merge: (otherSelection, options) ->
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
     if @goalBufferRange and otherSelection.goalBufferRange
