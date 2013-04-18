@@ -96,6 +96,12 @@
     [self setWindowFrameAutosaveName:@"AtomWindow"];
     NSColor *background = [NSColor colorWithDeviceRed:(51.0/255.0) green:(51.0/255.0f) blue:(51.0/255.0f) alpha:1.0];
     [self.window setBackgroundColor:background];
+    if (self.isConfig) {
+      NSRect frame = self.window.frame;
+      frame.size.width = 800;
+      frame.size.height = 600;
+      [self.window setFrame:frame display: YES];
+    }
     [self showWindow:self];
   }
 
