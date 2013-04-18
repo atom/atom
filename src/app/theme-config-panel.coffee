@@ -54,14 +54,11 @@ class ThemeConfigPanel extends ConfigPanel
       li
 
   enabledThemeReceived: (helper) ->
-    console.log "RECEIVE", helper
     name = helper.attr('name')
     @enabledThemes.find("[name='#{name}']:not('.ui-draggable')").remove()
     @enabledThemes.find(".ui-draggable").removeClass('ui-draggable')
 
   enabledThemesUpdated: ->
-    console.log "enabledThemesUpdated"
-    console.log @getEnabledThemeNames()
     config.set('core.themes', @getEnabledThemeNames())
 
   getEnabledThemeNames: ->
