@@ -13,7 +13,7 @@ describe "TextMateScopeSelector", ->
     expect(new TextMateScopeSelector('a').matches(['a.b'])).toBeTruthy()
     expect(new TextMateScopeSelector('a').matches(['abc'])).toBeFalsy()
 
-  it "matches alternation", ->
+  it "matches disjunction", ->
     expect(new TextMateScopeSelector('a | b').matches(['b'])).toBeTruthy()
     expect(new TextMateScopeSelector('a|b|c').matches(['c'])).toBeTruthy()
     expect(new TextMateScopeSelector('a|b|c').matches(['d'])).toBeFalsy()
@@ -21,6 +21,11 @@ describe "TextMateScopeSelector", ->
   it "matches negation", ->
     expect(new TextMateScopeSelector('a - c').matches(['a', 'b'])).toBeTruthy()
     expect(new TextMateScopeSelector('a-b').matches(['a', 'b'])).toBeFalsy()
+
+  it "matches conjunction", ->
+    expect(new TextMateScopeSelector('a & b').matches(['b', 'a'])).toBeTruthy()
+    expect(new TextMateScopeSelector('a&b&c').matches(['c'])).toBeFalsy()
+    expect(new TextMateScopeSelector('a&b&c').matches(['a', 'b', 'd'])).toBeFalsy()
 
   it "matches composites", ->
     expect(new TextMateScopeSelector('a,b,c').matches(['b', 'c'])).toBeTruthy()
