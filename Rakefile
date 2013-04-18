@@ -128,18 +128,6 @@ namespace :docs do
       system %{./node_modules/biscotto/bin/biscotto --statsOnly src/app/}
     end
   end
-
-  namespace :packages do
-    desc "Builds the API docs in src/packages"
-    task :build do
-      system %{./node_modules/biscotto/bin/biscotto -o docs/api src/packages/}
-    end
-
-    desc "Lists the stats for API doc coverage in src/packages"
-    task :stats do
-      system %{./node_modules/biscotto/bin/biscotto --statsOnly src/packages/}
-    end
-  end
 end
 
 def application_path
