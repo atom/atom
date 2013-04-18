@@ -3,14 +3,6 @@ ConfigPanel = require 'config-panel'
 $ = require 'jquery'
 _ = require 'underscore'
 
-window.jQuery = $
-require 'jqueryui-browser/ui/jquery.ui.core'
-require 'jqueryui-browser/ui/jquery.ui.widget'
-require 'jqueryui-browser/ui/jquery.ui.mouse'
-require 'jqueryui-browser/ui/jquery.ui.sortable'
-require 'jqueryui-browser/ui/jquery.ui.draggable'
-delete window.jQuery
-
 module.exports =
 class PackageConfigPanel extends ConfigPanel
   @content: ->
