@@ -1,7 +1,10 @@
 $ = require 'jquery'
+_ = require 'underscore'
 ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
 roaster = require 'roaster'
+LanguageMode = require 'language-mode'
+Buffer = require 'text-buffer'
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
@@ -66,5 +69,21 @@ class MarkdownPreviewView extends ScrollView
       if err
         @setErrorHtml(err)
       else
-        @html(html)
+        result = @html(html)
+        preList = result.find("pre")
+        for pre in preList
+          grammar = _.find syntax.grammars, (grammar) ->
+            return "ruby" == grammar.scopeName.split(".").pop()
+
+          if grammar
+            languageMode = new LanguageMode(this, grammar)
+            console.log pre
+            code = pre.childNodes[0]
+            text = code.textContent.split("\n")
+
+            for line in text
+              tokens = languageMode.tokenizeLine(text)
+              console.log tokens
+          #codeBuffer = new Buffer("", text)
+          #x = 1
     )
