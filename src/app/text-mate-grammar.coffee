@@ -5,6 +5,7 @@ Token = require 'token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 nodePath = require 'path'
 pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
+TextMateScopeSelector = require 'text-mate-scope-selector'
 
 ###
 # Internal #
@@ -33,7 +34,8 @@ class TextMateGrammar
   firstLineRegex: null
   maxTokensPerLine: 100
 
-  constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
+  constructor: ({ @name, @fileTypes, @scopeName, injections, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
+    @injections = new Injections(this, injections)
     @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
@@ -132,6 +134,45 @@ class TextMateGrammar
   getMaxTokensPerLine: ->
     @maxTokensPerLine
 
+class Injections
+  @injections: null
+
+  constructor: (grammar, injections={}) ->
+    @injections = []
+    @scanners = {}
+    for selector, values of injections
+      continue unless values?.patterns?.length > 0
+      patterns = []
+      anchored = false
+      for regex in values.patterns
+        pattern = new Pattern(grammar, regex)
+        anchored = true if pattern.anchored
+        patterns.push(pattern)
+      @injections.push
+        anchored: anchored
+        selector: new TextMateScopeSelector(selector)
+        patterns: patterns
+
+  getScanner: (injection, firstLine, position, anchorPosition) ->
+    return injection.scanner if injection.scanner?
+
+    regexes = _.map injection.patterns, (pattern) ->
+      pattern.getRegex(firstLine, position, @anchorPosition)
+    scanner = new OnigScanner(regexes)
+    scanner.patterns = injection.patterns
+    scanner.anchored = injection.anchored
+    injection.scanner = scanner unless scanner.anchored
+    scanner
+
+  getScanners: (ruleStack, firstLine, position, anchorPosition) ->
+    scanners = []
+    scopes = scopesFromStack(ruleStack)
+    for injection in @injections
+      if injection.selector.matches(scopes)
+        scanner = @getScanner(injection, firstLine, position, anchorPosition)
+        scanners.push(scanner)
+    scanners
+
 class Rule
   grammar: null
   scopeName: null
@@ -157,41 +198,68 @@ class Rule
 
   clearAnchorPosition: -> @anchorPosition = -1
 
+  createScanner: (patterns, firstLine, position) ->
+    anchored = false
+    regexes = _.map patterns, (pattern) =>
+      anchored = true if pattern.anchored
+      pattern.getRegex(firstLine, position, @anchorPosition)
+
+    scanner = new OnigScanner(regexes)
+    scanner.patterns = patterns
+    scanner.anchored = anchored
+    scanner
+
   getScanner: (baseGrammar, position, firstLine) ->
     return scanner if scanner = @scannersByBaseGrammarName[baseGrammar.name]
 
-    anchored = false
-    regexes = []
     patterns = @getIncludedPatterns(baseGrammar)
-    patterns.forEach (pattern) =>
-      if pattern.anchored
-        anchored = true
-        regex = pattern.replaceAnchor(firstLine, position, @anchorPosition)
-      else
-        regex = pattern.regexSource
-      regexes.push regex if regex
+    scanner = @createScanner(patterns, firstLine, position)
+    @scannersByBaseGrammarName[baseGrammar.name] = scanner unless scanner.anchored
+    scanner
 
-    regexScanner = new OnigScanner(regexes)
-    regexScanner.patterns = patterns
-    @scannersByBaseGrammarName[baseGrammar.name] = regexScanner unless anchored
-    regexScanner
-
-  getNextTokens: (ruleStack, line, position, firstLine) ->
+  scanInjections: (ruleStack, line, position, firstLine) ->
     baseGrammar = ruleStack[0].grammar
-    patterns = @getIncludedPatterns(baseGrammar)
+    if injections = baseGrammar.injections
+      scanners = injections.getScanners(ruleStack, position, firstLine, @anchorPosition)
+      for scanner in scanners
+        result = scanner.findNextMatch(line, position)
+        result?.scanner = scanner
+        return result if result?
+
+  normalizeCaptureIndices: (line, captureIndices) ->
+    lineLength = line.length
+    for value, index in captureIndices
+      if index % 3 isnt 0 and value > lineLength
+        captureIndices[index] = lineLength
+
+  findNextMatch: (ruleStack, line, position, firstLine) ->
+    lineWithNewline = "#{line}\n"
+    baseGrammar = ruleStack[0].grammar
 
     scanner = @getScanner(baseGrammar, position, firstLine)
-    # Add a `\n` to appease patterns that contain '\n' explicitly
-    return null unless result = scanner.findNextMatch("#{line}\n", position)
-    { index, captureIndices } = result
-    # Since the `\n' (added above) is not part of the line, truncate captures to the line's actual length
-    lineLength = line.length
-    captureIndices = captureIndices.map (value, index) ->
-      value = lineLength if index % 3 != 0 and value > lineLength
-      value
+    result = scanner.findNextMatch(lineWithNewline, position)
+    result?.scanner = scanner
+    @normalizeCaptureIndices(line, result.captureIndices) if result?
 
+    injectionResult = @scanInjections(ruleStack, lineWithNewline, position, firstLine)
+    @normalizeCaptureIndices(line, injectionResult.captureIndices) if injectionResult?
+
+    if result? and injectionResult?
+      resultStartPosition = result.captureIndices[1]
+      injectionResultStartPosition = injectionResult.captureIndices[1]
+      if injectionResultStartPosition < resultStartPosition
+        injectionResult
+      else
+        result
+    else
+      result ? injectionResult
+
+  getNextTokens: (ruleStack, line, position, firstLine) ->
+    result = @findNextMatch(ruleStack, line, position, firstLine)
+    return null unless result?
+    { index, captureIndices, scanner } = result
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
-    nextTokens = patterns[index].handleMatch(ruleStack, line, captureIndices)
+    nextTokens = scanner.patterns[index].handleMatch(ruleStack, line, captureIndices)
     { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
 
   getRuleToPush: (line, beginPatternCaptureIndices) ->
@@ -225,7 +293,20 @@ class Pattern
       @captures = beginCaptures ? captures
       endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
       @pushRule = new Rule(@grammar, { @scopeName, patterns, endPattern })
+
+    if @captures?
+      for group, capture of @captures
+        if capture.patterns?.length > 0 and not capture.rule
+          capture.scopeName = @scopeName
+          capture.rule = new Rule(@grammar, capture)
+
     @anchored = @hasAnchor()
+
+  getRegex: (firstLine, position, anchorPosition) ->
+    if @anchored
+      @replaceAnchor(firstLine, position, anchorPosition)
+    else
+      @regexSource
 
   hasAnchor: ->
     return false unless @regexSource
@@ -298,7 +379,7 @@ class Pattern
     scopes.push(@scopeName) if @scopeName and not @popRule
 
     if @captures
-      tokens = @getTokensForCaptureIndices(line, _.clone(captureIndices), scopes)
+      tokens = @getTokensForCaptureIndices(line, _.clone(captureIndices), scopes, stack)
     else
       [start, end] = captureIndices[1..2]
       zeroLengthMatch = end == start
@@ -315,38 +396,50 @@ class Pattern
 
     tokens
 
-  getTokensForCaptureIndices: (line, captureIndices, scopes) ->
+  getTokensForCaptureRule: (rule, line, captureStart, captureEnd, scopes, stack) ->
+    captureText = line.substring(captureStart, captureEnd)
+    {tokens} = rule.grammar.tokenizeLine(captureText, [stack..., rule])
+    tokens
+
+  getTokensForCaptureIndices: (line, captureIndices, scopes, stack) ->
     [parentCaptureIndex, parentCaptureStart, parentCaptureEnd] = shiftCapture(captureIndices)
 
     tokens = []
     if scope = @captures[parentCaptureIndex]?.name
       scopes = scopes.concat(scope)
 
-    previousChildCaptureEnd = parentCaptureStart
-    while captureIndices.length and captureIndices[1] < parentCaptureEnd
-      [childCaptureIndex, childCaptureStart, childCaptureEnd] = captureIndices
-
-      emptyCapture = childCaptureEnd - childCaptureStart == 0
-      captureHasNoScope = not @captures[childCaptureIndex]
-      if emptyCapture or captureHasNoScope
+    if captureRule = @captures[parentCaptureIndex]?.rule
+      captureTokens = @getTokensForCaptureRule(captureRule, line, parentCaptureStart, parentCaptureEnd, scopes, stack)
+      tokens.push(captureTokens...)
+      # Consume child captures
+      while captureIndices.length and captureIndices[1] < parentCaptureEnd
         shiftCapture(captureIndices)
-        continue
+    else
+      previousChildCaptureEnd = parentCaptureStart
+      while captureIndices.length and captureIndices[1] < parentCaptureEnd
+        [childCaptureIndex, childCaptureStart, childCaptureEnd] = captureIndices
 
-      if childCaptureStart > previousChildCaptureEnd
+        emptyCapture = childCaptureEnd - childCaptureStart == 0
+        captureHasNoScope = not @captures[childCaptureIndex]
+        if emptyCapture or captureHasNoScope
+          shiftCapture(captureIndices)
+          continue
+
+        if childCaptureStart > previousChildCaptureEnd
+          tokens.push(new Token(
+            value: line[previousChildCaptureEnd...childCaptureStart]
+            scopes: scopes
+          ))
+
+        captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes, stack)
+        tokens.push(captureTokens...)
+        previousChildCaptureEnd = childCaptureEnd
+
+      if parentCaptureEnd > previousChildCaptureEnd
         tokens.push(new Token(
-          value: line[previousChildCaptureEnd...childCaptureStart]
+          value: line[previousChildCaptureEnd...parentCaptureEnd]
           scopes: scopes
         ))
-
-      captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes)
-      tokens.push(captureTokens...)
-      previousChildCaptureEnd = childCaptureEnd
-
-    if parentCaptureEnd > previousChildCaptureEnd
-      tokens.push(new Token(
-        value: line[previousChildCaptureEnd...parentCaptureEnd]
-        scopes: scopes
-      ))
 
     tokens
 

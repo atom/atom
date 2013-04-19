@@ -12,6 +12,8 @@ describe "TextMateGrammar", ->
     atom.activatePackage('javascript.tmbundle', sync: true)
     atom.activatePackage('coffee-script-tmbundle', sync: true)
     atom.activatePackage('ruby.tmbundle', sync: true)
+    atom.activatePackage('html.tmbundle', sync: true)
+    atom.activatePackage('php.tmbundle', sync: true)
     grammar = syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
@@ -308,3 +310,75 @@ describe "TextMateGrammar", ->
         expect(tokens.length).toBe 5
         expect(tokens[4].value).toBe "three(four(five(_param_)))))"
         expect(ruleStack).toEqual originalRuleStack
+
+    describe "when a grammar has a capture with patterns", ->
+      it "matches the patterns and includes the scope specified as the pattern's match name", ->
+        grammar = syntax.selectGrammar("hello.php")
+        {tokens} = grammar.tokenizeLine("<?php public final function meth() {} ?>")
+
+        expect(tokens[2].value).toBe "public"
+        expect(tokens[2].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.modifier.php"]
+
+        expect(tokens[3].value).toBe " "
+        expect(tokens[3].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php"]
+
+        expect(tokens[4].value).toBe "final"
+        expect(tokens[4].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.modifier.php"]
+
+        expect(tokens[5].value).toBe " "
+        expect(tokens[5].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php"]
+
+        expect(tokens[6].value).toBe "function"
+        expect(tokens[6].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
+
+      it "ignores child captures of a capture with patterns", ->
+        grammar = new TextMateGrammar
+          name: "test"
+          scopeName: "source"
+          repository: {}
+          patterns: [
+            {
+              name: "text"
+              match: "(a(b))"
+              captures:
+                "1":
+                  patterns: [
+                    {
+                      match: "ab"
+                      name: "a"
+                    }
+                  ]
+                "2":
+                  name: "b"
+            }
+          ]
+        {tokens} = grammar.tokenizeLine("ab")
+
+        expect(tokens[0].value).toBe "ab"
+        expect(tokens[0].scopes).toEqual ["source", "text", "a"]
+
+    describe "when the grammar has injections", ->
+      it "correctly includes the injected patterns when tokenizing", ->
+        grammar = syntax.selectGrammar("hello.php")
+        {tokens} = grammar.tokenizeLine("<div><?php function hello() {} ?></div>")
+
+        expect(tokens[3].value).toBe "<?php"
+        expect(tokens[3].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "punctuation.section.embedded.begin.php"]
+
+        expect(tokens[5].value).toBe "function"
+        expect(tokens[5].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
+
+        expect(tokens[7].value).toBe "hello"
+        expect(tokens[7].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "entity.name.function.php"]
+
+        expect(tokens[14].value).toBe "?"
+        expect(tokens[14].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "punctuation.section.embedded.end.php", "source.php"]
+
+        expect(tokens[15].value).toBe ">"
+        expect(tokens[15].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "punctuation.section.embedded.end.php"]
+
+        expect(tokens[16].value).toBe "</"
+        expect(tokens[16].scopes).toEqual ["text.html.php", "meta.tag.block.any.html", "punctuation.definition.tag.begin.html"]
+
+        expect(tokens[17].value).toBe "div"
+        expect(tokens[17].scopes).toEqual ["text.html.php", "meta.tag.block.any.html", "entity.name.tag.block.any.html"]
