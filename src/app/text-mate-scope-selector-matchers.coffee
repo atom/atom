@@ -69,7 +69,7 @@ class CompositeMatcher
 
 module.exports = {
   AndMatcher
-  AsterixMatcher
+  AsteriskMatcher
   CompositeMatcher
   NegateMatcher
   OrMatcher
