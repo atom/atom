@@ -6,17 +6,19 @@ fsUtils = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 NullGrammar = require 'null-grammar'
 
+###
+# Internal #
+###
+
 module.exports =
 class Syntax
   registerDeserializer(this)
 
-  # Internal:
   @deserialize: ({grammarOverridesByPath}) ->
     syntax = new Syntax()
     syntax.grammarOverridesByPath = grammarOverridesByPath
     syntax
 
-  # Internal:
   constructor: ->
     @nullGrammar = new NullGrammar
     @grammars = [@nullGrammar]
@@ -25,7 +27,6 @@ class Syntax
     @scopedPropertiesIndex = 0
     @scopedProperties = []
 
-  # Internal:
   serialize: ->
     { deserializer: @constructor.name, @grammarOverridesByPath }
 

@@ -160,7 +160,7 @@ class EditSession
 
   # Public: Defines the limit at which the buffer begins to soft wrap text.
   #
-  # softWrapColumn - A {Number} defining the soft wrap limit.
+  # softWrapColumn - A {Number} defining the soft wrap limit
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
   # Public: Defines whether to use soft tabs.
   #
@@ -192,8 +192,27 @@ class EditSession
   #
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
-
+  
+  # Public: Given a position, this clips it to a real position.
+  #
+  # For example, if `position`'s row exceeds the row count of the buffer,
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # to a real position.
+  #
+  # position - The {Point} to clip
+  #
+  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
+  
+  # Public: Given a range, this clips it to a real range.
+  #
+  # For example, if `range`'s row exceeds the row count of the buffer,
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # to a real range.
+  #
+  # range - The {Point} to clip
+  #
+  # Returns the new, clipped {Point}. Note that this could be the same as `range` if no clipping was performed.
   clipBufferRange: (range) -> @buffer.clipRange(range)
 
   # Public: Given a buffer row, this retrieves the indentation level.
@@ -350,7 +369,19 @@ class EditSession
   #
   # Returns a {Range}.
   bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
-  
+  # Public: Given a position, this clips it to a real position.
+  #
+  # For example, if `position`'s row exceeds the row count of the buffer,
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # to a real position.
+  #
+  # position - The {Point} to clip
+  # options - A hash with the following values:
+  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines 
+  #           :wrapAtSoftNewlines - if `true`, continues wrapping past soft newlines
+  #           :screenLine - if `true`, indicates that you're using a line number, not a row number
+  #
+  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
   # Public: Gets the line for the given screen row.
   #
@@ -475,6 +506,13 @@ class EditSession
   outdentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.outdentSelectedRows()
 
+  # Public: Wraps the lines within a selection in comments.
+  #
+  # If the language doesn't have comments, nothing happens.
+  #
+  # selection - The {Selection} to comment
+  #
+  # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsInSelection: ->
     @mutateSelectedText (selection) -> selection.toggleLineComments()
 
@@ -603,20 +641,20 @@ class EditSession
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
 
-  # Public: Removes any folds found that contain the given buffer row.
+  # Public: Removes any {Fold}s found that contain the given buffer row.
   #
   # bufferRow - The buffer row {Number} to check against
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
 
-  # Public: Removes any folds found that intersect the given buffer row.
+  # Public: Removes any {Fold}s found that intersect the given buffer row.
   #
   # bufferRow - The buffer row {Number} to check against
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     for row in [bufferRange.start.row..bufferRange.end.row]
       @destroyFoldsContainingBufferRow(row)
 
-  # Public: Given the id of a fold, this removes it.
+  # Public: Given the id of a {Fold}, this removes it.
   #
   # foldId - The fold id {Number} to remove
   destroyFold: (foldId) ->
@@ -671,7 +709,7 @@ class EditSession
 
   # Public: Given a buffer row, this returns a suggested indentation level.
   #
-  # The indentation level provided is based on the current {LanguageMode}. 
+  # The indentation level provided is based on the current language. 
   #
   # bufferRow - A {Number} indicating the buffer row
   #
@@ -839,18 +877,45 @@ class EditSession
   # Public #
   ###
 
+  # Public: Constructs a new marker at the given screen range.
+  #
+  # range - The marker {Range} (representing the distance between the head and tail)
+  # options - Options to pass to the {BufferMarker} constructor
+  #
+  # Returns a {Number} representing the new marker's ID.
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
+  # Public: Constructs a new marker at the given buffer range.
+  #
+  # range - The marker {Range} (representing the distance between the head and tail)
+  # options - Options to pass to the {BufferMarker} constructor
+  #
+  # Returns a {Number} representing the new marker's ID.
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
+  # Public: Constructs a new marker at the given screen position.
+  #
+  # range - The marker {Range} (representing the distance between the head and tail)
+  # options - Options to pass to the {BufferMarker} constructor
+  #
+  # Returns a {Number} representing the new marker's ID.
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
+  # Public: Constructs a new marker at the given buffer position.
+  #
+  # range - The marker {Range} (representing the distance between the head and tail)
+  # options - Options to pass to the {BufferMarker} constructor
+  #
+  # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
+  # Public: Removes the marker with the given id.
+  #
+  # id - The {Number} of the ID to remove
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
@@ -860,65 +925,156 @@ class EditSession
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
+  # Public: Gets the screen range of the display marker.
+  #
+  # id - The {Number} of the ID to check
+  #
+  # Returns a {Range}.
   getMarkerScreenRange: (args...) ->
     @displayBuffer.getMarkerScreenRange(args...)
 
+  # Public: Modifies the screen range of the display marker.
+  #
+  # id - The {Number} of the ID to change
+  # screenRange - The new {Range} to use
+  # options - A hash of options matching those found in {BufferMarker.setRange}
   setMarkerScreenRange: (args...) ->
     @displayBuffer.setMarkerScreenRange(args...)
 
+  # Public: Gets the buffer range of the display marker.
+  #
+  # id - The {Number} of the ID to check
+  #
+  # Returns a {Range}.
   getMarkerBufferRange: (args...) ->
     @displayBuffer.getMarkerBufferRange(args...)
 
+  # Public: Modifies the buffer range of the display marker.
+  #
+  # id - The {Number} of the ID to check
+  # screenRange - The new {Range} to use
+  # options - A hash of options matching those found in {BufferMarker.setRange}
   setMarkerBufferRange: (args...) ->
     @displayBuffer.setMarkerBufferRange(args...)
 
+  # Public: Retrieves the screen position of the marker's head.
+  #
+  # id - The {Number} of the ID to check
+  #
+  # Returns a {Point}.
   getMarkerScreenPosition: (args...) ->
     @displayBuffer.getMarkerScreenPosition(args...)
 
+  # Public: Retrieves the buffer position of the marker's head.
+  #
+  # id - The {Number} of the ID to check
+  #
+  # Returns a {Point}.
   getMarkerBufferPosition: (args...) ->
     @displayBuffer.getMarkerBufferPosition(args...)
 
+  # Public: Retrieves the screen position of the marker's head.
+  #
+  # id - The {Number} of the ID to check
+  #
+  # Returns a {Point}.
   getMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.getMarkerHeadScreenPosition(args...)
-
+ 
+  # Public: Sets the screen position of the marker's head.
+  #
+  # id - The {Number} of the ID to change
+  # screenRange - The new {Point} to use
+  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.setMarkerHeadScreenPosition(args...)
 
+  # Public: Retrieves the buffer position of the marker's head.
+  #
+  # id - The {Number} of the ID to check
+  #
+  # Returns a {Point}.
   getMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.getMarkerHeadBufferPosition(args...)
 
+  # Public: Sets the buffer position of the marker's head.
+  #
+  # id - The {Number} of the ID to check
+  # screenRange - The new {Point} to use
+  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.setMarkerHeadBufferPosition(args...)
 
+  # Public: Retrieves the screen position of the marker's tail.
+  #
+  # id - The {Number} of the ID to check
+  #
+  # Returns a {Point}.
   getMarkerTailScreenPosition: (args...) ->
     @displayBuffer.getMarkerTailScreenPosition(args...)
 
+  # Public: Sets the screen position of the marker's tail.
+  #
+  # id - The {Number} of the ID to change
+  # screenRange - The new {Point} to use
+  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setMarkerTailScreenPosition: (args...) ->
     @displayBuffer.setMarkerTailScreenPosition(args...)
-
+ 
+  # Public: Retrieves the buffer position of the marker's tail.
+  #
+  # id - The {Number} of the ID to check
+  #
+  # Returns a {Point}.
   getMarkerTailBufferPosition: (args...) ->
     @displayBuffer.getMarkerTailBufferPosition(args...)
 
+  # Public: Sets the buffer position of the marker's tail.
+  #
+  # id - The {Number} of the ID to change
+  # screenRange - The new {Point} to use
+  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setMarkerTailBufferPosition: (args...) ->
     @displayBuffer.setMarkerTailBufferPosition(args...)
 
+  # Public: Sets a callback to be fired whenever a marker is changed.
+  #
+  # id - A {Number} representing the marker to watch
+  # callback - A {Function} to execute
   observeMarker: (args...) ->
     @displayBuffer.observeMarker(args...)
 
+  # Public: Sets the marker's tail to the same position as the marker's head.
+  #
+  # This only works if there isn't already a tail position.
+  #
+  # id - A {Number} representing the marker to change
+  #
+  # Returns a {Point} representing the new tail position.
   placeMarkerTail: (args...) ->
     @displayBuffer.placeMarkerTail(args...)
 
+  # Public: Removes the tail from the marker.
+  #
+  # id - A {Number} representing the marker to change
   clearMarkerTail: (args...) ->
     @displayBuffer.clearMarkerTail(args...)
 
-  # Public: Identifies if markers are reversed, that is, they are highlighting "up."
+  # Public: Identifies if the ending position of a marker is greater than the starting position.
   #
-  # args - {String}s specifying the id of a {BufferMarker} 
+  # This can happen when, for example, you highlight text "up" in a {Buffer}.
+  #
+  # id - A {Number} representing the marker to check
   #
   # Returns a {Boolean}.
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
 
+  # Public: Identifies if the marker's head position is equal to its tail.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Boolean}.
   isMarkerRangeEmpty: (args...) ->
     @displayBuffer.isMarkerRangeEmpty(args...)
 
@@ -928,9 +1084,9 @@ class EditSession
   hasMultipleCursors: ->
     @getCursors().length > 1
 
-  # Public: Retrieves an array of all the cursors.
+  # Public: Retrieves  all the cursors.
   #
-  # Returns a {[Cursor]}.
+  # Returns an {Array} of {Cursor}s.
   getCursors: -> new Array(@cursors...)
 
   # Public: Retrieves a single cursor
@@ -1131,7 +1287,7 @@ class EditSession
   getCursorBufferPosition: ->
     @getCursor().getBufferPosition()
 
-  # Public: Gets the screen range of the  most recently added {Selection}.
+  # Public: Gets the screen range of the most recently added {Selection}.
   #
   # Returns a {Range}.
   getSelectedScreenRange: ->
@@ -1350,10 +1506,14 @@ class EditSession
     else
       false
 
+  # Public: Given a buffer position, this finds all markers that contain the position.
+  #
+  # bufferPosition - A {Point} to check
+  #
+  # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
   markersForBufferPosition: (bufferPosition) ->
     @buffer.markersForPosition(bufferPosition)
 
-  # Internal:
   mergeCursors: ->
     positions = []
     for cursor in @getCursors()
@@ -1398,12 +1558,12 @@ class EditSession
 
   # Public: Retrieves the current {EditSession}'s grammar.
   #
-  # Returns a {String} indicating the {LanguageMode}'s grammar rules.
+  # Returns a {String} indicating the language's grammar rules.
   getGrammar: -> @languageMode.grammar
 
   # Public: Sets the current {EditSession}'s grammar.
   #
-  # grammar - A {String} indicating the {LanguageMode}'s grammar rules.
+  # grammar - A {String} indicating the language's grammar rules.
   setGrammar: (grammar) ->
     @languageMode.setGrammar(grammar)
 

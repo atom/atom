@@ -5,6 +5,10 @@ Token = require 'token'
 Range = require 'range'
 Point = require 'point'
 
+###
+# Internal #
+###
+
 module.exports =
 class TokenizedBuffer
   @idCounter: 1
@@ -18,7 +22,6 @@ class TokenizedBuffer
   invalidRows: null
   visible: false
 
-  # Internal:
   constructor: (@buffer, { @languageMode, @tabLength }) ->
     @tabLength ?= 2
     @id = @constructor.idCounter++
@@ -163,7 +166,6 @@ class TokenizedBuffer
     token = @screenLines[position.row].tokenAtBufferColumn(position.column)
     token.scopes
 
-  # Internal:
   destroy: ->
     @buffer.off ".tokenized-buffer#{@id}"
 
@@ -233,13 +235,11 @@ class TokenizedBuffer
   getLastRow: ->
     @buffer.getLastRow()
 
-  # Internal:
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]
       line = @lineForScreenRow(row).text
       console.log row, line, line.length
 
-  # Internal:
   getDebugSnapshot: ->
     lines = ["Tokenized Buffer:"]
     for screenLine, row in @linesForScreenRows(0, @getLastRow())

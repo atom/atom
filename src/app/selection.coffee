@@ -70,7 +70,7 @@ class Selection
 
   # Public: Modifies the screen range for the selection.
   #
-  # screenRange - The new {Range} to select
+  # screenRange - The new {Range} to use
   # options - A hash of options matching those found in {.setBufferRange}
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@editSession.bufferRangeForScreenRange(screenRange), options)

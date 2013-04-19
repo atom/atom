@@ -45,6 +45,13 @@ class Cursor
     @editSession.removeCursor(this)
     @trigger 'destroyed'
 
+  changePosition: (options, fn) ->
+    @goalColumn = null
+    @clearSelection()
+    @needsAutoscroll = options.autoscroll ? @isLastCursor()
+    unless fn()
+      @trigger 'autoscrolled' if @needsAutoscroll
+
   ###
   # Public #
   ###
@@ -81,13 +88,7 @@ class Cursor
   getBufferPosition: ->
     @editSession.getMarkerHeadBufferPosition(@marker)
 
-  changePosition: (options, fn) ->
-    @goalColumn = null
-    @clearSelection()
-    @needsAutoscroll = options.autoscroll ? @isLastCursor()
-    unless fn()
-      @trigger 'autoscrolled' if @needsAutoscroll
-
+  # Public: If the marker range is empty, the cursor is marked as being visible.
   updateVisibility: ->
     @setVisible(@editSession.isMarkerRangeEmpty(@marker))
 
@@ -343,6 +344,9 @@ class Cursor
 
     new Range([startRow, 0], [endRow, @editSession.lineLengthForBufferRow(endRow)])
 
+  # Public: Retrieves the characters that constitute a word preceeding the current cursor position.
+  #
+  # Returns a {String}.
   getCurrentWordPrefix: ->
     @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
 

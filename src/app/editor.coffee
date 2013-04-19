@@ -434,9 +434,6 @@ class Editor extends View
   undo: -> @activeEditSession.undo()
   # Public: Redos the last {Buffer} change.
   redo: -> @activeEditSession.redo()
-  transact: (fn) -> @activeEditSession.transact(fn)
-  commit: -> @activeEditSession.commit()
-  abort: -> @activeEditSession.abort()
   # Public: Creates a new fold between two row numbers.
   #
   # startRow - The row {Number} to start folding at
@@ -452,8 +449,15 @@ class Editor extends View
   foldAll: -> @activeEditSession.foldAll()
   # Public: Unfolds all the rows.
   unfoldAll: -> @activeEditSession.unfoldAll()
+  # Public: Folds the most recent selection.
   foldSelection: -> @activeEditSession.foldSelection()
+  # Public: Given the id of a {Fold}, this removes it.
+  #
+  # foldId - The fold id {Number} to remove
   destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
+  # Public: Removes any {Fold}s found that contain the given buffer row.
+  #
+  # bufferRow - The buffer row {Number} to check against
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
   # Public: Determines if the given screen row is folded.
   #
@@ -489,6 +493,9 @@ class Editor extends View
   #
   # Returns a {Number}.
   screenLineCount: -> @activeEditSession.screenLineCount()
+  # Public: Defines the limit at which the buffer begins to soft wrap text.
+  #
+  # softWrapColumn - A {Number} defining the soft wrap limit
   setSoftWrapColumn: (softWrapColumn) ->
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
@@ -500,6 +507,19 @@ class Editor extends View
   #
   # Returns a {String}.
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
+  # Public: Given a position, this clips it to a real position.
+  #
+  # For example, if `position`'s row exceeds the row count of the buffer,
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # to a real position.
+  #
+  # position - The {Point} to clip
+  # options - A hash with the following values:
+  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines 
+  #           :wrapAtSoftNewlines - if `true`, continues wrapping past soft newlines
+  #           :screenLine - if `true`, indicates that you're using a line number, not a row number
+  #
+  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)
 
   # Public: Given a buffer position, this converts it into a screen position.
@@ -867,6 +887,9 @@ class Editor extends View
   scrollToBottom: ->
     @scrollBottom(@screenLineCount() * @lineHeight)
 
+  # Public: Scrolls the editor to the position of the most recently added cursor.
+  #
+  # The editor is also centered.
   scrollToCursorPosition: ->
     @scrollToBufferPosition(@getCursorBufferPosition(), center: true)
 
@@ -934,6 +957,11 @@ class Editor extends View
     else if desiredLeft < @scrollView.scrollLeft()
       @scrollView.scrollLeft(desiredLeft)
 
+  # Public: Given a buffer range, this highlights all the folds within that range
+  #
+  # "Highlighting" essentially just adds the `selected` class to the line
+  #
+  # bufferRange - The {Range} to check
   highlightFoldsContainingBufferRange: (bufferRange) ->
     screenLines = @linesForScreenRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
     for screenLine, i in screenLines
@@ -1110,7 +1138,10 @@ class Editor extends View
   appendToLinesView: (view) ->
     @overlayer.append(view)
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)
@@ -1360,6 +1391,10 @@ class Editor extends View
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
+  ###
+  # Public #
+  ###
+
   # Public: Retrieves the number of the row that is visible and currently at the top of the editor.
   #
   # Returns a {Number}.
@@ -1380,7 +1415,10 @@ class Editor extends View
   isScreenRowVisible: (row) ->
     @getFirstVisibleScreenRow() <= row <= @getLastVisibleScreenRow()
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   handleScreenLinesChange: (change) ->
     @pendingChanges.push(change)
     @requestDisplayUpdate()
@@ -1487,6 +1525,10 @@ class Editor extends View
   toggleLineCommentsInSelection: ->
     @activeEditSession.toggleLineCommentsInSelection()
 
+  ###
+  # Public #
+  ###
+
   # Public: Converts a buffer position to a pixel position.
   #
   # position - An object that represents a buffer position. It can be either
@@ -1580,13 +1622,13 @@ class Editor extends View
 
   # Public: Retrieves the current {EditSession}'s grammar.
   #
-  # Returns a {String} indicating the {LanguageMode}'s grammar rules.
+  # Returns a {String} indicating the language's grammar rules.
   getGrammar: ->
     @activeEditSession.getGrammar()
 
   # Public: Sets the current {EditSession}'s grammar. This only works for mini-editors.
   #
-  # grammar - A {String} indicating the {LanguageMode}'s grammar rules.
+  # grammar - A {String} indicating the language's grammar rules.
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
@@ -1621,6 +1663,10 @@ class Editor extends View
   ###
   # Internal #
   ###
+
+  transact: (fn) -> @activeEditSession.transact(fn)
+  commit: -> @activeEditSession.commit()
+  abort: -> @activeEditSession.abort()
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>

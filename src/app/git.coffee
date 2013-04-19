@@ -213,19 +213,6 @@ class Git
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))
 
-  # Internal:
-  refreshStatus: ->
-    if @statusTask?
-      @statusTask.off()
-      @statusTask.one 'task-completed', =>
-        @statusTask = null
-        @refreshStatus()
-    else
-      @statusTask = new RepositoryStatusTask(this)
-      @statusTask.one 'task-completed', =>
-        @statusTask = null
-      @statusTask.start()
-
   # Public: Retrieves the status of a directory.
   #
   # path - The {String} path to check
@@ -242,12 +229,36 @@ class Git
   #
   # This is similar to the commit numbers reported by `git status` when a remote tracking branch exists.
   #
-  # Returnsan object with two keys, `ahead` and `behind`. These will always be greater than 0.
+  # Returns an object with two keys, `ahead` and `behind`. These will always be greater than zero.
   getAheadBehindCounts: ->
     @getRepo().getAheadBehindCount()
 
+  # Public: Retrieves the line diffs comparing the `HEAD` version of the given path and the given text.
+  #
+  # This is similar to the commit numbers reported by `git status` when a remote tracking branch exists.
+  #
+  # path - The {String} path (relative to the repository)
+  # text - The {String} to compare against the `HEAD` contents
+  # 
+  # Returns an object with two keys, `ahead` and `behind`. These will always be greater than zero.
   getLineDiffs: (path, text) ->
     @getRepo().getLineDiffs(@relativize(path), text)
 
+  ###
+  # Internal #
+  ###
+
+  refreshStatus: ->
+    if @statusTask?
+      @statusTask.off()
+      @statusTask.one 'task-completed', =>
+        @statusTask = null
+        @refreshStatus()
+    else
+      @statusTask = new RepositoryStatusTask(this)
+      @statusTask.one 'task-completed', =>
+        @statusTask = null
+      @statusTask.start()
+      
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter

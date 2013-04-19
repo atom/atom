@@ -333,6 +333,13 @@ class Buffer
     range = @pushOperation(operation)
     range
 
+  # Public: Given a position, this clips it to a real position.
+  #
+  # For example, if `position`'s row exceeds the row count of the buffer,
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # to a real position.
+  #
+  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipPosition: (position) ->
     position = Point.fromObject(position)
     eofPosition = @getEofPosition()
@@ -343,7 +350,16 @@ class Buffer
       column = Math.max(position.column, 0)
       column = Math.min(@lineLengthForRow(row), column)
       new Point(row, column)
-
+  
+  # Public: Given a range, this clips it to a real range.
+  #
+  # For example, if `range`'s row exceeds the row count of the buffer,
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # to a real range.
+  #
+  # range - The {Point} to clip
+  #
+  # Returns the new, clipped {Point}. Note that this could be the same as `range` if no clipping was performed.
   clipRange: (range) ->
     range = Range.fromObject(range)
     new Range(@clipPosition(range.start), @clipPosition(range.end))
@@ -417,6 +433,12 @@ class Buffer
   getMarkerCount: ->
     _.size(@validMarkers)
 
+  # Public: Constructs a new marker at a given range.
+  #
+  # range - The marker {Range} (representing the distance between the head and tail)
+  # options - Options to pass to the {BufferMarker} constructor
+  #
+  # Returns a {Number} representing the new marker's ID.
   markRange: (range, options={}) ->
     marker = new BufferMarker(_.defaults({
       id: (@nextMarkerId++).toString()
@@ -426,9 +448,18 @@ class Buffer
     @validMarkers[marker.id] = marker
     marker.id
 
+  # Public: Constructs a new marker at a given position.
+  #
+  # position - The marker {Point}; there won't be a tail
+  # options - Options to pass to the {BufferMarker} constructor
+  #
+  # Returns a {Number} representing the new marker's ID.
   markPosition: (position, options) ->
     @markRange([position, position], _.defaults({noTail: true}, options))
 
+  # Public: Removes the marker with the given id.
+  #
+  # id - The {Number} of the ID to remove
   destroyMarker: (id) ->
     delete @validMarkers[id]
     delete @invalidMarkers[id]
@@ -439,39 +470,110 @@ class Buffer
   setMarkerPosition: (args...) ->
     @setMarkerHeadPosition(args...)
 
+  # Public: Retrieves the position of the marker's head.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Point}, or `null` if the marker does not exist.
   getMarkerHeadPosition: (id) ->
     @validMarkers[id]?.getHeadPosition()
 
+  # Public: Sets the position of the marker's head.
+  #
+  # id - A {Number} representing the marker to change
+  # position - The new {Point} to place the head
+  # options - A hash with the following keys:
+  #         :clip - if `true`, the point is [clipped]{Buffer.clipPosition}
+  #         :bufferChanged - if `true`, indicates that the {Buffer} should trigger an event that it's changed
+  #
+  # Returns a {Point} representing the new head position.
   setMarkerHeadPosition: (id, position, options) ->
     @validMarkers[id]?.setHeadPosition(position)
 
+  # Public: Retrieves the position of the marker's tail.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Point}, or `null` if the marker does not exist.
   getMarkerTailPosition: (id) ->
     @validMarkers[id]?.getTailPosition()
 
+  # Public: Sets the position of the marker's tail.
+  #
+  # id - A {Number} representing the marker to change
+  # position - The new {Point} to place the tail
+  # options - A hash with the following keys:
+  #         :clip - if `true`, the point is [clipped]{Buffer.clipPosition}
+  #         :bufferChanged - if `true`, indicates that the {Buffer} should trigger an event that it's changed
+  #
+  # Returns a {Point} representing the new tail position.
   setMarkerTailPosition: (id, position, options) ->
     @validMarkers[id]?.setTailPosition(position)
 
+  # Public: Retrieves the {Range} between a marker's head and its tail. 
+  # 
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Range}.
   getMarkerRange: (id) ->
     @validMarkers[id]?.getRange()
 
+  # Public: Sets the marker's range, potentialy modifying both its head and tail.
+  #
+  # id - A {Number} representing the marker to change
+  # range - The new {Range} the marker should cover
+  # options - A hash of options with the following keys:
+  #           :reverse - if `true`, the marker is reversed; that is, its tail is "above" the head
+  #           :noTail - if `true`, the marker doesn't have a tail
   setMarkerRange: (id, range, options) ->
     @validMarkers[id]?.setRange(range, options)
 
+  # Public: Sets the marker's tail to the same position as the marker's head.
+  #
+  # This only works if there isn't already a tail position.
+  #
+  # id - A {Number} representing the marker to change
+  #
+  # Returns a {Point} representing the new tail position.
   placeMarkerTail: (id) ->
     @validMarkers[id]?.placeTail()
 
+  # Public: Removes the tail from the marker.
+  #
+  # id - A {Number} representing the marker to change
   clearMarkerTail: (id) ->
     @validMarkers[id]?.clearTail()
 
+  # Public: Identifies if the ending position of a marker is greater than the starting position.
+  #
+  # This can happen when, for example, you highlight text "up" in a {Buffer}.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Boolean}.
   isMarkerReversed: (id) ->
     @validMarkers[id]?.isReversed()
 
+  # Public: Identifies if the marker's head position is equal to its tail.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Boolean}.
   isMarkerRangeEmpty: (id) ->
     @validMarkers[id]?.isRangeEmpty()
 
+  # Public: Sets a callback to be fired whenever a marker is changed.
+  #
+  # id - A {Number} representing the marker to watch
+  # callback - A {Function} to execute
   observeMarker: (id, callback) ->
     @validMarkers[id]?.observe(callback)
 
+  # Public: Given a buffer position, this finds all markers that contain the position.
+  #
+  # bufferPosition - A {Point} to check
+  #
+  # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
   markersForPosition: (bufferPosition) ->
     bufferPosition = Point.fromObject(bufferPosition)
     ids = []
@@ -479,6 +581,13 @@ class Buffer
       ids.push(id) if marker.containsPoint(bufferPosition)
     ids
 
+  # Public: Identifies if a character sequence is within a certain range.
+  #
+  # regex - The {RegExp} to check
+  # startIndex - The starting row {Number}
+  # endIndex - The ending row {Number}
+  #
+  # Returns an {Array} of {RegExp}s, representing the matches
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()
     matches = []
@@ -610,7 +719,17 @@ class Buffer
     return unless path
     git?.checkoutHead(path)
 
-  # Internal:
+  # Public: Checks to see if a file exists.
+  #
+  # Returns a {Boolean}.
+  fileExists: ->
+    @file? && @file.exists()
+
+
+  ###
+  # Internal #
+  ###
+
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
     stoppedChangingCallback = =>
@@ -620,25 +739,16 @@ class Buffer
       @triggerModifiedStatusChanged(modifiedStatus)
     @stoppedChangingTimeout = setTimeout(stoppedChangingCallback, @stoppedChangingDelay)
 
-  # Internal:
   triggerModifiedStatusChanged: (modifiedStatus) ->
     return if modifiedStatus is @previousModifiedStatus
     @previousModifiedStatus = modifiedStatus
     @trigger 'modified-status-changed', modifiedStatus
 
-  # Public: Checks to see if a file exists.
-  #
-  # Returns a {Boolean}.
-  fileExists: ->
-    @file? && @file.exists()
-
-  # Internal:
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
       line = @lineForRow(row)
       console.log row, line, line.length
 
-  # Internal:
   getDebugSnapshot: ->
     lines = ['Buffer:']
     for row in [0..@getLastRow()]

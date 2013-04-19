@@ -5,6 +5,10 @@ require 'underscore-extensions'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 
+###
+# Internal #
+###
+
 module.exports =
 class LanguageMode
   buffer = null

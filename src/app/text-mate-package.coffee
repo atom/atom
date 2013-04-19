@@ -5,6 +5,10 @@ _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
 async = require 'async'
 
+###
+# Internal #
+###
+
 module.exports =
 class TextMatePackage extends Package
   @testName: (packageName) ->
