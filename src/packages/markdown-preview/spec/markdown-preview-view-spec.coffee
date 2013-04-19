@@ -6,7 +6,6 @@ describe "MarkdownPreviewView", ->
   [buffer, preview] = []
 
   beforeEach ->
-    spyOn($, 'ajax')
     project.setPath(project.resolve('markdown'))
     buffer = project.bufferForPath('file.markdown')
     preview = new MarkdownPreviewView(buffer)
@@ -15,22 +14,17 @@ describe "MarkdownPreviewView", ->
     buffer.release()
 
   describe "on construction", ->
-    ajaxArgs = null
-
-    beforeEach ->
-      ajaxArgs = $.ajax.argsForCall[0][0]
 
     it "shows a loading spinner and fetches the rendered markdown", ->
+      preview.setLoading()
       expect(preview.find('.markdown-spinner')).toExist()
-      expect($.ajax).toHaveBeenCalled()
+      expect(preview.buffer.getText()).toBe buffer.getText()
 
-      expect(JSON.parse(ajaxArgs.data).text).toBe buffer.getText()
-
-      ajaxArgs.success($$$ -> @div "WWII", class: 'private-ryan')
-      expect(preview.find(".private-ryan")).toExist()
+      preview.fetchRenderedMarkdown()
+      expect(preview.find(".emoji")).toExist()
 
     it "shows an error message on error", ->
-      ajaxArgs.error()
+      preview.setErrorHtml("Not a real file")
       expect(preview.text()).toContain "Failed"
 
   describe "serialization", ->
