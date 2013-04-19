@@ -89,7 +89,7 @@ module.exports =
 
     @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
 
-  # Public: When called, stops triggering any event.
+  # Public: When called, stops triggering any events.
   pauseEvents: ->
     @pauseCount ?= 0
     if @pauseCount++ == 0
