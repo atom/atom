@@ -64,7 +64,7 @@ class Directory
   subscribeToNativeChangeEvents: ->
     @watchSubscription = pathWatcher.watch @path, (eventType) =>
       @trigger "contents-changed" if eventType is "change"
-  
+
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription?
       @watchSubscription.close()
