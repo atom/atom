@@ -127,6 +127,11 @@ namespace :docs do
     task :stats do
       system %{./node_modules/biscotto/bin/biscotto --statsOnly src/app/}
     end
+
+    desc "Show which docs are missing"
+    task :missing do
+      system %{./node_modules/biscotto/bin/biscotto --listMissing src/app/}
+    end
   end
 end
 
