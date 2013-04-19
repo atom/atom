@@ -1,6 +1,16 @@
 _ = require 'underscore'
 
+# Public: Provides a list of functions that can be used in Atom for event management.
+#
+# Each event can have more than one handler; that is, an event can trigger multiple functions.
 module.exports =
+  # Public: Associates an event name with a function to perform.
+  #
+  # This is called endlessly, until the event is turned {.off}. The {.on} method
+  # calls an `eventName` only once.
+  #
+  # eventName - A {String} name identifying an event
+  # handler - A {Function} that's executed when the event is triggered
   on: (eventName, handler) ->
     [eventName, namespace] = eventName.split('.')
 
@@ -17,6 +27,10 @@ module.exports =
     @afterSubscribe?()
 
 
+  # Public: Associates an event name with a function to perform only once.
+  #
+  # eventName - A {String} name identifying an event
+  # handler - A {Function} that's executed when the event is triggered
   one: (eventName, handler) ->
     oneShotHandler = (args...) =>
       @off(eventName, oneShotHandler)
@@ -24,6 +38,10 @@ module.exports =
 
     @on eventName, oneShotHandler
 
+  # Public: Triggers a registered event.
+  #
+  # eventName - A {String} name identifying an event
+  # args - Any additional arguments to pass over to the event `handler`
   trigger: (eventName, args...) ->
     if @queuedEvents
       @queuedEvents.push [eventName, args...]
@@ -37,6 +55,10 @@ module.exports =
         if handlers = @eventHandlersByEventName?[eventName]
           handlers.forEach (handler) -> handler(args...)
 
+  # Public: Stops executing handlers for a registered event.
+  #
+  # eventName - A {String} name identifying an event
+  # handler - The {Function} to remove from the event. If not provided, all handlers are removed.
   off: (eventName='', handler) ->
     [eventName, namespace] = eventName.split('.')
     eventName = undefined if eventName == ''
@@ -67,17 +89,22 @@ module.exports =
 
     @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
 
+  # Public: When called, stops triggering any event.
   pauseEvents: ->
     @pauseCount ?= 0
     if @pauseCount++ == 0
       @queuedEvents ?= []
 
+  # Public: When called, resumes triggering events.
   resumeEvents: ->
     if --@pauseCount == 0
       queuedEvents = @queuedEvents
       @queuedEvents = null
       @trigger(event...) for event in queuedEvents
 
+  # Public: Identifies how many events are registered.
+  #
+  # Returns a `number`.
   subscriptionCount: ->
     count = 0
     for name, handlers of @eventHandlersByEventName

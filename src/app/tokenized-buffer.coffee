@@ -5,6 +5,10 @@ Token = require 'token'
 Range = require 'range'
 Point = require 'point'
 
+###
+# Internal #
+###
+
 module.exports =
 class TokenizedBuffer
   @idCounter: 1
@@ -33,9 +37,15 @@ class TokenizedBuffer
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
+  # Public: Retrieves the current tab length.
+  #
+  # Returns a {Number}.
   getTabLength: ->
     @tabLength
 
+  # Public: Specifies the tab length.
+  #
+  # tabLength - A {Number} that defines the new tab length.
   setTabLength: (@tabLength) ->
     lastRow = @buffer.getLastRow()
     @screenLines = @buildPlaceholderScreenLinesForRows(0, lastRow)
@@ -219,6 +229,9 @@ class TokenizedBuffer
             stop()
     position
 
+  # Public: Gets the row number of the last line.
+  #
+  # Returns a {Number}.
   getLastRow: ->
     @buffer.getLastRow()
 

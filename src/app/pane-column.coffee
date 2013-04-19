@@ -2,8 +2,10 @@ $ = require 'jquery'
 _ = require 'underscore'
 PaneAxis = require 'pane-axis'
 
+# Internal:
 module.exports =
 class PaneColumn extends PaneAxis
+
   @content: ->
     @div class: 'column'
 

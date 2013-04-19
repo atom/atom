@@ -5,6 +5,10 @@ fsUtils = require 'fs-utils'
 Specificity = require 'specificity'
 PEG = require 'pegjs'
 
+###
+# Internal #
+###
+
 module.exports =
 class BindingSet
 

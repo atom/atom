@@ -2,6 +2,9 @@ $ = require 'jquery'
 RootView = require 'root-view'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
+Exec = require('child_process').exec
+_ = require 'underscore'
+Project = require 'project'
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -321,3 +324,26 @@ describe "the `atom` global", ->
       expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
       expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A2"
       atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+  describe "API documentation", ->
+    it "meets a minimum threshold for /app (with no errors)", ->
+      docRunner = jasmine.createSpy("docRunner")
+      Exec "cd #{project.resolve('../..')} && rake docs:app:stats", docRunner
+      waitsFor ->
+        docRunner.callCount > 0
+
+      runs ->
+        # error
+        expect(docRunner.argsForCall[0][0]).toBeNull()
+
+        results = docRunner.argsForCall[0][1].split("\n")
+        results.pop()
+
+        errors = parseInt results.pop().match(/\d+/)
+        expect(errors).toBe 0
+
+        coverage = parseFloat results.pop().match(/.+?%/)
+        expect(coverage).toBeGreaterThan 80
+
+        # stderr
+        expect(docRunner.argsForCall[0][2]).toBe ''

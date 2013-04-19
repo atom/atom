@@ -6,6 +6,10 @@ Token = require 'token'
 nodePath = require 'path'
 pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 
+###
+# Internal #
+###
+
 module.exports =
 class TextMateGrammar
   @readFromPath: (path) ->
@@ -345,6 +349,10 @@ class Pattern
       ))
 
     tokens
+
+###
+# Internal #
+###
 
 shiftCapture = (captureIndices) ->
   [captureIndices.shift(), captureIndices.shift(), captureIndices.shift()]

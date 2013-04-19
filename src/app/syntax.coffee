@@ -6,6 +6,10 @@ fsUtils = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 NullGrammar = require 'null-grammar'
 
+###
+# Internal #
+###
+
 module.exports =
 class Syntax
   registerDeserializer(this)

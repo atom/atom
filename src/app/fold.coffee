@@ -1,6 +1,10 @@
 Range = require 'range'
 Point = require 'point'
 
+# Public: Represents a fold that's hiding text from the screen. 
+#
+# Folds are the primary reason that screen ranges and buffer ranges vary. Their
+# creation is managed by the {DisplayBuffer}.
 module.exports =
 class Fold
   @idCounter: 1
@@ -8,6 +12,10 @@ class Fold
   displayBuffer: null
   startRow: null
   endRow: null
+
+  ###
+  # Internal #
+  ###
 
   constructor: (@displayBuffer, @startRow, @endRow) ->
     @id = @constructor.idCounter++
@@ -18,6 +26,11 @@ class Fold
   inspect: ->
     "Fold(#{@startRow}, #{@endRow})"
 
+  # Public: Retrieves the buffer row range that a fold occupies.
+  #
+  # includeNewline - A {Boolean} which, if `true`, includes the trailing newline
+  #
+  # Returns a {Range}.
   getBufferRange: ({includeNewline}={}) ->
     if includeNewline
       end = [@endRow + 1, 0]
@@ -26,6 +39,9 @@ class Fold
 
     new Range([@startRow, 0], end)
 
+  # Public: Retrieves the number of buffer rows a fold occupies.
+  #
+  # Returns a {Number}.
   getBufferRowCount: ->
     @endRow - @startRow + 1
 
@@ -43,9 +59,19 @@ class Fold
       @displayBuffer.unregisterFold(oldStartRow, this)
       @displayBuffer.registerFold(this)
 
+  # Public: Identifies if a {Range} occurs within a fold.
+  #
+  # range - A {Range} to check
+  #
+  # Returns a {Boolean}.
   isContainedByRange: (range) ->
     range.start.row <= @startRow and @endRow <= range.end.row
 
+  # Public: Identifies if a fold is nested within a fold.
+  #
+  # fold - A {Fold} to check
+  #
+  # Returns a {Boolean}.
   isContainedByFold: (fold) ->
     @isContainedByRange(fold.getBufferRange())
 

@@ -1,5 +1,8 @@
 Token = require 'token'
 
+###
+# Internal #
+###
 module.exports =
 class NullGrammar
   name: 'Null Grammar'

@@ -5,6 +5,11 @@ _ = require 'underscore'
 $ = require 'jquery'
 CSON = require 'cson'
 
+
+###
+# Internal: Loads and resolves packages. #
+###
+
 module.exports =
 class AtomPackage extends Package
   metadata: null

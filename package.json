@@ -21,6 +21,10 @@
     "less": "git://github.com/nathansobo/less.js.git"
   },
 
+  "devDependencies" : {
+    "biscotto" : "0.0.8"
+  },
+
   "private": true,
 
   "scripts": {
