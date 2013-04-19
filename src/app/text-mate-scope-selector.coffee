@@ -11,8 +11,11 @@ class TextMateScopeSelector
       TextMateScopeSelector.parser = PEG.buildParser(fsUtils.read(patternPath))
     TextMateScopeSelector.parser
 
-  constructor: (@selector) ->
-    @matcher = TextMateScopeSelector.createParser().parse(@selector)
+  source: null
+  matcher: null
+
+  constructor: (@source) ->
+    @matcher = TextMateScopeSelector.createParser().parse(@source)
 
   matches: (scopes) ->
     @matcher.matches(scopes)
