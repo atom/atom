@@ -5,7 +5,7 @@ class SegmentMatcher
   matches: (scope) ->
     scope is @segment
 
-class AsterixMatcher
+class AsteriskMatcher
   constructor: ->
 
   matches: ->
