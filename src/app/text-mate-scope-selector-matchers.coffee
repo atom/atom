@@ -72,11 +72,11 @@ class CompositeMatcher
 
 module.exports = {
   AndMatcher
-  TrueMatcher
   CompositeMatcher
   NegateMatcher
   OrMatcher
   PathMatcher
   ScopeMatcher
   SegmentMatcher
+  TrueMatcher
 }
