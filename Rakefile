@@ -120,17 +120,17 @@ namespace :docs do
   namespace :app do
     desc "Builds the API docs in src/app"
     task :build do
-      system %{./node_modules/biscotto/bin/biscotto -o docs/api src/app/}
+      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- -o docs/api src/app/}
     end
 
     desc "Lists the stats for API doc coverage in src/app"
     task :stats do
-      system %{./node_modules/biscotto/bin/biscotto --statsOnly src/app/}
+      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- --statsOnly src/app/}
     end
 
     desc "Show which docs are missing"
     task :missing do
-      system %{./node_modules/biscotto/bin/biscotto --listMissing src/app/}
+      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- --listMissing src/app/}
     end
   end
 end
