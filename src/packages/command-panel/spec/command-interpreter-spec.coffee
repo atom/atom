@@ -205,6 +205,17 @@ describe "CommandInterpreter", ->
         runs ->
           expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/Array/"
 
+      describe "when there is no active edit session", ->
+        it "returns no error messages and does not throw an error", ->
+          errorMessages = null
+
+          waitsForPromise ->
+            interpreter.eval('/something').done (results) ->
+              {errorMessages} = results
+
+          runs ->
+            expect(errorMessages.length).toBe 0
+
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->

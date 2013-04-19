@@ -6,7 +6,7 @@ class CompositeCommand
   constructor: (@subcommands) ->
 
   execute: (project, editSession) ->
-    currentRanges = editSession?.getSelectedBufferRanges()
+    currentRanges = editSession?.getSelectedBufferRanges() ? []
     @executeCommands(@subcommands, project, editSession, currentRanges)
 
   executeCommands: (commands, project, editSession, ranges) ->
@@ -60,4 +60,3 @@ class CompositeCommand
 
   isRelativeAddress: ->
     _.all(@subcommands, (command) -> command.isAddress() and command.isRelative())
-
