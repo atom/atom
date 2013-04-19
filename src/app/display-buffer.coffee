@@ -62,7 +62,7 @@ class DisplayBuffer
     screenDelta = @getLastRow() - end
     bufferDelta = 0
     @triggerChanged({ start, end, screenDelta, bufferDelta })
-  
+
   # Public: Gets the line for the given screen row.
   #
   # screenRow - A {Number} indicating the screen row.
@@ -202,7 +202,7 @@ class DisplayBuffer
 
   # Public: Given a buffer row, this returns the largest fold that starts there.
   #
-  # Largest is defined as the fold whose difference between its start and end points 
+  # Largest is defined as the fold whose difference between its start and end points
   # are the greatest.
   #
   # bufferRow - A {Number} indicating the buffer row
@@ -214,7 +214,7 @@ class DisplayBuffer
 
   # Public: Given a screen row, this returns the largest fold that starts there.
   #
-  # Largest is defined as the fold whose difference between its start and end points 
+  # Largest is defined as the fold whose difference between its start and end points
   # are the greatest.
   #
   # screenRow - A {Number} indicating the screen row
@@ -225,7 +225,7 @@ class DisplayBuffer
 
   # Public: Given a buffer row, this returns the largest fold that includes it.
   #
-  # Largest is defined as the fold whose difference between its start and end points 
+  # Largest is defined as the fold whose difference between its start and end points
   # are the greatest.
   #
   # bufferRow - A {Number} indicating the buffer row
@@ -321,10 +321,10 @@ class DisplayBuffer
   #           :wrapBeyondNewlines -
   #           :wrapAtSoftNewlines -
   #
-  # Returns a {Point}. 
+  # Returns a {Point}.
   bufferPositionForScreenPosition: (position, options) ->
     @lineMap.bufferPositionForScreenPosition(position, options)
-    
+
   # Public: Retrieves the grammar's token scopes for a buffer position.
   #
   # bufferPosition - A {Point} in the {Buffer}
@@ -348,12 +348,12 @@ class DisplayBuffer
   # Public: Given a position, this clips it to a real position.
   #
   # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real position.
   #
   # position - The {Point} to clip
   # options - A hash with the following values:
-  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines 
+  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines
   #           :wrapAtSoftNewlines - if `true`, continues wrapping past soft newlines
   #           :screenLine - if `true`, indicates that you're using a line number, not a row number
   #
@@ -650,7 +650,7 @@ class DisplayBuffer
   # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setMarkerHeadBufferPosition: (id, bufferPosition) ->
     @getMarker(id).setHeadBufferPosition(bufferPosition)
-  
+
   # Public: Retrieves the screen position of the marker's tail.
   #
   # id - The {Number} of the ID to check
