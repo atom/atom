@@ -309,7 +309,7 @@ describe "TextMateGrammar", ->
         expect(tokens[4].value).toBe "three(four(five(_param_)))))"
         expect(ruleStack).toEqual originalRuleStack
 
-    describe "when a grammar's captures has patterns", ->
+    describe "when a grammar has a capture with patterns", ->
       beforeEach ->
         atom.activatePackage('php.tmbundle', sync: true)
 
@@ -331,3 +331,29 @@ describe "TextMateGrammar", ->
 
         expect(tokens[6].value).toBe "function"
         expect(tokens[6].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
+
+      it "ignores child captures of a capture with patterns", ->
+        grammar = new TextMateGrammar
+          name: "test"
+          scopeName: "source"
+          repository: {}
+          patterns: [
+            {
+              name: "text"
+              match: "(a(b))"
+              captures:
+                "1":
+                  patterns: [
+                    {
+                      match: "ab"
+                      name: "a"
+                    }
+                  ]
+                "2":
+                  name: "b"
+            }
+          ]
+        {tokens} = grammar.tokenizeLine("ab")
+
+        expect(tokens[0].value).toBe "ab"
+        expect(tokens[0].scopes).toEqual ["source", "text", "a"]

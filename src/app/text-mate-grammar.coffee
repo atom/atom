@@ -397,11 +397,9 @@ class Pattern
     tokens
 
   getTokensForCaptureRule: (rule, line, captureStart, captureEnd, scopes, stack) ->
-    line = line.substring(captureStart, captureEnd)
-    {tokens} = rule.grammar.tokenizeLine(line, [stack..., rule])
-    matchLength = 0
-    matchLength += token.value.length for token in tokens
-    {captureTokens: tokens, matchEndPosition: captureStart + matchLength}
+    captureText = line.substring(captureStart, captureEnd)
+    {tokens} = rule.grammar.tokenizeLine(captureText, [stack..., rule])
+    tokens
 
   getTokensForCaptureIndices: (line, captureIndices, scopes, stack) ->
     [parentCaptureIndex, parentCaptureStart, parentCaptureEnd] = shiftCapture(captureIndices)
@@ -411,35 +409,37 @@ class Pattern
       scopes = scopes.concat(scope)
 
     if captureRule = @captures[parentCaptureIndex]?.rule
-      {captureTokens, matchEndPosition} = @getTokensForCaptureRule(captureRule, line, parentCaptureStart, parentCaptureEnd, scopes, stack)
+      captureTokens = @getTokensForCaptureRule(captureRule, line, parentCaptureStart, parentCaptureEnd, scopes, stack)
       tokens.push(captureTokens...)
-      parentCaptureStart = matchEndPosition
-
-    previousChildCaptureEnd = parentCaptureStart
-    while captureIndices.length and captureIndices[1] < parentCaptureEnd
-      [childCaptureIndex, childCaptureStart, childCaptureEnd] = captureIndices
-
-      emptyCapture = childCaptureEnd - childCaptureStart == 0
-      captureHasNoScope = not @captures[childCaptureIndex]
-      if emptyCapture or captureHasNoScope
+      # Consume child captures
+      while captureIndices.length and captureIndices[1] < parentCaptureEnd
         shiftCapture(captureIndices)
-        continue
+    else
+      previousChildCaptureEnd = parentCaptureStart
+      while captureIndices.length and captureIndices[1] < parentCaptureEnd
+        [childCaptureIndex, childCaptureStart, childCaptureEnd] = captureIndices
 
-      if childCaptureStart > previousChildCaptureEnd
+        emptyCapture = childCaptureEnd - childCaptureStart == 0
+        captureHasNoScope = not @captures[childCaptureIndex]
+        if emptyCapture or captureHasNoScope
+          shiftCapture(captureIndices)
+          continue
+
+        if childCaptureStart > previousChildCaptureEnd
+          tokens.push(new Token(
+            value: line[previousChildCaptureEnd...childCaptureStart]
+            scopes: scopes
+          ))
+
+        captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes, stack)
+        tokens.push(captureTokens...)
+        previousChildCaptureEnd = childCaptureEnd
+
+      if parentCaptureEnd > previousChildCaptureEnd
         tokens.push(new Token(
-          value: line[previousChildCaptureEnd...childCaptureStart]
+          value: line[previousChildCaptureEnd...parentCaptureEnd]
           scopes: scopes
         ))
-
-      captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes, stack)
-      tokens.push(captureTokens...)
-      previousChildCaptureEnd = childCaptureEnd
-
-    if parentCaptureEnd > previousChildCaptureEnd
-      tokens.push(new Token(
-        value: line[previousChildCaptureEnd...parentCaptureEnd]
-        scopes: scopes
-      ))
 
     tokens
 
