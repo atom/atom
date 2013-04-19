@@ -12,7 +12,7 @@ segment
   }
 
   / _ scopeName:[\*] _ {
-    return new matchers.AsteriskMatcher();
+    return new matchers.TrueMatcher();
   }
 
 scope

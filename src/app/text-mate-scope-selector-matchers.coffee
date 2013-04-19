@@ -5,7 +5,7 @@ class SegmentMatcher
   matches: (scope) ->
     scope is @segment
 
-class AsteriskMatcher
+class TrueMatcher
   constructor: ->
 
   matches: ->
@@ -69,7 +69,7 @@ class CompositeMatcher
 
 module.exports = {
   AndMatcher
-  AsteriskMatcher
+  TrueMatcher
   CompositeMatcher
   NegateMatcher
   OrMatcher
