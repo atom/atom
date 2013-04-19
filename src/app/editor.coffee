@@ -681,7 +681,10 @@ class Editor extends View
   # iterator - A {Function} that's called on each match
   backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
-  # Internal:
+  ###
+  # Internal #
+  ###
+
   configure: ->
     @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
     @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
@@ -690,7 +693,6 @@ class Editor extends View
     @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
     @observeConfig 'editor.fontFamily', (fontFamily) => @setFontFamily(fontFamily)
 
-  # Internal: Responsible for handling events made to the editor.
   handleEvents: ->
     @on 'focus', =>
       @hiddenInput.focus()
@@ -762,7 +764,6 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-  # Internal:
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
     moveHandler = (event = lastMoveEvent) =>
@@ -781,7 +782,6 @@ class Editor extends View
       @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
 
-  # Internal:
   afterAttach: (onDom) ->
     return unless onDom
     @redraw() if @redrawOnReattach
@@ -803,7 +803,6 @@ class Editor extends View
 
     @trigger 'editor:attached', [this]
 
-  # Internal:
   edit: (editSession) ->
     return if editSession is @activeEditSession
 
@@ -833,24 +832,12 @@ class Editor extends View
     if @attached and @activeEditSession.buffer.isInConflict()
       _.defer => @showBufferConflictAlert(@activeEditSession) # Display after editSession has a chance to display
 
-  # Internal: Retrieves the currently active session.
-  #
-  # Returns an {EditSession}.
   getModel: ->
     @activeEditSession
 
-  # Internal: Set the new active session.
-  #
-  # editSession - The new {EditSession} to use.
   setModel: (editSession) ->
     @edit(editSession)
 
-  # Public: Retrieves the {EditSession}'s buffer.
-  #
-  # Returns the current {Buffer}.
-  getBuffer: -> @activeEditSession.buffer
-
-  # Internal:
   showBufferConflictAlert: (editSession) ->
     atom.confirm(
       editSession.getPath(),
@@ -859,7 +846,6 @@ class Editor extends View
       "Cancel"
     )
 
-  # Internal:
   scrollTop: (scrollTop, options={}) ->
     return @cachedScrollTop or 0 unless scrollTop?
     maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
@@ -876,13 +862,21 @@ class Editor extends View
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
 
-  # Internal:
   scrollBottom: (scrollBottom) ->
     if scrollBottom?
       @scrollTop(scrollBottom - @scrollView.height())
     else
       @scrollTop() + @scrollView.height()
 
+  ###
+  # Public #
+  ###
+
+  # Public: Retrieves the {EditSession}'s buffer.
+  #
+  # Returns the current {Buffer}.
+  getBuffer: -> @activeEditSession.buffer
+  
   # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
     @scrollBottom(@screenLineCount() * @lineHeight)
