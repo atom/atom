@@ -104,7 +104,7 @@ module.exports =
 
   # Public: Identifies how many events are registered.
   #
-  # Returns a `number`.
+  # Returns a {Number}.
   subscriptionCount: ->
     count = 0
     for name, handlers of @eventHandlersByEventName
