@@ -3,8 +3,6 @@ RootView = require 'root-view'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
 Exec = require('child_process').exec
-_ = require 'underscore'
-Project = require 'project'
 
 describe "the `atom` global", ->
   beforeEach ->
