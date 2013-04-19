@@ -13,6 +13,7 @@ PaneRow = require 'pane-row'
 PaneContainer = require 'pane-container'
 EditSession = require 'edit-session'
 
+# Public: The container for the entire Atom application.
 module.exports =
 class RootView extends View
   registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
@@ -23,12 +24,16 @@ class RootView extends View
     ignoredNames: [".git", ".svn", ".DS_Store"]
     disabledPackages: []
 
+  ###
+  # Internal:
+  ###
+
   @content: ({panes}={}) ->
     @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @subview 'panes', panes ? new PaneContainer
-
+          
   @deserialize: ({ panes }) ->
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes})
@@ -74,9 +79,6 @@ class RootView extends View
     deserializer: 'RootView'
     panes: @panes.serialize()
 
-  confirmClose: ->
-    @panes.confirmClose()
-
   handleFocus: (e) ->
     if @getActivePane()
       @getActivePane().focus()
@@ -93,6 +95,17 @@ class RootView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
+  ###
+  # Public #
+  ###
+
+  # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
+  confirmClose: ->
+    @panes.confirmClose()
+
+  # Public: Given a filepath, this opens it in Atom.
+  #
+  # Returns the `EditSession` for the file URI.
   open: (path, options = {}) ->
     changeFocus = options.changeFocus ? true
     path = project.resolve(path) if path?
@@ -107,6 +120,7 @@ class RootView extends View
     activePane.focus() if changeFocus
     editSession
 
+  # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = project.getPath()
       if item = @getActivePaneItem()
@@ -116,12 +130,21 @@ class RootView extends View
     else
       @setTitle('untitled')
 
+  # Public: Sets the application's title.
+  #
+  # Returns a {String}.
   setTitle: (title) ->
     document.title = title
 
+  # Public: Retrieves all of the application's {Editor}s.
+  #
+  # Returns an {Array} of {Editor}s.
   getEditors: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
+  # Public: Retrieves all of the modified buffers that are open and unsaved.
+  #
+  # Returns an {Array} of {Buffer}s.
   getModifiedBuffers: ->
     modifiedBuffers = []
     for pane in @getPanes()
@@ -129,9 +152,15 @@ class RootView extends View
         modifiedBuffers.push item.buffer if item.buffer.isModified()
     modifiedBuffers
 
+  # Public: Retrieves all of the paths to open files.
+  #
+  # Returns an {Array} of {String}s.
   getOpenBufferPaths: ->
     _.uniq(_.flatten(@getEditors().map (editor) -> editor.getOpenBufferPaths()))
 
+  # Public: Retrieves the pane that's currently open.
+  #
+  # Returns an {Pane}.
   getActivePane: ->
     @panes.getActivePane()
 
@@ -145,29 +174,51 @@ class RootView extends View
   focusNextPane: -> @panes.focusNextPane()
   getFocusedPane: -> @panes.getFocusedPane()
 
+  # Internal: Destroys everything.
   remove: ->
     editor.remove() for editor in @getEditors()
     project.destroy()
     super
 
+  # Public: Saves all of the open buffers.
   saveAll: ->
     @panes.saveAll()
 
+  # Public: Fires a callback on each open {Pane}.
+  #
+  # callback - A {Function} to call
   eachPane: (callback) ->
     @panes.eachPane(callback)
 
+  # Public: Retrieves all of the open {Pane}s.
+  #
+  # Returns an {Array} of {Pane}.
   getPanes: ->
     @panes.getPanes()
 
+  # Public: Given a {Pane}, this fetches its ID.
+  #
+  # pane - An open {Pane}
+  #
+  # Returns a {Number}.
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
+  # Public: Fires a callback on each open {Editor}.
+  #
+  # callback - A {Function} to call
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     @on 'editor:attached', (e, editor) -> callback(editor)
 
+  # Public: Fires a callback on each open {EditSession}.
+  #
+  # callback - A {Function} to call
   eachEditSession: (callback) ->
     project.eachEditSession(callback)
 
+  # Public: Fires a callback on each open {Buffer}.
+  #
+  # callback - A {Function} to call
   eachBuffer: (callback) ->
     project.eachBuffer(callback)

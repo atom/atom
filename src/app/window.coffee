@@ -10,6 +10,10 @@ require 'space-pen-extensions'
 deserializers = {}
 deferredDeserializers = {}
 
+###
+# Internal #
+###
+
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
   Config = require 'config'
@@ -221,5 +225,6 @@ window.profile = (description, fn) ->
     console.profileEnd(description)
     value
 
+# Public: Shows a dialog asking if the window was _really_ meant to be closed.
 confirmClose = ->
   rootView.confirmClose().done -> window.close()

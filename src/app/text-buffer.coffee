@@ -8,6 +8,10 @@ UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 BufferMarker = require 'buffer-marker'
 
+# Public: Represents the contents of a file.
+#
+# The `Buffer` is often associated with a {File}. However, this is not always
+# the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class Buffer
   @idCounter = 1
@@ -25,9 +29,10 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
-  @deserialize: ({path, text}) ->
-    project.bufferForPath(path, text)
-
+  # Public: Creates a new buffer.
+  #
+  # path - A {String} representing the file path
+  # initialText - A {String} setting the starting text
   constructor: (path, initialText) ->
     @id = @constructor.idCounter++
     @nextMarkerId = 1
@@ -50,6 +55,10 @@ class Buffer
 
     @undoManager = new UndoManager(this)
 
+  ###
+  # Internal #
+  ###
+
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
     @file?.off()
@@ -70,7 +79,8 @@ class Buffer
     path: @getPath()
     text: @getText() if @isModified()
 
-  hasMultipleEditors: -> @refcount > 1
+  @deserialize: ({path, text}) ->
+    project.bufferForPath(path, text)
 
   subscribeToFile: ->
     @file.on "contents-changed", =>
@@ -87,7 +97,21 @@ class Buffer
 
     @file.on "moved", =>
       @trigger "path-changed", this
+      
+  ###
+  # Public #
+  ###
 
+  # Public: Identifies if the buffer belongs to multiple editors.
+  #
+  # For example, if the {Editor} was split.
+  #
+  # Returns a {Boolean}. 
+  hasMultipleEditors: -> @refcount > 1
+
+  # Public: Reloads a file in the {EditSession}.
+  #
+  # Essentially, this performs a force read of the file.
   reload: ->
     @trigger 'will-reload'
     @updateCachedDiskContents()
@@ -95,15 +119,27 @@ class Buffer
     @triggerModifiedStatusChanged(false)
     @trigger 'reloaded'
 
+  # Public: Rereads the contents of the file, and stores them in the cache.
+  #
+  # Essentially, this performs a force read of the file on disk.
   updateCachedDiskContents: ->
     @cachedDiskContents = @file.read()
 
+  # Public: Gets the file's basename--that is, the file without any directory information.
+  #
+  # Returns a {String}.
   getBaseName: ->
     @file?.getBaseName()
 
+  # Public: Retrieves the path for the file.
+  #
+  # Returns a {String}.
   getPath: ->
     @file?.getPath()
 
+  # Public: Sets the path for the file.
+  #
+  # path - A {String} representing the new file path
   setPath: (path) ->
     return if path == @getPath()
 
@@ -114,21 +150,38 @@ class Buffer
 
     @trigger "path-changed", this
 
+  # Public: Retrieves the current buffer's file extension.
+  #
+  # Returns a {String}.
   getExtension: ->
     if @getPath()
       @getPath().split('/').pop().split('.').pop()
     else
       null
 
+  # Public: Retrieves the cached buffer contents.
+  #
+  # Returns a {String}.
   getText: ->
     @cachedMemoryContents ?= @getTextInRange(@getRange())
 
+  # Public: Replaces the current buffer contents.
+  #
+  # text - A {String} containing the new buffer contents.
   setText: (text) ->
     @change(@getRange(), text, normalizeLineEndings: false)
 
+  # Public: Gets the range of the buffer contents.
+  #
+  # Returns a new {Range}, from `[0, 0]` to the end of the buffer.
   getRange: ->
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
+  # Public: Given a range, returns the lines of text within it.
+  #
+  # range - A {Range} object specifying your points of interest
+  #
+  # Returns a {String} of the combined lines.
   getTextInRange: (range) ->
     range = @clipRange(range)
     if range.start.row == range.end.row
@@ -144,9 +197,17 @@ class Buffer
 
     return multipleLines.join ''
 
+  # Public: Gets all the lines in a file.
+  #
+  # Returns an {Array} of {String}s.
   getLines: ->
     @lines
 
+  # Public: Given a row, returns the line of text.
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {String}.
   lineForRow: (row) ->
     @lines[row]
 
@@ -156,27 +217,51 @@ class Buffer
   suggestedLineEndingForRow: (row) ->
     @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
 
+  # Public: Given a row, returns the length of the line of text.
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {Number}.
   lineLengthForRow: (row) ->
     @lines[row].length
 
   lineEndingLengthForRow: (row) ->
     (@lineEndingForRow(row) ? '').length
 
+  # Public: Given a buffer row, this retrieves the range for that line.
+  #
+  # row - A {Number} identifying the row
+  # options - A hash with one key, `includeNewline`, which specifies whether you 
+  #           want to include the trailing newline
+  #
+  # Returns a {Range}.
   rangeForRow: (row, { includeNewline } = {}) ->
     if includeNewline and row < @getLastRow()
       new Range([row, 0], [row + 1, 0])
     else
       new Range([row, 0], [row, @lineLengthForRow(row)])
 
+  # Public: Gets the number of lines in a file. 
+  #
+  # Returns a {Number}.
   getLineCount: ->
     @getLines().length
 
+  # Public: Gets the row number of the last line.
+  #
+  # Returns a {Number}.
   getLastRow: ->
     @getLines().length - 1
 
+  # Public: Finds the last line in the current buffer.
+  #
+  # Returns a {String}.
   getLastLine: ->
     @lineForRow(@getLastRow())
 
+  # Public: Finds the last point in the current buffer.
+  #
+  # Returns a {Point} representing the last position.
   getEofPosition: ->
     lastRow = @getLastRow()
     new Point(lastRow, @lineLengthForRow(lastRow))
@@ -197,9 +282,16 @@ class Buffer
 
     new Point(row, index)
 
+  # Public: Given a row, this deletes it from the buffer.
+  #
+  # row - A {Number} representing the row to delete
   deleteRow: (row) ->
     @deleteRows(row, row)
 
+  # Public: Deletes a range of rows from the buffer.
+  #
+  # start - A {Number} representing the starting row
+  # end - A {Number} representing the ending row
   deleteRows: (start, end) ->
     startPoint = null
     endPoint = null
@@ -215,21 +307,39 @@ class Buffer
 
     @delete(new Range(startPoint, endPoint))
 
+  # Public: Adds text to the end of the buffer.
+  #
+  # text - A {String} of text to add
   append: (text) ->
     @insert(@getEofPosition(), text)
 
+  # Public: Adds text to a specific point in the buffer
+  #
+  # point - A {Point} in the buffer to insert into
+  # text - A {String} of text to add
   insert: (point, text) ->
     @change(new Range(point, point), text)
 
+  # Public: Deletes text from the buffer
+  #
+  # range - A {Range} whose text to delete
   delete: (range) ->
     @change(range, '')
 
+  # Internal:
   change: (oldRange, newText, options) ->
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
     range = @pushOperation(operation)
     range
 
+  # Public: Given a position, this clips it to a real position.
+  #
+  # For example, if `position`'s row exceeds the row count of the buffer,
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # to a real position.
+  #
+  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipPosition: (position) ->
     position = Point.fromObject(position)
     eofPosition = @getEofPosition()
@@ -240,7 +350,16 @@ class Buffer
       column = Math.max(position.column, 0)
       column = Math.min(@lineLengthForRow(row), column)
       new Point(row, column)
-
+  
+  # Public: Given a range, this clips it to a real range.
+  #
+  # For example, if `range`'s row exceeds the row count of the buffer,
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # to a real range.
+  #
+  # range - The {Point} to clip
+  #
+  # Returns the new, clipped {Point}. Note that this could be the same as `range` if no clipping was performed.
   clipRange: (range) ->
     range = Range.fromObject(range)
     new Range(@clipPosition(range.start), @clipPosition(range.end))
@@ -249,21 +368,33 @@ class Buffer
     prefix: @lines[range.start.row][0...range.start.column]
     suffix: @lines[range.end.row][range.end.column..]
 
+  # Internal:
   pushOperation: (operation, editSession) ->
     if @undoManager
       @undoManager.pushOperation(operation, editSession)
     else
       operation.do()
 
+  # Internal:
   transact: (fn) ->  @undoManager.transact(fn)
+  # Public: Undos the last operation.
+  #
+  # editSession - The {EditSession} associated with the buffer.
   undo: (editSession) -> @undoManager.undo(editSession)
+  # Public: Redos the last operation.
+  #
+  # editSession - The {EditSession} associated with the buffer.
   redo: (editSession) -> @undoManager.redo(editSession)
   commit: -> @undoManager.commit()
   abort: -> @undoManager.abort()
 
+  # Public: Saves the buffer.
   save: ->
     @saveAs(@getPath()) if @isModified()
 
+  # Public: Saves the buffer at a specific path.
+  #
+  # path - The path to save at.
   saveAs: (path) ->
     unless path then throw new Error("Can't save buffer with no file path")
 
@@ -274,22 +405,40 @@ class Buffer
     @triggerModifiedStatusChanged(false)
     @trigger 'saved'
 
+  # Public: Identifies if the buffer was modified.
+  #
+  # Returns a {Boolean}.
   isModified: ->
     if @file
       @getText() != @cachedDiskContents
     else
       not @isEmpty()
 
+  # Public: Identifies if a buffer is in a git conflict with `HEAD`.
+  #
+  # Returns a {Boolean}.
   isInConflict: -> @conflict
 
+  # Public: Identifies if a buffer is empty.
+  #
+  # Returns a {Boolean}.
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
   getMarkers: ->
     _.values(@validMarkers)
 
+  # Public: Retrieves the quantity of markers in a buffer.
+  #
+  # Returns a {Number}.
   getMarkerCount: ->
     _.size(@validMarkers)
 
+  # Public: Constructs a new marker at a given range.
+  #
+  # range - The marker {Range} (representing the distance between the head and tail)
+  # options - Options to pass to the {BufferMarker} constructor
+  #
+  # Returns a {Number} representing the new marker's ID.
   markRange: (range, options={}) ->
     marker = new BufferMarker(_.defaults({
       id: (@nextMarkerId++).toString()
@@ -299,9 +448,18 @@ class Buffer
     @validMarkers[marker.id] = marker
     marker.id
 
+  # Public: Constructs a new marker at a given position.
+  #
+  # position - The marker {Point}; there won't be a tail
+  # options - Options to pass to the {BufferMarker} constructor
+  #
+  # Returns a {Number} representing the new marker's ID.
   markPosition: (position, options) ->
     @markRange([position, position], _.defaults({noTail: true}, options))
 
+  # Public: Removes the marker with the given id.
+  #
+  # id - The {Number} of the ID to remove
   destroyMarker: (id) ->
     delete @validMarkers[id]
     delete @invalidMarkers[id]
@@ -312,39 +470,110 @@ class Buffer
   setMarkerPosition: (args...) ->
     @setMarkerHeadPosition(args...)
 
+  # Public: Retrieves the position of the marker's head.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Point}, or `null` if the marker does not exist.
   getMarkerHeadPosition: (id) ->
     @validMarkers[id]?.getHeadPosition()
 
+  # Public: Sets the position of the marker's head.
+  #
+  # id - A {Number} representing the marker to change
+  # position - The new {Point} to place the head
+  # options - A hash with the following keys:
+  #         :clip - if `true`, the point is [clipped]{Buffer.clipPosition}
+  #         :bufferChanged - if `true`, indicates that the {Buffer} should trigger an event that it's changed
+  #
+  # Returns a {Point} representing the new head position.
   setMarkerHeadPosition: (id, position, options) ->
     @validMarkers[id]?.setHeadPosition(position)
 
+  # Public: Retrieves the position of the marker's tail.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Point}, or `null` if the marker does not exist.
   getMarkerTailPosition: (id) ->
     @validMarkers[id]?.getTailPosition()
 
+  # Public: Sets the position of the marker's tail.
+  #
+  # id - A {Number} representing the marker to change
+  # position - The new {Point} to place the tail
+  # options - A hash with the following keys:
+  #         :clip - if `true`, the point is [clipped]{Buffer.clipPosition}
+  #         :bufferChanged - if `true`, indicates that the {Buffer} should trigger an event that it's changed
+  #
+  # Returns a {Point} representing the new tail position.
   setMarkerTailPosition: (id, position, options) ->
     @validMarkers[id]?.setTailPosition(position)
 
+  # Public: Retrieves the {Range} between a marker's head and its tail. 
+  # 
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Range}.
   getMarkerRange: (id) ->
     @validMarkers[id]?.getRange()
 
+  # Public: Sets the marker's range, potentialy modifying both its head and tail.
+  #
+  # id - A {Number} representing the marker to change
+  # range - The new {Range} the marker should cover
+  # options - A hash of options with the following keys:
+  #           :reverse - if `true`, the marker is reversed; that is, its tail is "above" the head
+  #           :noTail - if `true`, the marker doesn't have a tail
   setMarkerRange: (id, range, options) ->
     @validMarkers[id]?.setRange(range, options)
 
+  # Public: Sets the marker's tail to the same position as the marker's head.
+  #
+  # This only works if there isn't already a tail position.
+  #
+  # id - A {Number} representing the marker to change
+  #
+  # Returns a {Point} representing the new tail position.
   placeMarkerTail: (id) ->
     @validMarkers[id]?.placeTail()
 
+  # Public: Removes the tail from the marker.
+  #
+  # id - A {Number} representing the marker to change
   clearMarkerTail: (id) ->
     @validMarkers[id]?.clearTail()
 
+  # Public: Identifies if the ending position of a marker is greater than the starting position.
+  #
+  # This can happen when, for example, you highlight text "up" in a {Buffer}.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Boolean}.
   isMarkerReversed: (id) ->
     @validMarkers[id]?.isReversed()
 
+  # Public: Identifies if the marker's head position is equal to its tail.
+  #
+  # id - A {Number} representing the marker to check
+  #
+  # Returns a {Boolean}.
   isMarkerRangeEmpty: (id) ->
     @validMarkers[id]?.isRangeEmpty()
 
+  # Public: Sets a callback to be fired whenever a marker is changed.
+  #
+  # id - A {Number} representing the marker to watch
+  # callback - A {Function} to execute
   observeMarker: (id, callback) ->
     @validMarkers[id]?.observe(callback)
 
+  # Public: Given a buffer position, this finds all markers that contain the position.
+  #
+  # bufferPosition - A {Point} to check
+  #
+  # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
   markersForPosition: (bufferPosition) ->
     bufferPosition = Point.fromObject(bufferPosition)
     ids = []
@@ -352,6 +581,13 @@ class Buffer
       ids.push(id) if marker.containsPoint(bufferPosition)
     ids
 
+  # Public: Identifies if a character sequence is within a certain range.
+  #
+  # regex - The {RegExp} to check
+  # startIndex - The starting row {Number}
+  # endIndex - The ending row {Number}
+  #
+  # Returns an {Array} of {RegExp}s, representing the matches
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()
     matches = []
@@ -375,9 +611,19 @@ class Buffer
 
     matches
 
+  # Public: Scans for text in the buffer, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # iterator - A {Function} that's called on each match
   scan: (regex, iterator) ->
     @scanInRange(regex, @getRange(), iterator)
 
+  # Public: Scans for text in a given range, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # range - A {Range} in the buffer to search within
+  # iterator - A {Function} that's called on each match
+  # reverse - A {Boolean} indicating if the search should be backwards (default: `false`)
   scanInRange: (regex, range, iterator, reverse=false) ->
     range = @clipRange(range)
     global = regex.global
@@ -415,12 +661,28 @@ class Buffer
 
       break unless global and keepLooping
 
+  # Public: Scans for text in a given range _backwards_, calling a function on each match.
+  #
+  # regex - A {RegExp} representing the text to find
+  # range - A {Range} in the buffer to search within
+  # iterator - A {Function} that's called on each match
   backwardsScanInRange: (regex, range, iterator) ->
     @scanInRange regex, range, iterator, true
 
+  # Public: Given a row, identifies if it is blank.
+  #
+  # row - A row {Number} to check
+  #
+  # Returns a {Boolean}.
   isRowBlank: (row) ->
     not /\S/.test @lineForRow(row)
 
+  # Public: Given a row, this finds the next row above it that's empty.
+  #
+  # startRow - A {Number} identifying the row to start checking at
+  #
+  # Returns the row {Number} of the first blank row.
+  # Returns `null` if there's no other blank row.
   previousNonBlankRow: (startRow) ->
     return null if startRow == 0
 
@@ -429,6 +691,12 @@ class Buffer
       return row unless @isRowBlank(row)
     null
 
+  # Public: Given a row, this finds the next row that's blank.
+  #
+  # startRow - A row {Number} to check
+  #
+  # Returns the row {Number} of the next blank row.
+  # Returns `null` if there's no other blank row.
   nextNonBlankRow: (startRow) ->
     lastRow = @getLastRow()
     if startRow < lastRow
@@ -436,16 +704,31 @@ class Buffer
         return row unless @isRowBlank(row)
     null
 
+  # Public: Identifies if the buffer has soft tabs anywhere.
+  #
+  # Returns a {Boolean},
   usesSoftTabs: ->
     for line in @getLines()
       if match = line.match(/^\s/)
         return match[0][0] != '\t'
     undefined
 
+  # Public: Checks out the current `HEAD` revision of the file.
   checkoutHead: ->
     path = @getPath()
     return unless path
     git?.checkoutHead(path)
+
+  # Public: Checks to see if a file exists.
+  #
+  # Returns a {Boolean}.
+  fileExists: ->
+    @file? && @file.exists()
+
+
+  ###
+  # Internal #
+  ###
 
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
@@ -460,9 +743,6 @@ class Buffer
     return if modifiedStatus is @previousModifiedStatus
     @previousModifiedStatus = modifiedStatus
     @trigger 'modified-status-changed', modifiedStatus
-
-  fileExists: ->
-    @file? && @file.exists()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]

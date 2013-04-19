@@ -5,8 +5,18 @@ EventEmitter = require 'event-emitter'
 RepositoryStatusTask = require 'repository-status-task'
 GitUtils = require 'git-utils'
 
+# Public: Represents the underlying git operations performed by Atom.
+#
+# Ultimately, this is an overlay to the native [git-utils](https://github.com/atom/node-git) model.
 module.exports =
 class Git
+  # Public: Creates a new `Git` instance.
+  #
+  # path - The git repository to open
+  # options - A hash with one key:
+  #           :refreshOnWindowFocus - A {Boolean} that identifies if the windows should refresh
+  #
+  # Returns a new {Git} object.
   @open: (path, options) ->
     return null unless path
     try
@@ -18,6 +28,15 @@ class Git
   upstream: null
   statusTask: null
 
+  ###
+  # Internal #
+  ###
+
+  # Internal: Creates a new `Git` object.
+  #
+  # path - The {String} representing the path to your git working directory
+  # options - A hash with the following keys:
+  #           :refreshOnWindowFocus - If `true`, {#refreshIndex} and {#refreshStatus} are called on focus
   constructor: (path, options={}) ->
     @repo = GitUtils.open(path)
     unless @repo?
@@ -40,16 +59,6 @@ class Git
       @subscribe buffer, 'saved', bufferStatusHandler
       @subscribe buffer, 'reloaded', bufferStatusHandler
 
-  getRepo: ->
-    unless @repo?
-      throw new Error("Repository has been destroyed")
-    @repo
-
-  refreshIndex: -> @getRepo().refreshIndex()
-
-  getPath: ->
-    @path ?= fsUtils.absolute(@getRepo().getPath())
-
   destroy: ->
     if @statusTask?
       @statusTask.abort()
@@ -62,12 +71,46 @@ class Git
 
     @unsubscribe()
 
+  ###
+  # Public #
+  ###
+
+  # Public: Retrieves the git repository.
+  #
+  # Returns a new `Repository`.
+  getRepo: ->
+    unless @repo?
+      throw new Error("Repository has been destroyed")
+    @repo
+
+  # Public: Reread the index to update any values that have changed since the last time the index was read.
+  refreshIndex: -> @getRepo().refreshIndex()
+
+  # Public: Retrieves the path of the repository.
+  #
+  # Returns a {String}.
+  getPath: ->
+    @path ?= fsUtils.absolute(@getRepo().getPath())
+
+  # Public: Retrieves the working directory of the repository.
+  #
+  # Returns a {String}.
   getWorkingDirectory: ->
     @getRepo().getWorkingDirectory()
 
+  # Public: Retrieves the reference or SHA-1 that `HEAD` points to. 
+  #
+  # This can be `refs/heads/master`, or a full SHA-1 if the repository is in a detached `HEAD` state.
+  #
+  # Returns a {String}.
   getHead: ->
     @getRepo().getHead() ? ''
 
+  # Public: Retrieves the status of a single path in the repository.
+  #
+  # path - An {String} defining a relative path
+  #
+  # Returns a {Number}.
   getPathStatus: (path) ->
     currentPathStatus = @statuses[path] ? 0
     pathStatus = @getRepo().getStatus(@relativize(path)) ? 0
@@ -79,37 +122,131 @@ class Git
       @trigger 'status-changed', path, pathStatus
     pathStatus
 
+  # Public: Identifies if a path is ignored.
+  #
+  # path - The {String} path to check
+  #
+  # Returns a {Boolean}.
   isPathIgnored: (path) ->
     @getRepo().isIgnored(@relativize(path))
 
+  # Public: Identifies if a value represents a status code.
+  #
+  # status - The code {Number} to check
+  #
+  # Returns a {Boolean}.
   isStatusModified: (status) ->
     @getRepo().isStatusModified(status)
 
+  # Public: Identifies if a path was modified.
+  #
+  # path - The {String} path to check
+  #
+  # Returns a {Boolean}.
   isPathModified: (path) ->
     @isStatusModified(@getPathStatus(path))
 
+  # Public: Identifies if a status code represents a new path.
+  #
+  # status - The code {Number} to check
+  #
+  # Returns a {Boolean}.
   isStatusNew: (status) ->
     @getRepo().isStatusNew(status)
 
+  # Public: Identifies if a path is new.
+  #
+  # path - The {String} path to check
+  #
+  # Returns a {Boolean}.
   isPathNew: (path) ->
     @isStatusNew(@getPathStatus(path))
 
+  # Public: Makes a path relative to the repository's working directory.
+  #
+  # path - The {String} path to convert
+  #
+  # Returns a {String}.
   relativize: (path) ->
     @getRepo().relativize(path)
 
+  # Public: Retrieves a shortened version of {.getHead}. 
+  #
+  # This removes the leading segments of `refs/heads`, `refs/tags`, or `refs/remotes`.
+  # It also shortenes the SHA-1 of a detached `HEAD` to 7 characters.
+  #
+  # Returns a {String}.
   getShortHead: ->
     @getRepo().getShortHead()
 
+  # Public: Restore the contents of a path in the working directory and index to the version at `HEAD`. 
+  #
+  # This is essentially the same as running:
+  # ```
+  # git reset HEAD -- <path>
+  # git checkout HEAD -- <path>
+  # ```
+  #
+  # path - The {String} path to checkout
+  #
+  # Returns a {Boolean} that's `true` if the method was successful.
   checkoutHead: (path) ->
     headCheckedOut = @getRepo().checkoutHead(@relativize(path))
     @getPathStatus(path) if headCheckedOut
     headCheckedOut
 
+  # Public: Retrieves the number of lines added and removed to a path.
+  #
+  # This compares the working directory contents of the path to the `HEAD` version.
+  #
+  # path - The {String} path to check
+  #
+  # Returns an object with two keys, `added` and `deleted`. These will always be greater than 0.
   getDiffStats: (path) ->
     @getRepo().getDiffStats(@relativize(path))
 
+  # Public: Identifies if a path is a submodule.
+  #
+  # path - The {String} path to check
+  #
+  # Returns a {Boolean}.
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))
+
+  # Public: Retrieves the status of a directory.
+  #
+  # path - The {String} path to check
+  #
+  # Returns a {Number} representing the status.
+  getDirectoryStatus: (directoryPath)  ->
+    directoryPath = "#{directoryPath}/"
+    directoryStatus = 0
+    for path, status of @statuses
+      directoryStatus |= status if path.indexOf(directoryPath) is 0
+    directoryStatus
+
+  # Public: Retrieves the number of commits the `HEAD` branch is ahead/behind the remote branch it is tracking.
+  #
+  # This is similar to the commit numbers reported by `git status` when a remote tracking branch exists.
+  #
+  # Returns an object with two keys, `ahead` and `behind`. These will always be greater than zero.
+  getAheadBehindCounts: ->
+    @getRepo().getAheadBehindCount()
+
+  # Public: Retrieves the line diffs comparing the `HEAD` version of the given path and the given text.
+  #
+  # This is similar to the commit numbers reported by `git status` when a remote tracking branch exists.
+  #
+  # path - The {String} path (relative to the repository)
+  # text - The {String} to compare against the `HEAD` contents
+  # 
+  # Returns an object with two keys, `ahead` and `behind`. These will always be greater than zero.
+  getLineDiffs: (path, text) ->
+    @getRepo().getLineDiffs(@relativize(path), text)
+
+  ###
+  # Internal #
+  ###
 
   refreshStatus: ->
     if @statusTask?
@@ -122,19 +259,6 @@ class Git
       @statusTask.one 'task-completed', =>
         @statusTask = null
       @statusTask.start()
-
-  getDirectoryStatus: (directoryPath)  ->
-    directoryPath = "#{directoryPath}/"
-    directoryStatus = 0
-    for path, status of @statuses
-      directoryStatus |= status if path.indexOf(directoryPath) is 0
-    directoryStatus
-
-  getAheadBehindCounts: ->
-    @getRepo().getAheadBehindCount()
-
-  getLineDiffs: (path, text) ->
-    @getRepo().getLineDiffs(@relativize(path), text)
-
+      
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter

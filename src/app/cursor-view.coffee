@@ -3,6 +3,7 @@ Point = require 'point'
 Range = require 'range'
 _ = require 'underscore'
 
+# Internal:
 module.exports =
 class CursorView extends View
   @content: ->

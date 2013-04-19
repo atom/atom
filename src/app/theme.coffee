@@ -1,5 +1,9 @@
 fsUtils = require 'fs-utils'
 
+###
+# Internal #
+###
+
 module.exports =
 class Theme
   @stylesheets: null

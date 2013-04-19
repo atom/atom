@@ -6,6 +6,11 @@ PaneColumn = require 'pane-column'
 
 module.exports =
 class Pane extends View
+
+  ###
+  # Internal #
+  ###
+
   @content: (wrappedView) ->
     @div class: 'pane', =>
       @div class: 'item-views', outlet: 'itemViews'
@@ -59,6 +64,10 @@ class Pane extends View
     return if @attached
     @attached = true
     @trigger 'pane:attached', [this]
+
+  ###
+  # Public #
+  ###
 
   makeActive: ->
     for pane in @getContainer().getPanes() when pane isnt this

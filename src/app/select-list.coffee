@@ -5,6 +5,11 @@ fuzzyFilter = require 'fuzzy-filter'
 
 module.exports =
 class SelectList extends View
+
+  ###
+  # Internal #
+  ###
+
   @content: ->
     @div class: @viewClass(), =>
       @subview 'miniEditor', new Editor(mini: true)
