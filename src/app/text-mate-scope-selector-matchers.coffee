@@ -1,3 +1,7 @@
+###
+# Internal #
+###
+
 class SegmentMatcher
   constructor: (segment) ->
     @segment = segment.join('')
