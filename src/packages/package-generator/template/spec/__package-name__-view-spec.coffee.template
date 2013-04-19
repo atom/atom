@@ -1,4 +1,4 @@
-__PackageName__View = require '__package-name__/lib/__package-name__-view'
+__PackageName__View = require '../lib/__package-name__-view'
 RootView = require 'root-view'
 
 # This spec is focused because it starts with an `f`. Remove the `f`
