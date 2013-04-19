@@ -24,7 +24,6 @@ class ScopeMatcher
     scopeSegments = scope.split('.')
     return false if scopeSegments.length < @segments.length
 
-
     for segment, index in @segments
       return false unless segment.matches(scopeSegments[index])
 
