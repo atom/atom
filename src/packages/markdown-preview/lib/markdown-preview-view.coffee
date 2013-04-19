@@ -1,6 +1,7 @@
 $ = require 'jquery'
 ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
+roaster = require 'roaster'
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
@@ -59,15 +60,11 @@ class MarkdownPreviewView extends ScrollView
   setLoading: ->
     @html($$$ -> @div class: 'markdown-spinner', 'Loading Markdown...')
 
-  fetchRenderedMarkdown: (text) ->
+  fetchRenderedMarkdown: ->
     @setLoading()
-    $.ajax
-      url: 'https://api.github.com/markdown'
-      type: 'POST'
-      dataType: 'html'
-      contentType: 'application/json; charset=UTF-8'
-      data: JSON.stringify
-        mode: 'markdown'
-        text: @buffer.getText()
-      success: (html) => @html(html)
-      error: (result) => @setErrorHtml(result)
+    roaster(@buffer.getText(), {}, (err, html) =>
+      if err
+        @setErrorHtml(err)
+      else
+        @html(html)
+    )
