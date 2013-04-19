@@ -22,12 +22,12 @@ class ScopeMatcher
 
   matches: (scope) ->
     scopeSegments = scope.split('.')
-    if scopeSegments.length < @segments.length
-      return false
+    return false if scopeSegments.length < @segments.length
+
 
     for segment, index in @segments
-      unless segment.matches(scopeSegments[index])
-        return false
+      return false unless segment.matches(scopeSegments[index])
+
     true
 
 class PathMatcher
