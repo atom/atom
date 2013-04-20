@@ -81,7 +81,7 @@ describe 'Package Generator', ->
       expect(lines[0]).toBe "'main': 'lib\/#{packageName}'"
 
       lines = fsUtils.read("#{packagePath}/lib/#{packageName}.coffee").split("\n")
-      expect(lines[0]).toBe "SweetPackageDudeView = require 'sweet-package-dude/lib/sweet-package-dude-view'"
+      expect(lines[0]).toBe "SweetPackageDudeView = require './sweet-package-dude-view'"
       expect(lines[3]).toBe "  sweetPackageDudeView: null"
 
     it "displays an error when the package path already exists", ->
