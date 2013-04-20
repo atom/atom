@@ -22,7 +22,7 @@
   },
 
   "devDependencies" : {
-    "biscotto" : "0.0.8"
+    "biscotto" : "0.0.9"
   },
 
   "private": true,
