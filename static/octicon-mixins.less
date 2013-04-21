@@ -1,0 +1,33 @@
+.icon() {
+  font-family: 'Octicons Regular';
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.icon(@size) {
+  .icon;
+  font-size: @size;
+  width: @size;
+  height: @size;
+}
+
+.mini-icon(@name, @size: 16px) {
+  @import "mini-octicon-utf-codes.less";
+  &:before {
+    .icon(@size);
+    content: @@name
+  }
+}
+
+.mega-icon(@name, @size: 32px) {
+  @import "mega-octicon-utf-codes.less";
+  &:before {
+    .icon(@size);
+    content: @@name
+  }
+}

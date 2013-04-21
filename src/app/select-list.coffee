@@ -5,6 +5,11 @@ fuzzyFilter = require 'fuzzy-filter'
 
 module.exports =
 class SelectList extends View
+
+  ###
+  # Internal #
+  ###
+
   @content: ->
     @div class: @viewClass(), =>
       @subview 'miniEditor', new Editor(mini: true)
@@ -29,9 +34,11 @@ class SelectList extends View
     @on 'core:move-to-top', =>
       @selectItem(@list.find('li:first'))
       @list.scrollToTop()
+      false
     @on 'core:move-to-bottom', =>
       @selectItem(@list.find('li:last'))
       @list.scrollToBottom()
+      false
     @on 'core:confirm', => @confirmSelection()
     @on 'core:cancel', => @cancel()
 
@@ -45,7 +52,9 @@ class SelectList extends View
 
   schedulePopulateList: ->
     clearTimeout(@scheduleTimeout)
-    @scheduleTimeout = setTimeout((=> @populateList()), @inputThrottle)
+    populateCallback = =>
+      @populateList() if @isOnDom()
+    @scheduleTimeout = setTimeout(populateCallback,  @inputThrottle)
 
   setArray: (@array) ->
     @populateList()
@@ -140,6 +149,7 @@ class SelectList extends View
 
   cancelled: ->
     @miniEditor.setText('')
+    @miniEditor.updateDisplay()
 
   cancel: ->
     @list.empty()

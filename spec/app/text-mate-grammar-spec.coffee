@@ -1,7 +1,7 @@
 TextMateGrammar = require 'text-mate-grammar'
 TextMatePackage = require 'text-mate-package'
 plist = require 'plist'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
 describe "TextMateGrammar", ->
@@ -12,17 +12,19 @@ describe "TextMateGrammar", ->
     atom.activatePackage('javascript.tmbundle', sync: true)
     atom.activatePackage('coffee-script-tmbundle', sync: true)
     atom.activatePackage('ruby.tmbundle', sync: true)
+    atom.activatePackage('html.tmbundle', sync: true)
+    atom.activatePackage('php.tmbundle', sync: true)
     grammar = syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
     it "loads grammars from plists", ->
-      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('packages/text.tmbundle/Syntaxes/Plain text.plist'))
+      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('packages/text.tmbundle/Syntaxes/Plain text.plist'))
       expect(grammar.scopeName).toBe "text.plain"
       {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
       expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
 
     it "loads grammars from cson files", ->
-      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
+      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
       expect(grammar.scopeName).toBe "source.alot"
       {tokens} = grammar.tokenizeLine("this is alot of code")
       expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
@@ -138,7 +140,7 @@ describe "TextMateGrammar", ->
 
     describe "when the line matches a pattern with no `name` or `contentName`", ->
       it "creates tokens without adding a new scope", ->
-        grammar = syntax.grammarsByFileType["rb"]
+        grammar = syntax.selectGrammar('foo.rb')
         {tokens} = grammar.tokenizeLine('%w|oh \\look|')
         expect(tokens.length).toBe 5
         expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
@@ -183,7 +185,7 @@ describe "TextMateGrammar", ->
 
       describe "when the end pattern contains a back reference", ->
         it "constructs the end rule based on its back-references to captures in the begin rule", ->
-          grammar = syntax.grammarsByFileType["rb"]
+          grammar = syntax.selectGrammar('foo.rb')
           {tokens} = grammar.tokenizeLine('%w|oh|,')
           expect(tokens.length).toBe 4
           expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
@@ -192,7 +194,7 @@ describe "TextMateGrammar", ->
           expect(tokens[3]).toEqual value: ',',  scopes: ["source.ruby", "punctuation.separator.object.ruby"]
 
         it "allows the rule containing that end pattern to be pushed to the stack multiple times", ->
-          grammar = syntax.grammarsByFileType["rb"]
+          grammar = syntax.selectGrammar('foo.rb')
           {tokens} = grammar.tokenizeLine('%Q+matz had some #{%Q-crazy ideas-} for ruby syntax+ # damn.')
           expect(tokens[0]).toEqual value: '%Q+', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
           expect(tokens[1]).toEqual value: 'matz had some ', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby"]
@@ -212,7 +214,7 @@ describe "TextMateGrammar", ->
           atom.activatePackage('html.tmbundle', sync: true)
           atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
-          grammar = syntax.grammarsByFileType["html.erb"]
+          grammar = syntax.selectGrammar('foo.html.erb')
           {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
 
           expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
@@ -308,3 +310,75 @@ describe "TextMateGrammar", ->
         expect(tokens.length).toBe 5
         expect(tokens[4].value).toBe "three(four(five(_param_)))))"
         expect(ruleStack).toEqual originalRuleStack
+
+    describe "when a grammar has a capture with patterns", ->
+      it "matches the patterns and includes the scope specified as the pattern's match name", ->
+        grammar = syntax.selectGrammar("hello.php")
+        {tokens} = grammar.tokenizeLine("<?php public final function meth() {} ?>")
+
+        expect(tokens[2].value).toBe "public"
+        expect(tokens[2].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.modifier.php"]
+
+        expect(tokens[3].value).toBe " "
+        expect(tokens[3].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php"]
+
+        expect(tokens[4].value).toBe "final"
+        expect(tokens[4].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.modifier.php"]
+
+        expect(tokens[5].value).toBe " "
+        expect(tokens[5].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php"]
+
+        expect(tokens[6].value).toBe "function"
+        expect(tokens[6].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
+
+      it "ignores child captures of a capture with patterns", ->
+        grammar = new TextMateGrammar
+          name: "test"
+          scopeName: "source"
+          repository: {}
+          patterns: [
+            {
+              name: "text"
+              match: "(a(b))"
+              captures:
+                "1":
+                  patterns: [
+                    {
+                      match: "ab"
+                      name: "a"
+                    }
+                  ]
+                "2":
+                  name: "b"
+            }
+          ]
+        {tokens} = grammar.tokenizeLine("ab")
+
+        expect(tokens[0].value).toBe "ab"
+        expect(tokens[0].scopes).toEqual ["source", "text", "a"]
+
+    describe "when the grammar has injections", ->
+      it "correctly includes the injected patterns when tokenizing", ->
+        grammar = syntax.selectGrammar("hello.php")
+        {tokens} = grammar.tokenizeLine("<div><?php function hello() {} ?></div>")
+
+        expect(tokens[3].value).toBe "<?php"
+        expect(tokens[3].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "punctuation.section.embedded.begin.php"]
+
+        expect(tokens[5].value).toBe "function"
+        expect(tokens[5].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "storage.type.function.php"]
+
+        expect(tokens[7].value).toBe "hello"
+        expect(tokens[7].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "meta.function.php", "entity.name.function.php"]
+
+        expect(tokens[14].value).toBe "?"
+        expect(tokens[14].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "source.php", "punctuation.section.embedded.end.php", "source.php"]
+
+        expect(tokens[15].value).toBe ">"
+        expect(tokens[15].scopes).toEqual ["text.html.php", "meta.embedded.line.php", "punctuation.section.embedded.end.php"]
+
+        expect(tokens[16].value).toBe "</"
+        expect(tokens[16].scopes).toEqual ["text.html.php", "meta.tag.block.any.html", "punctuation.definition.tag.begin.html"]
+
+        expect(tokens[17].value).toBe "div"
+        expect(tokens[17].scopes).toEqual ["text.html.php", "meta.tag.block.any.html", "entity.name.tag.block.any.html"]

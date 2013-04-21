@@ -4,7 +4,20 @@
 }
 
 .autocomplete ol {
+  box-sizing: content-box;
   position: relative;
   overflow-y: scroll;
   max-height: 200px;
+}
+
+.select-list.autocomplete ol li {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.autocomplete span {
+  padding-left: 5px;
+  padding-right: 5px;
 }

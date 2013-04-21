@@ -288,6 +288,9 @@ describe "AutocompleteView", ->
       expect(editor.lineForBufferRow(10)).toBe matchToSelect.text()
 
   describe "when the mini-editor receives keyboard input", ->
+    beforeEach ->
+      editor.attachToDom()
+
     describe "when text is removed from the mini-editor", ->
       it "reloads the match list based on the mini-editor's text", ->
         editor.getBuffer().insert([10,0] ,"t")
@@ -413,3 +416,12 @@ describe "AutocompleteView", ->
 
       editor.trigger 'core:move-up'
       expect(editor.getCursorBufferPosition().row).toBe 0
+
+  it "sets the width of the view to be wide enough to contain the longest completion without scrolling", ->
+    editor.attachToDom()
+    editor.insertText('thisIsAReallyReallyReallyLongCompletion ')
+    editor.moveCursorToBottom()
+    editor.insertNewline
+    editor.insertText('t')
+    autocomplete.attach()
+    expect(autocomplete.list.prop('scrollWidth')).toBe autocomplete.list.width()

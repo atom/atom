@@ -1,4 +1,4 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 LoadTagsTask = require './load-tags-task'
 ctags = require 'ctags'
@@ -7,7 +7,7 @@ module.exports =
 
 getTagsFile: (project) ->
   tagsFile = project.resolve("tags") or project.resolve("TAGS")
-  return tagsFile if fs.isFile(tagsFile)
+  return tagsFile if fsUtils.isFile(tagsFile)
 
 find: (editor) ->
   word = editor.getTextInRange(editor.getCursor().getCurrentWordBufferRange())

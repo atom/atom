@@ -92,6 +92,11 @@
         padding: 1px;
       }
     }
+
+    .matches {
+      list-style-type: none;
+      margin: 0;
+    }
   }
 
   .header:after {
@@ -105,6 +110,7 @@
   .expand-collapse {
     float: right;
     -webkit-user-select: none;
+    margin: 0;
 
     li {
       display: inline-block;
@@ -113,6 +119,7 @@
       margin-left: 5px;
       padding: 5px 10px;
       border-radius: 3px;
+      line-height: normal;
     }
   }
 
@@ -124,9 +131,15 @@
       -webkit-flex: 1;
     }
   }
-}
 
-.error-messages {
-  padding: 5px 1em;
-  color: white;
+  .error-messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 5px 1em;
+    color: white;
+  }
+
+  .btn {
+    margin-left: 5px;
+  }
 }

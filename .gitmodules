@@ -70,9 +70,15 @@
 [submodule "vendor/packages/less.tmbundle"]
 	path = vendor/packages/less.tmbundle
 	url = https://github.com/mathewbyrne/less.tmbundle.git
-[submodule "vendor/packages/Mustache.tmbundle"]
-	path = vendor/packages/Mustache.tmbundle
+[submodule "vendor/packages/mustache.tmbundle"]
+	path = vendor/packages/mustache.tmbundle
 	url = https://github.com/kevinsawicki/Mustache.tmbundle.git
-[submodule "vendor/packages/Go.tmbundle"]
-	path = vendor/packages/Go.tmbundle
+[submodule "vendor/packages/go.tmbundle"]
+	path = vendor/packages/go.tmbundle
 	url = https://github.com/rsms/Go.tmbundle
+[submodule "vendor/bootstrap"]
+	path = vendor/bootstrap
+	url = https://github.com/twitter/bootstrap
+[submodule "vendor/packages/pegjs.tmbundle"]
+	path = vendor/packages/pegjs.tmbundle
+	url = https://github.com/alexstrat/PEGjs.tmbundle

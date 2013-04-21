@@ -1,59 +1,68 @@
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 CSON = require 'cson'
 
-configDirPath = fs.absolute("~/.atom")
-bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
-bundledThemesDirPath = fs.join(resourcePath, "themes")
-vendoredPackagesDirPath = fs.join(resourcePath, "vendor/packages")
-vendoredThemesDirPath = fs.join(resourcePath, "vendor/themes")
-userThemesDirPath = fs.join(configDirPath, "themes")
-userPackagesDirPath = fs.join(configDirPath, "packages")
+configDirPath = fsUtils.absolute("~/.atom")
+bundledPackagesDirPath = fsUtils.join(resourcePath, "src/packages")
+bundledThemesDirPath = fsUtils.join(resourcePath, "themes")
+vendoredPackagesDirPath = fsUtils.join(resourcePath, "vendor/packages")
+vendoredThemesDirPath = fsUtils.join(resourcePath, "vendor/themes")
+userThemesDirPath = fsUtils.join(configDirPath, "themes")
+userPackagesDirPath = fsUtils.join(configDirPath, "packages")
 
+# Public: Handles all of Atom's configuration details.
+#
+# This includes loading and setting default options, as well as reading from the
+# user's configuration file. 
 module.exports =
 class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath, vendoredThemesDirPath]
   packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
+  lessSearchPaths: [fsUtils.join(resourcePath, 'static'), fsUtils.join(resourcePath, 'vendor')]
   defaultSettings: null
   settings: null
   configFileHasErrors: null
+
+  ###
+  # Internal #
+  ###
 
   constructor: ->
     @defaultSettings =
       core: _.clone(require('root-view').configDefaults)
       editor: _.clone(require('editor').configDefaults)
     @settings = {}
-    @configFilePath = fs.resolve(configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= fs.join(configDirPath, 'config.cson')
+    @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
+    @configFilePath ?= fsUtils.join(configDirPath, 'config.cson')
 
   initializeConfigDirectory: ->
-    return if fs.exists(@configDirPath)
+    return if fsUtils.exists(@configDirPath)
 
-    fs.makeDirectory(@configDirPath)
+    fsUtils.makeDirectory(@configDirPath)
 
-    templateConfigDirPath = fs.resolve(window.resourcePath, 'dot-atom')
+    templateConfigDirPath = fsUtils.resolve(window.resourcePath, 'dot-atom')
     onConfigDirFile = (path) =>
       relativePath = path.substring(templateConfigDirPath.length + 1)
-      configPath = fs.join(@configDirPath, relativePath)
-      fs.write(configPath, fs.read(path))
-    fs.traverseTreeSync(templateConfigDirPath, onConfigDirFile, (path) -> true)
+      configPath = fsUtils.join(@configDirPath, relativePath)
+      fsUtils.write(configPath, fsUtils.read(path))
+    fsUtils.traverseTreeSync(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
-    configThemeDirPath = fs.join(@configDirPath, 'themes')
+    configThemeDirPath = fsUtils.join(@configDirPath, 'themes')
     onThemeDirFile = (path) ->
       relativePath = path.substring(bundledThemesDirPath.length + 1)
-      configPath = fs.join(configThemeDirPath, relativePath)
-      fs.write(configPath, fs.read(path))
-    fs.traverseTreeSync(bundledThemesDirPath, onThemeDirFile, (path) -> true)
+      configPath = fsUtils.join(configThemeDirPath, relativePath)
+      fsUtils.write(configPath, fsUtils.read(path))
+    fsUtils.traverseTreeSync(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
 
   loadUserConfig: ->
-    if fs.exists(@configFilePath)
+    if fsUtils.exists(@configFilePath)
       try
         userConfig = CSON.readObject(@configFilePath)
         _.extend(@settings, userConfig)
@@ -62,10 +71,24 @@ class Config
         console.error "Failed to load user config '#{@configFilePath}'", e.message
         console.error e.stack
 
+  # Public: Retrieves the setting for the given key.
+  #
+  # keyPath - The {String} name of the key to retrieve
+  #
+  # Returns the value from Atom's default settings, the user's configuration file,
+  # or `null` if the key doesn't exist in either. 
   get: (keyPath) ->
     _.valueForKeyPath(@settings, keyPath) ?
       _.valueForKeyPath(@defaultSettings, keyPath)
 
+  # Public: Sets the value for a configuration setting.
+  #
+  # This value is stored in Atom's internal configuration file. 
+  #
+  # keyPath - The {String} name of the key
+  # value - The value of the setting
+  #
+  # Returns the `value`.
   set: (keyPath, value) ->
     _.setValueForKeyPath(@settings, keyPath, value)
     @update()
@@ -81,6 +104,13 @@ class Config
     _.extend hash, defaults
     @update()
 
+  # Public: Establishes an event listener for a given key.
+  #
+  # Whenever the value of the key is changed, a callback is fired.
+  #
+  # keyPath - The {String} name of the key to watch
+  # callback - The {Function} that fires when the. It is given a single argument, `value`,
+  #            which is the new value of `keyPath`.
   observe: (keyPath, callback) ->
     value = @get(keyPath)
     previousValue = _.clone(value)

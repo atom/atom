@@ -1,6 +1,7 @@
 #include <sstream>
 #include <iostream>
 #include <assert.h>
+#include "include/cef_app.h"
 #include "include/cef_path_util.h"
 #include "include/cef_process_util.h"
 #include "include/cef_task.h"
@@ -14,7 +15,9 @@
 #define REQUIRE_IO_THREAD()   assert(CefCurrentlyOn(TID_IO));
 #define REQUIRE_FILE_THREAD() assert(CefCurrentlyOn(TID_FILE));
 
-AtomCefClient::AtomCefClient(){
+static int numberOfOpenBrowsers = 0;
+
+AtomCefClient::AtomCefClient() {
 }
 
 AtomCefClient::AtomCefClient(bool handlePasteboardCommands, bool ignoreTitleChanges) {
@@ -86,6 +89,12 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   }
   else if (name == "getVersion") {
     GetVersion(messageId, browser);
+  }
+  else if (name == "crash") {
+    __builtin_trap();
+  }
+  else if (name == "restartRendererProcess") {
+    RestartRendererProcess(browser);
   }
   else {
     return false;
@@ -161,17 +170,22 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
 //  REQUIRE_UI_THREAD(); // When uncommented this fails when app is terminated
   m_Browser = NULL;
+  numberOfOpenBrowsers--;
+  if (numberOfOpenBrowsers == 0) {
+    CefQuitMessageLoop();
+  }
 }
 
 void AtomCefClient::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
 
   AutoLock lock_scope(this);
-  if (!m_Browser.get())   {
+  if (!m_Browser.get()) {
     m_Browser = browser;
   }
 
   GetBrowser()->GetHost()->SetFocus(true);
+  numberOfOpenBrowsers++;
 }
 
 void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,
@@ -248,4 +262,12 @@ bool AtomCefClient::Save(const std::string& path, const std::string& data) {
   fwrite(data.c_str(), data.size(), 1, f);
   fclose(f);
   return true;
+}
+
+void AtomCefClient::RestartRendererProcess(CefRefPtr<CefBrowser> browser) {
+  // Navigating to the same URL has the effect of restarting the renderer
+  // process, because cefode has overridden ContentBrowserClient's
+  // ShouldSwapProcessesForNavigation method.
+  CefRefPtr<CefFrame> frame = browser->GetFocusedFrame();
+  frame->LoadURL(frame->GetURL());
 }

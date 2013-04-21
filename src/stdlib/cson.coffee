@@ -14,7 +14,8 @@ module.exports =
   readObjectAsync: (path, done) ->
     fs.readFile path, 'utf8', (err, contents) =>
       return done(err) if err?
-      try done(null, @parseObject(path, contents))
+      try
+        done(null, @parseObject(path, contents))
       catch err
         done(err)
 

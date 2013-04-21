@@ -1,6 +1,7 @@
 Point = require 'point'
 Range = require 'range'
 
+# Internal: Responsible for doing the translations between screen positions and buffer positions.
 module.exports =
 class LineMap
   maxScreenLineLength: 0
@@ -25,13 +26,30 @@ class LineMap
 
     for screenLine in maxLengthCandidates
       @maxScreenLineLength = Math.max(@maxScreenLineLength, screenLine.text.length)
-
+  
+  # Public: Gets the line for the given screen row.
+  #
+  # screenRow - A {Number} indicating the screen row.
+  #
+  # Returns a {String}.
   lineForScreenRow: (row) ->
     @screenLines[row]
 
+  # Public: Gets the lines for the given screen row boundaries.
+  #
+  # start - A {Number} indicating the beginning screen row.
+  # end - A {Number} indicating the ending screen row.
+  #
+  # Returns an {Array} of {String}s.
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
-
+    
+  # Public: Given a starting and ending row, this converts every row into a buffer position.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at (default: {.lastScreenRow})
+  #
+  # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow()) ->
     bufferRows = []
     bufferRow = 0
@@ -44,7 +62,10 @@ class LineMap
 
   screenLineCount: ->
     @screenLines.length
-
+    
+  # Retrieves the last row number in the buffer.
+  #
+  # Returns an {Integer}.
   lastScreenRow: ->
     @screenLineCount() - 1
 
@@ -76,7 +97,14 @@ class LineMap
     else
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
-
+    
+  # Public: Given a buffer position, this converts it into a screen position.
+  #
+  # bufferPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {.clipScreenPosition}.
+  #
+  # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options={}) ->
     { row, column } = Point.fromObject(bufferPosition)
     [screenRow, screenLines] = @screenRowAndScreenLinesForBufferRow(row)
@@ -109,9 +137,15 @@ class LineMap
       currentBufferRow = nextBufferRow
 
     [screenRow, screenLines]
-
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # screenPosition - An object that represents a buffer position. It can be either
+  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # options - The same options available to {.clipScreenPosition}.
+  #
+  # Returns a {Point}. 
   bufferPositionForScreenPosition: (screenPosition, options) ->
-    { row, column } = @clipScreenPosition(Point.fromObject(screenPosition))
+    { row, column } = @clipScreenPosition(Point.fromObject(screenPosition), options)
     [bufferRow, screenLine] = @bufferRowAndScreenLineForScreenRow(row)
     bufferColumn = screenLine.bufferColumnForScreenColumn(column)
     new Point(bufferRow, bufferColumn)
@@ -125,19 +159,29 @@ class LineMap
         bufferRow += screenLine.bufferRows
 
     [bufferRow, screenLine]
-
+    
+  # Public: Given a buffer range, this converts it into a screen position.
+  #
+  # bufferRange - The {Range} to convert
+  #
+  # Returns a {Range}.
   screenRangeForBufferRange: (bufferRange) ->
     bufferRange = Range.fromObject(bufferRange)
     start = @screenPositionForBufferPosition(bufferRange.start)
     end = @screenPositionForBufferPosition(bufferRange.end)
     new Range(start, end)
-
+  # Public: Given a screen range, this converts it into a buffer position.
+  #
+  # screenRange - The {Range} to convert
+  #
+  # Returns a {Range}.
   bufferRangeForScreenRange: (screenRange) ->
     screenRange = Range.fromObject(screenRange)
     start = @bufferPositionForScreenPosition(screenRange.start)
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
+  # Internal:
   logLines: (start=0, end=@screenLineCount() - 1)->
     for row in [start..end]
       line = @lineForScreenRow(row).text

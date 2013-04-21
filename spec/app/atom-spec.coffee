@@ -1,7 +1,8 @@
 $ = require 'jquery'
 RootView = require 'root-view'
 {$$} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
+Exec = require('child_process').exec
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -129,9 +130,9 @@ describe "the `atom` global", ->
         describe "stylesheet loading", ->
           describe "when the metadata contains a 'stylesheets' manifest", ->
             it "loads stylesheets from the stylesheets directory as specified by the manifest", ->
-              one = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/1.css")
-              two = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/2.less")
-              three = fs.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/3.css")
+              one = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/1.css")
+              two = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/2.less")
+              three = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/3.css")
               expect(stylesheetElementForId(one)).not.toExist()
               expect(stylesheetElementForId(two)).not.toExist()
               expect(stylesheetElementForId(three)).not.toExist()
@@ -145,9 +146,9 @@ describe "the `atom` global", ->
 
           describe "when the metadata does not contain a 'stylesheets' manifest", ->
             it "loads all stylesheets from the stylesheets directory", ->
-              one = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
-              two = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
-              three = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
+              one = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
+              two = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
+              three = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
               expect(stylesheetElementForId(one)).not.toExist()
               expect(stylesheetElementForId(two)).not.toExist()
               expect(stylesheetElementForId(three)).not.toExist()
@@ -215,9 +216,9 @@ describe "the `atom` global", ->
         it "removes the package's stylesheets", ->
           atom.activatePackage('package-with-stylesheets')
           atom.deactivatePackage('package-with-stylesheets')
-          one = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
-          two = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
-          three = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
+          one = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
+          two = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
+          three = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
           expect(stylesheetElementForId(one)).not.toExist()
           expect(stylesheetElementForId(two)).not.toExist()
           expect(stylesheetElementForId(three)).not.toExist()
@@ -249,7 +250,7 @@ describe "the `atom` global", ->
         versionHandler.callCount > 0
 
       runs ->
-        expect(versionHandler.argsForCall[0][0]).toMatch /^\d+\.\d+(\.\d+)?$/
+        expect(versionHandler.argsForCall[0][0]).toBeDefined()
 
   describe "modal native dialogs", ->
     beforeEach ->
@@ -321,3 +322,26 @@ describe "the `atom` global", ->
       expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
       expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A2"
       atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+
+  describe "API documentation", ->
+    it "meets a minimum threshold for /app (with no errors)", ->
+      docRunner = jasmine.createSpy("docRunner")
+      Exec "rake docs:app:stats", cwd: project.resolve('../..'), docRunner
+      waitsFor ->
+        docRunner.callCount > 0
+
+      runs ->
+        # error
+        expect(docRunner.argsForCall[0][0]).toBeNull()
+
+        results = docRunner.argsForCall[0][1].split("\n")
+        results.pop()
+
+        errors = parseInt results.pop().match(/\d+/)
+        expect(errors).toBe 0
+
+        coverage = parseFloat results.pop().match(/.+?%/)
+        expect(coverage).toBeGreaterThan 80
+
+        # stderr
+        expect(docRunner.argsForCall[0][2]).toBe ''

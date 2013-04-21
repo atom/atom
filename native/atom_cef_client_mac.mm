@@ -156,7 +156,7 @@ void AtomCefClient::Exit(int status) {
 }
 
 void AtomCefClient::Log(const char *message) {
-  std::cout << message << "\n";
+  NSLog(@"%s", message);
 }
 
 void AtomCefClient::GetVersion(int replyId, CefRefPtr<CefBrowser> browser) {
@@ -168,4 +168,11 @@ void AtomCefClient::GetVersion(int replyId, CefRefPtr<CefBrowser> browser) {
   replyArguments->SetString(1, [version UTF8String]);
   replyArguments->SetList(0, CreateReplyDescriptor(replyId, 0));
   browser->SendProcessMessage(PID_RENDERER, replyMessage);
+}
+
+bool AtomCefClient::DoClose(CefRefPtr<CefBrowser> browser) {
+  m_IsClosed = true;
+  NSWindow *window = [browser->GetHost()->GetWindowHandle() window];
+  [window performClose:window];
+  return false;
 }

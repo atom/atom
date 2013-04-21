@@ -8,10 +8,10 @@ module.exports =
 class DirectoryView extends View
   @content: ({directory, isExpanded} = {}) ->
     @li class: 'directory entry', =>
+      @span class: 'highlight'
       @div outlet: 'header', class: 'header', =>
         @span class: 'disclosure-arrow', outlet: 'disclosureArrow'
         @span directory.getBaseName(), class: 'name', outlet: 'directoryName'
-      @span "", class: 'highlight'
 
   directory: null
   entries: null
@@ -30,7 +30,7 @@ class DirectoryView extends View
           iconClass = 'submodule-icon'
         else
           @subscribe git, 'status-changed', (path, status) =>
-            @updateStatus() if path.substring("#{@getPath()}/") is 0
+            @updateStatus() if path.indexOf("#{@getPath()}/") is 0
           @subscribe git, 'statuses-changed', =>
             @updateStatus()
           @updateStatus()
@@ -60,7 +60,7 @@ class DirectoryView extends View
   buildEntries: ->
     @unwatchDescendantEntries()
     @entries?.remove()
-    @entries = $$ -> @ol class: 'entries'
+    @entries = $$ -> @ol class: 'entries list-unstyled'
     for entry in @directory.getEntries()
       continue if @isPathIgnored(entry.path)
       if entry instanceof Directory

@@ -1,61 +1,51 @@
-.select-list ol {
-  border: 1px solid #212121;
-  position: relative;
-  overflow-y: auto;
-  max-height: 312px;
-  margin: 0;
-  padding: 0;
-  line-height: 100%;
-  -webkit-user-select: none;
-  cursor: default;
-}
+@import "octicon-mixins.less";
 
-.select-list ol:empty {
-  border: none;
-}
+.select-list {
+  .error {
+    font-weight: bold;
+  }
 
-.select-list ol li {
-  padding: 10px;
-  box-sizing: border-box;
-  display: block;
-}
+  ol {
+    position: relative;
+    overflow-y: auto;
+    max-height: 312px;
+    margin: 0;
+    padding: 0;
 
-.select-list li .label {
-  display: inline-block;
-}
+    &:empty {
+      border: none;
+    }
 
-.select-list li .right {
-  float: right;
-}
+    li {
+      padding: 10px;
+      display: block;
+    }
 
-.select-list .key-binding {
-  border-radius: 2px;
-  margin-left: 5px;
-  padding: 3px;
-  font-size: 11px;
-}
+    li:last-child {
+      border-bottom: none;
+    }
 
-.select-list ol li:last-child {
-  border-bottom: none;
-}
+    li.active-item {
+      .mini-icon(confirm, 14px);
 
-.select-list .error {
-  font-weight: bold;
-  color: white;
-  text-shadow: 0 1px 0 #4E0000;
-}
+      &:before {
+        margin-right: 5px;
+      }
+    }
 
-.select-list li.active-item:before {
-  font-family: 'Octicons Regular';
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-  margin-right: 5px;
-  -webkit-font-smoothing: antialiased;
-  color: #9d9d9d;
-  content: '\f03a';
-}
+    li.inactive-item {
+      padding-left: 29px;
+    }
 
-.select-list li.inactive-item {
-  padding-left: 29px;
+    li .right {
+      float: right;
+    }
+
+    .key-binding {
+      border-radius: 2px;
+      margin-left: 5px;
+      padding: 3px;
+      font-size: 11px;
+    }
+  }
 }

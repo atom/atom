@@ -1,13 +1,13 @@
 $ = require 'jquery'
 {View} = require 'space-pen'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class TabView extends View
   @content: ->
     @li class: 'tab sortable', =>
-      @span class: 'title', outlet: 'title'
-      @span class: 'close-icon'
+      @div class: 'title', outlet: 'title'
+      @div class: 'close-icon'
 
   initialize: (@item, @pane) ->
     @item.on? 'title-changed', => @updateTitle()
@@ -46,7 +46,7 @@ class TabView extends View
     if fileNameText?
       duplicates = @editor.getEditSessions().filter (session) -> fileNameText is session.buffer.getBaseName()
       if duplicates.length > 1
-        directory = fs.base(fs.directory(@editSession.getPath()))
+        directory = fsUtils.base(fsUtils.directory(@editSession.getPath()))
         fileNameText = "#{fileNameText} - #{directory}" if directory
     else
       fileNameText = 'untitled'

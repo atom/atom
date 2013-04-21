@@ -1,14 +1,18 @@
-fs = require 'fs-utils'
+fs = require 'fs'
+fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
-{less} = require 'less'
-{spawn} = require 'child_process'
+less = require 'less'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
 
 deserializers = {}
 deferredDeserializers = {}
+
+###
+# Internal #
+###
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
@@ -25,25 +29,21 @@ window.setUpEnvironment = ->
   $(document).on 'keydown', keymap.handleKeyEvent
   keymap.bindDefaultKeys()
 
-  requireStylesheet 'reset'
   requireStylesheet 'atom'
-  requireStylesheet 'overlay'
-  requireStylesheet 'popover-list'
-  requireStylesheet 'notification'
-  requireStylesheet 'markdown'
 
-  if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
+  if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
 window.startup = ->
-  directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fs.isDirectory(dir)
+  directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
   if directory
-    installAtomCommand(fs.join(directory, 'bin/atom'))
+    installAtomCommand(fsUtils.join(directory, 'bin/atom'))
   else
     console.warn "Failed to install `atom` binary"
 
   handleWindowEvents()
+  handleDragDrop()
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
@@ -73,18 +73,31 @@ window.shutdown = ->
   window.git = null
 
 window.installAtomCommand = (commandPath) ->
-  return if fs.exists(commandPath)
+  return if fsUtils.exists(commandPath)
 
-  bundledCommandPath = fs.resolve(window.resourcePath, 'atom.sh')
+  bundledCommandPath = fsUtils.resolve(window.resourcePath, 'atom.sh')
   if bundledCommandPath?
-    fs.write(commandPath, fs.read(bundledCommandPath))
-    spawn('chmod', ['u+x', commandPath])
+    fsUtils.write(commandPath, fsUtils.read(bundledCommandPath))
+    fs.chmod(commandPath, 0o755, commandPath)
 
 window.handleWindowEvents = ->
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
   $(window).command 'window:close', => confirmClose()
+  $(window).command 'window:reload', => reload()
+
+window.handleDragDrop = ->
+  $(document).on 'dragover', (e) ->
+    e.preventDefault()
+    e.stopPropagation()
+  $(document).on 'drop', onDrop
+
+window.onDrop = (e) ->
+  e.preventDefault()
+  e.stopPropagation()
+  for file in e.originalEvent.dataTransfer.files
+    atom.open(file.path)
 
 window.deserializeWindowState = ->
   RootView = require 'root-view'
@@ -99,7 +112,7 @@ window.deserializeWindowState = ->
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 
-  if !windowState.rootView and (!pathToOpen or fs.isFile(pathToOpen))
+  if !windowState.rootView and (!pathToOpen or fsUtils.isFile(pathToOpen))
     rootView.open(pathToOpen)
 
   $(rootViewParentSelector).append(rootView)
@@ -113,10 +126,10 @@ window.stylesheetElementForId = (id) ->
   $("head style[id='#{id}']")
 
 window.resolveStylesheet = (path) ->
-  if fs.extension(path).length > 0
-    fs.resolveOnLoadPath(path)
+  if fsUtils.extension(path).length > 0
+    fsUtils.resolveOnLoadPath(path)
   else
-    fs.resolveOnLoadPath(path, ['css', 'less'])
+    fsUtils.resolveOnLoadPath(path, ['css', 'less'])
 
 window.requireStylesheet = (path) ->
   if fullPath = window.resolveStylesheet(path)
@@ -126,13 +139,28 @@ window.requireStylesheet = (path) ->
     throw new Error("Could not find a file at path '#{path}'")
 
 window.loadStylesheet = (path) ->
-  content = fs.read(path)
-  if fs.extension(path) == '.less'
-    (new less.Parser).parse content, (e, tree) ->
-      throw new Error(e.message, path, e.line) if e
-      content = tree.toCSS()
+  if fsUtils.extension(path) == '.less'
+    loadLessStylesheet(path)
+  else
+    fsUtils.read(path)
 
-  content
+window.loadLessStylesheet = (path) ->
+  parser = new less.Parser
+    syncImport: true
+    paths: config.lessSearchPaths
+    filename: path
+  try
+    content = null
+    parser.parse fsUtils.read(path), (e, tree) ->
+      throw e if e?
+      content = tree.toCSS()
+    content
+  catch e
+    console.error """
+      Error compiling less stylesheet: #{path}
+      Line number: #{e.line}
+      #{e.message}
+    """
 
 window.removeStylesheet = (path) ->
   unless fullPath = window.resolveStylesheet(path)
@@ -147,14 +175,13 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
       $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
 window.reload = ->
-  if rootView?.getModifiedBuffers().length > 0
-    atom.confirm(
-      "There are unsaved buffers, reload anyway?",
-      "You will lose all unsaved changes if you reload",
-      "Reload", (-> $native.reload()),
-      "Cancel"
-    )
+  timesReloaded = process.global.timesReloaded ? 0
+  ++timesReloaded
+
+  if timesReloaded > 3
+    atom.restartRendererProcess()
   else
+    process.global.timesReloaded = timesReloaded
     $native.reload()
 
 window.onerror = ->
@@ -198,5 +225,6 @@ window.profile = (description, fn) ->
     console.profileEnd(description)
     value
 
+# Public: Shows a dialog asking if the window was _really_ meant to be closed.
 confirmClose = ->
   rootView.confirmClose().done -> window.close()

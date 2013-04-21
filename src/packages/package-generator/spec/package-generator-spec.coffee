@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe 'Package Generator', ->
   [packageGenerator] = []
@@ -35,21 +35,21 @@ describe 'Package Generator', ->
 
       packageName = "sweet-package-dude"
       packagePath = "/tmp/atom-packages/#{packageName}"
-      fs.remove(packagePath) if fs.exists(packagePath)
+      fsUtils.remove(packagePath) if fsUtils.exists(packagePath)
 
     afterEach ->
-      fs.remove(packagePath) if fs.exists(packagePath)
+      fsUtils.remove(packagePath) if fsUtils.exists(packagePath)
 
     it "forces the package's name to be lowercase with dashes", ->
       packageName = "CamelCaseIsForTheBirds"
-      packagePath = fs.join(fs.directory(packagePath), packageName)
+      packagePath = fsUtils.join(fsUtils.directory(packagePath), packageName)
       rootView.trigger("package-generator:generate")
       packageGeneratorView = rootView.find(".package-generator").view()
       packageGeneratorView.miniEditor.setText(packagePath)
       packageGeneratorView.trigger "core:confirm"
 
       expect(packagePath).not.toExistOnDisk()
-      expect(fs.join(fs.directory(packagePath), "camel-case-is-for-the-birds")).toExistOnDisk()
+      expect(fsUtils.join(fsUtils.directory(packagePath), "camel-case-is-for-the-birds")).toExistOnDisk()
 
     it "correctly lays out the package files and closes the package generator view", ->
       rootView.attachToDom()
@@ -77,16 +77,16 @@ describe 'Package Generator', ->
       packageGeneratorView.miniEditor.setText(packagePath)
       packageGeneratorView.trigger "core:confirm"
 
-      lines = fs.read("#{packagePath}/package.cson").split("\n")
+      lines = fsUtils.read("#{packagePath}/package.cson").split("\n")
       expect(lines[0]).toBe "'main': 'lib\/#{packageName}'"
 
-      lines = fs.read("#{packagePath}/lib/#{packageName}.coffee").split("\n")
+      lines = fsUtils.read("#{packagePath}/lib/#{packageName}.coffee").split("\n")
       expect(lines[0]).toBe "SweetPackageDudeView = require 'sweet-package-dude/lib/sweet-package-dude-view'"
       expect(lines[3]).toBe "  sweetPackageDudeView: null"
 
     it "displays an error when the package path already exists", ->
       rootView.attachToDom()
-      fs.makeTree(packagePath)
+      fsUtils.makeTree(packagePath)
       rootView.trigger("package-generator:generate")
       packageGeneratorView = rootView.find(".package-generator").view()
 

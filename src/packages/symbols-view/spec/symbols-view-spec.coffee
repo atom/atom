@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 SymbolsView = require 'symbols-view/lib/symbols-view'
 TagGenerator = require 'symbols-view/lib/tag-generator'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 
 describe "SymbolsView", ->
   [symbolsView, setArraySpy] = []
@@ -30,9 +30,9 @@ describe "SymbolsView", ->
         expect(symbolsView.find('.loading')).toBeEmpty()
         expect(rootView.find('.symbols-view')).toExist()
         expect(symbolsView.list.children('li').length).toBe 2
-        expect(symbolsView.list.children('li:first').find('.label')).toHaveText 'quicksort'
+        expect(symbolsView.list.children('li:first').find('span')).toHaveText 'quicksort'
         expect(symbolsView.list.children('li:first').find('.function-details')).toHaveText 'Line 1'
-        expect(symbolsView.list.children('li:last').find('.label')).toHaveText 'quicksort.sort'
+        expect(symbolsView.list.children('li:last').find('span')).toHaveText 'quicksort.sort'
         expect(symbolsView.list.children('li:last').find('.function-details')).toHaveText 'Line 2'
         expect(symbolsView).not.toHaveClass "error"
         expect(symbolsView.error).not.toBeVisible()
@@ -162,11 +162,11 @@ describe "SymbolsView", ->
 
       beforeEach ->
         renamedPath = project.resolve("tagged-duplicate-renamed.js")
-        fs.remove(renamedPath) if fs.exists(renamedPath)
-        fs.move(project.resolve("tagged-duplicate.js"), renamedPath)
+        fsUtils.remove(renamedPath) if fsUtils.exists(renamedPath)
+        fsUtils.move(project.resolve("tagged-duplicate.js"), renamedPath)
 
       afterEach ->
-        fs.move(renamedPath, project.resolve("tagged-duplicate.js"))
+        fsUtils.move(renamedPath, project.resolve("tagged-duplicate.js"))
 
       it "doesn't display the tag", ->
         rootView.open("tagged.js")
@@ -175,7 +175,7 @@ describe "SymbolsView", ->
         editor.trigger 'symbols-view:go-to-declaration'
         symbolsView = rootView.find('.symbols-view').view()
         expect(symbolsView.list.children('li').length).toBe 1
-        expect(symbolsView.list.children('li:first').find('.label')).toHaveText 'tagged.js'
+        expect(symbolsView.list.children('li:first').find('span')).toHaveText 'tagged.js'
 
   describe "project symbols", ->
     it "displays all tags", ->
@@ -192,9 +192,9 @@ describe "SymbolsView", ->
         expect(symbolsView.find('.loading')).toBeEmpty()
         expect(rootView.find('.symbols-view')).toExist()
         expect(symbolsView.list.children('li').length).toBe 4
-        expect(symbolsView.list.children('li:first').find('.label')).toHaveText 'callMeMaybe'
+        expect(symbolsView.list.children('li:first').find('span')).toHaveText 'callMeMaybe'
         expect(symbolsView.list.children('li:first').find('.function-details')).toHaveText 'tagged.js'
-        expect(symbolsView.list.children('li:last').find('.label')).toHaveText 'thisIsCrazy'
+        expect(symbolsView.list.children('li:last').find('span')).toHaveText 'thisIsCrazy'
         expect(symbolsView.list.children('li:last').find('.function-details')).toHaveText 'tagged.js'
         expect(symbolsView).not.toHaveClass "error"
         expect(symbolsView.error).not.toBeVisible()
@@ -205,11 +205,11 @@ describe "SymbolsView", ->
 
         beforeEach ->
           renamedPath = project.resolve("tagged-renamed.js")
-          fs.remove(renamedPath) if fs.exists(renamedPath)
-          fs.move(project.resolve("tagged.js"), renamedPath)
+          fsUtils.remove(renamedPath) if fsUtils.exists(renamedPath)
+          fsUtils.move(project.resolve("tagged.js"), renamedPath)
 
         afterEach ->
-          fs.move(renamedPath, project.resolve("tagged.js"))
+          fsUtils.move(renamedPath, project.resolve("tagged.js"))
 
         it "doesn't open the editor", ->
           rootView.trigger "symbols-view:toggle-project-symbols"

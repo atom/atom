@@ -1,7 +1,6 @@
 $ = require 'jquery'
 ScrollView = require 'scroll-view'
 _ = require 'underscore'
-fs = require 'fs-utils'
 PathView = require './path-view'
 OperationView = require './operation-view'
 
@@ -21,8 +20,7 @@ class PreviewList extends ScrollView
     @on 'core:move-down', => @selectNextOperation(); false
     @on 'core:move-up', => @selectPreviousOperation(); false
     @on 'scroll', =>
-      @renderOperations() if @scrollBottom() >= (@prop('scrollHeight'))
-
+      @renderOperations() if @scrollBottom() >= @prop('scrollHeight')
     @command 'command-panel:collapse-all', => @collapseAllPaths()
     @command 'command-panel:expand-all', => @expandAllPaths()
 
@@ -114,6 +112,8 @@ class PreviewList extends ScrollView
     @scrollTop(top) if top < @scrollTop()
 
   scrollToBottom: ->
+    @renderOperations(renderAll: true)
+
     super()
 
     @find('.selected').removeClass('selected')

@@ -6,12 +6,13 @@ about configuring, theming, and extending Atom.
 
 ## The Command Palette
 
-If there's one key-command you learn in Atom, it should be `meta-p`. You can
-always hit `meta-p` to bring up a list of commands that are relevant to the
-currently focused UI element. If there is a key binding for a given command, it
-is also displayed. This is a great way to explore the system and get to know the
-key commands interactively. If you'd like to add or change a binding for a
-command, refer to the [key bindings](#customizing-key-bindings) section to learn how.
+If there's one key-command you learn in Atom, it should be `meta-p` (`meta` is
+synonymous with the ⌘ key). You can always hit `meta-p` to bring up a list of
+commands that are relevant to the currently focused UI element. If there is a
+key binding for a given command, it is also displayed. This is a great way to
+explore the system and get to know the key commands interactively. If you'd like
+to add or change a binding for a command, refer to the [key
+bindings](#customizing-key-bindings) section to learn how.
 
 ![Command Palette](http://f.cl.ly/items/32041o3w471F3C0F0V2O/Screen%20Shot%202013-02-13%20at%207.27.41%20PM.png)
 
@@ -173,8 +174,8 @@ its own namespace.
   - showInvisibles: Whether to render placeholders for invisible characters (defaults to false)
 - fuzzyFinder
   - ignoredNames: Files to ignore *only* in the fuzzy-finder
-- stripTrailingWhitespace
-  - singleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
+- whitespace
+  - ensureSingleTrailingNewline: Whether to reduce multiple newlines to one at the end of files
 - wrapGuide
   - columns: Array of hashes with a `pattern` and `column` key to match the
              the path of the current editor to a column position.

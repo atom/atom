@@ -1,36 +1,79 @@
 {View, $$, $$$} = require 'space-pen'
 Range = require 'range'
+$ = require 'jquery'
 _ = require 'underscore'
 
+# Public: Represents the portion of the {Editor} containing row numbers.
+#
+# The gutter also indicates if rows are folded.
 module.exports =
 class Gutter extends View
+
+  ###
+  # Internal #
+  ###
+
   @content: ->
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
   firstScreenRow: Infinity
   lastScreenRow: -1
-  highestNumberWidth: null
 
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
 
-    editor = @editor()
     highlightLines = => @highlightLines()
-    editor.on 'cursor:moved', highlightLines
-    editor.on 'selection:changed', highlightLines
+    @getEditor().on 'cursor:moved', highlightLines
+    @getEditor().on 'selection:changed', highlightLines
+    @on 'mousedown', (e) => @handleMouseEvents(e)
 
-  editor: ->
+  beforeRemove: ->
+    $(document).off(".gutter-#{@getEditor().id}")
+
+  handleMouseEvents: (e) ->
+    editor = @getEditor()
+    startRow = editor.screenPositionFromMouseEvent(e).row
+    if e.shiftKey
+      editor.selectToScreenPosition([startRow + 1, 0])
+      return
+    else
+      editor.getSelection().setScreenRange([[startRow, 0], [startRow, 0]])
+
+    moveHandler = (e) =>
+      start = startRow
+      end = editor.screenPositionFromMouseEvent(e).row
+      if end > start then end++ else start++
+      editor.getSelection().setScreenRange([[start, 0], [end, 0]])
+
+    $(document).on "mousemove.gutter-#{@getEditor().id}", moveHandler
+    $(document).one "mouseup.gutter-#{@getEditor().id}", => $(document).off 'mousemove', moveHandler
+
+  ###
+  # Public #
+  ###
+
+  # Public: Retrieves the containing {Editor}.
+  #
+  # Returns an {Editor}.
+  getEditor: ->
     @parentView
 
+  # Public: Defines whether to show the gutter or not.
+  #
+  # showLineNumbers - A {Boolean} which, if `false`, hides the gutter
   setShowLineNumbers: (showLineNumbers) ->
     if showLineNumbers then @lineNumbers.show() else @lineNumbers.hide()
+
+  ###
+  # Internal #
+  ###
 
   updateLineNumbers: (changes, renderFrom, renderTo) ->
     if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
       performUpdate = true
-    else if @editor().getLastScreenRow() < @lastScreenRow
+    else if @getEditor().getLastScreenRow() < @lastScreenRow
       performUpdate = true
     else
       for change in changes
@@ -39,9 +82,9 @@ class Gutter extends View
           break
 
     @renderLineNumbers(renderFrom, renderTo) if performUpdate
-
+  
   renderLineNumbers: (startScreenRow, endScreenRow) ->
-    editor = @editor()
+    editor = @getEditor()
     maxDigits = editor.getLineCount().toString().length
     rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
@@ -54,7 +97,7 @@ class Gutter extends View
           rowValue = (row + 1).toString()
         classes = ['line-number']
         classes.push('fold') if editor.isFoldedAtBufferRow(row)
-        @div class: classes.join(' '), =>
+        @div lineNumber: row, class: classes.join(' '), =>
           rowValuePadding = _.multiplyString('&nbsp;', maxDigits - rowValue.length)
           @raw("#{rowValuePadding}#{rowValue}")
 
@@ -81,8 +124,8 @@ class Gutter extends View
       @highlightedLineNumbers.push(highlightedLineNumber)
 
   highlightLines: ->
-    if @editor().getSelection().isEmpty()
-      row = @editor().getCursorScreenPosition().row
+    if @getEditor().getSelection().isEmpty()
+      row = @getEditor().getCursorScreenPosition().row
       rowRange = new Range([row, 0], [row, 0])
       return if @selectionEmpty and @highlightedRows?.isEqual(rowRange)
 
@@ -91,7 +134,7 @@ class Gutter extends View
       @highlightedRows = rowRange
       @selectionEmpty = true
     else
-      selectedRows = @editor().getSelection().getScreenRange()
+      selectedRows = @getEditor().getSelection().getScreenRange()
       endRow = selectedRows.end.row
       endRow-- if selectedRows.end.column is 0
       selectedRows = new Range([selectedRows.start.row, 0], [endRow, 0])

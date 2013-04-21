@@ -13,9 +13,7 @@ else
   TARGET=$1
 fi
 
-DISTURL="https://gh-contractor-zcbenz.s3.amazonaws.com/cefode2/prebuilt-cef"
-CEF_BASENAME="cef_binary_3.1423.1133_macosx"
-CEF_SYMBOLS_BASENAME="${CEF_BASENAME}_symbols"
+DISTURL="https://gh-contractor-zcbenz.s3.amazonaws.com/cefode3/prebuilt-cef"
 
 TEMP_DIR=$(mktemp -d -t prebuilt-cef-download.XXXXXX)
 trap "rm -rf \"${TEMP_DIR}\"" EXIT
@@ -29,11 +27,16 @@ fi
 CURRENT_VERSION=`cat cef/version 2>&1`
 
 if [[ $LATEST_VERSION != $CURRENT_VERSION ]]; then
-  echo "Downloading/extracting cefode2 u${LATEST_VERSION}..."
-  curl --progress-bar "${DISTURL}/cef_binary_latest.zip" > "${TEMP_DIR}/cef.zip"
+  echo "Downloading/extracting cefode3 u${LATEST_VERSION}..."
+  if [ -t 1 ] ; then # If run from the terminal
+    CURL_ARGS="--progress-bar"
+  else
+    CURL_ARGS="-fsS"
+  fi
+  curl $CURL_ARGS "${DISTURL}/cef_binary_latest.zip" > "${TEMP_DIR}/cef.zip"
   unzip -q "${TEMP_DIR}/cef.zip" -d "${TEMP_DIR}"
   [ -e "${TARGET}" ] && rm -rf "${TARGET}"
-  mv "${TEMP_DIR}/${CEF_BASENAME}" "${TARGET}"
+  mv "${TEMP_DIR}"/*_macosx "${TARGET}"
   echo ${LATEST_VERSION} > 'cef/version'
 fi
 
@@ -41,8 +44,7 @@ if [[ "${SYMBOLS}" != "1" ]]; then
   exit 0
 fi
 
-echo "Downloading/extracting symbols for cefode2 u${LATEST_VERSION}..."
+echo "Downloading/extracting symbols for cefode3 u${LATEST_VERSION}..."
 curl --progress-bar "${DISTURL}/cef_binary_latest_symbols.zip" > "${TEMP_DIR}/symbols.zip"
 unzip -q "${TEMP_DIR}/symbols.zip" -d "${TEMP_DIR}"
-mv "${TEMP_DIR}/${CEF_SYMBOLS_BASENAME}"/* "${TARGET}/Release"
-
+mv "${TEMP_DIR}"/*_macosx_symbols/* "${TARGET}/Release"

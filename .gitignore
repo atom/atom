@@ -8,7 +8,9 @@ build
 .xcodebuild-info
 node_modules
 npm-debug.log
-/tags
+tags
 /cef/
 /sources.gypi
 /node/
+docs/api
+doc/assets

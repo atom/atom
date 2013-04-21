@@ -6,6 +6,11 @@ PaneColumn = require 'pane-column'
 
 module.exports =
 class Pane extends View
+
+  ###
+  # Internal #
+  ###
+
   @content: (wrappedView) ->
     @div class: 'pane', =>
       @div class: 'item-views', outlet: 'itemViews'
@@ -58,7 +63,11 @@ class Pane extends View
 
     return if @attached
     @attached = true
-    @trigger 'pane:attached'
+    @trigger 'pane:attached', [this]
+
+  ###
+  # Public #
+  ###
 
   makeActive: ->
     for pane in @getContainer().getPanes() when pane isnt this
@@ -148,7 +157,7 @@ class Pane extends View
 
     @autosaveItem(item)
 
-    if item.isModified?()
+    if item.shouldPromptToSave?()
       @promptToSaveItem(item, reallyDestroyItem)
     else
       reallyDestroyItem()
@@ -163,7 +172,7 @@ class Pane extends View
     uri = item.getUri()
     atom.confirm(
       "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
-      "Your changes will be lost if close this item without saving."
+      "Your changes will be lost if you close this item without saving."
       "Save", => @saveItem(item, nextAction)
       "Cancel", cancelAction
       "Don't Save", nextAction
@@ -214,7 +223,9 @@ class Pane extends View
     @trigger 'pane:item-moved', [item, newIndex]
 
   moveItemToPane: (item, pane, index) ->
+    @isMovingItem = true
     @removeItem(item)
+    @isMovingItem = false
     pane.addItem(item, index)
 
   itemForUri: (uri) ->
@@ -235,8 +246,12 @@ class Pane extends View
         delete @viewsByClassName[viewClass.name]
 
     if @items.length > 0
-      viewToRemove?.remove()
+      if @isMovingItem and item is viewToRemove
+        viewToRemove?.detach()
+      else
+        viewToRemove?.remove()
     else
+      viewToRemove?.detach() if @isMovingItem and item is viewToRemove
       @remove()
 
   viewForItem: (item) ->

@@ -1,0 +1,50 @@
+.select-list {
+  background-color: #e5e5e5;
+  border: 1px solid #c6c6c6;
+  color: #323232;
+  box-shadow: 0 0 10px #555;
+
+  .error {
+    color: white;
+    text-shadow: 0 1px 0 #4E0000;
+  }
+
+  ol {
+    border: 1px solid #d2d2d2;
+
+    li {
+      background-color: #f5f5f5;
+      border-bottom: 1px solid #ccc;
+    }
+
+    li:hover {
+      background-color: #f9f9f9;
+    }
+
+    li.active-item:before {
+      color: #9d9d9d;
+    }
+
+    .selected {
+      background-color: #e0e0e0;
+    }
+
+    .selected .right,
+    .selected .directory {
+      color: #333;
+    }
+
+    .right,
+    .directory {
+      color: #777;
+    }
+
+    .modified {
+      color: #f78a46;
+    }
+
+    .new {
+      color: #5293d8;
+    }
+  }
+}

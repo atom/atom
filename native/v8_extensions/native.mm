@@ -4,7 +4,6 @@
 #import "atom_application.h"
 #import "native.h"
 #import "include/cef_base.h"
-#import "path_watcher.h"
 
 #import <iostream>
 
@@ -22,9 +21,8 @@ namespace v8_extensions {
 
   void Native::CreateContextBinding(CefRefPtr<CefV8Context> context) {
     const char* methodNames[] = {
-      "writeToPasteboard", "readFromPasteboard", "quit", "watchPath",
-      "unwatchPath", "getWatchedPaths", "unwatchAllPaths", "moveToTrash",
-      "reload", "setWindowState", "getWindowState", "beep"
+      "writeToPasteboard", "readFromPasteboard", "quit", "moveToTrash",
+      "reload", "setWindowState", "getWindowState", "beep", "crash"
     };
 
     CefRefPtr<CefV8Value> nativeObject = CefV8Value::CreateObject(NULL);
@@ -67,67 +65,6 @@ namespace v8_extensions {
       [NSApp terminate:nil];
       return true;
     }
-    else if (name == "watchPath") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-      CefRefPtr<CefV8Value> function = arguments[1];
-
-      CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
-
-      WatchCallback callback = ^(NSString *eventType, NSString *path) {
-        context->Enter();
-
-        CefV8ValueList args;
-
-        args.push_back(CefV8Value::CreateString(string([eventType UTF8String], [eventType lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
-        args.push_back(CefV8Value::CreateString(string([path UTF8String], [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
-        function->ExecuteFunction(function, args);
-
-        context->Exit();
-      };
-
-      PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
-      NSString *watchId = [pathWatcher watchPath:path callback:[[callback copy] autorelease]];
-      if (watchId) {
-        retval = CefV8Value::CreateString([watchId UTF8String]);
-      }
-      else {
-        exception = string("Failed to watch path '") + string([path UTF8String]) +  string("' (it may not exist)");
-      }
-
-      return true;
-    }
-    else if (name == "unwatchPath") {
-      NSString *path = stringFromCefV8Value(arguments[0]);
-      NSString *callbackId = stringFromCefV8Value(arguments[1]);
-      NSError *error = nil;
-      PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
-      [pathWatcher unwatchPath:path callbackId:callbackId error:&error];
-
-      if (error) {
-        exception = [[error localizedDescription] UTF8String];
-      }
-
-      return true;
-    }
-    else if (name == "getWatchedPaths") {
-      PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
-      NSArray *paths = [pathWatcher watchedPaths];
-
-      CefRefPtr<CefV8Value> pathsArray = CefV8Value::CreateArray([paths count]);
-
-      for (int i = 0; i < [paths count]; i++) {
-        CefRefPtr<CefV8Value> path = CefV8Value::CreateString([[paths objectAtIndex:i] UTF8String]);
-        pathsArray->SetValue(i, path);
-      }
-      retval = pathsArray;
-
-      return true;
-    }
-    else if (name == "unwatchAllPaths") {
-      PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
-      [pathWatcher unwatchAllPaths];
-      return true;
-    }
     else if (name == "moveToTrash") {
       NSString *sourcePath = stringFromCefV8Value(arguments[0]);
       bool success = [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation
@@ -164,6 +101,10 @@ namespace v8_extensions {
 
     else if (name == "beep") {
       NSBeep();
+    }
+
+    else if (name == "crash") {
+      __builtin_trap();
     }
 
     return false;

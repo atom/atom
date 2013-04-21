@@ -1,7 +1,11 @@
 _ = require 'underscore'
-fs = require 'fs-utils'
+fsUtils = require 'fs-utils'
 plist = require 'plist'
 Theme = require 'theme'
+
+###
+# Internal #
+###
 
 module.exports =
 class TextMateTheme extends Theme

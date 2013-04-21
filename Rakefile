@@ -15,7 +15,9 @@ desc "Create xcode project from gyp file"
 task "create-xcode-project" => ["update-cef", "update-node"] do
   `rm -rf atom.xcodeproj`
   `script/generate-sources-gypi`
-  `gyp --depth=. -D CODE_SIGN="#{ENV['CODE_SIGN']}" atom.gyp`
+  version = %{-D version="#{ENV['VERSION']}"} if ENV['VERSION']
+  code_sign = %{-D code_sign="#{ENV['CODE_SIGN']}"} if ENV['CODE_SIGN']
+  `gyp --depth=. #{code_sign} #{version} atom.gyp`
 end
 
 desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
@@ -28,7 +30,7 @@ end
 
 desc "Download node binary"
 task "update-node" do
-  `script/update-node v0.10.1`
+  `script/update-node v0.10.3`
 end
 
 desc "Download debug symbols for CEF"
@@ -90,7 +92,7 @@ task :clean do
 end
 
 desc "Run the specs"
-task :test => ["clean", "update-cef", "clone-default-bundles", "build"] do
+task :test => ["update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
     cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH}"
@@ -112,6 +114,25 @@ end
 
 task :tags do
   system %{find src native cef vendor -not -name "*spec.coffee" -type f -print0 | xargs -0 ctags}
+end
+
+namespace :docs do
+  namespace :app do
+    desc "Builds the API docs in src/app"
+    task :build do
+      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- -o docs/api src/app/}
+    end
+
+    desc "Lists the stats for API doc coverage in src/app"
+    task :stats do
+      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- --statsOnly src/app/}
+    end
+
+    desc "Show which docs are missing"
+    task :missing do
+      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- --listMissing src/app/}
+    end
+  end
 end
 
 def application_path

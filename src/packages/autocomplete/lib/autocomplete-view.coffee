@@ -1,3 +1,4 @@
+$ = require 'jquery'
 {$$} = require 'space-pen'
 Range = require 'range'
 SelectList = require 'select-list'
@@ -22,11 +23,14 @@ class AutocompleteView extends SelectList
 
   itemForElement: (match) ->
     $$ ->
-      @li match.word
+      @li =>
+        @span match.word
 
   handleEvents: ->
     @editor.on 'editor:path-changed', => @setCurrentBuffer(@editor.getBuffer())
     @editor.command 'autocomplete:attach', => @attach()
+    @editor.command 'autocomplete:next', => @selectNextItem()
+    @editor.command 'autocomplete:previous', => @selectPreviousItem()
 
     @miniEditor.preempt 'textInput', (e) =>
       text = e.originalEvent.data
@@ -142,7 +146,7 @@ class AutocompleteView extends SelectList
     lineRange = [[selectionRange.start.row, 0], [selectionRange.end.row, @editor.lineLengthForBufferRow(selectionRange.end.row)]]
     [prefix, suffix] = ["", ""]
 
-    @currentBuffer.scanInRange @wordRegex, lineRange, (match, range, {stop}) ->
+    @currentBuffer.scanInRange @wordRegex, lineRange, ({match, range, stop}) ->
       stop() if range.start.isGreaterThan(selectionRange.end)
 
       if range.intersectsWith(selectionRange)
@@ -154,7 +158,15 @@ class AutocompleteView extends SelectList
 
     {prefix, suffix}
 
+  afterAttach: (onDom) ->
+    if onDom
+      widestCompletion = parseInt(@css('min-width')) or 0
+      @list.find('span').each ->
+        widestCompletion = Math.max(widestCompletion, $(this).outerWidth())
+      @list.width(widestCompletion)
+      @width(@list.outerWidth())
+
   populateList: ->
-    super()
+    super
 
     @setPosition()

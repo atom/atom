@@ -4,5 +4,10 @@ module.exports =
     @subscriptions ?= []
     @subscriptions.push(cancel: -> eventEmitter.off eventName, callback)
 
+  subscribeToCommand: (view, eventName, callback) ->
+    view.command eventName, callback
+    @subscriptions ?= []
+    @subscriptions.push(cancel: -> view.off eventName, callback)
+
   unsubscribe: ->
     subscription.cancel() for subscription in @subscriptions ? []

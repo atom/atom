@@ -5,6 +5,11 @@ _ = require 'underscore'
 $ = require 'jquery'
 CSON = require 'cson'
 
+
+###
+# Internal: Loads and resolves packages. #
+###
+
 module.exports =
 class AtomPackage extends Package
   metadata: null
@@ -28,7 +33,7 @@ class AtomPackage extends Package
       else
         @requireMainModule()
     catch e
-      console.warn "Failed to load package named '#{@name}'", e.stack
+      console.warn "Failed to load package named '#{@name}'", e.stack ? e
     this
 
   activate: ({immediate}={}) ->

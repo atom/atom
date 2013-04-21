@@ -4,17 +4,19 @@ Range = require 'range'
 
 module.exports =
 class SelectionView extends View
+
+  # Internal: Establishes the DOM for the selection view.
   @content: ->
     @div class: 'selection'
 
   regions: null
-  destroyed: false
+  needsRemoval: false
 
   initialize: ({@editor, @selection} = {}) ->
     @regions = []
     @selection.on 'screen-range-changed', => @editor.requestDisplayUpdate()
     @selection.on 'destroyed', =>
-      @destroyed = true
+      @needsRemoval = true
       @editor.requestDisplayUpdate()
 
   updateDisplay: ->
