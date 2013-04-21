@@ -12,3 +12,5 @@ class NullGrammar
 
   tokenizeLine: (line) ->
     { tokens: [new Token(value: line, scopes: ['null-grammar.text.plain'])] }
+
+  grammarAddedOrRemoved: -> # no op

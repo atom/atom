@@ -31,13 +31,19 @@ class Syntax
     { deserializer: @constructor.name, @grammarOverridesByPath }
 
   addGrammar: (grammar) ->
+    previousGrammars = new Array(@grammars...)
     @grammars.push(grammar)
     @grammarsByScopeName[grammar.scopeName] = grammar
+    @notifyOtherGrammars(previousGrammars, grammar.scopeName)
     @trigger 'grammar-added', grammar
 
   removeGrammar: (grammar) ->
     _.remove(@grammars, grammar)
     delete @grammarsByScopeName[grammar.scopeName]
+    @notifyOtherGrammars(@grammars, grammar.scopeName)
+
+  notifyOtherGrammars: (grammars, scopeName) ->
+    grammar.grammarAddedOrRemoved(scopeName) for grammar in grammars
 
   setGrammarOverrideForPath: (path, scopeName) ->
     @grammarOverridesByPath[path] = scopeName

@@ -4,6 +4,7 @@ plist = require 'plist'
 Token = require 'token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 nodePath = require 'path'
+EventEmitter = require 'event-emitter'
 pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 TextMateScopeSelector = require 'text-mate-scope-selector'
 
@@ -27,23 +28,46 @@ class TextMateGrammar
     new TextMateGrammar(fsUtils.readObject(path))
 
   name: null
+  rawPatterns: null
+  rawRepository: null
   fileTypes: null
   scopeName: null
   repository: null
   initialRule: null
   firstLineRegex: null
+  includedGrammarScopes: null
   maxTokensPerLine: 100
 
   constructor: ({ @name, @fileTypes, @scopeName, injections, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
+    @rawPatterns = patterns
+    @rawRepository = repository
     @injections = new Injections(this, injections)
-    @initialRule = new Rule(this, {@scopeName, patterns})
-    @repository = {}
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
+    @includedGrammarScopes = []
 
-    for name, data of repository
-      data = {patterns: [data], tempName: name} if data.begin? or data.match?
-      @repository[name] = new Rule(this, data)
+  clearRules: ->
+    @initialRule = null
+    @repository = null
+
+  getInitialRule: ->
+    @initialRule ?= new Rule(this, {@scopeName, patterns: @rawPatterns})
+
+  getRepository: ->
+    @repository ?= do =>
+      repository = {}
+      for name, data of @rawRepository
+        data = {patterns: [data], tempName: name} if data.begin? or data.match?
+        repository[name] = new Rule(this, data)
+      repository
+
+  addIncludedGrammarScope: (scope) ->
+    @includedGrammarScopes.push(scope) unless _.include(@includedGrammarScopes, scope)
+
+  grammarAddedOrRemoved: (scopeName) =>
+    return unless _.include(@includedGrammarScopes, scopeName)
+    @clearRules()
+    @trigger 'grammar-updated'
 
   getScore: (path, contents) ->
     contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)
@@ -82,7 +106,7 @@ class TextMateGrammar
       pathSuffix = pathComponents[-fileTypeComponents.length..-1]
       _.isEqual(pathSuffix, fileTypeComponents)
 
-  tokenizeLine: (line, ruleStack=[@initialRule], firstLine=false) ->
+  tokenizeLine: (line, ruleStack=[@getInitialRule()], firstLine=false) ->
     originalRuleStack = ruleStack
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
@@ -172,6 +196,8 @@ class Injections
         scanner = @getScanner(injection, firstLine, position, anchorPosition)
         scanners.push(scanner)
     scanners
+
+_.extend TextMateGrammar.prototype, EventEmitter
 
 class Rule
   grammar: null
@@ -359,13 +385,14 @@ class Pattern
 
   ruleForInclude: (baseGrammar, name) ->
     if name[0] == "#"
-      @grammar.repository[name[1..]]
+      @grammar.getRepository()[name[1..]]
     else if name == "$self"
-      @grammar.initialRule
+      @grammar.getInitialRule()
     else if name == "$base"
-      baseGrammar.initialRule
+      baseGrammar.getInitialRule()
     else
-      syntax.grammarForScopeName(name)?.initialRule
+      @grammar.addIncludedGrammarScope(name)
+      syntax.grammarForScopeName(name)?.getInitialRule()
 
   getIncludedPatterns: (baseGrammar, included) ->
     if @include

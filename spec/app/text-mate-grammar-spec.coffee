@@ -210,36 +210,63 @@ describe "TextMateGrammar", ->
           expect(tokens[11]).toEqual value: ' damn.', scopes: ["source.ruby","comment.line.number-sign.ruby"]
 
       describe "when the pattern includes rules from another grammar", ->
-        it "parses tokens inside the begin/end patterns based on the included grammar's rules", ->
-          atom.activatePackage('html.tmbundle', sync: true)
-          atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
+        describe "when a grammar matching the desired scope is available", ->
+          it "parses tokens inside the begin/end patterns based on the included grammar's rules", ->
+            atom.activatePackage('html.tmbundle', sync: true)
+            atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
-          grammar = syntax.selectGrammar('foo.html.erb')
-          {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
+            grammar = syntax.selectGrammar('foo.html.erb')
+            {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
 
-          expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
-          expect(tokens[1]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
-          expect(tokens[2]).toEqual value: ' ', scopes: ["text.html.ruby","meta.tag.block.any.html"]
-          expect(tokens[3]).toEqual value: 'class', scopes: ["text.html.ruby","meta.tag.block.any.html", "entity.other.attribute-name.html"]
-          expect(tokens[4]).toEqual value: '=', scopes: ["text.html.ruby","meta.tag.block.any.html"]
-          expect(tokens[5]).toEqual value: '\'', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html","punctuation.definition.string.begin.html"]
-          expect(tokens[6]).toEqual value: 'name', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html"]
-          expect(tokens[7]).toEqual value: '\'', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html","punctuation.definition.string.end.html"]
-          expect(tokens[8]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
-          expect(tokens[9]).toEqual value: '<%=', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.embedded.ruby"]
-          expect(tokens[10]).toEqual value: ' ', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
-          expect(tokens[11]).toEqual value: 'User', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","support.class.ruby"]
-          expect(tokens[12]).toEqual value: '.', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.separator.method.ruby"]
-          expect(tokens[13]).toEqual value: 'find', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
-          expect(tokens[14]).toEqual value: '(', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.function.ruby"]
-          expect(tokens[15]).toEqual value: '2', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","constant.numeric.ruby"]
-          expect(tokens[16]).toEqual value: ')', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.function.ruby"]
-          expect(tokens[17]).toEqual value: '.', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.separator.method.ruby"]
-          expect(tokens[18]).toEqual value: 'full_name ', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
-          expect(tokens[19]).toEqual value: '%>', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.embedded.ruby"]
-          expect(tokens[20]).toEqual value: '</', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
-          expect(tokens[21]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
-          expect(tokens[22]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
+            expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
+            expect(tokens[1]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
+            expect(tokens[2]).toEqual value: ' ', scopes: ["text.html.ruby","meta.tag.block.any.html"]
+            expect(tokens[3]).toEqual value: 'class', scopes: ["text.html.ruby","meta.tag.block.any.html", "entity.other.attribute-name.html"]
+            expect(tokens[4]).toEqual value: '=', scopes: ["text.html.ruby","meta.tag.block.any.html"]
+            expect(tokens[5]).toEqual value: '\'', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html","punctuation.definition.string.begin.html"]
+            expect(tokens[6]).toEqual value: 'name', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html"]
+            expect(tokens[7]).toEqual value: '\'', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html","punctuation.definition.string.end.html"]
+            expect(tokens[8]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
+            expect(tokens[9]).toEqual value: '<%=', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.embedded.ruby"]
+            expect(tokens[10]).toEqual value: ' ', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
+            expect(tokens[11]).toEqual value: 'User', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","support.class.ruby"]
+            expect(tokens[12]).toEqual value: '.', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.separator.method.ruby"]
+            expect(tokens[13]).toEqual value: 'find', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
+            expect(tokens[14]).toEqual value: '(', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.function.ruby"]
+            expect(tokens[15]).toEqual value: '2', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","constant.numeric.ruby"]
+            expect(tokens[16]).toEqual value: ')', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.function.ruby"]
+            expect(tokens[17]).toEqual value: '.', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.separator.method.ruby"]
+            expect(tokens[18]).toEqual value: 'full_name ', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
+            expect(tokens[19]).toEqual value: '%>', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.embedded.ruby"]
+            expect(tokens[20]).toEqual value: '</', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
+            expect(tokens[21]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
+            expect(tokens[22]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
+
+        describe "when a grammar matching the desired scope is unavailable", ->
+          it "updates the grammar if a matching grammar is added later", ->
+            atom.deactivatePackage('html.tmbundle')
+            atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
+
+            grammar = syntax.selectGrammar('foo.html.erb')
+            {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
+            expect(tokens[0]).toEqual value: "<div class='name'>", scopes: ["text.html.ruby"]
+            expect(tokens[1]).toEqual value: '<%=', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.embedded.ruby"]
+            expect(tokens[2]).toEqual value: ' ', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
+            expect(tokens[3]).toEqual value: 'User', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","support.class.ruby"]
+
+            atom.activatePackage('html.tmbundle', sync: true)
+            {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
+            expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
+            expect(tokens[1]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
+            expect(tokens[2]).toEqual value: ' ', scopes: ["text.html.ruby","meta.tag.block.any.html"]
+            expect(tokens[3]).toEqual value: 'class', scopes: ["text.html.ruby","meta.tag.block.any.html", "entity.other.attribute-name.html"]
+            expect(tokens[4]).toEqual value: '=', scopes: ["text.html.ruby","meta.tag.block.any.html"]
+            expect(tokens[5]).toEqual value: '\'', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html","punctuation.definition.string.begin.html"]
+            expect(tokens[6]).toEqual value: 'name', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html"]
+            expect(tokens[7]).toEqual value: '\'', scopes: ["text.html.ruby","meta.tag.block.any.html","string.quoted.single.html","punctuation.definition.string.end.html"]
+            expect(tokens[8]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
+            expect(tokens[9]).toEqual value: '<%=', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","punctuation.section.embedded.ruby"]
+            expect(tokens[10]).toEqual value: ' ', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
 
     it "can parse a grammar with newline characters in its regular expressions (regression)", ->
       grammar = new TextMateGrammar
