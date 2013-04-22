@@ -250,7 +250,6 @@ class Rule
       scanners = injections.getScanners(ruleStack, position, firstLine, @anchorPosition)
       for scanner in scanners
         result = scanner.findNextMatch(line, position)
-        result?.scanner = scanner
         return result if result?
 
   normalizeCaptureIndices: (line, captureIndices) ->
@@ -265,7 +264,6 @@ class Rule
 
     scanner = @getScanner(baseGrammar, position, firstLine)
     result = scanner.findNextMatch(lineWithNewline, position)
-    result?.scanner = scanner
     @normalizeCaptureIndices(line, result.captureIndices) if result?
 
     injectionResult = @scanInjections(ruleStack, lineWithNewline, position, firstLine)
