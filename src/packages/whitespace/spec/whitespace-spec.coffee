@@ -86,3 +86,28 @@ describe "Whitespace", ->
       editor.getBuffer().save()
       expect(editor.getText()).toBe "foo\n"
       expect(editor.getCursorBufferPosition()).toEqual([0,3])
+
+  describe "whitespace.ensureSingleTrailingNewline config", ->
+    [originalConfigValue] = []
+    grammar = null
+
+    beforeEach ->
+      originalConfigValue = config.get("whitespace.ignoredGrammars")
+      expect(originalConfigValue).toEqual ["GitHub Markdown"]
+      spyOn(syntax, "addGrammar").andCallThrough()
+      atom.activatePackage("gfm")
+      expect(syntax.addGrammar).toHaveBeenCalled()
+      grammar = syntax.addGrammar.argsForCall[0][0]
+
+    afterEach ->
+      config.set("whitespace.ignoredGrammars", originalConfigValue)
+      config.update()
+
+    it "parses the grammar", ->
+      expect(grammar).toBeDefined()
+      expect(grammar.scopeName).toBe "source.gfm"
+
+    it "leaves Markdown files alone", ->
+      editor.insertText "foo  \nline break!"
+      editor.getBuffer().save()
+      expect(editor.getText()).toBe "foo  \nline break!"
