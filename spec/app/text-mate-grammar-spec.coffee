@@ -14,6 +14,7 @@ describe "TextMateGrammar", ->
     atom.activatePackage('ruby.tmbundle', sync: true)
     atom.activatePackage('html.tmbundle', sync: true)
     atom.activatePackage('php.tmbundle', sync: true)
+    atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
     grammar = syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
@@ -426,3 +427,9 @@ describe "TextMateGrammar", ->
 
         expect(tokens[17].value).toBe "div"
         expect(tokens[17].scopes).toEqual ["text.html.php", "meta.tag.block.any.html", "entity.name.tag.block.any.html"]
+
+    describe "when the grammar's pattern name has a group number in it", ->
+      it "replaces the group number with the matched captured text", ->
+        grammar = syntax.grammarForScopeName("text.hyperlink")
+        {tokens} = grammar.tokenizeLine("https://github.com")
+        expect(tokens[0].scopes).toEqual ["text.hyperlink", "markup.underline.link.https.hyperlink"]

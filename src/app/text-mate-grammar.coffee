@@ -404,7 +404,14 @@ class Pattern
 
   handleMatch: (stack, line, captureIndices) ->
     scopes = scopesFromStack(stack)
-    scopes.push(@scopeName) if @scopeName and not @popRule
+    if @scopeName and not @popRule
+      patternScope = @scopeName.replace /\$\d+/, (match) ->
+        captureIndex = parseInt(match.substring(1)) * 3
+        if captureIndices[captureIndex]?
+          line.substr(captureIndices[captureIndex + 1], captureIndices[captureIndex + 2])
+        else
+          match
+      scopes.push(patternScope)
 
     if @captures
       tokens = @getTokensForCaptureIndices(line, _.clone(captureIndices), scopes, stack)
