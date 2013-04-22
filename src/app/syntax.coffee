@@ -44,7 +44,7 @@ class Syntax
 
   grammarUpdated: (scopeName) ->
     for grammar in @grammars when grammar.scopeName isnt scopeName
-      grammar.grammarUpdated(scopeName)
+      @trigger 'grammar-updated', grammar if grammar.grammarUpdated(scopeName)
 
   setGrammarOverrideForPath: (path, scopeName) ->
     @grammarOverridesByPath[path] = scopeName

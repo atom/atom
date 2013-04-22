@@ -30,6 +30,9 @@ class TokenizedBuffer
     @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
     @languageMode.on 'grammar-changed', => @resetScreenLines()
     @languageMode.on 'grammar-updated', => @resetScreenLines()
+    @subscribe syntax, 'grammar-updated', (grammar) =>
+      if grammar.injectionSelector? and @hasTokenForSelector(grammar.injectionSelector)
+        @resetScreenLines()
     @subscribe syntax, 'grammar-added', (grammar) =>
       if grammar.injectionSelector? and @hasTokenForSelector(grammar.injectionSelector)
         @resetScreenLines()

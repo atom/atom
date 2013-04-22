@@ -71,11 +71,12 @@ class TextMateGrammar
   addIncludedGrammarScope: (scope) ->
     @includedGrammarScopes.push(scope) unless _.include(@includedGrammarScopes, scope)
 
-  grammarUpdated: (scopeName) =>
-    return unless _.include(@includedGrammarScopes, scopeName)
+  grammarUpdated: (scopeName) ->
+    return false unless _.include(@includedGrammarScopes, scopeName)
     @clearRules()
     syntax.grammarUpdated(@scopeName)
     @trigger 'grammar-updated'
+    true
 
   getScore: (path, contents) ->
     contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)

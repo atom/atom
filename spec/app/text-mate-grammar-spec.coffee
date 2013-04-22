@@ -446,16 +446,44 @@ describe "TextMateGrammar", ->
         expect(tokens[6].value).toBe "http://github.com"
         expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
 
-      it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-        editSession = project.buildEditSession('sample.js')
-        editSession.setText("// http://github.com")
+      describe "when the grammar is added", ->
+        it "retokenizes existing buffers that contain tokens that match the injection selector", ->
+          editSession = project.buildEditSession('sample.js')
+          editSession.setText("// http://github.com")
 
-        {tokens} = editSession.lineForScreenRow(0)
-        expect(tokens[1].value).toBe " http://github.com"
-        expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+          {tokens} = editSession.lineForScreenRow(0)
+          expect(tokens[1].value).toBe " http://github.com"
+          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-        atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
+          atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
 
-        {tokens} = editSession.lineForScreenRow(0)
-        expect(tokens[2].value).toBe "http://github.com"
-        expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+          {tokens} = editSession.lineForScreenRow(0)
+          expect(tokens[2].value).toBe "http://github.com"
+          expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+
+      describe "when the grammar is updated", ->
+        it "retokenizes existing buffers that contain tokens that match the injection selector", ->
+          editSession = project.buildEditSession('sample.js')
+          editSession.setText("// SELECT * FROM OCTOCATS")
+
+          {tokens} = editSession.lineForScreenRow(0)
+          expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
+          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+
+          syntax.addGrammar(new TextMateGrammar(
+            name: "test"
+            scopeName: "source.test"
+            repository: {}
+            injectionSelector: "comment"
+            patterns: [ { include: "source.sql" } ]
+          ))
+
+          {tokens} = editSession.lineForScreenRow(0)
+          expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
+          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+
+          atom.activatePackage('sql.tmbundle', sync: true)
+
+          {tokens} = editSession.lineForScreenRow(0)
+          expect(tokens[2].value).toBe "SELECT"
+          expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
