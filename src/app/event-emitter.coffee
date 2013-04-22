@@ -9,20 +9,21 @@ module.exports =
   # This is called endlessly, until the event is turned {.off}. The {.on} method
   # calls an `eventName` only once.
   #
-  # eventName - A {String} name identifying an event
+  # eventNames - A {String} name identifying one or more events
   # handler - A {Function} that's executed when the event is triggered
-  on: (eventName, handler) ->
-    [eventName, namespace] = eventName.split('.')
+  on: (eventNames, handler) ->
+    for eventName in eventNames.split(/\s+/) when eventName isnt ''
+      [eventName, namespace] = eventName.split('.')
 
-    @eventHandlersByEventName ?= {}
-    @eventHandlersByEventName[eventName] ?= []
-    @eventHandlersByEventName[eventName].push(handler)
+      @eventHandlersByEventName ?= {}
+      @eventHandlersByEventName[eventName] ?= []
+      @eventHandlersByEventName[eventName].push(handler)
 
-    if namespace
-      @eventHandlersByNamespace ?= {}
-      @eventHandlersByNamespace[namespace] ?= {}
-      @eventHandlersByNamespace[namespace][eventName] ?= []
-      @eventHandlersByNamespace[namespace][eventName].push(handler)
+      if namespace
+        @eventHandlersByNamespace ?= {}
+        @eventHandlersByNamespace[namespace] ?= {}
+        @eventHandlersByNamespace[namespace][eventName] ?= []
+        @eventHandlersByNamespace[namespace][eventName].push(handler)
 
     @afterSubscribe?()
 
@@ -57,37 +58,37 @@ module.exports =
 
   # Public: Stops executing handlers for a registered event.
   #
-  # eventName - A {String} name identifying an event
+  # eventNames - A {String} name identifying one or more events
   # handler - The {Function} to remove from the event. If not provided, all handlers are removed.
-  off: (eventName='', handler) ->
-    [eventName, namespace] = eventName.split('.')
-    eventName = undefined if eventName == ''
+  off: (eventNames, handler) ->
+    if eventNames
+      for eventName in eventNames.split(/\s+/) when eventName isnt ''
+        [eventName, namespace] = eventName.split('.')
+        eventName = undefined if eventName == ''
 
-    subscriptionCountBefore = @subscriptionCount()
-
-    if !eventName? and !namespace?
+        if namespace
+          if eventName
+            handlers = @eventHandlersByNamespace?[namespace]?[eventName] ? []
+            for handler in new Array(handlers...)
+              _.remove(handlers, handler)
+              @off eventName, handler
+          else
+            for eventName, handlers of @eventHandlersByNamespace?[namespace] ? {}
+              for handler in new Array(handlers...)
+                _.remove(handlers, handler)
+                @off eventName, handler
+        else
+          subscriptionCountBefore = @subscriptionCount()
+          if handler
+            _.remove(@eventHandlersByEventName[eventName], handler)
+          else
+            delete @eventHandlersByEventName?[eventName]
+          @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
+    else
+      subscriptionCountBefore = @subscriptionCount()
       @eventHandlersByEventName = {}
       @eventHandlersByNamespace = {}
-    else if namespace
-      if eventName
-        handlers = @eventHandlersByNamespace?[namespace]?[eventName] ? []
-        for handler in new Array(handlers...)
-          _.remove(handlers, handler)
-          @off eventName, handler
-        return
-      else
-        for eventName, handlers of @eventHandlersByNamespace?[namespace] ? {}
-          for handler in new Array(handlers...)
-            _.remove(handlers, handler)
-            @off eventName, handler
-        return
-    else
-      if handler
-        _.remove(@eventHandlersByEventName[eventName], handler)
-      else
-        delete @eventHandlersByEventName?[eventName]
-
-    @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
+      @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
 
   # Public: When called, stops triggering any events.
   pauseEvents: ->

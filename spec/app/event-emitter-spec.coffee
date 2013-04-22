@@ -16,6 +16,26 @@ describe "EventEmitter mixin", ->
     object.on 'foo', fooHandler2
     object.on 'bar', barHandler
 
+  describe ".on", ->
+    describe "when called with multiple space-separated event names", ->
+      it "subscribes to each event names", ->
+        object.on '    a.b  c.d\te ', fooHandler1
+
+        object.trigger 'a'
+        expect(fooHandler1).toHaveBeenCalled()
+
+        fooHandler1.reset()
+        object.trigger 'c'
+        expect(fooHandler1).toHaveBeenCalled()
+
+        fooHandler1.reset()
+        object.trigger 'e'
+        expect(fooHandler1).toHaveBeenCalled()
+
+        fooHandler1.reset()
+        object.trigger ''
+        expect(fooHandler1).not.toHaveBeenCalled()
+
   describe ".trigger", ->
     describe "when called with a non-namespaced event name", ->
       it "triggers all handlers registered for the given event name", ->
@@ -58,6 +78,22 @@ describe "EventEmitter mixin", ->
         object.trigger 'foo'
         expect(fooHandler1).not.toHaveBeenCalled()
         expect(fooHandler2).not.toHaveBeenCalled()
+
+    describe "when called with multiple space-separated event names", ->
+      it "unsubscribes from each event name", ->
+        object.on 'a.b c.d e', fooHandler1
+        object.off ' a.b\te   '
+
+        object.trigger 'a'
+        expect(fooHandler1).not.toHaveBeenCalled()
+
+        fooHandler1.reset()
+        object.trigger 'e'
+        expect(fooHandler1).not.toHaveBeenCalled()
+
+        fooHandler1.reset()
+        object.trigger 'c.d'
+        expect(fooHandler1).toHaveBeenCalled()
 
     describe "when called with a non-namespaced event name", ->
       it "removes all handlers for that event name", ->
