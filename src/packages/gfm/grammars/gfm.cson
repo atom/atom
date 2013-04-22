@@ -67,7 +67,7 @@
     'name': 'link'
     'captures':
       '1': 'name': 'entity.gfm'
-      '2': 'name': 'markup.underline.gfm'
+      '2': 'name': 'markup.underline.link.gfm'
   }
   {
     'match': '^\\s*([\\*\\+-])[ \\t]+'
