@@ -163,9 +163,11 @@ class TokenizedBuffer
     @screenLines[row]?.ruleStack
 
   scopesForPosition: (position) ->
+    @tokenForPosition(position).scopes
+
+  tokenForPosition: (position) ->
     position = Point.fromObject(position)
-    token = @screenLines[position.row].tokenAtBufferColumn(position.column)
-    token.scopes
+    @screenLines[position.row].tokenAtBufferColumn(position.column)
 
   destroy: ->
     @buffer.off ".tokenized-buffer#{@id}"

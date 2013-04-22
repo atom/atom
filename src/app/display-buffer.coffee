@@ -333,6 +333,14 @@ class DisplayBuffer
   scopesForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopesForPosition(bufferPosition)
 
+  # Public: Retrieves the grammar's token for a buffer position.
+  #
+  # bufferPosition - A {Point} in the {Buffer}.
+  #
+  # Returns a {Token}.
+  tokenForBufferPosition: (bufferPosition) ->
+    @tokenizedBuffer.tokenForPosition(bufferPosition)
+
   # Public: Retrieves the current tab length.
   #
   # Returns a {Number}.

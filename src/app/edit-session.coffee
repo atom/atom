@@ -100,7 +100,7 @@ class EditSession
   # Public: Retrieves the filename of the open file.
   #
   # This is `'untitled'` if the file is new and not saved to the disk.
-  # 
+  #
   # Returns a {String}.
   getTitle: ->
     if path = @getPath()
@@ -176,7 +176,7 @@ class EditSession
   setSoftWrap: (@softWrap) ->
 
   # Public: Retrieves that character used to indicate a tab.
-  # 
+  #
   # If soft tabs are enabled, this is a space (`" "`) times the {.getTabLength} value.
   # Otherwise, it's a tab (`\t`).
   #
@@ -192,22 +192,22 @@ class EditSession
   #
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
-  
+
   # Public: Given a position, this clips it to a real position.
   #
   # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real position.
   #
   # position - The {Point} to clip
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
-  
+
   # Public: Given a range, this clips it to a real range.
   #
   # For example, if `range`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real range.
   #
   # range - The {Point} to clip
@@ -299,7 +299,7 @@ class EditSession
   # Public: Given a buffer row, this retrieves the range for that line.
   #
   # row - A {Number} identifying the row
-  # options - A hash with one key, `includeNewline`, which specifies whether you 
+  # options - A hash with one key, `includeNewline`, which specifies whether you
   #           want to include the trailing newline
   #
   # Returns a {Range}.
@@ -346,23 +346,23 @@ class EditSession
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
-  
+
   # Public: Given a buffer range, this converts it into a screen position.
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   # options - The same options available to {DisplayBuffer.bufferPositionForScreenPosition}.
   #
-  # Returns a {Point}. 
+  # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
-  
+
   # Public: Given a buffer range, this converts it into a screen position.
   #
   # bufferRange - The {Range} to convert
   #
   # Returns a {Range}.
   screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
-  
+
   # Public: Given a screen range, this converts it into a buffer position.
   #
   # screenRange - The {Range} to convert
@@ -372,12 +372,12 @@ class EditSession
   # Public: Given a position, this clips it to a real position.
   #
   # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real position.
   #
   # position - The {Point} to clip
   # options - A hash with the following values:
-  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines 
+  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines
   #           :wrapAtSoftNewlines - if `true`, continues wrapping past soft newlines
   #           :screenLine - if `true`, indicates that you're using a line number, not a row number
   #
@@ -421,6 +421,12 @@ class EditSession
   #
   # Returns an {Array} of {String}s.
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+  # Public: Retrieves the grammar's token for a buffer position.
+  #
+  # bufferPosition - A {Point} in the {Buffer}
+  #
+  # Returns a {Token}.
+  tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
   # Public: Retrieves the grammar's token scopes for the line with the most recently added cursor.
   #
   # Returns an {Array} of {String}s.
@@ -526,7 +532,7 @@ class EditSession
     return unless @softTabs
     @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
 
-  # Public: Performs a cut to the end of the current line. 
+  # Public: Performs a cut to the end of the current line.
   #
   # Characters are removed, but the text remains in the clipboard.
   cutToEndOfLine: ->
@@ -687,7 +693,7 @@ class EditSession
 
   # Public: Given a buffer row, this returns the largest fold that includes it.
   #
-  # Largest is defined as the fold whose difference between its start and end points 
+  # Largest is defined as the fold whose difference between its start and end points
   # are the greatest.
   #
   # bufferRow - A {Number} indicating the buffer row
@@ -698,7 +704,7 @@ class EditSession
 
   # Public: Given a screen row, this returns the largest fold that starts there.
   #
-  # Largest is defined as the fold whose difference between its start and end points 
+  # Largest is defined as the fold whose difference between its start and end points
   # are the greatest.
   #
   # screenRow - A {Number} indicating the screen row
@@ -709,7 +715,7 @@ class EditSession
 
   # Public: Given a buffer row, this returns a suggested indentation level.
   #
-  # The indentation level provided is based on the current language. 
+  # The indentation level provided is based on the current language.
   #
   # bufferRow - A {Number} indicating the buffer row
   #
@@ -980,7 +986,7 @@ class EditSession
   # Returns a {Point}.
   getMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.getMarkerHeadScreenPosition(args...)
- 
+
   # Public: Sets the screen position of the marker's head.
   #
   # id - The {Number} of the ID to change
@@ -1020,7 +1026,7 @@ class EditSession
   # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setMarkerTailScreenPosition: (args...) ->
     @displayBuffer.setMarkerTailScreenPosition(args...)
- 
+
   # Public: Retrieves the buffer position of the marker's tail.
   #
   # id - The {Number} of the ID to check
@@ -1213,7 +1219,7 @@ class EditSession
   #
   # Returns an {Array} of {Selection}s.
   getSelections: -> new Array(@selections...)
-  
+
   # Public: Gets the selection at the specified index.
   #
   # index - The id {Number} of the selection
@@ -1491,7 +1497,7 @@ class EditSession
   # Public: Selects all the text from the current cursor position to the beginning of the next word.
   selectToBeginningOfNextWord: ->
     @expandSelectionsForward (selection) => selection.selectToBeginningOfNextWord()
-  
+
   # Public: Selects the current word.
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()
