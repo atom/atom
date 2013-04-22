@@ -32,6 +32,7 @@ class LanguageMode
 
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
+    @unsubscribe(@grammar) if @grammar
     @grammar = grammar
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar, 'grammar-updated', => @trigger 'grammar-updated'
