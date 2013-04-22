@@ -408,7 +408,7 @@ class Pattern
       patternScope = @scopeName.replace /\$\d+/, (match) ->
         captureIndex = parseInt(match.substring(1)) * 3
         if captureIndices[captureIndex]?
-          line.substr(captureIndices[captureIndex + 1], captureIndices[captureIndex + 2])
+          line.substring(captureIndices[captureIndex + 1], captureIndices[captureIndex + 2])
         else
           match
       scopes.push(patternScope)
