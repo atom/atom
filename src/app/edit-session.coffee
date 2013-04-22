@@ -268,6 +268,17 @@ class EditSession
   #
   # Returns a {String}.
   getPath: -> @buffer.getPath()
+
+  # Public: Retrieves the current buffer's text.
+  #
+  # Return a {String}.
+  getText: -> @buffer.getText()
+
+  # Public: Set the current buffer's text content.
+  #
+  # Return a {String}.
+  setText: (text) -> @buffer.setText(text)
+
   # Public: Retrieves the current buffer.
   #
   # Returns a {String}.
