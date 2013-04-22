@@ -6,13 +6,17 @@ _ = require 'underscore'
 module.exports =
 class GeneralConfigPanel extends ConfigPanel
   @content: ->
-    @div id: 'general-config-panel', class: 'config-panel', =>
-      @div class: 'row', =>
-        @label for: 'core.hideGitIgnoredFiles', "Hide files in .gitignore:"
-        @input id: 'core.hideGitIgnoredFiles', type: 'checkbox'
+    @form id: 'general-config-panel', class: 'form-horizontal', =>
+      @fieldset =>
+        @legend "General Settings"
 
-      @div class: 'row', =>
-        @label for: 'core.autosave', "Autosave on unfocus:"
-        @input id: 'core.autosave', type: 'checkbox'
+        @div class: 'control-group', =>
+          @div class: 'checkbox', =>
+            @label for: 'editor.hideGitIgnoredFiles', =>
+              @input id: 'editor.hideGitIgnoredFiles', type: 'checkbox'
+              @text 'Hide Git-Ignored Files'
 
-  populateThemeLists: ->
+          @div class: 'checkbox', =>
+            @label for: 'core.autosave', =>
+              @input id: 'core.autosave', type: 'checkbox'
+              @text 'Auto-Save on Focus Change'
