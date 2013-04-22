@@ -433,3 +433,14 @@ describe "TextMateGrammar", ->
         grammar = syntax.grammarForScopeName("text.hyperlink")
         {tokens} = grammar.tokenizeLine("https://github.com")
         expect(tokens[0].scopes).toEqual ["text.hyperlink", "markup.underline.link.https.hyperlink"]
+
+    describe "when the grammar has an injection selector", ->
+      it "includes the grammar's patterns when the selector matches the current scope in other grammars", ->
+        grammar = syntax.selectGrammar("text.js")
+        {tokens} = grammar.tokenizeLine("var i; // http://github.com")
+
+        expect(tokens[0].value).toBe "var";
+        expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
+
+        expect(tokens[6].value).toBe "http://github.com"
+        expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
