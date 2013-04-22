@@ -109,6 +109,9 @@ describe "EventEmitter mixin", ->
         expect(fooHandler1).not.toHaveBeenCalled()
         expect(fooHandler2).toHaveBeenCalled()
 
+      it "does not throw an exception if there was not matching `on` call", ->
+        expect(-> object.off 'marco', -> "nothing").not.toThrow()
+
     describe "when there are namespaced event handlers", ->
       [barHandler2, bazHandler1, bazHandler2, bazHandler3] = []
 

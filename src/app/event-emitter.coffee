@@ -78,8 +78,8 @@ module.exports =
                 @off eventName, handler
         else
           subscriptionCountBefore = @subscriptionCount()
-          if handler
-            _.remove(@eventHandlersByEventName[eventName], handler)
+          if eventHandlers = @eventHandlersByEventName[eventName]
+            _.remove(eventHandlers, handler)
           else
             delete @eventHandlersByEventName?[eventName]
           @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
