@@ -17,7 +17,7 @@ module.exports =
     @subscriptions.push(cancel: -> view.off eventName, callback)
 
   unsubscribe: (object) ->
-    if object
+    if object?
       for subscription in @subscriptionsByObject?.get(object) ? []
         subscription.cancel()
         _.remove(@subscriptions, subscription)
