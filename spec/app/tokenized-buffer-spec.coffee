@@ -328,6 +328,26 @@ describe "TokenizedBuffer", ->
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 
+  describe "when the language mode emits a 'grammar-updated' event based on an included grammar being activated", ->
+    it "retokenizes the buffer", ->
+      atom.activatePackage('ruby.tmbundle', sync: true)
+      atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
+
+      editSession = project.buildEditSession()
+      editSession.setVisible(true)
+      editSession.setGrammar(syntax.selectGrammar('test.erb'))
+      editSession.buffer.setText("<div class='name'><%= User.find(2).full_name %></div>")
+      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      fullyTokenize(tokenizedBuffer)
+
+      {tokens} = tokenizedBuffer.lineForScreenRow(0)
+      expect(tokens[0]).toEqual value: "<div class='name'>", scopes: ["text.html.ruby"]
+
+      atom.activatePackage('html.tmbundle', sync: true)
+      fullyTokenize(tokenizedBuffer)
+      {tokens} = tokenizedBuffer.lineForScreenRow(0)
+      expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
+
   describe "when a Git commit message file is tokenized", ->
     beforeEach ->
       atom.activatePackage('git.tmbundle', sync: true)

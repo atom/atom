@@ -1,4 +1,6 @@
 Token = require 'token'
+EventEmitter = require 'event-emitter'
+_ = require 'underscore'
 
 ###
 # Internal #
@@ -12,3 +14,7 @@ class NullGrammar
 
   tokenizeLine: (line) ->
     { tokens: [new Token(value: line, scopes: ['null-grammar.text.plain'])] }
+
+  grammarUpdated: -> # noop
+
+_.extend NullGrammar.prototype, EventEmitter

@@ -129,7 +129,7 @@
   CefString(&settings.cache_path) = [[self supportDirectory] UTF8String];
   CefString(&settings.user_agent) = [userAgent UTF8String];
   CefString(&settings.log_file) = "";
-  CefString(&settings.javascript_flags) = "";
+  CefString(&settings.javascript_flags) = "--harmony_collections";
   settings.remote_debugging_port = 9090;
   settings.log_severity = LOGSEVERITY_ERROR;
   return settings;
