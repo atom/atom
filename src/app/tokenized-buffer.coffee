@@ -1,6 +1,7 @@
 _ = require 'underscore'
 ScreenLine = require 'screen-line'
 EventEmitter = require 'event-emitter'
+Subscriber = require 'Subscriber'
 Token = require 'token'
 Range = require 'range'
 Point = require 'point'
@@ -29,6 +30,15 @@ class TokenizedBuffer
     @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
     @languageMode.on 'grammar-changed', => @resetScreenLines()
     @languageMode.on 'grammar-updated', => @resetScreenLines()
+    @subscribe syntax, 'grammar-added', (grammar) =>
+      if grammar.injectionSelector? and @hasTokenForSelector(grammar.injectionSelector)
+        @resetScreenLines()
+
+  hasTokenForSelector: (selector) ->
+    for {tokens} in @screenLines
+      for token in tokens
+        return true if selector.matches(token.scopes)
+    false
 
   resetScreenLines: ->
     @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
@@ -250,3 +260,4 @@ class TokenizedBuffer
     lines.join('\n')
 
 _.extend(TokenizedBuffer.prototype, EventEmitter)
+_.extend(TokenizedBuffer.prototype, Subscriber)

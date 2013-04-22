@@ -14,7 +14,6 @@ describe "TextMateGrammar", ->
     atom.activatePackage('ruby.tmbundle', sync: true)
     atom.activatePackage('html.tmbundle', sync: true)
     atom.activatePackage('php.tmbundle', sync: true)
-    atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
     grammar = syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
@@ -430,12 +429,14 @@ describe "TextMateGrammar", ->
 
     describe "when the grammar's pattern name has a group number in it", ->
       it "replaces the group number with the matched captured text", ->
+        atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
         grammar = syntax.grammarForScopeName("text.hyperlink")
         {tokens} = grammar.tokenizeLine("https://github.com")
         expect(tokens[0].scopes).toEqual ["text.hyperlink", "markup.underline.link.https.hyperlink"]
 
     describe "when the grammar has an injection selector", ->
       it "includes the grammar's patterns when the selector matches the current scope in other grammars", ->
+        atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
         grammar = syntax.selectGrammar("text.js")
         {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
@@ -444,3 +445,17 @@ describe "TextMateGrammar", ->
 
         expect(tokens[6].value).toBe "http://github.com"
         expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+
+      it "retokenizes existing buffers that contain tokens that match the injection selector", ->
+        editSession = project.buildEditSession('sample.js')
+        editSession.setText("// http://github.com")
+
+        {tokens} = editSession.lineForScreenRow(0)
+        expect(tokens[1].value).toBe " http://github.com"
+        expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+
+        atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
+
+        {tokens} = editSession.lineForScreenRow(0)
+        expect(tokens[2].value).toBe "http://github.com"
+        expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
