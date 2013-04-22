@@ -87,7 +87,7 @@ describe "Whitespace", ->
       expect(editor.getText()).toBe "foo\n"
       expect(editor.getCursorBufferPosition()).toEqual([0,3])
 
-  describe "whitespace.ensureSingleTrailingNewline config", ->
+  describe "whitespace.ignoredGrammars config", ->
     [originalConfigValue] = []
     grammar = null
 
@@ -103,11 +103,13 @@ describe "Whitespace", ->
       config.set("whitespace.ignoredGrammars", originalConfigValue)
       config.update()
 
-    it "parses the grammar", ->
+    it "parses the grammar as GFM", ->
       expect(grammar).toBeDefined()
       expect(grammar.scopeName).toBe "source.gfm"
 
-    it "leaves Markdown files alone", ->
+    it "leaves GFM files alone", ->
+      editor.activeEditSession.setGrammar(grammar)
+      expect(editor.getGrammar().name).toBe "GitHub Markdown"
       editor.insertText "foo  \nline break!"
       editor.getBuffer().save()
       expect(editor.getText()).toBe "foo  \nline break!"
