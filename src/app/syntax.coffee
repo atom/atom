@@ -34,16 +34,17 @@ class Syntax
     previousGrammars = new Array(@grammars...)
     @grammars.push(grammar)
     @grammarsByScopeName[grammar.scopeName] = grammar
-    @notifyOtherGrammars(previousGrammars, grammar.scopeName)
+    @grammarUpdated(grammar.scopeName)
     @trigger 'grammar-added', grammar
 
   removeGrammar: (grammar) ->
     _.remove(@grammars, grammar)
     delete @grammarsByScopeName[grammar.scopeName]
-    @notifyOtherGrammars(@grammars, grammar.scopeName)
+    @grammarUpdated(grammar.scopeName)
 
-  notifyOtherGrammars: (grammars, scopeName) ->
-    grammar.grammarAddedOrRemoved(scopeName) for grammar in grammars
+  grammarUpdated: (scopeName) ->
+    for grammar in @grammars when grammar.scopeName isnt scopeName
+      grammar.grammarUpdated(scopeName)
 
   setGrammarOverrideForPath: (path, scopeName) ->
     @grammarOverridesByPath[path] = scopeName

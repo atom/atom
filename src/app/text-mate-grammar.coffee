@@ -64,9 +64,10 @@ class TextMateGrammar
   addIncludedGrammarScope: (scope) ->
     @includedGrammarScopes.push(scope) unless _.include(@includedGrammarScopes, scope)
 
-  grammarAddedOrRemoved: (scopeName) =>
+  grammarUpdated: (scopeName) =>
     return unless _.include(@includedGrammarScopes, scopeName)
     @clearRules()
+    syntax.grammarUpdated(@scopeName)
     @trigger 'grammar-updated'
 
   getScore: (path, contents) ->

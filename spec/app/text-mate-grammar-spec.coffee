@@ -242,6 +242,23 @@ describe "TextMateGrammar", ->
             expect(tokens[21]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
             expect(tokens[22]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
 
+          it "updates the grammar if the included grammar is updated later", ->
+            atom.activatePackage('html.tmbundle', sync: true)
+            atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
+
+            grammar = syntax.selectGrammar('foo.html.erb')
+            grammarUpdatedHandler = jasmine.createSpy("grammarUpdatedHandler")
+            grammar.on 'grammar-updated', grammarUpdatedHandler
+
+            {tokens} = grammar.tokenizeLine("<div class='name'><% <<-SQL select * from users;")
+            expect(tokens[12].value).toBe " select * from users;"
+
+            atom.activatePackage('sql.tmbundle', sync: true)
+            expect(grammarUpdatedHandler).toHaveBeenCalled()
+            {tokens} = grammar.tokenizeLine("<div class='name'><% <<-SQL select * from users;")
+            expect(tokens[12].value).toBe " "
+            expect(tokens[13].value).toBe "select"
+
         describe "when a grammar matching the desired scope is unavailable", ->
           it "updates the grammar if a matching grammar is added later", ->
             atom.deactivatePackage('html.tmbundle')
