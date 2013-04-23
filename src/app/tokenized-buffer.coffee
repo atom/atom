@@ -126,7 +126,8 @@ class TokenizedBuffer
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    @screenLines[start..end] = @buildScreenLinesForRows(start, end + delta, @stackForRow(start - 1))
+    newScreenLines = @buildScreenLinesForRows(start, end + delta, @stackForRow(start - 1))
+    _.spliceWithArray(@screenLines, start, end - start + 1, newScreenLines)
     newEndStack = @stackForRow(end + delta)
 
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
