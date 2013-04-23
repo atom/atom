@@ -91,7 +91,7 @@ class DisplayBuffer
   # buffer rows corresponding to every screen row in the range
   #
   # startRow - The screen row {Number} to start at
-  # endRow - The screen row {Number} to end at (default: the last buffer row)
+  # endRow - The screen row {Number} to end at (default: the last screen row)
   #
   # Returns an {Array} of buffer rows as {Numbers}s.
   bufferRowsForScreenRows: (startRow, endRow) ->
