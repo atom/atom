@@ -63,35 +63,37 @@ class DisplayBuffer
     bufferDelta = 0
     @triggerChanged({ start, end, screenDelta, bufferDelta })
 
-  # Public: Gets the line for the given screen row.
+  # Public: Gets the screen line for the given screen row.
   #
   # screenRow - A {Number} indicating the screen row.
   #
-  # Returns a {String}.
+  # Returns a {ScreenLine}.
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
 
-  # Public: Gets the lines for the given screen row boundaries.
+  # Public: Gets the screen lines for the given screen row range.
   #
   # startRow - A {Number} indicating the beginning screen row.
   # endRow - A {Number} indicating the ending screen row.
   #
-  # Returns an {Array} of {String}s.
+  # Returns an {Array} of {ScreenLine}s.
   linesForRows: (startRow, endRow) ->
     @lineMap.linesForScreenRows(startRow, endRow)
 
-  # Public: Gets the lines in the buffer.
+  # Public: Gets all the screen lines.
   #
-  # Returns an {Array} of {String}s.
+  # Returns an {Array} of {ScreenLines}s.
   getLines: ->
     @lineMap.linesForScreenRows(0, @lineMap.lastScreenRow())
 
-  # Public: Given a starting and ending row, this converts every row into a buffer position.
+
+  # Public: Given starting and ending screen rows, this returns an array of the
+  # buffer rows corresponding to every screen row in the range
   #
-  # startRow - The row {Number} to start at
-  # endRow - The row {Number} to end at (default: {.getLastRow})
+  # startRow - The screen row {Integer} to start at
+  # endRow - The screen row {Integer} to end at (default: {.lastScreenRow})
   #
-  # Returns an {Array} of {Range}s.
+  # Returns an {Array} of buffer rows as {Integers}s.
   bufferRowsForScreenRows: (startRow, endRow) ->
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
