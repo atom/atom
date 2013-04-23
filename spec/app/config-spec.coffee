@@ -110,7 +110,7 @@ describe "Config", ->
       config.set("foo.bar.baz", "i'm back")
       expect(observeHandler).toHaveBeenCalledWith("i'm back")
 
-  describe "initializeConfigDirectory()", ->
+  describe ".initializeConfigDirectory()", ->
     beforeEach ->
       config.configDirPath = '/tmp/dot-atom-dir'
       expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
@@ -134,20 +134,76 @@ describe "Config", ->
         expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
         expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
 
-  describe "when the config file is not parseable", ->
+  describe ".loadUserConfig()", ->
     beforeEach ->
-     config.configDirPath = '/tmp/dot-atom-dir'
-     config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
-     expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
+      config.configDirPath = '/tmp/dot-atom-dir'
+      config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
+      expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
 
     afterEach ->
       fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
 
-    it "logs an error to the console and does not overwrite the config file", ->
-      config.save.reset()
-      spyOn(console, 'error')
-      fsUtils.write(config.configFilePath, "{{{{{")
+    describe "when the config file contains valid cson", ->
+      beforeEach ->
+        fsUtils.write(config.configFilePath, "foo: bar: 'baz'")
+        config.loadUserConfig()
+
+      it "updates the config data based on the file contents", ->
+        expect(config.get("foo.bar")).toBe 'baz'
+
+    describe "when the config file contains invalid cson", ->
+      beforeEach ->
+        spyOn(console, 'error')
+        fsUtils.write(config.configFilePath, "{{{{{")
+
+      it "logs an error to the console and does not overwrite the config file on a subsequent save", ->
+        config.loadUserConfig()
+        expect(console.error).toHaveBeenCalled()
+        config.set("hair", "blonde") # trigger a save
+        expect(config.save).not.toHaveBeenCalled()
+
+  describe ".observeUserConfig()", ->
+    updatedHandler = null
+
+    beforeEach ->
+      config.configDirPath = '/tmp/dot-atom-dir'
+      config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
+      expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
+      fsUtils.write(config.configFilePath, "foo: bar: 'baz'")
       config.loadUserConfig()
-      config.set("hair", "blonde") # trigger a save
-      expect(console.error).toHaveBeenCalled()
-      expect(config.save).not.toHaveBeenCalled()
+      config.observeUserConfig()
+      updatedHandler = jasmine.createSpy("updatedHandler")
+      config.on 'updated', updatedHandler
+
+    afterEach ->
+      config.unobserveUserConfig()
+      fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
+
+    describe "when the config file changes to contain valid cson", ->
+      it "updates the config data", ->
+        fsUtils.write(config.configFilePath, "foo: { bar: 'quux', baz: 'bar'}")
+        waitsFor 'update event', -> updatedHandler.callCount > 0
+        runs ->
+          expect(config.get('foo.bar')).toBe 'quux'
+          expect(config.get('foo.baz')).toBe 'bar'
+
+    describe "when the config file changes to contain invalid cson", ->
+      beforeEach ->
+        spyOn(console, 'error')
+        fsUtils.write(config.configFilePath, "}}}")
+        waitsFor "error to be logged", -> console.error.callCount > 0
+
+      it "logs a warning and does not update config data", ->
+        expect(updatedHandler.callCount).toBe 0
+        expect(config.get('foo.bar')).toBe 'baz'
+        config.set("hair", "blonde") # trigger a save
+        expect(config.save).not.toHaveBeenCalled()
+
+      describe "when the config file subsequently changes again to contain valid cson", ->
+        beforeEach ->
+          fsUtils.write(config.configFilePath, "foo: bar: 'baz'")
+          waitsFor 'update event', -> updatedHandler.callCount > 0
+
+        it "updates the config data and resumes saving", ->
+          config.set("hair", "blonde")
+          expect(config.save).toHaveBeenCalled()

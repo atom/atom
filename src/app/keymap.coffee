@@ -40,9 +40,10 @@ class Keymap
         'alt-meta-i': 'toggle-dev-tools'
 
     $(document).command 'new-window', => atom.newWindow()
-    $(document).command 'open-user-configuration', => atom.open(config.configDirPath)
+    $(document).command 'open-user-configuration', => atom.openConfig()
     $(document).command 'open', => atom.open()
     $(document).command 'open-dev', => atom.openDev()
+    $(document).command 'toggle-dev-tools', => atom.toggleDevTools()
 
   loadBundledKeymaps: ->
     @loadDirectory(fsUtils.resolveOnLoadPath('keymaps'))
@@ -112,7 +113,9 @@ class Keymap
         candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
         for bindingSet in candidateBindingSets
           command = bindingSet.commandForEvent(event)
-          if command
+          if command is 'native!'
+            return true
+          else if command
             continue if @triggerCommandEvent(event, command)
             return false
           else if command == false

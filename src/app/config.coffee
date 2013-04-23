@@ -2,6 +2,7 @@ fsUtils = require 'fs-utils'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 CSON = require 'cson'
+pathWatcher = require 'pathwatcher'
 
 configDirPath = fsUtils.absolute("~/.atom")
 bundledPackagesDirPath = fsUtils.join(resourcePath, "src/packages")
@@ -14,7 +15,7 @@ userPackagesDirPath = fsUtils.join(configDirPath, "packages")
 # Public: Handles all of Atom's configuration details.
 #
 # This includes loading and setting default options, as well as reading from the
-# user's configuration file. 
+# user's configuration file.
 module.exports =
 class Config
   configDirPath: configDirPath
@@ -60,30 +61,41 @@ class Config
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
+    @observeUserConfig()
 
   loadUserConfig: ->
     if fsUtils.exists(@configFilePath)
       try
         userConfig = CSON.readObject(@configFilePath)
         _.extend(@settings, userConfig)
+        @configFileHasErrors = false
+        @trigger 'updated'
       catch e
         @configFileHasErrors = true
         console.error "Failed to load user config '#{@configFilePath}'", e.message
         console.error e.stack
+
+  observeUserConfig: ->
+    @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
+      @loadUserConfig() if eventType is 'change' and @watchSubscription?
+
+  unobserveUserConfig: ->
+    @watchSubscription?.close()
+    @watchSubscription = null
 
   # Public: Retrieves the setting for the given key.
   #
   # keyPath - The {String} name of the key to retrieve
   #
   # Returns the value from Atom's default settings, the user's configuration file,
-  # or `null` if the key doesn't exist in either. 
+  # or `null` if the key doesn't exist in either.
   get: (keyPath) ->
     _.valueForKeyPath(@settings, keyPath) ?
       _.valueForKeyPath(@defaultSettings, keyPath)
 
   # Public: Sets the value for a configuration setting.
   #
-  # This value is stored in Atom's internal configuration file. 
+  # This value is stored in Atom's internal configuration file.
   #
   # keyPath - The {String} name of the key
   # value - The value of the setting

@@ -11,6 +11,7 @@
 @synthesize webView=_webView;
 @synthesize devToolsView=_devToolsView;
 @synthesize pathToOpen=_pathToOpen;
+@synthesize isConfig=_isConfig;
 
 - (void)dealloc {
   [_splitView release];
@@ -95,6 +96,12 @@
     [self setWindowFrameAutosaveName:@"AtomWindow"];
     NSColor *background = [NSColor colorWithDeviceRed:(51.0/255.0) green:(51.0/255.0f) blue:(51.0/255.0f) alpha:1.0];
     [self.window setBackgroundColor:background];
+    if (self.isConfig) {
+      NSRect frame = self.window.frame;
+      frame.size.width = 800;
+      frame.size.height = 600;
+      [self.window setFrame:frame display: YES];
+    }
     [self showWindow:self];
   }
 
@@ -103,9 +110,7 @@
 
 - (id)initWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  BOOL useBundleResourcePath = [atomApplication.arguments objectForKey:@"dev"] == nil;
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:useBundleResourcePath];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:![self isDevMode]];
 }
 
 - (id)initDevWithPath:(NSString *)path {
@@ -114,10 +119,7 @@
 }
 
 - (id)initInBackground {
-  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  BOOL useBundleResourcePath = [atomApplication.arguments objectForKey:@"dev"] == nil;
-
-  [self initWithBootstrapScript:@"window-bootstrap" background:YES useBundleResourcePath:useBundleResourcePath];
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES useBundleResourcePath:![self isDevMode]];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorStationary];
@@ -134,6 +136,11 @@
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
   return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO useBundleResourcePath:NO];
+}
+
+- (id)initConfig {
+  _isConfig = true;
+  return [self initWithBootstrapScript:@"config-bootstrap" background:NO useBundleResourcePath:![self isDevMode]];
 }
 
 - (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {
@@ -271,7 +278,7 @@
     [_devButton setHidden:NO];
 }
 
-- (bool)isDevMode {
+- (BOOL)isDevMode {
   NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   return ![_resourcePath isEqualToString:bundleResourcePath];
 }

@@ -35,27 +35,41 @@ window.setUpEnvironment = ->
     requireStylesheet(nativeStylesheetPath)
 
 # This method is only called when opening a real application window
-window.startup = ->
+window.startEditorWindow = ->
   directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
   if directory
     installAtomCommand(fsUtils.join(directory, 'bin/atom'))
   else
     console.warn "Failed to install `atom` binary"
 
+  atom.windowMode = 'editor'
   handleWindowEvents()
   handleDragDrop()
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
   atom.loadPackages()
-  deserializeWindowState()
+  deserializeEditorWindow()
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  $(window).on 'beforeunload', -> shutdown(); false
+  $(window).on 'beforeunload', -> unloadEditorWindow(); false
   $(window).focus()
 
-window.shutdown = ->
+window.startConfigWindow = ->
+  atom.windowMode = 'config'
+  handleWindowEvents()
+  config.load()
+  keymap.loadBundledKeymaps()
+  atom.loadThemes()
+  atom.loadPackages()
+  deserializeConfigWindow()
+  atom.activatePackageConfigs()
+  keymap.loadUserKeymaps()
+  $(window).on 'beforeunload', -> unloadConfigWindow(); false
+  $(window).focus()
+
+window.unloadEditorWindow = ->
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
   atom.setWindowState('project', project.serialize())
@@ -71,6 +85,14 @@ window.shutdown = ->
   window.rootView = null
   window.project = null
   window.git = null
+
+window.unloadConfigWindow = ->
+  return if not configView
+  atom.setWindowState('configView', configView.serialize())
+  atom.saveWindowState()
+  configView.remove()
+  window.configView = null
+  $(window).off('focus blur before')
 
 window.installAtomCommand = (commandPath) ->
   return if fsUtils.exists(commandPath)
@@ -99,7 +121,7 @@ window.onDrop = (e) ->
   for file in e.originalEvent.dataTransfer.files
     atom.open(file.path)
 
-window.deserializeWindowState = ->
+window.deserializeEditorWindow = ->
   RootView = require 'root-view'
   Project = require 'project'
   Git = require 'git'
@@ -122,8 +144,14 @@ window.deserializeWindowState = ->
     window.git?.destroy()
     window.git = Git.open(project.getPath())
 
+window.deserializeConfigWindow = ->
+  ConfigView = require 'config-view'
+  windowState = atom.getWindowState()
+  window.configView = deserialize(windowState.configView) ? new ConfigView()
+  $(rootViewParentSelector).append(configView)
+
 window.stylesheetElementForId = (id) ->
-  $("head style[id='#{id}']")
+  $("""head style[id="#{id}"]""")
 
 window.resolveStylesheet = (path) ->
   if fsUtils.extension(path).length > 0

@@ -181,6 +181,18 @@ describe "the `atom` global", ->
           atom.activatePackage('ruby.tmbundle', sync: true)
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
+    describe ".activatePackageConfig(id)", ->
+      it "calls the optional .activateConfigMenu method on the package's main module", ->
+        pack = atom.activatePackageConfig('package-with-activate-config')
+        expect(pack.mainModule.activateCalled).toBeFalsy()
+        expect(pack.mainModule.activateConfigCalled).toBeTruthy()
+
+      it "loads the package's config defaults", ->
+        expect(config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
+        atom.activatePackageConfig('package-with-config-defaults')
+        expect(config.get('package-with-config-defaults.numbers.one')).toBe 1
+        expect(config.get('package-with-config-defaults.numbers.two')).toBe 2
+
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
         it "calls `deactivate` on the package's main module", ->

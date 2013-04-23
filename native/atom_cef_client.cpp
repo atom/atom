@@ -46,6 +46,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "newWindow") {
     NewWindow();
   }
+  else if (name == "openConfig") {
+    OpenConfig();
+  }
   else if (name == "toggleDevTools") {
     ToggleDevTools(browser);
   }

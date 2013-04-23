@@ -22,3 +22,12 @@
   'alt-h': 'editor:backspace-to-beginning-of-word'
   'alt-d': 'editor:delete-to-end-of-word'
   'ctrl-k': 'editor:cut-to-end-of-line'
+
+# allow standard input fields to work correctly
+'input:not(.hidden-input)':
+  'ctrl-b': 'native!'
+  'ctrl-f': 'native!'
+  'ctrl-F': 'native!'
+  'ctrl-B': 'native!'
+  'ctrl-h': 'native!'
+  'ctrl-d': 'native!'

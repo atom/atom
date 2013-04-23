@@ -191,6 +191,16 @@
   [[AtomWindowController alloc] initDevWithPath:path];
 }
 
+- (void)openConfig {
+  for (NSWindow *window in [self windows]) {
+    if ([[window windowController] isConfig]) {
+      [window makeKeyAndOrderFront:nil];
+      return;
+    }
+  }
+  [[AtomWindowController alloc] initConfig];
+}
+
 - (IBAction)runSpecs:(id)sender {
   [self runSpecsThenExit:NO];
 }

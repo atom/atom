@@ -1,9 +1,8 @@
-# Like sands through the hourglass, so are the days of our lives.
 date = new Date().getTime()
 require 'atom'
 require 'window'
 
 window.setUpEnvironment()
-window.startEditorWindow()
-setTimeout((-> atom.show()), 0)
+window.startConfigWindow()
+atom.show()
 console.log "Load time: #{new Date().getTime() - date}"

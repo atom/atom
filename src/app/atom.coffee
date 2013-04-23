@@ -57,8 +57,17 @@ _.extend atom,
   getActivePackages: ->
     _.clone(@activePackages)
 
+  activatePackageConfigs: ->
+    @activatePackageConfig(pack.path) for pack in @getLoadedPackages()
+
+  activatePackageConfig: (id, options) ->
+    if pack = @loadPackage(id, options)
+      @activePackages.push(pack)
+      pack.activateConfig()
+      pack
+
   loadPackages: ->
-    @loadPackage(path) for path in @getPackagePaths() when not @isPackageDisabled(path)
+    @loadPackage(path) for path in @getAvailablePackagePaths() when not @isPackageDisabled(path)
 
   loadPackage: (id, options) ->
     if @isPackageDisabled(id)
@@ -91,18 +100,30 @@ _.extend atom,
     if path = @resolvePackagePath(id)
       _.include(config.get('core.disabledPackages') ? [], fsUtils.base(path))
 
-  getPackagePaths: ->
+  getAvailablePackagePaths: ->
     packagePaths = []
     for packageDirPath in config.packageDirPaths
       for packagePath in fsUtils.list(packageDirPath)
         packagePaths.push(packagePath) if fsUtils.isDirectory(packagePath)
     _.uniq(packagePaths)
 
+  getAvailablePackageNames: ->
+    fsUtils.base(path) for path in @getAvailablePackagePaths()
+
   loadThemes: ->
-    themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
+    themeNames = config.get("core.themes")
     themeNames = [themeNames] unless _.isArray(themeNames)
     @loadTheme(themeName) for themeName in themeNames
     @loadUserStylesheet()
+
+  getAvailableThemePaths: ->
+    themePaths = []
+    for themeDirPath in config.themeDirPaths
+      themePaths.push(fsUtils.list(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
+    _.uniq(themePaths)
+
+  getAvailableThemeNames: ->
+    fsUtils.base(path).split('.')[0] for path in @getAvailableThemePaths()
 
   loadTheme: (name) ->
     @loadedThemes.push Theme.load(name)
@@ -125,6 +146,9 @@ _.extend atom,
 
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)
+
+  openConfig: ->
+    @sendMessageToBrowserProcess('openConfig')
 
   restartRendererProcess: ->
     @sendMessageToBrowserProcess('restartRendererProcess')
@@ -239,12 +263,16 @@ _.extend atom,
       null
 
   getSavedWindowState: ->
-    if pathToOpen = window.location.params.pathToOpen
-      localStorage[pathToOpen]
+    storageKey = switch @windowMode
+      when 'editor' then window.location.params.pathToOpen
+      when 'config' then 'config'
+    localStorage[storageKey] if storageKey
 
   saveWindowState: ->
-    if pathToOpen = @getPathToOpen()
-      localStorage[pathToOpen] = JSON.stringify(@getWindowState())
+    storageKey = switch @windowMode
+      when 'editor' then @getPathToOpen()
+      when 'config' then 'config'
+    localStorage[storageKey] = JSON.stringify(@getWindowState())
 
   update: ->
     @sendMessageToBrowserProcess('update')

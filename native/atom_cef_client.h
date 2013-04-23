@@ -116,6 +116,7 @@ class AtomCefClient : public CefClient,
   void OpenDev(std::string path);
   void OpenDev();
   void NewWindow();
+  void OpenConfig();
   void ToggleDevTools(CefRefPtr<CefBrowser> browser);
   void ShowDevTools(CefRefPtr<CefBrowser> browser);
   void Confirm(int replyId,

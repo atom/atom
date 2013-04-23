@@ -106,8 +106,13 @@ module.exports =
       done(null, paths)
 
   filterExtensions: (paths, extensions) ->
-    extensions = extensions.map (ext) -> '.' + ext.replace(/^\./, '')
-    paths.filter (path) => _.include(extensions, @extension(path))
+    extensions = extensions.map (ext) ->
+      if ext is ''
+        ext
+      else
+        '.' + ext.replace(/^\./, '')
+    paths.filter (path) =>
+      _.include(extensions, @extension(path))
 
   listTree: (rootPath) ->
     paths = []

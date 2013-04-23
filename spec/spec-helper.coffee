@@ -2,7 +2,7 @@ require 'window'
 window.setUpEnvironment()
 
 nakedLoad 'jasmine-jquery'
-$ = require 'jquery'
+$ = jQuery = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
 Config = require 'config'
@@ -23,7 +23,6 @@ keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 $(window).on 'core:close', -> window.close()
-$(window).on 'toggle-dev-tools', (e) -> atom.toggleDevTools()
 $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
@@ -57,6 +56,7 @@ beforeEach ->
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
   config.set "core.disabledPackages", ["package-that-throws-an-exception"]
+  config.save.reset()
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
