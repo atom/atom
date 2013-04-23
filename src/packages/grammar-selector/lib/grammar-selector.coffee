@@ -1,6 +1,7 @@
 SelectList = require 'select-list'
 Editor = require 'editor'
 {$$} = require 'space-pen'
+_ = require 'underscore'
 
 module.exports =
 class GrammarSelector extends SelectList
@@ -36,6 +37,7 @@ class GrammarSelector extends SelectList
 
   populate: ->
     grammars = new Array(syntax.grammars...)
+    grammars = _.reject grammars, (grammar) -> grammar is syntax.nullGrammar
     grammars.sort (grammarA, grammarB) ->
       if grammarA.scopeName is 'text.plain'
         -1

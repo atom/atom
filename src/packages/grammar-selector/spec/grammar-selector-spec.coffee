@@ -1,6 +1,7 @@
 GrammarSelector = require '../lib/grammar-selector'
 RootView = require 'root-view'
 _ = require 'underscore'
+$ = require 'jquery'
 
 describe "GrammarSelector", ->
   [editor, textGrammar, jsGrammar] =  []
@@ -24,8 +25,10 @@ describe "GrammarSelector", ->
       grammarView = rootView.find('.grammar-selector').view()
       expect(grammarView).toExist()
       grammars = syntax.grammars
-      expect(grammarView.list.children('li').length).toBe grammars.length + 1
+      expect(grammarView.list.children('li').length).toBe grammars.length
       expect(grammarView.list.children('li:first').text()).toBe 'Auto Detect'
+      for li in grammarView.list.children('li')
+        expect($(li).text()).not.toBe syntax.nullGrammar.name
 
   describe "when a grammar is selected", ->
     it "sets the new grammar on the editor", ->
