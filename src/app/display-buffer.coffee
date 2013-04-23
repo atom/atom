@@ -103,24 +103,11 @@ class DisplayBuffer
   #
   # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
-    return fold if fold = @foldFor(startRow, endRow)
+    return fold if fold = @foldFor(startRow, endRow, 0, refreshMarkers: true)
     fold = new Fold(this, startRow, endRow)
     @registerFold(fold)
-
     unless @isFoldContainedByActiveFold(fold)
-      bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
-      oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
-
-      lines = @buildLineForBufferRow(startRow)
-      @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
-      newScreenRange = @screenLineRangeForBufferRange(bufferRange)
-
-      start = oldScreenRange.start.row
-      end = oldScreenRange.end.row
-      screenDelta = newScreenRange.end.row - oldScreenRange.end.row
-      bufferDelta = 0
-      @triggerChanged({ start, end, screenDelta, bufferDelta })
-
+      @updateScreenLines(startRow, endRow, 0, refreshMarkers: true)
     fold
 
   # Public: Given a {Fold}, determines if it is contained within another fold.
@@ -371,26 +358,30 @@ class DisplayBuffer
     fold.handleBufferChange(e) for fold in allFolds
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
-    if bufferChange = tokenizedBufferChange.bufferChange
-      @handleBufferChange(bufferChange)
-      bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
+    {start, end, delta, bufferChange} = tokenizedBufferChange
+    @handleBufferChange(bufferChange) if bufferChange
+    @updateScreenLines(start, end, delta, delayChangeEvent: bufferChange?)
 
-    tokenizedBufferStart = @bufferRowForScreenRow(@screenRowForBufferRow(tokenizedBufferChange.start))
-    tokenizedBufferEnd = tokenizedBufferChange.end
-    tokenizedBufferDelta = tokenizedBufferChange.delta
+  updateScreenLines: (startBufferRow, endBufferRow, bufferDelta, options={}) ->
+    startBufferRow = @bufferRowForScreenRow(@screenRowForBufferRow(startBufferRow))
+    newScreenLines = @buildLinesForBufferRows(startBufferRow, endBufferRow + bufferDelta)
 
-    start = @screenRowForBufferRow(tokenizedBufferStart)
-    end = @lastScreenRowForBufferRow(tokenizedBufferEnd)
-    newScreenLines = @buildLinesForBufferRows(tokenizedBufferStart, tokenizedBufferEnd + tokenizedBufferDelta)
-    @lineMap.replaceScreenRows(start, end, newScreenLines)
-    screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
+    startScreenRow = @screenRowForBufferRow(startBufferRow)
+    endScreenRow = @lastScreenRowForBufferRow(endBufferRow)
 
-    changeEvent = { start, end, screenDelta, bufferDelta }
-    if bufferChange
+    @lineMap.replaceScreenRows(startScreenRow, endScreenRow, newScreenLines)
+
+    changeEvent =
+      start: startScreenRow
+      end: endScreenRow
+      screenDelta: @lastScreenRowForBufferRow(endBufferRow + bufferDelta) - endScreenRow
+      bufferDelta: bufferDelta
+
+    if options.delayChangeEvent
       @pauseMarkerObservers()
       @pendingChangeEvent = changeEvent
     else
-      @triggerChanged(changeEvent, false)
+      @triggerChanged(changeEvent, options.refreshMarkers)
 
   handleMarkersUpdated: =>
     event = @pendingChangeEvent
