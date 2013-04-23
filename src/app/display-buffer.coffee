@@ -90,10 +90,10 @@ class DisplayBuffer
   # Public: Given starting and ending screen rows, this returns an array of the
   # buffer rows corresponding to every screen row in the range
   #
-  # startRow - The screen row {Integer} to start at
-  # endRow - The screen row {Integer} to end at (default: {.lastScreenRow})
+  # startRow - The screen row {Number} to start at
+  # endRow - The screen row {Number} to end at (default: {.lastScreenRow})
   #
-  # Returns an {Array} of buffer rows as {Integers}s.
+  # Returns an {Array} of buffer rows as {Numbers}s.
   bufferRowsForScreenRows: (startRow, endRow) ->
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
