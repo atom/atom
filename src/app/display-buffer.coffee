@@ -336,21 +336,8 @@ class DisplayBuffer
 
   destroyFold: (fold) ->
     @unregisterFold(fold.startRow, fold)
-
     unless @isFoldContainedByActiveFold(fold)
-      { startRow, endRow } = fold
-      bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
-      oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
-      lines = @buildLinesForBufferRows(startRow, endRow)
-      @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
-      newScreenRange = @screenLineRangeForBufferRange(bufferRange)
-
-      start = oldScreenRange.start.row
-      end = oldScreenRange.end.row
-      screenDelta = newScreenRange.end.row - oldScreenRange.end.row
-      bufferDelta = 0
-
-      @triggerChanged({ start, end, screenDelta, bufferDelta })
+      @updateScreenLines(fold.startRow, fold.endRow, 0, refreshMarkers: true)
 
   handleBufferChange: (e) ->
     allFolds = [] # Folds can modify @activeFolds, so first make sure we have a stable array of folds
