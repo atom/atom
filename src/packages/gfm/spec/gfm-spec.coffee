@@ -105,7 +105,7 @@ describe "GitHub Flavored Markdown grammar", ->
     expect(tokens[1]).toEqual value: "[", scopes: ["source.gfm", "link"]
     expect(tokens[2]).toEqual value: "this link", scopes: ["source.gfm", "link", "entity.gfm"]
     expect(tokens[3]).toEqual value: "](", scopes: ["source.gfm", "link"]
-    expect(tokens[4]).toEqual value: "website", scopes: ["source.gfm", "link", "markup.underline.gfm"]
+    expect(tokens[4]).toEqual value: "website", scopes: ["source.gfm", "link", "markup.underline.link.gfm"]
     expect(tokens[5]).toEqual value: ")", scopes: ["source.gfm", "link"]
 
   it "tokenizes lists", ->

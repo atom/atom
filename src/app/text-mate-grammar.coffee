@@ -38,10 +38,14 @@ class TextMateGrammar
   includedGrammarScopes: null
   maxTokensPerLine: 100
 
-  constructor: ({ @name, @fileTypes, @scopeName, injections, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
+  constructor: ({ @name, @fileTypes, @scopeName, injections, injectionSelector, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
     @rawPatterns = patterns
     @rawRepository = repository
     @injections = new Injections(this, injections)
+
+    if injectionSelector?
+      @injectionSelector = new TextMateScopeSelector(injectionSelector)
+
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
     @includedGrammarScopes = []
@@ -64,11 +68,12 @@ class TextMateGrammar
   addIncludedGrammarScope: (scope) ->
     @includedGrammarScopes.push(scope) unless _.include(@includedGrammarScopes, scope)
 
-  grammarUpdated: (scopeName) =>
-    return unless _.include(@includedGrammarScopes, scopeName)
+  grammarUpdated: (scopeName) ->
+    return false unless _.include(@includedGrammarScopes, scopeName)
     @clearRules()
     syntax.grammarUpdated(@scopeName)
     @trigger 'grammar-updated'
+    true
 
   getScore: (path, contents) ->
     contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)
@@ -250,7 +255,6 @@ class Rule
       scanners = injections.getScanners(ruleStack, position, firstLine, @anchorPosition)
       for scanner in scanners
         result = scanner.findNextMatch(line, position)
-        result?.scanner = scanner
         return result if result?
 
   normalizeCaptureIndices: (line, captureIndices) ->
@@ -262,24 +266,26 @@ class Rule
   findNextMatch: (ruleStack, line, position, firstLine) ->
     lineWithNewline = "#{line}\n"
     baseGrammar = ruleStack[0].grammar
+    results = []
 
     scanner = @getScanner(baseGrammar, position, firstLine)
-    result = scanner.findNextMatch(lineWithNewline, position)
-    result?.scanner = scanner
-    @normalizeCaptureIndices(line, result.captureIndices) if result?
+    if result = scanner.findNextMatch(lineWithNewline, position)
+      results.push(result)
 
-    injectionResult = @scanInjections(ruleStack, lineWithNewline, position, firstLine)
-    @normalizeCaptureIndices(line, injectionResult.captureIndices) if injectionResult?
+    if result = @scanInjections(ruleStack, lineWithNewline, position, firstLine)
+      results.push(result)
 
-    if result? and injectionResult?
-      resultStartPosition = result.captureIndices[1]
-      injectionResultStartPosition = injectionResult.captureIndices[1]
-      if injectionResultStartPosition < resultStartPosition
-        injectionResult
-      else
-        result
-    else
-      result ? injectionResult
+    scopes = scopesFromStack(ruleStack)
+    for injectionGrammar in _.without(syntax.injectionGrammars, @grammar, baseGrammar)
+      if injectionGrammar.injectionSelector.matches(scopes)
+        scanner = injectionGrammar.getInitialRule().getScanner(injectionGrammar, position, firstLine)
+        if result = scanner.findNextMatch(lineWithNewline, position)
+          results.push(result)
+
+    if results.length > 0
+      _.min results, (result) =>
+        @normalizeCaptureIndices(line, result.captureIndices)
+        result.captureIndices[1]
 
   getNextTokens: (ruleStack, line, position, firstLine) ->
     result = @findNextMatch(ruleStack, line, position, firstLine)
@@ -404,7 +410,14 @@ class Pattern
 
   handleMatch: (stack, line, captureIndices) ->
     scopes = scopesFromStack(stack)
-    scopes.push(@scopeName) if @scopeName and not @popRule
+    if @scopeName and not @popRule
+      patternScope = @scopeName.replace /\$\d+/, (match) ->
+        captureIndex = parseInt(match.substring(1)) * 3
+        if captureIndices[captureIndex]?
+          line.substring(captureIndices[captureIndex + 1], captureIndices[captureIndex + 2])
+        else
+          match
+      scopes.push(patternScope)
 
     if @captures
       tokens = @getTokensForCaptureIndices(line, _.clone(captureIndices), scopes, stack)

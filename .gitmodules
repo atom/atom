@@ -85,3 +85,6 @@
 [submodule "vendor/packages/sql.tmbundle"]
 	path = vendor/packages/sql.tmbundle
 	url = https://github.com/textmate/sql.tmbundle
+[submodule "vendor/packages/hyperlink-helper.tmbundle"]
+	path = vendor/packages/hyperlink-helper.tmbundle
+	url = https://github.com/textmate/hyperlink-helper.tmbundle

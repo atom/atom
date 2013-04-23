@@ -1,6 +1,7 @@
 _ = require 'underscore'
 ScreenLine = require 'screen-line'
 EventEmitter = require 'event-emitter'
+Subscriber = require 'Subscriber'
 Token = require 'token'
 Range = require 'range'
 Point = require 'point'
@@ -27,8 +28,16 @@ class TokenizedBuffer
     @id = @constructor.idCounter++
     @resetScreenLines()
     @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
-    @languageMode.on 'grammar-changed', => @resetScreenLines()
-    @languageMode.on 'grammar-updated', => @resetScreenLines()
+    @languageMode.on 'grammar-changed grammar-updated', => @resetScreenLines()
+    @subscribe syntax, 'grammar-updated grammar-added', (grammar) =>
+      if grammar.injectionSelector? and @hasTokenForSelector(grammar.injectionSelector)
+        @resetScreenLines()
+
+  hasTokenForSelector: (selector) ->
+    for {tokens} in @screenLines
+      for token in tokens
+        return true if selector.matches(token.scopes)
+    false
 
   resetScreenLines: ->
     @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
@@ -163,9 +172,11 @@ class TokenizedBuffer
     @screenLines[row]?.ruleStack
 
   scopesForPosition: (position) ->
+    @tokenForPosition(position).scopes
+
+  tokenForPosition: (position) ->
     position = Point.fromObject(position)
-    token = @screenLines[position.row].tokenAtBufferColumn(position.column)
-    token.scopes
+    @screenLines[position.row].tokenAtBufferColumn(position.column)
 
   destroy: ->
     @buffer.off ".tokenized-buffer#{@id}"
@@ -248,3 +259,4 @@ class TokenizedBuffer
     lines.join('\n')
 
 _.extend(TokenizedBuffer.prototype, EventEmitter)
+_.extend(TokenizedBuffer.prototype, Subscriber)
