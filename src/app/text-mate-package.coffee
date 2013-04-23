@@ -24,13 +24,13 @@ class TextMatePackage extends Package
     @preferencesPath = fsUtils.join(@path, "Preferences")
     @syntaxesPath = fsUtils.join(@path, "Syntaxes")
     @grammars = []
+    @scopedProperties = []
 
   load: ({sync}={}) ->
     if sync
       @loadGrammarsSync()
     else
       TextMatePackage.getLoadQueue().push(this)
-    @loadScopedProperties()
 
   activate: ->
     syntax.addGrammar(grammar) for grammar in @grammars
@@ -48,8 +48,13 @@ class TextMatePackage extends Package
       if isDirectory
         fsUtils.listAsync @syntaxesPath, @legalGrammarExtensions, (err, paths) =>
           return console.log("Error loading grammars of TextMate package '#{@path}':", err.stack, err) if err
-          async.eachSeries paths, @loadGrammarAtPath, done
-
+          async.waterfall [
+              (next) =>
+                async.eachSeries paths, @loadGrammarAtPath, next
+              (next) =>
+                @loadScopedProperties()
+                next()
+          ], done
   loadGrammarAtPath: (path, done) =>
     TextMateGrammar.load path, (err, grammar) =>
       return console.log("Error loading grammar at path '#{path}':", err.stack ? err) if err
@@ -78,6 +83,10 @@ class TextMatePackage extends Package
       if properties = @propertiesFromTextMateSettings(settings)
         selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
         @scopedProperties.push({selector, properties})
+
+    if atom.isPackageActive(@path)
+      for { selector, properties } in @scopedProperties
+        syntax.addProperties(@path, selector, properties)
 
   getTextMatePreferenceObjects: ->
     preferenceObjects = []
