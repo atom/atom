@@ -62,11 +62,8 @@ class TokenizedBuffer
     @invalidateRow(0)
     @trigger "changed", { start: 0, end: lastRow, delta: 0 }
 
-  tooBigToTokenize: ->
-    @screenLines.length > 10000
-
   tokenizeInBackground: ->
-    return if not @visible or @pendingChunk or @tooBigToTokenize()
+    return if not @visible or @pendingChunk
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false
