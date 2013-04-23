@@ -10,6 +10,7 @@ RESOUCES_PATH="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
 rsync --archive --recursive \
       --exclude="src/**.coffee" \
       --exclude="src/**.cson" \
+      --exclude="themes/**.cson" \
       --exclude="src/**.less" \
       --exclude="static/**.less" \
       --exclude="themes/**.less" \
