@@ -110,7 +110,7 @@ class TextMatePackage extends Package
 
       @scopedProperties = scopedProperties
       if atom.isPackageActive(@path)
-        for { selector, properties } in @scopedProperties
+        for {selector, properties} in @scopedProperties
           syntax.addProperties(@path, selector, properties)
     @loadTextMatePreferenceObjects(preferenceObjects, done)
 
