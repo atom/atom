@@ -68,7 +68,7 @@ class AtomPackage extends Package
     if @metadata.keymaps
       @metadata.keymaps.map (name) -> fsUtils.resolve(keymapsDirPath, name, ['json', 'cson', ''])
     else
-      fsUtils.list(keymapsDirPath, ['cson', 'json']) ? []
+      fsUtils.list(keymapsDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
     @stylesheets = @getStylesheetPaths().map (path) -> [path, loadStylesheet(path)]
@@ -78,18 +78,18 @@ class AtomPackage extends Package
     if @metadata.stylesheets
       @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
     else
-      fsUtils.list(stylesheetDirPath, ['css', 'less']) ? []
+      fsUtils.list(stylesheetDirPath, ['css', 'less'])
 
   loadGrammars: ->
     @grammars = []
     grammarsDirPath = fsUtils.join(@path, 'grammars')
-    for grammarPath in fsUtils.list(grammarsDirPath, ['.cson', '.json']) ? []
+    for grammarPath in fsUtils.list(grammarsDirPath, ['.cson', '.json'])
       @grammars.push(TextMateGrammar.loadSync(grammarPath))
 
   loadScopedProperties: ->
     @scopedProperties = []
     scopedPropertiessDirPath = fsUtils.join(@path, 'scoped-properties')
-    for scopedPropertiesPath in fsUtils.list(scopedPropertiessDirPath, ['.cson', '.json']) ? []
+    for scopedPropertiesPath in fsUtils.list(scopedPropertiessDirPath, ['.cson', '.json'])
       for selector, properties of fsUtils.readObject(scopedPropertiesPath)
         @scopedProperties.push([scopedPropertiesPath, selector, properties])
 
