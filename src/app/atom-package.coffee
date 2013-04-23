@@ -56,7 +56,7 @@ class AtomPackage extends Package
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
   loadMetadata: ->
-    if metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['cson', 'json'])
+    if metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['json', 'cson'])
       @metadata = CSON.readObject(metadataPath)
     @metadata ?= {}
 
@@ -66,7 +66,7 @@ class AtomPackage extends Package
   getKeymapPaths: ->
     keymapsDirPath = fsUtils.join(@path, 'keymaps')
     if @metadata.keymaps
-      @metadata.keymaps.map (name) -> fsUtils.resolve(keymapsDirPath, name, ['cson', 'json', ''])
+      @metadata.keymaps.map (name) -> fsUtils.resolve(keymapsDirPath, name, ['json', 'cson', ''])
     else
       fsUtils.list(keymapsDirPath, ['cson', 'json']) ? []
 
