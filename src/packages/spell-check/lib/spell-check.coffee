@@ -12,4 +12,5 @@ module.exports =
 
   activate: ->
     rootView.eachEditor (editor) =>
-      editor.underlayer.append(@createView(editor)) if editor.getPane()?
+      if editor.attached and editor.getPane()?
+        editor.underlayer.append(@createView(editor))
