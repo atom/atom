@@ -51,9 +51,7 @@ class Directory
 
     directories.concat(files)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @subscriptionCount() == 1

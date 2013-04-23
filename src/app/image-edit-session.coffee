@@ -21,9 +21,7 @@ class ImageEditSession
       '.png'
     ], fsUtils.extension(path), true) >= 0
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
   
   @deserialize: (state) ->
     if fsUtils.exists(state.path)

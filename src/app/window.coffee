@@ -10,9 +10,7 @@ require 'space-pen-extensions'
 deserializers = {}
 deferredDeserializers = {}
 
-###
-# Internal #
-###
+### Internal ###
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->

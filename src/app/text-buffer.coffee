@@ -55,9 +55,7 @@ class Buffer
 
     @undoManager = new UndoManager(this)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
@@ -98,9 +96,7 @@ class Buffer
     @file.on "moved", =>
       @trigger "path-changed", this
       
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Identifies if the buffer belongs to multiple editors.
   #
@@ -726,9 +722,7 @@ class Buffer
     @file? && @file.exists()
 
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout

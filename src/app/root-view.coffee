@@ -25,9 +25,7 @@ class RootView extends View
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
 
-  ###
-  # Internal:
-  ###
+  ### Internal ###
 
   @content: ({panes}={}) ->
     @div id: 'root-view', =>
@@ -98,9 +96,7 @@ class RootView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
   confirmClose: ->

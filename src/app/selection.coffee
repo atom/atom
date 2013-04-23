@@ -13,9 +13,7 @@ class Selection
   wordwise: false
   needsAutoscroll: null
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
@@ -40,9 +38,7 @@ class Selection
   clearAutoscroll: ->
     @needsAutoscroll = null
     
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Identifies if the selection is highlighting anything.
   #

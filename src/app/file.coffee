@@ -68,9 +68,7 @@ class File
   exists: ->
     fsUtils.exists(@getPath())
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1

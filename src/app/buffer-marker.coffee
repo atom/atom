@@ -10,16 +10,12 @@ class BufferMarker
   suppressObserverNotification: false
   invalidationStrategy: null
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
   constructor: ({@id, @buffer, range, @invalidationStrategy, noTail, reverse}) ->
     @invalidationStrategy ?= 'contains'
     @setRange(range, {noTail, reverse})
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Sets the marker's range, potentialy modifying both its head and tail.
   #
@@ -148,9 +144,7 @@ class BufferMarker
   unobserve: (callback) ->
     @off 'changed', callback
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   tryToInvalidate: (changedRange) ->
     betweenStartAndEnd = @getRange().containsRange(changedRange, exclusive: false)

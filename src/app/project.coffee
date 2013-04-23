@@ -32,9 +32,7 @@ class Project
     @editSessions = []
     @buffers = []
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   serialize: ->
     deserializer: 'Project'
@@ -46,9 +44,7 @@ class Project
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Retrieves the project path.
   #
@@ -164,9 +160,7 @@ class Project
   getEditSessions: ->
     new Array(@editSessions...)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
@@ -196,9 +190,7 @@ class Project
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Removes an {EditSession} association from the project.
   #

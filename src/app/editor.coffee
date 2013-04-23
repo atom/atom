@@ -27,9 +27,7 @@ class Editor extends View
 
   @nextEditorId: 1
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   @content: (params) ->
     attributes = { class: @classes(params), tabindex: -1 }
@@ -192,9 +190,7 @@ class Editor extends View
       do (name, method) =>
         @command name, (e) => method.call(this, e); false
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Retrieves a single cursor
   #
@@ -796,9 +792,7 @@ class Editor extends View
   # iterator - A {Function} that's called on each match
   backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   configure: ->
     @observeConfig 'editor.showLineNumbers', (showLineNumbers) => @gutter.setShowLineNumbers(showLineNumbers)
@@ -986,9 +980,7 @@ class Editor extends View
     else
       @scrollTop() + @scrollView.height()
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Retrieves the {EditSession}'s buffer.
   #
@@ -1253,9 +1245,7 @@ class Editor extends View
   appendToLinesView: (view) ->
     @overlayer.append(view)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
@@ -1497,9 +1487,7 @@ class Editor extends View
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Retrieves the number of the row that is visible and currently at the top of the editor.
   #
@@ -1522,9 +1510,7 @@ class Editor extends View
   isScreenRowVisible: (row) ->
     @getFirstVisibleScreenRow() <= row <= @getLastVisibleScreenRow()
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   handleScreenLinesChange: (change) ->
     @pendingChanges.push(change)
@@ -1632,9 +1618,7 @@ class Editor extends View
   toggleLineCommentsInSelection: ->
     @activeEditSession.toggleLineCommentsInSelection()
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Converts a buffer position to a pixel position.
   #
@@ -1767,9 +1751,7 @@ class Editor extends View
     path = @getPath()
     pasteboard.write(path) if path?
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   transact: (fn) -> @activeEditSession.transact(fn)
   commit: -> @activeEditSession.commit()

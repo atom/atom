@@ -1,8 +1,6 @@
 _ = require 'underscore'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class ScreenLine

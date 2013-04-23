@@ -6,9 +6,7 @@ Token = require 'token'
 Range = require 'range'
 Point = require 'point'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class TokenizedBuffer

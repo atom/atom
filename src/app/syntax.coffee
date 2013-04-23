@@ -6,9 +6,7 @@ fsUtils = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 NullGrammar = require 'null-grammar'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class Syntax

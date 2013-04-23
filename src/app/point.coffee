@@ -172,9 +172,7 @@ class Point
   toArray: ->
     [@row, @column]
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
   
   inspect: ->
     "(#{@row}, #{@column})"

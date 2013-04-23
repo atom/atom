@@ -86,9 +86,7 @@ class ImageView extends ScrollView
     @image.height(@originalHeight)
     @centerImage()
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   adjustSize: (factor) ->
     return unless @loaded and @isVisible()

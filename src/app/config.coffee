@@ -29,9 +29,7 @@ class Config
   settings: null
   configFileHasErrors: null
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   constructor: ->
     @defaultSettings =

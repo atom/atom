@@ -18,9 +18,7 @@ class DisplayBuffer
   foldsById: null
   markers: null
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
@@ -45,9 +43,7 @@ class DisplayBuffer
     @trigger 'changed', eventProperties
     @resumeMarkerObservers()
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
@@ -332,9 +328,7 @@ class DisplayBuffer
   clipScreenPosition: (position, options) ->
     @lineMap.clipScreenPosition(position, options)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   registerFold: (fold) ->
     @activeFolds[fold.startRow] ?= []
@@ -433,9 +427,7 @@ class DisplayBuffer
 
     lineFragments
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Given a line, finds the point where it would wrap.
   #
@@ -695,9 +687,7 @@ class DisplayBuffer
   observeMarker: (id, callback) ->
     @getMarker(id).observe(callback)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   pauseMarkerObservers: ->
     marker.pauseEvents() for marker in @getMarkers()

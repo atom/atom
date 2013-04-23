@@ -29,9 +29,7 @@ class Git
   upstream: null
   statusTask: null
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   # Internal: Creates a new `Git` object.
   #
@@ -72,9 +70,7 @@ class Git
 
     @unsubscribe()
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Retrieves the git repository.
   #
@@ -245,9 +241,7 @@ class Git
   getLineDiffs: (path, text) ->
     @getRepo().getLineDiffs(@relativize(path), text)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   refreshStatus: ->
     if @statusTask?

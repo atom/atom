@@ -14,10 +14,8 @@ class Cursor
   visible: true
   needsAutoscroll: null
 
-  ###
-  # Internal #
-  ###
-
+  ### Internal ###
+  
   constructor: ({@editSession, @marker}) ->
     @updateVisibility()
     @editSession.observeMarker @marker, (e) =>
@@ -53,9 +51,7 @@ class Cursor
     unless fn()
       @trigger 'autoscrolled' if @needsAutoscroll
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Moves a cursor to a given screen position.
   #

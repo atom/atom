@@ -1,6 +1,4 @@
-###
-# Internal #
-###
+### Internal ###
 
 class SegmentMatcher
   constructor: (segment) ->

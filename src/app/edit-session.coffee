@@ -15,9 +15,7 @@ module.exports =
 class EditSession
   registerDeserializer(this)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   @version: 1
 
@@ -93,9 +91,7 @@ class EditSession
   copy: ->
     EditSession.deserialize(@serialize(), @project)
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Retrieves the filename of the open file.
   #
@@ -614,9 +610,7 @@ class EditSession
   redo: ->
     @buffer.redo(this)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   transact: (fn) ->
     isNewTransaction = @buffer.transact()
@@ -639,9 +633,7 @@ class EditSession
   abort: ->
     @buffer.abort()
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Folds all the rows.
   foldAll: ->
@@ -897,9 +889,7 @@ class EditSession
       @foldCurrentRow() if cursorRowFolded
 
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
@@ -918,9 +908,7 @@ class EditSession
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Constructs a new marker at the given screen range.
   #

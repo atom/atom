@@ -9,16 +9,12 @@ class DisplayBufferMarker
   tailScreenPosition: null
   valid: true
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   constructor: ({@id, @displayBuffer}) ->
     @buffer = @displayBuffer.buffer
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   # Public: Gets the screen range of the display marker.
   #
@@ -127,9 +123,7 @@ class DisplayBufferMarker
     @off 'changed', callback
     @unobserveBufferMarkerIfNeeded()
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   observeBufferMarkerIfNeeded: ->
     return if @subscriptionCount()

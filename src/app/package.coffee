@@ -1,8 +1,6 @@
 fsUtils = require 'fs-utils'
 
-###
-# Internal #
-###
+### Internal ###
 module.exports =
 class Package
   @build: (path) ->

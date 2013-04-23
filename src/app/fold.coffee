@@ -13,9 +13,7 @@ class Fold
   startRow: null
   endRow: null
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   constructor: (@displayBuffer, @startRow, @endRow) ->
     @id = @constructor.idCounter++

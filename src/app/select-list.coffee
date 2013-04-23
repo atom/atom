@@ -6,9 +6,7 @@ fuzzyFilter = require 'fuzzy-filter'
 module.exports =
 class SelectList extends View
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   @content: ->
     @div class: @viewClass(), =>
