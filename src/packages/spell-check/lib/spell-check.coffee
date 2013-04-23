@@ -1,5 +1,3 @@
-SpellCheckView = require './spell-check-view'
-
 module.exports =
   configDefaults:
     grammars: [
@@ -8,7 +6,10 @@ module.exports =
       'text.git-commit'
     ]
 
+  createView: (editor) ->
+    @spellCheckViewClass ?= require './spell-check-view'
+    new @spellCheckViewClass(editor)
+
   activate: ->
-    rootView.eachEditor (editor) ->
-      if editor.attached and not editor.mini
-        editor.underlayer.append(new SpellCheckView(editor))
+    rootView.eachEditor (editor) =>
+      editor.underlayer.append(@createView(editor)) if editor.getPane()?
