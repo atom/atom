@@ -11,7 +11,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 # Public: Represents the entire visual pane in Atom.
-# 
+#
 # The Editor manages the {EditSession}, which manages the file buffers.
 module.exports =
 class Editor extends View
@@ -28,7 +28,7 @@ class Editor extends View
 
   ###
   # Internal #
-  ### 
+  ###
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
@@ -65,9 +65,9 @@ class Editor extends View
 
   # Public: The constructor for setting up an `Editor` instance.
   #
-  # editSessionOrOptions - Either an {EditSession}, or an object with one property, `mini`.  
-  #                        If `mini` is `true`, a "miniature" `EditSession` is constructed. 
-  #                        Typically, this is ideal for scenarios where you need an Atom editor, 
+  # editSessionOrOptions - Either an {EditSession}, or an object with one property, `mini`.
+  #                        If `mini` is `true`, a "miniature" `EditSession` is constructed.
+  #                        Typically, this is ideal for scenarios where you need an Atom editor,
   #                        but without all the chrome, like scrollbars, gutter, _e.t.c._.
   #
   initialize: (editSessionOrOptions) ->
@@ -321,7 +321,7 @@ class Editor extends View
   #
   # bufferRange - A {Range} in the buffer
   # options - A hash of options
-  setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)  
+  setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
   # Public: Given an array of buffer ranges, this removes all previous selections and creates new selections for them.
   #
   # bufferRanges - An {Array} of {Range}s in the buffer
@@ -332,7 +332,7 @@ class Editor extends View
   # bufferRange - A {Range} in the buffer
   # options - A hash of options
   #
-  # Returns the new {Selection}.  
+  # Returns the new {Selection}.
   addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
   # Public: Selects the text one position right of the cursor.
   selectRight: -> @activeEditSession.selectRight()
@@ -395,7 +395,7 @@ class Editor extends View
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
   # Public: Performs a delete to the end of the current line, removing characters found there.
   deleteLine: -> @activeEditSession.deleteLine()
-  # Public: Performs a cut to the end of the current line. 
+  # Public: Performs a cut to the end of the current line.
   #
   # Characters are removed, but the text remains in the clipboard.
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
@@ -510,12 +510,12 @@ class Editor extends View
   # Public: Given a position, this clips it to a real position.
   #
   # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real position.
   #
   # position - The {Point} to clip
   # options - A hash with the following values:
-  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines 
+  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines
   #           :wrapAtSoftNewlines - if `true`, continues wrapping past soft newlines
   #           :screenLine - if `true`, indicates that you're using a line number, not a row number
   #
@@ -530,23 +530,23 @@ class Editor extends View
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (position, options) -> @activeEditSession.screenPositionForBufferPosition(position, options)
-  
+
   # Public: Given a buffer range, this converts it into a screen position.
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   # options - The same options available to {DisplayBuffer.bufferPositionForScreenPosition}.
   #
-  # Returns a {Point}. 
+  # Returns a {Point}.
   bufferPositionForScreenPosition: (position, options) -> @activeEditSession.bufferPositionForScreenPosition(position, options)
-  
+
   # Public: Given a buffer range, this converts it into a screen position.
   #
   # bufferRange - The {Range} to convert
   #
   # Returns a {Range}.
   screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
-  
+
   # Public: Given a screen range, this converts it into a buffer position.
   #
   # screenRange - The {Range} to convert
@@ -630,7 +630,7 @@ class Editor extends View
   #
   # Returns a {String}.
   getPath: -> @activeEditSession?.getPath()
-  # Public: Gets the number of lines in a file. 
+  # Public: Gets the number of lines in a file.
   #
   # Returns a {Number}.
   getLineCount: -> @getBuffer().getLineCount()
@@ -663,7 +663,7 @@ class Editor extends View
   # Public: Given a buffer row, this retrieves the range for that line.
   #
   # row - A {Number} identifying the row
-  # options - A hash with one key, `includeNewline`, which specifies whether you 
+  # options - A hash with one key, `includeNewline`, which specifies whether you
   #           want to include the trailing newline
   #
   # Returns a {Range}.
@@ -876,7 +876,7 @@ class Editor extends View
   #
   # Returns the current {Buffer}.
   getBuffer: -> @activeEditSession.buffer
-  
+
   # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
     @scrollBottom(@screenLineCount() * @lineHeight)
@@ -993,7 +993,7 @@ class Editor extends View
   # Public: Sets the soft wrap column for the editor.
   #
   # softWrap - A {Boolean} which, if `true`, sets soft wraps
-  # softWrapColumn - A {Number} indicating the length of a line in the editor when soft 
+  # softWrapColumn - A {Number} indicating the length of a line in the editor when soft
   # wrapping turns on
   setSoftWrap: (softWrap, softWrapColumn=undefined) ->
     @activeEditSession.setSoftWrap(softWrap)
