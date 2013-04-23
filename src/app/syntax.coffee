@@ -23,6 +23,7 @@ class Syntax
     @nullGrammar = new NullGrammar
     @grammars = [@nullGrammar]
     @grammarsByScopeName = {}
+    @injectionGrammars = []
     @grammarOverridesByPath = {}
     @scopedPropertiesIndex = 0
     @scopedProperties = []
@@ -34,12 +35,14 @@ class Syntax
     previousGrammars = new Array(@grammars...)
     @grammars.push(grammar)
     @grammarsByScopeName[grammar.scopeName] = grammar
+    @injectionGrammars.push(grammar) if grammar.injectionSelector?
     @grammarUpdated(grammar.scopeName)
     @trigger 'grammar-added', grammar
 
   removeGrammar: (grammar) ->
     _.remove(@grammars, grammar)
     delete @grammarsByScopeName[grammar.scopeName]
+    _.remove(@injectionGrammars, grammar)
     @grammarUpdated(grammar.scopeName)
 
   grammarUpdated: (scopeName) ->

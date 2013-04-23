@@ -27,8 +27,6 @@ class TextMateGrammar
   @loadSync: (path) ->
     new TextMateGrammar(fsUtils.readObject(path))
 
-  @injectionGrammars: []
-
   name: null
   rawPatterns: null
   rawRepository: null
@@ -47,7 +45,6 @@ class TextMateGrammar
 
     if injectionSelector?
       @injectionSelector = new TextMateScopeSelector(injectionSelector)
-      TextMateGrammar.injectionGrammars.push(this)
 
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
@@ -279,7 +276,7 @@ class Rule
       results.push(result)
 
     scopes = scopesFromStack(ruleStack)
-    for injectionGrammar in _.without(TextMateGrammar.injectionGrammars, @grammar, baseGrammar)
+    for injectionGrammar in _.without(syntax.injectionGrammars, @grammar, baseGrammar)
       if injectionGrammar.injectionSelector.matches(scopes)
         scanner = injectionGrammar.getInitialRule().getScanner(injectionGrammar, position, firstLine)
         if result = scanner.findNextMatch(lineWithNewline, position)
