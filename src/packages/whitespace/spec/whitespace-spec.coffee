@@ -87,29 +87,30 @@ describe "Whitespace", ->
       expect(editor.getText()).toBe "foo\n"
       expect(editor.getCursorBufferPosition()).toEqual([0,3])
 
-  describe "whitespace.ignoredGrammars config", ->
-    [originalConfigValue] = []
+  describe "GFM whitespace trimming", ->
     grammar = null
 
     beforeEach ->
-      originalConfigValue = config.get("whitespace.ignoredGrammars")
-      expect(originalConfigValue).toEqual ["GitHub Markdown"]
       spyOn(syntax, "addGrammar").andCallThrough()
       atom.activatePackage("gfm")
       expect(syntax.addGrammar).toHaveBeenCalled()
       grammar = syntax.addGrammar.argsForCall[0][0]
 
-    afterEach ->
-      config.set("whitespace.ignoredGrammars", originalConfigValue)
-      config.update()
-
-    it "parses the grammar as GFM", ->
-      expect(grammar).toBeDefined()
-      expect(grammar.scopeName).toBe "source.gfm"
-
-    it "leaves GFM files alone", ->
+    it "trims GFM text with a single space", ->
       editor.activeEditSession.setGrammar(grammar)
-      expect(editor.getGrammar().name).toBe "GitHub Markdown"
+      editor.insertText "foo \nline break!"
+      editor.getBuffer().save()
+      expect(editor.getText()).toBe "foo\nline break!\n"
+
+    it "leaves GFM text with double spaces alone", ->
+      editor.activeEditSession.setGrammar(grammar)
       editor.insertText "foo  \nline break!"
       editor.getBuffer().save()
-      expect(editor.getText()).toBe "foo  \nline break!"
+      expect(editor.getText()).toBe "foo  \nline break!\n"
+
+
+    it "trims GFM text with a more than two spaces", ->
+      editor.activeEditSession.setGrammar(grammar)
+      editor.insertText "foo   \nline break!"
+      editor.getBuffer().save()
+      expect(editor.getText()).toBe "foo\nline break!\n"

@@ -9,11 +9,9 @@ module.exports =
     buffer = editSession.buffer
     buffer.on 'will-be-saved', ->
       buffer.transact ->
-        regex = null
-
-        buffer.scan /[ \t]+$/g, ({match, replace}) -> 
+        buffer.scan /[ \t]+$/g, ({match, replace}) ->
           # GFM permits two whitespaces at the end of a line--trim anything else
-          unless editSession.getGrammar().scopeName = "scope.gfm" and match[0].length == 2
+          unless editSession.getGrammar().scopeName is "source.gfm" and match[0] == "  "
             replace('')
 
         if config.get('whitespace.ensureSingleTrailingNewline')
