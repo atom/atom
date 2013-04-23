@@ -74,8 +74,6 @@ class TextMatePackage extends Package
   getGrammars: -> @grammars
 
   loadScopedProperties: ->
-    @scopedProperties = []
-
     for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
         selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
