@@ -45,16 +45,18 @@ class TextMatePackage extends Package
 
   loadGrammars: (done) ->
     fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
-      if isDirectory
-        fsUtils.listAsync @syntaxesPath, @legalGrammarExtensions, (err, paths) =>
-          return console.log("Error loading grammars of TextMate package '#{@path}':", err.stack, err) if err
-          async.waterfall [
-              (next) =>
-                async.eachSeries paths, @loadGrammarAtPath, next
-              (next) =>
-                @loadScopedProperties()
-                next()
-          ], done
+      return unless isDirectory
+
+      fsUtils.listAsync @syntaxesPath, @legalGrammarExtensions, (err, paths) =>
+        return console.log("Error loading grammars of TextMate package '#{@path}':", err.stack, err) if err
+        async.waterfall [
+            (next) =>
+              async.eachSeries paths, @loadGrammarAtPath, next
+            (next) =>
+              @loadScopedProperties()
+              next()
+        ], done
+
   loadGrammarAtPath: (path, done) =>
     TextMateGrammar.load path, (err, grammar) =>
       return console.log("Error loading grammar at path '#{path}':", err.stack ? err) if err
