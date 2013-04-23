@@ -29,6 +29,7 @@ class TextMatePackage extends Package
   load: ({sync}={}) ->
     if sync
       @loadGrammarsSync()
+      @loadScopedPropertiesSync()
     else
       TextMatePackage.getLoadQueue().push(this)
 
@@ -45,10 +46,14 @@ class TextMatePackage extends Package
 
   loadGrammars: (done) ->
     fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
-      return unless isDirectory
+      return done() unless isDirectory
 
-      fsUtils.listAsync @syntaxesPath, @legalGrammarExtensions, (err, paths) =>
-        return console.log("Error loading grammars of TextMate package '#{@path}':", err.stack, err) if err
+      fsUtils.listAsync @syntaxesPath, @legalGrammarExtensions, (error, paths) =>
+        if error?
+          console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
+          done()
+          return
+
         async.waterfall [
             (next) =>
               async.eachSeries paths, @loadGrammarAtPath, next
@@ -64,7 +69,7 @@ class TextMatePackage extends Package
       done()
 
   loadGrammarsSync: ->
-    for path in fsUtils.list(@syntaxesPath, @legalGrammarExtensions) ? []
+    for path in fsUtils.list(@syntaxesPath, @legalGrammarExtensions)
       @addGrammar(TextMateGrammar.loadSync(path))
 
   addGrammar: (grammar) ->
@@ -73,30 +78,60 @@ class TextMatePackage extends Package
 
   getGrammars: -> @grammars
 
-  loadScopedProperties: ->
+  loadScopedPropertiesSync: ->
     for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
         selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
         @scopedProperties.push({selector, properties})
 
-    for {scope, settings} in @getTextMatePreferenceObjects()
+    for path in fsUtils.list(@preferencesPath)
+      {scope, settings} = fsUtils.readObject(path)
       if properties = @propertiesFromTextMateSettings(settings)
         selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
         @scopedProperties.push({selector, properties})
 
-    if atom.isPackageActive(@path)
-      for { selector, properties } in @scopedProperties
-        syntax.addProperties(@path, selector, properties)
+    for {selector, properties} in @scopedProperties
+      syntax.addProperties(@path, selector, properties)
 
-  getTextMatePreferenceObjects: ->
+  loadScopedProperties: ->
+    scopedProperties = []
+
+    for grammar in @getGrammars()
+      if properties = @propertiesFromTextMateSettings(grammar)
+        selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
+        scopedProperties.push({selector, properties})
+
     preferenceObjects = []
-    if fsUtils.exists(@preferencesPath)
-      for preferencePath in fsUtils.list(@preferencesPath)
-        try
-          preferenceObjects.push(fsUtils.readObject(preferencePath))
-        catch e
-          console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
-    preferenceObjects
+    done = =>
+      for {scope, settings} in preferenceObjects
+        if properties = @propertiesFromTextMateSettings(settings)
+          selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
+          scopedProperties.push({selector, properties})
+
+      @scopedProperties = scopedProperties
+      if atom.isPackageActive(@path)
+        for { selector, properties } in @scopedProperties
+          syntax.addProperties(@path, selector, properties)
+    @loadTextMatePreferenceObjects(preferenceObjects, done)
+
+  loadTextMatePreferenceObjects: (preferenceObjects, done) ->
+    fsUtils.isDirectoryAsync @preferencesPath, (isDirectory) =>
+      return done() unless isDirectory
+
+      fsUtils.listAsync @preferencesPath, (error, paths) =>
+        if error?
+          console.log("Error loading preferences of TextMate package '#{@path}':", error.stack, error)
+          done()
+          return
+
+        loadPreferencesAtPath = (path, done) ->
+          fsUtils.readObjectAsync path, (error, preferences) =>
+            if error?
+              console.warn("Failed to parse preference at path '#{path}'", error.stack, error)
+            else
+              preferenceObjects.push(preferences)
+            done()
+        async.eachSeries paths, loadPreferencesAtPath, done
 
   propertiesFromTextMateSettings: (textMateSettings) ->
     if textMateSettings.shellVariables
