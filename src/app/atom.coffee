@@ -58,10 +58,7 @@ _.extend atom,
     _.clone(@activePackages)
 
   loadPackages: ->
-    measure "load packages", =>
-      for path in @getPackagePaths() when not @isPackageDisabled(path)
-        measure "loading #{fsUtils.base(path)}", =>
-          @loadPackage(path)
+    @loadPackage(path) for path in @getPackagePaths() when not @isPackageDisabled(path)
 
   loadPackage: (id, options) ->
     if @isPackageDisabled(id)
