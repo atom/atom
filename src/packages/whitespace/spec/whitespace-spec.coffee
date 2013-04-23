@@ -108,7 +108,6 @@ describe "Whitespace", ->
       editor.getBuffer().save()
       expect(editor.getText()).toBe "foo  \nline break!\n"
 
-
     it "trims GFM text with a more than two spaces", ->
       editor.activeEditSession.setGrammar(grammar)
       editor.insertText "foo   \nline break!"
