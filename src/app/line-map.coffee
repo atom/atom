@@ -1,5 +1,6 @@
 Point = require 'point'
 Range = require 'range'
+_ = require 'underscore'
 
 # Internal: Responsible for doing the translations between screen positions and buffer positions.
 module.exports =
@@ -22,11 +23,11 @@ class LineMap
         @maxScreenLineLength = 0
         maxLengthCandidates = @screenLines
 
-    @screenLines.splice(startRow, rowCount, screenLines...)
+    _.spliceWithArray(@screenLines, startRow, rowCount, screenLines)
 
     for screenLine in maxLengthCandidates
       @maxScreenLineLength = Math.max(@maxScreenLineLength, screenLine.text.length)
-  
+
   # Public: Gets the line for the given screen row.
   #
   # screenRow - A {Number} indicating the screen row.
@@ -43,7 +44,7 @@ class LineMap
   # Returns an {Array} of {String}s.
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
-    
+
   # Public: Given a starting and ending row, this converts every row into a buffer position.
   #
   # startRow - The row {Number} to start at
@@ -62,7 +63,7 @@ class LineMap
 
   screenLineCount: ->
     @screenLines.length
-    
+
   # Retrieves the last row number in the buffer.
   #
   # Returns an {Integer}.
@@ -97,7 +98,7 @@ class LineMap
     else
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
-    
+
   # Public: Given a buffer position, this converts it into a screen position.
   #
   # bufferPosition - An object that represents a buffer position. It can be either
@@ -143,7 +144,7 @@ class LineMap
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   # options - The same options available to {.clipScreenPosition}.
   #
-  # Returns a {Point}. 
+  # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) ->
     { row, column } = @clipScreenPosition(Point.fromObject(screenPosition), options)
     [bufferRow, screenLine] = @bufferRowAndScreenLineForScreenRow(row)
@@ -159,7 +160,7 @@ class LineMap
         bufferRow += screenLine.bufferRows
 
     [bufferRow, screenLine]
-    
+
   # Public: Given a buffer range, this converts it into a screen position.
   #
   # bufferRange - The {Range} to convert

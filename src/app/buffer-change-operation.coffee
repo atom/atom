@@ -68,8 +68,9 @@ class BufferChangeOperation
     normalizeLineEndings = @options.normalizeLineEndings ? true
     if normalizeLineEndings and suggestedLineEnding = @buffer.suggestedLineEndingForRow(startRow)
       lineEndings[index] = suggestedLineEnding for index in [0..lastLineIndex]
-    @buffer.lines[startRow..endRow] = lines
-    @buffer.lineEndings[startRow..endRow] = lineEndings
+
+    _.spliceWithArray(@buffer.lines, startRow, endRow - startRow + 1, lines)
+    _.spliceWithArray(@buffer.lineEndings, startRow, endRow - startRow + 1, lineEndings)
     @buffer.cachedMemoryContents = null
     @buffer.conflict = false if @buffer.conflict and !@buffer.isModified()
 
