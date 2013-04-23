@@ -83,13 +83,13 @@ class AtomPackage extends Package
   loadGrammars: ->
     @grammars = []
     grammarsDirPath = fsUtils.join(@path, 'grammars')
-    for grammarPath in fsUtils.list(grammarsDirPath, ['.cson', '.json'])
+    for grammarPath in fsUtils.list(grammarsDirPath, ['.json', '.cson'])
       @grammars.push(TextMateGrammar.loadSync(grammarPath))
 
   loadScopedProperties: ->
     @scopedProperties = []
     scopedPropertiessDirPath = fsUtils.join(@path, 'scoped-properties')
-    for scopedPropertiesPath in fsUtils.list(scopedPropertiessDirPath, ['.cson', '.json'])
+    for scopedPropertiesPath in fsUtils.list(scopedPropertiessDirPath, ['.json', '.cson'])
       for selector, properties of fsUtils.readObject(scopedPropertiesPath)
         @scopedProperties.push([scopedPropertiesPath, selector, properties])
 
