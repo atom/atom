@@ -32,7 +32,7 @@ class LineMap
   #
   # screenRow - A {Number} indicating the screen row.
   #
-  # Returns a {String}.
+  # Returns a {ScreenLine}.
   lineForScreenRow: (row) ->
     @screenLines[row]
 
@@ -41,16 +41,17 @@ class LineMap
   # start - A {Number} indicating the beginning screen row.
   # end - A {Number} indicating the ending screen row.
   #
-  # Returns an {Array} of {String}s.
+  # Returns an {Array} of {ScreenLine}s.
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
 
-  # Public: Given a starting and ending row, this converts every row into a buffer position.
+  # Public: Given starting and ending screen rows, this returns an array of the
+  # buffer rows corresponding to every screen row in the range
   #
-  # startRow - The row {Number} to start at
-  # endRow - The row {Number} to end at (default: {.lastScreenRow})
+  # startRow - The screen row {Integer} to start at
+  # endRow - The screen row {Integer} to end at (default: {.lastScreenRow})
   #
-  # Returns an {Array} of {Range}s.
+  # Returns an {Array} of buffer rows as {Integers}s.
   bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow()) ->
     bufferRows = []
     bufferRow = 0
@@ -64,7 +65,7 @@ class LineMap
   screenLineCount: ->
     @screenLines.length
 
-  # Retrieves the last row number in the buffer.
+  # Retrieves the last screen row in the buffer.
   #
   # Returns an {Integer}.
   lastScreenRow: ->
