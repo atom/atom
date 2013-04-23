@@ -621,11 +621,11 @@ class Editor extends View
   # Public: Replaces the current buffer contents.
   #
   # text - A {String} containing the new buffer contents.
-  setText: (text) -> @getBuffer().setText(text)
+  setText: (text) -> @activeEditSession.setText(text)
   # Public: Retrieves the current buffer contents.
   #
   # Returns a {String}.
-  getText: -> @getBuffer().getText()
+  getText: -> @activeEditSession.getText()
   # Public: Retrieves the current buffer's file path.
   #
   # Returns a {String}.
