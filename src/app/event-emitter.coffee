@@ -6,11 +6,10 @@ _ = require 'underscore'
 module.exports =
   # Public: Associates an event name with a function to perform.
   #
-  # This is called endlessly, until the event is turned {.off}. The {.on} method
-  # calls an `eventName` only once.
+  # This is called endlessly, until the event is turned {.off}.
   #
-  # eventNames - A {String} name identifying one or more events
-  # handler - A {Function} that's executed when the event is triggered
+  # eventNames - A {String} containing one or more space-separated events.
+  # handler - A {Function} that's executed when the event is triggered.
   on: (eventNames, handler) ->
     for eventName in eventNames.split(/\s+/) when eventName isnt ''
       [eventName, namespace] = eventName.split('.')
@@ -58,7 +57,7 @@ module.exports =
 
   # Public: Stops executing handlers for a registered event.
   #
-  # eventNames - A {String} name identifying one or more events
+  # eventNames - A {String} containing one or more space-separated events.
   # handler - The {Function} to remove from the event. If not provided, all handlers are removed.
   off: (eventNames, handler) ->
     if eventNames
