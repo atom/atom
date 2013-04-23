@@ -53,4 +53,15 @@ describe "underscore extensions", ->
       expect(_.underscore("CoreyDaleJohnson")).toBe "corey_dale_johnson"
       expect(_.underscore("corey_dale_johnson")).toBe "corey_dale_johnson"
 
+  describe "spliceWithArray(originalArray, start, length, insertedArray, chunkSize)", ->
+    describe "when the inserted array is smaller than the chunk size", ->
+      it "splices the array in place", ->
+        array = ['a', 'b', 'c']
+        _.spliceWithArray(array, 1, 1, ['v', 'w', 'x', 'y', 'z'], 100)
+        expect(array).toEqual ['a', 'v', 'w', 'x', 'y', 'z', 'c']
 
+    describe "when the inserted array is larger than the chunk size", ->
+      it "splices the array in place one chunk at a time (to avoid stack overflows)", ->
+        array = ['a', 'b', 'c']
+        _.spliceWithArray(array, 1, 1, ['v', 'w', 'x', 'y', 'z'], 2)
+        expect(array).toEqual ['a', 'v', 'w', 'x', 'y', 'z', 'c']

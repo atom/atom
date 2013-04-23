@@ -5,6 +5,14 @@ _.mixin
     index = array.indexOf(element)
     array.splice(index, 1) if index >= 0
 
+  spliceWithArray: (originalArray, start, length, insertedArray, chunkSize=100000) ->
+    if insertedArray.length < chunkSize
+      originalArray.splice(start, length, insertedArray...)
+    else
+      originalArray.splice(start, length)
+      for chunkStart in [0..insertedArray.length] by chunkSize
+        originalArray.splice(start + chunkStart, 0, insertedArray.slice(chunkStart, chunkStart + chunkSize)...)
+
   sum: (array) ->
     sum = 0
     sum += elt for elt in array
