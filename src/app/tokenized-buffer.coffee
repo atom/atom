@@ -28,12 +28,8 @@ class TokenizedBuffer
     @id = @constructor.idCounter++
     @resetScreenLines()
     @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
-    @languageMode.on 'grammar-changed', => @resetScreenLines()
-    @languageMode.on 'grammar-updated', => @resetScreenLines()
-    @subscribe syntax, 'grammar-updated', (grammar) =>
-      if grammar.injectionSelector? and @hasTokenForSelector(grammar.injectionSelector)
-        @resetScreenLines()
-    @subscribe syntax, 'grammar-added', (grammar) =>
+    @languageMode.on 'grammar-changed grammar-updated', => @resetScreenLines()
+    @subscribe syntax, 'grammar-updated grammar-added', (grammar) =>
       if grammar.injectionSelector? and @hasTokenForSelector(grammar.injectionSelector)
         @resetScreenLines()
 
