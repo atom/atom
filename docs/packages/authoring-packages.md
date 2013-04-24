@@ -200,3 +200,12 @@ your grammar supports:
   'ron'
 ]
 ```
+
+## Writing Tests
+
+Your package **should** have tests, and if they're placed in the _spec_ directory,
+they can be run by Atom.
+
+Under the hood, [Jasmine](https://github.com/pivotal/jasmine) is being used to run
+to execute the tests, so you can assume that any DSL available there is available
+to your package as well.
