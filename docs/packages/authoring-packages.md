@@ -40,8 +40,8 @@ available, Atom package.json files [have their own additions](./package_json.md)
 ## Source Code
 
 If you want to extend Atom's behavior, your package should contain a single
-top-level module, which you export from `index.coffee` (or whichever file is
-indicated by the `main` key in your `package.json` file). The remainder of your
+top-level module, which you export from _index.coffee_ (or whichever file is
+indicated by the `main` key in your _package.json_ file). The remainder of your
 code should be placed in the `lib` directory, and required from your top-level
 file.
 
@@ -105,27 +105,27 @@ for examples of Atom's API in action.
 
 ## Stylesheets
 
-Stylesheets for your package should be placed in the `stylesheets` directory.
+Stylesheets for your package should be placed in the _stylesheets_ directory.
 Any stylesheets in this directory will be loaded and attached to the DOM when
 your package is activated. Stylesheets can be written as CSS or LESS.
 
-An optional `stylesheets` array in your `package.json` can list the stylesheets by
+An optional `stylesheets` array in your _package.json_ can list the stylesheets by
 name to specify a loading order; otherwise, stylesheets are loaded alphabetically.
 
 ## Keymaps
 
-Keymaps are placed in the `keymaps` subdirectory. It's a good idea to provide
+Keymaps are placed in the _keymaps_ subdirectory. It's a good idea to provide
 default keymaps for your extension, especially if you're also adding a new command.
 
 By default, all keymaps are loaded in alphabetical order. An optional `keymaps`
-array in your `package.json` can specify which keymaps to load and in what order.
+array in your _package.json_ can specify which keymaps to load and in what order.
 
 See the [main keymaps documentation](../internals/keymaps.md) for more information on
 how keymaps work.
 
 ## Snippets
 
-An extension can supply language snippets in the `snippets` directory. These can
+An extension can supply language snippets in the _snippets_ directory. These can
 be `.cson` or `.json` files. Here's an example:
 
 ```coffeescript
@@ -149,6 +149,54 @@ the first few letters to type before hitting the `tab` key to autocomplete. The
 regions in the body the user can navigate to every time they hit `tab`.
 
 All files in the directory are automatically loaded, unless the
-`package.json` supplies a `snippets` key. As with all scoped
+_package.json_ supplies a `snippets` key. As with all scoped
 items, snippets loaded later take precedence over earlier snippets when two
 snippets match a scope with the same specificity.
+
+## Language Grammars
+
+If you're developing a new language grammar, you'll want to place your file in
+the _grammars_ directory. Each grammar is a pairing of two keys, `match` and
+`captures`. `match` is a regular expression identifying the pattern to highlight,
+while `captures` is a JSON representing what to do with each matching group.
+For example:
+
+
+```json
+{
+  'match': '(?:^|\\s)(__[^_]+__)'
+  'captures':
+    '1': 'name': 'markup.bold.gfm'
+}
+```
+
+This indicates that the first matching capture (`(__[^_]+__)`) should have the
+`markup.bold.gfm` token applied to it.
+
+To capture a single group, simply use the `name` key instead:
+
+```json
+{
+  'match': '^#{1,6}\\s+.+$'
+  'name': 'markup.heading.gfm'
+}
+```
+
+This indicates that Markdown header lines (`#`, `##`, `###`) should be applied with
+the `markup.heading.gfm` token.
+
+More information about the significance of these tokens can be found in
+[section 12.4 of the TextMate Manual](http://manual.macromates.com/en/language_grammars.html).
+
+Your grammar should also include a `filetypes` array, which is a list of file extensions
+your grammar supports:
+
+```
+'fileTypes': [
+  'markdown'
+  'md'
+  'mkd'
+  'mkdown'
+  'ron'
+]
+```

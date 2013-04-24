@@ -1,4 +1,4 @@
-# Authoring A Theme
+# Authoring Themes
 
 If you understand CSS, you can write an Atom theme easily. Your theme can style
 Atom's user interface, specify the appearance of syntax-highlighted code, or
