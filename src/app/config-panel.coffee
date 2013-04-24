@@ -32,6 +32,7 @@ class ConfigPanel extends View
 
   bindEditors: ->
     for editor in @find('.editor[id]').views()
+      console.log editor
       do (editor) =>
         name = editor.attr('id')
         type = editor.attr('type')
@@ -41,6 +42,6 @@ class ConfigPanel extends View
 
         editor.getBuffer().on 'contents-modified', ->
           value = editor.getText()
-          if type == 'int' then value = parseInt(value)
-          if type == 'float' then value = parseFloat(value)
+          if type == 'int' then value = parseInt(value) or 0
+          if type == 'float' then value = parseFloat(value) or 0
           config.set name, value
