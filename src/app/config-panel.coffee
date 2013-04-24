@@ -32,7 +32,6 @@ class ConfigPanel extends View
 
   bindEditors: ->
     for editor in @find('.editor[id]').views()
-      console.log editor
       do (editor) =>
         name = editor.attr('id')
         type = editor.attr('type')
