@@ -22,9 +22,9 @@ describe "Editor", ->
     editor.isFocused = true
     editor.enableKeymap()
     editor.attachToDom = ({ heightInLines, widthInChars } = {}) ->
-      heightInLines ?= this.getBuffer().getLineCount()
-      this.height(getLineHeight() * heightInLines)
-      this.width(getCharWidth() * widthInChars) if widthInChars
+      heightInLines ?= @getBuffer().getLineCount()
+      @height(getLineHeight() * heightInLines)
+      @width(getCharWidth() * widthInChars) if widthInChars
       $('#jasmine-content').append(this)
 
   getLineHeight = ->
