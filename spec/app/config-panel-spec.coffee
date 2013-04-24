@@ -72,3 +72,9 @@ describe "ConfigPanel", ->
     expect(config.get('foo.int')).toBe 3
     expect(config.get('foo.float')).toBe 3.3
     expect(config.get('foo.string')).toBe 'All limitations are self imposed.'
+
+    panel.intEditor.setText('')
+    panel.floatEditor.setText('ha ha')
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(config.get('foo.int')).toBe 0
+    expect(config.get('foo.float')).toBe 0
