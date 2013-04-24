@@ -165,8 +165,12 @@ describe "Window", ->
       it "copies atom.sh to the specified path", ->
         expect(fsUtils.exists(commandPath)).toBeFalsy()
         window.installAtomCommand(commandPath)
-        expect(fsUtils.exists(commandPath)).toBeTruthy()
-        expect(fsUtils.read(commandPath).length).toBeGreaterThan 1
+
+        waitsFor ->
+          fsUtils.exists(commandPath)
+
+        runs ->
+          expect(fsUtils.read(commandPath).length).toBeGreaterThan 1
 
   describe ".deserialize(state)", ->
     class Foo

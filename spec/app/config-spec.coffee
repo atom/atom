@@ -120,19 +120,33 @@ describe "Config", ->
 
     describe "when the configDirPath doesn't exist", ->
       it "copies the contents of dot-atom to ~/.atom", ->
-        config.initializeConfigDirectory()
-        expect(fsUtils.exists(config.configDirPath)).toBeTruthy()
-        expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'packages'))).toBeTruthy()
-        expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'snippets'))).toBeTruthy()
-        expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'themes'))).toBeTruthy()
-        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'config.cson'))).toBeTruthy()
+        initializationDone = false
+        jasmine.unspy(window, "setTimeout")
+        config.initializeConfigDirectory ->
+          initializationDone = true
+
+        waitsFor -> initializationDone
+
+        runs ->
+          expect(fsUtils.exists(config.configDirPath)).toBeTruthy()
+          expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'packages'))).toBeTruthy()
+          expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'snippets'))).toBeTruthy()
+          expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'themes'))).toBeTruthy()
+          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
       it "copies the bundles themes to ~/.atom", ->
-        config.initializeConfigDirectory()
-        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
-        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
-        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
-        expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
+        initializationDone = false
+        jasmine.unspy(window, "setTimeout")
+        config.initializeConfigDirectory ->
+          initializationDone = true
+
+        waitsFor -> initializationDone
+
+        runs ->
+          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
+          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
+          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
+          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
 
   describe "when the config file is not parseable", ->
     beforeEach ->

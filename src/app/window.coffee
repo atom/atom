@@ -72,13 +72,21 @@ window.shutdown = ->
   window.project = null
   window.git = null
 
-window.installAtomCommand = (commandPath) ->
-  return if fsUtils.exists(commandPath)
+window.installAtomCommand = (commandPath, done) ->
+  fs.exists commandPath, (exists) ->
+    return if exists
 
-  bundledCommandPath = fsUtils.resolve(window.resourcePath, 'atom.sh')
-  if bundledCommandPath?
-    fsUtils.write(commandPath, fsUtils.read(bundledCommandPath))
-    fs.chmod(commandPath, 0o755, commandPath)
+    bundledCommandPath = fsUtils.resolve(window.resourcePath, 'atom.sh')
+    if bundledCommandPath?
+      fs.readFile bundledCommandPath, (error, data) ->
+        if error?
+          console.warn "Failed to install `atom` binary", error
+        else
+          fsUtils.writeAsync commandPath, data, (error) ->
+            if error?
+              console.warn "Failed to install `atom` binary", error
+            else
+              fs.chmod(commandPath, 0o755, commandPath)
 
 window.handleWindowEvents = ->
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()

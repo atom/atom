@@ -111,7 +111,7 @@ module.exports =
       syntax.addProperties(selector, snippets: snippetsByPrefix)
 
   getBodyParser: ->
-    require 'snippets/lib/snippet-body-parser'
+    require './snippet-body-parser'
 
   enableSnippetsInEditor: (editor) ->
     editor.command 'snippets:expand', (e) =>
