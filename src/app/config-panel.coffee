@@ -5,6 +5,7 @@ module.exports =
 class ConfigPanel extends View
   initialize: ->
     @bindFormFields()
+    @bindEditors()
 
   bindFormFields: ->
     for input in @find('input[id]').toArray()
@@ -28,3 +29,18 @@ class ConfigPanel extends View
               !!input.attr('checked')
             else
               value
+
+  bindEditors: ->
+    for editor in @find('.editor[id]').views()
+      do (editor) =>
+        name = editor.attr('id')
+        type = editor.attr('type')
+
+        @observeConfig name, (value) ->
+          editor.setText(value.toString())
+
+        editor.getBuffer().on 'contents-modified', ->
+          value = editor.getText()
+          if type == 'int' then value = parseInt(value)
+          if type == 'float' then value = parseFloat(value)
+          config.set name, value
