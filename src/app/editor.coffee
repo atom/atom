@@ -826,6 +826,14 @@ class Editor extends View
     @activeEditSession.on "grammar-changed.editor", =>
       @trigger 'editor:grammar-changed'
 
+    @activeEditSession.on 'selection-added.editor', (selection) =>
+      @newCursors.push(selection.cursor)
+      @newSelections.push(selection)
+      @requestDisplayUpdate()
+
+    @activeEditSession.on 'screen-lines-changed.editor', (e) =>
+      @handleScreenLinesChange(e)
+
     @trigger 'editor:path-changed'
     @resetDisplay()
 
@@ -1178,14 +1186,6 @@ class Editor extends View
     @removeAllCursorAndSelectionViews()
     @updateLayerDimensions()
     @setScrollPositionFromActiveEditSession()
-
-    @activeEditSession.on 'selection-added.editor', (selection) =>
-      @newCursors.push(selection.cursor)
-      @newSelections.push(selection)
-      @requestDisplayUpdate()
-
-    @activeEditSession.on 'screen-lines-changed.editor', (e) => @handleScreenLinesChange(e)
-
     @newCursors = @activeEditSession.getCursors()
     @newSelections = @activeEditSession.getSelections()
     @updateDisplay(suppressAutoScroll: true)

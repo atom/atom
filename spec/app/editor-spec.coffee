@@ -2575,3 +2575,15 @@ describe "Editor", ->
       editor.on 'editor:will-be-removed', willBeRemovedHandler
       editor.getPane().destroyActiveItem()
       expect(willBeRemovedHandler).toHaveBeenCalled()
+
+
+  describe "when setInvisibles is toggled (regression)", ->
+    it "renders inserted newlines properly", ->
+      editor.setShowInvisibles(true)
+      editor.setCursorBufferPosition([0, 0])
+      editor.attachToDom(heightInLines: 20)
+      editor.setShowInvisibles(false)
+      editor.insertText("\n")
+
+      for rowNumber in [1..5]
+        expect(editor.lineElementForScreenRow(rowNumber).text()).toBe buffer.lineForRow(rowNumber)
