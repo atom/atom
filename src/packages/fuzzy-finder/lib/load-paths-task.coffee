@@ -22,11 +22,14 @@ class LoadPathsTask
       if code is 0
         @callback(paths)
       else
+        console.error "Path loading process exited with status #{code}"
         @callback([])
     stdout = (data) ->
       paths.push(_.compact(data.split('\n'))...)
+    stderr = (data) ->
+      console.error "Error in LoadPathsTask:\n#{data}"
 
-    @process = new BufferedProcess({command, args, stdout, exit})
+    @process = new BufferedProcess({command, args, stdout, stderr, exit})
 
   abort: ->
     if @process?
