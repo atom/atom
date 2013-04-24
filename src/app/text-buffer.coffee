@@ -434,6 +434,11 @@ class Buffer
 
   # Public: Finds all markers satisfying the given attributes
   #
+  # attributes - The attributes against which to compare the markers' attributes
+  #   There are some reserved keys that match against derived marker properties:
+  #   startRow - The row at which the marker starts
+  #   endRow - The row at which the marker ends
+  #
   # Returns an {Array} of {String} marker-identifiers
   findMarkers: (attributes) ->
     markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)

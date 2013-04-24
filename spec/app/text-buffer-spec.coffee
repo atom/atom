@@ -966,6 +966,11 @@ describe 'Buffer', ->
       it "returns the markers matching the given attributes, sorted by the buffer location and size of their ranges", ->
         expect(buffer.findMarkers(class: 'a')).toEqual [marker2, marker1, marker3]
 
+      it "allows the startRow and endRow to be specified", ->
+        expect(buffer.findMarkers(class: 'a', startRow: 0)).toEqual [marker2, marker1]
+        expect(buffer.findMarkers(class: 'a', startRow: 0, endRow: 3)).toEqual [marker1]
+        expect(buffer.findMarkers(endRow: 10)).toEqual [marker4]
+
     describe "marker destruction", ->
       marker = null
 

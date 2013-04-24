@@ -50,7 +50,13 @@ class BufferMarker
   # Returns a {Boolean}.
   matchesAttributes: (queryAttributes) ->
     for key, value of queryAttributes
-      return false unless _.isEqual(@attributes[key], value)
+      switch key
+        when 'startRow'
+          return false unless @getRange().start.row == value
+        when 'endRow'
+          return false unless @getRange().end.row == value
+        else
+          return false unless _.isEqual(@attributes[key], value)
     true
 
   # Public: Identifies if the marker's head position is equal to its tail.
