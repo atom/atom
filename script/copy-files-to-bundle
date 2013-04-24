@@ -6,7 +6,7 @@ set -e
 COMPILED_SOURCES_DIR="${1}"
 RESOUCES_PATH="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
 
-# Copy non-coffee files into bundle
+# Copy non-coffee/cson/less files into bundle
 rsync --archive --recursive \
       --exclude="src/**.coffee" \
       --exclude="src/**.cson" \
