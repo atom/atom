@@ -9,9 +9,9 @@ translate scope names to CSS classes. To theme Atom's user interface, take a
 look at the existing light and dark themes for an example. Pressing `alt-meta-i`
 and inspecting the Atom's markup directly can also be helpful.
 
-The most basic theme is just a `.css` file. More complex themes occupy their own
+The most basic theme is just a _.css_ file. More complex themes occupy their own
 folder, which can contain multiple stylesheets along with an optional
-`package.cson` file containing a manifest to control their load-order:
+_package.cson_ file containing a manifest to control their load-order:
 
 ```text
 ~/.atom/themes/
