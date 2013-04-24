@@ -1,10 +1,3 @@
-# Hack since the vendored less is in browser mode
-global.window = {}
-global.document =
-  getElementsByTagName: -> []
-global.location =
-  port: 80
-
 less = require 'less'
 fs = require 'fs'
 
