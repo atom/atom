@@ -71,6 +71,23 @@ class Range
 
     other.start.isEqual(@start) and other.end.isEqual(@end)
 
+  # Returns an integer (-1, 0, 1) indicating whether this range is less than, equal,
+  # or greater than the given range when sorting.
+  #
+  # Ranges that start earlier are considered "less than" ranges that start later.
+  # If ranges start at the same location, the larger range sorts before the smaller
+  # range.
+  #
+  # other - A {Range} to compare against.
+  #
+  # Returns a {Number}, either -1, 0, or 1.
+  compare: (other) ->
+    other = Range.fromObject(other)
+    if value = @start.compare(other.start)
+      value
+    else
+      other.end.compare(@end)
+
   # Public: Identifies if the `Range` is on the same line.
   #
   # In other words, if `start.row` is equal to `end.row`.

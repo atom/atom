@@ -33,6 +33,14 @@ describe "Range", ->
       expect(new Range([2, 1], [3, 10]).union(new Range([2, 5], [3, 1]))).toEqual [[2, 1], [3, 10]]
       expect(new Range([2, 5], [3, 1]).union(new Range([2, 1], [3, 10]))).toEqual [[2, 1], [3, 10]]
 
+  describe ".compare(otherRange)", ->
+    it "sorts earlier ranges first, and larger ranges first if both ranges start at the same place", ->
+      expect(new Range([1, 1], [2, 10]).compare(new Range([2, 1], [3, 10]))).toBe -1
+      expect(new Range([2, 1], [3, 10]).compare(new Range([1, 1], [2, 10]))).toBe 1
+      expect(new Range([1, 1], [3, 10]).compare(new Range([1, 1], [2, 10]))).toBe -1
+      expect(new Range([1, 1], [2, 10]).compare(new Range([1, 1], [3, 10]))).toBe 1
+      expect(new Range([1, 1], [3, 10]).compare(new Range([1, 1], [3, 10]))).toBe 0
+
   describe ".translate(startPoint, endPoint)", ->
     it "returns a range translates by the specified start and end points", ->
       expect(new Range([1, 1], [2, 10]).translate([1])).toEqual [[2, 1], [3, 10]]
