@@ -59,8 +59,8 @@ class BufferMarker
   isRangeEmpty: ->
     @getHeadPosition().isEqual(@getTailPosition())
 
-  # Public: Retrieves the {Range} between a marker's head and its tail. 
-  # 
+  # Public: Retrieves the {Range} between a marker's head and its tail.
+  #
   # Returns a {Range}.
   getRange: ->
     if @tailPosition

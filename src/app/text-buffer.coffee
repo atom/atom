@@ -97,7 +97,7 @@ class Buffer
 
     @file.on "moved", =>
       @trigger "path-changed", this
-      
+
   ###
   # Public #
   ###
@@ -106,7 +106,7 @@ class Buffer
   #
   # For example, if the {Editor} was split.
   #
-  # Returns a {Boolean}. 
+  # Returns a {Boolean}.
   hasMultipleEditors: -> @refcount > 1
 
   # Public: Reloads a file in the {EditSession}.
@@ -231,7 +231,7 @@ class Buffer
   # Public: Given a buffer row, this retrieves the range for that line.
   #
   # row - A {Number} identifying the row
-  # options - A hash with one key, `includeNewline`, which specifies whether you 
+  # options - A hash with one key, `includeNewline`, which specifies whether you
   #           want to include the trailing newline
   #
   # Returns a {Range}.
@@ -241,7 +241,7 @@ class Buffer
     else
       new Range([row, 0], [row, @lineLengthForRow(row)])
 
-  # Public: Gets the number of lines in a file. 
+  # Public: Gets the number of lines in a file.
   #
   # Returns a {Number}.
   getLineCount: ->
@@ -336,7 +336,7 @@ class Buffer
   # Public: Given a position, this clips it to a real position.
   #
   # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real position.
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
@@ -350,11 +350,11 @@ class Buffer
       column = Math.max(position.column, 0)
       column = Math.min(@lineLengthForRow(row), column)
       new Point(row, column)
-  
+
   # Public: Given a range, this clips it to a real range.
   #
   # For example, if `range`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value 
+  # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real range.
   #
   # range - The {Point} to clip
@@ -532,8 +532,8 @@ class Buffer
   setMarkerTailPosition: (id, position, options) ->
     @validMarkers[id]?.setTailPosition(position)
 
-  # Public: Retrieves the {Range} between a marker's head and its tail. 
-  # 
+  # Public: Retrieves the {Range} between a marker's head and its tail.
+  #
   # id - A {Number} representing the marker to check
   #
   # Returns a {Range}.
