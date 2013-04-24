@@ -13,7 +13,7 @@ class BufferMarker
   ###
   # Internal #
   ###
-  constructor: ({@id, @buffer, range, @invalidationStrategy, noTail, reverse}) ->
+  constructor: ({@id, @buffer, range, @invalidationStrategy, @attributes, noTail, reverse}) ->
     @invalidationStrategy ?= 'contains'
     @setRange(range, {noTail, reverse})
 
@@ -44,6 +44,14 @@ class BufferMarker
   # Returns a {Boolean}.
   isReversed: ->
     @tailPosition? and @headPosition.isLessThan(@tailPosition)
+
+  # Checks that the marker's attributes match the given attributes
+  #
+  # Returns a {Boolean}.
+  matchesAttributes: (queryAttributes) ->
+    for key, value of queryAttributes
+      return false unless _.isEqual(@attributes[key], value)
+    true
 
   # Public: Identifies if the marker's head position is equal to its tail.
   #

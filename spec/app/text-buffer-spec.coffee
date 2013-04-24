@@ -954,6 +954,18 @@ describe 'Buffer', ->
         buffer.setMarkerHeadPosition(marker, [6, 2])
         expect(observeHandler).not.toHaveBeenCalled()
 
+    describe ".findMarkers(attributes)", ->
+      [marker1, marker2, marker3, marker4] = []
+
+      beforeEach ->
+        marker1 = buffer.markRange([[0, 0], [3, 0]], class: 'a')
+        marker2 = buffer.markRange([[0, 0], [5, 0]], class: 'a')
+        marker3 = buffer.markRange([[6, 0], [7, 0]], class: 'a')
+        marker4 = buffer.markRange([[9, 0], [10, 0]], class: 'b')
+
+      it "returns the markers matching the given attributes, sorted by the buffer location and size of their ranges", ->
+        expect(buffer.findMarkers(class: 'a')).toEqual [marker2, marker1, marker3]
+
     describe "marker destruction", ->
       marker = null
 

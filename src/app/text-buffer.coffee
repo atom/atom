@@ -427,6 +427,19 @@ class Buffer
   getMarkers: ->
     _.values(@validMarkers)
 
+  # Public: Finds the first marker satisfying the given attributes
+  #
+  # Returns a {String} marker-identifier
+  findMarker: (attributes) ->
+
+  # Public: Finds all markers satisfying the given attributes
+  #
+  # Returns an {Array} of {String} marker-identifiers
+  findMarkers: (attributes) ->
+    markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
+    markers.sort (a, b) -> a.getRange().compare(b.getRange())
+    _.pluck(markers, 'id')
+
   # Public: Retrieves the quantity of markers in a buffer.
   #
   # Returns a {Number}.
@@ -436,14 +449,23 @@ class Buffer
   # Public: Constructs a new marker at a given range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
+  # attributes - An optional hash of serializable attributes
+  #   Any attributes you pass will be associated with the marker and can be retrieved
+  #   or used in marker queries.
+  #   The following attribute keys reserved, and control the marker's initial range
+  #   reverse - if `true`, the marker is reversed; that is, its head precedes the tail
+  #   noTail - if `true`, the marker is created without a tail
   #
   # Returns a {Number} representing the new marker's ID.
-  markRange: (range, options={}) ->
+  markRange: (range, attributes={}) ->
+    optionKeys = ['invalidationStrategy', 'noTail', 'reverse']
+    options = _.pick(attributes, optionKeys)
+    attributes = _.omit(attributes, optionKeys)
     marker = new BufferMarker(_.defaults({
       id: (@nextMarkerId++).toString()
       buffer: this
       range
+      attributes
     }, options))
     @validMarkers[marker.id] = marker
     marker.id
