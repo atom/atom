@@ -2,6 +2,8 @@ fsUtils = require 'fs-utils'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 CSON = require 'cson'
+fs = require 'fs'
+async = require 'async'
 
 configDirPath = fsUtils.absolute("~/.atom")
 bundledPackagesDirPath = fsUtils.join(resourcePath, "src/packages")
@@ -14,7 +16,7 @@ userPackagesDirPath = fsUtils.join(configDirPath, "packages")
 # Public: Handles all of Atom's configuration details.
 #
 # This includes loading and setting default options, as well as reading from the
-# user's configuration file. 
+# user's configuration file.
 module.exports =
 class Config
   configDirPath: configDirPath
@@ -38,24 +40,29 @@ class Config
     @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= fsUtils.join(configDirPath, 'config.cson')
 
-  initializeConfigDirectory: ->
+  initializeConfigDirectory: (done) ->
     return if fsUtils.exists(@configDirPath)
 
     fsUtils.makeDirectory(@configDirPath)
 
+
+    queue = async.queue ({sourcePath, destinationPath}, callback) =>
+      fsUtils.copy(sourcePath, destinationPath, callback)
+    queue.drain = done
+
     templateConfigDirPath = fsUtils.resolve(window.resourcePath, 'dot-atom')
-    onConfigDirFile = (path) =>
-      relativePath = path.substring(templateConfigDirPath.length + 1)
-      configPath = fsUtils.join(@configDirPath, relativePath)
-      fsUtils.write(configPath, fsUtils.read(path))
-    fsUtils.traverseTreeSync(templateConfigDirPath, onConfigDirFile, (path) -> true)
+    onConfigDirFile = (sourcePath) =>
+      relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
+      destinationPath = fsUtils.join(@configDirPath, relativePath)
+      queue.push({sourcePath, destinationPath})
+    fsUtils.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
     configThemeDirPath = fsUtils.join(@configDirPath, 'themes')
-    onThemeDirFile = (path) ->
-      relativePath = path.substring(bundledThemesDirPath.length + 1)
-      configPath = fsUtils.join(configThemeDirPath, relativePath)
-      fsUtils.write(configPath, fsUtils.read(path))
-    fsUtils.traverseTreeSync(bundledThemesDirPath, onThemeDirFile, (path) -> true)
+    onThemeDirFile = (sourcePath) ->
+      relativePath = sourcePath.substring(bundledThemesDirPath.length + 1)
+      destinationPath = fsUtils.join(configThemeDirPath, relativePath)
+      queue.push({sourcePath, destinationPath})
+    fsUtils.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 
   load: ->
     @initializeConfigDirectory()
@@ -76,14 +83,14 @@ class Config
   # keyPath - The {String} name of the key to retrieve
   #
   # Returns the value from Atom's default settings, the user's configuration file,
-  # or `null` if the key doesn't exist in either. 
+  # or `null` if the key doesn't exist in either.
   get: (keyPath) ->
     _.valueForKeyPath(@settings, keyPath) ?
       _.valueForKeyPath(@defaultSettings, keyPath)
 
   # Public: Sets the value for a configuration setting.
   #
-  # This value is stored in Atom's internal configuration file. 
+  # This value is stored in Atom's internal configuration file.
   #
   # keyPath - The {String} name of the key
   # value - The value of the setting

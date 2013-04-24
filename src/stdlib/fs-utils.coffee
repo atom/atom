@@ -165,6 +165,27 @@ module.exports =
   makeDirectory: (path) ->
     fs.mkdirSync(path)
 
+  copy: (sourcePath, destinationPath, done) ->
+    mkdirp @directory(destinationPath), (error) ->
+      if error?
+        done?(error)
+        return
+
+      sourceStream = fs.createReadStream(sourcePath)
+      sourceStream.on 'error', (error) ->
+        done?(error)
+        done = null
+
+      destinationStream = fs.createWriteStream(destinationPath)
+      destinationStream.on 'error', (error) ->
+        done?(error)
+        done = null
+      destinationStream.on 'close', ->
+        done?()
+        done = null
+
+      sourceStream.pipe(destinationStream)
+
   # Creates the directory specified by "path" including any missing parent
   # directories.
   makeTree: (path) ->
@@ -192,7 +213,7 @@ module.exports =
   traverseTree: (rootPath, onFile, onDirectory, onDone) ->
     fs.readdir rootPath, (error, files) =>
       if error
-        onDone()
+        onDone?()
       else
         queue = async.queue (path, callback) =>
           fs.stat path, (error, stats) =>
