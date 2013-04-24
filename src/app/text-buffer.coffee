@@ -587,7 +587,7 @@ class Buffer
   # startIndex - The starting row {Number}
   # endIndex - The ending row {Number}
   #
-  # Returns an {Array} of {RegExp}s, representing the matches
+  # Returns an {Array} of {RegExp}s, representing the matches.
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()
     matches = []

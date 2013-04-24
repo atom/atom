@@ -86,3 +86,30 @@ describe "Whitespace", ->
       editor.getBuffer().save()
       expect(editor.getText()).toBe "foo\n"
       expect(editor.getCursorBufferPosition()).toEqual([0,3])
+
+  describe "GFM whitespace trimming", ->
+    grammar = null
+
+    beforeEach ->
+      spyOn(syntax, "addGrammar").andCallThrough()
+      atom.activatePackage("gfm")
+      expect(syntax.addGrammar).toHaveBeenCalled()
+      grammar = syntax.addGrammar.argsForCall[0][0]
+
+    it "trims GFM text with a single space", ->
+      editor.activeEditSession.setGrammar(grammar)
+      editor.insertText "foo \nline break!"
+      editor.getBuffer().save()
+      expect(editor.getText()).toBe "foo\nline break!\n"
+
+    it "leaves GFM text with double spaces alone", ->
+      editor.activeEditSession.setGrammar(grammar)
+      editor.insertText "foo  \nline break!"
+      editor.getBuffer().save()
+      expect(editor.getText()).toBe "foo  \nline break!\n"
+
+    it "trims GFM text with a more than two spaces", ->
+      editor.activeEditSession.setGrammar(grammar)
+      editor.insertText "foo   \nline break!"
+      editor.getBuffer().save()
+      expect(editor.getText()).toBe "foo\nline break!\n"
