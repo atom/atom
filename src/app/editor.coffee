@@ -31,7 +31,9 @@ class Editor extends View
   ###
 
   @content: (params) ->
-    @div class: @classes(params), tabindex: -1, =>
+    attributes = { class: @classes(params), tabindex: -1 }
+    _.extend(attributes, params.attributes) if params.attributes
+    @div attributes, =>
       @subview 'gutter', new Gutter
       @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'scroll-view', outlet: 'scrollView', =>
