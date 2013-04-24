@@ -14,7 +14,7 @@ class PathView extends View
         @span outlet: 'description', class: 'path-match-number'
       @ul outlet: 'matches', class: 'matches', =>
 
-  initialize: ({@previewList}) ->
+  initialize: ({@previewList, operationCount}) ->
     @pathDetails.on 'mousedown', => @toggle(true)
     @subscribe @previewList, 'command-panel:collapse-result', =>
       if @isSelected()
@@ -27,9 +27,10 @@ class PathView extends View
         @toggle(true)
         false
 
+    @description.text("(#{operationCount})")
+
   addOperation: (operation) ->
     @matches.append new OperationView({operation, @previewList})
-    @description.text("(#{@matches.find('li').length})")
 
   isSelected: ->
     @hasClass('selected') or @find('.selected').length

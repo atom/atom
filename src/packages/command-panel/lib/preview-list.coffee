@@ -60,7 +60,7 @@ class PreviewList extends ScrollView
   pathViewForPath: (path) ->
     pathView = @viewsForPath[path]
     if not pathView
-      pathView = new PathView({path: path, previewList: this})
+      pathView = new PathView({path: path, previewList: this, operationCount: @getPathOperationCount(path)})
       @viewsForPath[path] = pathView
       @append(pathView)
     pathView
@@ -96,6 +96,9 @@ class PreviewList extends ScrollView
 
   getPathCount: ->
     _.keys(_.groupBy(@operations, (operation) -> operation.getPath())).length
+
+  getPathOperationCount: (path) ->
+    @operations.filter((operation) -> path is operation.getPath()).length
 
   getOperations: ->
     new Array(@operations...)
