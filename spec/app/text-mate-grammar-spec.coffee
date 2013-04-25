@@ -487,3 +487,90 @@ describe "TextMateGrammar", ->
           {tokens} = editSession.lineForScreenRow(0)
           expect(tokens[2].value).toBe "SELECT"
           expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
+
+  describe "language-specific integration tests", ->
+    lines = null
+
+    describe "Git commit messages", ->
+      beforeEach ->
+        atom.activatePackage('git.tmbundle', sync: true)
+        grammar = syntax.selectGrammar('COMMIT_EDITMSG')
+        lines = grammar.tokenizeLines """
+          longggggggggggggggggggggggggggggggggggggggggggggggg
+          # Please enter the commit message for your changes. Lines starting
+        """
+
+      it "correctly parses a long line", ->
+        tokens = lines[0]
+        expect(tokens[0].value).toBe "longggggggggggggggggggggggggggggggggggggggggggggggg"
+        expect(tokens[0].scopes).toEqual ["text.git-commit", "meta.scope.message.git-commit", "invalid.deprecated.line-too-long.git-commit"]
+
+      it "correctly parses the number sign of the first comment line", ->
+        tokens = lines[1]
+        expect(tokens[0].value).toBe "#"
+        expect(tokens[0].scopes).toEqual ["text.git-commit", "meta.scope.metadata.git-commit", "comment.line.number-sign.git-commit", "punctuation.definition.comment.git-commit"]
+
+    describe "C++", ->
+      beforeEach ->
+        atom.activatePackage('c.tmbundle', sync: true)
+        grammar = syntax.selectGrammar('includes.cc')
+        lines = grammar.tokenizeLines """
+          #include "a.h"
+          #include "b.h"
+        """
+
+      it "correctly parses the first include line", ->
+        tokens = lines[0]
+        expect(tokens[0].value).toBe "#"
+        expect(tokens[0].scopes).toEqual ["source.c++", "meta.preprocessor.c.include"]
+        expect(tokens[1].value).toBe 'include'
+        expect(tokens[1].scopes).toEqual ["source.c++", "meta.preprocessor.c.include", "keyword.control.import.include.c"]
+
+      it "correctly parses the second include line", ->
+        tokens = lines[1]
+        expect(tokens[0].value).toBe "#"
+        expect(tokens[0].scopes).toEqual ["source.c++", "meta.preprocessor.c.include"]
+        expect(tokens[1].value).toBe 'include'
+        expect(tokens[1].scopes).toEqual ["source.c++", "meta.preprocessor.c.include", "keyword.control.import.include.c"]
+
+    describe "Ruby", ->
+      beforeEach ->
+        grammar = syntax.selectGrammar('hello.rb')
+        lines = grammar.tokenizeLines """
+          a = {
+            "b" => "c",
+          }
+        """
+
+      it "doesn't loop infinitely (regression)", ->
+        expect(_.pluck(lines[0], 'value').join('')).toBe 'a = {'
+        expect(_.pluck(lines[1], 'value').join('')).toBe '  "b" => "c",'
+        expect(_.pluck(lines[2], 'value').join('')).toBe '}'
+        expect(_.pluck(lines[3], 'value').join('')).toBe ''
+
+    describe "Objective-C", ->
+      beforeEach ->
+        atom.activatePackage('c.tmbundle', sync: true)
+        atom.activatePackage('objective-c.tmbundle', sync: true)
+        grammar = syntax.selectGrammar('function.mm')
+        lines = grammar.tokenizeLines """
+          void test() {
+          NSString *a = @"a\\nb";
+          }
+        """
+
+      it "correctly parses variable type when it is a built-in Cocoa class", ->
+        tokens = lines[1]
+        expect(tokens[0].value).toBe "NSString"
+        expect(tokens[0].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c", "support.class.cocoa"]
+
+      it "correctly parses the semicolon at the end of the line", ->
+        tokens = lines[1]
+        lastToken = _.last(tokens)
+        expect(lastToken.value).toBe ";"
+        expect(lastToken.scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c"]
+
+      it "correctly parses the string characters before the escaped character", ->
+        tokens = lines[1]
+        expect(tokens[2].value).toBe '@"'
+        expect(tokens[2].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c", "string.quoted.double.objc", "punctuation.definition.string.begin.objc"]
