@@ -52,23 +52,23 @@ class Keymap
 
   loadDirectory: (directoryPath) ->
     @load(filePath) for filePath in fsUtils.list(directoryPath, ['.cson', '.json'])
-    
+
   load: (path) ->
     @add(path, CSON.readObject(path))
-    
+
   add: (args...) ->
     name = args.shift() if args.length > 1
     keymap = args.shift()
     for selector, bindings of keymap
       @bindKeys(name, selector, bindings)
-    
+
   remove: (name) ->
     for bindingSet in @bindingSets.filter((bindingSet) -> bindingSet.name is name)
       _.remove(@bindingSets, bindingSet)
       for keystrokes of bindingSet.commandsByKeystrokes
         keystroke = keystrokes.split(' ')[0]
         _.remove(@bindingSetsByFirstKeystroke[keystroke], bindingSet)
-    
+
   bindKeys: (args...) ->
     name = args.shift() if args.length > 2
     [selector, bindings] = args
@@ -78,7 +78,7 @@ class Keymap
       keystroke = keystrokes.split(' ')[0] # only index by first keystroke
       @bindingSetsByFirstKeystroke[keystroke] ?= []
       @bindingSetsByFirstKeystroke[keystroke].push(bindingSet)
-    
+
   unbindKeys: (selector, bindings) ->
     bindingSet = _.detect @bindingSets, (bindingSet) ->
       bindingSet.selector is selector and bindingSet.bindings is bindings
@@ -86,7 +86,7 @@ class Keymap
     if bindingSet
       console.log "binding set", bindingSet
       _.remove(@bindingSets, bindingSet)
-  
+
   bindingsForElement: (element) ->
     keystrokeMap = {}
     currentNode = $(element)
