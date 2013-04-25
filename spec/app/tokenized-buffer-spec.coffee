@@ -1,5 +1,4 @@
 TokenizedBuffer = require 'tokenized-buffer'
-LanguageMode = require 'language-mode'
 Buffer = require 'text-buffer'
 Range = require 'range'
 _ = require 'underscore'
@@ -328,7 +327,7 @@ describe "TokenizedBuffer", ->
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 
-  describe "when the language mode emits a 'grammar-updated' event based on an included grammar being activated", ->
+  describe "when the grammar is updated because a grammar it includes is activated", ->
     it "retokenizes the buffer", ->
       atom.activatePackage('ruby.tmbundle', sync: true)
       atom.activatePackage('ruby-on-rails-tmbundle', sync: true)

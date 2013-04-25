@@ -8,18 +8,6 @@ describe "LanguageMode", ->
   afterEach ->
     editSession.destroy()
 
-  describe "common behavior", ->
-    beforeEach ->
-      atom.activatePackage('javascript.tmbundle', sync: true)
-      editSession = project.buildEditSession('sample.js', autoIndent: false)
-      { buffer, languageMode } = editSession
-
-    describe "language detection", ->
-      it "uses the file name as the file type if it has no extension", ->
-        jsEditSession = project.buildEditSession('js', autoIndent: false)
-        expect(jsEditSession.languageMode.grammar.name).toBe "JavaScript"
-        jsEditSession.destroy()
-
   describe "javascript", ->
     beforeEach ->
       atom.activatePackage('javascript.tmbundle', sync: true)

@@ -21,28 +21,11 @@ class LanguageMode
   # editSession - The {EditSession} to associate with
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
-    @reloadGrammar()
-    @subscribe syntax, 'grammar-added', (grammar) =>
-      newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
-      @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
   # Internal:
   destroy: ->
     @unsubscribe()
 
-  setGrammar: (grammar, score) ->
-    return if grammar is @grammar
-    @unsubscribe(@grammar) if @grammar
-    @grammar = grammar
-    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
-    @subscribe @grammar, 'grammar-updated', => @trigger 'grammar-updated'
-    @trigger 'grammar-changed', grammar
-
-  reloadGrammar: ->
-    if grammar = syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
-      @setGrammar(grammar)
-    else
-      throw new Error("No grammar found for path: #{path}")
 
   # Public: Wraps the lines between two rows in comments.
   #

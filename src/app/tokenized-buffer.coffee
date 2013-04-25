@@ -14,7 +14,8 @@ module.exports =
 class TokenizedBuffer
   @idCounter: 1
 
-  languageMode: null
+  grammar: null
+  currentGrammarScore: null
   tabLength: null
   buffer: null
   aceAdaptor: null
@@ -23,15 +24,36 @@ class TokenizedBuffer
   invalidRows: null
   visible: false
 
-  constructor: (@buffer, { @languageMode, @tabLength }) ->
+  constructor: (@buffer, { @tabLength }) ->
     @tabLength ?= 2
     @id = @constructor.idCounter++
+
+    @subscribe syntax, 'grammar-added grammar-updated', (grammar) =>
+      if grammar.injectionSelector?
+        @resetScreenLines() if @hasTokenForSelector(grammar.injectionSelector)
+      else
+        newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
+        @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
+
+    @on 'grammar-changed grammar-updated', => @resetScreenLines()
+    @subscribe @buffer, "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
+
+    @reloadGrammar()
+
+  setGrammar: (grammar, score) ->
+    return if grammar is @grammar
+    @unsubscribe(@grammar) if @grammar
+    @grammar = grammar
+    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
+    @subscribe @grammar, 'grammar-updated', => @resetScreenLines()
     @resetScreenLines()
-    @buffer.on "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
-    @languageMode.on 'grammar-changed grammar-updated', => @resetScreenLines()
-    @subscribe syntax, 'grammar-updated grammar-added', (grammar) =>
-      if grammar.injectionSelector? and @hasTokenForSelector(grammar.injectionSelector)
-        @resetScreenLines()
+    @trigger 'grammar-changed', grammar
+
+  reloadGrammar: ->
+    if grammar = syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar)
+    else
+      throw new Error("No grammar found for path: #{path}")
 
   hasTokenForSelector: (selector) ->
     for {tokens} in @screenLines
@@ -154,13 +176,13 @@ class TokenizedBuffer
 
   buildPlaceholderScreenLineForRow: (row) ->
     line = @buffer.lineForRow(row)
-    tokens = [new Token(value: line, scopes: [@languageMode.grammar.scopeName])]
+    tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
     new ScreenLine({tokens, @tabLength})
 
   buildTokenizedScreenLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    { tokens, ruleStack } = @languageMode.tokenizeLine(line, ruleStack, row is 0)
+    { tokens, ruleStack } = @grammar.tokenizeLine(line, ruleStack, row is 0)
     new ScreenLine({tokens, ruleStack, @tabLength, lineEnding})
 
   lineForScreenRow: (row) ->
@@ -180,6 +202,7 @@ class TokenizedBuffer
     @screenLines[position.row].tokenAtBufferColumn(position.column)
 
   destroy: ->
+    @unsubscribe()
     @buffer.off ".tokenized-buffer#{@id}"
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->

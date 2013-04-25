@@ -192,8 +192,7 @@ describe "StatusBar", ->
 
     it "hides the label when the current grammar is the null grammar", ->
       rootView.attachToDom()
-      editor.activeEditSession.languageMode.grammar = syntax.nullGrammar
-      editor.activeEditSession.trigger 'grammar-changed'
+      editor.activeEditSession.setGrammar(syntax.nullGrammar)
       expect(statusBar.find('.grammar-name')).toBeHidden()
       editor.reloadGrammar()
       expect(statusBar.find('.grammar-name')).toBeVisible()

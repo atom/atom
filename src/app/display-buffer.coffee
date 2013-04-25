@@ -30,6 +30,7 @@ class DisplayBuffer
     @foldsById = {}
     @markers = {}
     @buildLineMap()
+    @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
     @buffer.on 'markers-updated', @handleMarkersUpdated
 
@@ -305,6 +306,15 @@ class DisplayBuffer
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
+
+  getGrammar: ->
+    @tokenizedBuffer.grammar
+
+  setGrammar: (grammar) ->
+    @tokenizedBuffer.setGrammar(grammar)
+
+  reloadGrammar: ->
+    @tokenizedBuffer.reloadGrammar()
 
   # Public: Given a position, this clips it to a real position.
   #
