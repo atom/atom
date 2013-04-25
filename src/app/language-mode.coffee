@@ -25,7 +25,7 @@ class LanguageMode
     @subscribe syntax, 'grammar-added', (grammar) =>
       newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
-  
+
   # Internal:
   destroy: ->
     @unsubscribe()
@@ -159,7 +159,7 @@ class LanguageMode
 
   # Public: Given a buffer row, this returns a suggested indentation level.
   #
-  # The indentation level provided is based on the current {LanguageMode}. 
+  # The indentation level provided is based on the current {LanguageMode}.
   #
   # bufferRow - A {Number} indicating the buffer row
   #
