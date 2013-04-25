@@ -673,6 +673,16 @@ class DisplayBuffer
   observeMarker: (id, callback) ->
     @getMarker(id).observe(callback)
 
+  findMarker: (attributes) ->
+    @findMarkers(attributes)[0]
+
+  findMarkers: (attributes) ->
+    { startBufferRow, endBufferRow } = attributes
+    attributes.startRow = startBufferRow if startBufferRow?
+    attributes.endRow = endBufferRow if endBufferRow?
+    attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow'])
+    @buffer.findMarkers(attributes)
+
   ###
   # Internal #
   ###

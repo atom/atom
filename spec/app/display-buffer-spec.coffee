@@ -726,6 +726,16 @@ describe "DisplayBuffer", ->
         expect(changeHandler).toHaveBeenCalled()
         expect(observeHandler).toHaveBeenCalled()
 
+    describe ".findMarkers(attributes)", ->
+      it "allows the startBufferRow and endBufferRow to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[0, 0], [3, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[0, 0], [5, 0]], class: 'a')
+        marker3 = displayBuffer.markBufferRange([[9, 0], [10, 0]], class: 'b')
+
+        expect(displayBuffer.findMarkers(class: 'a', startBufferRow: 0)).toEqual [marker2, marker1]
+        expect(displayBuffer.findMarkers(class: 'a', startBufferRow: 0, endBufferRow: 3)).toEqual [marker1]
+        expect(displayBuffer.findMarkers(endBufferRow: 10)).toEqual [marker3]
+
     describe "marker destruction", ->
       it "allows markers to be destroyed", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
