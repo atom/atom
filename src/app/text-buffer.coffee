@@ -427,6 +427,9 @@ class Buffer
   getMarkers: ->
     _.values(@validMarkers)
 
+  getMarker: (id) ->
+    @validMarkers[id]
+
   # Public: Finds the first marker satisfying the given attributes
   #
   # Returns a {String} marker-identifier
@@ -440,11 +443,10 @@ class Buffer
   #   startRow - The row at which the marker starts
   #   endRow - The row at which the marker ends
   #
-  # Returns an {Array} of {String} marker-identifiers
+  # Returns an {Array} of {BufferMarker}s
   findMarkers: (attributes) ->
     markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
     markers.sort (a, b) -> a.getRange().compare(b.getRange())
-    _.pluck(markers, 'id')
 
   # Public: Retrieves the quantity of markers in a buffer.
   #
@@ -474,7 +476,6 @@ class Buffer
       attributes
     }, options))
     @validMarkers[marker.id] = marker
-    marker.id
 
   # Public: Constructs a new marker at a given position.
   #
@@ -485,129 +486,14 @@ class Buffer
   markPosition: (position, options) ->
     @markRange([position, position], _.defaults({noTail: true}, options))
 
-  # Public: Removes the marker with the given id.
-  #
-  # id - The {Number} of the ID to remove
-  destroyMarker: (id) ->
-    delete @validMarkers[id]
-    delete @invalidMarkers[id]
-
-  getMarkerPosition: (args...) ->
-    @getMarkerHeadPosition(args...)
-
-  setMarkerPosition: (args...) ->
-    @setMarkerHeadPosition(args...)
-
-  # Public: Retrieves the position of the marker's head.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Point}, or `null` if the marker does not exist.
-  getMarkerHeadPosition: (id) ->
-    @validMarkers[id]?.getHeadPosition()
-
-  # Public: Sets the position of the marker's head.
-  #
-  # id - A {Number} representing the marker to change
-  # position - The new {Point} to place the head
-  # options - A hash with the following keys:
-  #         :clip - if `true`, the point is [clipped]{Buffer.clipPosition}
-  #         :bufferChanged - if `true`, indicates that the {Buffer} should trigger an event that it's changed
-  #
-  # Returns a {Point} representing the new head position.
-  setMarkerHeadPosition: (id, position, options) ->
-    @validMarkers[id]?.setHeadPosition(position)
-
-  # Public: Retrieves the position of the marker's tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Point}, or `null` if the marker does not exist.
-  getMarkerTailPosition: (id) ->
-    @validMarkers[id]?.getTailPosition()
-
-  # Public: Sets the position of the marker's tail.
-  #
-  # id - A {Number} representing the marker to change
-  # position - The new {Point} to place the tail
-  # options - A hash with the following keys:
-  #         :clip - if `true`, the point is [clipped]{Buffer.clipPosition}
-  #         :bufferChanged - if `true`, indicates that the {Buffer} should trigger an event that it's changed
-  #
-  # Returns a {Point} representing the new tail position.
-  setMarkerTailPosition: (id, position, options) ->
-    @validMarkers[id]?.setTailPosition(position)
-
-  # Public: Retrieves the {Range} between a marker's head and its tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Range}.
-  getMarkerRange: (id) ->
-    @validMarkers[id]?.getRange()
-
-  # Public: Sets the marker's range, potentialy modifying both its head and tail.
-  #
-  # id - A {Number} representing the marker to change
-  # range - The new {Range} the marker should cover
-  # options - A hash of options with the following keys:
-  #           :reverse - if `true`, the marker is reversed; that is, its tail is "above" the head
-  #           :noTail - if `true`, the marker doesn't have a tail
-  setMarkerRange: (id, range, options) ->
-    @validMarkers[id]?.setRange(range, options)
-
-  # Public: Sets the marker's tail to the same position as the marker's head.
-  #
-  # This only works if there isn't already a tail position.
-  #
-  # id - A {Number} representing the marker to change
-  #
-  # Returns a {Point} representing the new tail position.
-  placeMarkerTail: (id) ->
-    @validMarkers[id]?.placeTail()
-
-  # Public: Removes the tail from the marker.
-  #
-  # id - A {Number} representing the marker to change
-  clearMarkerTail: (id) ->
-    @validMarkers[id]?.clearTail()
-
-  # Public: Identifies if the ending position of a marker is greater than the starting position.
-  #
-  # This can happen when, for example, you highlight text "up" in a {Buffer}.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerReversed: (id) ->
-    @validMarkers[id]?.isReversed()
-
-  # Public: Identifies if the marker's head position is equal to its tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerRangeEmpty: (id) ->
-    @validMarkers[id]?.isRangeEmpty()
-
-  # Public: Sets a callback to be fired whenever a marker is changed.
-  #
-  # id - A {Number} representing the marker to watch
-  # callback - A {Function} to execute
-  observeMarker: (id, callback) ->
-    @validMarkers[id]?.observe(callback)
-
   # Public: Given a buffer position, this finds all markers that contain the position.
   #
   # bufferPosition - A {Point} to check
   #
   # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
-  markersForPosition: (bufferPosition) ->
-    bufferPosition = Point.fromObject(bufferPosition)
-    ids = []
-    for id, marker of @validMarkers
-      ids.push(id) if marker.containsPoint(bufferPosition)
-    ids
+  markersForPosition: (position) ->
+    position = Point.fromObject(position)
+    @getMarkers().filter (marker) -> marker.containsPoint(position)
 
   # Public: Identifies if a character sequence is within a certain range.
   #
@@ -757,6 +643,10 @@ class Buffer
   ###
   # Internal #
   ###
+
+  destroyMarker: (id) ->
+    delete @validMarkers[id]
+    delete @invalidMarkers[id]
 
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout

@@ -162,6 +162,12 @@ class BufferMarker
   unobserve: (callback) ->
     @off 'changed', callback
 
+  destroy: ->
+    @buffer.destroyMarker(@id)
+
+  isValid: ->
+    @buffer.getMarker(@id)?
+
   ###
   # Internal #
   ###
