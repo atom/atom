@@ -161,6 +161,13 @@ class TextMateGrammar
     ruleStack.forEach (rule) -> rule.clearAnchorPosition()
     { tokens, ruleStack }
 
+  tokenizeLines: (text) ->
+    lines = text.split('\n')
+    ruleStack = null
+    for line, i in lines
+      { tokens, ruleStack } = @tokenizeLine(line, ruleStack, i is 0)
+      tokens
+
   getMaxTokensPerLine: ->
     @maxTokensPerLine
 
