@@ -24,7 +24,7 @@ class TokenizedBuffer
   invalidRows: null
   visible: false
 
-  constructor: (@buffer, { @tabLength }) ->
+  constructor: (@buffer, { @tabLength } = {}) ->
     @tabLength ?= 2
     @id = @constructor.idCounter++
 
