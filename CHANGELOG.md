@@ -1,3 +1,4 @@
+* Fixed: Invisible characters not being visible when enabled
 * Added: Editor gutter now displays Git status for lines
 
 * Improved: Startup time
