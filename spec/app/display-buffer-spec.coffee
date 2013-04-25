@@ -3,17 +3,17 @@ Buffer = require 'text-buffer'
 _ = require 'underscore'
 
 describe "DisplayBuffer", ->
-  [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
+  [displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
     atom.activatePackage('javascript.tmbundle', sync: true)
-    editSession = project.buildEditSession('sample.js', { tabLength })
-    { buffer, displayBuffer } = editSession
-    changeHandler = jasmine.createSpy 'changeHandler'
-    displayBuffer.on 'changed', changeHandler
+    buffer = project.bufferForPath('sample.js')
+    displayBuffer = new DisplayBuffer(buffer, { tabLength })
+    displayBuffer.on 'changed', changeHandler = jasmine.createSpy 'changeHandler'
 
   afterEach ->
-    editSession.destroy()
+    displayBuffer.destroy()
+    buffer.release()
 
   describe "when the buffer changes", ->
     it "renders line numbers correctly", ->
@@ -60,9 +60,8 @@ describe "DisplayBuffer", ->
         describe "when whitespace is added after the max line length", ->
           it "adds whitespace to the end of the current line and wraps an empty line", ->
             fiftyCharacters = _.multiplyString("x", 50)
-            editSession.buffer.setText(fiftyCharacters)
-            editSession.setCursorBufferPosition([0, 51])
-            editSession.insertText(" ")
+            buffer.setText(fiftyCharacters)
+            buffer.insert([0, 51], " ")
 
         describe "when the update makes a soft-wrapped line shorter than the max line length", ->
           it "rewraps the line and emits a change event", ->
@@ -143,15 +142,12 @@ describe "DisplayBuffer", ->
         expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 15, screenDelta: 3, bufferDelta: 0)
 
   describe "primitive folding", ->
-    editSession2 = null
-
     beforeEach ->
-      editSession2 = project.buildEditSession('two-hundred.txt')
-      { buffer, displayBuffer } = editSession2
+      displayBuffer.destroy()
+      buffer.release()
+      buffer = project.bufferForPath('two-hundred.txt')
+      displayBuffer = new DisplayBuffer(buffer, { tabLength })
       displayBuffer.on 'changed', changeHandler
-
-    afterEach ->
-      editSession2.destroy()
 
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
@@ -447,20 +443,6 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
           expect(displayBuffer.lineForRow(10).fold).toBeDefined()
 
-  describe "when the line being deleted preceeds a fold", ->
-    describe "when the command is undone", ->
-      it "restores the line and preserves the fold", ->
-        editSession.setCursorBufferPosition([4])
-        editSession.foldCurrentRow()
-        expect(editSession.isFoldedAtScreenRow(4)).toBeTruthy()
-        editSession.setCursorBufferPosition([3])
-        editSession.deleteLine()
-        expect(editSession.isFoldedAtScreenRow(3)).toBeTruthy()
-        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
-        editSession.undo()
-        expect(editSession.isFoldedAtScreenRow(4)).toBeTruthy()
-        expect(buffer.lineForRow(3)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
-
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
       displayBuffer.setSoftWrapColumn(50)
@@ -534,7 +516,7 @@ describe "DisplayBuffer", ->
 
   describe "markers", ->
     beforeEach ->
-      editSession.foldBufferRow(4)
+      displayBuffer.createFold(4, 7)
 
     describe "marker creation and manipulation", ->
       it "allows markers to be created in terms of both screen and buffer coordinates", ->
@@ -607,7 +589,7 @@ describe "DisplayBuffer", ->
         }
         observeHandler.reset()
 
-        editSession.unfoldBufferRow(4)
+        displayBuffer.destroyFoldsContainingBufferRow(4)
         expect(observeHandler).toHaveBeenCalled()
         expect(observeHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [8, 23]
@@ -623,7 +605,7 @@ describe "DisplayBuffer", ->
         }
         observeHandler.reset()
 
-        editSession.foldBufferRow(4)
+        displayBuffer.createFold(4, 7)
         expect(observeHandler).toHaveBeenCalled()
         expect(observeHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [11, 23]
@@ -710,7 +692,7 @@ describe "DisplayBuffer", ->
       it "allows observation subscriptions to be cancelled", ->
         subscription.cancel()
         displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
-        editSession.unfoldBufferRow(4)
+        displayBuffer.destroyFoldsContainingBufferRow(4)
         expect(observeHandler).not.toHaveBeenCalled()
 
       it "updates the position of markers before emitting buffer change events, but does not notify their observers until the change event", ->
@@ -739,7 +721,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.getMarkerTailScreenPosition(marker)).toEqual [8, 4]
         displayBuffer.on 'changed', changeHandler
 
-        editSession.unfoldBufferRow(4)
+        displayBuffer.destroyFoldsContainingBufferRow(4)
 
         expect(changeHandler).toHaveBeenCalled()
         expect(observeHandler).toHaveBeenCalled()

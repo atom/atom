@@ -2272,6 +2272,19 @@ describe "EditSession", ->
         expect(buffer.lineForRow(6)).toBe(line7)
         expect(buffer.getLineCount()).toBe(count - 1)
 
+    describe "when the line being deleted preceeds a fold, and the command is undone", ->
+      it "restores the line and preserves the fold", ->
+        editSession.setCursorBufferPosition([4])
+        editSession.foldCurrentRow()
+        expect(editSession.isFoldedAtScreenRow(4)).toBeTruthy()
+        editSession.setCursorBufferPosition([3])
+        editSession.deleteLine()
+        expect(editSession.isFoldedAtScreenRow(3)).toBeTruthy()
+        expect(buffer.lineForRow(3)).toBe '    while(items.length > 0) {'
+        editSession.undo()
+        expect(editSession.isFoldedAtScreenRow(4)).toBeTruthy()
+        expect(buffer.lineForRow(3)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
   describe ".transpose()", ->
     it "swaps two characters", ->
       editSession.buffer.setText("abc")
