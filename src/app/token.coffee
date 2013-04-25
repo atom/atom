@@ -74,7 +74,7 @@ class Token
     if @isHardTab
       classes = []
       classes.push('indent-guide') if hasIndentGuide
-      classes.push('invisible') if invisibles.tab
+      classes.push('invisible-character') if invisibles.tab
       classes.push('hard-tab')
       classes = classes.join(' ')
       html = html.replace /^./, (match) ->
@@ -84,7 +84,7 @@ class Token
       if hasLeadingWhitespace
         classes = []
         classes.push('indent-guide') if hasIndentGuide
-        classes.push('invisible') if invisibles.space
+        classes.push('invisible-character') if invisibles.space
         classes.push('leading-whitespace')
         classes = classes.join(' ')
         html = html.replace /^[ ]+/, (match) ->
@@ -93,7 +93,7 @@ class Token
       if hasTrailingWhitespace
         classes = []
         classes.push('indent-guide') if hasIndentGuide
-        classes.push('invisible') if invisibles.space
+        classes.push('invisible-character') if invisibles.space
         classes.push('trailing-whitespace')
         classes = classes.join(' ')
         html = html.replace /[ ]+$/, (match) ->

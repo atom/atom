@@ -1426,7 +1426,7 @@ describe "Editor", ->
         editor.setShowInvisibles(true)
         editor.attachToDom()
         editor.setText "var"
-        expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible">¬</span>'
+        expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible-character">¬</span>'
 
       it "allows invisible glyphs to be customized via config.editor.invisibles", ->
         editor.setText(" \t ")

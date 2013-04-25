@@ -1504,9 +1504,9 @@ class Editor extends View
     popScope() while scopeStack.length > 0
     if invisibles and not @mini and not screenLine.isSoftWrapped()
       if invisibles.cr and screenLine.lineEnding is '\r\n'
-        line.push("<span class='invisible'>#{invisibles.cr}</span>")
+        line.push("<span class='invisible-character'>#{invisibles.cr}</span>")
       if invisibles.eol
-        line.push("<span class='invisible'>#{invisibles.eol}</span>")
+        line.push("<span class='invisible-character'>#{invisibles.eol}</span>")
 
     line.push("<span class='fold-marker'/>") if fold
 
