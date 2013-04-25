@@ -1,0 +1,1 @@
+* Fixed: PHP syntax highlighting
