@@ -492,7 +492,7 @@ class Editor extends View
   # Public: Gets the number of screen rows.
   #
   # Returns a {Number}.
-  screenLineCount: -> @activeEditSession.screenLineCount()
+  getScreenLineCount: -> @activeEditSession.getScreenLineCount()
   # Public: Defines the limit at which the buffer begins to soft wrap text.
   #
   # softWrapColumn - A {Number} defining the soft wrap limit
@@ -887,7 +887,7 @@ class Editor extends View
 
   # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
-    @scrollBottom(@screenLineCount() * @lineHeight)
+    @scrollBottom(@getScreenLineCount() * @lineHeight)
 
   # Public: Scrolls the editor to the position of the most recently added cursor.
   #
@@ -1156,7 +1156,7 @@ class Editor extends View
     fragment.remove()
 
   updateLayerDimensions: ->
-    height = @lineHeight * @screenLineCount()
+    height = @lineHeight * @getScreenLineCount()
     unless @layerHeight == height
       @renderedLines.height(height)
       @underlayer.css('min-height', height)

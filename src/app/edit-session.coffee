@@ -410,7 +410,7 @@ class EditSession
   # Public: Gets the number of screen rows.
   #
   # Returns a {Number}.
-  screenLineCount: -> @displayBuffer.lineCount()
+  getScreenLineCount: -> @displayBuffer.getLineCount()
   # Public: Gets the length of the longest screen line.
   #
   # Returns a {Number}.

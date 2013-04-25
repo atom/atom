@@ -288,14 +288,14 @@ class DisplayBuffer
   # Public: Gets the number of lines in the buffer.
   #
   # Returns a {Number}.
-  lineCount: ->
-    @lineMap.screenLineCount()
+  getLineCount: ->
+    @lineMap.getScreenLineCount()
 
   # Public: Gets the number of the last row in the buffer.
   #
   # Returns a {Number}.
   getLastRow: ->
-    @lineCount() - 1
+    @getLineCount() - 1
 
   # Public: Gets the length of the longest screen line.
   #

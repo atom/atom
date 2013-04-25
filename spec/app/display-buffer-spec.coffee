@@ -17,10 +17,10 @@ describe "DisplayBuffer", ->
 
   describe "when the buffer changes", ->
     it "renders line numbers correctly", ->
-      originalLineCount = displayBuffer.lineCount()
+      originalLineCount = displayBuffer.getLineCount()
       oneHundredLines = [0..100].join("\n")
       buffer.insert([0,0], oneHundredLines)
-      expect(displayBuffer.lineCount()).toBe 100 + originalLineCount
+      expect(displayBuffer.getLineCount()).toBe 100 + originalLineCount
 
   describe "soft wrapping", ->
     beforeEach ->

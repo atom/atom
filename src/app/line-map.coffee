@@ -62,14 +62,14 @@ class LineMap
 
     bufferRows
 
-  screenLineCount: ->
+  getScreenLineCount: ->
     @screenLines.length
 
   # Retrieves the last screen row in the buffer.
   #
   # Returns an {Integer}.
   lastScreenRow: ->
-    @screenLineCount() - 1
+    @getScreenLineCount() - 1
 
   clipScreenPosition: (screenPosition, options={}) ->
     { wrapBeyondNewlines, wrapAtSoftNewlines } = options
