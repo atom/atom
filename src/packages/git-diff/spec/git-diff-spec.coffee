@@ -5,7 +5,6 @@ describe "GitDiff package", ->
   editor = null
 
   beforeEach ->
-    config.set('git-diff.enabled', true)
     window.rootView = new RootView
     rootView.attachToDom()
     rootView.open('sample.js')
