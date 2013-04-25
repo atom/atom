@@ -210,7 +210,6 @@ describe "DisplayBuffer", ->
           expect(line5.text).toMatch /9-+/
 
           outerFold.destroy()
-
           [line4, line5, line6, line7] = displayBuffer.linesForRows(4, 7)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
@@ -234,11 +233,11 @@ describe "DisplayBuffer", ->
       describe "when creating a fold where one already exists", ->
         it "returns existing fold and does't create new fold", ->
           fold = displayBuffer.createFold(0,10)
-          expect(displayBuffer.activeFolds[0].length).toBe 1
+          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
 
           newFold = displayBuffer.createFold(0,10)
           expect(newFold).toBe fold
-          expect(displayBuffer.activeFolds[0].length).toBe 1
+          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
 
       describe "when a fold is created inside an existing folded region", ->
         it "creates/destroys the fold, but does not trigger change event", ->
@@ -294,8 +293,8 @@ describe "DisplayBuffer", ->
           buffer.delete([[1, 1], [2, 0]])
           buffer.insert([0, 1], "\nnew")
 
-          expect(fold1.startRow).toBe 2
-          expect(fold1.endRow).toBe 4
+          expect(fold1.getStartRow()).toBe 2
+          expect(fold1.getEndRow()).toBe 4
 
       describe "when the old range precedes lines with a fold", ->
         describe "when the new range precedes lines with a fold", ->
@@ -325,8 +324,8 @@ describe "DisplayBuffer", ->
         it "replaces lines in the portion of the range that precedes the fold and adjusts the end of the fold to encompass additional lines", ->
           buffer.change([[1, 1], [3, 0]], "a\nb\nc\nd\n")
 
-          expect(fold1.startRow).toBe 2
-          expect(fold1.endRow).toBe 6
+          expect(fold1.getStartRow()).toBe 2
+          expect(fold1.getEndRow()).toBe 6
 
           expect(displayBuffer.lineForRow(1).text).toBe '1a'
           expect(displayBuffer.lineForRow(2).text).toBe 'b'
@@ -348,8 +347,8 @@ describe "DisplayBuffer", ->
         describe "when the end of the new range precedes the end of the fold", ->
           it "updates the fold and ensures the change is present when the fold is destroyed", ->
             buffer.insert([3, 0], '\n')
-            expect(fold1.startRow).toBe 2
-            expect(fold1.endRow).toBe 5
+            expect(fold1.getStartRow()).toBe 2
+            expect(fold1.getEndRow()).toBe 5
 
             expect(displayBuffer.lineForRow(1).text).toBe "1"
             expect(displayBuffer.lineForRow(2).text).toBe "2"
@@ -364,8 +363,8 @@ describe "DisplayBuffer", ->
         describe "when the end of the new range exceeds the end of the fold", ->
           it "expands the fold to contain all the inserted lines", ->
             buffer.change([[3, 0], [4, 0]], 'a\nb\nc\nd\n')
-            expect(fold1.startRow).toBe 2
-            expect(fold1.endRow).toBe 7
+            expect(fold1.getStartRow()).toBe 2
+            expect(fold1.getEndRow()).toBe 7
 
             expect(displayBuffer.lineForRow(1).text).toBe "1"
             expect(displayBuffer.lineForRow(2).text).toBe "2"
@@ -427,21 +426,21 @@ describe "DisplayBuffer", ->
 
     describe ".destroyFoldsContainingBufferRow(row)", ->
       it "destroys all folds containing the given row", ->
-          displayBuffer.createFold(2, 4)
-          displayBuffer.createFold(2, 6)
-          displayBuffer.createFold(7, 8)
-          displayBuffer.createFold(1, 9)
-          displayBuffer.createFold(11, 12)
+        displayBuffer.createFold(2, 4)
+        displayBuffer.createFold(2, 6)
+        displayBuffer.createFold(7, 8)
+        displayBuffer.createFold(1, 9)
+        displayBuffer.createFold(11, 12)
 
-          expect(displayBuffer.lineForRow(1).text).toBe '1'
-          expect(displayBuffer.lineForRow(2).text).toBe '10'
+        expect(displayBuffer.lineForRow(1).text).toBe '1'
+        expect(displayBuffer.lineForRow(2).text).toBe '10'
 
-          displayBuffer.destroyFoldsContainingBufferRow(2)
-          expect(displayBuffer.lineForRow(1).text).toBe '1'
-          expect(displayBuffer.lineForRow(2).text).toBe '2'
-          expect(displayBuffer.lineForRow(7).fold).toBeDefined()
-          expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
-          expect(displayBuffer.lineForRow(10).fold).toBeDefined()
+        displayBuffer.destroyFoldsContainingBufferRow(2)
+        expect(displayBuffer.lineForRow(1).text).toBe '1'
+        expect(displayBuffer.lineForRow(2).text).toBe '2'
+        expect(displayBuffer.lineForRow(7).fold).toBeDefined()
+        expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
+        expect(displayBuffer.lineForRow(10).fold).toBeDefined()
 
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->

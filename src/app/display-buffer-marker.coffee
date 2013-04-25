@@ -129,6 +129,9 @@ class DisplayBufferMarker
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
+  matchesAttributes: (attributes) ->
+    @bufferMarker.matchesAttributes(attributes)
+
   # Destroys the marker
   destroy: ->
     @bufferMarker.destroy()

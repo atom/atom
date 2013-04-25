@@ -55,6 +55,10 @@ class BufferMarker
           return false unless @getRange().start.row == value
         when 'endRow'
           return false unless @getRange().end.row == value
+        when 'containsRange'
+          return false unless @getRange().containsRange(value, exclusive: true)
+        when 'containsRow'
+          return false unless @getRange().containsRow(value)
         else
           return false unless _.isEqual(@attributes[key], value)
     true

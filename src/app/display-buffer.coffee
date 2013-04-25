@@ -8,15 +8,15 @@ Fold = require 'fold'
 ScreenLine = require 'screen-line'
 Token = require 'token'
 DisplayBufferMarker = require 'display-buffer-marker'
+Subscriber = require 'subscriber'
 
 module.exports =
 class DisplayBuffer
   @idCounter: 1
   lineMap: null
   tokenizedBuffer: null
-  activeFolds: null
-  foldsById: null
   markers: null
+  foldsByMarkerId: null
 
   ###
   # Internal #
@@ -26,14 +26,13 @@ class DisplayBuffer
     @id = @constructor.idCounter++
     @tokenizedBuffer = new TokenizedBuffer(@buffer, options)
     @softWrapColumn = options.softWrapColumn ? Infinity
-    @activeFolds = {}
-    @foldsById = {}
     @markers = {}
+    @foldsByMarkerId = {}
     @buildLineMap()
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
     @buffer.on 'markers-updated', @handleMarkersUpdated
-    @buffer.on 'marker-created', (marker) => @trigger 'marker-created', @getMarker(marker.id)
+    @buffer.on 'marker-created', @handleMarkerCreated
 
   buildLineMap: ->
     @lineMap = new LineMap
@@ -104,43 +103,17 @@ class DisplayBuffer
   #
   # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
-    return fold if fold = @foldFor(startRow, endRow, 0, refreshMarkers: true)
-    fold = new Fold(this, startRow, endRow)
-    @registerFold(fold)
-    unless @isFoldContainedByActiveFold(fold)
-      @updateScreenLines(startRow, endRow, 0, refreshMarkers: true)
-    fold
-
-  # Public: Given a {Fold}, determines if it is contained within another fold.
-  #
-  # fold - The {Fold} to check
-  #
-  # Returns the contaiing {Fold} (if it exists), `null` otherwise.
-  isFoldContainedByActiveFold: (fold) ->
-    for row, folds of @activeFolds
-      for otherFold in folds
-        return otherFold if fold != otherFold and fold.isContainedByFold(otherFold)
-
-  # Public: Given a starting and ending row, tries to find an existing fold.
-  #
-  # startRow - A {Number} representing a fold's starting row
-  # endRow - A {Number} representing a fold's ending row
-  #
-  # Returns a {Fold} (if it exists).
-  foldFor: (startRow, endRow) ->
-    _.find @activeFolds[startRow] ? [], (fold) ->
-      fold.startRow == startRow and fold.endRow == endRow
+    foldMarker =
+      @findMarker({class: 'fold', startRow, endRow}) ?
+        @markBufferRange([[startRow, 0], [endRow, Infinity]], class: 'fold')
+    @foldForMarker(foldMarker)
 
   # Public: Removes any folds found that contain the given buffer row.
   #
   # bufferRow - The buffer row {Number} to check against
   destroyFoldsContainingBufferRow: (bufferRow) ->
-    for row, folds of @activeFolds
-      for fold in new Array(folds...)
-        fold.destroy() if fold.getBufferRange().containsRow(bufferRow)
-
-  foldsStartingAtBufferRow: (bufferRow) ->
-    new Array((@activeFolds[bufferRow] ? [])...)
+    for marker in @findMarkers(class: 'fold', containsBufferRow: bufferRow)
+      marker.destroy()
 
   # Public: Given a buffer row, this returns the largest fold that starts there.
   #
@@ -151,8 +124,8 @@ class DisplayBuffer
   #
   # Returns a {Fold}.
   largestFoldStartingAtBufferRow: (bufferRow) ->
-    return unless folds = @activeFolds[bufferRow]
-    (folds.sort (a, b) -> b.endRow - a.endRow)[0]
+    if marker = @findMarker(class: 'fold', startBufferRow: bufferRow)
+      @foldForMarker(marker)
 
   # Public: Given a screen row, this returns the largest fold that starts there.
   #
@@ -177,8 +150,12 @@ class DisplayBuffer
     largestFold = null
     for currentBufferRow in [bufferRow..0]
       if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
-        largestFold = fold if fold.endRow >= bufferRow
+        largestFold = fold if fold.getEndRow() >= bufferRow
     largestFold
+
+  largestFoldStartingAtBufferRange: (bufferRange) ->
+    if marker = @findMarker(class: 'fold', containingBufferRange: bufferRange)
+      @foldForMarker(marker)
 
   # Public: Given a buffer range, this converts it into a screen range.
   #
@@ -324,30 +301,8 @@ class DisplayBuffer
   # Internal #
   ###
 
-  registerFold: (fold) ->
-    @activeFolds[fold.startRow] ?= []
-    @activeFolds[fold.startRow].push(fold)
-    @foldsById[fold.id] = fold
-
-  unregisterFold: (bufferRow, fold) ->
-    folds = @activeFolds[bufferRow]
-    _.remove(folds, fold)
-    delete @foldsById[fold.id]
-    delete @activeFolds[bufferRow] if folds.length == 0
-
-  destroyFold: (fold) ->
-    @unregisterFold(fold.startRow, fold)
-    unless @isFoldContainedByActiveFold(fold)
-      @updateScreenLines(fold.startRow, fold.endRow, 0, refreshMarkers: true)
-
-  handleBufferChange: (e) ->
-    allFolds = [] # Folds can modify @activeFolds, so first make sure we have a stable array of folds
-    allFolds.push(folds...) for row, folds of @activeFolds
-    fold.handleBufferChange(e) for fold in allFolds
-
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
-    @handleBufferChange(bufferChange) if bufferChange
     @updateScreenLines(start, end, delta, delayChangeEvent: bufferChange?)
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta, options={}) ->
@@ -371,11 +326,6 @@ class DisplayBuffer
     else
       @triggerChanged(changeEvent, options.refreshMarkers)
 
-  handleMarkersUpdated: =>
-    event = @pendingChangeEvent
-    @pendingChangeEvent = null
-    @triggerChanged(event, false)
-
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
 
@@ -394,7 +344,7 @@ class DisplayBuffer
         screenLine.fold = fold
         screenLine.bufferRows = fold.getBufferRowCount()
         lineFragments.push(screenLine)
-        currentBufferRow = fold.endRow + 1
+        currentBufferRow = fold.getEndRow() + 1
         continue
 
       startBufferColumn ?= 0
@@ -411,6 +361,22 @@ class DisplayBuffer
       lineFragments.push(screenLine)
 
     lineFragments
+
+  handleMarkersUpdated: =>
+    event = @pendingChangeEvent
+    @pendingChangeEvent = null
+    @triggerChanged(event, false)
+
+  handleMarkerCreated: (marker) =>
+    marker = @getMarker(marker.id)
+    new Fold(this, marker) if marker.matchesAttributes(class: 'fold')
+    @trigger 'marker-created', marker
+
+  buildFoldForMarker: (marker) ->
+
+
+  foldForMarker: (marker) ->
+    @foldsByMarkerId[marker.id]
 
   ###
   # Public #
@@ -540,15 +506,18 @@ class DisplayBuffer
   #
   # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (attributes) ->
-    { startBufferRow, endBufferRow } = attributes
+    { startBufferRow, endBufferRow, containsBufferRange, containsBufferRow } = attributes
     attributes.startRow = startBufferRow if startBufferRow?
     attributes.endRow = endBufferRow if endBufferRow?
-    attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow'])
+    attributes.containsRange = containsBufferRange if containsBufferRange?
+    attributes.containsRow = containsBufferRow if containsBufferRow?
+    attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow', 'containsBufferRange', 'containsBufferRow'])
     @buffer.findMarkers(attributes).map ({id}) => @getMarker(id)
 
   ###
   # Internal #
   ###
+
   pauseMarkerObservers: ->
     marker.pauseEvents() for marker in @getMarkers()
 
@@ -573,3 +542,4 @@ class DisplayBuffer
     lines.join('\n')
 
 _.extend DisplayBuffer.prototype, EventEmitter
+_.extend DisplayBuffer.prototype, Subscriber
