@@ -50,6 +50,26 @@
     'name': 'comment.hr.gfm'
   }
   {
+    'begin': '^```coffee(script)?$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.raw.gfm'
+    'patterns': ['include': 'source.coffee']
+  }
+  {
+    'begin': '^```(javascript|js)$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.raw.gfm'
+    'patterns': ['include': 'source.js']
+  }
+  {
     'begin': '^```.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
