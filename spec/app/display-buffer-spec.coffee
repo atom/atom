@@ -534,7 +534,7 @@ describe "DisplayBuffer", ->
 
   describe "markers", ->
     beforeEach ->
-      displayBuffer.foldBufferRow(4)
+      editSession.foldBufferRow(4)
 
     describe "marker creation and manipulation", ->
       it "allows markers to be created in terms of both screen and buffer coordinates", ->
@@ -607,7 +607,7 @@ describe "DisplayBuffer", ->
         }
         observeHandler.reset()
 
-        displayBuffer.unfoldBufferRow(4)
+        editSession.unfoldBufferRow(4)
         expect(observeHandler).toHaveBeenCalled()
         expect(observeHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [8, 23]
@@ -623,7 +623,7 @@ describe "DisplayBuffer", ->
         }
         observeHandler.reset()
 
-        displayBuffer.foldBufferRow(4)
+        editSession.foldBufferRow(4)
         expect(observeHandler).toHaveBeenCalled()
         expect(observeHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [11, 23]
@@ -710,7 +710,7 @@ describe "DisplayBuffer", ->
       it "allows observation subscriptions to be cancelled", ->
         subscription.cancel()
         displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
-        displayBuffer.unfoldBufferRow(4)
+        editSession.unfoldBufferRow(4)
         expect(observeHandler).not.toHaveBeenCalled()
 
       it "updates the position of markers before emitting buffer change events, but does not notify their observers until the change event", ->
@@ -739,7 +739,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.getMarkerTailScreenPosition(marker)).toEqual [8, 4]
         displayBuffer.on 'changed', changeHandler
 
-        displayBuffer.unfoldBufferRow(4)
+        editSession.unfoldBufferRow(4)
 
         expect(changeHandler).toHaveBeenCalled()
         expect(observeHandler).toHaveBeenCalled()

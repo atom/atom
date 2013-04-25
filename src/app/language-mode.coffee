@@ -91,6 +91,34 @@ class LanguageMode
         for row in [start..end]
           buffer.insert([row, 0], commentStartString)
 
+  # Public: Folds all the foldable lines in the buffer.
+  foldAll: ->
+    for currentRow in [0..@buffer.getLastRow()]
+      [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
+      continue unless startRow?
+
+      @editSession.createFold(startRow, endRow)
+
+  # Public: Unfolds all the foldable lines in the buffer.
+  unfoldAll: ->
+    for row in [@buffer.getLastRow()..0]
+      fold.destroy() for fold in @editSession.displayBuffer.foldsStartingAtBufferRow(row)
+
+  foldBufferRow: (bufferRow) ->
+    for currentRow in [bufferRow..0]
+      rowRange = @rowRangeForCommentAtBufferRow(currentRow)
+      rowRange ?= @rowRangeForFoldAtBufferRow(currentRow)
+      [startRow, endRow] = rowRange ? []
+      continue unless startRow? and startRow <= bufferRow <= endRow
+      fold = @editSession.displayBuffer.largestFoldStartingAtBufferRow(startRow)
+      return @editSession.createFold(startRow, endRow) unless fold
+
+  # Public: Given a buffer row, this unfolds it.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  unfoldBufferRow: (bufferRow) ->
+    @editSession.displayBuffer.largestFoldContainingBufferRow(bufferRow)?.destroy()
+
   doesBufferRowStartFold: (bufferRow) ->
     return false if @editSession.isBufferRowBlank(bufferRow)
     nextNonEmptyRow = @editSession.nextNonBlankBufferRow(bufferRow)
@@ -113,6 +141,21 @@ class LanguageMode
       foldEndRow = row
 
     [bufferRow, foldEndRow]
+
+  rowRangeForCommentAtBufferRow: (row) ->
+    return unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
+
+    startRow = row
+    for currentRow in [row-1..0]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      startRow = currentRow
+    endRow = row
+    for currentRow in [row+1..@buffer.getLastRow()]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      endRow = currentRow
+    return [startRow, endRow] if startRow isnt endRow
 
   # Public: Given a buffer row, this returns a suggested indentation level.
   #

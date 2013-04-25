@@ -617,11 +617,11 @@ class EditSession
 
   # Public: Folds all the rows.
   foldAll: ->
-    @displayBuffer.foldAll()
+    @languageMode.foldAll()
 
   # Public: Unfolds all the rows.
   unfoldAll: ->
-    @displayBuffer.unfoldAll()
+    @languageMode.unfoldAll()
 
   # Public: Folds the current row.
   foldCurrentRow: ->
@@ -632,7 +632,7 @@ class EditSession
   #
   # bufferRow - A {Number} indicating the buffer row
   foldBufferRow: (bufferRow) ->
-    @displayBuffer.foldBufferRow(bufferRow)
+    @languageMode.foldBufferRow(bufferRow)
 
   # Public: Unfolds the current row.
   unfoldCurrentRow: ->
@@ -643,7 +643,7 @@ class EditSession
   #
   # bufferRow - A {Number} indicating the buffer row
   unfoldBufferRow: (bufferRow) ->
-    @displayBuffer.unfoldBufferRow(bufferRow)
+    @languageMode.unfoldBufferRow(bufferRow)
 
   # Public: Folds all selections.
   foldSelection: ->

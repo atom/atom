@@ -13,7 +13,6 @@ module.exports =
 class DisplayBuffer
   @idCounter: 1
   lineMap: null
-  languageMode: null
   tokenizedBuffer: null
   activeFolds: null
   foldsById: null
@@ -25,7 +24,6 @@ class DisplayBuffer
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
-    @languageMode = options.languageMode
     @tokenizedBuffer = new TokenizedBuffer(@buffer, options)
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
@@ -97,56 +95,6 @@ class DisplayBuffer
   bufferRowsForScreenRows: (startRow, endRow) ->
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
-  # Public: Folds all the foldable lines in the buffer.
-  foldAll: ->
-    for currentRow in [0..@buffer.getLastRow()]
-      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
-      continue unless startRow?
-
-      @createFold(startRow, endRow)
-
-  # Public: Unfolds all the foldable lines in the buffer.
-  unfoldAll: ->
-    for row in [@buffer.getLastRow()..0]
-      @activeFolds[row]?.forEach (fold) => @destroyFold(fold)
-
-  rowRangeForCommentAtBufferRow: (row) ->
-    return unless @tokenizedBuffer.lineForScreenRow(row).isComment()
-
-    startRow = row
-    for currentRow in [row-1..0]
-      break if @buffer.isRowBlank(currentRow)
-      break unless @tokenizedBuffer.lineForScreenRow(currentRow).isComment()
-      startRow = currentRow
-    endRow = row
-    for currentRow in [row+1..@buffer.getLastRow()]
-      break if @buffer.isRowBlank(currentRow)
-      break unless @tokenizedBuffer.lineForScreenRow(currentRow).isComment()
-      endRow = currentRow
-    return [startRow, endRow] if startRow isnt endRow
-
-  # Public: Given a buffer row, this folds it.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  foldBufferRow: (bufferRow) ->
-    for currentRow in [bufferRow..0]
-      rowRange = @rowRangeForCommentAtBufferRow(currentRow)
-      rowRange ?= @languageMode.rowRangeForFoldAtBufferRow(currentRow)
-      [startRow, endRow] = rowRange ? []
-      continue unless startRow? and startRow <= bufferRow <= endRow
-      fold = @largestFoldStartingAtBufferRow(startRow)
-      continue if fold
-
-      @createFold(startRow, endRow)
-
-      return
-
-  # Public: Given a buffer row, this unfolds it.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  unfoldBufferRow: (bufferRow) ->
-    @largestFoldContainingBufferRow(bufferRow)?.destroy()
-
   # Public: Creates a new fold between two row numbers.
   #
   # startRow - The row {Number} to start folding at
@@ -201,6 +149,9 @@ class DisplayBuffer
     for row, folds of @activeFolds
       for fold in new Array(folds...)
         fold.destroy() if fold.getBufferRange().containsRow(bufferRow)
+
+  foldsStartingAtBufferRow: (bufferRow) ->
+    new Array((@activeFolds[bufferRow] ? [])...)
 
   # Public: Given a buffer row, this returns the largest fold that starts there.
   #
