@@ -799,7 +799,7 @@ describe "Editor", ->
         setEditorHeightInLines(editor, 4)
 
       describe "if autoscroll is true", ->
-        it "centers the viewport on the selection if its vertical center is currently offsUtilscreen", ->
+        it "centers the viewport on the selection if its vertical center is currently offscreen", ->
           editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
           expect(editor.scrollTop()).toBe 0
 
@@ -1210,7 +1210,7 @@ describe "Editor", ->
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
         describe "when scrolling more than the editors height", ->
-          it "removes lines that are offsUtilscreen and not in range of the overdraw and builds lines that become visible", ->
+          it "removes lines that are offscreen and not in range of the overdraw and builds lines that become visible", ->
             editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
             expect(editor.renderedLines.find('.line').length).toBe 8
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
