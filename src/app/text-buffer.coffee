@@ -431,6 +431,7 @@ class Buffer
   #
   # Returns a {String} marker-identifier
   findMarker: (attributes) ->
+    @findMarkers(attributes)[0]
 
   # Public: Finds all markers satisfying the given attributes
   #
