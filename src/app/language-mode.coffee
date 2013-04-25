@@ -11,9 +11,9 @@ Subscriber = require 'subscriber'
 
 module.exports =
 class LanguageMode
-  buffer = null
-  grammar = null
-  editSession = null
+  buffer: null
+  grammar: null
+  editSession: null
   currentGrammarScore: null
 
   # Public: Sets up a `LanguageMode` for the given {EditSession}.
