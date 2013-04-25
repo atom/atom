@@ -4,7 +4,7 @@ Range = require 'range'
 _ = require 'underscore'
 
 describe "TokenizedBuffer", ->
-  [editSession, tokenizedBuffer, buffer, changeHandler] = []
+  [tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
     atom.activatePackage('javascript.tmbundle', sync: true)
@@ -18,15 +18,14 @@ describe "TokenizedBuffer", ->
 
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
-      editSession = project.buildEditSession('sample.js', autoIndent: false)
-      buffer = editSession.buffer
-      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
-      editSession.setVisible(true)
-      changeHandler = jasmine.createSpy('changeHandler')
-      tokenizedBuffer.on "changed", changeHandler
+      buffer = project.bufferForPath('sample.js')
+      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer.setVisible(true)
+      tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
 
     afterEach ->
-      editSession.destroy()
+      tokenizedBuffer.destroy()
+      buffer.release()
 
     describe "on construction", ->
       it "initially creates un-tokenized screen lines, then tokenizes lines chunk at a time in the background", ->
@@ -299,21 +298,20 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
       atom.activatePackage('coffee-script-tmbundle', sync: true)
-      tabLength = 2
-      editSession = project.buildEditSession('sample-with-tabs.coffee', { tabLength })
-      buffer = editSession.buffer
-      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
-      editSession.setVisible(true)
+      buffer = project.bufferForPath('sample-with-tabs.coffee')
+      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer.setVisible(true)
 
     afterEach ->
-      editSession.destroy()
+      tokenizedBuffer.destroy()
+      buffer.release()
 
     describe "when the buffer is fully tokenized", ->
       beforeEach ->
         fullyTokenize(tokenizedBuffer)
 
       it "renders each tab as its own atomic token with a value of size tabLength", ->
-        tabAsSpaces = _.multiplyString(' ', editSession.getTabLength())
+        tabAsSpaces = _.multiplyString(' ', tokenizedBuffer.tabLength)
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
         { tokens } = screenLine0
@@ -332,11 +330,10 @@ describe "TokenizedBuffer", ->
       atom.activatePackage('ruby.tmbundle', sync: true)
       atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
-      editSession = project.buildEditSession()
-      editSession.setVisible(true)
-      editSession.setGrammar(syntax.selectGrammar('test.erb'))
-      editSession.buffer.setText("<div class='name'><%= User.find(2).full_name %></div>")
-      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      buffer = project.bufferForPath(null, "<div class='name'><%= User.find(2).full_name %></div>")
+      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer.setGrammar(syntax.selectGrammar('test.erb'))
+      tokenizedBuffer.setVisible(true)
       fullyTokenize(tokenizedBuffer)
 
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
