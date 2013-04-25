@@ -70,6 +70,16 @@
     'patterns': ['include': 'source.js']
   }
   {
+    'begin': '^```css$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.code.css.gfm'
+    'patterns': ['include': 'source.css']
+  }
+  {
     'begin': '^```.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
