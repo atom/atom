@@ -17,3 +17,7 @@ Check out our [documentation on the docs tab](https://github.com/github/atom/doc
   1. `gh-setup atom`
 
   2. `cd ~/github/atom && rake install`
+
+```coffee
+describe "GitHub Flavored Markdown grammar", ->
+```
