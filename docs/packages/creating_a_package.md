@@ -58,3 +58,8 @@ Let's change the event to `changer:magic` and reload the editor.
 Hitting the key binding on the tree now works!
 
 ## Working with styles
+
+The next step is to hide elements in the tree that aren't modified. To do that,
+we'll first (obviously) try and get a list of files that have changed.
+
+All packages are able to use jQuery in their
