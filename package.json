@@ -19,6 +19,7 @@
     "nak": "0.2.12",
     "spellchecker": "0.3.0",
     "pathwatcher": "0.3.0",
+    "keytar": "0.2.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
     "space-pen": "git://github.com/nathansobo/space-pen.git",
     "less": "git://github.com/nathansobo/less.js.git",

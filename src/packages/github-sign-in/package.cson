@@ -1,0 +1,4 @@
+'main': 'lib/sign-in-view'
+'activationEvents': [
+  'github:sign-in'
+]
