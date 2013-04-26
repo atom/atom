@@ -43,4 +43,5 @@ class ConfigPanel extends View
           value = editor.getText()
           if type == 'int' then value = parseInt(value) or 0
           if type == 'float' then value = parseFloat(value) or 0
+          if value == "" then value = undefined
           config.set name, value
