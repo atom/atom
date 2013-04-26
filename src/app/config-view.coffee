@@ -52,6 +52,8 @@ class ConfigView extends View
       @panels.children().hide()
       @panelMenu.children('.active').removeClass('active')
       @panelsByName[name].show()
+      for editorElement in @panelsByName[name].find(".editor")
+        $(editorElement).view().redraw()
       @panelMenu.children("[name='#{name}']").addClass('active')
       @activePanelName = name
       @panelToShow = null
