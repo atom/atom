@@ -6,8 +6,8 @@ module.exports =
 class CommandLoggerView extends ScrollView
   @content: (rootView) ->
     @div class: 'command-logger', tabindex: -1, =>
-      @h1 class: 'category-header', outlet: 'categoryHeader'
-      @h1 class: 'category-summary', outlet: 'categorySummary'
+      @h4 class: 'category-header', outlet: 'categoryHeader'
+      @h5 class: 'category-summary', outlet: 'categorySummary'
       @div class: 'tree-map', outlet: 'treeMap'
 
   eventLog: null
