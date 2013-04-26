@@ -80,6 +80,16 @@
     'patterns': ['include': 'source.css']
   }
   {
+    'begin': '^```xml$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.code.xml.gfm'
+    'patterns': ['include': 'text.xml']
+  }
+  {
     'begin': '^```.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
