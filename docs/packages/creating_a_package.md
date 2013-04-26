@@ -60,6 +60,13 @@ Hitting the key binding on the tree now works!
 ## Working with styles
 
 The next step is to hide elements in the tree that aren't modified. To do that,
-we'll first (obviously) try and get a list of files that have changed.
+we'll first (obviously) try and get a list of files that have not changed.
 
-All packages are able to use jQuery in their
+All packages are able to use jQuery in their code. So let's include that at the top:
+
+```coffeescript
+$ = require 'jquery'
+```
+
+Now, we can query the tree to get us a list of every file that _wasn't_ modified
+using some jQuery syntax.
