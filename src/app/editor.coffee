@@ -1155,14 +1155,17 @@ class Editor extends View
   #
   # fontFamily - A {String} identifying the CSS `font-family`,
   setFontFamily: (fontFamily) ->
-    return if fontFamily == undefined
     headTag = $("head")
     styleTag = headTag.find("style.editor-font-family")
-    if styleTag.length == 0
-      styleTag = $$ -> @style class: 'editor-font-family'
-      headTag.append styleTag
 
-    styleTag.text(".editor {font-family: #{fontFamily}}")
+    if fontFamily?
+      if styleTag.length == 0
+        styleTag = $$ -> @style class: 'editor-font-family'
+        headTag.append styleTag
+      styleTag.text(".editor {font-family: #{fontFamily}}")
+    else
+      styleTag.remove()
+
     @redraw()
 
   # Public: Gets the font family for the editor.
