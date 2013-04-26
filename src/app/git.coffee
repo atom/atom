@@ -10,6 +10,7 @@ GitUtils = require 'git-utils'
 # Ultimately, this is an overlay to the native [git-utils](https://github.com/atom/node-git) model.
 module.exports =
 class Git
+
   # Public: Creates a new `Git` instance.
   #
   # path - The git repository to open
@@ -98,7 +99,7 @@ class Git
   getWorkingDirectory: ->
     @getRepo().getWorkingDirectory()
 
-  # Public: Retrieves the reference or SHA-1 that `HEAD` points to. 
+  # Public: Retrieves the reference or SHA-1 that `HEAD` points to.
   #
   # This can be `refs/heads/master`, or a full SHA-1 if the repository is in a detached `HEAD` state.
   #
@@ -170,7 +171,7 @@ class Git
   relativize: (path) ->
     @getRepo().relativize(path)
 
-  # Public: Retrieves a shortened version of {.getHead}. 
+  # Public: Retrieves a shortened version of {.getHead}.
   #
   # This removes the leading segments of `refs/heads`, `refs/tags`, or `refs/remotes`.
   # It also shortenes the SHA-1 of a detached `HEAD` to 7 characters.
@@ -179,7 +180,7 @@ class Git
   getShortHead: ->
     @getRepo().getShortHead()
 
-  # Public: Restore the contents of a path in the working directory and index to the version at `HEAD`. 
+  # Public: Restore the contents of a path in the working directory and index to the version at `HEAD`.
   #
   # This is essentially the same as running:
   # ```
@@ -239,7 +240,7 @@ class Git
   #
   # path - The {String} path (relative to the repository)
   # text - The {String} to compare against the `HEAD` contents
-  # 
+  #
   # Returns an object with two keys, `ahead` and `behind`. These will always be greater than zero.
   getLineDiffs: (path, text) ->
     @getRepo().getLineDiffs(@relativize(path), text)
@@ -259,6 +260,6 @@ class Git
       @statusTask.one 'task-completed', =>
         @statusTask = null
       @statusTask.start()
-      
+
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter

@@ -17,6 +17,7 @@ class Cursor
   ###
   # Internal #
   ###
+
   constructor: ({@editSession, @marker}) ->
     @updateVisibility()
     @editSession.observeMarker @marker, (e) =>
