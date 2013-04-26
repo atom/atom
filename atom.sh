@@ -3,8 +3,8 @@ ATOM_PATH=/Applications/Atom.app
 
 if [ ! -d $ATOM_PATH ]; then sleep 5; fi # Wait for Atom to reappear, Sparkle may be replacing it.
 
-if [ ! -d $ATOM_PATH ]; then 
-  echo "Atom Application not found at '$ATOM_PATH'" >&2
+if [ ! -d $ATOM_PATH ]; then
+  echo "Atom application not found at '$ATOM_PATH'" >&2
   exit 1
 fi
 
