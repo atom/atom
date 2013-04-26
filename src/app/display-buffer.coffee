@@ -468,7 +468,9 @@ class DisplayBuffer
   #
   # Returns the {DisplayBufferMarker} (if it exists).
   getMarker: (id) ->
-    @markers[id] ? new DisplayBufferMarker({id, displayBuffer: this})
+    @markers[id] ? do =>
+      if bufferMarker = @buffer.getMarker(id)
+        new DisplayBufferMarker({bufferMarker, displayBuffer: this})
 
   # Public: Retrieves the active markers in the buffer.
   #
@@ -493,7 +495,7 @@ class DisplayBuffer
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferRange: (args...) ->
-    @buffer.markRange(args...)
+    @getMarker(@buffer.markRange(args...).id)
 
   # Public: Constructs a new marker at the given screen position.
   #
@@ -511,7 +513,7 @@ class DisplayBuffer
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->
-    @buffer.markPosition(bufferPosition, options)
+    @getMarker(@buffer.markPosition(bufferPosition, options).id)
 
   # Public: Removes the marker with the given id.
   #
@@ -519,159 +521,6 @@ class DisplayBuffer
   destroyMarker: (id) ->
     @buffer.destroyMarker(id)
     delete @markers[id]
-
-  # Public: Gets the screen range of the display marker.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Range}.
-  getMarkerScreenRange: (id) ->
-    @getMarker(id).getScreenRange()
-
-  # Public: Modifies the screen range of the display marker.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
-  setMarkerScreenRange: (id, screenRange, options) ->
-    @getMarker(id).setScreenRange(screenRange, options)
-
-  # Public: Gets the buffer range of the display marker.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Range}.
-  getMarkerBufferRange: (id) ->
-    @getMarker(id).getBufferRange()
-
-  # Public: Modifies the buffer range of the display marker.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
-  setMarkerBufferRange: (id, bufferRange, options) ->
-    @getMarker(id).setBufferRange(bufferRange, options)
-
-  # Public: Retrieves the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerScreenPosition: (id) ->
-    @getMarkerHeadScreenPosition(id)
-
-  # Public: Retrieves the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerBufferPosition: (id) ->
-    @getMarkerHeadBufferPosition(id)
-
-  # Public: Retrieves the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerHeadScreenPosition: (id) ->
-    @getMarker(id).getHeadScreenPosition()
-
-  # Public: Sets the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerHeadScreenPosition: (id, screenPosition, options) ->
-    @getMarker(id).setHeadScreenPosition(screenPosition, options)
-
-  # Public: Retrieves the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerHeadBufferPosition: (id) ->
-    @getMarker(id).getHeadBufferPosition()
-
-  # Public: Sets the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerHeadBufferPosition: (id, bufferPosition) ->
-    @getMarker(id).setHeadBufferPosition(bufferPosition)
-
-  # Public: Retrieves the screen position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerTailScreenPosition: (id) ->
-    @getMarker(id).getTailScreenPosition()
-
-  # Public: Sets the screen position of the marker's tail.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerTailScreenPosition: (id, screenPosition, options) ->
-    @getMarker(id).setTailScreenPosition(screenPosition, options)
-
-  # Public: Retrieves the buffer position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerTailBufferPosition: (id) ->
-    @getMarker(id).getTailBufferPosition()
-
-  # Public: Sets the buffer position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerTailBufferPosition: (id, bufferPosition) ->
-    @getMarker(id).setTailBufferPosition(bufferPosition)
-
-  # Public: Sets the marker's tail to the same position as the marker's head.
-  #
-  # This only works if there isn't already a tail position.
-  #
-  # id - A {Number} representing the marker to change
-  #
-  # Returns a {Point} representing the new tail position.
-  placeMarkerTail: (id) ->
-    @getMarker(id).placeTail()
-
-  # Public: Removes the tail from the marker.
-  #
-  # id - A {Number} representing the marker to change
-  clearMarkerTail: (id) ->
-    @getMarker(id).clearTail()
-
-  # Public: Identifies if the ending position of a marker is greater than the starting position.
-  #
-  # This can happen when, for example, you highlight text "up" in a {Buffer}.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerReversed: (id) ->
-    @buffer.isMarkerReversed(id)
-
-  # Public: Identifies if the marker's head position is equal to its tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerRangeEmpty: (id) ->
-    @buffer.isMarkerRangeEmpty(id)
-
-  # Public: Sets a callback to be fired whenever a marker is changed.
-  #
-  # id - A {Number} representing the marker to watch
-  # callback - A {Function} to execute
-  observeMarker: (id, callback) ->
-    @getMarker(id).observe(callback)
 
   findMarker: (attributes) ->
     @findMarkers(attributes)[0]

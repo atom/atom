@@ -522,42 +522,40 @@ describe "DisplayBuffer", ->
       it "allows markers to be created in terms of both screen and buffer coordinates", ->
         marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
         marker2 = displayBuffer.markBufferRange([[8, 4], [8, 10]])
-        expect(displayBuffer.getMarkerBufferRange(marker1)).toEqual [[8, 4], [8, 10]]
-        expect(displayBuffer.getMarkerScreenRange(marker2)).toEqual [[5, 4], [5, 10]]
+        expect(marker1.getBufferRange()).toEqual [[8, 4], [8, 10]]
+        expect(marker2.getScreenRange()).toEqual [[5, 4], [5, 10]]
 
       it "allows marker head and tail positions to be manipulated in both screen and buffer coordinates", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])
-        displayBuffer.setMarkerTailBufferPosition(marker, [5, 4])
-        expect(displayBuffer.isMarkerReversed(marker)).toBeFalsy()
-        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
-
-        displayBuffer.setMarkerHeadBufferPosition(marker, [5, 4])
-        displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])
-        expect(displayBuffer.isMarkerReversed(marker)).toBeTruthy()
-        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
+        marker.setHeadScreenPosition([5, 4])
+        marker.setTailBufferPosition([5, 4])
+        expect(marker.isReversed()).toBeFalsy()
+        expect(marker.getBufferRange()).toEqual [[5, 4], [8, 4]]
+        marker.setHeadBufferPosition([5, 4])
+        marker.setTailScreenPosition([5, 4])
+        expect(marker.isReversed()).toBeTruthy()
+        expect(marker.getBufferRange()).toEqual [[5, 4], [8, 4]]
 
       it "returns whether a position changed when it is assigned", ->
         marker = displayBuffer.markScreenRange([[0, 0], [0, 0]])
-        expect(displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])).toBeTruthy()
-        expect(displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])).toBeFalsy()
-        expect(displayBuffer.setMarkerHeadBufferPosition(marker, [1, 0])).toBeTruthy()
-        expect(displayBuffer.setMarkerHeadBufferPosition(marker, [1, 0])).toBeFalsy()
-        expect(displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])).toBeTruthy()
-        expect(displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])).toBeFalsy()
-        expect(displayBuffer.setMarkerTailBufferPosition(marker, [1, 0])).toBeTruthy()
-        expect(displayBuffer.setMarkerTailBufferPosition(marker, [1, 0])).toBeFalsy()
+        expect(marker.setHeadScreenPosition([5, 4])).toBeTruthy()
+        expect(marker.setHeadScreenPosition([5, 4])).toBeFalsy()
+        expect(marker.setHeadBufferPosition([1, 0])).toBeTruthy()
+        expect(marker.setHeadBufferPosition([1, 0])).toBeFalsy()
+        expect(marker.setTailScreenPosition([5, 4])).toBeTruthy()
+        expect(marker.setTailScreenPosition([5, 4])).toBeFalsy()
+        expect(marker.setTailBufferPosition([1, 0])).toBeTruthy()
+        expect(marker.setTailBufferPosition([1, 0])).toBeFalsy()
 
-    describe ".observeMarker(marker, callback)", ->
+    describe "marker observation", ->
       [observeHandler, marker, subscription] = []
 
       beforeEach ->
-        observeHandler = jasmine.createSpy("observeHandler")
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        subscription = displayBuffer.observeMarker(marker, observeHandler)
+        subscription = marker.observe(observeHandler = jasmine.createSpy("observeHandler"))
 
       it "calls the callback whenever the markers head's screen position changes in the buffer or on screen", ->
-        displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
+        marker.setHeadScreenPosition([8, 20])
         expect(observeHandler).toHaveBeenCalled()
         expect(observeHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
@@ -621,7 +619,7 @@ describe "DisplayBuffer", ->
         }
 
       it "calls the callback whenever the marker tail's position changes in the buffer or on screen", ->
-        displayBuffer.setMarkerTailScreenPosition(marker, [8, 20])
+        marker.setTailScreenPosition([8, 20])
         expect(observeHandler).toHaveBeenCalled()
         expect(observeHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
@@ -691,20 +689,18 @@ describe "DisplayBuffer", ->
 
       it "allows observation subscriptions to be cancelled", ->
         subscription.cancel()
-        displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
+        marker.setHeadScreenPosition([8, 20])
         displayBuffer.destroyFoldsContainingBufferRow(4)
         expect(observeHandler).not.toHaveBeenCalled()
 
       it "updates the position of markers before emitting buffer change events, but does not notify their observers until the change event", ->
-        changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
+        displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
           # calls change handler first
           expect(observeHandler).not.toHaveBeenCalled()
           # but still updates the markers
-          expect(displayBuffer.getMarkerScreenRange(marker)).toEqual [[5, 7], [5, 13]]
-          expect(displayBuffer.getMarkerHeadScreenPosition(marker)).toEqual [5, 13]
-          expect(displayBuffer.getMarkerTailScreenPosition(marker)).toEqual [5, 7]
-
-        displayBuffer.on 'changed', changeHandler
+          expect(marker.getScreenRange()).toEqual [[5, 7], [5, 13]]
+          expect(marker.getHeadScreenPosition()).toEqual [5, 13]
+          expect(marker.getTailScreenPosition()).toEqual [5, 7]
 
         buffer.insert([8, 1], "...")
 
@@ -712,14 +708,13 @@ describe "DisplayBuffer", ->
         expect(observeHandler).toHaveBeenCalled()
 
       it "updates the position of markers before emitting change events that aren't caused by a buffer change", ->
-        changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
+        displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
           # calls change handler first
           expect(observeHandler).not.toHaveBeenCalled()
           # but still updates the markers
-          expect(displayBuffer.getMarkerScreenRange(marker)).toEqual [[8, 4], [8, 10]]
-          expect(displayBuffer.getMarkerHeadScreenPosition(marker)).toEqual [8, 10]
-          expect(displayBuffer.getMarkerTailScreenPosition(marker)).toEqual [8, 4]
-        displayBuffer.on 'changed', changeHandler
+          expect(marker.getScreenRange()).toEqual [[8, 4], [8, 10]]
+          expect(marker.getHeadScreenPosition()).toEqual [8, 10]
+          expect(marker.getTailScreenPosition()).toEqual [8, 4]
 
         displayBuffer.destroyFoldsContainingBufferRow(4)
 
@@ -739,5 +734,6 @@ describe "DisplayBuffer", ->
     describe "marker destruction", ->
       it "allows markers to be destroyed", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        displayBuffer.destroyMarker(marker)
-        expect(displayBuffer.getMarkerBufferRange(marker)).toBeUndefined()
+        marker.destroy()(marker)
+        expect(marker.isValid()).toBeFalsy()
+        expect(displayBuffer.getMarker(marker.id)).toBeUndefined()

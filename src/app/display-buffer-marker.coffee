@@ -13,8 +13,8 @@ class DisplayBufferMarker
   # Internal #
   ###
 
-  constructor: ({@id, @displayBuffer}) ->
-    @buffer = @displayBuffer.buffer
+  constructor: ({@bufferMarker, @displayBuffer}) ->
+    @id = @bufferMarker.id
 
   ###
   # Public #
@@ -37,14 +37,14 @@ class DisplayBufferMarker
   #
   # Returns a {Range}.
   getBufferRange: ->
-    @buffer.getMarkerRange(@id)
+    @bufferMarker.getRange()
 
   # Public: Modifies the buffer range of the display marker.
   #
   # screenRange - The new {Range} to use
   # options - A hash of options matching those found in {BufferMarker.setRange}
   setBufferRange: (bufferRange, options) ->
-    @buffer.setMarkerRange(@id, bufferRange, options)
+    @bufferMarker.setRange(bufferRange, options)
 
   # Public: Retrieves the screen position of the marker's head.
   #
@@ -64,21 +64,21 @@ class DisplayBufferMarker
   #
   # Returns a {Point}.
   getHeadBufferPosition: ->
-    @buffer.getMarkerHeadPosition(@id)
+    @bufferMarker.getHeadPosition()
 
   # Public: Sets the buffer position of the marker's head.
   #
   # screenRange - The new {Point} to use
   # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setHeadBufferPosition: (bufferPosition) ->
-    @buffer.setMarkerHeadPosition(@id, bufferPosition)
+    @bufferMarker.setHeadPosition(bufferPosition)
 
   # Public: Retrieves the screen position of the marker's tail.
   #
   # Returns a {Point}.
   getTailScreenPosition: ->
     @tailScreenPosition ?= @displayBuffer.screenPositionForBufferPosition(@getTailBufferPosition(), wrapAtSoftNewlines: true)
-  
+
   # Public: Sets the screen position of the marker's tail.
   #
   # screenRange - The new {Point} to use
@@ -91,14 +91,14 @@ class DisplayBufferMarker
   #
   # Returns a {Point}.
   getTailBufferPosition: ->
-    @buffer.getMarkerTailPosition(@id)
-  
+    @bufferMarker.getTailPosition()
+
   # Public: Sets the buffer position of the marker's tail.
   #
   # screenRange - The new {Point} to use
   # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setTailBufferPosition: (bufferPosition) ->
-    @buffer.setMarkerTailPosition(@id, bufferPosition)
+    @bufferMarker.setTailPosition(bufferPosition)
 
   # Public: Sets the marker's tail to the same position as the marker's head.
   #
@@ -106,11 +106,11 @@ class DisplayBufferMarker
   #
   # Returns a {Point} representing the new tail position.
   placeTail: ->
-    @buffer.placeMarkerTail(@id)
+    @bufferMarker.placeTail()
 
   # Public: Removes the tail from the marker.
   clearTail: ->
-    @buffer.clearMarkerTail(@id)
+    @bufferMarker.clearTail()
 
   # Public: Sets a callback to be fired whenever the marker is changed.
   #
@@ -127,6 +127,10 @@ class DisplayBufferMarker
     @off 'changed', callback
     @unobserveBufferMarkerIfNeeded()
 
+  # Returns whether the head precedes the tail in the buffer
+  isReversed: ->
+    @bufferMarker.isReversed()
+
   ###
   # Internal #
   ###
@@ -136,7 +140,7 @@ class DisplayBufferMarker
     @getHeadScreenPosition() # memoize current value
     @getTailScreenPosition() # memoize current value
     @bufferMarkerSubscription =
-      @buffer.observeMarker @id, ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
+      @bufferMarker.observe ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
         @notifyObservers
           oldHeadBufferPosition: oldHeadPosition
           newHeadBufferPosition: newHeadPosition
