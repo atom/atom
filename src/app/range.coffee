@@ -1,15 +1,16 @@
 Point = require 'point'
 _ = require 'underscore'
 
-# Public: Indicates a region within the editor. 
+# Public: Indicates a region within the editor.
 #
 # To better visualize how this works, imagine a rectangle.
-# Each quadrant of the rectangle is analogus to a range, as ranges contain a 
+# Each quadrant of the rectangle is analogus to a range, as ranges contain a
 # starting row and a starting column, as well as an ending row, and an ending column.
 #
 # Each `Range` is actually constructed of two `Point` objects, labelled `start` and `end`.
 module.exports =
 class Range
+
   # Public: Constructs a `Range` from a given object.
   #
   # object - This can be an {Array} (`[startRow, startColumn, endRow, endColumn]`) or an object `{start: Point, end: Point}`
@@ -58,7 +59,7 @@ class Range
 
   # Public: Identifies if two `Range`s are equal.
   #
-  # All four points (`start.row`, `start.column`, `end.row`, `end.column`) must be 
+  # All four points (`start.row`, `start.column`, `end.row`, `end.column`) must be
   # equal for this method to return `true`.
   #
   # other - A different {Range} to check against

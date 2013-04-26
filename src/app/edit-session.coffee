@@ -162,14 +162,17 @@ class EditSession
   #
   # softWrapColumn - A {Number} defining the soft wrap limit
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
+
   # Public: Defines whether to use soft tabs.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft tabs.
   setSoftTabs: (@softTabs) ->
+
   # Public: Retrieves whether soft tabs are enabled.
   #
   # Returns a {Boolean}.
   getSoftWrap: -> @softWrap
+
   # Public: Defines whether to use soft wrapping of text.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft wraps.
@@ -256,14 +259,17 @@ class EditSession
 
   # Public: Saves the buffer.
   save: -> @buffer.save()
+
   # Public: Saves the buffer at a specific path.
   #
   # path - The path to save at.
   saveAs: (path) -> @buffer.saveAs(path)
+
   # Public: Retrieves the current buffer's file extension.
   #
   # Returns a {String}.
   getFileExtension: -> @buffer.getExtension()
+
   # Public: Retrieves the current buffer's file path.
   #
   # Returns a {String}.
@@ -283,30 +289,36 @@ class EditSession
   #
   # Returns a {String}.
   getBuffer: -> @buffer
+
   # Public: Retrieves the current buffer's URI.
   #
   # Returns a {String}.
   getUri: -> @getPath()
+
   # Public: Given a buffer row, identifies if it is blank.
   #
   # bufferRow - A buffer row {Number} to check
   #
   # Returns a {Boolean}.
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
+
   # Public: Given a buffer row, this finds the next row that's blank.
   #
   # bufferRow - A buffer row {Number} to check
   #
   # Returns a {Number}, or `null` if there's no other blank row.
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
+
   # Public: Finds the last point in the current buffer.
   #
   # Returns a {Point} representing the last position.
   getEofBufferPosition: -> @buffer.getEofPosition()
+
   # Public: Finds the last line in the current buffer.
   #
   # Returns a {Number}.
   getLastBufferRow: -> @buffer.getLastRow()
+
   # Public: Given a buffer row, this retrieves the range for that line.
   #
   # row - A {Number} identifying the row
@@ -315,34 +327,40 @@ class EditSession
   #
   # Returns a {Range}.
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
+
   # Public: Given a buffer row, this retrieves that line.
   #
   # row - A {Number} identifying the row
   #
   # Returns a {String}.
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
+
   # Public: Given a buffer row, this retrieves that line's length.
   #
   # row - A {Number} identifying the row
   #
   # Returns a {Number}.
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
+
   # Public: Scans for text in the buffer, calling a function on each match.
   #
   # regex - A {RegExp} representing the text to find
   # range - A {Range} in the buffer to search within
   # iterator - A {Function} that's called on each match
   scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+
   # Public: Scans for text in the buffer _backwards_, calling a function on each match.
   #
   # regex - A {RegExp} representing the text to find
   # range - A {Range} in the buffer to search within
   # iterator - A {Function} that's called on each match
   backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
+
   # Public: Identifies if the {Buffer} is modified (and not saved).
   #
   # Returns a {Boolean}.
   isModified: -> @buffer.isModified()
+
   # Public: Identifies if the modified buffer should let you know if it's closing
   # without being saved.
   #
@@ -394,12 +412,14 @@ class EditSession
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
+
   # Public: Gets the line for the given screen row.
   #
   # screenRow - A {Number} indicating the screen row.
   #
   # Returns a {String}.
   lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
+
   # Public: Gets the lines for the given screen row boundaries.
   #
   # start - A {Number} indicating the beginning screen row.
@@ -407,18 +427,22 @@ class EditSession
   #
   # Returns an {Array} of {String}s.
   linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
+
   # Public: Gets the number of screen rows.
   #
   # Returns a {Number}.
   getScreenLineCount: -> @displayBuffer.getLineCount()
+
   # Public: Gets the length of the longest screen line.
   #
   # Returns a {Number}.
   maxScreenLineLength: -> @displayBuffer.maxLineLength()
+
   # Public: Gets the number of the last row in the buffer.
   #
   # Returns a {Number}.
   getLastScreenRow: -> @displayBuffer.getLastRow()
+
   # Public: Given a starting and ending row, this converts every row into a buffer position.
   #
   # startRow - The row {Number} to start at
@@ -426,22 +450,26 @@ class EditSession
   #
   # Returns an {Array} of {Range}s.
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
+
   # Public: Retrieves the grammar's token scopes for a buffer position.
   #
   # bufferPosition - A {Point} in the {Buffer}
   #
   # Returns an {Array} of {String}s.
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+
   # Public: Retrieves the grammar's token for a buffer position.
   #
   # bufferPosition - A {Point} in the {Buffer}
   #
   # Returns a {Token}.
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
+
   # Public: Retrieves the grammar's token scopes for the line with the most recently added cursor.
   #
   # Returns an {Array} of {String}s.
   getCursorScopes: -> @getCursor().getScopes()
+
   # Internal:
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 

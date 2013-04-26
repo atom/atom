@@ -139,6 +139,7 @@ class LineMap
       currentBufferRow = nextBufferRow
 
     [screenRow, screenLines]
+
   # Public: Given a buffer range, this converts it into a screen position.
   #
   # screenPosition - An object that represents a buffer position. It can be either
@@ -172,6 +173,7 @@ class LineMap
     start = @screenPositionForBufferPosition(bufferRange.start)
     end = @screenPositionForBufferPosition(bufferRange.end)
     new Range(start, end)
+
   # Public: Given a screen range, this converts it into a buffer position.
   #
   # screenRange - The {Range} to convert
