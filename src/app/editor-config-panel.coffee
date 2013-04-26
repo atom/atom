@@ -43,6 +43,12 @@ class EditorConfigPanel extends ConfigPanel
                 @input id: 'editor.showInvisibles', type: 'checkbox'
                 @text 'Show Invisible Characters'
 
+          @div class: 'controls', =>
+            @div class: 'checkbox', =>
+              @label for: 'editor.showIndentGuide', =>
+                @input id: 'editor.showIndentGuide', type: 'checkbox'
+                @text 'Show Indent Guide'
+
         @div class: 'control-group', =>
           @label class: 'control-label', for: 'editor.preferredLineLength', "Preferred Line Length:"
           @div class: 'controls', =>
