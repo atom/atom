@@ -37,6 +37,8 @@ class ConfigPanel extends View
         type = editor.attr('type')
 
         @observeConfig name, (value) ->
+          return if value?.toString() == editor.getText()
+          value ?= ""
           editor.setText(value.toString())
 
         editor.getBuffer().on 'contents-modified', ->
