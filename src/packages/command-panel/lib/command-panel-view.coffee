@@ -4,6 +4,7 @@ RegexAddress = require './commands/regex-address'
 CompositeCommand = require './commands/composite-command'
 PreviewList = require './preview-list'
 Editor = require 'editor'
+EditSession = require 'edit-session'
 {SyntaxError} = require('pegjs').parser
 _ = require 'underscore'
 
@@ -122,7 +123,9 @@ class CommandPanelView extends View
     @errorMessages.empty()
 
     try
-      @commandInterpreter.eval(command, rootView.getActivePaneItem()).done ({operationsToPreview, errorMessages}) =>
+      activePaneItem = rootView.getActivePaneItem()
+      editSession = activePaneItem if activePaneItem instanceof EditSession
+      @commandInterpreter.eval(command, editSession).done ({operationsToPreview, errorMessages}) =>
         @loadingMessage.hide()
         @history.push(command)
         @historyIndex = @history.length

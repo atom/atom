@@ -548,3 +548,10 @@ describe "CommandPanel", ->
         previewList.trigger 'command-panel:expand-result'
         expect(previewList.find('li.path:first-child ul.matches')).toBeVisible()
         expect(previewList.find('li.path:first-child')).toHaveClass 'selected'
+
+  describe "when the active pane item is not an EditSession", ->
+    it "doesn't throw an error (regression)", ->
+      rootView.open('binary-file.png')
+      rootView.trigger 'command-panel:toggle'
+
+      expect(-> commandPanel.execute('Xx/sort/')).not.toThrow()
