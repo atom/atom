@@ -100,6 +100,11 @@ describe "Config", ->
       config.set('foo.bar.baz', "value 1")
       expect(observeHandler).toHaveBeenCalledWith("value 1")
 
+    it "fires the callback when the observed value is deleted", ->
+      observeHandler.reset() # clear the initial call
+      config.set('foo.bar.baz', undefined)
+      expect(observeHandler).toHaveBeenCalledWith(undefined)
+
     it "fires the callback when the full key path goes into and out of existence", ->
       observeHandler.reset() # clear the initial call
       config.set("foo.bar", undefined)
