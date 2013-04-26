@@ -36,5 +36,5 @@ module.exports =
 
   createView: ->
     unless @commandLoggerView
-      CommandLoggerView = require 'command-logger/lib/command-logger-view'
+      CommandLoggerView = require './command-logger-view'
       @commandLoggerView = new CommandLoggerView
