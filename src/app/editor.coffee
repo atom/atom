@@ -666,7 +666,7 @@ class Editor extends View
   logCursorScope: ->
     console.log @activeEditSession.getCursorScopes()
 
-    # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
+  # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
   pageDown: ->
     newScrollTop = @scrollTop() + @scrollView[0].clientHeight
     @activeEditSession.moveCursorDown(@getPageRows())
