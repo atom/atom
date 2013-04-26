@@ -1,4 +1,5 @@
 ConfigPanel = require 'config-panel'
+Editor = require 'editor'
 
 module.exports =
 class EditorConfigPanel extends ConfigPanel
@@ -8,14 +9,14 @@ class EditorConfigPanel extends ConfigPanel
         @legend "Editor Settings"
 
         @div class: 'control-group', =>
-          @label class: 'control-label', for: 'editor.fontSize', "Font Size:"
+          @label class: 'control-label', "Font Size:"
           @div class: 'controls', =>
-            @input id: 'editor.fontSize', type: 'int', style: 'width: 40px'
+            @subview "fontSizeEditor", new Editor(mini: true, attributes: {id: 'editor.fontSize', type: 'int', style: 'width: 40px'})
 
         @div class: 'control-group', =>
-          @label class: 'control-label', for: 'editor.fontFamily', "Font Family:"
+          @label class: 'control-label', "Font Family:"
           @div class: 'controls', =>
-            @input id: 'editor.fontFamily', type: 'string', style: 'width: 150px'
+            @subview "fontFamilyEditor", new Editor(mini: true, attributes: {id: 'editor.fontFamily', type: 'string'})
 
         @div class: 'control-group', =>
           @div class: 'controls', =>
@@ -45,9 +46,9 @@ class EditorConfigPanel extends ConfigPanel
         @div class: 'control-group', =>
           @label class: 'control-label', for: 'editor.preferredLineLength', "Preferred Line Length:"
           @div class: 'controls', =>
-            @input id: 'editor.preferredLineLength', type: 'int', style: 'width: 40px'
+            @subview "preferredLineLengthEditor", new Editor(mini: true, attributes: {id: 'editor.preferredLineLength', type: 'int', style: 'width: 40px'})
 
         @div class: 'control-group', =>
           @label class: 'control-label', for: 'editor.nonWordCharacters', "Non-Word Characters:"
           @div class: 'controls', =>
-            @input id: 'editor.nonWordCharacters', type: 'int'
+            @subview "nonWordCharactersEditor", new Editor(mini: true, attributes: {id: 'editor.nonWordCharacters', type: 'string'})
