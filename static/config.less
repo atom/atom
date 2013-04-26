@@ -7,13 +7,25 @@
   background: white;
   display: -webkit-flex;
 
-  #panels-menu {
-    width: 150px;
-    margin-top: @line-height-base;
-    margin-left: @line-height-base;
+  #config-menu {
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
 
-    li a {
-      cursor: pointer;
+    #panels-menu {
+      width: 150px;
+      margin-left: @line-height-base;
+      margin-top: @line-height-base;
+      -webkit-flex-grow: 1;
+
+      li a {
+        cursor: pointer;
+      }
+    }
+
+    #open-dot-atom {
+      width: 150px;
+      margin-left: @line-height-base;
+      margin-bottom: @line-height-base;
     }
   }
 

@@ -20,8 +20,3 @@ class GeneralConfigPanel extends ConfigPanel
             @label for: 'core.autosave', =>
               @input id: 'core.autosave', type: 'checkbox'
               @text 'Auto-Save on Focus Change'
-
-        @button outlet: 'openDotAtomButton', type: 'button', class: 'btn btn-default', "Open '#{config.configDirPath}'"
-
-  initialize: ->
-    @openDotAtomButton.on 'click', -> atom.open(config.configDirPath)
