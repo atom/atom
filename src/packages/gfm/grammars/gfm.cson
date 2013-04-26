@@ -90,6 +90,16 @@
     'patterns': ['include': 'text.xml']
   }
   {
+    'begin': '^```(ruby|rb)$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.code.ruby.gfm'
+    'patterns': ['include': 'source.ruby']
+  }
+  {
     'begin': '^```.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
