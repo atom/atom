@@ -17,7 +17,9 @@ class ConfigView extends View
 
   @content: ->
     @div id: 'config-view', =>
-      @ul id: 'panels-menu', class: 'nav nav-pills nav-stacked', outlet: 'panelMenu'
+      @div id: 'config-menu', =>
+        @ul id: 'panels-menu', class: 'nav nav-pills nav-stacked', outlet: 'panelMenu'
+        @button "open .atom", id: 'open-dot-atom', class: 'btn btn-default btn-small'
       @div id: 'panels', outlet: 'panels'
 
   initialize: ->
@@ -25,6 +27,9 @@ class ConfigView extends View
     document.title = "Atom Configuration"
     @on 'click', '#panels-menu li a', (e) =>
       @showPanel($(e.target).closest('li').attr('name'))
+
+    @on 'click', '#open-dot-atom', ->
+      atom.open(config.configDirPath)
 
     @addPanel('General', new GeneralConfigPanel)
     @addPanel('Editor', new EditorConfigPanel)
