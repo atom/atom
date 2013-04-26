@@ -139,7 +139,10 @@ _.mixin
       key = keys.shift()
       object[key] ?= {}
       object = object[key]
-    object[keys.shift()] = value
+    if value?
+      object[keys.shift()] = value
+    else
+      delete object[keys.shift()]
 
   compactObject: (object) ->
     newObject = {}
