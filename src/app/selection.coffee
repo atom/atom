@@ -19,7 +19,7 @@ class Selection
 
   constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
-    @editSession.observeMarker @marker, => @screenRangeChanged()
+    @marker.observe => @screenRangeChanged()
     @cursor.on 'destroyed.selection', =>
       @cursor = null
       @destroy()
@@ -39,7 +39,7 @@ class Selection
 
   clearAutoscroll: ->
     @needsAutoscroll = null
-    
+
   ###
   # Public #
   ###
@@ -54,7 +54,7 @@ class Selection
   #
   # Returns a {Boolean}.
   isReversed: ->
-    @editSession.isMarkerReversed(@marker)
+    @marker.isReversed()
 
   # Public: Identifies if the selection is a single line.
   #
@@ -66,7 +66,7 @@ class Selection
   #
   # Returns a {Range}.
   getScreenRange: ->
-    @editSession.getMarkerScreenRange(@marker)
+    @marker.getScreenRange()
 
   # Public: Modifies the screen range for the selection.
   #
@@ -79,7 +79,7 @@ class Selection
   #
   # Returns a {Range}.
   getBufferRange: ->
-    @editSession.getMarkerBufferRange(@marker)
+    @marker.getBufferRange()
 
   # Public: Modifies the buffer range for the selection.
   #
@@ -94,7 +94,7 @@ class Selection
     @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       @cursor.needsAutoscroll = false if options.autoscroll?
-      @editSession.setMarkerBufferRange(@marker, bufferRange, options)
+      @marker.setBufferRange(bufferRange, options)
 
   # Public: Retrieves the starting and ending buffer rows the selection is highlighting.
   #
@@ -119,7 +119,7 @@ class Selection
 
   # Public: Clears the selection, moving the marker to move to the head.
   clear: ->
-    @editSession.clearMarkerTail(@marker)
+    @marker.clearTail()
 
   # Public: Modifies the selection to mark the current word.
   #
@@ -156,9 +156,9 @@ class Selection
     @modifySelection =>
       if @initialScreenRange
         if position.isLessThan(@initialScreenRange.start)
-          @editSession.setMarkerScreenRange(@marker, [position, @initialScreenRange.end], reverse: true)
+          @marker.setScreenRange([position, @initialScreenRange.end], reverse: true)
         else
-          @editSession.setMarkerScreenRange(@marker, [@initialScreenRange.start, position])
+          @marker.setScreenRange([@initialScreenRange.start, position])
       else
         @cursor.setScreenPosition(position)
 
@@ -287,7 +287,7 @@ class Selection
 
   # Public: Indents the selection.
   #
-  # options - A hash with one key, `autoIndent`. If `true`, the indentation is 
+  # options - A hash with one key, `autoIndent`. If `true`, the indentation is
   #           performed appropriately. Otherwise, {EditSession#getTabText} is used
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
@@ -438,9 +438,9 @@ class Selection
       @deleteSelectedText()
 
     if joinMarker?
-      newSelectedRange = @editSession.getMarkerBufferRange(joinMarker)
+      newSelectedRange = joinMarker.getBufferRange()
       @setBufferRange(newSelectedRange)
-      @editSession.destroyMarker(joinMarker)
+      joinMarker.destroy()
 
   outdentSelectedRows: ->
     [start, end] = @getBufferRowRange()
@@ -507,7 +507,7 @@ class Selection
     @retainSelection = false
 
   placeTail: ->
-    @editSession.placeMarkerTail(@marker)
+    @marker.placeTail()
 
   # Public: Identifies if a selection intersects with a given buffer range.
   #

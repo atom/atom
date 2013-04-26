@@ -922,6 +922,9 @@ class EditSession
   # Public #
   ###
 
+  getMarker: (id) ->
+    @displayBuffer.getMarker(id)
+
   # Public: Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
@@ -986,143 +989,6 @@ class EditSession
   setMarkerScreenRange: (args...) ->
     @displayBuffer.setMarkerScreenRange(args...)
 
-  # Public: Gets the buffer range of the display marker.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Range}.
-  getMarkerBufferRange: (args...) ->
-    @displayBuffer.getMarkerBufferRange(args...)
-
-  # Public: Modifies the buffer range of the display marker.
-  #
-  # id - The {Number} of the ID to check
-  # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
-  setMarkerBufferRange: (args...) ->
-    @displayBuffer.setMarkerBufferRange(args...)
-
-  # Public: Retrieves the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerScreenPosition: (args...) ->
-    @displayBuffer.getMarkerScreenPosition(args...)
-
-  # Public: Retrieves the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerBufferPosition: (args...) ->
-    @displayBuffer.getMarkerBufferPosition(args...)
-
-  # Public: Retrieves the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerHeadScreenPosition: (args...) ->
-    @displayBuffer.getMarkerHeadScreenPosition(args...)
-
-  # Public: Sets the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerHeadScreenPosition: (args...) ->
-    @displayBuffer.setMarkerHeadScreenPosition(args...)
-
-  # Public: Retrieves the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerHeadBufferPosition: (args...) ->
-    @displayBuffer.getMarkerHeadBufferPosition(args...)
-
-  # Public: Sets the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerHeadBufferPosition: (args...) ->
-    @displayBuffer.setMarkerHeadBufferPosition(args...)
-
-  # Public: Retrieves the screen position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerTailScreenPosition: (args...) ->
-    @displayBuffer.getMarkerTailScreenPosition(args...)
-
-  # Public: Sets the screen position of the marker's tail.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerTailScreenPosition: (args...) ->
-    @displayBuffer.setMarkerTailScreenPosition(args...)
-
-  # Public: Retrieves the buffer position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerTailBufferPosition: (args...) ->
-    @displayBuffer.getMarkerTailBufferPosition(args...)
-
-  # Public: Sets the buffer position of the marker's tail.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerTailBufferPosition: (args...) ->
-    @displayBuffer.setMarkerTailBufferPosition(args...)
-
-  # Public: Sets a callback to be fired whenever a marker is changed.
-  #
-  # id - A {Number} representing the marker to watch
-  # callback - A {Function} to execute
-  observeMarker: (args...) ->
-    @displayBuffer.observeMarker(args...)
-
-  # Public: Sets the marker's tail to the same position as the marker's head.
-  #
-  # This only works if there isn't already a tail position.
-  #
-  # id - A {Number} representing the marker to change
-  #
-  # Returns a {Point} representing the new tail position.
-  placeMarkerTail: (args...) ->
-    @displayBuffer.placeMarkerTail(args...)
-
-  # Public: Removes the tail from the marker.
-  #
-  # id - A {Number} representing the marker to change
-  clearMarkerTail: (args...) ->
-    @displayBuffer.clearMarkerTail(args...)
-
-  # Public: Identifies if the ending position of a marker is greater than the starting position.
-  #
-  # This can happen when, for example, you highlight text "up" in a {Buffer}.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerReversed: (args...) ->
-    @displayBuffer.isMarkerReversed(args...)
-
-  # Public: Identifies if the marker's head position is equal to its tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerRangeEmpty: (args...) ->
-    @displayBuffer.isMarkerRangeEmpty(args...)
-
   # Public: Returns `true` if there are multiple cursors in the edit session.
   #
   # Returns a {Boolean}.
@@ -1185,7 +1051,7 @@ class EditSession
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
     unless options.preserveFolds
-      @destroyFoldsIntersectingBufferRange(@getMarkerBufferRange(marker))
+      @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
     @selections.push(selection)
@@ -1544,8 +1410,8 @@ class EditSession
   expandLastSelectionOverWord: ->
     @getLastSelection().expandOverWord()
 
-  selectMarker: (id) ->
-    if bufferRange = @getMarkerBufferRange(id)
+  selectMarker: (marker) ->
+    if bufferRange = marker.getBufferRange()
       @setSelectedBufferRange(bufferRange)
       true
     else

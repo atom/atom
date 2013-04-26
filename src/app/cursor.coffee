@@ -20,7 +20,7 @@ class Cursor
 
   constructor: ({@editSession, @marker}) ->
     @updateVisibility()
-    @editSession.observeMarker @marker, (e) =>
+    @marker.observe (e) =>
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
@@ -42,7 +42,7 @@ class Cursor
 
   destroy: ->
     @destroyed = true
-    @editSession.destroyMarker(@marker)
+    @marker.destroy()
     @editSession.removeCursor(this)
     @trigger 'destroyed'
 
@@ -65,13 +65,13 @@ class Cursor
   #
   setScreenPosition: (screenPosition, options={}) ->
     @changePosition options, =>
-      @editSession.setMarkerHeadScreenPosition(@marker, screenPosition, options)
+      @marker.setHeadScreenPosition(screenPosition, options)
 
   # Public: Gets the screen position of the cursor.
   #
   # Returns an {Array} of two numbers: the screen row, and the screen column.
   getScreenPosition: ->
-    @editSession.getMarkerHeadScreenPosition(@marker)
+    @marker.getHeadScreenPosition()
 
   # Public: Moves a cursor to a given buffer position.
   #
@@ -81,17 +81,17 @@ class Cursor
   #
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
-      @editSession.setMarkerHeadBufferPosition(@marker, bufferPosition, options)
+      @marker.setHeadBufferPosition(bufferPosition, options)
 
   # Public: Gets the current buffer position.
   #
   # Returns an {Array} of two numbers: the buffer row, and the buffer column.
   getBufferPosition: ->
-    @editSession.getMarkerHeadBufferPosition(@marker)
+    @marker.getHeadBufferPosition()
 
   # Public: If the marker range is empty, the cursor is marked as being visible.
   updateVisibility: ->
-    @setVisible(@editSession.isMarkerRangeEmpty(@marker))
+    @setVisible(@marker.getBufferRange().isEmpty())
 
   # Public: Sets the visibility of the cursor.
   #

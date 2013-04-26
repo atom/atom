@@ -744,17 +744,10 @@ describe "EditSession", ->
           expect(editSession.lineForScreenRow(1).fold).toBeDefined()
 
     describe ".selectMarker(marker)", ->
-      describe "when the marker exists", ->
-        it "selects the marker's range and returns true", ->
-          marker = editSession.markBufferRange([[0, 1], [3, 3]])
-          expect(editSession.selectMarker(marker)).toBeTruthy()
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 3]]
-
-      describe "when the marker does not exist", ->
-        it "does not select the marker's range and returns false", ->
-          rangeBefore = editSession.getSelectedBufferRange()
-          expect(editSession.selectMarker('bogus')).toBeFalsy()
-          expect(editSession.getSelectedBufferRange()).toEqual rangeBefore
+      it "selects the marker's range and returns true", ->
+        marker = editSession.markBufferRange([[0, 1], [3, 3]])
+        expect(editSession.selectMarker(marker)).toBeTruthy()
+        expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 3]]
 
     describe ".addSelectionBelow()", ->
       describe "when the selection is non-empty", ->
