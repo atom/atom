@@ -1,3 +1,7 @@
+* Fixed: Styling in command logger
+* Added: XML and Ruby syntax highlighting in Markdown files
+* Fixed: Error when editing files in a HEAD-less Git repository
+
 * Fixed: Invisible characters not being visible when enabled
 * Added: Editor gutter now displays Git status for lines
 
