@@ -554,4 +554,7 @@ describe "CommandPanel", ->
       rootView.open('binary-file.png')
       rootView.trigger 'command-panel:toggle'
 
-      expect(-> commandPanel.execute('Xx/sort/')).not.toThrow()
+      executePromise = null
+      expect(-> executePromise = commandPanel.execute('Xx/sort/')).not.toThrow()
+
+      waitsForPromise -> executePromise
