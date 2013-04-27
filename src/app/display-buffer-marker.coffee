@@ -131,6 +131,9 @@ class DisplayBufferMarker
   isReversed: ->
     @bufferMarker.isReversed()
 
+  isValid: ->
+    @bufferMarker.isValid()
+
   destroy: ->
     delete @displayBuffer.markers[@id]
     @bufferMarker.destroy()
