@@ -734,6 +734,6 @@ describe "DisplayBuffer", ->
     describe "marker destruction", ->
       it "allows markers to be destroyed", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        marker.destroy()(marker)
+        marker.destroy()
         expect(marker.isValid()).toBeFalsy()
         expect(displayBuffer.getMarker(marker.id)).toBeUndefined()
