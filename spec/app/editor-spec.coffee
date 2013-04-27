@@ -1760,6 +1760,14 @@ describe "Editor", ->
         miniEditor.setText(" a line with tabs\tand spaces ")
         expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
 
+      it "doesn't show the indent guide", ->
+        config.set "editor.showIndentGuide", true
+        miniEditor = new Editor(mini: true)
+        miniEditor.attachToDom()
+        miniEditor.setText("      and indented line")
+        expect(miniEditor.renderedLines.find('.indent-guide').length).toBe 0
+
+
       it "lets you set the grammar", ->
         miniEditor = new Editor(mini: true)
         miniEditor.setText("var something")

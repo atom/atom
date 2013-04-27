@@ -1397,7 +1397,7 @@ class Editor extends View
 
     intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
 
-    if @showIndentGuide
+    if not @mini and @showIndentGuide
       trailingEmptyLineChanges = []
       for change in @pendingChanges
         continue unless change.bufferDelta?
@@ -1613,7 +1613,7 @@ class Editor extends View
         updateScopeStack(token.scopes)
         hasLeadingWhitespace =  position < firstNonWhitespacePosition
         hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
-        hasIndentGuide = @showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
+        hasIndentGuide = not @mini and @showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
         line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
         position += token.value.length
 
