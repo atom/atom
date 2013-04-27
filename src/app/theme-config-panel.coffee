@@ -3,6 +3,10 @@ ConfigPanel = require 'config-panel'
 $ = require 'jquery'
 _ = require 'underscore'
 
+###
+# Internal #
+###
+
 window.jQuery = $
 require 'jqueryui-browser/ui/jquery.ui.core'
 require 'jqueryui-browser/ui/jquery.ui.widget'

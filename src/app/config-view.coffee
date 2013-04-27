@@ -6,6 +6,10 @@ EditorConfigPanel = require 'editor-config-panel'
 ThemeConfigPanel = require 'theme-config-panel'
 PackageConfigPanel = require 'package-config-panel'
 
+###
+# Internal #
+###
+
 module.exports =
 class ConfigView extends View
   registerDeserializer(this)

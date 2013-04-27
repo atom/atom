@@ -3,6 +3,10 @@ ConfigPanel = require 'config-panel'
 $ = require 'jquery'
 _ = require 'underscore'
 
+###
+# Internal #
+###
+
 module.exports =
 class GeneralConfigPanel extends ConfigPanel
   @content: ->

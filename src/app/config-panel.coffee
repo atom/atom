@@ -1,6 +1,10 @@
 $ = require 'jquery'
 {View} = require 'space-pen'
 
+###
+# Internal #
+###
+
 module.exports =
 class ConfigPanel extends View
   initialize: ->

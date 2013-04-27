@@ -1,6 +1,10 @@
 ConfigPanel = require 'config-panel'
 Editor = require 'editor'
 
+###
+# Internal #
+###
+
 module.exports =
 class EditorConfigPanel extends ConfigPanel
   @content: ->
