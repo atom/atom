@@ -530,7 +530,7 @@ class DisplayBuffer
     attributes.startRow = startBufferRow if startBufferRow?
     attributes.endRow = endBufferRow if endBufferRow?
     attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow'])
-    @buffer.findMarkers(attributes)
+    @buffer.findMarkers(attributes).map ({id}) => @getMarker(id)
 
   ###
   # Internal #
