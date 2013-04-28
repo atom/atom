@@ -100,6 +100,16 @@
     'patterns': ['include': 'source.ruby']
   }
   {
+    'begin': '^```java$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.code.java.gfm'
+    'patterns': ['include': 'source.java']
+  }
+  {
     'begin': '^```.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
