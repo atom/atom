@@ -737,3 +737,22 @@ describe "DisplayBuffer", ->
         marker.destroy()
         expect(marker.isValid()).toBeFalsy()
         expect(displayBuffer.getMarker(marker.id)).toBeUndefined()
+
+    describe "marker-added and marker-removed events", ->
+      it "emits the appropriate event when a marker is created, destroyed, or its validity changes", ->
+        displayBuffer.on 'marker-added', markerAddedHandler = jasmine.createSpy("markerAddedHandler")
+        displayBuffer.on 'marker-removed', markerRemovedHandler = jasmine.createSpy("markerRemovedHandler")
+
+        marker = displayBuffer.markBufferRange([[5, 4], [5, 10]])
+        expect(markerAddedHandler).toHaveBeenCalledWith(marker)
+        markerAddedHandler.reset()
+
+        buffer.change([[5, 3], [5, 11]], 'hey')
+        expect(markerRemovedHandler).toHaveBeenCalledWith(marker)
+        markerRemovedHandler.reset()
+
+        buffer.undo()
+        expect(markerAddedHandler).toHaveBeenCalledWith(marker)
+
+        marker.destroy()
+        expect(markerRemovedHandler).toHaveBeenCalledWith(marker)
