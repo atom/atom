@@ -299,16 +299,29 @@ describe "CommandPanel", ->
       expect(commandInterpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/\\(items\\)/i"
 
   describe "when command-panel:find-in-file is triggered on an editor", ->
-    it "pre-populates the command panel's editor with / and moves the cursor to the last column", ->
-      spyOn(commandPanel, 'attach').andCallThrough()
-      commandPanel.miniEditor.setText("foo")
-      commandPanel.miniEditor.setCursorBufferPosition([0, 0])
+    describe "when the command panel's editor does not begin with /", ->
+      it "pre-populates the command panel's editor with / and moves the cursor to the last column", ->
+        spyOn(commandPanel, 'attach').andCallThrough()
+        commandPanel.miniEditor.setText("foo")
+        commandPanel.miniEditor.setCursorBufferPosition([0, 0])
 
-      rootView.getActiveView().trigger "command-panel:find-in-file"
-      expect(commandPanel.attach).toHaveBeenCalled()
-      expect(commandPanel.parent).not.toBeEmpty()
-      expect(commandPanel.miniEditor.getText()).toBe "/"
-      expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 1]
+        rootView.getActiveView().trigger "command-panel:find-in-file"
+        expect(commandPanel.attach).toHaveBeenCalled()
+        expect(commandPanel.parent).not.toBeEmpty()
+        expect(commandPanel.miniEditor.getText()).toBe "/"
+        expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 1]
+
+    describe "when the command panel's editor begins with /", ->
+      it "selects text text after the /", ->
+        spyOn(commandPanel, 'attach').andCallThrough()
+        commandPanel.miniEditor.setText("/foo")
+        commandPanel.miniEditor.setCursorBufferPosition([0, 0])
+
+        rootView.getActiveView().trigger "command-panel:find-in-file"
+        expect(commandPanel.attach).toHaveBeenCalled()
+        expect(commandPanel.parent).not.toBeEmpty()
+        expect(commandPanel.miniEditor.getText()).toBe "/foo"
+        expect(commandPanel.miniEditor.getSelectedText()).toBe "foo"
 
   describe "when command-panel:find-in-project is triggered on the root view", ->
     it "pre-populates the command panel's editor with Xx/ and moves the cursor to the last column", ->

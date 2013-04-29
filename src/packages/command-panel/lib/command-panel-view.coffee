@@ -42,7 +42,7 @@ class CommandPanelView extends View
 
     @subscribeToCommand rootView, 'command-panel:toggle', => @toggle()
     @subscribeToCommand rootView, 'command-panel:toggle-preview', => @togglePreview()
-    @subscribeToCommand rootView, 'command-panel:find-in-file', => @attach('/')
+    @subscribeToCommand rootView, 'command-panel:find-in-file', => @findInFile()
     @subscribeToCommand rootView, 'command-panel:find-in-project', => @attach('Xx/')
     @subscribeToCommand rootView, 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
     @subscribeToCommand rootView, 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
@@ -115,6 +115,13 @@ class CommandPanelView extends View
     @previewList.hide()
     @previewHeader.hide()
     super
+
+  findInFile: ->
+    if @miniEditor.getText()[0] is '/'
+      @attach()
+      @miniEditor.setSelectedBufferRange([[0, 1], [0, Infinity]])
+    else
+      @attach('/')
 
   escapedCommand: ->
     @miniEditor.getText()
