@@ -371,22 +371,16 @@ describe "Editor", ->
     describe "single-click", ->
       it "re-positions the cursor to the clicked row / column", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [3, 10])
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10])
         expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
 
       describe "when the lines are scrolled to the right", ->
         it "re-positions the cursor on the clicked location", ->
           setEditorWidthInChars(editor, 30)
           expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-          editor.scrollView.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
-          editor.scrollView.trigger mousedownEvent(editor: editor, point: [3, 50])
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 50])
           expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
-
-      describe "when clicking on the last line", ->
-        it "re-positions the cursor on the last line (regression)", ->
-          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-          editor.scrollView.trigger mousedownEvent(editor: editor, point: [13, 20])
-          expect(editor.getCursorScreenPosition()).toEqual(row: 12, column: 2)
 
       describe "when the editor is using a variable-width font", ->
         beforeEach ->
@@ -397,35 +391,35 @@ describe "Editor", ->
 
         it "positions the cursor to the clicked row and column", ->
           {top, left} = editor.pixelOffsUtilsetForScreenPosition([3, 30])
-          editor.scrollView.trigger mousedownEvent(pageX: left, pageY: top)
+          editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
           expect(editor.getCursorScreenPosition()).toEqual [3, 30]
 
     describe "double-click", ->
       it "selects the word under the cursor, and expands the selection wordwise in either direction on a subsequent shift-click", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [8, 24], originalEvent: {detail: 1})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [8, 24], originalEvent: {detail: 2})
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [8, 24], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [8, 24], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedText()).toBe "concat"
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [8, 7], shiftKey: true)
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [8, 7], shiftKey: true)
+        editor.renderedLines.trigger 'mouseup'
 
         expect(editor.getSelectedText()).toBe "return sort(left).concat"
 
       it "stops selecting by word when the selection is emptied", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedText()).toBe "quicksort"
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [3, 10])
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10])
+        editor.renderedLines.trigger 'mouseup'
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [3, 12], originalEvent: {detail: 1}, shiftKey: true)
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 12], originalEvent: {detail: 1}, shiftKey: true)
         expect(editor.getSelectedBufferRange()).toEqual [[3, 10], [3, 12]]
 
     describe "triple/quardruple/etc-click", ->
@@ -433,74 +427,74 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
         # Triple click
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedText()).toBe "  var sort = function(items) {\n"
 
         # Quad click
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;\n"
 
       it "expands the selection linewise in either direction on a subsequent shift-click, but stops selecting linewise once the selection is emptied", ->
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 1})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 2})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 3})
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 3})
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedBufferRange()).toEqual [[4, 0], [5, 0]]
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1}, shiftKey: true)
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1}, shiftKey: true)
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [5, 0]]
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [2, 8], originalEvent: {detail: 1})
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelection().isEmpty()).toBeTruthy()
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [3, 8], originalEvent: {detail: 1}, shiftKey: true)
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 8], originalEvent: {detail: 1}, shiftKey: true)
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedBufferRange()).toEqual [[2, 8], [3, 8]]
 
     describe "shift-click", ->
       it "selects from the cursor's current location to the clicked location", ->
         editor.setCursorScreenPosition([4, 7])
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true)
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true)
         expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
     describe "shift-double-click", ->
       it "expands the selection on the first click and ignores the second click", ->
         editor.setCursorScreenPosition([4, 7])
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
     describe "shift-triple-click", ->
       it "expands the selection on the first click and ignores the second click", ->
         editor.setCursorScreenPosition([4, 7])
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
     describe "meta-click", ->
@@ -510,7 +504,7 @@ describe "Editor", ->
         editor.setCursorBufferPosition([3, 0])
         editor.scrollTop(editor.lineHeight * 6)
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
         expect(editor.scrollTop()).toBe editor.lineHeight * (6 - editor.vScrollMargin)
 
         [cursor1, cursor2] = editor.getCursorViews()
@@ -525,7 +519,7 @@ describe "Editor", ->
         editor.css(position: 'absolute', top: 10, left: 10)
 
         # start
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [4, 10])
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
 
         # moving changes selection
         $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
@@ -539,7 +533,7 @@ describe "Editor", ->
         $(document).trigger 'mouseup'
 
         # moving after mouse up should not change selection
-        editor.scrollView.trigger mousemoveEvent(editor: editor, point: [8, 8])
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
@@ -553,7 +547,7 @@ describe "Editor", ->
 
         spyOn(window, 'setInterval').andCallFake (fn) -> intervalFns.push(fn)
         # start
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [12, 0])
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [12, 0])
 
         # moving changes selection
         $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -15)
@@ -570,7 +564,7 @@ describe "Editor", ->
 
         event = mousedownEvent(editor: editor, point: [4, 10])
         event.originalEvent.which = 2
-        editor.scrollView.trigger(event)
+        editor.renderedLines.trigger(event)
         $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
         $(document).trigger 'mouseup'
 
@@ -584,7 +578,7 @@ describe "Editor", ->
 
         event = mousedownEvent(editor: editor, point: [4, 10])
         event.ctrlKey = true
-        editor.scrollView.trigger(event)
+        editor.renderedLines.trigger(event)
         $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
         $(document).trigger 'mouseup'
 
@@ -595,25 +589,25 @@ describe "Editor", ->
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
-        editor.scrollView.trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
         expect(editor.getSelectedText()).toBe "quicksort"
 
-        editor.scrollView.trigger mousemoveEvent(editor: editor, point: [1, 8])
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [1, 8])
         expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [1, 10]]
         expect(editor.getCursorBufferPosition()).toEqual [1, 10]
 
-        editor.scrollView.trigger mousemoveEvent(editor: editor, point: [0, 1])
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [0, 1])
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 13]]
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 13]]
 
         # shift-clicking still selects by word, but does not preserve the initial range
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [5, 25], originalEvent: {detail: 1}, shiftKey: true)
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 25], originalEvent: {detail: 1}, shiftKey: true)
+        editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedBufferRange()).toEqual [[0, 13], [5, 27]]
 
     describe "triple-click and drag", ->
@@ -621,20 +615,20 @@ describe "Editor", ->
         editor.attachToDom()
 
         # triple click
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
         $(document).trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
         $(document).trigger 'mouseup'
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 3})
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 3})
         expect(editor.getSelectedBufferRange()).toEqual [[4, 0], [5, 0]]
 
         # moving changes selection linewise
-        editor.scrollView.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
         expect(editor.getSelectedBufferRange()).toEqual [[4, 0], [6, 0]]
         expect(editor.getCursorBufferPosition()).toEqual [6, 0]
 
         # moving changes selection linewise
-        editor.scrollView.trigger mousemoveEvent(editor: editor, point: [2, 27])
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [2, 27])
         expect(editor.getSelectedBufferRange()).toEqual [[2, 0], [5, 0]]
         expect(editor.getCursorBufferPosition()).toEqual [2, 0]
 
@@ -643,13 +637,13 @@ describe "Editor", ->
 
     describe "meta-click and drag", ->
       it "adds an additional selection", ->
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [4, 10])
-        editor.scrollView.trigger mousemoveEvent(editor: editor, point: [5, 27])
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        editor.renderedLines.trigger 'mouseup'
 
-        editor.scrollView.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
-        editor.scrollView.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
-        editor.scrollView.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
+        editor.renderedLines.trigger 'mouseup'
 
         selections = editor.getSelections()
         expect(selections.length).toBe 2
