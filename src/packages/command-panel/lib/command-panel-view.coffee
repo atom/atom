@@ -12,7 +12,8 @@ module.exports =
 class CommandPanelView extends View
   @content: ->
     @div class: 'command-panel tool-panel', =>
-      @div class: 'loading is-loading', outlet: 'loadingMessage', 'Searching...'
+      @div class: 'loading is-loading', outlet: 'loadingMessage', =>
+        @span 'Searching...'
       @div class: 'header', outlet: 'previewHeader', =>
         @button outlet: 'collapseAll', class: 'btn btn-mini pull-right', 'Collapse All'
         @button outlet: 'expandAll', class: 'btn btn-mini pull-right', 'Expand All'

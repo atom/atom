@@ -3,17 +3,28 @@
   padding: 0;
 
   .is-loading {
-    display: block;
-    margin: 0 auto 10px auto;
-    width: 100px;
-    background-color: #111111;
-    background-size: auto;
-    background-position: 5px 5px;
-    padding: 5px 5px 10px 30px;
-    border-radius: 3px;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-top: 1px solid rgba(0,0,0,1);
-    border-left: 1px solid rgba(0,0,0,1);
+    margin-bottom: 10px;
+    text-align: center;
+
+    span {
+      padding: 5px 10px 5px 10px;
+      background-color: #111111;
+      text-align: center;
+      border-radius: 3px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-top: 1px solid rgba(0,0,0,1);
+      border-left: 1px solid rgba(0,0,0,1);
+
+      &:before {
+        font-family: 'Octicons Regular';
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        margin-right: 5px;
+        -webkit-font-smoothing: antialiased;
+        content: '\f09e';
+      }
+    }
   }
 
   .preview-count {
