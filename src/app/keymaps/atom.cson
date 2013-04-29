@@ -52,6 +52,13 @@
   'meta-9': 'pane:show-item-9'
   'meta-T': 'pane:reopen-closed-item'
 
+  'meta-n': 'new-window'
+  'meta-,': 'open-user-configuration'
+  'meta-o': 'open'
+  'meta-O': 'open-dev'
+  'meta-w': 'core:close'
+  'alt-meta-i': 'toggle-dev-tools'
+
 '.tool-panel':
   'meta-escape': 'tool-panel:unfocus'
   'escape': 'core:close'
