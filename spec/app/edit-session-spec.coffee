@@ -744,10 +744,18 @@ describe "EditSession", ->
           expect(editSession.lineForScreenRow(1).fold).toBeDefined()
 
     describe ".selectMarker(marker)", ->
-      it "selects the marker's range and returns true", ->
-        marker = editSession.markBufferRange([[0, 1], [3, 3]])
-        expect(editSession.selectMarker(marker)).toBeTruthy()
-        expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 3]]
+      describe "if the marker is valid", ->
+        it "selects the marker's range and returns the selected range", ->
+          marker = editSession.markBufferRange([[0, 1], [3, 3]])
+          expect(editSession.selectMarker(marker)).toEqual [[0, 1], [3, 3]]
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 3]]
+
+      describe "if the marker is invalid", ->
+        it "does not change the selection and returns a falsy value", ->
+          marker = editSession.markBufferRange([[0, 1], [3, 3]])
+          marker.destroy()
+          expect(editSession.selectMarker(marker)).toBeFalsy()
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 0], [0, 0]]
 
     describe ".addSelectionBelow()", ->
       describe "when the selection is non-empty", ->

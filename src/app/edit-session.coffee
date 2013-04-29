@@ -1411,11 +1411,10 @@ class EditSession
     @getLastSelection().expandOverWord()
 
   selectMarker: (marker) ->
-    if bufferRange = marker.getBufferRange()
-      @setSelectedBufferRange(bufferRange)
-      true
-    else
-      false
+    if marker.isValid()
+      range = marker.getBufferRange()
+      @setSelectedBufferRange(range)
+      range
 
   # Public: Given a buffer position, this finds all markers that contain the position.
   #
