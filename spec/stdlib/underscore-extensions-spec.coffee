@@ -65,3 +65,14 @@ describe "underscore extensions", ->
         array = ['a', 'b', 'c']
         _.spliceWithArray(array, 1, 1, ['v', 'w', 'x', 'y', 'z'], 2)
         expect(array).toEqual ['a', 'v', 'w', 'x', 'y', 'z', 'c']
+
+  describe "_.humanizeEventName(eventName)", ->
+    describe "when no namespace exists", ->
+      it "undasherizes and capitalizes the event name", ->
+        expect(_.humanizeEventName('nonamespace')).toBe 'Nonamespace'
+        expect(_.humanizeEventName('no-name-space')).toBe 'No Name Space'
+
+    describe "when a namespaces exists", ->
+      it "space separates the undasherized/capitalized versions of the namespace and event name", ->
+        expect(_.humanizeEventName('space:final-frontier')).toBe 'Space: Final Frontier'
+        expect(_.humanizeEventName('star-trek:the-next-generation')).toBe 'Star Trek: The Next Generation'

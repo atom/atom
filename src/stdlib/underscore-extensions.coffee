@@ -62,7 +62,7 @@ _.mixin
 
   humanizeEventName: (eventName, eventDoc) ->
     [namespace, event]  = eventName.split(':')
-    return _.capitalize(namespace) unless event?
+    return _.undasherize(namespace) unless event?
 
     namespaceDoc = _.undasherize(namespace)
     eventDoc ?= _.undasherize(event)
