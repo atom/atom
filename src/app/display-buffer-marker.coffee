@@ -145,8 +145,11 @@ class DisplayBufferMarker
 
   # Destroys the marker
   destroy: ->
-    delete @displayBuffer.markers[@id]
     @bufferMarker.destroy()
+
+  # Returns a {String} representation of the marker
+  inspect: ->
+    "DisplayBufferMarker(id: #{@id}, bufferRange: #{@getBufferRange().inspect()})"
 
   ###
   # Internal #
@@ -165,12 +168,10 @@ class DisplayBufferMarker
           newTailBufferPosition: newTailPosition
           bufferChanged: bufferChanged
           valid: valid
-    @displayBuffer.markers[@id] = this
 
   unobserveBufferMarkerIfNeeded: ->
     return if @subscriptionCount()
     @bufferMarkerSubscription.cancel()
-    delete @displayBuffer.markers[@id]
 
   notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged, valid} = {}) ->
     oldHeadScreenPosition = @getHeadScreenPosition()
