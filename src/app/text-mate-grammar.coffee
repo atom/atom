@@ -117,6 +117,7 @@ class TextMateGrammar
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
+
     loop
       scopes = scopesFromStack(ruleStack)
       previousRuleStackLength = ruleStack.length
