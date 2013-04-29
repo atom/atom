@@ -353,7 +353,7 @@ describe "the `atom` global", ->
         expect(errors).toBe 0
 
         coverage = parseFloat results.pop().match(/.+?%/)
-        expect(coverage).toBeGreaterThan 80
+        expect(coverage).toBeGreaterThan 79
 
         # stderr
         expect(docRunner.argsForCall[0][2]).toBe ''
