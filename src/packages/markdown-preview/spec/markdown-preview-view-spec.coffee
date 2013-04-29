@@ -31,3 +31,13 @@ describe "MarkdownPreviewView", ->
     it "reassociates with the same buffer when deserialized", ->
       newPreview = deserialize(preview.serialize())
       expect(newPreview.buffer).toBe buffer
+
+  fdescribe "code block tokenization", ->
+    describe "when the code block's fence name has a matching grammar", ->
+      it "tokenizes the code block with the grammar", ->
+        expect(preview.find("pre code.lang-ruby .entity.name.function.ruby")).toExist()
+
+    describe "when the code block's fence name doesn't have a matching grammar", ->
+      it "does not tokenize the code block", ->
+        expect(preview.find("pre code:not([class])").children().length).toBe 0
+        expect(preview.find("pre code.lang-kombucha").children().length).toBe 0
