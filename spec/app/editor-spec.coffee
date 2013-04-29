@@ -371,7 +371,6 @@ describe "Editor", ->
     describe "single-click", ->
       it "re-positions the cursor to the clicked row / column", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10])
         expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
 
