@@ -16,7 +16,7 @@ class Operation
     @project.relativize(path)
 
   getBufferRange: ->
-    @getBuffer().getMarkerRange(@getMarker())
+    @getMarker().getRange()
 
   execute: (editSession) ->
     @getBuffer().change(@getBufferRange(), @newText) if @newText
