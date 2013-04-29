@@ -53,6 +53,7 @@
   'meta-T': 'pane:reopen-closed-item'
 
   'meta-n': 'new-window'
+  'meta-N': 'new-editor'
   'meta-,': 'open-user-configuration'
   'meta-o': 'open'
   'meta-O': 'open-dev'

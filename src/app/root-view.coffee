@@ -34,7 +34,7 @@ class RootView extends View
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @subview 'panes', panes ? new PaneContainer
-          
+
   @deserialize: ({ panes }) ->
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes})
@@ -73,6 +73,9 @@ class RootView extends View
 
     @command 'pane:reopen-closed-item', =>
       @panes.reopenItem()
+
+    @command 'new-editor', =>
+      @open()
 
   serialize: ->
     version: RootView.version
