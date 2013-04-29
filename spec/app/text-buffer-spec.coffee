@@ -1185,6 +1185,17 @@ describe 'Buffer', ->
           expect(marker4.isValid()).toBeTruthy()
           expect(marker4.getRange()).toEqual [[4, 20], [4, 23]]
 
+      it "emits 'marker-added' and 'marker-removed' events when markers are invalidated or revalidated", ->
+        marker2.destroy()
+        marker3.destroy()
+        markerRemovedHandler.reset()
+
+        buffer.change([[4, 21], [4, 24]], "foo")
+        expect(markerRemovedHandler).toHaveBeenCalledWith(marker1)
+
+        buffer.undo()
+        expect(markerAddedHandler).toHaveBeenCalledWith(marker1)
+
     describe ".markersForPosition(position)", ->
       it "returns all markers that intersect the given position", ->
         m1 = buffer.markRange([[3, 4], [3, 10]])

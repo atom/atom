@@ -260,10 +260,12 @@ class BufferMarker
     delete @buffer.validMarkers[@id]
     @buffer.invalidMarkers[@id] = this
     @notifyObservers(bufferChanged: true)
+    @buffer.trigger 'marker-removed', this
 
   revalidate: ->
     delete @buffer.invalidMarkers[@id]
     @buffer.validMarkers[@id] = this
     @notifyObservers(bufferChanged: true)
+    @buffer.trigger 'marker-added', this
 
 _.extend BufferMarker.prototype, EventEmitter
