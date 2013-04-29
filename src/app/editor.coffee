@@ -835,13 +835,12 @@ class Editor extends View
       $(clickedElement).trigger(e)
       false if @isFocused
 
-    @renderedLines.on 'mousedown', '.fold.line', (e) =>
+    @scrollView.on 'mousedown', '.fold.line', (e) =>
       @destroyFold($(e.currentTarget).attr('fold-id'))
       false
 
-    onMouseDown = (e) =>
+    @scrollView.on 'mousedown', (e) =>
       clickCount = e.originalEvent.detail
-
       screenPosition = @screenPositionFromMouseEvent(e)
       if clickCount == 1
         if e.metaKey
@@ -856,8 +855,6 @@ class Editor extends View
         @activeEditSession.selectLine() unless e.shiftKey
 
       @selectOnMousemoveUntilMouseup() unless e.ctrlKey or e.originalEvent.which > 1
-
-    @renderedLines.on 'mousedown', onMouseDown
 
     @on "textInput", (e) =>
       @insertText(e.originalEvent.data)
