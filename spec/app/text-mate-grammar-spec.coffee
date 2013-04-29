@@ -488,6 +488,29 @@ describe "TextMateGrammar", ->
           expect(tokens[2].value).toBe "SELECT"
           expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
 
+    describe "when the position doesn't advance and rule includes $self and matches itself", ->
+      it "token the entire line using the rule", ->
+        grammar = new TextMateGrammar
+          name: "test"
+          scopeName: "source"
+          repository: {}
+          patterns: [
+            {
+              name: "text"
+              begin: "(?=forever)"
+              end: "whatevs"
+              patterns: [
+                include: "$self"
+              ]
+            }
+          ]
+
+        {tokens} = grammar.tokenizeLine("forever and ever")
+
+        expect(tokens.length).toBe 1
+        expect(tokens[0].value).toBe "forever and ever"
+        expect(tokens[0].scopes).toEqual ["source", "text"]
+
   describe "language-specific integration tests", ->
     lines = null
 

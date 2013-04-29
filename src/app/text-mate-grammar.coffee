@@ -155,9 +155,19 @@ class TextMateGrammar
           ))
         break
 
-      if position == previousPosition and ruleStack.length == previousRuleStackLength
-        console.error("Popping rule because it loops at column #{position} of line '#{line}'", _.clone(ruleStack))
-        ruleStack.pop()
+      if position == previousPosition
+        if ruleStack.length == previousRuleStackLength
+          console.error("Popping rule because it loops at column #{position} of line '#{line}'", _.clone(ruleStack))
+          ruleStack.pop()
+
+        [penultimateRule, lastRule] = ruleStack[-2..]
+        if lastRule? and penultimateRule.scopeName == lastRule.scopeName
+          ruleStack.pop()
+          tokens.push(new Token(
+            value: line[position...line.length]
+            scopes: scopes
+          ))
+          break
 
     ruleStack.forEach (rule) -> rule.clearAnchorPosition()
     { tokens, ruleStack }
