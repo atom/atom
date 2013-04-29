@@ -32,5 +32,5 @@ class Operation
     {prefix, suffix, match, range}
 
   destroy: ->
-    @buffer?.destroyMarker(@marker) if @marker?
+    @marker?.destroy()
     @buffer?.release()
