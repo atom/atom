@@ -15,7 +15,7 @@ class MisspellingView extends View
     @misspellingValid = true
 
     @marker = @editSession.markScreenRange(range, invalidationStrategy: 'between')
-    @editSession.observeMarker @marker, ({newHeadScreenPosition, newTailScreenPosition, valid}) =>
+    @marker.observe ({newHeadScreenPosition, newTailScreenPosition, valid}) =>
       @startPosition = newTailScreenPosition
       @endPosition = newHeadScreenPosition
       @updateDisplayPosition = valid
@@ -42,8 +42,7 @@ class MisspellingView extends View
 
   unsubscribe: ->
     super
-
-    @editSession.destroyMarker(@marker)
+    @marker.destroy()
 
   containsCursor: ->
     cursor = @editor.getCursorScreenPosition()

@@ -111,6 +111,6 @@ describe "Spell check", ->
         expect(editor.find('.misspelling').length).toBe 1
         view = editor.find('.misspelling').view()
         buffer = editor.getBuffer()
-        expect(buffer.getMarkerPosition(view.marker)).not.toBeUndefined()
+        expect(view.marker.isDestroyed()).toBeFalsy()
         editor.remove()
-        expect(buffer.getMarkerPosition(view.marker)).toBeUndefined()
+        expect(view.marker.isDestroyed()).toBeTruthy()
