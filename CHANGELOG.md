@@ -1,3 +1,5 @@
+* Added: meta-N to open a new untitled editor in the current window
+
 * Fixed: Styling in command logger
 * Added: XML and Ruby syntax highlighting in Markdown files
 * Fixed: Error when editing files in a HEAD-less Git repository
