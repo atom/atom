@@ -1,3 +1,4 @@
+* Fixed: Freeze when editing a RoR class
 * Added: meta-N to open a new untitled editor in the current window
 
 * Fixed: Styling in command logger
