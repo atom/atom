@@ -131,12 +131,19 @@ class DisplayBufferMarker
   isReversed: ->
     @bufferMarker.isReversed()
 
+  # Returns a {Boolean} indicating whether the marker is valid. Markers can be
+  # invalidated when a region surrounding them in the buffer is changed.
   isValid: ->
     @bufferMarker.isValid()
 
+  # Returns a {Boolean} indicating whether the marker has been destroyed. A marker
+  # can be invalid without being destroyed, in which case undoing the invalidating
+  # operation would restore the marker. Once a marker is destroyed by calling
+  # {Marker.destroy}, no undo/redo operation can ever bring it back.
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
+  # Destroys the marker
   destroy: ->
     delete @displayBuffer.markers[@id]
     @bufferMarker.destroy()

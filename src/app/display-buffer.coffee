@@ -522,9 +522,22 @@ class DisplayBuffer
     @buffer.destroyMarker(id)
     delete @markers[id]
 
+  # Finds the first marker satisfying the given attributes
+  #
+  # Refer to {DisplayBuffer.findMarkers} for details.
+  #
+  # Returns a {DisplayBufferMarker} or null
   findMarker: (attributes) ->
     @findMarkers(attributes)[0]
 
+  # Finds all valid markers satisfying the given attributes
+  #
+  # attributes - The attributes against which to compare the markers' attributes
+  #   There are some reserved keys that match against derived marker properties:
+  #   startBufferRow - The buffer row at which the marker starts
+  #   endBufferRow - The buffer row at which the marker ends
+  #
+  # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (attributes) ->
     { startBufferRow, endBufferRow } = attributes
     attributes.startRow = startBufferRow if startBufferRow?

@@ -922,6 +922,7 @@ class EditSession
   # Public #
   ###
 
+  # Returns a valid {DisplayBufferMarker} object for the given id if one exists.
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
@@ -1410,6 +1411,9 @@ class EditSession
   expandLastSelectionOverWord: ->
     @getLastSelection().expandOverWord()
 
+  # Selects the range associated with the given marker if it is valid.
+  #
+  # Returns the selected {Range} or a falsy value if the marker is invalid.
   selectMarker: (marker) ->
     if marker.isValid()
       range = marker.getBufferRange()
