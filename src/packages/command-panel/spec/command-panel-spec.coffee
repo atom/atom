@@ -312,7 +312,7 @@ describe "CommandPanel", ->
         expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 1]
 
     describe "when the command panel's editor begins with /", ->
-      it "selects text text after the /", ->
+      it "selects text after the /", ->
         spyOn(commandPanel, 'attach').andCallThrough()
         commandPanel.miniEditor.setText("/foo")
         commandPanel.miniEditor.setCursorBufferPosition([0, 0])
@@ -324,16 +324,29 @@ describe "CommandPanel", ->
         expect(commandPanel.miniEditor.getSelectedText()).toBe "foo"
 
   describe "when command-panel:find-in-project is triggered on the root view", ->
-    it "pre-populates the command panel's editor with Xx/ and moves the cursor to the last column", ->
-      spyOn(commandPanel, 'attach').andCallThrough()
-      commandPanel.miniEditor.setText("foo")
-      commandPanel.miniEditor.setCursorBufferPosition([0, 0])
+    describe "when the command panel's editor does not begin with Xx/", ->
+      it "pre-populates the command panel's editor with Xx/ and moves the cursor to the last column", ->
+        spyOn(commandPanel, 'attach').andCallThrough()
+        commandPanel.miniEditor.setText("foo")
+        commandPanel.miniEditor.setCursorBufferPosition([0, 0])
 
-      rootView.trigger "command-panel:find-in-project"
-      expect(commandPanel.attach).toHaveBeenCalled()
-      expect(commandPanel.parent).not.toBeEmpty()
-      expect(commandPanel.miniEditor.getText()).toBe "Xx/"
-      expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 3]
+        rootView.trigger "command-panel:find-in-project"
+        expect(commandPanel.attach).toHaveBeenCalled()
+        expect(commandPanel.parent).not.toBeEmpty()
+        expect(commandPanel.miniEditor.getText()).toBe "Xx/"
+        expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 3]
+
+    describe "when the command panel's editor begins with Xx/", ->
+      it "selects text after the Xx/", ->
+        spyOn(commandPanel, 'attach').andCallThrough()
+        commandPanel.miniEditor.setText("Xx/foo")
+        commandPanel.miniEditor.setCursorBufferPosition([0, 0])
+
+        rootView.getActiveView().trigger "command-panel:find-in-project"
+        expect(commandPanel.attach).toHaveBeenCalled()
+        expect(commandPanel.parent).not.toBeEmpty()
+        expect(commandPanel.miniEditor.getText()).toBe "Xx/foo"
+        expect(commandPanel.miniEditor.getSelectedText()).toBe "foo"
 
   describe "when return is pressed on the panel's editor", ->
     describe "if the command has an immediate effect", ->

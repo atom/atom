@@ -43,7 +43,7 @@ class CommandPanelView extends View
     @subscribeToCommand rootView, 'command-panel:toggle', => @toggle()
     @subscribeToCommand rootView, 'command-panel:toggle-preview', => @togglePreview()
     @subscribeToCommand rootView, 'command-panel:find-in-file', => @findInFile()
-    @subscribeToCommand rootView, 'command-panel:find-in-project', => @attach('Xx/')
+    @subscribeToCommand rootView, 'command-panel:find-in-project', => @findInProject()
     @subscribeToCommand rootView, 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
     @subscribeToCommand rootView, 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddress(reverse: true)
     @subscribeToCommand rootView, 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
@@ -122,6 +122,13 @@ class CommandPanelView extends View
       @miniEditor.setSelectedBufferRange([[0, 1], [0, Infinity]])
     else
       @attach('/')
+
+  findInProject: ->
+    if @miniEditor.getText().indexOf('Xx/') is 0
+      @attach()
+      @miniEditor.setSelectedBufferRange([[0, 3], [0, Infinity]])
+    else
+      @attach('Xx/')
 
   escapedCommand: ->
     @miniEditor.getText()
