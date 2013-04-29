@@ -134,6 +134,9 @@ class DisplayBufferMarker
   isValid: ->
     @bufferMarker.isValid()
 
+  isDestroyed: ->
+    @bufferMarker.isDestroyed()
+
   destroy: ->
     delete @displayBuffer.markers[@id]
     @bufferMarker.destroy()

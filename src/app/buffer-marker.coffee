@@ -168,6 +168,9 @@ class BufferMarker
   isValid: ->
     @buffer.getMarker(@id)?
 
+  isDestroyed: ->
+    not (@buffer.validMarkers[@id]? or @buffer.invalidMarkers[@id]?)
+
   ###
   # Internal #
   ###
