@@ -98,17 +98,19 @@ class CommandPanelView extends View
     @previewList.collapseAllPaths()
     @previewList.focus()
 
-  attach: (text='', options={}) ->
+  attach: (text, options={}) ->
     @errorMessages.hide()
 
     focus = options.focus ? true
     rootView.vertical.append(this)
     @miniEditor.focus() if focus
-    @miniEditor.setText(text)
-    @miniEditor.setCursorBufferPosition([0, Infinity])
+    if text?
+      @miniEditor.setText(text)
+      @miniEditor.setCursorBufferPosition([0, Infinity])
+    else
+      @miniEditor.selectAll()
 
   detach: ->
-    @miniEditor.setText('')
     rootView.focus()
     @previewList.hide()
     @previewHeader.hide()

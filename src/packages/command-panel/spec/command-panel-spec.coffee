@@ -76,7 +76,7 @@ describe "CommandPanel", ->
       expect(rootView.focus).toHaveBeenCalled()
       expect(rootViewCloseHandler).not.toHaveBeenCalled()
       expect(commandPanel.hasParent()).toBeFalsy()
-      expect(commandPanel.miniEditor.getText()).toBe ''
+      expect(commandPanel.miniEditor.getText()).toBe 'command'
 
   describe "when core:cancel is triggered on the command panel's mini editor", ->
     it "detaches the command panel, focuses the RootView and does not bubble the core:cancel event", ->
@@ -91,7 +91,7 @@ describe "CommandPanel", ->
       expect(rootView.focus).toHaveBeenCalled()
       expect(rootViewCancelHandler).not.toHaveBeenCalled()
       expect(commandPanel.hasParent()).toBeFalsy()
-      expect(commandPanel.miniEditor.getText()).toBe ''
+      expect(commandPanel.miniEditor.getText()).toBe 'command'
 
   describe "when command-panel:toggle is triggered on the root view", ->
     beforeEach ->
@@ -114,6 +114,16 @@ describe "CommandPanel", ->
           rootView.trigger 'command-panel:toggle'
           expect(commandPanel.hasParent()).toBeTruthy()
           expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
+
+      describe "when the command panel is opened a second time", ->
+        it "displays and selects the previously entered text", ->
+          commandPanel.miniEditor.setText('command1')
+          rootView.trigger 'command-panel:toggle'
+          expect(commandPanel.hasParent()).toBeFalsy()
+          rootView.trigger 'command-panel:toggle'
+          expect(commandPanel.hasParent()).toBeTruthy()
+          expect(commandPanel.miniEditor.getText()).toBe 'command1'
+          expect(commandPanel.miniEditor.getSelectedText()).toBe 'command1'
 
     describe "when the command panel is not visible", ->
       it "shows and focuses the command panel", ->
