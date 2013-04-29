@@ -781,6 +781,12 @@ describe 'Buffer', ->
         expect(buffer.positionForCharacterIndex(20)).toEqual [3, 0]
 
   describe "markers", ->
+    [markerAddedHandler, markerRemovedHandler] = []
+
+    beforeEach ->
+      buffer.on('marker-added', markerAddedHandler = jasmine.createSpy("markerAddedHandler"))
+      buffer.on('marker-removed', markerRemovedHandler = jasmine.createSpy("markerRemovedHandler"))
+
     describe "marker creation", ->
       it "allows markers to be created with ranges and positions", ->
         marker1 = buffer.markRange([[4, 20], [4, 23]])
@@ -799,6 +805,10 @@ describe 'Buffer', ->
         expect(marker.getRange()).toEqual [[4, 20], [4, 23]]
         expect(marker.getHeadPosition()).toEqual [4, 20]
         expect(marker.getTailPosition()).toEqual [4, 23]
+
+      it "emits the 'marker-added' event when markers are created", ->
+        marker = buffer.markRange([[4, 20], [4, 23]])
+        expect(markerAddedHandler).toHaveBeenCalledWith(marker)
 
     describe "marker manipulation", ->
       marker = null
@@ -994,6 +1004,10 @@ describe 'Buffer', ->
         marker2.destroy()
         buffer.undo()
         expect(buffer.getMarker(marker2.id)).toBeUndefined()
+
+      it "emits 'marker-removed' when markers are destroyed", ->
+        marker.destroy()
+        expect(markerRemovedHandler).toHaveBeenCalledWith(marker)
 
     describe "marker updates due to buffer changes", ->
       [marker1, marker2, marker3] = []
