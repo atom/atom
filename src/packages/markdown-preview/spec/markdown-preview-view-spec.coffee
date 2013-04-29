@@ -8,6 +8,7 @@ describe "MarkdownPreviewView", ->
   beforeEach ->
     project.setPath(project.resolve('markdown'))
     buffer = project.bufferForPath('file.markdown')
+    atom.activatePackage('ruby.tmbundle', sync: true)
     preview = new MarkdownPreviewView(buffer)
 
   afterEach ->
@@ -35,7 +36,7 @@ describe "MarkdownPreviewView", ->
   fdescribe "code block tokenization", ->
     describe "when the code block's fence name has a matching grammar", ->
       it "tokenizes the code block with the grammar", ->
-        expect(preview.find("pre code.lang-ruby .entity.name.function.ruby")).toExist()
+        expect(preview.find("pre span.entity.name.function.ruby")).toExist()
 
     describe "when the code block's fence name doesn't have a matching grammar", ->
       it "does not tokenize the code block", ->

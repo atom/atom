@@ -1342,42 +1342,24 @@ class Editor extends View
     invisibles.push(@invisibles.cr) if @invisibles.cr and screenLine.lineEnding is '\r\n'
     invisibles.push(@invisibles.eol) if @invisibles.eol
     invisibles
-
-  buildEmptyLineHtml: (screenLine, screenRow) ->
+    
+  buildEmptyLineHtml: (screenRow) ->
     if not @mini and @showIndentGuide
-      indentation = 0
+      guideIndentation = 0
       while --screenRow >= 0
         bufferRow = @activeEditSession.bufferPositionForScreenPosition([screenRow]).row
         bufferLine = @activeEditSession.lineForBufferRow(bufferRow)
         unless bufferLine is ''
-          indentation = Math.ceil(@activeEditSession.indentLevelForLine(bufferLine))
+          guideIndentation = Math.ceil(@activeEditSession.indentLevelForLine(bufferLine))
           break
 
       if indentation > 0
-        tabLength = @activeEditSession.getTabLength()
-        invisibles = @getEndOfLineInvisibles(screenLine)
-        indentGuideHtml = []
-        for level in [0...indentation]
-          indentLevelHtml = ["<span class='indent-guide'>"]
-          for characterPosition in [0...tabLength]
-            if invisible = invisibles.shift()
-              indentLevelHtml.push("<span class='invisible-character'>#{invisible}</span>")
-            else
-              indentLevelHtml.push(' ')
-          indentLevelHtml.push("</span>")
-          indentGuideHtml.push(indentLevelHtml.join(''))
+        indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', @activeEditSession.getTabLength())}</span>"
+        return _.multiplyString(indentationHtml, indentation)
 
-        for invisible in invisibles
-          indentGuideHtml.push("<span class='invisible-character'>#{invisible}</span>")
-        return indentGuideHtml.join('')
+    return '&nbsp;' unless @showInvisibles
 
-    invisibles = @buildEndOfLineInvisibles(screenLine)
-    if invisibles.length > 0
-      invisibles
-    else
-      '&nbsp;'
-
-  buildLineHtml: (screenLine, screenRow) ->
+  @buildLineHtmlHelper: ({tokens, text, lineEnding, fold, isSoftWrapped, attributes, guideIndentation, showInvisibles}) ->
     scopeStack = []
     line = []
 
@@ -1402,35 +1384,35 @@ class Editor extends View
       scopeStack.pop()
       line.push("</span>")
 
-    if fold = screenLine.fold
-      lineAttributes = { class: 'fold line', 'fold-id': fold.id }
-    else
-      lineAttributes = { class: 'line' }
-
     attributePairs = []
-    attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
+    attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of attributes
     line.push("<div #{attributePairs.join(' ')}>")
 
-    invisibles = @invisibles if @showInvisibles
+    invisibles = @invisibles if showInvisibles
 
     if screenLine.text == ''
-      html = @buildEmptyLineHtml(screenLine, screenRow)
+      html = @buildEmptyLineHtml(screenRow)
       line.push(html) if html
     else
-      firstNonWhitespacePosition = screenLine.text.search(/\S/)
-      firstTrailingWhitespacePosition = screenLine.text.search(/\s*$/)
+      firstNonWhitespacePosition = text.search(/\S/)
+      firstTrailingWhitespacePosition = text.search(/\s*$/)
       lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
       position = 0
-      for token in screenLine.tokens
+      for token in tokens
         updateScopeStack(token.scopes)
         hasLeadingWhitespace =  position < firstNonWhitespacePosition
         hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
-        hasIndentGuide = not @mini and @showIndentGuide and (hasLeadingWhitespace or lineIsWhitespaceOnly)
+        hasIndentGuide = not @mini and guideIndentation? and (hasLeadingWhitespace or lineIsWhitespaceOnly)
         line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    line.push(@buildEndOfLineInvisibles(screenLine)) unless screenLine.text == ''
+    if invisibles and not @mini and not screenLine.isSoftWrapped()
+      if invisibles.cr and screenLine.lineEnding is '\r\n'
+        line.push("<span class='invisible-character'>#{invisibles.cr}</span>")
+      if invisibles.eol
+        line.push("<span class='invisible-character'>#{invisibles.eol}</span>")
+
     line.push("<span class='fold-marker'/>") if fold
 
     line.push('</div>')
