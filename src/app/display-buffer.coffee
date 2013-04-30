@@ -33,12 +33,7 @@ class DisplayBuffer
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
     @buffer.on 'markers-updated', @handleMarkersUpdated
-    @buffer.on 'marker-added', (marker) =>
-      @trigger 'marker-added', @getMarker(marker.id)
-    @buffer.on 'marker-removed', (marker) =>
-      marker = @getMarker(marker.id)
-      delete @markers[marker.id]
-      @trigger 'marker-removed', marker
+    @buffer.on 'marker-created', (marker) => @trigger 'marker-created', @getMarker(marker.id)
 
   buildLineMap: ->
     @lineMap = new LineMap

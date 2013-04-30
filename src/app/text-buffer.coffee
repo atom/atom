@@ -476,7 +476,7 @@ class Buffer
       attributes
     }, options))
     @validMarkers[marker.id] = marker
-    @trigger 'marker-added', marker
+    @trigger 'marker-created', marker
     marker
 
   # Public: Constructs a new marker at a given position.
@@ -650,7 +650,6 @@ class Buffer
     if marker = @validMarkers[id] ? @invalidMarkers[id]
       delete @validMarkers[id]
       delete @invalidMarkers[id]
-      @trigger 'marker-removed', marker
 
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout

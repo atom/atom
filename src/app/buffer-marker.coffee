@@ -165,6 +165,7 @@ class BufferMarker
   # Destroys the marker
   destroy: ->
     @buffer.destroyMarker(@id)
+    @trigger 'destroyed'
 
   # Returns a {Boolean} indicating whether the marker is valid. Markers can be
   # invalidated when a region surrounding them in the buffer is changed.

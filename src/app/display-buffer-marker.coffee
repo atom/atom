@@ -15,6 +15,7 @@ class DisplayBufferMarker
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
     @id = @bufferMarker.id
+    @bufferMarker.on 'destroyed', => @destroyed()
 
   ###
   # Public #
@@ -154,6 +155,9 @@ class DisplayBufferMarker
   ###
   # Internal #
   ###
+
+  destroyed: ->
+    delete @displayBuffer.markers[@id]
 
   observeBufferMarkerIfNeeded: ->
     return if @subscriptionCount()

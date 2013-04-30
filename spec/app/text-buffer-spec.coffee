@@ -781,11 +781,10 @@ describe 'Buffer', ->
         expect(buffer.positionForCharacterIndex(20)).toEqual [3, 0]
 
   describe "markers", ->
-    [markerAddedHandler, markerRemovedHandler] = []
+    markerCreatedHandler = null
 
     beforeEach ->
-      buffer.on('marker-added', markerAddedHandler = jasmine.createSpy("markerAddedHandler"))
-      buffer.on('marker-removed', markerRemovedHandler = jasmine.createSpy("markerRemovedHandler"))
+      buffer.on('marker-created', markerCreatedHandler = jasmine.createSpy("markerCreatedHandler"))
 
     describe "marker creation", ->
       it "allows markers to be created with ranges and positions", ->
@@ -806,9 +805,9 @@ describe 'Buffer', ->
         expect(marker.getHeadPosition()).toEqual [4, 20]
         expect(marker.getTailPosition()).toEqual [4, 23]
 
-      it "emits the 'marker-added' event when markers are created", ->
+      it "emits the 'marker-created' event when markers are created", ->
         marker = buffer.markRange([[4, 20], [4, 23]])
-        expect(markerAddedHandler).toHaveBeenCalledWith(marker)
+        expect(markerCreatedHandler).toHaveBeenCalledWith(marker)
 
     describe "marker manipulation", ->
       marker = null
@@ -1005,9 +1004,10 @@ describe 'Buffer', ->
         buffer.undo()
         expect(buffer.getMarker(marker2.id)).toBeUndefined()
 
-      it "emits 'marker-removed' when markers are destroyed", ->
+      it "emits 'destroyed' on the marker when it is destroyed", ->
+        marker.on 'destroyed', destroyedHandler = jasmine.createSpy("destroyedHandler")
         marker.destroy()
-        expect(markerRemovedHandler).toHaveBeenCalledWith(marker)
+        expect(destroyedHandler).toHaveBeenCalled()
 
     describe "marker updates due to buffer changes", ->
       [marker1, marker2, marker3] = []
@@ -1184,17 +1184,6 @@ describe 'Buffer', ->
           buffer.undo()
           expect(marker4.isValid()).toBeTruthy()
           expect(marker4.getRange()).toEqual [[4, 20], [4, 23]]
-
-      it "emits 'marker-added' and 'marker-removed' events when markers are invalidated or revalidated", ->
-        marker2.destroy()
-        marker3.destroy()
-        markerRemovedHandler.reset()
-
-        buffer.change([[4, 21], [4, 24]], "foo")
-        expect(markerRemovedHandler).toHaveBeenCalledWith(marker1)
-
-        buffer.undo()
-        expect(markerAddedHandler).toHaveBeenCalledWith(marker1)
 
     describe ".markersForPosition(position)", ->
       it "returns all markers that intersect the given position", ->

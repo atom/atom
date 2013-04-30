@@ -525,6 +525,16 @@ describe "DisplayBuffer", ->
         expect(marker1.getBufferRange()).toEqual [[8, 4], [8, 10]]
         expect(marker2.getScreenRange()).toEqual [[5, 4], [5, 10]]
 
+      it "emits a 'marker-created' event on the DisplayBuffer whenever a marker is created", ->
+        displayBuffer.on 'marker-created', markerCreatedHandler = jasmine.createSpy("markerCreatedHandler")
+
+        marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        expect(markerCreatedHandler).toHaveBeenCalledWith(marker1)
+        markerCreatedHandler.reset()
+
+        marker2 = buffer.markRange([[5, 4], [5, 10]])
+        expect(markerCreatedHandler).toHaveBeenCalledWith(displayBuffer.getMarker(marker2.id))
+
       it "allows marker head and tail positions to be manipulated in both screen and buffer coordinates", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
         marker.setHeadScreenPosition([5, 4])
@@ -737,22 +747,3 @@ describe "DisplayBuffer", ->
         marker.destroy()
         expect(marker.isValid()).toBeFalsy()
         expect(displayBuffer.getMarker(marker.id)).toBeUndefined()
-
-    describe "marker-added and marker-removed events", ->
-      it "emits the appropriate event when a marker is created, destroyed, or its validity changes", ->
-        displayBuffer.on 'marker-added', markerAddedHandler = jasmine.createSpy("markerAddedHandler")
-        displayBuffer.on 'marker-removed', markerRemovedHandler = jasmine.createSpy("markerRemovedHandler")
-
-        marker = displayBuffer.markBufferRange([[5, 4], [5, 10]])
-        expect(markerAddedHandler).toHaveBeenCalledWith(marker)
-        markerAddedHandler.reset()
-
-        buffer.change([[5, 3], [5, 11]], 'hey')
-        expect(markerRemovedHandler).toHaveBeenCalledWith(marker)
-        markerRemovedHandler.reset()
-
-        buffer.undo()
-        expect(markerAddedHandler).toHaveBeenCalledWith(marker)
-
-        marker.destroy()
-        expect(markerRemovedHandler).toHaveBeenCalledWith(marker)
