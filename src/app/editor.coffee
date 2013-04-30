@@ -1317,16 +1317,23 @@ class Editor extends View
 
   buildLineElementsForScreenRows: (startRow, endRow) ->
     div = document.createElement('div')
-    div.innerHTML = @buildLinesHtml(startRow, endRow)
+    div.innerHTML = @buildHtmlLines(startRow, endRow)
     new Array(div.children...)
 
-  buildLinesHtml: (startRow, endRow) ->
+  buildHtmlLines: (startRow, endRow) ->
     lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     htmlLines = []
     screenRow = startRow
     for line in @activeEditSession.linesForScreenRows(startRow, endRow)
-      htmlLines.push(@buildLineHtml(line, screenRow++))
+      htmlLines.push(@buildHtmlFromLine(line, screenRow++))
     htmlLines.join('\n\n')
+
+  @buildEmptyLineHtml: (guideIndentation, showInvisibles, activeEditSession) ->
+    if guideIndentation > 0
+      indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', @activeEditSession.getTabLength())}</span>"
+      return _.multiplyString(indentationHtml, indentation)
+    else if not showInvisibles
+      '&nbsp;'
 
   buildEndOfLineInvisibles: (screenLine) ->
     invisibles = []
@@ -1337,12 +1344,19 @@ class Editor extends View
   getEndOfLineInvisibles: (screenLine) ->
     return [] unless @showInvisibles and @invisibles
     return [] if @mini or screenLine.isSoftWrapped()
+    
+  buildLineHtml: (screenLine, screenRow) ->
+    { tokens, text, lineEnding, fold } =  screenLine
+    if fold
+      attributes = { class: 'fold line', 'fold-id': fold.id }
+    else
+      attributes = { class: 'line' }
 
     invisibles = []
     invisibles.push(@invisibles.cr) if @invisibles.cr and screenLine.lineEnding is '\r\n'
     invisibles.push(@invisibles.eol) if @invisibles.eol
     invisibles
-    
+
   buildEmptyLineHtml: (screenRow) ->
     if not @mini and @showIndentGuide
       guideIndentation = 0
@@ -1353,13 +1367,10 @@ class Editor extends View
           guideIndentation = Math.ceil(@activeEditSession.indentLevelForLine(bufferLine))
           break
 
-      if indentation > 0
-        indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', @activeEditSession.getTabLength())}</span>"
-        return _.multiplyString(indentationHtml, indentation)
+    invisibles = @invisibles if @showInvisibles
+    Editor.buildLineHtmlHelper({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, attributes, guideIndentation, @showInvisibles, @activeEditSession, @mini})
 
-    return '&nbsp;' unless @showInvisibles
-
-  @buildLineHtmlHelper: ({tokens, text, lineEnding, fold, isSoftWrapped, attributes, guideIndentation, showInvisibles}) ->
+  @buildHtmlHelper: ({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, attributes, guideIndentation, showInvisibles, activeEditSession, mini}) =>
     scopeStack = []
     line = []
 
@@ -1388,10 +1399,8 @@ class Editor extends View
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of attributes
     line.push("<div #{attributePairs.join(' ')}>")
 
-    invisibles = @invisibles if showInvisibles
-
-    if screenLine.text == ''
-      html = @buildEmptyLineHtml(screenRow)
+    if text == ''
+      html = Editor.buildEmptyLineHtml(guideIndentation, showInvisibles, activeEditSession)
       line.push(html) if html
     else
       firstNonWhitespacePosition = text.search(/\S/)
@@ -1407,8 +1416,8 @@ class Editor extends View
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    if invisibles and not @mini and not screenLine.isSoftWrapped()
-      if invisibles.cr and screenLine.lineEnding is '\r\n'
+    if invisibles and not @mini and not isSoftWrapped
+      if invisibles.cr and lineEnding is '\r\n'
         line.push("<span class='invisible-character'>#{invisibles.cr}</span>")
       if invisibles.eol
         line.push("<span class='invisible-character'>#{invisibles.eol}</span>")

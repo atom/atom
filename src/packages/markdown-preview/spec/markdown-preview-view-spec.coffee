@@ -16,12 +16,12 @@ describe "MarkdownPreviewView", ->
 
   describe "on construction", ->
 
-    it "shows a loading spinner and fetches the rendered markdown", ->
+    it "shows a loading spinner and renders the markdown", ->
       preview.setLoading()
       expect(preview.find('.markdown-spinner')).toExist()
       expect(preview.buffer.getText()).toBe buffer.getText()
 
-      preview.fetchRenderedMarkdown()
+      preview.renderMarkdown()
       expect(preview.find(".emoji")).toExist()
 
     it "shows an error message on error", ->
@@ -33,7 +33,7 @@ describe "MarkdownPreviewView", ->
       newPreview = deserialize(preview.serialize())
       expect(newPreview.buffer).toBe buffer
 
-  fdescribe "code block tokenization", ->
+  describe "code block tokenization", ->
     describe "when the code block's fence name has a matching grammar", ->
       it "tokenizes the code block with the grammar", ->
         expect(preview.find("pre span.entity.name.function.ruby")).toExist()

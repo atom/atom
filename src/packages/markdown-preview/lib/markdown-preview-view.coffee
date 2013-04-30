@@ -21,7 +21,7 @@ class MarkdownPreviewView extends ScrollView
   initialize: (@buffer) ->
     super
 
-    @fetchRenderedMarkdown()
+    @renderMarkdown()
     @on 'core:move-up', => @scrollUp()
     @on 'core:move-down', => @scrollDown()
 
@@ -71,22 +71,29 @@ class MarkdownPreviewView extends ScrollView
 
     for codeBlock in preList.toArray()
       codeBlock = $(codeBlock.firstChild)
-      if className = codeBlock.attr('class')
-        fenceName = className.replace(/^lang-/, '')
 
-        if extension = fenceNameToExtension[fenceName]
-          text = codeBlock.text()
-          syntax.selectGrammar("foo.#{extension}", text)
-          if grammar = syntax.selectGrammar("foo.#{extension}", text)
-            continue if grammar is syntax.nullGrammar
-            tokens = grammar.tokenizeLines(text)
-            grouping = ""
-            for token in tokens
-              grouping += Editor.buildLineHtml(token, text)
-            codeBlock.replaceWith(grouping)
+      # go to next block unless this one has a class
+      continue unless className = codeBlock.attr('class')
+
+      fenceName = className.replace(/^lang-/, '')
+      # go to next block unless the class name is matches `lang`
+      continue unless extension = fenceNameToExtension[fenceName]
+      text = codeBlock.text()
+      syntax.selectGrammar("foo.#{extension}", text)
+
+      # go to next block if this grammar is not mapped
+      continue unless grammar = syntax.selectGrammar("foo.#{extension}", text)
+      continue if grammar is syntax.nullGrammar
+
+      tokens = grammar.tokenizeLines(text)
+      grouping = ""
+      for token in tokens
+        grouping += Editor.buildHtmlLine(token, text)
+      codeBlock.replaceWith(grouping)
+
     html
 
-  fetchRenderedMarkdown: ->
+  renderMarkdown: ->
     @setLoading()
     roaster(@buffer.getText(), {}, (err, html) =>
       if err
