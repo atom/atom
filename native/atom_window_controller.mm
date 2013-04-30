@@ -45,7 +45,6 @@
           _resourcePath = defaultRepositoryPath;
         }
         else {
-          _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
           NSLog(@"Warning: No resource path specified and no directory exists at ~/github/atom");
         }
       }
