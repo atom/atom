@@ -424,9 +424,11 @@ class Buffer
   # Returns a {Boolean}.
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
+  # Returns all valid {BufferMarker}s on the buffer.
   getMarkers: ->
     _.values(@validMarkers)
 
+  # Returns the {BufferMarker} with the given id.
   getMarker: (id) ->
     @validMarkers[id]
 
