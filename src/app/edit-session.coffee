@@ -699,14 +699,6 @@ class EditSession
     for row in [bufferRange.start.row..bufferRange.end.row]
       @destroyFoldsContainingBufferRow(row)
 
-  # Public: Given the id of a {Fold}, this removes it.
-  #
-  # foldId - The fold id {Number} to remove
-  destroyFold: (foldId) ->
-    fold = @displayBuffer.foldsById[foldId]
-    fold.destroy()
-    @setCursorBufferPosition([fold.startRow, 0])
-
   # Public: Determines if the given row that the cursor is at is folded.
   #
   # Returns `true` if the row is folded, `false` otherwise.
