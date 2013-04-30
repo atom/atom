@@ -23,6 +23,7 @@ class Editor extends View
     autoIndent: true
     autoIndentOnPaste: false
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
+    preferredLineLength: 80
 
   @nextEditorId: 1
 
