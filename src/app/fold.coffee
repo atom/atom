@@ -14,10 +14,6 @@ class Fold
   constructor: (@displayBuffer, @marker) ->
     @displayBuffer.foldsByMarkerId[@marker.id] = this
     @updateDisplayBuffer()
-    @marker.on 'changed', (e) =>
-      oldRange = new Range(e.oldHeadBufferPosition, e.oldTailBufferPosition)
-      newRange = new Range(e.newHeadBufferPosition, e.newTailBufferPosition)
-      @updateDisplayBuffer() unless newRange.isEqual(oldRange)
     @marker.on 'destroyed', => @destroyed()
 
   # Returns whether this fold is contained within another fold
