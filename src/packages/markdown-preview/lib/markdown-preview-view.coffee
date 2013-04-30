@@ -65,12 +65,18 @@ class MarkdownPreviewView extends ScrollView
   setLoading: ->
     @html($$$ -> @div class: 'markdown-spinner', 'Loading Markdown...')
 
+
   tokenizeCodeBlocks: (html) =>
     html = $(html)
     preList = $(html.filter("pre"))
+    editorBackgroundColor = $('.editor').css("background-color")
+    rawEditorTextColor = $('.editor .gfm .raw').css("color")
 
     for codeBlock in preList.toArray()
+      $(codeBlock).css("background-color", editorBackgroundColor)
       codeBlock = $(codeBlock.firstChild)
+      # set the default raw color of unhiglighted pre tags
+      codeBlock.css("color", rawEditorTextColor)
 
       # go to next block unless this one has a class
       continue unless className = codeBlock.attr('class')
@@ -85,11 +91,16 @@ class MarkdownPreviewView extends ScrollView
       continue unless grammar = syntax.selectGrammar("foo.#{extension}", text)
       continue if grammar is syntax.nullGrammar
 
+      text = codeBlock.text()
       tokens = grammar.tokenizeLines(text)
       grouping = ""
       for token in tokens
-        grouping += Editor.buildHtmlLine(token, text)
+        blockElem = $(Editor.buildHtmlLine(token, text))
+        grouping += blockElem.addClass("editor")[0].outerHTML
+
       codeBlock.replaceWith(grouping)
+      # undo default coloring
+      codeBlock.css("color", "")
 
     html
 

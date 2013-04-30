@@ -1765,7 +1765,7 @@ describe "Editor", ->
         editor.edit(emptyEditSession)
         expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
 
-    fdescribe "when the editor is mini", ->
+    describe "when the editor is mini", ->
       it "hides the gutter", ->
         miniEditor = new Editor(mini: true)
         miniEditor.attachToDom()
