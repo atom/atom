@@ -115,16 +115,22 @@ class DisplayBuffer
     for marker in @findMarkers(class: 'fold', containsBufferRow: bufferRow)
       marker.destroy()
 
-  # Public: Given a buffer row, this returns the largest fold that starts there.
-  #
-  # Largest is defined as the fold whose difference between its start and end points
-  # are the greatest.
+  # Largest is defined as the fold whose difference between its start and end rows
+  # is the greatest.
   #
   # bufferRow - A {Number} indicating the buffer row
   #
-  # Returns a {Fold}.
+  # Returns a {Fold} or null if none exists.
   largestFoldStartingAtBufferRow: (bufferRow) ->
-    if marker = @findMarker(class: 'fold', startBufferRow: bufferRow)
+    @foldsStartingAtBufferRow(bufferRow)[0]
+
+  # Public: Given a buffer row, this returns all folds that start there.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns an {Array} of {Fold}s.
+  foldsStartingAtBufferRow: (bufferRow) ->
+    for marker in @findMarkers(class: 'fold', startBufferRow: bufferRow)
       @foldForMarker(marker)
 
   # Public: Given a screen row, this returns the largest fold that starts there.
