@@ -895,6 +895,7 @@ class Editor extends View
       @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
 
+
   afterAttach: (onDom) ->
     return unless onDom
     @redraw() if @redrawOnReattach
@@ -1274,8 +1275,8 @@ class Editor extends View
   updateLayerDimensions: ->
     height = @lineHeight * @getScreenLineCount()
     unless @layerHeight == height
-      @renderedLines.height(height)
       @underlayer.css('min-height', height)
+      @renderedLines.height(height)
       @overlayer.height(height)
       @layerHeight = height
 
