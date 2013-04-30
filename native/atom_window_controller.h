@@ -35,6 +35,7 @@ class AtomCefClient;
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone;
 - (void)setPidToKillOnClose:(NSNumber *)pid;
 - (BOOL)isDevMode;
+- (BOOL)isDevFlagSpecified;
 
 - (void)toggleDevTools;
 - (void)showDevTools;

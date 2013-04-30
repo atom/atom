@@ -110,7 +110,7 @@
 
 - (id)initWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:![self isDevMode]];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO useBundleResourcePath:![self isDevFlagSpecified]];
 }
 
 - (id)initDevWithPath:(NSString *)path {
@@ -119,7 +119,7 @@
 }
 
 - (id)initInBackground {
-  [self initWithBootstrapScript:@"window-bootstrap" background:YES useBundleResourcePath:![self isDevMode]];
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES useBundleResourcePath:![self isDevFlagSpecified]];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorStationary];
@@ -281,6 +281,11 @@
 - (BOOL)isDevMode {
   NSString *bundleResourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   return ![_resourcePath isEqualToString:bundleResourcePath];
+}
+
+- (BOOL)isDevFlagSpecified {
+  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
+  return [atomApplication.arguments objectForKey:@"dev"] != nil;
 }
 
 - (void)displayDevIcon {
