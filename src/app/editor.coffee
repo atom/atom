@@ -841,7 +841,7 @@ class Editor extends View
       @destroyFold($(e.currentTarget).attr('fold-id'))
       false
 
-    onMouseDown = (e) =>
+    @renderedLines.on 'mousedown', (e) =>
       clickCount = e.originalEvent.detail
 
       screenPosition = @screenPositionFromMouseEvent(e)
@@ -858,8 +858,6 @@ class Editor extends View
         @activeEditSession.selectLine() unless e.shiftKey
 
       @selectOnMousemoveUntilMouseup() unless e.ctrlKey or e.originalEvent.which > 1
-
-    @renderedLines.on 'mousedown', onMouseDown
 
     @on "textInput", (e) =>
       @insertText(e.originalEvent.data)
