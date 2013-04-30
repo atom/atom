@@ -112,8 +112,7 @@ class DisplayBuffer
   #
   # bufferRow - The buffer row {Number} to check against
   destroyFoldsContainingBufferRow: (bufferRow) ->
-    for marker in @findMarkers(class: 'fold', containsBufferRow: bufferRow)
-      marker.destroy()
+    fold.destroy() for fold in @foldsContainingBufferRow(bufferRow)
 
   # Largest is defined as the fold whose difference between its start and end rows
   # is the greatest.
@@ -146,21 +145,23 @@ class DisplayBuffer
 
   # Public: Given a buffer row, this returns the largest fold that includes it.
   #
-  # Largest is defined as the fold whose difference between its start and end points
-  # are the greatest.
+  # Largest is defined as the fold whose difference between its start and end rows
+  # is the greatest.
   #
   # bufferRow - A {Number} indicating the buffer row
   #
   # Returns a {Fold}.
   largestFoldContainingBufferRow: (bufferRow) ->
-    largestFold = null
-    for currentBufferRow in [bufferRow..0]
-      if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
-        largestFold = fold if fold.getEndRow() >= bufferRow
-    largestFold
+    @foldsContainingBufferRow(bufferRow)[0]
 
-  largestFoldStartingAtBufferRange: (bufferRange) ->
-    if marker = @findMarker(class: 'fold', containingBufferRange: bufferRange)
+  # Public: Given a buffer row, this returns folds that include it.
+  #
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns an {Array} of {Fold}s.
+  foldsContainingBufferRow: (bufferRow) ->
+    for marker in @findMarkers(class: 'fold', containsBufferRow: bufferRow)
       @foldForMarker(marker)
 
   # Public: Given a buffer range, this converts it into a screen range.
