@@ -17,7 +17,7 @@ class BufferMarker
 
   ### Public ###
 
-  # Public: Sets the marker's range, potentialy modifying both its head and tail.
+  # Sets the marker's range, potentialy modifying both its head and tail.
   #
   # range - The new {Range} the marker should cover
   # options - A hash of options with the following keys:
@@ -33,7 +33,7 @@ class BufferMarker
         @setTailPosition(range.start) unless options.noTail
         @setHeadPosition(range.end)
 
-  # Public: Identifies if the ending position of a marker is greater than the starting position.
+  # Identifies if the ending position of a marker is greater than the starting position.
   #
   # This can happen when, for example, you highlight text "up" in a {Buffer}.
   #
@@ -41,13 +41,13 @@ class BufferMarker
   isReversed: ->
     @tailPosition? and @headPosition.isLessThan(@tailPosition)
 
-  # Public: Identifies if the marker's head position is equal to its tail.
+  # Identifies if the marker's head position is equal to its tail.
   #
   # Returns a {Boolean}.
   isRangeEmpty: ->
     @getHeadPosition().isEqual(@getTailPosition())
 
-  # Public: Retrieves the {Range} between a marker's head and its tail. 
+  # Retrieves the {Range} between a marker's head and its tail. 
   # 
   # Returns a {Range}.
   getRange: ->
@@ -56,17 +56,17 @@ class BufferMarker
     else
       new Range(@headPosition, @headPosition)
 
-  # Public: Retrieves the position of the marker's head.
+  # Retrieves the position of the marker's head.
   #
   # Returns a {Point}.
   getHeadPosition: -> @headPosition
 
-  # Public: Retrieves the position of the marker's tail.
+  # Retrieves the position of the marker's tail.
   #
   # Returns a {Point}.
   getTailPosition: -> @tailPosition ? @getHeadPosition()
 
-  # Public: Sets the position of the marker's head.
+  # Sets the position of the marker's head.
   #
   # newHeadPosition - The new {Point} to place the head
   # options - A hash with the following keys:
@@ -84,7 +84,7 @@ class BufferMarker
     @notifyObservers({oldHeadPosition, newHeadPosition, bufferChanged})
     @headPosition
 
-  # Public: Sets the position of the marker's tail.
+  # Sets the position of the marker's tail.
   #
   # newHeadPosition - The new {Point} to place the tail
   # options - A hash with the following keys:
@@ -102,19 +102,19 @@ class BufferMarker
     @notifyObservers({oldTailPosition, newTailPosition, bufferChanged})
     @tailPosition
 
-  # Public: Retrieves the starting position of the marker.
+  # Retrieves the starting position of the marker.
   #
   # Returns a {Point}.
   getStartPosition: ->
     @getRange().start
 
-  # Public: Retrieves the ending position of the marker.
+  # Retrieves the ending position of the marker.
   #
   # Returns a {Point}.
   getEndPosition: ->
     @getRange().end
 
-  # Public: Sets the marker's tail to the same position as the marker's head.
+  # Sets the marker's tail to the same position as the marker's head.
   #
   # This only works if there isn't already a tail position.
   #
@@ -122,25 +122,25 @@ class BufferMarker
   placeTail: ->
     @setTailPosition(@getHeadPosition()) unless @tailPosition
 
-  # Public: Removes the tail from the marker.
+  # Removes the tail from the marker.
   clearTail: ->
     oldTailPosition = @getTailPosition()
     @tailPosition = null
     newTailPosition = @getTailPosition()
     @notifyObservers({oldTailPosition, newTailPosition, bufferChanged: false})
 
-  # Public: Identifies if a {Point} is within the marker.
+  # Identifies if a {Point} is within the marker.
   #
   # Returns a {Boolean}.
   containsPoint: (point) ->
     @getRange().containsPoint(point)
 
-  # Public: Sets a callback to be fired whenever a marker is changed.
+  # Sets a callback to be fired whenever a marker is changed.
   observe: (callback) ->
     @on 'changed', callback
     cancel: => @unobserve(callback)
 
-  # Public: Removes the fired callback whenever a marker changes.
+  # Removes the fired callback whenever a marker changes.
   unobserve: (callback) ->
     @off 'changed', callback
 
