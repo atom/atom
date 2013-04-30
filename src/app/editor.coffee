@@ -64,6 +64,7 @@ class Editor extends View
   newCursors: null
   newSelections: null
   redrawOnReattach: false
+  bottomPaddingInLines: 10
 
   # Public: The constructor for setting up an `Editor` instance.
   #
@@ -1280,7 +1281,10 @@ class Editor extends View
       @overlayer.height(height)
       @layerHeight = height
 
-      @verticalScrollbarContent.height(height)
+      bottomPaddingInLines = if @mini then 0 else @bottomPaddingInLines
+      heightWithPadding = height + (@lineHeight * bottomPaddingInLines)
+      @verticalScrollbarContent.height(heightWithPadding)
+
       @scrollBottom(height) if @scrollBottom() > height
 
     minWidth = @charWidth * @maxScreenLineLength() + 20
@@ -1516,7 +1520,8 @@ class Editor extends View
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
-    Math.max(0, Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1)
+    calculatedRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    Math.max(0, Math.min(@getScreenLineCount() - 1, calculatedRow))
 
   # Public: Given a row number, identifies if it is currently visible.
   #

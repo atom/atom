@@ -317,7 +317,7 @@ describe "Editor", ->
         expect(editor.charWidth).toBeGreaterThan charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
         expect(editor.renderedLines.outerHeight()).toBe buffer.getLineCount() * editor.lineHeight
-        expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
+        expect(editor.verticalScrollbarContent.height()).toBe (buffer.getLineCount() + editor.bottomPaddingInLines) * editor.lineHeight
 
         newEditor = new Editor(editor.activeEditSession.copy())
         editor.remove()
@@ -1297,6 +1297,7 @@ describe "Editor", ->
 
     describe "when lines are removed", ->
       beforeEach ->
+        editor.bottomPaddingInLines = 0
         editor.attachToDom(heightInLines: 5)
 
       it "sets the rendered screen line's width to either the max line length or the scollView's width (whichever is greater)", ->
@@ -1391,6 +1392,7 @@ describe "Editor", ->
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
         editor.edit(project.buildEditSession('two-hundred.txt'))
+        editor.bottomPaddingInLines = 0
         editor.attachToDom(heightInLines: 5.5)
 
         expect(editor.renderedLines.find('.line').length).toBe 8
