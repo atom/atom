@@ -425,8 +425,12 @@ class Buffer
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
   # Returns all valid {BufferMarker}s on the buffer.
-  getMarkers: ->
-    _.values(@validMarkers)
+  getMarkers: ({includeInvalid} = {}) ->
+    markers = _.values(@validMarkers)
+    if includeInvalid
+      markers.concat(_.values(@invalidMarkers))
+    else
+      markers
 
   # Returns the {BufferMarker} with the given id.
   getMarker: (id) ->

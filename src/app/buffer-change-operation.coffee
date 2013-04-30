@@ -19,19 +19,21 @@ class BufferChangeOperation
     @options ?= {}
 
   do: ->
+    @pauseMarkerObservation()
     @oldText = @buffer.getTextInRange(@oldRange)
     @newRange = @calculateNewRange(@oldRange, @newText)
     @markersToRestoreOnUndo = @invalidateMarkers(@oldRange)
-    @changeBuffer
+    newRange = @changeBuffer
       oldRange: @oldRange
       newRange: @newRange
       oldText: @oldText
       newText: @newText
-
-  redo: ->
-    @restoreMarkers(@markersToRestoreOnRedo)
+    @restoreMarkers(@markersToRestoreOnRedo) if @markersToRestoreOnRedo
+    @resumeMarkerObservation()
+    newRange
 
   undo: ->
+    @pauseMarkerObservation()
     @markersToRestoreOnRedo = @invalidateMarkers(@newRange)
     @changeBuffer
       oldRange: @newRange
@@ -39,6 +41,7 @@ class BufferChangeOperation
       oldText: @newText
       newText: @oldText
     @restoreMarkers(@markersToRestoreOnUndo)
+    @resumeMarkerObservation()
 
   splitLines: (text) ->
     lines = text.split('\n')
@@ -74,13 +77,10 @@ class BufferChangeOperation
     @buffer.cachedMemoryContents = null
     @buffer.conflict = false if @buffer.conflict and !@buffer.isModified()
 
-    @pauseMarkerObservation()
     event = { oldRange, newRange, oldText, newText }
     @updateMarkers(event)
     @buffer.trigger 'changed', event
     @buffer.scheduleModifiedEvents()
-    @resumeMarkerObservation()
-    @buffer.trigger 'markers-updated'
 
     newRange
 
@@ -99,10 +99,11 @@ class BufferChangeOperation
     _.compact(@buffer.getMarkers().map (marker) -> marker.tryToInvalidate(oldRange))
 
   pauseMarkerObservation: ->
-    marker.pauseEvents() for marker in @buffer.getMarkers()
+    marker.pauseEvents() for marker in @buffer.getMarkers(includeInvalid: true)
 
   resumeMarkerObservation: ->
-    marker.resumeEvents() for marker in @buffer.getMarkers()
+    marker.resumeEvents() for marker in @buffer.getMarkers(includeInvalid: true)
+    @buffer.trigger 'markers-updated'
 
   updateMarkers: (bufferChange) ->
     marker.handleBufferChange(bufferChange) for marker in @buffer.getMarkers()
