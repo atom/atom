@@ -34,10 +34,7 @@
 
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
 
-  if (useBundleResourcePath) {
-    _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
-  }
-  else {
+  if (!useBundleResourcePath) {
     _resourcePath = [[atomApplication.arguments objectForKey:@"resource-path"] stringByStandardizingPath];
     if (!_resourcePath) {
       NSString *defaultRepositoryPath = [@"~/github/atom" stringByStandardizingPath];
@@ -48,10 +45,14 @@
           _resourcePath = defaultRepositoryPath;
         }
         else {
+          _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
           NSLog(@"Warning: No resource path specified and no directory exists at ~/github/atom");
         }
       }
     }
+  }
+  if (!_resourcePath) {
+    _resourcePath = [[NSBundle bundleForClass:self.class] resourcePath];
   }
 
   if ([self isDevMode]) {
