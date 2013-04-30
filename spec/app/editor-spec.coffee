@@ -1214,7 +1214,7 @@ describe "Editor", ->
 
         describe "when scrolling more than the editors height", ->
           it "removes lines that are offscreen and not in range of the overdraw and builds lines that become visible", ->
-            editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
+            editor.scrollTop(editor.layerHeight - editor.scrollView.height())
             expect(editor.renderedLines.find('.line').length).toBe 8
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(12)
@@ -2131,16 +2131,13 @@ describe "Editor", ->
 
     it "move the cursor to the end of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual [0,0]
-      event = $.Event("click")
-      event.offsetY = Infinity
+      event = mousedownEvent(editor: editor, point: [Infinity, 10])
       editor.underlayer.trigger event
       expect(editor.getCursorScreenPosition()).toEqual [12,2]
 
     it "selects to the end of the files when shift is pressed", ->
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
-      event = $.Event("click")
-      event.offsetY = Infinity
-      event.shiftKey = true
+      event = mousedownEvent(editor: editor, point: [Infinity, 10], shiftKey: true)
       editor.underlayer.trigger event
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
 

@@ -821,13 +821,9 @@ class Editor extends View
       @isFocused = false
       @removeClass 'is-focused'
 
-    @underlayer.on 'click', (e) =>
-      return unless e.target is @underlayer[0]
-      return unless e.offsetY > @overlayer.height()
-      if e.shiftKey
-        @selectToBottom()
-      else
-        @moveCursorToBottom()
+    @underlayer.on 'mousedown', (e) =>
+      @renderedLines.trigger(e)
+      false
 
     @overlayer.on 'mousedown', (e) =>
       @overlayer.hide()
@@ -1275,14 +1271,14 @@ class Editor extends View
   updateLayerDimensions: ->
     height = @lineHeight * @getScreenLineCount()
     unless @layerHeight == height
-      @underlayer.css('min-height', height)
-      @renderedLines.height(height)
-      @overlayer.height(height)
       @layerHeight = height
+      @renderedLines.height(@layerHeight)
+      @overlayer.height(@layerHeight)
 
       bottomPaddingInLines = if @mini then 0 else @bottomPaddingInLines
-      heightWithPadding = height + (@lineHeight * bottomPaddingInLines)
+      heightWithPadding = @layerHeight + (@lineHeight * bottomPaddingInLines)
       @verticalScrollbarContent.height(heightWithPadding)
+      @underlayer.height(heightWithPadding)
 
       @scrollBottom(height) if @scrollBottom() > height
 
