@@ -32,7 +32,7 @@ class MarkdownPreviewView extends ScrollView
 
   afterAttach: (onDom) ->
     @subscribe @buffer, 'saved', =>
-      @fetchRenderedMarkdown()
+      @renderMarkdown()
       pane = @getPane()
       pane.showItem(this) if pane? and pane isnt rootView.getActivePane()
 

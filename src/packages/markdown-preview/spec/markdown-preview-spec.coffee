@@ -8,7 +8,7 @@ describe "MarkdownPreview package", ->
     project.setPath(project.resolve('markdown'))
     window.rootView = new RootView
     atom.activatePackage("markdown-preview", immediate: true)
-    spyOn(MarkdownPreviewView.prototype, 'fetchRenderedMarkdown')
+    spyOn(MarkdownPreviewView.prototype, 'renderMarkdown')
 
   describe "markdown-preview:show", ->
     beforeEach ->
@@ -61,9 +61,9 @@ describe "MarkdownPreview package", ->
             [pane] = rootView.getPanes()
             pane.focus()
 
-            MarkdownPreviewView.prototype.fetchRenderedMarkdown.reset()
+            MarkdownPreviewView.prototype.renderMarkdown.reset()
             pane.activeItem.buffer.trigger 'saved'
-            expect(MarkdownPreviewView.prototype.fetchRenderedMarkdown).not.toHaveBeenCalled()
+            expect(MarkdownPreviewView.prototype.renderMarkdown).not.toHaveBeenCalled()
 
       describe "when a preview item has already been created for the edit session's uri", ->
         it "updates and shows the existing preview item if it isn't displayed", ->
@@ -77,9 +77,9 @@ describe "MarkdownPreview package", ->
           expect(pane2.activeItem).not.toBe preview
           pane1.focus()
 
-          preview.fetchRenderedMarkdown.reset()
+          preview.renderMarkdown.reset()
           rootView.getActiveView().trigger 'markdown-preview:show'
-          expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()
+          expect(preview.renderMarkdown).toHaveBeenCalled()
           expect(rootView.getPanes()).toHaveLength 2
           expect(pane2.getItems()).toHaveLength 2
           expect(pane2.activeItem).toBe preview
@@ -95,9 +95,9 @@ describe "MarkdownPreview package", ->
               pane1.showItemAtIndex(0)
               preview = pane1.itemAtIndex(1)
 
-              preview.fetchRenderedMarkdown.reset()
+              preview.renderMarkdown.reset()
               pane1.activeItem.buffer.trigger 'saved'
-              expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()
+              expect(preview.renderMarkdown).toHaveBeenCalled()
               expect(pane1.activeItem).not.toBe preview
 
           describe "when the preview is not in the same pane", ->
@@ -109,7 +109,7 @@ describe "MarkdownPreview package", ->
               expect(pane2.activeItem).not.toBe preview
               pane1.focus()
 
-              preview.fetchRenderedMarkdown.reset()
+              preview.renderMarkdown.reset()
               pane1.activeItem.buffer.trigger 'saved'
-              expect(preview.fetchRenderedMarkdown).toHaveBeenCalled()
+              expect(preview.renderMarkdown).toHaveBeenCalled()
               expect(pane2.activeItem).toBe preview
