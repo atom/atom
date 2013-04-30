@@ -1272,14 +1272,10 @@ class Editor extends View
     height = @lineHeight * @getScreenLineCount()
     unless @layerHeight == height
       @layerHeight = height
+      @underlayer.height(@layerHeight)
       @renderedLines.height(@layerHeight)
       @overlayer.height(@layerHeight)
-
-      bottomPaddingInLines = if @mini then 0 else @bottomPaddingInLines
-      heightWithPadding = @layerHeight + (@lineHeight * bottomPaddingInLines)
-      @verticalScrollbarContent.height(heightWithPadding)
-      @underlayer.height(heightWithPadding)
-
+      @verticalScrollbarContent.height(@layerHeight)
       @scrollBottom(height) if @scrollBottom() > height
 
     minWidth = @charWidth * @maxScreenLineLength() + 20
