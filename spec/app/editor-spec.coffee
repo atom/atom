@@ -541,20 +541,23 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
       it "selects and scrolls if the mouse is dragged outside of the editor itself", ->
-        intervalFns = []
+        editor.vScrollMargin = 0
         editor.attachToDom(heightInLines: 5)
         editor.scrollToBottom()
 
-        spyOn(window, 'setInterval').andCallFake (fn) -> intervalFns.push(fn)
+        spyOn(window, 'setInterval').andCallFake ->
+
         # start
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [12, 0])
+        originalScrollTop = editor.scrollTop()
 
         # moving changes selection
-        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -15)
-        expect(editor.scrollTop()).toBe 4 * editor.lineHeight
+        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -1)
+        expect(editor.scrollTop()).toBe originalScrollTop - editor.lineHeight
 
-        # if cursor stays off screen, we keep moving / scrolling up
-        fn() for fn in intervalFns
+        # every mouse move selects more text
+        for x in [0..10]
+          $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -1)
 
         expect(editor.scrollTop()).toBe 0
 
