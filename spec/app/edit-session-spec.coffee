@@ -2126,30 +2126,30 @@ describe "EditSession", ->
         editSession.foldAll()
 
         fold1 = editSession.lineForScreenRow(0).fold
-        expect([fold1.startRow, fold1.endRow]).toEqual [0, 12]
+        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 12]
         fold1.destroy()
 
         fold2 = editSession.lineForScreenRow(1).fold
-        expect([fold2.startRow, fold2.endRow]).toEqual [1, 9]
+        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 9]
         fold2.destroy()
 
         fold3 = editSession.lineForScreenRow(4).fold
-        expect([fold3.startRow, fold3.endRow]).toEqual [4, 7]
+        expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [4, 7]
 
     describe ".foldBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
         it "creates a fold based on the syntactic region starting at the given row", ->
           editSession.foldBufferRow(1)
           fold = editSession.lineForScreenRow(1).fold
-          expect(fold.startRow).toBe 1
-          expect(fold.endRow).toBe 9
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 9
 
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
           editSession.foldBufferRow(8)
           fold = editSession.lineForScreenRow(1).fold
-          expect(fold.startRow).toBe 1
-          expect(fold.endRow).toBe 9
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 9
 
       describe "when the bufferRow is already folded", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
@@ -2165,16 +2165,16 @@ describe "EditSession", ->
           buffer.insert([1,0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
           editSession.foldBufferRow(1)
           fold = editSession.lineForScreenRow(1).fold
-          expect(fold.startRow).toBe 1
-          expect(fold.endRow).toBe 3
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 3
 
       describe "when the bufferRow is a single-line comment", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
           buffer.insert([1,0], "  //this is a single line comment\n")
           editSession.foldBufferRow(1)
           fold = editSession.lineForScreenRow(0).fold
-          expect(fold.startRow).toBe 0
-          expect(fold.endRow).toBe 13
+          expect(fold.getStartRow()).toBe 0
+          expect(fold.getEndRow()).toBe 13
 
     describe ".unfoldBufferRow(bufferRow)", ->
       describe "when bufferRow can be unfolded", ->
