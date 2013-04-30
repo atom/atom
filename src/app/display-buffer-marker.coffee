@@ -15,7 +15,7 @@ class DisplayBufferMarker
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
     @id = @bufferMarker.id
-    @bufferMarker.on 'destroyed', => @destroyed()
+    @observeBufferMarker()
 
   ###
   # Public #
@@ -113,21 +113,6 @@ class DisplayBufferMarker
   clearTail: ->
     @bufferMarker.clearTail()
 
-  # Public: Sets a callback to be fired whenever the marker is changed.
-  #
-  # callback - A {Function} to execute
-  observe: (callback) ->
-    @observeBufferMarkerIfNeeded()
-    @on 'changed', callback
-    cancel: => @unobserve(callback)
-
-  # Public: Removes the callback that's fired whenever the marker changes.
-  #
-  # callback - A {Function} to remove
-  unobserve: (callback) ->
-    @off 'changed', callback
-    @unobserveBufferMarkerIfNeeded()
-
   # Returns whether the head precedes the tail in the buffer
   isReversed: ->
     @bufferMarker.isReversed()
@@ -159,23 +144,19 @@ class DisplayBufferMarker
   destroyed: ->
     delete @displayBuffer.markers[@id]
 
-  observeBufferMarkerIfNeeded: ->
-    return if @subscriptionCount()
+  observeBufferMarker: ->
+    @bufferMarker.on 'destroyed', => @destroyed()
+
     @getHeadScreenPosition() # memoize current value
     @getTailScreenPosition() # memoize current value
-    @bufferMarkerSubscription =
-      @bufferMarker.observe ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
-        @notifyObservers
-          oldHeadBufferPosition: oldHeadPosition
-          newHeadBufferPosition: newHeadPosition
-          oldTailBufferPosition: oldTailPosition
-          newTailBufferPosition: newTailPosition
-          bufferChanged: bufferChanged
-          valid: valid
-
-  unobserveBufferMarkerIfNeeded: ->
-    return if @subscriptionCount()
-    @bufferMarkerSubscription.cancel()
+    @bufferMarker.on 'changed', ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
+      @notifyObservers
+        oldHeadBufferPosition: oldHeadPosition
+        newHeadBufferPosition: newHeadPosition
+        oldTailBufferPosition: oldTailPosition
+        newTailBufferPosition: newTailPosition
+        bufferChanged: bufferChanged
+        valid: valid
 
   notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged, valid} = {}) ->
     oldHeadScreenPosition = @getHeadScreenPosition()

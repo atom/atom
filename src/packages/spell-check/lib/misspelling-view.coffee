@@ -15,7 +15,7 @@ class MisspellingView extends View
     @misspellingValid = true
 
     @marker = @editSession.markScreenRange(range, invalidationStrategy: 'between')
-    @marker.observe ({newHeadScreenPosition, newTailScreenPosition, valid}) =>
+    @marker.on 'changed', ({newHeadScreenPosition, newTailScreenPosition, valid}) =>
       @startPosition = newTailScreenPosition
       @endPosition = newHeadScreenPosition
       @updateDisplayPosition = valid

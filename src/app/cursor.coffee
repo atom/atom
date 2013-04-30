@@ -20,7 +20,7 @@ class Cursor
 
   constructor: ({@editSession, @marker}) ->
     @updateVisibility()
-    @marker.observe (e) =>
+    @marker.on 'changed', (e) =>
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e

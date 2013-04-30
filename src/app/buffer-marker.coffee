@@ -153,15 +153,6 @@ class BufferMarker
   containsPoint: (point) ->
     @getRange().containsPoint(point)
 
-  # Public: Sets a callback to be fired whenever a marker is changed.
-  observe: (callback) ->
-    @on 'changed', callback
-    cancel: => @unobserve(callback)
-
-  # Public: Removes the fired callback whenever a marker changes.
-  unobserve: (callback) ->
-    @off 'changed', callback
-
   # Destroys the marker
   destroy: ->
     @buffer.destroyMarker(@id)

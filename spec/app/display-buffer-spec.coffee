@@ -557,17 +557,17 @@ describe "DisplayBuffer", ->
         expect(marker.setTailBufferPosition([1, 0])).toBeTruthy()
         expect(marker.setTailBufferPosition([1, 0])).toBeFalsy()
 
-    describe "marker observation", ->
-      [observeHandler, marker, subscription] = []
+    describe "marker change events", ->
+      [changedHandler, marker] = []
 
       beforeEach ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        subscription = marker.observe(observeHandler = jasmine.createSpy("observeHandler"))
+        marker.on 'changed', changedHandler = jasmine.createSpy("changedHandler")
 
-      it "calls the callback whenever the markers head's screen position changes in the buffer or on screen", ->
+      it "triggers the 'changed' event whenever the markers head's screen position changes in the buffer or on screen", ->
         marker.setHeadScreenPosition([8, 20])
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [8, 20]
@@ -579,11 +579,11 @@ describe "DisplayBuffer", ->
           bufferChanged: false
           valid: true
         }
-        observeHandler.reset()
+        changedHandler.reset()
 
         buffer.insert([11, 0], '...')
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [8, 20]
           oldHeadBufferPosition: [11, 20]
           newHeadScreenPosition: [8, 23]
@@ -595,11 +595,11 @@ describe "DisplayBuffer", ->
           bufferChanged: true
           valid: true
         }
-        observeHandler.reset()
+        changedHandler.reset()
 
         displayBuffer.destroyFoldsContainingBufferRow(4)
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [8, 23]
           oldHeadBufferPosition: [11, 23]
           newHeadScreenPosition: [11, 23]
@@ -611,11 +611,11 @@ describe "DisplayBuffer", ->
           bufferChanged: false
           valid: true
         }
-        observeHandler.reset()
+        changedHandler.reset()
 
         displayBuffer.createFold(4, 7)
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [11, 23]
           oldHeadBufferPosition: [11, 23]
           newHeadScreenPosition: [8, 23]
@@ -628,10 +628,10 @@ describe "DisplayBuffer", ->
           valid: true
         }
 
-      it "calls the callback whenever the marker tail's position changes in the buffer or on screen", ->
+      it "triggers the 'changed' event whenever the marker tail's position changes in the buffer or on screen", ->
         marker.setTailScreenPosition([8, 20])
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [5, 10]
@@ -643,11 +643,11 @@ describe "DisplayBuffer", ->
           bufferChanged: false
           valid: true
         }
-        observeHandler.reset()
+        changedHandler.reset()
 
         buffer.insert([11, 0], '...')
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [5, 10]
@@ -660,10 +660,10 @@ describe "DisplayBuffer", ->
           valid: true
         }
 
-      it "calls the callback whenever the marker is invalidated or revalidated", ->
+      it "triggers the 'changed' event whenever the marker is invalidated or revalidated", ->
         buffer.deleteRow(8)
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [5, 10]
@@ -676,11 +676,11 @@ describe "DisplayBuffer", ->
           valid: false
         }
 
-        observeHandler.reset()
+        changedHandler.reset()
         buffer.undo()
 
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [5, 10]
@@ -695,18 +695,12 @@ describe "DisplayBuffer", ->
 
       it "does not call the callback for screen changes that don't change the position of the marker", ->
         displayBuffer.createFold(10, 11)
-        expect(observeHandler).not.toHaveBeenCalled()
-
-      it "allows observation subscriptions to be cancelled", ->
-        subscription.cancel()
-        marker.setHeadScreenPosition([8, 20])
-        displayBuffer.destroyFoldsContainingBufferRow(4)
-        expect(observeHandler).not.toHaveBeenCalled()
+        expect(changedHandler).not.toHaveBeenCalled()
 
       it "updates the position of markers before emitting buffer change events, but does not notify their observers until the change event", ->
         displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
           # calls change handler first
-          expect(observeHandler).not.toHaveBeenCalled()
+          expect(changedHandler).not.toHaveBeenCalled()
           # but still updates the markers
           expect(marker.getScreenRange()).toEqual [[5, 7], [5, 13]]
           expect(marker.getHeadScreenPosition()).toEqual [5, 13]
@@ -715,12 +709,12 @@ describe "DisplayBuffer", ->
         buffer.insert([8, 1], "...")
 
         expect(changeHandler).toHaveBeenCalled()
-        expect(observeHandler).toHaveBeenCalled()
+        expect(changedHandler).toHaveBeenCalled()
 
       it "updates the position of markers before emitting change events that aren't caused by a buffer change", ->
         displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
           # calls change handler first
-          expect(observeHandler).not.toHaveBeenCalled()
+          expect(changedHandler).not.toHaveBeenCalled()
           # but still updates the markers
           expect(marker.getScreenRange()).toEqual [[8, 4], [8, 10]]
           expect(marker.getHeadScreenPosition()).toEqual [8, 10]
@@ -729,7 +723,7 @@ describe "DisplayBuffer", ->
         displayBuffer.destroyFoldsContainingBufferRow(4)
 
         expect(changeHandler).toHaveBeenCalled()
-        expect(observeHandler).toHaveBeenCalled()
+        expect(changedHandler).toHaveBeenCalled()
 
     describe ".findMarkers(attributes)", ->
       it "allows the startBufferRow and endBufferRow to be specified", ->

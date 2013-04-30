@@ -19,7 +19,7 @@ class Selection
 
   constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
-    @marker.observe => @screenRangeChanged()
+    @marker.on 'changed', => @screenRangeChanged()
     @cursor.on 'destroyed.selection', =>
       @cursor = null
       @destroy()

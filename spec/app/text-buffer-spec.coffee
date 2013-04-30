@@ -843,18 +843,17 @@ describe 'Buffer', ->
         expect(marker.setTailPosition([6, 3])).toBeTruthy()
         expect(marker.setTailPosition([6, 3])).toBeFalsy()
 
-    describe ".observeMarker(marker, callback)", ->
-      [observeHandler, marker, subscription] = []
+    describe "change events", ->
+      [changedHandler, marker] = []
 
       beforeEach ->
-        observeHandler = jasmine.createSpy("observeHandler")
         marker = buffer.markRange([[4, 20], [4, 23]])
-        subscription = marker.observe(observeHandler)
+        marker.on 'changed', changedHandler = jasmine.createSpy("changedHandler")
 
-      it "calls the callback when the marker's head position changes", ->
+      it "triggers 'changed' events when the marker's head position changes", ->
         marker.setHeadPosition([6, 2])
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadPosition: [4, 23]
           newHeadPosition: [6, 2]
           oldTailPosition: [4, 20]
@@ -862,10 +861,10 @@ describe 'Buffer', ->
           bufferChanged: false
           valid: true
         }
-        observeHandler.reset()
+        changedHandler.reset()
 
         buffer.insert([6, 0], '...')
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldTailPosition: [4, 20]
           newTailPosition: [4, 20]
           oldHeadPosition: [6, 2]
@@ -876,8 +875,8 @@ describe 'Buffer', ->
 
       it "calls the given callback when the marker's tail position changes", ->
         marker.setTailPosition([6, 2])
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadPosition: [4, 23]
           newHeadPosition: [4, 23]
           oldTailPosition: [4, 20]
@@ -885,11 +884,11 @@ describe 'Buffer', ->
           bufferChanged: false
           valid: true
         }
-        observeHandler.reset()
+        changedHandler.reset()
 
         buffer.insert([6, 0], '...')
 
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadPosition: [4, 23]
           newHeadPosition: [4, 23]
           oldTailPosition: [6, 2]
@@ -898,10 +897,10 @@ describe 'Buffer', ->
           valid: true
         }
 
-      it "calls the callback when the selection's tail is cleared", ->
+      it "triggers 'changed' events when the selection's tail is cleared", ->
         marker.clearTail()
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler).toHaveBeenCalled()
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldHeadPosition: [4, 23]
           newHeadPosition: [4, 23]
           oldTailPosition: [4, 20]
@@ -910,10 +909,10 @@ describe 'Buffer', ->
           valid: true
         }
 
-      it "only calls the callback once when both the marker's head and tail positions change due to the same operation", ->
+      it "only triggers 'changed' events once when both the marker's head and tail positions change due to the same operation", ->
         buffer.insert([4, 0], '...')
-        expect(observeHandler.callCount).toBe 1
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler.callCount).toBe 1
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldTailPosition: [4, 20]
           newTailPosition: [4, 23]
           oldHeadPosition: [4, 23]
@@ -921,11 +920,11 @@ describe 'Buffer', ->
           bufferChanged: true
           valid: true
         }
-        observeHandler.reset()
+        changedHandler.reset()
 
         marker.setRange([[0, 0], [1, 1]])
-        expect(observeHandler.callCount).toBe 1
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler.callCount).toBe 1
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldTailPosition: [4, 23]
           newTailPosition: [0, 0]
           oldHeadPosition: [4, 26]
@@ -934,10 +933,10 @@ describe 'Buffer', ->
           valid: true
         }
 
-      it "calls the callback with the valid flag set to false when the marker is invalidated", ->
+      it "triggers 'changed' events with the valid flag set to false when the marker is invalidated", ->
         buffer.deleteRow(4)
-        expect(observeHandler.callCount).toBe 1
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler.callCount).toBe 1
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldTailPosition: [4, 20]
           newTailPosition: [4, 20]
           oldHeadPosition: [4, 23]
@@ -946,10 +945,10 @@ describe 'Buffer', ->
           valid: false
         }
 
-        observeHandler.reset()
+        changedHandler.reset()
         buffer.undo()
-        expect(observeHandler.callCount).toBe 1
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(changedHandler.callCount).toBe 1
+        expect(changedHandler.argsForCall[0][0]).toEqual {
           oldTailPosition: [4, 20]
           newTailPosition: [4, 20]
           oldHeadPosition: [4, 23]
@@ -957,11 +956,6 @@ describe 'Buffer', ->
           bufferChanged: true
           valid: true
         }
-
-      it "allows the observation subscription to be cancelled", ->
-        subscription.cancel()
-        marker.setHeadPosition([6, 2])
-        expect(observeHandler).not.toHaveBeenCalled()
 
     describe ".findMarkers(attributes)", ->
       [marker1, marker2, marker3, marker4] = []
