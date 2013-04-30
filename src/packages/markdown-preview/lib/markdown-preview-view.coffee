@@ -6,7 +6,12 @@ roaster = require 'roaster'
 Editor = require 'editor'
 
 fenceNameToExtension =
+  "coffeescript": "coffee"
+  "toml": "toml"
   "ruby": "rb"
+  "go": "go"
+  "mustache": "mustache"
+  "java": "java"
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
