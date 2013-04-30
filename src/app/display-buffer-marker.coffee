@@ -143,6 +143,7 @@ class DisplayBufferMarker
 
   destroyed: ->
     delete @displayBuffer.markers[@id]
+    @trigger 'destroyed'
 
   observeBufferMarker: ->
     @bufferMarker.on 'destroyed', => @destroyed()

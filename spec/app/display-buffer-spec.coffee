@@ -741,3 +741,16 @@ describe "DisplayBuffer", ->
         marker.destroy()
         expect(marker.isValid()).toBeFalsy()
         expect(displayBuffer.getMarker(marker.id)).toBeUndefined()
+
+      it "emits 'destroyed' events when markers are destroyed", ->
+        destroyedHandler = jasmine.createSpy("destroyedHandler")
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        marker.on 'destroyed', destroyedHandler
+        marker.destroy()
+        expect(destroyedHandler).toHaveBeenCalled()
+        destroyedHandler.reset()
+
+        marker2 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        marker2.on 'destroyed', destroyedHandler
+        buffer.getMarker(marker2.id).destroy()
+        expect(destroyedHandler).toHaveBeenCalled()
