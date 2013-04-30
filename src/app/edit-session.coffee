@@ -1122,7 +1122,7 @@ class EditSession
   # Returns an {Array} of {Cursor}s.
   getCursors: -> new Array(@cursors...)
 
-  # Public: Retrieves a single cursor
+  # Public: Retrieves the most recently added cursor.
   #
   # Returns a {Cursor}.
   getCursor: ->
