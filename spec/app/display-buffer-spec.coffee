@@ -321,15 +321,12 @@ describe "DisplayBuffer", ->
             expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 1, screenDelta: 2, bufferDelta: 0)
 
       describe "when the old range straddles the beginning of a fold", ->
-        it "replaces lines in the portion of the range that precedes the fold and adjusts the end of the fold to encompass additional lines", ->
+        it "destroys the fold", ->
           buffer.change([[1, 1], [3, 0]], "a\nb\nc\nd\n")
-
-          expect(fold1.getStartRow()).toBe 2
-          expect(fold1.getEndRow()).toBe 6
-
           expect(displayBuffer.lineForRow(1).text).toBe '1a'
           expect(displayBuffer.lineForRow(2).text).toBe 'b'
-          expect(displayBuffer.lineForRow(2).fold).toBe fold1
+          expect(displayBuffer.lineForRow(2).fold).toBeUndefined()
+          expect(displayBuffer.lineForRow(3).text).toBe 'c'
 
       describe "when the old range follows a fold", ->
         it "re-positions the screen ranges for the change event based on the preceding fold", ->
@@ -378,12 +375,13 @@ describe "DisplayBuffer", ->
 
       describe "when the old range straddles the end of the fold", ->
         describe "when the end of the new range precedes the end of the fold", ->
-          it "shortens the fold so its end matches the end of the new range", ->
+          it "destroys the fold", ->
             fold2.destroy()
             buffer.change([[3, 0], [6, 0]], 'a\n')
-
-            expect(fold1.startRow).toBe 2
-            expect(fold1.endRow).toBe 4
+            expect(displayBuffer.lineForRow(2).text).toBe '2'
+            expect(displayBuffer.lineForRow(2).fold).toBeUndefined()
+            expect(displayBuffer.lineForRow(3).text).toBe 'a'
+            expect(displayBuffer.lineForRow(4).text).toBe '6'
 
       describe "when the old range is contained to a single line in-between two folds", ->
         it "re-renders the line with the placeholder and re-positions the second fold", ->
