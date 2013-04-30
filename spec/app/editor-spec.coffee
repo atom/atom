@@ -320,8 +320,9 @@ describe "Editor", ->
         expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
 
         newEditor = new Editor(editor.activeEditSession.copy())
+        editor.remove()
         newEditor.attachToDom()
-        expect(editor.css('font-size')).toBe '30px'
+        expect(newEditor.css('font-size')).toBe '30px'
 
       it "updates the position and size of selection regions", ->
         config.set("editor.fontSize", 10)
