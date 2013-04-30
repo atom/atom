@@ -125,7 +125,7 @@ class DisplayBufferMarker
   # Returns a {Boolean} indicating whether the marker has been destroyed. A marker
   # can be invalid without being destroyed, in which case undoing the invalidating
   # operation would restore the marker. Once a marker is destroyed by calling
-  # {Marker.destroy}, no undo/redo operation can ever bring it back.
+  # {BufferMarker.destroy}, no undo/redo operation can ever bring it back.
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
