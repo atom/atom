@@ -1,3 +1,6 @@
+* Fixed: Atom always running in dev mode
+* Fixed: Crash when running in dev mode without a path to the Atom source
+
 * Fixed: Freeze when editing a RoR class
 * Added: meta-N to open a new untitled editor in the current window
 
