@@ -150,7 +150,6 @@ describe "Window", ->
       expect(buffer.subscriptionCount()).toBe 0
 
     it "only serializes window state the first time it is called", ->
-
       window.unloadEditorWindow()
       window.unloadEditorWindow()
       expect(atom.saveWindowState.callCount).toBe 1
