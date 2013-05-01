@@ -1,3 +1,5 @@
+* Fixed: Error when saving with the markdown preview focused
+
 * Fixed: Atom always running in dev mode
 * Fixed: Crash when running in dev mode without a path to the Atom source
 
