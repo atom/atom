@@ -263,4 +263,7 @@ window.profile = (description, fn) ->
 
 # Public: Shows a dialog asking if the window was _really_ meant to be closed.
 confirmClose = ->
-  rootView.confirmClose().done -> window.close()
+  if rootView?
+    rootView.confirmClose().done -> window.close()
+  else
+    window.close()
