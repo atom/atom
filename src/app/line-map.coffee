@@ -7,8 +7,6 @@ module.exports =
 class LineMap
   maxScreenLineLength: 0
 
-  ### Internal ###
-
   constructor: ->
     @screenLines = []
 

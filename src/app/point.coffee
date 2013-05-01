@@ -94,7 +94,7 @@ class Point
 
     [new Point(0, column), new Point(@row, rightColumn)]
 
-  # Internal: Compares two `Point`s.
+  # Compares two `Point`s.
   #
   # other - The {Point} to compare against
   #

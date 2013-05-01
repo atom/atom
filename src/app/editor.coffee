@@ -353,7 +353,7 @@ class Editor extends View
 
   # {Delegates to: EditSession.selectToScreenPosition}
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
-  
+
   # {Delegates to: EditSession.transpose}
   transpose: -> @activeEditSession.transpose()
 
@@ -681,7 +681,6 @@ class Editor extends View
       @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
 
-
   afterAttach: (onDom) ->
     return unless onDom
     @redraw() if @redrawOnReattach
@@ -819,43 +818,6 @@ class Editor extends View
     return unless @attached
     @scrollVertically(pixelPosition, options)
     @scrollHorizontally(pixelPosition)
-
-  # Internal: Scrolls the editor vertically to a given position.
-  scrollVertically: (pixelPosition, {center}={}) ->
-    scrollViewHeight = @scrollView.height()
-    scrollTop = @scrollTop()
-    scrollBottom = scrollTop + scrollViewHeight
-
-    if center
-      unless scrollTop < pixelPosition.top < scrollBottom
-        @scrollTop(pixelPosition.top - (scrollViewHeight / 2))
-    else
-      linesInView = @scrollView.height() / @lineHeight
-      maxScrollMargin = Math.floor((linesInView - 1) / 2)
-      scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
-      margin = scrollMargin * @lineHeight
-      desiredTop = pixelPosition.top - margin
-      desiredBottom = pixelPosition.top + @lineHeight + margin
-      if desiredBottom > scrollBottom
-        @scrollTop(desiredBottom - scrollViewHeight)
-      else if desiredTop < scrollTop
-        @scrollTop(desiredTop)
-
-  # Internal: Scrolls the editor horizontally to a given position.
-  scrollHorizontally: (pixelPosition) ->
-    return if @activeEditSession.getSoftWrap()
-
-    charsInView = @scrollView.width() / @charWidth
-    maxScrollMargin = Math.floor((charsInView - 1) / 2)
-    scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
-    margin = scrollMargin * @charWidth
-    desiredRight = pixelPosition.left + @charWidth + margin
-    desiredLeft = pixelPosition.left - margin
-
-    if desiredRight > @scrollView.scrollRight()
-      @scrollView.scrollRight(desiredRight)
-    else if desiredLeft < @scrollView.scrollLeft()
-      @scrollView.scrollLeft(desiredLeft)
 
   # Given a buffer range, this highlights all the folds within that range
   #
@@ -1042,6 +1004,44 @@ class Editor extends View
     @overlayer.append(view)
 
   ### Internal ###
+
+
+  # Scrolls the editor vertically to a given position.
+  scrollVertically: (pixelPosition, {center}={}) ->
+    scrollViewHeight = @scrollView.height()
+    scrollTop = @scrollTop()
+    scrollBottom = scrollTop + scrollViewHeight
+
+    if center
+      unless scrollTop < pixelPosition.top < scrollBottom
+        @scrollTop(pixelPosition.top - (scrollViewHeight / 2))
+    else
+      linesInView = @scrollView.height() / @lineHeight
+      maxScrollMargin = Math.floor((linesInView - 1) / 2)
+      scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
+      margin = scrollMargin * @lineHeight
+      desiredTop = pixelPosition.top - margin
+      desiredBottom = pixelPosition.top + @lineHeight + margin
+      if desiredBottom > scrollBottom
+        @scrollTop(desiredBottom - scrollViewHeight)
+      else if desiredTop < scrollTop
+        @scrollTop(desiredTop)
+
+  # Scrolls the editor horizontally to a given position.
+  scrollHorizontally: (pixelPosition) ->
+    return if @activeEditSession.getSoftWrap()
+
+    charsInView = @scrollView.width() / @charWidth
+    maxScrollMargin = Math.floor((charsInView - 1) / 2)
+    scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
+    margin = scrollMargin * @charWidth
+    desiredRight = pixelPosition.left + @charWidth + margin
+    desiredLeft = pixelPosition.left - margin
+
+    if desiredRight > @scrollView.scrollRight()
+      @scrollView.scrollRight(desiredRight)
+    else if desiredLeft < @scrollView.scrollLeft()
+      @scrollView.scrollLeft(desiredLeft)
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
@@ -1526,7 +1526,7 @@ class Editor extends View
     pasteboard.write(path) if path?
 
   ### Internal ###
-  
+
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}
     binding[key] = event

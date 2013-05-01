@@ -232,7 +232,7 @@ class EditSession
     newIndentString = @buildIndentString(newLevel)
     @buffer.change([[bufferRow, 0], [bufferRow, currentIndentString.length]], newIndentString)
 
-  # Internal: Given a line, this gets the indentation level.
+  # Given a line, this retrieves the indentation level.
   #
   # line - A {String} in the current {Buffer}.
   #
@@ -246,7 +246,7 @@ class EditSession
     else
       0
 
-  # Internal: Constructs the string used for tabs.
+  # Constructs the string used for tabs.
   buildIndentString: (number) ->
     if @softTabs
       _.multiplyString(" ", number * @getTabLength())
