@@ -1,3 +1,4 @@
+* Fixed: Wrap guide not displaying
 * Fixed: Error when saving with the markdown preview focused
 
 * Fixed: Atom always running in dev mode
