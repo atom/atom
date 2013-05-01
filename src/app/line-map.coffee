@@ -7,6 +7,8 @@ module.exports =
 class LineMap
   maxScreenLineLength: 0
 
+  ### Internal ###
+
   constructor: ->
     @screenLines = []
 
@@ -27,6 +29,8 @@ class LineMap
 
     for screenLine in maxLengthCandidates
       @maxScreenLineLength = Math.max(@maxScreenLineLength, screenLine.text.length)
+
+  ### Public ###
 
   # Gets the line for the given screen row.
   #
@@ -185,7 +189,8 @@ class LineMap
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
-  # Internal:
+  ### Internal ###
+
   logLines: (start=0, end=@screenLineCount() - 1)->
     for row in [start..end]
       line = @lineForScreenRow(row).text
