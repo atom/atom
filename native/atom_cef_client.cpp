@@ -171,7 +171,6 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 }
 
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
-//  REQUIRE_UI_THREAD(); // When uncommented this fails when app is terminated
   m_Browser = NULL;
   numberOfOpenBrowsers--;
   if (numberOfOpenBrowsers == 0) {

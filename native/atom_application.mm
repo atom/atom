@@ -278,8 +278,7 @@
   }
 }
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:
-      (NSApplication *)sender {
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
   for (NSWindow *window in [self windows]) {
     [window performClose:self];
   }
