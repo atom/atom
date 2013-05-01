@@ -257,6 +257,12 @@ describe "DisplayBuffer", ->
           expect(line0.fold).toBe outerFold
           expect(line1.fold).toBeUndefined()
 
+      describe "when there is another display buffer pointing to the same buffer", ->
+        it "does not create folds in the other display buffer", ->
+          otherDisplayBuffer = new DisplayBuffer(buffer, { tabLength })
+          displayBuffer.createFold(2, 4)
+          expect(otherDisplayBuffer.foldsStartingAtBufferRow(2).length).toBe 0
+
     describe "when the buffer changes", ->
       [fold1, fold2] = []
       beforeEach ->
