@@ -28,7 +28,7 @@ class LineMap
     for screenLine in maxLengthCandidates
       @maxScreenLineLength = Math.max(@maxScreenLineLength, screenLine.text.length)
 
-  # Public: Gets the line for the given screen row.
+  # Gets the line for the given screen row.
   #
   # screenRow - A {Number} indicating the screen row.
   #
@@ -36,7 +36,7 @@ class LineMap
   lineForScreenRow: (row) ->
     @screenLines[row]
 
-  # Public: Gets the lines for the given screen row boundaries.
+  # Gets the lines for the given screen row boundaries.
   #
   # start - A {Number} indicating the beginning screen row.
   # end - A {Number} indicating the ending screen row.
@@ -45,7 +45,7 @@ class LineMap
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
 
-  # Public: Given starting and ending screen rows, this returns an array of the
+  # Given starting and ending screen rows, this returns an array of the
   # buffer rows corresponding to every screen row in the range
   #
   # startRow - The screen row {Number} to start at
@@ -100,7 +100,7 @@ class LineMap
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
 
-  # Public: Given a buffer position, this converts it into a screen position.
+  # Given a buffer position, this converts it into a screen position.
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -140,7 +140,7 @@ class LineMap
 
     [screenRow, screenLines]
 
-  # Public: Given a buffer range, this converts it into a screen position.
+  # Given a buffer range, this converts it into a screen position.
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -163,7 +163,7 @@ class LineMap
 
     [bufferRow, screenLine]
 
-  # Public: Given a buffer range, this converts it into a screen position.
+  # Given a buffer range, this converts it into a screen position.
   #
   # bufferRange - The {Range} to convert
   #
@@ -174,7 +174,7 @@ class LineMap
     end = @screenPositionForBufferPosition(bufferRange.end)
     new Range(start, end)
 
-  # Public: Given a screen range, this converts it into a buffer position.
+  # Given a screen range, this converts it into a buffer position.
   #
   # screenRange - The {Range} to convert
   #
