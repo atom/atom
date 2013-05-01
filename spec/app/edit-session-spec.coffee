@@ -2038,6 +2038,29 @@ describe "EditSession", ->
         editSession.redo()
         expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
+      it "restores folds after undo and redo", ->
+        editSession.foldBufferRow(1)
+        editSession.setSelectedBufferRange([[1, 0], [10, Infinity]], preserveFolds: true)
+        expect(editSession.isFoldedAtBufferRow(1)).toBeTruthy()
+
+        editSession.insertText """
+          \  // testing
+            function foo() {
+              return 1 + 2;
+            }
+        """
+        expect(editSession.isFoldedAtBufferRow(1)).toBeFalsy()
+        editSession.foldBufferRow(2)
+
+        editSession.undo()
+        expect(editSession.isFoldedAtBufferRow(1)).toBeTruthy()
+        expect(editSession.isFoldedAtBufferRow(9)).toBeTruthy()
+        expect(editSession.isFoldedAtBufferRow(10)).toBeFalsy()
+
+        editSession.redo()
+        expect(editSession.isFoldedAtBufferRow(1)).toBeFalsy()
+        expect(editSession.isFoldedAtBufferRow(2)).toBeTruthy()
+
       it "restores selected ranges even when the change occurred in another edit session", ->
         otherEditSession = project.buildEditSession(editSession.getPath())
         otherEditSession.setSelectedBufferRange([[2, 2], [3, 3]])

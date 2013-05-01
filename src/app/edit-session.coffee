@@ -623,7 +623,7 @@ class EditSession
     oldSelectedRanges = @getSelectedBufferRanges()
     @pushOperation
       undo: (editSession) ->
-        editSession?.setSelectedBufferRanges(oldSelectedRanges)
+        editSession?.setSelectedBufferRanges(oldSelectedRanges, preserveFolds: true)
     if fn
       result = fn()
       @commit() if isNewTransaction
@@ -633,7 +633,7 @@ class EditSession
     newSelectedRanges = @getSelectedBufferRanges()
     @pushOperation
       redo: (editSession) ->
-        editSession?.setSelectedBufferRanges(newSelectedRanges)
+        editSession?.setSelectedBufferRanges(newSelectedRanges, preserveFolds: true)
     @buffer.commit()
 
   abort: ->
