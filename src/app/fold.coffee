@@ -24,7 +24,7 @@ class Fold
   inspect: ->
     "Fold(#{@startRow}, #{@endRow})"
 
-  # Public: Retrieves the buffer row range that a fold occupies.
+  # Retrieves the buffer row range that a fold occupies.
   #
   # includeNewline - A {Boolean} which, if `true`, includes the trailing newline
   #
@@ -37,7 +37,7 @@ class Fold
 
     new Range([@startRow, 0], end)
 
-  # Public: Retrieves the number of buffer rows a fold occupies.
+  # Retrieves the number of buffer rows a fold occupies.
   #
   # Returns a {Number}.
   getBufferRowCount: ->
@@ -57,7 +57,7 @@ class Fold
       @displayBuffer.unregisterFold(oldStartRow, this)
       @displayBuffer.registerFold(this)
 
-  # Public: Identifies if a {Range} occurs within a fold.
+  # Identifies if a {Range} occurs within a fold.
   #
   # range - A {Range} to check
   #
@@ -65,7 +65,7 @@ class Fold
   isContainedByRange: (range) ->
     range.start.row <= @startRow and @endRow <= range.end.row
 
-  # Public: Identifies if a fold is nested within a fold.
+  # Identifies if a fold is nested within a fold.
   #
   # fold - A {Fold} to check
   #
