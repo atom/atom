@@ -239,7 +239,7 @@ class BufferMarker
     newHeadPosition ?= @getHeadPosition()
     oldTailPosition ?= @getTailPosition()
     newTailPosition ?= @getTailPosition()
-    valid = @buffer.validMarkers[@id]?
+    valid = @isValid()
     @trigger 'changed', {oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}
 
   consolidateObserverNotifications: (bufferChanged, fn) ->
