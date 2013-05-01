@@ -182,26 +182,21 @@ class BufferMarker
     betweenStartAndEnd = @getRange().containsRange(changedRange, exclusive: false)
     containsStart = changedRange.containsPoint(@getStartPosition(), exclusive: true)
     containsEnd = changedRange.containsPoint(@getEndPosition(), exclusive: true)
-
+    previousRange = @getRange()
     switch @invalidationStrategy
       when 'between'
-        if betweenStartAndEnd or containsStart or containsEnd
-          @invalidate()
-          [@id]
+        @invalidate() if betweenStartAndEnd or containsStart or containsEnd
       when 'contains'
-        if containsStart or containsEnd
-          @invalidate()
-          [@id]
+        @invalidate() if containsStart or containsEnd
       when 'never'
         if containsStart or containsEnd
-          previousRange = @getRange()
           if containsStart and containsEnd
             @setRange([changedRange.end, changedRange.end])
           else if containsStart
             @setRange([changedRange.end, @getEndPosition()])
           else
             @setRange([@getStartPosition(), changedRange.start])
-          [@id, previousRange]
+    [@id, previousRange]
 
   handleBufferChange: (bufferChange) ->
     @consolidateObserverNotifications true, =>

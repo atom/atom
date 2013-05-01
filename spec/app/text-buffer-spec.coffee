@@ -1027,6 +1027,13 @@ describe 'TextBuffer', ->
             buffer.undo()
             expect(marker1.getRange()).toEqual [[4, 23], [4, 26]]
 
+          it "restores the marker range exactly on undo", ->
+            marker = buffer.markRange([[3, 0], [3, 62]])
+            buffer.delete([[2, 0], [3, 0]])
+            expect(marker.getRange()).toEqual [[2, 0], [2, 62]]
+            buffer.undo()
+            expect(marker.getRange()).toEqual [[3, 0], [3, 62]]
+
         describe "when the change follows the marker range", ->
           it "does not move the marker", ->
             buffer.insert([6, 5], '...')

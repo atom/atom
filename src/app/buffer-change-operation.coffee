@@ -100,7 +100,7 @@ class BufferChangeOperation
     newRange
 
   invalidateMarkers: (oldRange) ->
-    _.compact(@buffer.getMarkers().map (marker) -> marker.tryToInvalidate(oldRange))
+    @buffer.getMarkers().map (marker) -> marker.tryToInvalidate(oldRange)
 
   pauseMarkerObservation: ->
     marker.pauseEvents() for marker in @buffer.getMarkers(includeInvalid: true)
