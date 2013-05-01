@@ -159,6 +159,10 @@ void AtomCefClient::Exit(int status) {
   exit(status);
 }
 
+void AtomCefClient::Terminate() {
+  [NSApp terminate:NSApp];
+}
+
 void AtomCefClient::Log(const char *message) {
   NSLog(@"%s", message);
 }

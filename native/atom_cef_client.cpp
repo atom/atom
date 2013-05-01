@@ -174,7 +174,7 @@ void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   m_Browser = NULL;
   numberOfOpenBrowsers--;
   if (numberOfOpenBrowsers == 0) {
-    CefQuitMessageLoop();
+    Terminate();
   }
 }
 
