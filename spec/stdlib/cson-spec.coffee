@@ -73,6 +73,8 @@ describe "CSON", ->
 
       it "returns formatted CSON", ->
         expect(CSON.stringify(a: {b: 'c'})).toBe "'a':\n  'b': 'c'"
+        expect(CSON.stringify(a:{})).toBe "'a': {}"
+        expect(CSON.stringify(a:[])).toBe "'a': []"
 
   describe "when converting back to an object", ->
     it "produces the original object", ->
