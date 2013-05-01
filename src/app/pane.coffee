@@ -186,7 +186,7 @@ class Pane extends View
 
   saveItem: (item, nextAction) ->
     if item.getUri?()
-      item.save()
+      item.save?()
       nextAction?()
     else
       @saveItemAs(item, nextAction)

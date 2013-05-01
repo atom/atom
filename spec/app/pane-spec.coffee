@@ -303,6 +303,7 @@ describe "Pane", ->
 
       describe "when the current item has no save method", ->
         it "does nothing", ->
+          pane.activeItem.getUri = -> 'you are eye'
           expect(pane.activeItem.save).toBeUndefined()
           pane.trigger 'core:save'
 
