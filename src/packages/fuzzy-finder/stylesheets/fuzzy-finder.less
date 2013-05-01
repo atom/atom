@@ -1,8 +1,21 @@
-.fuzzy-finder .directory {
+.fuzzy-finder {
+
+  &.select-list li {
+    padding: 5px 10px 5px 10px;
+  }
+
+  .path, .file {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
+.fuzzy-finder .path {
   color: rgba(0, 0, 0, 0.5);
-  word-break: break-word;
-  margin-left: 5px;
-  line-height: 150%;
+  margin-top: -2px;
+  margin-left: 26px;
+  font-size: .9em;
 }
 
 .fuzzy-finder .file:before {

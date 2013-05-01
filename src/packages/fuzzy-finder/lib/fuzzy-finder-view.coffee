@@ -59,9 +59,8 @@ class FuzzyFinderView extends SelectList
         else
           typeClass = 'text-name'
 
-        @span fsUtils.base(path), class: "file #{typeClass}"
-        if folder = project.relativize(fsUtils.directory(path))
-          @span " - #{folder}/", class: 'directory'
+        @div fsUtils.base(path), class: "file #{typeClass}"
+        @div project.relativize(path), class: 'path'
 
   openPath: (path) ->
     rootView.open(path, {@allowActiveEditorChange}) if path
