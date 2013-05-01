@@ -186,7 +186,7 @@ class LineMap
     new Range(start, end)
 
   # Internal:
-  logLines: (start=0, end=@screenLineCount() - 1)->
+  logLines: (start=0, end=@getScreenLineCount() - 1)->
     for row in [start..end]
       line = @lineForScreenRow(row).text
       console.log row, line, line.length
