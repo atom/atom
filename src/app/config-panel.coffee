@@ -48,5 +48,6 @@ class ConfigPanel extends View
           value ?= ""
           editor.setText(value.toString())
 
-        editor.getBuffer().on 'contents-modified', =>
-          config.set(name, @parseValue(type, editor.getText()))
+        editor.getBuffer().one 'contents-modified', =>
+          editor.getBuffer().on 'contents-modified', =>
+            config.set(name, @parseValue(type, editor.getText()))

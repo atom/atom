@@ -67,6 +67,7 @@ describe "ConfigPanel", ->
     config.set('foo.float', 1.1)
     config.set('foo.string', 'I think therefore I am.')
     panel = new TestPanel
+    window.advanceClock(10000) # wait for contents-modified to be triggered
     expect(panel.intEditor.getText()).toBe '1'
     expect(panel.floatEditor.getText()).toBe '1.1'
     expect(panel.stringEditor.getText()).toBe 'I think therefore I am.'
@@ -100,3 +101,15 @@ describe "ConfigPanel", ->
     expect(config.get('foo.int')).toBe undefined
     expect(config.get('foo.float')).toBe undefined
     expect(config.get('foo.string')).toBe undefined
+
+  it "does not save the config value until it has been changed to a new value", ->
+    class TestPanel extends ConfigPanel
+      @content: ->
+        @div =>
+          @subview "foo.int", new Editor(mini: true, attributes: {id: 'foo.int', type: 'int'})
+
+    config.set('foo.int', 1)
+    spyOn(config, 'set')
+    new TestPanel
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(config.set).not.toHaveBeenCalled()
