@@ -42,6 +42,19 @@ describe "ConfigPanel", ->
     panel.stringInput.val('moo').change()
     expect(config.get('foo.string')).toBe 'moo'
 
+    panel.intInput.val('abcd').change()
+    expect(config.get('foo.int')).toBe 'abcd'
+
+    panel.floatInput.val('defg').change()
+    expect(config.get('foo.float')).toBe 'defg'
+
+    panel.intInput.val('').change()
+    expect(config.get('foo.int')).toBe undefined
+    panel.floatInput.val('').change()
+    expect(config.get('foo.float')).toBe undefined
+    panel.stringInput.val('').change()
+    expect(config.get('foo.string')).toBe undefined
+
   it "automatically binds named editors to their corresponding config keys", ->
     class TestPanel extends ConfigPanel
       @content: ->
@@ -73,10 +86,17 @@ describe "ConfigPanel", ->
     expect(config.get('foo.float')).toBe 3.3
     expect(config.get('foo.string')).toBe 'All limitations are self imposed.'
 
+
     panel.intEditor.setText('not an int')
     panel.floatEditor.setText('not a float')
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(config.get('foo.int')).toBe 'not an int'
+    expect(config.get('foo.float')).toBe 'not a float'
+
+    panel.intEditor.setText('')
+    panel.floatEditor.setText('')
     panel.stringEditor.setText('')
     window.advanceClock(10000) # wait for contents-modified to be triggered
-    expect(config.get('foo.int')).toBe 0
-    expect(config.get('foo.float')).toBe 0
+    expect(config.get('foo.int')).toBe undefined
+    expect(config.get('foo.float')).toBe undefined
     expect(config.get('foo.string')).toBe undefined
