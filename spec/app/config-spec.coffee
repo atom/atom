@@ -17,6 +17,17 @@ describe "Config", ->
       expect(config.save).toHaveBeenCalled()
       expect(observeHandler).toHaveBeenCalledWith 42
 
+  describe ".getPositiveInt(keyPath, defaultValue)", ->
+    it "returns the proper current or default value", ->
+      config.set('editor.preferredLineLength', 0)
+      expect(config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
+      config.set('editor.preferredLineLength', -1234)
+      expect(config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
+      config.set('editor.preferredLineLength', 'abcd')
+      expect(config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
+      config.set('editor.preferredLineLength', null)
+      expect(config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
+
   describe ".save()", ->
     beforeEach ->
       spyOn(fsUtils, 'write')

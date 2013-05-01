@@ -100,6 +100,24 @@ class Config
     _.valueForKeyPath(@settings, keyPath) ?
       _.valueForKeyPath(@defaultSettings, keyPath)
 
+  # Public: Retrieves the setting for the given key as an integer number.
+  #
+  # keyPath - The {String} name of the key to retrieve
+  # Returns the value from Atom's default settings, the user's configuration file,
+  # or `NaN` if the key doesn't exist in either.
+  getInt: (keyPath, defaultValueWhenFalsy) ->
+    parseInt(@get(keyPath))
+
+  # Public: Retrieves the setting for the given key as a positive integer number.
+  #
+  # keyPath - The {String} name of the key to retrieve
+  # defaultValue - The integer {Number} to fall back to if the value isn't
+  #                positive
+  # Returns the value from Atom's default settings, the user's configuration file,
+  # or `defaultValue` if the key value isn't greater than zero.
+  getPositiveInt: (keyPath, defaultValue) ->
+    Math.max(@getInt(keyPath), 0) or defaultValue
+
   # Public: Sets the value for a configuration setting.
   #
   # This value is stored in Atom's internal configuration file.

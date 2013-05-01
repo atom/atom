@@ -8,7 +8,7 @@ module.exports =
       editor.getBuffer().change(range, @reflow(editor.getTextInRange(range)))
 
   reflow: (text) ->
-    wrapColumn = config.get('editor.preferredLineLength') ? 80
+    wrapColumn = config.getPositiveInt('editor.preferredLineLength', 80)
     lines = []
 
     currentLine = []
