@@ -3,7 +3,7 @@ Buffer = require 'text-buffer'
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 
-describe 'Buffer', ->
+describe 'TextBuffer', ->
   [filePath, fileContents, buffer] = []
 
   beforeEach ->
