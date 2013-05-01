@@ -50,13 +50,13 @@ class Gutter extends View
 
   ### Public ###
 
-  # Public: Retrieves the containing {Editor}.
+  # Retrieves the containing {Editor}.
   #
   # Returns an {Editor}.
   getEditor: ->
     @parentView
 
-  # Public: Defines whether to show the gutter or not.
+  # Defines whether to show the gutter or not.
   #
   # showLineNumbers - A {Boolean} which, if `false`, hides the gutter
   setShowLineNumbers: (showLineNumbers) ->
@@ -76,7 +76,7 @@ class Gutter extends View
           break
 
     @renderLineNumbers(renderFrom, renderTo) if performUpdate
-  
+
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     editor = @getEditor()
     maxDigits = editor.getLineCount().toString().length
