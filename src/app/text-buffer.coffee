@@ -8,7 +8,7 @@ UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 BufferMarker = require 'buffer-marker'
 
-# Represents the contents of a file.
+# Public: Represents the contents of a file.
 #
 # The `Buffer` is often associated with a {File}. However, this is not always
 # the case, as a `Buffer` could be an unsaved chunk of text.
