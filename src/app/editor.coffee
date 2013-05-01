@@ -65,7 +65,9 @@ class Editor extends View
   redrawOnReattach: false
   bottomPaddingInLines: 10
 
-  # Public: The constructor for setting up an `Editor` instance.
+  ### Public ###
+
+  # The constructor for setting up an `Editor` instance.
   #
   # editSessionOrOptions - Either an {EditSession}, or an object with one property, `mini`.
   #                        If `mini` is `true`, a "miniature" `EditSession` is constructed.
@@ -190,481 +192,313 @@ class Editor extends View
       do (name, method) =>
         @command name, (e) => method.call(this, e); false
 
-  ### Public ###
-
-  # Public: Retrieves a single cursor
-  #
-  # Returns a {Cursor}.
+  # {Delegates to: EditSession.getCursor}
   getCursor: -> @activeEditSession.getCursor()
 
-  # Public: Retrieves an array of all the cursors.
-  #
-  # Returns a {[Cursor]}.
+  # {Delegates to: EditSession.getCursors}
   getCursors: -> @activeEditSession.getCursors()
 
-  # Public: Adds a cursor at the provided `screenPosition`.
-  #
-  # screenPosition - An {Array} of two numbers: the screen row, and the screen column.
-  #
-  # Returns the new {Cursor}.
+  # {Delegates to: EditSession.addCursorAtScreenPosition}
   addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)
 
-  # Public: Adds a cursor at the provided `bufferPosition`.
-  #
-  # bufferPosition - An {Array} of two numbers: the buffer row, and the buffer column.
-  #
-  # Returns the new {Cursor}.
+  # {Delegates to: EditSession.addCursorAtBufferPosition}
   addCursorAtBufferPosition: (bufferPosition) -> @activeEditSession.addCursorAtBufferPosition(bufferPosition)
 
-  # Public: Moves every cursor up one row.
+  # {Delegates to: EditSession.moveCursorUp}
   moveCursorUp: -> @activeEditSession.moveCursorUp()
 
-  # Public: Moves every cursor down one row.
+  # {Delegates to: EditSession.moveCursorDown}
   moveCursorDown: -> @activeEditSession.moveCursorDown()
 
-  # Public: Moves every cursor left one column.
+  # {Delegates to: EditSession.moveCursorLeft}
   moveCursorLeft: -> @activeEditSession.moveCursorLeft()
 
-  # Public: Moves every cursor right one column.
+  # {Delegates to: EditSession.moveCursorRight}
   moveCursorRight: -> @activeEditSession.moveCursorRight()
 
-  # Public: Moves every cursor to the beginning of the current word.
+  # {Delegates to: EditSession.moveCursorToBeginningOfWord}
   moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
 
-  # Public: Moves every cursor to the end of the current word.
+  # {Delegates to: EditSession.moveCursorToEndOfWord}
   moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
 
-  # Public: Moves the cursor to the beginning of the next word.
+  # {Delegates to: EditSession.moveCursorToBeginningOfNextWord}
   moveCursorToBeginningOfNextWord: -> @activeEditSession.moveCursorToBeginningOfNextWord()
 
-  # Public: Moves every cursor to the top of the buffer.
+  # {Delegates to: EditSession.moveCursorToTop}
   moveCursorToTop: -> @activeEditSession.moveCursorToTop()
 
-  # Public: Moves every cursor to the bottom of the buffer.
+  # {Delegates to: EditSession.moveCursorToBottom}
   moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
 
-  # Public: Moves every cursor to the beginning of the line.
+  # {Delegates to: EditSession.moveCursorToBeginningOfLine}
   moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
 
-  # Public: Moves every cursor to the first non-whitespace character of the line.
+  # {Delegates to: EditSession.moveCursorToFirstCharacterOfLine}
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
 
-  # Public: Moves every cursor to the end of the line.
+  # {Delegates to: EditSession.moveCursorToEndOfLine}
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
 
-  # Public: Moves the selected line up one row.
+  # {Delegates to: EditSession.moveLineUp}
   moveLineUp: -> @activeEditSession.moveLineUp()
 
-  # Public: Moves the selected line down one row.
+  # {Delegates to: EditSession.moveLineDown}
   moveLineDown: -> @activeEditSession.moveLineDown()
 
-  # Public: Sets the cursor based on a given screen position.
-  #
-  # position - An {Array} of two numbers: the screen row, and the screen column.
-  # options - An object with properties based on {Cursor.setScreenPosition}.
-  #
+  # {Delegates to: EditSession.setCursorScreenPosition}
   setCursorScreenPosition: (position, options) -> @activeEditSession.setCursorScreenPosition(position, options)
 
-  # Public: Duplicates the current line.
-  #
-  # If more than one cursor is present, only the most recently added one is considered.
+  # {Delegates to: EditSession.duplicateLine}
   duplicateLine: -> @activeEditSession.duplicateLine()
 
-  # Public: Joins the current line with the one below it.
-  #
-  # Multiple cursors are considered equally. If there's a selection in the editor,
-  # all the lines are joined together.
+  # {Delegates to: EditSession.joinLine}
   joinLine: -> @activeEditSession.joinLine()
 
-  # Public: Gets the current screen position.
-  #
-  # Returns an {Array} of two numbers: the screen row, and the screen column.
+  # {Delegates to: EditSession.getCursorScreenPosition}
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
 
-  # Public: Gets the current screen row.
-  #
-  # Returns a {Number}.
+  # {Delegates to: EditSession.getCursorScreenRow}
   getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
 
-  # Public: Sets the cursor based on a given buffer position.
-  #
-  # position - An {Array} of two numbers: the buffer row, and the buffer column.
-  # options - An object with properties based on {Cursor.setBufferPosition}.
-  #
+  # {Delegates to: EditSession.setCursorBufferPosition}
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
 
-  # Public: Gets the current buffer position of the cursor.
-  #
-  # Returns an {Array} of two numbers: the buffer row, and the buffer column.
+  # {Delegates to: EditSession.getCursorBufferPosition}
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
 
-  # Public: Retrieves the range for the current paragraph.
-  #
-  # A paragraph is defined as a block of text surrounded by empty lines.
-  #
-  # Returns a {Range}.
+  # {Delegates to: EditSession.getCurrentParagraphBufferRange}
   getCurrentParagraphBufferRange: -> @activeEditSession.getCurrentParagraphBufferRange()
 
-  # Public: Gets the word located under the cursor.
-  #
-  # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
-  #
-  # Returns a {String}.
+  # {Delegates to: EditSession.getWordUnderCursor}
   getWordUnderCursor: (options) -> @activeEditSession.getWordUnderCursor(options)
 
-  # Public: Gets the selection at the specified index.
-  #
-  # index - The id {Number} of the selection
-  #
-  # Returns a {Selection}.
+  # {Delegates to: EditSession.getSelection}
   getSelection: (index) -> @activeEditSession.getSelection(index)
 
-  # Public: Gets the last selection, _i.e._ the most recently added.
-  #
-  # Returns a {Selection}.
+  # {Delegates to: EditSession.getSelections}
   getSelections: -> @activeEditSession.getSelections()
 
-  # Public: Gets all selections, ordered by their position in the buffer.
-  #
-  # Returns an {Array} of {Selection}s.
+  # {Delegates to: EditSession.getSelectionsOrderedByBufferPosition}
   getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
 
-  # Public: Gets the very last selection, as it's ordered in the buffer.
-  #
-  # Returns a {Selection}.
+  # {Delegates to: EditSession.getLastSelectionInBuffer}
   getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
 
-  # Public: Gets the currently selected text.
-  #
-  # Returns a {String}.
+  # {Delegates to: EditSession.getSelectedText}
   getSelectedText: -> @activeEditSession.getSelectedText()
 
-  # Public: Gets the buffer ranges of all the {Selection}s.
-  #
-  # This is ordered by their buffer position.
-  #
-  # Returns an {Array} of {Range}s.
+  # {Delegates to: EditSession.getSelectedBufferRanges}
   getSelectedBufferRanges: -> @activeEditSession.getSelectedBufferRanges()
 
-  # Public: Gets the buffer range of the most recently added {Selection}.
-  #
-  # Returns a {Range}.
+  # {Delegates to: EditSession.getSelectedBufferRange}
   getSelectedBufferRange: -> @activeEditSession.getSelectedBufferRange()
 
-  # Public: Given a buffer range, this removes all previous selections and creates a new selection for it.
-  #
-  # bufferRange - A {Range} in the buffer
-  # options - A hash of options
+  # {Delegates to: EditSession.setSelectedBufferRange}
   setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
 
-  # Public: Given an array of buffer ranges, this removes all previous selections and creates new selections for them.
-  #
-  # bufferRanges - An {Array} of {Range}s in the buffer
-  # options - A hash of options
+  # {Delegates to: EditSession.setSelectedBufferRanges}
   setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
 
-  # Public: Given a buffer range, this adds a new selection for it.
-  #
-  # bufferRange - A {Range} in the buffer
-  # options - A hash of options
-  #
-  # Returns the new {Selection}.
+  # {Delegates to: EditSession.addSelectionForBufferRange}
   addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
 
-  # Public: Selects the text one position right of the cursor.
+  # {Delegates to: EditSession.selectRight}
   selectRight: -> @activeEditSession.selectRight()
 
-  # Public: Selects the text one position left of the cursor.
+  # {Delegates to: EditSession.selectLeft}
   selectLeft: -> @activeEditSession.selectLeft()
 
-  # Public: Selects all the text one position above the cursor.
+  # {Delegates to: EditSession.selectUp}
   selectUp: -> @activeEditSession.selectUp()
 
-  # Public: Selects all the text one position below the cursor.
+  # {Delegates to: EditSession.selectDown}
   selectDown: -> @activeEditSession.selectDown()
 
-  # Public: Selects all the text from the current cursor position to the top of the buffer.
+  # {Delegates to: EditSession.selectToTop}
   selectToTop: -> @activeEditSession.selectToTop()
 
-  # Public: Selects all the text from the current cursor position to the bottom of the buffer.
+  # {Delegates to: EditSession.selectToBottom}
   selectToBottom: -> @activeEditSession.selectToBottom()
 
-  # Public: Selects all the text in the buffer.
+  # {Delegates to: EditSession.selectAll}
   selectAll: -> @activeEditSession.selectAll()
 
-  # Public: Selects all the text from the current cursor position to the beginning of the line.
+  # {Delegates to: EditSession.selectToBeginningOfLine}
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
 
-  # Public: Selects all the text from the current cursor position to the end of the line.
+  # {Delegates to: EditSession.selectToEndOfLine}
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
 
-  # Public: Moves the current selection down one row.
+  # {Delegates to: EditSession.addSelectionBelow}
   addSelectionBelow: -> @activeEditSession.addSelectionBelow()
 
-  # Public: Moves the current selection up one row.
+  # {Delegates to: EditSession.addSelectionAbove}
   addSelectionAbove: -> @activeEditSession.addSelectionAbove()
 
-  # Public: Selects all the text from the current cursor position to the beginning of the word.
+  # {Delegates to: EditSession.selectToBeginningOfWord}
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
 
-  # Public: Selects all the text from the current cursor position to the end of the word.
+  # {Delegates to: EditSession.selectToEndOfWord}
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
 
-  # Public: Selects all the text from the current cursor position to the beginning of the next word.
+  # {Delegates to: EditSession.selectToBeginningOfNextWord}
   selectToBeginningOfNextWord: -> @activeEditSession.selectToBeginningOfNextWord()
 
-  # Public: Selects the current word.
+  # {Delegates to: EditSession.selectWord}
   selectWord: -> @activeEditSession.selectWord()
 
-  # Public: Selects the current line.
+  # {Delegates to: EditSession.selectLine}
   selectLine: -> @activeEditSession.selectLine()
 
-  # Public: Selects the text from the current cursor position to a given position.
-  #
-  # position - An instance of {Point}, with a given `row` and `column`.
+  # {Delegates to: EditSession.selectToScreenPosition}
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
-  # Public: Transposes the current text selections.
-  #
-  # This only works if there is more than one selection. Each selection is transferred
-  # to the position of the selection after it. The last selection is transferred to the
-  # position of the first.
+  
+  # {Delegates to: EditSession.transpose}
   transpose: -> @activeEditSession.transpose()
 
-  # Public: Turns the current selection into upper case.
+  # {Delegates to: EditSession.upperCase}
   upperCase: -> @activeEditSession.upperCase()
 
-  # Public: Turns the current selection into lower case.
+  # {Delegates to: EditSession.lowerCase}
   lowerCase: -> @activeEditSession.lowerCase()
 
-  # Public: Clears every selection. TODO
+  # {Delegates to: EditSession.clearSelections}
   clearSelections: -> @activeEditSession.clearSelections()
 
-  # Public: Performs a backspace, removing the character found behind the cursor position.
+  # {Delegates to: EditSession.backspace}
   backspace: -> @activeEditSession.backspace()
 
-  # Public: Performs a backspace to the beginning of the current word, removing characters found there.
+  # {Delegates to: EditSession.backspaceToBeginningOfWord}
   backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
 
-  # Public: Performs a backspace to the beginning of the current line, removing characters found there.
+  # {Delegates to: EditSession.backspaceToBeginningOfLine}
   backspaceToBeginningOfLine: -> @activeEditSession.backspaceToBeginningOfLine()
 
-  # Public: Performs a delete, removing the character found ahead the cursor position.
+  # {Delegates to: EditSession.delete}
   delete: -> @activeEditSession.delete()
 
-  # Public: Performs a delete to the end of the current word, removing characters found there.
+  # {Delegates to: EditSession.deleteToEndOfWord}
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
 
-  # Public: Performs a delete to the end of the current line, removing characters found there.
+  # {Delegates to: EditSession.deleteLine}
   deleteLine: -> @activeEditSession.deleteLine()
 
-  # Public: Performs a cut to the end of the current line.
-  #
-  # Characters are removed, but the text remains in the clipboard.
+  # {Delegates to: EditSession.cutToEndOfLine}
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
 
-  # Public: Inserts text at the current cursor positions.
-  #
-  # text - A {String} representing the text to insert.
-  # options - A set of options equivalent to {Selection.insertText}.
+  # {Delegates to: EditSession.insertText}
   insertText: (text, options) -> @activeEditSession.insertText(text, options)
 
-  # Public: Inserts a new line at the current cursor positions.
+  # {Delegates to: EditSession.insertNewline}
   insertNewline: -> @activeEditSession.insertNewline()
 
-  # Internal:
-
-  consolidateSelections: (e) -> e.abortKeyBinding() unless @activeEditSession.consolidateSelections()
-
-  # Public: Inserts a new line below the current cursor positions.
+  # {Delegates to: EditSession.insertNewlineBelow}
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
 
-  # Public: Inserts a new line above the current cursor positions.
+  # {Delegates to: EditSession.insertNewlineAbove}
   insertNewlineAbove: -> @activeEditSession.insertNewlineAbove()
 
-  # Public: Indents the current line.
-  #
-  # options - A set of options equivalent to {Selection.indent}.
+  # {Delegates to: EditSession.indent}
   indent: (options) -> @activeEditSession.indent(options)
 
-  # Public: TODO
+  # {Delegates to: EditSession.autoIndentSelectedRows}
   autoIndent: (options) -> @activeEditSession.autoIndentSelectedRows()
 
-  # Public: Indents the selected rows.
+  # {Delegates to: EditSession.indentSelectedRows}
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
 
-  # Public: Outdents the selected rows.
+  # {Delegates to: EditSession.outdentSelectedRows}
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
 
-  # Public: Cuts the selected text.
+  # {Delegates to: EditSession.cutSelectedText}
   cutSelection: -> @activeEditSession.cutSelectedText()
 
-  # Public: Copies the selected text.
+  # {Delegates to: EditSession.copySelectedText}
   copySelection: -> @activeEditSession.copySelectedText()
 
-  # Public: Pastes the text in the clipboard.
-  #
-  # options - A set of options equivalent to {Selection.insertText}.
+  # {Delegates to: EditSession.pasteText}
   paste: (options) -> @activeEditSession.pasteText(options)
 
-  # Public: Undos the last {Buffer} change.
+  # {Delegates to: EditSession.undo}
   undo: -> @activeEditSession.undo()
 
-  # Public: Redos the last {Buffer} change.
+  # {Delegates to: EditSession.redo}
   redo: -> @activeEditSession.redo()
 
-  # Public: Creates a new fold between two row numbers.
-  #
-  # startRow - The row {Number} to start folding at
-  # endRow - The row {Number} to end the fold
-  #
-  # Returns the new {Fold}.
+  # {Delegates to: EditSession.createFold}
   createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
 
-  # Public: Folds the current row.
+  # {Delegates to: EditSession.foldCurrentRow}
   foldCurrentRow: -> @activeEditSession.foldCurrentRow()
 
-  # Public: Unfolds the current row.
+  # {Delegates to: EditSession.unfoldCurrentRow}
   unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
 
-  # Public: Folds all the rows.
+  # {Delegates to: EditSession.foldAll}
   foldAll: -> @activeEditSession.foldAll()
 
-  # Public: Unfolds all the rows.
+  # {Delegates to: EditSession.unfoldAll}
   unfoldAll: -> @activeEditSession.unfoldAll()
 
-  # Public: Folds the most recent selection.
+  # {Delegates to: EditSession.foldSelection}
   foldSelection: -> @activeEditSession.foldSelection()
 
-  # Public: Given the id of a {Fold}, this removes it.
-  #
-  # foldId - The fold id {Number} to remove
+  # {Delegates to: EditSession.destroyFold}
   destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
 
-  # Public: Removes any {Fold}s found that contain the given buffer row.
-  #
-  # bufferRow - The buffer row {Number} to check against
+  # {Delegates to: EditSession.destroyFoldsContainingBufferRow}
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
 
-  # Public: Determines if the given screen row is folded.
-  #
-  # screenRow - A {Number} indicating the screen row.
-  #
-  # Returns `true` if the screen row is folded, `false` otherwise.
+  # {Delegates to: EditSession.isFoldedAtScreenRow}
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
 
-  # Public: Determines if the given buffer row is folded.
-  #
-  # screenRow - A {Number} indicating the buffer row.
-  #
-  # Returns `true` if the buffer row is folded, `false` otherwise.
+  # {Delegates to: EditSession.isFoldedAtBufferRow}
   isFoldedAtBufferRow: (bufferRow) -> @activeEditSession.isFoldedAtBufferRow(bufferRow)
 
-  # Public: Determines if the given row that the cursor is at is folded.
-  #
-  # Returns `true` if the row is folded, `false` otherwise.
+  # {Delegates to: EditSession.isFoldedAtCursorRow}
   isFoldedAtCursorRow: -> @activeEditSession.isFoldedAtCursorRow()
 
-  # Public: Gets the line for the given screen row.
-  #
-  # screenRow - A {Number} indicating the screen row.
-  #
-  # Returns a {String}.
+  # {Delegates to: EditSession.lineForScreenRow}
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
 
-  # Public: Gets the lines for the given screen row boundaries.
-  #
-  # start - A {Number} indicating the beginning screen row.
-  # end - A {Number} indicating the ending screen row.
-  #
-  # Returns an {Array} of {String}s.
+  # {Delegates to: EditSession.linesForScreenRows}
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
 
-  # Public: Gets the number of screen rows.
-  #
-  # Returns a {Number}.
+  # {Delegates to: EditSession.getScreenLineCount}
   getScreenLineCount: -> @activeEditSession.getScreenLineCount()
 
-  # Public: Defines the limit at which the buffer begins to soft wrap text.
-  #
-  # softWrapColumn - A {Number} defining the soft wrap limit
+  # {Delegates to: EditSession.setSoftWrapColumn}
   setSoftWrapColumn: (softWrapColumn) ->
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
-  # Public: Gets the length of the longest screen line.
-  #
-  # Returns a {Number}.
+  # {Delegates to: EditSession.maxScreenLineLength}
   maxScreenLineLength: -> @activeEditSession.maxScreenLineLength()
 
-  # Public: Gets the text in the last screen row.
-  #
-  # Returns a {String}.
+  # {Delegates to: EditSession.getLastScreenRow}
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
 
-  # Public: Given a position, this clips it to a real position.
-  #
-  # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value
-  # to a real position.
-  #
-  # position - The {Point} to clip
-  # options - A hash with the following values:
-  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines
-  #           :wrapAtSoftNewlines - if `true`, continues wrapping past soft newlines
-  #           :screenLine - if `true`, indicates that you're using a line number, not a row number
-  #
-  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
+  # {Delegates to: EditSession.clipScreenPosition}
   clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)
 
-  # Public: Given a buffer position, this converts it into a screen position.
-  #
-  # bufferPosition - An object that represents a buffer position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {DisplayBuffer.screenPositionForBufferPosition}.
-  #
-  # Returns a {Point}.
+  # {Delegates to: EditSession.screenPositionForBufferPosition}
   screenPositionForBufferPosition: (position, options) -> @activeEditSession.screenPositionForBufferPosition(position, options)
 
-  # Public: Given a buffer range, this converts it into a screen position.
-  #
-  # screenPosition - An object that represents a buffer position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {DisplayBuffer.bufferPositionForScreenPosition}.
-  #
-  # Returns a {Point}.
+  # {Delegates to: EditSession.bufferPositionForScreenPosition}
   bufferPositionForScreenPosition: (position, options) -> @activeEditSession.bufferPositionForScreenPosition(position, options)
 
-  # Public: Given a buffer range, this converts it into a screen position.
-  #
-  # bufferRange - The {Range} to convert
-  #
-  # Returns a {Range}.
+  # {Delegates to: EditSession.screenRangeForBufferRange}
   screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
 
-  # Public: Given a screen range, this converts it into a buffer position.
-  #
-  # screenRange - The {Range} to convert
-  #
-  # Returns a {Range}.
+  # {Delegates to: EditSession.bufferRangeForScreenRange}
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
 
-  # Public: Given a starting and ending row, this converts every row into a buffer position.
-  #
-  # startRow - The row {Number} to start at
-  # endRow - The row {Number} to end at (default: {.getLastScreenRow})
-  #
-  # Returns an {Array} of {Range}s.
+  # {Delegates to: EditSession.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
 
-  # Public: Gets the number of the last row in the buffer.
-  #
-  # Returns a {Number}.
+  # {Delegates to: EditSession.getLastScreenRow}
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
-
-  # Internal:
-
-  logCursorScope: ->
-    console.log @activeEditSession.getCursorScopes()
 
   # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
   pageDown: ->
@@ -678,13 +512,13 @@ class Editor extends View
     @activeEditSession.moveCursorUp(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
 
-  # Public: Gets the number of actual page rows existing in an editor.
+  # Gets the number of actual page rows existing in an editor.
   #
   # Returns a {Number}.
   getPageRows: ->
     Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
 
-  # Public: Set whether invisible characters are shown.
+  # Set whether invisible characters are shown.
   #
   # showInvisibles - A {Boolean} which, if `true`, show invisible characters
   setShowInvisibles: (showInvisibles) ->
@@ -692,7 +526,7 @@ class Editor extends View
     @showInvisibles = showInvisibles
     @resetDisplay()
 
-  # Public: Defines which characters are invisible.
+  # Defines which characters are invisible.
   #
   # invisibles - A hash defining the invisible characters: The defaults are:
   #              :eol - `\u00ac`
@@ -707,7 +541,7 @@ class Editor extends View
       cr: '\u00a4'
     @resetDisplay()
 
-  # Public: Sets whether you want to show the indentation guides.
+  # Sets whether you want to show the indentation guides.
   #
   # showIndentGuide - A {Boolean} you can set to `true` if you want to see the indentation guides.
   setShowIndentGuide: (showIndentGuide) ->
@@ -715,81 +549,43 @@ class Editor extends View
     @showIndentGuide = showIndentGuide
     @resetDisplay()
 
-  # Public: Checks out the current HEAD revision of the file.
+  # {Delegates to: Buffer.checkoutHead}
   checkoutHead: -> @getBuffer().checkoutHead()
 
-  # Public: Replaces the current buffer contents.
-  #
-  # text - A {String} containing the new buffer contents.
+  # {Delegates to: EditSession.setText}
   setText: (text) -> @activeEditSession.setText(text)
 
-  # Public: Retrieves the current buffer contents.
-  #
-  # Returns a {String}.
+  # {Delegates to: EditSession.getText}
   getText: -> @activeEditSession.getText()
 
-  # Public: Retrieves the current buffer's file path.
-  #
-  # Returns a {String}.
+  # {Delegates to: EditSession.getPath}
   getPath: -> @activeEditSession?.getPath()
 
-  # Public: Gets the number of lines in a file.
-  #
-  # Returns a {Number}.
+  #  {Delegates to: Buffer.getLineCount}
   getLineCount: -> @getBuffer().getLineCount()
 
-  # Public: Gets the row number of the last line.
-  #
-  # Returns a {Number}.
+  #  {Delegates to: Buffer.getLastRow}
   getLastBufferRow: -> @getBuffer().getLastRow()
 
-  # Public: Given a range, returns the lines of text within it.
-  #
-  # range - A {Range} object specifying your points of interest
-  #
-  # Returns a {String} of the combined lines.
+  #  {Delegates to: Buffer.getTextInRange}
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
 
-  # Public: Finds the last point in the current buffer.
-  #
-  # Returns a {Point} representing the last position.
+  #  {Delegates to: Buffer.getEofPosition}
   getEofPosition: -> @getBuffer().getEofPosition()
 
-  # Public: Given a row, returns the line of text.
-  #
-  # row - A {Number} indicating the row.
-  #
-  # Returns a {String}.
+  #  {Delegates to: Buffer.lineForRow}
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
 
-  # Public: Given a row, returns the length of the line of text.
-  #
-  # row - A {Number} indicating the row
-  #
-  # Returns a {Number}.
+  #  {Delegates to: Buffer.lineLengthForRow}
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
 
-  # Public: Given a buffer row, this retrieves the range for that line.
-  #
-  # row - A {Number} identifying the row
-  # options - A hash with one key, `includeNewline`, which specifies whether you
-  #           want to include the trailing newline
-  #
-  # Returns a {Range}.
+  #  {Delegates to: Buffer.rangeForRow}
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
 
-  # Public: Scans for text in the buffer, calling a function on each match.
-  #
-  # regex - A {RegExp} representing the text to find
-  # range - A {Range} in the buffer to search within
-  # iterator - A {Function} that's called on each match
+  #  {Delegates to: Buffer.scanInRange}
   scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
 
-  # Public: Scans for text in the buffer _backwards_, calling a function on each match.
-  #
-  # regex - A {RegExp} representing the text to find
-  # range - A {Range} in the buffer to search within
-  # iterator - A {Function} that's called on each match
+  #  {Delegates to: Buffer.backwardsScanInRange}
   backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   ### Internal ###
@@ -982,22 +778,22 @@ class Editor extends View
 
   ### Public ###
 
-  # Public: Retrieves the {EditSession}'s buffer.
+  # Retrieves the {EditSession}'s buffer.
   #
   # Returns the current {Buffer}.
   getBuffer: -> @activeEditSession.buffer
 
-  # Public: Scrolls the editor to the bottom.
+  # Scrolls the editor to the bottom.
   scrollToBottom: ->
     @scrollBottom(@getScreenLineCount() * @lineHeight)
 
-  # Public: Scrolls the editor to the position of the most recently added cursor.
+  # Scrolls the editor to the position of the most recently added cursor.
   #
   # The editor is also centered.
   scrollToCursorPosition: ->
     @scrollToBufferPosition(@getCursorBufferPosition(), center: true)
 
-  # Public: Scrolls the editor to the given buffer position.
+  # Scrolls the editor to the given buffer position.
   #
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -1005,7 +801,7 @@ class Editor extends View
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForBufferPosition(bufferPosition), options)
 
-  # Public: Scrolls the editor to the given screen position.
+  # Scrolls the editor to the given screen position.
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -1013,7 +809,7 @@ class Editor extends View
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToPixelPosition(@pixelPositionForScreenPosition(screenPosition), options)
 
-  # Public: Scrolls the editor to the given pixel position.
+  # Scrolls the editor to the given pixel position.
   #
   # pixelPosition - An object that represents a pixel position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -1061,7 +857,7 @@ class Editor extends View
     else if desiredLeft < @scrollView.scrollLeft()
       @scrollView.scrollLeft(desiredLeft)
 
-  # Public: Given a buffer range, this highlights all the folds within that range
+  # Given a buffer range, this highlights all the folds within that range
   #
   # "Highlighting" essentially just adds the `selected` class to the line
   #
@@ -1086,11 +882,11 @@ class Editor extends View
     @activeEditSession.setScrollTop(@scrollTop())
     @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
 
-  # Public: Activates soft tabs in the editor.
+  # {Delegates to: EditSession.setSoftTabs}
   toggleSoftTabs: ->
     @activeEditSession.setSoftTabs(not @activeEditSession.softTabs)
 
-  # Public: Activates soft wraps in the editor.
+  # Activates soft wraps in the editor.
   toggleSoftWrap: ->
     @setSoftWrap(not @activeEditSession.getSoftWrap())
 
@@ -1100,7 +896,7 @@ class Editor extends View
     else
       Infinity
 
-  # Public: Sets the soft wrap column for the editor.
+  # Sets the soft wrap column for the editor.
   #
   # softWrap - A {Boolean} which, if `true`, sets soft wraps
   # softWrapColumn - A {Number} indicating the length of a line in the editor when soft
@@ -1117,7 +913,7 @@ class Editor extends View
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
 
-  # Public: Sets the font size for the editor.
+  # Sets the font size for the editor.
   #
   # fontSize - A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
@@ -1134,13 +930,13 @@ class Editor extends View
     else
       @redrawOnReattach = @attached
 
-  # Public: Retrieves the font size for the editor.
+  # Retrieves the font size for the editor.
   #
   # Returns a {Number} indicating the font size in pixels.
   getFontSize: ->
     parseInt(@css("font-size"))
 
-  # Public: Sets the font family for the editor.
+  # Sets the font family for the editor.
   #
   # fontFamily - A {String} identifying the CSS `font-family`,
   setFontFamily: (fontFamily) ->
@@ -1157,16 +953,16 @@ class Editor extends View
 
     @redraw()
 
-  # Public: Gets the font family for the editor.
+  # Gets the font family for the editor.
   #
   # Returns a {String} identifying the CSS `font-family`,
   getFontFamily: -> @css("font-family")
 
-  # Public: Clears the CSS `font-family` property from the editor.
+  # Clears the CSS `font-family` property from the editor.
   clearFontFamily: ->
     $('head style.editor-font-family').remove()
 
-  # Public: Clears the CSS `font-family` property from the editor.
+  # Clears the CSS `font-family` property from the editor.
   redraw: ->
     return unless @hasParent()
     return unless @attached
@@ -1188,7 +984,7 @@ class Editor extends View
   splitDown: (items...) ->
     @getPane()?.splitDown(items...).activeView
 
-  # Public: Retrieve's the `Editor`'s pane.
+  # Retrieve's the `Editor`'s pane.
   #
   # Returns a {Pane}.
   getPane: ->
@@ -1489,20 +1285,20 @@ class Editor extends View
 
   ### Public ###
 
-  # Public: Retrieves the number of the row that is visible and currently at the top of the editor.
+  # Retrieves the number of the row that is visible and currently at the top of the editor.
   #
   # Returns a {Number}.
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
 
-  # Public: Retrieves the number of the row that is visible and currently at the top of the editor.
+  # Retrieves the number of the row that is visible and currently at the top of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
     calculatedRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
     Math.max(0, Math.min(@getScreenLineCount() - 1, calculatedRow))
 
-  # Public: Given a row number, identifies if it is currently visible.
+  # Given a row number, identifies if it is currently visible.
   #
   # row - A row {Number} to check
   #
@@ -1620,7 +1416,7 @@ class Editor extends View
 
   ### Public ###
 
-  # Public: Converts a buffer position to a pixel position.
+  # Converts a buffer position to a pixel position.
   #
   # position - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -1629,7 +1425,7 @@ class Editor extends View
   pixelPositionForBufferPosition: (position) ->
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
-  # Public: Converts a screen position to a pixel position.
+  # Converts a screen position to a pixel position.
   #
   # position - An object that represents a screen position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -1700,7 +1496,7 @@ class Editor extends View
 
     new Point(row, column)
 
-  # Public: Highlights the current line the cursor is on.
+  # Highlights the current line the cursor is on.
   highlightCursorLine: ->
     return if @mini
 
@@ -1711,23 +1507,26 @@ class Editor extends View
     else
       @highlightedLine = null
 
-  # Public: Retrieves the current {EditSession}'s grammar.
-  #
-  # Returns a {String} indicating the language's grammar rules.
+  # {Delegates to: EditSession.getGrammar}
   getGrammar: ->
     @activeEditSession.getGrammar()
 
-  # Public: Sets the current {EditSession}'s grammar. This only works for mini-editors.
-  #
-  # grammar - A {String} indicating the language's grammar rules.
+   # {Delegates to: EditSession.setGrammar}
   setGrammar: (grammar) ->
     throw new Error("Only mini-editors can explicity set their grammar") unless @mini
     @activeEditSession.setGrammar(grammar)
 
-  # Public: Reloads the current grammar.
+   # {Delegates to: EditSession.reloadGrammar}
   reloadGrammar: ->
     @activeEditSession.reloadGrammar()
 
+  # Copies the current file path to the native clipboard.
+  copyPathToPasteboard: ->
+    path = @getPath()
+    pasteboard.write(path) if path?
+
+  ### Internal ###
+  
   bindToKeyedEvent: (key, event, callback) ->
     binding = {}
     binding[key] = event
@@ -1735,7 +1534,6 @@ class Editor extends View
     @on event, =>
       callback(this, event)
 
-  # Internal: Replaces all the currently selected text.
   replaceSelectedText: (replaceFn) ->
     selection = @getSelection()
     return false if selection.isEmpty()
@@ -1746,12 +1544,10 @@ class Editor extends View
     @insertText(text, select: true)
     true
 
-  # Public: Copies the current file path to the native clipboard.
-  copyPathToPasteboard: ->
-    path = @getPath()
-    pasteboard.write(path) if path?
+  consolidateSelections: (e) -> e.abortKeyBinding() unless @activeEditSession.consolidateSelections()
 
-  ### Internal ###
+  logCursorScope: ->
+    console.log @activeEditSession.getCursorScopes()
 
   transact: (fn) -> @activeEditSession.transact(fn)
   commit: -> @activeEditSession.commit()
