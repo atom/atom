@@ -32,8 +32,12 @@ class ConfigPanel extends View
 
   parseValue: (type, value) ->
     switch type
-      when 'int' then value = parseInt(value) or value
-      when 'float' then value = parseFloat(value) or value
+      when 'int'
+        intValue = parseInt(value)
+        value = intValue unless isNaN(intValue)
+      when 'float'
+        floatValue = parseFloat(value)
+        value = floatValue unless isNaN(floatValue)
     value = undefined if value == ''
     value
 

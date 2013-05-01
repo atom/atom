@@ -39,6 +39,12 @@ describe "ConfigPanel", ->
     panel.floatInput.val('90.2').change()
     expect(config.get('foo.float')).toBe 90.2
 
+    panel.intInput.val('0').change()
+    expect(config.get('foo.int')).toBe 0
+
+    panel.floatInput.val('0').change()
+    expect(config.get('foo.float')).toBe 0
+
     panel.stringInput.val('moo').change()
     expect(config.get('foo.string')).toBe 'moo'
 
@@ -101,6 +107,12 @@ describe "ConfigPanel", ->
     expect(config.get('foo.int')).toBe undefined
     expect(config.get('foo.float')).toBe undefined
     expect(config.get('foo.string')).toBe undefined
+
+    panel.intEditor.setText('0')
+    panel.floatEditor.setText('0')
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(config.get('foo.int')).toBe 0
+    expect(config.get('foo.float')).toBe 0
 
   it "does not save the config value until it has been changed to a new value", ->
     class TestPanel extends ConfigPanel
