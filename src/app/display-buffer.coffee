@@ -378,9 +378,6 @@ class DisplayBuffer
     new Fold(this, marker) if marker.matchesAttributes(class: 'fold')
     @trigger 'marker-created', @getMarker(marker.id)
 
-  buildFoldForMarker: (marker) ->
-
-
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
 
