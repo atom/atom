@@ -15,7 +15,7 @@ class EditorConfigPanel extends ConfigPanel
         @div class: 'control-group', =>
           @label class: 'control-label', "Font Size:"
           @div class: 'controls', =>
-            @subview "fontSizeEditor", new Editor(mini: true, attributes: {id: 'editor.fontSize', type: 'int', style: 'width: 40px'})
+            @subview "fontSizeEditor", new Editor(mini: true, attributes: {id: 'editor.fontSize', type: 'int', style: 'width: 4em'})
 
         @div class: 'control-group', =>
           @label class: 'control-label', "Font Family:"
@@ -56,7 +56,7 @@ class EditorConfigPanel extends ConfigPanel
         @div class: 'control-group', =>
           @label class: 'control-label', for: 'editor.preferredLineLength', "Preferred Line Length:"
           @div class: 'controls', =>
-            @subview "preferredLineLengthEditor", new Editor(mini: true, attributes: {id: 'editor.preferredLineLength', type: 'int', style: 'width: 40px'})
+            @subview "preferredLineLengthEditor", new Editor(mini: true, attributes: {id: 'editor.preferredLineLength', type: 'int', style: 'width: 4em'})
 
         @div class: 'control-group', =>
           @label class: 'control-label', for: 'editor.nonWordCharacters', "Non-Word Characters:"
