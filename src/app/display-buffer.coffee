@@ -259,8 +259,8 @@ class DisplayBuffer
   # bufferPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   # options - A hash of options with the following keys:
-  #           :wrapBeyondNewlines -
-  #           :wrapAtSoftNewlines -
+  #           wrapBeyondNewlines:
+  #           wrapAtSoftNewlines:
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (position, options) ->
@@ -271,8 +271,8 @@ class DisplayBuffer
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   # options - A hash of options with the following keys:
-  #           :wrapBeyondNewlines -
-  #           :wrapAtSoftNewlines -
+  #           wrapBeyondNewlines:
+  #           wrapAtSoftNewlines:
   #
   # Returns a {Point}.
   bufferPositionForScreenPosition: (position, options) ->
@@ -323,9 +323,9 @@ class DisplayBuffer
   #
   # position - The {Point} to clip
   # options - A hash with the following values:
-  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines
-  #           :wrapAtSoftNewlines - if `true`, continues wrapping past soft newlines
-  #           :screenLine - if `true`, indicates that you're using a line number, not a row number
+  #           wrapBeyondNewlines: if `true`, continues wrapping past newlines
+  #           wrapAtSoftNewlines: if `true`, continues wrapping past soft newlines
+  #           screenLine: if `true`, indicates that you're using a line number, not a row number
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (position, options) ->

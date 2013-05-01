@@ -529,10 +529,10 @@ class Editor extends View
   # Defines which characters are invisible.
   #
   # invisibles - A hash defining the invisible characters: The defaults are:
-  #              :eol - `\u00ac`
-  #              :space - `\u00b7`
-  #              :tab - `\u00bb`
-  #              :cr - `\u00a4`
+  #              eol: `\u00ac`
+  #              space: `\u00b7`
+  #              tab: `\u00bb`
+  #              cr: `\u00a4`
   setInvisibles: (@invisibles={}) ->
     _.defaults @invisibles,
       eol: '\u00ac'
@@ -813,7 +813,7 @@ class Editor extends View
   # pixelPosition - An object that represents a pixel position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   # options - A hash with the following keys:
-  #          :center - if `true`, the position is scrolled such that it's in the center of the editor
+  #          center: if `true`, the position is scrolled such that it's in the center of the editor
   scrollToPixelPosition: (pixelPosition, options) ->
     return unless @attached
     @scrollVertically(pixelPosition, options)

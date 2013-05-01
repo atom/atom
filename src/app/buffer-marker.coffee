@@ -21,8 +21,8 @@ class BufferMarker
   #
   # range - The new {Range} the marker should cover
   # options - A hash of options with the following keys:
-  #           :reverse - if `true`, the marker is reversed; that is, its tail is "above" the head
-  #           :noTail - if `true`, the marker doesn't have a tail
+  #           reverse: if `true`, the marker is reversed; that is, its tail is "above" the head
+  #           noTail: if `true`, the marker doesn't have a tail
   setRange: (range, options={}) ->
     @consolidateObserverNotifications false, =>
       range = Range.fromObject(range)
@@ -70,8 +70,8 @@ class BufferMarker
   #
   # newHeadPosition - The new {Point} to place the head
   # options - A hash with the following keys:
-  #         :clip - if `true`, the point is [clipped]{Buffer.clipPosition}
-  #         :bufferChanged - if `true`, indicates that the {Buffer} should trigger an event that it's changed
+  #         clip: if `true`, the point is [clipped]{Buffer.clipPosition}
+  #         bufferChanged: if `true`, indicates that the {Buffer} should trigger an event that it's changed
   #
   # Returns a {Point} representing the new head position.
   setHeadPosition: (newHeadPosition, options={}) ->
@@ -88,8 +88,8 @@ class BufferMarker
   #
   # newHeadPosition - The new {Point} to place the tail
   # options - A hash with the following keys:
-  #         :clip - if `true`, the point is [clipped]{Buffer.clipPosition}
-  #         :bufferChanged - if `true`, indicates that the {Buffer} should trigger an event that it's changed
+  #         clip: if `true`, the point is [clipped]{Buffer.clipPosition}
+  #         bufferChanged: if `true`, indicates that the {Buffer} should trigger an event that it's changed
   #
   # Returns a {Point} representing the new tail position.
   setTailPosition: (newTailPosition, options={}) ->

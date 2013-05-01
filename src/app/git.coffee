@@ -21,7 +21,7 @@ class Git
   #
   # path - The {String} representing the path to your git working directory
   # options - A hash with the following keys:
-  #           :refreshOnWindowFocus - If `true`, {#refreshIndex} and {#refreshStatus} are called on focus
+  #           refreshOnWindowFocus: If `true`, {#refreshIndex} and {#refreshStatus} are called on focus
   constructor: (path, options={}) ->
     @repo = GitUtils.open(path)
     unless @repo?
@@ -62,7 +62,7 @@ class Git
   #
   # path - The git repository to open
   # options - A hash with one key:
-  #           :refreshOnWindowFocus - A {Boolean} that identifies if the windows should refresh
+  #           refreshOnWindowFocus: A {Boolean} that identifies if the windows should refresh
   #
   # Returns a new {Git} object.
   @open: (path, options) ->

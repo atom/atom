@@ -57,7 +57,7 @@ class Cursor
   #
   # screenPosition - An {Array} of two numbers: the screen row, and the screen column.
   # options - An object with the following keys:
-  #           :autoscroll - A {Boolean} which, if `true`, scrolls the {EditSession} to wherever the cursor moves to
+  #           autoscroll: A {Boolean} which, if `true`, scrolls the {EditSession} to wherever the cursor moves to
   #
   setScreenPosition: (screenPosition, options={}) ->
     @changePosition options, =>
@@ -73,7 +73,7 @@ class Cursor
   #
   # bufferPosition - An {Array} of two numbers: the buffer row, and the buffer column.
   # options - An object with the following keys:
-  #           :autoscroll - A {Boolean} which, if `true`, scrolls the {EditSession} to wherever the cursor moves to
+  #           autoscroll: A {Boolean} which, if `true`, scrolls the {EditSession} to wherever the cursor moves to
   #
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
@@ -247,7 +247,7 @@ class Cursor
   # Retrieves the buffer position of where the current word starts.
   #
   # options - A hash with one option:
-  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #           wordRegex: A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
   #
   # Returns a {Range}.
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
@@ -268,7 +268,7 @@ class Cursor
   # Retrieves the buffer position of where the current word ends.
   #
   # options - A hash with one option:
-  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #           wordRegex: A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
   #
   # Returns a {Range}.
   getEndOfCurrentWordBufferPosition: (options = {}) ->
@@ -288,7 +288,7 @@ class Cursor
   # Retrieves the buffer position of where the next word starts.
   #
   # options - A hash with one option:
-  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #           wordRegex: A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
   #
   # Returns a {Range}.
   getBeginningOfNextWordBufferPosition: (options = {}) ->

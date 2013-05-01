@@ -83,8 +83,8 @@ class Selection
   #
   # screenRange - The new {Range} to select
   # options - A hash of options with the following keys:
-  #           :preserveFolds - if `true`, the fold settings are preserved after the selection moves
-  #           :autoscroll - if `true`, the {EditSession} scrolls to the new selection
+  #           preserveFolds: if `true`, the fold settings are preserved after the selection moves
+  #           autoscroll: if `true`, the {EditSession} scrolls to the new selection
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
@@ -254,9 +254,9 @@ class Selection
   #
   # text - A {String} representing the text to add
   # options - A hash containing the following options:
-  #           :normalizeIndent - TODO
-  #           :select - if `true`, selects the newly added text
-  #           :autoIndent - if `true`, indents the newly added text appropriately
+  #           normalizeIndent: TODO
+  #           select: if `true`, selects the newly added text
+  #           autoIndent: if `true`, indents the newly added text appropriately
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)

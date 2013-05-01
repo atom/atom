@@ -122,7 +122,7 @@ class Range
   #
   # otherRange - A different {Range} to check against
   # options - A hash with a single option:
-  #          :exclusive - A {Boolean} which, if `true`, indicates that no {Point}s in the `Range` can be equal
+  #          exclusive: A {Boolean} which, if `true`, indicates that no {Point}s in the `Range` can be equal
   #
   # Returns a {Boolean}.
   containsRange: (otherRange, {exclusive} = {}) ->
@@ -133,7 +133,7 @@ class Range
   #
   # point - A {Point} to check against
   # options - A hash with a single option:
-  #          :exclusive - A {Boolean} which, if `true`, indicates that no {Point}s in the `Range` can be equal
+  #          exclusive: A {Boolean} which, if `true`, indicates that no {Point}s in the `Range` can be equal
   #
   # Returns a {Boolean}.
   containsPoint: (point, {exclusive} = {}) ->
