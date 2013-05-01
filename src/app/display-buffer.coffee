@@ -104,8 +104,8 @@ class DisplayBuffer
   # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
     foldMarker =
-      @findMarker({class: 'fold', startRow, endRow}) ?
-        @markBufferRange([[startRow, 0], [endRow, Infinity]], class: 'fold')
+      @buffer.findMarker({class: 'fold', startRow, endRow}) ?
+        @buffer.markRange([[startRow, 0], [endRow, Infinity]], class: 'fold')
     @foldForMarker(foldMarker)
 
   # Public: Removes any folds found that contain the given buffer row.
@@ -129,7 +129,7 @@ class DisplayBuffer
   #
   # Returns an {Array} of {Fold}s.
   foldsStartingAtBufferRow: (bufferRow) ->
-    for marker in @findMarkers(class: 'fold', startBufferRow: bufferRow)
+    for marker in @buffer.findMarkers(class: 'fold', startRow: bufferRow)
       @foldForMarker(marker)
 
   # Public: Given a screen row, this returns the largest fold that starts there.
@@ -161,7 +161,7 @@ class DisplayBuffer
   #
   # Returns an {Array} of {Fold}s.
   foldsContainingBufferRow: (bufferRow) ->
-    for marker in @findMarkers(class: 'fold', containsBufferRow: bufferRow)
+    for marker in @buffer.findMarkers(class: 'fold', containsRow: bufferRow)
       @foldForMarker(marker)
 
   # Public: Given a buffer range, this converts it into a screen range.
@@ -375,9 +375,8 @@ class DisplayBuffer
     @triggerChanged(event, false)
 
   handleMarkerCreated: (marker) =>
-    marker = @getMarker(marker.id)
     new Fold(this, marker) if marker.matchesAttributes(class: 'fold')
-    @trigger 'marker-created', marker
+    @trigger 'marker-created', @getMarker(marker.id)
 
   buildFoldForMarker: (marker) ->
 

@@ -26,7 +26,7 @@ class Fold
 
   # Returns the fold's {Range} in buffer coordinates
   getBufferRange: ->
-    @marker.getBufferRange()
+    @marker.getRange()
 
   # Returns the fold's start row as a {Number}.
   getStartRow: ->
