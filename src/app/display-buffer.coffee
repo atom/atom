@@ -31,8 +31,8 @@ class DisplayBuffer
     @buildLineMap()
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
-    @buffer.on 'markers-updated', @handleMarkersUpdated
-    @buffer.on 'marker-created', @handleMarkerCreated
+    @subscribe @buffer, 'markers-updated', @handleMarkersUpdated
+    @subscribe @buffer, 'marker-created', @handleMarkerCreated
 
   buildLineMap: ->
     @lineMap = new LineMap
@@ -537,7 +537,7 @@ class DisplayBuffer
 
   destroy: ->
     @tokenizedBuffer.destroy()
-    @buffer.off 'markers-updated', @handleMarkersUpdated
+    @unsubscribe()
 
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
