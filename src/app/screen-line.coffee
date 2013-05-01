@@ -106,9 +106,6 @@ class ScreenLine
       breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
     outputTokens
 
-  # Public: Determins if the current line is commented.
-  #
-  # Returns a {Boolean}.
   isComment: ->
     for token in @tokens
       continue if token.scopes.length is 1
