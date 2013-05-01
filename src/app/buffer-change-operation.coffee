@@ -19,6 +19,7 @@ class BufferChangeOperation
     @options ?= {}
 
   do: ->
+    @buffer.pauseEvents()
     @pauseMarkerObservation()
     @oldText = @buffer.getTextInRange(@oldRange)
     @newRange = @calculateNewRange(@oldRange, @newText)
@@ -29,10 +30,12 @@ class BufferChangeOperation
       oldText: @oldText
       newText: @newText
     @restoreMarkers(@markersToRestoreOnRedo) if @markersToRestoreOnRedo
+    @buffer.resumeEvents()
     @resumeMarkerObservation()
     newRange
 
   undo: ->
+    @buffer.pauseEvents()
     @pauseMarkerObservation()
     @markersToRestoreOnRedo = @invalidateMarkers(@newRange)
     @changeBuffer
@@ -41,6 +44,7 @@ class BufferChangeOperation
       oldText: @newText
       newText: @oldText
     @restoreMarkers(@markersToRestoreOnUndo)
+    @buffer.resumeEvents()
     @resumeMarkerObservation()
 
   splitLines: (text) ->

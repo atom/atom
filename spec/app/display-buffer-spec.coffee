@@ -265,15 +265,23 @@ describe "DisplayBuffer", ->
         changeHandler.reset()
 
       describe "when the old range surrounds a fold", ->
-        it "removes the fold and replaces the selection with the new text", ->
+        beforeEach ->
           buffer.change([[1, 0], [5, 1]], 'party!')
 
+        it "removes the fold and replaces the selection with the new text", ->
           expect(displayBuffer.lineForRow(0).text).toBe "0"
           expect(displayBuffer.lineForRow(1).text).toBe "party!"
           expect(displayBuffer.lineForRow(2).fold).toBe fold2
           expect(displayBuffer.lineForRow(3).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 3, screenDelta: -2, bufferDelta: -4)
+
+        describe "when the changes is subsequently undone", ->
+          it "restores destroyed folds", ->
+            buffer.undo()
+            expect(displayBuffer.lineForRow(2).text).toBe '2'
+            expect(displayBuffer.lineForRow(2).fold).toBe fold1
+            expect(displayBuffer.lineForRow(3).text).toBe '5'
 
       describe "when the old range surrounds two nested folds", ->
         it "removes both folds and replaces the selection with the new text", ->
