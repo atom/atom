@@ -236,13 +236,13 @@ class DisplayBuffer
   bufferRangeForScreenRange: (screenRange) ->
     @lineMap.bufferRangeForScreenRange(screenRange)
 
-  # Gets the number of lines in the buffer.
+  # Gets the number of screen lines.
   #
   # Returns a {Number}.
   getLineCount: ->
     @lineMap.getScreenLineCount()
 
-  # Gets the number of the last row in the buffer.
+  # Gets the number of the last screen line.
   #
   # Returns a {Number}.
   getLastRow: ->

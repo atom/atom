@@ -373,10 +373,12 @@ class Buffer
 
   # Internal:
   transact: (fn) ->  @undoManager.transact(fn)
+
   # Public: Undos the last operation.
   #
   # editSession - The {EditSession} associated with the buffer.
   undo: (editSession) -> @undoManager.undo(editSession)
+
   # Public: Redos the last operation.
   #
   # editSession - The {EditSession} associated with the buffer.
