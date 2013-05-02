@@ -1546,7 +1546,22 @@ class Editor extends View
       htmlLines.push(@buildLineHtml(line, screenRow++))
     htmlLines.join('\n\n')
 
-  buildEmptyLineHtml: (screenRow) ->
+  buildEndOfLineInvisibles: (screenLine) ->
+    invisibles = []
+    for invisible in @getEndOfLineInvisibles(screenLine)
+      invisibles.push("<span class='invisible-character'>#{invisible}</span>")
+    invisibles.join('')
+
+  getEndOfLineInvisibles: (screenLine) ->
+    return [] unless @showInvisibles and @invisibles
+    return [] if @mini or screenLine.isSoftWrapped()
+
+    invisibles = []
+    invisibles.push(@invisibles.cr) if @invisibles.cr and screenLine.lineEnding is '\r\n'
+    invisibles.push(@invisibles.eol) if @invisibles.eol
+    invisibles
+
+  buildEmptyLineHtml: (screenLine, screenRow) ->
     if not @mini and @showIndentGuide
       indentation = 0
       while --screenRow >= 0
@@ -1557,10 +1572,28 @@ class Editor extends View
           break
 
       if indentation > 0
-        indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', @activeEditSession.getTabLength())}</span>"
-        return _.multiplyString(indentationHtml, indentation)
+        tabLength = @activeEditSession.getTabLength()
+        invisibles = @getEndOfLineInvisibles(screenLine)
+        indentGuideHtml = []
+        for level in [0...indentation]
+          indentLevelHtml = ["<span class='indent-guide'>"]
+          for characterPosition in [0...tabLength]
+            if invisible = invisibles.shift()
+              indentLevelHtml.push("<span class='invisible-character'>#{invisible}</span>")
+            else
+              indentLevelHtml.push(' ')
+          indentLevelHtml.push("</span>")
+          indentGuideHtml.push(indentLevelHtml.join(''))
 
-    return '&nbsp;' unless @showInvisibles
+        for invisible in invisibles
+          indentGuideHtml.push("<span class='invisible-character'>#{invisible}</span>")
+        return indentGuideHtml.join('')
+
+    invisibles = @buildEndOfLineInvisibles(screenLine)
+    if invisibles.length > 0
+      invisibles
+    else
+      '&nbsp;'
 
   buildLineHtml: (screenLine, screenRow) ->
     scopeStack = []
@@ -1599,7 +1632,7 @@ class Editor extends View
     invisibles = @invisibles if @showInvisibles
 
     if screenLine.text == ''
-      html = @buildEmptyLineHtml(screenRow)
+      html = @buildEmptyLineHtml(screenLine, screenRow)
       line.push(html) if html
     else
       firstNonWhitespacePosition = screenLine.text.search(/\S/)
@@ -1615,12 +1648,7 @@ class Editor extends View
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    if invisibles and not @mini and not screenLine.isSoftWrapped()
-      if invisibles.cr and screenLine.lineEnding is '\r\n'
-        line.push("<span class='invisible-character'>#{invisibles.cr}</span>")
-      if invisibles.eol
-        line.push("<span class='invisible-character'>#{invisibles.eol}</span>")
-
+    line.push(@buildEndOfLineInvisibles(screenLine)) unless screenLine.text == ''
     line.push("<span class='fold-marker'/>") if fold
 
     line.push('</div>')

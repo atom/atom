@@ -1551,6 +1551,22 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
+      describe "when the line is empty and end of show invisibles are enabled", ->
+        it "renders the indent guides interleaved the end of line invisibles", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+          config.set("editor.showInvisibles", true)
+          eol = editor.invisibles?.eol
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol} "
+
+          editor.setCursorBufferPosition([9])
+          editor.indent()
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol}   "
+
   describe "when soft-wrap is enabled", ->
     beforeEach ->
       editor.attachToDom()

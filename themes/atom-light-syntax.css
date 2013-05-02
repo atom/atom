@@ -3,6 +3,11 @@
   color: #555;
 }
 
+.editor .invisible-character,
+.editor .indent-guide {
+  color: rgba(85, 85, 85, .2);
+}
+
 .editor .gutter .line-number.fold,
 .editor .gutter .line-number:after,
 .editor .fold-marker:after {
