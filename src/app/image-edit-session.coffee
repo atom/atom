@@ -8,23 +8,8 @@ module.exports=
 class ImageEditSession
   registerDeserializer(this)
 
-  # Public: Identifies if a path can be opened by the image viewer.
-  #
-  # path - The {String} name of the path to check
-  #
-  # Returns a {Boolean}.
-  @canOpen: (path) ->
-    _.indexOf([
-      '.gif'
-      '.jpeg'
-      '.jpg'
-      '.png'
-    ], fsUtils.extension(path), true) >= 0
+  ### Internal ###
 
-  ###
-  # Internal #
-  ###
-  
   @deserialize: (state) ->
     if fsUtils.exists(state.path)
       project.buildEditSession(state.path)
@@ -40,10 +25,25 @@ class ImageEditSession
   getViewClass: ->
     require 'image-view'
 
-  # Public: Retrieves the filename of the open file.
+  ### Public ###
+
+  # Identifies if a path can be opened by the image viewer.
+  #
+  # path - The {String} name of the path to check
+  #
+  # Returns a {Boolean}.
+  @canOpen: (path) ->
+    _.indexOf([
+      '.gif'
+      '.jpeg'
+      '.jpg'
+      '.png'
+    ], fsUtils.extension(path), true) >= 0
+
+  # Retrieves the filename of the open file.
   #
   # This is `'untitled'` if the file is new and not saved to the disk.
-  # 
+  #
   # Returns a {String}.
   getTitle: ->
     if path = @getPath()
@@ -51,17 +51,17 @@ class ImageEditSession
     else
       'untitled'
 
-  # Public: Retrieves the URI of the current image.
+  # Retrieves the URI of the current image.
   #
   # Returns a {String}.
   getUri: -> @path
 
-  # Public: Retrieves the path of the current image.
+  # Retrieves the path of the current image.
   #
   # Returns a {String}.
   getPath: -> @path
 
-  # Public: Compares two `ImageEditSession`s to determine equality.
+  # Compares two `ImageEditSession`s to determine equality.
   #
   # Equality is based on the condition that the two URIs are the same.
   #

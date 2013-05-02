@@ -10,14 +10,12 @@ Range = require 'range'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
 
-# Public: An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
+# An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
 module.exports =
 class EditSession
   registerDeserializer(this)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   @version: 1
 
@@ -87,17 +85,13 @@ class EditSession
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
 
-  # Internal: Creates a copy of the current {EditSession}.
-  #
-  # Returns an identical `EditSession`.
+  # Creates a copy of the current {EditSession}.Returns an identical `EditSession`.
   copy: ->
     EditSession.deserialize(@serialize(), @project)
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
-  # Public: Retrieves the filename of the open file.
+  # Retrieves the filename of the open file.
   #
   # This is `'untitled'` if the file is new and not saved to the disk.
   #
@@ -108,7 +102,7 @@ class EditSession
     else
       'untitled'
 
-  # Public: Retrieves the filename of the open file, followed by a dash, then the file's directory.
+  # Retrieves the filename of the open file, followed by a dash, then the file's directory.
   #
   # If the file is brand new, the title is `untitled`.
   #
@@ -121,7 +115,7 @@ class EditSession
     else
       'untitled'
 
-  # Public: Compares two `EditSession`s to determine equality.
+  # Compares two `EditSession`s to determine equality.
   #
   # Equality is based on the condition that:
   #
@@ -140,45 +134,47 @@ class EditSession
 
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
 
-  # Public: Defines the value of the `EditSession`'s `scrollTop` property.
+  # Defines the value of the `EditSession`'s `scrollTop` property.
   #
   # scrollTop - A {Number} defining the `scrollTop`, in pixels.
   setScrollTop: (@scrollTop) ->
-  # Public: Gets the value of the `EditSession`'s `scrollTop` property.
+
+  # Gets the value of the `EditSession`'s `scrollTop` property.
   #
   # Returns a {Number} defining the `scrollTop`, in pixels.
   getScrollTop: -> @scrollTop
 
-  # Public: Defines the value of the `EditSession`'s `scrollLeft` property.
+  # Defines the value of the `EditSession`'s `scrollLeft` property.
   #
   # scrollLeft - A {Number} defining the `scrollLeft`, in pixels.
   setScrollLeft: (@scrollLeft) ->
-  # Public: Gets the value of the `EditSession`'s `scrollLeft` property.
+
+  # Gets the value of the `EditSession`'s `scrollLeft` property.
   #
   # Returns a {Number} defining the `scrollLeft`, in pixels.
   getScrollLeft: -> @scrollLeft
 
-  # Public: Defines the limit at which the buffer begins to soft wrap text.
+  # Defines the limit at which the buffer begins to soft wrap text.
   #
   # softWrapColumn - A {Number} defining the soft wrap limit
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
 
-  # Public: Defines whether to use soft tabs.
+  # Defines whether to use soft tabs.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft tabs.
   setSoftTabs: (@softTabs) ->
 
-  # Public: Retrieves whether soft tabs are enabled.
+  # Retrieves whether soft tabs are enabled.
   #
   # Returns a {Boolean}.
   getSoftWrap: -> @softWrap
 
-  # Public: Defines whether to use soft wrapping of text.
+  # Defines whether to use soft wrapping of text.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft wraps.
   setSoftWrap: (@softWrap) ->
 
-  # Public: Retrieves that character used to indicate a tab.
+  # Retrieves that character used to indicate a tab.
   #
   # If soft tabs are enabled, this is a space (`" "`) times the {.getTabLength} value.
   # Otherwise, it's a tab (`\t`).
@@ -186,17 +182,17 @@ class EditSession
   # Returns a {String}.
   getTabText: -> @buildIndentString(1)
 
-  # Public: Retrieves the current tab length.
+  # Retrieves the current tab length.
   #
   # Returns a {Number}.
   getTabLength: -> @displayBuffer.getTabLength()
 
-  # Public: Specifies the tab length.
+  # Specifies the tab length.
   #
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
-  # Public: Given a position, this clips it to a real position.
+  # Given a position, this clips it to a real position.
   #
   # For example, if `position`'s row exceeds the row count of the buffer,
   # or if its column goes beyond a line's length, this "sanitizes" the value
@@ -207,7 +203,7 @@ class EditSession
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
 
-  # Public: Given a range, this clips it to a real range.
+  # Given a range, this clips it to a real range.
   #
   # For example, if `range`'s row exceeds the row count of the buffer,
   # or if its column goes beyond a line's length, this "sanitizes" the value
@@ -218,7 +214,7 @@ class EditSession
   # Returns the new, clipped {Point}. Note that this could be the same as `range` if no clipping was performed.
   clipBufferRange: (range) -> @buffer.clipRange(range)
 
-  # Public: Given a buffer row, this retrieves the indentation level.
+  # Given a buffer row, this retrieves the indentation level.
   #
   # bufferRow - A {Number} indicating the buffer row.
   #
@@ -226,7 +222,7 @@ class EditSession
   indentationForBufferRow: (bufferRow) ->
     @indentLevelForLine(@lineForBufferRow(bufferRow))
 
-  # Public: This specifies the new indentation level for a buffer row.
+  # This specifies the new indentation level for a buffer row.
   #
   # bufferRow - A {Number} indicating the buffer row.
   # newLevel - A {Number} indicating the new indentation level.
@@ -236,7 +232,7 @@ class EditSession
     newIndentString = @buildIndentString(newLevel)
     @buffer.change([[bufferRow, 0], [bufferRow, currentIndentString.length]], newIndentString)
 
-  # Internal: Given a line, this gets the indentation level.
+  # Given a line, this retrieves the indentation level.
   #
   # line - A {String} in the current {Buffer}.
   #
@@ -250,242 +246,134 @@ class EditSession
     else
       0
 
-  # Internal: Constructs the string used for tabs.
+  # Constructs the string used for tabs.
   buildIndentString: (number) ->
     if @softTabs
       _.multiplyString(" ", number * @getTabLength())
     else
       _.multiplyString("\t", Math.floor(number))
 
-  # Public: Saves the buffer.
+  # {Delegates to: Buffer.save}
   save: -> @buffer.save()
 
-  # Public: Saves the buffer at a specific path.
-  #
-  # path - The path to save at.
+  # {Delegates to: Buffer.saveAs}
   saveAs: (path) -> @buffer.saveAs(path)
 
-  # Public: Retrieves the current buffer's file extension.
-  #
-  # Returns a {String}.
+  # {Delegates to: Buffer.getExtension}
   getFileExtension: -> @buffer.getExtension()
 
-  # Public: Retrieves the current buffer's file path.
-  #
-  # Returns a {String}.
+  # {Delegates to: Buffer.getPath}
   getPath: -> @buffer.getPath()
 
-  # Public: Retrieves the current buffer's text.
-  #
-  # Return a {String}.
+  # {Delegates to: Buffer.getText}
   getText: -> @buffer.getText()
 
-  # Public: Set the current buffer's text content.
-  #
-  # Return a {String}.
+  # {Delegates to: Buffer.setText}
   setText: (text) -> @buffer.setText(text)
 
-  # Public: Retrieves the current buffer.
+  # Retrieves the current buffer.
   #
-  # Returns a {String}.
+  # Returns a {Buffer}.
   getBuffer: -> @buffer
 
-  # Public: Retrieves the current buffer's URI.
+  # Retrieves the current buffer's URI.
   #
   # Returns a {String}.
   getUri: -> @getPath()
 
-  # Public: Given a buffer row, identifies if it is blank.
-  #
-  # bufferRow - A buffer row {Number} to check
-  #
-  # Returns a {Boolean}.
+  # {Delegates to: Buffer.isRowBlank}
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
 
-  # Public: Given a buffer row, this finds the next row that's blank.
-  #
-  # bufferRow - A buffer row {Number} to check
-  #
-  # Returns a {Number}, or `null` if there's no other blank row.
+  # {Delegates to: Buffer.nextNonBlankRow}
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
 
-  # Public: Finds the last point in the current buffer.
-  #
-  # Returns a {Point} representing the last position.
+  # {Delegates to: Buffer.getEofPosition}
   getEofBufferPosition: -> @buffer.getEofPosition()
 
-  # Public: Finds the last line in the current buffer.
-  #
-  # Returns a {Number}.
+  # {Delegates to: Buffer.getLastRow}
   getLastBufferRow: -> @buffer.getLastRow()
 
-  # Public: Given a buffer row, this retrieves the range for that line.
-  #
-  # row - A {Number} identifying the row
-  # options - A hash with one key, `includeNewline`, which specifies whether you
-  #           want to include the trailing newline
-  #
-  # Returns a {Range}.
+  # {Delegates to: Buffer.rangeForRow}
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
 
-  # Public: Given a buffer row, this retrieves that line.
-  #
-  # row - A {Number} identifying the row
-  #
-  # Returns a {String}.
+  # {Delegates to: Buffer.lineForRow}
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
 
-  # Public: Given a buffer row, this retrieves that line's length.
-  #
-  # row - A {Number} identifying the row
-  #
-  # Returns a {Number}.
+  # {Delegates to: Buffer.lineLengthForRow}
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
 
-  # Public: Scans for text in the buffer, calling a function on each match.
-  #
-  # regex - A {RegExp} representing the text to find
-  # range - A {Range} in the buffer to search within
-  # iterator - A {Function} that's called on each match
+  # {Delegates to: Buffer.scanInRange}
   scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
 
-  # Public: Scans for text in the buffer _backwards_, calling a function on each match.
-  #
-  # regex - A {RegExp} representing the text to find
-  # range - A {Range} in the buffer to search within
-  # iterator - A {Function} that's called on each match
+  # {Delegates to: Buffer.backwardsScanInRange}
   backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
-  # Public: Identifies if the {Buffer} is modified (and not saved).
-  #
-  # Returns a {Boolean}.
+  # {Delegates to: Buffer.isModified}
   isModified: -> @buffer.isModified()
 
-  # Public: Identifies if the modified buffer should let you know if it's closing
+  # Identifies if the modified buffer should let you know if it's closing
   # without being saved.
   #
   # Returns a {Boolean}.
   shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
 
-  # Public: Given a buffer position, this converts it into a screen position.
-  #
-  # bufferPosition - An object that represents a buffer position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {DisplayBuffer.screenPositionForBufferPosition}.
-  #
-  # Returns a {Point}.
+  # {Delegates to: DisplayBuffer.screenPositionForBufferPosition}
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
 
-  # Public: Given a buffer range, this converts it into a screen position.
-  #
-  # screenPosition - An object that represents a buffer position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - The same options available to {DisplayBuffer.bufferPositionForScreenPosition}.
-  #
-  # Returns a {Point}.
+  # {Delegates to: DisplayBuffer.bufferPositionForScreenPosition}
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
 
-  # Public: Given a buffer range, this converts it into a screen position.
-  #
-  # bufferRange - The {Range} to convert
-  #
-  # Returns a {Range}.
+  # {Delegates to: DisplayBuffer.screenRangeForBufferRange}
   screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
 
-  # Public: Given a screen range, this converts it into a buffer position.
-  #
-  # screenRange - The {Range} to convert
-  #
-  # Returns a {Range}.
+  # {Delegates to: DisplayBuffer.bufferRangeForScreenRange}
   bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
-  # Public: Given a position, this clips it to a real position.
-  #
-  # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value
-  # to a real position.
-  #
-  # position - The {Point} to clip
-  # options - A hash with the following values:
-  #           :wrapBeyondNewlines - if `true`, continues wrapping past newlines
-  #           :wrapAtSoftNewlines - if `true`, continues wrapping past soft newlines
-  #           :screenLine - if `true`, indicates that you're using a line number, not a row number
-  #
-  # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
+
+  # {Delegates to: DisplayBuffer.clipScreenPosition}
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
 
-  # Public: Gets the line for the given screen row.
-  #
-  # screenRow - A {Number} indicating the screen row.
-  #
-  # Returns a {String}.
+  # {Delegates to: DisplayBuffer.lineForRow}
   lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
 
-  # Public: Gets the lines for the given screen row boundaries.
-  #
-  # start - A {Number} indicating the beginning screen row.
-  # end - A {Number} indicating the ending screen row.
-  #
-  # Returns an {Array} of {String}s.
+  # {Delegates to: DisplayBuffer.linesForRows}
   linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
 
-  # Public: Gets the number of screen rows.
-  #
-  # Returns a {Number}.
+  # {Delegates to: DisplayBuffer.getLineCount}
   getScreenLineCount: -> @displayBuffer.getLineCount()
 
-  # Public: Gets the length of the longest screen line.
-  #
-  # Returns a {Number}.
+  # {Delegates to: DisplayBuffer.maxLineLength}
   maxScreenLineLength: -> @displayBuffer.maxLineLength()
 
-  # Public: Gets the number of the last row in the buffer.
-  #
-  # Returns a {Number}.
+  # {Delegates to: DisplayBuffer.getLastRow}
   getLastScreenRow: -> @displayBuffer.getLastRow()
 
-  # Public: Given a starting and ending row, this converts every row into a buffer position.
-  #
-  # startRow - The row {Number} to start at
-  # endRow - The row {Number} to end at (default: {.getLastScreenRow})
-  #
-  # Returns an {Array} of {Range}s.
+  # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
 
-  # Public: Retrieves the grammar's token scopes for a buffer position.
-  #
-  # bufferPosition - A {Point} in the {Buffer}
-  #
-  # Returns an {Array} of {String}s.
+  # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
 
-  # Public: Retrieves the grammar's token for a buffer position.
-  #
-  # bufferPosition - A {Point} in the {Buffer}
-  #
-  # Returns a {Token}.
+  # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
-  # Public: Retrieves the grammar's token scopes for the line with the most recently added cursor.
+  # Retrieves the grammar's token scopes for the line with the most recently added cursor.
   #
   # Returns an {Array} of {String}s.
   getCursorScopes: -> @getCursor().getScopes()
 
-  # Internal:
-  logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
-
-  # Public: Determines whether the {Editor} will auto indent rows.
+  # Determines whether the {Editor} will auto indent rows.
   #
   # Returns a {Boolean}.
   shouldAutoIndent: ->
     config.get("editor.autoIndent")
 
-  # Public: Determines whether the {Editor} will auto indent pasted text.
+  # Determines whether the {Editor} will auto indent pasted text.
   #
   # Returns a {Boolean}.
   shouldAutoIndentPastedText: ->
     config.get("editor.autoIndentOnPaste")
 
-  # Public: Inserts text at the current cursor positions
+  # Inserts text at the current cursor positions
   #
   # text - A {String} representing the text to insert.
   # options - A set of options equivalent to {Selection.insertText}
@@ -493,17 +381,17 @@ class EditSession
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
 
-  # Public: Inserts a new line at the current cursor positions.
+  # Inserts a new line at the current cursor positions.
   insertNewline: ->
     @insertText('\n')
 
-  # Public: Inserts a new line below the current cursor positions.
+  # Inserts a new line below the current cursor positions.
   insertNewlineBelow: ->
     @transact =>
       @moveCursorToEndOfLine()
       @insertNewline()
 
-  # Public: Inserts a new line above the current cursor positions.
+  # Inserts a new line above the current cursor positions.
   insertNewlineAbove: ->
     @transact =>
       onFirstLine = @getCursorBufferPosition().row is 0
@@ -512,46 +400,46 @@ class EditSession
       @insertNewline()
       @moveCursorUp() if onFirstLine
 
-  # Public: Indents the current line.
+  # Indents the current line.
   #
   # options - A set of options equivalent to {Selection.indent}.
   indent: (options={})->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
 
-  # Public: Performs a backspace, removing the character found behind the cursor position.
+  # Performs a backspace, removing the character found behind the cursor position.
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
 
-  # Public: Performs a backspace to the beginning of the current word, removing characters found there.
+  # Performs a backspace to the beginning of the current word, removing characters found there.
   backspaceToBeginningOfWord: ->
     @mutateSelectedText (selection) -> selection.backspaceToBeginningOfWord()
 
-  # Public: Performs a backspace to the beginning of the current line, removing characters found there.
+  # Performs a backspace to the beginning of the current line, removing characters found there.
   backspaceToBeginningOfLine: ->
     @mutateSelectedText (selection) -> selection.backspaceToBeginningOfLine()
 
-  # Public: Performs a delete, removing the character found ahead of the cursor position.
+  # Performs a delete, removing the character found ahead of the cursor position.
   delete: ->
     @mutateSelectedText (selection) -> selection.delete()
 
-  # Public: Performs a delete to the end of the current word, removing characters found there.
+  # Performs a delete to the end of the current word, removing characters found there.
   deleteToEndOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
 
-  # Public: Deletes the entire line.
+  # Deletes the entire line.
   deleteLine: ->
     @mutateSelectedText (selection) -> selection.deleteLine()
 
-  # Public: Indents the selected rows.
+  # Indents the selected rows.
   indentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.indentSelectedRows()
 
-  # Public: Outdents the selected rows.
+  # Outdents the selected rows.
   outdentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.outdentSelectedRows()
 
-  # Public: Wraps the lines within a selection in comments.
+  # Wraps the lines within a selection in comments.
   #
   # If the language doesn't have comments, nothing happens.
   #
@@ -564,14 +452,14 @@ class EditSession
   autoIndentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
-  # Given a buffer range, this converts all `\t` characters to the appopriate {.getTabText} value.
+  # Given a buffer range, this converts all `\t` characters to the appropriate {.getTabText} value.
   #
   # bufferRange - The {Range} to perform the replace in
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @softTabs
     @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
 
-  # Public: Performs a cut to the end of the current line.
+  # Performs a cut to the end of the current line.
   #
   # Characters are removed, but the text remains in the clipboard.
   cutToEndOfLine: ->
@@ -580,21 +468,21 @@ class EditSession
       selection.cutToEndOfLine(maintainPasteboard)
       maintainPasteboard = true
 
-  # Public: Cuts the selected text.
+  # Cuts the selected text.
   cutSelectedText: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
       selection.cut(maintainPasteboard)
       maintainPasteboard = true
 
-  # Public: Copies the selected text.
+  # Copies the selected text.
   copySelectedText: ->
     maintainPasteboard = false
     for selection in @getSelections()
       selection.copy(maintainPasteboard)
       maintainPasteboard = true
 
-  # Public: Pastes the text in the clipboard.
+  # Pastes the text in the clipboard.
   #
   # options - A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
@@ -606,100 +494,64 @@ class EditSession
 
     @insertText(text, options)
 
-  # Public: Undos the last {Buffer} change.
+  # Undos the last {Buffer} change.
   undo: ->
     @buffer.undo(this)
 
-  # Public: Redos the last {Buffer} change.
+  # Redos the last {Buffer} change.
   redo: ->
     @buffer.redo(this)
 
-  ###
-  # Internal #
-  ###
-
-  transact: (fn) ->
-    isNewTransaction = @buffer.transact()
-    oldSelectedRanges = @getSelectedBufferRanges()
-    @pushOperation
-      undo: (editSession) ->
-        editSession?.setSelectedBufferRanges(oldSelectedRanges)
-    if fn
-      result = fn()
-      @commit() if isNewTransaction
-      result
-
-  commit: ->
-    newSelectedRanges = @getSelectedBufferRanges()
-    @pushOperation
-      redo: (editSession) ->
-        editSession?.setSelectedBufferRanges(newSelectedRanges)
-    @buffer.commit()
-
-  abort: ->
-    @buffer.abort()
-
-  ###
-  # Public #
-  ###
-
-  # Public: Folds all the rows.
+  # Folds all the rows.
   foldAll: ->
     @languageMode.foldAll()
 
-  # Public: Unfolds all the rows.
+  # Unfolds all the rows.
   unfoldAll: ->
     @languageMode.unfoldAll()
 
-  # Public: Folds the current row.
+  # Folds the current row.
   foldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @foldBufferRow(bufferRow)
 
-  # Public: Given a buffer row, this folds it.
+  # Given a buffer row, this folds it.
   #
   # bufferRow - A {Number} indicating the buffer row
   foldBufferRow: (bufferRow) ->
     @languageMode.foldBufferRow(bufferRow)
 
-  # Public: Unfolds the current row.
+  # Unfolds the current row.
   unfoldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @unfoldBufferRow(bufferRow)
 
-  # Public: Given a buffer row, this unfolds it.
+  # Given a buffer row, this unfolds it.
   #
   # bufferRow - A {Number} indicating the buffer row
   unfoldBufferRow: (bufferRow) ->
     @languageMode.unfoldBufferRow(bufferRow)
 
-  # Public: Folds all selections.
+  # Folds all selections.
   foldSelection: ->
     selection.fold() for selection in @getSelections()
 
-  # Public: Creates a new fold between two row numbers.
-  #
-  # startRow - The row {Number} to start folding at
-  # endRow - The row {Number} to end the fold
-  #
-  # Returns the new {Fold}.
+  # {Delegates to: DisplayBuffer.createFold}
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
 
-  # Public: Removes any {Fold}s found that contain the given buffer row.
-  #
-  # bufferRow - The buffer row {Number} to check against
+  # {Delegates to: DisplayBuffer.destroyFoldsContainingBufferRow}
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
 
-  # Public: Removes any {Fold}s found that intersect the given buffer row.
+  # Removes any {Fold}s found that intersect the given buffer row.
   #
   # bufferRow - The buffer row {Number} to check against
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     for row in [bufferRange.start.row..bufferRange.end.row]
       @destroyFoldsContainingBufferRow(row)
 
-  # Public: Given the id of a {Fold}, this removes it.
+  # Given the id of a {Fold}, this removes it.
   #
   # foldId - The fold id {Number} to remove
   destroyFold: (foldId) ->
@@ -707,13 +559,13 @@ class EditSession
     fold.destroy()
     @setCursorBufferPosition([fold.startRow, 0])
 
-  # Public: Determines if the given row that the cursor is at is folded.
+  # Determines if the given row that the cursor is at is folded.
   #
   # Returns `true` if the row is folded, `false` otherwise.
   isFoldedAtCursorRow: ->
     @isFoldedAtScreenRow(@getCursorScreenRow())
 
-  # Public: Determines if the given buffer row is folded.
+  # Determines if the given buffer row is folded.
   #
   # bufferRow - A {Number} indicating the buffer row.
   #
@@ -722,7 +574,7 @@ class EditSession
     screenRow = @screenPositionForBufferPosition([bufferRow]).row
     @isFoldedAtScreenRow(screenRow)
 
-  # Public: Determines if the given screen row is folded.
+  # Determines if the given screen row is folded.
   #
   # screenRow - A {Number} indicating the screen row.
   #
@@ -730,29 +582,15 @@ class EditSession
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow)?.fold?
 
-  # Public: Given a buffer row, this returns the largest fold that includes it.
-  #
-  # Largest is defined as the fold whose difference between its start and end points
-  # are the greatest.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  #
-  # Returns a {Fold}.
+  # {Delegates to: DisplayBuffer.largestFoldContainingBufferRow}
   largestFoldContainingBufferRow: (bufferRow) ->
     @displayBuffer.largestFoldContainingBufferRow(bufferRow)
 
-  # Public: Given a screen row, this returns the largest fold that starts there.
-  #
-  # Largest is defined as the fold whose difference between its start and end points
-  # are the greatest.
-  #
-  # screenRow - A {Number} indicating the screen row
-  #
-  # Returns a {Fold}.
+  # {Delegates to: DisplayBuffer.largestFoldStartingAtScreenRow}
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
-  # Public: Given a buffer row, this returns a suggested indentation level.
+  # Given a buffer row, this returns a suggested indentation level.
   #
   # The indentation level provided is based on the current language.
   #
@@ -762,32 +600,32 @@ class EditSession
   suggestedIndentForBufferRow: (bufferRow) ->
     @languageMode.suggestedIndentForBufferRow(bufferRow)
 
-  # Public: Indents all the rows between two buffer rows.
+  # Indents all the rows between two buffer rows.
   #
   # startRow - The row {Number} to start at
   # endRow - The row {Number} to end at
   autoIndentBufferRows: (startRow, endRow) ->
     @languageMode.autoIndentBufferRows(startRow, endRow)
 
-  # Public: Given a buffer row, this indents it.
+  # Given a buffer row, this indents it.
   #
   # bufferRow - The row {Number}
   autoIndentBufferRow: (bufferRow) ->
     @languageMode.autoIndentBufferRow(bufferRow)
 
-  # Public: Given a buffer row, this increases the indentation.
+  # Given a buffer row, this increases the indentation.
   #
   # bufferRow - The row {Number}
   autoIncreaseIndentForBufferRow: (bufferRow) ->
     @languageMode.autoIncreaseIndentForBufferRow(bufferRow)
 
-  # Public: Given a buffer row, this decreases the indentation.
+  # Given a buffer row, this decreases the indentation.
   #
   # bufferRow - The row {Number}
   autoDecreaseIndentForRow: (bufferRow) ->
     @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
-  # Public: Wraps the lines between two rows in comments.
+  # Wraps the lines between two rows in comments.
   #
   # If the language doesn't have comments, nothing happens.
   #
@@ -798,7 +636,7 @@ class EditSession
   toggleLineCommentsForBufferRows: (start, end) ->
     @languageMode.toggleLineCommentsForBufferRows(start, end)
 
-  # Public: Moves the selected line up one row.
+  # Moves the selected line up one row.
   moveLineUp: ->
     selection = @getSelectedBufferRange()
     return if selection.start.row is 0
@@ -832,7 +670,7 @@ class EditSession
 
       @setSelectedBufferRange(selection.translate([-1]), preserveFolds: true)
 
-  # Public: Moves the selected line down one row.
+  # Moves the selected line down one row.
   moveLineDown: ->
     selection = @getSelectedBufferRange()
     lastRow = @buffer.getLastRow()
@@ -870,7 +708,7 @@ class EditSession
 
       @setSelectedBufferRange(selection.translate([1]), preserveFolds: true)
 
-  # Public: Duplicates the current line.
+  # Duplicates the current line.
   #
   # If more than one cursor is present, only the most recently added one is considered.
   duplicateLine: ->
@@ -896,10 +734,7 @@ class EditSession
       @setCursorScreenPosition(@getCursorScreenPosition().translate([1]))
       @foldCurrentRow() if cursorRowFolded
 
-
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()
@@ -918,229 +753,126 @@ class EditSession
   pushOperation: (operation) ->
     @buffer.pushOperation(operation, this)
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
-  # Public: Constructs a new marker at the given screen range.
-  #
-  # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
-  #
-  # Returns a {Number} representing the new marker's ID.
+  # {Delegates to: DisplayBuffer.markScreenRange}
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
-  # Public: Constructs a new marker at the given buffer range.
-  #
-  # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
-  #
-  # Returns a {Number} representing the new marker's ID.
+  # {Delegates to: DisplayBuffer.markBufferRange}
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
-  # Public: Constructs a new marker at the given screen position.
-  #
-  # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
-  #
-  # Returns a {Number} representing the new marker's ID.
+  # {Delegates to: DisplayBuffer.markScreenPosition}
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # Public: Constructs a new marker at the given buffer position.
-  #
-  # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
-  #
-  # Returns a {Number} representing the new marker's ID.
+  # {Delegates to: DisplayBuffer.markBufferPosition}
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
-  # Public: Removes the marker with the given id.
-  #
-  # id - The {Number} of the ID to remove
+  # {Delegates to: DisplayBuffer.destroyMarker}
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
-  # Public: Gets the number of markers in the buffer.
-  #
-  # Returns a {Number}.
+  # {Delegates to: Buffer.getMarkerCount}
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
-  # Public: Gets the screen range of the display marker.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Range}.
+  # {Delegates to: DisplayBuffer.getMarkerScreenRange}
   getMarkerScreenRange: (args...) ->
     @displayBuffer.getMarkerScreenRange(args...)
 
-  # Public: Modifies the screen range of the display marker.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
+  # {Delegates to: DisplayBuffer.setMarkerScreenRange}
   setMarkerScreenRange: (args...) ->
     @displayBuffer.setMarkerScreenRange(args...)
 
-  # Public: Gets the buffer range of the display marker.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Range}.
+  # {Delegates to: DisplayBuffer.getMarkerBufferRange}
   getMarkerBufferRange: (args...) ->
     @displayBuffer.getMarkerBufferRange(args...)
 
-  # Public: Modifies the buffer range of the display marker.
-  #
-  # id - The {Number} of the ID to check
-  # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
+  # {Delegates to: DisplayBuffer.setMarkerBufferRange}
   setMarkerBufferRange: (args...) ->
     @displayBuffer.setMarkerBufferRange(args...)
 
-  # Public: Retrieves the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
+  # {Delegates to: DisplayBuffer.getMarkerScreenPosition}
   getMarkerScreenPosition: (args...) ->
     @displayBuffer.getMarkerScreenPosition(args...)
 
-  # Public: Retrieves the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
+  # {Delegates to: DisplayBuffer.getMarkerBufferPosition}
   getMarkerBufferPosition: (args...) ->
     @displayBuffer.getMarkerBufferPosition(args...)
 
-  # Public: Retrieves the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
+  # {Delegates to: DisplayBuffer.getMarkerHeadScreenPosition}
   getMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.getMarkerHeadScreenPosition(args...)
 
-  # Public: Sets the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
+  # {Delegates to: DisplayBuffer.setMarkerHeadScreenPosition}
   setMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.setMarkerHeadScreenPosition(args...)
 
-  # Public: Retrieves the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
+  # {Delegates to: DisplayBuffer.getMarkerHeadBufferPosition}
   getMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.getMarkerHeadBufferPosition(args...)
 
-  # Public: Sets the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
+  # {Delegates to: DisplayBuffer.setMarkerHeadBufferPosition}
   setMarkerHeadBufferPosition: (args...) ->
     @displayBuffer.setMarkerHeadBufferPosition(args...)
 
-  # Public: Retrieves the screen position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
+  # {Delegates to: DisplayBuffer.getMarkerTailScreenPosition}
   getMarkerTailScreenPosition: (args...) ->
     @displayBuffer.getMarkerTailScreenPosition(args...)
 
-  # Public: Sets the screen position of the marker's tail.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
+  # {Delegates to: DisplayBuffer.setMarkerTailScreenPosition}
   setMarkerTailScreenPosition: (args...) ->
     @displayBuffer.setMarkerTailScreenPosition(args...)
 
-  # Public: Retrieves the buffer position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
+  # {Delegates to: DisplayBuffer.getMarkerTailBufferPosition}
   getMarkerTailBufferPosition: (args...) ->
     @displayBuffer.getMarkerTailBufferPosition(args...)
 
-  # Public: Sets the buffer position of the marker's tail.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
+  # {Delegates to: DisplayBuffer.setMarkerTailBufferPosition}
   setMarkerTailBufferPosition: (args...) ->
     @displayBuffer.setMarkerTailBufferPosition(args...)
 
-  # Public: Sets a callback to be fired whenever a marker is changed.
-  #
-  # id - A {Number} representing the marker to watch
-  # callback - A {Function} to execute
+  # {Delegates to: DisplayBuffer.observeMarker}
   observeMarker: (args...) ->
     @displayBuffer.observeMarker(args...)
 
-  # Public: Sets the marker's tail to the same position as the marker's head.
-  #
-  # This only works if there isn't already a tail position.
-  #
-  # id - A {Number} representing the marker to change
-  #
-  # Returns a {Point} representing the new tail position.
+  # {Delegates to: DisplayBuffer.placeMarkerTail}
   placeMarkerTail: (args...) ->
     @displayBuffer.placeMarkerTail(args...)
 
-  # Public: Removes the tail from the marker.
-  #
-  # id - A {Number} representing the marker to change
+  # {Delegates to: DisplayBuffer.clearMarkerTail}
   clearMarkerTail: (args...) ->
     @displayBuffer.clearMarkerTail(args...)
 
-  # Public: Identifies if the ending position of a marker is greater than the starting position.
-  #
-  # This can happen when, for example, you highlight text "up" in a {Buffer}.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
+  # {Delegates to: DisplayBuffer.isMarkerReversed}
   isMarkerReversed: (args...) ->
     @displayBuffer.isMarkerReversed(args...)
 
-  # Public: Identifies if the marker's head position is equal to its tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
+  # {Delegates to: DisplayBuffer.isMarkerRangeEmpty}.
   isMarkerRangeEmpty: (args...) ->
     @displayBuffer.isMarkerRangeEmpty(args...)
 
-  # Public: Returns `true` if there are multiple cursors in the edit session.
+  # Returns `true` if there are multiple cursors in the edit session.
   #
   # Returns a {Boolean}.
   hasMultipleCursors: ->
     @getCursors().length > 1
 
-  # Public: Retrieves  all the cursors.
+  # Retrieves all the cursors.
   #
   # Returns an {Array} of {Cursor}s.
   getCursors: -> new Array(@cursors...)
 
-  # Public: Retrieves a single cursor
+  # Retrieves the most recently added cursor.
   #
   # Returns a {Cursor}.
   getCursor: ->
     _.last(@cursors)
 
-  # Public: Adds a cursor at the provided `screenPosition`.
+  # Adds a cursor at the provided `screenPosition`.
   #
   # screenPosition - An {Array} of two numbers: the screen row, and the screen column.
   #
@@ -1149,7 +881,7 @@ class EditSession
     marker = @markScreenPosition(screenPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
 
-  # Public: Adds a cursor at the provided `bufferPosition`.
+  # Adds a cursor at the provided `bufferPosition`.
   #
   # bufferPosition - An {Array} of two numbers: the buffer row, and the buffer column.
   #
@@ -1158,7 +890,7 @@ class EditSession
     marker = @markBufferPosition(bufferPosition, invalidationStrategy: 'never')
     @addSelection(marker).cursor
 
-  # Public: Adds a cursor to the `EditSession`.
+  # Adds a cursor to the `EditSession`.
   #
   # marker - The marker where the cursor should be added
   #
@@ -1169,7 +901,7 @@ class EditSession
     @trigger 'cursor-added', cursor
     cursor
 
-  # Public: Removes a cursor from the `EditSession`.
+  # Removes a cursor from the `EditSession`.
   #
   # cursor - The cursor to remove
   #
@@ -1177,7 +909,7 @@ class EditSession
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 
-  # Public: Creates a new selection at the given marker.
+  # Creates a new selection at the given marker.
   #
   # marker - The marker to highlight
   # options - A hash of options that pertain to the {Selection} constructor.
@@ -1199,7 +931,7 @@ class EditSession
       @trigger 'selection-added', selection
       selection
 
-  # Public: Given a buffer range, this adds a new selection for it.
+  # Given a buffer range, this adds a new selection for it.
   #
   # bufferRange - A {Range} in the buffer
   # options - A hash of options
@@ -1210,14 +942,14 @@ class EditSession
     marker = @markBufferRange(bufferRange, options)
     @addSelection(marker, options)
 
-  # Public: Given a buffer range, this removes all previous selections and creates a new selection for it.
+  # Given a buffer range, this removes all previous selections and creates a new selection for it.
   #
   # bufferRange - A {Range} in the buffer
   # options - A hash of options
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
-  # Public: Given an array of buffer ranges, this removes all previous selections and creates new selections for them.
+  # Given an array of buffer ranges, this removes all previous selections and creates new selections for them.
   #
   # bufferRanges - An {Array} of {Range}s in the buffer
   # options - A hash of options
@@ -1235,13 +967,13 @@ class EditSession
         @addSelectionForBufferRange(bufferRange, options)
     @mergeIntersectingSelections(options)
 
-  # Public: Unselects a given selection.
+  # Unselects a given selection.
   #
   # selection - The {Selection} to remove.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
 
-  # Public: Clears every selection. TODO
+  # Clears every selection. TODO
   clearSelections: ->
     @consolidateSelections()
     @getSelection().clear()
@@ -1254,12 +986,12 @@ class EditSession
     else
       false
 
-  # Public: Gets all the selections.
+  # Gets all the selections.
   #
   # Returns an {Array} of {Selection}s.
   getSelections: -> new Array(@selections...)
 
-  # Public: Gets the selection at the specified index.
+  # Gets the selection at the specified index.
   #
   # index - The id {Number} of the selection
   #
@@ -1268,13 +1000,13 @@ class EditSession
     index ?= @selections.length - 1
     @selections[index]
 
-  # Public: Gets the last selection, _i.e._ the most recently added.
+  # Gets the last selection, _i.e._ the most recently added.
   #
   # Returns a {Selection}.
   getLastSelection: ->
     _.last(@selections)
 
-  # Public: Gets all selections, ordered by their position in the buffer.
+  # Gets all selections, ordered by their position in the buffer.
   #
   # Returns an {Array} of {Selection}s.
   getSelectionsOrderedByBufferPosition: ->
@@ -1283,13 +1015,13 @@ class EditSession
       bRange = b.getBufferRange()
       aRange.end.compare(bRange.end)
 
-  # Public: Gets the very last selection, as it's ordered in the buffer.
+  # Gets the very last selection, as it's ordered in the buffer.
   #
   # Returns a {Selection}.
   getLastSelectionInBuffer: ->
     _.last(@getSelectionsOrderedByBufferPosition())
 
-  # Public: Determines if a given buffer range is included in a selection.
+  # Determines if a given buffer range is included in a {Selection}.
   #
   # bufferRange - The {Range} you're checking against
   #
@@ -1298,7 +1030,7 @@ class EditSession
     _.any @getSelections(), (selection) ->
       selection.intersectsBufferRange(bufferRange)
 
-  # Public: Moves every cursor to a given screen position.
+  # Moves every cursor to a given screen position.
   #
   # position - An {Array} of two numbers: the screen row, and the screen column.
   # options - An object with properties based on {Cursor.setScreenPosition}
@@ -1306,19 +1038,19 @@ class EditSession
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
-  # Public: Gets the current screen position.
+  # Gets the current screen position of the most recently added {Cursor}.
   #
   # Returns an {Array} of two numbers: the screen row, and the screen column.
   getCursorScreenPosition: ->
     @getCursor().getScreenPosition()
 
-  # Public: Gets the current cursor's screen row.
+  # Gets the screen row of the most recently added {Cursor}.
   #
-  # Returns the screen row.
+  # Returns the screen row {Number}.
   getCursorScreenRow: ->
     @getCursor().getScreenRow()
 
-  # Public: Moves every cursor to a given buffer position.
+  # Moves every cursor to a given buffer position.
   #
   # position - An {Array} of two numbers: the buffer row, and the buffer column.
   # options - An object with properties based on {Cursor.setBufferPosition}
@@ -1326,39 +1058,39 @@ class EditSession
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
-  # Public: Gets the current buffer position of the cursor.
+  # Gets the current buffer position of the most recently added {Cursor}.
   #
   # Returns an {Array} of two numbers: the buffer row, and the buffer column.
   getCursorBufferPosition: ->
     @getCursor().getBufferPosition()
 
-  # Public: Gets the screen range of the most recently added {Selection}.
+  # Gets the screen range of the most recently added {Selection}.
   #
   # Returns a {Range}.
   getSelectedScreenRange: ->
     @getLastSelection().getScreenRange()
 
-  # Public: Gets the buffer range of the most recently added {Selection}.
+  # Gets the buffer range of the most recently added {Selection}.
   #
   # Returns a {Range}.
   getSelectedBufferRange: ->
     @getLastSelection().getBufferRange()
 
-  # Public: Gets the buffer ranges of all the {Selection}s.
+  # Gets the buffer ranges of all the {Selection}s.
   #
-  # This is ordered by their buffer position.
+  # This is ordered by their position in the file itself.
   #
   # Returns an {Array} of {Range}s.
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
 
-  # Public: Gets the currently selected text.
+  # Gets the selected text of the most recently added {Selection}.
   #
   # Returns a {String}.
   getSelectedText: ->
     @getLastSelection().getText()
 
-  # Public: Given a buffer range, this retrieves the text in that range.
+  # Given a buffer range, this retrieves the text in that range.
   #
   # range - The {Range} you're interested in
   #
@@ -1366,7 +1098,7 @@ class EditSession
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
 
-  # Public: Retrieves the range for the current paragraph.
+  # Retrieves the range for the current paragraph.
   #
   # A paragraph is defined as a block of text surrounded by empty lines.
   #
@@ -1374,7 +1106,7 @@ class EditSession
   getCurrentParagraphBufferRange: ->
     @getCursor().getCurrentParagraphBufferRange()
 
-  # Public: Gets the word located under the cursor.
+  # Gets the word located under the most recently added {Cursor}.
   #
   # options - An object with properties based on {Cursor.getBeginningOfCurrentWordBufferPosition}.
   #
@@ -1382,51 +1114,51 @@ class EditSession
   getWordUnderCursor: (options) ->
     @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
 
-  # Public: Moves every cursor up one row.
+  # Moves every cursor up one row.
   moveCursorUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount)
 
-  # Public: Moves every cursor down one row.
+  # Moves every cursor down one row.
   moveCursorDown: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveDown(lineCount)
 
-  # Public: Moves every cursor left one column.
+  # Moves every cursor left one column.
   moveCursorLeft: ->
     @moveCursors (cursor) -> cursor.moveLeft()
 
-  # Public: Moves every cursor right one column.
+  # Moves every cursor right one column.
   moveCursorRight: ->
     @moveCursors (cursor) -> cursor.moveRight()
 
-  # Public: Moves every cursor to the top of the buffer.
+  # Moves every cursor to the top of the buffer.
   moveCursorToTop: ->
     @moveCursors (cursor) -> cursor.moveToTop()
 
-  # Public: Moves every cursor to the bottom of the buffer.
+  # Moves every cursor to the bottom of the buffer.
   moveCursorToBottom: ->
     @moveCursors (cursor) -> cursor.moveToBottom()
 
-  # Public: Moves every cursor to the beginning of the line.
+  # Moves every cursor to the beginning of the line.
   moveCursorToBeginningOfLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
 
-  # Public: Moves every cursor to the first non-whitespace character of the line.
+  # Moves every cursor to the first non-whitespace character of the line.
   moveCursorToFirstCharacterOfLine: ->
     @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
 
-  # Public: Moves every cursor to the end of the line.
+  # Moves every cursor to the end of the line.
   moveCursorToEndOfLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfLine()
 
-  # Public: Moves every cursor to the beginning of the current word.
+  # Moves every cursor to the beginning of the current word.
   moveCursorToBeginningOfWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
 
-  # Public: Moves every cursor to the end of the current word.
+  # Moves every cursor to the end of the current word.
   moveCursorToEndOfWord: ->
     @moveCursors (cursor) -> cursor.moveToEndOfWord()
 
-  # Public: Moves every cursor to the beginning of the next word.
+  # Moves every cursor to the beginning of the next word.
   moveCursorToBeginningOfNextWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
 
@@ -1435,7 +1167,7 @@ class EditSession
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
-  # Public: Selects the text from the current cursor position to a given screen position.
+  # Selects the text from the current cursor position to a given screen position.
   #
   # position - An instance of {Point}, with a given `row` and `column`.
   selectToScreenPosition: (position) ->
@@ -1443,55 +1175,55 @@ class EditSession
     lastSelection.selectToScreenPosition(position)
     @mergeIntersectingSelections(reverse: lastSelection.isReversed())
 
-  # Public: Selects the text one position right of the cursor.
+  # Selects the text one position right of the cursor.
   selectRight: ->
     @expandSelectionsForward (selection) => selection.selectRight()
 
-  # Public: Selects the text one position left of the cursor.
+  # Selects the text one position left of the cursor.
   selectLeft: ->
     @expandSelectionsBackward (selection) => selection.selectLeft()
 
-  # Public: Selects all the text one position above the cursor.
+  # Selects all the text one position above the cursor.
   selectUp: ->
     @expandSelectionsBackward (selection) => selection.selectUp()
 
-  # Public: Selects all the text one position below the cursor.
+  # Selects all the text one position below the cursor.
   selectDown: ->
     @expandSelectionsForward (selection) => selection.selectDown()
 
-  # Public: Selects all the text from the current cursor position to the top of the buffer.
+  # Selects all the text from the current cursor position to the top of the buffer.
   selectToTop: ->
     @expandSelectionsBackward (selection) => selection.selectToTop()
 
-  # Public: Selects all the text in the buffer.
+  # Selects all the text in the buffer.
   selectAll: ->
     @expandSelectionsForward (selection) => selection.selectAll()
 
-  # Public: Selects all the text from the current cursor position to the bottom of the buffer.
+  # Selects all the text from the current cursor position to the bottom of the buffer.
   selectToBottom: ->
     @expandSelectionsForward (selection) => selection.selectToBottom()
 
-  # Public: Selects all the text from the current cursor position to the beginning of the line.
+  # Selects all the text from the current cursor position to the beginning of the line.
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
 
-  # Public: Selects all the text from the current cursor position to the end of the line.
+  # Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()
 
-  # Public: Selects the current line.
+  # Selects the current line.
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
 
-  # Public: Moves the current selection down one row.
+  # Moves the current selection down one row.
   addSelectionBelow: ->
     @expandSelectionsForward (selection) => selection.addSelectionBelow()
 
-  # Public: Moves the current selection up one row.
+  # Moves the current selection up one row.
   addSelectionAbove: ->
     @expandSelectionsBackward (selection) => selection.addSelectionAbove()
 
-  # Public: Transposes the current text selections.
+  # Transposes the current text selections.
   #
   # This only works if there is more than one selection. Each selection is transferred
   # to the position of the selection after it. The last selection is transferred to the
@@ -1507,15 +1239,15 @@ class EditSession
       else
         selection.insertText selection.getText().split('').reverse().join('')
 
-  # Public: Turns the current selection into upper case.
+  # Turns the current selection into upper case.
   upperCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) => text.toUpperCase()
 
-  # Public: Turns the current selection into lower case.
+  # Turns the current selection into lower case.
   lowerCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) => text.toLowerCase()
 
-  # Public: Joins the current line with the one below it.
+  # Joins the current line with the one below it.
   #
   # Multiple cursors are considered equally. If there's a selection in the editor,
   # all the lines are joined together.
@@ -1525,25 +1257,31 @@ class EditSession
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()
 
-  # Public: Selects all the text from the current cursor position to the beginning of the word.
+  # Selects all the text from the current cursor position to the beginning of the word.
   selectToBeginningOfWord: ->
     @expandSelectionsBackward (selection) => selection.selectToBeginningOfWord()
 
-  # Public: Selects all the text from the current cursor position to the end of the word.
+  # Selects all the text from the current cursor position to the end of the word.
   selectToEndOfWord: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfWord()
 
-  # Public: Selects all the text from the current cursor position to the beginning of the next word.
+  # Selects all the text from the current cursor position to the beginning of the next word.
   selectToBeginningOfNextWord: ->
     @expandSelectionsForward (selection) => selection.selectToBeginningOfNextWord()
 
-  # Public: Selects the current word.
+  # Selects the current word.
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()
 
   expandLastSelectionOverWord: ->
     @getLastSelection().expandOverWord()
 
+  # Selects the buffer range of the given marker.
+  #
+  # id - A {Number} indicating the marker's id
+  #
+  # Returns a {Boolean} value that is `true` if the marker contains a buffer
+  # range.
   selectMarker: (id) ->
     if bufferRange = @getMarkerBufferRange(id)
       @setSelectedBufferRange(bufferRange)
@@ -1551,7 +1289,7 @@ class EditSession
     else
       false
 
-  # Public: Given a buffer position, this finds all markers that contain the position.
+  # Given a buffer position, this finds all markers that contain the position.
   #
   # bufferPosition - A {Point} to check
   #
@@ -1601,28 +1339,47 @@ class EditSession
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
 
-  # Public: Retrieves the current {EditSession}'s grammar.
-  #
-  # Returns a {String} indicating the language's grammar rules.
+  # {Delegates to: DisplayBuffer.getGrammar}
   getGrammar: ->
     @displayBuffer.getGrammar()
 
-  # Public: Sets the current {EditSession}'s grammar.
-  #
-  # grammar - A {String} indicating the language's grammar rules.
+  # {Delegates to: DisplayBuffer.setGrammar}
   setGrammar: (grammar) ->
     @displayBuffer.setGrammar(grammar)
 
-  # Public: Reloads the current grammar.
+  # {Delegates to: DisplayBuffer.reloadGrammar}
   reloadGrammar: ->
     @displayBuffer.reloadGrammar()
 
-  # Internal:
+  ### Internal ###
+
+  transact: (fn) ->
+    isNewTransaction = @buffer.transact()
+    oldSelectedRanges = @getSelectedBufferRanges()
+    @pushOperation
+      undo: (editSession) ->
+        editSession?.setSelectedBufferRanges(oldSelectedRanges)
+    if fn
+      result = fn()
+      @commit() if isNewTransaction
+      result
+
+  commit: ->
+    newSelectedRanges = @getSelectedBufferRanges()
+    @pushOperation
+      redo: (editSession) ->
+        editSession?.setSelectedBufferRanges(newSelectedRanges)
+    @buffer.commit()
+
+  abort: ->
+    @buffer.abort()
+
+  logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
+
   handleGrammarChange: ->
     @unfoldAll()
     @trigger 'grammar-changed'
 
-  # Internal:
   getDebugSnapshot: ->
     [
       @displayBuffer.getDebugSnapshot()

@@ -6,9 +6,7 @@ module.exports =
 class PaneContainer extends View
   registerDeserializer(this)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   @deserialize: ({root}) ->
     container = new PaneContainer
@@ -26,9 +24,7 @@ class PaneContainer extends View
     deserializer: 'PaneContainer'
     root: @getRoot()?.serialize()
  
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   focusNextPane: ->
     panes = @getPanes()

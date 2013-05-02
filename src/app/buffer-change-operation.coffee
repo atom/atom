@@ -1,9 +1,7 @@
 Range = require 'range'
 _ = require 'underscore'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class BufferChangeOperation

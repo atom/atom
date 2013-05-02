@@ -6,9 +6,7 @@ Token = require 'token'
 Range = require 'range'
 Point = require 'point'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class TokenizedBuffer
@@ -69,13 +67,13 @@ class TokenizedBuffer
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
-  # Public: Retrieves the current tab length.
+  # Retrieves the current tab length.
   #
   # Returns a {Number}.
   getTabLength: ->
     @tabLength
 
-  # Public: Specifies the tab length.
+  # Specifies the tab length.
   #
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (@tabLength) ->
@@ -265,7 +263,7 @@ class TokenizedBuffer
             stop()
     position
 
-  # Public: Gets the row number of the last line.
+  # Gets the row number of the last line.
   #
   # Returns a {Number}.
   getLastRow: ->
