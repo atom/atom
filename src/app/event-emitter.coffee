@@ -4,7 +4,7 @@ _ = require 'underscore'
 #
 # Each event can have more than one handler; that is, an event can trigger multiple functions.
 module.exports =
-  # Public: Associates an event name with a function to perform.
+  # Associates an event name with a function to perform.
   #
   # This is called endlessly, until the event is turned {.off}.
   #
@@ -27,7 +27,7 @@ module.exports =
     @afterSubscribe?()
 
 
-  # Public: Associates an event name with a function to perform only once.
+  # Associates an event name with a function to perform only once.
   #
   # eventName - A {String} name identifying an event
   # handler - A {Function} that's executed when the event is triggered
@@ -38,7 +38,7 @@ module.exports =
 
     @on eventName, oneShotHandler
 
-  # Public: Triggers a registered event.
+  # Triggers a registered event.
   #
   # eventName - A {String} name identifying an event
   # args - Any additional arguments to pass over to the event `handler`
@@ -55,7 +55,7 @@ module.exports =
         if handlers = @eventHandlersByEventName?[eventName]
           handlers.forEach (handler) -> handler(args...)
 
-  # Public: Stops executing handlers for a registered event.
+  # Stops executing handlers for a registered event.
   #
   # eventNames - A {String} containing one or more space-separated events.
   # handler - The {Function} to remove from the event. If not provided, all handlers are removed.
@@ -90,20 +90,20 @@ module.exports =
       @eventHandlersByNamespace = {}
       @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
 
-  # Public: When called, stops triggering any events.
+  # When called, stops triggering any events.
   pauseEvents: ->
     @pauseCount ?= 0
     if @pauseCount++ == 0
       @queuedEvents ?= []
 
-  # Public: When called, resumes triggering events.
+  # When called, resumes triggering events.
   resumeEvents: ->
     if --@pauseCount == 0
       queuedEvents = @queuedEvents
       @queuedEvents = null
       @trigger(event...) for event in queuedEvents
 
-  # Public: Identifies how many events are registered.
+  # Identifies how many events are registered.
   #
   # Returns a {Number}.
   subscriptionCount: ->

@@ -11,33 +11,17 @@ GitUtils = require 'git-utils'
 module.exports =
 class Git
 
-  # Public: Creates a new `Git` instance.
-  #
-  # path - The git repository to open
-  # options - A hash with one key:
-  #           :refreshOnWindowFocus - A {Boolean} that identifies if the windows should refresh
-  #
-  # Returns a new {Git} object.
-  @open: (path, options) ->
-    return null unless path
-    try
-      new Git(path, options)
-    catch e
-      null
-
   statuses: null
   upstream: null
   statusTask: null
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
-  # Internal: Creates a new `Git` object.
+  # Creates a new `Git` object.
   #
   # path - The {String} representing the path to your git working directory
   # options - A hash with the following keys:
-  #           :refreshOnWindowFocus - If `true`, {#refreshIndex} and {#refreshStatus} are called on focus
+  #           refreshOnWindowFocus: If `true`, {#refreshIndex} and {#refreshStatus} are called on focus
   constructor: (path, options={}) ->
     @repo = GitUtils.open(path)
     unless @repo?
@@ -72,11 +56,23 @@ class Git
 
     @unsubscribe()
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
-  # Public: Retrieves the git repository.
+  # Creates a new `Git` instance.
+  #
+  # path - The git repository to open
+  # options - A hash with one key:
+  #           refreshOnWindowFocus: A {Boolean} that identifies if the windows should refresh
+  #
+  # Returns a new {Git} object.
+  @open: (path, options) ->
+    return null unless path
+    try
+      new Git(path, options)
+    catch e
+      null
+
+  # Retrieves the git repository.
   #
   # Returns a new `Repository`.
   getRepo: ->
@@ -84,22 +80,22 @@ class Git
       throw new Error("Repository has been destroyed")
     @repo
 
-  # Public: Reread the index to update any values that have changed since the last time the index was read.
+  # Reread the index to update any values that have changed since the last time the index was read.
   refreshIndex: -> @getRepo().refreshIndex()
 
-  # Public: Retrieves the path of the repository.
+  # Retrieves the path of the repository.
   #
   # Returns a {String}.
   getPath: ->
     @path ?= fsUtils.absolute(@getRepo().getPath())
 
-  # Public: Retrieves the working directory of the repository.
+  # Retrieves the working directory of the repository.
   #
   # Returns a {String}.
   getWorkingDirectory: ->
     @getRepo().getWorkingDirectory()
 
-  # Public: Retrieves the reference or SHA-1 that `HEAD` points to.
+  # Retrieves the reference or SHA-1 that `HEAD` points to.
   #
   # This can be `refs/heads/master`, or a full SHA-1 if the repository is in a detached `HEAD` state.
   #
@@ -107,7 +103,7 @@ class Git
   getHead: ->
     @getRepo().getHead() ? ''
 
-  # Public: Retrieves the status of a single path in the repository.
+  # Retrieves the status of a single path in the repository.
   #
   # path - An {String} defining a relative path
   #
@@ -123,7 +119,7 @@ class Git
       @trigger 'status-changed', path, pathStatus
     pathStatus
 
-  # Public: Identifies if a path is ignored.
+  # Identifies if a path is ignored.
   #
   # path - The {String} path to check
   #
@@ -131,7 +127,7 @@ class Git
   isPathIgnored: (path) ->
     @getRepo().isIgnored(@relativize(path))
 
-  # Public: Identifies if a value represents a status code.
+  # Identifies if a value represents a status code.
   #
   # status - The code {Number} to check
   #
@@ -139,7 +135,7 @@ class Git
   isStatusModified: (status) ->
     @getRepo().isStatusModified(status)
 
-  # Public: Identifies if a path was modified.
+  # Identifies if a path was modified.
   #
   # path - The {String} path to check
   #
@@ -147,7 +143,7 @@ class Git
   isPathModified: (path) ->
     @isStatusModified(@getPathStatus(path))
 
-  # Public: Identifies if a status code represents a new path.
+  # Identifies if a status code represents a new path.
   #
   # status - The code {Number} to check
   #
@@ -155,7 +151,7 @@ class Git
   isStatusNew: (status) ->
     @getRepo().isStatusNew(status)
 
-  # Public: Identifies if a path is new.
+  # Identifies if a path is new.
   #
   # path - The {String} path to check
   #
@@ -163,7 +159,7 @@ class Git
   isPathNew: (path) ->
     @isStatusNew(@getPathStatus(path))
 
-  # Public: Makes a path relative to the repository's working directory.
+  # Makes a path relative to the repository's working directory.
   #
   # path - The {String} path to convert
   #
@@ -171,7 +167,7 @@ class Git
   relativize: (path) ->
     @getRepo().relativize(path)
 
-  # Public: Retrieves a shortened version of {.getHead}.
+  # Retrieves a shortened version of {.getHead}.
   #
   # This removes the leading segments of `refs/heads`, `refs/tags`, or `refs/remotes`.
   # It also shortenes the SHA-1 of a detached `HEAD` to 7 characters.
@@ -180,7 +176,7 @@ class Git
   getShortHead: ->
     @getRepo().getShortHead()
 
-  # Public: Restore the contents of a path in the working directory and index to the version at `HEAD`.
+  # Restore the contents of a path in the working directory and index to the version at `HEAD`.
   #
   # This is essentially the same as running:
   # ```
@@ -196,7 +192,7 @@ class Git
     @getPathStatus(path) if headCheckedOut
     headCheckedOut
 
-  # Public: Retrieves the number of lines added and removed to a path.
+  # Retrieves the number of lines added and removed to a path.
   #
   # This compares the working directory contents of the path to the `HEAD` version.
   #
@@ -206,7 +202,7 @@ class Git
   getDiffStats: (path) ->
     @getRepo().getDiffStats(@relativize(path))
 
-  # Public: Identifies if a path is a submodule.
+  # Identifies if a path is a submodule.
   #
   # path - The {String} path to check
   #
@@ -214,7 +210,7 @@ class Git
   isSubmodule: (path) ->
     @getRepo().isSubmodule(@relativize(path))
 
-  # Public: Retrieves the status of a directory.
+  # Retrieves the status of a directory.
   #
   # path - The {String} path to check
   #
@@ -226,7 +222,7 @@ class Git
       directoryStatus |= status if path.indexOf(directoryPath) is 0
     directoryStatus
 
-  # Public: Retrieves the number of commits the `HEAD` branch is ahead/behind the remote branch it is tracking.
+  # Retrieves the number of commits the `HEAD` branch is ahead/behind the remote branch it is tracking.
   #
   # This is similar to the commit numbers reported by `git status` when a remote tracking branch exists.
   #
@@ -234,7 +230,7 @@ class Git
   getAheadBehindCounts: ->
     @getRepo().getAheadBehindCount()
 
-  # Public: Retrieves the line diffs comparing the `HEAD` version of the given path and the given text.
+  # Retrieves the line diffs comparing the `HEAD` version of the given path and the given text.
   #
   # This is similar to the commit numbers reported by `git status` when a remote tracking branch exists.
   #
@@ -245,9 +241,7 @@ class Git
   getLineDiffs: (path, text) ->
     @getRepo().getLineDiffs(@relativize(path), text)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   refreshStatus: ->
     if @statusTask?

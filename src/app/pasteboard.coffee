@@ -5,7 +5,7 @@ module.exports =
 class Pasteboard
   signatureForMetadata: null
 
-  # Internal: Creates an `md5` hash of some text.
+  # Creates an `md5` hash of some text.
   #
   # text - A {String} to encrypt.
   #

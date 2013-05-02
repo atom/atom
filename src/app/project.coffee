@@ -24,17 +24,7 @@ class Project
   editSessions: null
   ignoredPathRegexes: null
 
-  # Public: Establishes a new project at a given path.
-  #
-  # path - The {String} name of the path
-  constructor: (path) ->
-    @setPath(path)
-    @editSessions = []
-    @buffers = []
-
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   serialize: ->
     deserializer: 'Project'
@@ -46,17 +36,23 @@ class Project
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
-  # Public: Retrieves the project path.
+  # Establishes a new project at a given path.
+  #
+  # path - The {String} name of the path
+  constructor: (path) ->
+    @setPath(path)
+    @editSessions = []
+    @buffers = []
+
+  # Retrieves the project path.
   #
   # Returns a {String}.
   getPath: ->
     @rootDirectory?.path
 
-  # Public: Sets the project path.
+  # Sets the project path.
   #
   # path - A {String} representing the new path
   setPath: (path) ->
@@ -70,13 +66,13 @@ class Project
 
     @trigger "path-changed"
 
-  # Public: Retrieves the name of the root directory.
+  # Retrieves the name of the root directory.
   #
   # Returns a {String}.
   getRootDirectory: ->
     @rootDirectory
 
-  # Public: Retrieves the names of every file (that's not `git ignore`d) in the project.
+  # Retrieves the names of every file (that's not `git ignore`d) in the project.
   #
   # Returns an {Array} of {String}s.
   getFilePaths: ->
@@ -88,7 +84,7 @@ class Project
     deferred.resolve(paths)
     deferred.promise()
 
-  # Public: Identifies if a path is ignored.
+  # Identifies if a path is ignored.
   #
   # path - The {String} name of the path to check
   #
@@ -100,7 +96,7 @@ class Project
 
     @ignoreRepositoryPath(path)
 
-  # Public: Identifies if a path is ignored.
+  # Identifies if a path is ignored.
   #
   # path - The {String} name of the path to check
   #
@@ -108,7 +104,7 @@ class Project
   ignoreRepositoryPath: (path) ->
     config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
 
-  # Public: Given a path, this resolves it relative to the project directory.
+  # Given a path, this resolves it relative to the project directory.
   #
   # filePath - The {String} name of the path to convert
   #
@@ -117,7 +113,7 @@ class Project
     filePath = fsUtils.join(@getPath(), filePath) unless filePath[0] == '/'
     fsUtils.absolute filePath
 
-  # Public: Given a path, this makes it relative to the project directory.
+  # Given a path, this makes it relative to the project directory.
   #
   # filePath - The {String} name of the path to convert
   #
@@ -126,27 +122,27 @@ class Project
     return fullPath unless fullPath.lastIndexOf(@getPath()) is 0
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
-  # Public: Identifies if the project is using soft tabs.
+  # Identifies if the project is using soft tabs.
   #
   # Returns a {Boolean}.
   getSoftTabs: -> @softTabs
 
-  # Public: Sets the project to use soft tabs.
+  # Sets the project to use soft tabs.
   #
   # softTabs - A {Boolean} which, if `true`, sets soft tabs
   setSoftTabs: (@softTabs) ->
 
-  # Public: Identifies if the project is using soft wrapping.
+  # Identifies if the project is using soft wrapping.
   #
   # Returns a {Boolean}.
   getSoftWrap: -> @softWrap
 
-  # Public: Sets the project to use soft wrapping.
+  # Sets the project to use soft wrapping.
   #
   # softTabs - A {Boolean} which, if `true`, sets soft wrapping
   setSoftWrap: (@softWrap) ->
 
-  # Public: Given a path to a file, this constructs and associates a new `EditSession`, showing the file.
+  # Given a path to a file, this constructs and associates a new `EditSession`, showing the file.
   #
   # filePath - The {String} path of the file to associate with
   # editSessionOptions - Options that you can pass to the `EditSession` constructor
@@ -158,55 +154,21 @@ class Project
     else
       @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
 
-  # Public: Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
+  # Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
   #
   # Returns an {Array} of {EditSession}s.
   getEditSessions: ->
     new Array(@editSessions...)
 
-  ###
-  # Internal #
-  ###
+  ### Public ###
 
-  buildEditSessionForBuffer: (buffer, editSessionOptions) ->
-    options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
-    options.project = this
-    options.buffer = buffer
-    editSession = new EditSession(options)
-    @editSessions.push editSession
-    @trigger 'edit-session-created', editSession
-    editSession
-
-  defaultEditSessionOptions: ->
-    tabLength: @tabLength
-    softTabs: @getSoftTabs()
-    softWrap: @getSoftWrap()
-
-  eachEditSession: (callback) ->
-    callback(editSession) for editSession in @getEditSessions()
-    @on 'edit-session-created', (editSession) -> callback(editSession)
-  
-  eachBuffer: (args...) ->
-    subscriber = args.shift() if args.length > 1
-    callback = args.shift()
-
-    callback(buffer) for buffer in @getBuffers()
-    if subscriber
-      subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
-    else
-      @on 'buffer-created', (buffer) -> callback(buffer)
-
-  ###
-  # Public #
-  ###
-
-  # Public: Removes an {EditSession} association from the project.
+  # Removes an {EditSession} association from the project.
   #
   # Returns the removed {EditSession}.
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
-  
-  # Public: Retrieves all the {Buffer}s in the project; that is, the buffers for all open files.
+
+  # Retrieves all the {Buffer}s in the project; that is, the buffers for all open files.
   #
   # Returns an {Array} of {Buffer}s.
   getBuffers: ->
@@ -215,7 +177,7 @@ class Project
       buffers.push editSession.buffer
     buffers
 
-  # Public: Given a file path, this retrieves or creates a new {Buffer}.
+  # Given a file path, this retrieves or creates a new {Buffer}.
   #
   # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
   # `text` is used as the contents of the new buffer.
@@ -233,7 +195,7 @@ class Project
     else
       @buildBuffer(null, text)
 
-  # Public: Given a file path, this sets its {Buffer}.
+  # Given a file path, this sets its {Buffer}.
   #
   # filePath - A {String} representing a path
   # text - The {String} text to use as a buffer
@@ -245,13 +207,13 @@ class Project
     @trigger 'buffer-created', buffer
     buffer
 
-  # Public: Removes a {Buffer} association from the project.
+  # Removes a {Buffer} association from the project.
   #
   # Returns the removed {Buffer}.
   removeBuffer: (buffer) ->
     _.remove(@buffers, buffer)
 
-  # Public: Performs a search across all the files in the project.
+  # Performs a search across all the files in the project.
   #
   # regex - A {RegExp} to search with
   # iterator - A {Function} callback on each file found
@@ -306,5 +268,35 @@ class Project
     args.unshift("--addVCSIgnores") if config.get('core.excludeVcsIgnoredPaths')
     new BufferedProcess({command, args, stdout, exit})
     deferred
+
+  ### Internal ###
+
+  buildEditSessionForBuffer: (buffer, editSessionOptions) ->
+    options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
+    options.project = this
+    options.buffer = buffer
+    editSession = new EditSession(options)
+    @editSessions.push editSession
+    @trigger 'edit-session-created', editSession
+    editSession
+
+  defaultEditSessionOptions: ->
+    tabLength: @tabLength
+    softTabs: @getSoftTabs()
+    softWrap: @getSoftWrap()
+
+  eachEditSession: (callback) ->
+    callback(editSession) for editSession in @getEditSessions()
+    @on 'edit-session-created', (editSession) -> callback(editSession)
+
+  eachBuffer: (args...) ->
+    subscriber = args.shift() if args.length > 1
+    callback = args.shift()
+
+    callback(buffer) for buffer in @getBuffers()
+    if subscriber
+      subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
+    else
+      @on 'buffer-created', (buffer) -> callback(buffer)
 
 _.extend Project.prototype, EventEmitter

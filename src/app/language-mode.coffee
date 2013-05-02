@@ -5,9 +5,7 @@ require 'underscore-extensions'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class LanguageMode
@@ -16,18 +14,20 @@ class LanguageMode
   editSession: null
   currentGrammarScore: null
 
-  # Public: Sets up a `LanguageMode` for the given {EditSession}.
+  ### Internal ###
+
+  destroy: ->
+    @unsubscribe()
+
+  ### Public ###
+
+  # Sets up a `LanguageMode` for the given {EditSession}.
   #
   # editSession - The {EditSession} to associate with
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
 
-  # Internal:
-  destroy: ->
-    @unsubscribe()
-
-
-  # Public: Wraps the lines between two rows in comments.
+  # Wraps the lines between two rows in comments.
   #
   # If the language doesn't have comment, nothing happens.
   #
@@ -74,7 +74,7 @@ class LanguageMode
         for row in [start..end]
           buffer.insert([row, 0], commentStartString)
 
-  # Public: Folds all the foldable lines in the buffer.
+  # Folds all the foldable lines in the buffer.
   foldAll: ->
     for currentRow in [0..@buffer.getLastRow()]
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
@@ -82,11 +82,16 @@ class LanguageMode
 
       @editSession.createFold(startRow, endRow)
 
-  # Public: Unfolds all the foldable lines in the buffer.
+  # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
     for row in [@buffer.getLastRow()..0]
       fold.destroy() for fold in @editSession.displayBuffer.foldsStartingAtBufferRow(row)
 
+  # Given a buffer row, creates a fold at it.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns the new {Fold}.
   foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       rowRange = @rowRangeForCommentAtBufferRow(currentRow)
@@ -96,7 +101,7 @@ class LanguageMode
       fold = @editSession.displayBuffer.largestFoldStartingAtBufferRow(startRow)
       return @editSession.createFold(startRow, endRow) unless fold
 
-  # Public: Given a buffer row, this unfolds it.
+  # Given a buffer row, this unfolds it.
   #
   # bufferRow - A {Number} indicating the buffer row
   unfoldBufferRow: (bufferRow) ->
@@ -140,7 +145,7 @@ class LanguageMode
       endRow = currentRow
     return [startRow, endRow] if startRow isnt endRow
 
-  # Public: Given a buffer row, this returns a suggested indentation level.
+  # Given a buffer row, this returns a suggested indentation level.
   #
   # The indentation level provided is based on the current {LanguageMode}.
   #
@@ -166,21 +171,21 @@ class LanguageMode
 
     Math.max(desiredIndentLevel, currentIndentLevel)
 
-  # Public: Indents all the rows between two buffer row numbers.
+  # Indents all the rows between two buffer row numbers.
   #
   # startRow - The row {Number} to start at
   # endRow - The row {Number} to end at
   autoIndentBufferRows: (startRow, endRow) ->
     @autoIndentBufferRow(row) for row in [startRow..endRow]
 
-  # Public: Given a buffer row, this indents it.
+  # Given a buffer row, this indents it.
   #
   # bufferRow - The row {Number}
   autoIndentBufferRow: (bufferRow) ->
     @autoIncreaseIndentForBufferRow(bufferRow)
     @autoDecreaseIndentForBufferRow(bufferRow)
 
-  # Public: Given a buffer row, this increases the indentation.
+  # Given a buffer row, this increases the indentation.
   #
   # bufferRow - The row {Number}
   autoIncreaseIndentForBufferRow: (bufferRow) ->
@@ -198,7 +203,7 @@ class LanguageMode
     if desiredIndentLevel > currentIndentLevel
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
-  # Public: Given a buffer row, this decreases the indentation.
+  # Given a buffer row, this decreases the indentation.
   #
   # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->

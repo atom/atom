@@ -11,7 +11,7 @@ _ = require 'underscore'
 module.exports =
 class Range
 
-  # Public: Constructs a `Range` from a given object.
+  # Constructs a `Range` from a given object.
   #
   # object - This can be an {Array} (`[startRow, startColumn, endRow, endColumn]`) or an object `{start: Point, end: Point}`
   #
@@ -24,7 +24,7 @@ class Range
     else
       new Range(object.start, object.end)
 
-  # Public: Constructs a `Range` from a {Point}, and the delta values beyond that point.
+  # Constructs a `Range` from a {Point}, and the delta values beyond that point.
   #
   # point - A {Point} to start with
   # rowDelta - A {Number} indicating how far from the starting {Point} the range's row should be
@@ -36,7 +36,7 @@ class Range
     pointB = new Point(point.row + rowDelta, point.column + columnDelta)
     new Range(pointA, pointB)
 
-  # Public: Creates a new `Range` object based on two {Point}s.
+  # Creates a new `Range` object based on two {Point}s.
   #
   # pointA - The first {Point} (default: `0, 0`)
   # pointB - The second {Point} (default: `0, 0`)
@@ -51,13 +51,13 @@ class Range
       @start = pointB
       @end = pointA
 
-  # Public: Creates an identical copy of the `Range`.
+  # Creates an identical copy of the `Range`.
   #
   # Returns a duplicate {Range}.
   copy: ->
     new Range(@start.copy(), @end.copy())
 
-  # Public: Identifies if two `Range`s are equal.
+  # Identifies if two `Range`s are equal.
   #
   # All four points (`start.row`, `start.column`, `end.row`, `end.column`) must be
   # equal for this method to return `true`.
@@ -71,7 +71,7 @@ class Range
 
     other.start.isEqual(@start) and other.end.isEqual(@end)
 
-  # Public: Identifies if the `Range` is on the same line.
+  # Identifies if the `Range` is on the same line.
   #
   # In other words, if `start.row` is equal to `end.row`.
   #
@@ -79,7 +79,7 @@ class Range
   isSingleLine: ->
     @start.row == @end.row
 
-  # Public: Identifies if two `Range`s are on the same line.
+  # Identifies if two `Range`s are on the same line.
   #
   # other - A different {Range} to check against
   #
@@ -87,11 +87,7 @@ class Range
   coversSameRows: (other) ->
     @start.row == other.start.row && @end.row == other.end.row
 
-  # Internal:
-  inspect: ->
-    "[#{@start.inspect()} - #{@end.inspect()}]"
-
-  # Public: Adds a new point to the `Range`s `start` and `end`.
+  # Adds a new point to the `Range`s `start` and `end`.
   #
   # point - A new {Point} to add
   #
@@ -99,7 +95,7 @@ class Range
   add: (point) ->
     new Range(@start.add(point), @end.add(point))
 
-  # Public: Moves a `Range`.
+  # Moves a `Range`.
   #
   # In other words, the starting and ending `row` values, and the starting and ending
   # `column` values, are added to each other.
@@ -111,7 +107,7 @@ class Range
   translate: (startPoint, endPoint=startPoint) ->
     new Range(@start.translate(startPoint), @end.translate(endPoint))
 
-  # Public: Identifies if two `Range`s intersect each other.
+  # Identifies if two `Range`s intersect each other.
   #
   # otherRange - A different {Range} to check against
   #
@@ -122,22 +118,22 @@ class Range
     else
       otherRange.intersectsWith(this)
 
-  # Public: Identifies if a second `Range` is contained within a first.
+  # Identifies if a second `Range` is contained within a first.
   #
   # otherRange - A different {Range} to check against
   # options - A hash with a single option:
-  #          :exclusive - A {Boolean} which, if `true`, indicates that no {Point}s in the `Range` can be equal
+  #          exclusive: A {Boolean} which, if `true`, indicates that no {Point}s in the `Range` can be equal
   #
   # Returns a {Boolean}.
   containsRange: (otherRange, {exclusive} = {}) ->
     { start, end } = Range.fromObject(otherRange)
     @containsPoint(start, {exclusive}) and @containsPoint(end, {exclusive})
 
-  # Public: Identifies if a `Range` contains a {Point}.
+  # Identifies if a `Range` contains a {Point}.
   #
   # point - A {Point} to check against
   # options - A hash with a single option:
-  #          :exclusive - A {Boolean} which, if `true`, indicates that no {Point}s in the `Range` can be equal
+  #          exclusive: A {Boolean} which, if `true`, indicates that no {Point}s in the `Range` can be equal
   #
   # Returns a {Boolean}.
   containsPoint: (point, {exclusive} = {}) ->
@@ -147,7 +143,7 @@ class Range
     else
       point.isGreaterThanOrEqual(@start) and point.isLessThanOrEqual(@end)
 
-  # Public: Identifies if a `Range` contains a row.
+  # Identifies if a `Range` contains a row.
   #
   # row - A row {Number} to check against
   # options - A hash with a single option:
@@ -156,7 +152,7 @@ class Range
   containsRow: (row) ->
     @start.row <= row <= @end.row
 
-  # Public: Constructs a union between two `Range`s.
+  # Constructs a union between two `Range`s.
   #
   # otherRange - A different {Range} to unionize with
   #
@@ -166,7 +162,7 @@ class Range
     end = if @end.isGreaterThan(otherRange.end) then @end else otherRange.end
     new Range(start, end)
 
-  # Public: Identifies if a `Range` is empty.
+  # Identifies if a `Range` is empty.
   #
   # A `Range` is empty if its start {Point} matches its end.
   #
@@ -174,7 +170,7 @@ class Range
   isEmpty: ->
     @start.isEqual(@end)
 
-  # Public: Calculates the difference between a `Range`s `start` and `end` points.
+  # Calculates the difference between a `Range`s `start` and `end` points.
   #
   # Returns a {Point}.
   toDelta: ->
@@ -185,8 +181,13 @@ class Range
       columns = @end.column
     new Point(rows, columns)
 
-  # Public: Calculates the number of rows a `Range`s contains.
+  # Calculates the number of rows a `Range`s contains.
   #
   # Returns a {Number}.
   getRowCount: ->
     @end.row - @start.row + 1
+
+  ### Internal ###
+
+  inspect: ->
+    "[#{@start.inspect()} - #{@end.inspect()}]"

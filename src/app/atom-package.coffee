@@ -6,9 +6,7 @@ $ = require 'jquery'
 CSON = require 'cson'
 
 
-###
-# Internal: Loads and resolves packages. #
-###
+### Internal: Loads and resolves packages. ###
 
 module.exports =
 class AtomPackage extends Package
