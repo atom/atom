@@ -280,13 +280,18 @@
 
 // The first call to terminate is canceled so that every window can be closed.
 // On AtomCefClient the OnBeforeClose method is called when a browser is
-// finished closing. Once all windows have finished closing, AtomCefClient calls
-// terminate again, which will terminate the application.
+// finished closing. Once all browsers have finished closing, AtomCefClient
+// calls terminate again, which will complete since no windows will be open.
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
-  if (self.windows.count > 0) {
-    for (NSWindow *window in self.windows) {
+  bool atomWindowsAreOpen = NO;
+  for (NSWindow *window in self.windows) {
+    if ([window.windowController isKindOfClass:[AtomWindowController class]]) {
+      atomWindowsAreOpen = YES;
       [window performClose:self];
     }
+  }
+  
+  if (atomWindowsAreOpen) {
     return NSTerminateCancel;
   }
   else {
