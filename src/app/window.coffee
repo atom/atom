@@ -30,7 +30,8 @@ window.setUpEnvironment = ->
 
   $(document).on 'click', 'a', (e) ->
     location = $(e.target).attr('href')
-    return unless location or location[0] is '#'
+    return unless location
+    return if location[0] is '#'
 
     if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
       require('child_process').spawn('open', [location]) if location
