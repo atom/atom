@@ -206,6 +206,15 @@ class Git
   getDiffStats: (path) ->
     @getRepo().getDiffStats(@relativize(path))
 
+# Get the blob contents of the given path at HEAD. Similar to git show HEAD:<path>.
+# 
+# path - The string repository-relative path.
+# 
+# Returns the string contents of the HEAD version of the path.
+
+  getHeadBlob: (path) ->
+    @getRepo().getHeadBlob(@relativize(path))
+    
   # Public: Identifies if a path is a submodule.
   #
   # path - The {String} path to check
