@@ -74,14 +74,10 @@ class MarkdownPreviewView extends ScrollView
   tokenizeCodeBlocks: (html) =>
     html = $(html)
     preList = $(html.filter("pre"))
-    editorBackgroundColor = $('.editor').css("background-color")
-    rawEditorTextColor = $('.editor .gfm .raw').css("color")
 
-    for codeBlock in preList.toArray()
-      $(codeBlock).css("background-color", editorBackgroundColor)
-      codeBlock = $(codeBlock.firstChild)
-      # set the default raw color of unhiglighted pre tags
-      codeBlock.css("color", rawEditorTextColor)
+    for preElement in preList.toArray()
+      $(preElement).addClass("editor-colors")
+      codeBlock = $(preElement.firstChild)
 
       # go to next block unless this one has a class
       continue unless className = codeBlock.attr('class')
@@ -90,22 +86,14 @@ class MarkdownPreviewView extends ScrollView
       # go to next block unless the class name is matches `lang`
       continue unless extension = fenceNameToExtension[fenceName]
       text = codeBlock.text()
-      syntax.selectGrammar("foo.#{extension}", text)
 
       # go to next block if this grammar is not mapped
       continue unless grammar = syntax.selectGrammar("foo.#{extension}", text)
       continue if grammar is syntax.nullGrammar
 
-      text = codeBlock.text()
-      tokens = grammar.tokenizeLines(text)
-      grouping = ""
-      for token in tokens
-        blockElem = $(Editor.buildHtmlLine(token, text))
-        grouping += blockElem.addClass("editor")[0].outerHTML
-
-      codeBlock.replaceWith(grouping)
-      # undo default coloring
-      codeBlock.css("color", "")
+      codeBlock.empty()
+      for tokens in grammar.tokenizeLines(text)
+        codeBlock.append(Editor.buildLineHtml({ tokens, text }))
 
     html
 

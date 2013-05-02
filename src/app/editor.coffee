@@ -43,7 +43,7 @@ class Editor extends View
         @div outlet: 'verticalScrollbarContent'
 
   @classes: ({mini} = {}) ->
-    classes = ['editor']
+    classes = ['editor', 'editor-colors']
     classes.push 'mini' if mini
     classes.join(' ')
 
@@ -1317,35 +1317,25 @@ class Editor extends View
 
   buildLineElementsForScreenRows: (startRow, endRow) ->
     div = document.createElement('div')
-    div.innerHTML = @buildHtmlLines(startRow, endRow)
+    div.innerHTML = @htmlForScreenRows(startRow, endRow)
     new Array(div.children...)
 
-  buildHtmlLines: (startRow, endRow) ->
+  htmlForScreenRows: (startRow, endRow) ->
     lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     htmlLines = []
     screenRow = startRow
     for line in @activeEditSession.linesForScreenRows(startRow, endRow)
-      htmlLines.push(@buildHtmlFromLine(line, screenRow++))
+      htmlLines.push(@htmlForScreenLine(line, screenRow++))
     htmlLines.join('\n\n')
 
-  @buildEmptyLineHtml: (guideIndentation, showInvisibles, activeEditSession) ->
+  @buildHtmlEmptyLine: (guideIndentation, showInvisibles, activeEditSession) ->
     if guideIndentation > 0
-      indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', @activeEditSession.getTabLength())}</span>"
-      return _.multiplyString(indentationHtml, indentation)
+      indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', activeEditSession.getTabLength())}</span>"
+      return _.multiplyString(indentationHtml, guideIndentation)
     else if not showInvisibles
       '&nbsp;'
 
-  buildEndOfLineInvisibles: (screenLine) ->
-    invisibles = []
-    for invisible in @getEndOfLineInvisibles(screenLine)
-      invisibles.push("<span class='invisible-character'>#{invisible}</span>")
-    invisibles.join('')
-
-  getEndOfLineInvisibles: (screenLine) ->
-    return [] unless @showInvisibles and @invisibles
-    return [] if @mini or screenLine.isSoftWrapped()
-    
-  buildLineHtml: (screenLine, screenRow) ->
+  buildHtmlFromLine: (screenLine, screenRow) ->
     { tokens, text, lineEnding, fold } =  screenLine
     if fold
       attributes = { class: 'fold line', 'fold-id': fold.id }
@@ -1368,7 +1358,10 @@ class Editor extends View
           break
 
     invisibles = @invisibles if @showInvisibles
-    Editor.buildLineHtmlHelper({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, attributes, guideIndentation, @showInvisibles, @activeEditSession, @mini})
+    Editor.buildHtmlHelper({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, attributes, guideIndentation, @showInvisibles, @activeEditSession, @mini})
+
+  @buildHtmlLine: (tokens, text) ->
+    @buildHtmlHelper( {tokens, text} )
 
   @buildHtmlHelper: ({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, attributes, guideIndentation, showInvisibles, activeEditSession, mini}) =>
     scopeStack = []
@@ -1399,8 +1392,11 @@ class Editor extends View
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of attributes
     line.push("<div #{attributePairs.join(' ')}>")
 
+    if showInvisibles
+      console.log invisibles
+
     if text == ''
-      html = Editor.buildEmptyLineHtml(guideIndentation, showInvisibles, activeEditSession)
+      html = Editor.buildHtmlEmptyLine(guideIndentation, showInvisibles, activeEditSession)
       line.push(html) if html
     else
       firstNonWhitespacePosition = text.search(/\S/)
@@ -1416,7 +1412,7 @@ class Editor extends View
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    if invisibles and not @mini and not isSoftWrapped
+    if invisibles and not mini and not isSoftWrapped
       if invisibles.cr and lineEnding is '\r\n'
         line.push("<span class='invisible-character'>#{invisibles.cr}</span>")
       if invisibles.eol
@@ -1567,6 +1563,73 @@ class Editor extends View
 
   logCursorScope: ->
     console.log @activeEditSession.getCursorScopes()
+
+  @buildLineHtml: ({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, attributes, guideIndentation, showInvisibles, activeEditSession, mini}) =>
+    scopeStack = []
+    line = []
+
+    updateScopeStack = (desiredScopes) ->
+      excessScopes = scopeStack.length - desiredScopes.length
+      _.times(excessScopes, popScope) if excessScopes > 0
+
+      # pop until common prefix
+      for i in [scopeStack.length..0]
+        break if _.isEqual(scopeStack[0...i], desiredScopes[0...i])
+        popScope()
+
+      # push on top of common prefix until scopeStack == desiredScopes
+      for j in [i...desiredScopes.length]
+        pushScope(desiredScopes[j])
+
+    pushScope = (scope) ->
+      scopeStack.push(scope)
+      line.push("<span class=\"#{scope.replace(/\./g, ' ')}\">")
+
+    popScope = ->
+      scopeStack.pop()
+      line.push("</span>")
+
+    attributePairs = []
+    attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of attributes
+    line.push("<div #{attributePairs.join(' ')}>")
+
+    if showInvisibles
+      console.log invisibles
+
+    if text == ''
+      html = @buildEmptyLineHtml(guideIndentation, showInvisibles, activeEditSession)
+      line.push(html) if html
+    else
+      firstNonWhitespacePosition = text.search(/\S/)
+      firstTrailingWhitespacePosition = text.search(/\s*$/)
+      lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
+      position = 0
+      for token in tokens
+        updateScopeStack(token.scopes)
+        hasLeadingWhitespace =  position < firstNonWhitespacePosition
+        hasTrailingWhitespace = position + token.value.length > firstTrailingWhitespacePosition
+        hasIndentGuide = not @mini and guideIndentation? and (hasLeadingWhitespace or lineIsWhitespaceOnly)
+        line.push(token.getValueAsHtml({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide}))
+        position += token.value.length
+
+    popScope() while scopeStack.length > 0
+    if invisibles and not mini and not isSoftWrapped
+      if invisibles.cr and lineEnding is '\r\n'
+        line.push("<span class='invisible-character'>#{invisibles.cr}</span>")
+      if invisibles.eol
+        line.push("<span class='invisible-character'>#{invisibles.eol}</span>")
+
+    line.push("<span class='fold-marker'/>") if fold
+
+    line.push('</div>')
+    line.join('')
+
+  @buildEmptyLineHtml: (guideIndentation, showInvisibles, activeEditSession) ->
+    if guideIndentation > 0
+      indentationHtml = "<span class='indent-guide'>#{_.multiplyString(' ', activeEditSession.getTabLength())}</span>"
+      return _.multiplyString(indentationHtml, guideIndentation)
+    else if not showInvisibles
+      '&nbsp;'
 
   transact: (fn) -> @activeEditSession.transact(fn)
   commit: -> @activeEditSession.commit()
