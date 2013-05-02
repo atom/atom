@@ -5,7 +5,7 @@ _ = require 'underscore'
 
 module.exports =
 class GrammarSelector extends SelectList
-  @viewClass: -> "#{super} grammar-selector from-top overlay mini"
+  @viewClass: -> "#{super} grammar-selector from-top overlay"
 
   @activate: ->
     rootView.command 'grammar-selector:show', '.editor', => new GrammarSelector()
