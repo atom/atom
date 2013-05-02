@@ -34,7 +34,7 @@ window.setUpEnvironment = ->
     return if location[0] is '#'
 
     if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
-      require('child_process').spawn('open', [location]) if location
+      require('child_process').spawn('open', [location])
     false
 
   keymap.bindDefaultKeys()
