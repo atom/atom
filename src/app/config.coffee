@@ -110,7 +110,6 @@ class Config
     _.valueForKeyPath(@settings, keyPath) ?
       _.valueForKeyPath(@defaultSettings, keyPath)
 
-
   # Retrieves the setting for the given key as an integer.
   #
   # keyPath - The {String} name of the key to retrieve
@@ -130,7 +129,7 @@ class Config
   # or `defaultValue` if the key value isn't greater than zero.
   getPositiveInt: (keyPath, defaultValue) ->
     Math.max(@getInt(keyPath), 0) or defaultValue
-    
+
   # Sets the value for a configuration setting.
   #
   # This value is stored in Atom's internal configuration file.
@@ -166,7 +165,7 @@ class Config
     subscription
 
   ### Internal ###
-  
+
   setDefaults: (keyPath, defaults) ->
     keys = keyPath.split('.')
     hash = @defaultSettings
