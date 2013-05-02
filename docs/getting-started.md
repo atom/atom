@@ -30,8 +30,8 @@ bindings, but here's a list of a few useful commands.
 - `meta-g` : repeat the last local search
 - `meta-shift-f` : open command prompt with `Xx/` for a project-wide search
 - `meta-\` : focus/open tree view, or close it when it is focused
-- `meta-shift-\` : open tree view with the current file selected
-- `ctrl-w v`, `ctrl-shift-|` : split screen vertically
+- `meta-|` : open tree view with the current file selected
+- `ctrl-w v`, `ctrl-|` : split screen vertically
 - `ctrl-w s`, `ctrl--` : split screen horizontally
 - `meta-l` : go to line
 
@@ -111,14 +111,14 @@ operate on the whole buffer.
 
 ### Split Panes
 
-You can split any editor pane horizontally or vertically by using `ctrl-shift-|` or
+You can split any editor pane horizontally or vertically by using `ctrl-\` or
 `ctrl-w v`. Once you have a split pane, you can move focus between them with
 `ctrl-tab` or `ctrl-w w`. To close a pane, close all tabs inside it.
 
 ### Folding
 
-You can fold everything with `ctrl-shift-[` and unfold everything with
-`ctrl-shift-]`. Or, you can fold / unfold by a single level with `ctrl-[` and
+You can fold everything with `ctrl-{` and unfold everything with
+`ctrl-}`. Or, you can fold / unfold by a single level with `ctrl-[` and
 `ctrl-]`. The user interaction around folds is still a bit rough, but we're
 planning to improve it soon.
 
