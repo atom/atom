@@ -30,17 +30,6 @@ class ConfigPanel extends View
             value = @parseValue(type, value)
           config.set(name, value)
 
-  parseValue: (type, value) ->
-    switch type
-      when 'int'
-        intValue = parseInt(value)
-        value = intValue unless isNaN(intValue)
-      when 'float'
-        floatValue = parseFloat(value)
-        value = floatValue unless isNaN(floatValue)
-    value = undefined if value == ''
-    value
-
   bindEditors: ->
     for editor in @find('.editor[id]').views()
       do (editor) =>
@@ -55,3 +44,14 @@ class ConfigPanel extends View
         editor.getBuffer().one 'contents-modified', =>
           editor.getBuffer().on 'contents-modified', =>
             config.set(name, @parseValue(type, editor.getText()))
+
+  parseValue: (type, value) ->
+    switch type
+      when 'int'
+        intValue = parseInt(value)
+        value = intValue unless isNaN(intValue)
+      when 'float'
+        floatValue = parseFloat(value)
+        value = floatValue unless isNaN(floatValue)
+    value = undefined if value == ''
+    value
