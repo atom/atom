@@ -1,3 +1,5 @@
+* Fixed: End of line invisibles rendering incorrectly with the indent guide
+* Fixed: Updates not installing automatically on restart
 * Fixed: Wrap guide not displaying
 * Fixed: Error when saving with the markdown preview focused
 
