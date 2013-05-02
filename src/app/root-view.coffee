@@ -216,7 +216,6 @@ class RootView extends View
   eachBuffer: (callback) ->
     project.eachBuffer(callback)
 
-
   ### Internal ###
 
   # Destroys everything.

@@ -166,16 +166,6 @@ class Config
 
   ### Internal ###
 
-  setDefaults: (keyPath, defaults) ->
-    keys = keyPath.split('.')
-    hash = @defaultSettings
-    for key in keys
-      hash[key] ?= {}
-      hash = hash[key]
-
-    _.extend hash, defaults
-    @update()
-
   update: ->
     return if @configFileHasErrors
     @save()
