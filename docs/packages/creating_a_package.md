@@ -24,7 +24,7 @@ Let's get started!
 ## Changing Keybindings and Commands
 
 Since Changer is primarily concerned with the file tree, let's write a keybinding
-that works only when the tree is active. Instead of using the default `toggle`,
+that works only when the tree is focused. Instead of using the default `toggle`,
 our keybinding executes a new command called `magic`.
 
 _keymaps/changer.cson_ can easily become this:
@@ -34,9 +34,13 @@ _keymaps/changer.cson_ can easily become this:
   'ctrl-V': 'changer:magic'
 ```
 
-`.tree-view-scroller` represents the parent container for the tree view. Also,
-notice that the keybinding is called `ctrl-V`--that's actually `ctrl-shift-v`.
+Notice that the keybinding is called `ctrl-V`--that's actually `ctrl-shift-v`.
 You can use capital letters to denote using `shift` for your binding.
+
+`.tree-view-scroller` represents the parent container for the tree view. Keybindings
+only work within the context of where they're entered. For example, hitting `ctrl-V`
+anywhere other than tree won't do anything. You can map to `body` if you want
+to scope to anywhere in Atom, or just `.editor` for the editor portion.
 
 To bind keybindings to a command, we'll use the `rootView.command` method. This
 takes a command name and executes a function in the code. For example:
@@ -60,13 +64,59 @@ Hitting the key binding on the tree now works!
 ## Working with styles
 
 The next step is to hide elements in the tree that aren't modified. To do that,
-we'll first (obviously) try and get a list of files that have not changed.
+we'll first try and get a list of files that have not changed.
 
-All packages are able to use jQuery in their code. So let's include that at the top:
+All packages are able to use jQuery in their code. In fact, we have [a list of 
+some of the bundled libraries Atom provides by default](./included_libraries.md).
+
+Let's bring in jQuery:
 
 ```coffeescript
 $ = require 'jquery'
 ```
 
-Now, we can query the tree to get us a list of every file that _wasn't_ modified
-using some jQuery syntax.
+Now, we can query the tree to get us a list of every file that _wasn't_ modified:
+
+```coffeescript
+magic: ->
+  $('ol.entries li').each (i, el) ->
+    if !$(el).hasClass("modified")
+      console.log el
+```
+
+You can access the dev console by hitting `alt-meta-i`. When we execute the 
+`changer:magic` command, the browser console lists the items that are not being 
+modified. Let's add a class to each of these elements called `hide-me`:
+
+``coffeescript
+magic: ->
+  $('ol.entries li').each (i, el) ->
+    if !$(el).hasClass("modified")
+      $(el).addClass("hide-me")
+```
+
+With our newly added class, we can manipulate the visibility of the elements
+with a simple stylesheet. Open up _changer.css_ in the _stylesheets_ directory,
+and add a single entry:
+
+```css
+ol.entries .hide-me {
+  display: none;
+}
+```
+
+Refresh atom, and run the `changer` command. You'll see all the non-changed files
+disappear from the tree. There are a number of ways you can get the list back;
+let's just naively iterate over the same elements and remove the class:
+
+ ``coffeescript
+magic: ->
+   $('ol.entries li').each (i, el) ->
+     if !$(el).hasClass("modified")
+       if !$(el).hasClass("hide-me")
+         $(el).addClass("hide-me")
+       else
+         $(el).removeClass("hide-me")
+ ```
+
+## Creating a New Pane
