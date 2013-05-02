@@ -27,6 +27,15 @@ window.setUpEnvironment = ->
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
   $(document).on 'keydown', keymap.handleKeyEvent
+
+  $(document).on 'click', 'a', (e) ->
+    location = $(e.target).attr('href')
+    return unless location or location[0] is '#'
+
+    if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
+      require('child_process').spawn('open', [location]) if location
+    false
+
   keymap.bindDefaultKeys()
 
   requireStylesheet 'atom'
