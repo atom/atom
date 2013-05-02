@@ -179,23 +179,24 @@ class BufferMarker
   ###
 
   tryToInvalidate: (changedRange) ->
-    betweenStartAndEnd = @getRange().containsRange(changedRange, exclusive: false)
-    containsStart = changedRange.containsPoint(@getStartPosition(), exclusive: true)
-    containsEnd = changedRange.containsPoint(@getEndPosition(), exclusive: true)
     previousRange = @getRange()
-    switch @invalidationStrategy
-      when 'between'
-        @invalidate() if betweenStartAndEnd or containsStart or containsEnd
-      when 'contains'
-        @invalidate() if containsStart or containsEnd
-      when 'never'
-        if containsStart or containsEnd
-          if containsStart and containsEnd
-            @setRange([changedRange.end, changedRange.end])
-          else if containsStart
-            @setRange([changedRange.end, @getEndPosition()])
-          else
-            @setRange([@getStartPosition(), changedRange.start])
+    if changedRange
+      betweenStartAndEnd = @getRange().containsRange(changedRange, exclusive: false)
+      containsStart = changedRange.containsPoint(@getStartPosition(), exclusive: true)
+      containsEnd = changedRange.containsPoint(@getEndPosition(), exclusive: true)
+      switch @invalidationStrategy
+        when 'between'
+          @invalidate() if betweenStartAndEnd or containsStart or containsEnd
+        when 'contains'
+          @invalidate() if containsStart or containsEnd
+        when 'never'
+          if containsStart or containsEnd
+            if containsStart and containsEnd
+              @setRange([changedRange.end, changedRange.end])
+            else if containsStart
+              @setRange([changedRange.end, @getEndPosition()])
+            else
+              @setRange([@getStartPosition(), changedRange.start])
     [@id, previousRange]
 
   handleBufferChange: (bufferChange) ->

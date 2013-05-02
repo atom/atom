@@ -21,14 +21,15 @@ class BufferChangeOperation
   do: ->
     @buffer.pauseEvents()
     @pauseMarkerObservation()
-    @oldText = @buffer.getTextInRange(@oldRange)
-    @newRange = @calculateNewRange(@oldRange, @newText)
     @markersToRestoreOnUndo = @invalidateMarkers(@oldRange)
-    newRange = @changeBuffer
-      oldRange: @oldRange
-      newRange: @newRange
-      oldText: @oldText
-      newText: @newText
+    if @oldRange?
+      @oldText = @buffer.getTextInRange(@oldRange)
+      @newRange = @calculateNewRange(@oldRange, @newText)
+      newRange = @changeBuffer
+        oldRange: @oldRange
+        newRange: @newRange
+        oldText: @oldText
+        newText: @newText
     @restoreMarkers(@markersToRestoreOnRedo) if @markersToRestoreOnRedo
     @buffer.resumeEvents()
     @resumeMarkerObservation()
@@ -38,11 +39,12 @@ class BufferChangeOperation
     @buffer.pauseEvents()
     @pauseMarkerObservation()
     @markersToRestoreOnRedo = @invalidateMarkers(@newRange)
-    @changeBuffer
-      oldRange: @newRange
-      newRange: @oldRange
-      oldText: @newText
-      newText: @oldText
+    if @oldRange?
+      @changeBuffer
+        oldRange: @newRange
+        newRange: @oldRange
+        oldText: @newText
+        newText: @oldText
     @restoreMarkers(@markersToRestoreOnUndo)
     @buffer.resumeEvents()
     @resumeMarkerObservation()
@@ -107,7 +109,7 @@ class BufferChangeOperation
 
   resumeMarkerObservation: ->
     marker.resumeEvents() for marker in @buffer.getMarkers(includeInvalid: true)
-    @buffer.trigger 'markers-updated'
+    @buffer.trigger 'markers-updated' if @oldRange?
 
   updateMarkers: (bufferChange) ->
     marker.handleBufferChange(bufferChange) for marker in @buffer.getMarkers()

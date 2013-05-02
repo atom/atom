@@ -376,17 +376,30 @@ class Buffer
       operation.do()
 
   # Internal:
-  transact: (fn) ->  @undoManager.transact(fn)
+  transact: (fn) ->
+    if isNewTransaction = @undoManager.transact()
+      @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on undo
+    if fn
+      try
+        fn()
+      finally
+        @commit() if isNewTransaction
+
+  commit: ->
+    @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on redo
+    @undoManager.commit()
+
+  abort: -> @undoManager.abort()
+
   # Public: Undos the last operation.
   #
   # editSession - The {EditSession} associated with the buffer.
   undo: (editSession) -> @undoManager.undo(editSession)
+
   # Public: Redos the last operation.
   #
   # editSession - The {EditSession} associated with the buffer.
   redo: (editSession) -> @undoManager.redo(editSession)
-  commit: -> @undoManager.commit()
-  abort: -> @undoManager.abort()
 
   # Public: Saves the buffer.
   save: ->

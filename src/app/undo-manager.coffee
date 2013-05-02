@@ -31,11 +31,6 @@ class UndoManager
   transact: (fn) ->
     isNewTransaction = not @currentTransaction?
     @currentTransaction ?= []
-    if fn
-      try
-        fn()
-      finally
-        @commit() if isNewTransaction
     isNewTransaction
 
   commit: ->
@@ -61,7 +56,6 @@ class UndoManager
         opsInReverse = new Array(batch...)
         opsInReverse.reverse()
         op.undo?(editSession) for op in opsInReverse
-
         @redoHistory.push batch
         batch.oldSelectionRanges
     catch e

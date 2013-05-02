@@ -618,26 +618,11 @@ class EditSession
   # Internal #
   ###
 
-  transact: (fn) ->
-    isNewTransaction = @buffer.transact()
-    oldSelectedRanges = @getSelectedBufferRanges()
-    @pushOperation
-      undo: (editSession) ->
-        editSession?.setSelectedBufferRanges(oldSelectedRanges, preserveFolds: true)
-    if fn
-      result = fn()
-      @commit() if isNewTransaction
-      result
+  transact: (fn) -> @buffer.transact(fn)
 
-  commit: ->
-    newSelectedRanges = @getSelectedBufferRanges()
-    @pushOperation
-      redo: (editSession) ->
-        editSession?.setSelectedBufferRanges(newSelectedRanges, preserveFolds: true)
-    @buffer.commit()
+  commit: -> @buffer.commit()
 
-  abort: ->
-    @buffer.abort()
+  abort: -> @buffer.abort()
 
   ###
   # Public #

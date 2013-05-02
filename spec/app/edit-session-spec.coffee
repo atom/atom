@@ -2061,16 +2061,6 @@ describe "EditSession", ->
         expect(editSession.isFoldedAtBufferRow(1)).toBeFalsy()
         expect(editSession.isFoldedAtBufferRow(2)).toBeTruthy()
 
-      it "restores selected ranges even when the change occurred in another edit session", ->
-        otherEditSession = project.buildEditSession(editSession.getPath())
-        otherEditSession.setSelectedBufferRange([[2, 2], [3, 3]])
-        otherEditSession.delete()
-
-        editSession.undo()
-
-        expect(editSession.getSelectedBufferRange()).toEqual [[2, 2], [3, 3]]
-        expect(otherEditSession.getSelectedBufferRange()).toEqual [[3, 3], [3, 3]]
-
     describe ".transact([fn])", ->
       describe "when called without a function", ->
         it "restores the selection when the transaction is undone/redone", ->
