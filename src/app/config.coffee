@@ -144,7 +144,7 @@ class Config
 
   # Public: Establishes an event listener for a given key.
   #
-  # Whenever the value of the key is changed, a callback is fired.
+  # `callback` is fired immediately and whenever the value of the key is changed
   #
   # keyPath - The {String} name of the key to watch
   # callback - The {Function} that fires when the. It is given a single argument, `value`,
