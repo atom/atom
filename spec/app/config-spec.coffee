@@ -1,11 +1,16 @@
 fsUtils = require 'fs-utils'
 
 describe "Config", ->
-  describe ".get(keyPath) and .set(keyPath, value)", ->
-    it "allows a key path's value to be read and written", ->
+  describe ".get(keyPath)", ->
+    it "allows a key path's value to be read", ->
       expect(config.set("foo.bar.baz", 42)).toBe 42
       expect(config.get("foo.bar.baz")).toBe 42
       expect(config.get("bogus.key.path")).toBeUndefined()
+
+  describe ".set(keyPath, value)", ->
+    it "allows a key path's value to be written", ->
+      expect(config.set("foo.bar.baz", 42)).toBe 42
+      expect(config.get("foo.bar.baz")).toBe 42
 
     it "updates observers and saves when a key path is set", ->
       observeHandler = jasmine.createSpy "observeHandler"
@@ -16,6 +21,17 @@ describe "Config", ->
 
       expect(config.save).toHaveBeenCalled()
       expect(observeHandler).toHaveBeenCalledWith 42
+
+    describe "when the value equals the default value", ->
+      it "does not store the value", ->
+        config.setDefaults("foo", same: 1, changes: 1)
+        expect(config.settings.foo).toBeUndefined()
+        config.set('foo.same', 1)
+        config.set('foo.changes', 2)
+        expect(config.settings.foo).toEqual {changes: 2}
+
+        config.set('foo.changes', 1)
+        expect(config.settings.foo).toEqual {}
 
   describe ".getPositiveInt(keyPath, defaultValue)", ->
     it "returns the proper current or default value", ->
