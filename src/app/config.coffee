@@ -46,7 +46,6 @@ class Config
 
     fsUtils.makeDirectory(@configDirPath)
 
-
     queue = async.queue ({sourcePath, destinationPath}, callback) =>
       fsUtils.copy(sourcePath, destinationPath, callback)
     queue.drain = done
