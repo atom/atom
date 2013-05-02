@@ -17,11 +17,13 @@ class ConfigPanel extends View
         input = $(input)
         name = input.attr('id')
         type = input.attr('type')
+
         @observeConfig name, (value) ->
           if type is 'checkbox'
             input.attr('checked', value)
           else
             input.val(value) if value
+
         input.on 'change', =>
           value = input.val()
           if type == 'checkbox'
