@@ -92,7 +92,7 @@ class Token
           "<span class='#{classes}'>#{match}</span>"
       if hasTrailingWhitespace
         classes = []
-        classes.push('indent-guide') if hasIndentGuide
+        classes.push('indent-guide') if hasIndentGuide and not hasLeadingWhitespace
         classes.push('invisible-character') if invisibles.space
         classes.push('trailing-whitespace')
         classes = classes.join(' ')

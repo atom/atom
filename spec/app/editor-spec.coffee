@@ -1551,6 +1551,15 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
+      describe "when the line has leading and trailing whitespace", ->
+        it "does not display the indent guide in the trailing whitespace", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          editor.insertText("/*\n * \n*/")
+          expect(editor.renderedLines.find('.line:eq(1) .indent-guide').length).toBe 1
+          expect(editor.renderedLines.find('.line:eq(1) .indent-guide')).toHaveClass('leading-whitespace')
+
       describe "when the line is empty and end of show invisibles are enabled", ->
         it "renders the indent guides interleaved the end of line invisibles", ->
           editor.attachToDom()
