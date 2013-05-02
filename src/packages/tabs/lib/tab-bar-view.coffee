@@ -95,8 +95,7 @@ class TabBarView extends View
 
   onDragEnd: (event) =>
     @find(".is-dragging").removeClass 'is-dragging'
-    @children('.is-drop-target').removeClass 'is-drop-target'
-    @children('.drop-target-is-after').removeClass 'drop-target-is-after'
+    @removeDropTargetClasses()
 
   onDragOver: (event) =>
     unless event.originalEvent.dataTransfer.getData('atom-event') is 'true'
@@ -104,24 +103,25 @@ class TabBarView extends View
       event.stopPropagation()
       return
 
+    @removeDropTargetClasses()
+
     event.preventDefault()
-    currentDropTargetIndex = @find(".is-drop-target").index()
     newDropTargetIndex = @getDropTargetIndex(event)
 
-    if newDropTargetIndex != currentDropTargetIndex
-      @children().removeClass 'is-drop-target drop-target-is-after'
-      sortableObjects = @find(".sortable")
-      if newDropTargetIndex < sortableObjects.length
-        sortableObjects.eq(newDropTargetIndex).addClass 'is-drop-target'
-      else
-        sortableObjects.eq(newDropTargetIndex - 1).addClass 'drop-target-is-after'
-
+    sortableObjects = @find(".sortable")
+    if newDropTargetIndex < sortableObjects.length
+      sortableObjects.eq(newDropTargetIndex).addClass 'is-drop-target'
+    else
+      sortableObjects.eq(newDropTargetIndex - 1).addClass 'drop-target-is-after'
 
   onDrop: (event) =>
     unless event.originalEvent.dataTransfer.getData('atom-event') is 'true'
       event.preventDefault()
       event.stopPropagation()
       return
+
+    @find(".is-dragging").removeClass 'is-dragging'
+    @removeDropTargetClasses()
 
     event.stopPropagation()
 
@@ -141,6 +141,11 @@ class TabBarView extends View
       fromPane.moveItemToPane(item, toPane, toIndex--)
     toPane.showItem(item)
     toPane.focus()
+
+  removeDropTargetClasses: ->
+    console.log rootView.find('.tabs .is-drop-target').length
+    rootView.find('.tabs .is-drop-target').removeClass 'is-drop-target'
+    rootView.find('.tabs .drop-target-is-after').removeClass 'drop-target-is-after'
 
   getDropTargetIndex: (event) ->
     el = $(event.target).closest('.sortable')
