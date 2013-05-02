@@ -118,10 +118,21 @@ describe "ConfigPanel", ->
     class TestPanel extends ConfigPanel
       @content: ->
         @div =>
-          @subview "foo.int", new Editor(mini: true, attributes: {id: 'foo.int', type: 'int'})
+          @subview "fooInt", new Editor(mini: true, attributes: {id: 'foo.int', type: 'int'})
 
     config.set('foo.int', 1)
-    spyOn(config, 'set')
-    new TestPanel
+    observeHandler = jasmine.createSpy("observeHandler")
+    config.observe "foo.int", observeHandler
+    observeHandler.reset()
+
+    testPanel = new TestPanel
     window.advanceClock(10000) # wait for contents-modified to be triggered
-    expect(config.set).not.toHaveBeenCalled()
+    expect(observeHandler).not.toHaveBeenCalled()
+
+    testPanel.fooInt.setText("1")
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(observeHandler).not.toHaveBeenCalled()
+
+    testPanel.fooInt.setText("2")
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(observeHandler).toHaveBeenCalled()
