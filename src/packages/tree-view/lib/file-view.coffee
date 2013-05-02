@@ -1,6 +1,5 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
-Git = require 'git'
 fsUtils = require 'fs-utils'
 
 module.exports =

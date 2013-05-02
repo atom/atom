@@ -2,7 +2,6 @@
 FileView = require './file-view'
 Directory = require 'directory'
 $ = require 'jquery'
-Git = require 'git'
 
 module.exports =
 class DirectoryView extends View
