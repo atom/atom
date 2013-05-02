@@ -19,6 +19,16 @@
     li {
       padding: 10px;
       display: block;
+
+      &.two-lines {
+        padding: 5px 10px 5px 10px;
+      }
+
+      .primary-line, .secondary-line {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
     }
 
     li:last-child {
