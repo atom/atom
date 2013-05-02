@@ -775,7 +775,7 @@ class EditSession
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
-  # {Delegates to: TextBuffer.destroyMarker}
+  # {Delegates to: Buffer.getMarkerCount}
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
@@ -1276,6 +1276,12 @@ class EditSession
   expandLastSelectionOverWord: ->
     @getLastSelection().expandOverWord()
 
+  # Selects the buffer range of the given marker.
+  #
+  # id - A {Number} indicating the marker's id
+  #
+  # Returns a {Boolean} value that is `true` if the marker contains a buffer
+  # range.
   selectMarker: (id) ->
     if bufferRange = @getMarkerBufferRange(id)
       @setSelectedBufferRange(bufferRange)
@@ -1333,19 +1339,15 @@ class EditSession
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
 
-  # Retrieves the current {EditSession}'s grammar.
-  #
-  # Returns a {String} indicating the language's grammar rules.
+  # {Delegates to: DisplayBuffer.getGrammar}
   getGrammar: ->
     @displayBuffer.getGrammar()
 
-  # Sets the current {EditSession}'s grammar.
-  #
-  # grammar - A {String} indicating the language's grammar rules.
+  # {Delegates to: DisplayBuffer.setGrammar}
   setGrammar: (grammar) ->
     @displayBuffer.setGrammar(grammar)
 
-  # Reloads the current grammar.
+  # {Delegates to: DisplayBuffer.reloadGrammar}
   reloadGrammar: ->
     @displayBuffer.reloadGrammar()
 

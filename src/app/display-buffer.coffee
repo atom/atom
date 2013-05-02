@@ -306,12 +306,17 @@ class DisplayBuffer
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
 
+  # Retrieves the grammar for the buffer.
   getGrammar: ->
     @tokenizedBuffer.grammar
 
+  # Sets the grammar for the buffer.
+  #
+  # grammar - Sets the new grammar rules
   setGrammar: (grammar) ->
     @tokenizedBuffer.setGrammar(grammar)
 
+  # Reloads the current grammar.
   reloadGrammar: ->
     @tokenizedBuffer.reloadGrammar()
 

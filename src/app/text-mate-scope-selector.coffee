@@ -1,7 +1,7 @@
 PEG = require 'pegjs'
 fsUtils = require 'fs-utils'
 
-# Public: Test a stack of scopes to see if they match a scope selector.
+# Internal: Test a stack of scopes to see if they match a scope selector.
 module.exports =
 class TextMateScopeSelector
   @parser: null

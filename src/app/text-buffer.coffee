@@ -207,6 +207,11 @@ class Buffer
   lineForRow: (row) ->
     @lines[row]
 
+  # Given a row, returns its line ending.
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {String}, or `undefined` if `row` is the final row.
   lineEndingForRow: (row) ->
     @lineEndings[row] unless row is @getLastRow()
 
@@ -221,6 +226,11 @@ class Buffer
   lineLengthForRow: (row) ->
     @lines[row].length
 
+  # Given a row, returns the length of the line ending
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {Number}.
   lineEndingLengthForRow: (row) ->
     (@lineEndingForRow(row) ? '').length
 
@@ -366,8 +376,6 @@ class Buffer
   #
   # editSession - The {EditSession} associated with the buffer.
   redo: (editSession) -> @undoManager.redo(editSession)
-  commit: -> @undoManager.commit()
-  abort: -> @undoManager.abort()
 
   # Saves the buffer.
   save: ->
@@ -405,6 +413,9 @@ class Buffer
   # Returns a {Boolean}.
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
+  # Retrieves all the valid markers in the buffer.
+  #
+  # Returns an {Array} of {BufferMarker}s.
   getMarkers: ->
     _.values(@validMarkers)
 
@@ -445,9 +456,21 @@ class Buffer
     delete @validMarkers[id]
     delete @invalidMarkers[id]
 
+  # Retrieves the positions of every marker's head.
+  #
+  # Returns an {Array} of {Point}s.
   getMarkerPosition: (args...) ->
     @getMarkerHeadPosition(args...)
 
+  # Sets the positions of every marker's head.
+  #
+  # id - A {Number} representing the marker to change
+  # position - The new {Point} to place the head
+  # options - A hash with the following keys:
+  #         clip: if `true`, the point is [clipped]{Buffer.clipPosition}
+  #         bufferChanged: if `true`, indicates that the {Buffer} should trigger an event that it's changed
+  #
+  # Returns a {Point} representing the new head position.
   setMarkerPosition: (args...) ->
     @setMarkerHeadPosition(args...)
 
@@ -707,6 +730,10 @@ class Buffer
     @file? && @file.exists()
 
   ### Internal ###
+
+  commit: -> @undoManager.commit()
+
+  abort: -> @undoManager.abort()
 
   change: (oldRange, newText, options) ->
     oldRange = Range.fromObject(oldRange)

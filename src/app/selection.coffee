@@ -281,7 +281,7 @@ class Selection
   # Indents the selection.
   #
   # options - A hash with one key, `autoIndent`. If `true`, the indentation is
-  #           performed appropriately. Otherwise, {EditSession#getTabText} is used
+  #           performed appropriately. Otherwise, {EditSession.getTabText} is used
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 
@@ -499,6 +499,11 @@ class Selection
     fn()
     @retainSelection = false
 
+  # Sets the marker's tail to the same position as the marker's head.
+  #
+  # This only works if there isn't already a tail position.
+  #
+  # Returns a {Point} representing the new tail position.
   placeTail: ->
     @editSession.placeMarkerTail(@marker)
 
