@@ -1,3 +1,4 @@
+* Improved: App icon
 * Fixed: End of line invisibles rendering incorrectly with the indent guide
 * Fixed: Updates not installing automatically on restart
 * Fixed: Wrap guide not displaying
