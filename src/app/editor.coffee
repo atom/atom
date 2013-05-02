@@ -823,7 +823,7 @@ class Editor extends View
 
     @underlayer.on 'mousedown', (e) =>
       @renderedLines.trigger(e)
-      false
+      false if @isFocused
 
     @overlayer.on 'mousedown', (e) =>
       @overlayer.hide()
