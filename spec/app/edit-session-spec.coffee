@@ -1347,14 +1347,14 @@ describe "EditSession", ->
             editSession.backspace()
 
         describe "when the cursor is on the first column of a line below a fold", ->
-          it "absorbs the current line into the fold", ->
+          it "deletes the folded lines", ->
             editSession.setCursorScreenPosition([4,0])
             editSession.foldCurrentRow()
             editSession.setCursorScreenPosition([5,0])
             editSession.backspace()
 
-            expect(buffer.lineForRow(7)).toBe "    }    return sort(left).concat(pivot).concat(sort(right));"
-            expect(buffer.lineForRow(8)).toBe "  };"
+            expect(buffer.lineForRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(buffer.lineForRow(4).fold).toBeUndefined()
 
         describe "when the cursor is in the middle of a line below a fold", ->
           it "backspaces as normal", ->
@@ -1371,6 +1371,7 @@ describe "EditSession", ->
             editSession.setCursorBufferPosition([3, 0])
             editSession.foldCurrentRow()
             editSession.backspace()
+
             expect(buffer.lineForRow(1)).toBe ""
             expect(buffer.lineForRow(2)).toBe "  return sort(Array.apply(this, arguments));"
             expect(editSession.getCursorScreenPosition()).toEqual [1, 0]
@@ -1434,14 +1435,13 @@ describe "EditSession", ->
           expect(editSession.buffer.lineForRow(0)).toBe 'var qsort = function () {'
 
         describe "when the selection ends on a folded line", ->
-          it "destroys the fold", ->
+          it "preserves the fold", ->
             editSession.setSelectedBufferRange([[3,0], [4,0]])
             editSession.foldBufferRow(4)
             editSession.backspace()
 
-            expect(buffer.lineForRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
-            expect(buffer.lineForRow(4)).toBe "  };"
-            expect(editSession.getCursorScreenPosition()).toEqual [3, 0]
+            expect(buffer.lineForRow(3)).toBe "    while(items.length > 0) {"
+            expect(editSession.lineForScreenRow(3).fold).toBeDefined()
 
       describe "when there are multiple selections", ->
         it "removes all selected text", ->

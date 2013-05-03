@@ -352,12 +352,7 @@ class Selection
 
   # Public: Performs a backspace, removing the character found behind the selection.
   backspace: ->
-    if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
-      if @cursor.isAtBeginningOfLine() and @editSession.isFoldedAtScreenRow(@cursor.getScreenRow() - 1)
-        @selectToBufferPosition([@cursor.getBufferRow() - 1, Infinity])
-      else
-        @selectLeft()
-
+    @selectLeft() if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
 
   # Public: Performs a backspace to the beginning of the current word, removing characters found there.
@@ -390,10 +385,8 @@ class Selection
   # Public: Deletes the selected text.
   deleteSelectedText: ->
     bufferRange = @getBufferRange()
-    if fold = @editSession.largestFoldContainingBufferRow(bufferRange.end.row)
-      includeNewline = bufferRange.start.column == 0 or bufferRange.start.row >= fold.startRow
-      bufferRange = bufferRange.union(fold.getBufferRange({ includeNewline }))
-
+    if bufferRange.isEmpty() and fold = @editSession.largestFoldContainingBufferRow(bufferRange.start.row)
+      bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: true))
     @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
     @cursor?.setBufferPosition(bufferRange.start)
 

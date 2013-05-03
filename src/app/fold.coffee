@@ -25,8 +25,12 @@ class Fold
     @marker.destroy()
 
   # Returns the fold's {Range} in buffer coordinates
-  getBufferRange: ->
-    @marker.getRange()
+  getBufferRange: ({includeNewline}={}) ->
+    range = @marker.getRange()
+    if includeNewline
+      range.end.row++
+      range.end.column = 0
+    range
 
   # Returns the fold's start row as a {Number}.
   getStartRow: ->
