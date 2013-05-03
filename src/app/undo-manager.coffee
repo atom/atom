@@ -28,7 +28,7 @@ class UndoManager
       @clear()
       throw e
 
-  transact: (fn) ->
+  transact: ->
     isNewTransaction = not @currentTransaction?
     @currentTransaction ?= []
     isNewTransaction
