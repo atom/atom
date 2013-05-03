@@ -288,7 +288,7 @@ class Selection
   # Public: Indents the selection.
   #
   # options - A hash with one key, `autoIndent`. If `true`, the indentation is
-  #           performed appropriately. Otherwise, {EditSession#getTabText} is used
+  #           performed appropriately. Otherwise, {EditSession.getTabText} is used
   indent: ({ autoIndent }={})->
     { row, column } = @cursor.getBufferPosition()
 

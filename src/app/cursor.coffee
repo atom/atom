@@ -249,7 +249,7 @@ class Cursor
   # Public: Retrieves the buffer position of where the current word starts.
   #
   # options - A hash with one option:
-  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {Cursor.wordRegExp})
   #
   # Returns a {Range}.
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
@@ -270,7 +270,7 @@ class Cursor
   # Public: Retrieves the buffer position of where the current word ends.
   #
   # options - A hash with one option:
-  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {Cursor.wordRegExp})
   #
   # Returns a {Range}.
   getEndOfCurrentWordBufferPosition: (options = {}) ->
@@ -290,7 +290,7 @@ class Cursor
   # Public: Retrieves the buffer position of where the next word starts.
   #
   # options - A hash with one option:
-  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {wordRegExp})
+  #           :wordRegex - A {RegExp} indicating what constitutes a "word" (default: {Cursor.wordRegExp})
   #
   # Returns a {Range}.
   getBeginningOfNextWordBufferPosition: (options = {}) ->
