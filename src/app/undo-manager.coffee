@@ -11,7 +11,7 @@ class UndoManager
     @clear()
 
   clear: ->
-    @currentTransaction = null
+    @currentTransaction = [] if @currentTransaction?
     @undoHistory = []
     @redoHistory = []
 
