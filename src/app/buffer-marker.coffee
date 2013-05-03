@@ -74,19 +74,19 @@ class BufferMarker
   # Returns a {Range}.
   getRange: ->
     if @tailPosition
-      new Range(@tailPosition, @headPosition)
+      new Range(@getTailPosition(), @getHeadPosition())
     else
-      new Range(@headPosition, @headPosition)
+      new Range(@getHeadPosition(), @getHeadPosition())
 
   # Public: Retrieves the position of the marker's head.
   #
   # Returns a {Point}.
-  getHeadPosition: -> @headPosition
+  getHeadPosition: -> @headPosition?.copy()
 
   # Public: Retrieves the position of the marker's tail.
   #
   # Returns a {Point}.
-  getTailPosition: -> @tailPosition ? @getHeadPosition()
+  getTailPosition: -> @tailPosition?.copy() ? @getHeadPosition()
 
   # Public: Sets the position of the marker's head.
   #
