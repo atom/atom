@@ -94,7 +94,7 @@ class EditSession
   # Retrieves the filename of the open file.
   #
   # This is `'untitled'` if the file is new and not saved to the disk.
-  #
+  # 
   # Returns a {String}.
   getTitle: ->
     if path = @getPath()
@@ -175,7 +175,7 @@ class EditSession
   setSoftWrap: (@softWrap) ->
 
   # Retrieves that character used to indicate a tab.
-  #
+  # 
   # If soft tabs are enabled, this is a space (`" "`) times the {.getTabLength} value.
   # Otherwise, it's a tab (`\t`).
   #
@@ -191,22 +191,22 @@ class EditSession
   #
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
-
+  
   # Given a position, this clips it to a real position.
   #
   # For example, if `position`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
   # to a real position.
   #
   # position - The {Point} to clip
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
-
+  
   # Given a range, this clips it to a real range.
   #
   # For example, if `range`'s row exceeds the row count of the buffer,
-  # or if its column goes beyond a line's length, this "sanitizes" the value
+  # or if its column goes beyond a line's length, this "sanitizes" the value 
   # to a real range.
   #
   # range - The {Point} to clip
@@ -319,13 +319,13 @@ class EditSession
 
   # {Delegates to: DisplayBuffer.screenPositionForBufferPosition}
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
-
+  
   # {Delegates to: DisplayBuffer.bufferPositionForScreenPosition}
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
-
+  
   # {Delegates to: DisplayBuffer.screenRangeForBufferRange}
   screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
-
+  
   # {Delegates to: DisplayBuffer.bufferRangeForScreenRange}
   bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
 
@@ -592,7 +592,7 @@ class EditSession
 
   # Given a buffer row, this returns a suggested indentation level.
   #
-  # The indentation level provided is based on the current language.
+  # The indentation level provided is based on the current language. 
   #
   # bufferRow - A {Number} indicating the buffer row
   #
@@ -806,7 +806,7 @@ class EditSession
   # {Delegates to: DisplayBuffer.getMarkerHeadScreenPosition}
   getMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.getMarkerHeadScreenPosition(args...)
-
+ 
   # {Delegates to: DisplayBuffer.setMarkerHeadScreenPosition}
   setMarkerHeadScreenPosition: (args...) ->
     @displayBuffer.setMarkerHeadScreenPosition(args...)
@@ -826,7 +826,7 @@ class EditSession
   # {Delegates to: DisplayBuffer.setMarkerTailScreenPosition}
   setMarkerTailScreenPosition: (args...) ->
     @displayBuffer.setMarkerTailScreenPosition(args...)
-
+ 
   # {Delegates to: DisplayBuffer.getMarkerTailBufferPosition}
   getMarkerTailBufferPosition: (args...) ->
     @displayBuffer.getMarkerTailBufferPosition(args...)
@@ -990,7 +990,7 @@ class EditSession
   #
   # Returns an {Array} of {Selection}s.
   getSelections: -> new Array(@selections...)
-
+  
   # Gets the selection at the specified index.
   #
   # index - The id {Number} of the selection
@@ -1268,7 +1268,7 @@ class EditSession
   # Selects all the text from the current cursor position to the beginning of the next word.
   selectToBeginningOfNextWord: ->
     @expandSelectionsForward (selection) => selection.selectToBeginningOfNextWord()
-
+  
   # Selects the current word.
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()
