@@ -1,6 +1,17 @@
 $ = require 'jquery'
+_ = require 'underscore'
 ScrollView = require 'scroll-view'
 {$$$} = require 'space-pen'
+roaster = require 'roaster'
+Editor = require 'editor'
+
+fenceNameToExtension =
+  "coffeescript": "coffee"
+  "toml": "toml"
+  "ruby": "rb"
+  "go": "go"
+  "mustache": "mustache"
+  "java": "java"
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
@@ -15,13 +26,13 @@ class MarkdownPreviewView extends ScrollView
   initialize: (@buffer) ->
     super
 
-    @fetchRenderedMarkdown()
+    @renderMarkdown()
     @on 'core:move-up', => @scrollUp()
     @on 'core:move-down', => @scrollDown()
 
   afterAttach: (onDom) ->
     @subscribe @buffer, 'saved', =>
-      @fetchRenderedMarkdown()
+      @renderMarkdown()
       pane = @getPane()
       pane.showItem(this) if pane? and pane isnt rootView.getActivePane()
 
@@ -42,7 +53,7 @@ class MarkdownPreviewView extends ScrollView
     @buffer.getPath()
 
   setErrorHtml: (result)->
-    try failureMessage = JSON.parse(result.responseText).message
+    try failureMessage = JSON.parse(result).message
 
     @html $$$ ->
       @h2 'Previewing Markdown Failed'
@@ -59,15 +70,38 @@ class MarkdownPreviewView extends ScrollView
   setLoading: ->
     @html($$$ -> @div class: 'markdown-spinner', 'Loading Markdown...')
 
-  fetchRenderedMarkdown: (text) ->
+
+  tokenizeCodeBlocks: (html) =>
+    html = $(html)
+    preList = $(html.filter("pre"))
+
+    for preElement in preList.toArray()
+      $(preElement).addClass("editor-colors")
+      codeBlock = $(preElement.firstChild)
+
+      # go to next block unless this one has a class
+      continue unless className = codeBlock.attr('class')
+
+      fenceName = className.replace(/^lang-/, '')
+      # go to next block unless the class name is matches `lang`
+      continue unless extension = fenceNameToExtension[fenceName]
+      text = codeBlock.text()
+
+      # go to next block if this grammar is not mapped
+      continue unless grammar = syntax.selectGrammar("foo.#{extension}", text)
+      continue if grammar is syntax.nullGrammar
+
+      codeBlock.empty()
+      for tokens in grammar.tokenizeLines(text)
+        codeBlock.append(Editor.buildLineHtml({ tokens, text }))
+
+    html
+
+  renderMarkdown: ->
     @setLoading()
-    $.ajax
-      url: 'https://api.github.com/markdown'
-      type: 'POST'
-      dataType: 'html'
-      contentType: 'application/json; charset=UTF-8'
-      data: JSON.stringify
-        mode: 'markdown'
-        text: @buffer.getText()
-      success: (html) => @html(html)
-      error: (result) => @setErrorHtml(result)
+    roaster(@buffer.getText(), {}, (err, html) =>
+      if err
+        @setErrorHtml(err)
+      else
+        @html(@tokenizeCodeBlocks(html))
+    )

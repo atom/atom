@@ -23,6 +23,7 @@
 // includes some GitHub Flavored Markdown specific styling (like @mentions)
 .markdown-preview {
   pre,
+  pre div.editor,
   code,
   tt {
     font-size: 12px;
@@ -385,7 +386,6 @@
   }
 
   .highlight pre, pre {
-    background-color: #f8f8f8;
     border: 1px solid #ccc;
     font-size: 13px;
     line-height: 19px;
@@ -399,5 +399,10 @@
     padding: 0;
     background-color: transparent;
     border: none;
+  }
+
+  .emoji {
+    height: 20px;
+    width: 20px;
   }
 }
