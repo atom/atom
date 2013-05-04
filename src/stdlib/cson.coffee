@@ -94,7 +94,10 @@ module.exports =
       else if _.isArray(value)
         cson += " #{@stringifyArray(value, indentLevel)}"
       else if _.isObject(value)
-        cson += "\n#{@stringifyObject(value, indentLevel + 2)}"
+        if _.isEmpty(value)
+          cson += ' {}'
+        else
+          cson += "\n#{@stringifyObject(value, indentLevel + 2)}"
       else
         throw new Error("Unrecognized value type for key: #{key} with value: #{value}")
       prefix = '\n'

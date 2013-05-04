@@ -29,7 +29,7 @@ class Buffer
   invalidMarkers: null
   refcount: 0
 
-  # Public: Creates a new buffer.
+  # Creates a new buffer.
   #
   # path - A {String} representing the file path
   # initialText - A {String} setting the starting text
@@ -55,9 +55,7 @@ class Buffer
 
     @undoManager = new UndoManager(this)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
@@ -98,18 +96,16 @@ class Buffer
     @file.on "moved", =>
       @trigger "path-changed", this
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
-  # Public: Identifies if the buffer belongs to multiple editors.
+  # Identifies if the buffer belongs to multiple editors.
   #
   # For example, if the {Editor} was split.
   #
   # Returns a {Boolean}.
   hasMultipleEditors: -> @refcount > 1
 
-  # Public: Reloads a file in the {EditSession}.
+  # Reloads a file in the {EditSession}.
   #
   # Essentially, this performs a force read of the file.
   reload: ->
@@ -119,25 +115,25 @@ class Buffer
     @triggerModifiedStatusChanged(false)
     @trigger 'reloaded'
 
-  # Public: Rereads the contents of the file, and stores them in the cache.
+  # Rereads the contents of the file, and stores them in the cache.
   #
   # Essentially, this performs a force read of the file on disk.
   updateCachedDiskContents: ->
     @cachedDiskContents = @file.read()
 
-  # Public: Gets the file's basename--that is, the file without any directory information.
+  # Gets the file's basename--that is, the file without any directory information.
   #
   # Returns a {String}.
   getBaseName: ->
     @file?.getBaseName()
 
-  # Public: Retrieves the path for the file.
+  # Retrieves the path for the file.
   #
   # Returns a {String}.
   getPath: ->
     @file?.getPath()
 
-  # Public: Sets the path for the file.
+  # Sets the path for the file.
   #
   # path - A {String} representing the new file path
   setPath: (path) ->
@@ -150,7 +146,7 @@ class Buffer
 
     @trigger "path-changed", this
 
-  # Public: Retrieves the current buffer's file extension.
+  # Retrieves the current buffer's file extension.
   #
   # Returns a {String}.
   getExtension: ->
@@ -159,25 +155,25 @@ class Buffer
     else
       null
 
-  # Public: Retrieves the cached buffer contents.
+  # Retrieves the cached buffer contents.
   #
   # Returns a {String}.
   getText: ->
     @cachedMemoryContents ?= @getTextInRange(@getRange())
 
-  # Public: Replaces the current buffer contents.
+  # Replaces the current buffer contents.
   #
   # text - A {String} containing the new buffer contents.
   setText: (text) ->
     @change(@getRange(), text, normalizeLineEndings: false)
 
-  # Public: Gets the range of the buffer contents.
+  # Gets the range of the buffer contents.
   #
   # Returns a new {Range}, from `[0, 0]` to the end of the buffer.
   getRange: ->
     new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
-  # Public: Given a range, returns the lines of text within it.
+  # Given a range, returns the lines of text within it.
   #
   # range - A {Range} object specifying your points of interest
   #
@@ -197,13 +193,13 @@ class Buffer
 
     return multipleLines.join ''
 
-  # Public: Gets all the lines in a file.
+  # Gets all the lines in a file.
   #
   # Returns an {Array} of {String}s.
   getLines: ->
     @lines
 
-  # Public: Given a row, returns the line of text.
+  # Given a row, returns the line of text.
   #
   # row - A {Number} indicating the row.
   #
@@ -211,13 +207,18 @@ class Buffer
   lineForRow: (row) ->
     @lines[row]
 
+  # Given a row, returns its line ending.
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {String}, or `undefined` if `row` is the final row.
   lineEndingForRow: (row) ->
     @lineEndings[row] unless row is @getLastRow()
 
   suggestedLineEndingForRow: (row) ->
     @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
 
-  # Public: Given a row, returns the length of the line of text.
+  # Given a row, returns the length of the line of text.
   #
   # row - A {Number} indicating the row.
   #
@@ -225,10 +226,15 @@ class Buffer
   lineLengthForRow: (row) ->
     @lines[row].length
 
+  # Given a row, returns the length of the line ending
+  #
+  # row - A {Number} indicating the row.
+  #
+  # Returns a {Number}.
   lineEndingLengthForRow: (row) ->
     (@lineEndingForRow(row) ? '').length
 
-  # Public: Given a buffer row, this retrieves the range for that line.
+  # Given a buffer row, this retrieves the range for that line.
   #
   # row - A {Number} identifying the row
   # options - A hash with one key, `includeNewline`, which specifies whether you
@@ -241,25 +247,25 @@ class Buffer
     else
       new Range([row, 0], [row, @lineLengthForRow(row)])
 
-  # Public: Gets the number of lines in a file.
+  # Gets the number of lines in a file.
   #
   # Returns a {Number}.
   getLineCount: ->
     @getLines().length
 
-  # Public: Gets the row number of the last line.
+  # Gets the row number of the last line.
   #
   # Returns a {Number}.
   getLastRow: ->
     @getLines().length - 1
 
-  # Public: Finds the last line in the current buffer.
+  # Finds the last line in the current buffer.
   #
   # Returns a {String}.
   getLastLine: ->
     @lineForRow(@getLastRow())
 
-  # Public: Finds the last point in the current buffer.
+  # Finds the last point in the current buffer.
   #
   # Returns a {Point} representing the last position.
   getEofPosition: ->
@@ -282,13 +288,13 @@ class Buffer
 
     new Point(row, index)
 
-  # Public: Given a row, this deletes it from the buffer.
+  # Given a row, this deletes it from the buffer.
   #
   # row - A {Number} representing the row to delete
   deleteRow: (row) ->
     @deleteRows(row, row)
 
-  # Public: Deletes a range of rows from the buffer.
+  # Deletes a range of rows from the buffer.
   #
   # start - A {Number} representing the starting row
   # end - A {Number} representing the ending row
@@ -307,33 +313,26 @@ class Buffer
 
     @delete(new Range(startPoint, endPoint))
 
-  # Public: Adds text to the end of the buffer.
+  # Adds text to the end of the buffer.
   #
   # text - A {String} of text to add
   append: (text) ->
     @insert(@getEofPosition(), text)
 
-  # Public: Adds text to a specific point in the buffer
+  # Adds text to a specific point in the buffer
   #
   # point - A {Point} in the buffer to insert into
   # text - A {String} of text to add
   insert: (point, text) ->
     @change(new Range(point, point), text)
 
-  # Public: Deletes text from the buffer
+  # Deletes text from the buffer
   #
   # range - A {Range} whose text to delete
   delete: (range) ->
     @change(range, '')
 
-  # Internal:
-  change: (oldRange, newText, options) ->
-    oldRange = Range.fromObject(oldRange)
-    operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
-    range = @pushOperation(operation)
-    range
-
-  # Public: Given a position, this clips it to a real position.
+  # Given a position, this clips it to a real position.
   #
   # For example, if `position`'s row exceeds the row count of the buffer,
   # or if its column goes beyond a line's length, this "sanitizes" the value
@@ -351,7 +350,7 @@ class Buffer
       column = Math.min(@lineLengthForRow(row), column)
       new Point(row, column)
 
-  # Public: Given a range, this clips it to a real range.
+  # Given a range, this clips it to a real range.
   #
   # For example, if `range`'s row exceeds the row count of the buffer,
   # or if its column goes beyond a line's length, this "sanitizes" the value
@@ -368,44 +367,21 @@ class Buffer
     prefix: @lines[range.start.row][0...range.start.column]
     suffix: @lines[range.end.row][range.end.column..]
 
-  # Internal:
-  pushOperation: (operation, editSession) ->
-    if @undoManager
-      @undoManager.pushOperation(operation, editSession)
-    else
-      operation.do()
-
-  # Internal:
-  transact: (fn) ->
-    if isNewTransaction = @undoManager.transact()
-      @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on undo
-    if fn
-      try
-        fn()
-      finally
-        @commit() if isNewTransaction
-
-  commit: ->
-    @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on redo
-    @undoManager.commit()
-
-  abort: -> @undoManager.abort()
-
-  # Public: Undos the last operation.
+  # Undos the last operation.
   #
   # editSession - The {EditSession} associated with the buffer.
   undo: (editSession) -> @undoManager.undo(editSession)
 
-  # Public: Redos the last operation.
+  # Redos the last operation.
   #
   # editSession - The {EditSession} associated with the buffer.
   redo: (editSession) -> @undoManager.redo(editSession)
 
-  # Public: Saves the buffer.
+  # Saves the buffer.
   save: ->
     @saveAs(@getPath()) if @isModified()
 
-  # Public: Saves the buffer at a specific path.
+  # Saves the buffer at a specific path.
   #
   # path - The path to save at.
   saveAs: (path) ->
@@ -418,7 +394,7 @@ class Buffer
     @triggerModifiedStatusChanged(false)
     @trigger 'saved'
 
-  # Public: Identifies if the buffer was modified.
+  # Identifies if the buffer was modified.
   #
   # Returns a {Boolean}.
   isModified: ->
@@ -427,12 +403,12 @@ class Buffer
     else
       not @isEmpty()
 
-  # Public: Identifies if a buffer is in a git conflict with `HEAD`.
+  # Identifies if a buffer is in a git conflict with `HEAD`.
   #
   # Returns a {Boolean}.
   isInConflict: -> @conflict
 
-  # Public: Identifies if a buffer is empty.
+  # Identifies if a buffer is empty.
   #
   # Returns a {Boolean}.
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
@@ -467,13 +443,13 @@ class Buffer
     markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
     markers.sort (a, b) -> a.getRange().compare(b.getRange())
 
-  # Public: Retrieves the quantity of markers in a buffer.
+  # Retrieves the quantity of markers in a buffer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
     _.size(@validMarkers)
 
-  # Public: Constructs a new marker at a given range.
+  # Constructs a new marker at a given range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
   # attributes - An optional hash of serializable attributes
@@ -498,7 +474,7 @@ class Buffer
     @trigger 'marker-created', marker
     marker
 
-  # Public: Constructs a new marker at a given position.
+  # Constructs a new marker at a given position.
   #
   # position - The marker {Point}; there won't be a tail
   # options - Options to pass to the {BufferMarker} constructor
@@ -507,7 +483,7 @@ class Buffer
   markPosition: (position, options) ->
     @markRange([position, position], _.defaults({noTail: true}, options))
 
-  # Public: Given a buffer position, this finds all markers that contain the position.
+  # Given a buffer position, this finds all markers that contain the position.
   #
   # bufferPosition - A {Point} to check
   #
@@ -516,7 +492,7 @@ class Buffer
     position = Point.fromObject(position)
     @getMarkers().filter (marker) -> marker.containsPoint(position)
 
-  # Public: Identifies if a character sequence is within a certain range.
+  # Identifies if a character sequence is within a certain range.
   #
   # regex - The {RegExp} to check
   # startIndex - The starting row {Number}
@@ -546,14 +522,14 @@ class Buffer
 
     matches
 
-  # Public: Scans for text in the buffer, calling a function on each match.
+  # Scans for text in the buffer, calling a function on each match.
   #
   # regex - A {RegExp} representing the text to find
   # iterator - A {Function} that's called on each match
   scan: (regex, iterator) ->
     @scanInRange(regex, @getRange(), iterator)
 
-  # Public: Scans for text in a given range, calling a function on each match.
+  # Scans for text in a given range, calling a function on each match.
   #
   # regex - A {RegExp} representing the text to find
   # range - A {Range} in the buffer to search within
@@ -596,7 +572,7 @@ class Buffer
 
       break unless global and keepLooping
 
-  # Public: Scans for text in a given range _backwards_, calling a function on each match.
+  # Scans for text in a given range _backwards_, calling a function on each match.
   #
   # regex - A {RegExp} representing the text to find
   # range - A {Range} in the buffer to search within
@@ -604,7 +580,7 @@ class Buffer
   backwardsScanInRange: (regex, range, iterator) ->
     @scanInRange regex, range, iterator, true
 
-  # Public: Given a row, identifies if it is blank.
+  # Given a row, identifies if it is blank.
   #
   # row - A row {Number} to check
   #
@@ -612,7 +588,7 @@ class Buffer
   isRowBlank: (row) ->
     not /\S/.test @lineForRow(row)
 
-  # Public: Given a row, this finds the next row above it that's empty.
+  # Given a row, this finds the next row above it that's empty.
   #
   # startRow - A {Number} identifying the row to start checking at
   #
@@ -626,7 +602,7 @@ class Buffer
       return row unless @isRowBlank(row)
     null
 
-  # Public: Given a row, this finds the next row that's blank.
+  # Given a row, this finds the next row that's blank.
   #
   # startRow - A row {Number} to check
   #
@@ -639,7 +615,7 @@ class Buffer
         return row unless @isRowBlank(row)
     null
 
-  # Public: Identifies if the buffer has soft tabs anywhere.
+  # Identifies if the buffer has soft tabs anywhere.
   #
   # Returns a {Boolean},
   usesSoftTabs: ->
@@ -648,22 +624,46 @@ class Buffer
         return match[0][0] != '\t'
     undefined
 
-  # Public: Checks out the current `HEAD` revision of the file.
+  # Checks out the current `HEAD` revision of the file.
   checkoutHead: ->
     path = @getPath()
     return unless path
     git?.checkoutHead(path)
 
-  # Public: Checks to see if a file exists.
+  # Checks to see if a file exists.
   #
   # Returns a {Boolean}.
   fileExists: ->
     @file? && @file.exists()
 
+  ### Internal ###
 
-  ###
-  # Internal #
-  ###
+  pushOperation: (operation, editSession) ->
+    if @undoManager
+      @undoManager.pushOperation(operation, editSession)
+    else
+      operation.do()
+
+  transact: (fn) ->
+    if isNewTransaction = @undoManager.transact()
+      @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on undo
+    if fn
+      try
+        fn()
+      finally
+        @commit() if isNewTransaction
+
+  commit: ->
+    @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on redo
+    @undoManager.commit()
+
+  abort: -> @undoManager.abort()
+
+  change: (oldRange, newText, options) ->
+    oldRange = Range.fromObject(oldRange)
+    operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
+    range = @pushOperation(operation)
+    range
 
   destroyMarker: (id) ->
     if marker = @validMarkers[id] ? @invalidMarkers[id]

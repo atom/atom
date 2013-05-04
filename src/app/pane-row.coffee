@@ -2,9 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 PaneAxis = require 'pane-axis'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class PaneRow extends PaneAxis

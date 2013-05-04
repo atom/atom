@@ -30,8 +30,12 @@
       '1': 'name': 'markup.italic.gfm'
   }
   {
-    'match': '^#{1,6}\\s+.+$'
+    'begin': '^#{1,6}\\s+'
+    'end': '$'
     'name': 'markup.heading.gfm'
+    'patterns': [
+      'include': '$self'
+    ]
   }
   {
     'match': '(\\:)([^\\:\\s]+)(\\:)'

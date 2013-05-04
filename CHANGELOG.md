@@ -1,3 +1,9 @@
+* Improved: App icon
+* Fixed: End of line invisibles rendering incorrectly with the indent guide
+* Fixed: Updates not installing automatically on restart
+* Fixed: Wrap guide not displaying
+* Fixed: Error when saving with the markdown preview focused
+
 * Fixed: Atom always running in dev mode
 * Fixed: Crash when running in dev mode without a path to the Atom source
 

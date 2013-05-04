@@ -10,7 +10,8 @@ class Fold
   displayBuffer: null
   marker: null
 
-  # Internal
+  ### Internal ###
+
   constructor: (@displayBuffer, @marker) ->
     @displayBuffer.foldsByMarkerId[@marker.id] = this
     @updateDisplayBuffer()
@@ -25,6 +26,10 @@ class Fold
     @marker.destroy()
 
   # Returns the fold's {Range} in buffer coordinates
+  #
+  # includeNewline - A {Boolean} which, if `true`, includes the trailing newline
+  #
+  # Returns a {Range}.
   getBufferRange: ({includeNewline}={}) ->
     range = @marker.getRange()
     if includeNewline
@@ -35,6 +40,12 @@ class Fold
   # Returns the fold's start row as a {Number}.
   getStartRow: ->
     @getBufferRange().start.row
+
+  # Retrieves the number of buffer rows a fold occupies.
+  #
+  # Returns a {Number}.
+  getBufferRowCount: ->
+    @endRow - @startRow + 1
 
   # Returns the fold's end row as a {Number}.
   getEndRow: ->
@@ -50,7 +61,13 @@ class Fold
   getBufferRowCount: ->
     @getEndRow() - @getStartRow() + 1
 
-  ## Internal ##
+  # Identifies if a fold is nested within a fold.
+  #
+  # fold - A {Fold} to check
+  #
+  # Returns a {Boolean}.
+  isContainedByFold: (fold) ->
+    @isContainedByRange(fold.getBufferRange())
 
   updateDisplayBuffer: ->
     unless @isInsideLargerFold()

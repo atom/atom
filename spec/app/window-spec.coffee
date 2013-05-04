@@ -7,7 +7,7 @@ describe "Window", ->
 
   beforeEach ->
     spyOn(atom, 'getPathToOpen').andReturn(project.getPath())
-    window.handleWindowEvents()
+    window.handleEvents()
     window.deserializeEditorWindow()
     projectPath = project.getPath()
 
@@ -229,3 +229,25 @@ describe "Window", ->
         event = buildDragEvent("drop", [])
         window.onDrop(event)
         expect(atom.open).not.toHaveBeenCalled()
+
+  describe "when a link is clicked", ->
+    it "opens the http/https links in an external application", ->
+      ChildProcess = require 'child_process'
+      spyOn(ChildProcess, 'spawn')
+
+      $("<a href='http://github.com'>the website</a>").appendTo(document.body).click().remove()
+      expect(ChildProcess.spawn).toHaveBeenCalled()
+      expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe "http://github.com"
+
+      ChildProcess.spawn.reset()
+      $("<a href='https://github.com'>the website</a>").appendTo(document.body).click().remove()
+      expect(ChildProcess.spawn).toHaveBeenCalled()
+      expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe "https://github.com"
+
+      ChildProcess.spawn.reset()
+      $("<a href=''>the website</a>").appendTo(document.body).click().remove()
+      expect(ChildProcess.spawn).not.toHaveBeenCalled()
+
+      ChildProcess.spawn.reset()
+      $("<a href='#scroll-me'>link</a>").appendTo(document.body).click().remove()
+      expect(ChildProcess.spawn).not.toHaveBeenCalled()

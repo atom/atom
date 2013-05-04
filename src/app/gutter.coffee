@@ -9,9 +9,7 @@ _ = require 'underscore'
 module.exports =
 class Gutter extends View
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   @content: ->
     @div class: 'gutter', =>
@@ -50,25 +48,21 @@ class Gutter extends View
     $(document).on "mousemove.gutter-#{@getEditor().id}", moveHandler
     $(document).one "mouseup.gutter-#{@getEditor().id}", => $(document).off 'mousemove', moveHandler
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
-  # Public: Retrieves the containing {Editor}.
+  # Retrieves the containing {Editor}.
   #
   # Returns an {Editor}.
   getEditor: ->
     @parentView
 
-  # Public: Defines whether to show the gutter or not.
+  # Defines whether to show the gutter or not.
   #
   # showLineNumbers - A {Boolean} which, if `false`, hides the gutter
   setShowLineNumbers: (showLineNumbers) ->
     if showLineNumbers then @lineNumbers.show() else @lineNumbers.hide()
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   updateLineNumbers: (changes, renderFrom, renderTo) ->
     if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
@@ -82,7 +76,7 @@ class Gutter extends View
           break
 
     @renderLineNumbers(renderFrom, renderTo) if performUpdate
-  
+
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     editor = @getEditor()
     maxDigits = editor.getLineCount().toString().length

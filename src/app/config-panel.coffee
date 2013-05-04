@@ -17,22 +17,20 @@ class ConfigPanel extends View
         input = $(input)
         name = input.attr('id')
         type = input.attr('type')
+
         @observeConfig name, (value) ->
           if type is 'checkbox'
             input.attr('checked', value)
           else
             input.val(value) if value
-        input.on 'change', ->
+
+        input.on 'change', =>
           value = input.val()
-          config.set name, switch type
-            when 'int'
-              parseInt(value)
-            when 'float'
-              parseFloat(value)
-            when 'checkbox'
-              !!input.attr('checked')
-            else
-              value
+          if type == 'checkbox'
+            value = !!input.attr('checked')
+          else
+            value = @parseValue(type, value)
+          config.set(name, value)
 
   bindEditors: ->
     for editor in @find('.editor[id]').views()
@@ -45,9 +43,16 @@ class ConfigPanel extends View
           value ?= ""
           editor.setText(value.toString())
 
-        editor.getBuffer().on 'contents-modified', ->
-          value = editor.getText()
-          if type == 'int' then value = parseInt(value) or 0
-          if type == 'float' then value = parseFloat(value) or 0
-          if value == "" then value = undefined
-          config.set name, value
+        editor.getBuffer().on 'contents-modified', =>
+          config.set(name, @parseValue(type, editor.getText()))
+
+  parseValue: (type, value) ->
+    switch type
+      when 'int'
+        intValue = parseInt(value)
+        value = intValue unless isNaN(intValue)
+      when 'float'
+        floatValue = parseFloat(value)
+        value = floatValue unless isNaN(floatValue)
+    value = undefined if value == ''
+    value

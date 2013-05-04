@@ -12,24 +12,26 @@ module.exports =
 class Directory
   path: null
 
-  # Public: Creates a new directory.
+  ### Public ###
+  
+  # Creates a new directory.
   #
   # path - A {String} representing the file directory
   # symlink - A {Boolean} indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
 
-  # Public: Retrieves the basename of the directory.
+  # Retrieves the basename of the directory.
   #
   # Returns a {String}.
   getBaseName: ->
     fsUtils.base(@path)
 
-  # Public: Retrieves the directory's path.
+  # Retrieves the directory's path.
   #
   # Returns a {String}.
   getPath: -> @path
 
-  # Public: Retrieves the file entries in the directory.
+  # Retrieves the file entries in the directory.
   #
   # This does follow symlinks.
   #
@@ -51,9 +53,7 @@ class Directory
 
     directories.concat(files)
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @subscriptionCount() == 1

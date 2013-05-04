@@ -29,9 +29,7 @@ class Config
   settings: null
   configFileHasErrors: null
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   constructor: ->
     @defaultSettings =
@@ -45,7 +43,6 @@ class Config
     return if fsUtils.exists(@configDirPath)
 
     fsUtils.makeDirectory(@configDirPath)
-
 
     queue = async.queue ({sourcePath, destinationPath}, callback) =>
       fsUtils.copy(sourcePath, destinationPath, callback)
@@ -90,29 +87,6 @@ class Config
     @watchSubscription?.close()
     @watchSubscription = null
 
-  # Public: Retrieves the setting for the given key.
-  #
-  # keyPath - The {String} name of the key to retrieve
-  #
-  # Returns the value from Atom's default settings, the user's configuration file,
-  # or `null` if the key doesn't exist in either.
-  get: (keyPath) ->
-    _.valueForKeyPath(@settings, keyPath) ?
-      _.valueForKeyPath(@defaultSettings, keyPath)
-
-  # Public: Sets the value for a configuration setting.
-  #
-  # This value is stored in Atom's internal configuration file.
-  #
-  # keyPath - The {String} name of the key
-  # value - The value of the setting
-  #
-  # Returns the `value`.
-  set: (keyPath, value) ->
-    _.setValueForKeyPath(@settings, keyPath, value)
-    @update()
-    value
-
   setDefaults: (keyPath, defaults) ->
     keys = keyPath.split('.')
     hash = @defaultSettings
@@ -123,9 +97,56 @@ class Config
     _.extend hash, defaults
     @update()
 
-  # Public: Establishes an event listener for a given key.
+  ### Public ###
+
+  # Retrieves the setting for the given key.
   #
-  # Whenever the value of the key is changed, a callback is fired.
+  # keyPath - The {String} name of the key to retrieve
+  #
+  # Returns the value from Atom's default settings, the user's configuration file,
+  # or `null` if the key doesn't exist in either.
+  get: (keyPath) ->
+    _.valueForKeyPath(@settings, keyPath) ?
+      _.valueForKeyPath(@defaultSettings, keyPath)
+
+  # Retrieves the setting for the given key as an integer.
+  #
+  # keyPath - The {String} name of the key to retrieve
+  #
+  # Returns the value from Atom's default settings, the user's configuration file,
+  # or `NaN` if the key doesn't exist in either.
+  getInt: (keyPath, defaultValueWhenFalsy) ->
+    parseInt(@get(keyPath))
+
+  # Retrieves the setting for the given key as a positive integer.
+  #
+  # keyPath - The {String} name of the key to retrieve
+  # defaultValue - The integer {Number} to fall back to if the value isn't
+  #                positive
+  #
+  # Returns the value from Atom's default settings, the user's configuration file,
+  # or `defaultValue` if the key value isn't greater than zero.
+  getPositiveInt: (keyPath, defaultValue) ->
+    Math.max(@getInt(keyPath), 0) or defaultValue
+
+  # Sets the value for a configuration setting.
+  #
+  # This value is stored in Atom's internal configuration file.
+  #
+  # keyPath - The {String} name of the key
+  # value - The value of the setting
+  #
+  # Returns the `value`.
+  set: (keyPath, value) ->
+    if @get(keyPath) != value
+      value = undefined if _.valueForKeyPath(@defaultSettings, keyPath) == value
+      _.setValueForKeyPath(@settings, keyPath, value)
+      @update()
+    value
+
+  # Establishes an event listener for a given key.
+  #
+  # `callback` is fired immediately and whenever the value of the key is changed
   #
   # keyPath - The {String} name of the key to watch
   # callback - The {Function} that fires when the. It is given a single argument, `value`,
@@ -143,6 +164,8 @@ class Config
     @on 'updated', updateCallback
     callback(value)
     subscription
+
+  ### Internal ###
 
   update: ->
     return if @configFileHasErrors

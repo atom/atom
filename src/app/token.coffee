@@ -7,9 +7,13 @@ class Token
   isAtomic: null
   isHardTab: null
 
+  ### Internal ###
+
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
+
+  ### Public ###
 
   isEqual: (other) ->
     @value == other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic == !!other.isAtomic
@@ -92,7 +96,7 @@ class Token
           "<span class='#{classes}'>#{match}</span>"
       if hasTrailingWhitespace
         classes = []
-        classes.push('indent-guide') if hasIndentGuide
+        classes.push('indent-guide') if hasIndentGuide and not hasLeadingWhitespace
         classes.push('invisible-character') if invisibles.space
         classes.push('trailing-whitespace')
         classes = classes.join(' ')

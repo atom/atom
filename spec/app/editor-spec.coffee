@@ -320,8 +320,9 @@ describe "Editor", ->
         expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
 
         newEditor = new Editor(editor.activeEditSession.copy())
+        editor.remove()
         newEditor.attachToDom()
-        expect(editor.css('font-size')).toBe '30px'
+        expect(newEditor.css('font-size')).toBe '30px'
 
       it "updates the position and size of selection regions", ->
         config.set("editor.fontSize", 10)
@@ -541,20 +542,23 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
       it "selects and scrolls if the mouse is dragged outside of the editor itself", ->
-        intervalFns = []
+        editor.vScrollMargin = 0
         editor.attachToDom(heightInLines: 5)
         editor.scrollToBottom()
 
-        spyOn(window, 'setInterval').andCallFake (fn) -> intervalFns.push(fn)
+        spyOn(window, 'setInterval').andCallFake ->
+
         # start
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [12, 0])
+        originalScrollTop = editor.scrollTop()
 
         # moving changes selection
-        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -15)
-        expect(editor.scrollTop()).toBe 4 * editor.lineHeight
+        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -1)
+        expect(editor.scrollTop()).toBe originalScrollTop - editor.lineHeight
 
-        # if cursor stays off screen, we keep moving / scrolling up
-        fn() for fn in intervalFns
+        # every mouse move selects more text
+        for x in [0..10]
+          $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -1)
 
         expect(editor.scrollTop()).toBe 0
 
@@ -1210,7 +1214,7 @@ describe "Editor", ->
 
         describe "when scrolling more than the editors height", ->
           it "removes lines that are offscreen and not in range of the overdraw and builds lines that become visible", ->
-            editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
+            editor.scrollTop(editor.layerHeight - editor.scrollView.height())
             expect(editor.renderedLines.find('.line').length).toBe 8
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(5)
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(12)
@@ -1546,6 +1550,31 @@ describe "Editor", ->
           expect(editor.getCursorBufferPosition()).toEqual [10, 4]
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
+
+      describe "when the line has leading and trailing whitespace", ->
+        it "does not display the indent guide in the trailing whitespace", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          editor.insertText("/*\n * \n*/")
+          expect(editor.renderedLines.find('.line:eq(1) .indent-guide').length).toBe 1
+          expect(editor.renderedLines.find('.line:eq(1) .indent-guide')).toHaveClass('leading-whitespace')
+
+      describe "when the line is empty and end of show invisibles are enabled", ->
+        it "renders the indent guides interleaved the end of line invisibles", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+          config.set("editor.showInvisibles", true)
+          eol = editor.invisibles?.eol
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol} "
+
+          editor.setCursorBufferPosition([9])
+          editor.indent()
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe "#{eol}   "
 
   describe "when soft-wrap is enabled", ->
     beforeEach ->
@@ -2125,16 +2154,13 @@ describe "Editor", ->
 
     it "move the cursor to the end of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual [0,0]
-      event = $.Event("click")
-      event.offsetY = Infinity
+      event = mousedownEvent(editor: editor, point: [Infinity, 10])
       editor.underlayer.trigger event
       expect(editor.getCursorScreenPosition()).toEqual [12,2]
 
     it "selects to the end of the files when shift is pressed", ->
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
-      event = $.Event("click")
-      event.offsetY = Infinity
-      event.shiftKey = true
+      event = mousedownEvent(editor: editor, point: [Infinity, 10], shiftKey: true)
       editor.underlayer.trigger event
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
 

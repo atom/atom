@@ -3,9 +3,7 @@ fsUtils = require 'fs-utils'
 plist = require 'plist'
 Theme = require 'theme'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class TextMateTheme extends Theme

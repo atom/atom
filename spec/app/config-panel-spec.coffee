@@ -39,8 +39,27 @@ describe "ConfigPanel", ->
     panel.floatInput.val('90.2').change()
     expect(config.get('foo.float')).toBe 90.2
 
+    panel.intInput.val('0').change()
+    expect(config.get('foo.int')).toBe 0
+
+    panel.floatInput.val('0').change()
+    expect(config.get('foo.float')).toBe 0
+
     panel.stringInput.val('moo').change()
     expect(config.get('foo.string')).toBe 'moo'
+
+    panel.intInput.val('abcd').change()
+    expect(config.get('foo.int')).toBe 'abcd'
+
+    panel.floatInput.val('defg').change()
+    expect(config.get('foo.float')).toBe 'defg'
+
+    panel.intInput.val('').change()
+    expect(config.get('foo.int')).toBe undefined
+    panel.floatInput.val('').change()
+    expect(config.get('foo.float')).toBe undefined
+    panel.stringInput.val('').change()
+    expect(config.get('foo.string')).toBe undefined
 
   it "automatically binds named editors to their corresponding config keys", ->
     class TestPanel extends ConfigPanel
@@ -54,6 +73,7 @@ describe "ConfigPanel", ->
     config.set('foo.float', 1.1)
     config.set('foo.string', 'I think therefore I am.')
     panel = new TestPanel
+    window.advanceClock(10000) # wait for contents-modified to be triggered
     expect(panel.intEditor.getText()).toBe '1'
     expect(panel.floatEditor.getText()).toBe '1.1'
     expect(panel.stringEditor.getText()).toBe 'I think therefore I am.'
@@ -73,10 +93,46 @@ describe "ConfigPanel", ->
     expect(config.get('foo.float')).toBe 3.3
     expect(config.get('foo.string')).toBe 'All limitations are self imposed.'
 
+
     panel.intEditor.setText('not an int')
     panel.floatEditor.setText('not a float')
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(config.get('foo.int')).toBe 'not an int'
+    expect(config.get('foo.float')).toBe 'not a float'
+
+    panel.intEditor.setText('')
+    panel.floatEditor.setText('')
     panel.stringEditor.setText('')
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(config.get('foo.int')).toBe undefined
+    expect(config.get('foo.float')).toBe undefined
+    expect(config.get('foo.string')).toBe undefined
+
+    panel.intEditor.setText('0')
+    panel.floatEditor.setText('0')
     window.advanceClock(10000) # wait for contents-modified to be triggered
     expect(config.get('foo.int')).toBe 0
     expect(config.get('foo.float')).toBe 0
-    expect(config.get('foo.string')).toBe undefined
+
+  it "does not save the config value until it has been changed to a new value", ->
+    class TestPanel extends ConfigPanel
+      @content: ->
+        @div =>
+          @subview "fooInt", new Editor(mini: true, attributes: {id: 'foo.int', type: 'int'})
+
+    config.set('foo.int', 1)
+    observeHandler = jasmine.createSpy("observeHandler")
+    config.observe "foo.int", observeHandler
+    observeHandler.reset()
+
+    testPanel = new TestPanel
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(observeHandler).not.toHaveBeenCalled()
+
+    testPanel.fooInt.setText("1")
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(observeHandler).not.toHaveBeenCalled()
+
+    testPanel.fooInt.setText("2")
+    window.advanceClock(10000) # wait for contents-modified to be triggered
+    expect(observeHandler).toHaveBeenCalled()

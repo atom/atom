@@ -8,9 +8,7 @@ EventEmitter = require 'event-emitter'
 pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
 TextMateScopeSelector = require 'text-mate-scope-selector'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class TextMateGrammar
@@ -502,9 +500,7 @@ class Pattern
 
     tokens
 
-###
-# Internal #
-###
+### Internal ###
 
 shiftCapture = (captureIndices) ->
   [captureIndices.shift(), captureIndices.shift(), captureIndices.shift()]

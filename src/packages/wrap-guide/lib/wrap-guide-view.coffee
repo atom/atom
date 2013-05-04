@@ -19,7 +19,7 @@ class WrapGuideView extends View
     @subscribe $(window), 'resize', => @updateGuide()
 
   getDefaultColumn: ->
-    config.get('editor.preferredLineLength') ? 80
+    config.getPositiveInt('editor.preferredLineLength', 80)
 
   getGuideColumn: (path) ->
     customColumns = config.get('wrapGuide.columns')

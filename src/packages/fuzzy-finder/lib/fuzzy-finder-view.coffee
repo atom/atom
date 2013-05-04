@@ -37,7 +37,7 @@ class FuzzyFinderView extends SelectList
 
   itemForElement: (path) ->
     $$ ->
-      @li =>
+      @li class: 'two-lines', =>
         if git?
           status = git.statuses[path]
           if git.isStatusNew(status)
@@ -59,9 +59,8 @@ class FuzzyFinderView extends SelectList
         else
           typeClass = 'text-name'
 
-        @span fsUtils.base(path), class: "file #{typeClass}"
-        if folder = project.relativize(fsUtils.directory(path))
-          @span " - #{folder}/", class: 'directory'
+        @div fsUtils.base(path), class: "primary-line file #{typeClass}"
+        @div project.relativize(path), class: 'secondary-line path'
 
   openPath: (path) ->
     rootView.open(path, {@allowActiveEditorChange}) if path

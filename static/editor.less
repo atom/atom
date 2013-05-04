@@ -81,13 +81,11 @@
 }
 
 .editor .invisible-character {
-  opacity: 0.2;
   font-weight: normal !important;
   font-style: normal !important;
 }
 
 .editor .indent-guide {
-  opacity: 0.2;
   display: inline-block;
   box-shadow: inset 1px 0px;
 }
@@ -120,12 +118,12 @@
 
 .editor .underlayer, .editor .lines, .editor .overlayer {
   width: 100%;
-  height: 100%;
 }
 
 .editor .underlayer {
   z-index: 0;
   position: absolute;
+  min-height: 100%;
 }
 
 .editor .lines {

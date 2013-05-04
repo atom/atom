@@ -137,13 +137,13 @@ describe 'FuzzyFinder', ->
           rootView.attachToDom()
           rootView.open 'sample-with-tabs.coffee'
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-          expect(_.pluck(finderView.list.children('li'), 'outerText')).toEqual ['sample.txt', 'sample.js', 'sample-with-tabs.coffee']
+          expect(_.pluck(finderView.list.find('li > div.file'), 'outerText')).toEqual ['sample.txt', 'sample.js', 'sample-with-tabs.coffee']
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
           rootView.open 'sample.txt'
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
-          expect(_.pluck(finderView.list.children('li'), 'outerText')).toEqual ['sample-with-tabs.coffee', 'sample.js', 'sample.txt']
+          expect(_.pluck(finderView.list.find('li > div.file'), 'outerText')).toEqual ['sample-with-tabs.coffee', 'sample.js', 'sample.txt']
           expect(finderView.list.children().first()).toHaveClass 'selected'
 
         it "serializes the list of paths and their last opened time", ->
@@ -182,7 +182,7 @@ describe 'FuzzyFinder', ->
           rootView.open 'sample.js'
           rootView.getActivePane().splitRight()
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-          expect(_.pluck(finderView.list.children('li'), 'outerText')).toEqual ['sample.js']
+          expect(_.pluck(finderView.list.find('li > div.file'), 'outerText')).toEqual ['sample.js']
 
     describe "when a path selection is confirmed", ->
       [editor1, editor2] = []

@@ -2,9 +2,7 @@ Token = require 'token'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
-###
-# Internal #
-###
+### Internal ###
 module.exports =
 class NullGrammar
   name: 'Null Grammar'

@@ -32,6 +32,7 @@ describe "TabBarView", ->
     serialize: -> { deserializer: 'TestView', @title, @longTitle }
 
   beforeEach ->
+    window.rootView = new RootView
     registerDeserializer(TestView)
     item1 = new TestView('Item 1')
     item2 = new TestView('Item 2')

@@ -6,12 +6,12 @@ $ = require 'jquery'
 module.exports =
 class ImageView extends ScrollView
 
-  # Internal:
+  ### Internal ###
+
   @content: ->
     @div class: 'image-view', tabindex: -1, =>
       @img outlet: 'image'
 
-  # Internal:
   initialize: (imageEditSession) ->
     super
 
@@ -29,7 +29,6 @@ class ImageView extends ScrollView
     @command 'image-view:zoom-out', => @zoomOut()
     @command 'image-view:reset-zoom', => @resetZoom()
 
-  # Internal:
   afterAttach: (onDom) ->
     return unless onDom
 
@@ -40,7 +39,9 @@ class ImageView extends ScrollView
         @active = @is(pane.activeView)
         @centerImage() if @active and not wasActive
 
-  # Public: Places the image in the center of the {Editor}.
+  ### Public ###
+
+  # Places the image in the center of the {Editor}.
   centerImage: ->
     return unless @loaded and @isVisible()
 
@@ -49,7 +50,7 @@ class ImageView extends ScrollView
       'left': Math.max((@width() - @image.outerWidth()) / 2, 0)
     @image.show()
 
-  # Public: Indicates the path of the image.
+  # Indicates the path of the image.
   #
   # path - A {String} for the new image path.
   setPath: (path) ->
@@ -60,25 +61,25 @@ class ImageView extends ScrollView
     else
       @image.hide()
 
-  # Public: Retrieve's the {Editor}'s pane.
+  # Retrieve's the {Editor}'s pane.
   #
   # Returns a {Pane}.
   getPane: ->
     @parent('.item-views').parent('.pane').view()
 
-  # Public: Zooms the image out.
+  # Zooms the image out.
   #
   # This is done by a factor of `0.9`.
   zoomOut: ->
     @adjustSize(0.9)
 
-  # Public: Zooms the image in.
+  # Zooms the image in.
   #
   # This is done by a factor of `1.1`.
   zoomIn: ->
     @adjustSize(1.1)
 
-  # Public: Zooms the image to its normal width and height.
+  # Zooms the image to its normal width and height.
   resetZoom: ->
     return unless @loaded and @isVisible()
 
@@ -86,9 +87,7 @@ class ImageView extends ScrollView
     @image.height(@originalHeight)
     @centerImage()
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   adjustSize: (factor) ->
     return unless @loaded and @isVisible()

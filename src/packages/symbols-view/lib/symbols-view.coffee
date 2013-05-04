@@ -25,13 +25,13 @@ class SymbolsView extends SelectList
 
   itemForElement: ({position, name, file}) ->
     $$ ->
-      @li =>
-        @span name
+      @li class: 'two-lines', =>
+        @div name, class: 'primary-line'
         if position
           text = "Line #{position.row + 1}"
         else
           text = fsUtils.base(file)
-        @div text, class: 'right function-details'
+        @div text, class: 'secondary-line'
 
   toggleFileSymbols: ->
     if @hasParent()

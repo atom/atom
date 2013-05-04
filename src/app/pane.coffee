@@ -7,9 +7,7 @@ PaneColumn = require 'pane-column'
 module.exports =
 class Pane extends View
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   @content: (wrappedView) ->
     @div class: 'pane', =>
@@ -65,9 +63,7 @@ class Pane extends View
     @attached = true
     @trigger 'pane:attached', [this]
 
-  ###
-  # Public #
-  ###
+  ### Public ###
 
   makeActive: ->
     for pane in @getContainer().getPanes() when pane isnt this
@@ -186,7 +182,7 @@ class Pane extends View
 
   saveItem: (item, nextAction) ->
     if item.getUri?()
-      item.save()
+      item.save?()
       nextAction?()
     else
       @saveItemAs(item, nextAction)

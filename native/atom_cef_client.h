@@ -127,6 +127,7 @@ class AtomCefClient : public CefClient,
   void ShowSaveDialog(int replyId, CefRefPtr<CefBrowser> browser);
   CefRefPtr<CefListValue> CreateReplyDescriptor(int replyId, int callbackIndex);
   void Exit(int status);
+  void Terminate();
   void Log(const char *message);
   void Show(CefRefPtr<CefBrowser> browser);
   void ToggleFullScreen(CefRefPtr<CefBrowser> browser);

@@ -7,7 +7,7 @@ _ = require 'underscore'
 
 # Public: Represents an individual file in the editor.
 #
-# The entry point for this class is in two locations: 
+# The entry point for this class is in two locations:
 # * {Buffer}, which associates text contents with a file
 # * {Directory}, which associcates the children of a directory as files
 module.exports =
@@ -15,7 +15,7 @@ class File
   path: null
   cachedContents: null
 
-  # Public: Creates a new file.
+  # Creates a new file.
   #
   # path - A {String} representing the file path
   # symlink - A {Boolean} indicating if the path is a symlink (default: false)
@@ -24,23 +24,23 @@ class File
       if fs.statSync(@path).isDirectory()
         throw new Error("#{@path} is a directory")
 
-  # Public: Sets the path for the file.
+  # Sets the path for the file.
   #
   # path - A {String} representing the new file path
   setPath: (@path) ->
 
-  # Public: Retrieves the path for the file.
+  # Retrieves the path for the file.
   #
   # Returns a {String}.
   getPath: -> @path
 
-  # Public: Gets the file's basename--that is, the file without any directory information.
+  # Gets the file's basename--that is, the file without any directory information.
   #
   # Returns a {String}.
   getBaseName: ->
     fsUtils.base(@path)
 
-  # Public: Writes (and saves) new contents to the file.
+  # Writes (and saves) new contents to the file.
   #
   # text - A {String} representing the new contents.
   write: (text) ->
@@ -49,7 +49,7 @@ class File
     fsUtils.write(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
-  # Public: Reads the file.
+  # Reads the file.
   #
   # flushCache - A {Boolean} indicating if the cache should be erased--_i.e._, a force read is performed
   #
@@ -62,19 +62,17 @@ class File
     else
       @cachedContents
 
-  # Public: Checks to see if a file exists.
+  # Checks to see if a file exists.
   #
   # Returns a {Boolean}.
   exists: ->
     fsUtils.exists(@getPath())
 
-  ###
-  # Internal #
-  ###
+  ### Internal ###
 
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
-  
+
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
