@@ -44,10 +44,7 @@ class SignInView extends ScrollView
     @cancel.on 'click', => @detach()
     @on 'core:cancel', => @detach()
 
-    @subscribe $(document.body), 'click', (e) =>
-      @detach() unless $.contains(this[0], e.target)
-
-    @subscribe $(document.body), 'focusin', (e) =>
+    @subscribe $(document.body), 'click focusin', (e) =>
       @detach() unless $.contains(this[0], e.target)
 
   validate: ->
