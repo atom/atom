@@ -361,18 +361,6 @@ class EditSession
   # Returns an {Array} of {String}s.
   getCursorScopes: -> @getCursor().getScopes()
 
-  # Determines whether the {Editor} will auto indent rows.
-  #
-  # Returns a {Boolean}.
-  shouldAutoIndent: ->
-    config.get("editor.autoIndent")
-
-  # Determines whether the {Editor} will auto indent pasted text.
-  #
-  # Returns a {Boolean}.
-  shouldAutoIndentPastedText: ->
-    config.get("editor.autoIndentOnPaste")
-
   # Inserts text at the current cursor positions
   #
   # text - A {String} representing the text to insert.
@@ -1247,10 +1235,6 @@ class EditSession
           @mergeIntersectingSelections(options)
           return
 
-  # Internal:
-  inspect: ->
-    JSON.stringify @serialize()
-
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
     @subscribe @buffer, "will-reload", =>
@@ -1273,11 +1257,20 @@ class EditSession
 
   ### Internal ###
 
+  shouldAutoIndent: ->
+    config.get("editor.autoIndent")
+
+  shouldAutoIndentPastedText: ->
+    config.get("editor.autoIndentOnPaste")
+
   transact: (fn) -> @buffer.transact(fn)
 
   commit: -> @buffer.commit()
 
   abort: -> @buffer.abort()
+
+  inspect: ->
+    JSON.stringify @serialize()
 
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
