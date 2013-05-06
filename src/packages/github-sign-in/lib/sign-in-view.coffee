@@ -92,12 +92,10 @@ class SignInView extends ScrollView
             console.warn 'Unable to save GitHub.com token to keychain'
         @detach()
 
-      error: (response) =>
+      error: (response={}) =>
         if _.isString(response.responseText)
           try
             message = JSON.parse(response.responseText)?.message
-          catch e
-            message = ''
         else
           message = response.responseText?.message
         message ?= ''
