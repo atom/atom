@@ -18,7 +18,7 @@ module.exports =
     {previewPane, previewItem} = @getExistingPreview(editSession)
     if previewItem?
       previewPane.showItem(previewItem)
-      previewItem.fetchRenderedMarkdown()
+      previewItem.renderMarkdown()
     else if nextPane = activePane.getNextPane()
       nextPane.showItem(new MarkdownPreviewView(editSession.buffer))
     else
