@@ -52,8 +52,8 @@ class MarkdownPreviewView extends ScrollView
   getPath: ->
     @buffer.getPath()
 
-  setErrorHtml: (result)->
-    try failureMessage = JSON.parse(result).message
+  setErrorHtml: (result) ->
+    failureMessage = result?.message
 
     @html $$$ ->
       @h2 'Previewing Markdown Failed'
