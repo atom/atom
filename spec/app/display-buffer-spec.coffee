@@ -210,7 +210,6 @@ describe "DisplayBuffer", ->
           expect(line5.text).toMatch /9-+/
 
           outerFold.destroy()
-
           [line4, line5, line6, line7] = displayBuffer.linesForRows(4, 7)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
@@ -234,11 +233,11 @@ describe "DisplayBuffer", ->
       describe "when creating a fold where one already exists", ->
         it "returns existing fold and does't create new fold", ->
           fold = displayBuffer.createFold(0,10)
-          expect(displayBuffer.activeFolds[0].length).toBe 1
+          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
 
           newFold = displayBuffer.createFold(0,10)
           expect(newFold).toBe fold
-          expect(displayBuffer.activeFolds[0].length).toBe 1
+          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
 
       describe "when a fold is created inside an existing folded region", ->
         it "creates/destroys the fold, but does not trigger change event", ->
@@ -258,6 +257,12 @@ describe "DisplayBuffer", ->
           expect(line0.fold).toBe outerFold
           expect(line1.fold).toBeUndefined()
 
+      describe "when there is another display buffer pointing to the same buffer", ->
+        it "does not create folds in the other display buffer", ->
+          otherDisplayBuffer = new DisplayBuffer(buffer, { tabLength })
+          displayBuffer.createFold(2, 4)
+          expect(otherDisplayBuffer.foldsStartingAtBufferRow(2).length).toBe 0
+
     describe "when the buffer changes", ->
       [fold1, fold2] = []
       beforeEach ->
@@ -266,15 +271,23 @@ describe "DisplayBuffer", ->
         changeHandler.reset()
 
       describe "when the old range surrounds a fold", ->
-        it "removes the fold and replaces the selection with the new text", ->
+        beforeEach ->
           buffer.change([[1, 0], [5, 1]], 'party!')
 
+        it "removes the fold and replaces the selection with the new text", ->
           expect(displayBuffer.lineForRow(0).text).toBe "0"
           expect(displayBuffer.lineForRow(1).text).toBe "party!"
           expect(displayBuffer.lineForRow(2).fold).toBe fold2
           expect(displayBuffer.lineForRow(3).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 3, screenDelta: -2, bufferDelta: -4)
+
+        describe "when the changes is subsequently undone", ->
+          it "restores destroyed folds", ->
+            buffer.undo()
+            expect(displayBuffer.lineForRow(2).text).toBe '2'
+            expect(displayBuffer.lineForRow(2).fold).toBe fold1
+            expect(displayBuffer.lineForRow(3).text).toBe '5'
 
       describe "when the old range surrounds two nested folds", ->
         it "removes both folds and replaces the selection with the new text", ->
@@ -294,8 +307,8 @@ describe "DisplayBuffer", ->
           buffer.delete([[1, 1], [2, 0]])
           buffer.insert([0, 1], "\nnew")
 
-          expect(fold1.startRow).toBe 2
-          expect(fold1.endRow).toBe 4
+          expect(fold1.getStartRow()).toBe 2
+          expect(fold1.getEndRow()).toBe 4
 
       describe "when the old range precedes lines with a fold", ->
         describe "when the new range precedes lines with a fold", ->
@@ -322,15 +335,12 @@ describe "DisplayBuffer", ->
             expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 1, screenDelta: 2, bufferDelta: 0)
 
       describe "when the old range straddles the beginning of a fold", ->
-        it "replaces lines in the portion of the range that precedes the fold and adjusts the end of the fold to encompass additional lines", ->
+        it "destroys the fold", ->
           buffer.change([[1, 1], [3, 0]], "a\nb\nc\nd\n")
-
-          expect(fold1.startRow).toBe 2
-          expect(fold1.endRow).toBe 6
-
           expect(displayBuffer.lineForRow(1).text).toBe '1a'
           expect(displayBuffer.lineForRow(2).text).toBe 'b'
-          expect(displayBuffer.lineForRow(2).fold).toBe fold1
+          expect(displayBuffer.lineForRow(2).fold).toBeUndefined()
+          expect(displayBuffer.lineForRow(3).text).toBe 'c'
 
       describe "when the old range follows a fold", ->
         it "re-positions the screen ranges for the change event based on the preceding fold", ->
@@ -348,8 +358,8 @@ describe "DisplayBuffer", ->
         describe "when the end of the new range precedes the end of the fold", ->
           it "updates the fold and ensures the change is present when the fold is destroyed", ->
             buffer.insert([3, 0], '\n')
-            expect(fold1.startRow).toBe 2
-            expect(fold1.endRow).toBe 5
+            expect(fold1.getStartRow()).toBe 2
+            expect(fold1.getEndRow()).toBe 5
 
             expect(displayBuffer.lineForRow(1).text).toBe "1"
             expect(displayBuffer.lineForRow(2).text).toBe "2"
@@ -364,8 +374,8 @@ describe "DisplayBuffer", ->
         describe "when the end of the new range exceeds the end of the fold", ->
           it "expands the fold to contain all the inserted lines", ->
             buffer.change([[3, 0], [4, 0]], 'a\nb\nc\nd\n')
-            expect(fold1.startRow).toBe 2
-            expect(fold1.endRow).toBe 7
+            expect(fold1.getStartRow()).toBe 2
+            expect(fold1.getEndRow()).toBe 7
 
             expect(displayBuffer.lineForRow(1).text).toBe "1"
             expect(displayBuffer.lineForRow(2).text).toBe "2"
@@ -379,12 +389,13 @@ describe "DisplayBuffer", ->
 
       describe "when the old range straddles the end of the fold", ->
         describe "when the end of the new range precedes the end of the fold", ->
-          it "shortens the fold so its end matches the end of the new range", ->
+          it "destroys the fold", ->
             fold2.destroy()
             buffer.change([[3, 0], [6, 0]], 'a\n')
-
-            expect(fold1.startRow).toBe 2
-            expect(fold1.endRow).toBe 4
+            expect(displayBuffer.lineForRow(2).text).toBe '2'
+            expect(displayBuffer.lineForRow(2).fold).toBeUndefined()
+            expect(displayBuffer.lineForRow(3).text).toBe 'a'
+            expect(displayBuffer.lineForRow(4).text).toBe '6'
 
       describe "when the old range is contained to a single line in-between two folds", ->
         it "re-renders the line with the placeholder and re-positions the second fold", ->
@@ -427,21 +438,21 @@ describe "DisplayBuffer", ->
 
     describe ".destroyFoldsContainingBufferRow(row)", ->
       it "destroys all folds containing the given row", ->
-          displayBuffer.createFold(2, 4)
-          displayBuffer.createFold(2, 6)
-          displayBuffer.createFold(7, 8)
-          displayBuffer.createFold(1, 9)
-          displayBuffer.createFold(11, 12)
+        displayBuffer.createFold(2, 4)
+        displayBuffer.createFold(2, 6)
+        displayBuffer.createFold(7, 8)
+        displayBuffer.createFold(1, 9)
+        displayBuffer.createFold(11, 12)
 
-          expect(displayBuffer.lineForRow(1).text).toBe '1'
-          expect(displayBuffer.lineForRow(2).text).toBe '10'
+        expect(displayBuffer.lineForRow(1).text).toBe '1'
+        expect(displayBuffer.lineForRow(2).text).toBe '10'
 
-          displayBuffer.destroyFoldsContainingBufferRow(2)
-          expect(displayBuffer.lineForRow(1).text).toBe '1'
-          expect(displayBuffer.lineForRow(2).text).toBe '2'
-          expect(displayBuffer.lineForRow(7).fold).toBeDefined()
-          expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
-          expect(displayBuffer.lineForRow(10).fold).toBeDefined()
+        displayBuffer.destroyFoldsContainingBufferRow(2)
+        expect(displayBuffer.lineForRow(1).text).toBe '1'
+        expect(displayBuffer.lineForRow(2).text).toBe '2'
+        expect(displayBuffer.lineForRow(7).fold).toBeDefined()
+        expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
+        expect(displayBuffer.lineForRow(10).fold).toBeDefined()
 
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
@@ -522,44 +533,52 @@ describe "DisplayBuffer", ->
       it "allows markers to be created in terms of both screen and buffer coordinates", ->
         marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
         marker2 = displayBuffer.markBufferRange([[8, 4], [8, 10]])
-        expect(displayBuffer.getMarkerBufferRange(marker1)).toEqual [[8, 4], [8, 10]]
-        expect(displayBuffer.getMarkerScreenRange(marker2)).toEqual [[5, 4], [5, 10]]
+        expect(marker1.getBufferRange()).toEqual [[8, 4], [8, 10]]
+        expect(marker2.getScreenRange()).toEqual [[5, 4], [5, 10]]
+
+      it "emits a 'marker-created' event on the DisplayBuffer whenever a marker is created", ->
+        displayBuffer.on 'marker-created', markerCreatedHandler = jasmine.createSpy("markerCreatedHandler")
+
+        marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        expect(markerCreatedHandler).toHaveBeenCalledWith(marker1)
+        markerCreatedHandler.reset()
+
+        marker2 = buffer.markRange([[5, 4], [5, 10]])
+        expect(markerCreatedHandler).toHaveBeenCalledWith(displayBuffer.getMarker(marker2.id))
 
       it "allows marker head and tail positions to be manipulated in both screen and buffer coordinates", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])
-        displayBuffer.setMarkerTailBufferPosition(marker, [5, 4])
-        expect(displayBuffer.isMarkerReversed(marker)).toBeFalsy()
-        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
-
-        displayBuffer.setMarkerHeadBufferPosition(marker, [5, 4])
-        displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])
-        expect(displayBuffer.isMarkerReversed(marker)).toBeTruthy()
-        expect(displayBuffer.getMarkerBufferRange(marker)).toEqual [[5, 4], [8, 4]]
+        marker.setHeadScreenPosition([5, 4])
+        marker.setTailBufferPosition([5, 4])
+        expect(marker.isReversed()).toBeFalsy()
+        expect(marker.getBufferRange()).toEqual [[5, 4], [8, 4]]
+        marker.setHeadBufferPosition([5, 4])
+        marker.setTailScreenPosition([5, 4])
+        expect(marker.isReversed()).toBeTruthy()
+        expect(marker.getBufferRange()).toEqual [[5, 4], [8, 4]]
 
       it "returns whether a position changed when it is assigned", ->
         marker = displayBuffer.markScreenRange([[0, 0], [0, 0]])
-        expect(displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])).toBeTruthy()
-        expect(displayBuffer.setMarkerHeadScreenPosition(marker, [5, 4])).toBeFalsy()
-        expect(displayBuffer.setMarkerHeadBufferPosition(marker, [1, 0])).toBeTruthy()
-        expect(displayBuffer.setMarkerHeadBufferPosition(marker, [1, 0])).toBeFalsy()
-        expect(displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])).toBeTruthy()
-        expect(displayBuffer.setMarkerTailScreenPosition(marker, [5, 4])).toBeFalsy()
-        expect(displayBuffer.setMarkerTailBufferPosition(marker, [1, 0])).toBeTruthy()
-        expect(displayBuffer.setMarkerTailBufferPosition(marker, [1, 0])).toBeFalsy()
+        expect(marker.setHeadScreenPosition([5, 4])).toBeTruthy()
+        expect(marker.setHeadScreenPosition([5, 4])).toBeFalsy()
+        expect(marker.setHeadBufferPosition([1, 0])).toBeTruthy()
+        expect(marker.setHeadBufferPosition([1, 0])).toBeFalsy()
+        expect(marker.setTailScreenPosition([5, 4])).toBeTruthy()
+        expect(marker.setTailScreenPosition([5, 4])).toBeFalsy()
+        expect(marker.setTailBufferPosition([1, 0])).toBeTruthy()
+        expect(marker.setTailBufferPosition([1, 0])).toBeFalsy()
 
-    describe ".observeMarker(marker, callback)", ->
-      [observeHandler, marker, subscription] = []
+    describe "marker change events", ->
+      [markerChangedHandler, marker] = []
 
       beforeEach ->
-        observeHandler = jasmine.createSpy("observeHandler")
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        subscription = displayBuffer.observeMarker(marker, observeHandler)
+        marker.on 'changed', markerChangedHandler = jasmine.createSpy("markerChangedHandler")
 
-      it "calls the callback whenever the markers head's screen position changes in the buffer or on screen", ->
-        displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+      it "triggers the 'changed' event whenever the markers head's screen position changes in the buffer or on screen", ->
+        marker.setHeadScreenPosition([8, 20])
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [8, 20]
@@ -571,11 +590,11 @@ describe "DisplayBuffer", ->
           bufferChanged: false
           valid: true
         }
-        observeHandler.reset()
+        markerChangedHandler.reset()
 
         buffer.insert([11, 0], '...')
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [8, 20]
           oldHeadBufferPosition: [11, 20]
           newHeadScreenPosition: [8, 23]
@@ -587,11 +606,11 @@ describe "DisplayBuffer", ->
           bufferChanged: true
           valid: true
         }
-        observeHandler.reset()
+        markerChangedHandler.reset()
 
         displayBuffer.destroyFoldsContainingBufferRow(4)
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [8, 23]
           oldHeadBufferPosition: [11, 23]
           newHeadScreenPosition: [11, 23]
@@ -603,11 +622,11 @@ describe "DisplayBuffer", ->
           bufferChanged: false
           valid: true
         }
-        observeHandler.reset()
+        markerChangedHandler.reset()
 
         displayBuffer.createFold(4, 7)
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [11, 23]
           oldHeadBufferPosition: [11, 23]
           newHeadScreenPosition: [8, 23]
@@ -620,10 +639,10 @@ describe "DisplayBuffer", ->
           valid: true
         }
 
-      it "calls the callback whenever the marker tail's position changes in the buffer or on screen", ->
-        displayBuffer.setMarkerTailScreenPosition(marker, [8, 20])
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+      it "triggers the 'changed' event whenever the marker tail's position changes in the buffer or on screen", ->
+        marker.setTailScreenPosition([8, 20])
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [5, 10]
@@ -635,11 +654,11 @@ describe "DisplayBuffer", ->
           bufferChanged: false
           valid: true
         }
-        observeHandler.reset()
+        markerChangedHandler.reset()
 
         buffer.insert([11, 0], '...')
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [5, 10]
@@ -652,10 +671,10 @@ describe "DisplayBuffer", ->
           valid: true
         }
 
-      it "calls the callback whenever the marker is invalidated or revalidated", ->
+      it "triggers the 'changed' event whenever the marker is invalidated or revalidated", ->
         buffer.deleteRow(8)
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [5, 10]
@@ -668,11 +687,11 @@ describe "DisplayBuffer", ->
           valid: false
         }
 
-        observeHandler.reset()
+        markerChangedHandler.reset()
         buffer.undo()
 
-        expect(observeHandler).toHaveBeenCalled()
-        expect(observeHandler.argsForCall[0][0]).toEqual {
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [5, 10]
           oldHeadBufferPosition: [8, 10]
           newHeadScreenPosition: [5, 10]
@@ -687,47 +706,122 @@ describe "DisplayBuffer", ->
 
       it "does not call the callback for screen changes that don't change the position of the marker", ->
         displayBuffer.createFold(10, 11)
-        expect(observeHandler).not.toHaveBeenCalled()
+        expect(markerChangedHandler).not.toHaveBeenCalled()
 
-      it "allows observation subscriptions to be cancelled", ->
-        subscription.cancel()
-        displayBuffer.setMarkerHeadScreenPosition(marker, [8, 20])
-        displayBuffer.destroyFoldsContainingBufferRow(4)
-        expect(observeHandler).not.toHaveBeenCalled()
+      it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
+        marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]])
+        marker2.on 'changed', marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
+        displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
 
-      it "updates the position of markers before emitting buffer change events, but does not notify their observers until the change event", ->
-        changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
+        # New change ----
+
+        onDisplayBufferChange = ->
           # calls change handler first
-          expect(observeHandler).not.toHaveBeenCalled()
+          expect(markerChangedHandler).not.toHaveBeenCalled()
+          expect(marker2ChangedHandler).not.toHaveBeenCalled()
           # but still updates the markers
-          expect(displayBuffer.getMarkerScreenRange(marker)).toEqual [[5, 7], [5, 13]]
-          expect(displayBuffer.getMarkerHeadScreenPosition(marker)).toEqual [5, 13]
-          expect(displayBuffer.getMarkerTailScreenPosition(marker)).toEqual [5, 7]
+          expect(marker.getScreenRange()).toEqual [[5, 7], [5, 13]]
+          expect(marker.getHeadScreenPosition()).toEqual [5, 13]
+          expect(marker.getTailScreenPosition()).toEqual [5, 7]
+          expect(marker2.isValid()).toBeFalsy()
 
-        displayBuffer.on 'changed', changeHandler
-
-        buffer.insert([8, 1], "...")
-
+        buffer.change([[8, 0], [8, 2]], ".....")
         expect(changeHandler).toHaveBeenCalled()
-        expect(observeHandler).toHaveBeenCalled()
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(marker2ChangedHandler).toHaveBeenCalled()
+
+        # Undo change ----
+
+        changeHandler.reset()
+        markerChangedHandler.reset()
+        marker2ChangedHandler.reset()
+
+        marker3 = displayBuffer.markBufferRange([[8, 1], [8, 2]])
+        marker3.on 'changed', marker3ChangedHandler = jasmine.createSpy("marker3ChangedHandler")
+
+        onDisplayBufferChange = ->
+          # calls change handler first
+          expect(markerChangedHandler).not.toHaveBeenCalled()
+          expect(marker2ChangedHandler).not.toHaveBeenCalled()
+          expect(marker3ChangedHandler).not.toHaveBeenCalled()
+          # but still updates the markers
+          expect(marker.getScreenRange()).toEqual [[5, 4], [5, 10]]
+          expect(marker.getHeadScreenPosition()).toEqual [5, 10]
+          expect(marker.getTailScreenPosition()).toEqual [5, 4]
+          expect(marker2.isValid()).toBeTruthy()
+          expect(marker3.isValid()).toBeFalsy()
+
+        buffer.undo()
+        expect(changeHandler).toHaveBeenCalled()
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(marker2ChangedHandler).toHaveBeenCalled()
+        expect(marker3ChangedHandler).toHaveBeenCalled()
+
+        # Redo change ----
+
+        changeHandler.reset()
+        markerChangedHandler.reset()
+        marker2ChangedHandler.reset()
+        marker3ChangedHandler.reset()
+
+        onDisplayBufferChange = ->
+          # calls change handler first
+          expect(markerChangedHandler).not.toHaveBeenCalled()
+          expect(marker2ChangedHandler).not.toHaveBeenCalled()
+          expect(marker3ChangedHandler).not.toHaveBeenCalled()
+          # but still updates the markers
+          expect(marker.getScreenRange()).toEqual [[5, 7], [5, 13]]
+          expect(marker.getHeadScreenPosition()).toEqual [5, 13]
+          expect(marker.getTailScreenPosition()).toEqual [5, 7]
+          expect(marker2.isValid()).toBeFalsy()
+          expect(marker3.isValid()).toBeTruthy()
+
+        buffer.redo()
+        expect(changeHandler).toHaveBeenCalled()
+        expect(markerChangedHandler).toHaveBeenCalled()
+        expect(marker2ChangedHandler).toHaveBeenCalled()
+        expect(marker3ChangedHandler).toHaveBeenCalled()
 
       it "updates the position of markers before emitting change events that aren't caused by a buffer change", ->
-        changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
+        displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
           # calls change handler first
-          expect(observeHandler).not.toHaveBeenCalled()
+          expect(markerChangedHandler).not.toHaveBeenCalled()
           # but still updates the markers
-          expect(displayBuffer.getMarkerScreenRange(marker)).toEqual [[8, 4], [8, 10]]
-          expect(displayBuffer.getMarkerHeadScreenPosition(marker)).toEqual [8, 10]
-          expect(displayBuffer.getMarkerTailScreenPosition(marker)).toEqual [8, 4]
-        displayBuffer.on 'changed', changeHandler
+          expect(marker.getScreenRange()).toEqual [[8, 4], [8, 10]]
+          expect(marker.getHeadScreenPosition()).toEqual [8, 10]
+          expect(marker.getTailScreenPosition()).toEqual [8, 4]
 
         displayBuffer.destroyFoldsContainingBufferRow(4)
 
         expect(changeHandler).toHaveBeenCalled()
-        expect(observeHandler).toHaveBeenCalled()
+        expect(markerChangedHandler).toHaveBeenCalled()
+
+    describe ".findMarkers(attributes)", ->
+      it "allows the startBufferRow and endBufferRow to be specified", ->
+        marker1 = displayBuffer.markBufferRange([[0, 0], [3, 0]], class: 'a')
+        marker2 = displayBuffer.markBufferRange([[0, 0], [5, 0]], class: 'a')
+        marker3 = displayBuffer.markBufferRange([[9, 0], [10, 0]], class: 'b')
+
+        expect(displayBuffer.findMarkers(class: 'a', startBufferRow: 0)).toEqual [marker2, marker1]
+        expect(displayBuffer.findMarkers(class: 'a', startBufferRow: 0, endBufferRow: 3)).toEqual [marker1]
+        expect(displayBuffer.findMarkers(endBufferRow: 10)).toEqual [marker3]
 
     describe "marker destruction", ->
       it "allows markers to be destroyed", ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        displayBuffer.destroyMarker(marker)
-        expect(displayBuffer.getMarkerBufferRange(marker)).toBeUndefined()
+        marker.destroy()
+        expect(marker.isValid()).toBeFalsy()
+        expect(displayBuffer.getMarker(marker.id)).toBeUndefined()
+
+      it "emits 'destroyed' events when markers are destroyed", ->
+        destroyedHandler = jasmine.createSpy("destroyedHandler")
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        marker.on 'destroyed', destroyedHandler
+        marker.destroy()
+        expect(destroyedHandler).toHaveBeenCalled()
+        destroyedHandler.reset()
+
+        marker2 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        marker2.on 'destroyed', destroyedHandler
+        buffer.getMarker(marker2.id).destroy()
+        expect(destroyedHandler).toHaveBeenCalled()

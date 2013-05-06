@@ -161,6 +161,7 @@ describe "CommandInterpreter", ->
           expect(editSession.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
           expect(editSession.lineForScreenRow(5).fold).toBeUndefined()
           expect(editSession.lineForScreenRow(10).fold).toBeDefined()
+          editSession.unfoldAll() # cleanup fold marker for after assertion
 
       it "is case-insentive when the pattern contains no non-escaped uppercase letters (behavior copied from vim)", ->
         waitsForPromise ->

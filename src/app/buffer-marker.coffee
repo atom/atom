@@ -11,7 +11,8 @@ class BufferMarker
   invalidationStrategy: null
 
   ### Internal ###
-  constructor: ({@id, @buffer, range, @invalidationStrategy, noTail, reverse}) ->
+
+  constructor: ({@id, @buffer, range, @invalidationStrategy, @attributes, noTail, reverse}) ->
     @invalidationStrategy ?= 'contains'
     @setRange(range, {noTail, reverse})
 
@@ -41,30 +42,48 @@ class BufferMarker
   isReversed: ->
     @tailPosition? and @headPosition.isLessThan(@tailPosition)
 
+  # Checks that the marker's attributes match the given attributes
+  #
+  # Returns a {Boolean}.
+  matchesAttributes: (queryAttributes) ->
+    for key, value of queryAttributes
+      switch key
+        when 'startRow'
+          return false unless @getRange().start.row == value
+        when 'endRow'
+          return false unless @getRange().end.row == value
+        when 'containsRange'
+          return false unless @getRange().containsRange(value, exclusive: true)
+        when 'containsRow'
+          return false unless @getRange().containsRow(value)
+        else
+          return false unless _.isEqual(@attributes[key], value)
+    true
+
   # Identifies if the marker's head position is equal to its tail.
   #
   # Returns a {Boolean}.
   isRangeEmpty: ->
     @getHeadPosition().isEqual(@getTailPosition())
 
-  # Retrieves the {Range} between a marker's head and its tail. 
-  # 
+  # Retrieves the {Range} between a marker's head and its tail.
+  #
   # Returns a {Range}.
   getRange: ->
     if @tailPosition
-      new Range(@tailPosition, @headPosition)
+      new Range(@getTailPosition(), @getHeadPosition())
     else
-      new Range(@headPosition, @headPosition)
+      new Range(@getHeadPosition(), @getHeadPosition())
 
   # Retrieves the position of the marker's head.
   #
   # Returns a {Point}.
-  getHeadPosition: -> @headPosition
+  getHeadPosition: -> @headPosition?.copy()
 
   # Retrieves the position of the marker's tail.
   #
   # Returns a {Point}.
-  getTailPosition: -> @tailPosition ? @getHeadPosition()
+  getTailPosition: -> @tailPosition?.copy() ? @getHeadPosition()
 
   # Sets the position of the marker's head.
   #
@@ -135,41 +154,45 @@ class BufferMarker
   containsPoint: (point) ->
     @getRange().containsPoint(point)
 
-  # Sets a callback to be fired whenever a marker is changed.
-  observe: (callback) ->
-    @on 'changed', callback
-    cancel: => @unobserve(callback)
+  # Destroys the marker
+  destroy: ->
+    @buffer.destroyMarker(@id)
+    @trigger 'destroyed'
 
-  # Removes the fired callback whenever a marker changes.
-  unobserve: (callback) ->
-    @off 'changed', callback
+  # Returns a {Boolean} indicating whether the marker is valid. Markers can be
+  # invalidated when a region surrounding them in the buffer is changed.
+  isValid: ->
+    @buffer.getMarker(@id)?
+
+  # Returns a {Boolean} indicating whether the marker has been destroyed. A marker
+  # can be invalid without being destroyed, in which case undoing the invalidating
+  # operation would restore the marker. Once a marker is destroyed by calling
+  # {BufferMarker.destroy}, no undo/redo operation can ever bring it back.
+  isDestroyed: ->
+    not (@buffer.validMarkers[@id]? or @buffer.invalidMarkers[@id]?)
 
   ### Internal ###
 
   tryToInvalidate: (changedRange) ->
-    betweenStartAndEnd = @getRange().containsRange(changedRange, exclusive: false)
-    containsStart = changedRange.containsPoint(@getStartPosition(), exclusive: true)
-    containsEnd = changedRange.containsPoint(@getEndPosition(), exclusive: true)
-
-    switch @invalidationStrategy
-      when 'between'
-        if betweenStartAndEnd or containsStart or containsEnd
-          @invalidate()
-          [@id]
-      when 'contains'
-        if containsStart or containsEnd
-          @invalidate()
-          [@id]
-      when 'never'
-        if containsStart or containsEnd
-          previousRange = @getRange()
-          if containsStart and containsEnd
-            @setRange([changedRange.end, changedRange.end])
-          else if containsStart
-            @setRange([changedRange.end, @getEndPosition()])
-          else
-            @setRange([@getStartPosition(), changedRange.start])
-          [@id, previousRange]
+    previousRange = @getRange()
+    if changedRange
+      betweenStartAndEnd = @getRange().containsRange(changedRange, exclusive: false)
+      containsStart = changedRange.containsPoint(@getStartPosition(), exclusive: true)
+      containsEnd = changedRange.containsPoint(@getEndPosition(), exclusive: true)
+      switch @invalidationStrategy
+        when 'between'
+          @invalidate() if betweenStartAndEnd or containsStart or containsEnd
+        when 'contains'
+          @invalidate() if containsStart or containsEnd
+        when 'never'
+          if containsStart or containsEnd
+            if containsStart and containsEnd
+              @setRange([changedRange.end, changedRange.end])
+            else if containsStart
+              @setRange([changedRange.end, @getEndPosition()])
+            else
+              @setRange([@getStartPosition(), changedRange.start])
+    [@id, previousRange]
 
   handleBufferChange: (bufferChange) ->
     @consolidateObserverNotifications true, =>
@@ -207,7 +230,7 @@ class BufferMarker
     newHeadPosition ?= @getHeadPosition()
     oldTailPosition ?= @getTailPosition()
     newTailPosition ?= @getTailPosition()
-    valid = @buffer.validMarkers[@id]?
+    valid = @isValid()
     @trigger 'changed', {oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}
 
   consolidateObserverNotifications: (bufferChanged, fn) ->

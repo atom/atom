@@ -413,11 +413,35 @@ class Buffer
   # Returns a {Boolean}.
   isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
-  # Retrieves all the valid markers in the buffer.
+  # Returns all valid {BufferMarker}s on the buffer.
+  getMarkers: ({includeInvalid} = {}) ->
+    markers = _.values(@validMarkers)
+    if includeInvalid
+      markers.concat(_.values(@invalidMarkers))
+    else
+      markers
+
+  # Returns the {BufferMarker} with the given id.
+  getMarker: (id) ->
+    @validMarkers[id]
+
+  # Public: Finds the first marker satisfying the given attributes
   #
-  # Returns an {Array} of {BufferMarker}s.
-  getMarkers: ->
-    _.values(@validMarkers)
+  # Returns a {String} marker-identifier
+  findMarker: (attributes) ->
+    @findMarkers(attributes)[0]
+
+  # Public: Finds all markers satisfying the given attributes
+  #
+  # attributes - The attributes against which to compare the markers' attributes
+  #   There are some reserved keys that match against derived marker properties:
+  #   startRow - The row at which the marker starts
+  #   endRow - The row at which the marker ends
+  #
+  # Returns an {Array} of {BufferMarker}s
+  findMarkers: (attributes) ->
+    markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
+    markers.sort (a, b) -> a.getRange().compare(b.getRange())
 
   # Retrieves the quantity of markers in a buffer.
   #
@@ -428,17 +452,27 @@ class Buffer
   # Constructs a new marker at a given range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
+  # attributes - An optional hash of serializable attributes
+  #   Any attributes you pass will be associated with the marker and can be retrieved
+  #   or used in marker queries.
+  #   The following attribute keys reserved, and control the marker's initial range
+  #   reverse - if `true`, the marker is reversed; that is, its head precedes the tail
+  #   noTail - if `true`, the marker is created without a tail
   #
   # Returns a {Number} representing the new marker's ID.
-  markRange: (range, options={}) ->
+  markRange: (range, attributes={}) ->
+    optionKeys = ['invalidationStrategy', 'noTail', 'reverse']
+    options = _.pick(attributes, optionKeys)
+    attributes = _.omit(attributes, optionKeys)
     marker = new BufferMarker(_.defaults({
       id: (@nextMarkerId++).toString()
       buffer: this
       range
+      attributes
     }, options))
     @validMarkers[marker.id] = marker
-    marker.id
+    @trigger 'marker-created', marker
+    marker
 
   # Constructs a new marker at a given position.
   #
@@ -449,141 +483,14 @@ class Buffer
   markPosition: (position, options) ->
     @markRange([position, position], _.defaults({noTail: true}, options))
 
-  # Removes the marker with the given id.
-  #
-  # id - The {Number} of the ID to remove
-  destroyMarker: (id) ->
-    delete @validMarkers[id]
-    delete @invalidMarkers[id]
-
-  # Retrieves the positions of every marker's head.
-  #
-  # Returns an {Array} of {Point}s.
-  getMarkerPosition: (args...) ->
-    @getMarkerHeadPosition(args...)
-
-  # Sets the positions of every marker's head.
-  #
-  # id - A {Number} representing the marker to change
-  # position - The new {Point} to place the head
-  # options - A hash with the following keys:
-  #         clip: if `true`, the point is [clipped]{Buffer.clipPosition}
-  #         bufferChanged: if `true`, indicates that the {Buffer} should trigger an event that it's changed
-  #
-  # Returns a {Point} representing the new head position.
-  setMarkerPosition: (args...) ->
-    @setMarkerHeadPosition(args...)
-
-  # Retrieves the position of the marker's head.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Point}, or `null` if the marker does not exist.
-  getMarkerHeadPosition: (id) ->
-    @validMarkers[id]?.getHeadPosition()
-
-  # Sets the position of the marker's head.
-  #
-  # id - A {Number} representing the marker to change
-  # position - The new {Point} to place the head
-  # options - A hash with the following keys:
-  #         clip: if `true`, the point is [clipped]{Buffer.clipPosition}
-  #         bufferChanged: if `true`, indicates that the {Buffer} should trigger an event that it's changed
-  #
-  # Returns a {Point} representing the new head position.
-  setMarkerHeadPosition: (id, position, options) ->
-    @validMarkers[id]?.setHeadPosition(position)
-
-  # Retrieves the position of the marker's tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Point}, or `null` if the marker does not exist.
-  getMarkerTailPosition: (id) ->
-    @validMarkers[id]?.getTailPosition()
-
-  # Sets the position of the marker's tail.
-  #
-  # id - A {Number} representing the marker to change
-  # position - The new {Point} to place the tail
-  # options - A hash with the following keys:
-  #         clip: if `true`, the point is [clipped]{Buffer.clipPosition}
-  #         bufferChanged: if `true`, indicates that the {Buffer} should trigger an event that it's changed
-  #
-  # Returns a {Point} representing the new tail position.
-  setMarkerTailPosition: (id, position, options) ->
-    @validMarkers[id]?.setTailPosition(position)
-
-  # Retrieves the {Range} between a marker's head and its tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Range}.
-  getMarkerRange: (id) ->
-    @validMarkers[id]?.getRange()
-
-  # Sets the marker's range, potentialy modifying both its head and tail.
-  #
-  # id - A {Number} representing the marker to change
-  # range - The new {Range} the marker should cover
-  # options - A hash of options with the following keys:
-  #           reverse: if `true`, the marker is reversed; that is, its tail is "above" the head
-  #           noTail: if `true`, the marker doesn't have a tail
-  setMarkerRange: (id, range, options) ->
-    @validMarkers[id]?.setRange(range, options)
-
-  # Sets the marker's tail to the same position as the marker's head.
-  #
-  # This only works if there isn't already a tail position.
-  #
-  # id - A {Number} representing the marker to change
-  #
-  # Returns a {Point} representing the new tail position.
-  placeMarkerTail: (id) ->
-    @validMarkers[id]?.placeTail()
-
-  # Removes the tail from the marker.
-  #
-  # id - A {Number} representing the marker to change
-  clearMarkerTail: (id) ->
-    @validMarkers[id]?.clearTail()
-
-  # Identifies if the ending position of a marker is greater than the starting position.
-  #
-  # This can happen when, for example, you highlight text "up" in a {Buffer}.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerReversed: (id) ->
-    @validMarkers[id]?.isReversed()
-
-  # Identifies if the marker's head position is equal to its tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerRangeEmpty: (id) ->
-    @validMarkers[id]?.isRangeEmpty()
-
-  # Sets a callback to be fired whenever a marker is changed.
-  #
-  # id - A {Number} representing the marker to watch
-  # callback - A {Function} to execute
-  observeMarker: (id, callback) ->
-    @validMarkers[id]?.observe(callback)
-
   # Given a buffer position, this finds all markers that contain the position.
   #
   # bufferPosition - A {Point} to check
   #
   # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
-  markersForPosition: (bufferPosition) ->
-    bufferPosition = Point.fromObject(bufferPosition)
-    ids = []
-    for id, marker of @validMarkers
-      ids.push(id) if marker.containsPoint(bufferPosition)
-    ids
+  markersForPosition: (position) ->
+    position = Point.fromObject(position)
+    @getMarkers().filter (marker) -> marker.containsPoint(position)
 
   # Identifies if a character sequence is within a certain range.
   #
@@ -731,7 +638,24 @@ class Buffer
 
   ### Internal ###
 
-  commit: -> @undoManager.commit()
+  pushOperation: (operation, editSession) ->
+    if @undoManager
+      @undoManager.pushOperation(operation, editSession)
+    else
+      operation.do()
+
+  transact: (fn) ->
+    if isNewTransaction = @undoManager.transact()
+      @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on undo
+    if fn
+      try
+        fn()
+      finally
+        @commit() if isNewTransaction
+
+  commit: ->
+    @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on redo
+    @undoManager.commit()
 
   abort: -> @undoManager.abort()
 
@@ -741,13 +665,10 @@ class Buffer
     range = @pushOperation(operation)
     range
 
-  pushOperation: (operation, editSession) ->
-    if @undoManager
-      @undoManager.pushOperation(operation, editSession)
-    else
-      operation.do()
-
-  transact: (fn) ->  @undoManager.transact(fn)
+  destroyMarker: (id) ->
+    if marker = @validMarkers[id] ? @invalidMarkers[id]
+      delete @validMarkers[id]
+      delete @invalidMarkers[id]
 
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout

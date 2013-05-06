@@ -444,9 +444,6 @@ class Editor extends View
   # {Delegates to: EditSession.foldSelection}
   foldSelection: -> @activeEditSession.foldSelection()
 
-  # {Delegates to: EditSession.destroyFold}
-  destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
-
   # {Delegates to: EditSession.destroyFoldsContainingBufferRow}
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
 
@@ -624,7 +621,7 @@ class Editor extends View
       false if @isFocused
 
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
-      @destroyFold($(e.currentTarget).attr('fold-id'))
+      @activeEditSession.destroyFoldWithId($(e.currentTarget).attr('fold-id'))
       false
 
     @renderedLines.on 'mousedown', (e) =>

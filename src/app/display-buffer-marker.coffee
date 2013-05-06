@@ -11,8 +11,9 @@ class DisplayBufferMarker
 
   ### Internal ###
 
-  constructor: ({@id, @displayBuffer}) ->
-    @buffer = @displayBuffer.buffer
+  constructor: ({@bufferMarker, @displayBuffer}) ->
+    @id = @bufferMarker.id
+    @observeBufferMarker()
 
   ### Public ###
 
@@ -33,14 +34,14 @@ class DisplayBufferMarker
   #
   # Returns a {Range}.
   getBufferRange: ->
-    @buffer.getMarkerRange(@id)
+    @bufferMarker.getRange()
 
   # Modifies the buffer range of the display marker.
   #
   # screenRange - The new {Range} to use
   # options - A hash of options matching those found in {BufferMarker.setRange}
   setBufferRange: (bufferRange, options) ->
-    @buffer.setMarkerRange(@id, bufferRange, options)
+    @bufferMarker.setRange(bufferRange, options)
 
   # Retrieves the screen position of the marker's head.
   #
@@ -60,21 +61,21 @@ class DisplayBufferMarker
   #
   # Returns a {Point}.
   getHeadBufferPosition: ->
-    @buffer.getMarkerHeadPosition(@id)
+    @bufferMarker.getHeadPosition()
 
   # Sets the buffer position of the marker's head.
   #
   # screenRange - The new {Point} to use
   # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setHeadBufferPosition: (bufferPosition) ->
-    @buffer.setMarkerHeadPosition(@id, bufferPosition)
+    @bufferMarker.setHeadPosition(bufferPosition)
 
   # Retrieves the screen position of the marker's tail.
   #
   # Returns a {Point}.
   getTailScreenPosition: ->
     @tailScreenPosition ?= @displayBuffer.screenPositionForBufferPosition(@getTailBufferPosition(), wrapAtSoftNewlines: true)
-  
+
   # Sets the screen position of the marker's tail.
   #
   # screenRange - The new {Point} to use
@@ -87,14 +88,14 @@ class DisplayBufferMarker
   #
   # Returns a {Point}.
   getTailBufferPosition: ->
-    @buffer.getMarkerTailPosition(@id)
-  
+    @bufferMarker.getTailPosition()
+
   # Sets the buffer position of the marker's tail.
   #
   # screenRange - The new {Point} to use
   # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
   setTailBufferPosition: (bufferPosition) ->
-    @buffer.setMarkerTailPosition(@id, bufferPosition)
+    @bufferMarker.setTailPosition(bufferPosition)
 
   # Sets the marker's tail to the same position as the marker's head.
   #
@@ -102,48 +103,58 @@ class DisplayBufferMarker
   #
   # Returns a {Point} representing the new tail position.
   placeTail: ->
-    @buffer.placeMarkerTail(@id)
+    @bufferMarker.placeTail()
 
   # Removes the tail from the marker.
   clearTail: ->
-    @buffer.clearMarkerTail(@id)
+    @bufferMarker.clearTail()
 
-  # Sets a callback to be fired whenever the marker is changed.
-  #
-  # callback - A {Function} to execute
-  observe: (callback) ->
-    @observeBufferMarkerIfNeeded()
-    @on 'changed', callback
-    cancel: => @unobserve(callback)
+  # Returns whether the head precedes the tail in the buffer
+  isReversed: ->
+    @bufferMarker.isReversed()
 
-  # Removes the callback that's fired whenever the marker changes.
-  #
-  # callback - A {Function} to remove
-  unobserve: (callback) ->
-    @off 'changed', callback
-    @unobserveBufferMarkerIfNeeded()
+  # Returns a {Boolean} indicating whether the marker is valid. Markers can be
+  # invalidated when a region surrounding them in the buffer is changed.
+  isValid: ->
+    @bufferMarker.isValid()
+
+  # Returns a {Boolean} indicating whether the marker has been destroyed. A marker
+  # can be invalid without being destroyed, in which case undoing the invalidating
+  # operation would restore the marker. Once a marker is destroyed by calling
+  # {BufferMarker.destroy}, no undo/redo operation can ever bring it back.
+  isDestroyed: ->
+    @bufferMarker.isDestroyed()
+
+  matchesAttributes: (attributes) ->
+    @bufferMarker.matchesAttributes(attributes)
+
+  # Destroys the marker
+  destroy: ->
+    @bufferMarker.destroy()
+
+  # Returns a {String} representation of the marker
+  inspect: ->
+    "DisplayBufferMarker(id: #{@id}, bufferRange: #{@getBufferRange().inspect()})"
 
   ### Internal ###
 
-  observeBufferMarkerIfNeeded: ->
-    return if @subscriptionCount()
+  destroyed: ->
+    delete @displayBuffer.markers[@id]
+    @trigger 'destroyed'
+
+  observeBufferMarker: ->
+    @bufferMarker.on 'destroyed', => @destroyed()
+
     @getHeadScreenPosition() # memoize current value
     @getTailScreenPosition() # memoize current value
-    @bufferMarkerSubscription =
-      @buffer.observeMarker @id, ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
-        @notifyObservers
-          oldHeadBufferPosition: oldHeadPosition
-          newHeadBufferPosition: newHeadPosition
-          oldTailBufferPosition: oldTailPosition
-          newTailBufferPosition: newTailPosition
-          bufferChanged: bufferChanged
-          valid: valid
-    @displayBuffer.markers[@id] = this
-
-  unobserveBufferMarkerIfNeeded: ->
-    return if @subscriptionCount()
-    @bufferMarkerSubscription.cancel()
-    delete @displayBuffer.markers[@id]
+    @bufferMarker.on 'changed', ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
+      @notifyObservers
+        oldHeadBufferPosition: oldHeadPosition
+        newHeadBufferPosition: newHeadPosition
+        oldTailBufferPosition: oldTailPosition
+        newTailBufferPosition: newTailPosition
+        bufferChanged: bufferChanged
+        valid: valid
 
   notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged, valid} = {}) ->
     oldHeadScreenPosition = @getHeadScreenPosition()

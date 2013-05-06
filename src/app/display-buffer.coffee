@@ -8,15 +8,15 @@ Fold = require 'fold'
 ScreenLine = require 'screen-line'
 Token = require 'token'
 DisplayBufferMarker = require 'display-buffer-marker'
+Subscriber = require 'subscriber'
 
 module.exports =
 class DisplayBuffer
   @idCounter: 1
   lineMap: null
   tokenizedBuffer: null
-  activeFolds: null
-  foldsById: null
   markers: null
+  foldsByMarkerId: null
 
   ### Internal ###
 
@@ -24,13 +24,13 @@ class DisplayBuffer
     @id = @constructor.idCounter++
     @tokenizedBuffer = new TokenizedBuffer(@buffer, options)
     @softWrapColumn = options.softWrapColumn ? Infinity
-    @activeFolds = {}
-    @foldsById = {}
     @markers = {}
+    @foldsByMarkerId = {}
     @buildLineMap()
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
-    @buffer.on 'markers-updated', @handleMarkersUpdated
+    @subscribe @buffer, 'markers-updated', @handleMarkersUpdated
+    @subscribe @buffer, 'marker-created', @handleMarkerCreated
 
   buildLineMap: ->
     @lineMap = new LineMap
@@ -102,56 +102,20 @@ class DisplayBuffer
   #
   # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
-    return fold if fold = @foldFor(startRow, endRow)
-    fold = new Fold(this, startRow, endRow)
-    @registerFold(fold)
+    foldMarker =
+      @findFoldMarker({startRow, endRow}) ?
+        @buffer.markRange([[startRow, 0], [endRow, Infinity]], @foldMarkerAttributes())
+    @foldForMarker(foldMarker)
 
-    unless @isFoldContainedByActiveFold(fold)
-      bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
-      oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
-
-      lines = @buildLineForBufferRow(startRow)
-      @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
-      newScreenRange = @screenLineRangeForBufferRange(bufferRange)
-
-      start = oldScreenRange.start.row
-      end = oldScreenRange.end.row
-      screenDelta = newScreenRange.end.row - oldScreenRange.end.row
-      bufferDelta = 0
-      @triggerChanged({ start, end, screenDelta, bufferDelta })
-
-    fold
-
-  # Given a {Fold}, determines if it is contained within another fold.
-  #
-  # fold - The {Fold} to check
-  #
-  # Returns the contaiing {Fold} (if it exists), `null` otherwise.
-  isFoldContainedByActiveFold: (fold) ->
-    for row, folds of @activeFolds
-      for otherFold in folds
-        return otherFold if fold != otherFold and fold.isContainedByFold(otherFold)
-
-  # Given a starting and ending row, tries to find an existing fold.
-  #
-  # startRow - A {Number} representing a fold's starting row
-  # endRow - A {Number} representing a fold's ending row
-  #
-  # Returns a {Fold} (if it exists).
-  foldFor: (startRow, endRow) ->
-    _.find @activeFolds[startRow] ? [], (fold) ->
-      fold.startRow == startRow and fold.endRow == endRow
+  # Destroys the fold with the given id
+  destroyFoldWithId: (id) ->
+    @foldsByMarkerId[id]?.destroy()
 
   # Removes any folds found that contain the given buffer row.
   #
   # bufferRow - The buffer row {Number} to check against
   destroyFoldsContainingBufferRow: (bufferRow) ->
-    for row, folds of @activeFolds
-      for fold in new Array(folds...)
-        fold.destroy() if fold.getBufferRange().containsRow(bufferRow)
-
-  foldsStartingAtBufferRow: (bufferRow) ->
-    new Array((@activeFolds[bufferRow] ? [])...)
+    fold.destroy() for fold in @foldsContainingBufferRow(bufferRow)
 
   # Given a buffer row, this returns the largest fold that starts there.
   #
@@ -160,10 +124,18 @@ class DisplayBuffer
   #
   # bufferRow - A {Number} indicating the buffer row
   #
-  # Returns a {Fold}.
+  # Returns a {Fold} or null if none exists.
   largestFoldStartingAtBufferRow: (bufferRow) ->
-    return unless folds = @activeFolds[bufferRow]
-    (folds.sort (a, b) -> b.endRow - a.endRow)[0]
+    @foldsStartingAtBufferRow(bufferRow)[0]
+
+  # Public: Given a buffer row, this returns all folds that start there.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns an {Array} of {Fold}s.
+  foldsStartingAtBufferRow: (bufferRow) ->
+    for marker in @findFoldMarkers(startRow: bufferRow)
+      @foldForMarker(marker)
 
   # Given a screen row, this returns the largest fold that starts there.
   #
@@ -178,18 +150,24 @@ class DisplayBuffer
 
   # Given a buffer row, this returns the largest fold that includes it.
   #
-  # Largest is defined as the fold whose difference between its start and end points
-  # are the greatest.
+  # Largest is defined as the fold whose difference between its start and end rows
+  # is the greatest.
   #
   # bufferRow - A {Number} indicating the buffer row
   #
   # Returns a {Fold}.
   largestFoldContainingBufferRow: (bufferRow) ->
-    largestFold = null
-    for currentBufferRow in [bufferRow..0]
-      if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
-        largestFold = fold if fold.endRow >= bufferRow
-    largestFold
+    @foldsContainingBufferRow(bufferRow)[0]
+
+  # Public: Given a buffer row, this returns folds that include it.
+  #
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns an {Array} of {Fold}s.
+  foldsContainingBufferRow: (bufferRow) ->
+    for marker in @findFoldMarkers(containsRow: bufferRow)
+      @foldForMarker(marker)
 
   # Given a buffer range, this converts it into a screen range.
   #
@@ -336,6 +314,8 @@ class DisplayBuffer
   clipScreenPosition: (position, options) ->
     @lineMap.clipScreenPosition(position, options)
 
+  ### Public ###
+
   # Given a line, finds the point where it would wrap.
   #
   # line - The {String} to check
@@ -389,7 +369,9 @@ class DisplayBuffer
   #
   # Returns the {DisplayBufferMarker} (if it exists).
   getMarker: (id) ->
-    @markers[id] ? new DisplayBufferMarker({id, displayBuffer: this})
+    @markers[id] ?= do =>
+      if bufferMarker = @buffer.getMarker(id)
+        new DisplayBufferMarker({bufferMarker, displayBuffer: this})
 
   # Retrieves the active markers in the buffer.
   #
@@ -414,7 +396,7 @@ class DisplayBuffer
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferRange: (args...) ->
-    @buffer.markRange(args...)
+    @getMarker(@buffer.markRange(args...).id)
 
   # Constructs a new marker at the given screen position.
   #
@@ -432,7 +414,7 @@ class DisplayBuffer
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->
-    @buffer.markPosition(bufferPosition, options)
+    @getMarker(@buffer.markPosition(bufferPosition, options).id)
 
   # Removes the marker with the given id.
   #
@@ -441,221 +423,89 @@ class DisplayBuffer
     @buffer.destroyMarker(id)
     delete @markers[id]
 
-  # Gets the screen range of the display marker.
+  # Finds the first marker satisfying the given attributes
   #
-  # id - The {Number} of the ID to check
+  # Refer to {DisplayBuffer.findMarkers} for details.
   #
-  # Returns a {Range}.
-  getMarkerScreenRange: (id) ->
-    @getMarker(id).getScreenRange()
+  # Returns a {DisplayBufferMarker} or null
+  findMarker: (attributes) ->
+    @findMarkers(attributes)[0]
 
-  # Modifies the screen range of the display marker.
+  # Finds all valid markers satisfying the given attributes
   #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
-  setMarkerScreenRange: (id, screenRange, options) ->
-    @getMarker(id).setScreenRange(screenRange, options)
+  # attributes - The attributes against which to compare the markers' attributes
+  #   There are some reserved keys that match against derived marker properties:
+  #   startBufferRow - The buffer row at which the marker starts
+  #   endBufferRow - The buffer row at which the marker ends
+  #
+  # Returns an {Array} of {DisplayBufferMarker}s
+  findMarkers: (attributes) ->
+    { startBufferRow, endBufferRow, containsBufferRange, containsBufferRow } = attributes
+    attributes.startRow = startBufferRow if startBufferRow?
+    attributes.endRow = endBufferRow if endBufferRow?
+    attributes.containsRange = containsBufferRange if containsBufferRange?
+    attributes.containsRow = containsBufferRow if containsBufferRow?
+    attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow', 'containsBufferRange', 'containsBufferRow'])
+    @buffer.findMarkers(attributes).map ({id}) => @getMarker(id)
 
-  # Gets the buffer range of the display marker.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Range}.
-  getMarkerBufferRange: (id) ->
-    @getMarker(id).getBufferRange()
+  findFoldMarker: (attributes) ->
+    @findFoldMarkers(attributes)[0]
 
-  # Modifies the buffer range of the display marker.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
-  setMarkerBufferRange: (id, bufferRange, options) ->
-    @getMarker(id).setBufferRange(bufferRange, options)
+  findFoldMarkers: (attributes) ->
+    @buffer.findMarkers(@foldMarkerAttributes(attributes))
 
-  # Retrieves the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerScreenPosition: (id) ->
-    @getMarkerHeadScreenPosition(id)
+  foldMarkerAttributes: (attributes={}) ->
+    _.extend(attributes, class: 'fold', displayBufferId: @id)
 
-  # Retrieves the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerBufferPosition: (id) ->
-    @getMarkerHeadBufferPosition(id)
+  pauseMarkerObservers: ->
+    marker.pauseEvents() for marker in @getMarkers()
 
-  # Retrieves the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerHeadScreenPosition: (id) ->
-    @getMarker(id).getHeadScreenPosition()
+  resumeMarkerObservers: ->
+    marker.resumeEvents() for marker in @getMarkers()
 
-  # Sets the screen position of the marker's head.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerHeadScreenPosition: (id, screenPosition, options) ->
-    @getMarker(id).setHeadScreenPosition(screenPosition, options)
+  refreshMarkerScreenPositions: ->
+    for marker in @getMarkers()
+      marker.notifyObservers(bufferChanged: false)
 
-  # Retrieves the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerHeadBufferPosition: (id) ->
-    @getMarker(id).getHeadBufferPosition()
+  destroy: ->
+    @tokenizedBuffer.destroy()
+    @unsubscribe()
 
-  # Sets the buffer position of the marker's head.
-  #
-  # id - The {Number} of the ID to check
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerHeadBufferPosition: (id, bufferPosition) ->
-    @getMarker(id).setHeadBufferPosition(bufferPosition)
+  logLines: (start, end) ->
+    @lineMap.logLines(start, end)
 
-  # Retrieves the screen position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerTailScreenPosition: (id) ->
-    @getMarker(id).getTailScreenPosition()
-
-  # Sets the screen position of the marker's tail.
-  #
-  # id - The {Number} of the ID to change
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerTailScreenPosition: (id, screenPosition, options) ->
-    @getMarker(id).setTailScreenPosition(screenPosition, options)
-
-  # Retrieves the buffer position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  #
-  # Returns a {Point}.
-  getMarkerTailBufferPosition: (id) ->
-    @getMarker(id).getTailBufferPosition()
-
-  # Sets the buffer position of the marker's tail.
-  #
-  # id - The {Number} of the ID to check
-  # screenRange - The new {Point} to use
-  # options - A hash of options matching those found in {DisplayBuffer.bufferPositionForScreenPosition}
-  setMarkerTailBufferPosition: (id, bufferPosition) ->
-    @getMarker(id).setTailBufferPosition(bufferPosition)
-
-  # Sets the marker's tail to the same position as the marker's head.
-  #
-  # This only works if there isn't already a tail position.
-  #
-  # id - A {Number} representing the marker to change
-  #
-  # Returns a {Point} representing the new tail position.
-  placeMarkerTail: (id) ->
-    @getMarker(id).placeTail()
-
-  # Removes the tail from the marker.
-  #
-  # id - A {Number} representing the marker to change
-  clearMarkerTail: (id) ->
-    @getMarker(id).clearTail()
-
-  # Identifies if the ending position of a marker is greater than the starting position.
-  #
-  # This can happen when, for example, you highlight text "up" in a {Buffer}.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerReversed: (id) ->
-    @buffer.isMarkerReversed(id)
-
-  # Identifies if the marker's head position is equal to its tail.
-  #
-  # id - A {Number} representing the marker to check
-  #
-  # Returns a {Boolean}.
-  isMarkerRangeEmpty: (id) ->
-    @buffer.isMarkerRangeEmpty(id)
-
-  # Sets a callback to be fired whenever a marker is changed.
-  #
-  # id - A {Number} representing the marker to watch
-  # callback - A {Function} to execute
-  observeMarker: (id, callback) ->
-    @getMarker(id).observe(callback)
+  getDebugSnapshot: ->
+    lines = ["Display Buffer:"]
+    for screenLine, row in @lineMap.linesForScreenRows(0, @getLastRow())
+        lines.push "#{row}: #{screenLine.text}"
+    lines.join('\n')
 
   ### Internal ###
 
-  registerFold: (fold) ->
-    @activeFolds[fold.startRow] ?= []
-    @activeFolds[fold.startRow].push(fold)
-    @foldsById[fold.id] = fold
-
-  unregisterFold: (bufferRow, fold) ->
-    folds = @activeFolds[bufferRow]
-    _.remove(folds, fold)
-    delete @foldsById[fold.id]
-    delete @activeFolds[bufferRow] if folds.length == 0
-
-  destroyFold: (fold) ->
-    @unregisterFold(fold.startRow, fold)
-
-    unless @isFoldContainedByActiveFold(fold)
-      { startRow, endRow } = fold
-      bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
-      oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
-      lines = @buildLinesForBufferRows(startRow, endRow)
-      @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
-      newScreenRange = @screenLineRangeForBufferRange(bufferRange)
-
-      start = oldScreenRange.start.row
-      end = oldScreenRange.end.row
-      screenDelta = newScreenRange.end.row - oldScreenRange.end.row
-      bufferDelta = 0
-
-      @triggerChanged({ start, end, screenDelta, bufferDelta })
-
-  handleBufferChange: (e) ->
-    allFolds = [] # Folds can modify @activeFolds, so first make sure we have a stable array of folds
-    allFolds.push(folds...) for row, folds of @activeFolds
-    fold.handleBufferChange(e) for fold in allFolds
-
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
-    if bufferChange = tokenizedBufferChange.bufferChange
-      @handleBufferChange(bufferChange)
-      bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
+    {start, end, delta, bufferChange} = tokenizedBufferChange
+    @updateScreenLines(start, end, delta, delayChangeEvent: bufferChange?)
 
-    tokenizedBufferStart = @bufferRowForScreenRow(@screenRowForBufferRow(tokenizedBufferChange.start))
-    tokenizedBufferEnd = tokenizedBufferChange.end
-    tokenizedBufferDelta = tokenizedBufferChange.delta
+  updateScreenLines: (startBufferRow, endBufferRow, bufferDelta, options={}) ->
+    startBufferRow = @bufferRowForScreenRow(@screenRowForBufferRow(startBufferRow))
+    newScreenLines = @buildLinesForBufferRows(startBufferRow, endBufferRow + bufferDelta)
 
-    start = @screenRowForBufferRow(tokenizedBufferStart)
-    end = @lastScreenRowForBufferRow(tokenizedBufferEnd)
-    newScreenLines = @buildLinesForBufferRows(tokenizedBufferStart, tokenizedBufferEnd + tokenizedBufferDelta)
-    @lineMap.replaceScreenRows(start, end, newScreenLines)
-    screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
+    startScreenRow = @screenRowForBufferRow(startBufferRow)
+    endScreenRow = @lastScreenRowForBufferRow(endBufferRow)
 
-    changeEvent = { start, end, screenDelta, bufferDelta }
-    if bufferChange
+    @lineMap.replaceScreenRows(startScreenRow, endScreenRow, newScreenLines)
+
+    changeEvent =
+      start: startScreenRow
+      end: endScreenRow
+      screenDelta: @lastScreenRowForBufferRow(endBufferRow + bufferDelta) - endScreenRow
+      bufferDelta: bufferDelta
+
+    if options.delayChangeEvent
       @pauseMarkerObservers()
       @pendingChangeEvent = changeEvent
     else
-      @triggerChanged(changeEvent, false)
-
-  handleMarkersUpdated: =>
-    event = @pendingChangeEvent
-    @pendingChangeEvent = null
-    @triggerChanged(event, false)
+      @triggerChanged(changeEvent, options.refreshMarkers)
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
@@ -675,7 +525,7 @@ class DisplayBuffer
         screenLine.fold = fold
         screenLine.bufferRows = fold.getBufferRowCount()
         lineFragments.push(screenLine)
-        currentBufferRow = fold.endRow + 1
+        currentBufferRow = fold.getEndRow() + 1
         continue
 
       startBufferColumn ?= 0
@@ -693,27 +543,18 @@ class DisplayBuffer
 
     lineFragments
 
-  pauseMarkerObservers: ->
-    marker.pauseEvents() for marker in @getMarkers()
+  handleMarkersUpdated: =>
+    event = @pendingChangeEvent
+    @pendingChangeEvent = null
+    @triggerChanged(event, false)
 
-  resumeMarkerObservers: ->
-    marker.resumeEvents() for marker in @getMarkers()
+  handleMarkerCreated: (marker) =>
+    new Fold(this, marker) if marker.matchesAttributes(@foldMarkerAttributes())
+    @trigger 'marker-created', @getMarker(marker.id)
 
-  refreshMarkerScreenPositions: ->
-    for marker in @getMarkers()
-      marker.notifyObservers(bufferChanged: false)
+  foldForMarker: (marker) ->
+    @foldsByMarkerId[marker.id]
 
-  destroy: ->
-    @tokenizedBuffer.destroy()
-    @buffer.off 'markers-updated', @handleMarkersUpdated
-
-  logLines: (start, end) ->
-    @lineMap.logLines(start, end)
-
-  getDebugSnapshot: ->
-    lines = ["Display Buffer:"]
-    for screenLine, row in @lineMap.linesForScreenRows(0, @getLastRow())
-        lines.push "#{row}: #{screenLine.text}"
-    lines.join('\n')
 
 _.extend DisplayBuffer.prototype, EventEmitter
+_.extend DisplayBuffer.prototype, Subscriber

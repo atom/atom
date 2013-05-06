@@ -17,7 +17,7 @@ class Selection
 
   constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
-    @editSession.observeMarker @marker, => @screenRangeChanged()
+    @marker.on 'changed', => @screenRangeChanged()
     @cursor.on 'destroyed.selection', =>
       @cursor = null
       @destroy()
@@ -52,7 +52,7 @@ class Selection
   #
   # Returns a {Boolean}.
   isReversed: ->
-    @editSession.isMarkerReversed(@marker)
+    @marker.isReversed()
 
   # Identifies if the selection is a single line.
   #
@@ -64,7 +64,7 @@ class Selection
   #
   # Returns a {Range}.
   getScreenRange: ->
-    @editSession.getMarkerScreenRange(@marker)
+    @marker.getScreenRange()
 
   # Modifies the screen range for the selection.
   #
@@ -77,7 +77,7 @@ class Selection
   #
   # Returns a {Range}.
   getBufferRange: ->
-    @editSession.getMarkerBufferRange(@marker)
+    @marker.getBufferRange()
 
   # Modifies the buffer range for the selection.
   #
@@ -92,7 +92,7 @@ class Selection
     @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       @cursor.needsAutoscroll = false if options.autoscroll?
-      @editSession.setMarkerBufferRange(@marker, bufferRange, options)
+      @marker.setBufferRange(bufferRange, options)
 
   # Retrieves the starting and ending buffer rows the selection is highlighting.
   #
@@ -112,7 +112,7 @@ class Selection
 
   # Clears the selection, moving the marker to move to the head.
   clear: ->
-    @editSession.clearMarkerTail(@marker)
+    @marker.clearTail()
 
   # Modifies the selection to mark the current word.
   #
@@ -149,9 +149,9 @@ class Selection
     @modifySelection =>
       if @initialScreenRange
         if position.isLessThan(@initialScreenRange.start)
-          @editSession.setMarkerScreenRange(@marker, [position, @initialScreenRange.end], reverse: true)
+          @marker.setScreenRange([position, @initialScreenRange.end], reverse: true)
         else
-          @editSession.setMarkerScreenRange(@marker, [@initialScreenRange.start, position])
+          @marker.setScreenRange([@initialScreenRange.start, position])
       else
         @cursor.setScreenPosition(position)
 
@@ -264,6 +264,7 @@ class Selection
     text = @normalizeIndent(text, options) if options.normalizeIndent
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
+
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     if options.select
       @setBufferRange(newBufferRange, reverse: wasReversed)
@@ -345,12 +346,7 @@ class Selection
 
   # Performs a backspace, removing the character found behind the selection.
   backspace: ->
-    if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
-      if @cursor.isAtBeginningOfLine() and @editSession.isFoldedAtScreenRow(@cursor.getScreenRow() - 1)
-        @selectToBufferPosition([@cursor.getBufferRow() - 1, Infinity])
-      else
-        @selectLeft()
-
+    @selectLeft() if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
 
   # Performs a backspace to the beginning of the current word, removing characters found there.
@@ -383,10 +379,8 @@ class Selection
   # Deletes the selected text.
   deleteSelectedText: ->
     bufferRange = @getBufferRange()
-    if fold = @editSession.largestFoldContainingBufferRow(bufferRange.end.row)
-      includeNewline = bufferRange.start.column == 0 or bufferRange.start.row >= fold.startRow
-      bufferRange = bufferRange.union(fold.getBufferRange({ includeNewline }))
-
+    if bufferRange.isEmpty() and fold = @editSession.largestFoldContainingBufferRow(bufferRange.start.row)
+      bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: true))
     @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
     @cursor?.setBufferPosition(bufferRange.start)
 
@@ -431,9 +425,9 @@ class Selection
       @deleteSelectedText()
 
     if joinMarker?
-      newSelectedRange = @editSession.getMarkerBufferRange(joinMarker)
+      newSelectedRange = joinMarker.getBufferRange()
       @setBufferRange(newSelectedRange)
-      @editSession.destroyMarker(joinMarker)
+      joinMarker.destroy()
 
   outdentSelectedRows: ->
     [start, end] = @getBufferRowRange()
@@ -505,7 +499,7 @@ class Selection
   #
   # Returns a {Point} representing the new tail position.
   placeTail: ->
-    @editSession.placeMarkerTail(@marker)
+    @marker.placeTail()
 
   # Identifies if a selection intersects with a given buffer range.
   #

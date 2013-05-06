@@ -64,7 +64,7 @@ class SnippetExpansion
 
   destroy: ->
     @unsubscribe()
-    @editSession.destroyMarker(marker) for marker in @tabStopMarkers
+    marker.destroy() for marker in @tabStopMarkers
     @editSession.snippetExpansion = null
 
   restore: (@editSession) ->

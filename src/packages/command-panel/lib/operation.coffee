@@ -16,7 +16,7 @@ class Operation
     @project.relativize(path)
 
   getBufferRange: ->
-    @getBuffer().getMarkerRange(@getMarker())
+    @getMarker().getRange()
 
   execute: (editSession) ->
     @getBuffer().change(@getBufferRange(), @newText) if @newText
@@ -32,5 +32,5 @@ class Operation
     {prefix, suffix, match, range}
 
   destroy: ->
-    @buffer?.destroyMarker(@marker) if @marker?
+    @marker?.destroy()
     @buffer?.release()

@@ -744,17 +744,18 @@ describe "EditSession", ->
           expect(editSession.lineForScreenRow(1).fold).toBeDefined()
 
     describe ".selectMarker(marker)", ->
-      describe "when the marker exists", ->
-        it "selects the marker's range and returns true", ->
+      describe "if the marker is valid", ->
+        it "selects the marker's range and returns the selected range", ->
           marker = editSession.markBufferRange([[0, 1], [3, 3]])
-          expect(editSession.selectMarker(marker)).toBeTruthy()
+          expect(editSession.selectMarker(marker)).toEqual [[0, 1], [3, 3]]
           expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 3]]
 
-      describe "when the marker does not exist", ->
-        it "does not select the marker's range and returns false", ->
-          rangeBefore = editSession.getSelectedBufferRange()
-          expect(editSession.selectMarker('bogus')).toBeFalsy()
-          expect(editSession.getSelectedBufferRange()).toEqual rangeBefore
+      describe "if the marker is invalid", ->
+        it "does not change the selection and returns a falsy value", ->
+          marker = editSession.markBufferRange([[0, 1], [3, 3]])
+          marker.destroy()
+          expect(editSession.selectMarker(marker)).toBeFalsy()
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 0], [0, 0]]
 
     describe ".addSelectionBelow()", ->
       describe "when the selection is non-empty", ->
@@ -1346,14 +1347,14 @@ describe "EditSession", ->
             editSession.backspace()
 
         describe "when the cursor is on the first column of a line below a fold", ->
-          it "absorbs the current line into the fold", ->
+          it "deletes the folded lines", ->
             editSession.setCursorScreenPosition([4,0])
             editSession.foldCurrentRow()
             editSession.setCursorScreenPosition([5,0])
             editSession.backspace()
 
-            expect(buffer.lineForRow(7)).toBe "    }    return sort(left).concat(pivot).concat(sort(right));"
-            expect(buffer.lineForRow(8)).toBe "  };"
+            expect(buffer.lineForRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(buffer.lineForRow(4).fold).toBeUndefined()
 
         describe "when the cursor is in the middle of a line below a fold", ->
           it "backspaces as normal", ->
@@ -1370,6 +1371,7 @@ describe "EditSession", ->
             editSession.setCursorBufferPosition([3, 0])
             editSession.foldCurrentRow()
             editSession.backspace()
+
             expect(buffer.lineForRow(1)).toBe ""
             expect(buffer.lineForRow(2)).toBe "  return sort(Array.apply(this, arguments));"
             expect(editSession.getCursorScreenPosition()).toEqual [1, 0]
@@ -1433,14 +1435,13 @@ describe "EditSession", ->
           expect(editSession.buffer.lineForRow(0)).toBe 'var qsort = function () {'
 
         describe "when the selection ends on a folded line", ->
-          it "destroys the fold", ->
+          it "preserves the fold", ->
             editSession.setSelectedBufferRange([[3,0], [4,0]])
             editSession.foldBufferRow(4)
             editSession.backspace()
 
-            expect(buffer.lineForRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
-            expect(buffer.lineForRow(4)).toBe "  };"
-            expect(editSession.getCursorScreenPosition()).toEqual [3, 0]
+            expect(buffer.lineForRow(3)).toBe "    while(items.length > 0) {"
+            expect(editSession.lineForScreenRow(3).fold).toBeDefined()
 
       describe "when there are multiple selections", ->
         it "removes all selected text", ->
@@ -2037,15 +2038,28 @@ describe "EditSession", ->
         editSession.redo()
         expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
-      it "restores selected ranges even when the change occurred in another edit session", ->
-        otherEditSession = project.buildEditSession(editSession.getPath())
-        otherEditSession.setSelectedBufferRange([[2, 2], [3, 3]])
-        otherEditSession.delete()
+      it "restores folds after undo and redo", ->
+        editSession.foldBufferRow(1)
+        editSession.setSelectedBufferRange([[1, 0], [10, Infinity]], preserveFolds: true)
+        expect(editSession.isFoldedAtBufferRow(1)).toBeTruthy()
+
+        editSession.insertText """
+          \  // testing
+            function foo() {
+              return 1 + 2;
+            }
+        """
+        expect(editSession.isFoldedAtBufferRow(1)).toBeFalsy()
+        editSession.foldBufferRow(2)
 
         editSession.undo()
+        expect(editSession.isFoldedAtBufferRow(1)).toBeTruthy()
+        expect(editSession.isFoldedAtBufferRow(9)).toBeTruthy()
+        expect(editSession.isFoldedAtBufferRow(10)).toBeFalsy()
 
-        expect(editSession.getSelectedBufferRange()).toEqual [[2, 2], [3, 3]]
-        expect(otherEditSession.getSelectedBufferRange()).toEqual [[3, 3], [3, 3]]
+        editSession.redo()
+        expect(editSession.isFoldedAtBufferRow(1)).toBeFalsy()
+        expect(editSession.isFoldedAtBufferRow(2)).toBeTruthy()
 
     describe ".transact([fn])", ->
       describe "when called without a function", ->
@@ -2125,30 +2139,30 @@ describe "EditSession", ->
         editSession.foldAll()
 
         fold1 = editSession.lineForScreenRow(0).fold
-        expect([fold1.startRow, fold1.endRow]).toEqual [0, 12]
+        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 12]
         fold1.destroy()
 
         fold2 = editSession.lineForScreenRow(1).fold
-        expect([fold2.startRow, fold2.endRow]).toEqual [1, 9]
+        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 9]
         fold2.destroy()
 
         fold3 = editSession.lineForScreenRow(4).fold
-        expect([fold3.startRow, fold3.endRow]).toEqual [4, 7]
+        expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [4, 7]
 
     describe ".foldBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
         it "creates a fold based on the syntactic region starting at the given row", ->
           editSession.foldBufferRow(1)
           fold = editSession.lineForScreenRow(1).fold
-          expect(fold.startRow).toBe 1
-          expect(fold.endRow).toBe 9
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 9
 
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
           editSession.foldBufferRow(8)
           fold = editSession.lineForScreenRow(1).fold
-          expect(fold.startRow).toBe 1
-          expect(fold.endRow).toBe 9
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 9
 
       describe "when the bufferRow is already folded", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
@@ -2164,16 +2178,16 @@ describe "EditSession", ->
           buffer.insert([1,0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
           editSession.foldBufferRow(1)
           fold = editSession.lineForScreenRow(1).fold
-          expect(fold.startRow).toBe 1
-          expect(fold.endRow).toBe 3
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 3
 
       describe "when the bufferRow is a single-line comment", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
           buffer.insert([1,0], "  //this is a single line comment\n")
           editSession.foldBufferRow(1)
           fold = editSession.lineForScreenRow(0).fold
-          expect(fold.startRow).toBe 0
-          expect(fold.endRow).toBe 13
+          expect(fold.getStartRow()).toBe 0
+          expect(fold.getEndRow()).toBe 13
 
     describe ".unfoldBufferRow(bufferRow)", ->
       describe "when bufferRow can be unfolded", ->

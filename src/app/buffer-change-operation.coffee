@@ -17,26 +17,35 @@ class BufferChangeOperation
     @options ?= {}
 
   do: ->
-    @oldText = @buffer.getTextInRange(@oldRange)
-    @newRange = @calculateNewRange(@oldRange, @newText)
+    @buffer.pauseEvents()
+    @pauseMarkerObservation()
     @markersToRestoreOnUndo = @invalidateMarkers(@oldRange)
-    @changeBuffer
-      oldRange: @oldRange
-      newRange: @newRange
-      oldText: @oldText
-      newText: @newText
-
-  redo: ->
-    @restoreMarkers(@markersToRestoreOnRedo)
+    if @oldRange?
+      @oldText = @buffer.getTextInRange(@oldRange)
+      @newRange = @calculateNewRange(@oldRange, @newText)
+      newRange = @changeBuffer
+        oldRange: @oldRange
+        newRange: @newRange
+        oldText: @oldText
+        newText: @newText
+    @restoreMarkers(@markersToRestoreOnRedo) if @markersToRestoreOnRedo
+    @buffer.resumeEvents()
+    @resumeMarkerObservation()
+    newRange
 
   undo: ->
+    @buffer.pauseEvents()
+    @pauseMarkerObservation()
     @markersToRestoreOnRedo = @invalidateMarkers(@newRange)
-    @changeBuffer
-      oldRange: @newRange
-      newRange: @oldRange
-      oldText: @newText
-      newText: @oldText
+    if @oldRange?
+      @changeBuffer
+        oldRange: @newRange
+        newRange: @oldRange
+        oldText: @newText
+        newText: @oldText
     @restoreMarkers(@markersToRestoreOnUndo)
+    @buffer.resumeEvents()
+    @resumeMarkerObservation()
 
   splitLines: (text) ->
     lines = text.split('\n')
@@ -72,13 +81,10 @@ class BufferChangeOperation
     @buffer.cachedMemoryContents = null
     @buffer.conflict = false if @buffer.conflict and !@buffer.isModified()
 
-    @pauseMarkerObservation()
     event = { oldRange, newRange, oldText, newText }
     @updateMarkers(event)
     @buffer.trigger 'changed', event
     @buffer.scheduleModifiedEvents()
-    @resumeMarkerObservation()
-    @buffer.trigger 'markers-updated'
 
     newRange
 
@@ -94,13 +100,14 @@ class BufferChangeOperation
     newRange
 
   invalidateMarkers: (oldRange) ->
-    _.compact(@buffer.getMarkers().map (marker) -> marker.tryToInvalidate(oldRange))
+    @buffer.getMarkers().map (marker) -> marker.tryToInvalidate(oldRange)
 
   pauseMarkerObservation: ->
-    marker.pauseEvents() for marker in @buffer.getMarkers()
+    marker.pauseEvents() for marker in @buffer.getMarkers(includeInvalid: true)
 
   resumeMarkerObservation: ->
-    marker.resumeEvents() for marker in @buffer.getMarkers()
+    marker.resumeEvents() for marker in @buffer.getMarkers(includeInvalid: true)
+    @buffer.trigger 'markers-updated' if @oldRange?
 
   updateMarkers: (bufferChange) ->
     marker.handleBufferChange(bufferChange) for marker in @buffer.getMarkers()

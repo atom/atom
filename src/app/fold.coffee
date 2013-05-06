@@ -1,41 +1,47 @@
 Range = require 'range'
 Point = require 'point'
 
-# Public: Represents a fold that's hiding text from the screen. 
+# Public: Represents a fold that collapses multiple buffer lines into a single
+# line on the screen.
 #
-# Folds are the primary reason that screen ranges and buffer ranges vary. Their
-# creation is managed by the {DisplayBuffer}.
+# Their creation is managed by the {DisplayBuffer}.
 module.exports =
 class Fold
-  @idCounter: 1
-
+  id: null
   displayBuffer: null
-  startRow: null
-  endRow: null
+  marker: null
 
   ### Internal ###
 
-  constructor: (@displayBuffer, @startRow, @endRow) ->
-    @id = @constructor.idCounter++
+  constructor: (@displayBuffer, @marker) ->
+    @id = @marker.id
+    @displayBuffer.foldsByMarkerId[@marker.id] = this
+    @updateDisplayBuffer()
+    @marker.on 'destroyed', => @destroyed()
 
+  # Returns whether this fold is contained within another fold
+  isInsideLargerFold: ->
+    @displayBuffer.findMarker(class: 'fold', containsBufferRange: @getBufferRange())?
+
+  # Destroys this fold
   destroy: ->
-    @displayBuffer.destroyFold(this)
+    @marker.destroy()
 
-  inspect: ->
-    "Fold(#{@startRow}, #{@endRow})"
-
-  # Retrieves the buffer row range that a fold occupies.
+  # Returns the fold's {Range} in buffer coordinates
   #
   # includeNewline - A {Boolean} which, if `true`, includes the trailing newline
   #
   # Returns a {Range}.
   getBufferRange: ({includeNewline}={}) ->
+    range = @marker.getRange()
     if includeNewline
-      end = [@endRow + 1, 0]
-    else
-      end = [@endRow, Infinity]
+      range.end.row++
+      range.end.column = 0
+    range
 
-    new Range([@startRow, 0], end)
+  # Returns the fold's start row as a {Number}.
+  getStartRow: ->
+    @getBufferRange().start.row
 
   # Retrieves the number of buffer rows a fold occupies.
   #
@@ -43,27 +49,19 @@ class Fold
   getBufferRowCount: ->
     @endRow - @startRow + 1
 
-  handleBufferChange: (event) ->
-    oldStartRow = @startRow
+  # Returns the fold's end row as a {Number}.
+  getEndRow: ->
+    @getBufferRange().end.row
 
-    if @isContainedByRange(event.oldRange)
-      @displayBuffer.unregisterFold(@startRow, this)
-      return
+  # Returns a {String} representation of the fold.
+  inspect: ->
+    "Fold(#{@getStartRow()}, #{@getEndRow()})"
 
-    @startRow += @getRowDelta(event, @startRow)
-    @endRow += @getRowDelta(event, @endRow)
-
-    if @startRow != oldStartRow
-      @displayBuffer.unregisterFold(oldStartRow, this)
-      @displayBuffer.registerFold(this)
-
-  # Identifies if a {Range} occurs within a fold.
+  # Retrieves the number of buffer rows spanned by the fold.
   #
-  # range - A {Range} to check
-  #
-  # Returns a {Boolean}.
-  isContainedByRange: (range) ->
-    range.start.row <= @startRow and @endRow <= range.end.row
+  # Returns a {Number}.
+  getBufferRowCount: ->
+    @getEndRow() - @getStartRow() + 1
 
   # Identifies if a fold is nested within a fold.
   #
@@ -73,12 +71,10 @@ class Fold
   isContainedByFold: (fold) ->
     @isContainedByRange(fold.getBufferRange())
 
-  getRowDelta: (event, row) ->
-    { newRange, oldRange } = event
+  updateDisplayBuffer: ->
+    unless @isInsideLargerFold()
+      @displayBuffer.updateScreenLines(@getStartRow(), @getEndRow(), 0, updateMarkers: true)
 
-    if oldRange.end.row <= row
-      newRange.end.row - oldRange.end.row
-    else if newRange.end.row < row
-      newRange.end.row - row
-    else
-      0
+  destroyed: ->
+    delete @displayBuffer.foldsByMarkerId[@marker.id]
+    @updateDisplayBuffer()

@@ -64,102 +64,58 @@ describe "UndoManager", ->
       expect(buffer.getText()).toContain 'qsport'
 
   describe "transaction methods", ->
-    describe "transact([fn])", ->
-      describe "when called with a function", ->
-        it "causes changes performed within the function's dynamic extent to be undone simultaneously", ->
-          buffer.insert([0, 0], "foo")
+    describe "transact()", ->
+      beforeEach ->
+        buffer.setText('')
 
-          undoManager.transact ->
-            undoManager.transact ->
-              buffer.insert([1, 2], "111")
-              buffer.insert([1, 9], "222")
+      it "starts a transaction that can be committed later", ->
+        buffer.append('1')
+        undoManager.transact()
+        buffer.append('2')
+        buffer.append('3')
+        undoManager.commit()
+        buffer.append('4')
 
-          expect(buffer.lineForRow(1)).toBe '  111var 222sort = function(items) {'
+        expect(buffer.getText()).toBe '1234'
+        undoManager.undo()
+        expect(buffer.getText()).toBe '123'
+        undoManager.undo()
+        expect(buffer.getText()).toBe '1'
+        undoManager.redo()
+        expect(buffer.getText()).toBe '123'
 
-          undoManager.undo()
-          expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
-          expect(buffer.lineForRow(0)).toContain 'foo'
+      it "starts a transaction that can be aborted later", ->
+        buffer.append('1')
+        buffer.append('2')
 
-          undoManager.undo()
+        undoManager.transact()
 
-          expect(buffer.lineForRow(0)).not.toContain 'foo'
+        buffer.append('3')
+        buffer.append('4')
+        expect(buffer.getText()).toBe '1234'
 
-          undoManager.redo()
-          expect(buffer.lineForRow(0)).toContain 'foo'
+        undoManager.abort()
+        expect(buffer.getText()).toBe '12'
 
-          undoManager.redo()
-          expect(buffer.lineForRow(1)).toBe '  111var 222sort = function(items) {'
+        undoManager.undo()
+        expect(buffer.getText()).toBe '1'
 
-          undoManager.undo()
-          expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+        undoManager.redo()
+        expect(buffer.getText()).toBe '12'
 
-        it "does not record empty transactions", ->
-          buffer.insert([0,0], "foo")
-          undoManager.transact ->
-
-          undoManager.undo()
-          expect(buffer.lineForRow(0)).not.toContain("foo")
-
-        it "undoes operations that occured prior to an exception when the transaction is undone", ->
-          buffer.setText("jumpstreet")
-
-          expect(->
-            undoManager.transact ->
-              buffer.insert([0,0], "3")
-              buffer.insert([0,0], "2")
-              throw new Error("problem")
-              buffer.insert([0,0], "2")
-          ).toThrow('problem')
-
-          expect(buffer.lineForRow(0)).toBe "23jumpstreet"
-          undoManager.undo()
-          expect(buffer.lineForRow(0)).toBe "jumpstreet"
-
-      describe "when called without a function", ->
-        beforeEach ->
-          buffer.setText('')
-
-        it "returns a transaction object that can be committed later", ->
-          buffer.append('1')
-          undoManager.transact()
-          buffer.append('2')
-          buffer.append('3')
-          undoManager.commit()
-          buffer.append('4')
-
-          expect(buffer.getText()).toBe '1234'
-          undoManager.undo()
-          expect(buffer.getText()).toBe '123'
-          undoManager.undo()
-          expect(buffer.getText()).toBe '1'
-          undoManager.redo()
-          expect(buffer.getText()).toBe '123'
-
-        it "returns a transaction object that can be aborted later", ->
-          buffer.append('1')
-          buffer.append('2')
-
-          undoManager.transact()
-
-          buffer.append('3')
-          buffer.append('4')
-          expect(buffer.getText()).toBe '1234'
-
-          undoManager.abort()
-          expect(buffer.getText()).toBe '12'
-
-          undoManager.undo()
-          expect(buffer.getText()).toBe '1'
-
-          undoManager.redo()
-          expect(buffer.getText()).toBe '12'
-
-          undoManager.redo()
-          expect(buffer.getText()).toBe '12'
+        undoManager.redo()
+        expect(buffer.getText()).toBe '12'
 
     describe "commit", ->
       it "throws an exception if there is no current transaction", ->
         expect(-> buffer.commit()).toThrow()
+
+      it "does not record empty transactions", ->
+        buffer.insert([0,0], "foo")
+        undoManager.transact()
+        undoManager.commit()
+        undoManager.undo()
+        expect(buffer.lineForRow(0)).not.toContain("foo")
 
     describe "abort", ->
       it "does not affect the undo stack when the current transaction is empty", ->

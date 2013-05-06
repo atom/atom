@@ -1943,9 +1943,11 @@ describe "Editor", ->
     describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
         editor.setCursorBufferPosition([3,0])
-        editor.trigger 'editor:fold-current-row'
+        editSession.createFold(3, 5)
 
-        editor.find('.fold.line').mousedown()
+        foldLine = editor.find('.line.fold')
+        expect(foldLine).toExist()
+        foldLine.mousedown()
 
         expect(editor.find('.fold')).not.toExist()
         expect(editor.find('.fold-marker')).not.toExist()

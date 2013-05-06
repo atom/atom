@@ -350,10 +350,12 @@ describe "the `atom` global", ->
         results.pop()
 
         errors = parseInt results.pop().match(/\d+/)
-        expect(errors).toBe 0
+        if errors > 0
+          console.error results.join('\n')
+          throw new Error("There were errors compiling documentation. See console for details.")
 
         coverage = parseFloat results.pop().match(/.+?%/)
-        expect(coverage).toBeGreaterThan 80
+        expect(coverage).toBeGreaterThan 79
 
         # stderr
         expect(docRunner.argsForCall[0][2]).toBe ''

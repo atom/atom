@@ -71,4 +71,4 @@ describe "Selection", ->
     it "destroys its marker", ->
       selection.setBufferRange([[2, 0], [2, 10]])
       selection.destroy()
-      expect(editSession.getMarkerBufferRange(selection.marker)).toBeUndefined()
+      expect(selection.marker.isDestroyed()).toBeTruthy()
