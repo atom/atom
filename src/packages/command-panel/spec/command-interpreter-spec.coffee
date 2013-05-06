@@ -426,6 +426,12 @@ describe "CommandInterpreter", ->
       runs ->
         expect(buffer.lineForRow(6)).toBe '\t\t\tcurrent < pivot ? left.push(current) : right.push(current);'
 
+    it "removes matched text when an empty string is given as the replacement", ->
+      waitsForPromise ->
+        interpreter.eval('s/items//', editSession)
+      runs ->
+        expect(buffer.lineForRow(1)).toBe('  var sort = function() {')
+
   describe "X x/regex/", ->
     it "returns selection operations for all regex matches in all the project's files", ->
       editSession.destroy()

@@ -19,7 +19,7 @@ class Operation
     @getMarker().getRange()
 
   execute: (editSession) ->
-    @getBuffer().change(@getBufferRange(), @newText) if @newText
+    @getBuffer().change(@getBufferRange(), @newText) if @newText?
     @getBufferRange() unless @preserveSelection
 
   preview: ->

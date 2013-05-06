@@ -40,7 +40,7 @@ class CompositeCommand
               if bufferRanges.length and not currentCommand.preserveSelections
                 editSession.setSelectedBufferRanges(bufferRanges, autoscroll: true)
 
-          operationsWillChangeBuffer = _.detect(operations, (operation) -> operation.newText)
+          operationsWillChangeBuffer = _.detect(operations, (operation) -> operation.newText?)
 
           if operationsWillChangeBuffer
             editSession.transact(executeOperations)
