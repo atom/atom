@@ -12,7 +12,8 @@ class SelectList extends View
     @div class: @viewClass(), =>
       @subview 'miniEditor', new Editor(mini: true)
       @div class: 'error', outlet: 'error'
-      @div class: 'loading', outlet: 'loading'
+      @div class: 'loading', outlet: 'loadingArea', =>
+        @span outlet: 'loading'
       @ol outlet: 'list'
 
   @viewClass: -> 'select-list'
