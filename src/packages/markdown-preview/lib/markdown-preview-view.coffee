@@ -91,9 +91,8 @@ class MarkdownPreviewView extends ScrollView
 
   renderMarkdown: ->
     @setLoading()
-    roaster(@buffer.getText(), {}, (err, html) =>
+    roaster @buffer.getText(), {}, (err, html) =>
       if err
         @setErrorHtml(err)
       else
         @html(@tokenizeCodeBlocks(html))
-    )
