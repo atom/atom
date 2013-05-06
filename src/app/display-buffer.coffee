@@ -107,6 +107,10 @@ class DisplayBuffer
         @buffer.markRange([[startRow, 0], [endRow, Infinity]], @foldMarkerAttributes())
     @foldForMarker(foldMarker)
 
+  # Destroys the fold with the given id
+  destroyFoldWithId: (id) ->
+    @foldsByMarkerId[id]?.destroy()
+
   # Removes any folds found that contain the given buffer row.
   #
   # bufferRow - The buffer row {Number} to check against

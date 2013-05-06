@@ -7,12 +7,14 @@ Point = require 'point'
 # Their creation is managed by the {DisplayBuffer}.
 module.exports =
 class Fold
+  id: null
   displayBuffer: null
   marker: null
 
   ### Internal ###
 
   constructor: (@displayBuffer, @marker) ->
+    @id = @marker.id
     @displayBuffer.foldsByMarkerId[@marker.id] = this
     @updateDisplayBuffer()
     @marker.on 'destroyed', => @destroyed()

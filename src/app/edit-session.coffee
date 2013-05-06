@@ -540,6 +540,10 @@ class EditSession
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
 
+  # {Delegates to: DisplayBuffer.destroyFoldWithId}
+  destroyFoldWithId: (id) ->
+    @displayBuffer.destroyFoldWithId(id)
+
   # {Delegates to: DisplayBuffer.destroyFoldsContainingBufferRow}
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)

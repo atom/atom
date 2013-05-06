@@ -621,7 +621,7 @@ class Editor extends View
       false if @isFocused
 
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
-      @destroyFold($(e.currentTarget).attr('fold-id'))
+      @activeEditSession.destroyFoldWithId($(e.currentTarget).attr('fold-id'))
       false
 
     @renderedLines.on 'mousedown', (e) =>
