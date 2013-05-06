@@ -57,15 +57,7 @@ class MarkdownPreviewView extends ScrollView
 
     @html $$$ ->
       @h2 'Previewing Markdown Failed'
-      if failureMessage?
-        @h3 failureMessage
-      else
-        @h3 'Possible Reasons'
-        @ul =>
-          @li =>
-            @span 'You aren\'t online or are unable to reach '
-            @a 'github.com', href: 'https://github.com'
-            @span '.'
+      @h3 failureMessage if failureMessage?
 
   setLoading: ->
     @html($$$ -> @div class: 'markdown-spinner', 'Loading Markdown...')
