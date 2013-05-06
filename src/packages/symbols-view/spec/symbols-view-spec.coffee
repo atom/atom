@@ -21,13 +21,13 @@ describe "SymbolsView", ->
       rootView.open('sample.js')
       rootView.getActiveView().trigger "symbols-view:toggle-file-symbols"
       symbolsView = rootView.find('.symbols-view').view()
-      expect(symbolsView.find('.loading')).toHaveText 'Generating symbols...'
+      expect(symbolsView.loading).toHaveText 'Generating symbols...'
 
       waitsFor ->
         setArraySpy.callCount > 0
 
       runs ->
-        expect(symbolsView.find('.loading')).toBeEmpty()
+        expect(symbolsView.loading).toBeEmpty()
         expect(rootView.find('.symbols-view')).toExist()
         expect(symbolsView.list.children('li').length).toBe 2
         expect(symbolsView.list.children('li:first').find('.primary-line')).toHaveText 'quicksort'
@@ -79,7 +79,7 @@ describe "SymbolsView", ->
         expect(symbolsView.error).toBeVisible()
         expect(symbolsView.error.text().length).toBeGreaterThan 0
         expect(symbolsView).toHaveClass "error"
-        expect(symbolsView.find('.loading')).not.toBeVisible()
+        expect(symbolsView.loadingArea).not.toBeVisible()
 
   it "moves the cursor to the selected function", ->
     tags = []
@@ -183,13 +183,13 @@ describe "SymbolsView", ->
       expect(rootView.find('.symbols-view')).not.toExist()
       rootView.trigger "symbols-view:toggle-project-symbols"
       symbolsView = rootView.find('.symbols-view').view()
-      expect(symbolsView.find('.loading')).toHaveText 'Loading symbols...'
+      expect(symbolsView.loading).toHaveText 'Loading symbols...'
 
       waitsFor ->
         setArraySpy.callCount > 0
 
       runs ->
-        expect(symbolsView.find('.loading')).toBeEmpty()
+        expect(symbolsView.loading).toBeEmpty()
         expect(rootView.find('.symbols-view')).toExist()
         expect(symbolsView.list.children('li').length).toBe 4
         expect(symbolsView.list.children('li:first').find('.primary-line')).toHaveText 'callMeMaybe'

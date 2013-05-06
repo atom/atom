@@ -59,8 +59,8 @@ class SelectList extends View
     @populateList()
     @setLoading()
 
-  setError: (message) ->
-    if not message or message.length == ""
+  setError: (message='') ->
+    if message.length is 0
       @error.text("").hide()
       @removeClass("error")
     else
@@ -68,12 +68,14 @@ class SelectList extends View
       @error.text(message).show()
       @addClass("error")
 
-  setLoading: (message) ->
-    if not message or message.length == ""
-      @loading.text("").hide()
+  setLoading: (message='') ->
+    if message.length is 0
+      @loading.text("")
+      @loadingArea.hide()
     else
       @setError()
-      @loading.text(message).show()
+      @loading.text(message)
+      @loadingArea.show()
 
   populateList: ->
     return unless @array?
