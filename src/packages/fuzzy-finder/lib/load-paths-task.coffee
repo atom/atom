@@ -1,37 +1,19 @@
-_ = require 'underscore'
-BufferedProcess = require 'buffered-process'
+Task = require 'task'
 
 module.exports =
-class LoadPathsTask
+class LoadPathsTask extends Task
   constructor: (@callback) ->
+    super(require.resolve('./load-paths-handler'))
 
-  start: ->
-    rootPath = project.getPath()
+  started: ->
+    @paths = []
     ignoredNames = config.get('fuzzyFinder.ignoredNames') ? []
     ignoredNames = ignoredNames.concat(config.get('core.ignoredNames') ? [])
+    @callWorkerMethod('loadPaths', project.getPath(), ignoredNames)
 
-    command = require.resolve 'nak'
-    args = ['--list', rootPath]
-    args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
-    args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
-    args.unshift('--follow')
-    args.unshift('--hidden')
+  pathsLoaded: (paths) ->
+    @paths.push(paths...)
 
-    paths = []
-    exit = (code) =>
-      if code is 0
-        @callback(paths)
-      else
-        console.error "Path loading process exited with status #{code}"
-        @callback([])
-    stdout = (data) ->
-      paths.push(_.compact(data.split('\n'))...)
-    stderr = (data) ->
-      console.error "Error in LoadPathsTask:\n#{data}"
-
-    @process = new BufferedProcess({command, args, stdout, stderr, exit})
-
-  abort: ->
-    if @process?
-      @process.kill()
-      @process = null
+  pathLoadingComplete: ->
+    @callback(@paths)
+    @done()
