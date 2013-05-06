@@ -13,6 +13,9 @@ console =
   error: -> callTaskMethod 'error', arguments...
 global.__defineGetter__ 'console', -> console
 
+process.on 'uncaughtException', (error) ->
+  console.error(error.message)
+
 window.document =
   createElement: ->
     setAttribute: ->
