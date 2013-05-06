@@ -106,6 +106,8 @@ class SignInView extends ScrollView
   attach: ->
     @username.val('')
     @password.val('')
+    @setElementEnabled(@username, true)
+    @setElementEnabled(@password, true)
     @alert.hide()
     rootView.append(this)
     @username.focus()
