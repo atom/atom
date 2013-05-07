@@ -481,12 +481,6 @@ class Selection
     @editSession.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
-  autoIndentText: (text) ->
-    @editSession.autoIndentTextAfterBufferPosition(text, @cursor.getBufferPosition())
-
-  autoOutdent: ->
-    @editSession.autoOutdentBufferRow(@cursor.getBufferRow())
-
   modifySelection: (fn) ->
     @retainSelection = true
     @placeTail()
