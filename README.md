@@ -13,3 +13,15 @@ npm install -g https://github.com/atom/apm.git
   * Run `npm install`
   * Run `grunt` to compile the CoffeeScript code
   * Run `grunt test` to run the specs
+
+## Commands
+
+
+### install
+
+```
+apm install
+```
+
+Run this with no arguments from Atom or an Atom package to build and install
+all node module dependencies.
