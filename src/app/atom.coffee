@@ -71,7 +71,7 @@ _.extend atom,
 
   loadPackage: (id, options) ->
     if @isPackageDisabled(id)
-      return console.warn("Tried to load disabled packaged '#{id}'")
+      return console.warn("Tried to load disabled package '#{id}'")
 
     if path = @resolvePackagePath(id)
       return pack if pack = @getLoadedPackage(id)
