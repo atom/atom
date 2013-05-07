@@ -23,5 +23,20 @@ class RowMap
     [screenRow, screenRow]
 
   mapBufferRowRange: (startBufferRow, endBufferRow, screenRows) ->
-    @mappings.push(bufferRows: startBufferRow, screenRows: startBufferRow)
-    @mappings.push(bufferRows: endBufferRow - startBufferRow, screenRows: screenRows)
+    bufferRow = 0
+
+    for mapping, index in @mappings
+      if (bufferRow + mapping.bufferRows) > startBufferRow
+        throw new Error("Invalid mapping insertion") unless mapping.bufferRows == mapping.screenRows
+        dividedMapping = mapping
+        break
+      bufferRow += mapping.bufferRows
+
+    padBefore = startBufferRow - bufferRow
+    padAfter = (bufferRow + dividedMapping?.bufferRows) - endBufferRow
+
+    newMappings = []
+    newMappings.push(bufferRows: padBefore, screenRows: padBefore) if padBefore > 0
+    newMappings.push(bufferRows: endBufferRow - startBufferRow, screenRows: screenRows)
+    newMappings.push(bufferRows: padAfter, screenRows: padAfter) if padAfter > 0
+    @mappings[index..index] = newMappings
