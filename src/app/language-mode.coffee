@@ -169,7 +169,7 @@ class LanguageMode
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
     desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
 
-    Math.max(desiredIndentLevel, currentIndentLevel)
+    desiredIndentLevel
 
   # Indents all the rows between two buffer row numbers.
   #
