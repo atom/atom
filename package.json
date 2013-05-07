@@ -8,24 +8,24 @@
       "url": "http://github.com/atom/apm/raw/master/LICENSE.md"
     }
   ],
-  "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-coffee": "~0.7.0",
-    "grunt-cli": "~0.1.8",
-    "grunt-shell": "~0.2.2",
-    "jasmine-node": "~1.7.0"
+  "bin": {
+    "apm": "./bin/apm"
   },
   "scripts": {
     "prepublish": "grunt coffee",
     "test": "jasmine-node --captureExceptions --coffee spec/"
-  },
-  "bin": {
-    "apm": "./bin/apm"
   },
   "dependencies": {
     "optimist": "~0.4.0",
     "fs-extra": "~0.6.0",
     "async": "~0.2.8",
     "underscore": "~1.4.4"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-cli": "~0.1.8",
+    "grunt-shell": "~0.2.2",
+    "jasmine-node": "~1.7.0"
   }
 }
