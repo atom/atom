@@ -273,8 +273,10 @@ class Selection
     else
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
-    if options.autoIndent or (options.autoIndentNewline and text == '\n')
+    if options.autoIndent
       @editSession.autoIndentBufferRow(row) for row in newBufferRange.getRows()
+    else if options.autoIndentNewline and text == '\n'
+      @editSession.autoIndentBufferRow(newBufferRange.end.row)
     else if options.autoDecreaseIndent and /\S/.test text
       @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
