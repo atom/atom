@@ -4,7 +4,12 @@
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
-    "grunt-cli": "~0.1.8"
+    "grunt-cli": "~0.1.8",
+    "grunt-shell": "~0.2.2",
+    "jasmine-node": "~1.7.0"
+  },
+  "scripts": {
+    "test": "jasmine-node --captureExceptions --coffee spec/"
   },
   "dependencies": {
     "optimist": "~0.4.0",

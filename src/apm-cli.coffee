@@ -1,17 +1,19 @@
 fs = require 'fs'
 optimist = require 'optimist'
 
-{argv} = optimist.usage('Usage: apm <command>')
-                 .alias('v', 'version')
-                 .describe('v', 'Print the apm version')
-                 .alias('h', 'help')
-                 .describe('h', 'Print this usage message')
+parseOptions = (args=[]) ->
+  optimist(args)
+    .usage('Usage: apm <command>')
+    .alias('v', 'version').describe('v', 'Print the apm version')
+    .alias('h', 'help').describe('h', 'Print this usage message')
 
 module.exports =
-  run: ->
-    if argv.v
+  run: (args) ->
+    options = parseOptions(args)
+    args = options.argv
+    if args.v
       console.log JSON.parse(fs.readFileSync('package.json')).version
-    else if argv.h
-      optimist.showHelp()
+    else if args.h
+      options.showHelp()
     else
-      optimist.showHelp()
+      options.showHelp()
