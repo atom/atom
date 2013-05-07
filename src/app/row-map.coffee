@@ -11,7 +11,13 @@ class RowMap
       screenRow += targetBufferRow - bufferRow
       [screenRow, screenRow + 1]
 
-  bufferRowRangeForScreenRow: (screenRow) ->
+  bufferRowRangeForScreenRow: (targetScreenRow) ->
+    { mapping, screenRow, bufferRow } = @traverseToScreenRow(targetScreenRow)
+    if mapping and mapping.bufferRows != mapping.screenRows # 1:n mapping
+      [bufferRow, bufferRow + mapping.bufferRows]
+    else                                                    # 1:1 mapping
+      bufferRow += targetScreenRow - screenRow
+      [bufferRow, bufferRow + 1]
 
   mapBufferRowRange: (startBufferRow, endBufferRow, screenRows) ->
     { mapping, index, bufferRow } = @traverseToBufferRow(startBufferRow)
@@ -35,6 +41,13 @@ class RowMap
       bufferRow += mapping.bufferRows
       screenRow += mapping.screenRows
     { index, screenRow, bufferRow }
+
+  traverseToScreenRow: (targetScreenRow) ->
+    bufferRow = 0
+    screenRow = 0
+    for mapping, index in @mappings
+      if (screenRow + mapping.screenRows) > targetScreenRow
+        return { mapping, index, screenRow, bufferRow }
       bufferRow += mapping.bufferRows
       screenRow += mapping.screenRows
-    { mapping, index, screenRow, bufferRow }
+    { index, screenRow, bufferRow }

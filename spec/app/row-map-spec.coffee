@@ -40,3 +40,22 @@ describe "RowMap", ->
       expect(map.screenRowRangeForBufferRow(35)).toEqual [23, 24]
       expect(map.screenRowRangeForBufferRow(39)).toEqual [23, 24]
       expect(map.screenRowRangeForBufferRow(40)).toEqual [24, 25]
+
+    it "accounts for the mapping when translating screen rows to buffer row ranges", ->
+      expect(map.bufferRowRangeForScreenRow(0)).toEqual [0, 1]
+
+      expect(map.bufferRowRangeForScreenRow(4)).toEqual [4, 5]
+      expect(map.bufferRowRangeForScreenRow(5)).toEqual [5, 10]
+      expect(map.bufferRowRangeForScreenRow(6)).toEqual [10, 11]
+
+      expect(map.bufferRowRangeForScreenRow(10)).toEqual [14, 15]
+      expect(map.bufferRowRangeForScreenRow(11)).toEqual [15, 20]
+      expect(map.bufferRowRangeForScreenRow(12)).toEqual [20, 21]
+
+      expect(map.bufferRowRangeForScreenRow(16)).toEqual [24, 25]
+      expect(map.bufferRowRangeForScreenRow(17)).toEqual [25, 30]
+      expect(map.bufferRowRangeForScreenRow(18)).toEqual [30, 31]
+
+      expect(map.bufferRowRangeForScreenRow(22)).toEqual [34, 35]
+      expect(map.bufferRowRangeForScreenRow(23)).toEqual [35, 40]
+      expect(map.bufferRowRangeForScreenRow(24)).toEqual [40, 41]
