@@ -11,4 +11,8 @@ module.exports = (grunt) ->
         ext: '.js'
 
   grunt.loadNpmTasks('grunt-contrib-coffee')
+
+  grunt.registerTask 'clean', ->
+    require('fs-extra').removeSync('lib')
+
   grunt.registerTask('default', ['coffee'])
