@@ -2472,14 +2472,14 @@ describe "EditSession", ->
   describe ".autoDecreaseIndentForRow()", ->
       it "doesn't outdent the first and only row", ->
         editSession.selectAll()
-        editSession.insertText("}")
-        editSession.autoDecreaseIndentForRow(0)
-        expect(editSession.lineForBufferRow(0)).toBe "}"
+        editSession.insertText("  }")
+        editSession.autoDecreaseIndentForBufferRow(0)
+        expect(editSession.lineForBufferRow(0)).toBe "  }"
 
       it "doesn't outdent a row that is already fully outdented", ->
         editSession.selectAll()
         editSession.insertText("var i;\n}")
-        editSession.autoDecreaseIndentForRow(1)
+        editSession.autoDecreaseIndentForBufferRow(1)
         expect(editSession.lineForBufferRow(1)).toBe "}"
 
   describe ".destroy()", ->

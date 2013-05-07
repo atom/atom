@@ -278,7 +278,7 @@ class Selection
     else if options.autoIndentNewline and text == '\n'
       @editSession.autoIndentBufferRow(newBufferRange.end.row)
     else if options.autoDecreaseIndent and /\S/.test text
-      @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
+      @editSession.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
     newBufferRange
 
