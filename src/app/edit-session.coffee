@@ -366,7 +366,8 @@ class EditSession
   # text - A {String} representing the text to insert.
   # options - A set of options equivalent to {Selection.insertText}
   insertText: (text, options={}) ->
-    options.autoIndent ?= @shouldAutoIndent()
+    options.autoIndentNewlines ?= @shouldAutoIndent()
+    options.autoDecreaseIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
 
   # Inserts a new line at the current cursor positions.

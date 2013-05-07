@@ -255,7 +255,10 @@ class Selection
   # text - A {String} representing the text to add
   # options - A hash containing the following options:
   #           select: if `true`, selects the newly added text
-  #           autoIndent: if `true`, indents the newly added text appropriately
+  #           autoIndent: if `true`, indents all inserted text appropriately
+  #           autoIndentNewlines: if `true`, indent newlines appropriately
+  #           autoDecreaseIndent: if `true`, decreases indent level appropriately (for example, when a closing bracket is inserted)
+
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
@@ -270,14 +273,10 @@ class Selection
     else
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
-    if options.autoIndent
-      if text == '\n'
-        @editSession.autoIndentBufferRow(newBufferRange.end.row)
-      else if /\n/.test(text)
-        for row in [newBufferRange.start.row..newBufferRange.end.row]
-          @editSession.autoIndentBufferRow(row)
-      else if /\S/.test(text)
-        @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
+    if options.autoIndent or (options.autoIndentNewlines and text == '\n')
+      @editSession.autoIndentBufferRow(row) for row in newBufferRange.getRows()
+    else if options.autoDecreaseIndent and /\S/.test text
+      @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
     newBufferRange
 
