@@ -12,6 +12,6 @@ module.exports =
     if argv.v
       console.log JSON.parse(fs.readFileSync('package.json')).version
     else if argv.h
-      optimist.showHelp(console.log)
+      optimist.showHelp()
     else
-      optimist.showHelp(console.log)
+      optimist.showHelp()
