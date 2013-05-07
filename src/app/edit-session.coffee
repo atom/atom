@@ -474,7 +474,6 @@ class EditSession
   #
   # options - A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
-    options.normalizeIndent ?= true
     options.autoIndent ?= @shouldAutoIndentPastedText()
 
     [text, metadata] = pasteboard.read()

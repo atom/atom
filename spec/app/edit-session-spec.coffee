@@ -1060,7 +1060,7 @@ describe "EditSession", ->
               editSession.insertText('foo', autoIndent: true)
               expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
-      describe "when the `normalizeIndent` option is true", ->
+      xdescribe "when the `normalizeIndent` option is true", ->
         describe "when the inserted text contains no newlines", ->
           it "does not adjust the indentation level of the text", ->
             editSession.setCursorBufferPosition([5, 2])
@@ -1779,17 +1779,6 @@ describe "EditSession", ->
           expect(editSession.buffer.lineForRow(0)).toBe "var first = function () {"
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
-        it "preserves the indent level when copying and pasting multiple lines", ->
-          editSession.setSelectedBufferRange([[4, 4], [7, 5]])
-          editSession.copySelectedText()
-          editSession.setCursorBufferPosition([10, 0])
-          editSession.pasteText(autoIndent: true)
-
-          expect(editSession.lineForBufferRow(10)).toBe "  while(items.length > 0) {"
-          expect(editSession.lineForBufferRow(11)).toBe "    current = items.shift();"
-          expect(editSession.lineForBufferRow(12)).toBe "    current < pivot ? left.push(current) : right.push(current);"
-          expect(editSession.lineForBufferRow(13)).toBe "  }"
-
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
         describe "when softTabs is enabled", ->
@@ -2393,6 +2382,25 @@ describe "EditSession", ->
 
   describe "auto-indent", ->
     describe "editor.autoIndent", ->
+      describe "when `indent` is called", ->
+        it "auto-indents line if editor.autoIndent is true", ->
+          editSession.setCursorBufferPosition([1, 30])
+          editSession.insertText("\n ")
+          expect(editSession.lineForBufferRow(2)).toBe " "
+
+          config.set("editor.autoIndent", true)
+          editSession.indent()
+          expect(editSession.lineForBufferRow(2)).toBe "    "
+
+        it "does not auto-indent line if editor.autoIndent is false", ->
+          editSession.setCursorBufferPosition([1, 30])
+          editSession.insertText("\n ")
+          expect(editSession.lineForBufferRow(2)).toBe " "
+
+          config.set("editor.autoIndent", false)
+          editSession.indent()
+          expect(editSession.lineForBufferRow(2)).toBe "   "
+
       it "auto-indents newlines if editor.autoIndent is true", ->
         config.set("editor.autoIndent", undefined)
         editSession.setCursorBufferPosition([1, 30])
@@ -2404,22 +2412,6 @@ describe "EditSession", ->
         editSession.setCursorBufferPosition([1, 30])
         editSession.insertText("\n")
         expect(editSession.lineForBufferRow(2)).toBe ""
-
-      it "auto-indents calls to `indent` if editor.autoIndent is true", ->
-        config.set("editor.autoIndent", true)
-        editSession.setCursorBufferPosition([1, 30])
-        editSession.insertText("\n ")
-        expect(editSession.lineForBufferRow(2)).toBe " "
-        editSession.indent()
-        expect(editSession.lineForBufferRow(2)).toBe "    "
-
-      it "does not auto-indents calls to `indent` if editor.autoIndent is false", ->
-        config.set("editor.autoIndent", false)
-        editSession.setCursorBufferPosition([1, 30])
-        editSession.insertText("\n ")
-        expect(editSession.lineForBufferRow(2)).toBe " "
-        editSession.indent()
-        expect(editSession.lineForBufferRow(2)).toBe "   "
 
       it "auto-indents selection when autoIndent is called", ->
         editSession.setCursorBufferPosition([2, 0])
@@ -2433,28 +2425,32 @@ describe "EditSession", ->
         expect(editSession.lineForBufferRow(4)).toBe "4"
 
     describe "editor.autoIndentOnPaste", ->
+      text = "function() {\ninside=true\n}\n  i=1\n"
+
       it "does not auto-indent pasted text by default", ->
         editSession.setCursorBufferPosition([2, 0])
-        editSession.insertText("0\n  2\n    4\n")
+        editSession.insertText(text)
         editSession.getSelection().setBufferRange([[2,0], [5,0]])
         editSession.cutSelectedText()
 
         editSession.pasteText()
-        expect(editSession.lineForBufferRow(2)).toBe "0"
-        expect(editSession.lineForBufferRow(3)).toBe "  2"
-        expect(editSession.lineForBufferRow(4)).toBe "    4"
+        expect(editSession.lineForBufferRow(2)).toBe "function() {"
+        expect(editSession.lineForBufferRow(3)).toBe "inside=true"
+        expect(editSession.lineForBufferRow(4)).toBe "}"
+        expect(editSession.lineForBufferRow(5)).toBe "  i=1"
 
       it "auto-indents pasted text when editor.autoIndentOnPaste is true", ->
         config.set("editor.autoIndentOnPaste", true)
         editSession.setCursorBufferPosition([2, 0])
-        editSession.insertText("0\n  2\n    4\n")
+        editSession.insertText(text)
         editSession.getSelection().setBufferRange([[2,0], [5,0]])
         editSession.cutSelectedText()
 
         editSession.pasteText()
-        expect(editSession.lineForBufferRow(2)).toBe "    0"
-        expect(editSession.lineForBufferRow(3)).toBe "      2"
-        expect(editSession.lineForBufferRow(4)).toBe "        4"
+        expect(editSession.lineForBufferRow(2)).toBe "    function() {"
+        expect(editSession.lineForBufferRow(3)).toBe "      inside=true"
+        expect(editSession.lineForBufferRow(4)).toBe "    }"
+        expect(editSession.lineForBufferRow(5)).toBe "    i=1"
 
   describe ".autoDecreaseIndentForRow()", ->
       it "doesn't outdent the first and only row", ->
