@@ -5,5 +5,8 @@
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-cli": "~0.1.8"
+  },
+  "dependencies": {
+    "optimist": "~0.4.0"
   }
 }
