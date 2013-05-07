@@ -1,6 +1,12 @@
 {
   "name": "apm",
   "version": "0.0.0",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/atom/apm/raw/master/LICENSE.md"
+    }
+  ],
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
