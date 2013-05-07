@@ -256,7 +256,7 @@ class Selection
   # options - A hash containing the following options:
   #           select: if `true`, selects the newly added text
   #           autoIndent: if `true`, indents all inserted text appropriately
-  #           autoIndentNewlines: if `true`, indent newlines appropriately
+  #           autoIndentNewline: if `true`, indent newline appropriately
   #           autoDecreaseIndent: if `true`, decreases indent level appropriately (for example, when a closing bracket is inserted)
 
   insertText: (text, options={}) ->
@@ -273,7 +273,7 @@ class Selection
     else
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
-    if options.autoIndent or (options.autoIndentNewlines and text == '\n')
+    if options.autoIndent or (options.autoIndentNewline and text == '\n')
       @editSession.autoIndentBufferRow(row) for row in newBufferRange.getRows()
     else if options.autoDecreaseIndent and /\S/.test text
       @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
