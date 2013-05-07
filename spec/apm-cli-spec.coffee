@@ -4,7 +4,7 @@ apm = require '../lib/apm-cli'
 describe 'apm command line interface', ->
   describe 'when no arguments are present', ->
     it 'prints a usage message', ->
-      spyOn(console, 'log').andCallThrough()
+      spyOn(console, 'log')
       spyOn(console, 'error')
       apm.run([])
       expect(console.log).not.toHaveBeenCalled()
@@ -13,7 +13,7 @@ describe 'apm command line interface', ->
 
   describe 'when the version flag is specified', ->
     it 'prints a usage message', ->
-      spyOn(console, 'log').andCallThrough()
+      spyOn(console, 'log')
       spyOn(console, 'error')
       apm.run(['-h'])
       expect(console.log).not.toHaveBeenCalled()
@@ -31,7 +31,7 @@ describe 'apm command line interface', ->
 
   describe 'when an unrecognized command is specified', ->
     it 'prints an error message', ->
-      spyOn(console, 'log').andCallThrough()
+      spyOn(console, 'log')
       spyOn(console, 'error')
       apm.run(['this-will-never-be-a-command'])
       expect(console.log).not.toHaveBeenCalled()
