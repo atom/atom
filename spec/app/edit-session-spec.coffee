@@ -2425,32 +2425,29 @@ describe "EditSession", ->
         expect(editSession.lineForBufferRow(4)).toBe "4"
 
     describe "editor.autoIndentOnPaste", ->
-      text = "function() {\ninside=true\n}\n  i=1\n"
+      describe "when the text contains multiple lines", ->
+        beforeEach ->
+          editSession.setCursorBufferPosition([0, 0])
+          editSession.insertText("function() {\ninside=true\n}\n  i=1\n")
+          editSession.getSelection().setBufferRange([[0,0], [4,0]])
+          editSession.cutSelectedText()
+          editSession.setCursorBufferPosition([2, 0])
 
-      it "does not auto-indent pasted text by default", ->
-        editSession.setCursorBufferPosition([2, 0])
-        editSession.insertText(text)
-        editSession.getSelection().setBufferRange([[2,0], [5,0]])
-        editSession.cutSelectedText()
+        it "does not auto-indent pasted text by default", ->
+          editSession.pasteText()
+          expect(editSession.lineForBufferRow(2)).toBe "function() {"
+          expect(editSession.lineForBufferRow(3)).toBe "inside=true"
+          expect(editSession.lineForBufferRow(4)).toBe "}"
+          expect(editSession.lineForBufferRow(5)).toBe "  i=1"
 
-        editSession.pasteText()
-        expect(editSession.lineForBufferRow(2)).toBe "function() {"
-        expect(editSession.lineForBufferRow(3)).toBe "inside=true"
-        expect(editSession.lineForBufferRow(4)).toBe "}"
-        expect(editSession.lineForBufferRow(5)).toBe "  i=1"
+        it "auto-indents pasted text when editor.autoIndentOnPaste is true", ->
+          config.set("editor.autoIndentOnPaste", true)
+          editSession.pasteText()
+          expect(editSession.lineForBufferRow(2)).toBe "    function() {"
+          expect(editSession.lineForBufferRow(3)).toBe "      inside=true"
+          expect(editSession.lineForBufferRow(4)).toBe "    }"
+          expect(editSession.lineForBufferRow(5)).toBe "    i=1"
 
-      it "auto-indents pasted text when editor.autoIndentOnPaste is true", ->
-        config.set("editor.autoIndentOnPaste", true)
-        editSession.setCursorBufferPosition([2, 0])
-        editSession.insertText(text)
-        editSession.getSelection().setBufferRange([[2,0], [5,0]])
-        editSession.cutSelectedText()
-
-        editSession.pasteText()
-        expect(editSession.lineForBufferRow(2)).toBe "    function() {"
-        expect(editSession.lineForBufferRow(3)).toBe "      inside=true"
-        expect(editSession.lineForBufferRow(4)).toBe "    }"
-        expect(editSession.lineForBufferRow(5)).toBe "    i=1"
 
   describe ".autoDecreaseIndentForRow()", ->
       it "doesn't outdent the first and only row", ->
