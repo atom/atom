@@ -28,3 +28,12 @@ describe 'apm command line interface', ->
       expect(console.error).not.toHaveBeenCalled()
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[0][0]).toBe JSON.parse(fs.readFileSync('package.json')).version
+
+  describe 'when an unrecognized command is specified', ->
+    it 'prints an error message', ->
+      spyOn(console, 'log').andCallThrough()
+      spyOn(console, 'error')
+      apm.run(['this-will-never-be-a-command'])
+      expect(console.log).not.toHaveBeenCalled()
+      expect(console.error).toHaveBeenCalled()
+      expect(console.error.argsForCall[0][0].length).toBeGreaterThan 0
