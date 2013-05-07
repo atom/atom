@@ -148,7 +148,8 @@ class FuzzyFinderView extends SelectList
       @setArray(listedItems)
       options.done(listedItems) if options.done?
     else
-      @setLoading("Indexing...")
+      @setLoading("Indexing project...")
+      @loadingBadge.text("")
 
     if @reloadProjectPaths
       @loadPathsTask?.abort()
@@ -157,6 +158,8 @@ class FuzzyFinderView extends SelectList
         @reloadProjectPaths = false
         @populateProjectPaths(options)
       @loadPathsTask = new LoadPathsTask(callback)
+      @loadPathsTask.on 'paths-loaded', (paths) =>
+        @loadingBadge.text(paths.length)
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->

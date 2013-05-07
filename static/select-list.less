@@ -6,22 +6,18 @@
   }
 
   .loading {
-    text-align: center;
+    .loading-message:before {
+      font-family: 'Octicons Regular';
+      font-size: 1.1em;
+      width: 1.1em;
+      height: 1.1em;
+      margin-right: 5px;
+      -webkit-font-smoothing: antialiased;
+      content: '\f09e';
+    }
 
-    span {
-      padding: 5px 10px 5px 10px;
-      text-align: center;
-      border-radius: 3px;
-
-      &:before {
-        font-family: 'Octicons Regular';
-        font-size: 1.1em;
-        width: 1.1em;
-        height: 1.1em;
-        margin-right: 5px;
-        -webkit-font-smoothing: antialiased;
-        content: '\f09e';
-      }
+    .badge {
+      margin-left: 10px;
     }
   }
 

@@ -14,6 +14,7 @@ class LoadPathsTask extends Task
 
   pathsLoaded: (paths) ->
     @paths.push(paths...)
+    @trigger 'paths-loaded', @paths
 
   pathLoadingComplete: ->
     @callback(@paths)

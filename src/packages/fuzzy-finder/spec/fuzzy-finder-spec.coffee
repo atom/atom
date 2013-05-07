@@ -46,7 +46,7 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           paths = null
           expect(finderView.find(".loading")).toBeVisible()
-          expect(finderView.find(".loading")).toHaveText "Indexing..."
+          expect(finderView.find(".loading").text().length).toBeGreaterThan 0
 
           waitsFor "all project paths to load", 5000, ->
             unless finderView.reloadProjectPaths

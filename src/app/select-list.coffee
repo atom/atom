@@ -13,7 +13,8 @@ class SelectList extends View
       @subview 'miniEditor', new Editor(mini: true)
       @div class: 'error', outlet: 'error'
       @div class: 'loading', outlet: 'loadingArea', =>
-        @span outlet: 'loading'
+        @span class: 'loading-message', outlet: 'loading'
+        @span class: 'badge', outlet: 'loadingBadge'
       @ol outlet: 'list'
 
   @viewClass: -> 'select-list'
@@ -71,6 +72,7 @@ class SelectList extends View
   setLoading: (message='') ->
     if message.length is 0
       @loading.text("")
+      @loadingBadge.text("")
       @loadingArea.hide()
     else
       @setError()
