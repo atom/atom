@@ -1,5 +1,6 @@
 {
   "name": "apm",
+  "description": "Atom package manager",
   "version": "0.0.0",
   "licenses": [
     {
