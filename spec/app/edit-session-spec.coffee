@@ -1011,53 +1011,6 @@ describe "EditSession", ->
           editSession.insertText('holy cow')
           expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
 
-      describe "when autoIndentNewlines is enabled", ->
-        describe "when the newline is added at the end of a line that starts a new level of indentation", ->
-          it "auto indents the new line to one additional level of indentation beyond the preceding line", ->
-            editSession.setCursorBufferPosition([1, Infinity])
-            editSession.insertText('\n', autoIndentNewlines: true)
-            expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-
-        describe "when the newline is inserted on a normal line", ->
-          it "auto-indents the new line to the same level of indentation as the preceding line", ->
-            editSession.setCursorBufferPosition([5, 13])
-            editSession.insertText('\n', autoIndentNewlines: true)
-            expect(editSession.indentationForBufferRow(6)).toBe editSession.indentationForBufferRow(5)
-
-      describe "when autoDecreaseIndent is enabled", ->
-        describe "when the current line matches an auto-outdent pattern", ->
-          describe "when the preceding line matches an auto-indent pattern", ->
-            it "auto-decreases the indentation of the line to match that of the preceding line", ->
-              editSession.setCursorBufferPosition([1, Infinity])
-              editSession.insertText('\n    ')
-              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-              editSession.insertText('}', autoDecreaseIndent: true)
-              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
-
-          describe "when the preceding line does not match an auto-indent pattern", ->
-            describe "when the inserted text does not match an auto-decrease pattern", ->
-              it "does not auto-decrease the indentation", ->
-                editSession.setCursorBufferPosition([12, 0])
-                editSession.insertText('  ')
-                expect(editSession.lineForBufferRow(12)).toBe '  };'
-                editSession.insertText('\t\t', autoDecreaseIndent: true)
-                expect(editSession.lineForBufferRow(12)).toBe '  \t\t};'
-
-            describe "when the inserted text matches an auto-decrease pattern", ->
-              it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
-                editSession.setCursorBufferPosition([3, Infinity])
-                editSession.insertText('\n    ')
-                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
-                editSession.insertText('}', autoDecreaseIndent: true)
-                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
-
-        describe "when the current line does not match an auto-outdent pattern", ->
-          it "leaves the line unchanged", ->
-            editSession.setCursorBufferPosition([2, 4])
-            expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-            editSession.insertText('foo', autoIndent: true)
-            expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-
       xdescribe "when the `normalizeIndent` option is true", ->
         describe "when the inserted text contains no newlines", ->
           it "does not adjust the indentation level of the text", ->
@@ -2399,28 +2352,54 @@ describe "EditSession", ->
           editSession.indent()
           expect(editSession.lineForBufferRow(2)).toBe "   "
 
-      it "auto-indents newlines if editor.autoIndent is true", ->
-        config.set("editor.autoIndent", undefined)
-        editSession.setCursorBufferPosition([1, 30])
-        editSession.insertText("\n")
-        expect(editSession.lineForBufferRow(2)).toBe "    "
+      describe "when a newline is added", ->
+        describe "when editor.autoIndent is true", ->
+          beforeEach ->
+            config.set("editor.autoIndent", true)
 
-      it "does not auto-indent newlines if editor.autoIndent is false", ->
-        config.set("editor.autoIndent", false)
-        editSession.setCursorBufferPosition([1, 30])
-        editSession.insertText("\n")
-        expect(editSession.lineForBufferRow(2)).toBe ""
+          describe "when the line above the newline adds a new level of indentation", ->
+            it "auto indents the newline to one additional level of indentation beyond the preceding line", ->
+              editSession.setCursorBufferPosition([1, Infinity])
+              editSession.insertText('\n')
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
-      it "auto-indents selection when autoIndent is called", ->
-        editSession.setCursorBufferPosition([2, 0])
-        editSession.insertText("    0\n  2\n4\n")
+          describe "when the line above the newline adds a new level of indentation", ->
+            it "auto-indents the new line to the same level of indentation as the preceding line", ->
+              editSession.setCursorBufferPosition([5, 13])
+              editSession.insertText('\n')
+              expect(editSession.indentationForBufferRow(6)).toBe editSession.indentationForBufferRow(5)
 
-        editSession.setSelectedBufferRange([[2, 0], [4, 0]])
-        editSession.autoIndentSelectedRows()
+      describe "when inserted text matches a decrease indent pattern", ->
+        describe "when the preceding line matches an increase indent pattern", ->
+          it "decreases the indentation of the line to match that of the preceding line", ->
+            editSession.setCursorBufferPosition([1, Infinity])
+            editSession.insertText('\n    ')
+            expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
+            editSession.insertText('}', autoDecreaseIndent: true)
+            expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
 
-        expect(editSession.lineForBufferRow(2)).toBe "    0"
-        expect(editSession.lineForBufferRow(3)).toBe "    2"
-        expect(editSession.lineForBufferRow(4)).toBe "4"
+        describe "when the preceding line doesn't match an increase indent pattern", ->
+          it "decreases the indentation of the line to be one level below that of the preceding line", ->
+            editSession.setCursorBufferPosition([3, Infinity])
+            editSession.insertText('\n    ')
+            expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
+            editSession.insertText('}', autoDecreaseIndent: true)
+            expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
+
+      describe "when inserted text does not match a decrease indent pattern", ->
+        it "does not  the indentation", ->
+          editSession.setCursorBufferPosition([12, 0])
+          editSession.insertText('  ')
+          expect(editSession.lineForBufferRow(12)).toBe '  };'
+          editSession.insertText('\t\t', autoDecreaseIndent: true)
+          expect(editSession.lineForBufferRow(12)).toBe '  \t\t};'
+
+      describe "when the current line does not match a decrease indent pattern", ->
+        it "leaves the line unchanged", ->
+          editSession.setCursorBufferPosition([2, 4])
+          expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
+          editSession.insertText('foo', autoIndent: true)
+          expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
     describe "editor.autoIndentOnPaste", ->
       describe "when the text contains multiple lines", ->
@@ -2466,6 +2445,17 @@ describe "EditSession", ->
           config.set("editor.autoIndentOnPaste", true)
           editSession.pasteText()
           expect(editSession.lineForBufferRow(10)).toBe "  var number"
+
+    it "autoIndentSelectedRows auto-indents the selection", ->
+      editSession.setCursorBufferPosition([2, 0])
+      editSession.insertText("function() {\ninside=true\n}\n  i=1\n")
+      editSession.getSelection().setBufferRange([[2,0], [6,0]])
+      editSession.autoIndentSelectedRows()
+
+      expect(editSession.lineForBufferRow(2)).toBe "    function() {"
+      expect(editSession.lineForBufferRow(3)).toBe "      inside=true"
+      expect(editSession.lineForBufferRow(4)).toBe "    }"
+      expect(editSession.lineForBufferRow(5)).toBe "    i=1"
 
   describe ".autoDecreaseIndentForRow()", ->
       it "doesn't outdent the first and only row", ->
