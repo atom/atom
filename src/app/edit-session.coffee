@@ -597,12 +597,6 @@ class EditSession
   autoIndentBufferRow: (bufferRow) ->
     @languageMode.autoIndentBufferRow(bufferRow)
 
-  # Given a buffer row, this increases the indentation.
-  #
-  # bufferRow - The row {Number}
-  autoIncreaseIndentForBufferRow: (bufferRow) ->
-    @languageMode.autoIncreaseIndentForBufferRow(bufferRow)
-
   # Given a buffer row, this decreases the indentation.
   #
   # bufferRow - The row {Number}
