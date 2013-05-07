@@ -11,8 +11,8 @@ class PathLoader
   rootPath: null
   ignoredNames: null
 
-  constructor: (@rootPath, @ignoredNames) ->
-    @repo = Git.open(@rootPath)
+  constructor: (@rootPath, ignoreVcsIgnores=false, @ignoredNames=[]) ->
+    @repo = Git.open(@rootPath, refreshOnWindowFocus: false) if ignoreVcsIgnores
     @ignoredNames.sort()
 
   isIgnored: (loadedPath) ->
@@ -23,7 +23,7 @@ class PathLoader
 
   asyncCallDone: ->
     if --@asyncCallsInProgress is 0
-      @repo?.release()
+      @repo?.destroy()
       callTaskMethod('pathsLoaded', @paths)
       callTaskMethod('pathLoadingComplete')
 
@@ -53,6 +53,6 @@ class PathLoader
     @loadFolder(@rootPath)
 
 module.exports =
-  loadPaths: (rootPath, ignoredNames) ->
-    pathLoader = new PathLoader(rootPath, ignoredNames)
+  loadPaths: (rootPath, ignoreVcsIgnores, ignoredNames) ->
+    pathLoader = new PathLoader(rootPath, ignoreVcsIgnores, ignoredNames)
     pathLoader.load()

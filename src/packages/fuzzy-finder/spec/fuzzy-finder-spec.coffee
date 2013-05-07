@@ -353,6 +353,27 @@ describe 'FuzzyFinder', ->
       runs ->
         expect(finderView.list.find("li:contains(tree-view.js)")).not.toExist()
 
+    describe "when core.excludeVcsIgnoredPaths is set to true", ->
+      ignoreFile = null
+
+      beforeEach ->
+        ignoreFile = fsUtils.join(project.getPath(), '.gitignore')
+        fsUtils.write(ignoreFile, 'sample.js')
+        config.set("core.excludeVcsIgnoredPaths", true)
+
+      afterEach ->
+        fsUtils.remove(ignoreFile) if fsUtils.exists(ignoreFile)
+
+      it "ignores paths that are git ignored", ->
+        rootView.trigger 'fuzzy-finder:toggle-file-finder'
+        finderView.maxItems = Infinity
+
+        waitsFor ->
+          finderView.list.children('li').length > 0
+
+        runs ->
+          expect(finderView.list.find("li:contains(sample.js)")).not.toExist()
+
   describe "fuzzy find by content under cursor", ->
     editor = null
 
