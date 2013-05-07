@@ -4,38 +4,37 @@ class RowMap
     @mappings = []
 
   screenRowRangeForBufferRow: (targetBufferRow) ->
-    bufferRow = 0
-    screenRow = 0
-
-    for mapping in @mappings
-      if bufferRow <= targetBufferRow < bufferRow + mapping.bufferRows
-        if mapping.bufferRows == mapping.screenRows # 1:1 mapping region
-          break
-        else # fold or wrapped line mapping
-          return [screenRow, screenRow + mapping.screenRows]
-      bufferRow += mapping.bufferRows
-      screenRow += mapping.screenRows
-
-    screenRow += targetBufferRow - bufferRow
-    return [screenRow, screenRow + 1]
+    { mapping, screenRow, bufferRow } = @traverseToBufferRow(targetBufferRow)
+    if mapping and mapping.bufferRows != mapping.screenRows
+      [screenRow, screenRow + mapping.screenRows]
+    else
+      screenRow += targetBufferRow - bufferRow
+      [screenRow, screenRow + 1]
 
   bufferRowRangeForScreenRow: (screenRow) ->
 
   mapBufferRowRange: (startBufferRow, endBufferRow, screenRows) ->
-    bufferRow = 0
-
-    for mapping, index in @mappings
-      if (bufferRow + mapping.bufferRows) > startBufferRow
-        throw new Error("Invalid mapping insertion") unless mapping.bufferRows == mapping.screenRows
-        dividedMapping = mapping
-        break
-      bufferRow += mapping.bufferRows
+    { mapping, index, bufferRow } = @traverseToBufferRow(startBufferRow)
+    if mapping
+      if mapping.bufferRows != mapping.screenRows and index < @mappings.length - 1
+        throw new Error("Invalid mapping insertion")
+    else
+      index = 0
 
     padBefore = startBufferRow - bufferRow
-    padAfter = (bufferRow + dividedMapping?.bufferRows) - endBufferRow
+    padAfter = (bufferRow + mapping?.bufferRows) - endBufferRow
 
     newMappings = []
     newMappings.push(bufferRows: padBefore, screenRows: padBefore) if padBefore > 0
     newMappings.push(bufferRows: endBufferRow - startBufferRow, screenRows: screenRows)
     newMappings.push(bufferRows: padAfter, screenRows: padAfter) if padAfter > 0
     @mappings[index..index] = newMappings
+
+  traverseToBufferRow: (targetBufferRow) ->
+    bufferRow = 0
+    screenRow = 0
+    for mapping, index in @mappings
+      break if (bufferRow + mapping.bufferRows) > targetBufferRow
+      bufferRow += mapping.bufferRows
+      screenRow += mapping.screenRows
+    { mapping, index, screenRow, bufferRow }
