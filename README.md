@@ -1,3 +1,3 @@
-# APM - Atom Package Manager
+# apm - Atom Package Manager
 
 Discover and install Atom packages.
