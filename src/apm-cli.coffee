@@ -24,7 +24,8 @@ spawn = (command, args, remaining...) ->
 install = (options) ->
   nodeVersion = '0.10.3'
   nodeUrl = 'https://gh-contractor-zcbenz.s3.amazonaws.com/cefode2/dist'
-  nodeDirectory = "#{process.env['HOME']}/.cefode-gyp"
+  atomDirectory = "#{process.env.HOME}/.atom"
+  nodeDirectory = "#{atomDirectory}/.node-gyp"
 
   commands = []
   commands.push (callback) ->
