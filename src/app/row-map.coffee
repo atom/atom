@@ -5,9 +5,9 @@ class RowMap
 
   screenRowRangeForBufferRow: (targetBufferRow) ->
     { mapping, screenRow, bufferRow } = @traverseToBufferRow(targetBufferRow)
-    if mapping and mapping.bufferRows != mapping.screenRows
+    if mapping and mapping.bufferRows != mapping.screenRows # 1:n mapping
       [screenRow, screenRow + mapping.screenRows]
-    else
+    else                                                    # 1:1 mapping
       screenRow += targetBufferRow - bufferRow
       [screenRow, screenRow + 1]
 
