@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-require('../lib/apm-cli').run(process.argv);
+require('../lib/apm-cli').run(process.argv.slice(2));
