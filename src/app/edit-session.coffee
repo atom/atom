@@ -600,7 +600,7 @@ class EditSession
   # Given a buffer row, this decreases the indentation.
   #
   # bufferRow - The row {Number}
-  autoDecreaseIndentForRow: (bufferRow) ->
+  autoDecreaseIndentForBufferRow: (bufferRow) ->
     @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
   # Wraps the lines between two rows in comments.
