@@ -14,7 +14,7 @@ class Task
 
     # Equivalent with node --eval "...".
     blob = "require('coffee-script'); require('task-shell');"
-    @worker = child_process.fork '--eval', [ blob ], cwd: __dirname
+    @worker = child_process.fork '--eval', [ blob, '--harmony_collections' ], cwd: __dirname
 
     @worker.on 'message', (data) =>
       if @aborted
