@@ -254,14 +254,13 @@ class Selection
   #
   # text - A {String} representing the text to add
   # options - A hash containing the following options:
-  #           normalizeIndent: TODO
   #           select: if `true`, selects the newly added text
   #           autoIndent: if `true`, indents the newly added text appropriately
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
-    text = @normalizeIndent(text, options) if options.normalizeIndent
+
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
 
@@ -274,6 +273,9 @@ class Selection
     if options.autoIndent
       if text == '\n'
         @editSession.autoIndentBufferRow(newBufferRange.end.row)
+      else if /\n/.test(text)
+        for row in [newBufferRange.start.row..newBufferRange.end.row]
+          @editSession.autoIndentBufferRow(row)
       else if /\S/.test(text)
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
@@ -303,40 +305,6 @@ class Selection
     [start, end] = @getBufferRowRange()
     for row in [start..end]
       @editSession.buffer.insert([row, 0], @editSession.getTabText()) unless @editSession.buffer.lineLengthForRow(row) == 0
-
-  normalizeIndent: (text, options) ->
-    return text unless /\n/.test(text)
-
-    currentBufferRow = @cursor.getBufferRow()
-    currentBufferColumn = @cursor.getBufferColumn()
-    lines = text.split('\n')
-    currentBasis = options.indentBasis ? @editSession.indentLevelForLine(lines[0])
-    lines[0] = lines[0].replace(/^\s*/, '') # strip leading space from first line
-
-    normalizedLines = []
-
-    textPrecedingCursor = @editSession.buffer.getTextInRange([[currentBufferRow, 0], [currentBufferRow, currentBufferColumn]])
-    isCursorInsideExistingLine = textPrecedingCursor.match(/\S/)
-
-    if isCursorInsideExistingLine
-      desiredBasis = @editSession.indentationForBufferRow(currentBufferRow)
-    else if options.autoIndent
-      desiredBasis = @editSession.suggestedIndentForBufferRow(currentBufferRow)
-    else
-      desiredBasis = @cursor.getIndentLevel()
-
-    for line, i in lines
-      if i == 0
-        if isCursorInsideExistingLine
-          delta = 0
-        else
-          delta = desiredBasis - @cursor.getIndentLevel()
-      else
-        delta = desiredBasis - currentBasis
-
-      normalizedLines.push(@adjustIndentationForLine(line, delta))
-
-    normalizedLines.join('\n')
 
   adjustIndentationForLine: (line, delta) ->
     currentIndentLevel = @editSession.indentLevelForLine(line)
