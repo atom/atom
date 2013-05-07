@@ -22,7 +22,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-shell')
 
   grunt.registerTask 'clean', ->
-    require('fs-extra').removeSync('lib')
+    require('rimraf').sync('lib')
 
   grunt.registerTask('default', ['coffee'])
   grunt.registerTask('test', ['default', 'shell:test'])

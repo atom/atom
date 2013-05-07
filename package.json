@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "optimist": "~0.4.0",
-    "fs-extra": "~0.6.0",
     "async": "~0.2.8",
     "underscore": "~1.4.4"
   },
@@ -26,6 +25,7 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-cli": "~0.1.8",
     "grunt-shell": "~0.2.2",
-    "jasmine-node": "~1.7.0"
+    "jasmine-node": "~1.7.0",
+    "rimraf": "~2.1.4"
   }
 }
