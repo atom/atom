@@ -144,3 +144,20 @@ describe "RowMap", ->
         expect(map.bufferRowRangeForScreenRow(23)).toEqual [20, 21]
         expect(map.bufferRowRangeForScreenRow(27)).toEqual [20, 21]
         expect(map.bufferRowRangeForScreenRow(28)).toEqual [21, 22]
+
+      describe "after re-mapping a row range to a new number of screen rows", ->
+        beforeEach ->
+          map.mapBufferRowRange(10, 11, 4)
+
+        it "updates translation accordingly", ->
+          expect(map.screenRowRangeForBufferRow(4)).toEqual [4, 5]
+          expect(map.screenRowRangeForBufferRow(5)).toEqual [5, 8]
+          expect(map.screenRowRangeForBufferRow(6)).toEqual [8, 9]
+
+          expect(map.screenRowRangeForBufferRow(9)).toEqual [11, 12]
+          expect(map.screenRowRangeForBufferRow(10)).toEqual [12, 16]
+          expect(map.screenRowRangeForBufferRow(11)).toEqual [16, 17]
+
+          expect(map.screenRowRangeForBufferRow(19)).toEqual [24, 25]
+          expect(map.screenRowRangeForBufferRow(20)).toEqual [25, 30]
+          expect(map.screenRowRangeForBufferRow(21)).toEqual [30, 31]

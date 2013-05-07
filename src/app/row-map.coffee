@@ -21,7 +21,13 @@ class RowMap
 
   mapBufferRowRange: (startBufferRow, endBufferRow, screenRows) ->
     { mapping, index, bufferRow } = @traverseToBufferRow(startBufferRow)
-    throw new Error("Invalid mapping insertion") if mapping and mapping.bufferRows != mapping.screenRows
+
+    if mapping and mapping.bufferRows != mapping.screenRows
+      if bufferRow == startBufferRow and bufferRow + mapping.bufferRows == endBufferRow
+        mapping.screenRows = screenRows
+        return
+      else
+        throw new Error("Invalid mapping insertion")
 
     padBefore = startBufferRow - bufferRow
     padAfter = (bufferRow + mapping?.bufferRows) - endBufferRow
