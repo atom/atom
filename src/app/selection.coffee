@@ -316,9 +316,9 @@ class Selection
     normalizedLines = []
 
     textPrecedingCursor = @editSession.buffer.getTextInRange([[currentBufferRow, 0], [currentBufferRow, currentBufferColumn]])
-    insideExistingLine = textPrecedingCursor.match(/\S/)
+    isCursorInsideExistingLine = textPrecedingCursor.match(/\S/)
 
-    if insideExistingLine
+    if isCursorInsideExistingLine
       desiredBasis = @editSession.indentationForBufferRow(currentBufferRow)
     else if options.autoIndent
       desiredBasis = @editSession.suggestedIndentForBufferRow(currentBufferRow)
@@ -327,7 +327,7 @@ class Selection
 
     for line, i in lines
       if i == 0
-        if insideExistingLine
+        if isCursorInsideExistingLine
           delta = 0
         else
           delta = desiredBasis - @cursor.getIndentLevel()
