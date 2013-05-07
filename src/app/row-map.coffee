@@ -20,7 +20,6 @@ class RowMap
     return [screenRow, screenRow + 1]
 
   bufferRowRangeForScreenRow: (screenRow) ->
-    [screenRow, screenRow]
 
   mapBufferRowRange: (startBufferRow, endBufferRow, screenRows) ->
     bufferRow = 0

@@ -7,11 +7,9 @@ describe "RowMap", ->
     map = new RowMap
 
   describe "when no mappings have been recorded", ->
-    it "maps screen rows to buffer rows 1:1", ->
+    it "maps buffer rows to screen rows 1:1", ->
       expect(map.screenRowRangeForBufferRow(0)).toEqual [0, 1]
-      expect(map.bufferRowRangeForScreenRow(0)).toEqual [0, 1]
       expect(map.screenRowRangeForBufferRow(100)).toEqual [100, 101]
-      expect(map.bufferRowRangeForScreenRow(100)).toEqual [100, 101]
 
   describe "when a buffer row range is mapped to a single screen row (like a visible fold)", ->
     beforeEach ->
