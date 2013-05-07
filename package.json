@@ -15,6 +15,7 @@
     "jasmine-node": "~1.7.0"
   },
   "scripts": {
+    "prepublish": "grunt coffee",
     "test": "jasmine-node --captureExceptions --coffee spec/"
   },
   "dependencies": {
