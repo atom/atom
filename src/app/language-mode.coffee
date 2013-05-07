@@ -182,8 +182,8 @@ class LanguageMode
   #
   # bufferRow - The row {Number}
   autoIndentBufferRow: (bufferRow) ->
-    @autoIncreaseIndentForBufferRow(bufferRow)
-    @autoDecreaseIndentForBufferRow(bufferRow)
+    indentLevel = @suggestedIndentForBufferRow(bufferRow)
+    @editSession.setIndentationForBufferRow(bufferRow, indentLevel)
 
   # Given a buffer row, this increases the indentation.
   #
