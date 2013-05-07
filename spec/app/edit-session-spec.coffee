@@ -2369,6 +2369,18 @@ describe "EditSession", ->
               editSession.insertText('\n')
               expect(editSession.indentationForBufferRow(6)).toBe editSession.indentationForBufferRow(5)
 
+          it "does not indent the line preceding the newline", ->
+            config.set("editor.autoIndent", true)
+            editSession.setCursorBufferPosition([2, 0])
+            editSession.insertText('  var this-line-should-be-indented-more\n')
+            expect(editSession.indentationForBufferRow(1)).toBe 1
+
+            config.set("editor.autoIndent", true)
+            editSession.setCursorBufferPosition([2, Infinity])
+            editSession.insertText('\n')
+            expect(editSession.indentationForBufferRow(1)).toBe 1
+            expect(editSession.indentationForBufferRow(2)).toBe 1
+
       describe "when inserted text matches a decrease indent pattern", ->
         describe "when the preceding line matches an increase indent pattern", ->
           it "decreases the indentation of the line to match that of the preceding line", ->
