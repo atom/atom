@@ -66,7 +66,7 @@ Hitting the key binding on the tree now works!
 The next step is to hide elements in the tree that aren't modified. To do that,
 we'll first try and get a list of files that have not changed.
 
-All packages are able to use jQuery in their code. In fact, we have [a list of 
+All packages are able to use jQuery in their code. In fact, we have [a list of
 some of the bundled libraries Atom provides by default](./included_libraries.md).
 
 Let's bring in jQuery:
@@ -84,11 +84,11 @@ magic: ->
       console.log el
 ```
 
-You can access the dev console by hitting `alt-meta-i`. When we execute the 
-`changer:magic` command, the browser console lists the items that are not being 
+You can access the dev console by hitting `alt-meta-i`. When we execute the
+`changer:magic` command, the browser console lists the items that are not being
 modified. Let's add a class to each of these elements called `hide-me`:
 
-``coffeescript
+```coffeescript
 magic: ->
   $('ol.entries li').each (i, el) ->
     if !$(el).hasClass("modified")
@@ -109,14 +109,66 @@ Refresh atom, and run the `changer` command. You'll see all the non-changed file
 disappear from the tree. There are a number of ways you can get the list back;
 let's just naively iterate over the same elements and remove the class:
 
- ``coffeescript
+```coffeescript
 magic: ->
-   $('ol.entries li').each (i, el) ->
-     if !$(el).hasClass("modified")
-       if !$(el).hasClass("hide-me")
-         $(el).addClass("hide-me")
-       else
-         $(el).removeClass("hide-me")
- ```
+  $('ol.entries li').each (i, el) ->
+    if !$(el).hasClass("modified")
+      if !$(el).hasClass("hide-me")
+        $(el).addClass("hide-me")
+      else
+        $(el).removeClass("hide-me")
+```
 
 ## Creating a New Pane
+
+The next goal of this package is to append a pane to the Atom editor that lists
+some information about the modified files.
+
+To do that, we're going to first create a new class method called `content`. Every
+package that extends from the `View` class can provide an optional class method
+called `content`. The `content` method constructs the DOM that your package uses
+as its UI. The principals of `content` are built entirely on [SpacePen](https://github.com/nathansobo/space-pen),
+which we'll touch upon only briefly here.
+
+Our display will simply be an unordered list of the file names, and their
+modified times. Let's start by carving out a `div` to hold the filenames:
+
+```coffeescript
+@content: ->
+  @div class: 'modified-files-container', =>
+    @ul class: 'modified-files', outlet: 'modifiedFiles', =>
+      @li 'Test'
+      @li 'Test2'
+```
+
+You can add any HTML5 attribute you like. `outlet` names the variable
+your package can uses to manipulate the element directly. The fat pipe (`=>`) indicates
+that the next set are nested children.
+
+We'll add one more line to `magic` to make this pane appear:
+
+```coffeescript
+rootView.vertical.append(this)
+```
+
+If you hit the key command, you'll see a box appear right underneath the editor.
+Success!
+
+Before we populate this, let's apply some logic to toggle the pane off and on, just
+like we did with the tree view:
+
+```coffeescript
+# toggles the pane
+if @hasParent()
+  rootView.vertical.children().last().remove()
+else
+  rootView.vertical.append(this)
+```
+
+There are about a hundred different ways to toggle a pane on and off, and this
+might not be the most efficient one. If you know your package needs to be toggled
+on and off more freely, it might be better to draw the UI during the initialization,
+then immediately call `hide()` on the element to remove it from the view. You can
+then swap between `show()` and `hide()`, and instead of forcing Atom to add and remove
+the element as we're doing here, it'll just set a CSS property to control yoru package's
+visibility.
