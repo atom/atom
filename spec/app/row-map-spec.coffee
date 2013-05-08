@@ -15,9 +15,8 @@ describe "RowMap", ->
     describe "when mapping to a single screen row (like a visible fold)", ->
       beforeEach ->
         map.mapBufferRowRange(5, 10, 1)
-        map.mapBufferRowRange(35, 40, 1)
-        map.mapBufferRowRange(25, 30, 1)
         map.mapBufferRowRange(15, 20, 1)
+        map.mapBufferRowRange(25, 30, 1)
 
       it "accounts for the mapping when translating buffer rows to screen row ranges", ->
         expect(map.screenRowRangeForBufferRow(0)).toEqual [0, 1]
@@ -37,11 +36,6 @@ describe "RowMap", ->
         expect(map.screenRowRangeForBufferRow(29)).toEqual [17, 18]
         expect(map.screenRowRangeForBufferRow(30)).toEqual [18, 19]
 
-        expect(map.screenRowRangeForBufferRow(34)).toEqual [22, 23]
-        expect(map.screenRowRangeForBufferRow(35)).toEqual [23, 24]
-        expect(map.screenRowRangeForBufferRow(39)).toEqual [23, 24]
-        expect(map.screenRowRangeForBufferRow(40)).toEqual [24, 25]
-
       it "accounts for the mapping when translating screen rows to buffer row ranges", ->
         expect(map.bufferRowRangeForScreenRow(0)).toEqual [0, 1]
 
@@ -57,16 +51,11 @@ describe "RowMap", ->
         expect(map.bufferRowRangeForScreenRow(17)).toEqual [25, 30]
         expect(map.bufferRowRangeForScreenRow(18)).toEqual [30, 31]
 
-        expect(map.bufferRowRangeForScreenRow(22)).toEqual [34, 35]
-        expect(map.bufferRowRangeForScreenRow(23)).toEqual [35, 40]
-        expect(map.bufferRowRangeForScreenRow(24)).toEqual [40, 41]
-
     describe "when mapping to zero screen rows (like an invisible fold)", ->
       beforeEach ->
         map.mapBufferRowRange(5, 10, 0)
-        map.mapBufferRowRange(35, 40, 0)
-        map.mapBufferRowRange(25, 30, 0)
         map.mapBufferRowRange(15, 20, 0)
+        map.mapBufferRowRange(25, 30, 0)
 
       it "accounts for the mapping when translating buffer rows to screen row ranges", ->
         expect(map.screenRowRangeForBufferRow(0)).toEqual [0, 1]
@@ -86,11 +75,6 @@ describe "RowMap", ->
         expect(map.screenRowRangeForBufferRow(29)).toEqual [15, 15]
         expect(map.screenRowRangeForBufferRow(30)).toEqual [15, 16]
 
-        expect(map.screenRowRangeForBufferRow(34)).toEqual [19, 20]
-        expect(map.screenRowRangeForBufferRow(35)).toEqual [20, 20]
-        expect(map.screenRowRangeForBufferRow(39)).toEqual [20, 20]
-        expect(map.screenRowRangeForBufferRow(40)).toEqual [20, 21]
-
       it "accounts for the mapping when translating screen rows to buffer row ranges", ->
         expect(map.bufferRowRangeForScreenRow(0)).toEqual [0, 1]
 
@@ -103,14 +87,11 @@ describe "RowMap", ->
         expect(map.bufferRowRangeForScreenRow(14)).toEqual [24, 25]
         expect(map.bufferRowRangeForScreenRow(15)).toEqual [30, 31]
 
-        expect(map.bufferRowRangeForScreenRow(19)).toEqual [34, 35]
-        expect(map.bufferRowRangeForScreenRow(20)).toEqual [40, 41]
-
     describe "when mapping a single buffer row to multiple screen rows (like a wrapped line)", ->
       beforeEach ->
         map.mapBufferRowRange(5, 6, 3)
-        map.mapBufferRowRange(20, 21, 5)
         map.mapBufferRowRange(10, 11, 2)
+        map.mapBufferRowRange(20, 21, 5)
 
       it "accounts for the mapping when translating buffer rows to screen row ranges", ->
         expect(map.screenRowRangeForBufferRow(0)).toEqual [0, 1]
@@ -161,3 +142,17 @@ describe "RowMap", ->
           expect(map.screenRowRangeForBufferRow(19)).toEqual [24, 25]
           expect(map.screenRowRangeForBufferRow(20)).toEqual [25, 30]
           expect(map.screenRowRangeForBufferRow(21)).toEqual [30, 31]
+
+    describe "when mapping into an existing 1:1 region", ->
+      it "preserves the starting screen row of subsequent 1:N mappings", ->
+        map.mapBufferRowRange(5, 10, 1)
+        map.mapBufferRowRange(25, 30, 1)
+
+        expect(map.bufferRowRangeForScreenRow(5)).toEqual [5, 10]
+        expect(map.bufferRowRangeForScreenRow(21)).toEqual [25, 30]
+
+        map.mapBufferRowRange(15, 20, 1)
+
+        expect(map.bufferRowRangeForScreenRow(11)).toEqual [15, 20]
+        expect(map.bufferRowRangeForScreenRow(5)).toEqual [5, 10]
+        expect(map.bufferRowRangeForScreenRow(21)).toEqual [25, 30]
