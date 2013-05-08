@@ -1,3 +1,5 @@
+* Fixed: Fuzzy finder being empty sometimes
+
 * Improved: App icon
 * Fixed: End of line invisibles rendering incorrectly with the indent guide
 * Fixed: Updates not installing automatically on restart
