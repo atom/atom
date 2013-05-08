@@ -1,0 +1,5 @@
+#!/bin/sh
+set -ex
+
+npm install
+grunt clean test
