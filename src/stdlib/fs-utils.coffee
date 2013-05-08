@@ -284,6 +284,7 @@ module.exports =
       '.gz'
       '.jar'
       '.tar'
+      '.tgz'
       '.zip'
     ], ext, true) >= 0
 
