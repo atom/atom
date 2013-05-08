@@ -52,7 +52,7 @@ class RowMap
 
   applyScreenDelta: (startScreenRow, delta) ->
     { index } = @traverseToScreenRow(startScreenRow)
-    until delta == 0
+    while delta != 0 and index < @mappings.length
       { bufferRows, screenRows } = @mappings[index]
       screenRows += delta
       if screenRows < 0

@@ -179,3 +179,7 @@ describe "RowMap", ->
         expect(map.screenRowRangeForBufferRow(19)).toEqual [6, 6]
         expect(map.screenRowRangeForBufferRow(22)).toEqual [8, 9]
         expect(map.screenRowRangeForBufferRow(26)).toEqual [8, 9]
+
+    it "does not throw an exception when applying a delta beyond the last mapping", ->
+      map.mapBufferRowRange(5, 10, 1)  # inner fold 1
+      map.applyScreenDelta(15, 10)
