@@ -30,6 +30,7 @@
     "grunt-shell": "~0.2.2",
     "jasmine-node": "~1.7.0",
     "rimraf": "~2.1.4",
-    "express": "~3.2.3"
+    "express": "~3.2.3",
+    "wrench": "~1.5.1"
   }
 }
