@@ -122,7 +122,7 @@ class Installer
 
   run: (options) ->
     modulePath = options.commandArgs.shift() ? '.'
-    if path isnt '.'
-      @installPackage(options, modulePath)
-    else
+    if path is '.'
       @installDependencies(options)
+    else
+      @installPackage(options, modulePath)
