@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ex
 
-PATH=/usr/share/nvm/0.8.11/bin:$PATH
+PATH=/usr/share/nvm/0.8.11/bin:node_modules/.bin:$PATH
 
 npm install
 grunt clean test
