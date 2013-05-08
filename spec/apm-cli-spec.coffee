@@ -20,7 +20,7 @@ describe 'apm command line interface', ->
       expect(console.error).toHaveBeenCalled()
       expect(console.error.argsForCall[0][0].length).toBeGreaterThan 0
 
-  describe 'when the version flag is specified', ->
+  describe 'when the help flag is specified', ->
     it 'prints a usage message', ->
       apm.run(['-h'])
       expect(console.log).not.toHaveBeenCalled()
