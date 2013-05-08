@@ -2332,6 +2332,13 @@ describe "EditSession", ->
       expect(editSession.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
   describe "auto-indent", ->
+    copyText = (text) ->
+      editSession.setCursorBufferPosition([0, 0])
+      editSession.insertText(text)
+      numberOfNewlines = text.match(/\n/g)?.length
+      editSession.getSelection().setBufferRange([[0,0], [numberOfNewlines,0]])
+      editSession.cutSelectedText()
+
     describe "editor.autoIndent", ->
       describe "when `indent` is called", ->
         it "auto-indents line if editor.autoIndent is true", ->
@@ -2420,10 +2427,7 @@ describe "EditSession", ->
     describe "editor.autoIndentOnPaste", ->
       describe "when the text contains multiple lines", ->
         beforeEach ->
-          editSession.setCursorBufferPosition([0, 0])
-          editSession.insertText("function() {\ninside=true\n}\n  i=1\n")
-          editSession.getSelection().setBufferRange([[0,0], [4,0]])
-          editSession.cutSelectedText()
+          copyText("function() {\ninside=true\n}\n  i=1\n")
           editSession.setCursorBufferPosition([2, 0])
 
         it "does not auto-indent pasted text by default", ->
@@ -2443,21 +2447,15 @@ describe "EditSession", ->
 
       describe "when the text contains no newlines", ->
         it "increaseses indent of pasted text when editor.autoIndentOnPaste is true", ->
+          copyText("var number")
           editSession.setCursorBufferPosition([10, 0])
-          editSession.insertText("var number")
-          editSession.getSelection().setBufferRange([[10,0], [10,Infinity]])
-          editSession.cutSelectedText()
-
           config.set("editor.autoIndentOnPaste", true)
           editSession.pasteText()
           expect(editSession.lineForBufferRow(10)).toBe "  var number"
 
         it "decreaseses indent of pasted text when editor.autoIndentOnPaste is true", ->
+          copyText("    var number")
           editSession.setCursorBufferPosition([10, 0])
-          editSession.insertText("    var number")
-          editSession.getSelection().setBufferRange([[10,0], [10,Infinity]])
-          editSession.cutSelectedText()
-
           config.set("editor.autoIndentOnPaste", true)
           editSession.pasteText()
           expect(editSession.lineForBufferRow(10)).toBe "  var number"
