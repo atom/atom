@@ -91,6 +91,11 @@ task :clean do
   `rm -rf cef`
 end
 
+desc "Delete cached cefodes"
+task "clean-cefode-cache" do
+  `rm -fr /tmp/atom-cached-cefodes`
+end
+
 desc "Run the specs"
 task :test => ["update-cef", "clone-default-bundles", "build"] do
   `pkill Atom`
