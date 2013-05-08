@@ -21,3 +21,8 @@
   * Add 3rd-party packages by submoduling in `vendor/packages/`
   * Commit messages are in the present tense
   * Files end with a newline
+  * Class variables and methods should be in the following order:
+    * Class variables (variables starting with a `@`)
+    * Class methods (methods starting with a `@`)
+    * Instance variables
+    * Instance methods
