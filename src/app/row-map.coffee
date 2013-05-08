@@ -50,9 +50,18 @@ class RowMap
     { mapping } = @traverseToBufferRow(startBufferRow)
     mapping?.bufferRows += delta
 
-  applyScreenDelta: (startBufferRow, delta) ->
-    { mapping } = @traverseToScreenRow(startBufferRow)
-    mapping?.screenRows += delta
+  applyScreenDelta: (startScreenRow, delta) ->
+    { index } = @traverseToScreenRow(startScreenRow)
+    until delta == 0
+      { bufferRows, screenRows } = @mappings[index]
+      screenRows += delta
+      if screenRows < 0
+        delta = screenRows
+        screenRows = 0
+      else
+        delta = 0
+      @mappings[index] = { bufferRows, screenRows }
+      index++
 
   traverseToBufferRow: (targetBufferRow) ->
     bufferRow = 0

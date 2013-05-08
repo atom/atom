@@ -156,3 +156,26 @@ describe "RowMap", ->
         expect(map.bufferRowRangeForScreenRow(11)).toEqual [15, 20]
         expect(map.bufferRowRangeForScreenRow(5)).toEqual [5, 10]
         expect(map.bufferRowRangeForScreenRow(21)).toEqual [25, 30]
+
+  describe ".applyScreenDelta(startScreenRow, delta)", ->
+    describe "when applying a positive delta", ->
+      it "can enlarge the screen side of existing mappings", ->
+        map.mapBufferRowRange(5, 6, 3) # wrapped line
+        map.applyScreenDelta(5, 2) # wrap it twice more
+        expect(map.screenRowRangeForBufferRow(5)).toEqual [5, 10]
+
+    describe "when applying a negative delta", ->
+      it "can collapse the screen side of multiple mappings to 0 until the entire delta has been applied", ->
+        map.mapBufferRowRange(5, 10, 1)  # inner fold 1
+        map.mapBufferRowRange(11, 13, 1)  # inner fold 2
+        map.mapBufferRowRange(15, 20, 1) # inner fold 3
+        map.mapBufferRowRange(22, 27, 1) # following fold
+
+        map.applyScreenDelta(6, -5)
+
+        expect(map.screenRowRangeForBufferRow(5)).toEqual [5, 6]
+        expect(map.screenRowRangeForBufferRow(9)).toEqual [5, 6]
+        expect(map.screenRowRangeForBufferRow(10)).toEqual [6, 6]
+        expect(map.screenRowRangeForBufferRow(19)).toEqual [6, 6]
+        expect(map.screenRowRangeForBufferRow(22)).toEqual [8, 9]
+        expect(map.screenRowRangeForBufferRow(26)).toEqual [8, 9]
