@@ -143,7 +143,7 @@ describe "RowMap", ->
           expect(map.screenRowRangeForBufferRow(20)).toEqual [25, 30]
           expect(map.screenRowRangeForBufferRow(21)).toEqual [30, 31]
 
-    describe "when mapping into an existing 1:1 region", ->
+    describe "when the row range is inside an existing 1:1 region", ->
       it "preserves the starting screen row of subsequent 1:N mappings", ->
         map.mapBufferRowRange(5, 10, 1)
         map.mapBufferRowRange(25, 30, 1)
@@ -156,6 +156,20 @@ describe "RowMap", ->
         expect(map.bufferRowRangeForScreenRow(11)).toEqual [15, 20]
         expect(map.bufferRowRangeForScreenRow(5)).toEqual [5, 10]
         expect(map.bufferRowRangeForScreenRow(21)).toEqual [25, 30]
+
+    describe "when the row range surrounds existing regions", ->
+      it "replaces the regions inside the given buffer row range with a single region", ->
+        map.mapBufferRowRange(5, 10, 1)  # inner fold 1
+        map.mapBufferRowRange(11, 13, 1)  # inner fold 2
+        map.mapBufferRowRange(15, 20, 1) # inner fold 3
+        map.mapBufferRowRange(22, 27, 1) # following fold
+
+        map.mapBufferRowRange(5, 20, 1)
+
+        expect(map.bufferRowRangeForScreenRow(5)).toEqual [5, 20]
+        expect(map.bufferRowRangeForScreenRow(6)).toEqual [20, 21]
+        expect(map.bufferRowRangeForScreenRow(7)).toEqual [21, 22]
+        expect(map.bufferRowRangeForScreenRow(8)).toEqual [22, 27]
 
   describe ".applyScreenDelta(startScreenRow, delta)", ->
     describe "when applying a positive delta", ->

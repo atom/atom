@@ -27,7 +27,7 @@ class RowMap
       [bufferRow, bufferRow + 1]
 
   mapBufferRowRange: (startBufferRow, endBufferRow, screenRows) ->
-    { mapping, index, bufferRow, screenRow } = @traverseToBufferRow(startBufferRow)
+    { index, bufferRow, screenRow } = @traverseToBufferRow(startBufferRow)
 
     newMappings = []
 
@@ -38,13 +38,21 @@ class RowMap
     bufferRows = endBufferRow - startBufferRow
     newMappings.push({bufferRows, screenRows})
 
-    if mapping
-      postBufferRows = mapping.bufferRows - preRows - bufferRows
-      postScreenRows = mapping.screenRows - preRows - screenRows
-      if postBufferRows > 0 or postScreenRows > 0
-        newMappings.push(bufferRows: postBufferRows, screenRows: postScreenRows)
+    startIndex = index
+    endIndex = index
+    while bufferRows > 0 and endIndex < @mappings.length
+      mapping = @mappings[endIndex]
+      if mapping.bufferRows < bufferRows
+        bufferRows -= mapping.bufferRows
+        endIndex++
+      else
+        postBufferRows = mapping.bufferRows - preRows - bufferRows
+        postScreenRows = mapping.screenRows - preRows - screenRows
+        if postBufferRows > 0 or postScreenRows > 0
+          newMappings.push(bufferRows: postBufferRows, screenRows: postScreenRows)
+        bufferRows = 0
 
-    @mappings[index..index] = newMappings
+    @mappings[startIndex..endIndex] = newMappings
 
   applyBufferDelta: (startBufferRow, delta) ->
     { mapping } = @traverseToBufferRow(startBufferRow)
