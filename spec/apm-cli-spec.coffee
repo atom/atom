@@ -70,6 +70,5 @@ describe 'apm command line interface', ->
         callback.callCount > 0
 
       runs ->
-        console.log atomHome
         expect(fs.existsSync(path.join(atomHome, 'packages', 'node_modules', 'test-module', 'index.js'))).toBeTruthy()
         expect(fs.existsSync(path.join(atomHome, 'packages', 'node_modules', 'test-module', 'package.json'))).toBeTruthy()
