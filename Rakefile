@@ -93,7 +93,7 @@ end
 
 desc "Delete cached cefodes"
 task "clean-cefode-cache" do
-  `rm -fr /tmp/atom-cached-cefodes`
+  `rm -rf /tmp/atom-cached-cefodes`
 end
 
 desc "Run the specs"
