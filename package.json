@@ -19,7 +19,9 @@
   "dependencies": {
     "optimist": "~0.4.0",
     "async": "~0.2.8",
-    "underscore": "~1.4.4"
+    "underscore": "~1.4.4",
+    "mkdirp": "~0.3.5",
+    "temp": "~0.5.0"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
@@ -27,6 +29,7 @@
     "grunt-cli": "~0.1.8",
     "grunt-shell": "~0.2.2",
     "jasmine-node": "~1.7.0",
-    "rimraf": "~2.1.4"
+    "rimraf": "~2.1.4",
+    "express": "~3.2.3"
   }
 }
