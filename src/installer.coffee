@@ -32,7 +32,7 @@ class Installer
     console.log 'Installing npm locally...'
 
     mkdir(@atomModulesDirectory)
-    @spawn 'npm', ['install', 'npm', '--silent'], {cwd: @atomDirectory}, (code) ->
+    @spawn 'npm', ['install', 'npm@v1.2.18', '--silent'], {cwd: @atomDirectory}, (code) ->
       if code is 0
         callback()
       else
