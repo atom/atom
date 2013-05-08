@@ -129,9 +129,22 @@ class Installer
       console.error(error) if error?
       options.callback?()
 
+  installTextMateBundle: (options, bundlePath) ->
+    gitArguments = ['clone']
+    gitArguments.push(bundlePath)
+    gitArguments.push(path.join(@atomPackagesDirectory, path.basename(bundlePath, '.git')))
+    @spawn 'git', gitArguments, (code) ->
+      console.error("Installing bundle failed with code: #{code}") if code isnt 0
+      options.callback?()
+
+  isTextMateBundlePath: (bundlePath) ->
+    path.extname(path.basename(bundlePath, '.git')) is '.tmbundle'
+
   run: (options) ->
     modulePath = options.commandArgs.shift() ? '.'
     if modulePath is '.'
       @installDependencies(options)
+    else if @isTextMateBundlePath(modulePath)
+      @installTextMateBundle(options, modulePath)
     else
       @installPackage(options, modulePath)
