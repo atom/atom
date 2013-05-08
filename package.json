@@ -9,6 +9,13 @@
       "url": "http://github.com/atom/apm/raw/master/LICENSE.md"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/apm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atom/apm/issues"
+  },
   "bin": {
     "apm": "./bin/apm"
   },
