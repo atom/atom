@@ -7,6 +7,15 @@ path = require 'path'
 
 module.exports =
 class Installer
+  nodeVersion: null
+  nodeUrl: null
+  atomDirectory: null
+  atomPackagesDirectory: null
+  atomNodeDirectory: null
+  atomModulesDirectory: null
+  atomNpmPath: null
+  atomNodeGypPath: null
+
   constructor: ->
     @nodeVersion = '0.10.3'
     @nodeUrl = process.env.ATOM_NODE_URL ? 'https://gh-contractor-zcbenz.s3.amazonaws.com/cefode2/dist'
