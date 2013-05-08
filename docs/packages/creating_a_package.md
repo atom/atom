@@ -136,7 +136,7 @@ modified times. Let's start by carving out a `div` to hold the filenames:
 ```coffeescript
 @content: ->
   @div class: 'modified-files-container', =>
-    @ul class: 'modified-files', outlet: 'modifiedFiles', =>
+    @ul class: 'modified-files-list', outlet: 'modifiedFilesList', =>
       @li 'Test'
       @li 'Test2'
 ```
@@ -170,5 +170,85 @@ might not be the most efficient one. If you know your package needs to be toggle
 on and off more freely, it might be better to draw the UI during the initialization,
 then immediately call `hide()` on the element to remove it from the view. You can
 then swap between `show()` and `hide()`, and instead of forcing Atom to add and remove
-the element as we're doing here, it'll just set a CSS property to control yoru package's
+the element as we're doing here, it'll just set a CSS property to control your package's
 visibility.
+
+You might have noticed that our two `li` elements aren't showing up. Let's set
+a color on them so that they pop. Open up `changer.css` and add this CSS:
+
+```css
+ul.modified-files-list {
+  color: white;
+}
+```
+
+Refresh Atom, hit the key combo, and see your brilliantly white test list.
+
+## Calling Node.js Code
+
+Since Atom is built on top of Node.js, you can call any of its libraries, including
+other modules that your package requires.
+
+We'll iterate through our resulting tree, and construct the path to our modified
+file based on its depth in the tree:
+
+```coffeescript
+path = require 'path'
+
+# ...
+
+modifiedFiles = []
+# for each single entry...
+$('ol.entries li.file.modified span.name').each (i, el) ->
+  filePath = []
+  # ...grab its name...
+  filePath.unshift($(el).text())
+
+  # ... then find its parent directories, and grab their names
+  parents = $(el).parents('.directory.modified')
+  parents.each (i, el) ->
+    filePath.unshift($(el).find('div.header span.name').eq(0).text())
+
+  modifiedFilePath = path.join(project.rootDirectory.path, filePath.join(path.sep))
+  modifiedFiles.push modifiedFilePath
+```
+
+`modifiedFiles` is an array containing a list of our modified files. We're also using
+the node.js [`path` library](http://nodejs.org/docs/latest/api/path.html) to get
+the proper directory separator for our system.
+
+Let's remove the two `@li` elements we added in `@content`, so that we can populate
+our `modifiedFilesList` with real information. We'll do that by iterating over
+`modifiedFiles`, accessing a file's last modified time, and appending it to
+`modifiedFilesList`:
+
+```coffeescript
+# toggles the pane
+if @hasParent()
+  rootView.vertical.children().last().remove()
+else
+  for file in modifiedFiles
+    stat = fs.lstatSync(file)
+    mtime = stat.mtime
+    @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
+  rootView.vertical.append(this)
+```
+
+When you toggle the modified files list, your pane is now populated with the filenames
+and modified times of files in your project. You might notice that subsequent calls
+to this command reduplicate information. We could provide an elegant way of rechecking
+files already in the list, but for this demonstration, we'll just clear the `modifiedFilesList`
+each time it's closed:
+
+```coffeescript
+# toggles the pane
+if @hasParent()
+  @modifiedFilesList.empty()
+  rootView.vertical.children().last().remove()
+else
+  for file in modifiedFiles
+    stat = fs.lstatSync(file)
+    mtime = stat.mtime
+    @modifiedFilesList.append("<li>#{file} - Modified at #{mtime}")
+  rootView.vertical.append(this)
+```
