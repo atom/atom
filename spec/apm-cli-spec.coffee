@@ -60,11 +60,10 @@ describe 'apm command line interface', ->
     afterEach ->
       server.close()
 
-    describe 'when a path is specified', ->
+    describe 'when a URL is specified', ->
       it 'installs the module at the path', ->
-        modulePath = path.join(__dirname, 'fixtures', 'test-module')
         callback = jasmine.createSpy('callback')
-        apm.run(['install', modulePath], callback)
+        apm.run(['install', "http://localhost:3000/test-module-1.0.0.tgz"], callback)
 
         waitsFor 'waiting for install to complete', 600000, ->
           callback.callCount > 0
