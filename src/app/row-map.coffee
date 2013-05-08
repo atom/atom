@@ -29,30 +29,39 @@ class RowMap
   mapBufferRowRange: (startBufferRow, endBufferRow, screenRows) ->
     { index, bufferRow, screenRow } = @traverseToBufferRow(startBufferRow)
 
+    overlapStartIndex = index
+    overlapStartBufferRow = bufferRow
+    overlapEndIndex = index
+    overlapEndBufferRow = bufferRow
+    overlapEndScreenRow = screenRow
+
+    # determine regions that the new region overlaps. they will need replacement.
+    while overlapEndIndex < @regions.length
+      region = @regions[overlapEndIndex]
+      overlapEndBufferRow += region.bufferRows
+      overlapEndScreenRow += region.screenRows
+      break if overlapEndBufferRow >= endBufferRow
+      overlapEndIndex++
+
+    # we will replace overlapStartIndex..overlapEndIndex with these regions
     newRegions = []
 
-    preRows = startBufferRow - bufferRow
+    # if we straddle the first overlapping region, push a smaller region representing
+    # the portion before the new region
+    preRows = startBufferRow - overlapStartBufferRow
     if preRows > 0
       newRegions.push(bufferRows: preRows, screenRows: preRows)
 
-    bufferRows = endBufferRow - startBufferRow
-    newRegions.push({bufferRows, screenRows})
+    # push the new region
+    newRegions.push(bufferRows: endBufferRow - startBufferRow, screenRows: screenRows)
 
-    startIndex = index
-    endIndex = index
-    while bufferRows > 0 and endIndex < @regions.length
-      region = @regions[endIndex]
-      if region.bufferRows < bufferRows
-        bufferRows -= region.bufferRows
-        endIndex++
-      else
-        postBufferRows = region.bufferRows - preRows - bufferRows
-        postScreenRows = region.screenRows - preRows - screenRows
-        if postBufferRows > 0 or postScreenRows > 0
-          newRegions.push(bufferRows: postBufferRows, screenRows: postScreenRows)
-        bufferRows = 0
+    # if we straddle the last overlapping region, push a smaller region representing
+    # the portion after the new region
+    if overlapEndBufferRow > endBufferRow
+      endScreenRow = screenRow + preRows + screenRows
+      newRegions.push(bufferRows: overlapEndBufferRow - endBufferRow, screenRows: overlapEndScreenRow - endScreenRow)
 
-    @regions[startIndex..endIndex] = newRegions
+    @regions[overlapStartIndex..overlapEndIndex] = newRegions
 
   applyBufferDelta: (startBufferRow, delta) ->
     { region } = @traverseToBufferRow(startBufferRow)

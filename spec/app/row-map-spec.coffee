@@ -171,6 +171,21 @@ describe "RowMap", ->
         expect(map.bufferRowRangeForScreenRow(7)).toEqual [21, 22]
         expect(map.bufferRowRangeForScreenRow(8)).toEqual [22, 27]
 
+    describe "when the row range straddles existing regions", ->
+      it "splits the straddled regions and places the new region between them", ->
+                                         # filler region 0
+        map.mapBufferRowRange(4, 7, 1)   # region 1
+                                         # filler region 2
+        map.mapBufferRowRange(13, 15, 1) # region 3
+
+        # create region straddling region 0 and region 2
+        map.mapBufferRowRange(2, 10, 1)
+
+        expect(map.regions[0]).toEqual(bufferRows: 2, screenRows: 2)
+        expect(map.regions[1]).toEqual(bufferRows: 8, screenRows: 1)
+        expect(map.regions[2]).toEqual(bufferRows: 3, screenRows: 8)
+        expect(map.regions[3]).toEqual(bufferRows: 2, screenRows: 1)
+
   describe ".applyScreenDelta(startScreenRow, delta)", ->
     describe "when applying a positive delta", ->
       it "can enlarge the screen side of existing regions", ->
