@@ -6,6 +6,10 @@ http = require 'http'
 apm = require '../lib/apm-cli'
 
 describe 'apm command line interface', ->
+  beforeEach ->
+    spyOn(process.stdout, 'write')
+    spyOn(process.stderr, 'write')
+
   describe 'when no arguments are present', ->
     it 'prints a usage message', ->
       spyOn(console, 'log')
