@@ -8,13 +8,13 @@ apm = require '../lib/apm-cli'
 
 describe 'apm command line interface', ->
   beforeEach ->
+    spyOn(console, 'log')
+    spyOn(console, 'error')
     spyOn(process.stdout, 'write')
     spyOn(process.stderr, 'write')
 
   describe 'when no arguments are present', ->
     it 'prints a usage message', ->
-      spyOn(console, 'log')
-      spyOn(console, 'error')
       apm.run([])
       expect(console.log).not.toHaveBeenCalled()
       expect(console.error).toHaveBeenCalled()
@@ -22,8 +22,6 @@ describe 'apm command line interface', ->
 
   describe 'when the version flag is specified', ->
     it 'prints a usage message', ->
-      spyOn(console, 'log')
-      spyOn(console, 'error')
       apm.run(['-h'])
       expect(console.log).not.toHaveBeenCalled()
       expect(console.error).toHaveBeenCalled()
@@ -31,8 +29,6 @@ describe 'apm command line interface', ->
 
   describe 'when the version flag is specified', ->
     it 'prints the version', ->
-      spyOn(console, 'log')
-      spyOn(console, 'error')
       apm.run(['-v'])
       expect(console.error).not.toHaveBeenCalled()
       expect(console.log).toHaveBeenCalled()
@@ -40,8 +36,6 @@ describe 'apm command line interface', ->
 
   describe 'when an unrecognized command is specified', ->
     it 'prints an error message', ->
-      spyOn(console, 'log')
-      spyOn(console, 'error')
       apm.run(['this-will-never-be-a-command'])
       expect(console.log).not.toHaveBeenCalled()
       expect(console.error).toHaveBeenCalled()
@@ -62,9 +56,6 @@ describe 'apm command line interface', ->
       atomHome = temp.mkdirSync('apm-home-dir-')
       process.env.ATOM_HOME = atomHome
       process.env.ATOM_NODE_URL = "http://localhost:3000/node"
-
-      spyOn(console, 'log')
-      spyOn(console, 'error')
 
     afterEach ->
       server.close()
