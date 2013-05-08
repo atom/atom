@@ -2,4 +2,3 @@
 set -ex
 
 npm install
-grunt
