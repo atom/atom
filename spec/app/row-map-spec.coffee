@@ -144,7 +144,7 @@ describe "RowMap", ->
           expect(map.screenRowRangeForBufferRow(21)).toEqual [30, 31]
 
     describe "when the row range is inside an existing 1:1 region", ->
-      it "preserves the starting screen row of subsequent 1:N mappings", ->
+      it "preserves the starting screen row of subsequent 1:N regions", ->
         map.mapBufferRowRange(5, 10, 1)
         map.mapBufferRowRange(25, 30, 1)
 
@@ -173,13 +173,13 @@ describe "RowMap", ->
 
   describe ".applyScreenDelta(startScreenRow, delta)", ->
     describe "when applying a positive delta", ->
-      it "can enlarge the screen side of existing mappings", ->
+      it "can enlarge the screen side of existing regions", ->
         map.mapBufferRowRange(5, 6, 3) # wrapped line
         map.applyScreenDelta(5, 2) # wrap it twice more
         expect(map.screenRowRangeForBufferRow(5)).toEqual [5, 10]
 
     describe "when applying a negative delta", ->
-      it "can collapse the screen side of multiple mappings to 0 until the entire delta has been applied", ->
+      it "can collapse the screen side of multiple regions to 0 until the entire delta has been applied", ->
         map.mapBufferRowRange(5, 10, 1)  # inner fold 1
         map.mapBufferRowRange(11, 13, 1)  # inner fold 2
         map.mapBufferRowRange(15, 20, 1) # inner fold 3
@@ -194,6 +194,6 @@ describe "RowMap", ->
         expect(map.screenRowRangeForBufferRow(22)).toEqual [8, 9]
         expect(map.screenRowRangeForBufferRow(26)).toEqual [8, 9]
 
-    it "does not throw an exception when applying a delta beyond the last mapping", ->
+    it "does not throw an exception when applying a delta beyond the last region", ->
       map.mapBufferRowRange(5, 10, 1)  # inner fold 1
       map.applyScreenDelta(15, 10)

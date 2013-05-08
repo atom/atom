@@ -1,92 +1,92 @@
 module.exports =
 class RowMap
   constructor: ->
-    @mappings = []
+    @regions = []
 
   screenRowRangeForBufferRow: (targetBufferRow) ->
-    { mapping, screenRow, bufferRow } = @traverseToBufferRow(targetBufferRow)
-    if mapping and mapping.bufferRows != mapping.screenRows # 1:n mapping
-      [screenRow, screenRow + mapping.screenRows]
-    else                                                    # 1:1 mapping
+    { region, screenRow, bufferRow } = @traverseToBufferRow(targetBufferRow)
+    if region and region.bufferRows != region.screenRows # 1:n region
+      [screenRow, screenRow + region.screenRows]
+    else                                                    # 1:1 region
       screenRow += targetBufferRow - bufferRow
       [screenRow, screenRow + 1]
 
   bufferRowRangeForBufferRow: (targetBufferRow) ->
-    { mapping, screenRow, bufferRow } = @traverseToBufferRow(targetBufferRow)
-    if mapping and mapping.bufferRows != mapping.screenRows # 1:n mapping
-      [bufferRow, bufferRow + mapping.bufferRows]
-    else                                                    # 1:1 mapping
+    { region, screenRow, bufferRow } = @traverseToBufferRow(targetBufferRow)
+    if region and region.bufferRows != region.screenRows # 1:n region
+      [bufferRow, bufferRow + region.bufferRows]
+    else                                                    # 1:1 region
       [targetBufferRow, targetBufferRow + 1]
 
   bufferRowRangeForScreenRow: (targetScreenRow) ->
-    { mapping, screenRow, bufferRow } = @traverseToScreenRow(targetScreenRow)
-    if mapping and mapping.bufferRows != mapping.screenRows # 1:n mapping
-      [bufferRow, bufferRow + mapping.bufferRows]
-    else                                                    # 1:1 mapping
+    { region, screenRow, bufferRow } = @traverseToScreenRow(targetScreenRow)
+    if region and region.bufferRows != region.screenRows # 1:n region
+      [bufferRow, bufferRow + region.bufferRows]
+    else                                                    # 1:1 region
       bufferRow += targetScreenRow - screenRow
       [bufferRow, bufferRow + 1]
 
   mapBufferRowRange: (startBufferRow, endBufferRow, screenRows) ->
     { index, bufferRow, screenRow } = @traverseToBufferRow(startBufferRow)
 
-    newMappings = []
+    newRegions = []
 
     preRows = startBufferRow - bufferRow
     if preRows > 0
-      newMappings.push(bufferRows: preRows, screenRows: preRows)
+      newRegions.push(bufferRows: preRows, screenRows: preRows)
 
     bufferRows = endBufferRow - startBufferRow
-    newMappings.push({bufferRows, screenRows})
+    newRegions.push({bufferRows, screenRows})
 
     startIndex = index
     endIndex = index
-    while bufferRows > 0 and endIndex < @mappings.length
-      mapping = @mappings[endIndex]
-      if mapping.bufferRows < bufferRows
-        bufferRows -= mapping.bufferRows
+    while bufferRows > 0 and endIndex < @regions.length
+      region = @regions[endIndex]
+      if region.bufferRows < bufferRows
+        bufferRows -= region.bufferRows
         endIndex++
       else
-        postBufferRows = mapping.bufferRows - preRows - bufferRows
-        postScreenRows = mapping.screenRows - preRows - screenRows
+        postBufferRows = region.bufferRows - preRows - bufferRows
+        postScreenRows = region.screenRows - preRows - screenRows
         if postBufferRows > 0 or postScreenRows > 0
-          newMappings.push(bufferRows: postBufferRows, screenRows: postScreenRows)
+          newRegions.push(bufferRows: postBufferRows, screenRows: postScreenRows)
         bufferRows = 0
 
-    @mappings[startIndex..endIndex] = newMappings
+    @regions[startIndex..endIndex] = newRegions
 
   applyBufferDelta: (startBufferRow, delta) ->
-    { mapping } = @traverseToBufferRow(startBufferRow)
-    mapping?.bufferRows += delta
+    { region } = @traverseToBufferRow(startBufferRow)
+    region?.bufferRows += delta
 
   applyScreenDelta: (startScreenRow, delta) ->
     { index } = @traverseToScreenRow(startScreenRow)
-    while delta != 0 and index < @mappings.length
-      { bufferRows, screenRows } = @mappings[index]
+    while delta != 0 and index < @regions.length
+      { bufferRows, screenRows } = @regions[index]
       screenRows += delta
       if screenRows < 0
         delta = screenRows
         screenRows = 0
       else
         delta = 0
-      @mappings[index] = { bufferRows, screenRows }
+      @regions[index] = { bufferRows, screenRows }
       index++
 
   traverseToBufferRow: (targetBufferRow) ->
     bufferRow = 0
     screenRow = 0
-    for mapping, index in @mappings
-      if (bufferRow + mapping.bufferRows) > targetBufferRow
-        return { mapping, index, screenRow, bufferRow }
-      bufferRow += mapping.bufferRows
-      screenRow += mapping.screenRows
+    for region, index in @regions
+      if (bufferRow + region.bufferRows) > targetBufferRow
+        return { region, index, screenRow, bufferRow }
+      bufferRow += region.bufferRows
+      screenRow += region.screenRows
     { index, screenRow, bufferRow }
 
   traverseToScreenRow: (targetScreenRow) ->
     bufferRow = 0
     screenRow = 0
-    for mapping, index in @mappings
-      if (screenRow + mapping.screenRows) > targetScreenRow
-        return { mapping, index, screenRow, bufferRow }
-      bufferRow += mapping.bufferRows
-      screenRow += mapping.screenRows
+    for region, index in @regions
+      if (screenRow + region.screenRows) > targetScreenRow
+        return { region, index, screenRow, bufferRow }
+      bufferRow += region.bufferRows
+      screenRow += region.screenRows
     { index, screenRow, bufferRow }
