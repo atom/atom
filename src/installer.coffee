@@ -4,6 +4,9 @@ async = require 'async'
 _ = require 'underscore'
 mkdir = require('mkdirp').sync
 path = require 'path'
+temp = require 'temp'
+wrench = require 'wrench'
+rimraf = require 'rimraf'
 
 module.exports =
 class Installer
@@ -61,11 +64,16 @@ class Installer
     installModuleArgs.push('--silent')
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
-    mkdir(path.join(@atomPackagesDirectory, 'node_modules'))
-    @spawn @atomNpmPath, installModuleArgs, {env, cwd: @atomPackagesDirectory}, (code) ->
+    installDirectory = temp.mkdirSync('apm-install-dir-')
+    nodeModulesDirectory = path.join(installDirectory, 'node_modules')
+    mkdir(nodeModulesDirectory)
+    @spawn @atomNpmPath, installModuleArgs, {env, cwd: installDirectory}, (code) =>
       if code is 0
+        wrench.copyDirSyncRecursive(nodeModulesDirectory, @atomPackagesDirectory)
+        rimraf.sync(installDirectory)
         callback()
       else
+        rimraf.sync(installDirectory)
         callback("Installing module failed with code: #{code}")
 
   installModules: (callback) =>

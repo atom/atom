@@ -87,8 +87,8 @@ describe 'apm command line interface', ->
             callback.callCount > 0
 
           runs ->
-            expect(fs.existsSync(path.join(atomHome, 'packages', 'node_modules', 'test-module', 'index.js'))).toBeTruthy()
-            expect(fs.existsSync(path.join(atomHome, 'packages', 'node_modules', 'test-module', 'package.json'))).toBeTruthy()
+            expect(fs.existsSync(path.join(atomHome, 'packages', 'test-module', 'index.js'))).toBeTruthy()
+            expect(fs.existsSync(path.join(atomHome, 'packages', 'test-module', 'package.json'))).toBeTruthy()
 
       describe 'when no path is specified', ->
         it 'installs all dependent modules', ->

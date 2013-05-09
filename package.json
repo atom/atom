@@ -29,6 +29,8 @@
     "underscore": "~1.4.4",
     "mkdirp": "~0.3.5",
     "temp": "~0.5.0",
+    "wrench": "~1.5.1",
+    "rimraf": "~2.1.4",
     "npm": "1.2.18",
     "node-gyp": "0.9.5"
   },
@@ -38,8 +40,6 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-cli": "~0.1.8",
     "grunt-shell": "~0.2.2",
-    "rimraf": "~2.1.4",
-    "express": "~3.2.3",
-    "wrench": "~1.5.1"
+    "express": "~3.2.3"
   }
 }
