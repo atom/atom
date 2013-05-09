@@ -33,7 +33,7 @@ class Lister
           version = packageJson.version ? '0.0.0'
           packages.push({name, version})
 
-    console.log "Locally installed packages:"
+    console.log @atomModulesDirectory
     for pack, index in packages
       if index is packages.length - 1
         prefix = '\u2514\u2500\u2500 '
