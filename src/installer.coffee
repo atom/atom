@@ -24,8 +24,8 @@ class Installer
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
     @atomModulesDirectory = path.join(@atomDirectory, 'node_modules')
-    @atomNpmPath = path.join(@atomModulesDirectory, '.bin', 'npm')
-    @atomNodeGypPath = path.join(@atomModulesDirectory, '.bin', 'node-gyp')
+    @atomNpmPath = require.resolve('.bin/npm')
+    @atomNodeGypPath = require.resolve('.bin/node-gyp')
 
   spawn: (command, args, remaining...) ->
     options = remaining.shift() if remaining.length >= 2
@@ -36,26 +36,6 @@ class Installer
     spawned.stderr.pipe(process.stderr)
     spawned.on 'error', (error) -> callback?(-1)
     spawned.on('close', callback) if callback?
-
-  installNpm: (callback) =>
-    console.log 'Installing npm locally...'
-
-    mkdir(@atomModulesDirectory)
-    @spawn 'npm', ['install', 'npm@v1.2.18', '--silent'], {cwd: @atomDirectory}, (code) ->
-      if code is 0
-        callback()
-      else
-        callback("Installing npm failed with code: #{code}")
-
-  installNodeGyp: (callback) =>
-    console.log '\nInstalling node-gyp locally...'
-
-    mkdir(@atomModulesDirectory)
-    @spawn @atomNpmPath, ['install', 'node-gyp', '--silent'], {cwd: @atomDirectory}, (code) ->
-      if code is 0
-        callback()
-      else
-        callback("Installing node-gyp failed with code: #{code}")
 
   installNode: (callback) =>
     console.log '\nInstalling node...'
@@ -107,10 +87,7 @@ class Installer
 
   installPackage: (options, modulePath) ->
     commands = []
-    commands.push(@installNpm)
-    unless fs.existsSync(@atomNodeGypPath)
-      commands.push(@installNodeGyp)
-      commands.push(@installNode)
+    commands.push(@installNode)
     commands.push (callback) => @installModule(modulePath, callback)
 
     async.waterfall commands, (error) ->
@@ -119,10 +96,7 @@ class Installer
 
   installDependencies: (options) ->
     commands = []
-    commands.push(@installNpm)
-    unless fs.existsSync(@atomNodeGypPath)
-      commands.push(@installNodeGyp)
-      commands.push(@installNode)
+    commands.push(@installNode)
     commands.push(@installModules)
 
     async.waterfall commands, (error) ->
