@@ -12,7 +12,6 @@ class Installer
   atomDirectory: null
   atomPackagesDirectory: null
   atomNodeDirectory: null
-  atomModulesDirectory: null
   atomNpmPath: null
   atomNodeGypPath: null
 
@@ -23,7 +22,6 @@ class Installer
     @atomDirectory = process.env.ATOM_HOME ? path.join(process.env.HOME, '.atom')
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
-    @atomModulesDirectory = path.join(@atomDirectory, 'node_modules')
     @atomNpmPath = require.resolve('.bin/npm')
     @atomNodeGypPath = require.resolve('.bin/node-gyp')
 
