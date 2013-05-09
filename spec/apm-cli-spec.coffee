@@ -84,11 +84,16 @@ describe 'apm command line interface', ->
           apm.run(['install', "http://localhost:3000/test-module-1.0.0.tgz"], callback)
 
           waitsFor 'waiting for install to complete', 600000, ->
-            callback.callCount > 0
+            callback.callCount is 1
 
           runs ->
             expect(fs.existsSync(path.join(atomHome, 'packages', 'test-module', 'index.js'))).toBeTruthy()
             expect(fs.existsSync(path.join(atomHome, 'packages', 'test-module', 'package.json'))).toBeTruthy()
+
+            console.log.reset()
+            apm.run(['list'], callback)
+            expect(console.log).toHaveBeenCalled()
+            expect(console.log.mostRecentCall.args[0]).toContain 'test-module@1.0.0'
 
       describe 'when no path is specified', ->
         it 'installs all dependent modules', ->

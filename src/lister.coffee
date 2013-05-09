@@ -7,7 +7,7 @@ class Lister
 
   constructor: ->
     atomDirectory = process.env.ATOM_HOME ? path.join(process.env.HOME, '.atom')
-    @atomModulesDirectory = path.join(atomDirectory, 'packages', 'node_modules')
+    @atomModulesDirectory = path.join(atomDirectory, 'packages')
 
   isDirectory: (directoryPath) ->
     try
