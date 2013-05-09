@@ -5,6 +5,7 @@ express = require 'express'
 http = require 'http'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
+mkdir = require('mkdirp').sync
 
 describe 'apm command line interface', ->
   beforeEach ->
@@ -80,6 +81,12 @@ describe 'apm command line interface', ->
 
       describe 'when a URL to a module is specified', ->
         it 'installs the module at the path', ->
+          testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
+          mkdir(testModuleDirectory)
+          existingTestModuleFile = path.join(testModuleDirectory, 'will-be-deleted.js')
+          fs.writeFileSync(existingTestModuleFile, '')
+          expect(fs.existsSync(existingTestModuleFile)).toBeTruthy()
+
           callback = jasmine.createSpy('callback')
           apm.run(['install', "http://localhost:3000/test-module-1.0.0.tgz"], callback)
 
@@ -87,8 +94,9 @@ describe 'apm command line interface', ->
             callback.callCount is 1
 
           runs ->
-            expect(fs.existsSync(path.join(atomHome, 'packages', 'test-module', 'index.js'))).toBeTruthy()
-            expect(fs.existsSync(path.join(atomHome, 'packages', 'test-module', 'package.json'))).toBeTruthy()
+            expect(fs.existsSync(existingTestModuleFile)).toBeFalsy()
+            expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
+            expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
 
             console.log.reset()
             apm.run(['list'], callback)

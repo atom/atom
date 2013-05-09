@@ -65,7 +65,8 @@ class Installer
     mkdir(nodeModulesDirectory)
     @spawn @atomNpmPath, installModuleArgs, {env, cwd: installDirectory}, (code) =>
       if code is 0
-        cp(nodeModulesDirectory, @atomPackagesDirectory)
+        for child in fs.readdirSync(nodeModulesDirectory)
+          cp(path.join(nodeModulesDirectory, child), path.join(@atomPackagesDirectory, child), forceDelete: true)
         rm(installDirectory)
         callback()
       else
