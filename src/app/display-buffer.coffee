@@ -13,6 +13,7 @@ Subscriber = require 'subscriber'
 module.exports =
 class DisplayBuffer
   @idCounter: 1
+  screenLines: null
   rowMap: null
   tokenizedBuffer: null
   markers: null
