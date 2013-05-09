@@ -1,5 +1,5 @@
 _ = require 'underscore'
-ScreenLine = require 'screen-line'
+TokenizedLine = require 'tokenized-line'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Token = require 'token'
@@ -17,7 +17,7 @@ class TokenizedBuffer
   tabLength: null
   buffer: null
   aceAdaptor: null
-  screenLines: null
+  tokenizedLines: null
   chunkSize: 50
   invalidRows: null
   visible: false
@@ -28,12 +28,12 @@ class TokenizedBuffer
 
     @subscribe syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
-        @resetScreenLines() if @hasTokenForSelector(grammar.injectionSelector)
+        @resetTokenizedLines() if @hasTokenForSelector(grammar.injectionSelector)
       else
         newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
         @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
-    @on 'grammar-changed grammar-updated', => @resetScreenLines()
+    @on 'grammar-changed grammar-updated', => @resetTokenizedLines()
     @subscribe @buffer, "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
     @reloadGrammar()
@@ -43,8 +43,8 @@ class TokenizedBuffer
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
-    @subscribe @grammar, 'grammar-updated', => @resetScreenLines()
-    @resetScreenLines()
+    @subscribe @grammar, 'grammar-updated', => @resetTokenizedLines()
+    @resetTokenizedLines()
     @trigger 'grammar-changed', grammar
 
   reloadGrammar: ->
@@ -54,13 +54,13 @@ class TokenizedBuffer
       throw new Error("No grammar found for path: #{path}")
 
   hasTokenForSelector: (selector) ->
-    for {tokens} in @screenLines
+    for {tokens} in @tokenizedLines
       for token in tokens
         return true if selector.matches(token.scopes)
     false
 
-  resetScreenLines: ->
-    @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
+  resetTokenizedLines: ->
+    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, @buffer.getLastRow())
     @invalidRows = []
     @invalidateRow(0)
 
@@ -78,7 +78,7 @@ class TokenizedBuffer
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (@tabLength) ->
     lastRow = @buffer.getLastRow()
-    @screenLines = @buildPlaceholderScreenLinesForRows(0, lastRow)
+    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
     @invalidateRow(0)
     @trigger "changed", { start: 0, end: lastRow, delta: 0 }
 
@@ -100,7 +100,7 @@ class TokenizedBuffer
       row = invalidRow
       loop
         previousStack = @stackForRow(row)
-        @screenLines[row] = @buildTokenizedScreenLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedTokenizedLineForRow(row, @stackForRow(row - 1))
         if --rowsRemaining == 0
           filledRegion = false
           break
@@ -143,8 +143,8 @@ class TokenizedBuffer
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    newScreenLines = @buildScreenLinesForRows(start, end + delta, @stackForRow(start - 1))
-    _.spliceWithArray(@screenLines, start, end - start + 1, newScreenLines)
+    newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1))
+    _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
     newEndStack = @stackForRow(end + delta)
 
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
@@ -152,52 +152,52 @@ class TokenizedBuffer
 
     @trigger "changed", { start, end, delta, bufferChange: e }
 
-  buildScreenLinesForRows: (startRow, endRow, startingStack) ->
+  buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
     stopTokenizingAt = startRow + @chunkSize
-    screenLines = for row in [startRow..endRow]
+    tokenizedLines = for row in [startRow..endRow]
       if (ruleStack or row == 0) and row < stopTokenizingAt
-        screenLine = @buildTokenizedScreenLineForRow(row, ruleStack)
+        screenLine = @buildTokenizedTokenizedLineForRow(row, ruleStack)
         ruleStack = screenLine.ruleStack
       else
-        screenLine = @buildPlaceholderScreenLineForRow(row)
+        screenLine = @buildPlaceholderTokenizedLineForRow(row)
       screenLine
 
     if endRow >= stopTokenizingAt
       @invalidateRow(stopTokenizingAt)
       @tokenizeInBackground()
 
-    screenLines
+    tokenizedLines
 
-  buildPlaceholderScreenLinesForRows: (startRow, endRow) ->
-    @buildPlaceholderScreenLineForRow(row) for row in [startRow..endRow]
+  buildPlaceholderTokenizedLinesForRows: (startRow, endRow) ->
+    @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow]
 
-  buildPlaceholderScreenLineForRow: (row) ->
+  buildPlaceholderTokenizedLineForRow: (row) ->
     line = @buffer.lineForRow(row)
     tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
-    new ScreenLine({tokens, @tabLength})
+    new TokenizedLine({tokens, @tabLength})
 
-  buildTokenizedScreenLineForRow: (row, ruleStack) ->
+  buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
     { tokens, ruleStack } = @grammar.tokenizeLine(line, ruleStack, row is 0)
-    new ScreenLine({tokens, ruleStack, @tabLength, lineEnding})
+    new TokenizedLine({tokens, ruleStack, @tabLength, lineEnding})
 
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
 
   linesForScreenRows: (startRow, endRow) ->
-    @screenLines[startRow..endRow]
+    @tokenizedLines[startRow..endRow]
 
   stackForRow: (row) ->
-    @screenLines[row]?.ruleStack
+    @tokenizedLines[row]?.ruleStack
 
   scopesForPosition: (position) ->
     @tokenForPosition(position).scopes
 
   tokenForPosition: (position) ->
     position = Point.fromObject(position)
-    @screenLines[position.row].tokenAtBufferColumn(position.column)
+    @tokenizedLines[position.row].tokenAtBufferColumn(position.column)
 
   destroy: ->
     @unsubscribe()
@@ -212,7 +212,7 @@ class TokenizedBuffer
 
     for bufferRow in [start.row..end.row]
       bufferColumn = 0
-      for token in @screenLines[bufferRow].tokens
+      for token in @tokenizedLines[bufferRow].tokens
         startOfToken = new Point(bufferRow, bufferColumn)
         iterator(token, startOfToken, { stop }) if bufferRange.containsPoint(startOfToken)
         return unless keepLooping
@@ -227,7 +227,7 @@ class TokenizedBuffer
 
     for bufferRow in [end.row..start.row]
       bufferColumn = @buffer.lineLengthForRow(bufferRow)
-      for token in new Array(@screenLines[bufferRow].tokens...).reverse()
+      for token in new Array(@tokenizedLines[bufferRow].tokens...).reverse()
         bufferColumn -= token.bufferDelta
         startOfToken = new Point(bufferRow, bufferColumn)
         iterator(token, startOfToken, { stop }) if bufferRange.containsPoint(startOfToken)

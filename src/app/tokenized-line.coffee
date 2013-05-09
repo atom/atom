@@ -3,14 +3,14 @@ _ = require 'underscore'
 ### Internal ###
 
 module.exports =
-class ScreenLine
+class TokenizedLine
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, tabLength}) ->
     @tokens = @breakOutAtomicTokens(tokens, tabLength)
     @startBufferColumn ?= 0
     @text = _.pluck(@tokens, 'value').join('')
 
   copy: ->
-    new ScreenLine({@tokens, @ruleStack, @startBufferColumn, @fold, @lineEnding})
+    new TokenizedLine({@tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold})
 
   clipScreenColumn: (column, options={}) ->
     return 0 if @tokens.length == 0
@@ -60,7 +60,7 @@ class ScreenLine
     @startBufferColumn + @getMaxScreenColumn()
 
   softWrapAt: (column) ->
-    return [new ScreenLine([], '', [0, 0], [0, 0]), this] if column == 0
+    return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
 
     rightTokens = new Array(@tokens...)
     leftTokens = []
@@ -72,13 +72,13 @@ class ScreenLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    leftFragment = new ScreenLine(
+    leftFragment = new TokenizedLine(
       tokens: leftTokens
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
       lineEnding: null
     )
-    rightFragment = new ScreenLine(
+    rightFragment = new TokenizedLine(
       tokens: rightTokens
       startBufferColumn: @startBufferColumn + column
       ruleStack: @ruleStack
