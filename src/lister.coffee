@@ -4,11 +4,10 @@ config = require './config'
 
 module.exports =
 class Lister
-  atomPackagesDirectory: null
+  atomModulesDirectory: null
 
   constructor: ->
-    atomDirectory = config.getAtomDirectory()
-    @atomModulesDirectory = path.join(atomDirectory, 'packages')
+    @atomModulesDirectory = path.join(config.getAtomDirectory(), 'packages')
 
   isDirectory: (directoryPath) ->
     try
