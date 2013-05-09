@@ -27,14 +27,14 @@ class DisplayBuffer
     @softWrapColumn = options.softWrapColumn ? Infinity
     @markers = {}
     @foldsByMarkerId = {}
-    @buildScreenLines()
+    @updateAllScreenLines()
 
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
     @subscribe @buffer, 'markers-updated', @handleMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleMarkerCreated
 
-  buildScreenLines: ->
+  updateAllScreenLines: ->
     @maxLineLength = 0
     @screenLines = []
     @rowMap = new RowMap
@@ -60,7 +60,7 @@ class DisplayBuffer
   setSoftWrapColumn: (@softWrapColumn) ->
     start = 0
     end = @getLastRow()
-    @buildScreenLines()
+    @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
     @triggerChanged({ start, end, screenDelta, bufferDelta })
@@ -518,6 +518,28 @@ class DisplayBuffer
 
     @rowMap.applyBufferDelta(startBufferRow, bufferDelta)
 
+    { newScreenLines, newMappings } = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
+    @screenLines[startScreenRow...endScreenRow] = newScreenLines
+    screenDelta = newScreenLines.length - (endScreenRow - startScreenRow)
+    @rowMap.applyScreenDelta(startScreenRow, screenDelta)
+    @rowMap.mapBufferRowRange(mapping...) for mapping in newMappings
+    @findMaxLineLength(startScreenRow, endScreenRow, newScreenLines)
+
+    return if options.suppressChangeEvent
+
+    changeEvent =
+      start: startScreenRow
+      end: endScreenRow - 1
+      screenDelta: screenDelta
+      bufferDelta: bufferDelta
+
+    if options.delayChangeEvent
+      @pauseMarkerObservers()
+      @pendingChangeEvent = changeEvent
+    else
+      @triggerChanged(changeEvent, options.refreshMarkers)
+
+  buildScreenLines: (startBufferRow, endBufferRow) ->
     newScreenLines = []
     newMappings = []
     pendingIsoMapping = null
@@ -540,7 +562,7 @@ class DisplayBuffer
         pendingIsoMapping = null
 
     bufferRow = startBufferRow
-    while bufferRow < endBufferRow + bufferDelta
+    while bufferRow < endBufferRow
       tokenizedLine = @tokenizedBuffer.lineForScreenRow(bufferRow)
 
       if fold = @largestFoldStartingAtBufferRow(bufferRow)
@@ -560,11 +582,9 @@ class DisplayBuffer
         bufferRow++
     clearPendingIsoMapping()
 
-    @screenLines[startScreenRow...endScreenRow] = newScreenLines
-    screenDelta = newScreenLines.length - (endScreenRow - startScreenRow)
-    @rowMap.applyScreenDelta(startScreenRow, screenDelta)
-    @rowMap.mapBufferRowRange(mapping...) for mapping in newMappings
+    { newScreenLines, newMappings }
 
+  findMaxLineLength: (startScreenRow, endScreenRow, newScreenLines) ->
     if startScreenRow <= @longestScreenRow < endScreenRow
       @longestScreenRow = 0
       @maxLineLength = 0
@@ -579,20 +599,6 @@ class DisplayBuffer
       if length > @maxLineLength
         @longestScreenRow = maxLengthCandidatesStartRow + screenRow
         @maxLineLength = length
-
-    return if options.suppressChangeEvent
-
-    changeEvent =
-      start: startScreenRow
-      end: endScreenRow - 1
-      screenDelta: screenDelta
-      bufferDelta: bufferDelta
-
-    if options.delayChangeEvent
-      @pauseMarkerObservers()
-      @pendingChangeEvent = changeEvent
-    else
-      @triggerChanged(changeEvent, options.refreshMarkers)
 
   handleMarkersUpdated: =>
     event = @pendingChangeEvent
