@@ -63,6 +63,8 @@ class RowMap
 
     overlapStartIndex = index
     overlapStartBufferRow = bufferRow
+    preRows = startBufferRow - overlapStartBufferRow
+    endScreenRow = screenRow + preRows + screenRows
     overlapEndIndex = index
     overlapEndBufferRow = bufferRow
     overlapEndScreenRow = screenRow
@@ -72,7 +74,7 @@ class RowMap
       region = @regions[overlapEndIndex]
       overlapEndBufferRow += region.bufferRows
       overlapEndScreenRow += region.screenRows
-      break if overlapEndBufferRow >= endBufferRow
+      break if overlapEndBufferRow >= endBufferRow and overlapEndScreenRow >= endScreenRow
       overlapEndIndex++
 
     # we will replace overlapStartIndex..overlapEndIndex with these regions
@@ -80,7 +82,6 @@ class RowMap
 
     # if we straddle the first overlapping region, push a smaller region representing
     # the portion before the new region
-    preRows = startBufferRow - overlapStartBufferRow
     if preRows > 0
       newRegions.push(bufferRows: preRows, screenRows: preRows)
 
@@ -90,7 +91,6 @@ class RowMap
     # if we straddle the last overlapping region, push a smaller region representing
     # the portion after the new region
     if overlapEndBufferRow > endBufferRow
-      endScreenRow = screenRow + preRows + screenRows
       newRegions.push(bufferRows: overlapEndBufferRow - endBufferRow, screenRows: overlapEndScreenRow - endScreenRow)
 
     @regions[overlapStartIndex..overlapEndIndex] = newRegions

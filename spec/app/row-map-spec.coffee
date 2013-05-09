@@ -128,6 +128,7 @@ describe "RowMap", ->
 
       describe "after re-mapping a row range to a new number of screen rows", ->
         beforeEach ->
+          map.applyScreenDelta(12, 2) # simulate adding 2 more soft wraps
           map.mapBufferRowRange(10, 11, 4)
 
         it "updates translation accordingly", ->
