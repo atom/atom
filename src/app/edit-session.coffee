@@ -341,8 +341,8 @@ class EditSession
   # {Delegates to: DisplayBuffer.getLineCount}
   getScreenLineCount: -> @displayBuffer.getLineCount()
 
-  # {Delegates to: DisplayBuffer.maxLineLength}
-  maxScreenLineLength: -> @displayBuffer.maxLineLength()
+  # {Delegates to: DisplayBuffer.getMaxLineLength}
+  getMaxScreenLineLength: -> @displayBuffer.getMaxLineLength()
 
   # {Delegates to: DisplayBuffer.getLastRow}
   getLastScreenRow: -> @displayBuffer.getLastRow()

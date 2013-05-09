@@ -1,6 +1,6 @@
 _ = require 'underscore'
 TokenizedBuffer = require 'tokenized-buffer'
-LineMap = require 'line-map'
+RowMap = require 'row-map'
 Point = require 'point'
 EventEmitter = require 'event-emitter'
 Range = require 'range'
@@ -13,7 +13,7 @@ Subscriber = require 'subscriber'
 module.exports =
 class DisplayBuffer
   @idCounter: 1
-  lineMap: null
+  rowMap: null
   tokenizedBuffer: null
   markers: null
   foldsByMarkerId: null
@@ -26,15 +26,18 @@ class DisplayBuffer
     @softWrapColumn = options.softWrapColumn ? Infinity
     @markers = {}
     @foldsByMarkerId = {}
-    @buildLineMap()
+    @buildScreenLines()
+
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
     @subscribe @buffer, 'markers-updated', @handleMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleMarkerCreated
 
-  buildLineMap: ->
-    @lineMap = new LineMap
-    @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
+  buildScreenLines: ->
+    @maxLineLength = 0
+    @screenLines = []
+    @rowMap = new RowMap
+    @updateScreenLines(0, @buffer.getLineCount(), null, suppressChangeEvent: true)
 
   triggerChanged: (eventProperties, refreshMarkers=true) ->
     if refreshMarkers
@@ -56,7 +59,7 @@ class DisplayBuffer
   setSoftWrapColumn: (@softWrapColumn) ->
     start = 0
     end = @getLastRow()
-    @buildLineMap()
+    @buildScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
     @triggerChanged({ start, end, screenDelta, bufferDelta })
@@ -67,7 +70,7 @@ class DisplayBuffer
   #
   # Returns a {ScreenLine}.
   lineForRow: (row) ->
-    @lineMap.lineForScreenRow(row)
+    @screenLines[row]
 
   # Gets the screen lines for the given screen row range.
   #
@@ -76,24 +79,24 @@ class DisplayBuffer
   #
   # Returns an {Array} of {ScreenLine}s.
   linesForRows: (startRow, endRow) ->
-    @lineMap.linesForScreenRows(startRow, endRow)
+    @screenLines[startRow..endRow]
 
   # Gets all the screen lines.
   #
   # Returns an {Array} of {ScreenLines}s.
   getLines: ->
-    @lineMap.linesForScreenRows(0, @lineMap.lastScreenRow())
-
+    new Array(@screenLines...)
 
   # Given starting and ending screen rows, this returns an array of the
   # buffer rows corresponding to every screen row in the range
   #
-  # startRow - The screen row {Number} to start at
-  # endRow - The screen row {Number} to end at (default: the last screen row)
+  # startScreenRow - The screen row {Number} to start at
+  # endScreenRow - The screen row {Number} to end at (default: the last screen row)
   #
   # Returns an {Array} of buffer rows as {Numbers}s.
-  bufferRowsForScreenRows: (startRow, endRow) ->
-    @lineMap.bufferRowsForScreenRows(startRow, endRow)
+  bufferRowsForScreenRows: (startScreenRow, endScreenRow) ->
+    for screenRow in [startScreenRow..endScreenRow]
+      @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
 
   # Creates a new fold between two row numbers.
   #
@@ -169,26 +172,16 @@ class DisplayBuffer
     for marker in @findFoldMarkers(containsRow: bufferRow)
       @foldForMarker(marker)
 
-  # Given a buffer range, this converts it into a screen range.
-  #
-  # bufferRange - A {Range} consisting of buffer positions
-  #
-  # Returns a {Range}.
-  screenLineRangeForBufferRange: (bufferRange) ->
-    @expandScreenRangeToLineEnds(
-      @lineMap.screenRangeForBufferRange(
-        @expandBufferRangeToLineEnds(bufferRange)))
-
   # Given a buffer row, this converts it into a screen row.
   #
   # bufferRow - A {Number} representing a buffer row
   #
   # Returns a {Number}.
   screenRowForBufferRow: (bufferRow) ->
-    @lineMap.screenPositionForBufferPosition([bufferRow, 0]).row
+    @rowMap.screenRowRangeForBufferRow(bufferRow)[0]
 
   lastScreenRowForBufferRow: (bufferRow) ->
-    @lineMap.screenPositionForBufferPosition([bufferRow, Infinity]).row
+    @rowMap.screenRowRangeForBufferRow(bufferRow)[1] - 1
 
   # Given a screen row, this converts it into a buffer row.
   #
@@ -196,7 +189,7 @@ class DisplayBuffer
   #
   # Returns a {Number}.
   bufferRowForScreenRow: (screenRow) ->
-    @lineMap.bufferPositionForScreenPosition([screenRow, 0]).row
+    @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
 
   # Given a buffer range, this converts it into a screen position.
   #
@@ -204,7 +197,10 @@ class DisplayBuffer
   #
   # Returns a {Range}.
   screenRangeForBufferRange: (bufferRange) ->
-    @lineMap.screenRangeForBufferRange(bufferRange)
+    bufferRange = Range.fromObject(bufferRange)
+    start = @screenPositionForBufferPosition(bufferRange.start)
+    end = @screenPositionForBufferPosition(bufferRange.end)
+    new Range(start, end)
 
   # Given a screen range, this converts it into a buffer position.
   #
@@ -212,13 +208,16 @@ class DisplayBuffer
   #
   # Returns a {Range}.
   bufferRangeForScreenRange: (screenRange) ->
-    @lineMap.bufferRangeForScreenRange(screenRange)
+    screenRange = Range.fromObject(screenRange)
+    start = @bufferPositionForScreenPosition(screenRange.start)
+    end = @bufferPositionForScreenPosition(screenRange.end)
+    new Range(start, end)
 
   # Gets the number of screen lines.
   #
   # Returns a {Number}.
   getLineCount: ->
-    @lineMap.getScreenLineCount()
+    @screenLines.length
 
   # Gets the number of the last screen line.
   #
@@ -229,8 +228,8 @@ class DisplayBuffer
   # Gets the length of the longest screen line.
   #
   # Returns a {Number}.
-  maxLineLength: ->
-    @lineMap.maxScreenLineLength
+  getMaxLineLength: ->
+    @maxLineLength
 
   # Given a buffer position, this converts it into a screen position.
   #
@@ -241,10 +240,25 @@ class DisplayBuffer
   #           wrapAtSoftNewlines:
   #
   # Returns a {Point}.
-  screenPositionForBufferPosition: (position, options) ->
-    @lineMap.screenPositionForBufferPosition(position, options)
+  screenPositionForBufferPosition: (bufferPosition, options) ->
+    { row, column } = Point.fromObject(bufferPosition)
+    [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
+    for screenRow in [startScreenRow...endScreenRow]
+      screenLine = @screenLines[screenRow]
+      maxBufferColumn = screenLine.getMaxBufferColumn()
+      if screenLine.isSoftWrapped() and column > maxBufferColumn
+        continue
+      else
+        if column <= maxBufferColumn
+          screenColumn = screenLine.screenColumnForBufferColumn(column)
+        else
+          screenColumn = Infinity
+        break
 
-  # Given a buffer range, this converts it into a screen position.
+    new Point(screenRow, screenColumn)
+    @clipScreenPosition([screenRow, screenColumn], options)
+
+  # Given a buffer position, this converts it into a screen position.
   #
   # screenPosition - An object that represents a buffer position. It can be either
   #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
@@ -253,8 +267,10 @@ class DisplayBuffer
   #           wrapAtSoftNewlines:
   #
   # Returns a {Point}.
-  bufferPositionForScreenPosition: (position, options) ->
-    @lineMap.bufferPositionForScreenPosition(position, options)
+  bufferPositionForScreenPosition: (screenPosition, options) ->
+    { row, column } = @clipScreenPosition(Point.fromObject(screenPosition), options)
+    [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
+    new Point(bufferRow, @screenLines[row].bufferColumnForScreenColumn(column))
 
   # Retrieves the grammar's token scopes for a buffer position.
   #
@@ -311,8 +327,34 @@ class DisplayBuffer
   #           screenLine: if `true`, indicates that you're using a line number, not a row number
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
-  clipScreenPosition: (position, options) ->
-    @lineMap.clipScreenPosition(position, options)
+  clipScreenPosition: (screenPosition, options={}) ->
+    { wrapBeyondNewlines, wrapAtSoftNewlines } = options
+    { row, column } = Point.fromObject(screenPosition)
+
+    if row < 0
+      row = 0
+      column = 0
+    else if row > @getLastRow()
+      row = @getLastRow()
+      column = Infinity
+    else if column < 0
+      column = 0
+
+    screenLine = @screenLines[row]
+    maxScreenColumn = screenLine.getMaxScreenColumn()
+
+    if screenLine.isSoftWrapped() and column >= maxScreenColumn
+      if wrapAtSoftNewlines
+        row++
+        column = 0
+      else
+        column = screenLine.clipScreenColumn(maxScreenColumn - 1)
+    else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
+      row++
+      column = 0
+    else
+      column = screenLine.clipScreenColumn(column, options)
+    new Point(row, column)
 
   ### Public ###
 
@@ -323,7 +365,7 @@ class DisplayBuffer
   #
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (line, softWrapColumn) ->
+  findWrapColumn: (line, softWrapColumn=@softWrapColumn) ->
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])
@@ -336,26 +378,6 @@ class DisplayBuffer
       for column in [softWrapColumn..0]
         return column + 1 if /\s/.test(line[column])
       return softWrapColumn
-
-  # Given a range in screen coordinates, this expands it to the start and end of a line
-  #
-  # screenRange - The {Range} to expand
-  #
-  # Returns a new {Range}.
-  expandScreenRangeToLineEnds: (screenRange) ->
-    screenRange = Range.fromObject(screenRange)
-    { start, end } = screenRange
-    new Range([start.row, 0], [end.row, @lineMap.lineForScreenRow(end.row).text.length])
-
-  # Given a range in buffer coordinates, this expands it to the start and end of a line
-  #
-  # screenRange - The {Range} to expand
-  #
-  # Returns a new {Range}.
-  expandBufferRangeToLineEnds: (bufferRange) ->
-    bufferRange = Range.fromObject(bufferRange)
-    { start, end } = bufferRange
-    new Range([start.row, 0], [end.row, Infinity])
 
   # Calculates a {Range} representing the start of the {Buffer} until the end.
   #
@@ -471,34 +493,98 @@ class DisplayBuffer
     @tokenizedBuffer.destroy()
     @unsubscribe()
 
-  logLines: (start, end) ->
-    @lineMap.logLines(start, end)
+  logLines: (start=0, end=@getLastRow())->
+    for row in [start..end]
+      line = @lineForRow(row).text
+      console.log row, line, line.length
 
   getDebugSnapshot: ->
     lines = ["Display Buffer:"]
-    for screenLine, row in @lineMap.linesForScreenRows(0, @getLastRow())
-        lines.push "#{row}: #{screenLine.text}"
+    for screenLine, row in @linesForRows(0, @getLastRow())
+      lines.push "#{row}: #{screenLine.text}"
     lines.join('\n')
 
   ### Internal ###
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
-    @updateScreenLines(start, end, delta, delayChangeEvent: bufferChange?)
+    @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
 
-  updateScreenLines: (startBufferRow, endBufferRow, bufferDelta, options={}) ->
-    startBufferRow = @bufferRowForScreenRow(@screenRowForBufferRow(startBufferRow))
-    newScreenLines = @buildLinesForBufferRows(startBufferRow, endBufferRow + bufferDelta)
+  updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
+    startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]
+    startScreenRow = @rowMap.screenRowRangeForBufferRow(startBufferRow)[0]
+    endScreenRow = @rowMap.screenRowRangeForBufferRow(endBufferRow - 1)[1]
 
-    startScreenRow = @screenRowForBufferRow(startBufferRow)
-    endScreenRow = @lastScreenRowForBufferRow(endBufferRow)
+    @rowMap.applyBufferDelta(startBufferRow, bufferDelta)
 
-    @lineMap.replaceScreenRows(startScreenRow, endScreenRow, newScreenLines)
+    newScreenLines = []
+    newMappings = []
+    pendingIsoMapping = null
+
+    pushNewMapping = (startBufferRow, endBufferRow, screenRows) ->
+      if endBufferRow - startBufferRow == screenRows
+        if pendingIsoMapping
+          pendingIsoMapping[1] = endBufferRow
+        else
+          pendingIsoMapping = [startBufferRow, endBufferRow]
+      else
+        clearPendingIsoMapping()
+        newMappings.push([startBufferRow, endBufferRow, screenRows])
+
+    clearPendingIsoMapping = ->
+      if pendingIsoMapping
+        [isoStart, isoEnd] = pendingIsoMapping
+        pendingIsoMapping.push(isoEnd - isoStart)
+        newMappings.push(pendingIsoMapping)
+        pendingIsoMapping = null
+
+    bufferRow = startBufferRow
+    while bufferRow < endBufferRow + bufferDelta
+      tokenizedLine = @tokenizedBuffer.lineForScreenRow(bufferRow)
+
+      if fold = @largestFoldStartingAtBufferRow(bufferRow)
+        foldLine = tokenizedLine.copy()
+        foldLine.fold = fold
+        newScreenLines.push(foldLine)
+        pushNewMapping(bufferRow, fold.getEndRow() + 1, 1)
+        bufferRow = fold.getEndRow() + 1
+      else
+        softWraps = 0
+        while wrapScreenColumn = @findWrapColumn(tokenizedLine.text)
+          [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+          newScreenLines.push(wrappedLine)
+          softWraps++
+        newScreenLines.push(tokenizedLine)
+        pushNewMapping(bufferRow, bufferRow + 1, softWraps + 1)
+        bufferRow++
+    clearPendingIsoMapping()
+
+    @screenLines[startScreenRow...endScreenRow] = newScreenLines
+    screenDelta = newScreenLines.length - (endScreenRow - startScreenRow)
+    @rowMap.applyScreenDelta(startScreenRow, screenDelta)
+    @rowMap.mapBufferRowRange(mapping...) for mapping in newMappings
+
+    if startScreenRow <= @longestScreenRow < endScreenRow
+      @longestScreenRow = 0
+      @maxLineLength = 0
+      maxLengthCandidatesStartRow = 0
+      maxLengthCandidates = @screenLines
+    else
+      maxLengthCandidatesStartRow = startScreenRow
+      maxLengthCandidates = newScreenLines
+
+    for screenLine, screenRow in maxLengthCandidates
+      length = screenLine.text.length
+      if length > @maxLineLength
+        @longestScreenRow = maxLengthCandidatesStartRow + screenRow
+        @maxLineLength = length
+
+    return if options.suppressChangeEvent
 
     changeEvent =
       start: startScreenRow
-      end: endScreenRow
-      screenDelta: @lastScreenRowForBufferRow(endBufferRow + bufferDelta) - endScreenRow
+      end: endScreenRow - 1
+      screenDelta: screenDelta
       bufferDelta: bufferDelta
 
     if options.delayChangeEvent
@@ -506,42 +592,6 @@ class DisplayBuffer
       @pendingChangeEvent = changeEvent
     else
       @triggerChanged(changeEvent, options.refreshMarkers)
-
-  buildLineForBufferRow: (bufferRow) ->
-    @buildLinesForBufferRows(bufferRow, bufferRow)
-
-  buildLinesForBufferRows: (startBufferRow, endBufferRow) ->
-    lineFragments = []
-    startBufferColumn = null
-    currentBufferRow = startBufferRow
-    currentScreenLineLength = 0
-
-    startBufferColumn = 0
-    while currentBufferRow <= endBufferRow
-      screenLine = @tokenizedBuffer.lineForScreenRow(currentBufferRow)
-
-      if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
-        screenLine = screenLine.copy()
-        screenLine.fold = fold
-        screenLine.bufferRows = fold.getBufferRowCount()
-        lineFragments.push(screenLine)
-        currentBufferRow = fold.getEndRow() + 1
-        continue
-
-      startBufferColumn ?= 0
-      screenLine = screenLine.softWrapAt(startBufferColumn)[1] if startBufferColumn > 0
-      wrapScreenColumn = @findWrapColumn(screenLine.text, @softWrapColumn)
-      if wrapScreenColumn?
-        screenLine = screenLine.softWrapAt(wrapScreenColumn)[0]
-        screenLine.screenDelta = new Point(1, 0)
-        startBufferColumn += wrapScreenColumn
-      else
-        currentBufferRow++
-        startBufferColumn = 0
-
-      lineFragments.push(screenLine)
-
-    lineFragments
 
   handleMarkersUpdated: =>
     event = @pendingChangeEvent
@@ -554,7 +604,6 @@ class DisplayBuffer
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
-
 
 _.extend DisplayBuffer.prototype, EventEmitter
 _.extend DisplayBuffer.prototype, Subscriber

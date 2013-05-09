@@ -157,6 +157,8 @@ class DisplayBufferMarker
         valid: valid
 
   notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged, valid} = {}) ->
+    return unless @valid or @isValid()
+
     oldHeadScreenPosition = @getHeadScreenPosition()
     newHeadScreenPosition = oldHeadScreenPosition
     oldTailScreenPosition = @getTailScreenPosition()

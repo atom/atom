@@ -138,7 +138,6 @@ describe "DisplayBuffer", ->
         expect(tokensText displayBuffer.lineForRow(4).tokens).toBe 'left = [], right = [];'
         expect(tokensText displayBuffer.lineForRow(5).tokens).toBe '    while(items.length > 0) {'
         expect(tokensText displayBuffer.lineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
-
         expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 15, screenDelta: 3, bufferDelta: 0)
 
   describe "primitive folding", ->
@@ -157,7 +156,6 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBe fold
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferRows).toBe 4
           expect(line5.text).toBe '8'
 
           expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 7, screenDelta: -3, bufferDelta: 0)
@@ -167,7 +165,6 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 4, screenDelta: 3, bufferDelta: 0)
@@ -179,7 +176,6 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBe fold
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 4, screenDelta: 0, bufferDelta: 0)
@@ -193,7 +189,6 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 4, screenDelta: 0, bufferDelta: 0)
@@ -206,18 +201,15 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBe outerFold
           expect(line4.text).toMatch /4-+/
-          expect(line4.bufferRows).toEqual 5
           expect(line5.text).toMatch /9-+/
 
           outerFold.destroy()
           [line4, line5, line6, line7] = displayBuffer.linesForRows(4, 7)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
           expect(line6.fold).toBe innerFold
           expect(line6.text).toBe '6'
-          expect(line6.bufferRows).toEqual 2
           expect(line7.text).toBe '8'
 
         it "allows the outer fold to start at the same location as the inner fold", ->
@@ -227,7 +219,6 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBe outerFold
           expect(line4.text).toMatch /4-+/
-          expect(line4.bufferRows).toEqual 5
           expect(line5.text).toMatch /9-+/
 
       describe "when creating a fold where one already exists", ->
@@ -364,7 +355,6 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(1).text).toBe "1"
             expect(displayBuffer.lineForRow(2).text).toBe "2"
             expect(displayBuffer.lineForRow(2).fold).toBe fold1
-            expect(displayBuffer.lineForRow(2).bufferRows).toEqual 4
             expect(displayBuffer.lineForRow(3).text).toMatch "5"
             expect(displayBuffer.lineForRow(4).fold).toBe fold2
             expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
@@ -380,7 +370,6 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(1).text).toBe "1"
             expect(displayBuffer.lineForRow(2).text).toBe "2"
             expect(displayBuffer.lineForRow(2).fold).toBe fold1
-            expect(displayBuffer.lineForRow(2).bufferRows).toEqual 6
             expect(displayBuffer.lineForRow(3).text).toMatch "5"
             expect(displayBuffer.lineForRow(4).fold).toBe fold2
             expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
@@ -412,7 +401,7 @@ describe "DisplayBuffer", ->
 
     describe "position translation", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
-        displayBuffer.createFold(4, 7)
+        fold = displayBuffer.createFold(4, 7)
 
         # preceding fold: identity
         expect(displayBuffer.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
@@ -435,6 +424,15 @@ describe "DisplayBuffer", ->
         # clip screen positions before translating
         expect(displayBuffer.bufferPositionForScreenPosition([-5, -5])).toEqual([0, 0])
         expect(displayBuffer.bufferPositionForScreenPosition([Infinity, Infinity])).toEqual([200, 0])
+
+        # after fold is destroyed
+        fold.destroy()
+
+        expect(displayBuffer.screenPositionForBufferPosition([8, 0])).toEqual [8, 0]
+        expect(displayBuffer.screenPositionForBufferPosition([11, 2])).toEqual [11, 2]
+
+        expect(displayBuffer.bufferPositionForScreenPosition([5, 0])).toEqual [5, 0]
+        expect(displayBuffer.bufferPositionForScreenPosition([9, 2])).toEqual [9, 2]
 
     describe ".destroyFoldsContainingBufferRow(row)", ->
       it "destroys all folds containing the given row", ->
@@ -521,9 +519,11 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.screenPositionForBufferPosition([0, 1])).toEqual [0, 2]
       expect(displayBuffer.bufferPositionForScreenPosition([0, 2])).toEqual [0, 1]
 
-  describe ".maxLineLength()", ->
+  describe ".getMaxLineLength()", ->
     it "returns the length of the longest screen line", ->
-      expect(displayBuffer.maxLineLength()).toBe 65
+      expect(displayBuffer.getMaxLineLength()).toBe 65
+      buffer.delete([[6, 0], [6, 65]])
+      expect(displayBuffer.getMaxLineLength()).toBe 62
 
   describe "markers", ->
     beforeEach ->
