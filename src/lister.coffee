@@ -21,20 +21,28 @@ class Lister
     catch e
       false
 
+  list: (directoryPath) ->
+    if @isDirectory(directoryPath)
+      try
+        fs.readdirSync(@atomModulesDirectory)
+      catch e
+        []
+    else
+      []
+
   listAtomPackagesDirectory: ->
     packages = []
-    if @isDirectory(@atomModulesDirectory)
-      for child in fs.readdirSync(@atomModulesDirectory)
-        manifest = path.join(@atomModulesDirectory, child, 'package.json')
-        continue unless @isFile(manifest)
-        try
-          packageJson = JSON.parse(fs.readFileSync(manifest, 'utf8'))
-        catch e
-          continue
+    for child in @list(@atomModulesDirectory)
+      manifest = path.join(@atomModulesDirectory, child, 'package.json')
+      continue unless @isFile(manifest)
+      try
+        packageJson = JSON.parse(fs.readFileSync(manifest, 'utf8'))
+      catch e
+        continue
 
-        name = packageJson.name ? child
-        version = packageJson.version ? '0.0.0'
-        packages.push({name, version})
+      name = packageJson.name ? child
+      version = packageJson.version ? '0.0.0'
+      packages.push({name, version})
 
     console.log @atomModulesDirectory
     for pack, index in packages
