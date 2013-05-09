@@ -94,6 +94,20 @@ class RowMap
       newRegions.push(bufferRows: overlapEndBufferRow - endBufferRow, screenRows: overlapEndScreenRow - endScreenRow)
 
     @regions[overlapStartIndex..overlapEndIndex] = newRegions
+    @mergeIsomorphicRegions(Math.max(0, overlapStartIndex - 1), Math.min(@regions.length - 1, overlapEndIndex + 1))
+
+  mergeIsomorphicRegions: (startIndex, endIndex) ->
+    return if startIndex == endIndex
+
+    region = @regions[startIndex]
+    nextRegion = @regions[startIndex + 1]
+    if region.bufferRows == region.screenRows and nextRegion.bufferRows == nextRegion.screenRows
+      @regions[startIndex..startIndex + 1] =
+        bufferRows: region.bufferRows + nextRegion.bufferRows
+        screenRows: region.screenRows + nextRegion.screenRows
+      @mergeIsomorphicRegions(startIndex, endIndex - 1)
+    else
+      @mergeIsomorphicRegions(startIndex + 1, endIndex)
 
   # This method records insertion or removal of rows in the buffer, adjusting the
   # buffer dimension of regions following the start row accordingly.

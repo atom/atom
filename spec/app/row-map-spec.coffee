@@ -187,6 +187,13 @@ describe "RowMap", ->
         expect(map.regions[2]).toEqual(bufferRows: 3, screenRows: 8)
         expect(map.regions[3]).toEqual(bufferRows: 2, screenRows: 1)
 
+    it "merges adjacent isomorphic mappings", ->
+      map.mapBufferRowRange(2, 4, 1)
+      map.mapBufferRowRange(4, 5, 2)
+
+      map.mapBufferRowRange(1, 4, 3)
+      expect(map.regions).toEqual [{bufferRows: 5, screenRows: 5}]
+
   describe ".applyBufferDelta(startBufferRow, delta)", ->
     describe "when applying a positive delta", ->
       it "expands the region containing the given start row by the given delta", ->
