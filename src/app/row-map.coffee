@@ -64,21 +64,46 @@ class RowMap
     @regions[overlapStartIndex..overlapEndIndex] = newRegions
 
   applyBufferDelta: (startBufferRow, delta) ->
-    { region } = @traverseToBufferRow(startBufferRow)
-    region?.bufferRows += delta
+    return if delta is 0
+    { index, bufferRow } = @traverseToBufferRow(startBufferRow)
+    if delta > 0 and index < @regions.length
+      { bufferRows, screenRows } = @regions[index]
+      bufferRows += delta
+      @regions[index] = { bufferRows, screenRows }
+    else
+      delta = -delta
+      while delta > 0 and index < @regions.length
+        { bufferRows, screenRows } = @regions[index]
+        regionStartBufferRow = bufferRow
+        regionEndBufferRow = bufferRow + bufferRows
+        maxDelta = regionEndBufferRow - Math.max(regionStartBufferRow, startBufferRow)
+        regionDelta = Math.min(delta, maxDelta)
+        bufferRows -= regionDelta
+        @regions[index] = { bufferRows, screenRows }
+        delta -= regionDelta
+        bufferRow += bufferRows
+        index++
 
   applyScreenDelta: (startScreenRow, delta) ->
-    { index } = @traverseToScreenRow(startScreenRow)
-    while delta != 0 and index < @regions.length
+    return if delta is 0
+    { index, screenRow } = @traverseToScreenRow(startScreenRow)
+    if delta > 0 and index < @regions.length
       { bufferRows, screenRows } = @regions[index]
       screenRows += delta
-      if screenRows < 0
-        delta = screenRows
-        screenRows = 0
-      else
-        delta = 0
       @regions[index] = { bufferRows, screenRows }
-      index++
+    else
+      delta = -delta
+      while delta > 0 and index < @regions.length
+        { bufferRows, screenRows } = @regions[index]
+        regionStartScreenRow = screenRow
+        regionEndScreenRow = screenRow + screenRows
+        maxDelta = regionEndScreenRow - Math.max(regionStartScreenRow, startScreenRow)
+        regionDelta = Math.min(delta, maxDelta)
+        screenRows -= regionDelta
+        @regions[index] = { bufferRows, screenRows }
+        delta -= regionDelta
+        screenRow += screenRows
+        index++
 
   traverseToBufferRow: (targetBufferRow) ->
     bufferRow = 0

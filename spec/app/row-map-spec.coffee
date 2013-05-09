@@ -186,6 +186,28 @@ describe "RowMap", ->
         expect(map.regions[2]).toEqual(bufferRows: 3, screenRows: 8)
         expect(map.regions[3]).toEqual(bufferRows: 2, screenRows: 1)
 
+  describe ".applyBufferDelta(startBufferRow, delta)", ->
+    describe "when applying a positive delta", ->
+      it "expands the region containing the given start row by the given delta", ->
+        map.mapBufferRowRange(4, 8, 1)
+
+        map.applyBufferDelta(5, 4)
+
+        expect(map.regions[0]).toEqual(bufferRows: 4, screenRows: 4)
+        expect(map.regions[1]).toEqual(bufferRows: 8, screenRows: 1)
+
+    describe "when applying a negative delta", ->
+      it "shrinks regions starting at the start row until the entire delta is consumed", ->
+        map.mapBufferRowRange(4, 8, 1)
+        map.mapBufferRowRange(10, 14, 1)
+
+        map.applyBufferDelta(3, -6)
+
+        expect(map.regions[0]).toEqual(bufferRows: 3, screenRows: 4)
+        expect(map.regions[1]).toEqual(bufferRows: 0, screenRows: 1)
+        expect(map.regions[2]).toEqual(bufferRows: 1, screenRows: 2)
+        expect(map.regions[3]).toEqual(bufferRows: 4, screenRows: 1)
+
   describe ".applyScreenDelta(startScreenRow, delta)", ->
     describe "when applying a positive delta", ->
       it "can enlarge the screen side of existing regions", ->
@@ -208,6 +230,16 @@ describe "RowMap", ->
         expect(map.screenRowRangeForBufferRow(19)).toEqual [6, 6]
         expect(map.screenRowRangeForBufferRow(22)).toEqual [8, 9]
         expect(map.screenRowRangeForBufferRow(26)).toEqual [8, 9]
+
+      it "starts collapsing the first region at the start row, not before", ->
+        map.mapBufferRowRange(5, 6, 4)
+        map.mapBufferRowRange(11, 13, 1)
+
+        map.applyScreenDelta(7, -5)
+
+        expect(map.regions[0]).toEqual(bufferRows: 5, screenRows: 5)
+        expect(map.regions[1]).toEqual(bufferRows: 1, screenRows: 2)
+        expect(map.regions[2]).toEqual(bufferRows: 5, screenRows: 2)
 
     it "does not throw an exception when applying a delta beyond the last region", ->
       map.mapBufferRowRange(5, 10, 1)  # inner fold 1
