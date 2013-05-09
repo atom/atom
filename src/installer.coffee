@@ -7,6 +7,7 @@ path = require 'path'
 temp = require 'temp'
 cp = require('wrench').copyDirSyncRecursive
 rm = require('rimraf').sync
+config = require './config'
 
 module.exports =
 class Installer
@@ -19,10 +20,7 @@ class Installer
   atomNodeGypPath: null
 
   constructor: ->
-    @nodeVersion = '0.10.3'
-    @nodeUrl = process.env.ATOM_NODE_URL ? 'https://gh-contractor-zcbenz.s3.amazonaws.com/cefode2/dist'
-
-    @atomDirectory = process.env.ATOM_HOME ? path.join(process.env.HOME, '.atom')
+    @atomDirectory = config.getAtomDirectory()
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
     @atomNpmPath = require.resolve('.bin/npm')
@@ -42,8 +40,8 @@ class Installer
     console.log '\nInstalling node...'
 
     installNodeArgs = ['install']
-    installNodeArgs.push("--target=#{@nodeVersion}")
-    installNodeArgs.push("--dist-url=#{@nodeUrl}")
+    installNodeArgs.push("--target=#{config.getNodeVersion()}")
+    installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
     installNodeArgs.push('--arch=ia32')
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
@@ -59,7 +57,7 @@ class Installer
 
     installModuleArgs = ['install']
     installModuleArgs.push(modulePath)
-    installModuleArgs.push("--target=#{@nodeVersion}")
+    installModuleArgs.push("--target=#{config.getNodeVersion()}")
     installModuleArgs.push('--arch=ia32')
     installModuleArgs.push('--silent')
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)

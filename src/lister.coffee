@@ -1,12 +1,13 @@
 path = require 'path'
 fs = require 'fs'
+config = require './config'
 
 module.exports =
 class Lister
   atomPackagesDirectory: null
 
   constructor: ->
-    atomDirectory = process.env.ATOM_HOME ? path.join(process.env.HOME, '.atom')
+    atomDirectory = config.getAtomDirectory()
     @atomModulesDirectory = path.join(atomDirectory, 'packages')
 
   isDirectory: (directoryPath) ->
