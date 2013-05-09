@@ -263,9 +263,11 @@ class Selection
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
-
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
+
+    if options.indentBasis? and not options.autoIndent
+      text = @normalizeIndents(text, options.indentBasis)
 
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     if options.select
@@ -281,6 +283,32 @@ class Selection
       @editSession.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
     newBufferRange
+
+  normalizeIndents: (text, indentBasis) ->
+    textPrecedingCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferColumn()]
+    isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
+
+    lines = text.split('\n')
+    firstLineIndentLevel = @editSession.indentLevelForLine(lines[0])
+    if isCursorInsideExistingLine
+      minimumIndentLevel = @editSession.indentationForBufferRow(@cursor.getBufferRow())
+    else
+      minimumIndentLevel = @cursor.getIndentLevel() + firstLineIndentLevel
+    normalizedLines = []
+
+    for line, i in lines
+      if i == 0
+        indentLevel = firstLineIndentLevel
+      else if /$^/.test line # remove all indentation from empty lines
+        indentLevel = 0
+      else
+        lineIndentLevel = @editSession.indentLevelForLine(lines[i])
+        indentLevel = minimumIndentLevel + (lineIndentLevel - indentBasis)
+
+      normalizedLines.push(@setIndentationForLine(line, indentLevel))
+
+    console.log normalizedLines
+    normalizedLines.join('\n')
 
   # Indents the selection.
   #
@@ -307,9 +335,8 @@ class Selection
     for row in [start..end]
       @editSession.buffer.insert([row, 0], @editSession.getTabText()) unless @editSession.buffer.lineLengthForRow(row) == 0
 
-  adjustIndentationForLine: (line, delta) ->
-    currentIndentLevel = @editSession.indentLevelForLine(line)
-    desiredIndentLevel = Math.max(0, currentIndentLevel + delta)
+  setIndentationForLine: (line, indentLevel) ->
+    desiredIndentLevel = Math.max(0, indentLevel)
     desiredIndentString = @editSession.buildIndentString(desiredIndentLevel)
     line.replace(/^[\t ]*/, desiredIndentString)
 

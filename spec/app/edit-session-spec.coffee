@@ -1011,145 +1011,6 @@ describe "EditSession", ->
           editSession.insertText('holy cow')
           expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
 
-      xdescribe "when the `normalizeIndent` option is true", ->
-        describe "when the inserted text contains no newlines", ->
-          it "does not adjust the indentation level of the text", ->
-            editSession.setCursorBufferPosition([5, 2])
-            editSession.insertText("foo", normalizeIndent: true)
-            expect(editSession.lineForBufferRow(5)).toBe "  foo    current = items.shift();"
-
-        describe "when the inserted text contains newlines", ->
-          text = null
-          beforeEach ->
-            editSession.setCursorBufferPosition([2, Infinity])
-            text = [
-              "    while (true) {"
-              "      foo();"
-              "    }"
-              "  bar();"
-            ].join('\n')
-
-          removeLeadingWhitespace = (text) -> text.replace(/^\s*/, '')
-
-          describe "when the cursor is preceded only by whitespace", ->
-            describe "when auto-indent is enabled", ->
-              describe "when the cursor's current column is less than the suggested indent level", ->
-                describe "when the indentBasis is inferred from the first line", ->
-                  it "indents all lines relative to the suggested indent", ->
-                    editSession.insertText('\n xx', autoIndent: true)
-                    editSession.setCursorBufferPosition([3, 1])
-                    editSession.insertText(text, normalizeIndent: true, autoIndent: true)
-
-                    expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
-                    expect(editSession.lineForBufferRow(4)).toBe "      foo();"
-                    expect(editSession.lineForBufferRow(5)).toBe "    }"
-                    expect(editSession.lineForBufferRow(6)).toBe "  bar();xx"
-
-                describe "when an indentBasis is provided", ->
-                  it "indents all lines relative to the suggested indent", ->
-                    editSession.insertText('\n xx')
-                    editSession.setCursorBufferPosition([3, 1])
-                    editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 2, autoIndent: true)
-
-                    expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
-                    expect(editSession.lineForBufferRow(4)).toBe "      foo();"
-                    expect(editSession.lineForBufferRow(5)).toBe "    }"
-                    expect(editSession.lineForBufferRow(6)).toBe "  bar();xx"
-
-                describe "when inserting on a line that has mixed tabs and whitespace in hard tabs mode (regression)", ->
-                  it "correctly indents the inserted text", ->
-                    editSession.softTabs = false
-                    buffer.setText """
-                      not indented
-                          \tmixed indented
-                    """
-
-                    editSession.setCursorBufferPosition([1, 0])
-                    editSession.insertText(text, normalizeIndent: true, autoIndent: true)
-
-                    expect(editSession.lineForBufferRow(1)).toBe "\t\t\twhile (true) {"
-                    expect(editSession.lineForBufferRow(2)).toBe "\t\t\t\tfoo();"
-                    expect(editSession.lineForBufferRow(3)).toBe "\t\t\t}"
-                    expect(editSession.lineForBufferRow(4)).toBe "\t\tbar();    \tmixed indented"
-
-                describe "when inserting on a fractionally-indented line in hard tabs mode (regression)", ->
-                  it "correctly indents the inserted text", ->
-                    editSession.softTabs = false
-                    buffer.setText """
-                      not indented
-                           fractional indentation
-                    """
-
-                    editSession.setCursorBufferPosition([1, 0])
-                    editSession.insertText(text, normalizeIndent: true, autoIndent: true)
-
-                    expect(editSession.lineForBufferRow(1)).toBe "\t\twhile (true) {"
-                    expect(editSession.lineForBufferRow(2)).toBe "\t\t\tfoo();"
-                    expect(editSession.lineForBufferRow(3)).toBe "\t\t}"
-                    expect(editSession.lineForBufferRow(4)).toBe "\tbar();     fractional indentation"
-
-              describe "when the cursor's current column is greater than the suggested indent level", ->
-                describe "when the indentBasis is inferred from the first line", ->
-                  it "preserves the current indent level, indenting all lines relative to it", ->
-                    editSession.insertText('\n      ')
-                    editSession.insertText(text, normalizeIndent: true)
-
-                    expect(editSession.lineForBufferRow(3)).toBe "      while (true) {"
-                    expect(editSession.lineForBufferRow(4)).toBe "        foo();"
-                    expect(editSession.lineForBufferRow(5)).toBe "      }"
-                    expect(editSession.lineForBufferRow(6)).toBe "    bar();"
-
-                describe "when an indentBasis is provided", ->
-                  it "preserves the current indent level, indenting all lines relative to it", ->
-                    editSession.insertText('\n      ')
-                    editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 2)
-
-                    expect(editSession.lineForBufferRow(3)).toBe "      while (true) {"
-                    expect(editSession.lineForBufferRow(4)).toBe "        foo();"
-                    expect(editSession.lineForBufferRow(5)).toBe "      }"
-                    expect(editSession.lineForBufferRow(6)).toBe "    bar();"
-
-            describe "if auto-indent is disabled", ->
-              describe "when the indentBasis is inferred from the first line", ->
-                it "always normalizes indented lines to the cursor's current indentation level", ->
-                  editSession.insertText('\n ')
-                  editSession.insertText(text, normalizeIndent: true)
-
-                  expect(editSession.lineForBufferRow(3)).toBe " while (true) {"
-                  expect(editSession.lineForBufferRow(4)).toBe "   foo();"
-                  expect(editSession.lineForBufferRow(5)).toBe " }"
-                  expect(editSession.lineForBufferRow(6)).toBe "bar();"
-
-              describe "when an indentBasis is provided", ->
-                it "always normalizes indented lines to the cursor's current indentation level", ->
-                  editSession.insertText('\n ')
-                  editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 2)
-
-                  expect(editSession.lineForBufferRow(3)).toBe " while (true) {"
-                  expect(editSession.lineForBufferRow(4)).toBe "   foo();"
-                  expect(editSession.lineForBufferRow(5)).toBe " }"
-
-          describe "when the cursor is preceded by non-whitespace characters", ->
-            describe "when the indentBasis is inferred from the first line", ->
-              it "normalizes the indentation level of all lines based on the level of the existing first line", ->
-                editSession.buffer.delete([[2, 0], [2, 2]])
-                editSession.insertText(text, normalizeIndent:true)
-
-                expect(editSession.lineForBufferRow(2)).toBe "  if (items.length <= 1) return items;while (true) {"
-                expect(editSession.lineForBufferRow(3)).toBe "    foo();"
-                expect(editSession.lineForBufferRow(4)).toBe "  }"
-                expect(editSession.lineForBufferRow(5)).toBe "bar();"
-
-            describe "when an indentBasis is provided", ->
-              it "normalizes the indentation level of all lines based on the level of the existing first line", ->
-                editSession.buffer.delete([[2, 0], [2, 2]])
-                editSession.insertText(removeLeadingWhitespace(text), normalizeIndent:true, indentBasis: 2)
-
-                expect(editSession.lineForBufferRow(2)).toBe "  if (items.length <= 1) return items;while (true) {"
-                expect(editSession.lineForBufferRow(3)).toBe "    foo();"
-                expect(editSession.lineForBufferRow(4)).toBe "  }"
-                expect(editSession.lineForBufferRow(5)).toBe "bar();"
-
     describe ".insertNewline()", ->
       describe "when there is a single cursor", ->
         describe "when the cursor is at the beginning of a line", ->
@@ -2332,11 +2193,13 @@ describe "EditSession", ->
       expect(editSession.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
   describe "auto-indent", ->
-    copyText = (text) ->
+    copyText = (text, {startColumn}={}) ->
+      startColumn ?= 0
       editSession.setCursorBufferPosition([0, 0])
       editSession.insertText(text)
       numberOfNewlines = text.match(/\n/g)?.length
-      editSession.getSelection().setBufferRange([[0,0], [numberOfNewlines,0]])
+      endColumn = text.match(/[^\n]*$/)[0]?.length
+      editSession.getSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
       editSession.cutSelectedText()
 
     describe "editor.autoIndent", ->
@@ -2393,7 +2256,7 @@ describe "EditSession", ->
             editSession.setCursorBufferPosition([1, Infinity])
             editSession.insertText('\n    ')
             expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-            editSession.insertText('}', autoDecreaseIndent: true)
+            editSession.insertText('}')
             expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
 
         describe "when the preceding line doesn't match an increase indent pattern", ->
@@ -2401,12 +2264,12 @@ describe "EditSession", ->
             editSession.setCursorBufferPosition([3, Infinity])
             editSession.insertText('\n    ')
             expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
-            editSession.insertText('}', autoDecreaseIndent: true)
+            editSession.insertText('}')
             expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
 
           it "doesn't break when decreasing the indentation on a row that has no indentation", ->
             editSession.setCursorBufferPosition([12, Infinity])
-            editSession.insertText("\n}; # too many closing brackets!", autoDecreaseIndent: true)
+            editSession.insertText("\n}; # too many closing brackets!")
             expect(editSession.lineForBufferRow(13)).toBe "}; # too many closing brackets!"
 
       describe "when inserted text does not match a decrease indent pattern", ->
@@ -2414,14 +2277,14 @@ describe "EditSession", ->
           editSession.setCursorBufferPosition([12, 0])
           editSession.insertText('  ')
           expect(editSession.lineForBufferRow(12)).toBe '  };'
-          editSession.insertText('\t\t', autoDecreaseIndent: true)
+          editSession.insertText('\t\t')
           expect(editSession.lineForBufferRow(12)).toBe '  \t\t};'
 
       describe "when the current line does not match a decrease indent pattern", ->
         it "leaves the line unchanged", ->
           editSession.setCursorBufferPosition([2, 4])
           expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-          editSession.insertText('foo', autoIndent: true)
+          editSession.insertText('foo')
           expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
     describe "editor.autoIndentOnPaste", ->
@@ -2459,6 +2322,57 @@ describe "EditSession", ->
           config.set("editor.autoIndentOnPaste", true)
           editSession.pasteText()
           expect(editSession.lineForBufferRow(10)).toBe "  var number"
+
+    describe "editor.normalizePastedText", ->
+      describe "when the inserted text contains no newlines", ->
+        it "does not adjust the indentation level of the text", ->
+          editSession.setCursorBufferPosition([5, 2])
+          editSession.insertText("foo", indentBasis: 5)
+          expect(editSession.lineForBufferRow(5)).toBe "  foo    current = items.shift();"
+
+      describe "when the inserted text contains newlines", ->
+        it "does not normalize the indentation level of the text when editor.autoIndentOnPaste is true", ->
+          copyText("   function() {\nvar cool = 1;\n  }\n")
+          config.set('editor.autoIndentOnPaste', true)
+          editSession.setCursorBufferPosition([5, 2])
+          editSession.pasteText()
+          expect(editSession.lineForBufferRow(5)).toBe "      function() {"
+          expect(editSession.lineForBufferRow(6)).toBe "        var cool = 1;"
+          expect(editSession.lineForBufferRow(7)).toBe "      }"
+
+      describe "when copied text includes whitespace on first line", ->
+        describe "when cursor is preceded whitespace and followed non-whitespace", ->
+          it "normalizes indented lines to the cursor's current indentation level", ->
+            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 4})
+            editSession.setCursorBufferPosition([3, 4])
+            editSession.pasteText()
+
+            expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
+            expect(editSession.lineForBufferRow(4)).toBe "      foo();"
+            expect(editSession.lineForBufferRow(5)).toBe "    }"
+            expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
+
+        describe "when cursor is preceded whitespace and followed by whitespace", ->
+          it "normalizes indented lines to the cursor's current indentation level", ->
+            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
+            editSession.setCursorBufferPosition([3, 4])
+            editSession.pasteText()
+
+            expect(editSession.lineForBufferRow(3)).toBe "        while (true) {"
+            expect(editSession.lineForBufferRow(4)).toBe "          foo();"
+            expect(editSession.lineForBufferRow(5)).toBe "        }"
+            expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
+
+        describe "when the cursor is preceded by non-whitespace characters", ->
+          it "normalizes the indentation level of all lines based on the level of the existing first line", ->
+            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
+            editSession.setCursorBufferPosition([1, Infinity])
+            editSession.pasteText()
+
+            expect(editSession.lineForBufferRow(1)).toBe "  var sort = function(items) {    while (true) {"
+            expect(editSession.lineForBufferRow(2)).toBe "    foo();"
+            expect(editSession.lineForBufferRow(3)).toBe "  }"
+            expect(editSession.lineForBufferRow(4)).toBe ""
 
     it "autoIndentSelectedRows auto-indents the selection", ->
       editSession.setCursorBufferPosition([2, 0])
