@@ -40,6 +40,7 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-cli": "~0.1.8",
     "grunt-shell": "~0.2.2",
-    "express": "~3.2.3"
+    "express": "~3.2.3",
+    "grunt-coffeelint": "0.0.6"
   }
 }

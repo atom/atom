@@ -10,6 +10,14 @@ module.exports = (grunt) ->
         dest: 'lib'
         ext: '.js'
 
+    coffeelint:
+      options:
+        max_line_length:
+          level: 'ignore'
+
+      src: ['src/*.coffee']
+      test: ['spec/*.coffee']
+
     shell:
       test:
         command: 'npm test'
@@ -20,7 +28,9 @@ module.exports = (grunt) ->
 
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-shell')
+  grunt.loadNpmTasks('grunt-coffeelint')
 
   grunt.registerTask 'clean', -> require('rimraf').sync('lib')
-  grunt.registerTask('default', ['coffee'])
-  grunt.registerTask('test', ['default', 'shell:test'])
+  grunt.registerTask('lint', ['coffeelint:src', 'coffeelint:test'])
+  grunt.registerTask('default', ['coffeelint:src', 'coffee'])
+  grunt.registerTask('test', ['default', 'coffeelint:test', 'shell:test'])
