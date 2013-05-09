@@ -307,7 +307,6 @@ class Selection
 
       normalizedLines.push(@setIndentationForLine(line, indentLevel))
 
-    console.log normalizedLines
     normalizedLines.join('\n')
 
   # Indents the selection.
