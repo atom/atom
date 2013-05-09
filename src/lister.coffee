@@ -29,9 +29,12 @@ class Lister
         continue unless @isFile(manifest)
         try
           packageJson = JSON.parse(fs.readFileSync(manifest, 'utf8'))
-          name = packageJson.name ? child
-          version = packageJson.version ? '0.0.0'
-          packages.push({name, version})
+        catch e
+          continue
+
+        name = packageJson.name ? child
+        version = packageJson.version ? '0.0.0'
+        packages.push({name, version})
 
     console.log @atomModulesDirectory
     for pack, index in packages
