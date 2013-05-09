@@ -5,8 +5,8 @@ _ = require 'underscore'
 mkdir = require('mkdirp').sync
 path = require 'path'
 temp = require 'temp'
-wrench = require 'wrench'
-rimraf = require 'rimraf'
+cp = require('wrench').copyDirSyncRecursive
+rm = require('rimraf').sync
 
 module.exports =
 class Installer
@@ -69,11 +69,11 @@ class Installer
     mkdir(nodeModulesDirectory)
     @spawn @atomNpmPath, installModuleArgs, {env, cwd: installDirectory}, (code) =>
       if code is 0
-        wrench.copyDirSyncRecursive(nodeModulesDirectory, @atomPackagesDirectory)
-        rimraf.sync(installDirectory)
+        cp(nodeModulesDirectory, @atomPackagesDirectory)
+        rm(installDirectory)
         callback()
       else
-        rimraf.sync(installDirectory)
+        rm(installDirectory)
         callback("Installing module failed with code: #{code}")
 
   installModules: (callback) =>
