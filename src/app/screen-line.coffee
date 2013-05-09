@@ -4,14 +4,13 @@ _ = require 'underscore'
 
 module.exports =
 class ScreenLine
-  constructor: ({tokens, @lineEnding, @ruleStack, @bufferRows, @startBufferColumn, @fold, tabLength}) ->
+  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, tabLength}) ->
     @tokens = @breakOutAtomicTokens(tokens, tabLength)
-    @bufferRows ?= 1
     @startBufferColumn ?= 0
     @text = _.pluck(@tokens, 'value').join('')
 
   copy: ->
-    new ScreenLine({@tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold})
+    new ScreenLine({@tokens, @ruleStack, @startBufferColumn, @fold, @lineEnding})
 
   clipScreenColumn: (column, options={}) ->
     return 0 if @tokens.length == 0
@@ -75,10 +74,9 @@ class ScreenLine
 
     leftFragment = new ScreenLine(
       tokens: leftTokens
-      bufferRows: 0
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
-      lineEnding: @lineEnding
+      lineEnding: null
     )
     rightFragment = new ScreenLine(
       tokens: rightTokens
@@ -89,7 +87,7 @@ class ScreenLine
     [leftFragment, rightFragment]
 
   isSoftWrapped: ->
-    @bufferRows == 0
+    @lineEnding is null
 
   tokenAtBufferColumn: (bufferColumn) ->
     delta = 0
