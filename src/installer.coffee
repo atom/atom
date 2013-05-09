@@ -11,8 +11,6 @@ config = require './config'
 
 module.exports =
 class Installer
-  nodeVersion: null
-  nodeUrl: null
   atomDirectory: null
   atomPackagesDirectory: null
   atomNodeDirectory: null
@@ -78,7 +76,7 @@ class Installer
     console.log '\nInstalling modules...'
 
     installModulesArgs = ['install']
-    installModulesArgs.push("--target=#{@nodeVersion}")
+    installModulesArgs.push("--target=#{config.getNodeVersion()}")
     installModulesArgs.push('--arch=ia32')
     installModulesArgs.push('--silent')
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
