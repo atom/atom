@@ -1,6 +1,7 @@
 fs = require 'fs'
 optimist = require 'optimist'
 Installer = require './installer'
+Lister = require './lister'
 
 parseOptions = (args=[]) ->
   options = optimist(args)
@@ -25,6 +26,7 @@ module.exports =
     else if command
       switch command
         when 'install' then new Installer().run(options)
+        when 'list', 'ls' then new Lister().run(options)
         else console.error "Unrecognized command: #{command}"
     else
       options.showHelp()
