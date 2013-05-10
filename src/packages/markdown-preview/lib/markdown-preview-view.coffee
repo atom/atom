@@ -75,13 +75,11 @@ class MarkdownPreviewView extends ScrollView
       continue unless className = codeBlock.attr('class')
 
       fenceName = className.replace(/^lang-/, '')
-      # go to next block unless the class name is matches `lang`
+      # go to next block unless the class name matches `lang`
       continue unless extension = fenceNameToExtension[fenceName]
       text = codeBlock.text()
 
-      # go to next block if this grammar is not mapped
-      continue unless grammar = syntax.selectGrammar("foo.#{extension}", text)
-      continue if grammar is syntax.nullGrammar
+      grammar = syntax.selectGrammar("foo.#{extension}", text)
 
       codeBlock.empty()
       for tokens in grammar.tokenizeLines(text)
