@@ -7,11 +7,15 @@ Editor = require 'editor'
 
 fenceNameToExtension =
   "coffeescript": "coffee"
+  "coffee": "coffee"
   "toml": "toml"
   "ruby": "rb"
+  "rb": "rb"
   "go": "go"
   "mustache": "mustache"
   "java": "java"
+  "sh": "sh"
+  "bash": "sh"
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
