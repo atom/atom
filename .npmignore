@@ -1,3 +1,4 @@
 .npmignore
 *.coffee
 script/
+.DS_Store
