@@ -2222,72 +2222,70 @@ describe "EditSession", ->
           editSession.indent()
           expect(editSession.lineForBufferRow(2)).toBe "   "
 
-      describe "when a newline is added", ->
+      describe "when editor.autoIndent is true", ->
         beforeEach ->
           config.set("editor.autoIndent", true)
 
-        describe "when the line preceding the newline adds a new level of indentation", ->
-          it "indents the newline to one additional level of indentation beyond the preceding line", ->
-            editSession.setCursorBufferPosition([1, Infinity])
+        describe "when a newline is added", ->
+          describe "when the line preceding the newline adds a new level of indentation", ->
+            it "indents the newline to one additional level of indentation beyond the preceding line", ->
+              editSession.setCursorBufferPosition([1, Infinity])
+              editSession.insertText('\n')
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
+
+          describe "when the line preceding the newline does't add a level of indentation", ->
+            it "indents the new line to the same level a as the preceding line", ->
+              editSession.setCursorBufferPosition([5, 13])
+              editSession.insertText('\n')
+              expect(editSession.indentationForBufferRow(6)).toBe editSession.indentationForBufferRow(5)
+
+          it "does not indent the line preceding the newline", ->
+            editSession.setCursorBufferPosition([2, 0])
+            editSession.insertText('  var this-line-should-be-indented-more\n')
+            expect(editSession.indentationForBufferRow(1)).toBe 1
+
+            config.set("editor.autoIndent", true)
+            editSession.setCursorBufferPosition([2, Infinity])
             editSession.insertText('\n')
+            expect(editSession.indentationForBufferRow(1)).toBe 1
+            expect(editSession.indentationForBufferRow(2)).toBe 1
+
+        describe "when inserted text matches a decrease indent pattern", ->
+          describe "when the preceding line matches an increase indent pattern", ->
+            it "decreases the indentation to match that of the preceding line", ->
+              editSession.setCursorBufferPosition([1, Infinity])
+              editSession.insertText('\n')
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
+              editSession.insertText('}')
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
+
+          describe "when the preceding line doesn't match an increase indent pattern", ->
+            it "decreases the indentation to be one level below that of the preceding line", ->
+              editSession.setCursorBufferPosition([3, Infinity])
+              editSession.insertText('\n    ')
+              expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
+              editSession.insertText('}')
+              expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
+
+            it "doesn't break when decreasing the indentation on a row that has no indentation", ->
+              editSession.setCursorBufferPosition([12, Infinity])
+              editSession.insertText("\n}; # too many closing brackets!")
+              expect(editSession.lineForBufferRow(13)).toBe "}; # too many closing brackets!"
+
+        describe "when inserted text does not match a decrease indent pattern", ->
+          it "does not the indentation", ->
+            editSession.setCursorBufferPosition([12, 0])
+            editSession.insertText('  ')
+            expect(editSession.lineForBufferRow(12)).toBe '  };'
+            editSession.insertText('\t\t')
+            expect(editSession.lineForBufferRow(12)).toBe '  \t\t};'
+
+        describe "when the current line does not match a decrease indent pattern", ->
+          it "leaves the line unchanged", ->
+            editSession.setCursorBufferPosition([2, 4])
             expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-
-        describe "when the line preceding the newline does't add a level of indentation", ->
-          it "indents the new line to the same level a as the preceding line", ->
-            editSession.setCursorBufferPosition([5, 13])
-            editSession.insertText('\n')
-            expect(editSession.indentationForBufferRow(6)).toBe editSession.indentationForBufferRow(5)
-
-        it "does not indent the line preceding the newline", ->
-          editSession.setCursorBufferPosition([2, 0])
-          editSession.insertText('  var this-line-should-be-indented-more\n')
-          expect(editSession.indentationForBufferRow(1)).toBe 1
-
-          config.set("editor.autoIndent", true)
-          editSession.setCursorBufferPosition([2, Infinity])
-          editSession.insertText('\n')
-          expect(editSession.indentationForBufferRow(1)).toBe 1
-          expect(editSession.indentationForBufferRow(2)).toBe 1
-
-      describe "when inserted text matches a decrease indent pattern", ->
-        beforeEach ->
-          config.set("editor.autoIndent", true)
-
-        describe "when the preceding line matches an increase indent pattern", ->
-          it "decreases the indentation to match that of the preceding line", ->
-            editSession.setCursorBufferPosition([1, Infinity])
-            editSession.insertText('\n')
+            editSession.insertText('foo')
             expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-            editSession.insertText('}')
-            expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
-
-        describe "when the preceding line doesn't match an increase indent pattern", ->
-          it "decreases the indentation to be one level below that of the preceding line", ->
-            editSession.setCursorBufferPosition([3, Infinity])
-            editSession.insertText('\n    ')
-            expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
-            editSession.insertText('}')
-            expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
-
-          it "doesn't break when decreasing the indentation on a row that has no indentation", ->
-            editSession.setCursorBufferPosition([12, Infinity])
-            editSession.insertText("\n}; # too many closing brackets!")
-            expect(editSession.lineForBufferRow(13)).toBe "}; # too many closing brackets!"
-
-      describe "when inserted text does not match a decrease indent pattern", ->
-        it "does not the indentation", ->
-          editSession.setCursorBufferPosition([12, 0])
-          editSession.insertText('  ')
-          expect(editSession.lineForBufferRow(12)).toBe '  };'
-          editSession.insertText('\t\t')
-          expect(editSession.lineForBufferRow(12)).toBe '  \t\t};'
-
-      describe "when the current line does not match a decrease indent pattern", ->
-        it "leaves the line unchanged", ->
-          editSession.setCursorBufferPosition([2, 4])
-          expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
-          editSession.insertText('foo')
-          expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
     describe "editor.autoIndentOnPaste", ->
       describe "when the text contains multiple lines", ->
