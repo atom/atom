@@ -35,7 +35,7 @@ class MarkdownPreviewView extends ScrollView
     @on 'core:move-down', => @scrollDown()
 
   afterAttach: (onDom) ->
-    @subscribe @buffer, 'saved', =>
+    @subscribe @buffer, 'saved reloaded', =>
       @renderMarkdown()
       pane = @getPane()
       pane.showItem(this) if pane? and pane isnt rootView.getActivePane()

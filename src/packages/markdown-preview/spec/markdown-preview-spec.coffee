@@ -65,6 +65,15 @@ describe "MarkdownPreview package", ->
             pane.activeItem.buffer.trigger 'saved'
             expect(MarkdownPreviewView.prototype.renderMarkdown).not.toHaveBeenCalled()
 
+        describe "when a buffer is reloaded", ->
+          it "does not show the markdown preview", ->
+            [pane] = rootView.getPanes()
+            pane.focus()
+
+            MarkdownPreviewView.prototype.renderMarkdown.reset()
+            pane.activeItem.buffer.trigger 'reloaded'
+            expect(MarkdownPreviewView.prototype.renderMarkdown).not.toHaveBeenCalled()
+
       describe "when a preview item has already been created for the edit session's uri", ->
         it "updates and shows the existing preview item if it isn't displayed", ->
           rootView.getActiveView().trigger 'markdown-preview:show'
