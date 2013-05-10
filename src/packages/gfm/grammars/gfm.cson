@@ -114,6 +114,16 @@
     'patterns': ['include': 'source.java']
   }
   {
+    'begin': '^```(sh|bash)$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^```$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.code.shell.gfm'
+    'patterns': ['include': 'source.shell']
+  }
+  {
     'begin': '^```.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
