@@ -73,7 +73,7 @@ class Fold
 
   updateDisplayBuffer: ->
     unless @isInsideLargerFold()
-      @displayBuffer.updateScreenLines(@getStartRow(), @getEndRow(), 0, updateMarkers: true)
+      @displayBuffer.updateScreenLines(@getStartRow(), @getEndRow() + 1, 0, updateMarkers: true)
 
   destroyed: ->
     delete @displayBuffer.foldsByMarkerId[@marker.id]

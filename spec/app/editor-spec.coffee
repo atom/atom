@@ -1288,7 +1288,7 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
       it "increases the width of the rendered lines element to be either the width of the longest line or the width of the scrollView (whichever is longer)", ->
-        maxLineLength = editor.maxScreenLineLength()
+        maxLineLength = editor.getMaxScreenLineLength()
         setEditorWidthInChars(editor, maxLineLength)
         widthBefore = editor.renderedLines.width()
         expect(widthBefore).toBe editor.scrollView.width() + 20
@@ -1300,7 +1300,7 @@ describe "Editor", ->
         editor.attachToDom(heightInLines: 5)
 
       it "sets the rendered screen line's width to either the max line length or the scollView's width (whichever is greater)", ->
-        maxLineLength = editor.maxScreenLineLength()
+        maxLineLength = editor.getMaxScreenLineLength()
         setEditorWidthInChars(editor, maxLineLength)
         buffer.change([[12,0], [12,0]], [1..maxLineLength*2].join(''))
         expect(editor.renderedLines.width()).toBeGreaterThan editor.scrollView.width()
@@ -1385,6 +1385,15 @@ describe "Editor", ->
         editor.activeEditSession.foldBufferRow(4)
         editor.activeEditSession.foldBufferRow(0)
 
+        expect(editor.renderedLines.find('.line').length).toBe 1
+        expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
+
+    describe "when folding leaves fewer screen lines than the first rendered screen line (regression)", ->
+      it "clears all screen lines and does not throw any exceptions", ->
+        editor.lineOverdraw = 1
+        editor.attachToDom(heightInLines: 5)
+        editor.scrollToBottom()
+        editor.activeEditSession.foldBufferRow(0)
         expect(editor.renderedLines.find('.line').length).toBe 1
         expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
 

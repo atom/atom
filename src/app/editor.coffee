@@ -470,8 +470,8 @@ class Editor extends View
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
-  # {Delegates to: EditSession.maxScreenLineLength}
-  maxScreenLineLength: -> @activeEditSession.maxScreenLineLength()
+  # {Delegates to: EditSession.getMaxScreenLineLength}
+  getMaxScreenLineLength: -> @activeEditSession.getMaxScreenLineLength()
 
   # {Delegates to: EditSession.getLastScreenRow}
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
@@ -1061,7 +1061,7 @@ class Editor extends View
       @verticalScrollbarContent.height(@layerHeight)
       @scrollBottom(height) if @scrollBottom() > height
 
-    minWidth = @charWidth * @maxScreenLineLength() + 20
+    minWidth = @charWidth * @getMaxScreenLineLength() + 20
     unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
@@ -1149,13 +1149,14 @@ class Editor extends View
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
+    lastScreenRow = @getLastScreenRow()
 
     if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
-      renderFrom = @firstRenderedScreenRow
-      renderTo = Math.min(@getLastScreenRow(), @lastRenderedScreenRow)
+      renderFrom = Math.min(lastScreenRow, @firstRenderedScreenRow)
+      renderTo = Math.min(lastScreenRow, @lastRenderedScreenRow)
     else
-      renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
-      renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
+      renderFrom = Math.min(lastScreenRow, Math.max(0, firstVisibleScreenRow - @lineOverdraw))
+      renderTo = Math.min(lastScreenRow, lastVisibleScreenRow + @lineOverdraw)
 
     if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return
