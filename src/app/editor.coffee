@@ -1149,13 +1149,14 @@ class Editor extends View
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
+    lastScreenRow = @getLastScreenRow()
 
     if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
-      renderFrom = @firstRenderedScreenRow
-      renderTo = Math.min(@getLastScreenRow(), @lastRenderedScreenRow)
+      renderFrom = Math.min(lastScreenRow, @firstRenderedScreenRow)
+      renderTo = Math.min(lastScreenRow, @lastRenderedScreenRow)
     else
-      renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
-      renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
+      renderFrom = Math.min(lastScreenRow, Math.max(0, firstVisibleScreenRow - @lineOverdraw))
+      renderTo = Math.min(lastScreenRow, lastVisibleScreenRow + @lineOverdraw)
 
     if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return

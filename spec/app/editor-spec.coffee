@@ -1388,6 +1388,15 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line').length).toBe 1
         expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
 
+    describe "when folding leaves fewer screen lines than the first rendered screen line (regression)", ->
+      it "clears all screen lines and does not throw any exceptions", ->
+        editor.lineOverdraw = 1
+        editor.attachToDom(heightInLines: 5)
+        editor.scrollToBottom()
+        editor.activeEditSession.foldBufferRow(0)
+        expect(editor.renderedLines.find('.line').length).toBe 1
+        expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
+
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
         editor.edit(project.buildEditSession('two-hundred.txt'))
