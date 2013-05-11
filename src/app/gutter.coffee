@@ -71,7 +71,7 @@ class Gutter extends View
       performUpdate = true
     else
       for change in changes
-        if change.delta != 0 or (change.bufferDelta? and change.bufferDelta != 0)
+        if change.screenDelta or change.bufferDelta
           performUpdate = true
           break
 
