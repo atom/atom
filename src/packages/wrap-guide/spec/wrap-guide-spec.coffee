@@ -9,6 +9,7 @@ describe "WrapGuide", ->
     rootView.open('sample.js')
     atom.activatePackage('wrap-guide')
     rootView.attachToDom()
+    rootView.height(200)
     editor = rootView.getActiveView()
     wrapGuide = rootView.find('.wrap-guide').view()
     editor.width(editor.charWidth * wrapGuide.getDefaultColumn() * 2)
@@ -60,7 +61,7 @@ describe "WrapGuide", ->
 
   describe "when no lines exceed the guide column and the editor width is smaller than the guide column position", ->
     it "hides the guide", ->
-      editor.width(10)
+      rootView.width(10)
       wrapGuide.updateGuide()
       expect(wrapGuide).toBeHidden()
 
