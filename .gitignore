@@ -9,7 +9,6 @@ build
 node_modules
 npm-debug.log
 tags
-/cef/
+/atom-shell/
 /sources.gypi
-/node/
 docs/api
