@@ -9,6 +9,7 @@ Subscriber = require 'subscriber'
 Range = require 'range'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+TextMateScopeSelector = require 'text-mate-scope-selector'
 
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
 module.exports =
@@ -283,6 +284,14 @@ class EditSession
 
   # {Delegates to: Buffer.isRowBlank}
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
+
+  # Test if an entire row is a comment
+  #
+  # Returns a {Boole}.
+  isBufferRowCommented: (bufferRow) ->
+    if match = @lineForBufferRow(bufferRow).match(/\S/)
+      scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
+      new TextMateScopeSelector('comment.*').matches(scopes)
 
   # {Delegates to: Buffer.nextNonBlankRow}
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)

@@ -2241,6 +2241,14 @@ describe "EditSession", ->
               editSession.insertText('\n')
               expect(editSession.indentationForBufferRow(6)).toBe editSession.indentationForBufferRow(5)
 
+          describe "when the line preceding the newline is a comment", ->
+            it "maintains the indent of the commented line", ->
+              editSession.setCursorBufferPosition([0, 0])
+              editSession.insertText('    //')
+              editSession.setCursorBufferPosition([0, Infinity])
+              editSession.insertText('\n')
+              expect(editSession.indentationForBufferRow(1)).toBe 2
+
           it "does not indent the line preceding the newline", ->
             editSession.setCursorBufferPosition([2, 0])
             editSession.insertText('  var this-line-should-be-indented-more\n')

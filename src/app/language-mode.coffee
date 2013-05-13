@@ -162,9 +162,8 @@ class LanguageMode
     return currentIndentLevel unless precedingRow?
 
     precedingLine = @buffer.lineForRow(precedingRow)
-
     desiredIndentLevel = @editSession.indentationForBufferRow(precedingRow)
-    desiredIndentLevel += 1 if increaseIndentRegex.test(precedingLine)
+    desiredIndentLevel += 1 if increaseIndentRegex.test(precedingLine) and not @editSession.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
     desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
