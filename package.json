@@ -1,6 +1,7 @@
 {
   "name"    : "atom",
   "version" : "0.0.0",
+  "main"    : "src/main.js",
 
   "dependencies": {
     "coffee-script": "1.6.2",
