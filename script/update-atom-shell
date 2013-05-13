@@ -27,6 +27,6 @@ if [[ ${LATEST_VERSION} != ${CURRENT_VERSION} ]]; then
     rm "${TEMP_DIR}/atom-shell.zip"
   fi
   [ -e "${TARGET}" ] && rm -rf "${TARGET}"
-  cp -r "${TEMP_DIR}" "${TARGET}"
+  cp -R "${TEMP_DIR}" "${TARGET}"
   echo ${LATEST_VERSION} > "${TARGET}/version"
 fi
