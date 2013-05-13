@@ -2,6 +2,7 @@
 FileView = require './file-view'
 Directory = require 'directory'
 $ = require 'jquery'
+fs = require 'fs'
 
 module.exports =
 class DirectoryView extends View
@@ -34,7 +35,7 @@ class DirectoryView extends View
             @updateStatus()
           @updateStatus()
       else
-        iconClass = 'repository-icon' if path is git.getWorkingDirectory()
+        iconClass = 'repository-icon' if @isRepositoryRoot()
 
     @directoryName.addClass(iconClass)
 
@@ -52,6 +53,12 @@ class DirectoryView extends View
 
   getPath: ->
     @directory.path
+
+  isRepositoryRoot: ->
+    try
+      git? and git.getWorkingDirectory() is fs.realpathSync(@getPath())
+    catch e
+      false
 
   isPathIgnored: (path) ->
     config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(path)
