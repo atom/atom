@@ -78,9 +78,9 @@ task :clean do
   `rm -rf atom-shell`
 end
 
-desc "Delete cached cefodes"
-task "clean-cefode-cache" do
-  `rm -rf /tmp/atom-cached-cefodes`
+desc "Delete cached atom-shells"
+task "clean-atom-shell-cache" do
+  `rm -rf /tmp/atom-cached-atom-shells`
 end
 
 desc "Run the specs"

@@ -4,5 +4,5 @@ set -ex
 cd "$(dirname "$0")/../.."
 export PATH="/usr/local/Cellar/node/0.8.21/bin:/usr/local/bin:${PATH}"
 export VERSION=$VERSION
-rake clean clean-cefode-cache
+rake clean clean-atom-shell-cache
 rake setup-codesigning create-xcode-project
