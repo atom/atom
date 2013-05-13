@@ -2203,28 +2203,30 @@ describe "EditSession", ->
       editSession.cutSelectedText()
 
     describe "editor.autoIndent", ->
-      describe "when `indent` is called", ->
-        it "auto-indents line if editor.autoIndent is true", ->
-          editSession.setCursorBufferPosition([1, 30])
-          editSession.insertText("\n ")
-          expect(editSession.lineForBufferRow(2)).toBe " "
+      describe "when editor.autoIndent is false (default)", ->
+        describe "when `indent` is triggered", ->
+          it "does not auto-indent the line", ->
+            editSession.setCursorBufferPosition([1, 30])
+            editSession.insertText("\n ")
+            expect(editSession.lineForBufferRow(2)).toBe " "
 
-          config.set("editor.autoIndent", true)
-          editSession.indent()
-          expect(editSession.lineForBufferRow(2)).toBe "    "
-
-        it "does not auto-indent line if editor.autoIndent is false", ->
-          editSession.setCursorBufferPosition([1, 30])
-          editSession.insertText("\n ")
-          expect(editSession.lineForBufferRow(2)).toBe " "
-
-          config.set("editor.autoIndent", false)
-          editSession.indent()
-          expect(editSession.lineForBufferRow(2)).toBe "   "
+            config.set("editor.autoIndent", false)
+            editSession.indent()
+            expect(editSession.lineForBufferRow(2)).toBe "   "
 
       describe "when editor.autoIndent is true", ->
         beforeEach ->
           config.set("editor.autoIndent", true)
+
+        describe "when `indent` is triggered", ->
+          it "auto-indents the line", ->
+            editSession.setCursorBufferPosition([1, 30])
+            editSession.insertText("\n ")
+            expect(editSession.lineForBufferRow(2)).toBe " "
+
+            config.set("editor.autoIndent", true)
+            editSession.indent()
+            expect(editSession.lineForBufferRow(2)).toBe "    "
 
         describe "when a newline is added", ->
           describe "when the line preceding the newline adds a new level of indentation", ->
