@@ -12,7 +12,7 @@ task :build => "create-xcode-project" do
 end
 
 desc "Create xcode project from gyp file"
-task "create-xcode-project" => ["update-cef", "update-node"] do
+task "create-xcode-project" => ["update-atom-shell"] do
   `rm -rf atom.xcodeproj`
   `script/generate-sources-gypi`
   version = %{-D version="#{ENV['VERSION']}"} if ENV['VERSION']
@@ -20,22 +20,9 @@ task "create-xcode-project" => ["update-cef", "update-node"] do
   `gyp --depth=. #{code_sign} #{version} atom.gyp`
 end
 
-desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
-task "update-cef" => "bootstrap" do
-  exit 1 unless system %{script/update-cefode}
-  Dir.glob('cef/*.gypi').each do |filename|
-    `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
-  end
-end
-
-desc "Download node binary"
-task "update-node" do
-  `script/update-node v0.10.3`
-end
-
-desc "Download debug symbols for CEF"
-task "download-cef-symbols" => "update-cef" do
-  sh %{script/update-cefode -s}
+desc "Update to latest atom-shell"
+task "update-atom-shell" => "bootstrap" do
+  exit 1 unless system %{script/update-atom-shell}
 end
 
 task "bootstrap" do
@@ -88,7 +75,7 @@ task :clean do
   `rm -rf #{BUILD_DIR}`
   `rm -rf /tmp/atom-coffee-cache`
   `rm -rf node_modules`
-  `rm -rf cef`
+  `rm -rf atom-shell`
 end
 
 desc "Delete cached cefodes"
@@ -97,7 +84,7 @@ task "clean-cefode-cache" do
 end
 
 desc "Run the specs"
-task :test => ["update-cef", "clone-default-bundles", "build"] do
+task :test => ["clone-default-bundles", "build"] do
   `pkill Atom`
   if path = application_path()
     cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH}"
@@ -118,7 +105,7 @@ task :nof do
 end
 
 task :tags do
-  system %{find src native cef vendor -not -name "*spec.coffee" -type f -print0 | xargs -0 ctags}
+  system %{find src native vendor -not -name "*spec.coffee" -type f -print0 | xargs -0 ctags}
 end
 
 namespace :docs do

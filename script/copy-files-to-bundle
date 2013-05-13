@@ -4,7 +4,7 @@
 set -e
 
 COMPILED_SOURCES_DIR="${1}"
-RESOUCES_PATH="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
+RESOUCES_PATH="$BUILT_PRODUCTS_DIR/Atom.app/Contents/Resources/app"
 
 # Copy non-coffee/cson/less files into bundle
 rsync --archive --recursive \
@@ -14,5 +14,5 @@ rsync --archive --recursive \
       --exclude="src/**.less" \
       --exclude="static/**.less" \
       --exclude="themes/**.less" \
-      node_modules src static vendor spec benchmark themes dot-atom atom.sh \
+      node_modules src static vendor spec benchmark themes dot-atom atom.sh package.json \
       "${COMPILED_SOURCES_DIR}/" "$RESOUCES_PATH"
