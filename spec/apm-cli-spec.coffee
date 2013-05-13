@@ -139,3 +139,14 @@ describe 'apm command line interface', ->
       apm.run(['list'])
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[1][0]).toContain 'test-module@1.0.0'
+
+    it 'labels disabled packages', ->
+      packagesPath = path.join(atomHome, 'packages')
+      mkdir(packagesPath)
+      wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
+      configPath = path.join(atomHome, 'config.cson')
+      fs.writeFileSync(configPath, 'core: disabledPackages: ["test-module"]')
+
+      apm.run(['list'])
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[1][0]).toContain 'test-module@1.0.0 (disabled)'

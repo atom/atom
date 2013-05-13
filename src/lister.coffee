@@ -7,10 +7,15 @@ module.exports =
 class Lister
   userPackagesDirectory: null
   bundledPackagesDirectory: null
+  disabledPackages: null
 
   constructor: ->
     @userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
     @bundledPackagesDirectory = path.join(config.getResourcePath(), 'src', 'packages')
+    if configPath = CSON.resolveObjectPath(path.join(config.getAtomDirectory(), 'config'))
+      try
+        @disabledPackages = CSON.readObjectSync(configPath)?.core?.disabledPackages
+    @disabledPackages ?= []
 
   isDirectory: (directoryPath) ->
     try
@@ -33,13 +38,19 @@ class Lister
     else
       []
 
+  isPackageDisabled: (name) ->
+    @disabledPackages.indexOf(name) isnt -1
+
   logPackages: (packages) ->
     for pack, index in packages
       if index is packages.length - 1
         prefix = '\u2514\u2500\u2500 '
       else
         prefix = '\u251C\u2500\u2500 '
-      console.log "#{prefix}#{pack.name}@#{pack.version}"
+      if @isPackageDisabled(pack.name)
+        console.log "#{prefix}#{pack.name}@#{pack.version} (disabled)"
+      else
+        console.log "#{prefix}#{pack.name}@#{pack.version}"
 
   listPackages: (directoryPath) ->
     packages = []
@@ -59,7 +70,6 @@ class Lister
   listUserPackages: ->
     console.log @userPackagesDirectory
     @logPackages(@listPackages(@userPackagesDirectory))
-
 
   listBundledPackages: ->
     console.log 'Built-in packages'
