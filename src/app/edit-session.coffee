@@ -475,10 +475,11 @@ class EditSession
   #
   # options - A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
-    options.autoIndent ?= @shouldAutoIndentPastedText()
-
     [text, metadata] = pasteboard.read()
-    _.extend(options, metadata) if metadata
+
+    options.autoIndent ?= @shouldAutoIndentPastedText()
+    if config.get('editor.normalizeIndentOnPaste') and metadata
+      options.indentBasis ?= metadata.indentBasis
 
     @insertText(text, options)
 

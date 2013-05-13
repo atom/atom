@@ -22,6 +22,7 @@ class Editor extends View
     showLineNumbers: true
     autoIndent: true
     autoIndentOnPaste: false
+    normalizeIndentOnPaste: false
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
     preferredLineLength: 80
 

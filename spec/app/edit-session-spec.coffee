@@ -2323,7 +2323,28 @@ describe "EditSession", ->
           editSession.pasteText()
           expect(editSession.lineForBufferRow(10)).toBe "  var number"
 
-    describe "editor.normalizePastedText", ->
+    describe "editor.normalizeIndentOnPaste", ->
+      beforeEach ->
+        config.set('editor.normalizeIndentOnPaste', true)
+
+      it "does not normalize the indentation level of the text when editor.autoIndentOnPaste is true", ->
+        copyText("   function() {\nvar cool = 1;\n  }\n")
+        config.set('editor.autoIndentOnPaste', true)
+        editSession.setCursorBufferPosition([5, ])
+        editSession.pasteText()
+        expect(editSession.lineForBufferRow(5)).toBe "      function() {"
+        expect(editSession.lineForBufferRow(6)).toBe "        var cool = 1;"
+        expect(editSession.lineForBufferRow(7)).toBe "      }"
+
+      it "does not normalize the indentation level of the text when editor.normalizeIndentOnPaste is false", ->
+        copyText("   function() {\nvar cool = 1;\n  }\n")
+        config.set('editor.normalizeIndentOnPaste', false)
+        editSession.setCursorBufferPosition([5, 2])
+        editSession.pasteText()
+        expect(editSession.lineForBufferRow(5)).toBe "     function() {"
+        expect(editSession.lineForBufferRow(6)).toBe "var cool = 1;"
+        expect(editSession.lineForBufferRow(7)).toBe "  }"
+
       describe "when the inserted text contains no newlines", ->
         it "does not adjust the indentation level of the text", ->
           editSession.setCursorBufferPosition([5, 2])
@@ -2331,48 +2352,39 @@ describe "EditSession", ->
           expect(editSession.lineForBufferRow(5)).toBe "  foo    current = items.shift();"
 
       describe "when the inserted text contains newlines", ->
-        it "does not normalize the indentation level of the text when editor.autoIndentOnPaste is true", ->
-          copyText("   function() {\nvar cool = 1;\n  }\n")
-          config.set('editor.autoIndentOnPaste', true)
-          editSession.setCursorBufferPosition([5, 2])
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(5)).toBe "      function() {"
-          expect(editSession.lineForBufferRow(6)).toBe "        var cool = 1;"
-          expect(editSession.lineForBufferRow(7)).toBe "      }"
+        describe "when copied text includes whitespace on first line", ->
+          describe "when cursor is preceded by whitespace and followed non-whitespace", ->
+            it "normalizes indented lines to the cursor's current indentation level", ->
+              copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 4})
+              editSession.setCursorBufferPosition([3, 4])
+              editSession.pasteText()
 
-      describe "when copied text includes whitespace on first line", ->
-        describe "when cursor is preceded whitespace and followed non-whitespace", ->
-          it "normalizes indented lines to the cursor's current indentation level", ->
-            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 4})
-            editSession.setCursorBufferPosition([3, 4])
-            editSession.pasteText()
+              expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
+              expect(editSession.lineForBufferRow(4)).toBe "      foo();"
+              expect(editSession.lineForBufferRow(5)).toBe "    }"
+              expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
 
-            expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
-            expect(editSession.lineForBufferRow(4)).toBe "      foo();"
-            expect(editSession.lineForBufferRow(5)).toBe "    }"
-            expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
+          describe "when cursor is preceded by whitespace and followed by whitespace", ->
+            it "normalizes indented lines to the cursor's current indentation level", ->
+              copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
+              editSession.setCursorBufferPosition([3, 4])
+              editSession.pasteText()
 
-        describe "when cursor is preceded whitespace and followed by whitespace", ->
-          it "normalizes indented lines to the cursor's current indentation level", ->
-            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
-            editSession.setCursorBufferPosition([3, 4])
-            editSession.pasteText()
+              expect(editSession.lineForBufferRow(3)).toBe "        while (true) {"
+              expect(editSession.lineForBufferRow(4)).toBe "          foo();"
+              expect(editSession.lineForBufferRow(5)).toBe "        }"
+              expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
 
-            expect(editSession.lineForBufferRow(3)).toBe "        while (true) {"
-            expect(editSession.lineForBufferRow(4)).toBe "          foo();"
-            expect(editSession.lineForBufferRow(5)).toBe "        }"
-            expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
+          describe "when the cursor is preceded by non-whitespace characters", ->
+            it "normalizes the indentation level of all lines based on the level of the existing first line", ->
+              copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
+              editSession.setCursorBufferPosition([1, Infinity])
+              editSession.pasteText()
 
-        describe "when the cursor is preceded by non-whitespace characters", ->
-          it "normalizes the indentation level of all lines based on the level of the existing first line", ->
-            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
-            editSession.setCursorBufferPosition([1, Infinity])
-            editSession.pasteText()
-
-            expect(editSession.lineForBufferRow(1)).toBe "  var sort = function(items) {    while (true) {"
-            expect(editSession.lineForBufferRow(2)).toBe "    foo();"
-            expect(editSession.lineForBufferRow(3)).toBe "  }"
-            expect(editSession.lineForBufferRow(4)).toBe ""
+              expect(editSession.lineForBufferRow(1)).toBe "  var sort = function(items) {    while (true) {"
+              expect(editSession.lineForBufferRow(2)).toBe "    foo();"
+              expect(editSession.lineForBufferRow(3)).toBe "  }"
+              expect(editSession.lineForBufferRow(4)).toBe ""
 
     it "autoIndentSelectedRows auto-indents the selection", ->
       editSession.setCursorBufferPosition([2, 0])
