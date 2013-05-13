@@ -214,7 +214,7 @@ describe "Git", ->
         expect(repo.isStatusNew(statuses[newPath])).toBeTruthy()
         expect(repo.isStatusModified(statuses[modifiedPath])).toBeTruthy()
 
-    it "only starts a single web worker at a time and schedules a restart if one is already running", =>
+    it "only starts a single task at a time and schedules a restart if one is already running", =>
       fsUtils.write(modifiedPath, 'making this path modified')
       statusHandler = jasmine.createSpy('statusHandler')
       repo.on 'statuses-changed', statusHandler
