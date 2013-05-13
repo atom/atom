@@ -5,10 +5,12 @@ config = require './config'
 
 module.exports =
 class Lister
-  atomModulesDirectory: null
+  userPackagesDirectory: null
+  bundledPackagesDirectory: null
 
   constructor: ->
-    @atomModulesDirectory = path.join(config.getAtomDirectory(), 'packages')
+    @userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
+    @bundledPackagesDirectory = path.join(config.getResourcePath(), 'src', 'packages')
 
   isDirectory: (directoryPath) ->
     try
@@ -25,16 +27,24 @@ class Lister
   list: (directoryPath) ->
     if @isDirectory(directoryPath)
       try
-        fs.readdirSync(@atomModulesDirectory)
+        fs.readdirSync(directoryPath)
       catch e
         []
     else
       []
 
-  listAtomPackagesDirectory: ->
+  logPackages: (packages) ->
+    for pack, index in packages
+      if index is packages.length - 1
+        prefix = '\u2514\u2500\u2500 '
+      else
+        prefix = '\u251C\u2500\u2500 '
+      console.log "#{prefix}#{pack.name}@#{pack.version}"
+
+  listPackages: (directoryPath) ->
     packages = []
-    for child in @list(@atomModulesDirectory)
-      manifestPath = CSON.resolveObjectPath(path.join(@atomModulesDirectory, child, 'package'))
+    for child in @list(directoryPath)
+      manifestPath = CSON.resolveObjectPath(path.join(directoryPath, child, 'package'))
       try
         manifest = CSON.readObjectSync(manifestPath)
       catch e
@@ -44,12 +54,18 @@ class Lister
       version = manifest.version ? '0.0.0'
       packages.push({name, version})
 
-    console.log @atomModulesDirectory
-    for pack, index in packages
-      if index is packages.length - 1
-        prefix = '\u2514\u2500\u2500 '
-      else
-        prefix = '\u251C\u2500\u2500 '
-      console.log "#{prefix}#{pack.name}@#{pack.version}"
+    packages
+
+  listUserPackages: ->
+    console.log @userPackagesDirectory
+    @logPackages(@listPackages(@userPackagesDirectory))
+
+
+  listBundledPackages: ->
+    console.log 'Built-in packages'
+    @logPackages(@listPackages(@bundledPackagesDirectory))
+
   run: (options) ->
-    @listAtomPackagesDirectory()
+    @listUserPackages()
+    console.log ''
+    @listBundledPackages()

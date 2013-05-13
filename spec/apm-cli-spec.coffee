@@ -98,11 +98,6 @@ describe 'apm command line interface', ->
             expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
             expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
 
-            console.log.reset()
-            apm.run(['list'], callback)
-            expect(console.log).toHaveBeenCalled()
-            expect(console.log.mostRecentCall.args[0]).toContain 'test-module@1.0.0'
-
       describe 'when no path is specified', ->
         it 'installs all dependent modules', ->
           moduleDirectory = path.join(temp.mkdirSync('apm-test-module-'), 'test-module-with-dependencies')
@@ -117,3 +112,30 @@ describe 'apm command line interface', ->
           runs ->
             expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'index.js'))).toBeTruthy()
             expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'package.json'))).toBeTruthy()
+
+  describe 'apm list', ->
+    [resourcePath, atomHome] = []
+
+    beforeEach ->
+      resourcePath = temp.mkdirSync('apm-resource-path-')
+      process.env.ATOM_RESOURCE_PATH = resourcePath
+      atomHome = temp.mkdirSync('apm-home-dir-')
+      process.env.ATOM_HOME = atomHome
+
+    it 'lists the built-in packages', ->
+      packagesPath = path.join(resourcePath, 'src', 'packages')
+      mkdir(packagesPath)
+      wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
+
+      apm.run(['list'])
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[3][0]).toContain 'test-module@1.0.0'
+
+    it 'lists the installed packages', ->
+      packagesPath = path.join(atomHome, 'packages')
+      mkdir(packagesPath)
+      wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
+
+      apm.run(['list'])
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[1][0]).toContain 'test-module@1.0.0'
