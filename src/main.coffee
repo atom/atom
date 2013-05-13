@@ -31,7 +31,7 @@ class AtomWindow
     @setNodePaths()
     @openWithParams(params)
 
-  setNodePaths: (isSpec) ->
+  setNodePaths: ->
     resourcePaths = [
       'src/stdlib',
       'src/app',
@@ -67,7 +67,6 @@ class AtomWindow
       url += "#{separator}#{pair.name}=#{pair.param}"
       separator = '&' if separator is '?'
 
-    console.log url
     win.loadUrl url
     win.show()
 
