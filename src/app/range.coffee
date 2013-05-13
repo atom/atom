@@ -204,6 +204,12 @@ class Range
   getRowCount: ->
     @end.row - @start.row + 1
 
+  # Returns an array of all rows in a `Range`
+  #
+  # Returns an {Array}
+  getRows: ->
+    [@start.row..@end.row]
+
   ### Internal ###
 
   inspect: ->

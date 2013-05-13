@@ -2084,7 +2084,6 @@ describe "Editor", ->
       runs ->
         expect(editor.getText()).toBe(originalPathText)
 
-
   describe ".pixelPositionForBufferPosition(position)", ->
     describe "when the editor is detached", ->
       it "returns top and left values of 0", ->
@@ -2619,7 +2618,6 @@ describe "Editor", ->
       editor.on 'editor:will-be-removed', willBeRemovedHandler
       editor.getPane().destroyActiveItem()
       expect(willBeRemovedHandler).toHaveBeenCalled()
-
 
   describe "when setInvisibles is toggled (regression)", ->
     it "renders inserted newlines properly", ->

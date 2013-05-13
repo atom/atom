@@ -169,7 +169,7 @@ class LanguageMode
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
     desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
 
-    Math.max(desiredIndentLevel, currentIndentLevel)
+    desiredIndentLevel
 
   # Indents all the rows between two buffer row numbers.
   #
@@ -182,26 +182,8 @@ class LanguageMode
   #
   # bufferRow - The row {Number}
   autoIndentBufferRow: (bufferRow) ->
-    @autoIncreaseIndentForBufferRow(bufferRow)
-    @autoDecreaseIndentForBufferRow(bufferRow)
-
-  # Given a buffer row, this increases the indentation.
-  #
-  # bufferRow - The row {Number}
-  autoIncreaseIndentForBufferRow: (bufferRow) ->
-    precedingRow = @buffer.previousNonBlankRow(bufferRow)
-    return unless precedingRow?
-
-    precedingLine = @editSession.lineForBufferRow(precedingRow)
-    scopes = @editSession.scopesForBufferPosition([precedingRow, Infinity])
-    increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
-    return unless increaseIndentRegex
-
-    currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
-    desiredIndentLevel = @editSession.indentationForBufferRow(precedingRow)
-    desiredIndentLevel += 1 if increaseIndentRegex.test(precedingLine)
-    if desiredIndentLevel > currentIndentLevel
-      @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
+    indentLevel = @suggestedIndentForBufferRow(bufferRow)
+    @editSession.setIndentationForBufferRow(bufferRow, indentLevel)
 
   # Given a buffer row, this decreases the indentation.
   #
