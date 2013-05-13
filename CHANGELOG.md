@@ -1,3 +1,5 @@
+* Improved: App icon
+
 * Fixed: Fuzzy finder being empty sometimes
 
 * Improved: App icon
