@@ -1,5 +1,6 @@
 path = require 'path'
 fs = require 'fs'
+CSON = require 'season'
 config = require './config'
 
 module.exports =
@@ -33,15 +34,14 @@ class Lister
   listAtomPackagesDirectory: ->
     packages = []
     for child in @list(@atomModulesDirectory)
-      manifest = path.join(@atomModulesDirectory, child, 'package.json')
-      continue unless @isFile(manifest)
+      manifestPath = CSON.resolveObjectPath(path.join(@atomModulesDirectory, child, 'package'))
       try
-        packageJson = JSON.parse(fs.readFileSync(manifest, 'utf8'))
+        manifest = CSON.readObjectSync(manifestPath)
       catch e
         continue
 
-      name = packageJson.name ? child
-      version = packageJson.version ? '0.0.0'
+      name = manifest.name ? child
+      version = manifest.version ? '0.0.0'
       packages.push({name, version})
 
     console.log @atomModulesDirectory
