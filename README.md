@@ -5,7 +5,7 @@ Discover and install Atom packages.
 ## Installing
 
 ```
-npm install -g https://github.com/atom/apm.git
+npm install -g git+https://github.com/atom/apm.git
 ```
 
 ## Building
