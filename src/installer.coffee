@@ -31,8 +31,8 @@ class Installer
     spawned = child_process.spawn(command, args, options)
     spawned.stdout.pipe(process.stdout)
     spawned.stderr.pipe(process.stderr)
-    spawned.on 'error', (error) -> callback?(-1)
-    spawned.on('close', callback) if callback?
+    spawned.on('error', callback)
+    spawned.on('close', callback)
 
   installNode: (callback) =>
     console.log '\nInstalling node...'
@@ -93,26 +93,24 @@ class Installer
     commands.push(@installNode)
     commands.push (callback) => @installModule(modulePath, callback)
 
-    async.waterfall commands, (error) ->
-      console.error(error) if error?
-      options.callback?()
+    async.waterfall(commands, options.callback)
 
   installDependencies: (options) ->
     commands = []
     commands.push(@installNode)
     commands.push(@installModules)
 
-    async.waterfall commands, (error) ->
-      console.error(error) if error?
-      options.callback?()
+    async.waterfall commands, options.callback
 
   installTextMateBundle: (options, bundlePath) ->
     gitArguments = ['clone']
     gitArguments.push(bundlePath)
     gitArguments.push(path.join(@atomPackagesDirectory, path.basename(bundlePath, '.git')))
     @spawn 'git', gitArguments, (code) ->
-      console.error("Installing bundle failed with code: #{code}") if code isnt 0
-      options.callback?()
+      if code is 0
+        options.callback()
+      else
+        options.callback("Installing bundle failed with code: #{code}")
 
   isTextMateBundlePath: (bundlePath) ->
     path.extname(path.basename(bundlePath, '.git')) is '.tmbundle'

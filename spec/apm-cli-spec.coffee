@@ -81,6 +81,18 @@ describe 'apm command line interface', ->
       afterEach ->
         server.close()
 
+      describe 'when an invalid URL is specified', ->
+        it 'logs an error and exits', ->
+          callback = jasmine.createSpy('callback')
+          apm.run(['install', "http://localhost:3000/not-a-module-1.0.0.tgz"], callback)
+
+          waitsFor 'waiting for install to complete', 600000, ->
+            callback.callCount is 1
+
+          runs ->
+            expect(console.error.mostRecentCall.args[0].length).toBeGreaterThan 0
+            expect(process.exit.mostRecentCall.args[0]).toBe 1
+
       describe 'when a URL to a module is specified', ->
         it 'installs the module at the path', ->
           testModuleDirectory = path.join(atomHome, 'packages', 'test-module')

@@ -16,7 +16,17 @@ parseOptions = (args=[]) ->
 module.exports =
   run: (args, callback) ->
     options = parseOptions(args)
-    options.callback = callback
+    callbackCalled = false
+    options.callback = (error) ->
+      return if callbackCalled
+      callbackCalled = true
+      if error?
+        callback?(error)
+        console.error(error)
+        process.exit(1)
+      else
+        callback?()
+
     args = options.argv
     command = options.command
     if args.v
