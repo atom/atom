@@ -20,7 +20,7 @@ module.exports =
     args = options.argv
     command = options.command
     if args.v
-      console.log JSON.parse(fs.readFileSync('package.json')).version
+      console.log require('../package.json').version
     else if args.h
       options.showHelp()
     else if command
