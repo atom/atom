@@ -13,6 +13,7 @@ describe 'apm command line interface', ->
     spyOn(console, 'error')
     spyOn(process.stdout, 'write')
     spyOn(process.stderr, 'write')
+    spyOn(process, 'exit')
 
   describe 'when no arguments are present', ->
     it 'prints a usage message', ->
@@ -36,11 +37,12 @@ describe 'apm command line interface', ->
       expect(console.log.argsForCall[0][0]).toBe JSON.parse(fs.readFileSync('package.json')).version
 
   describe 'when an unrecognized command is specified', ->
-    it 'prints an error message', ->
+    it 'prints an error message and exits', ->
       apm.run(['this-will-never-be-a-command'])
       expect(console.log).not.toHaveBeenCalled()
       expect(console.error).toHaveBeenCalled()
       expect(console.error.argsForCall[0][0].length).toBeGreaterThan 0
+      expect(process.exit.mostRecentCall.args[0]).toBe 1
 
   describe 'apm install', ->
     atomHome = null

@@ -27,6 +27,8 @@ module.exports =
       switch command
         when 'install' then new Installer().run(options)
         when 'list', 'ls' then new Lister().run(options)
-        else console.error "Unrecognized command: #{command}"
+        else
+          console.error "Unrecognized command: #{command}"
+          process.exit(1)
     else
       options.showHelp()
