@@ -1,7 +1,6 @@
 {
-  "name"    : "atom",
-  "version" : "0.0.0",
-
+  "name": "atom",
+  "version": "0.0.0",
   "dependencies": {
     "coffee-script": "1.6.2",
     "ctags": "0.3.0",
@@ -22,13 +21,11 @@
     "roaster": "0.0.3",
     "jqueryui-browser": "1.10.2-1"
   },
-
-  "devDependencies" : {
-    "biscotto" : "0.0.11"
+  "devDependencies": {
+    "biscotto": "0.0.11",
+    "season": "~0.7.0"
   },
-
   "private": true,
-
   "scripts": {
     "preinstall": "true"
   }
