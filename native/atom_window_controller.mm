@@ -140,7 +140,7 @@
 
 - (id)initConfig {
   _isConfig = true;
-  return [self initWithBootstrapScript:@"config-bootstrap" background:NO useBundleResourcePath:![self isDevMode]];
+  return [self initWithBootstrapScript:@"config-bootstrap" background:NO useBundleResourcePath:![self isDevFlagSpecified]];
 }
 
 - (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {
