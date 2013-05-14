@@ -35,9 +35,15 @@ class PathLoader
 
   loadPath: (path) ->
     @asyncCallStarting()
-    fs.stat path, (error, stats) =>
+    fs.lstat path, (error, stats) =>
       unless error?
-        if stats.isDirectory()
+        if stats.isSymbolicLink()
+          @asyncCallStarting()
+          fs.stat path, (error, stats) =>
+            unless error?
+              @pathLoaded(path) if stats.isFile()
+            @asyncCallDone()
+        else if stats.isDirectory()
           @loadFolder(path) unless @isIgnored(path)
         else if stats.isFile()
           @pathLoaded(path)
