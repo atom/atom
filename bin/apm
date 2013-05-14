@@ -1,3 +1,4 @@
 #!/usr/bin/env node
 
-require('../lib/apm-cli').run(process.argv.slice(2));
+path = require('path');
+require(path.join(__dirname, '..', 'lib', 'apm-cli')).run(process.argv.slice(2));
