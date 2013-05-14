@@ -19,11 +19,11 @@
     "space-pen": "git://github.com/nathansobo/space-pen.git",
     "less": "git://github.com/nathansobo/less.js.git",
     "roaster": "0.0.3",
-    "jqueryui-browser": "1.10.2-1"
+    "jqueryui-browser": "1.10.2-1",
+    "season": "0.7.0"
   },
   "devDependencies": {
-    "biscotto": "0.0.11",
-    "season": "~0.7.0"
+    "biscotto": "0.0.11"
   },
   "private": true,
   "scripts": {

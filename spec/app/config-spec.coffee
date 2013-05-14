@@ -1,3 +1,4 @@
+fs = require 'fs'
 fsUtils = require 'fs-utils'
 
 describe "Config", ->
@@ -46,7 +47,7 @@ describe "Config", ->
 
   describe ".save()", ->
     beforeEach ->
-      spyOn(fsUtils, 'write')
+      spyOn(fs, 'writeFileSync')
       jasmine.unspy config, 'save'
 
     describe "when ~/.atom/config.json exists", ->
@@ -57,11 +58,11 @@ describe "Config", ->
         config.set("x.y.z", 3)
         config.setDefaults("a.b", e: 4, f: 5)
 
-        fsUtils.write.reset()
+        fs.writeFileSync.reset()
         config.save()
 
-        expect(fsUtils.write.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.json"))
-        writtenConfig = JSON.parse(fsUtils.write.argsForCall[0][1])
+        expect(fs.writeFileSync.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.json"))
+        writtenConfig = JSON.parse(fs.writeFileSync.argsForCall[0][1])
         expect(writtenConfig).toEqual config.settings
 
     describe "when ~/.atom/config.json doesn't exist", ->
@@ -72,12 +73,12 @@ describe "Config", ->
         config.set("x.y.z", 3)
         config.setDefaults("a.b", e: 4, f: 5)
 
-        fsUtils.write.reset()
+        fs.writeFileSync.reset()
         config.save()
 
-        expect(fsUtils.write.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.cson"))
+        expect(fs.writeFileSync.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.cson"))
         CoffeeScript = require 'coffee-script'
-        writtenConfig = CoffeeScript.eval(fsUtils.write.argsForCall[0][1], bare: true)
+        writtenConfig = CoffeeScript.eval(fs.writeFileSync.argsForCall[0][1], bare: true)
         expect(writtenConfig).toEqual config.settings
 
   describe ".setDefaults(keyPath, defaults)", ->

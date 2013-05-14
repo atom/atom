@@ -1,7 +1,7 @@
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
-CSON = require 'cson'
+CSON = require 'season'
 fs = require 'fs'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
@@ -70,7 +70,7 @@ class Config
   loadUserConfig: ->
     if fsUtils.exists(@configFilePath)
       try
-        userConfig = CSON.readObject(@configFilePath)
+        userConfig = CSON.readFileSync(@configFilePath)
         _.extend(@settings, userConfig)
         @configFileHasErrors = false
         @trigger 'updated'
@@ -173,6 +173,6 @@ class Config
     @trigger 'updated'
 
   save: ->
-    CSON.writeObject(@configFilePath, @settings)
+    CSON.writeFileSync(@configFilePath, @settings)
 
 _.extend Config.prototype, EventEmitter

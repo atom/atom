@@ -1,8 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
-CSON = require 'cson'
-
+CSON = require 'season'
 BindingSet = require 'binding-set'
 
 # Internal: Associates keymaps with actions.
@@ -46,7 +45,7 @@ class Keymap
     @load(filePath) for filePath in fsUtils.list(directoryPath, ['.cson', '.json'])
 
   load: (path) ->
-    @add(path, CSON.readObject(path))
+    @add(path, CSON.readFileSync(path))
 
   add: (args...) ->
     name = args.shift() if args.length > 1
