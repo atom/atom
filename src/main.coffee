@@ -11,11 +11,11 @@ app.on 'window-all-closed', ->
 class AtomWindow
   @windows = []
 
-  constructor: (options) ->
-    {@bootstrapScript, @isDev, @isSpec, @exitWhenDone, @resourcePath} = options
+  bootstrapScript: null
+  resourcePath: null
 
+  constructor: ({@bootstrapScript, @resourcePath}) ->
     @resourcePath ?= path.dirname(__dirname)
-
     @window = @open()
 
   open: ->
@@ -39,10 +39,6 @@ class AtomWindow
       'static',
       'node_modules',
     ]
-
-    if @isSpec
-      resourcePaths = ['benchmark', 'spec'].contat resourcePaths
-      resourcePaths.push 'spec/fixtures/packages'
 
     homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
     resourcePaths.push path.join(homeDir, '.atom', 'packages')
@@ -73,7 +69,4 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
   args = require('optimist')(modifiedArgv).argv
   new AtomWindow
     bootstrapScript: 'window-bootstrap',
-    isDev: false,
-    isSpec: false,
-    exitWhenDone: false
     resourcePath: args['resource-path']
