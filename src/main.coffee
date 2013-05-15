@@ -1,7 +1,7 @@
 app = require 'app'
 delegate = require 'atom_delegate'
 path = require 'path'
-Window = require 'window'
+BrowserWindow = require 'browser_window'
 
 # Quit when all windows are closed.
 app.on 'window-all-closed', ->
@@ -55,7 +55,7 @@ class AtomWindow
     process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
   openWithParams: (pairs) ->
-    win = new Window width: 800, height: 600, show: false, title: 'Atom'
+    win = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
 
     AtomWindow.windows.push win
     win.on 'destroyed', =>
