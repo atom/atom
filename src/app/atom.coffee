@@ -3,10 +3,7 @@ _ = require 'underscore'
 Package = require 'package'
 Theme = require 'theme'
 
-messageIdCounter = 1
-originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
-
-_.extend atom,
+window.atom =
   exitWhenDone: window.location.params.exitWhenDone
   devMode: window.location.params.devMode
   loadedThemes: []
@@ -16,6 +13,8 @@ _.extend atom,
   packageStates: {}
   presentingModal: false
   pendingModals: [[]]
+  messageIdCounter: 1
+  originalSendMessageToBrowserProcess: -> console.log 'this methods needs to be replaced'
 
   getPathToOpen: ->
     @getWindowState('pathToOpen') ? window.location.params.pathToOpen
