@@ -1,22 +1,26 @@
-## Command Panel
+# Command Panel
 
-A partial implementation of the [Sam command language](http://man.cat-v.org/plan_9/1/sam)
+The command panel contains a  partial implementation of the [Sam command language](http://man.cat-v.org/plan_9/1/sam).
+In addition, packages are free to design and define any scoped command.
 
-*Examples*
+Pop open the command line by hitting .
+You can get a list of commands available to Atom (including any keybindings) by hitting `meta-p`.
 
-`,` selects entire file
+## Examples
 
-`1,4` selects lines 1-4
+`,` selects the entire file
+
+`1,4` selects lines 1-4 in the current file
 
 `/pattern` selects the first match after the cursor/selection
 
-`s/pattern/replacement` replace first text matching pattern in current selection
+`s/pattern/replacement` replaces the first text matching pattern in current selection
 
-`s/pattern/replacement/g` replace all text matching pattern in current selection
+`s/pattern/replacement/g` replaces all text matching pattern in current selection
 
-`,s/pattern/replacement/g` replace all text matching pattern in file
+`,s/pattern/replacement/g` replaces all text matching pattern in file
 
-`1,4s/pattern/replacement` replace all text matching pattern in lines 1-4
+`1,4s/pattern/replacement` replaces all text matching pattern in lines 1-4
 
 `x/pattern` selects all matches in the current selections
 

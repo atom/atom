@@ -1,32 +1,33 @@
 # Getting Started
 
-Welcome to Atom. This documentation is intended to offer a basic introduction
-of how to get productive with this editor. Then we'll delve into more details
-about configuring, theming, and extending Atom.
+Welcome to Atom. This documentation provides a basic introduction to being
+productive with this editor. We'll then delve into more details about configuring,
+theming, and extending Atom.
 
 ## The Command Palette
 
-If there's one key-command you learn in Atom, it should be `meta-p` (`meta` is
+If there's one key-command you must remember in Atom, it should be `meta-p` (`meta` is
 synonymous with the ⌘ key). You can always hit `meta-p` to bring up a list of
 commands that are relevant to the currently focused UI element. If there is a
 key binding for a given command, it is also displayed. This is a great way to
 explore the system and get to know the key commands interactively. If you'd like
-to add or change a binding for a command, refer to the [key
-bindings](#customizing-key-bindings) section to learn how.
+to learn about adding or changing a binding for a command, refer to the [key
+bindings](#customizing-key-bindings) section.
 
 ![Command Palette](http://f.cl.ly/items/32041o3w471F3C0F0V2O/Screen%20Shot%202013-02-13%20at%207.27.41%20PM.png)
 
 ## Basic Key Bindings
-Remember you can always use `meta-p` to explore available commands and their
+
+You can always use `meta-p` to explore available commands and their
 bindings, but here's a list of a few useful commands.
 
-- `meta-o` : open file/directory
-- `meta-n` : new window
+- `meta-o` : open a file or directory
+- `meta-n` : open new window
 - `meta-r` : reload the current window
-- `meta-alt-ctrl-s` : run specs
-- `meta-t` : open fuzzy file finder
+- `meta-alt-ctrl-s` : run test specs
+- `meta-t` : open file finder to navigate files in your project
 - `meta-;` : open command prompt
-- `meta-f` : open command prompt with `/`
+- `meta-f` : open command prompt with `/` for a local file search
 - `meta-g` : repeat the last local search
 - `meta-shift-f` : open command prompt with `Xx/` for a project-wide search
 - `meta-\` : focus/open tree view, or close it when it is focused
@@ -52,8 +53,8 @@ issue so you can keep working.
 
 The fastest way to find a file in your project is to use the fuzzy finder. Just
 hit `meta-t` and start typing the name of the file you're looking for. If you
-already have the file open and want to jump to it, hit `meta-b` to bring up a
-searchable list of open buffers.
+already have the file open as a tab and want to jump to it, hit `meta-b` to bring
+up a searchable list of open buffers.
 
 You can also use the tree view to navigate to a file. To open or move focus to
 the tree view, hit `meta-\`. You can then navigate to a file and select it with
@@ -73,28 +74,32 @@ To delete a file, select it in the tree view and hit `delete`.
 
 #### Using the Command Line
 
-Atom has a command line similar to editors Emacs and Vim, which is currently the
-only interface for performing searches. Hitting `meta-f` will open the command
-line prepopulated with the `/` command, which finds forward in the current
-buffer from the location of the cursor. Pressing `meta-g` will repeat the
-search. Hitting `meta-shift-f` will open the command line prepopulated with
-`Xx/`, which is a composite command that performs a global search. The results
-of the search will appear in the operation preview list, which you can focus
+Atom has a command line similar to old-school editors such as emacs and vim. Nearly
+every command has a key binding which you can discover with `meta-p`.
+
+The command line is also (currently) the only place you can perform a search. Hitting
+`meta-f` opens the command line and prepopulates it with the `/` command. This finds
+text in the current buffer, starting at the location of the cursor. Pressing `meta-g`
+repeats the search. Hitting `meta-shift-f` opens the command line and prepopulates
+it with `Xx/`, which is a composite command that performs a global search. The results
+of the search appear in the operation preview list, which you can focus
 with `meta-:`.
 
-Atom's command language is still under construction and is loosely based on
+Atom's command language is still under construction, and is loosely based on
 the [Sam editor](http://doc.cat-v.org/bell_labs/sam_lang_tutorial/) from the
-Plan 9 operating system. It's similar to Ex mode in Vim, but is selection-based
+Plan 9 operating system. It's similar to Ex mode in vim, but is selection-based
 rather than line-based. It allows you to compose commands together in
 interesting ways.
 
 #### Navigating By Symbols
 
 If you want to jump to a method, you can use the ctags-based symbols package.
-The `meta-j` binding will open a list of all symbols in the current file. The
-`meta-shift-j` binding will open a list of all symbols for the current project
-based on a tags file. And `meta-.` will jump to the tag for the word currently
-under the cursor. Make sure you have a tags file generated for the project for
+The `meta-j` binding opens a list of all symbols in the current file. The
+`meta-shift-j` binding opens a list of all symbols for the current project
+based on a tags file. `meta-.` jumps to the tag for the word currently
+under the cursor.
+
+Make sure you have a tags file generated for the project for
 the latter of these two bindings to work. Also, if you're editing CoffeeScript,
 it's a good idea to update your `~/.ctags` file to understand the language. Here
 is [a good example](https://github.com/kevinsawicki/dotfiles/blob/master/.ctags).
@@ -106,8 +111,8 @@ command, as follows: `s/foo/bar/g`. Note that if you have a selection, the
 replacement will only occur inside the selected text. An empty selection will
 cause the replacement to occur across the whole buffer. If you want to run the
 command on the whole buffer even if you have a selection, precede your
-substitution with the `,` address, which specifies that the command following it
-operate on the whole buffer.
+substitution with the `,` address; this indicates that the following command should
+run on the whole buffer.
 
 ### Split Panes
 
@@ -125,12 +130,12 @@ planning to improve it soon.
 ### Soft-Wrap
 
 If you want to toggle soft wrap, trigger the command from the command palette.
-Press `meta-p` to open the palette, then type "wrap" to find the correct
+Hit `meta-p` to open the palette, then type "wrap" to find the correct
 command.
 
 ## Your .atom Directory
 
-When you install Atom, a `.atom` directory is created in your home directory.
+When you install Atom, an `.atom` directory is created in your home directory.
 If you press `meta-,`, that directory will be opened in a new window. For the
 time being, this will serve as the primary interface for adjusting configuration
 settings, adding and changing key bindings, tweaking styles, etc.
