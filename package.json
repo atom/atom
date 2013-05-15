@@ -34,7 +34,8 @@
     "npm": "1.2.18",
     "node-gyp": "0.9.5",
     "season": "~0.3.0",
-    "request": "~2.21.0"
+    "request": "~2.21.0",
+    "npmconf": "0.0.24"
   },
   "devDependencies": {
     "jasmine-focused": "~0.1.0",
