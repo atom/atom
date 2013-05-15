@@ -5,6 +5,9 @@ built-in-packages/command-panel.md
 built-in-packages/markdown-preview.md
 built-in-packages/wrap-guide.md
 packages/authoring-packages.md
+packages/creating_a_package.md
+packages/included_libraries.md
+packages/package_json.md
 themes/authoring-themes.md
 internals/intro.md
 internals/configuration.md
