@@ -17,6 +17,14 @@ module.exports =
 class Project
   registerDeserializer(this)
 
+  @openers: []
+
+  @registerOpener: (opener) ->
+    @openers.push(opener)
+
+  @unregisterOpener: (opener) ->
+    _.remove(@openers, opener)
+
   tabLength: 2
   softTabs: true
   softWrap: false
@@ -148,11 +156,14 @@ class Project
   # editSessionOptions - Options that you can pass to the `EditSession` constructor
   #
   # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
-  open: (filePath, editSessionOptions={}) ->
+  open: (filePath, options={}) ->
+    for opener in @constructor.openers
+      return resource if resource = opener(filePath, options)
+
     if ImageEditSession.canOpen(filePath)
       new ImageEditSession(filePath)
     else
-      @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
+      @buildEditSessionForBuffer(@bufferForPath(filePath), options)
 
   # Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
   #
