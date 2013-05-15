@@ -7,7 +7,13 @@ Fetcher = require './fetcher'
 
 parseOptions = (args=[]) ->
   options = optimist(args)
-  options.usage('Usage: apm <command>')
+  options.usage """
+
+    Usage: apm <command>
+
+    where <command> is one of:
+        available, help, install, list, publish
+  """
   options.alias('v', 'version').describe('v', 'Print the apm version')
   options.alias('h', 'help').describe('h', 'Print this usage message')
   remainingArguments = options.argv._
@@ -37,6 +43,7 @@ module.exports =
       options.showHelp()
     else if command
       switch command
+        when 'help' then options.showHelp()
         when 'install' then new Installer().run(options)
         when 'list', 'ls' then new Lister().run(options)
         when 'publish' then new Publisher().run(options)
