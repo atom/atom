@@ -22,7 +22,7 @@ class Fetcher
             options.callback(error)
           else
             packages = body.rows ? []
-            console.log "Available packages (#{packages.length})"
+            console.log "Available Atom packages (#{packages.length})"
             tree packages, (pack) ->
               "#{pack.id}@#{pack.value.latestRelease.version}"
             options.callback()

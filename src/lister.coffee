@@ -72,7 +72,7 @@ class Lister
 
   listBundledPackages: ->
     bundledPackages = @listPackages(@bundledPackagesDirectory)
-    console.log "Built-in packages (#{bundledPackages.length})"
+    console.log "Built-in Atom packages (#{bundledPackages.length})"
     @logPackages(bundledPackages)
 
   run: (options) ->
