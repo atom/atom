@@ -1,5 +1,4 @@
 fs = require 'fs'
-child_process = require 'child_process'
 async = require 'async'
 _ = require 'underscore'
 mkdir = require('mkdirp').sync
@@ -8,9 +7,10 @@ temp = require 'temp'
 cp = require('wrench').copyDirSyncRecursive
 rm = require('rimraf').sync
 config = require './config'
+Command = require './command'
 
 module.exports =
-class Installer
+class Installer extends Command
   atomDirectory: null
   atomPackagesDirectory: null
   atomNodeDirectory: null
@@ -23,16 +23,6 @@ class Installer
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
     @atomNpmPath = require.resolve('.bin/npm')
     @atomNodeGypPath = require.resolve('.bin/node-gyp')
-
-  spawn: (command, args, remaining...) ->
-    options = remaining.shift() if remaining.length >= 2
-    callback = remaining.shift()
-
-    spawned = child_process.spawn(command, args, options)
-    spawned.stdout.pipe(process.stdout)
-    spawned.stderr.pipe(process.stderr)
-    spawned.on('error', callback)
-    spawned.on('close', callback)
 
   installNode: (callback) =>
     console.log '\nInstalling node...'

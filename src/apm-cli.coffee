@@ -2,6 +2,7 @@ fs = require 'fs'
 optimist = require 'optimist'
 Installer = require './installer'
 Lister = require './lister'
+Publisher = require './publisher'
 
 parseOptions = (args=[]) ->
   options = optimist(args)
@@ -37,6 +38,7 @@ module.exports =
       switch command
         when 'install' then new Installer().run(options)
         when 'list', 'ls' then new Lister().run(options)
+        when 'publish' then new Publisher().run(options)
         else
           console.error "Unrecognized command: #{command}"
           process.exit(1)
