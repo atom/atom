@@ -43,33 +43,35 @@ class Lister
 
   logPackages: (packages) ->
     for pack, index in packages
+      packageLine = ''
       if index is packages.length - 1
-        prefix = '\u2514\u2500\u2500 '
+        packageLine += '\u2514\u2500\u2500 '
       else
-        prefix = '\u251C\u2500\u2500 '
-      if @isPackageDisabled(pack.name)
-        console.log "#{prefix}#{pack.name}@#{pack.version} (disabled)"
-      else
-        console.log "#{prefix}#{pack.name}@#{pack.version}"
+        packageLine += '\u251C\u2500\u2500 '
+      packageLine += pack.name
+      packageLine += "@#{pack.version}" if pack.version?
+      packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
+      console.log packageLine
 
   listPackages: (directoryPath) ->
     packages = []
     for child in @list(directoryPath)
-      manifestPath = CSON.resolveObjectPath(path.join(directoryPath, child, 'package'))
-      try
-        manifest = CSON.readObjectSync(manifestPath)
-      catch e
-        continue
+      manifest = null
+      if manifestPath = CSON.resolveObjectPath(path.join(directoryPath, child, 'package'))
+        try
+          manifest = CSON.readObjectSync(manifestPath) ? {}
+          manifest.name ?= child
 
-      name = manifest.name ? child
-      version = manifest.version ? '0.0.0'
-      packages.push({name, version})
+      unless manifest?
+        manifest = name: child if /(\.|_|-)tmbundle$/.test(child)
+
+      packages.push(manifest) if manifest?
 
     packages
 
   listUserPackages: ->
     userPackages = @listPackages(@userPackagesDirectory)
-    console.log "@userPackagesDirectory (#{userPackages.length})"
+    console.log "#{@userPackagesDirectory} (#{userPackages.length})"
     @logPackages(userPackages)
 
   listBundledPackages: ->
