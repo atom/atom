@@ -43,17 +43,17 @@ class Installer extends Command
   installModule: (modulePath, callback) ->
     console.log '\nInstalling module...'
 
-    installModuleArgs = ['install']
-    installModuleArgs.push(modulePath)
-    installModuleArgs.push("--target=#{config.getNodeVersion()}")
-    installModuleArgs.push('--arch=ia32')
-    installModuleArgs.push('--silent')
+    installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
+    installArgs.push(modulePath)
+    installArgs.push("--target=#{config.getNodeVersion()}")
+    installArgs.push('--arch=ia32')
+    installArgs.push('--silent')
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
     installDirectory = temp.mkdirSync('apm-install-dir-')
     nodeModulesDirectory = path.join(installDirectory, 'node_modules')
     mkdir(nodeModulesDirectory)
-    @spawn @atomNpmPath, installModuleArgs, {env, cwd: installDirectory}, (code) =>
+    @spawn @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code) =>
       if code is 0
         for child in fs.readdirSync(nodeModulesDirectory)
           cp(path.join(nodeModulesDirectory, child), path.join(@atomPackagesDirectory, child), forceDelete: true)
@@ -66,13 +66,13 @@ class Installer extends Command
   installModules: (callback) =>
     console.log '\nInstalling modules...'
 
-    installModulesArgs = ['install']
-    installModulesArgs.push("--target=#{config.getNodeVersion()}")
-    installModulesArgs.push('--arch=ia32')
-    installModulesArgs.push('--silent')
+    installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
+    installArgs.push("--target=#{config.getNodeVersion()}")
+    installArgs.push('--arch=ia32')
+    installArgs.push('--silent')
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
-    @spawn @atomNpmPath, installModulesArgs, {env}, (code) ->
+    @spawn @atomNpmPath, installArgs, {env}, (code) ->
       if code is 0
         callback()
       else
