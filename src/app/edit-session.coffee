@@ -24,7 +24,7 @@ class EditSession
     session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
     if !session?
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
-      session = project.buildEditSession(null)
+      session = project.open(null)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)

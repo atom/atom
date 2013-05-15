@@ -10,7 +10,7 @@ describe "CommandInterpreter", ->
 
   beforeEach ->
     interpreter = new CommandInterpreter(project)
-    editSession = project.buildEditSession('sample.js')
+    editSession = project.open('sample.js')
     buffer = editSession.buffer
 
   afterEach ->
@@ -445,7 +445,7 @@ describe "CommandInterpreter", ->
       runs ->
         expect(operationsToPreview.length).toBeGreaterThan 3
         for operation in operationsToPreview
-          editSession = project.buildEditSession(operation.getPath())
+          editSession = project.open(operation.getPath())
           editSession.setSelectedBufferRange(operation.execute(editSession))
           expect(editSession.getSelectedText()).toMatch /a+/
           editSession.destroy()

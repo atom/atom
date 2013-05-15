@@ -9,8 +9,8 @@ describe "Project", ->
 
   describe "when an edit session is destroyed", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
-      editSession = project.buildEditSession("a")
-      anotherEditSession = project.buildEditSession("a")
+      editSession = project.open("a")
+      anotherEditSession = project.open("a")
 
       expect(project.editSessions.length).toBe 2
       expect(editSession.buffer).toBe anotherEditSession.buffer
@@ -26,12 +26,12 @@ describe "Project", ->
       path = project.resolve('a')
       project.setPath(undefined)
       expect(project.getPath()).toBeUndefined()
-      editSession = project.buildEditSession()
+      editSession = project.open()
       editSession.saveAs('/tmp/atom-test-save-sets-project-path')
       expect(project.getPath()).toBe '/tmp'
       fsUtils.remove('/tmp/atom-test-save-sets-project-path')
 
-  describe ".buildEditSession(path)", ->
+  describe ".open(path)", ->
     [absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
       absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
@@ -42,30 +42,30 @@ describe "Project", ->
 
     describe "when given an absolute path that hasn't been opened previously", ->
       it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->
-        editSession = project.buildEditSession(absolutePath)
+        editSession = project.open(absolutePath)
         expect(editSession.buffer.getPath()).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
     describe "when given a relative path that hasn't been opened previously", ->
       it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created' and 'edit-session-created' events", ->
-        editSession = project.buildEditSession('a')
+        editSession = project.open('a')
         expect(editSession.buffer.getPath()).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
     describe "when passed the path to a buffer that has already been opened", ->
       it "returns a new edit session containing previously opened buffer and emits a 'edit-session-created' event", ->
-        editSession = project.buildEditSession(absolutePath)
+        editSession = project.open(absolutePath)
         newBufferHandler.reset()
-        expect(project.buildEditSession(absolutePath).buffer).toBe editSession.buffer
-        expect(project.buildEditSession('a').buffer).toBe editSession.buffer
+        expect(project.open(absolutePath).buffer).toBe editSession.buffer
+        expect(project.open('a').buffer).toBe editSession.buffer
         expect(newBufferHandler).not.toHaveBeenCalled()
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
     describe "when not passed a path", ->
       it "returns a new edit session and emits 'buffer-created' and 'edit-session-created' events", ->
-        editSession = project.buildEditSession()
+        editSession = project.open()
         expect(editSession.buffer.getPath()).toBeUndefined()
         expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession

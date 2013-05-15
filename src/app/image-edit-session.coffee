@@ -12,7 +12,7 @@ class ImageEditSession
 
   @deserialize: (state) ->
     if fsUtils.exists(state.path)
-      project.buildEditSession(state.path)
+      project.open(state.path)
     else
       console.warn "Could not build edit session for path '#{state.path}' because that file no longer exists"
 

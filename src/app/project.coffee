@@ -148,7 +148,7 @@ class Project
   # editSessionOptions - Options that you can pass to the `EditSession` constructor
   #
   # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
-  buildEditSession: (filePath, editSessionOptions={}) ->
+  open: (filePath, editSessionOptions={}) ->
     if ImageEditSession.canOpen(filePath)
       new ImageEditSession(filePath)
     else

@@ -448,7 +448,7 @@ describe "TextMateGrammar", ->
 
       describe "when the grammar is added", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editSession = project.buildEditSession('sample.js')
+          editSession = project.open('sample.js')
           editSession.setText("// http://github.com")
 
           {tokens} = editSession.lineForScreenRow(0)
@@ -463,7 +463,7 @@ describe "TextMateGrammar", ->
 
       describe "when the grammar is updated", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editSession = project.buildEditSession('sample.js')
+          editSession = project.open('sample.js')
           editSession.setText("// SELECT * FROM OCTOCATS")
 
           {tokens} = editSession.lineForScreenRow(0)

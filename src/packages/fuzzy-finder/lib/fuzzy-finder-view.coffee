@@ -69,7 +69,7 @@ class FuzzyFinderView extends SelectList
     path = @getSelectedElement()
     return unless path
     if pane = rootView.getActivePane()
-      fn(pane, project.buildEditSession(path))
+      fn(pane, project.open(path))
     else
       @openPath(path)
 
