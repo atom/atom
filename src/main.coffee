@@ -3,6 +3,7 @@ delegate = require 'atom_delegate'
 path = require 'path'
 BrowserWindow = require 'browser_window'
 
+
 # Quit when all windows are closed.
 app.on 'window-all-closed', ->
   app.quit()
@@ -11,12 +12,9 @@ class AtomWindow
   @windows = []
 
   constructor: (options) ->
-    {@bootstrapScript, @isDev, @isSpec, @exitWhenDone} = options
+    {@bootstrapScript, @isDev, @isSpec, @exitWhenDone, @resourcePath} = options
 
-    if @isDev
-      # TODO: read resource-path command parameter
-    else
-      @resourcePath = path.dirname(__dirname)
+    @resourcePath ?= path.dirname(__dirname)
 
     @window = @open()
 
@@ -71,8 +69,11 @@ class AtomWindow
     win.show()
 
 delegate.browserMainParts.preMainMessageLoopRun = ->
+  modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
+  args = require('optimist')(modifiedArgv).argv
   new AtomWindow
     bootstrapScript: 'window-bootstrap',
     isDev: false,
     isSpec: false,
     exitWhenDone: false
+    resourcePath: args['resource-path']
