@@ -4,7 +4,6 @@ $ = require 'jquery'
 Range = require 'range'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
-ImageEditSession = require 'image-edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 BufferedProcess = require 'buffered-process'
@@ -160,10 +159,7 @@ class Project
     for opener in @constructor.openers
       return resource if resource = opener(filePath, options)
 
-    if ImageEditSession.canOpen(filePath)
-      new ImageEditSession(filePath)
-    else
-      @buildEditSessionForBuffer(@bufferForPath(filePath), options)
+    @buildEditSessionForBuffer(@bufferForPath(filePath), options)
 
   # Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
   #
@@ -311,3 +307,5 @@ class Project
       @on 'buffer-created', (buffer) -> callback(buffer)
 
 _.extend Project.prototype, EventEmitter
+
+require 'image-edit-session'
