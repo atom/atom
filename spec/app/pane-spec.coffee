@@ -10,8 +10,8 @@ describe "Pane", ->
     container = new PaneContainer
     view1 = $$ -> @div id: 'view-1', tabindex: -1, 'View 1'
     view2 = $$ -> @div id: 'view-2', tabindex: -1, 'View 2'
-    editSession1 = project.buildEditSession('sample.js')
-    editSession2 = project.buildEditSession('sample.txt')
+    editSession1 = project.open('sample.js')
+    editSession2 = project.open('sample.txt')
     pane = new Pane(view1, editSession1, view2, editSession2)
     container.append(pane)
 

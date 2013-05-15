@@ -40,7 +40,7 @@ describe "AutocompleteView", ->
 
   beforeEach ->
     window.rootView = new RootView
-    editor = new Editor(editSession: project.buildEditSession('sample.js'))
+    editor = new Editor(editSession: project.open('sample.js'))
     atom.activatePackage('autocomplete')
     autocomplete = new AutocompleteView(editor)
     miniEditor = autocomplete.miniEditor

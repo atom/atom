@@ -11,7 +11,7 @@ describe "LanguageMode", ->
   describe "javascript", ->
     beforeEach ->
       atom.activatePackage('javascript.tmbundle', sync: true)
-      editSession = project.buildEditSession('sample.js', autoIndent: false)
+      editSession = project.open('sample.js', autoIndent: false)
       { buffer, languageMode } = editSession
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
@@ -53,7 +53,7 @@ describe "LanguageMode", ->
   describe "coffeescript", ->
     beforeEach ->
       atom.activatePackage('coffee-script-tmbundle', sync: true)
-      editSession = project.buildEditSession('coffee.coffee', autoIndent: false)
+      editSession = project.open('coffee.coffee', autoIndent: false)
       { buffer, languageMode } = editSession
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
@@ -89,7 +89,7 @@ describe "LanguageMode", ->
   describe "css", ->
     beforeEach ->
       atom.activatePackage('css.tmbundle', sync: true)
-      editSession = project.buildEditSession('css.css', autoIndent: false)
+      editSession = project.open('css.css', autoIndent: false)
       { buffer, languageMode } = editSession
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
