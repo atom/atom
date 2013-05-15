@@ -35,11 +35,8 @@ window.setUpEnvironment = ->
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
-  directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
-  if directory
-    installAtomCommand(fsUtils.join(directory, 'bin/atom'))
-  else
-    console.warn "Failed to install `atom` binary"
+  installAtomCommand()
+  installApmCommand()
 
   atom.windowMode = 'editor'
   handleEvents()
@@ -85,21 +82,13 @@ window.unloadEditorWindow = ->
   window.project = null
   window.git = null
 
-window.installAtomCommand = (commandPath, done) ->
-  fs.exists commandPath, (exists) ->
-    return if exists
+window.installAtomCommand = (callback) ->
+  commandPath = fsUtils.join(window.resourcePath, 'atom.sh')
+  require('command-installer').install(commandPath, callback)
 
-    bundledCommandPath = fsUtils.resolve(window.resourcePath, 'atom.sh')
-    if bundledCommandPath?
-      fs.readFile bundledCommandPath, (error, data) ->
-        if error?
-          console.warn "Failed to install `atom` binary", error
-        else
-          fsUtils.writeAsync commandPath, data, (error) ->
-            if error?
-              console.warn "Failed to install `atom` binary", error
-            else
-              fs.chmod(commandPath, 0o755, commandPath)
+window.installApmCommand = (callback) ->
+  commandPath = fsUtils.join(window.resourcePath, 'node_modules', '.bin', 'apm')
+  require('command-installer').install(commandPath, callback)
 
 window.unloadConfigWindow = ->
   return if not configView

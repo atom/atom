@@ -73,8 +73,11 @@ module.exports =
     return done(false) unless path?.length > 0
     fs.exists path, (exists) ->
       if exists
-        fs.stat path, (err, stat) ->
-          done(stat?.isDirectory() ? false)
+        fs.stat path, (error, stat) ->
+          if error?
+            done(false)
+          else
+            done(stat.isDirectory())
       else
         done(false)
 
@@ -84,6 +87,13 @@ module.exports =
     return false unless path?.length > 0
     try
       path? and fs.statSync(path).isFile()
+    catch e
+      false
+
+  # Returns true if the specified path is exectuable.
+  isExecutable: (path) ->
+    try
+      (fs.statSync(path).mode & 0o777 & 1) isnt 0
     catch e
       false
 

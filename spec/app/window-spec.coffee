@@ -154,23 +154,6 @@ describe "Window", ->
       window.unloadEditorWindow()
       expect(atom.saveWindowState.callCount).toBe 1
 
-  describe ".installAtomCommand(commandPath)", ->
-    commandPath = '/tmp/installed-atom-command/atom'
-
-    afterEach ->
-      fsUtils.remove(commandPath) if fsUtils.exists(commandPath)
-
-    describe "when the command path doesn't exist", ->
-      it "copies atom.sh to the specified path", ->
-        expect(fsUtils.exists(commandPath)).toBeFalsy()
-        window.installAtomCommand(commandPath)
-
-        waitsFor ->
-          fsUtils.exists(commandPath)
-
-        runs ->
-          expect(fsUtils.read(commandPath).length).toBeGreaterThan 1
-
   describe ".deserialize(state)", ->
     class Foo
       @deserialize: ({name}) -> new Foo(name)
