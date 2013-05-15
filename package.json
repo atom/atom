@@ -21,7 +21,8 @@
     "space-pen": "git://github.com/nathansobo/space-pen.git",
     "less": "git://github.com/nathansobo/less.js.git",
     "roaster": "0.0.3",
-    "jqueryui-browser": "1.10.2-1"
+    "jqueryui-browser": "1.10.2-1",
+    "optimist": "0.4.0"
   },
 
   "devDependencies" : {
