@@ -3,6 +3,7 @@ optimist = require 'optimist'
 Installer = require './installer'
 Lister = require './lister'
 Publisher = require './publisher'
+Fetcher = require './fetcher'
 
 parseOptions = (args=[]) ->
   options = optimist(args)
@@ -39,6 +40,7 @@ module.exports =
         when 'install' then new Installer().run(options)
         when 'list', 'ls' then new Lister().run(options)
         when 'publish' then new Publisher().run(options)
+        when 'available' then new Fetcher().run(options)
         else
           console.error "Unrecognized command: #{command}"
           process.exit(1)

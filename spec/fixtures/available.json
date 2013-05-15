@@ -1,0 +1,14 @@
+{
+  "total_rows": 1,
+  "offset": 0,
+  "rows": [
+    {
+      "id": "beverly-hills",
+      "value": {
+        "latestRelease": {
+          "version":"9.0.2.1.0"
+        }
+      }
+    }
+  ]
+}

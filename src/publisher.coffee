@@ -1,4 +1,5 @@
 path = require 'path'
+config = require './config'
 Command = require './command'
 
 module.exports =
@@ -7,7 +8,7 @@ class Publisher extends Command
   atomNpmPath: null
 
   constructor: ->
-    @userConfigPath = path.resolve(__dirname, '..', '.apmrc')
+    @userConfigPath = config.getUserConfigPath()
     @atomNpmPath = require.resolve('.bin/npm')
 
   run: (options) ->

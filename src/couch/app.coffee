@@ -12,5 +12,6 @@ module.exports =
         latestVersion = doc['dist-tags']?.latest
         return unless latestVersion?
         latestRelease = doc.versions[latestVersion]
-        atomVersion = latestRelease?.engines?.atom
-        emit(doc._id, {atomVersion, latestVersion}) if atomVersion?
+        return unless latestRelease?
+        atomVersion = latestRelease.engines?.atom
+        emit(doc._id, {atomVersion, latestRelease}) if atomVersion?

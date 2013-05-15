@@ -2,6 +2,7 @@ path = require 'path'
 fs = require 'fs'
 CSON = require 'season'
 config = require './config'
+tree = require './tree'
 
 module.exports =
 class Lister
@@ -42,16 +43,11 @@ class Lister
     @disabledPackages.indexOf(name) isnt -1
 
   logPackages: (packages) ->
-    for pack, index in packages
-      packageLine = ''
-      if index is packages.length - 1
-        packageLine += '\u2514\u2500\u2500 '
-      else
-        packageLine += '\u251C\u2500\u2500 '
-      packageLine += pack.name
+    tree packages, (pack) =>
+      packageLine = pack.name
       packageLine += "@#{pack.version}" if pack.version?
       packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
-      console.log packageLine
+      packageLine
 
   listPackages: (directoryPath) ->
     packages = []
