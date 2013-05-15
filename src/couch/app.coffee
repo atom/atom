@@ -13,4 +13,4 @@ module.exports =
         return unless latestVersion?
         latestRelease = doc.versions[latestVersion]
         atomVersion = latestRelease?.engines?.atom
-        emit(doc._id, atomVersion) if atomVersion?
+        emit(doc._id, {atomVersion, latestVersion}) if atomVersion?
