@@ -68,12 +68,14 @@ class Lister
     packages
 
   listUserPackages: ->
-    console.log @userPackagesDirectory
-    @logPackages(@listPackages(@userPackagesDirectory))
+    userPackages = @listPackages(@userPackagesDirectory)
+    console.log "@userPackagesDirectory (#{userPackages.length})"
+    @logPackages(userPackages)
 
   listBundledPackages: ->
-    console.log 'Built-in packages'
-    @logPackages(@listPackages(@bundledPackagesDirectory))
+    bundledPackages = @listPackages(@bundledPackagesDirectory)
+    console.log "Built-in packages (#{bundledPackages.length})"
+    @logPackages(bundledPackages)
 
   run: (options) ->
     @listUserPackages()
