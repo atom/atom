@@ -1,5 +1,5 @@
 {
-  "name": "apm",
+  "name": "atom-package-manager",
   "description": "Atom package manager",
   "version": "0.0.0",
   "private": true,
