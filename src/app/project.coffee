@@ -111,14 +111,18 @@ class Project
   ignoreRepositoryPath: (path) ->
     config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
 
-  # Given a path, this resolves it relative to the project directory.
+  # Given a uri, this resolves it relative to the project directory. If the path
+  # is already absolute or if it is prefixed with a scheme, it is returned unchanged.
   #
-  # filePath - The {String} name of the path to convert
+  # uri - The {String} name of the path to convert
   #
   # Returns a {String}.
-  resolve: (filePath) ->
-    filePath = fsUtils.join(@getPath(), filePath) unless filePath[0] == '/'
-    fsUtils.absolute filePath
+  resolve: (uri) ->
+    if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
+      uri
+    else
+      uri = fsUtils.join(@getPath(), uri) unless uri[0] == '/'
+      fsUtils.absolute uri
 
   # Given a path, this makes it relative to the project directory.
   #

@@ -99,12 +99,17 @@ describe "Project", ->
         buffer = project.bufferForPath("a").retain().release()
         expect(project.bufferForPath("a").retain().release()).not.toBe buffer
 
-  describe ".resolve(path)", ->
-    it "returns an absolute path based on the project's root", ->
-      absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
-      expect(project.resolve('a')).toBe absolutePath
-      expect(project.resolve(absolutePath + '/../a')).toBe absolutePath
-      expect(project.resolve('a/../a')).toBe absolutePath
+  describe ".resolve(uri)", ->
+    describe "when passed an absolute or relative path", ->
+      it "returns an absolute path based on the project's root", ->
+        absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
+        expect(project.resolve('a')).toBe absolutePath
+        expect(project.resolve(absolutePath + '/../a')).toBe absolutePath
+        expect(project.resolve('a/../a')).toBe absolutePath
+
+    describe "when passed a uri with a scheme", ->
+      it "does not modify uris that begin with a scheme", ->
+        expect(project.resolve('http://zombo.com')).toBe 'http://zombo.com'
 
   describe ".relativize(path)", ->
     it "returns an relative path based on the project's root", ->
