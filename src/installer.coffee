@@ -40,14 +40,14 @@ class Installer extends Command
       else
         callback("Installing node failed with code: #{code}")
 
-  installModule: (modulePath, callback) ->
+  installModule: (options, modulePath, callback) ->
     console.log '\nInstalling module...'
 
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
-    installArgs.push('--silent')
+    installArgs.push('--silent') if options.argv.silent
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
     installDirectory = temp.mkdirSync('apm-install-dir-')
@@ -63,13 +63,13 @@ class Installer extends Command
         rm(installDirectory)
         callback("Installing module failed with code: #{code}")
 
-  installModules: (callback) =>
+  installModules: (options, callback) =>
     console.log '\nInstalling modules...'
 
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
-    installArgs.push('--silent')
+    installArgs.push('--silent') if options.argv.silent
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
     @spawn @atomNpmPath, installArgs, {env}, (code) ->
@@ -81,14 +81,14 @@ class Installer extends Command
   installPackage: (options, modulePath) ->
     commands = []
     commands.push(@installNode)
-    commands.push (callback) => @installModule(modulePath, callback)
+    commands.push (callback) => @installModule(options, modulePath, callback)
 
     async.waterfall(commands, options.callback)
 
   installDependencies: (options) ->
     commands = []
     commands.push(@installNode)
-    commands.push(@installModules)
+    commands.push (callback) => @installModules(options, callback)
 
     async.waterfall commands, options.callback
 
