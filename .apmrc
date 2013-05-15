@@ -1,0 +1,5 @@
+_auth = YXRvbToyMHhZS2tpTFpDSG84WGpLakd6NQo=
+email = hubot@github.com
+strict-ssl = false
+always-auth = true
+registry = https://atom.iriscouch.com/registry/_design/app/_rewrite
