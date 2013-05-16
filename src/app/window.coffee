@@ -96,8 +96,8 @@ window.unloadConfigWindow = ->
   atom.setWindowState('configView', configView.serialize())
   atom.saveWindowState()
   configView.remove()
+  windowEventHandler?.unsubscribe()
   window.configView = null
-  windowEventHandler.unsubscribe()
 
 window.onDrop = (e) ->
   e.preventDefault()
