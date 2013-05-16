@@ -41,6 +41,28 @@ describe "Config", ->
         config.set('foo.changes', 1)
         expect(config.settings.foo).toEqual {}
 
+  describe ".pushAtKeyPath(keyPath, value)", ->
+    it "pushes the given value to the array at the key path and updates observers", ->
+      config.set("foo.bar.baz", ["a"])
+      observeHandler = jasmine.createSpy "observeHandler"
+      config.observe "foo.bar.baz", observeHandler
+      observeHandler.reset()
+
+      expect(config.pushAtKeyPath("foo.bar.baz", "b")).toBe 2
+      expect(config.get("foo.bar.baz")).toEqual ["a", "b"]
+      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
+
+  describe ".removeAtKeyPath(keyPath, value)", ->
+    it "removes the given value from the array at the key path and updates observers", ->
+      config.set("foo.bar.baz", ["a", "b", "c"])
+      observeHandler = jasmine.createSpy "observeHandler"
+      config.observe "foo.bar.baz", observeHandler
+      observeHandler.reset()
+
+      expect(config.removeAtKeyPath("foo.bar.baz", "b")).toEqual ["a", "c"]
+      expect(config.get("foo.bar.baz")).toEqual ["a", "c"]
+      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
+
   describe ".getPositiveInt(keyPath, defaultValue)", ->
     it "returns the proper current or default value", ->
       config.set('editor.preferredLineLength', 0)

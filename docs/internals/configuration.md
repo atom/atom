@@ -48,6 +48,8 @@ the following way:
 ```coffeescript
 # basic key update
 config.set("core.autosave", true)
+
+config.pushAtKeyPath("core.disabledPackages", "wrap-guide")
 ```
 
 You can also use `setDefaults`, which will assign default values for keys that

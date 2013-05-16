@@ -4,6 +4,7 @@ _.mixin
   remove: (array, element) ->
     index = array.indexOf(element)
     array.splice(index, 1) if index >= 0
+    array
 
   spliceWithArray: (originalArray, start, length, insertedArray, chunkSize=100000) ->
     if insertedArray.length < chunkSize

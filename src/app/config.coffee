@@ -144,6 +144,30 @@ class Config
       @update()
     value
 
+  # Push the value to the array at the key path.
+  #
+  # keyPath - The {String} key path.
+  # value - The value to push to the array.
+  #
+  # Returns the new array length of the setting.
+  pushAtKeyPath: (keyPath, value) ->
+    arrayValue = @get(keyPath) ? []
+    result = arrayValue.push(value)
+    @set(keyPath, arrayValue)
+    result
+
+  # Remove the value from the array at the key path.
+  #
+  # keyPath - The {String} key path.
+  # value - The value to remove from the array.
+  #
+  # Returns the new array value of the setting.
+  removeAtKeyPath: (keyPath, value) ->
+    arrayValue = @get(keyPath) ? []
+    result = _.remove(arrayValue, value)
+    @set(keyPath, arrayValue)
+    result
+
   # Establishes an event listener for a given key.
   #
   # `callback` is fired immediately and whenever the value of the key is changed
