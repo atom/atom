@@ -138,11 +138,14 @@ window.atom =
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
     themeNames = [themeNames] unless _.isArray(themeNames)
 
-  open: (args...) ->
-    @sendMessageToBrowserProcess('open', args)
+  open: (url) ->
+    if url
+      throw new Error('opening a url does not currently work', url)
+    else
+      ipc.sendChannel('open-folder')
 
-  openDev: (args...) ->
-    @sendMessageToBrowserProcess('openDev', args)
+  openDev: (url) ->
+    console.error("atom.openDev does not work yet")
 
   newWindow: (args...) ->
     @sendMessageToBrowserProcess('newWindow', args)

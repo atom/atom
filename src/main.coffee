@@ -3,6 +3,7 @@ delegate = require 'atom_delegate'
 path = require 'path'
 BrowserWindow = require 'browser_window'
 ipc = require 'ipc'
+dialog = require 'dialog'
 
 windowState = {}
 
@@ -11,8 +12,18 @@ app.on 'window-all-closed', ->
   app.quit()
 
 ipc.on 'window-state', (event, processId, messageId, message) ->
+  console.log 'browser got request', event, processId, messageId, message if message?
   windowState = message unless message == undefined
   event.result = windowState
+
+ipc.on 'open-folder', ->
+  currentWindow = BrowserWindow.getFocusedWindow()
+  dialog.openFolder currentWindow, {}, (result, paths...) ->
+    modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
+    args = require('optimist')(modifiedArgv).argv
+    new AtomWindow
+      bootstrapScript: 'window-bootstrap',
+      resourcePath: args['resource-path']
 
 class AtomWindow
   @windows = []
