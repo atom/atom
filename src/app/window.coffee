@@ -3,6 +3,7 @@ fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 less = require 'less'
+WindowEventHandler = require 'window-event-handler'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -11,6 +12,8 @@ deserializers = {}
 deferredDeserializers = {}
 
 ### Internal ###
+
+windowEventHandler = null
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
@@ -24,7 +27,6 @@ window.setUpEnvironment = ->
   window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
-  $(document).on 'keydown', keymap.handleKeyEvent
 
   keymap.bindDefaultKeys()
 
@@ -39,8 +41,7 @@ window.startEditorWindow = ->
   installApmCommand()
 
   atom.windowMode = 'editor'
-  handleEvents()
-  handleDragDrop()
+  windowEventHandler = new WindowEventHandler
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
@@ -54,7 +55,7 @@ window.startEditorWindow = ->
 
 window.startConfigWindow = ->
   atom.windowMode = 'config'
-  handleEvents()
+  windowEventHandler = new WindowEventHandler
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
@@ -77,7 +78,7 @@ window.unloadEditorWindow = ->
   atom.saveWindowState()
   project.destroy()
   git?.destroy()
-  $(window).off('focus blur before')
+  windowEventHandler?.unsubscribe()
   window.rootView = null
   window.project = null
   window.git = null
@@ -96,29 +97,7 @@ window.unloadConfigWindow = ->
   atom.saveWindowState()
   configView.remove()
   window.configView = null
-  $(window).off('focus blur before')
-
-window.handleEvents = ->
-  $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
-  $(window).on 'focus', -> $("body").removeClass('is-blurred')
-  $(window).on 'blur',  -> $("body").addClass('is-blurred')
-  $(window).command 'window:close', => confirmClose()
-  $(window).command 'window:reload', => reload()
-
-  $(document).on 'click', 'a', (e) ->
-    location = $(e.target).attr('href')
-    return unless location
-    return if location[0] is '#'
-
-    if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
-      require('child_process').spawn('open', [location])
-    false
-
-window.handleDragDrop = ->
-  $(document).on 'dragover', (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  $(document).on 'drop', onDrop
+  windowEventHandler.unsubscribe()
 
 window.onDrop = (e) ->
   e.preventDefault()
@@ -257,10 +236,3 @@ window.profile = (description, fn) ->
     value = fn()
     console.profileEnd(description)
     value
-
-# Public: Shows a dialog asking if the window was _really_ meant to be closed.
-confirmClose = ->
-  if rootView?
-    rootView.confirmClose().done -> window.close()
-  else
-    window.close()

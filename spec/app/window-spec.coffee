@@ -1,18 +1,19 @@
 $ = require 'jquery'
 fsUtils = require 'fs-utils'
 {less} = require 'less'
+WindowEventHandler = require 'window-event-handler'
 
 describe "Window", ->
-  projectPath = null
+  [projectPath, windowEventHandler] = []
 
   beforeEach ->
     spyOn(atom, 'getPathToOpen').andReturn(project.getPath())
-    window.handleEvents()
+    windowEventHandler = new WindowEventHandler()
     window.deserializeEditorWindow()
     projectPath = project.getPath()
 
   afterEach ->
-    window.unloadEditorWindow()
+    windowEventHandler.unsubscribe()
     $(window).off 'beforeunload'
 
   describe "when the window is loaded", ->
