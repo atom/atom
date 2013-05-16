@@ -34,7 +34,7 @@ class Keymap
     $(document).command 'open-user-configuration', => atom.openConfig()
     $(document).command 'open', => atom.open()
     $(document).command 'open-dev', => atom.openDev()
-    $(document).command 'toggle-dev-tools', => atom.toggleDevTools()
+    $(document).command 'toggle-dev-tools', => atom.showDevTools()
 
   loadBundledKeymaps: ->
     @loadDirectory(fsUtils.resolveOnLoadPath('keymaps'))

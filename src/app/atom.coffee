@@ -199,11 +199,9 @@ window.atom =
     else
       @pendingModals[stackSize - 1].shift()
 
-  toggleDevTools: ->
-    @sendMessageToBrowserProcess('toggleDevTools')
-
   showDevTools: ->
-    @sendMessageToBrowserProcess('showDevTools')
+    currentWindow = require('remote').getCurrentWindow()
+    currentWindow.openDevTools()
 
   focus: ->
     @sendMessageToBrowserProcess('focus')
