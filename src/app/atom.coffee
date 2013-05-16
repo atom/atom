@@ -2,6 +2,7 @@ fsUtils = require 'fs-utils'
 _ = require 'underscore'
 Package = require 'package'
 Theme = require 'theme'
+ipc = require 'ipc'
 
 window.atom =
   exitWhenDone: window.location.params.exitWhenDone
@@ -244,7 +245,7 @@ window.atom =
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
     _.setValueForKeyPath(windowState, keyPath, value)
-    $native.setWindowState(JSON.stringify(windowState))
+    ipc.sendChannel('window-state', JSON.stringify(windowState))
     windowState
 
   getWindowState: (keyPath) ->
@@ -255,7 +256,7 @@ window.atom =
       windowState
 
   getInMemoryWindowState: ->
-    inMemoryState = $native.getWindowState()
+    inMemoryState = ipc.sendChannelSync('window-state')
     if inMemoryState.length > 0
       inMemoryState
     else

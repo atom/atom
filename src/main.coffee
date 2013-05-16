@@ -2,11 +2,17 @@ app = require 'app'
 delegate = require 'atom_delegate'
 path = require 'path'
 BrowserWindow = require 'browser_window'
+ipc = require 'ipc'
 
+windowState = {}
 
 # Quit when all windows are closed.
 app.on 'window-all-closed', ->
   app.quit()
+
+ipc.on 'window-state', (event, processId, messageId, message) ->
+  windowState = message unless message == undefined
+  event.result = windowState
 
 class AtomWindow
   @windows = []
