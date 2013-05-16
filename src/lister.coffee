@@ -1,5 +1,5 @@
 path = require 'path'
-fs = require 'fs'
+fs = require './fs'
 CSON = require 'season'
 config = require './config'
 tree = require './tree'
@@ -18,27 +18,6 @@ class Lister
         @disabledPackages = CSON.readObjectSync(configPath)?.core?.disabledPackages
     @disabledPackages ?= []
 
-  isDirectory: (directoryPath) ->
-    try
-      fs.statSync(directoryPath).isDirectory()
-    catch e
-      false
-
-  isFile: (filePath) ->
-    try
-      fs.statSync(filePath).isFile()
-    catch e
-      false
-
-  list: (directoryPath) ->
-    if @isDirectory(directoryPath)
-      try
-        fs.readdirSync(directoryPath)
-      catch e
-        []
-    else
-      []
-
   isPackageDisabled: (name) ->
     @disabledPackages.indexOf(name) isnt -1
 
@@ -51,7 +30,7 @@ class Lister
 
   listPackages: (directoryPath) ->
     packages = []
-    for child in @list(directoryPath)
+    for child in fs.list(directoryPath)
       manifest = null
       if manifestPath = CSON.resolveObjectPath(path.join(directoryPath, child, 'package'))
         try
