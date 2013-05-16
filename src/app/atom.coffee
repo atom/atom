@@ -1,6 +1,6 @@
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
-Package = require 'package'
+Package = require 'base-package'
 Theme = require 'theme'
 ipc = require 'ipc'
 
