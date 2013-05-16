@@ -1,6 +1,10 @@
 {
   "name": "atom",
   "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/github/atom.git"
+  },
   "dependencies": {
     "coffee-script": "1.6.2",
     "ctags": "0.3.0",
