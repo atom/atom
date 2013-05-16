@@ -22,7 +22,6 @@ describe "Whitespace", ->
     spyOn(fsUtils, 'write')
 
     config.set("whitespace.ensureSingleTrailingNewline", false)
-    config.update()
 
     # works for buffers that are already open when extension is initialized
     editor.insertText("foo   \nbar\t   \n\nbaz")
@@ -45,7 +44,6 @@ describe "Whitespace", ->
 
     afterEach ->
       config.set("whitespace.ensureSingleTrailingNewline", originalConfigValue)
-      config.update()
 
     it "adds a trailing newline when there is no trailing newline", ->
       editor.insertText "foo"
@@ -74,7 +72,6 @@ describe "Whitespace", ->
 
     it "does not add trailing newline if ensureSingleTrailingNewline is false", ->
       config.set("whitespace.ensureSingleTrailingNewline", false)
-      config.update()
 
       editor.insertText "no trailing newline"
       editor.getBuffer().save()
