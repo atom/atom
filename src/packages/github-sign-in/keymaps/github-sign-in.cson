@@ -1,9 +1,7 @@
 '.sign-in-view':
   'esc': 'core:cancel'
 '.sign-in-view input':
-  'tab': 'next-field'
   'meta-enter': 'core:confirm'
 '.sign-in-view button':
-  'tab': 'next-field'
   'enter': 'core:confirm'
   'meta-enter': 'core:confirm'

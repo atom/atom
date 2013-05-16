@@ -13,32 +13,24 @@ class SignInView extends ScrollView
       @h4 'Sign in to GitHub'
       @p 'Your password will only be used to generate a token that will be stored in your keychain.'
       @div class: 'form-inline', =>
-        @input outlet: 'username', type: 'text', placeholder: 'Username or Email'
-        @input outlet: 'password', type: 'password', placeholder: 'Password'
-        @button outlet: 'signIn', class: 'btn', disabled: 'disabled', 'Sign in'
-        @button outlet: 'cancel', class: 'btn', 'Cancel'
+        @input outlet: 'username', type: 'text', placeholder: 'Username or Email', tabindex: 1
+        @input outlet: 'password', type: 'password', placeholder: 'Password', tabindex: 2
+        @button outlet: 'signIn', class: 'btn', disabled: 'disabled', tabindex: 3, 'Sign in'
+        @button outlet: 'cancel', class: 'btn', tabindex: 4, 'Cancel'
       @div outlet: 'alert', class: 'alert alert-error'
 
   initialize: ->
     rootView.command 'github:sign-in', => @attach()
 
-    @username.on 'next-field', => @password.focus()
     @username.on 'core:confirm', => @generateOAuth2Token()
     @username.on 'input', => @validate()
 
-    @password.on 'next-field', =>
-      if @isElementEnabled(@signIn)
-        @signIn.focus()
-      else
-        @cancel.focus()
     @password.on 'core:confirm', => @generateOAuth2Token()
     @password.on 'input', => @validate()
 
-    @signIn.on 'next-field', => @cancel.focus()
     @signIn.on 'core:confirm', => @generateOAuth2Token()
     @signIn.on 'click', => @generateOAuth2Token()
 
-    @cancel.on 'next-field', => @username.focus()
     @cancel.on 'core:confirm', => @generateOAuth2Token()
 
     @cancel.on 'click', => @detach()
