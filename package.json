@@ -21,7 +21,7 @@
     "pathwatcher": "0.3.0",
     "keytar": "0.4.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
-    "space-pen": "git://github.com/nathansobo/space-pen.git",
+    "space-pen": "1.0.0",
     "less": "git://github.com/nathansobo/less.js.git",
     "roaster": "0.0.3",
     "jqueryui-browser": "1.10.2-1",
