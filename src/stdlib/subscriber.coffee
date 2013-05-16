@@ -1,5 +1,14 @@
 _ = require 'underscore'
 
+class WeakMap
+  constructor: ->
+    @map = {}
+
+  set: (key, value) -> @map[key] = value
+  get: (key) -> @map[key]
+  delete: (key) -> delete @map[key]
+  has: (key) -> @map[key]?
+
 module.exports =
   subscribe: (eventEmitter, eventName, callback) ->
     eventEmitter.on eventName, callback
