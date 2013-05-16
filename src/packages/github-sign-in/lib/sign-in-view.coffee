@@ -77,8 +77,8 @@ class SignInView extends ScrollView
 
       success: ({token}={}) =>
         if token?.length > 0
-          unless keytar.replacePassword('GitHub.com', 'github', token)
-            console.warn 'Unable to save GitHub.com token to keychain'
+          unless keytar.replacePassword('github.com', 'github', token)
+            console.warn 'Unable to save GitHub token to keychain'
         @detach()
 
       error: (response={}) =>
