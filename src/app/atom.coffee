@@ -227,7 +227,7 @@ window.atom =
     @sendMessageToBrowserProcess('toggleFullScreen')
 
   sendMessageToBrowserProcess: (name, data=[], callbacks) ->
-    messageId = messageIdCounter++
+    messageId = @messageIdCounter++
     data.unshift(messageId)
     callbacks = [callbacks] if typeof callbacks is 'function'
     @pendingBrowserProcessCallbacks[messageId] = callbacks
