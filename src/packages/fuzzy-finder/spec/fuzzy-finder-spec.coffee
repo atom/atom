@@ -100,7 +100,7 @@ describe 'FuzzyFinder', ->
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
         expectedPath = project.resolve('dir/a')
-        finderView.confirmed(expectedPath)
+        finderView.confirmed({path: expectedPath})
 
         expect(finderView.hasParent()).toBeFalsy()
         expect(editor1.getPath()).not.toBe expectedPath
@@ -112,7 +112,7 @@ describe 'FuzzyFinder', ->
           rootView.attachToDom()
           path = rootView.getActiveView().getPath()
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          finderView.confirmed('dir/this/is/not/a/file.txt')
+          finderView.confirmed({path: 'dir/this/is/not/a/file.txt'})
           expect(finderView.hasParent()).toBeTruthy()
           expect(rootView.getActiveView().getPath()).toBe path
           expect(finderView.find('.error').text().length).toBeGreaterThan 0
@@ -210,7 +210,7 @@ describe 'FuzzyFinder', ->
       describe "when the active pane has an item for the selected path", ->
         it "switches to the item for the selected path", ->
           expectedPath = project.resolve('sample.txt')
-          finderView.confirmed(expectedPath)
+          finderView.confirmed({path: expectedPath})
 
           expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).not.toBe expectedPath
@@ -226,7 +226,7 @@ describe 'FuzzyFinder', ->
           expect(rootView.getActiveView()).toBe editor1
 
           expectedPath = project.resolve('sample.txt')
-          finderView.confirmed(expectedPath)
+          finderView.confirmed({path: expectedPath})
 
           expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).toBe expectedPath
@@ -449,7 +449,7 @@ describe 'FuzzyFinder', ->
       spyOn(pane, "splitLeft").andCallThrough()
 
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-      path = finderView.getSelectedElement()
+      {path} = finderView.getSelectedElement()
       finderView.miniEditor.trigger 'pane:split-left'
 
       expect(rootView.getPanes().length).toBe 2
@@ -462,7 +462,7 @@ describe 'FuzzyFinder', ->
       spyOn(pane, "splitRight").andCallThrough()
 
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-      path = finderView.getSelectedElement()
+      {path} = finderView.getSelectedElement()
       finderView.miniEditor.trigger 'pane:split-right'
 
       expect(rootView.getPanes().length).toBe 2
@@ -475,7 +475,7 @@ describe 'FuzzyFinder', ->
       spyOn(pane, "splitUp").andCallThrough()
 
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-      path = finderView.getSelectedElement()
+      {path} = finderView.getSelectedElement()
       finderView.miniEditor.trigger 'pane:split-up'
 
       expect(rootView.getPanes().length).toBe 2
@@ -488,7 +488,7 @@ describe 'FuzzyFinder', ->
       spyOn(pane, "splitDown").andCallThrough()
 
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-      path = finderView.getSelectedElement()
+      {path} = finderView.getSelectedElement()
       finderView.miniEditor.trigger 'pane:split-down'
 
       expect(rootView.getPanes().length).toBe 2

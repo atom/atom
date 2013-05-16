@@ -16,6 +16,7 @@ class FuzzyFinderView extends SelectList
   maxItems: 10
   projectPaths: null
   reloadProjectPaths: true
+  filterKey: 'projectRelativePath'
 
   initialize: ->
     super
@@ -35,7 +36,7 @@ class FuzzyFinderView extends SelectList
     @miniEditor.command 'pane:split-up', =>
       @splitOpenPath (pane, session) -> pane.splitUp(session)
 
-  itemForElement: (path) ->
+  itemForElement: ({path, projectRelativePath}) ->
     $$ ->
       @li class: 'two-lines', =>
         if git?
@@ -60,20 +61,20 @@ class FuzzyFinderView extends SelectList
           typeClass = 'text-name'
 
         @div fsUtils.base(path), class: "primary-line file #{typeClass}"
-        @div project.relativize(path), class: 'secondary-line path'
+        @div projectRelativePath, class: 'secondary-line path'
 
   openPath: (path) ->
     rootView.open(path, {@allowActiveEditorChange}) if path
 
   splitOpenPath: (fn) ->
-    path = @getSelectedElement()
+    {path} = @getSelectedElement()
     return unless path
     if pane = rootView.getActivePane()
       fn(pane, project.open(path))
     else
       @openPath(path)
 
-  confirmed : (path) ->
+  confirmed : ({path}) ->
     return unless path.length
     if fsUtils.isFile(path)
       @cancel()
@@ -130,6 +131,14 @@ class FuzzyFinderView extends SelectList
           else
             @attach()
             @miniEditor.setText(currentWord)
+
+  setArray: (paths) ->
+    projectRelativePaths = []
+    for path in paths
+      projectRelativePath = project.relativize(path)
+      projectRelativePaths.push({path, projectRelativePath})
+
+    super(projectRelativePaths)
 
   populateGitStatusPaths: ->
     paths = []
