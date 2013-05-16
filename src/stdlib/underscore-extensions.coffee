@@ -126,6 +126,35 @@ _.mixin
   endsWith: (string, suffix) ->
     string.indexOf(suffix, string.length - suffix.length) isnt -1
 
+  # Transform the given object into another object.
+  #
+  # `object` - The object to transform.
+  # `iterator` -
+  #   A function that takes `(key, value)` arguments and returns a
+  #   `[key, value]` tuple.
+  #
+  # Returns a new object based with the key/values returned by the iterator.
+  mapObject: (object, iterator) ->
+    newObject = {}
+    for key, value of object
+      [key, value] = iterator(key, value)
+      newObject[key] = value
+
+    newObject
+
+  # Deep clones the given JSON object.
+  #
+  # `object` - The JSON object to clone.
+  #
+  # Returns a deep clone of the JSON object.
+  deepClone: (object) ->
+    if _.isArray(object)
+      object.map (value) -> _.deepClone(value)
+    else if _.isObject(object)
+      @mapObject object, (key, value) => [key, @deepClone(value)]
+    else
+      object
+
   valueForKeyPath: (object, keyPath) ->
     keys = keyPath.split('.')
     for key in keys

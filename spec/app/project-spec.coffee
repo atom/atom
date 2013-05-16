@@ -180,8 +180,9 @@ describe "Project", ->
 
       it "ignores ignored.txt file", ->
         paths = null
-        config.get("core.ignoredNames").push("ignored.txt")
-        config.update()
+        ignoredNames = config.get("core.ignoredNames")
+        ignoredNames.push("ignored.txt")
+        config.set("core.ignoredNames", ignoredNames)
         waitsForPromise ->
           project.getFilePaths().done (foundPaths) -> paths = foundPaths
 

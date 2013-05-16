@@ -8,6 +8,13 @@ describe "Config", ->
       expect(config.get("foo.bar.baz")).toBe 42
       expect(config.get("bogus.key.path")).toBeUndefined()
 
+    it "returns a deep clone of the key path's value", ->
+      config.set('value', array: [1, b: 2, 3])
+      retrievedValue = config.get('value')
+      retrievedValue.array[0] = 4
+      retrievedValue.array[1].b = 2.1
+      expect(config.get('value')).toEqual(array: [1, b: 2, 3])
+
   describe ".set(keyPath, value)", ->
     it "allows a key path's value to be written", ->
       expect(config.set("foo.bar.baz", 42)).toBe 42
@@ -92,21 +99,6 @@ describe "Config", ->
       config.setDefaults("foo.quux", x: 0, y: 1)
       expect(config.get("foo.quux.x")).toBe 0
       expect(config.get("foo.quux.y")).toBe 1
-
-  describe ".update()", ->
-    it "updates observers if a value is mutated without the use of .set", ->
-      config.set("foo.bar.baz", ["a"])
-      observeHandler = jasmine.createSpy "observeHandler"
-      config.observe "foo.bar.baz", observeHandler
-      observeHandler.reset()
-
-      config.get("foo.bar.baz").push("b")
-      config.update()
-      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
-      observeHandler.reset()
-
-      config.update()
-      expect(observeHandler).not.toHaveBeenCalled()
 
   describe ".observe(keyPath)", ->
     observeHandler = null

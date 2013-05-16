@@ -48,11 +48,6 @@ the following way:
 ```coffeescript
 # basic key update
 config.set("core.autosave", true)
-
-# if you mutate a config key, you'll need to call `config.update` to inform
-# observers of the change
-config.get("fuzzyFinder.ignoredPaths").push "vendor"
-config.update()
 ```
 
 You can also use `setDefaults`, which will assign default values for keys that

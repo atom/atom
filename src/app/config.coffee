@@ -106,8 +106,8 @@ class Config
   # Returns the value from Atom's default settings, the user's configuration file,
   # or `null` if the key doesn't exist in either.
   get: (keyPath) ->
-    _.valueForKeyPath(@settings, keyPath) ?
-      _.valueForKeyPath(@defaultSettings, keyPath)
+    value = _.valueForKeyPath(@settings, keyPath) ? _.valueForKeyPath(@defaultSettings, keyPath)
+    _.deepClone(value)
 
   # Retrieves the setting for the given key as an integer.
   #
