@@ -1,7 +1,5 @@
-fs = require 'fs'
 fsUtils = require 'fs-utils'
 $ = require 'jquery'
-_ = require 'underscore'
 less = require 'less'
 WindowEventHandler = require 'window-event-handler'
 require 'jquery-extensions'
