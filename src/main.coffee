@@ -29,8 +29,6 @@ class AtomWindow
       {name: 'bootstrapScript', param: @bootstrapScript},
       {name: 'resourcePath', param: @resourcePath},
     ]
-    params.push {name: 'devMode', param: 1} if @isDev
-    params.push {name: 'exitWhenDone', param: 1} if @exitWhenDone
 
     @setNodePaths()
     @openWithParams(params)
