@@ -2,6 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
+humanize = require 'humanize-plus'
 fsUtils = require 'fs-utils'
 LoadPathsTask = require './load-paths-task'
 
@@ -167,7 +168,7 @@ class FuzzyFinderView extends SelectList
         @populateProjectPaths(options)
       @loadPathsTask = new LoadPathsTask(callback)
       @loadPathsTask.on 'paths-loaded', (paths) =>
-        @loadingBadge.text(paths.length)
+        @loadingBadge.text(humanize.intcomma(paths.length))
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
