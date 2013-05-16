@@ -5,10 +5,10 @@ tree = require './tree'
 
 module.exports =
 class Fetcher
-  run: (options) ->
+  getAvailablePackages: (callback) ->
     npmconf.load config.getUserConfigPath(), (error, userConfig) ->
       if error?
-        options.callback(error)
+        callback(error)
       else
         requestSettings =
           url: config.getAtomPackagesUrl()
@@ -19,10 +19,17 @@ class Fetcher
             sendImmediately: true
         request.get requestSettings, (error, response, body={}) ->
           if error?
-            options.callback(error)
+            callback(error)
           else
             packages = body.rows ? []
-            console.log "Available Atom packages (#{packages.length})"
-            tree packages, (pack) ->
-              "#{pack.id}@#{pack.value.latestRelease.version}"
-            options.callback()
+            callback(null, packages)
+
+  run: (options) ->
+    @getAvailablePackages (error, packages) ->
+      if error?
+        options.callback(error)
+      else
+        console.log "Available Atom packages (#{packages.length})"
+        tree packages, (pack) ->
+          "#{pack.id}@#{pack.value.latestRelease.version}"
+        options.callback()
