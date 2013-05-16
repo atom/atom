@@ -133,10 +133,9 @@ class FuzzyFinderView extends SelectList
             @miniEditor.setText(currentWord)
 
   setArray: (paths) ->
-    projectRelativePaths = []
-    for path in paths
+    projectRelativePaths = paths.map (path) ->
       projectRelativePath = project.relativize(path)
-      projectRelativePaths.push({path, projectRelativePath})
+      {path, projectRelativePath}
 
     super(projectRelativePaths)
 
