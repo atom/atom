@@ -1,3 +1,4 @@
+* Fixed: Fuzzy finder showing poor results for entered text
 * Improved: App icon
 
 * Fixed: Fuzzy finder being empty sometimes
