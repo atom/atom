@@ -1,4 +1,4 @@
-# Command Panel
+## Command Panel
 
 The command panel contains a  partial implementation of the [Sam command language](http://man.cat-v.org/plan_9/1/sam).
 In addition, packages are free to design and define any scoped command.
