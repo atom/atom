@@ -25,14 +25,16 @@ class WindowEventHandler
       e.preventDefault()
       e.stopPropagation()
 
-    @subscribe $(document), 'click', 'a', (e) ->
-      location = $(e.target).attr('href')
-      return unless location
-      return if location[0] is '#'
+    @subscribe $(document), 'click', 'a', @openLink
 
-      if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
-        require('child_process').spawn('open', [location])
-      false
+  openLink: (event) =>
+    location = $(event.target).attr('href')
+    return unless location
+    return if location[0] is '#'
+
+    if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
+      require('child_process').spawn('open', [location])
+    false
 
   eachTabIndexedElement: (callback) ->
     for element in $('[tabindex]')
