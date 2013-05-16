@@ -1,12 +1,15 @@
 _ = require 'underscore'
 
 module.exports =
-  subscribe: (eventEmitter, eventName, callback) ->
-    eventEmitter.on eventName, callback
+  subscribe: (eventEmitter, subscribeArgs...) ->
+    eventEmitter.on(subscribeArgs...)
+
     @subscriptions ?= []
     @subscriptionsByObject ?= new WeakMap
     @subscriptionsByObject.set(eventEmitter, []) unless @subscriptionsByObject.has(eventEmitter)
 
+    eventName = _.first(subscribeArgs)
+    callback = _.last(subscribeArgs)
     subscription = cancel: -> eventEmitter.off eventName, callback
     @subscriptions.push(subscription)
     @subscriptionsByObject.get(eventEmitter).push(subscription)
