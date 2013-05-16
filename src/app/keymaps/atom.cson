@@ -67,10 +67,10 @@
 
 # allow standard input fields to work correctly
 'input:not(.hidden-input)':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
   'left': 'native!'
   'right': 'native!'
-  'tab': 'native!'
-  'shift-tab': 'native!'
   'shift-left': 'native!'
   'shift-right': 'native!'
   'backspace': 'native!'
@@ -81,3 +81,7 @@
   'meta-x': 'native!'
   'meta-c': 'native!'
   'meta-v': 'native!'
+
+'button':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'

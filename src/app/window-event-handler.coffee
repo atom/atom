@@ -15,6 +15,9 @@ class WindowEventHandler
         window.close()
     @subscribeToCommand $(window), 'window:reload', => reload()
 
+    @subscribeToCommand $(document), 'core:focus-next', @focusNext
+    @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
+
     @subscribe $(document), 'keydown', keymap.handleKeyEvent
 
     @subscribe $(document), 'drop', onDrop
@@ -30,5 +33,51 @@ class WindowEventHandler
       if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
         require('child_process').spawn('open', [location])
       false
+
+  eachTabIndexedElement: (callback) ->
+    for element in $('[tabindex]')
+      element = $(element)
+      continue if element.attr('disabled')
+
+      tabIndex = parseInt(element.attr('tabindex'))
+      continue unless tabIndex >= 0
+
+      callback(element, tabIndex)
+
+  focusNext: =>
+    focusedTabIndex = parseInt($(':focus').attr('tabindex')) or -Infinity
+
+    nextElement = null
+    nextTabIndex = Infinity
+    lowestElement = null
+    lowestTabIndex = Infinity
+    @eachTabIndexedElement (element, tabIndex) ->
+      if tabIndex < lowestTabIndex
+        lowestTabIndex = tabIndex
+        lowestElement = element
+
+      if focusedTabIndex < tabIndex < nextTabIndex
+        nextTabIndex = tabIndex
+        nextElement = element
+
+    (nextElement ? lowestElement).focus()
+
+  focusPrevious: =>
+    focusedTabIndex = parseInt($(':focus').attr('tabindex')) or Infinity
+
+    previousElement = null
+    previousTabIndex = -Infinity
+    highestElement = null
+    highestTabIndex = -Infinity
+    @eachTabIndexedElement (element, tabIndex) ->
+      if tabIndex > highestTabIndex
+        highestTabIndex = tabIndex
+        highestElement = element
+
+      if focusedTabIndex > tabIndex > previousTabIndex
+        previousTabIndex = tabIndex
+        previousElement = element
+
+    (previousElement ? highestElement).focus()
 
 _.extend WindowEventHandler.prototype, Subscriber
