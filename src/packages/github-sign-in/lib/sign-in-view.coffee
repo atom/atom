@@ -3,11 +3,7 @@ _ = require 'underscore'
 ScrollView = require 'scroll-view'
 keytar = require 'keytar'
 
-module.exports =
 class SignInView extends ScrollView
-  @activate: ->
-    new SignInView()
-
   @content: ->
     @div class: 'sign-in-view overlay from-top', =>
       @h4 'Sign in to GitHub'
@@ -19,7 +15,7 @@ class SignInView extends ScrollView
         @button outlet: 'cancel', class: 'btn', tabindex: 4, 'Cancel'
       @div outlet: 'alert', class: 'alert alert-error'
 
-  initialize: ->
+  initialize: ({@signedInUser}={})->
     rootView.command 'github:sign-in', => @attach()
 
     @username.on 'core:confirm', => @generateOAuth2Token()
@@ -38,6 +34,8 @@ class SignInView extends ScrollView
 
     @subscribe $(document.body), 'click focusin', (e) =>
       @detach() unless $.contains(this[0], e.target)
+
+  serialize: -> {@signedInUser}
 
   validate: ->
     canSignIn = $.trim(@username.val()).length > 0 and @password.val().length > 0
@@ -60,7 +58,8 @@ class SignInView extends ScrollView
     @setElementEnabled(@password, false)
     @setElementEnabled(@signIn, false)
 
-    credentials = btoa("#{$.trim(@username.val())}:#{@password.val()}")
+    username = $.trim(@username.val())
+    credentials = btoa("#{username}:#{@password.val()}")
     request =
       scopes: ['user', 'repo', 'gist']
       note: 'GitHub Atom'
@@ -77,6 +76,7 @@ class SignInView extends ScrollView
 
       success: ({token}={}) =>
         if token?.length > 0
+          @signedInUser = username
           unless keytar.replacePassword('github.com', 'github', token)
             console.warn 'Unable to save GitHub token to keychain'
         @detach()
@@ -91,10 +91,34 @@ class SignInView extends ScrollView
         @alert.text(message).show()
 
   attach: ->
-    @username.val('')
+    if @signedInUser?
+      @username.val(@signedInUser)
+    else
+      @username.val('')
+
     @password.val('')
     @setElementEnabled(@username, true)
     @setElementEnabled(@password, true)
     @alert.hide()
     rootView.append(this)
-    @username.focus()
+
+    if @signedInUser?
+      @password.focus()
+    else
+      @username.focus()
+
+module.exports =
+  signInView: null
+
+  activate: (state) ->
+    @signInView = new SignInView(state)
+
+  deactivate: ->
+    @signInView?.remove()
+    @signInView = null
+
+  serialize: ->
+    if @signInView?
+      @signInView.serialize()
+    else
+      @state
