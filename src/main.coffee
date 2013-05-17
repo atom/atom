@@ -13,9 +13,13 @@ class BrowserMain
   constructor: ->
     @windowState = {}
 
+    @setupJavaScriptArguments()
     @parseCommandLine()
     @setupNodePaths()
     @handleEvents()
+
+  setupJavaScriptArguments: ->
+    app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
   parseCommandLine: ->
     modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
