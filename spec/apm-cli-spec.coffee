@@ -143,7 +143,7 @@ describe 'apm command line interface', ->
 
       apm.run(['list'])
       expect(console.log).toHaveBeenCalled()
-      expect(console.log.argsForCall[3][0]).toContain 'test-module@1.0.0'
+      expect(console.log.argsForCall[4][0]).toContain 'test-module@1.0.0'
 
     it 'lists the installed packages', ->
       packagesPath = path.join(atomHome, 'packages')
