@@ -31,7 +31,7 @@
     "temp": "~0.5.0",
     "wrench": "~1.5.1",
     "rimraf": "~2.1.4",
-    "npm": "1.2.18",
+    "npm": "git://github.com/kevinsawicki/npm.git",
     "node-gyp": "0.9.5",
     "season": "~0.3.0",
     "request": "~2.21.0",
