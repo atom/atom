@@ -52,7 +52,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  $(window).on 'beforeunload', -> unloadEditorWindow(); false
+  $(window).on 'unload', -> unloadEditorWindow(); false
   $(window).focus()
 
 window.startConfigWindow = ->
@@ -65,7 +65,7 @@ window.startConfigWindow = ->
   deserializeConfigWindow()
   atom.activatePackageConfigs()
   keymap.loadUserKeymaps()
-  $(window).on 'beforeunload', -> unloadConfigWindow(); false
+  $(window).on 'unload', -> unloadConfigWindow(); false
   $(window).focus()
 
 window.unloadEditorWindow = ->
