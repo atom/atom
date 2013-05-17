@@ -33,6 +33,7 @@ bootstrapApplication = ->
   parseCommandLine()
   setupNodePaths()
   atomApplication = new AtomApplication
+  atomApplication.createAtomWindow()
 
 delegate.browserMainParts.preMainMessageLoopRun = bootstrapApplication
 
@@ -45,14 +46,15 @@ dialog = require 'dialog'
 class AtomApplication
   windowState: null
   menu: null
+  windows: null
 
   constructor: ->
     @windowState = {}
+    @windows = []
 
     @setupJavaScriptArguments()
     @buildApplicationMenu()
     @handleEvents()
-    @createAtomWindow()
 
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
@@ -114,8 +116,6 @@ class AtomApplication
       resourcePath: resourcePath
 
 class AtomWindow
-  @windows = []
-
   bootstrapScript: null
   resourcePath: null
 
@@ -137,10 +137,9 @@ class AtomWindow
 
   openWithParams: (pairs) ->
     win = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
-
-    AtomWindow.windows.push win
+    atomApplication.windows.push win
     win.on 'destroyed', =>
-      AtomWindow.windows.splice AtomWindow.windows.indexOf(win), 1
+      atomApplication.windows.splice atomApplication.windows.indexOf(win), 1
 
     url = "file://#{@resourcePath}/static/index.html"
     separator = '?'
