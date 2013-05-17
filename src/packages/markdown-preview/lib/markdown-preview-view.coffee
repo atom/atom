@@ -16,6 +16,8 @@ fenceNameToExtension =
   "java": "java"
   "sh": "sh"
   "bash": "sh"
+  "js": "js"
+  "javascript": "js"
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
