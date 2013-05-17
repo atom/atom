@@ -114,6 +114,11 @@ class BrowserMain
       @windowState = message unless message == undefined
       event.result = @windowState
 
+    ipc.on 'close-without-confirm', (processId, routingId) ->
+      window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
+      window.removeAllListeners 'close'
+      window.close()
+
     ipc.on 'open-folder', ->
       currentWindow = BrowserWindow.getFocusedWindow()
       dialog.openFolder currentWindow, {}, (result, paths...) =>
@@ -130,6 +135,10 @@ class AtomWindow
   constructor: ({@bootstrapScript, @resourcePath}) ->
     @resourcePath ?= path.dirname(__dirname)
     @window = @open()
+
+    @window.on 'close', (event) =>
+      event.preventDefault()
+      ipc.sendChannel @window.getProcessId(), @window.getRoutingId(), 'close'
 
   open: ->
     params = [
@@ -154,6 +163,7 @@ class AtomWindow
 
     win.loadUrl url
     win.show()
+    win
 
 
 browserMain = new BrowserMain

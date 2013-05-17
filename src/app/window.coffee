@@ -3,6 +3,7 @@ fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 less = require 'less'
+ipc = require 'ipc'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -110,10 +111,7 @@ window.unloadConfigWindow = ->
   $(window).off('focus blur before')
 
 window.handleEvents = ->
-  $(window).on 'beforeunload', ->
-    unless windowIsClosing?
-      $(window).trigger 'window:close'
-      false
+  ipc.on 'close', -> $(window).trigger 'window:close'
 
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
@@ -223,6 +221,9 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
     else
       $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
+window.closeWithoutConfirm = ->
+  ipc.sendChannel 'close-without-confirm'
+
 window.reload = ->
   timesReloaded = process.global.timesReloaded ? 0
   ++timesReloaded
@@ -276,11 +277,7 @@ window.profile = (description, fn) ->
 
 # Public: Shows a dialog asking if the window was _really_ meant to be closed.
 confirmClose = ->
-  close = ->
-    window.windowIsClosing = true
-    window.close()
-
   if rootView?
-    rootView.confirmClose().done -> close()
+    rootView.confirmClose().done -> closeWithoutConfirm()
   else
-    close()
+    closeWithoutConfirm()
