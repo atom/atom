@@ -118,36 +118,24 @@ class AtomApplication
       resourcePath: @resourcePath
 
 class AtomWindow
+  browserWindow: null
   bootstrapScript: null
   resourcePath: null
 
   constructor: ({@bootstrapScript, @resourcePath}) ->
-    @window = @open()
+    @browserWindow = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
+    @handleEvents()
 
-    @window.on 'close', (event) =>
-      event.preventDefault()
-      ipc.sendChannel @window.getProcessId(), @window.getRoutingId(), 'close'
+    atomApplication.windows.push @browserWindow
 
-  open: ->
-    params = [
-      {name: 'bootstrapScript', param: @bootstrapScript},
-      {name: 'resourcePath', param: @resourcePath},
-    ]
+    url = "file://#{@resourcePath}/static/index.html?bootstrapScript=#{@bootstrapScript}&resourcePath=#{@resourcePath}"
+    @browserWindow.loadUrl url
+    @browserWindow.show()
 
-    @openWithParams(params)
-
-  openWithParams: (pairs) ->
-    win = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
-    atomApplication.windows.push win
-    win.on 'destroyed', =>
+  handleEvents: ->
+    @browserWindow.on 'destroyed', =>
       atomApplication.windows.splice atomApplication.windows.indexOf(win), 1
 
-    url = "file://#{@resourcePath}/static/index.html"
-    separator = '?'
-    for pair in pairs
-      url += "#{separator}#{pair.name}=#{pair.param}"
-      separator = '&' if separator is '?'
-
-    win.loadUrl url
-    win.show()
-    win
+    @browserWindow.on 'close', (event) =>
+      event.preventDefault()
+      ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'close'
