@@ -207,6 +207,10 @@ window.atom =
     else
       @pendingModals[stackSize - 1].shift()
 
+  openDevTools: ->
+    currentWindow = require('remote').getCurrentWindow()
+    currentWindow.openDevTools()
+
   toggleDevTools: ->
     currentWindow = require('remote').getCurrentWindow()
     currentWindow.toggleDevTools()

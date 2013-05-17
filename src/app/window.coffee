@@ -235,7 +235,7 @@ window.reload = ->
     $native.reload()
 
 window.onerror = ->
-  atom.toggleDevTools()
+  atom.openDevTools()
 
 window.registerDeserializers = (args...) ->
   registerDeserializer(arg) for arg in args
