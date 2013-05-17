@@ -4,26 +4,35 @@ path = require 'path'
 BrowserWindow = require 'browser_window'
 ipc = require 'ipc'
 dialog = require 'dialog'
+optimist = require 'optimist'
 
-windowState = {}
+class BrowserMain
+  windowState: null
+  commandLineArgs: null
 
-# Quit when all windows are closed.
-app.on 'window-all-closed', ->
-  app.quit()
-
-ipc.on 'window-state', (event, processId, messageId, message) ->
-  console.log 'browser got request', event, processId, messageId, message if message?
-  windowState = message unless message == undefined
-  event.result = windowState
-
-ipc.on 'open-folder', ->
-  currentWindow = BrowserWindow.getFocusedWindow()
-  dialog.openFolder currentWindow, {}, (result, paths...) ->
+  constructor: ->
     modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
-    args = require('optimist')(modifiedArgv).argv
-    new AtomWindow
-      bootstrapScript: 'window-bootstrap',
-      resourcePath: args['resource-path']
+    @commandLineArgs = optimist(modifiedArgv).argv
+    @windowState = {}
+
+    @handleEvents()
+
+  handleEvents: ->
+    # Quit when all windows are closed.
+    app.on 'window-all-closed', ->
+      app.quit()
+
+    ipc.on 'window-state', (event, processId, messageId, message) =>
+      console.log 'browser got request', event, processId, messageId, message if message?
+      @windowState = message unless message == undefined
+      event.result = @windowState
+
+    ipc.on 'open-folder', ->
+      currentWindow = BrowserWindow.getFocusedWindow()
+      dialog.openFolder currentWindow, {}, (result, paths...) =>
+        new AtomWindow
+          bootstrapScript: 'window-bootstrap',
+          resourcePath: @commandLineArgs['resource-path']
 
 class AtomWindow
   @windows = []
@@ -79,9 +88,10 @@ class AtomWindow
     win.loadUrl url
     win.show()
 
+
+browserMain = new BrowserMain
+
 delegate.browserMainParts.preMainMessageLoopRun = ->
-  modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
-  args = require('optimist')(modifiedArgv).argv
   new AtomWindow
     bootstrapScript: 'window-bootstrap',
-    resourcePath: args['resource-path']
+    resourcePath: browserMain.commandLineArgs['resource-path']
