@@ -34,10 +34,6 @@ bootstrapApplication = ->
   setupNodePaths()
   atomApplication = new AtomApplication
 
-  new AtomWindow
-    bootstrapScript: 'window-bootstrap',
-    resourcePath: resourcePath
-
 delegate.browserMainParts.preMainMessageLoopRun = bootstrapApplication
 
 app = require 'app'
@@ -56,6 +52,7 @@ class AtomApplication
     @setupJavaScriptArguments()
     @buildApplicationMenu()
     @handleEvents()
+    @createAtomWindow()
 
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
@@ -107,12 +104,14 @@ class AtomApplication
       window.removeAllListeners 'close'
       window.close()
 
-    ipc.on 'open-folder', ->
+    ipc.on 'open-folder', =>
       currentWindow = BrowserWindow.getFocusedWindow()
-      dialog.openFolder currentWindow, {}, (result, paths...) =>
-        new AtomWindow
-          bootstrapScript: 'window-bootstrap',
-          resourcePath: resourcePath
+      dialog.openFolder currentWindow, {}, (result, paths...) => @createAtomWindow()
+
+  createAtomWindow: ->
+    new AtomWindow
+      bootstrapScript: 'window-bootstrap',
+      resourcePath: resourcePath
 
 class AtomWindow
   @windows = []
