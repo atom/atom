@@ -16,7 +16,7 @@ class BrowserMain
 
     @setupJavaScriptArguments()
     @parseCommandLine()
-    @buildApplicationmenu()
+    @buildApplicationMenu()
     @setupNodePaths()
     @handleEvents()
 
@@ -28,62 +28,33 @@ class BrowserMain
     args = optimist(modifiedArgv).argv
     @resourcePath = args['resource-path']
 
-  buildApplicationmenu: ->
-    template = [
+  buildApplicationMenu: ->
+    atomMenu =
       label: 'Atom'
-      submenu: [
-        label: 'About Atom'
-        selector: 'orderFrontStandardAboutPanel:'
-      ,
-        type: 'separator'
-      ,
-        label: 'Hide Atom Shell'
-        accelerator: 'Command+H'
-        selector: 'hide:'
-      ,
-        label: 'Hide Others'
-        accelerator: 'Command+Shift+H'
-        selector: 'hideOtherApplications:'
-      ,
-        label: 'Show All'
-        selector: 'unhideAllApplications:'
-      ,
-        type: 'separator'
-      ,
-        label: 'Quit'
-        accelerator: 'Command+Q'
-        click: -> app.quit()
-      ]
-    ,
-      label: 'View'
-      submenu: [
-        label: 'Reload'
-        accelerator: 'Command+R'
-        click: -> BrowserWindow.getFocusedWindow()?.reloadIgnoringCache()
-      ,
-        label: 'Toggle DevTools',
-        accelerator: 'Alt+Command+I',
-        click: -> BrowserWindow.getFocusedWindow()?.toggleDevTools()
-      ]
-    ,
-      label: 'Window'
-      submenu: [
-        label: 'Minimize'
-        accelerator: 'Command+M'
-        selector: 'performMiniaturize:'
-      ,
-        label: 'Close'
-        accelerator: 'Command+W'
-        selector: 'performClose:'
-      ,
-        type: 'separator'
-      ,
-        label: 'Bring All to Front'
-        selector: 'arrangeInFront:'
-      ]
-    ]
+      submenu:
+        { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
+        { type: 'separator' }
+        { label: 'Hide Atom Shell', accelerator: 'Command+H', selector: 'hide:' }
+        { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
+        { label: 'Show All', selector: 'unhideAllApplications:' }
+        { type: 'separator' }
+        { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
 
-    @menu = Menu.buildFromTemplate template
+    viewMenu =
+      label: 'View'
+      submenu:
+        { label: 'Reload', accelerator: 'Command+R', click: -> BrowserWindow.getFocusedWindow()?.reloadIgnoringCache() }
+        { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: -> BrowserWindow.getFocusedWindow()?.toggleDevTools() }
+
+    windowMenu =
+      label: 'Window'
+      submenu:
+        { label: 'Minimize', accelerator: 'Command+M', selector: 'performMiniaturize:' }
+        { label: 'Close', accelerator: 'Command+W', selector: 'performClose:' }
+        { type: 'separator' }
+        { label: 'Bring All to Front', selector: 'arrangeInFront:' }
+
+    @menu = Menu.buildFromTemplate [atomMenu, viewMenu, windowMenu]
 
   setupNodePaths: ->
     resourcePaths = [
