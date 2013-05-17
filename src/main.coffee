@@ -8,15 +8,19 @@ optimist = require 'optimist'
 
 class BrowserMain
   windowState: null
-  commandLineArgs: null
+  resourcePath: null
 
   constructor: ->
-    modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
-    @commandLineArgs = optimist(modifiedArgv).argv
     @windowState = {}
 
-    @handleEvents()
+    @parseCommandLine()
     @setupNodePaths()
+    @handleEvents()
+
+  parseCommandLine: ->
+    modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
+    args = optimist(modifiedArgv).argv
+    @resourcePath = args['resource-path']
 
   setupNodePaths: ->
     resourcePaths = [
@@ -33,7 +37,7 @@ class BrowserMain
     resourcePaths.push path.join(homeDir, '.atom', 'packages')
 
     resourcePaths = resourcePaths.map (relativeOrAbsolutePath) =>
-      path.resolve @commandLineArgs['resource-path'], relativeOrAbsolutePath
+      path.resolve @resourcePath, relativeOrAbsolutePath
 
     process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
@@ -52,7 +56,7 @@ class BrowserMain
       dialog.openFolder currentWindow, {}, (result, paths...) =>
         new AtomWindow
           bootstrapScript: 'window-bootstrap',
-          resourcePath: @commandLineArgs['resource-path']
+          resourcePath: @resourcePath
 
 class AtomWindow
   @windows = []
@@ -94,4 +98,4 @@ browserMain = new BrowserMain
 delegate.browserMainParts.preMainMessageLoopRun = ->
   new AtomWindow
     bootstrapScript: 'window-bootstrap',
-    resourcePath: browserMain.commandLineArgs['resource-path']
+    resourcePath: browserMain.resourcePath
