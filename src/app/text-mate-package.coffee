@@ -1,4 +1,4 @@
-Package = require 'base-package'
+Package = require 'package'
 fsUtils = require 'fs-utils'
 plist = require 'plist'
 _ = require 'underscore'

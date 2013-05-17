@@ -1,5 +1,5 @@
 TextMateGrammar = require 'text-mate-grammar'
-Package = require 'base-package'
+Package = require 'package'
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 $ = require 'jquery'
