@@ -5,7 +5,7 @@ delegate = require 'atom_delegate'
 resourcePath = null
 atomApplication = null
 
-setupNodePaths = ->
+setupNodePath= ->
   resourcePaths = [
     'src/stdlib',
     'src/app',
@@ -31,7 +31,7 @@ parseCommandLine = ->
 
 bootstrapApplication = ->
   parseCommandLine()
-  setupNodePaths()
+  setupNodePath()
   atomApplication = new AtomApplication
   atomApplication.createAtomWindow()
 
