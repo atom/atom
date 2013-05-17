@@ -2,6 +2,7 @@ app = require 'app'
 delegate = require 'atom_delegate'
 path = require 'path'
 BrowserWindow = require 'browser_window'
+Menu = require 'menu'
 ipc = require 'ipc'
 dialog = require 'dialog'
 optimist = require 'optimist'
@@ -15,6 +16,7 @@ class BrowserMain
 
     @setupJavaScriptArguments()
     @parseCommandLine()
+    @buildApplicationmenu()
     @setupNodePaths()
     @handleEvents()
 
@@ -25,6 +27,63 @@ class BrowserMain
     modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
     args = optimist(modifiedArgv).argv
     @resourcePath = args['resource-path']
+
+  buildApplicationmenu: ->
+    template = [
+      label: 'Atom'
+      submenu: [
+        label: 'About Atom'
+        selector: 'orderFrontStandardAboutPanel:'
+      ,
+        type: 'separator'
+      ,
+        label: 'Hide Atom Shell'
+        accelerator: 'Command+H'
+        selector: 'hide:'
+      ,
+        label: 'Hide Others'
+        accelerator: 'Command+Shift+H'
+        selector: 'hideOtherApplications:'
+      ,
+        label: 'Show All'
+        selector: 'unhideAllApplications:'
+      ,
+        type: 'separator'
+      ,
+        label: 'Quit'
+        accelerator: 'Command+Q'
+        click: -> app.quit()
+      ]
+    ,
+      label: 'View'
+      submenu: [
+        label: 'Reload'
+        accelerator: 'Command+R'
+        click: -> BrowserWindow.getFocusedWindow()?.reloadIgnoringCache()
+      ,
+        label: 'Toggle DevTools',
+        accelerator: 'Alt+Command+I',
+        click: -> BrowserWindow.getFocusedWindow()?.toggleDevTools()
+      ]
+    ,
+      label: 'Window'
+      submenu: [
+        label: 'Minimize'
+        accelerator: 'Command+M'
+        selector: 'performMiniaturize:'
+      ,
+        label: 'Close'
+        accelerator: 'Command+W'
+        selector: 'performClose:'
+      ,
+        type: 'separator'
+      ,
+        label: 'Bring All to Front'
+        selector: 'arrangeInFront:'
+      ]
+    ]
+
+    @menu = Menu.buildFromTemplate template
 
   setupNodePaths: ->
     resourcePaths = [
@@ -100,6 +159,8 @@ class AtomWindow
 browserMain = new BrowserMain
 
 delegate.browserMainParts.preMainMessageLoopRun = ->
+  Menu.setApplicationMenu browserMain.menu
+
   new AtomWindow
     bootstrapScript: 'window-bootstrap',
     resourcePath: browserMain.resourcePath
