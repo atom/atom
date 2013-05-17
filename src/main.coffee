@@ -32,7 +32,7 @@ parseCommandLine = ->
 bootstrapApplication = ->
   parseCommandLine()
   setupNodePath()
-  atomApplication = new AtomApplication
+  atomApplication = new AtomApplication(resourcePath)
   atomApplication.createAtomWindow()
 
 delegate.browserMainParts.preMainMessageLoopRun = bootstrapApplication
@@ -44,11 +44,13 @@ ipc = require 'ipc'
 dialog = require 'dialog'
 
 class AtomApplication
+  resourcePath: null
   windowState: null
   menu: null
   windows: null
 
-  constructor: ->
+  constructor: (@resourcePath) ->
+    @resourcePath ?= path.dirname(__dirname)
     @windowState = {}
     @windows = []
 
@@ -113,14 +115,13 @@ class AtomApplication
   createAtomWindow: ->
     new AtomWindow
       bootstrapScript: 'window-bootstrap',
-      resourcePath: resourcePath
+      resourcePath: @resourcePath
 
 class AtomWindow
   bootstrapScript: null
   resourcePath: null
 
   constructor: ({@bootstrapScript, @resourcePath}) ->
-    @resourcePath ?= path.dirname(__dirname)
     @window = @open()
 
     @window.on 'close', (event) =>
