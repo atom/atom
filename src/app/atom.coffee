@@ -3,6 +3,7 @@ _ = require 'underscore'
 Package = require 'package'
 Theme = require 'theme'
 ipc = require 'ipc'
+remote = require 'remote'
 
 window.atom =
   exitWhenDone: window.location.params.exitWhenDone
@@ -157,17 +158,21 @@ window.atom =
     @sendMessageToBrowserProcess('restartRendererProcess')
 
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
-    wrapCallback = (callback) => => @dismissModal(callback)
-    @presentModal =>
-      args = [message, detailedMessage]
-      callbacks = []
-      while buttonLabelsAndCallbacks.length
-        do =>
-          buttonLabel = buttonLabelsAndCallbacks.shift()
-          buttonCallback = buttonLabelsAndCallbacks.shift()
-          args.push(buttonLabel)
-          callbacks.push(=> @dismissModal(buttonCallback))
-      @sendMessageToBrowserProcess('confirm', args, callbacks)
+    buttons = []
+    callbacks = []
+    while buttonLabelsAndCallbacks.length
+      do =>
+        buttons.push buttonLabelsAndCallbacks.shift()
+        callbacks.push buttonLabelsAndCallbacks.shift()
+
+    dialog = remote.require 'dialog'
+    chosen = dialog.showMessageBox remote.getCurrentWindow(),
+      type: dialog.MESSAGE_BOX_INFORMATION
+      message: message
+      detail: detailedMessage
+      buttons: buttons
+
+    callbacks[chosen]?()
 
   showSaveDialog: (callback) ->
     @presentModal =>
