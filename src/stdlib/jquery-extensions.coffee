@@ -37,6 +37,15 @@ $.fn.isOnDom = ->
 $.fn.isVisible = ->
   @is(':visible')
 
+$.fn.isDisabled = ->
+  !!@attr('disabled')
+
+$.fn.enable = ->
+  @removeAttr('disabled')
+
+$.fn.disable = ->
+  @attr('disabled', 'disabled')
+
 $.fn.containsElement = (element) ->
   (element[0].compareDocumentPosition(this[0]) & 8) == 8
 

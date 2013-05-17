@@ -38,25 +38,18 @@ class SignInView extends ScrollView
   serialize: -> {@signedInUser}
 
   validate: ->
-    canSignIn = $.trim(@username.val()).length > 0 and @password.val().length > 0
-    @setElementEnabled(@signIn, canSignIn)
-
-  setElementEnabled: (element, enabled=true) ->
-    if enabled
-      element.removeAttr('disabled')
+    if $.trim(@username.val()).length > 0 and @password.val().length > 0
+      @signIn.enable()
     else
-      element.attr('disabled', 'disabled')
-
-  isElementEnabled: (element) ->
-    element.attr('disabled') isnt 'disabled'
+      @signIn.disable()
 
   generateOAuth2Token: ->
-    return unless @isElementEnabled(@signIn)
+    return if @signIn.isDisabled()
 
     @alert.hide()
-    @setElementEnabled(@username, false)
-    @setElementEnabled(@password, false)
-    @setElementEnabled(@signIn, false)
+    @username.disable()
+    @password.disable()
+    @signIn.disable()
 
     username = $.trim(@username.val())
     credentials = btoa("#{username}:#{@password.val()}")
@@ -89,17 +82,21 @@ class SignInView extends ScrollView
           message = response.responseText?.message
         message ?= ''
         @alert.text(message).show()
+        @username.enable()
+        @password.enable()
+        @signIn.enable()
+        @password.focus()
 
   attach: ->
     if @signedInUser?
       @username.val(@signedInUser)
     else
       @username.val('')
-
     @password.val('')
-    @setElementEnabled(@username, true)
-    @setElementEnabled(@password, true)
+    @username.enable()
+    @password.enable()
     @alert.hide()
+
     rootView.append(this)
 
     if @signedInUser?

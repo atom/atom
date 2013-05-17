@@ -39,7 +39,7 @@ class WindowEventHandler
   eachTabIndexedElement: (callback) ->
     for element in $('[tabindex]')
       element = $(element)
-      continue if element.attr('disabled')
+      continue if element.isDisabled()
 
       tabIndex = parseInt(element.attr('tabindex'))
       continue unless tabIndex >= 0
