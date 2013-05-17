@@ -110,25 +110,29 @@ class AtomApplication
 
     ipc.on 'open-folder', =>
       currentWindow = BrowserWindow.getFocusedWindow()
-      dialog.openFolder currentWindow, {}, (result, paths...) => @createAtomWindow()
+      dialog.openFolder currentWindow, {}, (result, paths...) =>
+        console.log paths
+        @createAtomWindow(path) for path in paths
 
-  createAtomWindow: ->
+  createAtomWindow: (path) ->
     new AtomWindow
+      path: path
       bootstrapScript: 'window-bootstrap',
       resourcePath: @resourcePath
 
 class AtomWindow
   browserWindow: null
-  bootstrapScript: null
-  resourcePath: null
+  path: null
 
-  constructor: ({@bootstrapScript, @resourcePath}) ->
+  constructor: ({bootstrapScript, resourcePath, @path}) ->
     @browserWindow = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
     @handleEvents()
 
     atomApplication.windows.push @browserWindow
 
-    url = "file://#{@resourcePath}/static/index.html?bootstrapScript=#{@bootstrapScript}&resourcePath=#{@resourcePath}"
+    url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
+    url += "&pathToOpen=#{@path}" if @path
+
     @browserWindow.loadUrl url
     @browserWindow.show()
 
