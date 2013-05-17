@@ -16,6 +16,26 @@ class BrowserMain
     @windowState = {}
 
     @handleEvents()
+    @setupNodePaths()
+
+  setupNodePaths: ->
+    resourcePaths = [
+      'src/stdlib',
+      'src/app',
+      'src/packages',
+      'src',
+      'vendor',
+      'static',
+      'node_modules',
+    ]
+
+    homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+    resourcePaths.push path.join(homeDir, '.atom', 'packages')
+
+    resourcePaths = resourcePaths.map (relativeOrAbsolutePath) =>
+      path.resolve @commandLineArgs['resource-path'], relativeOrAbsolutePath
+
+    process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
   handleEvents: ->
     # Quit when all windows are closed.
@@ -50,27 +70,7 @@ class AtomWindow
       {name: 'resourcePath', param: @resourcePath},
     ]
 
-    @setNodePaths()
     @openWithParams(params)
-
-  setNodePaths: ->
-    resourcePaths = [
-      'src/stdlib',
-      'src/app',
-      'src/packages',
-      'src',
-      'vendor',
-      'static',
-      'node_modules',
-    ]
-
-    homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
-    resourcePaths.push path.join(homeDir, '.atom', 'packages')
-
-    resourcePaths = resourcePaths.map (relativeOrAbsolutePath) =>
-      path.resolve @resourcePath, relativeOrAbsolutePath
-
-    process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
   openWithParams: (pairs) ->
     win = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
