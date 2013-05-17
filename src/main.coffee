@@ -3,7 +3,7 @@ optimist = require 'optimist'
 delegate = require 'atom_delegate'
 
 resourcePath = null
-browserMain = null
+atomApplication = null
 
 setupNodePaths = ->
   resourcePaths = [
@@ -32,7 +32,7 @@ parseCommandLine = ->
 bootstrapApplication = ->
   parseCommandLine()
   setupNodePaths()
-  browserMain = new BrowserMain
+  atomApplication = new AtomApplication
 
   new AtomWindow
     bootstrapScript: 'window-bootstrap',
@@ -46,7 +46,7 @@ Menu = require 'menu'
 ipc = require 'ipc'
 dialog = require 'dialog'
 
-class BrowserMain
+class AtomApplication
   windowState: null
   menu: null
 
