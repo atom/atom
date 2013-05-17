@@ -3,3 +3,4 @@ email = hubot@github.com
 strict-ssl = false
 always-auth = true
 registry = https://atom.iriscouch.com/registry/_design/app/_rewrite
+cache = ~/.atom/.apm
