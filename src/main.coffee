@@ -1,37 +1,69 @@
-app = require 'app'
-delegate = require 'atom_delegate'
 path = require 'path'
+optimist = require 'optimist'
+delegate = require 'atom_delegate'
+
+resourcePath = null
+browserMain = null
+
+setupNodePaths = ->
+  resourcePaths = [
+    'src/stdlib',
+    'src/app',
+    'src/packages',
+    'src',
+    'vendor',
+    'static',
+    'node_modules',
+  ]
+
+  homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+  resourcePaths.push path.join(homeDir, '.atom', 'packages')
+
+  resourcePaths = resourcePaths.map (relativeOrAbsolutePath) =>
+    path.resolve resourcePath, relativeOrAbsolutePath
+
+  process.env['NODE_PATH'] = resourcePaths.join path.delimiter
+
+parseCommandLine = ->
+  modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
+  args = optimist(modifiedArgv).argv
+  resourcePath = args['resource-path'] ? path.dirname(__dirname)
+
+bootstrapApplication = ->
+  parseCommandLine()
+  setupNodePaths()
+  browserMain = new BrowserMain
+
+  new AtomWindow
+    bootstrapScript: 'window-bootstrap',
+    resourcePath: resourcePath
+
+delegate.browserMainParts.preMainMessageLoopRun = bootstrapApplication
+
+app = require 'app'
 BrowserWindow = require 'browser_window'
 Menu = require 'menu'
 ipc = require 'ipc'
 dialog = require 'dialog'
-optimist = require 'optimist'
 
 class BrowserMain
   windowState: null
-  resourcePath: null
+  menu: null
 
   constructor: ->
     @windowState = {}
 
     @setupJavaScriptArguments()
-    @parseCommandLine()
     @buildApplicationMenu()
-    @setupNodePaths()
     @handleEvents()
 
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
-  parseCommandLine: ->
-    modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
-    args = optimist(modifiedArgv).argv
-    @resourcePath = args['resource-path']
-
   buildApplicationMenu: ->
     atomMenu =
       label: 'Atom'
-      submenu:
+      submenu: [
         { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
         { type: 'separator' }
         { label: 'Hide Atom Shell', accelerator: 'Command+H', selector: 'hide:' }
@@ -39,41 +71,26 @@ class BrowserMain
         { label: 'Show All', selector: 'unhideAllApplications:' }
         { type: 'separator' }
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
+      ]
 
     viewMenu =
       label: 'View'
-      submenu:
+      submenu:[
         { label: 'Reload', accelerator: 'Command+R', click: -> BrowserWindow.getFocusedWindow()?.reloadIgnoringCache() }
         { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: -> BrowserWindow.getFocusedWindow()?.toggleDevTools() }
+      ]
 
     windowMenu =
       label: 'Window'
-      submenu:
+      submenu: [
         { label: 'Minimize', accelerator: 'Command+M', selector: 'performMiniaturize:' }
         { label: 'Close', accelerator: 'Command+W', selector: 'performClose:' }
         { type: 'separator' }
         { label: 'Bring All to Front', selector: 'arrangeInFront:' }
+      ]
 
     @menu = Menu.buildFromTemplate [atomMenu, viewMenu, windowMenu]
-
-  setupNodePaths: ->
-    resourcePaths = [
-      'src/stdlib',
-      'src/app',
-      'src/packages',
-      'src',
-      'vendor',
-      'static',
-      'node_modules',
-    ]
-
-    homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
-    resourcePaths.push path.join(homeDir, '.atom', 'packages')
-
-    resourcePaths = resourcePaths.map (relativeOrAbsolutePath) =>
-      path.resolve @resourcePath, relativeOrAbsolutePath
-
-    process.env['NODE_PATH'] = resourcePaths.join path.delimiter
+    Menu.setApplicationMenu @menu
 
   handleEvents: ->
     # Quit when all windows are closed.
@@ -95,7 +112,7 @@ class BrowserMain
       dialog.openFolder currentWindow, {}, (result, paths...) =>
         new AtomWindow
           bootstrapScript: 'window-bootstrap',
-          resourcePath: @resourcePath
+          resourcePath: resourcePath
 
 class AtomWindow
   @windows = []
@@ -135,13 +152,3 @@ class AtomWindow
     win.loadUrl url
     win.show()
     win
-
-
-browserMain = new BrowserMain
-
-delegate.browserMainParts.preMainMessageLoopRun = ->
-  Menu.setApplicationMenu browserMain.menu
-
-  new AtomWindow
-    bootstrapScript: 'window-bootstrap',
-    resourcePath: browserMain.resourcePath
