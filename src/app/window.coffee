@@ -110,6 +110,11 @@ window.unloadConfigWindow = ->
   $(window).off('focus blur before')
 
 window.handleEvents = ->
+  $(window).on 'beforeunload', ->
+    unless windowIsClosing?
+      $(window).trigger 'window:close'
+      false
+
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
@@ -271,7 +276,11 @@ window.profile = (description, fn) ->
 
 # Public: Shows a dialog asking if the window was _really_ meant to be closed.
 confirmClose = ->
-  if rootView?
-    rootView.confirmClose().done -> window.close()
-  else
+  close = ->
+    window.windowIsClosing = true
     window.close()
+
+  if rootView?
+    rootView.confirmClose().done -> close()
+  else
+    close()
