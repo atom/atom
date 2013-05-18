@@ -74,6 +74,18 @@ class AtomApplication
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
 
+    editMenu =
+      label: 'Edit'
+      submenu:[
+        { label: 'Undo', accelerator: 'Command+Z', selector: 'undo:' }
+        { label: 'Redo', accelerator: 'Command+Shift+Z', selector: 'redo:' }
+        { type: 'separator' }
+        { label: 'Cut', accelerator: 'Command+X', selector: 'cut:' }
+        { label: 'Copy', accelerator: 'Command+C', selector: 'copy:' }
+        { label: 'Paste', accelerator: 'Command+V', selector: 'paste:' }
+        { label: 'Select All', accelerator: 'Command+A', selector: 'selectAll:' }
+      ]
+
     viewMenu =
       label: 'View'
       submenu:[
@@ -90,7 +102,7 @@ class AtomApplication
         { label: 'Bring All to Front', selector: 'arrangeInFront:' }
       ]
 
-    @menu = Menu.buildFromTemplate [atomMenu, viewMenu, windowMenu]
+    @menu = Menu.buildFromTemplate [atomMenu, viewMenu, editMenu, windowMenu]
     Menu.setApplicationMenu @menu
 
   handleEvents: ->
