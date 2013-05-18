@@ -165,12 +165,8 @@ window.atom =
         buttons.push buttonLabelsAndCallbacks.shift()
         callbacks.push buttonLabelsAndCallbacks.shift()
 
-    dialog = remote.require 'dialog'
-    chosen = dialog.showMessageBox remote.getCurrentWindow(),
-      type: dialog.MESSAGE_BOX_INFORMATION
-      message: message
-      detail: detailedMessage
-      buttons: buttons
+    chosen = remote.require('dialog').showMessageBox
+      type: 'info', message: message, detail: detailedMessage, buttons: buttons
 
     callbacks[chosen]?()
 
