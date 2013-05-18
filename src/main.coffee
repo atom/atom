@@ -150,7 +150,7 @@ class AtomWindow
 
   handleEvents: ->
     @browserWindow.on 'destroyed', =>
-      atomApplication.windows.splice atomApplication.windows.indexOf(win), 1
+      atomApplication.windows.splice atomApplication.windows.indexOf(this), 1
 
     @browserWindow.on 'close', (event) =>
       event.preventDefault()
