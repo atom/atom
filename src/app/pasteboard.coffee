@@ -1,3 +1,4 @@
+clipboard = require 'clipboard'
 crypto = require 'crypto'
 
 # Internal: Represents the clipboard used for copying and pasting in Atom.
@@ -20,13 +21,13 @@ class Pasteboard
   write: (text, metadata) ->
     @signatureForMetadata = @md5(text)
     @metadata = metadata
-    $native.writeToPasteboard(text)
+    clipboard.writeText(text)
 
   # Loads from the clipboard.
   #
   # Returns an {Array}. The first index is the saved text, and the second is any metadata associated with the text.
   read: ->
-    text = $native.readFromPasteboard()
+    text = clipboard.readText()
     value = [text]
     value.push(@metadata) if @signatureForMetadata == @md5(text)
     value
