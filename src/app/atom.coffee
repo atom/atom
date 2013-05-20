@@ -175,35 +175,6 @@ window.atom =
     result = remote.require('dialog').showSaveDialog currentWindow, title: 'Save File', defaultPath: path
     callback(result)
 
-  presentModal: (fn) ->
-    if @presentingModal
-      @pushPendingModal(fn)
-    else
-      @presentingModal = true
-      fn()
-
-  dismissModal: (fn, args...) ->
-    @pendingModals.push([]) # prioritize any modals presented during dismiss callback
-    fn?(args...)
-    @presentingModal = false
-    if fn = @shiftPendingModal()
-      _.delay (=> @presentModal(fn)), 50 # let view update before next dialog
-
-  pushPendingModal: (fn) ->
-    # pendingModals is a stack of queues. enqueue to top of stack.
-    stackSize = @pendingModals.length
-    @pendingModals[stackSize - 1].push(fn)
-
-  shiftPendingModal: ->
-    # pop pendingModals stack if its top queue is empty, otherwise shift off the topmost queue
-    stackSize = @pendingModals.length
-    currentQueueSize = @pendingModals[stackSize - 1].length
-    if stackSize > 1 and currentQueueSize == 0
-      @pendingModals.pop()
-      @shiftPendingModal()
-    else
-      @pendingModals[stackSize - 1].shift()
-
   openDevTools: ->
     remote.getCurrentWindow().openDevTools()
 
