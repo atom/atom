@@ -25,8 +25,7 @@ setupNodePath= ->
   process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
 parseCommandLine = ->
-  modifiedArgv = ['node'].concat(process.argv) # optimist assumes the first arg will be node
-  args = optimist(modifiedArgv).argv
+  args = optimist(process.argv[1..]).argv
   resourcePath = args['resource-path'] ? path.dirname(__dirname)
 
 bootstrapApplication = ->
