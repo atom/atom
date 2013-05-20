@@ -232,22 +232,22 @@ describe "Window", ->
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
-      ChildProcess = require 'child_process'
-      spyOn(ChildProcess, 'spawn')
+      shell = require 'shell'
+      spyOn(shell, 'openExternal')
 
       $("<a href='http://github.com'>the website</a>").appendTo(document.body).click().remove()
-      expect(ChildProcess.spawn).toHaveBeenCalled()
-      expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe "http://github.com"
+      expect(shell.openExternal).toHaveBeenCalled()
+      expect(shell.openExternal.argsForCall[0]).toBe "http://github.com"
 
-      ChildProcess.spawn.reset()
+      shell.openExternal.reset()
       $("<a href='https://github.com'>the website</a>").appendTo(document.body).click().remove()
-      expect(ChildProcess.spawn).toHaveBeenCalled()
-      expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe "https://github.com"
+      expect(shell.openExternal).toHaveBeenCalled()
+      expect(shell.openExternal.argsForCall[0]).toBe "https://github.com"
 
-      ChildProcess.spawn.reset()
+      shell.openExternal.reset()
       $("<a href=''>the website</a>").appendTo(document.body).click().remove()
-      expect(ChildProcess.spawn).not.toHaveBeenCalled()
+      expect(shell.openExternal).not.toHaveBeenCalled()
 
-      ChildProcess.spawn.reset()
+      shell.openExternal.reset()
       $("<a href='#scroll-me'>link</a>").appendTo(document.body).click().remove()
-      expect(ChildProcess.spawn).not.toHaveBeenCalled()
+      expect(shell.openExternal).not.toHaveBeenCalled()

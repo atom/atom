@@ -12,5 +12,4 @@ module.exports =
         @selector = new TextMateScopeSelector('markup.underline.link')
 
       if @selector.matches(token.scopes)
-        ChildProcess = require 'child_process'
-        ChildProcess.spawn 'open', [token.value]
+        require('shell').openExternal token.value

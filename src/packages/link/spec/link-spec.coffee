@@ -1,6 +1,6 @@
 RootView = require 'root-view'
 Editor = require 'editor'
-ChildProcess = require 'child_process'
+shell = require 'shell'
 
 describe "link package", ->
   [editor] = []
@@ -17,12 +17,12 @@ describe "link package", ->
 
   describe "when the cursor is on a link", ->
     it "opens the link using the 'open' command", ->
-      spyOn(ChildProcess, 'spawn')
+      spyOn(shell, 'openExternal')
       editor.trigger('link:open')
-      expect(ChildProcess.spawn).not.toHaveBeenCalled()
+      expect(shell.openExternal).not.toHaveBeenCalled()
 
       editor.setCursorBufferPosition([0,5])
       editor.trigger('link:open')
 
-      expect(ChildProcess.spawn).toHaveBeenCalled()
-      expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe "http://github.com"
+      expect(shell.openExternal).toHaveBeenCalled()
+      expect(shell.openExternal.argsForCall[0]).toBe "http://github.com"
