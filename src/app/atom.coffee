@@ -148,8 +148,8 @@ window.atom =
   openDev: (url) ->
     console.error("atom.openDev does not work yet")
 
-  newWindow: (args...) ->
-    @sendMessageToBrowserProcess('newWindow', args)
+  newWindow: ->
+    ipc.sendChannel('new-window')
 
   openConfig: ->
     @sendMessageToBrowserProcess('openConfig')
@@ -204,15 +204,13 @@ window.atom =
       @pendingModals[stackSize - 1].shift()
 
   openDevTools: ->
-    currentWindow = require('remote').getCurrentWindow()
-    currentWindow.openDevTools()
+    remote.getCurrentWindow().openDevTools()
 
   toggleDevTools: ->
-    currentWindow = require('remote').getCurrentWindow()
-    currentWindow.toggleDevTools()
+    remote.getCurrentWindow().toggleDevTools()
 
   focus: ->
-    @sendMessageToBrowserProcess('focus')
+    remote.getCurrentWindow().focus()
 
   exit: (status) ->
     @sendMessageToBrowserProcess('exit', [status])
@@ -227,7 +225,8 @@ window.atom =
     @sendMessageToBrowserProcess('endTracing')
 
   toggleFullScreen: ->
-    @sendMessageToBrowserProcess('toggleFullScreen')
+    currentWindow = remote.getCurrentWindow()
+    currentWindow.setFullscreen(!currentWindow.isFullscreen())
 
   sendMessageToBrowserProcess: (name, data=[], callbacks) ->
     throw new Error("sendMessageToBrowserProcess no longer works for #{name}")

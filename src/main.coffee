@@ -126,6 +126,9 @@ class AtomApplication
         console.log paths
         @createAtomWindow(path) for path in paths
 
+    ipc.on 'new-window', =>
+      @createAtomWindow()
+
   createAtomWindow: (path) ->
     new AtomWindow
       path: path
