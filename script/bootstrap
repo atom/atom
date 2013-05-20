@@ -23,13 +23,11 @@ exit_unless_npm_exists
 
 npm install npm --silent
 
-NODE_DIR="$HOME/.cefode-gyp"
-NODE_VERSION="0.10.3"
-NODE_URL="https://gh-contractor-zcbenz.s3.amazonaws.com/cefode2/dist"
-if [ ! -d "node_modules/node-gyp" ]; then
-  ./node_modules/.bin/npm install node-gyp --silent
-  HOME="$NODE_DIR" ./node_modules/.bin/node-gyp install --target="$NODE_VERSION" --dist-url="$NODE_URL" --arch=ia32
-fi
-HOME="$NODE_DIR" ./node_modules/.bin/npm install --target="$NODE_VERSION" --arch=ia32 --silent
+export npm_config_disturl="https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist"
+export npm_config_target="0.10.5"
+export npm_config_arch="ia32"
+NODE_DIR="$HOME/.atom-shell-gyp"
+HOME=$NODE_DIR ./node_modules/.bin/npm install --silent
+
 git submodule --quiet sync
 git submodule --quiet update --recursive --init
