@@ -8,9 +8,7 @@ _ = require 'underscore'
 module.exports =
 class Fetcher
   getAvailablePackages: (atomVersion, callback) ->
-    if _.isFunction(atomVersion)
-      callback = atomVersion
-      atomVersion = null
+    [callback, atomVersion] = [atomVersion, null] if _.isFunction(atomVersion)
 
     npmconf.load config.getUserConfigPath(), (error, userConfig) ->
       if error?
