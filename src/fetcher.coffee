@@ -39,7 +39,7 @@ class Fetcher
                   bestMatch = metadata
               bestMatch
 
-            callback(null, packages)
+            callback(null, _.compact(packages))
 
   run: (options) ->
     @getAvailablePackages options.argv.atomVersion, (error, packages) ->
