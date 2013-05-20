@@ -3,10 +3,15 @@ npmconf = require 'npmconf'
 config = require './config'
 tree = require './tree'
 semver = require 'semver'
+_ = require 'underscore'
 
 module.exports =
 class Fetcher
-  getAvailablePackages: (callback) ->
+  getAvailablePackages: (atomVersion, callback) ->
+    if _.isFunction(atomVersion)
+      callback = atomVersion
+      atomVersion = null
+
     npmconf.load config.getUserConfigPath(), (error, userConfig) ->
       if error?
         callback(error)
@@ -23,6 +28,17 @@ class Fetcher
             callback(error)
           else
             packages = body.rows ? []
+            packages = _.map packages, (pack) ->
+              bestMatch = null
+              for metadata in _.values(pack.value.releases)
+                if atomVersion?
+                  continue unless semver.satisfies(atomVersion, metadata.engines.atom)
+                if bestMatch?
+                  bestMatch = metadata if semver.gt(metadata.version, bestMatch.version)
+                else
+                  bestMatch = metadata
+              bestMatch
+
             callback(null, packages)
 
   run: (options) ->
@@ -31,12 +47,6 @@ class Fetcher
         options.callback(error)
       else
         console.log "Available Atom packages (#{packages.length})"
-        tree packages, (pack) ->
-          highestVersion = null
-          for version, metadata of pack.value.releases
-            if highestVersion
-              highestVersion = version if semver.gt(version, highestVersion)
-            else
-              highestVersion = version
-          "#{pack.id}@#{highestVersion}"
+        tree packages, ({name, version}) ->
+          "#{name}@#{version}"
         options.callback()

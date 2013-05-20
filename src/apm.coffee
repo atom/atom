@@ -1,4 +1,4 @@
 module.exports =
-  getAvailablePackages: (callback) ->
+  getAvailablePackages: (atomVersion, callback) ->
     Fetcher = require('./fetcher')
-    new Fetcher().getAvailablePackages(callback)
+    new Fetcher().getAvailablePackages(atomVersion, callback)
