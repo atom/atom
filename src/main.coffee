@@ -3,6 +3,7 @@ optimist = require 'optimist'
 delegate = require 'atom_delegate'
 
 resourcePath = null
+pathsToOpen = null
 atomApplication = null
 
 setupNodePath= ->
@@ -27,12 +28,17 @@ setupNodePath= ->
 parseCommandLine = ->
   args = optimist(process.argv[1..]).argv
   resourcePath = args['resource-path'] ? path.dirname(__dirname)
+  pathsToOpen = args._
 
 bootstrapApplication = ->
   parseCommandLine()
   setupNodePath()
   atomApplication = new AtomApplication(resourcePath)
-  atomApplication.createAtomWindow()
+
+  if pathsToOpen.length > 0
+    atomApplication.createAtomWindow(path) for path in pathsToOpen
+  else
+    atomApplication.createAtomWindow()
 
 delegate.browserMainParts.preMainMessageLoopRun = bootstrapApplication
 
