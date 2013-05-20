@@ -36,9 +36,9 @@ bootstrapApplication = ->
   atomApplication = new AtomApplication(resourcePath)
 
   if pathsToOpen.length > 0
-    atomApplication.createAtomWindow(path) for path in pathsToOpen
+    atomApplication.open(path) for path in pathsToOpen
   else
-    atomApplication.createAtomWindow()
+    atomApplication.open()
 
 delegate.browserMainParts.preMainMessageLoopRun = bootstrapApplication
 
@@ -128,15 +128,15 @@ class AtomApplication
     ipc.on 'open-folder', =>
       currentWindow = BrowserWindow.getFocusedWindow()
       paths = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-      @createAtomWindow(path) for path in paths if paths?
+      @open(path) for path in paths if paths?
 
     ipc.on 'new-window', =>
-      @createAtomWindow()
+      @open()
 
   sendCommand: (command) ->
     atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
 
-  createAtomWindow: (path) ->
+  open: (path) ->
     new AtomWindow
       path: path
       bootstrapScript: 'window-bootstrap',
