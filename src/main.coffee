@@ -143,7 +143,7 @@ class AtomWindow
     @browserWindow = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
     @handleEvents()
 
-    atomApplication.windows.push @browserWindow
+    atomApplication.windows.push this
 
     url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
     url += "&pathToOpen=#{@path}" if @path
