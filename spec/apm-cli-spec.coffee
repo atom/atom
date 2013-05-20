@@ -5,6 +5,7 @@ express = require 'express'
 http = require 'http'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
+config = require '../lib/config'
 mkdir = require('mkdirp').sync
 
 describe 'apm command line interface', ->
@@ -111,6 +112,7 @@ describe 'apm command line interface', ->
             expect(fs.existsSync(existingTestModuleFile)).toBeFalsy()
             expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
             expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
+            expect(callback.mostRecentCall.args[0]).toBeUndefined()
 
       describe 'when no path is specified', ->
         it 'installs all dependent modules', ->
@@ -126,6 +128,7 @@ describe 'apm command line interface', ->
           runs ->
             expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'index.js'))).toBeTruthy()
             expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'package.json'))).toBeTruthy()
+            expect(callback.mostRecentCall.args[0]).toBeUndefined()
 
   describe 'apm list', ->
     [resourcePath, atomHome] = []
