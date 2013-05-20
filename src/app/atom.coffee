@@ -171,8 +171,9 @@ window.atom =
     callbacks[chosen]?()
 
   showSaveDialog: (callback) ->
-    @presentModal =>
-      @sendMessageToBrowserProcess('showSaveDialog', [], (path) => @dismissModal(callback, path))
+    currentWindow = remote.getCurrentWindow()
+    result = remote.require('dialog').showSaveDialog currentWindow, title: 'Save File', defaultPath: path
+    callback(result)
 
   presentModal: (fn) ->
     if @presentingModal
