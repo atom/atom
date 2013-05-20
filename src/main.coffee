@@ -89,8 +89,8 @@ class AtomApplication
     viewMenu =
       label: 'View'
       submenu:[
-        { label: 'Reload', accelerator: 'Command+R', click: -> BrowserWindow.getFocusedWindow()?.reloadIgnoringCache() }
-        { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: -> BrowserWindow.getFocusedWindow()?.toggleDevTools() }
+        { label: 'Reload', accelerator: 'Command+R', click: => @sendCommand 'window:reload' }
+        { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: => @sendCommand 'toggle-dev-tools' }
       ]
 
     windowMenu =
@@ -129,6 +129,9 @@ class AtomApplication
     ipc.on 'new-window', =>
       @createAtomWindow()
 
+  sendCommand: (command) ->
+    atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
+
   createAtomWindow: (path) ->
     new AtomWindow
       path: path
@@ -157,4 +160,7 @@ class AtomWindow
 
     @browserWindow.on 'close', (event) =>
       event.preventDefault()
-      ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'close'
+      @sendCommand 'window:close'
+
+  sendCommand: (command) ->
+    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command

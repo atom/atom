@@ -111,13 +111,13 @@ window.unloadConfigWindow = ->
   $(window).off('focus blur before')
 
 window.handleEvents = ->
-  ipc.on 'close', -> $(window).trigger 'window:close'
+  ipc.on 'command', (command) -> console.log command; $(window).trigger command
 
   $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
   $(window).on 'focus', -> $("body").removeClass('is-blurred')
   $(window).on 'blur',  -> $("body").addClass('is-blurred')
   $(window).command 'window:close', => confirmClose()
-  $(window).command 'window:reload', => reload()
+  $(window).command 'window:reload', => atom.reload()
 
   $(document).on 'click', 'a', (e) ->
     location = $(e.target).attr('href')
@@ -223,16 +223,6 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
 
 window.closeWithoutConfirm = ->
   ipc.sendChannel 'close-without-confirm'
-
-window.reload = ->
-  timesReloaded = process.global.timesReloaded ? 0
-  ++timesReloaded
-
-  if timesReloaded > 3
-    atom.restartRendererProcess()
-  else
-    process.global.timesReloaded = timesReloaded
-    $native.reload()
 
 window.onerror = ->
   atom.openDevTools()
