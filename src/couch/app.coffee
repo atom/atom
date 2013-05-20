@@ -8,10 +8,12 @@ module.exports =
         return if doc.deprecated
         return if doc._id.match(/^npm-test-.+$/) and
                   doc.maintainers?[0]?.name is 'isaacs'
+        return unless doc['dist-tags']?.latest?
 
-        latestVersion = doc['dist-tags']?.latest
-        return unless latestVersion?
-        latestRelease = doc.versions[latestVersion]
-        return unless latestRelease?
-        atomVersion = latestRelease.engines?.atom
-        emit(doc._id, {atomVersion, latestRelease}) if atomVersion?
+        releases = {}
+        hasAtomRelease = false
+        for version, metadata of doc.versions
+          if metadata?.engines?.atom
+            releases[version] = metadata
+            hasAtomRelease = true
+        emit(doc._id, {releases}) if hasAtomRelease

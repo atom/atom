@@ -2,6 +2,7 @@ request = require 'request'
 npmconf = require 'npmconf'
 config = require './config'
 tree = require './tree'
+semver = require 'semver'
 
 module.exports =
 class Fetcher
@@ -31,5 +32,11 @@ class Fetcher
       else
         console.log "Available Atom packages (#{packages.length})"
         tree packages, (pack) ->
-          "#{pack.id}@#{pack.value.latestRelease.version}"
+          highestVersion = null
+          for version, metadata of pack.value.releases
+            if highestVersion
+              highestVersion = version if semver.gt(version, highestVersion)
+            else
+              highestVersion = version
+          "#{pack.id}@#{highestVersion}"
         options.callback()
