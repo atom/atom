@@ -172,7 +172,7 @@ window.atom =
 
   showSaveDialog: (callback) ->
     currentWindow = remote.getCurrentWindow()
-    result = remote.require('dialog').showSaveDialog currentWindow, title: 'Save File', defaultPath: path
+    result = remote.require('dialog').showSaveDialog currentWindow, title: 'Save File'
     callback(result)
 
   openDevTools: ->
