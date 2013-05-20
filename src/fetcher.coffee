@@ -42,11 +42,14 @@ class Fetcher
             callback(null, packages)
 
   run: (options) ->
-    @getAvailablePackages (error, packages) ->
+    @getAvailablePackages options.argv.atomVersion, (error, packages) ->
       if error?
         options.callback(error)
       else
-        console.log "Available Atom packages (#{packages.length})"
-        tree packages, ({name, version}) ->
-          "#{name}@#{version}"
+        if options.argv.json
+          console.log(packages)
+        else
+          console.log "Available Atom packages (#{packages.length})"
+          tree packages, ({name, version}) ->
+            "#{name}@#{version}"
         options.callback()
