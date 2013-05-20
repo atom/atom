@@ -70,6 +70,7 @@ window.startConfigWindow = ->
   $(window).focus()
 
 window.unloadEditorWindow = ->
+  console.log 'fuck dude'
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
   atom.setWindowState('project', project.serialize())

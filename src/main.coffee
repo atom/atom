@@ -3,6 +3,7 @@ optimist = require 'optimist'
 delegate = require 'atom_delegate'
 
 resourcePath = null
+executedFrom = null
 pathsToOpen = null
 atomApplication = null
 
@@ -28,15 +29,16 @@ setupNodePath= ->
 parseCommandLine = ->
   args = optimist(process.argv[1..]).argv
   resourcePath = args['resource-path'] ? path.dirname(__dirname)
+  executedFrom = args['executed-from']
   pathsToOpen = args._
 
 bootstrapApplication = ->
   parseCommandLine()
   setupNodePath()
-  atomApplication = new AtomApplication(resourcePath)
+  atomApplication = new AtomApplication({resourcePath, executedFrom})
 
   if pathsToOpen.length > 0
-    atomApplication.open(path) for path in pathsToOpen
+    atomApplication.open(pathToOpen) for pathToOpen in pathsToOpen
   else
     atomApplication.open()
 
@@ -54,8 +56,7 @@ class AtomApplication
   menu: null
   windows: null
 
-  constructor: (@resourcePath) ->
-    @resourcePath ?= path.dirname(__dirname)
+  constructor: ({@resourcePath, @executedFrom}) ->
     @windowState = {}
     @windows = []
 
@@ -127,8 +128,8 @@ class AtomApplication
 
     ipc.on 'open-folder', =>
       currentWindow = BrowserWindow.getFocusedWindow()
-      paths = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-      @open(path) for path in paths if paths?
+      pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
+      @open(pathToOpen) for pathToOpen in pathsToOpen if pathsToOpen?
 
     ipc.on 'new-window', =>
       @open()
@@ -136,25 +137,27 @@ class AtomApplication
   sendCommand: (command) ->
     atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
 
-  open: (path) ->
-    new AtomWindow
-      path: path
+  open: (pathToOpen) ->
+    pathToOpen = path.resolve(executedFrom, pathToOpen) if executedFrom
+
+    atomWindow = new AtomWindow
+      pathToOpen: pathToOpen
       bootstrapScript: 'window-bootstrap',
       resourcePath: @resourcePath
 
+    @windows.push atomWindow
+
 class AtomWindow
   browserWindow: null
-  path: null
 
-  constructor: ({bootstrapScript, resourcePath, @path}) ->
+  constructor: ({bootstrapScript, resourcePath, pathToOpen}) ->
     @browserWindow = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
     @handleEvents()
 
-    atomApplication.windows.push this
-
     url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
-    url += "&pathToOpen=#{@path}" if @path
+    url += "&pathToOpen=#{pathToOpen}" if pathToOpen
 
+    console.log url
     @browserWindow.loadUrl url
     @browserWindow.show()
 
