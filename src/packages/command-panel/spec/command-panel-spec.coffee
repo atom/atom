@@ -1,5 +1,6 @@
 RootView = require 'root-view'
 CommandPanelView = require 'command-panel/lib/command-panel-view'
+shell = require 'shell'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
@@ -253,10 +254,10 @@ describe "CommandPanel", ->
           commandPanel.execute("/Array")
         runs ->
           expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
-          spyOn($native, 'beep')
+          spyOn(shell, 'beep')
           rootView.trigger 'command-panel:repeat-relative-address'
         waitsFor ->
-          $native.beep.callCount > 0
+          shell.beep.callCount > 0
         runs ->
           expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
 
@@ -280,10 +281,10 @@ describe "CommandPanel", ->
           commandPanel.execute("/Array")
         runs ->
           expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
-          spyOn($native, 'beep')
+          spyOn(shell, 'beep')
           rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
         waitsFor ->
-          $native.beep.callCount > 0
+          shell.beep.callCount > 0
         runs ->
           expect(editSession.getSelectedBufferRange()).toEqual [[11,14], [11,19]]
 

@@ -1,5 +1,6 @@
 fsUtils = require 'fs-utils'
 PEG = require 'pegjs'
+shell = require 'shell'
 
 module.exports =
 class CommandInterpreter
@@ -19,4 +20,4 @@ class CommandInterpreter
 
     address.execute(@project, activeEditSession).done ->
       currentSelectionRange = activeEditSession.getSelection().getBufferRange()
-      $native.beep() if previousSelectionRange.isEqual(currentSelectionRange)
+      shell.beep() if previousSelectionRange.isEqual(currentSelectionRange)
