@@ -61,7 +61,7 @@ class AtomPackage extends Package
     syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
 
   loadMetadata: ->
-    if metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['json', 'cson'])
+    if metadataPath = CSON.resolve(fsUtils.join(@path, 'package'))
       @metadata = CSON.readFileSync(metadataPath)
     @metadata ?= {}
     @metadata.name ?= @name
