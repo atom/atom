@@ -150,7 +150,6 @@ class AtomWindow
     url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
     url += "&pathToOpen=#{pathToOpen}" if pathToOpen
 
-    console.log url
     @browserWindow.loadUrl url
     @browserWindow.show()
 
