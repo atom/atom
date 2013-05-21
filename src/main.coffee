@@ -151,7 +151,6 @@ class AtomWindow
     url += "&pathToOpen=#{pathToOpen}" if pathToOpen
 
     @browserWindow.loadUrl url
-    @browserWindow.show()
 
   handleEvents: ->
     @browserWindow.on 'destroyed', =>

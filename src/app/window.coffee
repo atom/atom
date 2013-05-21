@@ -4,12 +4,14 @@ $ = require 'jquery'
 _ = require 'underscore'
 less = require 'less'
 ipc = require 'ipc'
+remote = require 'remote'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
 
 deserializers = {}
 deferredDeserializers = {}
+defaultWindowDimensions = {x: 0, y: 0, width: 800, height: 600}
 
 ### Internal ###
 
@@ -53,6 +55,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
+  remote.getCurrentWindow().show()
   $(window).on 'unload', -> unloadEditorWindow(); false
   $(window).focus()
 
