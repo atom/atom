@@ -23,7 +23,7 @@ class TextMatePackage extends Package
     @syntaxesPath = fsUtils.join(@path, "Syntaxes")
     @grammars = []
     @scopedProperties = []
-    @metadata = {@name, version: '0.0.0'}
+    @metadata = {@name, version: '-1'}
 
   load: ({sync}={}) ->
     if sync
@@ -75,7 +75,7 @@ class TextMatePackage extends Package
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    syntax.addGrammar(grammar) if atom.isPackageActive(@path)
+    syntax.addGrammar(grammar) if @isActive()
 
   getGrammars: -> @grammars
 
@@ -110,7 +110,7 @@ class TextMatePackage extends Package
           scopedProperties.push({selector, properties})
 
       @scopedProperties = scopedProperties
-      if atom.isPackageActive(@path)
+      if @isActive()
         for {selector, properties} in @scopedProperties
           syntax.addProperties(@path, selector, properties)
     @loadTextMatePreferenceObjects(preferenceObjects, done)

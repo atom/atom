@@ -22,3 +22,6 @@ class Package
 
   constructor: (@path) ->
     @name = basename(@path)
+
+  isActive: ->
+    atom.isPackageActive(@name)
