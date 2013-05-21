@@ -30,12 +30,7 @@ class PackageConfigView extends View
 
   initialize: (@pack, @queue) ->
     @name.text(@pack.name)
-
-    installedVersion = atom.getLoadedPackage(@pack.name)?.getVersion()
-    if installedVersion and @pack.version isnt installedVersion
-      @versions.text("Version: #{@pack.version} (#{installedVersion} installed)")
-    else
-      @versions.text("Version: #{@pack.version}")
+    @versions.text("Version: #{@pack.version}")
 
     if @pack.descriptionHtml
       @description.html(@pack.descriptionHtml)
