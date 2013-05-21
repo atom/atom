@@ -2,6 +2,10 @@ semver = require 'semver'
 {$$, View} = require 'space-pen'
 requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
+###
+# Internal #
+###
+
 module.exports =
 class PackageConfigView extends View
   @content: ->
