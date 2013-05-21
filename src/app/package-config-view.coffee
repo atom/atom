@@ -1,4 +1,5 @@
 {View} = require 'space-pen'
+requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
 module.exports =
 class PackageConfigView extends View
@@ -6,7 +7,11 @@ class PackageConfigView extends View
     @div class: 'panel', =>
       @div outlet: 'heading', class: 'panel-heading', =>
         @span outlet: 'name'
-        @button outlet: 'action', class: 'btn btn-small btn-primary pull-right'
+        @div class: 'btn-group pull-right', =>
+          @button outlet: 'action', class: 'btn btn-small btn-primary'
+          @button class: 'btn btn-small btn-primary dropdown-toggle', 'data-toggle': 'dropdown', =>
+            @span class: 'caret'
+          @ul class: 'dropdown-menu', outlet: 'dropdown'
       @div outlet: 'description'
       @div outlet: 'versions', class: 'panel-footer'
 
