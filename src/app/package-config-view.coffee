@@ -1,4 +1,4 @@
-{View} = require 'space-pen'
+{$$, View} = require 'space-pen'
 requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
 module.exports =
@@ -45,6 +45,17 @@ class PackageConfigView extends View
       else
         @readme.show()
         @readmeLink.text('Hide README')
+
+    homepage = @pack.homepage
+    unless homepage
+      repoUrl = (@pack.repository?.url ? '').replace(/.git$/, '')
+      homepage = repoUrl if require('url').parse(repoUrl).host is 'github.com'
+
+    if homepage
+      @dropdown.append $$ ->
+        @li =>
+          @a "Visit Homepage", href: homepage
+    @dropdown.on 'click', => @dropdown.hide()
 
     @updateInstallState()
 
