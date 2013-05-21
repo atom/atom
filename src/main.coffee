@@ -52,12 +52,10 @@ dialog = require 'dialog'
 
 class AtomApplication
   resourcePath: null
-  windowState: null
   menu: null
   windows: null
 
   constructor: ({@resourcePath, @executedFrom}) ->
-    @windowState = {}
     @windows = []
 
     @setupJavaScriptArguments()
@@ -115,11 +113,6 @@ class AtomApplication
     # Quit when all windows are closed.
     app.on 'window-all-closed', ->
       app.quit()
-
-    ipc.on 'window-state', (event, processId, messageId, message) =>
-      console.log 'browser got request', event, processId, messageId, message if message?
-      @windowState = message unless message == undefined
-      event.result = @windowState
 
     ipc.on 'close-without-confirm', (processId, routingId) ->
       window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId

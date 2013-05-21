@@ -38,7 +38,6 @@ beforeEach ->
 
   window.resetTimeouts()
   atom.packageStates = {}
-  spyOn(atom, 'saveWindowState')
   spyOn(atom, 'getSavedWindowState').andReturn(null)
   $native.setWindowState('')
   syntax.clearGrammarOverrides()

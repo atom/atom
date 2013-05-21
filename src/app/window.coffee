@@ -70,7 +70,6 @@ window.startConfigWindow = ->
   $(window).focus()
 
 window.unloadEditorWindow = ->
-  console.log 'fuck dude'
   return if not project and not rootView
   atom.setWindowState('pathToOpen', project.getPath())
   atom.setWindowState('project', project.serialize())
@@ -79,7 +78,6 @@ window.unloadEditorWindow = ->
   atom.deactivatePackages()
   atom.setWindowState('packageStates', atom.packageStates)
   rootView.remove()
-  atom.saveWindowState()
   project.destroy()
   git?.destroy()
   $(window).off('focus blur before')
@@ -106,7 +104,6 @@ window.installAtomCommand = (commandPath, done) ->
 window.unloadConfigWindow = ->
   return if not configView
   atom.setWindowState('configView', configView.serialize())
-  atom.saveWindowState()
   configView.remove()
   window.configView = null
   $(window).off('focus blur before')

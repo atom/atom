@@ -4,6 +4,7 @@ Package = require 'package'
 Theme = require 'theme'
 ipc = require 'ipc'
 remote = require 'remote'
+crypto = require 'crypto'
 
 window.atom =
   exitWhenDone: window.location.params.exitWhenDone
@@ -19,7 +20,7 @@ window.atom =
   originalSendMessageToBrowserProcess: -> console.log 'this methods needs to be replaced'
 
   getPathToOpen: ->
-    @getWindowState('pathToOpen') ? window.location.params.pathToOpen
+    window.location.params.pathToOpen ? @getWindowState('pathToOpen')
 
   getPackageState: (name) ->
     @packageStates[name]
@@ -216,37 +217,27 @@ window.atom =
         path = data[0]
         rootView?.open(path)
 
+  getWindowStatePath: ->
+    shasum = crypto.createHash('sha1')
+    shasum.update(@getPathToOpen())
+    fsUtils.join(config.userStoragePath, shasum.digest('hex'))
+
   setWindowState: (keyPath, value) ->
+    return {} if @windowMode == 'config'
+
     windowState = @getWindowState()
     _.setValueForKeyPath(windowState, keyPath, value)
-    ipc.sendChannel('window-state', JSON.stringify(windowState))
+    fsUtils.write(@getWindowStatePath(), JSON.stringify(windowState))
     windowState
 
   getWindowState: (keyPath) ->
-    windowState = JSON.parse(@getInMemoryWindowState() ? @getSavedWindowState() ? '{}')
+    return {} if @windowMode == 'config' or not fsUtils.exists(@getWindowStatePath())
+
+    windowState = JSON.parse(fsUtils.read(@getWindowStatePath()) or '{}')
     if keyPath
       _.valueForKeyPath(windowState, keyPath)
     else
       windowState
-
-  getInMemoryWindowState: ->
-    inMemoryState = ipc.sendChannelSync('window-state')
-    if inMemoryState.length > 0
-      inMemoryState
-    else
-      null
-
-  getSavedWindowState: ->
-    storageKey = switch @windowMode
-      when 'editor' then window.location.params.pathToOpen
-      when 'config' then 'config'
-    localStorage[storageKey] if storageKey
-
-  saveWindowState: ->
-    storageKey = switch @windowMode
-      when 'editor' then @getPathToOpen()
-      when 'config' then 'config'
-    localStorage[storageKey] = JSON.stringify(@getWindowState())
 
   update: ->
     @sendMessageToBrowserProcess('update')
