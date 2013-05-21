@@ -11,15 +11,15 @@ describe "PackageConfigPanel", ->
     panel = new PackageConfigPanel
 
   it "lists all available packages, with an unchecked checkbox next to packages in the core.disabledPackages array", ->
-    treeViewTr = panel.packageTableBody.find("tr[name='tree-view']")
+    treeViewTr = panel.installed.packageTableBody.find("tr[name='tree-view']")
     expect(treeViewTr).toExist()
     expect(treeViewTr.find("input[type='checkbox']").attr('checked')).toBeTruthy()
 
-    tomlTr = panel.packageTableBody.find("tr[name='toml']")
+    tomlTr = panel.installed.packageTableBody.find("tr[name='toml']")
     expect(tomlTr).toExist()
     expect(tomlTr.find("input[type='checkbox']").attr('checked')).toBeFalsy()
 
-    wrapGuideTr = panel.packageTableBody.find("tr[name='wrap-guide']")
+    wrapGuideTr = panel.installed.packageTableBody.find("tr[name='wrap-guide']")
     expect(wrapGuideTr).toExist()
     expect(wrapGuideTr.find("input[type='checkbox']").attr('checked')).toBeFalsy()
 

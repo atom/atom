@@ -5,7 +5,6 @@ GeneralConfigPanel = require 'general-config-panel'
 EditorConfigPanel = require 'editor-config-panel'
 ThemeConfigPanel = require 'theme-config-panel'
 PackageConfigPanel = require 'package-config-panel'
-AvailablePackagesConfigPanel = require 'available-packages-config-panel'
 
 ###
 # Internal #
@@ -39,8 +38,7 @@ class ConfigView extends View
     @addPanel('General', new GeneralConfigPanel)
     @addPanel('Editor', new EditorConfigPanel)
     @addPanel('Themes', new ThemeConfigPanel)
-    @addPanel('Installed Packages', new PackageConfigPanel)
-    @addPanel('Available Packages', new AvailablePackagesConfigPanel)
+    @addPanel('Packages', new PackageConfigPanel)
 
   addPanel: (name, panel) ->
     panelItem = $$ -> @li name: name, => @a name

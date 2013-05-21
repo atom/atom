@@ -13,8 +13,7 @@ async = require 'async'
 module.exports =
 class AvailablePackagesConfigPanel extends ConfigPanel
   @content: ->
-    @div id: 'available-packages', =>
-      @legend 'Available Packages'
+    @div class: 'available-packages'
 
   initialize: ->
     apm = require.resolve '.bin/apm'
