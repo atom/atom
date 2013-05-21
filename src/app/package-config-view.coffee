@@ -14,9 +14,11 @@ class PackageConfigView extends View
         @span outlet: 'name'
         @div class: 'btn-group pull-right', =>
           @button outlet: 'action', class: 'btn btn-small btn-primary'
-          @button class: 'btn btn-small btn-primary dropdown-toggle', 'data-toggle': 'dropdown', =>
+          @button outlet: 'dropdownButton', class: 'btn btn-small btn-primary dropdown-toggle', 'data-toggle': 'dropdown', =>
             @span class: 'caret'
-          @ul class: 'dropdown-menu', outlet: 'dropdown'
+          @ul outlet: 'dropdown', class: 'dropdown-menu', =>
+            @li outlet: 'homepage', => @a 'Visit homepage'
+            @li outlet: 'issues', => @a 'Report issue'
       @div outlet: 'description'
       @div outlet: 'versions'
       @ul class: 'list-group list-group-flush', =>
@@ -61,14 +63,14 @@ class PackageConfigView extends View
       repoUrl = (@pack.repository?.url ? '').replace(/.git$/, '')
       homepage = repoUrl if require('url').parse(repoUrl).host is 'github.com'
     if homepage
-      @dropdown.append $$ ->
-        @li =>
-          @a 'Visit homepage', href: homepage
+      @homepage.find('a').attr('href', homepage)
+    else
+      @homepage.hide()
 
     if issues = @pack.bugs?.url
-      @dropdown.append $$ ->
-        @li =>
-          @a 'Report issue', href: issues
+      @issues.find('a').attr('href', issues)
+    else
+      @issues.hide()
 
     @dropdown.on 'click', => @dropdown.hide()
 

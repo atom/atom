@@ -10,10 +10,17 @@ describe "PackageConfigPanel", ->
         {
           name: 'p1'
           version: '3.2.1'
+          homepage: 'http://p1.io'
         }
         {
           name: 'p2'
           version: '1.2.3'
+          repository: url: 'http://github.com/atom/p2.git'
+          bugs: url: 'http://github.com/atom/p2/issues'
+        }
+        {
+          name: 'p3'
+          version: '5.8.5'
         }
       ]
       callback(null, available)
@@ -57,6 +64,29 @@ describe "PackageConfigPanel", ->
 
   describe 'Available tab', ->
     it 'lists all available packages', ->
-      expect(panel.available.children('.panel').length).toBe 2
-      expect(panel.available.children('.panel:first').view().name.text()).toBe 'p1'
-      expect(panel.available.children('.panel:last').view().name.text()).toBe 'p2'
+      panel.availableLink.click()
+      panel.attachToDom()
+
+      expect(panel.available.children('.panel').length).toBe 3
+      p1View = panel.available.children('.panel:eq(0)').view()
+      p2View = panel.available.children('.panel:eq(1)').view()
+      p3View = panel.available.children('.panel:eq(2)').view()
+
+      expect(p1View.name.text()).toBe 'p1'
+      expect(p2View.name.text()).toBe 'p2'
+      expect(p3View.name.text()).toBe 'p3'
+
+      p1View.dropdownButton.click()
+      expect(p1View.homepage).toBeVisible()
+      expect(p1View.homepage.find('a').attr('href')).toBe 'http://p1.io'
+      expect(p1View.issues).toBeHidden()
+
+      p2View.dropdownButton.click()
+      expect(p2View.homepage).toBeVisible()
+      expect(p2View.homepage.find('a').attr('href')).toBe 'http://github.com/atom/p2'
+      expect(p2View.issues).toBeVisible()
+      expect(p2View.issues.find('a').attr('href')).toBe 'http://github.com/atom/p2/issues'
+
+      p3View.dropdownButton.click()
+      expect(p1View.homepage).toBeHidden()
+      expect(p1View.issues).toBeHidden()
