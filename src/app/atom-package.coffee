@@ -18,6 +18,8 @@ class AtomPackage extends Package
   resolvedMainModulePath: false
   mainModule: null
 
+  getVersion: -> @metadata?.version ? '0.0.0'
+
   load: ->
     try
       @loadMetadata()

@@ -24,6 +24,8 @@ class TextMatePackage extends Package
     @grammars = []
     @scopedProperties = []
 
+  getVersion: -> '0.0.0'
+
   load: ({sync}={}) ->
     if sync
       @loadGrammarsSync()

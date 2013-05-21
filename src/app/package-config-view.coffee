@@ -1,3 +1,4 @@
+semver = require 'semver'
 {$$, View} = require 'space-pen'
 requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
@@ -20,8 +21,13 @@ class PackageConfigView extends View
           @div class: 'readme', outlet: 'readme'
 
   initialize: (@pack, @queue) ->
-    @versions.text("Version: #{@pack.version}")
     @name.text(@pack.name)
+
+    installedVersion = atom.getLoadedPackage(@pack.name)?.getVersion()
+    if installedVersion
+      @versions.text("Version: #{@pack.version} (#{installedVersion} installed)")
+    else
+      @versions.text("Version: #{@pack.version}")
 
     if @pack.descriptionHtml
       @description.html(@pack.descriptionHtml)
@@ -65,8 +71,11 @@ class PackageConfigView extends View
     @updateInstallState()
 
   updateInstallState: ->
-    @installed = atom.packageExists(@pack.name)
-    if @installed
-      @action.text('Uninstall')
+    installedPackage = atom.getLoadedPackage(@pack.name)
+    if installedPackage
+      if semver.gt(@pack.version, installedPackage.getVersion())
+        @action.text('Upgrade')
+      else
+        @action.text('Uninstall')
     else
       @action.text('Install')
