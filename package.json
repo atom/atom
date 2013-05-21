@@ -23,7 +23,7 @@
     "plist": "git://github.com/nathansobo/node-plist.git",
     "space-pen": "1.0.0",
     "less": "git://github.com/nathansobo/less.js.git",
-    "roaster": "0.0.4",
+    "roaster": "0.0.5",
     "jqueryui-browser": "1.10.2-1",
     "season": "0.7.0",
     "humanize-plus": "1.1.0"
