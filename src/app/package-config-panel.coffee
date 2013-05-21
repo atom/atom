@@ -38,5 +38,4 @@ class PackageConfigPanel extends ConfigPanel
 
     @installedCount.text(atom.getAvailablePackageNames().length)
     @available.on 'available-packages-loaded', (event, packages) =>
-      console.log 'here', packages
       @availableCount.text(packages.length)
