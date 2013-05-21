@@ -50,11 +50,16 @@ class PackageConfigView extends View
     unless homepage
       repoUrl = (@pack.repository?.url ? '').replace(/.git$/, '')
       homepage = repoUrl if require('url').parse(repoUrl).host is 'github.com'
-
     if homepage
       @dropdown.append $$ ->
         @li =>
-          @a "Visit Homepage", href: homepage
+          @a "Visit homepage", href: homepage
+
+    if issues = @pack.bugs?.url
+      @dropdown.append $$ ->
+        @li =>
+          @a "Report issue", href: issues
+
     @dropdown.on 'click', => @dropdown.hide()
 
     @updateInstallState()
