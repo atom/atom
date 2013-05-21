@@ -5,62 +5,71 @@ describe "PackageConfigPanel", ->
   [panel, configObserver] = []
 
   beforeEach ->
+    packages = [
+      {
+        name: 'p1'
+        version: '3.2.1'
+        homepage: 'http://p1.io'
+      }
+      {
+        name: 'p2'
+        version: '1.2.3'
+        repository: url: 'http://github.com/atom/p2.git'
+        bugs: url: 'http://github.com/atom/p2/issues'
+      }
+      {
+        name: 'p3'
+        version: '5.8.5'
+      }
+    ]
     spyOn(packageManager, 'getAvailable').andCallFake (callback) ->
-      available = [
-        {
-          name: 'p1'
-          version: '3.2.1'
-          homepage: 'http://p1.io'
-        }
-        {
-          name: 'p2'
-          version: '1.2.3'
-          repository: url: 'http://github.com/atom/p2.git'
-          bugs: url: 'http://github.com/atom/p2/issues'
-        }
-        {
-          name: 'p3'
-          version: '5.8.5'
-        }
-      ]
-      callback(null, available)
+      callback(null, packages)
+    loadedPackages = packages.map (pack) -> {metadata: pack}
+    spyOn(atom, 'getLoadedPackages').andReturn(loadedPackages)
 
     configObserver = jasmine.createSpy("configObserver")
     observeSubscription = config.observe('core.disabledPackages', configObserver)
-    config.set('core.disabledPackages', ['toml', 'wrap-guide'])
+    config.set('core.disabledPackages', ['p1', 'p3'])
     configObserver.reset()
     panel = new PackageConfigPanel
 
   describe 'Installed tab', ->
-    it "lists all installed packages, with an unchecked checkbox next to packages in the core.disabledPackages array", ->
-      treeViewTr = panel.installed.packageTableBody.find("tr[name='tree-view']")
-      expect(treeViewTr).toExist()
-      expect(treeViewTr.find("input[type='checkbox']").attr('checked')).toBeTruthy()
+    it "lists all installed packages with a link to enable or disable the package", ->
+      p1View = panel.installed.find("[name='p1']").view()
+      expect(p1View).toExist()
+      expect(p1View.enableToggle.find('a').text()).toBe 'Enable'
 
-      tomlTr = panel.installed.packageTableBody.find("tr[name='toml']")
-      expect(tomlTr).toExist()
-      expect(tomlTr.find("input[type='checkbox']").attr('checked')).toBeFalsy()
+      p2View = panel.installed.find("[name='p2']").view()
+      expect(p2View).toExist()
+      expect(p2View.enableToggle.find('a').text()).toBe 'Disable'
 
-      wrapGuideTr = panel.installed.packageTableBody.find("tr[name='wrap-guide']")
-      expect(wrapGuideTr).toExist()
-      expect(wrapGuideTr.find("input[type='checkbox']").attr('checked')).toBeFalsy()
+      p3View = panel.installed.find("[name='p3']").view()
+      expect(p3View).toExist()
+      expect(p3View.enableToggle.find('a').text()).toBe 'Enable'
 
     describe "when the core.disabledPackages array changes", ->
       it "updates the checkboxes for newly disabled / enabled packages", ->
-        config.set('core.disabledPackages', ['wrap-guide', 'tree-view'])
-        expect(panel.find("tr[name='tree-view'] input[type='checkbox']").attr('checked')).toBeFalsy()
-        expect(panel.find("tr[name='toml'] input[type='checkbox']").attr('checked')).toBeTruthy()
-        expect(panel.find("tr[name='wrap-guide'] input[type='checkbox']").attr('checked')).toBeFalsy()
+        config.set('core.disabledPackages', ['p2'])
+        p1View = panel.installed.find("[name='p1']").view()
+        expect(p1View.enableToggle.find('a').text()).toBe 'Disable'
 
-    describe "when a checkbox is unchecked", ->
+        p2View = panel.installed.find("[name='p2']").view()
+        expect(p2View.enableToggle.find('a').text()).toBe 'Enable'
+
+        p3View = panel.installed.find("[name='p3']").view()
+        expect(p3View.enableToggle.find('a').text()).toBe 'Disable'
+
+    describe "when the disable link is clicked", ->
       it "adds the package name to the disabled packages array", ->
-        panel.find("tr[name='tree-view'] input[type='checkbox']").attr('checked', false).change()
-        expect(configObserver).toHaveBeenCalledWith(['toml', 'wrap-guide', 'tree-view'])
+        p2View = panel.installed.find("[name='p2']").view()
+        p2View.enableToggle.find('a').click()
+        expect(configObserver).toHaveBeenCalledWith(['p1', 'p3', 'p2'])
 
-    describe "when a checkbox is checked", ->
+    describe "when the enable link is checked", ->
       it "removes the package name from the disabled packages array", ->
-        panel.find("tr[name='toml'] input[type='checkbox']").attr('checked', true).change()
-        expect(configObserver).toHaveBeenCalledWith(['wrap-guide'])
+        p3View = panel.installed.find("[name='p3']").view()
+        p3View.enableToggle.find('a').click()
+        expect(configObserver).toHaveBeenCalledWith(['p1'])
 
   describe 'Available tab', ->
     it 'lists all available packages', ->

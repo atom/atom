@@ -15,5 +15,5 @@ class AvailablePackagesConfigPanel extends ConfigPanel
         console.error(error.stack ? error)
       else
         for pack in packages
-          @append(new PackageConfigView(pack, @operationQueue))
+          @append(new PackageConfigView(pack))
         @trigger('available-packages-loaded', [packages])

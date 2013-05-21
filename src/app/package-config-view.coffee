@@ -11,15 +11,16 @@ class PackageConfigView extends View
     @div class: 'panel', =>
       @div outlet: 'heading', class: 'panel-heading', =>
         @span outlet: 'name'
+        @span outlet: 'version', class: 'label'
         @div class: 'btn-group pull-right', =>
           @button outlet: 'defaultAction', class: 'btn btn-small btn-primary'
           @button outlet: 'dropdownButton', class: 'btn btn-small btn-primary dropdown-toggle', 'data-toggle': 'dropdown', =>
             @span class: 'caret'
           @ul outlet: 'dropdown', class: 'dropdown-menu', =>
+            @li outlet: 'enableToggle', => @a 'Disable'
             @li outlet: 'homepage', => @a 'Visit homepage'
             @li outlet: 'issues', => @a 'Report issue'
       @div outlet: 'description'
-      @div outlet: 'versions'
       @ul class: 'list-group list-group-flush', =>
         @li outlet: 'readmeArea', class: 'list-group-item', =>
           @a 'Show README', outlet: 'readmeLink'
@@ -29,8 +30,12 @@ class PackageConfigView extends View
   updateAvailable: false
 
   initialize: (@pack, @queue) ->
+    @attr('name', @pack.name)
     @name.text(@pack.name)
-    @versions.text("Version: #{@pack.version}")
+    if version = semver.valid(@pack.version)
+      @version.text(version)
+    else
+      @version.hide()
 
     if @pack.descriptionHtml
       @description.html(@pack.descriptionHtml)
@@ -84,10 +89,29 @@ class PackageConfigView extends View
 
     @updateInstallState()
 
+    @enableToggle.find('a').on 'click', =>
+      if atom.isPackageDisabled(@pack.name)
+        config.removeAtKeyPath('core.disabledPackages', @pack.name)
+      else
+        config.pushAtKeyPath('core.disabledPackages', @pack.name)
+
+    @observeConfig 'core.disabledPackages', => @updateEnabledState()
+
+  updateEnabledState: ->
+    enableLink = @enableToggle.find('a')
+    if atom.isPackageDisabled(@pack.name)
+      enableLink.text('Enable')
+      @addClass('panel-warning')
+    else
+      enableLink.text('Disable')
+      @removeClass('panel-warning')
+
+    @enableToggle.hide() unless atom.isPackageLoaded(@pack.name)
+
   updateInstallState: ->
     @defaultAction.enable()
     @installed = atom.isPackageLoaded(@pack.name)
-    @updateAvailable = @installed and semver.gt(@pack.version, atom.getLoadedPackage(@pack.name).getVersion())
+    @updateAvailable = @installed and semver.gt(@pack.version, atom.getLoadedPackage(@pack.name).metadata.version)
     if @installed
       if @updateAvailable
         @defaultAction.text('Upgrade')

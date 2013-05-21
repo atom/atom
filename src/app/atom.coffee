@@ -27,7 +27,7 @@ _.extend atom,
     @packageStates[name] = state
 
   activatePackages: ->
-    @activatePackage(pack.path) for pack in @getLoadedPackages()
+    @activatePackage(pack.name) for pack in @getLoadedPackages()
 
   activatePackage: (name, options) ->
     if pack = @loadPackage(name, options)
@@ -56,7 +56,7 @@ _.extend atom,
     _.values(@activePackages)
 
   activatePackageConfigs: ->
-    @activatePackageConfig(pack.path) for pack in @getLoadedPackages()
+    @activatePackageConfig(pack.name) for pack in @getLoadedPackages()
 
   activatePackageConfig: (name, options) ->
     if pack = @loadPackage(name, options)
