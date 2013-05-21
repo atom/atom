@@ -13,13 +13,17 @@ class PackageConfigPanel extends ConfigPanel
       @legend 'Packages'
       @ul class: 'nav nav-tabs', =>
         @li class: 'active', outlet: 'installedLink', =>
-          @a 'Installed'
+          @a 'Installed', =>
+            @span class: 'badge pull-right', outlet: 'installedCount'
         @li outlet: 'availableLink', =>
-          @a 'Available'
+          @a 'Available', =>
+            @span class: 'badge pull-right', outlet: 'availableCount'
       @subview 'installed', new InstalledPackagesConfigPanel()
       @subview 'available', new AvailablePackagesConfigPanel()
 
   initialize: ->
+    @available.hide()
+
     @installedLink.on 'click', =>
       @availableLink.removeClass('active')
       @available.hide()
@@ -31,3 +35,8 @@ class PackageConfigPanel extends ConfigPanel
       @installed.hide()
       @availableLink.addClass('active')
       @available.show()
+
+    @installedCount.text(atom.getAvailablePackageNames().length)
+    @available.on 'available-packages-loaded', (event, packages) =>
+      console.log 'here', packages
+      @availableCount.text(packages.length)

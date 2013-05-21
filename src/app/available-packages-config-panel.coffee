@@ -39,3 +39,4 @@ class AvailablePackagesConfigPanel extends ConfigPanel
           queue.drain =  =>
             for pack in packages
               @append(new PackageConfigView(pack, @operationQueue))
+            @trigger('available-packages-loaded', [packages])
