@@ -3,9 +3,7 @@ packageManager = require 'package-manager'
 {$$, View} = require 'space-pen'
 requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class PackageConfigView extends View
