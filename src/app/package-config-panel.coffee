@@ -2,9 +2,7 @@ ConfigPanel = require 'config-panel'
 InstalledPackagesConfigPanel = require 'installed-packages-config-panel'
 AvailablePackagesConfigPanel = require 'available-packages-config-panel'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class PackageConfigPanel extends ConfigPanel

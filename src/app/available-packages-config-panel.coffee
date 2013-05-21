@@ -2,9 +2,7 @@ PackageConfigView = require 'package-config-view'
 ConfigPanel = require 'config-panel'
 packages = require 'packages'
 
-###
-# Internal #
-###
+### Internal ###
 
 module.exports =
 class AvailablePackagesConfigPanel extends ConfigPanel
