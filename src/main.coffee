@@ -144,7 +144,7 @@ class AtomWindow
   browserWindow: null
 
   constructor: ({bootstrapScript, resourcePath, pathToOpen}) ->
-    @browserWindow = new BrowserWindow width: 800, height: 600, show: false, title: 'Atom'
+    @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 
     url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"

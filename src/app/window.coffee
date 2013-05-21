@@ -78,6 +78,7 @@ window.unloadEditorWindow = ->
   atom.setWindowState('project', project.serialize())
   atom.setWindowState('syntax', syntax.serialize())
   atom.setWindowState('rootView', rootView.serialize())
+  atom.setWindowState('dimensions', window.getDimensions())
   atom.deactivatePackages()
   atom.setWindowState('packageStates', atom.packageStates)
   rootView.remove()
@@ -153,6 +154,7 @@ window.deserializeEditorWindow = ->
   atom.packageStates = windowState.packageStates ? {}
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
+  window.setDimensions(windowState.dimensions ? defaultWindowDimensions)
 
   if !windowState.rootView and (!pathToOpen or fsUtils.isFile(pathToOpen))
     rootView.open(pathToOpen)
@@ -221,6 +223,17 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
       $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
     else
       $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
+
+window.getDimensions = ->
+  browserWindow = remote.getCurrentWindow()
+  [x, y] = browserWindow.getPosition()
+  [width, height] = browserWindow.getSize()
+  {x, y, width, height}
+
+window.setDimensions = ({x, y, width, height}) ->
+  browserWindow = remote.getCurrentWindow()
+  browserWindow.setPosition(x, y)
+  browserWindow.setSize(width, height)
 
 window.closeWithoutConfirm = ->
   ipc.sendChannel 'close-without-confirm'
