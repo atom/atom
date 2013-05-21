@@ -81,7 +81,7 @@ _.extend atom,
     else
       throw new Error("Could not resolve '#{id}' to a package path")
 
-  resolvePackagePath: _.memoize (id) ->
+  resolvePackagePath: (id) ->
     return id if fsUtils.isDirectory(id)
     path = fsUtils.resolve(config.packageDirPaths..., id)
     path if fsUtils.isDirectory(path)

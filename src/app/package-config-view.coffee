@@ -1,4 +1,5 @@
 semver = require 'semver'
+packageManager = require 'package-manager'
 {$$, View} = require 'space-pen'
 requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
@@ -13,7 +14,7 @@ class PackageConfigView extends View
       @div outlet: 'heading', class: 'panel-heading', =>
         @span outlet: 'name'
         @div class: 'btn-group pull-right', =>
-          @button outlet: 'action', class: 'btn btn-small btn-primary'
+          @button outlet: 'defaultAction', class: 'btn btn-small btn-primary'
           @button outlet: 'dropdownButton', class: 'btn btn-small btn-primary dropdown-toggle', 'data-toggle': 'dropdown', =>
             @span class: 'caret'
           @ul outlet: 'dropdown', class: 'dropdown-menu', =>
@@ -25,6 +26,9 @@ class PackageConfigView extends View
         @li outlet: 'readmeArea', class: 'list-group-item', =>
           @a 'Show README', outlet: 'readmeLink'
           @div class: 'readme', outlet: 'readme'
+
+  installed: false
+  updateAvailable: false
 
   initialize: (@pack, @queue) ->
     @name.text(@pack.name)
@@ -74,14 +78,29 @@ class PackageConfigView extends View
 
     @dropdown.on 'click', => @dropdown.hide()
 
+    @defaultAction.on 'click', =>
+      @defaultAction.disable()
+      if @installed
+        if @updateAvailable
+          @defaultAction.text('Upgrading\u2026')
+          packageManager.install @pack, => @updateInstallState()
+        else
+          @defaultAction.text('Uninstalling\u2026')
+          packageManager.uninstall @pack, => @updateInstallState()
+      else
+        @defaultAction.text('Installing\u2026')
+        packageManager.install @pack, => @updateInstallState()
+
     @updateInstallState()
 
   updateInstallState: ->
-    installedPackage = atom.getLoadedPackage(@pack.name)
-    if installedPackage
-      if semver.gt(@pack.version, installedPackage.getVersion())
-        @action.text('Upgrade')
+    @defaultAction.enable()
+    @installed = atom.isPackageLoaded(@pack.name)
+    @updateAvailable = @installed and semver.gt(@pack.version, atom.getLoadedPackage(@pack.name).getVersion())
+    if @installed
+      if @updateAvailable
+        @defaultAction.text('Upgrade')
       else
-        @action.text('Uninstall')
+        @defaultAction.text('Uninstall')
     else
-      @action.text('Install')
+      @defaultAction.text('Install')

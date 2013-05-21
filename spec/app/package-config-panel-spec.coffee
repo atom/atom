@@ -1,11 +1,11 @@
 PackageConfigPanel = require 'package-config-panel'
-packages = require 'packages'
+packageManager = require 'package-manager'
 
 describe "PackageConfigPanel", ->
   [panel, configObserver] = []
 
   beforeEach ->
-    spyOn(packages, 'getAvailable').andCallFake (callback) ->
+    spyOn(packageManager, 'getAvailable').andCallFake (callback) ->
       available = [
         {
           name: 'p1'

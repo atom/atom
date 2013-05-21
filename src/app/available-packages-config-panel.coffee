@@ -1,6 +1,6 @@
 PackageConfigView = require 'package-config-view'
 ConfigPanel = require 'config-panel'
-packages = require 'packages'
+packageManager = require 'package-manager'
 
 ### Internal ###
 
@@ -10,7 +10,7 @@ class AvailablePackagesConfigPanel extends ConfigPanel
     @div class: 'available-packages'
 
   initialize: ->
-    packages.getAvailable (error, packages) =>
+    packageManager.getAvailable (error, packages) =>
       if error?
         console.error(error.stack ? error)
       else
