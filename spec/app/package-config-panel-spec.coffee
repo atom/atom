@@ -10,7 +10,7 @@ describe "PackageConfigPanel", ->
     configObserver.reset()
     panel = new PackageConfigPanel
 
-  it "lists all available packages, with an unchecked checkbox next to packages in the core.disabledPackages array", ->
+  it "lists all installed packages, with an unchecked checkbox next to packages in the core.disabledPackages array", ->
     treeViewTr = panel.installed.packageTableBody.find("tr[name='tree-view']")
     expect(treeViewTr).toExist()
     expect(treeViewTr.find("input[type='checkbox']").attr('checked')).toBeTruthy()
