@@ -53,12 +53,12 @@ class PackageConfigView extends View
     if homepage
       @dropdown.append $$ ->
         @li =>
-          @a "Visit homepage", href: homepage
+          @a 'Visit homepage', href: homepage
 
     if issues = @pack.bugs?.url
       @dropdown.append $$ ->
         @li =>
-          @a "Report issue", href: issues
+          @a 'Report issue', href: issues
 
     @dropdown.on 'click', => @dropdown.hide()
 
