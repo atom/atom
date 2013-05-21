@@ -76,8 +76,6 @@ class PackageConfigView extends View
     else
       @issues.hide()
 
-    @dropdown.on 'click', => @dropdown.hide()
-
     @defaultAction.on 'click', =>
       @defaultAction.disable()
       if @installed
