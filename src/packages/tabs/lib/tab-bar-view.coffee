@@ -143,7 +143,6 @@ class TabBarView extends View
     toPane.focus()
 
   removeDropTargetClasses: ->
-    console.log rootView.find('.tabs .is-drop-target').length
     rootView.find('.tabs .is-drop-target').removeClass 'is-drop-target'
     rootView.find('.tabs .drop-target-is-after').removeClass 'drop-target-is-after'
 
