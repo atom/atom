@@ -13,7 +13,7 @@ async = require 'async'
 module.exports =
 class AvailablePackagesConfigPanel extends ConfigPanel
   @content: ->
-    @div =>
+    @div id: 'available-packages', =>
       @legend 'Available Packages'
 
   initialize: ->
@@ -33,7 +33,9 @@ class AvailablePackagesConfigPanel extends ConfigPanel
           queue = async.queue (pack, callback) ->
             roaster pack.description, {}, (error, html) ->
               pack.descriptionHtml = html
-              callback()
+              roaster pack.readme, {}, (error, html) ->
+                pack.readmeHtml = html
+                callback()
           queue.push(pack) for pack in packages
           queue.drain =  =>
             for pack in packages
