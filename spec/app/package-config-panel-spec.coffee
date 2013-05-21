@@ -88,5 +88,5 @@ describe "PackageConfigPanel", ->
       expect(p2View.issues.find('a').attr('href')).toBe 'http://github.com/atom/p2/issues'
 
       p3View.dropdownButton.click()
-      expect(p1View.homepage).toBeHidden()
-      expect(p1View.issues).toBeHidden()
+      expect(p3View.homepage).toBeHidden()
+      expect(p3View.issues).toBeHidden()
