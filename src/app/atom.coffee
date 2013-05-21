@@ -79,6 +79,15 @@ _.extend atom,
     else
       throw new Error("Could not resolve '#{name}' to a package path")
 
+  unloadPackage: (name) ->
+    if @isPackageActive(name)
+      throw new Error("Tried to unload active package '#{name}'")
+
+    if pack = @getLoadedPackage(name)
+      delete @loadedPackages[pack.name]
+    else
+      throw new Error("No loaded package for name '#{name}'")
+
   resolvePackagePath: (name) ->
     return name if fsUtils.isDirectory(name)
     path = fsUtils.resolve(config.packageDirPaths..., name)
