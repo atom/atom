@@ -276,6 +276,8 @@ class Project
 
     command = require.resolve('nak')
     args = ['--hidden', '--ackmate', regex.source, @getPath()]
+    ignoredNames = config.get('core.ignoredNames') ? []
+    args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
     args.unshift("--addVCSIgnores") if config.get('core.excludeVcsIgnoredPaths')
     new BufferedProcess({command, args, stdout, exit})
     deferred

@@ -320,6 +320,22 @@ describe "Project", ->
           expect(paths[0]).toBe filePath
           expect(matches.length).toBe 1
 
+      it "excludes values in core.ignoredNames", ->
+        projectPath = '/tmp/atom-tests/folder-with-dot-git/.git'
+        filePath = fsUtils.join(projectPath, 'test.txt')
+        fsUtils.write(filePath, 'match this')
+        project.setPath(projectPath)
+        paths = []
+        matches = []
+        waitsForPromise ->
+          project.scan /match/, ({path, match, range}) ->
+            paths.push(path)
+            matches.push(match)
+
+        runs ->
+          expect(paths.length).toBe 0
+          expect(matches.length).toBe 0
+
   describe "serialization", ->
     it "restores the project path", ->
       newProject = Project.deserialize(project.serialize())
