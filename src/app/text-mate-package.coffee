@@ -23,7 +23,7 @@ class TextMatePackage extends Package
     @syntaxesPath = fsUtils.join(@path, "Syntaxes")
     @grammars = []
     @scopedProperties = []
-    @metadata = {@name, version: '-1'}
+    @metadata = {@name}
 
   load: ({sync}={}) ->
     if sync

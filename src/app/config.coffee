@@ -22,6 +22,7 @@ module.exports =
 class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath, vendoredThemesDirPath]
+  bundledPackageDirPaths: [vendoredPackagesDirPath, bundledPackagesDirPath]
   packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
   lessSearchPaths: [fsUtils.join(resourcePath, 'static'), fsUtils.join(resourcePath, 'vendor')]

@@ -1,10 +1,10 @@
+Package = require 'package'
 semver = require 'semver'
 packageManager = require 'package-manager'
 {$$, View} = require 'space-pen'
 requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
 ### Internal ###
-
 module.exports =
 class PackageConfigView extends View
   @content: ->
@@ -27,9 +27,13 @@ class PackageConfigView extends View
           @div class: 'readme', outlet: 'readme'
 
   installed: false
+  disabled: false
+  bundled: false
   updateAvailable: false
 
   initialize: (@pack, @queue) ->
+    @updatePackageState()
+
     @attr('name', @pack.name)
     @name.text(@pack.name)
     if version = semver.valid(@pack.version)
@@ -75,47 +79,81 @@ class PackageConfigView extends View
       @issues.hide()
 
     @defaultAction.on 'click', =>
+      if @installed and @bundled
+        @togglePackageEnablement()
+        return
+
+      packageManagerCallback = =>
+        @defaultAction.enable()
+        @updatePackageState()
+        @updateDefaultAction()
+
       @defaultAction.disable()
       if @installed
         if @updateAvailable
           @defaultAction.text('Upgrading\u2026')
-          packageManager.install @pack, => @updateInstallState()
+          packageManager.install(@pack, packageManagerCallback)
         else
           @defaultAction.text('Uninstalling\u2026')
-          packageManager.uninstall @pack, => @updateInstallState()
+          packageManager.uninstall(@pack, packageManagerCallback)
       else
         @defaultAction.text('Installing\u2026')
-        packageManager.install @pack, => @updateInstallState()
+        packageManager.install(@pack, packageManagerCallback)
 
-    @updateInstallState()
+    @updateDefaultAction()
 
-    @enableToggle.find('a').on 'click', =>
-      if atom.isPackageDisabled(@pack.name)
-        config.removeAtKeyPath('core.disabledPackages', @pack.name)
-      else
-        config.pushAtKeyPath('core.disabledPackages', @pack.name)
+    @enableToggle.find('a').on 'click', => @togglePackageEnablement
 
-    @observeConfig 'core.disabledPackages', => @updateEnabledState()
+    @observeConfig 'core.disabledPackages', =>
+      @updatePackageState()
+      @updateDefaultAction()
+      @updateEnabledState()
+
+  togglePackageEnablement: ->
+    if @disabled
+      config.removeAtKeyPath('core.disabledPackages', @pack.name)
+    else
+      config.pushAtKeyPath('core.disabledPackages', @pack.name)
+
+  updatePackageState: ->
+    @disabled = atom.isPackageDisabled(@pack.name)
+    @bundled = false
+    loadedPackage = atom.getLoadedPackage(@pack.name)
+    packagePath = loadedPackage?.path ? atom.resolvePackagePath(@pack.name)
+    @installed = packagePath?
+    if @installed
+      for packageDirPath in config.bundledPackageDirPaths
+        if packagePath.indexOf("#{packageDirPath}/") is 0
+          @bundled = true
+
+      version = loadedPackage?.metadata.version
+      unless version
+        try
+          version = Package.loadMetadata(@pack.name).version
+      @updateAvailable = semver.gt(@pack.version, version)
 
   updateEnabledState: ->
     enableLink = @enableToggle.find('a')
-    if atom.isPackageDisabled(@pack.name)
+    if @disabled
       enableLink.text('Enable')
       @addClass('panel-warning')
     else
       enableLink.text('Disable')
       @removeClass('panel-warning')
 
-    @enableToggle.hide() unless atom.isPackageLoaded(@pack.name)
+    @enableToggle.hide() unless @installed
 
-  updateInstallState: ->
-    @defaultAction.enable()
-    @installed = atom.isPackageLoaded(@pack.name)
-    @updateAvailable = @installed and semver.gt(@pack.version, atom.getLoadedPackage(@pack.name).metadata.version)
+  updateDefaultAction: ->
     if @installed
-      if @updateAvailable
-        @defaultAction.text('Upgrade')
+      if @bundled
+        if @disabled
+          @defaultAction.text('Enable')
+        else
+          @defaultAction.text('Disable')
       else
-        @defaultAction.text('Uninstall')
+        if @updateAvailable
+          @defaultAction.text('Upgrade')
+        else
+          @defaultAction.text('Uninstall')
     else
       @defaultAction.text('Install')
