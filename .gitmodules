@@ -90,4 +90,4 @@
 	url = https://github.com/textmate/hyperlink-helper.tmbundle
 [submodule "vendor/apm"]
 	path = vendor/apm
-	url = https://github.com/atom/apm.git
+	url = https://github.com/github/apm.git
