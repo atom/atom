@@ -5,7 +5,7 @@ _ = require 'underscore'
 SnippetExpansion = require './snippet-expansion'
 Snippet = require './snippet'
 TextMatePackage = require 'text-mate-package'
-CSON = require 'cson'
+CSON = require 'season'
 async = require 'async'
 
 module.exports =
@@ -41,7 +41,7 @@ module.exports =
     loadSnippetFile = (filename, done) =>
       return done() if filename.indexOf('.') is 0
       filepath = fsUtils.join(snippetsDirPath, filename)
-      CSON.readObjectAsync filepath, (err, object) =>
+      CSON.readFile filepath, (err, object) =>
         if err
           console.warn "Error reading snippets file '#{filepath}': #{err.stack}"
         else
@@ -66,7 +66,7 @@ module.exports =
       try
         readObject =
           if CSON.isObjectPath(filepath)
-            CSON.readObjectAsync.bind(CSON)
+            CSON.readFile.bind(CSON)
           else
             fsUtils.readPlistAsync.bind(fsUtils)
 

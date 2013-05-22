@@ -4,7 +4,6 @@ $ = require 'jquery'
 Range = require 'range'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
-ImageEditSession = require 'image-edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 BufferedProcess = require 'buffered-process'
@@ -16,6 +15,14 @@ BufferedProcess = require 'buffered-process'
 module.exports =
 class Project
   registerDeserializer(this)
+
+  @openers: []
+
+  @registerOpener: (opener) ->
+    @openers.push(opener)
+
+  @unregisterOpener: (opener) ->
+    _.remove(@openers, opener)
 
   tabLength: 2
   softTabs: true
@@ -104,14 +111,18 @@ class Project
   ignoreRepositoryPath: (path) ->
     config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
 
-  # Given a path, this resolves it relative to the project directory.
+  # Given a uri, this resolves it relative to the project directory. If the path
+  # is already absolute or if it is prefixed with a scheme, it is returned unchanged.
   #
-  # filePath - The {String} name of the path to convert
+  # uri - The {String} name of the path to convert
   #
   # Returns a {String}.
-  resolve: (filePath) ->
-    filePath = fsUtils.join(@getPath(), filePath) unless filePath[0] == '/'
-    fsUtils.absolute filePath
+  resolve: (uri) ->
+    if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
+      uri
+    else
+      uri = fsUtils.join(@getPath(), uri) unless uri[0] == '/'
+      fsUtils.absolute uri
 
   # Given a path, this makes it relative to the project directory.
   #
@@ -148,11 +159,11 @@ class Project
   # editSessionOptions - Options that you can pass to the `EditSession` constructor
   #
   # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
-  buildEditSession: (filePath, editSessionOptions={}) ->
-    if ImageEditSession.canOpen(filePath)
-      new ImageEditSession(filePath)
-    else
-      @buildEditSessionForBuffer(@bufferForPath(filePath), editSessionOptions)
+  open: (filePath, options={}) ->
+    for opener in @constructor.openers
+      return resource if resource = opener(filePath, options)
+
+    @buildEditSessionForBuffer(@bufferForPath(filePath), options)
 
   # Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
   #
@@ -265,7 +276,9 @@ class Project
 
     command = require.resolve('nak')
     args = ['--hidden', '--ackmate', regex.source, @getPath()]
-    args.unshift("--addVCSIgnores") if config.get('core.excludeVcsIgnoredPaths')
+    ignoredNames = config.get('core.ignoredNames') ? []
+    args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
+    args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
     new BufferedProcess({command, args, stdout, exit})
     deferred
 
@@ -300,3 +313,5 @@ class Project
       @on 'buffer-created', (buffer) -> callback(buffer)
 
 _.extend Project.prototype, EventEmitter
+
+require 'image-edit-session'

@@ -3,8 +3,7 @@ Package = require 'package'
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 $ = require 'jquery'
-CSON = require 'cson'
-
+CSON = require 'season'
 
 ### Internal: Loads and resolves packages. ###
 
@@ -63,11 +62,11 @@ class AtomPackage extends Package
 
   loadMetadata: ->
     if metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['json', 'cson'])
-      @metadata = CSON.readObject(metadataPath)
+      @metadata = CSON.readFileSync(metadataPath)
     @metadata ?= {}
 
   loadKeymaps: ->
-    @keymaps = @getKeymapPaths().map (path) -> [path, CSON.readObject(path)]
+    @keymaps = @getKeymapPaths().map (path) -> [path, CSON.readFileSync(path)]
 
   getKeymapPaths: ->
     keymapsDirPath = fsUtils.join(@path, 'keymaps')

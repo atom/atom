@@ -1,3 +1,7 @@
+* Fixed: Not being able to disable packages from configuration UI.
+* Fixed: Fuzzy finder showing poor results for entered text
+* Improved: App icon
+
 * Fixed: Fuzzy finder being empty sometimes
 
 * Improved: App icon

@@ -50,8 +50,7 @@ task :install => [:build] do
     raise "Missing directory for `atom` binary"
   end
 
-  FileUtils.cp("#{ATOM_SRC_PATH}/atom.sh", cli_path)
-  FileUtils.chmod(0755, cli_path)
+  FileUtils.ln_s "#{ATOM_SRC_PATH}/atom.sh", cli_path, :force => true
 
   Rake::Task["clone-default-bundles"].invoke()
 

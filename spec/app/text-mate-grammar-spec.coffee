@@ -198,11 +198,11 @@ describe "TextMateGrammar", ->
           {tokens} = grammar.tokenizeLine('%Q+matz had some #{%Q-crazy ideas-} for ruby syntax+ # damn.')
           expect(tokens[0]).toEqual value: '%Q+', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
           expect(tokens[1]).toEqual value: 'matz had some ', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby"]
-          expect(tokens[2]).toEqual value: '#{', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","punctuation.section.embedded.ruby"]
-          expect(tokens[3]).toEqual value: '%Q-', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
-          expect(tokens[4]).toEqual value: 'crazy ideas', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","string.quoted.other.literal.upper.ruby"]
-          expect(tokens[5]).toEqual value: '-', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","string.quoted.other.literal.upper.ruby","punctuation.definition.string.end.ruby"]
-          expect(tokens[6]).toEqual value: '}', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","punctuation.section.embedded.ruby"]
+          expect(tokens[2]).toEqual value: '#{', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","punctuation.section.embedded.begin.ruby"]
+          expect(tokens[3]).toEqual value: '%Q-', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
+          expect(tokens[4]).toEqual value: 'crazy ideas', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","string.quoted.other.literal.upper.ruby"]
+          expect(tokens[5]).toEqual value: '-', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.end.ruby"]
+          expect(tokens[6]).toEqual value: '}', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","punctuation.section.embedded.end.ruby", "source.ruby"]
           expect(tokens[7]).toEqual value: ' for ruby syntax', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby"]
           expect(tokens[8]).toEqual value: '+', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.end.ruby"]
           expect(tokens[9]).toEqual value: ' ', scopes: ["source.ruby"]
@@ -448,7 +448,7 @@ describe "TextMateGrammar", ->
 
       describe "when the grammar is added", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editSession = project.buildEditSession('sample.js')
+          editSession = project.open('sample.js')
           editSession.setText("// http://github.com")
 
           {tokens} = editSession.lineForScreenRow(0)
@@ -463,7 +463,7 @@ describe "TextMateGrammar", ->
 
       describe "when the grammar is updated", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
-          editSession = project.buildEditSession('sample.js')
+          editSession = project.open('sample.js')
           editSession.setText("// SELECT * FROM OCTOCATS")
 
           {tokens} = editSession.lineForScreenRow(0)

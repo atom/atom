@@ -54,80 +54,80 @@
     'name': 'comment.hr.gfm'
   }
   {
-    'begin': '^```coffee(script)?$'
+    'begin': '^`{3,}coffee(script)?$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
-    'end': '^```$'
+    'end': '^`{3,}$'
     'endCaptures':
       '0': 'name': 'support.gfm'
     'name': 'markup.code.coffee.gfm'
     'patterns': ['include': 'source.coffee']
   }
   {
-    'begin': '^```(javascript|js)$'
+    'begin': '^`{3,}(javascript|js)$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
-    'end': '^```$'
+    'end': '^`{3,}$'
     'endCaptures':
       '0': 'name': 'support.gfm'
     'name': 'markup.code.js.gfm'
     'patterns': ['include': 'source.js']
   }
   {
-    'begin': '^```css$'
+    'begin': '^`{3,}css$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
-    'end': '^```$'
+    'end': '^`{3,}$'
     'endCaptures':
       '0': 'name': 'support.gfm'
     'name': 'markup.code.css.gfm'
     'patterns': ['include': 'source.css']
   }
   {
-    'begin': '^```xml$'
+    'begin': '^`{3,}xml$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
-    'end': '^```$'
+    'end': '^`{3,}$'
     'endCaptures':
       '0': 'name': 'support.gfm'
     'name': 'markup.code.xml.gfm'
     'patterns': ['include': 'text.xml']
   }
   {
-    'begin': '^```(ruby|rb)$'
+    'begin': '^`{3,}(ruby|rb)$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
-    'end': '^```$'
+    'end': '^`{3,}$'
     'endCaptures':
       '0': 'name': 'support.gfm'
     'name': 'markup.code.ruby.gfm'
     'patterns': ['include': 'source.ruby']
   }
   {
-    'begin': '^```java$'
+    'begin': '^`{3,}java$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
-    'end': '^```$'
+    'end': '^`{3,}$'
     'endCaptures':
       '0': 'name': 'support.gfm'
     'name': 'markup.code.java.gfm'
     'patterns': ['include': 'source.java']
   }
   {
-    'begin': '^```(sh|bash)$'
+    'begin': '^`{3,}(sh|bash)$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
-    'end': '^```$'
+    'end': '^`{3,}$'
     'endCaptures':
       '0': 'name': 'support.gfm'
     'name': 'markup.code.shell.gfm'
     'patterns': ['include': 'source.shell']
   }
   {
-    'begin': '^```.*$'
+    'begin': '^`{3,}.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
-    'end': '^```$'
+    'end': '^`{3,}$'
     'endCaptures':
       '0': 'name': 'support.gfm'
     'name': 'markup.raw.gfm'

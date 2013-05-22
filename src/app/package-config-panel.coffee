@@ -30,10 +30,9 @@ class PackageConfigPanel extends ConfigPanel
       checkbox = $(e.target)
       name = checkbox.closest('tr').attr('name')
       if checkbox.attr('checked')
-        _.remove(config.get('core.disabledPackages'), name)
+        config.removeAtKeyPath('core.disabledPackages', name)
       else
-        config.get('core.disabledPackages').push(name)
-      config.update()
+        config.pushAtKeyPath('core.disabledPackages', name)
 
     @observeConfig 'core.disabledPackages', (disabledPackages) =>
       @packageTableBody.find("input[type='checkbox']").attr('checked', true)

@@ -16,6 +16,8 @@ fenceNameToExtension =
   "java": "java"
   "sh": "sh"
   "bash": "sh"
+  "js": "js"
+  "javascript": "js"
 
 module.exports =
 class MarkdownPreviewView extends ScrollView
@@ -93,7 +95,7 @@ class MarkdownPreviewView extends ScrollView
 
   renderMarkdown: ->
     @setLoading()
-    roaster @buffer.getText(), {}, (err, html) =>
+    roaster @buffer.getText(), (err, html) =>
       if err
         @setErrorHtml(err)
       else

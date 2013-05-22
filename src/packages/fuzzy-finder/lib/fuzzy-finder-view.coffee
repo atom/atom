@@ -2,6 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
+humanize = require 'humanize-plus'
 fsUtils = require 'fs-utils'
 LoadPathsTask = require './load-paths-task'
 
@@ -16,6 +17,7 @@ class FuzzyFinderView extends SelectList
   maxItems: 10
   projectPaths: null
   reloadProjectPaths: true
+  filterKey: 'projectRelativePath'
 
   initialize: ->
     super
@@ -35,7 +37,7 @@ class FuzzyFinderView extends SelectList
     @miniEditor.command 'pane:split-up', =>
       @splitOpenPath (pane, session) -> pane.splitUp(session)
 
-  itemForElement: (path) ->
+  itemForElement: ({path, projectRelativePath}) ->
     $$ ->
       @li class: 'two-lines', =>
         if git?
@@ -60,20 +62,20 @@ class FuzzyFinderView extends SelectList
           typeClass = 'text-name'
 
         @div fsUtils.base(path), class: "primary-line file #{typeClass}"
-        @div project.relativize(path), class: 'secondary-line path'
+        @div projectRelativePath, class: 'secondary-line path'
 
   openPath: (path) ->
     rootView.open(path, {@allowActiveEditorChange}) if path
 
   splitOpenPath: (fn) ->
-    path = @getSelectedElement()
+    {path} = @getSelectedElement()
     return unless path
     if pane = rootView.getActivePane()
-      fn(pane, project.buildEditSession(path))
+      fn(pane, project.open(path))
     else
       @openPath(path)
 
-  confirmed : (path) ->
+  confirmed : ({path}) ->
     return unless path.length
     if fsUtils.isFile(path)
       @cancel()
@@ -131,6 +133,13 @@ class FuzzyFinderView extends SelectList
             @attach()
             @miniEditor.setText(currentWord)
 
+  setArray: (paths) ->
+    projectRelativePaths = paths.map (path) ->
+      projectRelativePath = project.relativize(path)
+      {path, projectRelativePath}
+
+    super(projectRelativePaths)
+
   populateGitStatusPaths: ->
     paths = []
     paths.push(path) for path, status of git.statuses when fsUtils.isFile(path)
@@ -159,7 +168,7 @@ class FuzzyFinderView extends SelectList
         @populateProjectPaths(options)
       @loadPathsTask = new LoadPathsTask(callback)
       @loadPathsTask.on 'paths-loaded', (paths) =>
-        @loadingBadge.text(paths.length)
+        @loadingBadge.text(humanize.intcomma(paths.length))
       @loadPathsTask.start()
 
   populateOpenBufferPaths: ->

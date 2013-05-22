@@ -34,7 +34,8 @@ global.document = window.document
 global.callTaskMethod = (method, args...) ->
   process.send(method: method, args: args)
 
-# The worker's initial handler replaces itglobal when `start` is invoked
+# The worker's initial handler replaces the global hadndler when `start` is
+# invoked.
 global.handler =
   start: ({globals, handlerPath}) ->
     for key, value of globals

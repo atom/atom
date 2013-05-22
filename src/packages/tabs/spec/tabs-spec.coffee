@@ -36,7 +36,7 @@ describe "TabBarView", ->
     registerDeserializer(TestView)
     item1 = new TestView('Item 1')
     item2 = new TestView('Item 2')
-    editSession1 = project.buildEditSession('sample.js')
+    editSession1 = project.open('sample.js')
     paneContainer = new PaneContainer
     pane = new Pane(item1, editSession1, item2)
     pane.showItem(item2)
@@ -77,7 +77,7 @@ describe "TabBarView", ->
       expect(tabBar.tabAtIndex(1).find('.title')).toHaveText 'Item 3'
 
     it "adds the 'modified' class to the new tab if the item is initially modified", ->
-      editSession2 = project.buildEditSession('sample.txt')
+      editSession2 = project.open('sample.txt')
       editSession2.insertText('x')
       pane.showItem(editSession2)
       expect(tabBar.tabForItem(editSession2)).toHaveClass 'modified'

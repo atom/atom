@@ -9,6 +9,7 @@ Subscriber = require 'subscriber'
 Range = require 'range'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+TextMateScopeSelector = require 'text-mate-scope-selector'
 
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
 module.exports =
@@ -23,7 +24,7 @@ class EditSession
     session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
     if !session?
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
-      session = project.buildEditSession(null)
+      session = project.open(null)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
@@ -284,6 +285,14 @@ class EditSession
   # {Delegates to: Buffer.isRowBlank}
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
 
+  # Test if an entire row is a comment
+  #
+  # Returns a {Boole}.
+  isBufferRowCommented: (bufferRow) ->
+    if match = @lineForBufferRow(bufferRow).match(/\S/)
+      scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
+      new TextMateScopeSelector('comment.*').matches(scopes)
+
   # {Delegates to: Buffer.nextNonBlankRow}
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
 
@@ -361,24 +370,13 @@ class EditSession
   # Returns an {Array} of {String}s.
   getCursorScopes: -> @getCursor().getScopes()
 
-  # Determines whether the {Editor} will auto indent rows.
-  #
-  # Returns a {Boolean}.
-  shouldAutoIndent: ->
-    config.get("editor.autoIndent")
-
-  # Determines whether the {Editor} will auto indent pasted text.
-  #
-  # Returns a {Boolean}.
-  shouldAutoIndentPastedText: ->
-    config.get("editor.autoIndentOnPaste")
-
   # Inserts text at the current cursor positions
   #
   # text - A {String} representing the text to insert.
   # options - A set of options equivalent to {Selection.insertText}
   insertText: (text, options={}) ->
-    options.autoIndent ?= @shouldAutoIndent()
+    options.autoIndentNewline ?= @shouldAutoIndent()
+    options.autoDecreaseIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.insertText(text, options)
 
   # Inserts a new line at the current cursor positions.
@@ -486,11 +484,11 @@ class EditSession
   #
   # options - A set of options equivalent to {Selection.insertText}.
   pasteText: (options={}) ->
-    options.normalizeIndent ?= true
-    options.autoIndent ?= @shouldAutoIndentPastedText()
-
     [text, metadata] = pasteboard.read()
-    _.extend(options, metadata) if metadata
+
+    options.autoIndent ?= @shouldAutoIndentPastedText()
+    if config.get('editor.normalizeIndentOnPaste') and metadata
+      options.indentBasis ?= metadata.indentBasis
 
     @insertText(text, options)
 
@@ -609,16 +607,10 @@ class EditSession
   autoIndentBufferRow: (bufferRow) ->
     @languageMode.autoIndentBufferRow(bufferRow)
 
-  # Given a buffer row, this increases the indentation.
-  #
-  # bufferRow - The row {Number}
-  autoIncreaseIndentForBufferRow: (bufferRow) ->
-    @languageMode.autoIncreaseIndentForBufferRow(bufferRow)
-
   # Given a buffer row, this decreases the indentation.
   #
   # bufferRow - The row {Number}
-  autoDecreaseIndentForRow: (bufferRow) ->
+  autoDecreaseIndentForBufferRow: (bufferRow) ->
     @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
   # Wraps the lines between two rows in comments.
@@ -1247,10 +1239,6 @@ class EditSession
           @mergeIntersectingSelections(options)
           return
 
-  # Internal:
-  inspect: ->
-    JSON.stringify @serialize()
-
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
     @subscribe @buffer, "will-reload", =>
@@ -1273,11 +1261,20 @@ class EditSession
 
   ### Internal ###
 
+  shouldAutoIndent: ->
+    config.get("editor.autoIndent")
+
+  shouldAutoIndentPastedText: ->
+    config.get("editor.autoIndentOnPaste")
+
   transact: (fn) -> @buffer.transact(fn)
 
   commit: -> @buffer.commit()
 
   abort: -> @buffer.abort()
+
+  inspect: ->
+    JSON.stringify @serialize()
 
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 

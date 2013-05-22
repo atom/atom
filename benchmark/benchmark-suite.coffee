@@ -106,7 +106,7 @@ describe "TokenizedBuffer.", ->
     [languageMode, buffer] = []
 
     beforeEach ->
-      editSession = benchmarkFixturesProject.buildEditSession('medium.coffee')
+      editSession = benchmarkFixturesProject.open('medium.coffee')
       { languageMode, buffer } = editSession
 
     benchmark "construction", 20, ->

@@ -1,6 +1,5 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-
 module.exports =
 class Gists
   @activate: -> new Gists
@@ -22,6 +21,9 @@ class Gists
       dataType: 'json'
       contentType: 'application/json; charset=UTF-8'
       data: JSON.stringify(gist)
+      beforeSend: (xhr) ->
+        if token = require('keytar').getPassword('GitHub.com', 'github')
+          xhr.setRequestHeader('Authorization', "bearer #{token}")
       success: (response) =>
         pasteboard.write(response.html_url)
         notification = $$ ->

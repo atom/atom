@@ -93,7 +93,7 @@ class TokenizedLine
     delta = 0
     for token in @tokens
       delta += token.bufferDelta
-      return token if delta >= bufferColumn
+      return token if delta > bufferColumn
     token
 
   breakOutAtomicTokens: (inputTokens, tabLength) ->

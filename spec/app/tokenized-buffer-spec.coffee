@@ -343,3 +343,17 @@ describe "TokenizedBuffer", ->
       fullyTokenize(tokenizedBuffer)
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
       expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
+
+  describe ".tokenForPosition(position)", ->
+    afterEach ->
+      tokenizedBuffer.destroy()
+      buffer.release()
+
+    it "returns the correct token (regression)", ->
+      buffer = project.bufferForPath('sample.js')
+      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer.setVisible(true)
+      fullyTokenize(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
+      expect(tokenizedBuffer.tokenForPosition([1,1]).scopes).toEqual ["source.js"]
+      expect(tokenizedBuffer.tokenForPosition([1,2]).scopes).toEqual ["source.js", "storage.modifier.js"]

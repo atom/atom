@@ -1,20 +1,27 @@
 _ = require 'underscore'
 
 module.exports =
-  subscribe: (eventEmitter, eventName, callback) ->
-    eventEmitter.on eventName, callback
+  subscribeWith: (eventEmitter, methodName, args) ->
+    eventEmitter[methodName](args...)
+
     @subscriptions ?= []
     @subscriptionsByObject ?= new WeakMap
     @subscriptionsByObject.set(eventEmitter, []) unless @subscriptionsByObject.has(eventEmitter)
 
-    subscription = cancel: -> eventEmitter.off eventName, callback
+    eventName = _.first(args)
+    callback = _.last(args)
+    subscription = cancel: ->
+      # node's EventEmitter doesn't have 'off' method.
+      removeListener = eventEmitter.off ? eventEmitter.removeListener
+      removeListener.call eventEmitter, eventName, callback
     @subscriptions.push(subscription)
     @subscriptionsByObject.get(eventEmitter).push(subscription)
 
-  subscribeToCommand: (view, eventName, callback) ->
-    view.command eventName, callback
-    @subscriptions ?= []
-    @subscriptions.push(cancel: -> view.off eventName, callback)
+  subscribe: (eventEmitter, args...) ->
+    @subscribeWith(eventEmitter, 'on', args)
+
+  subscribeToCommand: (eventEmitter, args...) ->
+    @subscribeWith(eventEmitter, 'command', args)
 
   unsubscribe: (object) ->
     if object?

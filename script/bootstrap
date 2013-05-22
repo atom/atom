@@ -21,13 +21,10 @@ exit_unless_npm_exists() {
 exit_unless_xcode_exists
 exit_unless_npm_exists
 
-npm install npm --silent
-
-export npm_config_disturl="https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist"
-export npm_config_target="0.10.5"
-export npm_config_arch="ia32"
-NODE_DIR="$HOME/.atom-shell-gyp"
-HOME=$NODE_DIR ./node_modules/.bin/npm install --silent
-
 git submodule --quiet sync
 git submodule --quiet update --recursive --init
+
+(cd vendor/apm && npm install .)
+
+npm install --silent vendor/apm
+./node_modules/.bin/apm install --silent

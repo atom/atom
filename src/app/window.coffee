@@ -1,10 +1,9 @@
-fs = require 'fs'
 fsUtils = require 'fs-utils'
 $ = require 'jquery'
-_ = require 'underscore'
 less = require 'less'
 ipc = require 'ipc'
 remote = require 'remote'
+WindowEventHandler = require 'window-event-handler'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -14,6 +13,8 @@ deferredDeserializers = {}
 defaultWindowDimensions = {x: 0, y: 0, width: 800, height: 600}
 
 ### Internal ###
+
+windowEventHandler = null
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
@@ -27,7 +28,6 @@ window.setUpEnvironment = ->
   window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
-  $(document).on 'keydown', keymap.handleKeyEvent
 
   keymap.bindDefaultKeys()
 
@@ -43,15 +43,11 @@ window.setUpEnvironment = ->
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
-  directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
-  if directory
-    installAtomCommand(fsUtils.join(directory, 'bin/atom'))
-  else
-    console.warn "Failed to install `atom` binary"
+  installAtomCommand()
+  installApmCommand()
 
   atom.windowMode = 'editor'
-  handleEvents()
-  handleDragDrop()
+  windowEventHandler = new WindowEventHandler
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
@@ -65,7 +61,7 @@ window.startEditorWindow = ->
 
 window.startConfigWindow = ->
   atom.windowMode = 'config'
-  handleEvents()
+  windowEventHandler = new WindowEventHandler
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
@@ -88,57 +84,25 @@ window.unloadEditorWindow = ->
   rootView.remove()
   project.destroy()
   git?.destroy()
-  $(window).off('focus blur before')
+  windowEventHandler?.unsubscribe()
   window.rootView = null
   window.project = null
   window.git = null
 
-window.installAtomCommand = (commandPath, done) ->
-  fs.exists commandPath, (exists) ->
-    return if exists
+window.installAtomCommand = (callback) ->
+  commandPath = fsUtils.join(window.resourcePath, 'atom.sh')
+  require('command-installer').install(commandPath, callback)
 
-    bundledCommandPath = fsUtils.resolve(window.resourcePath, 'atom.sh')
-    if bundledCommandPath?
-      fs.readFile bundledCommandPath, (error, data) ->
-        if error?
-          console.warn "Failed to install `atom` binary", error
-        else
-          fsUtils.writeAsync commandPath, data, (error) ->
-            if error?
-              console.warn "Failed to install `atom` binary", error
-            else
-              fs.chmod(commandPath, 0o755, commandPath)
+window.installApmCommand = (callback) ->
+  commandPath = fsUtils.join(window.resourcePath, 'node_modules', '.bin', 'apm')
+  require('command-installer').install(commandPath, callback)
 
 window.unloadConfigWindow = ->
   return if not configView
   atom.setWindowState('configView', configView.serialize())
   configView.remove()
+  windowEventHandler?.unsubscribe()
   window.configView = null
-  $(window).off('focus blur before')
-
-window.handleEvents = ->
-  ipc.on 'command', (command) -> console.log command; $(window).trigger command
-
-  $(window).command 'window:toggle-full-screen', => atom.toggleFullScreen()
-  $(window).on 'focus', -> $("body").removeClass('is-blurred')
-  $(window).on 'blur',  -> $("body").addClass('is-blurred')
-  $(window).command 'window:close', => confirmClose()
-  $(window).command 'window:reload', => atom.reload()
-
-  $(document).on 'click', 'a', (e) ->
-    location = $(e.target).attr('href')
-    return unless location
-    return if location[0] is '#'
-
-    if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
-      require('shell').openExternal(location)
-    false
-
-window.handleDragDrop = ->
-  $(document).on 'dragover', (e) ->
-    e.preventDefault()
-    e.stopPropagation()
-  $(document).on 'drop', onDrop
 
 window.onDrop = (e) ->
   e.preventDefault()
@@ -281,10 +245,3 @@ window.profile = (description, fn) ->
     value = fn()
     console.profileEnd(description)
     value
-
-# Public: Shows a dialog asking if the window was _really_ meant to be closed.
-confirmClose = ->
-  if rootView?
-    rootView.confirmClose().done -> closeWithoutConfirm()
-  else
-    closeWithoutConfirm()

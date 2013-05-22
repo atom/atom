@@ -1,18 +1,20 @@
 $ = require 'jquery'
+{$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
 {less} = require 'less'
+WindowEventHandler = require 'window-event-handler'
 
 describe "Window", ->
-  projectPath = null
+  [projectPath, windowEventHandler] = []
 
   beforeEach ->
     spyOn(atom, 'getPathToOpen').andReturn(project.getPath())
-    window.handleEvents()
+    windowEventHandler = new WindowEventHandler()
     window.deserializeEditorWindow()
     projectPath = project.getPath()
 
   afterEach ->
-    window.unloadEditorWindow()
+    windowEventHandler.unsubscribe()
     $(window).off 'beforeunload'
 
   describe "when the window is loaded", ->
@@ -154,23 +156,6 @@ describe "Window", ->
       window.unloadEditorWindow()
       expect(atom.saveWindowState.callCount).toBe 1
 
-  describe ".installAtomCommand(commandPath)", ->
-    commandPath = '/tmp/installed-atom-command/atom'
-
-    afterEach ->
-      fsUtils.remove(commandPath) if fsUtils.exists(commandPath)
-
-    describe "when the command path doesn't exist", ->
-      it "copies atom.sh to the specified path", ->
-        expect(fsUtils.exists(commandPath)).toBeFalsy()
-        window.installAtomCommand(commandPath)
-
-        waitsFor ->
-          fsUtils.exists(commandPath)
-
-        runs ->
-          expect(fsUtils.read(commandPath).length).toBeGreaterThan 1
-
   describe ".deserialize(state)", ->
     class Foo
       @deserialize: ({name}) -> new Foo(name)
@@ -251,3 +236,82 @@ describe "Window", ->
       shell.openExternal.reset()
       $("<a href='#scroll-me'>link</a>").appendTo(document.body).click().remove()
       expect(shell.openExternal).not.toHaveBeenCalled()
+
+  describe "core:focus-next and core:focus-previous", ->
+    describe "when there is no currently focused element", ->
+      it "focuses the element with the lowest/highest tabindex", ->
+        elements = $$ ->
+          @div =>
+            @button tabindex: 2
+            @input tabindex: 1
+
+        elements.attachToDom()
+
+        elements.trigger "core:focus-next"
+        expect(elements.find("[tabindex=1]:focus")).toExist()
+
+        $(":focus").blur()
+
+        elements.trigger "core:focus-previous"
+        expect(elements.find("[tabindex=2]:focus")).toExist()
+
+    describe "when a tabindex is set on the currently focused element", ->
+      it "focuses the element with the next highest tabindex", ->
+        elements = $$ ->
+          @div =>
+            @input tabindex: 1
+            @button tabindex: 2
+            @button tabindex: 5
+            @input tabindex: -1
+            @input tabindex: 3
+            @button tabindex: 7
+
+        elements.attachToDom()
+        elements.find("[tabindex=1]").focus()
+
+        elements.trigger "core:focus-next"
+        expect(elements.find("[tabindex=2]:focus")).toExist()
+
+        elements.trigger "core:focus-next"
+        expect(elements.find("[tabindex=3]:focus")).toExist()
+
+        elements.focus().trigger "core:focus-next"
+        expect(elements.find("[tabindex=5]:focus")).toExist()
+
+        elements.focus().trigger "core:focus-next"
+        expect(elements.find("[tabindex=7]:focus")).toExist()
+
+        elements.focus().trigger "core:focus-next"
+        expect(elements.find("[tabindex=1]:focus")).toExist()
+
+        elements.trigger "core:focus-previous"
+        expect(elements.find("[tabindex=7]:focus")).toExist()
+
+        elements.trigger "core:focus-previous"
+        expect(elements.find("[tabindex=5]:focus")).toExist()
+
+        elements.focus().trigger "core:focus-previous"
+        expect(elements.find("[tabindex=3]:focus")).toExist()
+
+        elements.focus().trigger "core:focus-previous"
+        expect(elements.find("[tabindex=2]:focus")).toExist()
+
+        elements.focus().trigger "core:focus-previous"
+        expect(elements.find("[tabindex=1]:focus")).toExist()
+
+      it "skips disabled elements", ->
+        elements = $$ ->
+          @div =>
+            @input tabindex: 1
+            @button tabindex: 2, disabled: 'disabled'
+            @input tabindex: 3
+
+        elements.attachToDom()
+        elements.find("[tabindex=1]").focus()
+
+        elements.trigger "core:focus-next"
+        expect(elements.find("[tabindex=3]:focus")).toExist()
+
+        elements.trigger "core:focus-previous"
+        expect(elements.find("[tabindex=1]:focus")).toExist()
+>>>>>>> master

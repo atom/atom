@@ -46,10 +46,10 @@ describe "RootView", ->
           pane2 = pane1.splitRight()
           pane3 = pane2.splitRight()
           pane4 = pane2.splitDown()
-          pane2.showItem(project.buildEditSession('b'))
-          pane3.showItem(project.buildEditSession('../sample.js'))
+          pane2.showItem(project.open('b'))
+          pane3.showItem(project.open('../sample.js'))
           pane3.activeItem.setCursorScreenPosition([2, 4])
-          pane4.showItem(project.buildEditSession('../sample.txt'))
+          pane4.showItem(project.open('../sample.txt'))
           pane4.activeItem.setCursorScreenPosition([0, 2])
           pane2.focus()
 

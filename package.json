@@ -1,14 +1,17 @@
 {
-  "name"    : "atom",
-  "version" : "0.0.0",
-  "main"    : "src/main.js",
-
+  "name": "atom",
+  "version": "0.0.0",
+  "main": "src/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/github/atom.git"
+  },
   "dependencies": {
     "coffee-script": "1.6.2",
     "ctags": "0.3.0",
     "oniguruma": "0.11.0",
     "mkdirp": "0.3.5",
-    "git-utils": "0.15.0",
+    "git-utils": "0.17.0",
     "underscore": "1.4.4",
     "d3": "3.0.8",
     "coffee-cache": "0.1.0",
@@ -17,20 +20,20 @@
     "nak": "0.2.12",
     "spellchecker": "0.3.0",
     "pathwatcher": "0.3.0",
+    "keytar": "0.4.0",
     "plist": "git://github.com/nathansobo/node-plist.git",
-    "space-pen": "git://github.com/nathansobo/space-pen.git",
+    "space-pen": "1.0.0",
     "less": "git://github.com/nathansobo/less.js.git",
-    "roaster": "0.0.3",
+    "roaster": "0.0.5",
     "jqueryui-browser": "1.10.2-1",
-    "optimist": "0.4.0"
+    "optimist": "0.4.0",
+    "season": "0.7.0",
+    "humanize-plus": "1.1.0"
   },
-
-  "devDependencies" : {
-    "biscotto" : "0.0.11"
+  "devDependencies": {
+    "biscotto": "0.0.11"
   },
-
   "private": true,
-
   "scripts": {
     "preinstall": "true"
   }

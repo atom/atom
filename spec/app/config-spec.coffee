@@ -1,3 +1,4 @@
+fs = require 'fs'
 fsUtils = require 'fs-utils'
 
 describe "Config", ->
@@ -6,6 +7,13 @@ describe "Config", ->
       expect(config.set("foo.bar.baz", 42)).toBe 42
       expect(config.get("foo.bar.baz")).toBe 42
       expect(config.get("bogus.key.path")).toBeUndefined()
+
+    it "returns a deep clone of the key path's value", ->
+      config.set('value', array: [1, b: 2, 3])
+      retrievedValue = config.get('value')
+      retrievedValue.array[0] = 4
+      retrievedValue.array[1].b = 2.1
+      expect(config.get('value')).toEqual(array: [1, b: 2, 3])
 
   describe ".set(keyPath, value)", ->
     it "allows a key path's value to be written", ->
@@ -33,6 +41,28 @@ describe "Config", ->
         config.set('foo.changes', 1)
         expect(config.settings.foo).toEqual {}
 
+  describe ".pushAtKeyPath(keyPath, value)", ->
+    it "pushes the given value to the array at the key path and updates observers", ->
+      config.set("foo.bar.baz", ["a"])
+      observeHandler = jasmine.createSpy "observeHandler"
+      config.observe "foo.bar.baz", observeHandler
+      observeHandler.reset()
+
+      expect(config.pushAtKeyPath("foo.bar.baz", "b")).toBe 2
+      expect(config.get("foo.bar.baz")).toEqual ["a", "b"]
+      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
+
+  describe ".removeAtKeyPath(keyPath, value)", ->
+    it "removes the given value from the array at the key path and updates observers", ->
+      config.set("foo.bar.baz", ["a", "b", "c"])
+      observeHandler = jasmine.createSpy "observeHandler"
+      config.observe "foo.bar.baz", observeHandler
+      observeHandler.reset()
+
+      expect(config.removeAtKeyPath("foo.bar.baz", "b")).toEqual ["a", "c"]
+      expect(config.get("foo.bar.baz")).toEqual ["a", "c"]
+      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
+
   describe ".getPositiveInt(keyPath, defaultValue)", ->
     it "returns the proper current or default value", ->
       config.set('editor.preferredLineLength', 0)
@@ -46,7 +76,7 @@ describe "Config", ->
 
   describe ".save()", ->
     beforeEach ->
-      spyOn(fsUtils, 'write')
+      spyOn(fs, 'writeFileSync')
       jasmine.unspy config, 'save'
 
     describe "when ~/.atom/config.json exists", ->
@@ -57,11 +87,11 @@ describe "Config", ->
         config.set("x.y.z", 3)
         config.setDefaults("a.b", e: 4, f: 5)
 
-        fsUtils.write.reset()
+        fs.writeFileSync.reset()
         config.save()
 
-        expect(fsUtils.write.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.json"))
-        writtenConfig = JSON.parse(fsUtils.write.argsForCall[0][1])
+        expect(fs.writeFileSync.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.json"))
+        writtenConfig = JSON.parse(fs.writeFileSync.argsForCall[0][1])
         expect(writtenConfig).toEqual config.settings
 
     describe "when ~/.atom/config.json doesn't exist", ->
@@ -72,12 +102,12 @@ describe "Config", ->
         config.set("x.y.z", 3)
         config.setDefaults("a.b", e: 4, f: 5)
 
-        fsUtils.write.reset()
+        fs.writeFileSync.reset()
         config.save()
 
-        expect(fsUtils.write.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.cson"))
+        expect(fs.writeFileSync.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.cson"))
         CoffeeScript = require 'coffee-script'
-        writtenConfig = CoffeeScript.eval(fsUtils.write.argsForCall[0][1], bare: true)
+        writtenConfig = CoffeeScript.eval(fs.writeFileSync.argsForCall[0][1], bare: true)
         expect(writtenConfig).toEqual config.settings
 
   describe ".setDefaults(keyPath, defaults)", ->
@@ -91,21 +121,6 @@ describe "Config", ->
       config.setDefaults("foo.quux", x: 0, y: 1)
       expect(config.get("foo.quux.x")).toBe 0
       expect(config.get("foo.quux.y")).toBe 1
-
-  describe ".update()", ->
-    it "updates observers if a value is mutated without the use of .set", ->
-      config.set("foo.bar.baz", ["a"])
-      observeHandler = jasmine.createSpy "observeHandler"
-      config.observe "foo.bar.baz", observeHandler
-      observeHandler.reset()
-
-      config.get("foo.bar.baz").push("b")
-      config.update()
-      expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
-      observeHandler.reset()
-
-      config.update()
-      expect(observeHandler).not.toHaveBeenCalled()
 
   describe ".observe(keyPath)", ->
     observeHandler = null

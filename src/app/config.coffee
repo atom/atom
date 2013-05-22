@@ -1,7 +1,7 @@
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
-CSON = require 'cson'
+CSON = require 'season'
 fs = require 'fs'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
@@ -72,7 +72,7 @@ class Config
   loadUserConfig: ->
     if fsUtils.exists(@configFilePath)
       try
-        userConfig = CSON.readObject(@configFilePath)
+        userConfig = CSON.readFileSync(@configFilePath)
         _.extend(@settings, userConfig)
         @configFileHasErrors = false
         @trigger 'updated'
@@ -108,8 +108,8 @@ class Config
   # Returns the value from Atom's default settings, the user's configuration file,
   # or `null` if the key doesn't exist in either.
   get: (keyPath) ->
-    _.valueForKeyPath(@settings, keyPath) ?
-      _.valueForKeyPath(@defaultSettings, keyPath)
+    value = _.valueForKeyPath(@settings, keyPath) ? _.valueForKeyPath(@defaultSettings, keyPath)
+    _.deepClone(value)
 
   # Retrieves the setting for the given key as an integer.
   #
@@ -146,6 +146,30 @@ class Config
       @update()
     value
 
+  # Push the value to the array at the key path.
+  #
+  # keyPath - The {String} key path.
+  # value - The value to push to the array.
+  #
+  # Returns the new array length of the setting.
+  pushAtKeyPath: (keyPath, value) ->
+    arrayValue = @get(keyPath) ? []
+    result = arrayValue.push(value)
+    @set(keyPath, arrayValue)
+    result
+
+  # Remove the value from the array at the key path.
+  #
+  # keyPath - The {String} key path.
+  # value - The value to remove from the array.
+  #
+  # Returns the new array value of the setting.
+  removeAtKeyPath: (keyPath, value) ->
+    arrayValue = @get(keyPath) ? []
+    result = _.remove(arrayValue, value)
+    @set(keyPath, arrayValue)
+    result
+
   # Establishes an event listener for a given key.
   #
   # `callback` is fired immediately and whenever the value of the key is changed
@@ -175,6 +199,6 @@ class Config
     @trigger 'updated'
 
   save: ->
-    CSON.writeObject(@configFilePath, @settings)
+    CSON.writeFileSync(@configFilePath, @settings)
 
 _.extend Config.prototype, EventEmitter
