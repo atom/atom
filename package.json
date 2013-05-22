@@ -16,7 +16,7 @@
     "coffee-cache": "0.1.0",
     "pegjs": "0.7.0",
     "async": "0.2.6",
-    "nak": "0.2.12",
+    "nak": "0.2.16",
     "spellchecker": "0.3.0",
     "pathwatcher": "0.3.0",
     "keytar": "0.4.0",
