@@ -148,6 +148,15 @@ describe 'apm command line interface', ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[4][0]).toContain 'test-module@1.0.0'
 
+    it 'includes vendored packages', ->
+      packagesPath = path.join(resourcePath, 'vendor', 'packages')
+      mkdir(packagesPath)
+      wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
+
+      apm.run(['list'])
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[4][0]).toContain 'test-module@1.0.0'
+
     it 'lists the installed packages', ->
       packagesPath = path.join(atomHome, 'packages')
       mkdir(packagesPath)
