@@ -148,6 +148,7 @@ class AtomApplication
       bootstrapScript: 'spec-bootstrap',
       resourcePath: @resourcePath
 
+    specWindow.browserWindow.removeAllListeners 'close'
     specWindow.browserWindow.show()
     @windows.push specWindow
 
