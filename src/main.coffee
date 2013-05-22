@@ -7,7 +7,13 @@ executedFrom = null
 pathsToOpen = null
 atomApplication = null
 
-setupNodePath= ->
+
+require('fs').writeFileSync('/Users/corey/Desktop/moo.txt', process.cwd())
+
+getHomeDir = ->
+  process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+
+setupNodePath = ->
   resourcePaths = [
     'src/stdlib',
     'src/app',
@@ -20,8 +26,7 @@ setupNodePath= ->
     '',
   ]
 
-  homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
-  resourcePaths.push path.join(homeDir, '.atom', 'packages')
+  resourcePaths.push path.join(getHomeDir(), '.atom', 'packages')
 
   resourcePaths = resourcePaths.map (relativeOrAbsolutePath) =>
     path.resolve resourcePath, relativeOrAbsolutePath
@@ -30,9 +35,10 @@ setupNodePath= ->
 
 parseCommandLine = ->
   args = optimist(process.argv[1..]).argv
-  resourcePath = args['resource-path'] ? path.dirname(__dirname)
   executedFrom = args['executed-from']
+  devMode = args['dev']
   pathsToOpen = args._
+  resourcePath = if devMode then path.join(getHomeDir(), 'github/atom') else path.dirname(__dirname)
 
 bootstrapApplication = ->
   parseCommandLine()
