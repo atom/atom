@@ -22,9 +22,15 @@ describe "PackageConfigPanel", ->
         version: '5.8.5'
       }
     ]
+
     spyOn(packageManager, 'getAvailable').andCallFake (callback) ->
       callback(null, packages)
+    spyOn(packageManager, 'uninstall').andCallFake (pack, callback) ->
+      callback()
+
     spyOn(atom, 'getAvailablePackageMetadata').andReturn(packages)
+    spyOn(atom, 'resolvePackagePath').andCallFake (name) ->
+      "/tmp/atom-packages/#{name}"
 
     configObserver = jasmine.createSpy("configObserver")
     observeSubscription = config.observe('core.disabledPackages', configObserver)
@@ -74,6 +80,14 @@ describe "PackageConfigPanel", ->
         p3View = panel.installed.find("[name='p3']").view()
         p3View.enableToggle.find('a').click()
         expect(configObserver).toHaveBeenCalledWith(['p1'])
+
+    describe "when Uninstall is clicked", ->
+      it "removes the package from the tab", ->
+        expect(panel.installed.find("[name='p1']")).toExist()
+        p1View = panel.installed.find("[name='p1']").view()
+        expect(p1View.defaultAction.text()).toBe 'Uninstall'
+        p1View.defaultAction.click()
+        expect(panel.installed.find("[name='p1']")).not.toExist()
 
   describe 'Available tab', ->
     it 'lists all available packages', ->
