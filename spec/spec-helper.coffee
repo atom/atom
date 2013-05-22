@@ -16,6 +16,7 @@ fsUtils = require 'fs-utils'
 pathwatcher = require 'pathwatcher'
 RootView = require 'root-view'
 Git = require 'git'
+clipboard = require 'clipboard'
 requireStylesheet "jasmine"
 fixturePackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
 config.packageDirPaths.unshift(fixturePackagesPath)
@@ -38,8 +39,7 @@ beforeEach ->
 
   window.resetTimeouts()
   atom.packageStates = {}
-  spyOn(atom, 'getSavedWindowState').andReturn(null)
-  $native.setWindowState('')
+  spyOn(atom, 'setWindowState')
   syntax.clearGrammarOverrides()
   syntax.clearProperties()
 
@@ -69,8 +69,8 @@ beforeEach ->
   spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
   pasteboardContent = 'initial pasteboard content'
-  spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboardContent = text
-  spyOn($native, 'readFromPasteboard').andCallFake -> pasteboardContent
+  spyOn(clipboard, 'writeText').andCallFake (text) -> pasteboardContent = text
+  spyOn(clipboard, 'readText').andCallFake -> pasteboardContent
 
   addCustomMatchers(this)
 
