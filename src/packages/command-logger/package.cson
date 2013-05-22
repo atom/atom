@@ -1,1 +1,2 @@
 'main': 'lib/command-logger'
+'description': 'View a heat map of your Atom activity. Open from the command palette.'
