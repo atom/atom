@@ -45,6 +45,7 @@ install = ({name, version}, callback) ->
   activateOnSuccess = !atom.isPackageDisabled(name)
   activateOnFailure = atom.isPackageActive(name)
   atom.deactivatePackage(name) if atom.isPackageActive(name)
+  atom.unloadPackage(name) if atom.isPackageLoaded(name)
 
   apm = require.resolve '.bin/apm'
   apmProcess = spawn(apm, ['install', "#{name}@#{version}"])
