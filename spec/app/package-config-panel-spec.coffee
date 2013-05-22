@@ -1,21 +1,19 @@
 PackageConfigPanel = require 'package-config-panel'
 packageManager = require 'package-manager'
+_ = require 'underscore'
 
 describe "PackageConfigPanel", ->
   [panel, configObserver] = []
 
   beforeEach ->
-    packages = [
+    installedPackages = [
       {
         name: 'p1'
         version: '3.2.1'
-        homepage: 'http://p1.io'
       }
       {
         name: 'p2'
         version: '1.2.3'
-        repository: url: 'http://github.com/atom/p2.git'
-        bugs: url: 'http://github.com/atom/p2/issues'
       }
       {
         name: 'p3'
@@ -23,14 +21,37 @@ describe "PackageConfigPanel", ->
       }
     ]
 
+    availablePackages = [
+      {
+        name: 'p4'
+        version: '3.2.1'
+        homepage: 'http://p4.io'
+      }
+      {
+        name: 'p5'
+        version: '1.2.3'
+        repository: url: 'http://github.com/atom/p5.git'
+        bugs: url: 'http://github.com/atom/p5/issues'
+      }
+      {
+        name: 'p6'
+        version: '5.8.5'
+      }
+    ]
+
     spyOn(packageManager, 'getAvailable').andCallFake (callback) ->
-      callback(null, packages)
+      callback(null, availablePackages)
     spyOn(packageManager, 'uninstall').andCallFake (pack, callback) ->
+      _.remove(installedPackages, pack)
+      callback()
+    spyOn(packageManager, 'install').andCallFake (pack, callback) ->
+      installedPackages.push(pack)
       callback()
 
-    spyOn(atom, 'getAvailablePackageMetadata').andReturn(packages)
+    spyOn(atom, 'getAvailablePackageMetadata').andReturn(installedPackages)
     spyOn(atom, 'resolvePackagePath').andCallFake (name) ->
-      "/tmp/atom-packages/#{name}"
+      if _.contains(_.pluck(installedPackages, 'name'), name)
+        "/tmp/atom-packages/#{name}"
 
     configObserver = jasmine.createSpy("configObserver")
     observeSubscription = config.observe('core.disabledPackages', configObserver)
@@ -95,29 +116,39 @@ describe "PackageConfigPanel", ->
       panel.attachToDom()
 
       expect(panel.available.packagesArea.children('.panel').length).toBe 3
-      p1View = panel.available.packagesArea.children('.panel:eq(0)').view()
-      p2View = panel.available.packagesArea.children('.panel:eq(1)').view()
-      p3View = panel.available.packagesArea.children('.panel:eq(2)').view()
+      p4View = panel.available.packagesArea.children('.panel:eq(0)').view()
+      p5View = panel.available.packagesArea.children('.panel:eq(1)').view()
+      p6View = panel.available.packagesArea.children('.panel:eq(2)').view()
 
-      expect(p1View.name.text()).toBe 'p1'
-      expect(p2View.name.text()).toBe 'p2'
-      expect(p3View.name.text()).toBe 'p3'
+      expect(p4View.name.text()).toBe 'p4'
+      expect(p5View.name.text()).toBe 'p5'
+      expect(p6View.name.text()).toBe 'p6'
 
-      expect(p1View.version.text()).toBe '3.2.1'
-      expect(p2View.version.text()).toBe '1.2.3'
-      expect(p3View.version.text()).toBe '5.8.5'
+      expect(p4View.version.text()).toBe '3.2.1'
+      expect(p5View.version.text()).toBe '1.2.3'
+      expect(p6View.version.text()).toBe '5.8.5'
 
-      p1View.dropdownButton.click()
-      expect(p1View.homepage).toBeVisible()
-      expect(p1View.homepage.find('a').attr('href')).toBe 'http://p1.io'
-      expect(p1View.issues).toBeHidden()
+      p4View.dropdownButton.click()
+      expect(p4View.homepage).toBeVisible()
+      expect(p4View.homepage.find('a').attr('href')).toBe 'http://p4.io'
+      expect(p4View.issues).toBeHidden()
 
-      p2View.dropdownButton.click()
-      expect(p2View.homepage).toBeVisible()
-      expect(p2View.homepage.find('a').attr('href')).toBe 'http://github.com/atom/p2'
-      expect(p2View.issues).toBeVisible()
-      expect(p2View.issues.find('a').attr('href')).toBe 'http://github.com/atom/p2/issues'
+      p5View.dropdownButton.click()
+      expect(p5View.homepage).toBeVisible()
+      expect(p5View.homepage.find('a').attr('href')).toBe 'http://github.com/atom/p5'
+      expect(p5View.issues).toBeVisible()
+      expect(p5View.issues.find('a').attr('href')).toBe 'http://github.com/atom/p5/issues'
 
-      p3View.dropdownButton.click()
-      expect(p3View.homepage).toBeHidden()
-      expect(p3View.issues).toBeHidden()
+      p6View.dropdownButton.click()
+      expect(p6View.homepage).toBeHidden()
+      expect(p6View.issues).toBeHidden()
+
+    describe "when Install is clicked", ->
+      it "adds the package to the Installed tab", ->
+        expect(panel.installed.find("[name='p4']")).not.toExist()
+        expect(panel.available.find("[name='p4']")).toExist()
+        p4View = panel.available.find("[name='p4']").view()
+        expect(p4View.defaultAction.text()).toBe 'Install'
+        p4View.defaultAction.click()
+        expect(panel.installed.find("[name='p4']")).toExist()
+        expect(p4View.defaultAction.text()).toBe 'Uninstall'
