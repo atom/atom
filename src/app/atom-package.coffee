@@ -64,7 +64,7 @@ class AtomPackage extends Package
     if metadataPath = CSON.resolve(fsUtils.join(@path, 'package'))
       @metadata = CSON.readFileSync(metadataPath)
     @metadata ?= {}
-    @metadata.name ?= @name
+    @metadata.name = @name
 
   loadKeymaps: ->
     @keymaps = @getKeymapPaths().map (path) -> [path, CSON.readFileSync(path)]
