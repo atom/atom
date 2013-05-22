@@ -218,20 +218,21 @@ window.atom =
         rootView?.open(path)
 
   getWindowStatePath: ->
-    shasum = crypto.createHash('sha1')
-    shasum.update(@getPathToOpen())
-    fsUtils.join(config.userStoragePath, shasum.digest('hex'))
+    if not @getPathToOpen()
+      'probably-a-spec-window'
+    else
+      shasum = crypto.createHash('sha1')
+      shasum.update(@getPathToOpen())
+      fsUtils.join(config.userStoragePath, shasum.digest('hex'))
 
   setWindowState: (keyPath, value) ->
-    return {} if not @getPathToOpen()
-
     windowState = @getWindowState()
     _.setValueForKeyPath(windowState, keyPath, value)
     fsUtils.write(@getWindowStatePath(), JSON.stringify(windowState))
     windowState
 
   getWindowState: (keyPath) ->
-    return {} if not @getPathToOpen() or not fsUtils.exists(@getWindowStatePath())
+    return {} unless fsUtils.exists(@getWindowStatePath())
 
     windowState = JSON.parse(fsUtils.read(@getWindowStatePath()) or '{}')
     if keyPath

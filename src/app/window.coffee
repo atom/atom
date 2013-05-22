@@ -40,6 +40,7 @@ window.setUpEnvironment = ->
   dimensions = defaultWindowDimensions unless dimensions.width and dimensions.height
   window.setDimensions(dimensions)
   remote.getCurrentWindow().show()
+  $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
@@ -78,7 +79,6 @@ window.unloadEditorWindow = ->
   atom.setWindowState('project', project.serialize())
   atom.setWindowState('syntax', syntax.serialize())
   atom.setWindowState('rootView', rootView.serialize())
-  atom.setWindowState('dimensions', window.getDimensions())
   atom.deactivatePackages()
   atom.setWindowState('packageStates', atom.packageStates)
   rootView.remove()
