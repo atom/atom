@@ -30,7 +30,12 @@ describe "PackageConfigPanel", ->
     observeSubscription = config.observe('core.disabledPackages', configObserver)
     config.set('core.disabledPackages', ['p1', 'p3'])
     configObserver.reset()
+    jasmine.unspy(window, "setTimeout")
     panel = new PackageConfigPanel
+
+    installedCallback = jasmine.createSpy("installed packages callback")
+    panel.installed.on("installed-packages-loaded", installedCallback)
+    waitsFor -> installedCallback.callCount > 0
 
   describe 'Installed tab', ->
     it "lists all installed packages with a link to enable or disable the package", ->
