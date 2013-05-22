@@ -13,6 +13,7 @@ class PackageConfigView extends View
       @div outlet: 'heading', class: 'panel-heading', =>
         @span outlet: 'name'
         @span outlet: 'version', class: 'label'
+        @span outlet: 'update', class: 'label label-info', 'Update Available'
         @div class: 'btn-group pull-right', =>
           @button outlet: 'defaultAction', class: 'btn btn-small btn-primary'
           @button outlet: 'dropdownButton', class: 'btn btn-small btn-primary dropdown-toggle', 'data-toggle': 'dropdown', =>
@@ -123,6 +124,7 @@ class PackageConfigView extends View
 
   updatePackageState: ->
     @disabled = atom.isPackageDisabled(@pack.name)
+    @updateAvailable = false
     @bundled = false
     loadedPackage = atom.getLoadedPackage(@pack.name)
     packagePath = loadedPackage?.path ? atom.resolvePackagePath(@pack.name)
@@ -137,6 +139,11 @@ class PackageConfigView extends View
         try
           version = Package.loadMetadata(@pack.name).version
       @updateAvailable = semver.gt(@pack.version, version)
+
+    if @updateAvailable
+      @update.show()
+    else
+      @update.hide()
 
   updateEnabledState: ->
     enableLink = @enableToggle.find('a')
