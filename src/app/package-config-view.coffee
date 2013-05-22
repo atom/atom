@@ -104,14 +104,12 @@ class PackageConfigView extends View
         else
           @defaultAction.text('Uninstalling\u2026')
           packageManager.uninstall @pack, (error) =>
-            unless error?
-              @packageEventEmitter.trigger('package-uninstalled', @pack)
+            @packageEventEmitter.trigger('package-uninstalled', error, @pack)
             packageManagerCallback()
       else
         @defaultAction.text('Installing\u2026')
         packageManager.install @pack, (error) =>
-          unless error?
-            @packageEventEmitter.trigger('package-installed', @pack)
+          @packageEventEmitter.trigger('package-installed', error, @pack)
           packageManagerCallback()
 
     @updateDefaultAction()
