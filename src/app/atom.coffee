@@ -119,7 +119,7 @@ _.extend atom,
     packages = []
     for packagePath in atom.getAvailablePackagePaths()
       name = fsUtils.base(packagePath)
-      metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(path, true)
+      metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
 
