@@ -152,6 +152,8 @@ class AtomPackage extends Package
   unsubscribeFromActivationEvents: ->
     if _.isArray(@metadata.activationEvents)
       rootView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
+    else if _.isString(@metadata.activationEvents)
+      rootView.off(@metadata.activationEvents, @handleActivationEvent)
     else
       rootView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
