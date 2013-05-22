@@ -14,6 +14,7 @@ class PackageConfigView extends View
         @span outlet: 'name'
         @span outlet: 'version', class: 'label'
         @span outlet: 'update', class: 'label label-info', 'Update Available'
+        @span outlet: 'disabedLabel', class: 'label label-warning', 'Disabled'
         @div class: 'btn-group pull-right', =>
           @button outlet: 'defaultAction', class: 'btn btn-small btn-primary'
           @button outlet: 'dropdownButton', class: 'btn btn-small btn-primary dropdown-toggle', 'data-toggle': 'dropdown', =>
@@ -149,10 +150,10 @@ class PackageConfigView extends View
     enableLink = @enableToggle.find('a')
     if @disabled
       enableLink.text('Enable')
-      @addClass('panel-warning')
+      @disabedLabel.show()
     else
       enableLink.text('Disable')
-      @removeClass('panel-warning')
+      @disabedLabel.hide()
 
     @enableToggle.hide() unless @installed
 
