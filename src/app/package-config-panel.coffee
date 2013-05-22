@@ -34,6 +34,8 @@ class PackageConfigPanel extends ConfigPanel
       @availableLink.addClass('active')
       @available.show()
 
-    @installedCount.text(atom.getAvailablePackageNames().length)
+    @installed.on 'installed-packages-loaded', (event, packages) =>
+      @installedCount.text(packages.length)
+
     @available.on 'available-packages-loaded', (event, packages) =>
       @availableCount.text(packages.length)
