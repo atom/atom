@@ -124,22 +124,21 @@ describe "Window", ->
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
+      windowState = {}
+      jasmine.unspy(atom, 'setWindowState')
+      spyOn(atom, 'setWindowState').andCallFake (key, value) -> windowState[key] = value
       projectPath = project.getPath()
-      expect(atom.getWindowState()).toEqual {}
 
       # JSON.stringify removes keys with undefined values
-      rootViewState = JSON.parse(JSON.stringify(rootView.serialize()))
-      projectState = JSON.parse(JSON.stringify(project.serialize()))
-      syntaxState = JSON.parse(JSON.stringify(syntax.serialize()))
+      rootViewState = rootView.serialize()
+      projectState = project.serialize()
+      syntaxState = syntax.serialize()
 
       window.unloadEditorWindow()
 
-      windowState = atom.getWindowState()
       expect(windowState.rootView).toEqual rootViewState
       expect(windowState.project).toEqual projectState
       expect(windowState.syntax).toEqual syntaxState
-
-      expect(atom.saveWindowState).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
       rootView.open('sample.js')
@@ -150,11 +149,6 @@ describe "Window", ->
       window.unloadEditorWindow()
 
       expect(buffer.subscriptionCount()).toBe 0
-
-    it "only serializes window state the first time it is called", ->
-      window.unloadEditorWindow()
-      window.unloadEditorWindow()
-      expect(atom.saveWindowState.callCount).toBe 1
 
   describe ".deserialize(state)", ->
     class Foo
