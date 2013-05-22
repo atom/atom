@@ -38,28 +38,28 @@ describe "Window", ->
 
   describe "window:close event", ->
     describe "when no pane items are modified", ->
-      it "calls window.close", ->
-        spyOn window, 'close'
+      it "calls window.closeWithoutConfirm", ->
+        spyOn window, 'closeWithoutConfirm'
         $(window).trigger 'window:close'
-        expect(window.close).toHaveBeenCalled()
+        expect(window.closeWithoutConfirm).toHaveBeenCalled()
 
     describe "when pane items are are modified", ->
-      it "prompts user to save and and calls window.close", ->
-        spyOn(window, 'close')
+      it "prompts user to save and and calls window.closeWithoutConfirm", ->
+        spyOn(window, 'closeWithoutConfirm')
         spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSave) -> noSave()
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
         $(window).trigger 'window:close'
-        expect(window.close).toHaveBeenCalled()
+        expect(window.closeWithoutConfirm).toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts user to save and aborts if dialog is canceled", ->
-        spyOn(window, 'close')
+        spyOn(window, 'closeWithoutConfirm')
         spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancel) -> cancel()
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
         $(window).trigger 'window:close'
-        expect(window.close).not.toHaveBeenCalled()
+        expect(window.closeWithoutConfirm).not.toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
   describe "requireStylesheet(path)", ->
