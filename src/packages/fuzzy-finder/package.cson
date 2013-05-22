@@ -1,1 +1,2 @@
-'main': 'lib/fuzzy-finder'
+'main': './lib/fuzzy-finder'
+'description': 'Open an editor to a file in the project.'

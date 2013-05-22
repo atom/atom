@@ -1,4 +1,5 @@
-'main': 'lib/symbols-view'
+'main': './lib/symbols-view'
+'description': 'Jump to a function or method in the current editor with `meta-j`.'
 'activationEvents':
   'symbols-view:toggle-file-symbols': '.editor'
   'symbols-view:toggle-project-symbols': null

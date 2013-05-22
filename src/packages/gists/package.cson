@@ -1,3 +1,4 @@
-'main': 'lib/gists'
+'main': './lib/gists'
+'description': 'Create a Gist from the selected text or current editor contents.'
 'activationEvents':
   'gist:create': '.editor'
