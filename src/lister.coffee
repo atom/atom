@@ -15,9 +15,9 @@ class Lister
     @userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
     @bundledPackagesDirectory = path.join(config.getResourcePath(), 'src', 'packages')
     @vendoredPackagesDirectory = path.join(config.getResourcePath(), 'vendor', 'packages')
-    if configPath = CSON.resolveObjectPath(path.join(config.getAtomDirectory(), 'config'))
+    if configPath = CSON.resolve(path.join(config.getAtomDirectory(), 'config'))
       try
-        @disabledPackages = CSON.readObjectSync(configPath)?.core?.disabledPackages
+        @disabledPackages = CSON.readFileSync(configPath)?.core?.disabledPackages
     @disabledPackages ?= []
 
   isPackageDisabled: (name) ->
@@ -36,10 +36,9 @@ class Lister
       continue unless fs.isDirectory(path.join(directoryPath, child))
 
       manifest = null
-      if manifestPath = CSON.resolveObjectPath(path.join(directoryPath, child, 'package'))
+      if manifestPath = CSON.resolve(path.join(directoryPath, child, 'package'))
         try
-          manifest = CSON.readObjectSync(manifestPath) ? {}
-          manifest.name ?= child
+          manifest = CSON.readFileSync(manifestPath)
       manifest ?= {}
       manifest.name = child
       packages.push(manifest)
