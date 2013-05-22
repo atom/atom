@@ -241,7 +241,7 @@ class DisplayBuffer
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) ->
-    { row, column } = Point.fromObject(bufferPosition)
+    { row, column } = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
       screenLine = @screenLines[screenRow]

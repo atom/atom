@@ -513,6 +513,13 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabLength]
         expect(displayBuffer.clipScreenPosition([0, tabLength], skipAtomicTokens: true)).toEqual [0, tabLength]
 
+  describe ".screenPositionForBufferPosition(bufferPosition, options)", ->
+    it "clips the specified buffer position", ->
+      expect(displayBuffer.screenPositionForBufferPosition([0, 2])).toEqual [0, 2]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 100000])).toEqual [0, 29]
+      expect(displayBuffer.screenPositionForBufferPosition([100000, 0])).toEqual [12, 2]
+      expect(displayBuffer.screenPositionForBufferPosition([100000, 100000])).toEqual [12, 2]
+
   describe "position translation in the presence of hard tabs", ->
     it "correctly translates positions on either side of a tab", ->
       buffer.setText('\t')
