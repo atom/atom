@@ -76,7 +76,7 @@ class AtomApplication
         { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
         { label: 'Show All', selector: 'unhideAllApplications:' }
         { type: 'separator' }
-        { label: 'Run Specs', accelerator: 'Command+MacCtrl+Alt+N', click: => @runSpecs() }
+        { label: 'Run Specs', accelerator: 'Command+MacCtrl+Alt+S', click: => @runSpecs() }
         { type: 'separator' }
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
