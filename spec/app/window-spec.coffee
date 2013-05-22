@@ -314,4 +314,3 @@ describe "Window", ->
 
         elements.trigger "core:focus-previous"
         expect(elements.find("[tabindex=1]:focus")).toExist()
->>>>>>> master
