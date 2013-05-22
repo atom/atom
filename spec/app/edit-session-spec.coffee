@@ -1,6 +1,7 @@
 Project = require 'project'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
+clipboard = require 'clipboard'
 
 describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
@@ -1555,7 +1556,7 @@ describe "EditSession", ->
           expect(buffer.lineForRow(0)).toBe "var  = function () {"
           expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"
 
-          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+          expect(clipboard.readText()).toBe 'quicksort\nsort'
 
       describe ".cutToEndOfLine()", ->
         describe "when nothing is selected", ->
@@ -1582,7 +1583,7 @@ describe "EditSession", ->
           editSession.copySelectedText()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
-          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+          expect(clipboard.readText()).toBe 'quicksort\nsort'
 
       describe ".pasteText()", ->
         it "pastes text into the buffer", ->
