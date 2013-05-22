@@ -1,9 +1,13 @@
 ConfigPanel = require 'config-panel'
 InstalledPackagesConfigPanel = require 'installed-packages-config-panel'
 AvailablePackagesConfigPanel = require 'available-packages-config-panel'
+_ = require 'underscore'
+EventEmitter = require 'event-emitter'
+
+class PackageEventEmitter
+_.extend PackageEventEmitter.prototype, EventEmitter
 
 ### Internal ###
-
 module.exports =
 class PackageConfigPanel extends ConfigPanel
   @content: ->
@@ -16,10 +20,13 @@ class PackageConfigPanel extends ConfigPanel
         @li outlet: 'availableLink', =>
           @a 'Available', =>
             @span class: 'badge pull-right', outlet: 'availableCount'
-      @subview 'installed', new InstalledPackagesConfigPanel()
-      @subview 'available', new AvailablePackagesConfigPanel()
 
   initialize: ->
+    @packageEventEmitter = new PackageEventEmitter()
+    @installed = new InstalledPackagesConfigPanel(@packageEventEmitter)
+    @available = new AvailablePackagesConfigPanel(@packageEventEmitter)
+    @append(@installed, @available)
+
     @available.hide()
 
     @installedLink.on 'click', =>
@@ -34,8 +41,8 @@ class PackageConfigPanel extends ConfigPanel
       @availableLink.addClass('active')
       @available.show()
 
-    @installed.on 'installed-packages-loaded', (event, packages) =>
-      @installedCount.text(packages.length)
+    @packageEventEmitter.on 'installed-packages-loaded package-installed package-uninstalled', =>
+      @installedCount.text(@installed.getPackageCount())
 
-    @available.on 'available-packages-loaded', (event, packages) =>
-      @availableCount.text(packages.length)
+    @packageEventEmitter.on 'available-packages-loaded', =>
+      @availableCount.text(@available.getPackageCount())

@@ -34,7 +34,7 @@ class PackageConfigView extends View
   bundled: false
   updateAvailable: false
 
-  initialize: (@pack, @queue) ->
+  initialize: (@pack, @packageEventEmitter) ->
     @updatePackageState()
 
     @attr('name', @pack.name)
@@ -103,10 +103,16 @@ class PackageConfigView extends View
           packageManager.install(@pack, packageManagerCallback)
         else
           @defaultAction.text('Uninstalling\u2026')
-          packageManager.uninstall(@pack, packageManagerCallback)
+          packageManager.uninstall @pack, (error) =>
+            unless error?
+              @packageEventEmitter.trigger('package-uninstalled', @pack)
+            packageManagerCallback()
       else
         @defaultAction.text('Installing\u2026')
-        packageManager.install(@pack, packageManagerCallback)
+        packageManager.install @pack, (error) =>
+          unless error?
+            @packageEventEmitter.trigger('package-installed', @pack)
+          packageManagerCallback()
 
     @updateDefaultAction()
 

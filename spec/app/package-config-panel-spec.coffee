@@ -34,7 +34,7 @@ describe "PackageConfigPanel", ->
     panel = new PackageConfigPanel
 
     installedCallback = jasmine.createSpy("installed packages callback")
-    panel.installed.on("installed-packages-loaded", installedCallback)
+    panel.packageEventEmitter.on("installed-packages-loaded", installedCallback)
     waitsFor -> installedCallback.callCount > 0
 
   describe 'Installed tab', ->
