@@ -16,7 +16,8 @@ setupNodePath= ->
     'vendor',
     'static',
     'node_modules',
-    'spec'
+    'spec',
+    '',
   ]
 
   homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
