@@ -1,6 +1,4 @@
-path = require 'path'
 _ = require 'underscore'
-Package = require 'package'
 ConfigPanel = require 'config-panel'
 PackageConfigView = require 'package-config-view'
 packageManager = require 'package-manager'
