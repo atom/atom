@@ -91,26 +91,21 @@ class PackageConfigView extends View
         @togglePackageEnablement()
         return
 
-      packageManagerCallback = =>
-        @defaultAction.enable()
-        @updatePackageState()
-        @updateDefaultAction()
 
       @defaultAction.disable()
       if @installed
         if @updateAvailable
           @defaultAction.text('Upgrading\u2026')
-          packageManager.install(@pack, packageManagerCallback)
+          packageManager.install @pack, (error) =>
+            @packageEventEmitter.trigger('package-upgraded', error, @pack)
         else
           @defaultAction.text('Uninstalling\u2026')
           packageManager.uninstall @pack, (error) =>
             @packageEventEmitter.trigger('package-uninstalled', error, @pack)
-            packageManagerCallback()
       else
         @defaultAction.text('Installing\u2026')
         packageManager.install @pack, (error) =>
           @packageEventEmitter.trigger('package-installed', error, @pack)
-          packageManagerCallback()
 
     @updateDefaultAction()
 
@@ -120,6 +115,12 @@ class PackageConfigView extends View
       @updatePackageState()
       @updateDefaultAction()
       @updateEnabledState()
+
+    @packageEventEmitter.on 'package-installed package-uninstalled package-upgraded', (error, pack) =>
+      if pack?.name is @pack.name
+        @defaultAction.enable()
+        @updatePackageState()
+        @updateDefaultAction()
 
   togglePackageEnablement: ->
     if @disabled
