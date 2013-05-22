@@ -80,10 +80,10 @@ describe "PackageConfigPanel", ->
       panel.availableLink.click()
       panel.attachToDom()
 
-      expect(panel.available.children('.panel').length).toBe 3
-      p1View = panel.available.children('.panel:eq(0)').view()
-      p2View = panel.available.children('.panel:eq(1)').view()
-      p3View = panel.available.children('.panel:eq(2)').view()
+      expect(panel.available.packagesArea.children('.panel').length).toBe 3
+      p1View = panel.available.packagesArea.children('.panel:eq(0)').view()
+      p2View = panel.available.packagesArea.children('.panel:eq(1)').view()
+      p3View = panel.available.packagesArea.children('.panel:eq(2)').view()
 
       expect(p1View.name.text()).toBe 'p1'
       expect(p2View.name.text()).toBe 'p2'
