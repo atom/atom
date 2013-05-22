@@ -259,7 +259,7 @@ describe "the `atom` global", ->
     it "returns the current version number", ->
       expect(atom.getVersion()).toBeInstanceOf String
 
-  describe "modal native dialogs", ->
+  xdescribe "modal native dialogs", ->
     beforeEach ->
       spyOn(atom, 'sendMessageToBrowserProcess')
       atom.sendMessageToBrowserProcess.simulateConfirmation = (buttonText) ->
