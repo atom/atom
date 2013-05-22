@@ -65,7 +65,7 @@ _.extend atom,
       pack
 
   loadPackages: ->
-    @loadPackage(path) for path in @getAvailablePackagePaths() when not @isPackageDisabled(path)
+    @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
 
   loadPackage: (name, options) ->
     if @isPackageDisabled(name)
