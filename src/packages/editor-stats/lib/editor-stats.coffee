@@ -14,6 +14,6 @@ module.exports =
 
   createView: ->
     unless @editorStatsView
-      EditorStatsView  = require 'editor-stats/lib/editor-stats-view'
+      EditorStatsView  = require './editor-stats-view'
       @editorStatsView = new EditorStatsView()
     @editorStatsView
