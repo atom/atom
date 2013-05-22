@@ -64,7 +64,7 @@ uninstall = ({name}, callback) ->
   apmProcess = spawn(apm, ['uninstall', name])
   apmProcess.on 'close', (code) =>
     if code is 0
-      atom.unloadPackage(name)
+      atom.unloadPackage(name) if atom.isPackageLoaded(name)
       callback()
     else
       callback(new Error("Uninstalling '#{name}' failed."))
