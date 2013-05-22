@@ -89,6 +89,10 @@ describe "PackageConfigPanel", ->
       expect(p2View.name.text()).toBe 'p2'
       expect(p3View.name.text()).toBe 'p3'
 
+      expect(p1View.version.text()).toBe '3.2.1'
+      expect(p2View.version.text()).toBe '1.2.3'
+      expect(p3View.version.text()).toBe '5.8.5'
+
       p1View.dropdownButton.click()
       expect(p1View.homepage).toBeVisible()
       expect(p1View.homepage.find('a').attr('href')).toBe 'http://p1.io'
