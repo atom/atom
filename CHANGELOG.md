@@ -1,3 +1,5 @@
+* Fixed: .git folder now ignored by default when searching
+
 * Fixed: Not being able to disable packages from configuration UI.
 * Fixed: Fuzzy finder showing poor results for entered text
 * Improved: App icon
