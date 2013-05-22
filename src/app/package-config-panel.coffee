@@ -4,10 +4,10 @@ AvailablePackagesConfigPanel = require 'available-packages-config-panel'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 
+### Internal ###
 class PackageEventEmitter
 _.extend PackageEventEmitter.prototype, EventEmitter
 
-### Internal ###
 module.exports =
 class PackageConfigPanel extends ConfigPanel
   @content: ->
