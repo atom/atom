@@ -1,6 +1,7 @@
 Package = require 'package'
 semver = require 'semver'
 packageManager = require 'package-manager'
+_ = require 'underscore'
 {$$, View} = require 'space-pen'
 requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
@@ -66,8 +67,13 @@ class PackageConfigView extends View
 
     homepage = @pack.homepage
     unless homepage
-      repoUrl = (@pack.repository?.url ? '').replace(/.git$/, '')
-      homepage = repoUrl if require('url').parse(repoUrl).host is 'github.com'
+      if _.isString(@pack.repository)
+        repoUrl = @pack.repository
+      else
+        repoUrl = @pack.repository?.url
+      if repoUrl
+        repoUrl = repoUrl.replace(/.git$/, '')
+        homepage = repoUrl if require('url').parse(repoUrl).host is 'github.com'
     if homepage
       @homepage.find('a').attr('href', homepage)
     else
