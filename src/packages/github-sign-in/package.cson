@@ -1,5 +1,3 @@
 'main': './lib/sign-in-view'
 'description': 'Sign in to GitHub. Open from the command palette.'
-'activationEvents': [
-  'github:sign-in'
-]
+'activationEvents': 'github:sign-in'

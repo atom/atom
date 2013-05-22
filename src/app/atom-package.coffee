@@ -137,6 +137,8 @@ class AtomPackage extends Package
     return unless @metadata.activationEvents?
     if _.isArray(@metadata.activationEvents)
       rootView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
+    else if _.isString(@metadata.activationEvents)
+      rootView.command(@metadata.activationEvents, @handleActivationEvent)
     else
       rootView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
