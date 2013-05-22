@@ -7,10 +7,13 @@ packageManager = require 'package-manager'
 module.exports =
 class AvailablePackagesConfigPanel extends ConfigPanel
   @content: ->
-    @div class: 'available-packages'
+    @div class: 'available-packages', =>
+      @div outlet: 'loadingArea', class: 'alert alert-info loading-area', =>
+        @span 'Loading available packages\u2026'
 
   initialize: ->
     packageManager.getAvailable (error, packages) =>
+      @loadingArea.hide()
       if error?
         console.error(error.stack ? error)
       else
