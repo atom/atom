@@ -52,9 +52,9 @@ bootstrapApplication = ->
 
 delegate.browserMainParts.preMainMessageLoopRun = bootstrapApplication
 
-app = require 'app'
 BrowserWindow = require 'browser_window'
 Menu = require 'menu'
+app = require 'app'
 ipc = require 'ipc'
 dialog = require 'dialog'
 
