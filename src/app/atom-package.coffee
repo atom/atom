@@ -20,7 +20,7 @@ class AtomPackage extends Package
 
   load: ->
     try
-      @loadMetadata()
+      @metadata = Package.loadMetadata(@path)
       @loadKeymaps()
       @loadStylesheets()
       @loadGrammars()
@@ -59,12 +59,6 @@ class AtomPackage extends Package
     applyStylesheet(path, content) for [path, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
     syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
-
-  loadMetadata: ->
-    if metadataPath = CSON.resolve(fsUtils.join(@path, 'package'))
-      @metadata = CSON.readFileSync(metadataPath)
-    @metadata ?= {}
-    @metadata.name = @name
 
   loadKeymaps: ->
     @keymaps = @getKeymapPaths().map (path) -> [path, CSON.readFileSync(path)]

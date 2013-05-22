@@ -1,4 +1,5 @@
-{basename} = require 'path'
+CSON = require 'season'
+{basename, join} = require 'path'
 
 ### Internal ###
 module.exports =
@@ -16,6 +17,13 @@ class Package
     pack = @build(path)
     pack.load(options)
     pack
+
+  @loadMetadata: (path) ->
+    if metadataPath = CSON.resolve(join(path, 'package'))
+      metadata = CSON.readFileSync(metadataPath)
+    metadata ?= {}
+    metadata.name = basename(path)
+    metadata
 
   name: null
   path: null
