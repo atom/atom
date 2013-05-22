@@ -259,5 +259,5 @@ window.atom =
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
-  getVersion: (callback) ->
-    @sendMessageToBrowserProcess('getVersion', null, callback)
+  getVersion: ->
+    @sendMessageToBrowserProcess('getVersion')
