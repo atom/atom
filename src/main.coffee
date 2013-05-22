@@ -97,8 +97,8 @@ class AtomApplication
     viewMenu =
       label: 'View'
       submenu:[
-        { label: 'Reload', accelerator: 'Command+R', click: => @sendCommand 'window:reload' }
-        { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: => @sendCommand 'toggle-dev-tools' }
+        { label: 'Reload', accelerator: 'Command+R', click: => BrowserWindow.getFocusedWindow()?.reloadIgnoringCache() }
+        { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: => BrowserWindow.getFocusedWindow()?.toggleDevTools() }
       ]
 
     windowMenu =
