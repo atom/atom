@@ -16,6 +16,7 @@ setupNodePath= ->
     'vendor',
     'static',
     'node_modules',
+    'spec'
   ]
 
   homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
@@ -74,6 +75,8 @@ class AtomApplication
         { label: 'Hide Atom Shell', accelerator: 'Command+H', selector: 'hide:' }
         { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
         { label: 'Show All', selector: 'unhideAllApplications:' }
+        { type: 'separator' }
+        { label: 'Run Specs', accelerator: 'Command+Alt+N', click: => @runSpecs() }
         { type: 'separator' }
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
@@ -139,6 +142,14 @@ class AtomApplication
       resourcePath: @resourcePath
 
     @windows.push atomWindow
+
+  runSpecs: ->
+    specWindow = new AtomWindow
+      bootstrapScript: 'spec-bootstrap',
+      resourcePath: @resourcePath
+
+    specWindow.browserWindow.show()
+    @windows.push specWindow
 
 class AtomWindow
   browserWindow: null

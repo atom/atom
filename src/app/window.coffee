@@ -36,6 +36,11 @@ window.setUpEnvironment = ->
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
 
+  dimensions = atom.getWindowState('dimensions')
+  dimensions = defaultWindowDimensions unless dimensions.width and dimensions.height
+  window.setDimensions(dimensions)
+  remote.getCurrentWindow().show()
+
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
   directory = _.find ['/opt/boxen', '/opt/github', '/usr/local'], (dir) -> fsUtils.isDirectory(dir)
@@ -55,7 +60,6 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  remote.getCurrentWindow().show()
   $(window).on 'unload', -> unloadEditorWindow(); false
   $(window).focus()
 
@@ -154,7 +158,6 @@ window.deserializeEditorWindow = ->
   atom.packageStates = windowState.packageStates ? {}
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
-  window.setDimensions(windowState.dimensions ? defaultWindowDimensions)
 
   if !windowState.rootView and (!pathToOpen or fsUtils.isFile(pathToOpen))
     rootView.open(pathToOpen)

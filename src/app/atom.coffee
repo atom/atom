@@ -20,7 +20,7 @@ window.atom =
   originalSendMessageToBrowserProcess: -> console.log 'this methods needs to be replaced'
 
   getPathToOpen: ->
-    window.location.params.pathToOpen ? @getWindowState('pathToOpen')
+    window.location.params.pathToOpen
 
   getPackageState: (name) ->
     @packageStates[name]
@@ -223,7 +223,7 @@ window.atom =
     fsUtils.join(config.userStoragePath, shasum.digest('hex'))
 
   setWindowState: (keyPath, value) ->
-    return {} if @windowMode == 'config'
+    return {} if not @getPathToOpen()
 
     windowState = @getWindowState()
     _.setValueForKeyPath(windowState, keyPath, value)
@@ -231,7 +231,7 @@ window.atom =
     windowState
 
   getWindowState: (keyPath) ->
-    return {} if @windowMode == 'config' or not fsUtils.exists(@getWindowStatePath())
+    return {} if not @getPathToOpen() or not fsUtils.exists(@getWindowStatePath())
 
     windowState = JSON.parse(fsUtils.read(@getWindowStatePath()) or '{}')
     if keyPath
