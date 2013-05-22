@@ -1,4 +1,5 @@
-'main': 'lib/command-panel'
+'main': './lib/command-panel'
+'description': 'Find and replace text for the current editor or project.'
 'activationEvents': [
   'command-panel:toggle'
   'command-panel:toggle-preview'

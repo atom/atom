@@ -20,7 +20,7 @@ class AtomPackage extends Package
 
   load: ->
     try
-      @loadMetadata()
+      @metadata = Package.loadMetadata(@path)
       @loadKeymaps()
       @loadStylesheets()
       @loadGrammars()
@@ -59,11 +59,6 @@ class AtomPackage extends Package
     applyStylesheet(path, content) for [path, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
     syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
-
-  loadMetadata: ->
-    if metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['json', 'cson'])
-      @metadata = CSON.readFileSync(metadataPath)
-    @metadata ?= {}
 
   loadKeymaps: ->
     @keymaps = @getKeymapPaths().map (path) -> [path, CSON.readFileSync(path)]
@@ -142,6 +137,8 @@ class AtomPackage extends Package
     return unless @metadata.activationEvents?
     if _.isArray(@metadata.activationEvents)
       rootView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
+    else if _.isString(@metadata.activationEvents)
+      rootView.command(@metadata.activationEvents, @handleActivationEvent)
     else
       rootView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
@@ -155,6 +152,8 @@ class AtomPackage extends Package
   unsubscribeFromActivationEvents: ->
     if _.isArray(@metadata.activationEvents)
       rootView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
+    else if _.isString(@metadata.activationEvents)
+      rootView.off(@metadata.activationEvents, @handleActivationEvent)
     else
       rootView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 

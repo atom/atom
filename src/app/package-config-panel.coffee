@@ -1,40 +1,48 @@
 ConfigPanel = require 'config-panel'
-{$$} = require 'space-pen'
-$ = require 'jquery'
+InstalledPackagesConfigPanel = require 'installed-packages-config-panel'
+AvailablePackagesConfigPanel = require 'available-packages-config-panel'
 _ = require 'underscore'
+EventEmitter = require 'event-emitter'
 
-###
-# Internal #
-###
+### Internal ###
+class PackageEventEmitter
+_.extend PackageEventEmitter.prototype, EventEmitter
 
 module.exports =
 class PackageConfigPanel extends ConfigPanel
   @content: ->
-    @div =>
-      @legend "Installed Packages"
-
-      @table id: 'packages', class: "table table-striped", =>
-        @thead =>
-          @tr =>
-            @th "Package Name"
-            @th class: 'package-enabled', "Enable"
-
-        @tbody outlet: 'packageTableBody', =>
-          for name in atom.getAvailablePackageNames().sort()
-            @tr name: name, =>
-              @td name
-              @td class: 'package-enabled', => @input type: 'checkbox'
+    @div class: 'package-panel', =>
+      @legend 'Packages'
+      @ul class: 'nav nav-tabs', =>
+        @li class: 'active', outlet: 'installedLink', =>
+          @a 'Installed', =>
+            @span class: 'badge pull-right', outlet: 'installedCount'
+        @li outlet: 'availableLink', =>
+          @a 'Available', =>
+            @span class: 'badge pull-right', outlet: 'availableCount'
 
   initialize: ->
-    @on 'change', '#packages input[type=checkbox]', (e) ->
-      checkbox = $(e.target)
-      name = checkbox.closest('tr').attr('name')
-      if checkbox.attr('checked')
-        config.removeAtKeyPath('core.disabledPackages', name)
-      else
-        config.pushAtKeyPath('core.disabledPackages', name)
+    @packageEventEmitter = new PackageEventEmitter()
+    @installed = new InstalledPackagesConfigPanel(@packageEventEmitter)
+    @available = new AvailablePackagesConfigPanel(@packageEventEmitter)
+    @append(@installed, @available)
 
-    @observeConfig 'core.disabledPackages', (disabledPackages) =>
-      @packageTableBody.find("input[type='checkbox']").attr('checked', true)
-      for name in disabledPackages
-        @packageTableBody.find("tr[name='#{name}'] input[type='checkbox']").attr('checked', false)
+    @available.hide()
+
+    @installedLink.on 'click', =>
+      @availableLink.removeClass('active')
+      @available.hide()
+      @installedLink.addClass('active')
+      @installed.show()
+
+    @availableLink.on 'click', =>
+      @installedLink.removeClass('active')
+      @installed.hide()
+      @availableLink.addClass('active')
+      @available.show()
+
+    @packageEventEmitter.on 'installed-packages-loaded package-installed package-uninstalled', =>
+      @installedCount.text(@installed.getPackageCount())
+
+    @packageEventEmitter.on 'available-packages-loaded', =>
+      @availableCount.text(@available.getPackageCount())

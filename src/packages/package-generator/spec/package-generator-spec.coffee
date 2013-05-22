@@ -78,7 +78,7 @@ describe 'Package Generator', ->
       packageGeneratorView.trigger "core:confirm"
 
       lines = fsUtils.read("#{packagePath}/package.cson").split("\n")
-      expect(lines[0]).toBe "'main': 'lib\/#{packageName}'"
+      expect(lines[0]).toBe "'main': './lib\/#{packageName}'"
 
       lines = fsUtils.read("#{packagePath}/lib/#{packageName}.coffee").split("\n")
       expect(lines[0]).toBe "SweetPackageDudeView = require './sweet-package-dude-view'"

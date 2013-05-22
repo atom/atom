@@ -26,7 +26,8 @@
     "roaster": "0.0.5",
     "jqueryui-browser": "1.10.2-1",
     "season": "0.7.0",
-    "humanize-plus": "1.1.0"
+    "humanize-plus": "1.1.0",
+    "semver": "1.1.4"
   },
   "devDependencies": {
     "biscotto": "0.0.11"

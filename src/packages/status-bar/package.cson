@@ -1,1 +1,2 @@
-'main': 'lib/status-bar-view'
+'main': './lib/status-bar-view'
+'description': 'Display information about the current editor such as cursor position, file path, grammar, current branch, and line diff count.'

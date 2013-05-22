@@ -1,8 +1,20 @@
+@import "bootstrap/less/mixins.less";
+
 .command-panel {
   background-color: #e5e5e5;
   border-top: 1px solid #979797;
   color: #ededed;
   padding: 10px;
+
+  .btn {
+    .btn-pseudo-states(#cbcbcb, #b3b3b3);
+    color: #444;
+
+    &:hover,
+    &:focus {
+      color: #222;
+    }
+  }
 }
 
 .command-panel .header {

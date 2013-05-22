@@ -38,7 +38,7 @@ class ConfigView extends View
     @addPanel('General', new GeneralConfigPanel)
     @addPanel('Editor', new EditorConfigPanel)
     @addPanel('Themes', new ThemeConfigPanel)
-    @addPanel('Installed Packages', new PackageConfigPanel)
+    @addPanel('Packages', new PackageConfigPanel)
 
   addPanel: (name, panel) ->
     panelItem = $$ -> @li name: name, => @a name
