@@ -26,7 +26,6 @@ module.exports =
 
     @afterSubscribe?()
 
-
   # Associates an event name with a function to perform only once.
   #
   # eventName - A {String} name identifying an event
