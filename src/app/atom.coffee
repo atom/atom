@@ -115,6 +115,14 @@ _.extend atom,
   getAvailablePackageNames: ->
     fsUtils.base(path) for path in @getAvailablePackagePaths()
 
+  getAvailablePackageMetadata: ->
+    packages = []
+    for packagePath in atom.getAvailablePackagePaths()
+      name = fsUtils.base(packagePath)
+      metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(path, true)
+      packages.push(metadata)
+    packages
+
   loadThemes: ->
     themeNames = config.get("core.themes")
     themeNames = [themeNames] unless _.isArray(themeNames)

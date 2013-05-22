@@ -12,12 +12,5 @@ class InstalledPackagesConfigPanel extends ConfigPanel
     @div class: 'installed-packages'
 
   initialize: ->
-    for packagePath in atom.getAvailablePackagePaths().sort()
-      name = path.basename(packagePath)
-      metadata = atom.getLoadedPackage(name)?.metadata
-      unless metadata
-        try
-          metadata = Package.loadMetadata()
-        catch e
-          metadata = {name}
+    for metadata in _.sortBy(atom.getAvailablePackageMetadata(), 'name')
       @append(new PackageConfigView(metadata))

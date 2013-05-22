@@ -24,8 +24,7 @@ describe "PackageConfigPanel", ->
     ]
     spyOn(packageManager, 'getAvailable').andCallFake (callback) ->
       callback(null, packages)
-    loadedPackages = packages.map (pack) -> {metadata: pack}
-    spyOn(atom, 'getLoadedPackages').andReturn(loadedPackages)
+    spyOn(atom, 'getAvailablePackageMetadata').andReturn(packages)
 
     configObserver = jasmine.createSpy("configObserver")
     observeSubscription = config.observe('core.disabledPackages', configObserver)
@@ -65,7 +64,7 @@ describe "PackageConfigPanel", ->
         p2View.enableToggle.find('a').click()
         expect(configObserver).toHaveBeenCalledWith(['p1', 'p3', 'p2'])
 
-    describe "when the enable link is checked", ->
+    describe "when the enable link is clicked", ->
       it "removes the package name from the disabled packages array", ->
         p3View = panel.installed.find("[name='p3']").view()
         p3View.enableToggle.find('a').click()

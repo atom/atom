@@ -18,9 +18,12 @@ class Package
     pack.load(options)
     pack
 
-  @loadMetadata: (path) ->
+  @loadMetadata: (path, ignoreErrors=false) ->
     if metadataPath = CSON.resolve(join(path, 'package'))
-      metadata = CSON.readFileSync(metadataPath)
+      try
+        metadata = CSON.readFileSync(metadataPath)
+      catch e
+        throw e unless ignoreErrors
     metadata ?= {}
     metadata.name = basename(path)
     metadata

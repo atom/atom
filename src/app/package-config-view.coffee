@@ -102,7 +102,7 @@ class PackageConfigView extends View
 
     @updateDefaultAction()
 
-    @enableToggle.find('a').on 'click', => @togglePackageEnablement
+    @enableToggle.find('a').on 'click', => @togglePackageEnablement()
 
     @observeConfig 'core.disabledPackages', =>
       @updatePackageState()
