@@ -24,7 +24,7 @@ describe "TextMateGrammar", ->
       expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
 
     it "loads grammars from cson files", ->
-      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
+      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('spec/fixtures/packages/package-with-grammars/grammars/alot.cson'))
       expect(grammar.scopeName).toBe "source.alot"
       {tokens} = grammar.tokenizeLine("this is alot of code")
       expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
