@@ -1,6 +1,5 @@
 Package = require 'package'
 fsUtils = require 'fs-utils'
-plist = require 'plist'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
 async = require 'async'
