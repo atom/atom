@@ -33,8 +33,8 @@ setupNodePath = ->
 
 parseCommandLine = ->
   args = optimist(process.argv[1..]).argv
-  executedFrom = args['executed-from']
   devMode = args['dev']
+  executedFrom = args['executed-from'] ? process.cwd()
   pathsToOpen = args._
 
   if args['resource-path']
@@ -147,7 +147,7 @@ class AtomApplication
   sendCommand: (command) ->
     atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
 
-  open: (pathToOpen) ->
+  open: (pathToOpen = '') ->
     pathToOpen = path.resolve(executedFrom, pathToOpen) if executedFrom
 
     atomWindow = new AtomWindow
