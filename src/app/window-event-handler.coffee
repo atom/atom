@@ -35,7 +35,7 @@ class WindowEventHandler
     return unless location
     return if location[0] is '#'
 
-    if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
+    if /^https?:\/\//.test(location)
       require('shell').openExternal location
     false
 
