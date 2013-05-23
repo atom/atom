@@ -42,7 +42,7 @@ class TextMatePackage extends Package
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(@path)
 
-  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage']
+  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json']
 
   loadGrammars: (done) ->
     fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
