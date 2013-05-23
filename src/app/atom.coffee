@@ -192,30 +192,12 @@ window.atom =
   exit: (status) ->
     @sendMessageToBrowserProcess('exit', [status])
 
-  log: (message) ->
-    @sendMessageToBrowserProcess('log', [message])
-
-  beginTracing: ->
-    @sendMessageToBrowserProcess('beginTracing')
-
-  endTracing: ->
-    @sendMessageToBrowserProcess('endTracing')
-
   toggleFullScreen: ->
     currentWindow = remote.getCurrentWindow()
     currentWindow.setFullscreen(!currentWindow.isFullscreen())
 
   sendMessageToBrowserProcess: (name, data=[], callbacks) ->
     throw new Error("sendMessageToBrowserProcess no longer works for #{name}")
-
-  receiveMessageFromBrowserProcess: (name, data) ->
-    switch name
-      when 'reply'
-        [messageId, callbackIndex] = data.shift()
-        @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
-      when 'openPath'
-        path = data[0]
-        rootView?.open(path)
 
   getWindowStatePath: ->
     if not @getPathToOpen()
