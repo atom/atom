@@ -33,13 +33,12 @@ setupNodePath = ->
 
 parseCommandLine = ->
   args = optimist(process.argv[1..]).argv
-  devMode = args['dev']
   executedFrom = args['executed-from'] ? process.cwd()
   pathsToOpen = args._
 
   if args['resource-path']
     resourcePath = args['resource-path']
-  else if devMode
+  else if args['dev']
     resourcePath = path.join(getHomeDir(), 'github/atom')
 
   try
