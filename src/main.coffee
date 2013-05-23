@@ -1,3 +1,4 @@
+fs = require 'fs'
 path = require 'path'
 optimist = require 'optimist'
 delegate = require 'atom_delegate'
@@ -6,9 +7,6 @@ resourcePath = null
 executedFrom = null
 pathsToOpen = null
 atomApplication = null
-
-
-require('fs').writeFileSync('/Users/corey/Desktop/moo.txt', process.cwd())
 
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
@@ -38,7 +36,16 @@ parseCommandLine = ->
   executedFrom = args['executed-from']
   devMode = args['dev']
   pathsToOpen = args._
-  resourcePath = if devMode then path.join(getHomeDir(), 'github/atom') else path.dirname(__dirname)
+
+  if args['resource-path']
+    resourcePath = args['resource-path']
+  else if devMode
+    resourcePath = path.join(getHomeDir(), 'github/atom')
+
+  try
+    fs.statSync resourcePath
+  catch e
+    resourcePath = path.dirname(__dirname)
 
 bootstrapApplication = ->
   parseCommandLine()
