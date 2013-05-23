@@ -25,4 +25,4 @@ describe "link package", ->
       editor.trigger('link:open')
 
       expect(shell.openExternal).toHaveBeenCalled()
-      expect(shell.openExternal.argsForCall[0]).toBe "http://github.com"
+      expect(shell.openExternal.argsForCall[0][0]).toBe "http://github.com"
