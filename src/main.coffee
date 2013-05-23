@@ -1,3 +1,4 @@
+net = require 'net'
 fs = require 'fs'
 path = require 'path'
 optimist = require 'optimist'
@@ -47,16 +48,42 @@ parseCommandLine = ->
     resourcePath = path.dirname(__dirname)
 
 bootstrapApplication = ->
-  parseCommandLine()
   setupNodePath()
   atomApplication = new AtomApplication({resourcePath, executedFrom})
+  atomApplication.open(pathsToOpen)
 
-  if pathsToOpen.length > 0
-    atomApplication.open(pathToOpen) for pathToOpen in pathsToOpen
-  else
-    atomApplication.open()
+delegate.browserMainParts.preMainMessageLoopRun = ->
+  client = null
+  socketPath = '/tmp/atom.sock'
 
-delegate.browserMainParts.preMainMessageLoopRun = bootstrapApplication
+  parseCommandLine()
+
+  connect = (callback) ->
+    client = net.connect {path: socketPath}, (args...) ->
+      output = JSON.stringify({pathsToOpen: pathsToOpen})
+      client.write(output)
+      callback(true)
+
+    client.on 'error', (args...) ->
+      console.log 'error', args
+      callback(false)
+
+  listen = ->
+    fs.unlinkSync socketPath if fs.existsSync(socketPath)
+    server = net.createServer (connection) ->
+      connection.on 'data', (data) ->
+        { pathsToOpen } = JSON.parse(data)
+        atomApplication.open(pathsToOpen)
+
+    server.listen socketPath
+    server.on 'error', (error) -> console.error 'Application server failed', error
+
+  connect (success) ->
+    if success
+      process.exit(1)
+    else
+      listen()
+      bootstrapApplication()
 
 BrowserWindow = require 'browser_window'
 Menu = require 'menu'
@@ -146,15 +173,17 @@ class AtomApplication
   sendCommand: (command) ->
     atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
 
-  open: (pathToOpen = '') ->
-    pathToOpen = path.resolve(executedFrom, pathToOpen) if executedFrom
+  open: (pathsToOpen) ->
+    pathsToOpen = [null] if pathsToOpen.length == 0
+    for pathToOpen in pathsToOpen
+      pathToOpen = path.resolve(executedFrom, pathToOpen) if executedFrom and pathToOpen
 
-    atomWindow = new AtomWindow
-      pathToOpen: pathToOpen
-      bootstrapScript: 'window-bootstrap',
-      resourcePath: @resourcePath
+      atomWindow = new AtomWindow
+        pathToOpen: pathToOpen
+        bootstrapScript: 'window-bootstrap',
+        resourcePath: @resourcePath
 
-    @windows.push atomWindow
+      @windows.push atomWindow
 
   runSpecs: ->
     specWindow = new AtomWindow
