@@ -216,12 +216,12 @@ describe "Window", ->
 
       $("<a href='http://github.com'>the website</a>").appendTo(document.body).click().remove()
       expect(shell.openExternal).toHaveBeenCalled()
-      expect(shell.openExternal.argsForCall[0]).toBe "http://github.com"
+      expect(shell.openExternal.argsForCall[0][0]).toBe "http://github.com"
 
       shell.openExternal.reset()
       $("<a href='https://github.com'>the website</a>").appendTo(document.body).click().remove()
       expect(shell.openExternal).toHaveBeenCalled()
-      expect(shell.openExternal.argsForCall[0]).toBe "https://github.com"
+      expect(shell.openExternal.argsForCall[0][0]).toBe "https://github.com"
 
       shell.openExternal.reset()
       $("<a href=''>the website</a>").appendTo(document.body).click().remove()
