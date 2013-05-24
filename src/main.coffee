@@ -189,15 +189,15 @@ class AtomApplication
     specWindow = new AtomWindow
       bootstrapScript: 'spec-bootstrap',
       resourcePath: @resourcePath
+      isSpec: true
 
-    specWindow.browserWindow.removeAllListeners 'close'
     specWindow.browserWindow.show()
     @windows.push specWindow
 
 class AtomWindow
   browserWindow: null
 
-  constructor: ({bootstrapScript, resourcePath, pathToOpen}) ->
+  constructor: ({bootstrapScript, resourcePath, pathToOpen, @isSpec}) ->
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 
@@ -210,9 +210,14 @@ class AtomWindow
     @browserWindow.on 'destroyed', =>
       atomApplication.windows.splice atomApplication.windows.indexOf(this), 1
 
-    @browserWindow.on 'close', (event) =>
-      event.preventDefault()
-      @sendCommand 'window:close'
+    if @isSpec
+      # Spec window's web view should always have focus
+      @browserWindow.on 'blur', =>
+        @browserWindow.focusOnWebView()
+    else
+      @browserWindow.on 'close', (event) =>
+        event.preventDefault()
+        @sendCommand 'window:close'
 
   sendCommand: (command) ->
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command
