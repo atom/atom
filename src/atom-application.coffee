@@ -146,7 +146,7 @@ class AtomApplication
     ipc.on 'open-folder', =>
       currentWindow = BrowserWindow.getFocusedWindow()
       pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-      @open(pathToOpen) for pathToOpen in @pathsToOpen if @pathsToOpen?
+      @open(pathToOpen) for pathToOpen in pathsToOpen if pathsToOpen?
 
     ipc.on 'new-window', =>
       @open()
