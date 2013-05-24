@@ -173,7 +173,7 @@ class AtomApplication
   sendCommand: (command) ->
     atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
 
-  open: (pathsToOpen) ->
+  open: (pathsToOpen = []) ->
     pathsToOpen = [null] if pathsToOpen.length == 0
     for pathToOpen in pathsToOpen
       pathToOpen = path.resolve(executedFrom, pathToOpen) if executedFrom and pathToOpen
