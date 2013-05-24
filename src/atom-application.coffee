@@ -1,3 +1,4 @@
+AtomWindow = require 'atom-window'
 BrowserWindow = require 'browser_window'
 Menu = require 'menu'
 app = require 'app'
@@ -11,6 +12,8 @@ atomApplication = null
 
 module.exports =
 class AtomApplication
+  @removeWindow: (window) -> atomApplication.removeWindow(window)
+
   windows: null
   menu: null
   resourcePath: null
@@ -37,6 +40,9 @@ class AtomApplication
         @runSpecs(true)
       else
         @open(@pathsToOpen)
+
+  removeWindow: (window) ->
+    @windows.splice @windows.indexOf(window), 1
 
   getHomeDir: ->
     process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
@@ -162,7 +168,6 @@ class AtomApplication
     pathsToOpen ?= [null]
     for pathToOpen in pathsToOpen
       pathToOpen = path.resolve(@executedFrom, pathToOpen) if @executedFrom and pathToOpen
-
       atomWindow = new AtomWindow
         pathToOpen: pathToOpen
         bootstrapScript: 'window-bootstrap',
@@ -186,32 +191,3 @@ class AtomApplication
 
     specWindow.browserWindow.show()
     @windows.push specWindow
-
-class AtomWindow
-  browserWindow: null
-
-  constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec}) ->
-    @browserWindow = new BrowserWindow show: false, title: 'Atom'
-    @handleEvents()
-
-    url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
-    url += "&pathToOpen=#{pathToOpen}" if pathToOpen
-    url += '&exitWhenDone=1' if exitWhenDone
-
-    @browserWindow.loadUrl url
-
-  handleEvents: ->
-    @browserWindow.on 'destroyed', =>
-      atomApplication.windows.splice atomApplication.windows.indexOf(this), 1
-
-    if @isSpec
-      # Spec window's web view should always have focus
-      @browserWindow.on 'blur', =>
-        @browserWindow.focusOnWebView()
-    else
-      @browserWindow.on 'close', (event) =>
-        event.preventDefault()
-        @sendCommand 'window:close'
-
-  sendCommand: (command) ->
-    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command

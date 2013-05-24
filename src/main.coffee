@@ -32,4 +32,4 @@ parseCommandLine = ->
   catch e
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, executedFrom, pathsToOpen, testMode}
+  {resourcePath, executedFrom, pathsToOpen, testMode, version}
