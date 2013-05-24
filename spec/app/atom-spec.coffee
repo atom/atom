@@ -280,7 +280,7 @@ describe "the `atom` global", ->
 
   describe ".getVersion", ->
     it "returns the current version number", ->
-      expect(atom.getVersion()).toBeInstanceOf String
+      expect(typeof atom.getVersion()).toBe 'string'
 
   xdescribe "modal native dialogs", ->
     beforeEach ->
