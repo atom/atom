@@ -213,12 +213,16 @@ window.atom =
     throw new Error("sendMessageToBrowserProcess no longer works for #{name}")
 
   getWindowStatePath: ->
-    if not @getPathToOpen()
-      fsUtils.join(config.userStoragePath, 'undefined')
-    else
+    if @windowMode is 'config'
+      filename = 'config'
+    else if @windowMode is 'editor' and @getPathToOpen()
       shasum = crypto.createHash('sha1')
       shasum.update(@getPathToOpen())
-      fsUtils.join(config.userStoragePath, shasum.digest('hex'))
+      filename = "editor-#{shasum.digest('hex')}"
+    else
+      filename = 'undefined'
+
+    fsUtils.join(config.userStoragePath, filename)
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
