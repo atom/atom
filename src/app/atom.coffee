@@ -11,8 +11,8 @@ window.atom =
   devMode: window.location.params.devMode
   loadedThemes: []
   pendingBrowserProcessCallbacks: {}
-  loadedPackages: []
-  activePackages: []
+  loadedPackages: {}
+  activePackages: {}
   packageStates: {}
   presentingModal: false
   pendingModals: [[]]
@@ -29,78 +29,83 @@ window.atom =
     @packageStates[name] = state
 
   activatePackages: ->
-    @activatePackage(pack.path) for pack in @getLoadedPackages()
+    @activatePackage(pack.name) for pack in @getLoadedPackages()
 
-  activatePackage: (id, options) ->
-    if pack = @loadPackage(id, options)
-      @activePackages.push(pack)
+  activatePackage: (name, options) ->
+    if pack = @loadPackage(name, options)
+      @activePackages[pack.name] = pack
       pack.activate(options)
       pack
 
   deactivatePackages: ->
-    @deactivatePackage(pack.path) for pack in @getActivePackages()
+    @deactivatePackage(pack.name) for pack in @getActivePackages()
 
-  deactivatePackage: (id) ->
-    if pack = @getActivePackage(id)
+  deactivatePackage: (name) ->
+    if pack = @getActivePackage(name)
       @setPackageState(pack.name, state) if state = pack.serialize?()
       pack.deactivate()
-      _.remove(@activePackages, pack)
+      delete @activePackages[pack.name]
     else
-      throw new Error("No active package for id '#{id}'")
+      throw new Error("No active package for name '#{name}'")
 
-  getActivePackage: (id) ->
-    if path = @resolvePackagePath(id)
-      _.detect @activePackages, (pack) -> pack.path is path
+  getActivePackage: (name) ->
+    @activePackages[name]
 
-  isPackageActive: (id) ->
-    if path = @resolvePackagePath(id)
-      _.detect @activePackages, (pack) -> pack.path is path
+  isPackageActive: (name) ->
+    @getActivePackage(name)?
 
   getActivePackages: ->
-    _.clone(@activePackages)
+    _.values(@activePackages)
 
   activatePackageConfigs: ->
-    @activatePackageConfig(pack.path) for pack in @getLoadedPackages()
+    @activatePackageConfig(pack.name) for pack in @getLoadedPackages()
 
-  activatePackageConfig: (id, options) ->
-    if pack = @loadPackage(id, options)
-      @activePackages.push(pack)
+  activatePackageConfig: (name, options) ->
+    if pack = @loadPackage(name, options)
+      @activePackages[pack.name] = pack
       pack.activateConfig()
       pack
 
   loadPackages: ->
-    @loadPackage(path) for path in @getAvailablePackagePaths() when not @isPackageDisabled(path)
+    @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
 
-  loadPackage: (id, options) ->
-    if @isPackageDisabled(id)
-      return console.warn("Tried to load disabled package '#{id}'")
+  loadPackage: (name, options) ->
+    if @isPackageDisabled(name)
+      return console.warn("Tried to load disabled package '#{name}'")
 
-    if path = @resolvePackagePath(id)
-      return pack if pack = @getLoadedPackage(id)
+    if path = @resolvePackagePath(name)
+      return pack if pack = @getLoadedPackage(name)
       pack = Package.load(path, options)
-      @loadedPackages.push(pack)
+      @loadedPackages[pack.name] = pack
       pack
     else
-      throw new Error("Could not resolve '#{id}' to a package path")
+      throw new Error("Could not resolve '#{name}' to a package path")
 
-  resolvePackagePath: _.memoize (id) ->
-    return id if fsUtils.isDirectory(id)
-    path = fsUtils.resolve(config.packageDirPaths..., id)
+  unloadPackage: (name) ->
+    if @isPackageActive(name)
+      throw new Error("Tried to unload active package '#{name}'")
+
+    if pack = @getLoadedPackage(name)
+      delete @loadedPackages[pack.name]
+    else
+      throw new Error("No loaded package for name '#{name}'")
+
+  resolvePackagePath: (name) ->
+    return name if fsUtils.isDirectory(name)
+    path = fsUtils.resolve(config.packageDirPaths..., name)
     path if fsUtils.isDirectory(path)
 
-  getLoadedPackage: (id) ->
-    if path = @resolvePackagePath(id)
-      _.detect @loadedPackages, (pack) -> pack.path is path
+  getLoadedPackage: (name) ->
+    @loadedPackages[name]
 
-  isPackageLoaded: (id) ->
-    @getLoadedPackage(id)?
+  isPackageLoaded: (name) ->
+    @getLoadedPackage(name)?
 
   getLoadedPackages: ->
-    _.clone(@loadedPackages)
+    _.values(@loadedPackages)
 
-  isPackageDisabled: (id) ->
-    if path = @resolvePackagePath(id)
-      _.include(config.get('core.disabledPackages') ? [], fsUtils.base(path))
+  isPackageDisabled: (name) ->
+    _.include(config.get('core.disabledPackages') ? [], name)
 
   getAvailablePackagePaths: ->
     packagePaths = []
@@ -111,6 +116,14 @@ window.atom =
 
   getAvailablePackageNames: ->
     fsUtils.base(path) for path in @getAvailablePackagePaths()
+
+  getAvailablePackageMetadata: ->
+    packages = []
+    for packagePath in atom.getAvailablePackagePaths()
+      name = fsUtils.base(packagePath)
+      metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
+      packages.push(metadata)
+    packages
 
   loadThemes: ->
     themeNames = config.get("core.themes")

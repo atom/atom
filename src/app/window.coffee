@@ -232,6 +232,20 @@ window.getDeserializer = (state) ->
     delete deferredDeserializers[name]
   deserializers[name]
 
+window.requireWithGlobals = (id, globals={}) ->
+  existingGlobals = {}
+  for key, value of globals
+    existingGlobals[key] = window[key]
+    window[key] = value
+
+  require(id)
+
+  for key, value of existingGlobals
+    if value is undefined
+      delete window[key]
+    else
+      window[key] = value
+
 window.measure = (description, fn) ->
   start = new Date().getTime()
   value = fn()

@@ -1,3 +1,4 @@
-'main': 'lib/autocomplete'
+'main': './lib/autocomplete'
+'description': 'Display possible completions from the current editor with `ctrl-space`.'
 'activationEvents':
   'autocomplete:attach': '.editor'

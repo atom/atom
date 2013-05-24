@@ -10,7 +10,7 @@ describe "the `atom` global", ->
     window.rootView = new RootView
 
   describe "package lifecycle methods", ->
-    describe ".loadPackage(id)", ->
+    describe ".loadPackage(name)", ->
       describe "when the package has deferred deserializers", ->
         it "requires the package's main module if one of its deferred deserializers is referenced", ->
           pack = atom.loadPackage('package-with-activation-events')
@@ -19,6 +19,29 @@ describe "the `atom` global", ->
           expect(pack.mainModule).toBeDefined()
           expect(object.constructor.name).toBe 'Foo'
           expect(object.data).toBe 5
+
+    describe ".unloadPackage(name)", ->
+      describe "when the package is active", ->
+        it "throws an error", ->
+          pack = atom.activatePackage('package-with-main')
+          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
+          expect(atom.isPackageActive(pack.name)).toBeTruthy()
+          expect( -> atom.unloadPackage(pack.name)).toThrow()
+          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
+          expect(atom.isPackageActive(pack.name)).toBeTruthy()
+
+      describe "when the package is not loaded", ->
+        it "throws an error", ->
+          expect(atom.isPackageLoaded('unloaded')).toBeFalsy()
+          expect( -> atom.unloadPackage('unloaded')).toThrow()
+          expect(atom.isPackageLoaded('unloaded')).toBeFalsy()
+
+      describe "when the package is loaded", ->
+        it "no longers reports it as being loaded", ->
+          pack = atom.loadPackage('package-with-main')
+          expect(atom.isPackageLoaded(pack.name)).toBeTruthy()
+          atom.unloadPackage(pack.name)
+          expect(atom.isPackageLoaded(pack.name)).toBeFalsy()
 
     describe ".activatePackage(id)", ->
       describe "atom packages", ->
@@ -350,7 +373,7 @@ describe "the `atom` global", ->
           throw new Error("There were errors compiling documentation. See console for details.")
 
         coverage = parseFloat results.pop().match(/.+?%/)
-        expect(coverage).toBeGreaterThan 78
+        expect(coverage).toBeGreaterThan 75
 
         # stderr
         expect(docRunner.argsForCall[0][2]).toBe ''

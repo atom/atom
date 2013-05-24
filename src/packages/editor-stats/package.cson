@@ -1,1 +1,2 @@
-'main': 'lib/editor-stats'
+'main': './lib/editor-stats'
+'description': 'Display a graph of keyboard and mouse usage for the last 6 hours.'

@@ -1,6 +1,5 @@
 Package = require 'package'
 fsUtils = require 'fs-utils'
-plist = require 'plist'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
 async = require 'async'
@@ -23,6 +22,7 @@ class TextMatePackage extends Package
     @syntaxesPath = fsUtils.join(@path, "Syntaxes")
     @grammars = []
     @scopedProperties = []
+    @metadata = {@name}
 
   load: ({sync}={}) ->
     if sync
@@ -42,7 +42,7 @@ class TextMatePackage extends Package
     syntax.removeGrammar(grammar) for grammar in @grammars
     syntax.removeProperties(@path)
 
-  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage']
+  legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json']
 
   loadGrammars: (done) ->
     fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
@@ -74,7 +74,7 @@ class TextMatePackage extends Package
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
-    syntax.addGrammar(grammar) if atom.isPackageActive(@path)
+    syntax.addGrammar(grammar) if @isActive()
 
   getGrammars: -> @grammars
 
@@ -109,7 +109,7 @@ class TextMatePackage extends Package
           scopedProperties.push({selector, properties})
 
       @scopedProperties = scopedProperties
-      if atom.isPackageActive(@path)
+      if @isActive()
         for {selector, properties} in @scopedProperties
           syntax.addProperties(@path, selector, properties)
     @loadTextMatePreferenceObjects(preferenceObjects, done)

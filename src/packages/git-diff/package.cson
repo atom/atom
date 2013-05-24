@@ -1,1 +1,2 @@
-'main': 'lib/git-diff'
+'main': './lib/git-diff'
+'description': 'Add decorations to the editor gutter for lines added, edited, and deleted since the last commit.'

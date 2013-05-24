@@ -274,7 +274,7 @@ class Project
         readPath(line) if state is 'readingPath'
         readLine(line) if state is 'readingLines'
 
-    command = require.resolve('nak')
+    command = require.resolve('.bin/nak')
     args = ['--hidden', '--ackmate', regex.source, @getPath()]
     ignoredNames = config.get('core.ignoredNames') ? []
     args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0

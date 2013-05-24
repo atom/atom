@@ -23,6 +23,7 @@ module.exports =
 class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath, vendoredThemesDirPath]
+  bundledPackageDirPaths: [vendoredPackagesDirPath, bundledPackagesDirPath]
   packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
   userStoragePath: userStoragePath
