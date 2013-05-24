@@ -21,6 +21,7 @@ class AtomApplication
   socketPath: '/tmp/atom.sock'
 
   constructor: ({@resourcePath, @executedFrom, @pathsToOpen, @testMode, @version}) ->
+    @pathsToOpen ?= [@executedFrom] if @executedFrom
     atomApplication = this
     @windows = []
 
@@ -157,8 +158,8 @@ class AtomApplication
   sendCommand: (command) ->
     atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
 
-  open: (pathsToOpen = []) ->
-    pathsToOpen = [null] if pathsToOpen.length == 0
+  open: (pathsToOpen) ->
+    pathsToOpen ?= [null]
     for pathToOpen in pathsToOpen
       pathToOpen = path.resolve(@executedFrom, pathToOpen) if @executedFrom and pathToOpen
 
