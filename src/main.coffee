@@ -76,9 +76,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
       client.write(output)
       callback(true)
 
-    client.on 'error', (args...) ->
-      console.log 'error', args
-      callback(false)
+    client.on 'error', (args...) -> callback(false)
 
   listen = ->
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
