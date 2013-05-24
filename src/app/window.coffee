@@ -37,7 +37,7 @@ window.setUpEnvironment = ->
     requireStylesheet(nativeStylesheetPath)
 
   dimensions = atom.getWindowState('dimensions')
-  dimensions = defaultWindowDimensions unless dimensions.width and dimensions.height
+  dimensions = defaultWindowDimensions unless dimensions?.width and dimensions?.height
   window.setDimensions(dimensions)
   remote.getCurrentWindow().show()
   $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
