@@ -37,6 +37,8 @@ parseCommandLine = ->
   executedFrom = args['executed-from'] ? process.cwd()
   pathsToOpen = args._
 
+  pathsToOpen = [executedFrom] if pathsToOpen.length is 0 and args['executed-from']
+
   if args['resource-path']
     resourcePath = args['resource-path']
   else if args['dev']
