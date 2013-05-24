@@ -1,93 +1,9 @@
-[submodule "vendor/packages/text.tmbundle"]
-	path = vendor/packages/text.tmbundle
-	url = https://github.com/textmate/text.tmbundle.git
-[submodule "vendor/packages/css.tmbundle"]
-	path = vendor/packages/css.tmbundle
-	url = https://github.com/textmate/css.tmbundle.git
-[submodule "vendor/packages/html.tmbundle"]
-	path = vendor/packages/html.tmbundle
-	url = https://github.com/textmate/html.tmbundle.git
-[submodule "vendor/packages/javascript.tmbundle"]
-	path = vendor/packages/javascript.tmbundle
-	url = https://github.com/textmate/javascript.tmbundle.git
-[submodule "vendor/packages/ruby-on-rails-tmbundle"]
-	path = vendor/packages/ruby-on-rails-tmbundle
-	url = https://github.com/drnic/ruby-on-rails-tmbundle.git
-[submodule "vendor/packages/ruby.tmbundle"]
-	path = vendor/packages/ruby.tmbundle
-	url = https://github.com/textmate/ruby.tmbundle.git
-[submodule "vendor/packages/coffee-script-tmbundle"]
-	path = vendor/packages/coffee-script-tmbundle
-	url = https://github.com/kevinsawicki/coffee-script-tmbundle.git
-[submodule "vendor/packages/puppet-textmate.tmbundle"]
-	path = vendor/packages/puppet-textmate.tmbundle
-	url = https://github.com/cburyta/puppet-textmate.tmbundle.git
-[submodule "vendor/packages/c.tmbundle"]
-	path = vendor/packages/c.tmbundle
-	url = https://github.com/textmate/c.tmbundle.git
-[submodule "vendor/packages/objective-c.tmbundle"]
-	path = vendor/packages/objective-c.tmbundle
-	url = https://github.com/textmate/objective-c.tmbundle.git
-[submodule "vendor/packages/git.tmbundle"]
-	path = vendor/packages/git.tmbundle
-	url = https://github.com/kevinsawicki/git.tmbundle.git
-[submodule "vendor/packages/json.tmbundle"]
-	path = vendor/packages/json.tmbundle
-	url = https://github.com/textmate/json.tmbundle.git
-[submodule "vendor/packages/shellscript.tmbundle"]
-	path = vendor/packages/shellscript.tmbundle
-	url = https://github.com/textmate/shellscript.tmbundle
-[submodule "vendor/packages/xml.tmbundle"]
-	path = vendor/packages/xml.tmbundle
-	url = https://github.com/textmate/xml.tmbundle.git
-[submodule "vendor/packages/property-list.tmbundle"]
-	path = vendor/packages/property-list.tmbundle
-	url = https://github.com/textmate/property-list.tmbundle.git
-[submodule "vendor/packages/python.tmbundle"]
-	path = vendor/packages/python.tmbundle
-	url = https://github.com/textmate/python.tmbundle
-[submodule "vendor/packages/clojure.tmbundle"]
-	path = vendor/packages/clojure.tmbundle
-	url = https://github.com/mmcgrana/textmate-clojure
 [submodule "prebuilt-cef"]
 	path = prebuilt-cef
 	url = https://github.com/github/prebuilt-cef
-[submodule "vendor/packages/yaml.tmbundle"]
-	path = vendor/packages/yaml.tmbundle
-	url = https://github.com/textmate/yaml.tmbundle.git
-[submodule "vendor/packages/java.tmbundle"]
-	path = vendor/packages/java.tmbundle
-	url = https://github.com/textmate/java.tmbundle.git
-[submodule "vendor/packages/php.tmbundle"]
-	path = vendor/packages/php.tmbundle
-	url = https://github.com/textmate/php.tmbundle.git
-[submodule "vendor/packages/perl.tmbundle"]
-	path = vendor/packages/perl.tmbundle
-	url = https://github.com/textmate/perl.tmbundle.git
-[submodule "vendor/packages/sass.tmbundle"]
-	path = vendor/packages/sass.tmbundle
-	url = https://github.com/alexsancho/SASS.tmbundle.git
-[submodule "vendor/packages/less.tmbundle"]
-	path = vendor/packages/less.tmbundle
-	url = https://github.com/mathewbyrne/less.tmbundle.git
-[submodule "vendor/packages/mustache.tmbundle"]
-	path = vendor/packages/mustache.tmbundle
-	url = https://github.com/kevinsawicki/Mustache.tmbundle.git
-[submodule "vendor/packages/go.tmbundle"]
-	path = vendor/packages/go.tmbundle
-	url = https://github.com/rsms/Go.tmbundle
 [submodule "vendor/bootstrap"]
 	path = vendor/bootstrap
 	url = https://github.com/twitter/bootstrap
-[submodule "vendor/packages/pegjs.tmbundle"]
-	path = vendor/packages/pegjs.tmbundle
-	url = https://github.com/alexstrat/PEGjs.tmbundle
-[submodule "vendor/packages/sql.tmbundle"]
-	path = vendor/packages/sql.tmbundle
-	url = https://github.com/textmate/sql.tmbundle
-[submodule "vendor/packages/hyperlink-helper.tmbundle"]
-	path = vendor/packages/hyperlink-helper.tmbundle
-	url = https://github.com/textmate/hyperlink-helper.tmbundle
 [submodule "vendor/apm"]
 	path = vendor/apm
 	url = https://github.com/github/apm.git
