@@ -52,10 +52,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  $(window).on 'unload', ->
-    atom.hide()
-    unloadEditorWindow()
-    false
+  $(window).on 'unload', -> unloadEditorWindow(); false
   remote.getCurrentWindow().show()
   atom.focus()
 
@@ -70,10 +67,7 @@ window.startConfigWindow = ->
   deserializeConfigWindow()
   atom.activatePackageConfigs()
   keymap.loadUserKeymaps()
-  $(window).on 'unload', ->
-    atom.hide()
-    unloadConfigWindow()
-    false
+  $(window).on 'unload', -> unloadConfigWindow(); false
   remote.getCurrentWindow().show()
   atom.focus()
 
@@ -213,6 +207,7 @@ window.restoreDimensions = ->
   $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
 
 window.closeWithoutConfirm = ->
+  atom.hide()
   ipc.sendChannel 'close-without-confirm'
 
 window.onerror = ->
