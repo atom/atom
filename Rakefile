@@ -73,13 +73,9 @@ task :clean do
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
   `rm -rf /tmp/atom-coffee-cache`
+  `rm -rf /tmp/atom-cached-atom-shells`
   `rm -rf node_modules`
   `rm -rf atom-shell`
-end
-
-desc "Delete cached atom-shells"
-task "clean-atom-shell-cache" do
-  `rm -rf /tmp/atom-cached-atom-shells`
 end
 
 desc "Run the specs"
