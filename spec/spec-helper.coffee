@@ -38,6 +38,7 @@ beforeEach ->
     window.git = Git.open(window.project.getPath())
 
   window.resetTimeouts()
+  atom.windowMode = 'editor'
   atom.packageStates = {}
   spyOn(atom, 'setWindowState')
   syntax.clearGrammarOverrides()
