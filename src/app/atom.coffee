@@ -202,6 +202,9 @@ window.atom =
   focus: ->
     remote.getCurrentWindow().focus()
 
+  hide: ->
+    remote.getCurrentWindow().hide()
+
   exit: (status) ->
     @sendMessageToBrowserProcess('exit', [status])
 
