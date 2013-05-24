@@ -1,3 +1,4 @@
 #!/bin/bash
 
-echo -n $1 > $2
+VERSION_PATH="$BUILT_PRODUCTS_DIR/Atom.app/Contents/Resources/version"
+echo -n $1 > $VERSION_PATH

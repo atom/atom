@@ -79,28 +79,19 @@
           ],
         },
       ],
-      'actions': [
-        {
-          'action_name': 'generate_version',
-          'inputs': [
-            'script/generate-version',
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/Atom.app/Contents/Resources/version'
-          ],
-          'action': [
-            'script/generate-version',
-            '<(version)',
-            '<(PRODUCT_DIR)/Atom.app/Contents/Resources/version'
-          ]
-        },
-      ],
       'postbuilds': [
         {
           'postbuild_name': 'Copy Static Files',
           'action': [
             'script/copy-files-to-bundle',
             '<(compiled_sources_dir_xcode)',
+          ],
+        },
+        {
+          'postbuild_name': 'Generate Version',
+          'action': [
+            'script/generate-version',
+            '<(version)',
           ],
         },
       ],
