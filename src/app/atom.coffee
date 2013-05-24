@@ -201,7 +201,7 @@ window.atom =
 
   getWindowStatePath: ->
     if not @getPathToOpen()
-      'probably-a-spec-window'
+      fsUtils.join(config.userStoragePath, 'undefined')
     else
       shasum = crypto.createHash('sha1')
       shasum.update(@getPathToOpen())
