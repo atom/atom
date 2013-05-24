@@ -166,7 +166,7 @@ window.atom =
     ipc.sendChannel('new-window')
 
   openConfig: ->
-    @sendMessageToBrowserProcess('openConfig')
+    ipc.sendChannel('open-config')
 
   restartRendererProcess: ->
     @sendMessageToBrowserProcess('restartRendererProcess')

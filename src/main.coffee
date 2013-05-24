@@ -112,6 +112,8 @@ class AtomApplication
       submenu: [
         { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
         { type: 'separator' }
+        { label: 'Preferences...', accelerator: 'Command+,', click: => @openConfig() }
+        { type: 'separator' }
         { label: 'Hide Atom Shell', accelerator: 'Command+H', selector: 'hide:' }
         { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
         { label: 'Show All', selector: 'unhideAllApplications:' }
@@ -162,6 +164,9 @@ class AtomApplication
       window.removeAllListeners 'close'
       window.close()
 
+    ipc.on 'open-config', =>
+      @openConfig()
+
     ipc.on 'open-folder', =>
       currentWindow = BrowserWindow.getFocusedWindow()
       pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
@@ -184,6 +189,13 @@ class AtomApplication
         resourcePath: @resourcePath
 
       @windows.push atomWindow
+
+  openConfig: ->
+    atomWindow = new AtomWindow
+      bootstrapScript: 'config-bootstrap',
+      resourcePath: @resourcePath
+
+    @windows.push atomWindow
 
   runSpecs: ->
     specWindow = new AtomWindow
