@@ -36,12 +36,6 @@ window.setUpEnvironment = ->
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
     requireStylesheet(nativeStylesheetPath)
 
-  dimensions = atom.getWindowState('dimensions')
-  dimensions = defaultWindowDimensions unless dimensions?.width and dimensions?.height
-  window.setDimensions(dimensions)
-  remote.getCurrentWindow().show()
-  $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
-
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
   installAtomCommand()
@@ -49,6 +43,7 @@ window.startEditorWindow = ->
 
   atom.windowMode = 'editor'
   windowEventHandler = new WindowEventHandler
+  restoreDimensions()
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
@@ -61,10 +56,12 @@ window.startEditorWindow = ->
     atom.hide()
     unloadEditorWindow()
     false
-  $(window).focus()
+  remote.getCurrentWindow().show()
+  atom.focus()
 
 window.startConfigWindow = ->
   atom.windowMode = 'config'
+  restoreDimensions()
   windowEventHandler = new WindowEventHandler
   config.load()
   keymap.loadBundledKeymaps()
@@ -77,7 +74,8 @@ window.startConfigWindow = ->
     atom.hide()
     unloadConfigWindow()
     false
-  $(window).focus()
+  remote.getCurrentWindow().show()
+  atom.focus()
 
 window.unloadEditorWindow = ->
   return if not project and not rootView
@@ -207,6 +205,12 @@ window.setDimensions = ({x, y, width, height}) ->
   browserWindow = remote.getCurrentWindow()
   browserWindow.setPosition(x, y)
   browserWindow.setSize(width, height)
+
+window.restoreDimensions = ->
+  dimensions = atom.getWindowState('dimensions')
+  dimensions = defaultWindowDimensions unless dimensions?.width and dimensions?.height
+  window.setDimensions(dimensions)
+  $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
 
 window.closeWithoutConfirm = ->
   ipc.sendChannel 'close-without-confirm'
