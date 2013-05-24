@@ -8,6 +8,7 @@ resourcePath = null
 executedFrom = null
 pathsToOpen = null
 atomApplication = null
+testMode = false
 
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
@@ -39,6 +40,8 @@ parseCommandLine = ->
 
   pathsToOpen = [executedFrom] if pathsToOpen.length is 0 and args['executed-from']
 
+  testMode = true if args['test']
+
   if args['resource-path']
     resourcePath = args['resource-path']
   else if args['dev']
@@ -52,7 +55,11 @@ parseCommandLine = ->
 bootstrapApplication = ->
   setupNodePath()
   atomApplication = new AtomApplication({resourcePath, executedFrom})
-  atomApplication.open(pathsToOpen)
+
+  if testMode
+    atomApplication.runSpecs(true)
+  else
+    atomApplication.open(pathsToOpen)
 
 delegate.browserMainParts.preMainMessageLoopRun = ->
   client = null
@@ -199,10 +206,11 @@ class AtomApplication
 
     @windows.push atomWindow
 
-  runSpecs: ->
+  runSpecs: (exitWhenDone) ->
     specWindow = new AtomWindow
       bootstrapScript: 'spec-bootstrap',
       resourcePath: @resourcePath
+      exitWhenDone: exitWhenDone
       isSpec: true
 
     specWindow.browserWindow.show()
@@ -211,12 +219,13 @@ class AtomApplication
 class AtomWindow
   browserWindow: null
 
-  constructor: ({bootstrapScript, resourcePath, pathToOpen, @isSpec}) ->
+  constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec}) ->
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 
     url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
     url += "&pathToOpen=#{pathToOpen}" if pathToOpen
+    url += '&exitWhenDone=1' if exitWhenDone
 
     @browserWindow.loadUrl url
 

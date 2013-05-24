@@ -206,7 +206,7 @@ window.atom =
     remote.getCurrentWindow().hide()
 
   exit: (status) ->
-    @sendMessageToBrowserProcess('exit', [status])
+    remote.require('app').exit(status)
 
   toggleFullScreen: ->
     currentWindow = remote.getCurrentWindow()
