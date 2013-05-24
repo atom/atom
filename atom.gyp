@@ -1,4 +1,7 @@
 {
+  'variables': {
+    'version%': "<!(git rev-parse --short HEAD)",
+  },
   'includes': [
     'sources.gypi',
   ],
@@ -74,6 +77,22 @@
           'files': [
             'atom-shell/Atom.app'
           ],
+        },
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_version',
+          'inputs': [
+            'script/generate-version',
+          ],
+          'outputs': [
+            '<(PRODUCT_DIR)/Atom.app/Contents/Resources/version'
+          ],
+          'action': [
+            'script/generate-version',
+            '<(version)',
+            '<(PRODUCT_DIR)/Atom.app/Contents/Resources/version'
+          ]
         },
       ],
       'postbuilds': [

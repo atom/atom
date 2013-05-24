@@ -262,4 +262,4 @@ window.atom =
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
   getVersion: ->
-    @sendMessageToBrowserProcess('getVersion')
+    ipc.sendChannelSync 'get-version'

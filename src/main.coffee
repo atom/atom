@@ -13,6 +13,9 @@ testMode = false
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
 
+getVersion = ->
+  String fs.readFileSync(path.join(__dirname, '..', '..', 'version'))
+
 setupNodePath = ->
   resourcePaths = [
     'src/stdlib',
@@ -120,6 +123,7 @@ class AtomApplication
       label: 'Atom'
       submenu: [
         { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
+        { label: "Version #{getVersion()}", enabled: false }
         { type: 'separator' }
         { label: 'Preferences...', accelerator: 'Command+,', click: => @openConfig() }
         { type: 'separator' }
@@ -183,6 +187,9 @@ class AtomApplication
 
     ipc.on 'new-window', =>
       @open()
+
+    ipc.on 'get-version', (event) ->
+      event.result = getVersion()
 
   sendCommand: (command) ->
     atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
