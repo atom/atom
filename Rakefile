@@ -29,7 +29,7 @@ task "bootstrap" do
   `script/bootstrap`
 end
 
-desc "Copies Atom.app to /Applications and creates `atom` cli app"
+desc "Copies Atom.app to /Applications"
 task :install => [:build] do
   path = application_path()
   exit 1 if not path
@@ -39,22 +39,9 @@ task :install => [:build] do
   `rm -rf #{dest_path}`
   `cp -a #{path} #{File.expand_path(dest_path)}`
 
-  # Install atom cli
-  if File.directory?("/opt/boxen")
-    cli_path = "/opt/boxen/bin/atom"
-  elsif File.directory?("/opt/github")
-    cli_path = "/opt/github/bin/atom"
-  elsif File.directory?("/usr/local")
-    cli_path = "/usr/local/bin/atom"
-  else
-    raise "Missing directory for `atom` binary"
-  end
-
-  FileUtils.ln_s "#{ATOM_SRC_PATH}/atom.sh", cli_path, :force => true
-
   Rake::Task["clone-default-bundles"].invoke()
 
-  puts "\033[32mAtom is installed at `#{dest_path}`. Atom cli is installed at `#{cli_path}`\033[0m"
+  puts "\033[32mAtom is installed at `#{dest_path}`.\033[0m"
 end
 
 task "setup-codesigning" do
