@@ -15,6 +15,7 @@ class AtomApplication
   @removeWindow: (window) -> atomApplication.removeWindow(window)
 
   windows: null
+  configWindow: null
   menu: null
   resourcePath: null
   executedFrom: null
@@ -176,11 +177,17 @@ class AtomApplication
       @windows.push atomWindow
 
   openConfig: ->
-    atomWindow = new AtomWindow
+    if @configWindow
+      @configWindow.browserWindow.focus()
+      return
+
+    @configWindow = new AtomWindow
       bootstrapScript: 'config-bootstrap',
       resourcePath: @resourcePath
+    @configWindow.browserWindow.on 'destroyed', =>
+      @configWindow = null
 
-    @windows.push atomWindow
+    @windows.push @configWindow
 
   runSpecs: (exitWhenDone) ->
     specWindow = new AtomWindow
