@@ -158,7 +158,7 @@ class AtomApplication
     ipc.on 'new-window', =>
       @open()
 
-    ipc.on 'get-version', (event) ->
+    ipc.on 'get-version', (event) =>
       event.result = @version
 
   sendCommand: (command) ->
