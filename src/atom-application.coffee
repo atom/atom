@@ -27,6 +27,7 @@ class AtomApplication
 
   constructor: ({@resourcePath, @executedFrom, @pathsToOpen, @testMode, @version}) ->
     @pathsToOpen ?= [@executedFrom] if @executedFrom
+    @executedFrom ?= process.cwd()
     atomApplication = this
     @windows = []
 

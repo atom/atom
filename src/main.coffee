@@ -17,7 +17,7 @@ getHomeDir = ->
 
 parseCommandLine = ->
   args = optimist(process.argv[1..]).argv
-  executedFrom = args['executed-from'] ? process.cwd()
+  executedFrom = args['executed-from']
   pathsToOpen = if args._.length > 0 then args._ else null
   testMode = true if args['test']
   version = String fs.readFileSync(path.join(__dirname, '..', '..', 'version'))
