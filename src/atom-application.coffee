@@ -155,10 +155,12 @@ class AtomApplication
     ipc.on 'open-config', =>
       @openConfig()
 
-    ipc.on 'open-folder', =>
-      currentWindow = BrowserWindow.getFocusedWindow()
-      pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-      @open(pathToOpen) for pathToOpen in pathsToOpen if pathsToOpen?
+    ipc.on 'open', (processId, routingId, pathsToOpen) =>
+      if not pathsToOpen
+        pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
+        @open(pathsToOpen) if pathsToOpen?
+      else
+        @open(pathsToOpen)
 
     ipc.on 'new-window', =>
       @open()
