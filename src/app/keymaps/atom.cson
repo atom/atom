@@ -26,6 +26,7 @@
 
   'meta-alt-s': 'window:save-all'
   'meta-W': 'window:close'
+  'meta-r': 'window:reload'
   'meta-+': 'window:increase-font-size'
   'meta--': 'window:decrease-font-size'
   'ctrl-w w': 'window:focus-next-pane'
