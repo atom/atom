@@ -6,6 +6,8 @@ class AtomWindow
   browserWindow: null
 
   constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec}) ->
+    require('atom-application').addWindow(this)
+
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 

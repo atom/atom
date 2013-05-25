@@ -12,6 +12,7 @@ atomApplication = null
 
 module.exports =
 class AtomApplication
+  @addWindow: (window) -> atomApplication.removeWindow(window)
   @removeWindow: (window) -> atomApplication.removeWindow(window)
 
   windows: null
@@ -44,6 +45,9 @@ class AtomApplication
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
+
+  addWindow: (window) ->
+    @windows.push window
 
   getHomeDir: ->
     process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
@@ -174,8 +178,6 @@ class AtomApplication
         bootstrapScript: 'window-bootstrap',
         resourcePath: @resourcePath
 
-      @windows.push atomWindow
-
   openConfig: ->
     if @configWindow
       @configWindow.browserWindow.focus()
@@ -187,8 +189,6 @@ class AtomApplication
     @configWindow.browserWindow.on 'destroyed', =>
       @configWindow = null
 
-    @windows.push @configWindow
-
   runSpecs: (exitWhenDone) ->
     specWindow = new AtomWindow
       bootstrapScript: 'spec-bootstrap',
@@ -197,4 +197,3 @@ class AtomApplication
       isSpec: true
 
     specWindow.browserWindow.show()
-    @windows.push specWindow
