@@ -12,7 +12,7 @@ atomApplication = null
 
 module.exports =
 class AtomApplication
-  @addWindow: (window) -> atomApplication.removeWindow(window)
+  @addWindow: (window) -> atomApplication.addWindow(window)
   @removeWindow: (window) -> atomApplication.removeWindow(window)
 
   windows: null
