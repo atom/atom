@@ -157,11 +157,11 @@ class AtomApplication
       @openConfig()
 
     ipc.on 'open', (processId, routingId, pathsToOpen) =>
-      if not pathsToOpen
+      if pathsToOpen?.length > 0
+        @open(pathsToOpen)
+      else
         pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
         @open(pathsToOpen) if pathsToOpen?
-      else
-        @open(pathsToOpen)
 
     ipc.on 'new-window', =>
       @open()
