@@ -39,19 +39,11 @@ task :install => [:build] do
   `rm -rf #{dest_path}`
   `cp -a #{path} #{File.expand_path(dest_path)}`
 
-  Rake::Task["clone-default-bundles"].invoke()
-
   puts "\033[32mAtom is installed at `#{dest_path}`.\033[0m"
 end
 
 task "setup-codesigning" do
   ENV['CODE_SIGN'] = "Developer ID Application: GitHub"
-end
-
-desc "Clone default bundles into vendor/bundles directory"
-task "clone-default-bundles" do
-  `git submodule --quiet sync`
-  `git submodule --quiet update --recursive --init`
 end
 
 desc "Clean build Atom via `xcodebuild`"
@@ -66,7 +58,7 @@ task :clean do
 end
 
 desc "Run the specs"
-task :test => ["clone-default-bundles", "build"] do
+task :test => ["build"] do
   `pkill Atom`
   if path = application_path()
     cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH}"
