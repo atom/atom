@@ -32,7 +32,7 @@ class AtomApplication
     @windows = []
 
     @sendArgumentsToExistingProcess (success) =>
-      process.exit(1) if success # An Atom already exists, kill this process
+      process.exit(0) if success # An Atom already exists, kill this process
       @listenForArgumentsFromNewProcess()
       @setupNodePath()
       @setupJavaScriptArguments()
