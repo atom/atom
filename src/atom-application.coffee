@@ -26,7 +26,12 @@ class AtomApplication
   socketPath: '/tmp/atom.sock'
 
   constructor: ({@resourcePath, @executedFrom, @pathsToOpen, @testMode, @version}) ->
-    @pathsToOpen ?= [@executedFrom] if @executedFrom
+    if @pathsToOpen?
+      @pathsToOpen = @pathsToOpen.map (pathToOpen) =>
+          path.resolve(@executedFrom, pathToOpen)
+    else
+      @pathsToOpen = [@executedFrom] if @executedFrom
+
     @executedFrom ?= process.cwd()
     atomApplication = this
     @windows = []
@@ -75,9 +80,7 @@ class AtomApplication
 
   sendArgumentsToExistingProcess: (callback) ->
     client = net.connect {path: @socketPath}, (args...) =>
-      pathsToOpen = (@pathsToOpen ? []).map (pathToOpen) =>
-        path.resolve(@executedFrom, pathToOpen)
-      output = JSON.stringify({pathsToOpen})
+      output = JSON.stringify({@pathsToOpen})
       client.write(output)
       callback(true)
 
@@ -188,15 +191,19 @@ class AtomApplication
     null
 
   open: (pathsToOpen) ->
-    pathsToOpen ?= [null]
-    for pathToOpen in pathsToOpen
-      pathToOpen = path.resolve(@executedFrom, pathToOpen) if @executedFrom and pathToOpen
-      if existingWindow = @windowForPath(pathToOpen)
-        existingWindow.focus()
-        existingWindow.sendCommand('window:open-path', pathToOpen)
-      else
-        atomWindow = new AtomWindow
-          pathToOpen: pathToOpen
+    if pathsToOpen?
+      for pathToOpen in pathsToOpen
+        pathToOpen = path.resolve(@executedFrom, pathToOpen) if @executedFrom and pathToOpen
+        if existingWindow = @windowForPath(pathToOpen)
+          existingWindow.focus()
+          existingWindow.sendCommand('window:open-path', pathToOpen)
+        else
+          atomWindow = new AtomWindow
+            pathToOpen: pathToOpen
+            bootstrapScript: 'window-bootstrap'
+            resourcePath: @resourcePath
+    else
+      atomWindow = new AtomWindow
           bootstrapScript: 'window-bootstrap'
           resourcePath: @resourcePath
 
