@@ -463,7 +463,7 @@ describe "TreeView", ->
         treeView.trigger 'core:move-to-bottom'
         expect(treeView.root.find('.entry:last')).toHaveClass 'selected'
 
-   describe "core:page-up", ->
+    describe "core:page-up", ->
       it "scrolls up a page", ->
         treeView.height(5)
         treeView.attachToDom()
