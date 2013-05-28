@@ -90,16 +90,16 @@ _.extend atom,
 
   resolvePackagePath: (name) ->
     return name if fsUtils.isDirectory(name)
+
     path = fsUtils.resolve(config.packageDirPaths..., name)
-    if fsUtils.isDirectory(path)
-      path
-    else
-      packagePath = fsUtils.join(window.resourcePath, 'node_modules', name)
-      packagePath if @isInternalPackage(packagePath)
+    return path if fsUtils.isDirectory(path)
+
+    packagePath = fsUtils.join(window.resourcePath, 'node_modules', name)
+    return packagePath if @isInternalPackage(packagePath)
 
   isInternalPackage: (packagePath) ->
     {engines} = Package.loadMetadata(packagePath, true)
-    return packagePath if engines?.atom?
+    engines?.atom?
 
   getLoadedPackage: (name) ->
     @loadedPackages[name]
