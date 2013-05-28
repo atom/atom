@@ -189,14 +189,14 @@ class AtomApplication
       return
 
     @configWindow = new AtomWindow
-      bootstrapScript: 'config-bootstrap',
+      bootstrapScript: 'config-bootstrap'
       resourcePath: @resourcePath
     @configWindow.browserWindow.on 'destroyed', =>
       @configWindow = null
 
   runSpecs: (exitWhenDone) ->
     specWindow = new AtomWindow
-      bootstrapScript: 'spec-bootstrap',
+      bootstrapScript: 'spec-bootstrap'
       resourcePath: @resourcePath
       exitWhenDone: exitWhenDone
       isSpec: true
