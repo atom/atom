@@ -75,7 +75,9 @@ class AtomApplication
 
   sendArgumentsToExistingProcess: (callback) ->
     client = net.connect {path: @socketPath}, (args...) =>
-      output = JSON.stringify({@pathsToOpen})
+      pathsToOpen = (@pathsToOpen ? []).map (pathToOpen) =>
+        path.resolve(@executedFrom, pathToOpen)
+      output = JSON.stringify({pathsToOpen})
       client.write(output)
       callback(true)
 
