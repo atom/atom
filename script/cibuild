@@ -2,4 +2,5 @@
 
 set -ex
 rm -rf ~/.atom
+git clean -df
 rake clean test

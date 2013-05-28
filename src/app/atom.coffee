@@ -92,8 +92,16 @@ window.atom =
 
   resolvePackagePath: (name) ->
     return name if fsUtils.isDirectory(name)
+
     path = fsUtils.resolve(config.packageDirPaths..., name)
-    path if fsUtils.isDirectory(path)
+    return path if fsUtils.isDirectory(path)
+
+    packagePath = fsUtils.join(window.resourcePath, 'node_modules', name)
+    return packagePath if @isInternalPackage(packagePath)
+
+  isInternalPackage: (packagePath) ->
+    {engines} = Package.loadMetadata(packagePath, true)
+    engines?.atom?
 
   getLoadedPackage: (name) ->
     @loadedPackages[name]
@@ -109,9 +117,14 @@ window.atom =
 
   getAvailablePackagePaths: ->
     packagePaths = []
+
     for packageDirPath in config.packageDirPaths
       for packagePath in fsUtils.list(packageDirPath)
         packagePaths.push(packagePath) if fsUtils.isDirectory(packagePath)
+
+    for packagePath in fsUtils.list(fsUtils.join(window.resourcePath, 'node_modules'))
+      packagePaths.push(packagePath) if @isInternalPackage(packagePath)
+
     _.uniq(packagePaths)
 
   getAvailablePackageNames: ->
