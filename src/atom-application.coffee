@@ -178,7 +178,7 @@ class AtomApplication
       pathToOpen = path.resolve(@executedFrom, pathToOpen) if @executedFrom and pathToOpen
       atomWindow = new AtomWindow
         pathToOpen: pathToOpen
-        bootstrapScript: 'window-bootstrap',
+        bootstrapScript: 'window-bootstrap'
         resourcePath: @resourcePath
 
   openConfig: ->
