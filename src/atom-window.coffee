@@ -5,14 +5,14 @@ module.exports =
 class AtomWindow
   browserWindow: null
 
-  constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec}) ->
+  constructor: ({bootstrapScript, resourcePath, @pathToOpen, exitWhenDone, @isSpec}) ->
     require('atom-application').addWindow(this)
 
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 
     url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
-    url += "&pathToOpen=#{pathToOpen}" if pathToOpen
+    url += "&pathToOpen=#{@pathToOpen}" if @pathToOpen
     url += '&exitWhenDone=1' if exitWhenDone
 
     @browserWindow.loadUrl url

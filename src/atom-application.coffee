@@ -178,6 +178,12 @@ class AtomApplication
     pathsToOpen ?= [null]
     for pathToOpen in pathsToOpen
       pathToOpen = path.resolve(@executedFrom, pathToOpen) if @executedFrom and pathToOpen
+      if pathToOpen
+        for atomWindow in @windows
+          if pathToOpen is atomWindow.pathToOpen
+            atomWindow.browserWindow.focus()
+            return
+
       atomWindow = new AtomWindow
         pathToOpen: pathToOpen
         bootstrapScript: 'window-bootstrap'
