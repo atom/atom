@@ -55,15 +55,15 @@ class AtomApplication
 
   setupNodePath: ->
     resourcePaths = [
-      'src/stdlib',
-      'src/app',
-      'src/packages',
-      'src',
-      'vendor',
-      'static',
-      'node_modules',
-      'spec',
-      '',
+      'src/stdlib'
+      'src/app'
+      'src/packages'
+      'src'
+      'vendor'
+      'static'
+      'node_modules'
+      'spec'
+      ''
     ]
 
     resourcePaths.push path.join(@getHomeDir(), '.atom', 'packages')
