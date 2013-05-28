@@ -206,8 +206,7 @@ window.atom =
     remote.getCurrentWindow().toggleDevTools()
 
   reload: ->
-    # TODO Restart renderer process when needed
-    remote.getCurrentWindow().reloadIgnoringCache()
+    remote.getCurrentWindow().restart()
 
   focus: ->
     remote.getCurrentWindow().focus()
