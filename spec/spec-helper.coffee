@@ -90,6 +90,7 @@ afterEach ->
     git.destroy()
     window.git = null
   $('#jasmine-content').empty()
+  jasmine.unspy(atom, 'setWindowState')
   ensureNoPathSubscriptions()
   atom.pendingModals = [[]]
   atom.presentingModal = false
