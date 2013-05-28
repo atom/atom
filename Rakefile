@@ -55,6 +55,9 @@ task :clean do
   `rm -rf /tmp/atom-cached-atom-shells`
   `rm -rf node_modules`
   `rm -rf atom-shell`
+  `rm -rf cef`
+  `rm -rf node`
+  `rm -rf prebuilt-cef`
 end
 
 desc "Run the specs"
