@@ -2,7 +2,6 @@ fs = require 'fs'
 path = require 'path'
 delegate = require 'atom_delegate'
 optimist = require 'optimist'
-coffeeScript = require 'coffee-script'
 
 atomApplication = null
 
