@@ -8,7 +8,7 @@ atomApplication = null
 
 delegate.browserMainParts.preMainMessageLoopRun = ->
   commandLineArgs = parseCommandLine()
-  require('module').globalPaths.push(path.join(commandLineArgs.resourcePath, "src"))
+  require('module').globalPaths.push(path.join(commandLineArgs.resourcePath, 'src'))
   AtomApplication = require('atom-application')
   atomApplication = new AtomApplication(commandLineArgs)
 
@@ -25,7 +25,7 @@ parseCommandLine = ->
   if args['resource-path']
     resourcePath = args['resource-path']
   else if args['dev']
-    resourcePath = path.join(getHomeDir(), 'github/atom')
+    resourcePath = path.join(getHomeDir(), 'github', 'atom')
 
   try
     fs.statSync resourcePath
