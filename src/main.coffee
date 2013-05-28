@@ -20,6 +20,8 @@ parseCommandLine = ->
   executedFrom = args['executed-from']
   pathsToOpen = if args._.length > 0 then args._ else null
   testMode = true if args['test']
+  wait = true if args['wait']
+  pid = args['pid']
   version = String fs.readFileSync(path.join(__dirname, '..', '..', 'version'))
 
   if args['resource-path']
@@ -32,4 +34,4 @@ parseCommandLine = ->
   catch e
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, executedFrom, pathsToOpen, testMode, version}
+  {resourcePath, executedFrom, pathsToOpen, testMode, version, wait, pid}
