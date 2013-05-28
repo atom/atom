@@ -92,8 +92,6 @@ afterEach ->
   $('#jasmine-content').empty()
   jasmine.unspy(atom, 'setWindowState')
   ensureNoPathSubscriptions()
-  atom.pendingModals = [[]]
-  atom.presentingModal = false
   syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
 

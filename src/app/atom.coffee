@@ -10,14 +10,9 @@ window.atom =
   exitWhenDone: window.location.params.exitWhenDone
   devMode: window.location.params.devMode
   loadedThemes: []
-  pendingBrowserProcessCallbacks: {}
   loadedPackages: {}
   activePackages: {}
   packageStates: {}
-  presentingModal: false
-  pendingModals: [[]]
-  messageIdCounter: 1
-  originalSendMessageToBrowserProcess: -> console.log 'this methods needs to be replaced'
 
   getPathToOpen: ->
     window.location.params.pathToOpen
@@ -178,9 +173,6 @@ window.atom =
   openConfig: ->
     ipc.sendChannel('open-config')
 
-  restartRendererProcess: ->
-    @sendMessageToBrowserProcess('restartRendererProcess')
-
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     buttons = []
     callbacks = []
@@ -252,16 +244,16 @@ window.atom =
       windowState
 
   update: ->
-    @sendMessageToBrowserProcess('update')
+    throw new Error('atom.update is not implemented')
 
   getUpdateStatus: (callback) ->
-    @sendMessageToBrowserProcess('getUpdateStatus', [], callback)
+    throw new Error('atom.getUpdateStatus is not implemented')
 
   crashMainProcess: ->
-    @sendMessageToBrowserProcess('crash')
+    throw new Error('atom.crashMainProcess is not implemented')
 
   crashRenderProcess: ->
-    $native.crash()
+    throw new Error('atom.crashRenderProcess is not implemented')
 
   requireUserInitScript: ->
     userInitScriptPath = fsUtils.join(config.configDirPath, "user.coffee")
