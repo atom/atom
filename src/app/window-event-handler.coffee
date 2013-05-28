@@ -2,14 +2,19 @@ $ = require 'jquery'
 _ = require 'underscore'
 ipc = require 'ipc'
 Subscriber = require 'subscriber'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class WindowEventHandler
   constructor: ->
-    @subscribe ipc, 'command', (command) -> $(window).trigger command
+    @subscribe ipc, 'command', (command, args...) ->
+      $(window).trigger(command, args...)
 
     @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
     @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
+    @subscribe $(window), 'window:open-path', (event, pathToOpen) ->
+      rootView.open(pathToOpen) unless fsUtils.isDirectory(pathToOpen)
+
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
     @subscribeToCommand $(window), 'window:close', =>
       if rootView?
@@ -29,6 +34,7 @@ class WindowEventHandler
       e.stopPropagation()
 
     @subscribe $(document), 'click', 'a', @openLink
+
 
   openLink: (event) =>
     location = $(event.target).attr('href')

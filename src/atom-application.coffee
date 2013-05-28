@@ -171,27 +171,38 @@ class AtomApplication
     ipc.on 'get-version', (event) =>
       event.result = @version
 
-  sendCommand: (command) ->
-    atomWindow.sendCommand command for atomWindow in @windows when atomWindow.browserWindow.isFocused()
+  sendCommand: (command, args...) ->
+    for atomWindow in @windows when atomWindow.isFocused()
+      atomWindow.sendCommand(command, args...)
+
+  windowForPath: (pathToOpen) ->
+    return null unless pathToOpen
+
+    for atomWindow in @windows
+      if pathToOpen is atomWindow.pathToOpen
+        return atomWindow
+
+      if pathToOpen.indexOf(path.join(atomWindow.pathToOpen, path.sep)) is 0
+        return atomWindow
+
+    null
 
   open: (pathsToOpen) ->
     pathsToOpen ?= [null]
     for pathToOpen in pathsToOpen
       pathToOpen = path.resolve(@executedFrom, pathToOpen) if @executedFrom and pathToOpen
-      if pathToOpen
-        for atomWindow in @windows
-          if pathToOpen is atomWindow.pathToOpen
-            atomWindow.browserWindow.focus()
-            return
-
-      atomWindow = new AtomWindow
-        pathToOpen: pathToOpen
-        bootstrapScript: 'window-bootstrap'
-        resourcePath: @resourcePath
+      if existingWindow = @windowForPath(pathToOpen)
+        existingWindow.focus()
+        existingWindow.sendCommand('window:open-path', pathToOpen)
+      else
+        atomWindow = new AtomWindow
+          pathToOpen: pathToOpen
+          bootstrapScript: 'window-bootstrap'
+          resourcePath: @resourcePath
 
   openConfig: ->
     if @configWindow
-      @configWindow.browserWindow.focus()
+      @configWindow.focus()
       return
 
     @configWindow = new AtomWindow
@@ -207,4 +218,4 @@ class AtomApplication
       exitWhenDone: exitWhenDone
       isSpec: true
 
-    specWindow.browserWindow.show()
+    specWindow.show()
