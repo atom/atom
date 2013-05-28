@@ -59,7 +59,7 @@ _.mixin
     # I choose to escape every character with '\'
     # even though only some strictly require it when inside of []
     regex = RegExp('[' + specials.join('\\') + ']', 'g')
-    string.replace(regex, "\\$&");
+    string.replace(regex, "\\$&")
 
   humanizeEventName: (eventName, eventDoc) ->
     [namespace, event]  = eventName.split(':')
