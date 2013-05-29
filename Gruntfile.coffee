@@ -36,5 +36,5 @@ module.exports = (grunt) ->
     rm 'node'
     rm 'prebuilt-cef'
 
-  grunt.registerTask('lint', ['coffeelint:src', 'coffeelint:test', 'csslint:src'])
+  grunt.registerTask('lint', ['coffeelint', 'csslint'])
   grunt.registerTask('default', 'lint')
