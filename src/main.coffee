@@ -24,6 +24,7 @@ parseCommandLine = ->
 
     Usage: atom [options] [file ..]
   """
+  options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   args = options.argv
