@@ -18,8 +18,6 @@ class TextMatePackage extends Package
 
   constructor: ->
     super
-    @preferencesPath = fsUtils.join(@path, "Preferences")
-    @syntaxesPath = fsUtils.join(@path, "Syntaxes")
     @grammars = []
     @scopedProperties = []
     @metadata = {@name}
@@ -45,10 +43,10 @@ class TextMatePackage extends Package
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json']
 
   loadGrammars: (done) ->
-    fsUtils.isDirectoryAsync @syntaxesPath, (isDirectory) =>
+    fsUtils.isDirectoryAsync @getSyntaxesPath(), (isDirectory) =>
       return done() unless isDirectory
 
-      fsUtils.listAsync @syntaxesPath, @legalGrammarExtensions, (error, paths) =>
+      fsUtils.listAsync @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
         if error?
           console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
           done()
@@ -69,7 +67,7 @@ class TextMatePackage extends Package
       done()
 
   loadGrammarsSync: ->
-    for path in fsUtils.list(@syntaxesPath, @legalGrammarExtensions)
+    for path in fsUtils.list(@getSyntaxesPath(), @legalGrammarExtensions)
       @addGrammar(TextMateGrammar.loadSync(path))
 
   addGrammar: (grammar) ->
@@ -78,13 +76,27 @@ class TextMatePackage extends Package
 
   getGrammars: -> @grammars
 
+  getSyntaxesPath: ->
+    syntaxesPath = fsUtils.join(@path, "syntaxes")
+    if fsUtils.isDirectory(syntaxesPath)
+      syntaxesPath
+    else
+      fsUtils.join(@path, "Syntaxes")
+
+  getPreferencesPath: ->
+    preferencesPath = fsUtils.join(@path, "preferences")
+    if fsUtils.isDirectory(preferencesPath)
+      preferencesPath
+    else
+      fsUtils.join(@path, "Preferences")
+
   loadScopedPropertiesSync: ->
     for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
         selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
         @scopedProperties.push({selector, properties})
 
-    for path in fsUtils.list(@preferencesPath)
+    for path in fsUtils.list(@getPreferencesPath())
       {scope, settings} = fsUtils.readObject(path)
       if properties = @propertiesFromTextMateSettings(settings)
         selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
@@ -115,10 +127,10 @@ class TextMatePackage extends Package
     @loadTextMatePreferenceObjects(preferenceObjects, done)
 
   loadTextMatePreferenceObjects: (preferenceObjects, done) ->
-    fsUtils.isDirectoryAsync @preferencesPath, (isDirectory) =>
+    fsUtils.isDirectoryAsync @getPreferencesPath(), (isDirectory) =>
       return done() unless isDirectory
 
-      fsUtils.listAsync @preferencesPath, (error, paths) =>
+      fsUtils.listAsync @getPreferencesPath(), (error, paths) =>
         if error?
           console.log("Error loading preferences of TextMate package '#{@path}':", error.stack, error)
           done()

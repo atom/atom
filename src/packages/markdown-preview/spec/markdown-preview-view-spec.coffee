@@ -8,7 +8,7 @@ describe "MarkdownPreviewView", ->
   beforeEach ->
     project.setPath(project.resolve('markdown'))
     buffer = project.bufferForPath('file.markdown')
-    atom.activatePackage('ruby.tmbundle', sync: true)
+    atom.activatePackage('ruby-tmbundle', sync: true)
     preview = new MarkdownPreviewView(buffer)
 
   afterEach ->

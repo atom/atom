@@ -6,7 +6,7 @@ describe "DisplayBuffer", ->
   [displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
-    atom.activatePackage('javascript.tmbundle', sync: true)
+    atom.activatePackage('javascript-tmbundle', sync: true)
     buffer = project.bufferForPath('sample.js')
     displayBuffer = new DisplayBuffer(buffer, { tabLength })
     displayBuffer.on 'changed', changeHandler = jasmine.createSpy 'changeHandler'
