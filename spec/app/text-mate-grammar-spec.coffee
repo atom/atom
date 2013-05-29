@@ -292,9 +292,9 @@ describe "TextMateGrammar", ->
         repository: {}
         patterns: [
           {
-            name: "comment-body";
-            begin: "//";
-            end: "\\n";
+            name: "comment-body"
+            begin: "//"
+            end: "\\n"
             beginCaptures:
               "0": { name: "comment-start" }
           }
@@ -440,7 +440,7 @@ describe "TextMateGrammar", ->
         grammar = syntax.selectGrammar("text.js")
         {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
-        expect(tokens[0].value).toBe "var";
+        expect(tokens[0].value).toBe "var"
         expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
 
         expect(tokens[6].value).toBe "http://github.com"

@@ -1248,7 +1248,7 @@ describe 'TextBuffer', ->
       buffer.setText("")
       buffer.append("a")
       expect(buffer.getText()).toBe "a"
-      buffer.append("b\nc");
+      buffer.append("b\nc")
       expect(buffer.getText()).toBe "ab\nc"
 
   describe "line ending support", ->
