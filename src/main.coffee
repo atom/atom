@@ -2,6 +2,10 @@ fs = require 'fs'
 path = require 'path'
 delegate = require 'atom_delegate'
 optimist = require 'optimist'
+nslog = require('nslog')
+
+console.log = (args...) -> nslog(args.join(" "))
+
 require 'coffee-script'
 
 atomApplication = null

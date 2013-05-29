@@ -57,7 +57,8 @@
     "text-tmbundle": "1.0.0",
     "textmate-clojure": "1.0.0",
     "xml-tmbundle": "1.0.0",
-    "yaml-tmbundle": "1.0.0"
+    "yaml-tmbundle": "1.0.0",
+    "nslog": "0.1.0"
   },
   "devDependencies": {
     "biscotto": "0.0.11",
