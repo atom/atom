@@ -3,19 +3,16 @@ path = require 'path'
 delegate = require 'atom_delegate'
 optimist = require 'optimist'
 nslog = require('nslog')
+AtomApplication = require('./atom-application')
 
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
 
 require 'coffee-script'
 
-atomApplication = null
-
 delegate.browserMainParts.preMainMessageLoopRun = ->
   commandLineArgs = parseCommandLine()
-  require('module').globalPaths.push(path.join(commandLineArgs.resourcePath, 'src'))
-  AtomApplication = require('atom-application')
-  atomApplication = new AtomApplication(commandLineArgs)
+  new AtomApplication(commandLineArgs)
 
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']

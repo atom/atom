@@ -1,4 +1,4 @@
-AtomWindow = require 'atom-window'
+AtomWindow = require './atom-window'
 BrowserWindow = require 'browser_window'
 Menu = require 'menu'
 app = require 'app'
