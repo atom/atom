@@ -8,7 +8,11 @@ module.exports = (grunt) ->
           level: 'ignore'
 
       src: ['src/**/*.coffee']
-      test: ['spec/**/*.coffee']
+      test: [
+        'spec/*.coffee'
+        'spec/app/**/*.coffee'
+        'spec/stdlib/**/*.coffee'
+      ]
 
 
   grunt.loadNpmTasks('grunt-coffeelint')
