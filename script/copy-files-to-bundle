@@ -4,7 +4,8 @@
 set -e
 
 COMPILED_SOURCES_DIR="${1}"
-RESOUCES_PATH="$BUILT_PRODUCTS_DIR/Atom.app/Contents/Resources/app"
+RESOURCES_PATH="${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Resources"
+APP_PATH="${RESOURCES_PATH}/app"
 
 # Copy non-coffee/cson/less files into bundle
 rsync --archive --recursive \
@@ -15,4 +16,9 @@ rsync --archive --recursive \
       --exclude="static/**.less" \
       --exclude="themes/**.less" \
       node_modules src static vendor spec benchmark themes dot-atom atom.sh package.json \
-      "${COMPILED_SOURCES_DIR}/" "$RESOUCES_PATH"
+      "${COMPILED_SOURCES_DIR}/" "${APP_PATH}"
+
+# Copy Mac specific files to bundle
+rsync --archive --recursive \
+      --exclude="*.plist" \
+      resources/mac/* "${RESOURCES_PATH}"
