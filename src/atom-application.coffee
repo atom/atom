@@ -25,18 +25,22 @@ class AtomApplication
   version: null
   socketPath: '/tmp/atom.sock'
 
-  constructor: ({@resourcePath, @executedFrom, @pathsToOpen, @testMode, @version}) ->
+  constructor: ({@resourcePath, @executedFrom, @pathsToOpen, @testMode, @version, wait, pid}) ->
+    @pidsToOpenWindows = {}
     if @pathsToOpen?
       @pathsToOpen = @pathsToOpen.map (pathToOpen) =>
         path.resolve(@executedFrom, pathToOpen)
+    else if @executedFrom
+      @pathsToOpen = [@executedFrom]
     else
-      @pathsToOpen = [@executedFrom] if @executedFrom
+      @pathsToOpen = [null]
 
     @executedFrom ?= process.cwd()
+    pidToKillWhenClosed = pid if wait
     atomApplication = this
     @windows = []
 
-    @sendArgumentsToExistingProcess (success) =>
+    @sendArgumentsToExistingProcess pidToKillWhenClosed, (success) =>
       process.exit(0) if success # An Atom already exists, kill this process
       @listenForArgumentsFromNewProcess()
       @setupNodePath()
@@ -47,7 +51,7 @@ class AtomApplication
       if @testMode
         @runSpecs(true)
       else
-        @open(@pathsToOpen)
+        @openPaths(@pathsToOpen, pidToKillWhenClosed)
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -78,10 +82,9 @@ class AtomApplication
 
     process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
-  sendArgumentsToExistingProcess: (callback) ->
+  sendArgumentsToExistingProcess: (pidToKillWhenClosed, callback) ->
     client = net.connect {path: @socketPath}, (args...) =>
-      output = JSON.stringify({@pathsToOpen})
-      client.write(output)
+      client.write(JSON.stringify({@pathsToOpen, pidToKillWhenClosed}))
       callback(true)
 
     client.on 'error', (args...) -> callback(false)
@@ -90,8 +93,8 @@ class AtomApplication
     fs.unlinkSync @socketPath if fs.existsSync(@socketPath)
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
-        {pathsToOpen} = JSON.parse(data)
-        @open(pathsToOpen)
+        {pathsToOpen, pidToKillWhenClosed} = JSON.parse(data)
+        @openPaths(pathsToOpen, pidToKillWhenClosed)
 
     server.listen @socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
@@ -163,10 +166,10 @@ class AtomApplication
 
     ipc.on 'open', (processId, routingId, pathsToOpen) =>
       if pathsToOpen?.length > 0
-        @open(pathsToOpen)
+        @openPaths(pathsToOpen)
       else
         pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-        @open(pathsToOpen) if pathsToOpen?
+        @openPaths(pathsToOpen)
 
     ipc.on 'new-window', =>
       @open()
@@ -190,22 +193,24 @@ class AtomApplication
 
     null
 
-  open: (pathsToOpen) ->
-    if pathsToOpen?
-      for pathToOpen in pathsToOpen
-        pathToOpen = path.resolve(@executedFrom, pathToOpen) if @executedFrom and pathToOpen
-        if existingWindow = @windowForPath(pathToOpen)
-          existingWindow.focus()
-          existingWindow.sendCommand('window:open-path', pathToOpen)
-        else
-          atomWindow = new AtomWindow
-            pathToOpen: pathToOpen
-            bootstrapScript: 'window-bootstrap'
-            resourcePath: @resourcePath
+  openPaths: (pathsToOpen=[], pidToKillWhenClosed) ->
+    @openPath(pathToOpen, pidToKillWhenClosed) for pathToOpen in pathsToOpen
+
+  openPath: (pathToOpen, pidToKillWhenClosed) ->
+    if openedWindow = @windowForPath(pathToOpen)
+      openedWindow.focus()
+      openedWindow.sendCommand('window:open-path', pathToOpen)
     else
-      atomWindow = new AtomWindow
-        bootstrapScript: 'window-bootstrap'
-        resourcePath: @resourcePath
+      bootstrapScript = 'window-bootstrap'
+      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, @resourcePath})
+
+    if pidToKillWhenClosed?
+      @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
+
+    openedWindow.browserWindow.on 'closed', =>
+      for pid, trackedWindow of @pidsToOpenWindows when trackedWindow is openedWindow
+        process.kill(pid)
+        delete @pidsToOpenWindows[pid]
 
   openConfig: ->
     if @configWindow
