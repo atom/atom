@@ -19,11 +19,9 @@ class AtomApplication
   version: null
   socketPath: '/tmp/atom.sock'
 
-  constructor: ({@resourcePath, @pathsToOpen, @testMode, @version, wait, pid}) ->
+  constructor: ({@resourcePath, @pathsToOpen, @testMode, @version, pidToKillWhenClosed}) ->
     @pidsToOpenWindows = {}
     @pathsToOpen ?= [null]
-
-    pidToKillWhenClosed = pid if wait
     @windows = []
 
     @sendArgumentsToExistingProcess pidToKillWhenClosed, (success) =>

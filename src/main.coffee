@@ -40,8 +40,7 @@ parseCommandLine = ->
   pathsToOpen = pathsToOpen.map (pathToOpen) ->
     path.resolve(executedFrom ? process.cwd(), pathToOpen)
   testMode = true if args['test']
-  wait = true if args['wait']
-  pid = args['pid']
+  pidToKillWhenClosed = args['pid'] if args['wait']
 
   if args['resource-path']
     resourcePath = args['resource-path']
@@ -53,4 +52,4 @@ parseCommandLine = ->
   catch e
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, executedFrom, pathsToOpen, testMode, version, wait, pid}
+  {resourcePath, executedFrom, pathsToOpen, testMode, version, pidToKillWhenClosed}
