@@ -4,7 +4,8 @@ delegate = require 'atom_delegate'
 optimist = require 'optimist'
 nslog = require('nslog')
 
-console.log = (args...) -> nslog(args.join(" "))
+console.log = (args...) ->
+  nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
 
 require 'coffee-script'
 
