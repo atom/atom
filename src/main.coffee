@@ -16,7 +16,18 @@ getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
 
 parseCommandLine = ->
-  args = optimist(process.argv[1..]).argv
+  options = optimist(process.argv[1..])
+  options.usage """
+
+    Usage: atom [options] [file ..]
+
+  """
+  options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
+  args = options.argv
+  if args.h
+    options.showHelp()
+    process.exit(0)
+
   executedFrom = args['executed-from']
   pathsToOpen = if args._.length > 0 then args._ else null
   testMode = true if args['test']
