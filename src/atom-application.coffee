@@ -28,7 +28,7 @@ class AtomApplication
   constructor: ({@resourcePath, @executedFrom, @pathsToOpen, @testMode, @version}) ->
     if @pathsToOpen?
       @pathsToOpen = @pathsToOpen.map (pathToOpen) =>
-          path.resolve(@executedFrom, pathToOpen)
+        path.resolve(@executedFrom, pathToOpen)
     else
       @pathsToOpen = [@executedFrom] if @executedFrom
 
@@ -204,8 +204,8 @@ class AtomApplication
             resourcePath: @resourcePath
     else
       atomWindow = new AtomWindow
-          bootstrapScript: 'window-bootstrap'
-          resourcePath: @resourcePath
+        bootstrapScript: 'window-bootstrap'
+        resourcePath: @resourcePath
 
   openConfig: ->
     if @configWindow

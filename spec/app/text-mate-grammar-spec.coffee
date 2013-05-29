@@ -122,8 +122,8 @@ describe "TextMateGrammar", ->
 
     describe "when the line is empty", ->
       it "returns a single token which has the global scope", ->
-       {tokens} = grammar.tokenizeLine('')
-       expect(tokens[0]).toEqual value: '',  scopes: ["source.coffee"]
+        {tokens} = grammar.tokenizeLine('')
+        expect(tokens[0]).toEqual value: '',  scopes: ["source.coffee"]
 
     describe "when the line matches no patterns", ->
       it "does not infinitely loop", ->
