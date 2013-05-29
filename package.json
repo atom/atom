@@ -57,7 +57,10 @@
     "text-tmbundle": "1.0.0",
     "textmate-clojure": "1.0.0",
     "xml-tmbundle": "1.0.0",
-    "yaml-tmbundle": "1.0.0"
+    "yaml-tmbundle": "1.0.0",
+    "grunt": "~0.4.1",
+    "grunt-cli": "~0.1.9",
+    "grunt-coffeelint": "0.0.6"
   },
   "devDependencies": {
     "biscotto": "0.0.11"
