@@ -14,8 +14,14 @@ module.exports = (grunt) ->
         'spec/stdlib/**/*.coffee'
       ]
 
+    csslint:
+      options:
+        'adjoining-classes': false
+        'fallback-colors': false
+      src: ['themes/**/*.css', 'src/**/*.css']
 
   grunt.loadNpmTasks('grunt-coffeelint')
+  grunt.loadNpmTasks('grunt-contrib-csslint')
 
-  grunt.registerTask('lint', ['coffeelint:src', 'coffeelint:test'])
+  grunt.registerTask('lint', ['coffeelint:src', 'coffeelint:test', 'csslint:src'])
   grunt.registerTask('default', 'lint')
