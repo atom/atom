@@ -1,0 +1,7 @@
+#!/bin/sh
+
+VERSION=$1
+SOURCE=$2
+TARGET=$3
+
+sed "s/\${VERSION}/${VERSION}/" ${SOURCE} > "${BUILT_PRODUCTS_DIR}/${TARGET}"

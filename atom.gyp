@@ -94,6 +94,24 @@
             '<(version)',
           ],
         },
+        {
+          'postbuild_name': 'Generate Info.plist for App',
+          'action': [
+            'script/generate-info-plist',
+            '<(version)',
+            'resources/mac/app-Info.plist',
+            'Atom.app/Contents/Info.plist',
+          ],
+        },
+        {
+          'postbuild_name': 'Generate Info.plist for Helper',
+          'action': [
+            'script/generate-info-plist',
+            '<(version)',
+            'resources/mac/helper-Info.plist',
+            'Atom.app/Contents/Frameworks/Atom Helper.app/Contents/Info.plist',
+          ],
+        },
       ],
     },
   ],
