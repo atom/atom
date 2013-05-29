@@ -9,7 +9,7 @@ describe "EditSession", ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
   beforeEach ->
-    atom.activatePackage('javascript.tmbundle', sync: true)
+    atom.activatePackage('javascript-tmbundle', sync: true)
     editSession = project.open('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length

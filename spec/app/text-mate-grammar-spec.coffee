@@ -8,17 +8,17 @@ describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
-    atom.activatePackage('text.tmbundle', sync: true)
-    atom.activatePackage('javascript.tmbundle', sync: true)
+    atom.activatePackage('text-tmbundle', sync: true)
+    atom.activatePackage('javascript-tmbundle', sync: true)
     atom.activatePackage('coffee-script-tmbundle', sync: true)
-    atom.activatePackage('ruby.tmbundle', sync: true)
-    atom.activatePackage('html.tmbundle', sync: true)
-    atom.activatePackage('php.tmbundle', sync: true)
+    atom.activatePackage('ruby-tmbundle', sync: true)
+    atom.activatePackage('html-tmbundle', sync: true)
+    atom.activatePackage('php-tmbundle', sync: true)
     grammar = syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
-    it "loads grammars from plists", ->
-      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('packages/text.tmbundle/Syntaxes/Plain text.plist'))
+     it "loads grammars from plists", ->
+      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('fixtures/sample.plist'))
       expect(grammar.scopeName).toBe "text.plain"
       {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
       expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
@@ -212,7 +212,7 @@ describe "TextMateGrammar", ->
       describe "when the pattern includes rules from another grammar", ->
         describe "when a grammar matching the desired scope is available", ->
           it "parses tokens inside the begin/end patterns based on the included grammar's rules", ->
-            atom.activatePackage('html.tmbundle', sync: true)
+            atom.activatePackage('html-tmbundle', sync: true)
             atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
             grammar = syntax.selectGrammar('foo.html.erb')
@@ -243,7 +243,7 @@ describe "TextMateGrammar", ->
             expect(tokens[22]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
 
           it "updates the grammar if the included grammar is updated later", ->
-            atom.activatePackage('html.tmbundle', sync: true)
+            atom.activatePackage('html-tmbundle', sync: true)
             atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
             grammar = syntax.selectGrammar('foo.html.erb')
@@ -253,7 +253,7 @@ describe "TextMateGrammar", ->
             {tokens} = grammar.tokenizeLine("<div class='name'><% <<-SQL select * from users;")
             expect(tokens[12].value).toBe " select * from users;"
 
-            atom.activatePackage('sql.tmbundle', sync: true)
+            atom.activatePackage('sql-tmbundle', sync: true)
             expect(grammarUpdatedHandler).toHaveBeenCalled()
             {tokens} = grammar.tokenizeLine("<div class='name'><% <<-SQL select * from users;")
             expect(tokens[12].value).toBe " "
@@ -261,7 +261,7 @@ describe "TextMateGrammar", ->
 
         describe "when a grammar matching the desired scope is unavailable", ->
           it "updates the grammar if a matching grammar is added later", ->
-            atom.deactivatePackage('html.tmbundle')
+            atom.deactivatePackage('html-tmbundle')
             atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
             grammar = syntax.selectGrammar('foo.html.erb')
@@ -271,7 +271,7 @@ describe "TextMateGrammar", ->
             expect(tokens[2]).toEqual value: ' ', scopes: ["text.html.ruby","source.ruby.rails.embedded.html"]
             expect(tokens[3]).toEqual value: 'User', scopes: ["text.html.ruby","source.ruby.rails.embedded.html","support.class.ruby"]
 
-            atom.activatePackage('html.tmbundle', sync: true)
+            atom.activatePackage('html-tmbundle', sync: true)
             {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
             expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
             expect(tokens[1]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
@@ -315,7 +315,7 @@ describe "TextMateGrammar", ->
 
     describe "when inside a C block", ->
       beforeEach ->
-        atom.activatePackage('c.tmbundle', sync: true)
+        atom.activatePackage('c-tmbundle', sync: true)
 
       it "correctly parses a method. (regression)", ->
         grammar = syntax.selectGrammar("hello.c")
@@ -340,7 +340,7 @@ describe "TextMateGrammar", ->
 
     describe "when a grammar has a pattern that has back references in the match value", ->
       it "does not special handle the back references and instead allows oniguruma to resolve them", ->
-        atom.activatePackage('sass.tmbundle', sync: true)
+        atom.activatePackage('sass-tmbundle', sync: true)
         grammar = syntax.selectGrammar("style.scss")
         {tokens} = grammar.tokenizeLine("@mixin x() { -moz-selector: whatever; }")
         expect(tokens[9]).toEqual value: "-moz-selector", scopes: ["source.css.scss", "meta.property-list.scss", "meta.property-name.scss"]
@@ -429,14 +429,14 @@ describe "TextMateGrammar", ->
 
     describe "when the grammar's pattern name has a group number in it", ->
       it "replaces the group number with the matched captured text", ->
-        atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
+        atom.activatePackage('hyperlink-helper-tmbundle', sync: true)
         grammar = syntax.grammarForScopeName("text.hyperlink")
         {tokens} = grammar.tokenizeLine("https://github.com")
         expect(tokens[0].scopes).toEqual ["text.hyperlink", "markup.underline.link.https.hyperlink"]
 
     describe "when the grammar has an injection selector", ->
       it "includes the grammar's patterns when the selector matches the current scope in other grammars", ->
-        atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
+        atom.activatePackage('hyperlink-helper-tmbundle', sync: true)
         grammar = syntax.selectGrammar("text.js")
         {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
@@ -455,7 +455,7 @@ describe "TextMateGrammar", ->
           expect(tokens[1].value).toBe " http://github.com"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-          atom.activatePackage('hyperlink-helper.tmbundle', sync: true)
+          atom.activatePackage('hyperlink-helper-tmbundle', sync: true)
 
           {tokens} = editSession.lineForScreenRow(0)
           expect(tokens[2].value).toBe "http://github.com"
@@ -482,7 +482,7 @@ describe "TextMateGrammar", ->
           expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
-          atom.activatePackage('sql.tmbundle', sync: true)
+          atom.activatePackage('sql-tmbundle', sync: true)
 
           {tokens} = editSession.lineForScreenRow(0)
           expect(tokens[2].value).toBe "SELECT"
@@ -516,7 +516,7 @@ describe "TextMateGrammar", ->
 
     describe "Git commit messages", ->
       beforeEach ->
-        atom.activatePackage('git.tmbundle', sync: true)
+        atom.activatePackage('git-tmbundle', sync: true)
         grammar = syntax.selectGrammar('COMMIT_EDITMSG')
         lines = grammar.tokenizeLines """
           longggggggggggggggggggggggggggggggggggggggggggggggg
@@ -535,7 +535,7 @@ describe "TextMateGrammar", ->
 
     describe "C++", ->
       beforeEach ->
-        atom.activatePackage('c.tmbundle', sync: true)
+        atom.activatePackage('c-tmbundle', sync: true)
         grammar = syntax.selectGrammar('includes.cc')
         lines = grammar.tokenizeLines """
           #include "a.h"
@@ -573,8 +573,8 @@ describe "TextMateGrammar", ->
 
     describe "Objective-C", ->
       beforeEach ->
-        atom.activatePackage('c.tmbundle', sync: true)
-        atom.activatePackage('objective-c.tmbundle', sync: true)
+        atom.activatePackage('c-tmbundle', sync: true)
+        atom.activatePackage('objective-c-tmbundle', sync: true)
         grammar = syntax.selectGrammar('function.mm')
         lines = grammar.tokenizeLines """
           void test() {

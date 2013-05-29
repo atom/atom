@@ -13,8 +13,8 @@ describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
 
   beforeEach ->
-    atom.activatePackage('text.tmbundle', sync: true)
-    atom.activatePackage('javascript.tmbundle', sync: true)
+    atom.activatePackage('text-tmbundle', sync: true)
+    atom.activatePackage('javascript-tmbundle', sync: true)
     editSession = project.open('sample.js')
     buffer = editSession.buffer
     editor = new Editor(editSession)

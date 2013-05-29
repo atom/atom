@@ -7,7 +7,7 @@ describe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
-    atom.activatePackage('javascript.tmbundle', sync: true)
+    atom.activatePackage('javascript-tmbundle', sync: true)
     # enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
@@ -327,7 +327,7 @@ describe "TokenizedBuffer", ->
 
   describe "when the grammar is updated because a grammar it includes is activated", ->
     it "retokenizes the buffer", ->
-      atom.activatePackage('ruby.tmbundle', sync: true)
+      atom.activatePackage('ruby-tmbundle', sync: true)
       atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
       buffer = project.bufferForPath(null, "<div class='name'><%= User.find(2).full_name %></div>")
@@ -339,7 +339,7 @@ describe "TokenizedBuffer", ->
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
       expect(tokens[0]).toEqual value: "<div class='name'>", scopes: ["text.html.ruby"]
 
-      atom.activatePackage('html.tmbundle', sync: true)
+      atom.activatePackage('html-tmbundle', sync: true)
       fullyTokenize(tokenizedBuffer)
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
       expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]

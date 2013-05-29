@@ -10,7 +10,7 @@ describe "LanguageMode", ->
 
   describe "javascript", ->
     beforeEach ->
-      atom.activatePackage('javascript.tmbundle', sync: true)
+      atom.activatePackage('javascript-tmbundle', sync: true)
       editSession = project.open('sample.js', autoIndent: false)
       { buffer, languageMode } = editSession
 
@@ -88,7 +88,7 @@ describe "LanguageMode", ->
 
   describe "css", ->
     beforeEach ->
-      atom.activatePackage('css.tmbundle', sync: true)
+      atom.activatePackage('css-tmbundle', sync: true)
       editSession = project.open('css.css', autoIndent: false)
       { buffer, languageMode } = editSession
 

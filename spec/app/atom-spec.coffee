@@ -196,12 +196,12 @@ describe "the `atom` global", ->
       describe "textmate packages", ->
         it "loads the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.activatePackage('ruby.tmbundle', sync: true)
+          atom.activatePackage('ruby-tmbundle', sync: true)
           expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
 
         it "translates the package's scoped properties to Atom terms", ->
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
-          atom.activatePackage('ruby.tmbundle', sync: true)
+          atom.activatePackage('ruby-tmbundle', sync: true)
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
     describe ".activatePackageConfig(id)", ->
@@ -267,14 +267,14 @@ describe "the `atom` global", ->
       describe "texmate packages", ->
         it "removes the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
-          atom.activatePackage('ruby.tmbundle', sync: true)
+          atom.activatePackage('ruby-tmbundle', sync: true)
           expect(syntax.selectGrammar("file.rb").name).toBe "Ruby"
-          atom.deactivatePackage('ruby.tmbundle')
+          atom.deactivatePackage('ruby-tmbundle')
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         it "removes the package's scoped properties", ->
-          atom.activatePackage('ruby.tmbundle', sync: true)
-          atom.deactivatePackage('ruby.tmbundle')
+          atom.activatePackage('ruby-tmbundle', sync: true)
+          atom.deactivatePackage('ruby-tmbundle')
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
   describe ".getVersion(callback)", ->
