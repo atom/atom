@@ -19,23 +19,15 @@ class AtomApplication
   configWindow: null
   menu: null
   resourcePath: null
-  executedFrom: null
   pathsToOpen: null
   testMode: null
   version: null
   socketPath: '/tmp/atom.sock'
 
-  constructor: ({@resourcePath, @executedFrom, @pathsToOpen, @testMode, @version, wait, pid}) ->
+  constructor: ({@resourcePath, @pathsToOpen, @testMode, @version, wait, pid}) ->
     @pidsToOpenWindows = {}
-    if @pathsToOpen?
-      @pathsToOpen = @pathsToOpen.map (pathToOpen) =>
-        path.resolve(@executedFrom, pathToOpen)
-    else if @executedFrom
-      @pathsToOpen = [@executedFrom]
-    else
-      @pathsToOpen = [null]
+    @pathsToOpen ?= [null]
 
-    @executedFrom ?= process.cwd()
     pidToKillWhenClosed = pid if wait
     atomApplication = this
     @windows = []

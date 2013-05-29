@@ -36,6 +36,9 @@ parseCommandLine = ->
 
   executedFrom = args['executed-from']
   pathsToOpen = if args._.length > 0 then args._ else null
+  pathsToOpen ?= [executedFrom] if executedFrom
+  pathsToOpen = pathsToOpen.map (pathToOpen) ->
+    path.resolve(executedFrom ? process.cwd(), pathToOpen)
   testMode = true if args['test']
   wait = true if args['wait']
   pid = args['pid']
