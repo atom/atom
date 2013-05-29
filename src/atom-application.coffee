@@ -15,11 +15,10 @@ class AtomApplication
   menu: null
   resourcePath: null
   pathsToOpen: null
-  testMode: null
   version: null
   socketPath: '/tmp/atom.sock'
 
-  constructor: ({@resourcePath, @pathsToOpen, @testMode, @version, pidToKillWhenClosed}) ->
+  constructor: ({@resourcePath, @pathsToOpen, @version, test, pidToKillWhenClosed}) ->
     @pidsToOpenWindows = {}
     @pathsToOpen ?= [null]
     @windows = []
@@ -32,7 +31,7 @@ class AtomApplication
       @buildApplicationMenu()
       @handleEvents()
 
-      if @testMode
+      if test
         @runSpecs(true)
       else
         @openPaths(@pathsToOpen, pidToKillWhenClosed)
