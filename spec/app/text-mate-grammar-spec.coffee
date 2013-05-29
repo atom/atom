@@ -17,7 +17,7 @@ describe "TextMateGrammar", ->
     grammar = syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
-     it "loads grammars from plists", ->
+    it "loads grammars from plists", ->
       grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('fixtures/sample.plist'))
       expect(grammar.scopeName).toBe "text.plain"
       {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
