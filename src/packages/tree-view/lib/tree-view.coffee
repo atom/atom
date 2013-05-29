@@ -251,7 +251,7 @@ class TreeView extends ScrollView
     atom.confirm(
       "Are you sure you would like to delete the selected #{entryType}?",
       "You are deleting #{entry.getPath()}",
-      "Move to Trash", (=> shell.moveToTrash(entry.getPath())),
+      "Move to Trash", (=> shell.moveItemToTrash(entry.getPath())),
       "Cancel", null
       "Delete", (=> fsUtils.remove(entry.getPath()))
     )
