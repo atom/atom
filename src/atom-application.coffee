@@ -8,13 +8,8 @@ fs = require 'fs'
 path = require 'path'
 net = require 'net'
 
-atomApplication = null
-
 module.exports =
 class AtomApplication
-  @addWindow: (window) -> atomApplication.addWindow(window)
-  @removeWindow: (window) -> atomApplication.removeWindow(window)
-
   windows: null
   configWindow: null
   menu: null
@@ -29,7 +24,6 @@ class AtomApplication
     @pathsToOpen ?= [null]
 
     pidToKillWhenClosed = pid if wait
-    atomApplication = this
     @windows = []
 
     @sendArgumentsToExistingProcess pidToKillWhenClosed, (success) =>

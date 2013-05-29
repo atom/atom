@@ -12,7 +12,7 @@ require 'coffee-script'
 
 delegate.browserMainParts.preMainMessageLoopRun = ->
   commandLineArgs = parseCommandLine()
-  new AtomApplication(commandLineArgs)
+  global.atomApplication = new AtomApplication(commandLineArgs)
 
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']

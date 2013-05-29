@@ -6,7 +6,7 @@ class AtomWindow
   browserWindow: null
 
   constructor: ({bootstrapScript, resourcePath, @pathToOpen, exitWhenDone, @isSpec}) ->
-    require('./atom-application').addWindow(this)
+    global.atomApplication.addWindow(this)
 
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
@@ -19,7 +19,7 @@ class AtomWindow
 
   handleEvents: ->
     @browserWindow.on 'destroyed', =>
-      require('./atom-application').removeWindow(this)
+      global.atomApplication.removeWindow(this)
 
     if @isSpec
       # Spec window's web view should always have focus
