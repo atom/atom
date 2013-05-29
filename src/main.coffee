@@ -20,9 +20,9 @@ parseCommandLine = ->
   options.usage """
 
     Usage: atom [options] [file ..]
-
   """
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
+  options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   args = options.argv
   if args.h
     options.showHelp()
