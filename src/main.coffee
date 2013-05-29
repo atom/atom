@@ -2,8 +2,8 @@ fs = require 'fs'
 path = require 'path'
 delegate = require 'atom_delegate'
 optimist = require 'optimist'
-nslog = require('nslog')
-AtomApplication = require('./atom-application')
+nslog = require 'nslog'
+AtomApplication = require './atom-application'
 
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
