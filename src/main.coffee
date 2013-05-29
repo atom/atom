@@ -16,8 +16,11 @@ getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
 
 parseCommandLine = ->
+  version = fs.readFileSync(path.join(__dirname, '..', '..', 'version'), 'utf8')
+
   options = optimist(process.argv[1..])
   options.usage """
+    Atom #{version}
 
     Usage: atom [options] [file ..]
   """
@@ -33,7 +36,6 @@ parseCommandLine = ->
   testMode = true if args['test']
   wait = true if args['wait']
   pid = args['pid']
-  version = String fs.readFileSync(path.join(__dirname, '..', '..', 'version'))
 
   if args['resource-path']
     resourcePath = args['resource-path']
