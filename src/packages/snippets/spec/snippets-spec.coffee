@@ -272,7 +272,7 @@ describe "Snippets extension", ->
         expect(snippet.prefix).toBe 'fun'
         expect(snippet.name).toBe 'Function'
         expect(snippet.body).toBe """
-          function function_name (argument) {
+          function function_name(argument) {
           \t// body...
           }
         """
