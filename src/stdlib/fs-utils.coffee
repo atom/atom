@@ -1,6 +1,3 @@
-# commonjs fs module
-# http://ringojs.org/api/v0.8/fs/
-
 _ = require 'underscore'
 fs = require 'fs'
 mkdirp = require 'mkdirp'
