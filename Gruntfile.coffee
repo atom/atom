@@ -11,6 +11,9 @@ INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
   exec = (command, args, options, callback) ->
+    if _.isFunction(args)
+      options = args
+      args = []
     if _.isFunction(options)
       callback = options
       options = undefined
@@ -145,8 +148,8 @@ module.exports = (grunt) ->
         version = version.trim()
         grunt.file.write(path.resolve(APP_DIR, '..', 'version'), version)
 
-        operations = []
-        operations.push (callback) ->
+        commands = []
+        commands.push (callback) ->
           args = [
             version
             'resources/mac/app-Info.plist'
@@ -154,7 +157,7 @@ module.exports = (grunt) ->
           ]
           exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
 
-        operations.push (result, callback) ->
+        commands.push (result, callback) ->
           args = [
             version
             'resources/mac/helper-Info.plist'
@@ -162,7 +165,7 @@ module.exports = (grunt) ->
           ]
           exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
 
-        grunt.util.async.waterfall operations, (error) -> done(!error?)
+        grunt.util.async.waterfall commands, (error) -> done(!error?)
 
   grunt.registerTask 'clean', 'Delete all build files', ->
     rm BUILD_DIR
@@ -207,6 +210,15 @@ module.exports = (grunt) ->
     rm INSTALL_DIR
     mkdir path.dirname(INSTALL_DIR)
     cp path.join(BUILD_DIR, APP_NAME), INSTALL_DIR
+
+  grunt.registerTask 'bootstrap', 'Bootstrap modules and atom-shell', ->
+    done = @async()
+    commands = []
+    commands.push (callback) ->
+      exec('script/bootstrap', callback)
+    commands.push (result, callback) ->
+      exec('script/update-atom-shell', callback)
+    grunt.util.async.waterfall commands, (error) -> done(!error?)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint'])
