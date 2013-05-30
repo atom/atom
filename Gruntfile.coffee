@@ -109,6 +109,26 @@ module.exports = (grunt) ->
     rm BUILD_DIR
     mkdir path.dirname(BUILD_DIR)
     cp 'atom-shell', BUILD_DIR
+
+    mkdir APP_DIR
+
+    fs.createReadStream('atom.sh').pipe(fs.createWriteStream(path.join(APP_DIR, 'atom.sh')))
+    fs.createReadStream('package.json').pipe(fs.createWriteStream(path.join(APP_DIR, 'package.json')))
+
+    directories = [
+      'benchmark'
+      'dot-atom'
+      'node_modules'
+      'spec'
+      'vendor'
+    ]
+    for directory in directories
+      cp directory, path.join(APP_DIR, directory)
+
+    cp 'src', path.join(APP_DIR, 'src'), filter: /.+\.(cson|coffee|less)$/
+    cp 'static', path.join(APP_DIR, 'static'), filter: /.+\.less$/
+    cp 'themes', path.join(APP_DIR, 'themes'), filter: /.+\.(cson|less)$/
+
     grunt.task.run('compile')
 
   grunt.registerTask 'install', 'Install the built application', ->
