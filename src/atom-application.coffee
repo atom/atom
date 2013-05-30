@@ -25,7 +25,7 @@ class AtomApplication
   resourcePath: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, @version, test, pidToKillWhenClosed}) ->
+  constructor: ({@resourcePath, pathsToOpen, @version, test, pidToKillWhenClosed, @dev}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -89,7 +89,8 @@ class AtomApplication
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
   buildApplicationMenu: ->
-    atomMenu =
+    menus = []
+    menus.push
       label: 'Atom'
       submenu: [
         { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
@@ -106,13 +107,18 @@ class AtomApplication
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
 
-    fileMenu =
+    if @dev
+      menus.push
+        label: '\uD83D\uDC80'
+        submenu: [ { label: 'In Development Mode', enabled: false } ]
+
+    menus.push
       label: 'File'
       submenu: [
         { label: 'Open...', accelerator: 'Command+O', click: => @promptForPath() }
       ]
 
-    editMenu =
+    menus.push
       label: 'Edit'
       submenu:[
         { label: 'Undo', accelerator: 'Command+Z', selector: 'undo:' }
@@ -124,14 +130,14 @@ class AtomApplication
         { label: 'Select All', accelerator: 'Command+A', selector: 'selectAll:' }
       ]
 
-    viewMenu =
+    menus.push
       label: 'View'
       submenu:[
         { label: 'Reload', accelerator: 'Command+R', click: => BrowserWindow.getFocusedWindow()?.restart() }
         { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: => BrowserWindow.getFocusedWindow()?.toggleDevTools() }
       ]
 
-    windowMenu =
+    menus.push
       label: 'Window'
       submenu: [
         { label: 'Minimize', accelerator: 'Command+M', selector: 'performMiniaturize:' }
@@ -140,7 +146,7 @@ class AtomApplication
         { label: 'Bring All to Front', selector: 'arrangeInFront:' }
       ]
 
-    @menu = Menu.buildFromTemplate [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
+    @menu = Menu.buildFromTemplate menus
     Menu.setApplicationMenu @menu
 
   handleEvents: ->

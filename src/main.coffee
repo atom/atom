@@ -51,19 +51,22 @@ parseCommandLine = ->
     process.exit(0)
 
   executedFrom = args['executed-from']
+  dev = args['dev']
   pathsToOpen = args._
   pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
   pidToKillWhenClosed = args['pid'] if args['wait']
 
   if args['resource-path']
+    dev = true
     resourcePath = args['resource-path']
-  else if args['dev']
+  else if dev
     resourcePath = path.join(getHomeDir(), 'github', 'atom')
 
   try
     fs.statSync resourcePath
   catch e
+    dev = false
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed}
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, dev}
