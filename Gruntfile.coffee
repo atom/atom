@@ -2,7 +2,6 @@ fs = require 'fs'
 path = require 'path'
 rm = require('rimraf').sync
 mkdir = require('wrench').mkdirSyncRecursive
-cp = require('wrench').copyDirSyncRecursive
 _ = require 'underscore'
 CSON = require 'season'
 
@@ -12,6 +11,13 @@ APP_DIR = path.join(BUILD_DIR, APP_NAME, 'Contents', 'Resources', 'app')
 INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
+  cp = (source, destination) ->
+    if fs.statSync(source).isDirectory()
+      require('wrench').copyDirSyncRecursive(arguments...)
+    else
+      fs.writeFileSync(destination, fs.readFileSync(source))
+    grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
+
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
@@ -112,8 +118,8 @@ module.exports = (grunt) ->
 
     mkdir APP_DIR
 
-    fs.createReadStream('atom.sh').pipe(fs.createWriteStream(path.join(APP_DIR, 'atom.sh')))
-    fs.createReadStream('package.json').pipe(fs.createWriteStream(path.join(APP_DIR, 'package.json')))
+    cp 'atom.sh', path.join(APP_DIR, 'atom.sh')
+    cp 'package.json', path.join(APP_DIR, 'package.json')
 
     directories = [
       'benchmark'
