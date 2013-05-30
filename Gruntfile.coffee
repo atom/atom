@@ -15,7 +15,7 @@ module.exports = (grunt) ->
     if fs.statSync(source).isDirectory()
       require('wrench').copyDirSyncRecursive(arguments...)
     else
-      fs.writeFileSync(destination, fs.readFileSync(source))
+      grunt.file.copy(source, destination)
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 
   grunt.initConfig
