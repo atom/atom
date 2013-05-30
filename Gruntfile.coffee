@@ -53,7 +53,8 @@ module.exports = (grunt) ->
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 
   mkdir = (args...) -> grunt.file.mkdir(args...)
-  rm = (args...) -> grunt.file.delete(args..., force: true)
+  rm = (args...) ->
+    grunt.file.delete(args..., force: true) if grunt.file.exists(args...)
 
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
