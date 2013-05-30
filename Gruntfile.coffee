@@ -9,9 +9,10 @@ APP_DIR = path.join(BUILD_DIR, APP_NAME, 'Contents', 'Resources', 'app')
 INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
-  cp = (source, destination) ->
+  cp = (source, destination, {filter}={}) ->
     if grunt.file.isDir(source)
       grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
+        return if filter?.test(sourcePath)
         destinationPath = path.join(destination, subDirectory, filename)
         grunt.file.copy(sourcePath, destinationPath)
         if grunt.file.exists(destinationPath)
