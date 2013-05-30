@@ -175,7 +175,7 @@ class AtomApplication
       if pathToOpen is atomWindow.pathToOpen
         return atomWindow
 
-      if pathToOpen.indexOf(path.join(atomWindow.pathToOpen, path.sep)) is 0
+      if atomWindow.pathToOpen? and pathToOpen.indexOf(path.join(atomWindow.pathToOpen, path.sep)) is 0
         return atomWindow
 
     null
