@@ -1,7 +1,5 @@
 fs = require 'fs'
 path = require 'path'
-rm = require('rimraf').sync
-mkdir = require('wrench').mkdirSyncRecursive
 _ = require 'underscore'
 CSON = require 'season'
 
@@ -21,6 +19,9 @@ module.exports = (grunt) ->
     else
       grunt.file.copy(source, destination)
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
+
+  mkdir = (args...) -> grunt.file.mkdir(args...)
+  rm = (args...) -> grunt.file.delete(args..., force: true)
 
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')

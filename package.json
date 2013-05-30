@@ -66,8 +66,6 @@
     "grunt-cli": "~0.1.9",
     "grunt-coffeelint": "0.0.6",
     "grunt-contrib-csslint": "~0.1.2",
-    "rimraf": "~2.1.4",
-    "wrench": "~1.5.1",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-less": "~0.5.2"
   },
