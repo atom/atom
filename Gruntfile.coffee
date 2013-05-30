@@ -13,7 +13,9 @@ INSTALL_DIR = path.join('/Applications', APP_NAME)
 module.exports = (grunt) ->
   cp = (source, destination) ->
     if fs.statSync(source).isDirectory()
-      require('wrench').copyDirSyncRecursive(arguments...)
+      grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
+        destinationPath = path.join(destination, subDirectory, filename)
+        grunt.file.copy(sourcePath, destinationPath)
     else
       grunt.file.copy(source, destination)
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
