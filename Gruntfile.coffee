@@ -6,7 +6,8 @@ CSON = require 'season'
 
 BUILD_DIR = '/tmp/atom-build/atom-shell'
 APP_NAME = 'Atom.app'
-APP_DIR = path.join(BUILD_DIR, APP_NAME, 'Contents', 'Resources', 'app')
+CONTENTS_DIR = path.join(BUILD_DIR, APP_NAME, 'Contents')
+APP_DIR = path.join(CONTENTS_DIR, 'Resources', 'app')
 INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
@@ -219,6 +220,15 @@ module.exports = (grunt) ->
       exec('script/bootstrap', callback)
     commands.push (result, callback) ->
       exec('script/update-atom-shell', callback)
+    grunt.util.async.waterfall commands, (error) -> done(!error?)
+
+  grunt.registerTask 'test', 'Run the specs', ->
+    done = @async()
+    commands = []
+    commands.push (callback) ->
+      exec('pkill', ['Atom'], callback)
+    commands.push (result, callback) ->
+      exec(path.join(CONTENTS_DIR, 'MacOS', 'Atom'), ['--test', '--resource-path', __dirname], callback)
     grunt.util.async.waterfall commands, (error) -> done(!error?)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
