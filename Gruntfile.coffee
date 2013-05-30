@@ -139,6 +139,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'install', 'Install the built application', ->
     rm INSTALL_DIR
+    mkdir path.dirname(INSTALL_DIR)
     cp path.join(BUILD_DIR, APP_NAME), INSTALL_DIR
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
