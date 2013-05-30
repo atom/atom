@@ -5,6 +5,7 @@ path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
 AtomApplication = require './atom-application'
+_ = require 'underscore'
 
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
@@ -12,17 +13,21 @@ console.log = (args...) ->
 require 'coffee-script'
 
 delegate.browserMainParts.preMainMessageLoopRun = ->
-  commandLineArgs = parseCommandLine()
+  args = parseCommandLine()
 
   addPathToOpen = (event, filePath) ->
     event.preventDefault()
-    commandLineArgs.pathsToOpen ?= []
-    commandLineArgs.pathsToOpen.push(filePath)
+    args.pathsToOpen.push(filePath)
 
   app.on 'open-file', addPathToOpen
   app.on 'finish-launching', ->
     app.removeListener 'open-file', addPathToOpen
-    AtomApplication.open(commandLineArgs)
+
+    args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
+      path.resolve(args.executedFrom ? process.cwd(), pathToOpen)
+    args.pathToOpen = _.uniq(args.pathsToOpen)
+
+    AtomApplication.open(args)
 
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
@@ -46,10 +51,8 @@ parseCommandLine = ->
     process.exit(0)
 
   executedFrom = args['executed-from']
-  pathsToOpen = if args._.length > 0 then args._ else null
-  pathsToOpen ?= [executedFrom] if executedFrom
-  pathsToOpen = pathsToOpen?.map (pathToOpen) ->
-    path.resolve(executedFrom ? process.cwd(), pathToOpen)
+  pathsToOpen = args._
+  pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
   pidToKillWhenClosed = args['pid'] if args['wait']
 
@@ -63,4 +66,4 @@ parseCommandLine = ->
   catch e
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, pathsToOpen, test, version, pidToKillWhenClosed}
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed}

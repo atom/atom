@@ -23,10 +23,9 @@ class AtomApplication
   configWindow: null
   menu: null
   resourcePath: null
-  pathsToOpen: null
   version: null
 
-  constructor: ({@resourcePath, @pathsToOpen, @version, test, pidToKillWhenClosed}) ->
+  constructor: ({@resourcePath, pathsToOpen, @version, test, pidToKillWhenClosed}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -41,8 +40,8 @@ class AtomApplication
 
     if test
       @runSpecs(true)
-    else if @pathsToOpen.length > 0
-      @openPaths(@pathsToOpen, pidToKillWhenClosed)
+    else if pathsToOpen.length > 0
+      @openPaths(pathsToOpen, pidToKillWhenClosed)
     else
       # Always open a editor window if this is the first instance of Atom.
       @openPath(null)
@@ -152,7 +151,6 @@ class AtomApplication
     app.on 'open-file', (event, filePath) =>
       event.preventDefault()
       @openPath filePath
-
 
     ipc.on 'close-without-confirm', (processId, routingId) ->
       window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
