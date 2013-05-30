@@ -7,7 +7,9 @@ _ = require 'underscore'
 CSON = require 'season'
 
 BUILD_DIR = '/tmp/atom-build'
-APP_DIR = path.join(BUILD_DIR, 'Atom.app', 'Contents', 'Resources', 'app')
+APP_NAME = 'Atom.app'
+APP_DIR = path.join(BUILD_DIR, APP_NAME, 'Contents', 'Resources', 'app')
+INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
   grunt.initConfig
@@ -108,6 +110,10 @@ module.exports = (grunt) ->
     mkdir BUILD_DIR
     cp 'atom-shell', path.join(BUILD_DIR, 'atom-shell')
     grunt.task.run('compile')
+
+  grunt.registerTask 'install', 'Install the built application', ->
+    rm INSTALL_DIR
+    cp path.join(BUILD_DIR, APP_NAME), INSTALL_DIR
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint'])
