@@ -229,7 +229,7 @@ module.exports = (grunt) ->
     commands.push (callback) ->
       exec('pkill', ['Atom'], ignoreFailures: true, callback)
     commands.push (result, callback) ->
-      exec(path.join(CONTENTS_DIR, 'MacOS', 'Atom'), ['--test', '--resource-path', __dirname], callback)
+      exec(path.join(CONTENTS_DIR, 'MacOS', 'Atom'), ['--test', "--resource-path=#{__dirname}"], callback)
     grunt.util.async.waterfall commands, (error) -> done(!error?)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
