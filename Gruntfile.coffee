@@ -25,7 +25,7 @@ module.exports = (grunt) ->
     stderrChunks = []
     spawned.stderr.on 'data', (data) -> stderrChunks.push(data)
     spawned.on 'close', (code) ->
-      if code is 0 or options.ignoreFailures
+      if code is 0 or options?.ignoreFailures
         callback(null, Buffer.concat(stdoutChunks).toString())
       else if stderrChunks.length > 0
         error = Buffer.concat(stderrChunks).toString()
