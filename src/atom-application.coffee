@@ -139,6 +139,10 @@ class AtomApplication
     app.on 'window-all-closed', ->
       app.quit()
 
+    app.on 'open-file', (event, filePath) =>
+      event.preventDefault()
+      @openPath filePath
+
     ipc.on 'close-without-confirm', (processId, routingId) ->
       window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
       window.removeAllListeners 'close'
