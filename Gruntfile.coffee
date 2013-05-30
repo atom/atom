@@ -13,8 +13,14 @@ module.exports = (grunt) ->
     if grunt.file.isDir(source)
       grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
         return if filter?.test(sourcePath)
+
         destinationPath = path.join(destination, subDirectory, filename)
-        grunt.file.copy(sourcePath, destinationPath)
+        if grunt.file.isLink(sourcePath)
+          grunt.file.mkdir(path.dirname(destinationPath))
+          fs.symlinkSync(fs.readlinkSync(sourcePath), destinationPath)
+        else
+          grunt.file.copy(sourcePath, destinationPath)
+
         if grunt.file.exists(destinationPath)
           fs.chmodSync(destinationPath, fs.statSync(sourcePath).mode)
     else
