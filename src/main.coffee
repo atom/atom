@@ -1,6 +1,6 @@
 fs = require 'fs'
 path = require 'path'
-delegate = require 'atom_delegate'
+delegate = require 'atom-delegate'
 optimist = require 'optimist'
 nslog = require 'nslog'
 AtomApplication = require './atom-application'

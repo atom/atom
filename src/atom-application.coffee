@@ -1,5 +1,5 @@
 AtomWindow = require './atom-window'
-BrowserWindow = require 'browser_window'
+BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 app = require 'app'
 ipc = require 'ipc'

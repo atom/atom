@@ -1,4 +1,4 @@
-BrowserWindow = require 'browser_window'
+BrowserWindow = require 'browser-window'
 ipc = require 'ipc'
 
 module.exports =
