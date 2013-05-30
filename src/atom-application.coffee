@@ -82,11 +82,15 @@ class AtomApplication
     process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
   sendArgumentsToExistingProcess: (pidToKillWhenClosed, callback) ->
+    if not fs.existsSync(@socketPath)
+      callback(false)
+      return
+
     client = net.connect {path: @socketPath}, (args...) =>
       client.write(JSON.stringify({@pathsToOpen, pidToKillWhenClosed}))
       callback(true)
 
-    client.on 'error', (args...) -> callback(false)
+    client.on 'error', (error) -> console.log(error); callback(false)
 
   listenForArgumentsFromNewProcess: ->
     fs.unlinkSync @socketPath if fs.existsSync(@socketPath)
@@ -154,6 +158,10 @@ class AtomApplication
     # Quit when all windows are closed.
     app.on 'window-all-closed', ->
       app.quit()
+
+    # Clean the socket file when quit normally.
+    app.on 'will-quit', =>
+      fs.unlinkSync @socketPath if fs.existsSync(@socketPath)
 
     ipc.on 'close-without-confirm', (processId, routingId) ->
       window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
