@@ -16,6 +16,8 @@ module.exports = (grunt) ->
       grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
         destinationPath = path.join(destination, subDirectory, filename)
         grunt.file.copy(sourcePath, destinationPath)
+        if grunt.file.exists(destinationPath)
+          fs.chmodSync(destinationPath, fs.statSync(sourcePath).mode)
     else
       grunt.file.copy(source, destination)
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
