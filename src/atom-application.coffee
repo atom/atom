@@ -107,6 +107,12 @@ class AtomApplication
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
 
+    fileMenu =
+      label: 'File'
+      submenu: [
+        { label: 'Open...', accelerator: 'Command+O', click: => @promptForPath() }
+      ]
+
     editMenu =
       label: 'Edit'
       submenu:[
@@ -135,14 +141,10 @@ class AtomApplication
         { label: 'Bring All to Front', selector: 'arrangeInFront:' }
       ]
 
-    @menu = Menu.buildFromTemplate [atomMenu, viewMenu, editMenu, windowMenu]
+    @menu = Menu.buildFromTemplate [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
     Menu.setApplicationMenu @menu
 
   handleEvents: ->
-    # Quit when all windows are closed.
-    app.on 'window-all-closed', ->
-      app.quit()
-
     # Clean the socket file when quit normally.
     app.on 'will-quit', =>
       fs.unlinkSync socketPath if fs.existsSync(socketPath)
@@ -164,8 +166,7 @@ class AtomApplication
       if pathsToOpen?.length > 0
         @openPaths(pathsToOpen)
       else
-        pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-        @openPaths(pathsToOpen)
+        @promptForPath()
 
     ipc.on 'new-window', =>
       @open()
@@ -229,3 +230,7 @@ class AtomApplication
       isSpec: true
 
     specWindow.show()
+
+  promptForPath: ->
+    pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
+    @openPaths(pathsToOpen)
