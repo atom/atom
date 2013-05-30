@@ -193,7 +193,9 @@ class AtomApplication
     @openPath(pathToOpen, pidToKillWhenClosed) for pathToOpen in pathsToOpen
 
   openPath: (pathToOpen, pidToKillWhenClosed) ->
-    if openedWindow = @windowForPath(pathToOpen)
+    existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed
+    if existingWindow
+      openedWindow = existingWindow
       openedWindow.focus()
       openedWindow.sendCommand('window:open-path', pathToOpen)
     else
