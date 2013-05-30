@@ -6,9 +6,9 @@ cp = require('wrench').copyDirSyncRecursive
 _ = require 'underscore'
 CSON = require 'season'
 
-BUILD_DIR = '/tmp/atom-build'
+BUILD_DIR = '/tmp/atom-build/atom-shell'
 APP_NAME = 'Atom.app'
-APP_DIR = path.join(BUILD_DIR, 'atom-shell', APP_NAME, 'Contents', 'Resources', 'app')
+APP_DIR = path.join(BUILD_DIR, APP_NAME, 'Contents', 'Resources', 'app')
 INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
@@ -107,8 +107,8 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build', 'Build the application', ->
     rm BUILD_DIR
-    mkdir BUILD_DIR
-    cp 'atom-shell', path.join(BUILD_DIR, 'atom-shell')
+    mkdir path.dirname(BUILD_DIR)
+    cp 'atom-shell', BUILD_DIR
     grunt.task.run('compile')
 
   grunt.registerTask 'install', 'Install the built application', ->
