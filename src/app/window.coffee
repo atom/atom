@@ -10,7 +10,7 @@ require 'space-pen-extensions'
 
 deserializers = {}
 deferredDeserializers = {}
-defaultWindowDimensions = {x: 0, y: 0, width: 800, height: 600}
+defaultWindowDimensions = {width: 800, height: 600}
 
 ### Internal ###
 
@@ -197,8 +197,11 @@ window.getDimensions = ->
 
 window.setDimensions = ({x, y, width, height}) ->
   browserWindow = remote.getCurrentWindow()
-  browserWindow.setPosition(x, y)
   browserWindow.setSize(width, height)
+  if x? and y?
+    browserWindow.setPosition(x, y)
+  else
+    browserWindow.center()
 
 window.restoreDimensions = ->
   dimensions = atom.getWindowState('dimensions')
