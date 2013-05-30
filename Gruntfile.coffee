@@ -10,7 +10,7 @@ INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
   cp = (source, destination) ->
-    if fs.statSync(source).isDirectory()
+    if grunt.file.isDir(source)
       grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
         destinationPath = path.join(destination, subDirectory, filename)
         grunt.file.copy(sourcePath, destinationPath)
