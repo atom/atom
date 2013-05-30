@@ -191,11 +191,11 @@ class AtomApplication
   windowForPath: (pathToOpen) ->
     return null unless pathToOpen
 
-    for atomWindow in @windows
+    for atomWindow in @windows when atomWindow.pathToOpen?
       if pathToOpen is atomWindow.pathToOpen
         return atomWindow
 
-      if atomWindow.pathToOpen? and pathToOpen.indexOf(path.join(atomWindow.pathToOpen, path.sep)) is 0
+      if pathToOpen.indexOf(path.join(atomWindow.pathToOpen, path.sep)) is 0
         return atomWindow
 
     null
