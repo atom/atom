@@ -1,6 +1,7 @@
+delegate = require 'atom-delegate'
+app = require 'app'
 fs = require 'fs'
 path = require 'path'
-delegate = require 'atom-delegate'
 optimist = require 'optimist'
 nslog = require 'nslog'
 AtomApplication = require './atom-application'
@@ -12,7 +13,16 @@ require 'coffee-script'
 
 delegate.browserMainParts.preMainMessageLoopRun = ->
   commandLineArgs = parseCommandLine()
-  global.atomApplication = new AtomApplication(commandLineArgs)
+
+  addPathToOpen = (event, filePath) ->
+    event.preventDefault()
+    commandLineArgs.pathsToOpen ?= []
+    commandLineArgs.pathsToOpen.push(filePath)
+
+  app.on 'open-file', addPathToOpen
+  app.on 'finish-launching', ->
+    app.removeListener 'open-file', addPathToOpen
+    global.atomApplication = new AtomApplication(commandLineArgs)
 
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']

@@ -16,7 +16,6 @@ class AtomApplication
   resourcePath: null
   pathsToOpen: null
   version: null
-  launched: false
   socketPath: '/tmp/atom.sock'
 
   constructor: ({@resourcePath, @pathsToOpen, @version, test, pidToKillWhenClosed}) ->
@@ -24,33 +23,21 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
-    app.on 'open-file', (event, filePath) =>
-      event.preventDefault()
-      if @launched
-        @openPath filePath
+    @sendArgumentsToExistingProcess pidToKillWhenClosed, (success) =>
+      app.terminate() if success # An Atom already exists, kill this process
+      @listenForArgumentsFromNewProcess()
+      @setupNodePath()
+      @setupJavaScriptArguments()
+      @buildApplicationMenu()
+      @handleEvents()
+
+      if test
+        @runSpecs(true)
+      else if @pathsToOpen.length > 0
+        @openPaths(@pathsToOpen, pidToKillWhenClosed)
       else
-        # Delay opening until Atom has finished launching, this condition
-        # happens when user double clicks a file in Finder to open it.
-        @pathsToOpen.push filePath
-
-    app.on 'finish-launching', =>
-      @launched = true
-
-      @sendArgumentsToExistingProcess pidToKillWhenClosed, (success) =>
-        app.terminate() if success # An Atom already exists, kill this process
-        @listenForArgumentsFromNewProcess()
-        @setupNodePath()
-        @setupJavaScriptArguments()
-        @buildApplicationMenu()
-        @handleEvents()
-
-        if test
-          @runSpecs(true)
-        else if @pathsToOpen.length > 0
-          @openPaths(@pathsToOpen, pidToKillWhenClosed)
-        else
-          # Always open a editor window if this is the first instance of Atom.
-          @openPath(null)
+        # Always open a editor window if this is the first instance of Atom.
+        @openPath(null)
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -82,10 +69,6 @@ class AtomApplication
     process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
   sendArgumentsToExistingProcess: (pidToKillWhenClosed, callback) ->
-    if not fs.existsSync(@socketPath)
-      callback(false)
-      return
-
     client = net.connect {path: @socketPath}, (args...) =>
       client.write(JSON.stringify({@pathsToOpen, pidToKillWhenClosed}))
       callback(true)
@@ -162,6 +145,11 @@ class AtomApplication
     # Clean the socket file when quit normally.
     app.on 'will-quit', =>
       fs.unlinkSync @socketPath if fs.existsSync(@socketPath)
+
+    app.on 'open-file', (event, filePath) =>
+      event.preventDefault()
+      @openPath filePath
+
 
     ipc.on 'close-without-confirm', (processId, routingId) ->
       window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
