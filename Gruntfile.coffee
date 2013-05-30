@@ -8,7 +8,7 @@ CSON = require 'season'
 
 BUILD_DIR = '/tmp/atom-build'
 APP_NAME = 'Atom.app'
-APP_DIR = path.join(BUILD_DIR, APP_NAME, 'Contents', 'Resources', 'app')
+APP_DIR = path.join(BUILD_DIR, 'atom-shell', APP_NAME, 'Contents', 'Resources', 'app')
 INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
