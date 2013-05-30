@@ -8,36 +8,44 @@ fs = require 'fs'
 path = require 'path'
 net = require 'net'
 
+socketPath = '/tmp/atom.sock'
+
 module.exports =
 class AtomApplication
+  @open: (options) ->
+    client = net.connect {path: socketPath}, ->
+      client.write(JSON.stringify(options))
+      app.terminate()
+
+    client.on 'error', -> new AtomApplication(options)
+
   windows: null
   configWindow: null
   menu: null
   resourcePath: null
   pathsToOpen: null
   version: null
-  socketPath: '/tmp/atom.sock'
 
   constructor: ({@resourcePath, @pathsToOpen, @version, test, pidToKillWhenClosed}) ->
+    global.atomApplication = this
+
     @pidsToOpenWindows = {}
     @pathsToOpen ?= []
     @windows = []
 
-    @sendArgumentsToExistingProcess pidToKillWhenClosed, (success) =>
-      app.terminate() if success # An Atom already exists, kill this process
-      @listenForArgumentsFromNewProcess()
-      @setupNodePath()
-      @setupJavaScriptArguments()
-      @buildApplicationMenu()
-      @handleEvents()
+    @listenForArgumentsFromNewProcess()
+    @setupNodePath()
+    @setupJavaScriptArguments()
+    @buildApplicationMenu()
+    @handleEvents()
 
-      if test
-        @runSpecs(true)
-      else if @pathsToOpen.length > 0
-        @openPaths(@pathsToOpen, pidToKillWhenClosed)
-      else
-        # Always open a editor window if this is the first instance of Atom.
-        @openPath(null)
+    if test
+      @runSpecs(true)
+    else if @pathsToOpen.length > 0
+      @openPaths(@pathsToOpen, pidToKillWhenClosed)
+    else
+      # Always open a editor window if this is the first instance of Atom.
+      @openPath(null)
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -68,21 +76,14 @@ class AtomApplication
 
     process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
-  sendArgumentsToExistingProcess: (pidToKillWhenClosed, callback) ->
-    client = net.connect {path: @socketPath}, (args...) =>
-      client.write(JSON.stringify({@pathsToOpen, pidToKillWhenClosed}))
-      callback(true)
-
-    client.on 'error', (error) -> console.log(error); callback(false)
-
   listenForArgumentsFromNewProcess: ->
-    fs.unlinkSync @socketPath if fs.existsSync(@socketPath)
+    fs.unlinkSync socketPath if fs.existsSync(socketPath)
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
         {pathsToOpen, pidToKillWhenClosed} = JSON.parse(data)
         @openPaths(pathsToOpen, pidToKillWhenClosed)
 
-    server.listen @socketPath
+    server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
 
   setupJavaScriptArguments: ->
@@ -144,7 +145,7 @@ class AtomApplication
 
     # Clean the socket file when quit normally.
     app.on 'will-quit', =>
-      fs.unlinkSync @socketPath if fs.existsSync(@socketPath)
+      fs.unlinkSync socketPath if fs.existsSync(socketPath)
 
     app.on 'open-file', (event, filePath) =>
       event.preventDefault()

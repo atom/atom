@@ -22,7 +22,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
   app.on 'open-file', addPathToOpen
   app.on 'finish-launching', ->
     app.removeListener 'open-file', addPathToOpen
-    global.atomApplication = new AtomApplication(commandLineArgs)
+    AtomApplication.open(commandLineArgs)
 
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
