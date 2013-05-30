@@ -24,6 +24,15 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
+    app.on 'open-file', (event, filePath) =>
+      event.preventDefault()
+      if @launched
+        @openPath filePath
+      else
+        # Delay opening until Atom has finished launching, this condition
+        # happens when user double clicks a file in Finder to open it.
+        @pathsToOpen.push filePath
+
     app.on 'finish-launching', =>
       @launched = true
 
@@ -145,15 +154,6 @@ class AtomApplication
     # Quit when all windows are closed.
     app.on 'window-all-closed', ->
       app.quit()
-
-    app.on 'open-file', (event, filePath) =>
-      event.preventDefault()
-      if @launched
-        @openPath filePath
-      else
-        # Delay opening until Atom has finished launching, this condition
-        # happens when user double clicks a file in Finder to open it.
-        @pathsToOpen.push filePath
 
     ipc.on 'close-without-confirm', (processId, routingId) ->
       window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
