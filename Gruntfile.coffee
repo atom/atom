@@ -32,8 +32,9 @@ module.exports = (grunt) ->
         grunt.log.error(error)
         callback(error)
       else
+        error = "`#{command}` Failed with code: #{code}"
         grunt.log.error(error)
-        callback("`#{command}` Failed with code: #{code}")
+        callback(error)
 
   cp = (source, destination, {filter}={}) ->
     if grunt.file.isDir(source)
