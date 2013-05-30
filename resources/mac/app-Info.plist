@@ -1,68 +1,488 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>BuildMachineOSBuild</key>
-	<string>12D78</string>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.folder</string>
-				<string>public.plain-text</string>
-			</array>
-		</dict>
-	</array>
-	<key>CFBundleExecutable</key>
-	<string>Atom</string>
-	<key>CFBundleIconFile</key>
-	<string>atom.icns</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.github.atom</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>Atom</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-  <string>${VERSION}</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>${VERSION}</string>
-	<key>DTCompiler</key>
-	<string>com.apple.compilers.llvm.clang.1_0</string>
-	<key>DTPlatformBuild</key>
-	<string>4H1003</string>
-	<key>DTPlatformVersion</key>
-	<string>GM</string>
-	<key>DTSDKBuild</key>
-	<string>12D78</string>
-	<key>DTSDKName</key>
-	<string></string>
-	<key>DTXcode</key>
-	<string>0462</string>
-	<key>DTXcodeBuild</key>
-	<string>4H1003</string>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.developer-tools</string>
-	<key>NSMainNibFile</key>
-	<string>MainMenu</string>
-	<key>NSPrincipalClass</key>
-	<string>AtomApplication</string>
-	<key>SUFeedURL</key>
-	<string>https://speakeasy.githubapp.com/apps/27/appcast.xml</string>
-	<key>SUPublicDSAKeyFile</key>
-	<string>speakeasy.pem</string>
-	<key>SUScheduledCheckInterval</key>
-	<string>3600</string>
-</dict>
-</plist>
+{
+	CFBundleName                  = "Atom";
+	CFBundleShortVersionString    = "${VERSION}";
+	CFBundleVersion               = "${VERSION}";
+	CFBundleIdentifier            = "com.github.atom";
+
+	CFBundleDevelopmentRegion     = English;
+	CFBundleExecutable            = "Atom";
+	CFBundleIconFile              = "atom.icns";
+	CFBundleInfoDictionaryVersion = "6.0";
+	CFBundlePackageType           = APPL;
+	CFBundleSignature             = "????";
+	LSApplicationCategoryType     = "public.app-category.developer-tools";
+	LSMinimumSystemVersion        = "10.7";
+	NSAppleScriptEnabled          = YES;
+	NSMainNibFile                 = MainMenu;
+	NSPrincipalClass              = AtomApplication;
+
+	SUFeedURL                     = "https://speakeasy.githubapp.com/apps/27/appcast.xml";
+	SUPublicDSAKeyFile            = "speakeasy.pem";
+	SUScheduledCheckInterval      = "3600";
+
+	CFBundleDocumentTypes = (
+		{	CFBundleTypeName       = "ADA source";
+			CFBundleTypeExtensions = (adb, ads);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Compiled AppleScript";
+			CFBundleTypeExtensions = (scpt);
+			CFBundleTypeIconFile   = AS;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "AppleScript source";
+			CFBundleTypeExtensions = (applescript);
+			CFBundleTypeIconFile   = AS;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "ActionScript source";
+			CFBundleTypeExtensions = (as);
+			CFBundleTypeIconFile   = AS;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "ASP document";
+			CFBundleTypeExtensions = (asp, asa);
+			CFBundleTypeIconFile   = ASP;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "ASP.NET document";
+			CFBundleTypeExtensions = (aspx, ascx, asmx, ashx);
+			CFBundleTypeIconFile   = ASP;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "BibTeX bibliography";
+			CFBundleTypeExtensions = (bib);
+			CFBundleTypeIconFile   = BibTeX;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "C source";
+			CFBundleTypeExtensions = (c);
+			CFBundleTypeIconFile   = C;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "C++ source";
+			CFBundleTypeExtensions = (cc, cp, cpp, cxx, "c++");
+			CFBundleTypeIconFile   = "C++";
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "C# source";
+			CFBundleTypeExtensions = (cs);
+			CFBundleTypeIconFile   = "C#";
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "CoffeeScript source";
+			CFBundleTypeExtensions = (coffee);
+			CFBundleTypeIconFile   = CoffeeScript;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Context Free Design Grammar";
+			CFBundleTypeExtensions = (cfdg);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Comma separated values";
+			CFBundleTypeExtensions = (csv);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Tab separated values";
+			CFBundleTypeExtensions = (tsv);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "CGI script";
+			CFBundleTypeExtensions = (cgi, fcgi);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Configuration file";
+			CFBundleTypeExtensions = (cfg, conf, config, htaccess);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Cascading style sheet";
+			CFBundleTypeExtensions = (css);
+			CFBundleTypeIconFile   = CSS;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Differences file";
+			CFBundleTypeExtensions = (diff);
+			CFBundleTypeIconFile   = Diff;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Document Type Definition";
+			CFBundleTypeExtensions = (dtd);
+			CFBundleTypeIconFile   = XML;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Dylan source";
+			CFBundleTypeExtensions = (dylan);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Erlang source";
+			CFBundleTypeExtensions = (erl, hrl);
+			CFBundleTypeIconFile   = Erlang;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "F-Script source";
+			CFBundleTypeExtensions = (fscript);
+			CFBundleTypeIconFile   = "Blank";
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Fortran source";
+			CFBundleTypeExtensions = (f, for, fpp, f77, f90, f95);
+			CFBundleTypeIconFile   = Fortran;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Header";
+			CFBundleTypeExtensions = (h, pch);
+			CFBundleTypeIconFile   = H;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "C++ header";
+			CFBundleTypeExtensions = (hh, hpp, hxx, "h++");
+			CFBundleTypeIconFile   = "H++";
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "GTD document";
+			CFBundleTypeExtensions = (gtd, gtdlog);
+			CFBundleTypeIconFile   = GTD;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Haskell source";
+			CFBundleTypeExtensions = (hs, lhs);
+			CFBundleTypeIconFile   = Haskell;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "HTML document";
+			CFBundleTypeExtensions = (htm, html, phtml, shtml);
+			CFBundleTypeIconFile   = HTML;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Include file";
+			CFBundleTypeExtensions = (inc);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "iCalendar schedule";
+			CFBundleTypeExtensions = (ics);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "MS Windows initialization file";
+			CFBundleTypeExtensions = (ini);
+			CFBundleTypeIconFile   = INI;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Io source";
+			CFBundleTypeExtensions = (io);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Java source";
+			CFBundleTypeExtensions = (java);
+			CFBundleTypeIconFile   = Java;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "BeanShell script";
+			CFBundleTypeExtensions = (bsh);
+			CFBundleTypeIconFile   = Java;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Java properties file";
+			CFBundleTypeExtensions = (properties);
+			CFBundleTypeIconFile   = Java;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "JavaScript source";
+			CFBundleTypeExtensions = (js, htc);
+			CFBundleTypeIconFile   = JavaScript;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Java Server Page";
+			CFBundleTypeExtensions = (jsp);
+			CFBundleTypeIconFile   = Java;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "JSON file";
+			CFBundleTypeExtensions = (json);
+			CFBundleTypeIconFile   = JSON;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "LDAP Data Interchange Format";
+			CFBundleTypeExtensions = (ldif);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Lisp source";
+			CFBundleTypeExtensions = (lisp, cl, l, lsp, mud, el);
+			CFBundleTypeIconFile   = Lisp;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Log file";
+			CFBundleTypeExtensions = (log);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Logo source";
+			CFBundleTypeExtensions = (logo);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Lua source";
+			CFBundleTypeExtensions = (lua);
+			CFBundleTypeIconFile   = Lua;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Markdown document";
+			CFBundleTypeExtensions = (markdown, mdown, markdn, md);
+			CFBundleTypeIconFile   = Markdown;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Mediawiki document";
+			CFBundleTypeExtensions = (wiki, wikipedia, mediawiki);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "MIPS assembler source";
+			CFBundleTypeExtensions = (s, mips, spim, asm);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Modula-3 source";
+			CFBundleTypeExtensions = (m3, cm3);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "MoinMoin document";
+			CFBundleTypeExtensions = (moinmoin);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Objective-C source";
+			CFBundleTypeExtensions = (m);
+			CFBundleTypeIconFile   = "Obj-C";
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Objective-C++ source";
+			CFBundleTypeExtensions = (mm);
+			CFBundleTypeIconFile   = "Obj-C++";
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "OCaml source";
+			CFBundleTypeExtensions = (ml, mli, mll, mly);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Pascal source";
+			CFBundleTypeExtensions = (pas, p);
+			CFBundleTypeIconFile   = Pascal;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Patch file";
+			CFBundleTypeExtensions = (patch);
+			CFBundleTypeIconFile   = Patch;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Perl source";
+			CFBundleTypeExtensions = (pl, pod, perl);
+			CFBundleTypeIconFile   = Perl;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Perl module";
+			CFBundleTypeExtensions = (pm);
+			CFBundleTypeIconFile   = Perl;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "PHP source";
+			CFBundleTypeExtensions = (php, php3, php4, php5);
+			CFBundleTypeIconFile   = PHP;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "PostScript source";
+			CFBundleTypeExtensions = (ps, eps);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Property list";
+			CFBundleTypeExtensions = (dict, plist, scriptSuite, scriptTerminology);
+			CFBundleTypeIconFile   = Plist;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Python source";
+			CFBundleTypeExtensions = (py, rpy, cpy, python);
+			CFBundleTypeIconFile   = Python;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "R source";
+			CFBundleTypeExtensions = (r, s);
+			CFBundleTypeIconFile   = R;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Ragel source";
+			CFBundleTypeExtensions = (rl, ragel);
+			CFBundleTypeIconFile   = Ragel;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Remind document";
+			CFBundleTypeExtensions = (rem, remind);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "reStructuredText document";
+			CFBundleTypeExtensions = (rst, rest);
+			CFBundleTypeIconFile   = reST;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "HTML with embedded Ruby";
+			CFBundleTypeExtensions = (rhtml);
+			CFBundleTypeIconFile   = RHTML;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "SQL with embedded Ruby";
+			CFBundleTypeExtensions = (erbsql);
+			CFBundleTypeIconFile   = SQL;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Ruby source";
+			CFBundleTypeExtensions = (rb, rbx, rjs, rxml);
+			CFBundleTypeIconFile   = Ruby;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Scheme source";
+			CFBundleTypeExtensions = (scm, sch);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Setext document";
+			CFBundleTypeExtensions = (ext);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Shell script";
+			CFBundleTypeExtensions = (sh, ss, bashrc, "bash_profile", "bash_login", profile, "bash_logout");
+			CFBundleTypeIconFile   = Shell;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Slate source";
+			CFBundleTypeExtensions = (slate);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "SQL source";
+			CFBundleTypeExtensions = (sql);
+			CFBundleTypeIconFile   = SQL;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Standard ML source";
+			CFBundleTypeExtensions = (sml);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Strings document";
+			CFBundleTypeExtensions = (strings);
+			CFBundleTypeIconFile   = Strings;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Scalable vector graphics";
+			CFBundleTypeExtensions = (svg);
+			CFBundleTypeIconFile   = XML;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "SWIG source";
+			CFBundleTypeExtensions = (i, swg);
+			CFBundleTypeIconFile   = SWIG;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Tcl source";
+			CFBundleTypeExtensions = (tcl);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "TeX document";
+			CFBundleTypeExtensions = (tex, sty, cls);
+			CFBundleTypeIconFile   = TeX;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Plain text document";
+			CFBundleTypeExtensions = (text, txt, utf8);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeMIMETypes  = ("text/plain");
+			CFBundleTypeOSTypes    = (TEXT, sEXT, ttro);
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Textile document";
+			CFBundleTypeExtensions = (textile);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "XHTML document";
+			CFBundleTypeExtensions = (xhtml);
+			CFBundleTypeIconFile   = XML;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "XML document";
+			CFBundleTypeExtensions = (xml, xsd, xib, rss, tld, pt, cpt, dtml);
+			CFBundleTypeIconFile   = XML;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "XSL stylesheet";
+			CFBundleTypeExtensions = (xsl, xslt);
+			CFBundleTypeIconFile   = XML;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Electronic business card";
+			CFBundleTypeExtensions = (vcf, vcard);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Visual Basic source";
+			CFBundleTypeExtensions = (vb);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "YAML document";
+			CFBundleTypeExtensions = (yaml, yml);
+			CFBundleTypeIconFile   = YAML;
+			CFBundleTypeRole       = Editor;
+		},
+
+		/* generic types */
+		{	CFBundleTypeName       = "Text document"; /* generic plain text types */
+			CFBundleTypeExtensions = (nfo);
+			CFBundleTypeIconFile   = Text;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Source";        /* generic source code types */
+			CFBundleTypeExtensions = (
+				g, vss, d, e, gri, inf, mel, build, re,
+				textmate, fxscript, lgt
+			);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+		{	CFBundleTypeName       = "Document";      /* generic document types */
+			CFBundleTypeExtensions = (
+				cfm, cfml, dbm, dbml, dist, dot, ics, ifb, dwt, g,
+				in, l, m4, mp, mtml, orig, pde,
+				rej, servlet, s5, tmp, tpl, tt,
+				xql, yy, "*"
+			);
+			CFBundleTypeIconFile   = Blank;
+			CFBundleTypeRole       = Editor;
+		},
+
+		{	CFBundleTypeName       = "Document";
+			CFBundleTypeIconFile   = GenericDocumentIcon;
+			CFBundleTypeOSTypes    = ("****");
+			CFBundleTypeRole       = Editor;
+			LSItemContentTypes     = ( public.data );
+		},
+
+		{	CFBundleTypeRole       = "Editor";
+			LSItemContentTypes     = ( "public.directory", "com.apple.bundle", "com.apple.resolvable" );
+		},
+	);
+}

@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BuildMachineOSBuild</key>
-	<string>12D78</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -24,24 +22,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>${VERSION}</string>
-	<key>DTCompiler</key>
-	<string>com.apple.compilers.llvm.clang.1_0</string>
-	<key>DTPlatformBuild</key>
-	<string>4H1003</string>
-	<key>DTPlatformVersion</key>
-	<string>GM</string>
-	<key>DTSDKBuild</key>
-	<string>12D78</string>
-	<key>DTSDKName</key>
-	<string></string>
-	<key>DTXcode</key>
-	<string>0462</string>
-	<key>DTXcodeBuild</key>
-	<string>4H1003</string>
-	<key>LSFileQuarantineEnabled</key>
-	<true/>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.5.0</string>
+	<string>10.7.0</string>
 	<key>LSUIElement</key>
 	<string>1</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
