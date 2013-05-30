@@ -16,25 +16,14 @@ class AtomApplication
   resourcePath: null
   pathsToOpen: null
   version: null
+  pidToKillWhenClosed: null
+  launched: false
   socketPath: '/tmp/atom.sock'
 
-  constructor: ({@resourcePath, @pathsToOpen, @version, test, pidToKillWhenClosed}) ->
+  constructor: ({@resourcePath, @pathsToOpen, @version, test, @pidToKillWhenClosed}) ->
     @pidsToOpenWindows = {}
-    @pathsToOpen ?= [null]
+    @pathsToOpen ?= []
     @windows = []
-
-    @sendArgumentsToExistingProcess pidToKillWhenClosed, (success) =>
-      process.exit(0) if success # An Atom already exists, kill this process
-      @listenForArgumentsFromNewProcess()
-      @setupNodePath()
-      @setupJavaScriptArguments()
-      @buildApplicationMenu()
-      @handleEvents()
-
-      if test
-        @runSpecs(true)
-      else
-        @openPaths(@pathsToOpen, pidToKillWhenClosed)
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -141,7 +130,31 @@ class AtomApplication
 
     app.on 'open-file', (event, filePath) =>
       event.preventDefault()
-      @openPath filePath
+      if @launched
+        @openPath filePath
+      else
+        # Delay opening until Atom has finished launching, this condition
+        # happens when user double clicks a file in Finder to open it.
+        @pathsToOpen.push filePath
+
+    app.on 'finish-launching', =>
+      @launched = true
+
+      @sendArgumentsToExistingProcess @pidToKillWhenClosed, (success) =>
+        app.terminate() if success # An Atom already exists, kill this process
+        @listenForArgumentsFromNewProcess()
+        @setupNodePath()
+        @setupJavaScriptArguments()
+        @buildApplicationMenu()
+        @handleEvents()
+
+        if test
+          @runSpecs(true)
+        else if @pathsToOpen.length > 0
+          @openPaths(@pathsToOpen, pidToKillWhenClosed)
+        else
+          # Always open a editor window if this is the first instance of Atom.
+          @openPath(null)
 
     ipc.on 'close-without-confirm', (processId, routingId) ->
       window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
