@@ -128,8 +128,7 @@ module.exports = (grunt) ->
       'spec'
       'vendor'
     ]
-    for directory in directories
-      cp directory, path.join(APP_DIR, directory)
+    cp directory, path.join(APP_DIR, directory) for directory in directories
 
     cp 'src', path.join(APP_DIR, 'src'), filter: /.+\.(cson|coffee|less)$/
     cp 'static', path.join(APP_DIR, 'static'), filter: /.+\.less$/
