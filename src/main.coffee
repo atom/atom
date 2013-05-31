@@ -25,7 +25,6 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen)
-    args.pathToOpen = _.uniq(args.pathsToOpen)
 
     AtomApplication.open(args)
 
