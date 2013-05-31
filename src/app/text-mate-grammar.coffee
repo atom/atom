@@ -159,7 +159,7 @@ class TextMateGrammar
           ruleStack.pop()
 
         [penultimateRule, lastRule] = ruleStack[-2..]
-        if lastRule? and penultimateRule.scopeName == lastRule.scopeName
+        if lastRule?.scopeName? and penultimateRule.scopeName == lastRule.scopeName
           ruleStack.pop()
           tokens.push(new Token(
             value: line[position...line.length]
