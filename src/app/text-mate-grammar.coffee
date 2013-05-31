@@ -203,7 +203,7 @@ class Injections
     return injection.scanner if injection.scanner?
 
     regexes = _.map injection.patterns, (pattern) ->
-      pattern.getRegex(firstLine, position, @anchorPosition)
+      pattern.getRegex(firstLine, position, anchorPosition)
     scanner = new OnigScanner(regexes)
     scanner.patterns = injection.patterns
     scanner.anchored = injection.anchored
