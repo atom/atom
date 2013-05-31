@@ -37,21 +37,23 @@ module.exports = (grunt) ->
         callback(error)
 
   cp = (source, destination, {filter}={}) ->
+    copyFile = (source, destination) ->
+      if grunt.file.isLink(source)
+        grunt.file.mkdir(path.dirname(destination))
+        fs.symlinkSync(fs.readlinkSync(source), destination)
+      else
+        grunt.file.copy(source, destination)
+
+      if grunt.file.exists(destination)
+        fs.chmodSync(destination, fs.statSync(source).mode)
+
     if grunt.file.isDir(source)
       grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
-        return if filter?.test(sourcePath)
-
-        destinationPath = path.join(destination, subDirectory, filename)
-        if grunt.file.isLink(sourcePath)
-          grunt.file.mkdir(path.dirname(destinationPath))
-          fs.symlinkSync(fs.readlinkSync(sourcePath), destinationPath)
-        else
-          grunt.file.copy(sourcePath, destinationPath)
-
-        if grunt.file.exists(destinationPath)
-          fs.chmodSync(destinationPath, fs.statSync(sourcePath).mode)
+        unless filter?.test(sourcePath)
+          copyFile(sourcePath, path.join(destination, subDirectory, filename))
     else
-      grunt.file.copy(source, destination)
+      copyFile(source, destination)
+
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 
   mkdir = (args...) -> grunt.file.mkdir(args...)
