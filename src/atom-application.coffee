@@ -1,6 +1,7 @@
 AtomWindow = require './atom-window'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
+crashReporter = require 'crash-reporter'
 app = require 'app'
 ipc = require 'ipc'
 dialog = require 'dialog'
@@ -43,6 +44,7 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
+    @setupCrashReporter()
     @listenForArgumentsFromNewProcess()
     @setupNodePath()
     @setupJavaScriptArguments()
@@ -85,6 +87,11 @@ class AtomApplication
       path.resolve @resourcePath, relativeOrAbsolutePath
 
     process.env['NODE_PATH'] = resourcePaths.join path.delimiter
+
+  setupCrashReporter: ->
+    crashReporter.setCompanyName 'GitHub'
+    crashReporter.setSubmissionURL 'https://speakeasy.githubapp.com/submit_crash_log'
+    crashReporter.setAutoSubmit true
 
   listenForArgumentsFromNewProcess: ->
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
