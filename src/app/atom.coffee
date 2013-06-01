@@ -250,10 +250,10 @@ window.atom =
     throw new Error('atom.getUpdateStatus is not implemented')
 
   crashMainProcess: ->
-    throw new Error('atom.crashMainProcess is not implemented')
+    remote.process.crash()
 
   crashRenderProcess: ->
-    throw new Error('atom.crashRenderProcess is not implemented')
+    process.crash()
 
   requireUserInitScript: ->
     userInitScriptPath = fsUtils.join(config.configDirPath, "user.coffee")
