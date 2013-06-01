@@ -14,8 +14,9 @@ module.exports =
 class AtomApplication
   @open: (options) ->
     client = net.connect {path: socketPath}, ->
-      client.write(JSON.stringify(options))
-      app.terminate()
+      client.write JSON.stringify(options), ->
+        client.end()
+        app.terminate()
 
     client.on 'error', -> new AtomApplication(options)
 
