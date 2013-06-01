@@ -13,12 +13,22 @@ socketPath = '/tmp/atom.sock'
 module.exports =
 class AtomApplication
   @open: (options) ->
+    createAtomApplication = -> new AtomApplication(options)
+
+    # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
+    # take a few seconds to trigger 'error' event, it could be a bug of node
+    # or atom-shell, before it's fixed we check the existence of socketPath to
+    # speedup startup.
+    if not fs.existsSync socketPath
+      createAtomApplication()
+      return
+
     client = net.connect {path: socketPath}, ->
       client.write JSON.stringify(options), ->
         client.end()
         app.terminate()
 
-    client.on 'error', -> new AtomApplication(options)
+    client.on 'error', createAtomApplication
 
   windows: null
   configWindow: null
