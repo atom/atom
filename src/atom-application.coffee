@@ -90,7 +90,7 @@ class AtomApplication
 
   setupCrashReporter: ->
     crashReporter.setCompanyName 'GitHub'
-    crashReporter.setSubmissionURL 'https://speakeasy.githubapp.com/submit_crash_log'
+    crashReporter.setSubmissionUrl 'https://speakeasy.githubapp.com/submit_crash_log'
     crashReporter.setAutoSubmit true
 
   listenForArgumentsFromNewProcess: ->
