@@ -147,18 +147,6 @@ class AtomApplication
       ]
 
     menus.push
-      label: 'Edit'
-      submenu:[
-        { label: 'Undo', accelerator: 'Command+Z', selector: 'undo:' }
-        { label: 'Redo', accelerator: 'Command+Shift+Z', selector: 'redo:' }
-        { type: 'separator' }
-        { label: 'Cut', accelerator: 'Command+X', selector: 'cut:' }
-        { label: 'Copy', accelerator: 'Command+C', selector: 'copy:' }
-        { label: 'Paste', accelerator: 'Command+V', selector: 'paste:' }
-        { label: 'Select All', accelerator: 'Command+A', selector: 'selectAll:' }
-      ]
-
-    menus.push
       label: 'View'
       submenu:[
         { label: 'Reload', accelerator: 'Command+R', click: => BrowserWindow.getFocusedWindow()?.restart() }
