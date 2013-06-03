@@ -241,9 +241,15 @@ window.atom =
     windowState
 
   getWindowState: (keyPath) ->
-    return {} unless fsUtils.exists(@getWindowStatePath())
+    windowStatePath = @getWindowStatePath()
+    return {} unless fsUtils.exists(windowStatePath)
 
-    windowState = JSON.parse(fsUtils.read(@getWindowStatePath()) or '{}')
+    try
+      windowState = JSON.parse(fsUtils.read(windowStatePath) or '{}')
+    catch error
+      console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
+      windowState = {}
+
     if keyPath
       _.valueForKeyPath(windowState, keyPath)
     else
