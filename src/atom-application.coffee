@@ -258,8 +258,6 @@ class AtomApplication
       exitWhenDone: exitWhenDone
       isSpec: true
 
-    specWindow.show()
-
   promptForPath: ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
     @openPaths(pathsToOpen)
