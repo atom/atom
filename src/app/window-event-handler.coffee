@@ -35,7 +35,6 @@ class WindowEventHandler
 
     @subscribe $(document), 'click', 'a', @openLink
 
-
   openLink: (event) =>
     location = $(event.target).attr('href')
     return unless location
