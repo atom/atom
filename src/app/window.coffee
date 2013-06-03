@@ -53,7 +53,7 @@ window.startEditorWindow = ->
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
   $(window).on 'unload', -> unloadEditorWindow(); false
-  remote.getCurrentWindow().show()
+  atom.show()
   atom.focus()
 
 window.startConfigWindow = ->
@@ -68,7 +68,7 @@ window.startConfigWindow = ->
   atom.activatePackageConfigs()
   keymap.loadUserKeymaps()
   $(window).on 'unload', -> unloadConfigWindow(); false
-  remote.getCurrentWindow().show()
+  atom.show()
   atom.focus()
 
 window.unloadEditorWindow = ->

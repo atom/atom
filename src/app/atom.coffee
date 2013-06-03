@@ -206,6 +206,9 @@ window.atom =
   focus: ->
     remote.getCurrentWindow().focus()
 
+  show: ->
+    remote.getCurrentWindow().show()
+
   hide: ->
     remote.getCurrentWindow().hide()
 
