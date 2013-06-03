@@ -182,7 +182,10 @@ window.atom =
         callbacks.push buttonLabelsAndCallbacks.shift()
 
     chosen = remote.require('dialog').showMessageBox
-      type: 'info', message: message, detail: detailedMessage, buttons: buttons
+      type: 'info'
+      message: message
+      detail: detailedMessage
+      buttons: buttons
 
     callbacks[chosen]?()
 
