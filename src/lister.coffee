@@ -50,10 +50,16 @@ class Lister
     console.log "#{@userPackagesDirectory} (#{userPackages.length})"
     @logPackages(userPackages)
 
+  listNodeModulesWithAtomEngine: ->
+    nodeModulesDirectory = path.join(config.getResourcePath(), 'node_modules')
+    allPackages = @listPackages(nodeModulesDirectory)
+    allPackages.filter (manifest) -> manifest.engines?.atom?
+
   listBundledPackages: ->
     bundledPackages = @listPackages(@bundledPackagesDirectory)
     vendoredPackages = @listPackages(@vendoredPackagesDirectory)
-    packages = _.sortBy(bundledPackages.concat(vendoredPackages), 'name')
+    atomEnginePackages = @listNodeModulesWithAtomEngine()
+    packages = _.sortBy(bundledPackages.concat(vendoredPackages).concat(atomEnginePackages), 'name')
     console.log "Built-in Atom packages (#{packages.length})"
     @logPackages(packages)
 

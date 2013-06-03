@@ -1,5 +1,8 @@
 {
   "name": "test-module",
   "version": "1.0.0",
-  "main": "./index.js"
+  "main": "./index.js",
+  "engines": {
+    "atom": "*"
+  }
 }
