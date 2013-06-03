@@ -118,7 +118,7 @@ class AtomApplication
         { type: 'separator' }
         { label: 'Preferences...', accelerator: 'Command+,', click: => @openConfig() }
         { type: 'separator' }
-        { label: 'Hide Atom Shell', accelerator: 'Command+H', selector: 'hide:' }
+        { label: 'Hide Atom', accelerator: 'Command+H', selector: 'hide:' }
         { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
         { label: 'Show All', selector: 'unhideAllApplications:' }
         { type: 'separator' }
