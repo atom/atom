@@ -139,6 +139,7 @@ class PackageConfigView extends View
       for packageDirPath in config.bundledPackageDirPaths
         if packagePath.indexOf("#{packageDirPath}/") is 0
           @bundled = true
+          break
 
       version = loadedPackage?.metadata.version
       unless version
