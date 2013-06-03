@@ -597,3 +597,20 @@ describe "TextMateGrammar", ->
         tokens = lines[1]
         expect(tokens[2].value).toBe '@"'
         expect(tokens[2].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c", "string.quoted.double.objc", "punctuation.definition.string.begin.objc"]
+
+    describe "Java", ->
+      beforeEach ->
+        atom.activatePackage('java-tmbundle', sync: true)
+        grammar = syntax.selectGrammar('Function.java')
+        lines = grammar.tokenizeLines """
+          public void test() {
+          //comment
+          }
+        """
+
+      it "correctly parses single line comments", ->
+        tokens = lines[1]
+        expect(tokens[0].scopes).toEqual ["source.java", "comment.line.double-slash.java", "punctuation.definition.comment.java"]
+        expect(tokens[0].value).toEqual '//'
+        expect(tokens[1].scopes).toEqual ["source.java", "comment.line.double-slash.java"]
+        expect(tokens[1].value).toEqual 'comment'

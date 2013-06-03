@@ -159,7 +159,7 @@ class TextMateGrammar
           ruleStack.pop()
 
         [penultimateRule, lastRule] = ruleStack[-2..]
-        if lastRule? and penultimateRule.scopeName == lastRule.scopeName
+        if lastRule?.scopeName? and penultimateRule.scopeName == lastRule.scopeName
           ruleStack.pop()
           tokens.push(new Token(
             value: line[position...line.length]
@@ -203,7 +203,7 @@ class Injections
     return injection.scanner if injection.scanner?
 
     regexes = _.map injection.patterns, (pattern) ->
-      pattern.getRegex(firstLine, position, @anchorPosition)
+      pattern.getRegex(firstLine, position, anchorPosition)
     scanner = new OnigScanner(regexes)
     scanner.patterns = injection.patterns
     scanner.anchored = injection.anchored
