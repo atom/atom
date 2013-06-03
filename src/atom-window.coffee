@@ -36,5 +36,3 @@ class AtomWindow
   focus: -> @browserWindow.focus()
 
   isFocused: -> @browserWindow.isFocused()
-
-  show: -> @browserWindow.show()
