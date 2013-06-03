@@ -151,7 +151,7 @@ class AtomApplication
       submenu:[
         { label: 'Reload', accelerator: 'Command+R', click: => BrowserWindow.getFocusedWindow()?.restart() }
         { label: 'Toggle Full Screen', accelerator: 'Command+MacCtrl+F', click: => BrowserWindow.getFocusedWindow()?.setFullscreen(!BrowserWindow.getFocusedWindow().isFullscreen()) }
-        { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: => BrowserWindow.getFocusedWindow()?.toggleDevTools() }
+        { label: 'Toggle Developer Tools', accelerator: 'Alt+Command+I', click: => BrowserWindow.getFocusedWindow()?.toggleDevTools() }
       ]
 
     menus.push
