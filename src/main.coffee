@@ -1,5 +1,6 @@
 AtomApplication = require './atom-application'
 autoUpdater = require 'auto-updater'
+crashReporter = require 'crash-reporter'
 delegate = require 'atom-delegate'
 app = require 'app'
 fs = require 'fs'
@@ -23,10 +24,8 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
   app.on 'open-file', addPathToOpen
 
   app.on 'will-finish-launching', ->
-    autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
-    autoUpdater.setAutomaticallyChecksForUpdates true
-    autoUpdater.setAutomaticallyDownloadsUpdates true
-    autoUpdater.checkForUpdatesInBackground()
+    setupCrashReporter()
+    setupAutoUpdater()
 
   app.on 'finish-launching', ->
     app.removeListener 'open-file', addPathToOpen
@@ -38,6 +37,17 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 
 getHomeDir = ->
   process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+
+setupCrashReporter = ->
+  crashReporter.setCompanyName 'GitHub'
+  crashReporter.setSubmissionUrl 'https://speakeasy.githubapp.com/submit_crash_log'
+  crashReporter.setAutoSubmit true
+
+setupAutoUpdater = ->
+  autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
+  autoUpdater.setAutomaticallyChecksForUpdates true
+  autoUpdater.setAutomaticallyDownloadsUpdates true
+  autoUpdater.checkForUpdatesInBackground()
 
 parseCommandLine = ->
   version = fs.readFileSync(path.join(__dirname, '..', '..', 'version'), 'utf8')
