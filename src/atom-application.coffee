@@ -50,6 +50,10 @@ class AtomApplication
     @buildApplicationMenu()
     @handleEvents()
 
+    # Don't check for updates if it's a custom build.
+    if @version.indexOf('.') isnt -1
+      @checkForUpdates()
+
     if test
       @runSpecs(true)
     else if pathsToOpen.length > 0
@@ -99,6 +103,10 @@ class AtomApplication
 
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
+
+  checkForUpdates: ->
+    autoUpdater.setAutomaticallyChecksForUpdates true
+    autoUpdater.checkForUpdatesInBackground()
 
   buildApplicationMenu: (version, continueUpdate) ->
     menus = []

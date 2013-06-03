@@ -45,9 +45,8 @@ setupCrashReporter = ->
 
 setupAutoUpdater = ->
   autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
-  autoUpdater.setAutomaticallyChecksForUpdates true
+  autoUpdater.setAutomaticallyChecksForUpdates false
   autoUpdater.setAutomaticallyDownloadsUpdates true
-  autoUpdater.checkForUpdatesInBackground()
 
 parseCommandLine = ->
   version = fs.readFileSync(path.join(__dirname, '..', '..', 'version'), 'utf8')
