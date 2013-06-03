@@ -244,7 +244,7 @@ window.atom =
       windowState
 
   update: ->
-    throw new Error('atom.update is not implemented')
+    ipc.sendChannel 'install-update'
 
   getUpdateStatus: (callback) ->
     throw new Error('atom.getUpdateStatus is not implemented')

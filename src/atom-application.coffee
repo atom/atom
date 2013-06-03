@@ -35,6 +35,7 @@ class AtomApplication
   configWindow: null
   menu: null
   resourcePath: null
+  installUpdate: null
   version: null
 
   constructor: ({@resourcePath, pathsToOpen, @version, test, pidToKillWhenClosed, @dev}) ->
@@ -187,6 +188,7 @@ class AtomApplication
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdate) =>
       event.preventDefault()
+      @installUpdate = quitAndUpdate
       @buildApplicationMenu version, quitAndUpdate
 
     ipc.on 'close-without-confirm', (processId, routingId) ->
@@ -205,6 +207,9 @@ class AtomApplication
 
     ipc.on 'new-window', =>
       @open()
+
+    ipc.on 'install-update', =>
+      @installUpdate?()
 
     ipc.on 'get-version', (event) =>
       event.result = @version
