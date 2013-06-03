@@ -8,6 +8,7 @@ pathWatcher = require 'pathwatcher'
 
 configDirPath = fsUtils.absolute("~/.atom")
 bundledPackagesDirPath = fsUtils.join(resourcePath, "src/packages")
+nodeModulesDirPath = fsUtils.join(resourcePath, "node_modules")
 bundledThemesDirPath = fsUtils.join(resourcePath, "themes")
 vendoredPackagesDirPath = fsUtils.join(resourcePath, "vendor/packages")
 vendoredThemesDirPath = fsUtils.join(resourcePath, "vendor/themes")
@@ -23,7 +24,7 @@ module.exports =
 class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath, vendoredThemesDirPath]
-  bundledPackageDirPaths: [vendoredPackagesDirPath, bundledPackagesDirPath]
+  bundledPackageDirPaths: [vendoredPackagesDirPath, bundledPackagesDirPath, nodeModulesDirPath]
   packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
   userStoragePath: userStoragePath
