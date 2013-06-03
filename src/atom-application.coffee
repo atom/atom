@@ -127,7 +127,7 @@ class AtomApplication
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
 
-    menus[0].submenu.splice 1, 0,
+    menus[0].submenu[1..0] =
       if version
         label: "Update to #{version}"
         click: continueUpdate
