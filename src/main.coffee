@@ -1,10 +1,11 @@
+AtomApplication = require './atom-application'
+autoUpdater = require 'auto-updater'
 delegate = require 'atom-delegate'
 app = require 'app'
 fs = require 'fs'
 path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
-AtomApplication = require './atom-application'
 _ = require 'underscore'
 
 console.log = (args...) ->
@@ -20,6 +21,13 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
     args.pathsToOpen.push(filePath)
 
   app.on 'open-file', addPathToOpen
+
+  app.on 'will-finish-launching', ->
+    autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
+    autoUpdater.setAutomaticallyChecksForUpdates true
+    autoUpdater.setAutomaticallyDownloadsUpdates true
+    autoUpdater.checkForUpdatesInBackground()
+
   app.on 'finish-launching', ->
     app.removeListener 'open-file', addPathToOpen
 

@@ -1,6 +1,7 @@
 AtomWindow = require './atom-window'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
+autoUpdater = require 'auto-updater'
 crashReporter = require 'crash-reporter'
 app = require 'app'
 ipc = require 'ipc'
@@ -106,13 +107,12 @@ class AtomApplication
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
-  buildApplicationMenu: ->
+  buildApplicationMenu: (version, continueUpdate) ->
     menus = []
     menus.push
       label: 'Atom'
       submenu: [
         { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
-        { label: "Version #{@version}", enabled: false }
         { type: 'separator' }
         { label: 'Preferences...', accelerator: 'Command+,', click: => @openConfig() }
         { type: 'separator' }
@@ -124,6 +124,14 @@ class AtomApplication
         { type: 'separator' }
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
+
+    menus[0].submenu.splice 1, 0,
+      if version
+        label: "Update to #{version}"
+        click: continueUpdate
+      else
+        label: "Version #{@version}"
+        enabled: false
 
     if @dev
       menus.push
@@ -175,6 +183,10 @@ class AtomApplication
     app.on 'open-file', (event, filePath) =>
       event.preventDefault()
       @openPath filePath
+
+    autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdate) =>
+      event.preventDefault()
+      @buildApplicationMenu version, quitAndUpdate
 
     ipc.on 'close-without-confirm', (processId, routingId) ->
       window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
