@@ -2460,3 +2460,44 @@ describe "EditSession", ->
       expect(editSession.shouldPromptToSave()).toBeFalsy()
       editSession2.destroy()
       expect(editSession.shouldPromptToSave()).toBeTruthy()
+
+  describe "when the edit session contains surrogate pair characters", ->
+    it "correctly backspaces over them", ->
+      editSession.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97')
+      editSession.moveCursorToBottom()
+      editSession.backspace()
+      expect(editSession.getText()).toBe '\uD835\uDF97\uD835\uDF97'
+      editSession.backspace()
+      expect(editSession.getText()).toBe '\uD835\uDF97'
+      editSession.backspace()
+      expect(editSession.getText()).toBe ''
+
+    it "correctly deletes over them", ->
+      editSession.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97')
+      editSession.moveCursorToTop()
+      editSession.delete()
+      expect(editSession.getText()).toBe '\uD835\uDF97\uD835\uDF97'
+      editSession.delete()
+      expect(editSession.getText()).toBe '\uD835\uDF97'
+      editSession.delete()
+      expect(editSession.getText()).toBe ''
+
+    it "correctly moves over them", ->
+      editSession.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97\n')
+      editSession.moveCursorToTop()
+      editSession.moveCursorRight()
+      expect(editSession.getCursorBufferPosition()).toEqual [0, 2]
+      editSession.moveCursorRight()
+      expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
+      editSession.moveCursorRight()
+      expect(editSession.getCursorBufferPosition()).toEqual [0, 6]
+      editSession.moveCursorRight()
+      expect(editSession.getCursorBufferPosition()).toEqual [1, 0]
+      editSession.moveCursorLeft()
+      expect(editSession.getCursorBufferPosition()).toEqual [0, 6]
+      editSession.moveCursorLeft()
+      expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
+      editSession.moveCursorLeft()
+      expect(editSession.getCursorBufferPosition()).toEqual [0, 2]
+      editSession.moveCursorLeft()
+      expect(editSession.getCursorBufferPosition()).toEqual [0, 0]

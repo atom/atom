@@ -356,9 +356,9 @@ class Buffer
   # or if its column goes beyond a line's length, this "sanitizes" the value
   # to a real range.
   #
-  # range - The {Point} to clip
+  # range - The {Range} to clip
   #
-  # Returns the new, clipped {Point}. Note that this could be the same as `range` if no clipping was performed.
+  # Returns the new, clipped {Range}. Note that this could be the same as `range` if no clipping was performed.
   clipRange: (range) ->
     range = Range.fromObject(range)
     new Range(@clipPosition(range.start), @clipPosition(range.end))
