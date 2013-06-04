@@ -17,14 +17,14 @@ describe "TextMateGrammar", ->
     grammar = syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
-     it "loads grammars from plists", ->
+    it "loads grammars from plists", ->
       grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('fixtures/sample.plist'))
       expect(grammar.scopeName).toBe "text.plain"
       {tokens} = grammar.tokenizeLine("this text is so plain. i love it.")
       expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
 
     it "loads grammars from cson files", ->
-      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('package-with-grammars/grammars/alot.cson'))
+      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('spec/fixtures/packages/package-with-grammars/grammars/alot.cson'))
       expect(grammar.scopeName).toBe "source.alot"
       {tokens} = grammar.tokenizeLine("this is alot of code")
       expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]
@@ -122,8 +122,8 @@ describe "TextMateGrammar", ->
 
     describe "when the line is empty", ->
       it "returns a single token which has the global scope", ->
-       {tokens} = grammar.tokenizeLine('')
-       expect(tokens[0]).toEqual value: '',  scopes: ["source.coffee"]
+        {tokens} = grammar.tokenizeLine('')
+        expect(tokens[0]).toEqual value: '',  scopes: ["source.coffee"]
 
     describe "when the line matches no patterns", ->
       it "does not infinitely loop", ->
@@ -292,9 +292,9 @@ describe "TextMateGrammar", ->
         repository: {}
         patterns: [
           {
-            name: "comment-body";
-            begin: "//";
-            end: "\\n";
+            name: "comment-body"
+            begin: "//"
+            end: "\\n"
             beginCaptures:
               "0": { name: "comment-start" }
           }
@@ -440,7 +440,7 @@ describe "TextMateGrammar", ->
         grammar = syntax.selectGrammar("text.js")
         {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
-        expect(tokens[0].value).toBe "var";
+        expect(tokens[0].value).toBe "var"
         expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
 
         expect(tokens[6].value).toBe "http://github.com"

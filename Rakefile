@@ -12,7 +12,7 @@ task :build => "create-xcode-project" do
 end
 
 desc "Create xcode project from gyp file"
-task "create-xcode-project" => ["update-cef", "update-node"] do
+task "create-xcode-project" => ["update-atom-shell"] do
   `rm -rf atom.xcodeproj`
   `script/generate-sources-gypi`
   version = %{-D version="#{ENV['VERSION']}"} if ENV['VERSION']
@@ -20,29 +20,16 @@ task "create-xcode-project" => ["update-cef", "update-node"] do
   `gyp --depth=. #{code_sign} #{version} atom.gyp`
 end
 
-desc "Update CEF to the latest version specified by the prebuilt-cef submodule"
-task "update-cef" => "bootstrap" do
-  exit 1 unless system %{script/update-cefode}
-  Dir.glob('cef/*.gypi').each do |filename|
-    `sed -i '' -e "s/'include\\//'cef\\/include\\//" -e "s/'libcef_dll\\//'cef\\/libcef_dll\\//" #{filename}`
-  end
-end
-
-desc "Download node binary"
-task "update-node" do
-  `script/update-node v0.10.3`
-end
-
-desc "Download debug symbols for CEF"
-task "download-cef-symbols" => "update-cef" do
-  sh %{script/update-cefode -s}
+desc "Update to latest atom-shell"
+task "update-atom-shell" => "bootstrap" do
+  exit 1 unless system %{script/update-atom-shell}
 end
 
 task "bootstrap" do
   `script/bootstrap`
 end
 
-desc "Copies Atom.app to /Applications and creates `atom` cli app"
+desc "Copies Atom.app to /Applications"
 task :install => [:build] do
   path = application_path()
   exit 1 if not path
@@ -52,32 +39,11 @@ task :install => [:build] do
   `rm -rf #{dest_path}`
   `cp -a #{path} #{File.expand_path(dest_path)}`
 
-  # Install atom cli
-  if File.directory?("/opt/boxen")
-    cli_path = "/opt/boxen/bin/atom"
-  elsif File.directory?("/opt/github")
-    cli_path = "/opt/github/bin/atom"
-  elsif File.directory?("/usr/local")
-    cli_path = "/usr/local/bin/atom"
-  else
-    raise "Missing directory for `atom` binary"
-  end
-
-  FileUtils.ln_s "#{ATOM_SRC_PATH}/atom.sh", cli_path, :force => true
-
-  Rake::Task["clone-default-bundles"].invoke()
-
-  puts "\033[32mAtom is installed at `#{dest_path}`. Atom cli is installed at `#{cli_path}`\033[0m"
+  puts "\033[32mAtom is installed at `#{dest_path}`.\033[0m"
 end
 
 task "setup-codesigning" do
   ENV['CODE_SIGN'] = "Developer ID Application: GitHub"
-end
-
-desc "Clone default bundles into vendor/bundles directory"
-task "clone-default-bundles" do
-  `git submodule --quiet sync`
-  `git submodule --quiet update --recursive --init`
 end
 
 desc "Clean build Atom via `xcodebuild`"
@@ -86,17 +52,16 @@ task :clean do
   `rm -rf #{application_path()}`
   `rm -rf #{BUILD_DIR}`
   `rm -rf /tmp/atom-coffee-cache`
+  `rm -rf /tmp/atom-cached-atom-shells`
   `rm -rf node_modules`
+  `rm -rf atom-shell`
   `rm -rf cef`
-end
-
-desc "Delete cached cefodes"
-task "clean-cefode-cache" do
-  `rm -rf /tmp/atom-cached-cefodes`
+  `rm -rf node`
+  `rm -rf prebuilt-cef`
 end
 
 desc "Run the specs"
-task :test => ["update-cef", "clone-default-bundles", "build"] do
+task :test => ["build"] do
   `pkill Atom`
   if path = application_path()
     cmd = "#{path}/Contents/MacOS/Atom --test --resource-path=#{ATOM_SRC_PATH}"
@@ -117,24 +82,24 @@ task :nof do
 end
 
 task :tags do
-  system %{find src native cef vendor -not -name "*spec.coffee" -type f -print0 | xargs -0 ctags}
+  system %{find src native vendor -not -name "*spec.coffee" -type f -print0 | xargs -0 ctags}
 end
 
 namespace :docs do
   namespace :app do
     desc "Builds the API docs in src/app"
     task :build do
-      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- -o docs/api src/app/}
+      system %{./node_modules/.bin/coffee ./node_modules/.bin/biscotto -- -o docs/api src/app/}
     end
 
     desc "Lists the stats for API doc coverage in src/app"
     task :stats do
-      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- --statsOnly src/app/}
+      system %{./node_modules/.bin/coffee ./node_modules/.bin/biscotto -- --statsOnly src/app/}
     end
 
     desc "Show which docs are missing"
     task :missing do
-      system %{./node_modules/coffee-script/bin/coffee ./node_modules/biscotto/bin/biscotto -- --listMissing src/app/}
+      system %{./node_modules/.bin/coffee ./node_modules/.bin/biscotto -- --listMissing src/app/}
     end
   end
 end

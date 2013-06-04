@@ -1,6 +1,0 @@
-*.o
-*~
-out/
-*.Makefile
-*.target.mk
-Makefile

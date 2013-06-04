@@ -38,28 +38,28 @@ describe "Window", ->
 
   describe "window:close event", ->
     describe "when no pane items are modified", ->
-      it "calls window.close", ->
-        spyOn window, 'close'
+      it "calls window.closeWithoutConfirm", ->
+        spyOn window, 'closeWithoutConfirm'
         $(window).trigger 'window:close'
-        expect(window.close).toHaveBeenCalled()
+        expect(window.closeWithoutConfirm).toHaveBeenCalled()
 
     describe "when pane items are are modified", ->
-      it "prompts user to save and and calls window.close", ->
-        spyOn(window, 'close')
+      it "prompts user to save and and calls window.closeWithoutConfirm", ->
+        spyOn(window, 'closeWithoutConfirm')
         spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSave) -> noSave()
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
         $(window).trigger 'window:close'
-        expect(window.close).toHaveBeenCalled()
+        expect(window.closeWithoutConfirm).toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts user to save and aborts if dialog is canceled", ->
-        spyOn(window, 'close')
+        spyOn(window, 'closeWithoutConfirm')
         spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancel) -> cancel()
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
         $(window).trigger 'window:close'
-        expect(window.close).not.toHaveBeenCalled()
+        expect(window.closeWithoutConfirm).not.toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
   describe "requireStylesheet(path)", ->
@@ -124,22 +124,21 @@ describe "Window", ->
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
+      windowState = {}
+      jasmine.unspy(atom, 'setWindowState')
+      spyOn(atom, 'setWindowState').andCallFake (key, value) -> windowState[key] = value
       projectPath = project.getPath()
-      expect(atom.getWindowState()).toEqual {}
 
       # JSON.stringify removes keys with undefined values
-      rootViewState = JSON.parse(JSON.stringify(rootView.serialize()))
-      projectState = JSON.parse(JSON.stringify(project.serialize()))
-      syntaxState = JSON.parse(JSON.stringify(syntax.serialize()))
+      rootViewState = rootView.serialize()
+      projectState = project.serialize()
+      syntaxState = syntax.serialize()
 
       window.unloadEditorWindow()
 
-      windowState = atom.getWindowState()
       expect(windowState.rootView).toEqual rootViewState
       expect(windowState.project).toEqual projectState
       expect(windowState.syntax).toEqual syntaxState
-
-      expect(atom.saveWindowState).toHaveBeenCalled()
 
     it "unsubscribes from all buffers", ->
       rootView.open('sample.js')
@@ -150,11 +149,6 @@ describe "Window", ->
       window.unloadEditorWindow()
 
       expect(buffer.subscriptionCount()).toBe 0
-
-    it "only serializes window state the first time it is called", ->
-      window.unloadEditorWindow()
-      window.unloadEditorWindow()
-      expect(atom.saveWindowState.callCount).toBe 1
 
   describe ".deserialize(state)", ->
     class Foo
@@ -217,25 +211,25 @@ describe "Window", ->
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
-      ChildProcess = require 'child_process'
-      spyOn(ChildProcess, 'spawn')
+      shell = require 'shell'
+      spyOn(shell, 'openExternal')
 
       $("<a href='http://github.com'>the website</a>").appendTo(document.body).click().remove()
-      expect(ChildProcess.spawn).toHaveBeenCalled()
-      expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe "http://github.com"
+      expect(shell.openExternal).toHaveBeenCalled()
+      expect(shell.openExternal.argsForCall[0][0]).toBe "http://github.com"
 
-      ChildProcess.spawn.reset()
+      shell.openExternal.reset()
       $("<a href='https://github.com'>the website</a>").appendTo(document.body).click().remove()
-      expect(ChildProcess.spawn).toHaveBeenCalled()
-      expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe "https://github.com"
+      expect(shell.openExternal).toHaveBeenCalled()
+      expect(shell.openExternal.argsForCall[0][0]).toBe "https://github.com"
 
-      ChildProcess.spawn.reset()
+      shell.openExternal.reset()
       $("<a href=''>the website</a>").appendTo(document.body).click().remove()
-      expect(ChildProcess.spawn).not.toHaveBeenCalled()
+      expect(shell.openExternal).not.toHaveBeenCalled()
 
-      ChildProcess.spawn.reset()
+      shell.openExternal.reset()
       $("<a href='#scroll-me'>link</a>").appendTo(document.body).click().remove()
-      expect(ChildProcess.spawn).not.toHaveBeenCalled()
+      expect(shell.openExternal).not.toHaveBeenCalled()
 
   describe "core:focus-next and core:focus-previous", ->
     describe "when there is no currently focused element", ->

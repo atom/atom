@@ -1,19 +1,27 @@
 $ = require 'jquery'
 _ = require 'underscore'
+ipc = require 'ipc'
 Subscriber = require 'subscriber'
+fsUtils = require 'fs-utils'
 
 module.exports =
 class WindowEventHandler
   constructor: ->
+    @subscribe ipc, 'command', (command, args...) ->
+      $(window).trigger(command, args...)
+
     @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
     @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
+    @subscribe $(window), 'window:open-path', (event, pathToOpen) ->
+      rootView.open(pathToOpen) unless fsUtils.isDirectory(pathToOpen)
+
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
     @subscribeToCommand $(window), 'window:close', =>
       if rootView?
-        rootView.confirmClose().done -> window.close()
+        rootView.confirmClose().done -> closeWithoutConfirm()
       else
-        window.close()
-    @subscribeToCommand $(window), 'window:reload', => reload()
+        closeWithoutConfirm()
+    @subscribeToCommand $(window), 'window:reload', => atom.reload()
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
@@ -32,8 +40,8 @@ class WindowEventHandler
     return unless location
     return if location[0] is '#'
 
-    if location.indexOf('https://') is 0 or location.indexOf('http://') is 0
-      require('child_process').spawn('open', [location])
+    if /^https?:\/\//.test(location)
+      require('shell').openExternal location
     false
 
   eachTabIndexedElement: (callback) ->

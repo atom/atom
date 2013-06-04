@@ -1,6 +1,7 @@
 Project = require 'project'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
+clipboard = require 'clipboard'
 
 describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
@@ -601,14 +602,14 @@ describe "EditSession", ->
 
     describe ".selectLine()", ->
       it "selects the entire line (including newlines) at given row", ->
-         editSession.setCursorScreenPosition([1, 2])
-         editSession.selectLine()
-         expect(editSession.getSelectedBufferRange()).toEqual [[1,0], [2,0]]
-         expect(editSession.getSelectedText()).toBe "  var sort = function(items) {\n"
+        editSession.setCursorScreenPosition([1, 2])
+        editSession.selectLine()
+        expect(editSession.getSelectedBufferRange()).toEqual [[1,0], [2,0]]
+        expect(editSession.getSelectedText()).toBe "  var sort = function(items) {\n"
 
-         editSession.setCursorScreenPosition([12, 2])
-         editSession.selectLine()
-         expect(editSession.getSelectedBufferRange()).toEqual [[12,0], [12,2]]
+        editSession.setCursorScreenPosition([12, 2])
+        editSession.selectLine()
+        expect(editSession.getSelectedBufferRange()).toEqual [[12,0], [12,2]]
 
     describe ".selectToBeginningOfWord()", ->
       it "selects text from cusor position to beginning of word", ->
@@ -1555,7 +1556,7 @@ describe "EditSession", ->
           expect(buffer.lineForRow(0)).toBe "var  = function () {"
           expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"
 
-          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+          expect(clipboard.readText()).toBe 'quicksort\nsort'
 
       describe ".cutToEndOfLine()", ->
         describe "when nothing is selected", ->
@@ -1582,7 +1583,7 @@ describe "EditSession", ->
           editSession.copySelectedText()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
-          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+          expect(clipboard.readText()).toBe 'quicksort\nsort'
 
       describe ".pasteText()", ->
         it "pastes text into the buffer", ->
@@ -1636,13 +1637,13 @@ describe "EditSession", ->
             expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
             expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.getTabLength()], [11, 15 + editSession.getTabLength()]]
 
-         it "does not indent the last row if the selection ends at column 0", ->
-           editSession.setSelectedBufferRange([[9,1], [11,0]])
-           editSession.indentSelectedRows()
-           expect(buffer.lineForRow(9)).toBe "    };"
-           expect(buffer.lineForRow(10)).toBe ""
-           expect(buffer.lineForRow(11)).toBe "  return sort(Array.apply(this, arguments));"
-           expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.getTabLength()], [11, 0]]
+          it "does not indent the last row if the selection ends at column 0", ->
+            editSession.setSelectedBufferRange([[9,1], [11,0]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(9)).toBe "    };"
+            expect(buffer.lineForRow(10)).toBe ""
+            expect(buffer.lineForRow(11)).toBe "  return sort(Array.apply(this, arguments));"
+            expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.getTabLength()], [11, 0]]
 
         describe "when softTabs is disabled", ->
           it "indents selected lines (that are not empty) and retains selection", ->

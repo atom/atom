@@ -1,5 +1,6 @@
 require 'window'
 window.setUpEnvironment()
+window.restoreDimensions()
 
 nakedLoad 'jasmine-jquery'
 $ = jQuery = require 'jquery'
@@ -16,6 +17,7 @@ fsUtils = require 'fs-utils'
 pathwatcher = require 'pathwatcher'
 RootView = require 'root-view'
 Git = require 'git'
+clipboard = require 'clipboard'
 requireStylesheet "jasmine"
 fixturePackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
 config.packageDirPaths.unshift(fixturePackagesPath)
@@ -37,10 +39,9 @@ beforeEach ->
     window.git = Git.open(window.project.getPath())
 
   window.resetTimeouts()
+  atom.windowMode = 'editor'
   atom.packageStates = {}
-  spyOn(atom, 'saveWindowState')
-  spyOn(atom, 'getSavedWindowState').andReturn(null)
-  $native.setWindowState('')
+  spyOn(atom, 'setWindowState')
   syntax.clearGrammarOverrides()
   syntax.clearProperties()
 
@@ -70,8 +71,8 @@ beforeEach ->
   spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
   pasteboardContent = 'initial pasteboard content'
-  spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboardContent = text
-  spyOn($native, 'readFromPasteboard').andCallFake -> pasteboardContent
+  spyOn(clipboard, 'writeText').andCallFake (text) -> pasteboardContent = text
+  spyOn(clipboard, 'readText').andCallFake -> pasteboardContent
 
   addCustomMatchers(this)
 
@@ -89,9 +90,8 @@ afterEach ->
     git.destroy()
     window.git = null
   $('#jasmine-content').empty()
+  jasmine.unspy(atom, 'setWindowState')
   ensureNoPathSubscriptions()
-  atom.pendingModals = [[]]
-  atom.presentingModal = false
   syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
 

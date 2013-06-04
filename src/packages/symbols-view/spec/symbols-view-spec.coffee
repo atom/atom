@@ -74,7 +74,7 @@ describe "SymbolsView", ->
         setErrorSpy.callCount > 0
 
       runs ->
-        expect(rootView.find('.symbols-view')).toExist()
+        expect(symbolsView).toExist()
         expect(symbolsView.list.children('li').length).toBe 0
         expect(symbolsView.error).toBeVisible()
         expect(symbolsView.error.text().length).toBeGreaterThan 0

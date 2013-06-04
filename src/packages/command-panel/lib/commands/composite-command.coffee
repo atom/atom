@@ -26,7 +26,7 @@ class CompositeCommand
         errorMessages = @errorMessagesForOperations(operations)
 
         if currentCommand.previewOperations
-           deferred.resolve({operationsToPreview: operations, errorMessages})
+          deferred.resolve({operationsToPreview: operations, errorMessages})
         else
           bufferRanges = []
           errorMessages = @errorMessagesForOperations(operations)

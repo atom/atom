@@ -162,7 +162,7 @@
   font-weight: bold;
 }
 
-.editor .constant.numeric.line-number.find-in-files .- .match {
+.editor .constant.numeric.line-number.find-in-files .match {
   color: rgba(143, 190, 0, 0.63);
 }
 

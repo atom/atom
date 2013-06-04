@@ -21,7 +21,8 @@
         if (bootstrapScript) require(bootstrapScript);
       }
       catch (error) {
-        if (atom && atom.showDevTools) { atom.showDevTools(); }
+        var currentWindow = require('remote').getCurrentWindow();
+        currentWindow.openDevTools();
         console.error(error.stack || error);
       }
     }

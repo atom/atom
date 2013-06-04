@@ -3,6 +3,7 @@ RootView = require 'root-view'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
 Exec = require('child_process').exec
+path = require('path')
 
 describe "the `atom` global", ->
   beforeEach ->
@@ -47,7 +48,7 @@ describe "the `atom` global", ->
         describe "when the package has a main module", ->
           describe "when the metadata specifies a main module path˜", ->
             it "requires the module at the specified path", ->
-              mainModule = require('package-with-main/main-module')
+              mainModule = require('fixtures/packages/package-with-main/main-module')
               spyOn(mainModule, 'activate')
               pack = atom.activatePackage('package-with-main')
               expect(mainModule.activate).toHaveBeenCalled()
@@ -55,7 +56,7 @@ describe "the `atom` global", ->
 
           describe "when the metadata does not specify a main module", ->
             it "requires index.coffee", ->
-              indexModule = require('package-with-index/index')
+              indexModule = require('fixtures/packages/package-with-index/index')
               spyOn(indexModule, 'activate')
               pack = atom.activatePackage('package-with-index')
               expect(indexModule.activate).toHaveBeenCalled()
@@ -71,7 +72,7 @@ describe "the `atom` global", ->
             [mainModule, pack] = []
 
             beforeEach ->
-              mainModule = require 'package-with-activation-events/index'
+              mainModule = require 'fixtures/packages/package-with-activation-events/index'
               spyOn(mainModule, 'activate').andCallThrough()
               AtomPackage = require 'atom-package'
               spyOn(AtomPackage.prototype, 'requireMainModule').andCallThrough()
@@ -153,9 +154,9 @@ describe "the `atom` global", ->
         describe "stylesheet loading", ->
           describe "when the metadata contains a 'stylesheets' manifest", ->
             it "loads stylesheets from the stylesheets directory as specified by the manifest", ->
-              one = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/1.css")
-              two = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/2.less")
-              three = fsUtils.resolveOnLoadPath("package-with-stylesheets-manifest/stylesheets/3.css")
+              one = fsUtils.resolveOnLoadPath("fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
+              two = fsUtils.resolveOnLoadPath("fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
+              three = fsUtils.resolveOnLoadPath("fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
               expect(stylesheetElementForId(one)).not.toExist()
               expect(stylesheetElementForId(two)).not.toExist()
               expect(stylesheetElementForId(three)).not.toExist()
@@ -169,9 +170,9 @@ describe "the `atom` global", ->
 
           describe "when the metadata does not contain a 'stylesheets' manifest", ->
             it "loads all stylesheets from the stylesheets directory", ->
-              one = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
-              two = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
-              three = fsUtils.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
+              one = fsUtils.resolveOnLoadPath("fixtures/packages/package-with-stylesheets/stylesheets/1.css")
+              two = fsUtils.resolveOnLoadPath("fixtures/packages/package-with-stylesheets/stylesheets/2.less")
+              three = fsUtils.resolveOnLoadPath("fixtures/packages/package-with-stylesheets/stylesheets/3.css")
               expect(stylesheetElementForId(one)).not.toExist()
               expect(stylesheetElementForId(two)).not.toExist()
               expect(stylesheetElementForId(three)).not.toExist()
@@ -277,86 +278,9 @@ describe "the `atom` global", ->
           atom.deactivatePackage('ruby-tmbundle')
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
-  describe ".getVersion(callback)", ->
-    it "calls the callback with the current version number", ->
-      versionHandler = jasmine.createSpy("versionHandler")
-      atom.getVersion(versionHandler)
-      waitsFor ->
-        versionHandler.callCount > 0
-
-      runs ->
-        expect(versionHandler.argsForCall[0][0]).toBeDefined()
-
-  describe "modal native dialogs", ->
-    beforeEach ->
-      spyOn(atom, 'sendMessageToBrowserProcess')
-      atom.sendMessageToBrowserProcess.simulateConfirmation = (buttonText) ->
-        labels = @argsForCall[0][1][2...]
-        callbacks = @argsForCall[0][2]
-        @reset()
-        callbacks[labels.indexOf(buttonText)]()
-        advanceClock 50
-
-      atom.sendMessageToBrowserProcess.simulatePathSelection = (path) ->
-        callback = @argsForCall[0][2]
-        @reset()
-        callback(path)
-        advanceClock 50
-
-    it "only presents one native dialog at a time", ->
-      confirmHandler = jasmine.createSpy("confirmHandler")
-      selectPathHandler = jasmine.createSpy("selectPathHandler")
-
-      atom.confirm "Are you happy?", "really, truly happy?", "Yes", confirmHandler, "No"
-      atom.confirm "Are you happy?", "really, truly happy?", "Yes", confirmHandler, "No"
-      atom.showSaveDialog(selectPathHandler)
-      atom.showSaveDialog(selectPathHandler)
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      atom.sendMessageToBrowserProcess.simulateConfirmation("Yes")
-      expect(confirmHandler).toHaveBeenCalled()
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      atom.sendMessageToBrowserProcess.simulateConfirmation("No")
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      atom.sendMessageToBrowserProcess.simulatePathSelection('/selected/path')
-      expect(selectPathHandler).toHaveBeenCalledWith('/selected/path')
-      selectPathHandler.reset()
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-
-    it "prioritizes dialogs presented as the result of dismissing other dialogs before any previously deferred dialogs", ->
-      atom.confirm "A1", "", "Next", ->
-        atom.confirm "B1", "", "Next", ->
-          atom.confirm "C1", "", "Next", ->
-          atom.confirm "C2", "", "Next", ->
-        atom.confirm "B2", "", "Next", ->
-      atom.confirm "A2", "", "Next", ->
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A1"
-      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "B1"
-      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "C1"
-      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "C2"
-      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "B2"
-      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
-
-      expect(atom.sendMessageToBrowserProcess.callCount).toBe 1
-      expect(atom.sendMessageToBrowserProcess.argsForCall[0][1][0]).toBe "A2"
-      atom.sendMessageToBrowserProcess.simulateConfirmation('Next')
+  describe ".getVersion", ->
+    it "returns the current version number", ->
+      expect(typeof atom.getVersion()).toBe 'string'
 
   describe "API documentation", ->
     it "meets a minimum threshold for /app (with no errors)", ->

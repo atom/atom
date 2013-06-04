@@ -2,23 +2,20 @@ fsUtils = require 'fs-utils'
 _ = require 'underscore'
 Package = require 'package'
 Theme = require 'theme'
+ipc = require 'ipc'
+remote = require 'remote'
+crypto = require 'crypto'
 
-messageIdCounter = 1
-originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
-
-_.extend atom,
+window.atom =
   exitWhenDone: window.location.params.exitWhenDone
   devMode: window.location.params.devMode
   loadedThemes: []
-  pendingBrowserProcessCallbacks: {}
   loadedPackages: {}
   activePackages: {}
   packageStates: {}
-  presentingModal: false
-  pendingModals: [[]]
 
   getPathToOpen: ->
-    @getWindowState('pathToOpen') ? window.location.params.pathToOpen
+    window.location.params.pathToOpen
 
   getPackageState: (name) ->
     @packageStates[name]
@@ -164,153 +161,111 @@ _.extend atom,
     themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
     themeNames = [themeNames] unless _.isArray(themeNames)
 
-  open: (args...) ->
-    @sendMessageToBrowserProcess('open', args)
+  open: (url...) ->
+    ipc.sendChannel('open', [url...])
 
-  openDev: (args...) ->
-    @sendMessageToBrowserProcess('openDev', args)
+  openDev: (url) ->
+    console.error("atom.openDev does not work yet")
 
-  newWindow: (args...) ->
-    @sendMessageToBrowserProcess('newWindow', args)
+  newWindow: ->
+    ipc.sendChannel('new-window')
 
   openConfig: ->
-    @sendMessageToBrowserProcess('openConfig')
-
-  restartRendererProcess: ->
-    @sendMessageToBrowserProcess('restartRendererProcess')
+    ipc.sendChannel('open-config')
 
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
-    wrapCallback = (callback) => => @dismissModal(callback)
-    @presentModal =>
-      args = [message, detailedMessage]
-      callbacks = []
-      while buttonLabelsAndCallbacks.length
-        do =>
-          buttonLabel = buttonLabelsAndCallbacks.shift()
-          buttonCallback = buttonLabelsAndCallbacks.shift()
-          args.push(buttonLabel)
-          callbacks.push(=> @dismissModal(buttonCallback))
-      @sendMessageToBrowserProcess('confirm', args, callbacks)
+    buttons = []
+    callbacks = []
+    while buttonLabelsAndCallbacks.length
+      do =>
+        buttons.push buttonLabelsAndCallbacks.shift()
+        callbacks.push buttonLabelsAndCallbacks.shift()
+
+    chosen = remote.require('dialog').showMessageBox
+      type: 'info'
+      message: message
+      detail: detailedMessage
+      buttons: buttons
+
+    callbacks[chosen]?()
 
   showSaveDialog: (callback) ->
-    @presentModal =>
-      @sendMessageToBrowserProcess('showSaveDialog', [], (path) => @dismissModal(callback, path))
+    currentWindow = remote.getCurrentWindow()
+    result = remote.require('dialog').showSaveDialog currentWindow, title: 'Save File'
+    callback(result)
 
-  presentModal: (fn) ->
-    if @presentingModal
-      @pushPendingModal(fn)
-    else
-      @presentingModal = true
-      fn()
-
-  dismissModal: (fn, args...) ->
-    @pendingModals.push([]) # prioritize any modals presented during dismiss callback
-    fn?(args...)
-    @presentingModal = false
-    if fn = @shiftPendingModal()
-      _.delay (=> @presentModal(fn)), 50 # let view update before next dialog
-
-  pushPendingModal: (fn) ->
-    # pendingModals is a stack of queues. enqueue to top of stack.
-    stackSize = @pendingModals.length
-    @pendingModals[stackSize - 1].push(fn)
-
-  shiftPendingModal: ->
-    # pop pendingModals stack if its top queue is empty, otherwise shift off the topmost queue
-    stackSize = @pendingModals.length
-    currentQueueSize = @pendingModals[stackSize - 1].length
-    if stackSize > 1 and currentQueueSize == 0
-      @pendingModals.pop()
-      @shiftPendingModal()
-    else
-      @pendingModals[stackSize - 1].shift()
+  openDevTools: ->
+    remote.getCurrentWindow().openDevTools()
 
   toggleDevTools: ->
-    @sendMessageToBrowserProcess('toggleDevTools')
+    remote.getCurrentWindow().toggleDevTools()
 
-  showDevTools: ->
-    @sendMessageToBrowserProcess('showDevTools')
+  reload: ->
+    remote.getCurrentWindow().restart()
 
   focus: ->
-    @sendMessageToBrowserProcess('focus')
+    remote.getCurrentWindow().focus()
 
   show: ->
-    @sendMessageToBrowserProcess('show')
+    remote.getCurrentWindow().show()
+
+  hide: ->
+    remote.getCurrentWindow().hide()
 
   exit: (status) ->
-    @sendMessageToBrowserProcess('exit', [status])
-
-  log: (message) ->
-    @sendMessageToBrowserProcess('log', [message])
-
-  beginTracing: ->
-    @sendMessageToBrowserProcess('beginTracing')
-
-  endTracing: ->
-    @sendMessageToBrowserProcess('endTracing')
+    remote.require('app').exit(status)
 
   toggleFullScreen: ->
-    @sendMessageToBrowserProcess('toggleFullScreen')
+    currentWindow = remote.getCurrentWindow()
+    currentWindow.setFullscreen(!currentWindow.isFullscreen())
 
   sendMessageToBrowserProcess: (name, data=[], callbacks) ->
-    messageId = messageIdCounter++
-    data.unshift(messageId)
-    callbacks = [callbacks] if typeof callbacks is 'function'
-    @pendingBrowserProcessCallbacks[messageId] = callbacks
-    originalSendMessageToBrowserProcess(name, data)
+    throw new Error("sendMessageToBrowserProcess no longer works for #{name}")
 
-  receiveMessageFromBrowserProcess: (name, data) ->
-    switch name
-      when 'reply'
-        [messageId, callbackIndex] = data.shift()
-        @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
-      when 'openPath'
-        path = data[0]
-        rootView?.open(path)
+  getWindowStatePath: ->
+    if @windowMode is 'config'
+      filename = 'config'
+    else if @windowMode is 'editor' and @getPathToOpen()
+      shasum = crypto.createHash('sha1')
+      shasum.update(@getPathToOpen())
+      filename = "editor-#{shasum.digest('hex')}"
+    else
+      filename = 'undefined'
+
+    fsUtils.join(config.userStoragePath, filename)
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
     _.setValueForKeyPath(windowState, keyPath, value)
-    $native.setWindowState(JSON.stringify(windowState))
+    fsUtils.write(@getWindowStatePath(), JSON.stringify(windowState))
     windowState
 
   getWindowState: (keyPath) ->
-    windowState = JSON.parse(@getInMemoryWindowState() ? @getSavedWindowState() ? '{}')
+    windowStatePath = @getWindowStatePath()
+    return {} unless fsUtils.exists(windowStatePath)
+
+    try
+      windowState = JSON.parse(fsUtils.read(windowStatePath) or '{}')
+    catch error
+      console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
+      windowState = {}
+
     if keyPath
       _.valueForKeyPath(windowState, keyPath)
     else
       windowState
 
-  getInMemoryWindowState: ->
-    inMemoryState = $native.getWindowState()
-    if inMemoryState.length > 0
-      inMemoryState
-    else
-      null
-
-  getSavedWindowState: ->
-    storageKey = switch @windowMode
-      when 'editor' then window.location.params.pathToOpen
-      when 'config' then 'config'
-    localStorage[storageKey] if storageKey
-
-  saveWindowState: ->
-    storageKey = switch @windowMode
-      when 'editor' then @getPathToOpen()
-      when 'config' then 'config'
-    localStorage[storageKey] = JSON.stringify(@getWindowState())
-
   update: ->
-    @sendMessageToBrowserProcess('update')
+    ipc.sendChannel 'install-update'
 
   getUpdateStatus: (callback) ->
-    @sendMessageToBrowserProcess('getUpdateStatus', [], callback)
+    throw new Error('atom.getUpdateStatus is not implemented')
 
   crashMainProcess: ->
-    @sendMessageToBrowserProcess('crash')
+    remote.process.crash()
 
   crashRenderProcess: ->
-    $native.crash()
+    process.crash()
 
   requireUserInitScript: ->
     userInitScriptPath = fsUtils.join(config.configDirPath, "user.coffee")
@@ -319,5 +274,5 @@ _.extend atom,
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
-  getVersion: (callback) ->
-    @sendMessageToBrowserProcess('getVersion', null, callback)
+  getVersion: ->
+    ipc.sendChannelSync 'get-version'

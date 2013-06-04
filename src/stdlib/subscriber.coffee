@@ -10,7 +10,10 @@ module.exports =
 
     eventName = _.first(args)
     callback = _.last(args)
-    subscription = cancel: -> eventEmitter.off eventName, callback
+    subscription = cancel: ->
+      # node's EventEmitter doesn't have 'off' method.
+      removeListener = eventEmitter.off ? eventEmitter.removeListener
+      removeListener.call eventEmitter, eventName, callback
     @subscriptions.push(subscription)
     @subscriptionsByObject.get(eventEmitter).push(subscription)
 

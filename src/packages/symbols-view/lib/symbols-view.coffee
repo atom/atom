@@ -46,13 +46,10 @@ class SymbolsView extends SelectList
     @setLoading("Generating symbols...")
     new TagGenerator(path).generate().done (tags) =>
       if tags.length > 0
-        @miniEditor.show()
         @maxItem = Infinity
         @setArray(tags)
       else
-        @miniEditor.hide()
         @setError("No symbols found")
-        setTimeout (=> @cancel()), 2000
 
   toggleProjectSymbols: ->
     if @hasParent()
@@ -72,7 +69,6 @@ class SymbolsView extends SelectList
       else
         @miniEditor.hide()
         @setError("No symbols found")
-        setTimeout (=> @cancel()), 2000
 
   confirmed : (tag) ->
     if tag.file and not fsUtils.isFile(project.resolve(tag.file))

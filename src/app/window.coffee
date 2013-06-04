@@ -1,6 +1,8 @@
 fsUtils = require 'fs-utils'
 $ = require 'jquery'
 less = require 'less'
+ipc = require 'ipc'
+remote = require 'remote'
 WindowEventHandler = require 'window-event-handler'
 require 'jquery-extensions'
 require 'underscore-extensions'
@@ -8,6 +10,7 @@ require 'space-pen-extensions'
 
 deserializers = {}
 deferredDeserializers = {}
+defaultWindowDimensions = {width: 800, height: 600}
 
 ### Internal ###
 
@@ -40,6 +43,7 @@ window.startEditorWindow = ->
 
   atom.windowMode = 'editor'
   windowEventHandler = new WindowEventHandler
+  restoreDimensions()
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadThemes()
@@ -48,11 +52,13 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  $(window).on 'beforeunload', -> unloadEditorWindow(); false
-  $(window).focus()
+  $(window).on 'unload', -> unloadEditorWindow(); false
+  atom.show()
+  atom.focus()
 
 window.startConfigWindow = ->
   atom.windowMode = 'config'
+  restoreDimensions()
   windowEventHandler = new WindowEventHandler
   config.load()
   keymap.loadBundledKeymaps()
@@ -61,8 +67,9 @@ window.startConfigWindow = ->
   deserializeConfigWindow()
   atom.activatePackageConfigs()
   keymap.loadUserKeymaps()
-  $(window).on 'beforeunload', -> unloadConfigWindow(); false
-  $(window).focus()
+  $(window).on 'unload', -> unloadConfigWindow(); false
+  atom.show()
+  atom.focus()
 
 window.unloadEditorWindow = ->
   return if not project and not rootView
@@ -73,7 +80,6 @@ window.unloadEditorWindow = ->
   atom.deactivatePackages()
   atom.setWindowState('packageStates', atom.packageStates)
   rootView.remove()
-  atom.saveWindowState()
   project.destroy()
   git?.destroy()
   windowEventHandler?.unsubscribe()
@@ -92,7 +98,6 @@ window.installApmCommand = (callback) ->
 window.unloadConfigWindow = ->
   return if not configView
   atom.setWindowState('configView', configView.serialize())
-  atom.saveWindowState()
   configView.remove()
   windowEventHandler?.unsubscribe()
   window.configView = null
@@ -184,18 +189,32 @@ window.applyStylesheet = (id, text, ttype = 'bundled') ->
     else
       $("head").append "<style class='#{ttype}' id='#{id}'>#{text}</style>"
 
-window.reload = ->
-  timesReloaded = process.global.timesReloaded ? 0
-  ++timesReloaded
+window.getDimensions = ->
+  browserWindow = remote.getCurrentWindow()
+  [x, y] = browserWindow.getPosition()
+  [width, height] = browserWindow.getSize()
+  {x, y, width, height}
 
-  if timesReloaded > 3
-    atom.restartRendererProcess()
+window.setDimensions = ({x, y, width, height}) ->
+  browserWindow = remote.getCurrentWindow()
+  browserWindow.setSize(width, height)
+  if x? and y?
+    browserWindow.setPosition(x, y)
   else
-    process.global.timesReloaded = timesReloaded
-    $native.reload()
+    browserWindow.center()
+
+window.restoreDimensions = ->
+  dimensions = atom.getWindowState('dimensions')
+  dimensions = defaultWindowDimensions unless dimensions?.width and dimensions?.height
+  window.setDimensions(dimensions)
+  $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
+
+window.closeWithoutConfirm = ->
+  atom.hide()
+  ipc.sendChannel 'close-without-confirm'
 
 window.onerror = ->
-  atom.showDevTools()
+  atom.openDevTools()
 
 window.registerDeserializers = (args...) ->
   registerDeserializer(arg) for arg in args

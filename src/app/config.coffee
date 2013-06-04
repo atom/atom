@@ -14,6 +14,7 @@ vendoredPackagesDirPath = fsUtils.join(resourcePath, "vendor/packages")
 vendoredThemesDirPath = fsUtils.join(resourcePath, "vendor/themes")
 userThemesDirPath = fsUtils.join(configDirPath, "themes")
 userPackagesDirPath = fsUtils.join(configDirPath, "packages")
+userStoragePath = fsUtils.join(configDirPath, ".storage")
 
 # Public: Handles all of Atom's configuration details.
 #
@@ -26,6 +27,7 @@ class Config
   bundledPackageDirPaths: [vendoredPackagesDirPath, bundledPackagesDirPath, nodeModulesDirPath]
   packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
+  userStoragePath: userStoragePath
   lessSearchPaths: [fsUtils.join(resourcePath, 'static'), fsUtils.join(resourcePath, 'vendor')]
   defaultSettings: null
   settings: null

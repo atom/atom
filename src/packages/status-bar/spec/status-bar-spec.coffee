@@ -94,12 +94,12 @@ describe "StatusBar", ->
       expect(statusBar.bufferModified.text()).toBe '*'
 
     it "doesn't update the buffer modified indicator for the old buffer", ->
-     oldBuffer = editor.getBuffer()
-     expect(statusBar.bufferModified.text()).toBe ''
-     rootView.open(require.resolve('fixtures/sample.txt'))
-     oldBuffer.setText("new text")
-     advanceClock(buffer.stoppedChangingDelay)
-     expect(statusBar.bufferModified.text()).toBe ''
+      oldBuffer = editor.getBuffer()
+      expect(statusBar.bufferModified.text()).toBe ''
+      rootView.open(require.resolve('fixtures/sample.txt'))
+      oldBuffer.setText("new text")
+      advanceClock(buffer.stoppedChangingDelay)
+      expect(statusBar.bufferModified.text()).toBe ''
 
   describe "when the associated editor's cursor position changes", ->
     it "updates the cursor position in the status bar", ->

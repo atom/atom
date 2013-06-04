@@ -216,23 +216,23 @@ describe "Keymap", ->
 
       describe "when the event's target node descends from multiple nodes that match selectors with a partial binding match", ->
         it "allows any of the bindings to be triggered upon a second keystroke, favoring the most specific selector", ->
-           keymap.bindKeys ".grandchild-node", 'ctrl-x ctrl-c': 'more-specific-quit'
-           grandchildNode = fragment.find('.grandchild-node')[0]
-           moreSpecificQuitHandler = jasmine.createSpy('moreSpecificQuitHandler')
-           fragment.on 'more-specific-quit', moreSpecificQuitHandler
+          keymap.bindKeys ".grandchild-node", 'ctrl-x ctrl-c': 'more-specific-quit'
+          grandchildNode = fragment.find('.grandchild-node')[0]
+          moreSpecificQuitHandler = jasmine.createSpy('moreSpecificQuitHandler')
+          fragment.on 'more-specific-quit', moreSpecificQuitHandler
 
-           expect(keymap.handleKeyEvent(keydownEvent('x', target: grandchildNode, ctrlKey: true))).toBeFalsy()
-           expect(keymap.handleKeyEvent(keydownEvent('1', target: grandchildNode))).toBeFalsy()
-           expect(quitHandler).not.toHaveBeenCalled()
-           expect(moreSpecificQuitHandler).not.toHaveBeenCalled()
-           expect(closeOtherWindowsHandler).toHaveBeenCalled()
-           closeOtherWindowsHandler.reset()
+          expect(keymap.handleKeyEvent(keydownEvent('x', target: grandchildNode, ctrlKey: true))).toBeFalsy()
+          expect(keymap.handleKeyEvent(keydownEvent('1', target: grandchildNode))).toBeFalsy()
+          expect(quitHandler).not.toHaveBeenCalled()
+          expect(moreSpecificQuitHandler).not.toHaveBeenCalled()
+          expect(closeOtherWindowsHandler).toHaveBeenCalled()
+          closeOtherWindowsHandler.reset()
 
-           expect(keymap.handleKeyEvent(keydownEvent('x', target: grandchildNode, ctrlKey: true))).toBeFalsy()
-           expect(keymap.handleKeyEvent(keydownEvent('c', target: grandchildNode, ctrlKey: true))).toBeFalsy()
-           expect(quitHandler).not.toHaveBeenCalled()
-           expect(closeOtherWindowsHandler).not.toHaveBeenCalled()
-           expect(moreSpecificQuitHandler).toHaveBeenCalled()
+          expect(keymap.handleKeyEvent(keydownEvent('x', target: grandchildNode, ctrlKey: true))).toBeFalsy()
+          expect(keymap.handleKeyEvent(keydownEvent('c', target: grandchildNode, ctrlKey: true))).toBeFalsy()
+          expect(quitHandler).not.toHaveBeenCalled()
+          expect(closeOtherWindowsHandler).not.toHaveBeenCalled()
+          expect(moreSpecificQuitHandler).toHaveBeenCalled()
 
       describe "when there is a complete binding with a less specific selector", ->
         it "favors the more specific partial match", ->
