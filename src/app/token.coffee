@@ -4,7 +4,7 @@ textUtils = require 'text-utils'
 module.exports =
 class Token
   value: null
-  hasSurrogatePairs: false
+  hasSurrogatePair: false
   scopes: null
   isAtomic: null
   isHardTab: null
@@ -14,7 +14,7 @@ class Token
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
-    @hasSurrogatePairs = textUtils.hasSurrogatePairs(@value)
+    @hasSurrogatePair = textUtils.hasSurrogatePair(@value)
 
   ### Public ###
 
@@ -30,7 +30,7 @@ class Token
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
   breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
-    if @hasSurrogatePairs
+    if @hasSurrogatePair
       outputTokens = []
 
       for token in @breakOutSurrogatePairs()

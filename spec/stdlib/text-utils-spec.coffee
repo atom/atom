@@ -7,6 +7,12 @@ describe 'text utilities', ->
       expect(textUtils.getCharacterCount('a\uD835\uDF97b\uD835\uDF97c')).toBe 5
       expect(textUtils.getCharacterCount('\uD835\uDF97')).toBe 1
 
+  describe '.hasSurrogatePair(string)', ->
+    it 'returns true when the string contains a surrogate pair', ->
+      expect(textUtils.hasSurrogatePair('abc')).toBe false
+      expect(textUtils.hasSurrogatePair('a\uD835\uDF97b\uD835\uDF97c')).toBe true
+      expect(textUtils.hasSurrogatePair('\uD835\uDF97')).toBe true
+
   describe '.isSurrogatePair(string, index)', ->
     it 'returns true when the index is the start of a high/low surrogate pair', ->
       expect(textUtils.isSurrogatePair('a\uD835\uDF97b\uD835\uDF97c', 0)).toBe false

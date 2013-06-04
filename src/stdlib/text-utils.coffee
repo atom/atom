@@ -27,8 +27,7 @@ isSurrogatePair = (string, index) ->
 # Returns a {Number}.
 getCharacterCount = (string) ->
   count = string.length
-  for index in [0...string.length] when isSurrogatePair(string, index)
-    count--
+  count-- for index in [0...string.length] when isSurrogatePair(string, index)
   count
 
 # Does the given string contain at least one surrogate pair?
@@ -36,7 +35,7 @@ getCharacterCount = (string) ->
 # string - The {String} to check for the presence of surrogate pairs.
 #
 # Returns a {Boolean}.
-hasSurrogatePairs = (string) ->
+hasSurrogatePair = (string) ->
   string.length isnt getCharacterCount(string)
 
-module.exports = {getCharacterCount, isSurrogatePair, hasSurrogatePairs}
+module.exports = {getCharacterCount, isSurrogatePair, hasSurrogatePair}
