@@ -15,7 +15,7 @@ isLowSurrogate = (string, index) ->
 # index - The {Number} index to look for a surrogate pair at.
 #
 # Return a {Boolean}.
-isSurrogatePair = (string, index) ->
+isSurrogatePair = (string, index=0) ->
   isHighSurrogate(string, index) and isLowSurrogate(string, index + 1)
 
 # Get the number of characters in the string accounting for surrogate pairs.
