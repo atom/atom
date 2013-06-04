@@ -1,9 +1,14 @@
 .image-view {
-  height:100%;
-  width: 100%;
   margin: 0;
   padding: 0;
   overflow: auto;
+  position: relative;
+  display: -webkit-flex;
+
+  .image-container {
+    height:100%;
+    width: 100%;
+  }
 
   img {
     box-sizing: content-box;

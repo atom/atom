@@ -10,7 +10,8 @@ class ImageView extends ScrollView
 
   @content: ->
     @div class: 'image-view', tabindex: -1, =>
-      @img outlet: 'image'
+      @div class: 'image-container', =>
+        @img outlet: 'image'
 
   initialize: (imageEditSession) ->
     super
