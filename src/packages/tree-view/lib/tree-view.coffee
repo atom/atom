@@ -129,8 +129,10 @@ class TreeView extends ScrollView
     else
       @root = null
 
+  getActivePath: -> rootView.getActivePaneItem()?.getPath?()
+
   selectActiveFile: ->
-    if activeFilePath = rootView.getActiveView()?.getPath?()
+    if activeFilePath = @getActivePath()
       @selectEntryForPath(activeFilePath)
     else
       @deselect()
@@ -139,7 +141,7 @@ class TreeView extends ScrollView
     @attach()
     @focus()
 
-    return unless activeFilePath = rootView.getActiveView()?.getPath()
+    return unless activeFilePath = @getActivePath()
 
     activePathComponents = project.relativize(activeFilePath).split('/')
     currentPath = project.getPath().replace(/\/$/, '')
