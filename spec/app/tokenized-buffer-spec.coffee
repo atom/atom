@@ -328,30 +328,40 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
       atom.activatePackage('javascript-tmbundle', sync: true)
-      buffer = new Buffer('sample-with-pairs.js', "'abc\uD835\uDF97def'")
+      buffer = new Buffer 'sample-with-pairs.js', """
+        'abc\uD835\uDF97def'
+        //\uD835\uDF97xyz
+      """
       tokenizedBuffer = new TokenizedBuffer(buffer)
       tokenizedBuffer.setVisible(true)
+      fullyTokenize(tokenizedBuffer)
 
     afterEach ->
       tokenizedBuffer.destroy()
       buffer.release()
 
-    describe "when the buffer is fully tokenized", ->
-      beforeEach ->
-        fullyTokenize(tokenizedBuffer)
+    it "renders each surrogate pair as its own atomic token", ->
+      screenLine0 = tokenizedBuffer.lineForScreenRow(0)
+      expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
+      { tokens } = screenLine0
 
-      it "renders each surrogate pair as its own atomic token", ->
-        screenLine0 = tokenizedBuffer.lineForScreenRow(0)
-        expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
-        { tokens } = screenLine0
+      expect(tokens.length).toBe 5
+      expect(tokens[0].value).toBe "'"
+      expect(tokens[1].value).toBe "abc"
+      expect(tokens[2].value).toBe "\uD835\uDF97"
+      expect(tokens[2].isAtomic).toBeTruthy()
+      expect(tokens[3].value).toBe "def"
+      expect(tokens[4].value).toBe "'"
 
-        expect(tokens.length).toBe 5
-        expect(tokens[0].value).toBe "'"
-        expect(tokens[1].value).toBe "abc"
-        expect(tokens[2].value).toBe "\uD835\uDF97"
-        expect(tokens[2].isAtomic).toBeTruthy()
-        expect(tokens[3].value).toBe "def"
-        expect(tokens[4].value).toBe "'"
+      screenLine1 = tokenizedBuffer.lineForScreenRow(1)
+      expect(screenLine1.text).toBe "//\uD835\uDF97xyz"
+      { tokens } = screenLine1
+
+      expect(tokens.length).toBe 3
+      expect(tokens[0].value).toBe '//'
+      expect(tokens[1].value).toBe '\uD835\uDF97'
+      expect(tokens[1].value).toBeTruthy()
+      expect(tokens[2].value).toBe 'xyz'
 
   describe "when the grammar is updated because a grammar it includes is activated", ->
     it "retokenizes the buffer", ->
