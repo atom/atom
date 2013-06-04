@@ -8,8 +8,7 @@ isLowSurrogate = (string, index) ->
 
 ### Public ###
 
-# Is the character at the given index the start of a high/low
-# surrogate pair?
+# Is the character at the given index the start of a high/low surrogate pair?
 #
 # string - The {String} to check for a surrogate pair.
 # index - The {Number} index to look for a surrogate pair at.
@@ -20,7 +19,8 @@ isSurrogatePair = (string, index=0) ->
 
 # Get the number of characters in the string accounting for surrogate pairs.
 #
-# This will always returns a value less than or equal to `string.length`.
+# This method counts high/low surrogate pairs as a single character and will
+# always returns a value less than or equal to `string.length`.
 #
 # string - The {String} to count the number of full characters in.
 #
