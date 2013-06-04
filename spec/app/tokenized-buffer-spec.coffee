@@ -340,7 +340,7 @@ describe "TokenizedBuffer", ->
       beforeEach ->
         fullyTokenize(tokenizedBuffer)
 
-      it "renders each surrogate pair as its own atomic token with a value of size 1", ->
+      it "renders each surrogate pair as its own atomic token", ->
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
         expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
         { tokens } = screenLine0
