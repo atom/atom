@@ -275,9 +275,9 @@ class Rule
 
   normalizeCaptureIndices: (line, captureIndices) ->
     lineLength = line.length
-    for value, index in captureIndices
-      if index % 3 isnt 0 and value > lineLength
-        captureIndices[index] = lineLength
+    captureIndices.forEach (capture) ->
+      capture.end = Math.min(capture.end, lineLength)
+      capture.start = Math.min(capture.start, lineLength)
 
   findNextMatch: (ruleStack, line, position, firstLine) ->
     lineWithNewline = "#{line}\n"
@@ -301,15 +301,15 @@ class Rule
     if results.length > 0
       _.min results, (result) =>
         @normalizeCaptureIndices(line, result.captureIndices)
-        result.captureIndices[1]
+        result.captureIndices[0].start
 
   getNextTokens: (ruleStack, line, position, firstLine) ->
     result = @findNextMatch(ruleStack, line, position, firstLine)
     return null unless result?
     { index, captureIndices, scanner } = result
-    [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
+    firstCapture = captureIndices[0]
     nextTokens = scanner.patterns[index].handleMatch(ruleStack, line, captureIndices)
-    { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
+    { nextTokens, tokensStartPosition: firstCapture.start, tokensEndPosition: firstCapture.end }
 
   getRuleToPush: (line, beginPatternCaptureIndices) ->
     if @endPattern.hasBackReferences
@@ -395,9 +395,7 @@ class Pattern
   resolveBackReferences: (line, beginCaptureIndices) ->
     beginCaptures = []
 
-    for i in [0...beginCaptureIndices.length] by 3
-      start = beginCaptureIndices[i + 1]
-      end = beginCaptureIndices[i + 2]
+    for {start, end} in beginCaptureIndices
       beginCaptures.push line[start...end]
 
     resolvedMatch = @match.replace /\\\d+/g, (match) ->
@@ -428,9 +426,9 @@ class Pattern
     scopes = scopesFromStack(stack)
     if @scopeName and not @popRule
       patternScope = @scopeName.replace /\$\d+/, (match) ->
-        captureIndex = parseInt(match.substring(1)) * 3
-        if captureIndices[captureIndex]?
-          line.substring(captureIndices[captureIndex + 1], captureIndices[captureIndex + 2])
+        capture = captureIndices[parseInt(match.substring(1))]
+        if capture?
+          line.substring(capture.start, capture.end)
         else
           match
       scopes.push(patternScope)
@@ -438,7 +436,7 @@ class Pattern
     if @captures
       tokens = @getTokensForCaptureIndices(line, _.clone(captureIndices), scopes, stack)
     else
-      [start, end] = captureIndices[1..2]
+      {start, end} = captureIndices[0]
       zeroLengthMatch = end == start
       if zeroLengthMatch
         tokens = []
@@ -446,7 +444,7 @@ class Pattern
         tokens = [new Token(value: line[start...end], scopes: scopes)]
     if @pushRule
       ruleToPush = @pushRule.getRuleToPush(line, captureIndices)
-      ruleToPush.anchorPosition = captureIndices[2]
+      ruleToPush.anchorPosition = captureIndices[0].end
       stack.push(ruleToPush)
     else if @popRule
       stack.pop()
@@ -459,51 +457,48 @@ class Pattern
     tokens
 
   getTokensForCaptureIndices: (line, captureIndices, scopes, stack) ->
-    [parentCaptureIndex, parentCaptureStart, parentCaptureEnd] = shiftCapture(captureIndices)
+    parentCapture = captureIndices.shift()
 
     tokens = []
-    if scope = @captures[parentCaptureIndex]?.name
+    if scope = @captures[parentCapture.index]?.name
       scopes = scopes.concat(scope)
 
-    if captureRule = @captures[parentCaptureIndex]?.rule
-      captureTokens = @getTokensForCaptureRule(captureRule, line, parentCaptureStart, parentCaptureEnd, scopes, stack)
+    if captureRule = @captures[parentCapture.index]?.rule
+      captureTokens = @getTokensForCaptureRule(captureRule, line, parentCapture.start, parentCapture.end, scopes, stack)
       tokens.push(captureTokens...)
       # Consume child captures
-      while captureIndices.length and captureIndices[1] < parentCaptureEnd
-        shiftCapture(captureIndices)
+      while captureIndices.length and captureIndices[0].start < parentCapture.end
+        captureIndices.shift()
     else
-      previousChildCaptureEnd = parentCaptureStart
-      while captureIndices.length and captureIndices[1] < parentCaptureEnd
-        [childCaptureIndex, childCaptureStart, childCaptureEnd] = captureIndices
+      previousChildCaptureEnd = parentCapture.start
+      while captureIndices.length and captureIndices[0].start < parentCapture.end
+        childCapture = captureIndices[0]
 
-        emptyCapture = childCaptureEnd - childCaptureStart == 0
-        captureHasNoScope = not @captures[childCaptureIndex]
+        emptyCapture = childCapture.end - childCapture.start == 0
+        captureHasNoScope = not @captures[childCapture.index]
         if emptyCapture or captureHasNoScope
-          shiftCapture(captureIndices)
+          captureIndices.shift()
           continue
 
-        if childCaptureStart > previousChildCaptureEnd
+        if childCapture.start > previousChildCaptureEnd
           tokens.push(new Token(
-            value: line[previousChildCaptureEnd...childCaptureStart]
+            value: line[previousChildCaptureEnd...childCapture.start]
             scopes: scopes
           ))
 
         captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes, stack)
         tokens.push(captureTokens...)
-        previousChildCaptureEnd = childCaptureEnd
+        previousChildCaptureEnd = childCapture.end
 
-      if parentCaptureEnd > previousChildCaptureEnd
+      if parentCapture.end > previousChildCaptureEnd
         tokens.push(new Token(
-          value: line[previousChildCaptureEnd...parentCaptureEnd]
+          value: line[previousChildCaptureEnd...parentCapture.end]
           scopes: scopes
         ))
 
     tokens
 
 ### Internal ###
-
-shiftCapture = (captureIndices) ->
-  [captureIndices.shift(), captureIndices.shift(), captureIndices.shift()]
 
 scopesFromStack = (stack) ->
   _.compact(_.pluck(stack, "scopeName"))
