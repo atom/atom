@@ -614,3 +614,16 @@ describe "TextMateGrammar", ->
         expect(tokens[0].value).toEqual '//'
         expect(tokens[1].scopes).toEqual ["source.java", "comment.line.double-slash.java"]
         expect(tokens[1].value).toEqual 'comment'
+
+    describe "Surrogate pair characters", ->
+      beforeEach ->
+        atom.activatePackage('javascript-tmbundle', sync: true)
+        grammar = syntax.selectGrammar('main.js')
+        lines = grammar.tokenizeLines "'\uD835\uDF97'"
+
+      it "correctly parses JavaScript strings containing surrogate pair characters", ->
+        tokens = lines[0]
+        expect(tokens.length).toBe 3
+        expect(tokens[0].value).toBe "'"
+        expect(tokens[1].value).toBe "\uD835\uDF97"
+        expect(tokens[2].value).toBe "'"

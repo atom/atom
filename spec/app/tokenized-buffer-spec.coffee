@@ -325,6 +325,34 @@ describe "TokenizedBuffer", ->
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 
+  describe "when the buffer contains surrogate pairs", ->
+    beforeEach ->
+      atom.activatePackage('javascript-tmbundle', sync: true)
+      buffer = new Buffer('sample-with-pairs.js', "'abc\uD835\uDF97def'")
+      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer.setVisible(true)
+
+    afterEach ->
+      tokenizedBuffer.destroy()
+      buffer.release()
+
+    describe "when the buffer is fully tokenized", ->
+      beforeEach ->
+        fullyTokenize(tokenizedBuffer)
+
+      it "renders each surrogate pair as its own atomic token with a value of size 1", ->
+        screenLine0 = tokenizedBuffer.lineForScreenRow(0)
+        expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
+        { tokens } = screenLine0
+
+        expect(tokens.length).toBe 5
+        expect(tokens[0].value).toBe "'"
+        expect(tokens[1].value).toBe "abc"
+        expect(tokens[2].value).toBe "\uD835\uDF97"
+        expect(tokens[2].isAtomic).toBeTruthy()
+        expect(tokens[3].value).toBe "def"
+        expect(tokens[4].value).toBe "'"
+
   describe "when the grammar is updated because a grammar it includes is activated", ->
     it "retokenizes the buffer", ->
       atom.activatePackage('ruby-tmbundle', sync: true)

@@ -1,8 +1,10 @@
 _ = require 'underscore'
+textUtils = require 'text-utils'
 
 module.exports =
 class Token
   value: null
+  hasSurrogatePairs: false
   scopes: null
   isAtomic: null
   isHardTab: null
@@ -12,6 +14,7 @@ class Token
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
+    @hasSurrogatePairs = textUtils.hasSurrogatePairs(@value)
 
   ### Public ###
 
@@ -27,26 +30,66 @@ class Token
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
   breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
-    if breakOutLeadingWhitespace
-      return [this] unless /^[ ]|\t/.test(@value)
+    if @hasSurrogatePairs
+      outputTokens = []
+
+      for token in @breakOutSurrogatePairs()
+        if token.isAtomic
+          outputTokens.push(token)
+        else
+          outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
+        breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
+
+      outputTokens
     else
-      return [this] unless /\t/.test(@value)
-
-    outputTokens = []
-    regex = new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
-
-    while match = regex.exec(@value)
-      [fullMatch, softTab, hardTab] = match
-      if softTab and breakOutLeadingWhitespace
-        outputTokens.push(@buildSoftTabToken(tabLength, false))
-      else if hardTab
-        breakOutLeadingWhitespace = false
-        outputTokens.push(@buildHardTabToken(tabLength, true))
+      if breakOutLeadingWhitespace
+        return [this] unless /^[ ]|\t/.test(@value)
       else
-        breakOutLeadingWhitespace = false
-        outputTokens.push(new Token(value: match[0], scopes: @scopes))
+        return [this] unless /\t/.test(@value)
+
+      outputTokens = []
+      regex = new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
+
+      while match = regex.exec(@value)
+        [fullMatch, softTab, hardTab] = match
+        if softTab and breakOutLeadingWhitespace
+          outputTokens.push(@buildSoftTabToken(tabLength, false))
+        else if hardTab
+          breakOutLeadingWhitespace = false
+          outputTokens.push(@buildHardTabToken(tabLength, true))
+        else
+          breakOutLeadingWhitespace = false
+          value = match[0]
+          outputTokens.push(new Token({value, @scopes}))
+
+      outputTokens
+
+  breakOutSurrogatePairs: ->
+    outputTokens = []
+    index = 0
+    nonSurrogatePairStart = 0
+
+    while index < @value.length
+      if textUtils.isSurrogatePair(@value, index)
+        if nonSurrogatePairStart isnt index
+          outputTokens.push(new Token({value: @value[nonSurrogatePairStart...index], @scopes}))
+        outputTokens.push(@buildSurrogatePairToken(@value, index))
+        index += 2
+        nonSurrogatePairStart = index
+      else
+        index++
+
+    if nonSurrogatePairStart isnt index
+      outputTokens.push(new Token({value: @value[nonSurrogatePairStart...index], @scopes}))
 
     outputTokens
+
+  buildSurrogatePairToken: (value, index) ->
+    new Token(
+      value: value[index..index + 1]
+      scopes: @scopes
+      isAtomic: true
+    )
 
   buildHardTabToken: (tabLength) ->
     @buildTabToken(tabLength, true)
