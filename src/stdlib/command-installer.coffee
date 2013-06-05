@@ -17,9 +17,9 @@ symlinkCommand = (sourcePath, destinationPath, callback) ->
           fs.chmod(destinationPath, 0o755, callback)
 
 unlinkCommand = (destinationPath, callback) ->
-  fs.exists destinationPath, (exists) ->
-    if exists
-      fs.unlink(destinationPath, callback)
+  fs.unlink destinationPath, (error) ->
+    if error? and error.code isnt 'ENOENT'
+      callback(error)
     else
       callback()
 
