@@ -27,6 +27,8 @@ class StatusBarView extends View
     @subscribe @pane, 'pane:active-item-changed', =>
       @subscribeToBuffer()
       @updatePathText()
+    @subscribe @pane, 'pane:active-item-title-changed', =>
+      @updatePathText()
 
     @subscribe @pane, 'cursor:moved', => @updateCursorPositionText()
     @subscribe @grammarName, 'click', => @pane.activeView.trigger 'grammar-selector:show'

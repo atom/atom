@@ -233,3 +233,14 @@ describe "StatusBar", ->
       view = $$ -> @div id: 'view', tabindex: -1, 'View'
       editor.getPane().showItem(view)
       expect(statusBar.currentPath).toBeHidden()
+
+  describe "when the active item's title changes", ->
+    it "updates the path view with the new title", ->
+      rootView.attachToDom()
+      view = $$ -> @div id: 'view', tabindex: -1, 'View'
+      view.getTitle = => 'View Title'
+      editor.getPane().showItem(view)
+      expect(statusBar.currentPath.text()).toBe 'View Title'
+      view.getTitle = => 'New Title'
+      view.trigger 'title-changed'
+      expect(statusBar.currentPath.text()).toBe 'New Title'
