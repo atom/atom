@@ -262,24 +262,28 @@ class Project
         iterator({path, range, match})
 
     deferred = $.Deferred()
-    exit = (code) ->
-      if code is -1
-        deferred.reject({command, code})
-      else
-        deferred.resolve()
+    errors = []
+    stderr = (data) ->
+      errors.push(data)
     stdout = (data) ->
       lines = data.split('\n')
       lines.pop() # the last segment is a spurious '' because data always ends in \n due to bufferLines: true
       for line in lines
         readPath(line) if state is 'readingPath'
         readLine(line) if state is 'readingLines'
+    exit = (code) ->
+      if code is 0
+        deferred.resolve()
+      else
+        console.error("Project scan failed: #{code}", errors.join('\n'))
+        deferred.reject({command, code})
 
     command = require.resolve('.bin/nak')
     args = ['--hidden', '--ackmate', regex.source, @getPath()]
     ignoredNames = config.get('core.ignoredNames') ? []
     args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
     args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
-    new BufferedProcess({command, args, stdout, exit})
+    new BufferedProcess({command, args, stdout, stderr, exit})
     deferred
 
   ### Internal ###
