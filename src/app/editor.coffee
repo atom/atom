@@ -1016,7 +1016,6 @@ class Editor extends View
 
   ### Internal ###
 
-
   # Scrolls the editor vertically to a given position.
   scrollVertically: (pixelPosition, {center}={}) ->
     scrollViewHeight = @scrollView.height()
