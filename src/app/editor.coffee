@@ -495,9 +495,6 @@ class Editor extends View
   # {Delegates to: EditSession.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
 
-  # {Delegates to: EditSession.getLastScreenRow}
-  getLastScreenRow: -> @activeEditSession.getLastScreenRow()
-
   # Public: Emulates the "page down" key, where the last row of a buffer scrolls to become the first.
   pageDown: ->
     newScrollTop = @scrollTop() + @scrollView[0].clientHeight
