@@ -528,3 +528,25 @@ describe 'FuzzyFinder', ->
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         expect(finderView.find('.status.new').length).toBe 1
         expect(finderView.find('.status.new').closest('li').find('.file').text()).toBe 'newsample.js'
+
+  describe "when the filter text contains a colon followed by a number", ->
+    it "opens the selected path to that line number", ->
+      rootView.attachToDom()
+      expect(rootView.find('.fuzzy-finder')).not.toExist()
+      [editor] = rootView.getEditors()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+      rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+      expect(rootView.find('.fuzzy-finder')).toExist()
+      finderView.miniEditor.insertText(':4')
+      finderView.trigger 'core:confirm'
+
+      expect(editor.getCursorBufferPosition()).toEqual [3, 4]
+
+      rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+      expect(rootView.find('.fuzzy-finder')).toExist()
+      finderView.miniEditor.insertText(':10')
+      finderView.miniEditor.trigger 'pane:split-left'
+
+      expect(rootView.getActiveView()).not.toBe editor
+      expect(rootView.getActiveView().getCursorBufferPosition()).toEqual [9, 2]

@@ -5,6 +5,7 @@ $ = require 'jquery'
 humanize = require 'humanize-plus'
 fsUtils = require 'fs-utils'
 LoadPathsTask = require './load-paths-task'
+Point = require 'point'
 
 module.exports =
 class FuzzyFinderView extends SelectList
@@ -64,22 +65,39 @@ class FuzzyFinderView extends SelectList
         @div fsUtils.base(path), class: "primary-line file #{typeClass}"
         @div projectRelativePath, class: 'secondary-line path'
 
-  openPath: (path) ->
-    rootView.open(path, {@allowActiveEditorChange}) if path
+  openPath: (path, lineNumber) ->
+    return unless path
+
+    rootView.open(path, {@allowActiveEditorChange})
+    @moveToLine(lineNumber)
+
+  moveToLine: (lineNumber=-1) ->
+    return unless lineNumber >= 0
+
+    if editor = rootView.getActiveView()
+      position = new Point(lineNumber)
+      editor.scrollToBufferPosition(position, center: true)
+      editor.setCursorBufferPosition(position)
+      editor.moveCursorToFirstCharacterOfLine()
 
   splitOpenPath: (fn) ->
     {path} = @getSelectedElement()
     return unless path
+
+    lineNumber = @getLineNumber()
     if pane = rootView.getActivePane()
       fn(pane, project.open(path))
+      @moveToLine(lineNumber)
     else
-      @openPath(path)
+      @openPath(path, lineNumber)
 
   confirmed : ({path}) ->
     return unless path.length
+
     if fsUtils.isFile(path)
+      lineNumber = @getLineNumber()
       @cancel()
-      @openPath(path)
+      @openPath(path, lineNumber)
     else
       @setError('Selected path does not exist')
       setTimeout((=> @setError()), 2000)
@@ -132,6 +150,22 @@ class FuzzyFinderView extends SelectList
           else
             @attach()
             @miniEditor.setText(currentWord)
+
+  getFilterQuery: ->
+    query = super
+    colon = query.indexOf(':')
+    if colon is -1
+      query
+    else
+      query[0...colon]
+
+  getLineNumber: ->
+    query = @miniEditor.getText()
+    colon = query.indexOf(':')
+    if colon is -1
+      -1
+    else
+      parseInt(query[colon+1..]) - 1
 
   setArray: (paths) ->
     projectRelativePaths = paths.map (path) ->

@@ -79,10 +79,13 @@ class SelectList extends View
       @loading.text(message)
       @loadingArea.show()
 
+  getFilterQuery: ->
+    @miniEditor.getText()
+
   populateList: ->
     return unless @array?
 
-    filterQuery = @miniEditor.getText()
+    filterQuery = @getFilterQuery()
     if filterQuery.length
       filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
     else
