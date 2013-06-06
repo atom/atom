@@ -515,7 +515,6 @@ describe "TextMateGrammar", ->
       lines = null
 
       beforeEach ->
-        atom.activatePackage('ruby-tmbundle', sync: true)
         atom.activatePackage('todo-tmbundle', sync: true)
         grammar = syntax.selectGrammar('main.rb')
         lines = grammar.tokenizeLines "# TODO be nicer"
@@ -631,8 +630,6 @@ describe "TextMateGrammar", ->
 
     describe "HTML (Ruby - ERB)", ->
       beforeEach ->
-        atom.activatePackage('html-tmbundle', sync: true)
-        atom.activatePackage('ruby-tmbundle', sync: true)
         grammar = syntax.selectGrammar('page.erb')
         lines = grammar.tokenizeLines '<% page_title "My Page" %>'
 
@@ -648,7 +645,6 @@ describe "TextMateGrammar", ->
 
     describe "Surrogate pair characters", ->
       beforeEach ->
-        atom.activatePackage('javascript-tmbundle', sync: true)
         grammar = syntax.selectGrammar('main.js')
         lines = grammar.tokenizeLines "'\uD835\uDF97'"
 
