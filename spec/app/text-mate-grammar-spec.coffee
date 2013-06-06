@@ -615,6 +615,23 @@ describe "TextMateGrammar", ->
         expect(tokens[1].scopes).toEqual ["source.java", "comment.line.double-slash.java"]
         expect(tokens[1].value).toEqual 'comment'
 
+    describe "HTML (Ruby - ERB)", ->
+      beforeEach ->
+        atom.activatePackage('html-tmbundle', sync: true)
+        atom.activatePackage('ruby-tmbundle', sync: true)
+        grammar = syntax.selectGrammar('page.erb')
+        lines = grammar.tokenizeLines '<% page_title "My Page" %>'
+
+      it "correctly parses strings inside tags", ->
+        tokens = lines[0]
+
+        expect(tokens[2].value).toEqual '"'
+        expect(tokens[2].scopes).toEqual ["text.html.erb", "meta.embedded.line.erb", "string.quoted.double.ruby", "punctuation.definition.string.begin.ruby"]
+        expect(tokens[3].value).toEqual 'My Page'
+        expect(tokens[3].scopes).toEqual ["text.html.erb", "meta.embedded.line.erb", "string.quoted.double.ruby"]
+        expect(tokens[4].value).toEqual '"'
+        expect(tokens[4].scopes).toEqual ["text.html.erb", "meta.embedded.line.erb", "string.quoted.double.ruby", "punctuation.definition.string.end.ruby"]
+
     describe "Surrogate pair characters", ->
       beforeEach ->
         atom.activatePackage('javascript-tmbundle', sync: true)

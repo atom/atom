@@ -193,7 +193,7 @@ class Injections
       for regex in values.patterns
         pattern = new Pattern(grammar, regex)
         anchored = true if pattern.anchored
-        patterns.push(pattern)
+        patterns.push(pattern.getIncludedPatterns(grammar, patterns)...)
       @injections.push
         anchored: anchored
         selector: new TextMateScopeSelector(selector)
