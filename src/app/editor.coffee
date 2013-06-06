@@ -846,10 +846,6 @@ class Editor extends View
         else
           element.removeClass('selected')
 
-  setScrollPositionFromActiveEditSession: ->
-    @scrollTop(@activeEditSession.scrollTop ? 0)
-    @scrollLeft(@activeEditSession.scrollLeft ? 0)
-
   saveScrollPositionForActiveEditSession: ->
     if @attached
       @activeEditSession.setScrollTop(@scrollTop())
@@ -1093,8 +1089,11 @@ class Editor extends View
 
     @clearRenderedLines()
     @removeAllCursorAndSelectionViews()
+    editSessionScrollTop = @activeEditSession.scrollTop ? 0
+    editSessionScrollLeft = @activeEditSession.scrollLeft ? 0
     @updateLayerDimensions()
-    @setScrollPositionFromActiveEditSession()
+    @scrollTop(editSessionScrollTop)
+    @scrollLeft(editSessionScrollLeft)
     @newCursors = @activeEditSession.getCursors()
     @newSelections = @activeEditSession.getSelections()
     @updateDisplay(suppressAutoScroll: true)
