@@ -249,7 +249,11 @@ class AtomApplication
 
     openedWindow.browserWindow.on 'closed', =>
       for pid, trackedWindow of @pidsToOpenWindows when trackedWindow is openedWindow
-        process.kill(pid)
+        try
+          process.kill(pid)
+        catch error
+          if error.code isnt 'ESRCH'
+            console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
   openConfig: ->
