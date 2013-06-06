@@ -319,6 +319,9 @@ module.exports =
   isBinaryExtension: (ext) ->
     _.indexOf([
       '.DS_Store'
+      '.a'
+      '.o'
+      '.so'
       '.woff'
     ], ext, true) >= 0
 
