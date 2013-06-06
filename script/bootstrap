@@ -24,8 +24,6 @@ exit_unless_npm_exists
 git submodule --quiet sync
 git submodule --quiet update --recursive --init
 
-export ATOM_NODE_URL='https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist'
-export ATOM_NODE_VERSION='0.10.9'
 (cd vendor/apm && npm install .)
 
 npm install --silent vendor/apm
