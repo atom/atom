@@ -133,7 +133,7 @@ class AtomPackage extends Package
     for deserializerName in @metadata.deferredDeserializers ? []
       registerDeferredDeserializer deserializerName, => @requireMainModule()
 
-  subscribeToActivationEvents: () ->
+  subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
     if _.isArray(@metadata.activationEvents)
       rootView.command(event, @handleActivationEvent) for event in @metadata.activationEvents

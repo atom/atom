@@ -1316,7 +1316,7 @@ describe 'TextBuffer', ->
   describe "serialization", ->
     serializedState = null
 
-    reloadBuffer = () ->
+    reloadBuffer = ->
       serializedState = buffer.serialize()
       buffer.release()
       buffer = Buffer.deserialize(serializedState)

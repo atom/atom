@@ -57,7 +57,7 @@ class AutocompleteView extends SelectList
 
     false
 
-  buildWordList: () ->
+  buildWordList: ->
     wordHash = {}
     matches = @currentBuffer.getText().match(@wordRegex)
     wordHash[word] ?= true for word in (matches or [])
