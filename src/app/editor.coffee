@@ -656,7 +656,7 @@ class Editor extends View
       @scrollTop(@verticalScrollbar.scrollTop(), adjustVerticalScrollbar: false)
 
     @scrollView.on 'scroll', =>
-      if @scrollView.scrollLeft() == 0
+      if @scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
       else
         @gutter.addClass('drop-shadow')
@@ -766,12 +766,27 @@ class Editor extends View
     @gutter.lineNumbers.css('top', -scrollTop)
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
+    @activeEditSession.setScrollTop(@scrollTop())
 
   scrollBottom: (scrollBottom) ->
     if scrollBottom?
       @scrollTop(scrollBottom - @scrollView.height())
     else
       @scrollTop() + @scrollView.height()
+
+  scrollLeft: (scrollLeft) ->
+    if scrollLeft?
+      @scrollView.scrollLeft(scrollLeft)
+      @activeEditSession.setScrollLeft(@scrollLeft())
+    else
+      @scrollView.scrollLeft()
+
+  scrollRight: (scrollRight) ->
+    if scrollRight?
+      @scrollView.scrollRight(scrollRight)
+      @activeEditSession.setScrollLeft(@scrollLeft())
+    else
+      @scrollView.scrollRight()
 
   ### Public ###
 
@@ -836,11 +851,11 @@ class Editor extends View
 
   setScrollPositionFromActiveEditSession: ->
     @scrollTop(@activeEditSession.scrollTop ? 0)
-    @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
+    @scrollLeft(@activeEditSession.scrollLeft ? 0)
 
   saveScrollPositionForActiveEditSession: ->
     @activeEditSession.setScrollTop(@scrollTop())
-    @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
+    @activeEditSession.setScrollLeft(@scrollLeft())
 
   # {Delegates to: EditSession.setSoftTabs}
   toggleSoftTabs: ->
@@ -866,7 +881,7 @@ class Editor extends View
     @setSoftWrapColumn(softWrapColumn) if @attached
     if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
-      @scrollView.scrollLeft(0)
+      @scrollLeft(0)
       @_setSoftWrapColumn = => @setSoftWrapColumn()
       $(window).on "resize.editor-#{@id}", @_setSoftWrapColumn
     else
@@ -1036,10 +1051,11 @@ class Editor extends View
     desiredRight = pixelPosition.left + @charWidth + margin
     desiredLeft = pixelPosition.left - margin
 
-    if desiredRight > @scrollView.scrollRight()
-      @scrollView.scrollRight(desiredRight)
-    else if desiredLeft < @scrollView.scrollLeft()
-      @scrollView.scrollLeft(desiredLeft)
+    if desiredRight > @scrollRight()
+      @scrollRight(desiredRight)
+    else if desiredLeft < @scrollLeft()
+      @scrollLeft(desiredLeft)
+    @saveScrollPositionForActiveEditSession()
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
@@ -1419,7 +1435,7 @@ class Editor extends View
     range = document.createRange()
     range.setEnd(textNode, offset)
     range.collapse()
-    leftPixels = range.getClientRects()[0].left - @scrollView.offset().left + @scrollView.scrollLeft()
+    leftPixels = range.getClientRects()[0].left - @scrollView.offset().left + @scrollLeft()
     range.detach()
     leftPixels
 

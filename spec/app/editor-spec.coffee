@@ -64,7 +64,7 @@ describe "Editor", ->
       editor.attachToDom()
       expect(editor).toMatchSelector ":has(:focus)"
 
-  describe "when the editor recieves focus", ->
+  describe "when the editor receives focus", ->
     it "focuses the hidden input", ->
       editor.attachToDom()
       editor.focus()
@@ -118,10 +118,10 @@ describe "Editor", ->
       editor.attachToDom(heightInLines: 5, widthInChars: 30)
       editor.setCursorBufferPosition([3, 5])
       editor.scrollToBottom()
-      editor.scrollView.scrollLeft(150)
+      editor.scrollLeft(150)
       previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
       previousScrollTop = editor.scrollTop()
-      previousScrollLeft = editor.scrollView.scrollLeft()
+      previousScrollLeft = editor.scrollLeft()
 
       newEditSession.scrollTop = 120
       newEditSession.setSelectedBufferRange([[40, 0], [43, 1]])
@@ -131,6 +131,7 @@ describe "Editor", ->
       expect(editor.lineElementForScreenRow(firstRenderedScreenRow).text()).toBe newBuffer.lineForRow(firstRenderedScreenRow)
       expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe newBuffer.lineForRow(editor.lastRenderedScreenRow)
       expect(editor.scrollTop()).toBe 120
+      expect(editor.scrollLeft()).toBe 0
       expect(editor.getSelectionView().regions[0].position().top).toBe 40 * editor.lineHeight
       editor.insertText("hello")
       expect(editor.lineElementForScreenRow(40).text()).toBe "hello3"
@@ -141,7 +142,7 @@ describe "Editor", ->
       expect(editor.lineElementForScreenRow(lastRenderedScreenRow).text()).toBe buffer.lineForRow(editor.lastRenderedScreenRow)
       expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
       expect(editor.scrollTop()).toBe previousScrollTop
-      expect(editor.scrollView.scrollLeft()).toBe previousScrollLeft
+      expect(editor.scrollLeft()).toBe previousScrollLeft
       expect(editor.getCursorView().position()).toEqual { top: 3 * editor.lineHeight, left: 5 * editor.charWidth }
       editor.insertText("goodbye")
       expect(editor.lineElementForScreenRow(3).text()).toMatch /^    vgoodbyear/
@@ -210,6 +211,20 @@ describe "Editor", ->
         expect(editor.scrollTop()).toBe 0
         editor.scrollTop(50)
         expect(editor.scrollTop()).toBe 50
+
+    it "sets the new scroll top position on the active edit session", ->
+      expect(editor.activeEditSession.scrollTop).toBe 0
+      editor.scrollTop(123)
+      expect(editor.activeEditSession.scrollTop).toBe 123
+
+  describe ".scrollHorizontally(pixelPosition)", ->
+    it "sets the new scroll left position on the active edit session", ->
+      editor.attachToDom(heightInLines: 5)
+      setEditorWidthInChars(editor, 5)
+      expect(editor.activeEditSession.scrollLeft).toBe 0
+      editor.scrollHorizontally(left: 50)
+      expect(editor.activeEditSession.scrollLeft).toBeGreaterThan 0
+      expect(editor.activeEditSession.scrollLeft).toBe editor.scrollLeft()
 
   describe "editor:attached event", ->
     it 'only triggers an editor:attached event when it is first added to the DOM', ->
@@ -959,23 +974,23 @@ describe "Editor", ->
 
                 # moving right
                 editor.setCursorScreenPosition([2, 24])
-                expect(editor.scrollView.scrollLeft()).toBe 0
+                expect(editor.scrollLeft()).toBe 0
 
                 editor.setCursorScreenPosition([2, 25])
-                expect(editor.scrollView.scrollLeft()).toBe charWidth
+                expect(editor.scrollLeft()).toBe charWidth
 
                 editor.setCursorScreenPosition([2, 28])
-                expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
+                expect(editor.scrollLeft()).toBe charWidth * 4
 
                 # moving left
                 editor.setCursorScreenPosition([2, 9])
-                expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
+                expect(editor.scrollLeft()).toBe charWidth * 4
 
                 editor.setCursorScreenPosition([2, 8])
-                expect(editor.scrollView.scrollLeft()).toBe charWidth * 3
+                expect(editor.scrollLeft()).toBe charWidth * 3
 
                 editor.setCursorScreenPosition([2, 5])
-                expect(editor.scrollView.scrollLeft()).toBe 0
+                expect(editor.scrollLeft()).toBe 0
 
             describe "when the editor is narrower than twice the horizontal scroll margin", ->
               it "sets the scrollView's scrollLeft based on a reduced horizontal scroll margin, to prevent a jerky tug-of-war between right and left scroll margins", ->
@@ -984,15 +999,15 @@ describe "Editor", ->
 
                 editor.setCursorScreenPosition([2, 3])
                 window.advanceClock()
-                expect(editor.scrollView.scrollLeft()).toBe(0)
+                expect(editor.scrollLeft()).toBe(0)
 
                 editor.setCursorScreenPosition([2, 4])
                 window.advanceClock()
-                expect(editor.scrollView.scrollLeft()).toBe(charWidth)
+                expect(editor.scrollLeft()).toBe(charWidth)
 
                 editor.setCursorScreenPosition([2, 3])
                 window.advanceClock()
-                expect(editor.scrollView.scrollLeft()).toBe(0)
+                expect(editor.scrollLeft()).toBe(0)
 
           describe "when soft-wrap is enabled", ->
             beforeEach ->
@@ -1003,32 +1018,32 @@ describe "Editor", ->
 
               # moving right
               editor.setCursorScreenPosition([2, 24])
-              expect(editor.scrollView.scrollLeft()).toBe 0
+              expect(editor.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 25])
-              expect(editor.scrollView.scrollLeft()).toBe 0
+              expect(editor.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 28])
-              expect(editor.scrollView.scrollLeft()).toBe 0
+              expect(editor.scrollLeft()).toBe 0
 
               # moving left
               editor.setCursorScreenPosition([2, 9])
-              expect(editor.scrollView.scrollLeft()).toBe 0
+              expect(editor.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 8])
-              expect(editor.scrollView.scrollLeft()).toBe 0
+              expect(editor.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 5])
-              expect(editor.scrollView.scrollLeft()).toBe 0
+              expect(editor.scrollLeft()).toBe 0
 
   describe "when editor:toggle-soft-wrap is toggled", ->
     describe "when the text exceeds the editor width and the scroll-view is horizontally scrolled", ->
       it "wraps the text and renders properly", ->
         editor.attachToDom(heightInLines: 30, widthInChars: 30)
         editor.setText("Fashion axe umami jean shorts retro hashtag carles mumblecore. Photo booth skateboard Austin gentrify occupy ethical. Food truck gastropub keffiyeh, squid deep v pinterest literally sustainable salvia scenester messenger bag. Neutra messenger bag flexitarian four loko, shoreditch VHS pop-up tumblr seitan synth master cleanse. Marfa selvage ugh, raw denim authentic try-hard mcsweeney's trust fund fashion axe actually polaroid viral sriracha. Banh mi marfa plaid single-origin coffee. Pickled mumblecore lomo ugh bespoke.")
-        editor.scrollView.scrollLeft(editor.charWidth * 30)
+        editor.scrollLeft(editor.charWidth * 30)
         editor.trigger "editor:toggle-soft-wrap"
-        expect(editor.scrollView.scrollLeft()).toBe 0
+        expect(editor.scrollLeft()).toBe 0
 
   describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
@@ -1743,12 +1758,12 @@ describe "Editor", ->
 
         expect(editor.gutter).not.toHaveClass('drop-shadow')
 
-        editor.scrollView.scrollLeft(10)
+        editor.scrollLeft(10)
         editor.scrollView.trigger('scroll')
 
         expect(editor.gutter).toHaveClass('drop-shadow')
 
-        editor.scrollView.scrollLeft(0)
+        editor.scrollLeft(0)
         editor.scrollView.trigger('scroll')
 
         expect(editor.gutter).not.toHaveClass('drop-shadow')

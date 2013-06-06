@@ -157,9 +157,9 @@ describe "AutocompleteView", ->
         editor.height(300)
         editor.attachToDom()
         editor.setCursorBufferPosition([6, Infinity])
-        previousScrollLeft = editor.scrollView.scrollLeft()
+        previousScrollLeft = editor.scrollLeft()
         autocomplete.attach()
-        expect(editor.scrollView.scrollLeft()).toBe previousScrollLeft
+        expect(editor.scrollLeft()).toBe previousScrollLeft
 
   describe 'core:confirm event', ->
     describe "where there are matches", ->
