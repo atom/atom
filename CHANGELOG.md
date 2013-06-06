@@ -1,3 +1,4 @@
+* Added: Makefile syntax highlighting now included.
 * Added: Open fuzzy finder to specific line using colon suffix (i.e ':25')
 * Fixed: Issues deleting and moving over certain UTF-8 characters
 * Fixed: Tree view not properly highlighting or revealing for open images.
