@@ -851,8 +851,9 @@ class Editor extends View
     @scrollLeft(@activeEditSession.scrollLeft ? 0)
 
   saveScrollPositionForActiveEditSession: ->
-    @activeEditSession.setScrollTop(@scrollTop())
-    @activeEditSession.setScrollLeft(@scrollLeft())
+    if @attached
+      @activeEditSession.setScrollTop(@scrollTop())
+      @activeEditSession.setScrollLeft(@scrollLeft())
 
   # {Delegates to: EditSession.setSoftTabs}
   toggleSoftTabs: ->
