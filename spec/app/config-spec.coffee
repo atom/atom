@@ -192,8 +192,8 @@ describe "Config", ->
         runs ->
           expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
           expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
-          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-syntax.css'))).toBeTruthy()
-          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.css'))).toBeTruthy()
+          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-syntax.less'))).toBeTruthy()
+          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.less'))).toBeTruthy()
 
   describe ".loadUserConfig()", ->
     beforeEach ->
