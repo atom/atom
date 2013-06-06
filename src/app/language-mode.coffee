@@ -64,6 +64,10 @@ class LanguageMode
           buffer.insert([start, 0], commentStartString)
           buffer.insert([end, buffer.lineLengthForRow(end)], commentEndString)
     else
+      if shouldUncomment and start isnt end
+        shouldUncomment = [start+1..end].every (row) ->
+          line = buffer.lineForRow(row)
+          not line or commentStartRegex.test(line)
       if shouldUncomment
         for row in [start..end]
           if match = commentStartRegex.search(buffer.lineForRow(row))
