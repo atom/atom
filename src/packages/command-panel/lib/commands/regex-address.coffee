@@ -4,7 +4,7 @@ Range = require 'range'
 module.exports =
 class RegexAddress extends Address
   regex: null
-  reverse: null
+  isReversed: false
 
   constructor: (@pattern, isReversed, options) ->
     flags = ""

@@ -14,7 +14,6 @@ class BindingSet
 
   selector: null
   commandsByKeystrokes: null
-  commandForEvent: null
   parser: null
   name: null
 
