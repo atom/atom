@@ -422,16 +422,29 @@ class Pattern
     else
       [this]
 
+  resolveScopeName: (line, captureIndices) ->
+    resolvedScopeName = @scopeName.replace /\${(\d+):\/(downcase|upcase)}/, (match, index, command) ->
+      capture = captureIndices[parseInt(index)]
+      if capture?
+        replacement = line.substring(capture.start, capture.end)
+        switch command
+          when 'downcase' then replacement.toLowerCase()
+          when 'upcase' then replacement.toUpperCase()
+          else replacement
+      else
+        match
+
+    resolvedScopeName.replace /\$(\d+)/, (match, index) ->
+      capture = captureIndices[parseInt(index)]
+      if capture?
+        line.substring(capture.start, capture.end)
+      else
+        match
+
   handleMatch: (stack, line, captureIndices) ->
     scopes = scopesFromStack(stack)
     if @scopeName and not @popRule
-      patternScope = @scopeName.replace /\$\d+/, (match) ->
-        capture = captureIndices[parseInt(match.substring(1))]
-        if capture?
-          line.substring(capture.start, capture.end)
-        else
-          match
-      scopes.push(patternScope)
+      scopes.push(@resolveScopeName(line, captureIndices))
 
     if @captures
       tokens = @getTokensForCaptureIndices(line, _.clone(captureIndices), scopes, stack)

@@ -511,6 +511,20 @@ describe "TextMateGrammar", ->
         expect(tokens[0].value).toBe "forever and ever"
         expect(tokens[0].scopes).toEqual ["source", "text"]
 
+    describe "${capture:/command} style pattern names", ->
+      lines = null
+
+      beforeEach ->
+        atom.activatePackage('ruby-tmbundle', sync: true)
+        atom.activatePackage('todo-tmbundle', sync: true)
+        grammar = syntax.selectGrammar('main.rb')
+        lines = grammar.tokenizeLines "# TODO be nicer"
+
+      it "replaces the number with the capture group and translates the text", ->
+        tokens = lines[0]
+        expect(tokens[2].value).toEqual "TODO"
+        expect(tokens[2].scopes).toEqual ["source.ruby", "comment.line.number-sign.ruby", "storage.type.class.todo"]
+
   describe "language-specific integration tests", ->
     lines = null
 
