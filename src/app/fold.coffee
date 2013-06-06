@@ -43,12 +43,6 @@ class Fold
   getStartRow: ->
     @getBufferRange().start.row
 
-  # Retrieves the number of buffer rows a fold occupies.
-  #
-  # Returns a {Number}.
-  getBufferRowCount: ->
-    @endRow - @startRow + 1
-
   # Returns the fold's end row as a {Number}.
   getEndRow: ->
     @getBufferRange().end.row
