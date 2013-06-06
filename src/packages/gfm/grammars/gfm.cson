@@ -3,6 +3,7 @@
 'fileTypes': [
   'markdown'
   'md'
+  'mdown'
   'mkd'
   'mkdown'
   'ron'
