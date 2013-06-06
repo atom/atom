@@ -106,6 +106,8 @@ module.exports = (grunt) ->
 
     coffeelint:
       options:
+        indentation:
+          level: 'warn'
         no_empty_param_list:
           level: 'error'
         max_line_length:
