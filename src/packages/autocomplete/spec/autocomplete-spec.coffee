@@ -92,11 +92,13 @@ describe "AutocompleteView", ->
 
         expect(autocomplete.list.find('li').length).toBe 0
 
-      it "show's that there are no matches found when there is no prefix or suffix", ->
+      it "shows all words there is no prefix or suffix", ->
         editor.setCursorBufferPosition([10, 0])
         autocomplete.attach()
 
-        expect(autocomplete.error).toHaveText "No matches found"
+        expect(autocomplete.list.find('li:eq(0)')).toHaveText('0')
+        expect(autocomplete.list.find('li:eq(1)')).toHaveText('1')
+        expect(autocomplete.list.find('li').length).toBe 22
 
       it "autocompletes word and replaces case of prefix with case of word", ->
         editor.getBuffer().insert([10,0] ,"extra:SO:extra")
@@ -156,7 +158,7 @@ describe "AutocompleteView", ->
         editor.width(300)
         editor.height(300)
         editor.attachToDom()
-        editor.setCursorBufferPosition([6, Infinity])
+        editor.setCursorBufferPosition([6, 6])
         previousScrollLeft = editor.scrollLeft()
         autocomplete.attach()
         expect(editor.scrollLeft()).toBe previousScrollLeft
@@ -359,10 +361,9 @@ describe "AutocompleteView", ->
       setEditorHeightInLines(editor, 13)
       editor.resetDisplay() # Ensures the editor only has 13 lines visible
 
-      editor.setCursorBufferPosition [1, 1]
-
     describe "when the autocomplete view fits below the cursor", ->
       it "adds the autocomplete view to the editor below the cursor", ->
+        editor.setCursorBufferPosition [1, 2]
         cursorPixelPosition = editor.pixelPositionForScreenPosition(editor.getCursorScreenPosition())
         autocomplete.attach()
         expect(editor.find('.autocomplete')).toExist()

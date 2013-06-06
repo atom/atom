@@ -125,7 +125,7 @@ class AutocompleteView extends SelectList
       for word in @wordList when regex.test(word) and word != currentWord
         {prefix, suffix, word}
     else
-      []
+      {word, prefix, suffix} for word in @wordList
 
   replaceSelectedTextWithMatch: (match) ->
     selection = @editor.getSelection()
