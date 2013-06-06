@@ -28,27 +28,6 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
         expect(buffer.lineForRow(7)).toBe "//     }"
 
-      it "only uncomments lines if all lines start with a comment", ->
-        languageMode.toggleLineCommentsForBufferRows(0, 0)
-        expect(buffer.lineForRow(0)).toBe "// var quicksort = function () {"
-
-        languageMode.toggleLineCommentsForBufferRows(0, 2)
-        expect(buffer.lineForRow(0)).toBe "// // var quicksort = function () {"
-        expect(buffer.lineForRow(1)).toBe "//   var sort = function(items) {"
-        expect(buffer.lineForRow(2)).toBe "//     if (items.length <= 1) return items;"
-
-      it "uncomments commented lines separated by an empty line", ->
-        languageMode.toggleLineCommentsForBufferRows(0, 1)
-        expect(buffer.lineForRow(0)).toBe "// var quicksort = function () {"
-        expect(buffer.lineForRow(1)).toBe "//   var sort = function(items) {"
-
-        buffer.insert([0, Infinity], '\n')
-
-        languageMode.toggleLineCommentsForBufferRows(0, 2)
-        expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
-        expect(buffer.lineForRow(1)).toBe ""
-        expect(buffer.lineForRow(2)).toBe "  var sort = function(items) {"
-
     describe "fold suggestion", ->
       describe ".doesBufferRowStartFold(bufferRow)", ->
         it "returns true only when the buffer row starts a foldable region", ->

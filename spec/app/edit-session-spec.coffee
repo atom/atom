@@ -1737,24 +1737,40 @@ describe "EditSession", ->
         expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
         expect(buffer.lineForRow(7)).toBe "    }"
 
-      it "uncomments lines if the first line matches the comment regex", ->
-        editSession.setSelectedBufferRange([[4, 5], [4, 5]])
+      it "uncomments lines if all lines match the comment regex", ->
+        editSession.setSelectedBufferRange([[0, 0], [0, 1]])
         editSession.toggleLineCommentsInSelection()
-        editSession.setSelectedBufferRange([[6, 5], [6, 5]])
+        expect(buffer.lineForRow(0)).toBe "// var quicksort = function () {"
+
+        editSession.setSelectedBufferRange([[0, 0], [2, Infinity]])
         editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(0)).toBe "// // var quicksort = function () {"
+        expect(buffer.lineForRow(1)).toBe "//   var sort = function(items) {"
+        expect(buffer.lineForRow(2)).toBe "//     if (items.length <= 1) return items;"
 
-        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "    }"
-
-        editSession.setSelectedBufferRange([[4, 5], [7, 5]])
+        editSession.setSelectedBufferRange([[0, 0], [2, Infinity]])
         editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(0)).toBe "// var quicksort = function () {"
+        expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+        expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
 
-        expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "    }"
+        editSession.setSelectedBufferRange([[0, 0], [0, Infinity]])
+        editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+
+      it "uncomments commented lines separated by an empty line", ->
+        editSession.setSelectedBufferRange([[0, 0], [1, Infinity]])
+        editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(0)).toBe "// var quicksort = function () {"
+        expect(buffer.lineForRow(1)).toBe "//   var sort = function(items) {"
+
+        buffer.insert([0, Infinity], '\n')
+
+        editSession.setSelectedBufferRange([[0, 0], [2, Infinity]])
+        editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+        expect(buffer.lineForRow(1)).toBe ""
+        expect(buffer.lineForRow(2)).toBe "  var sort = function(items) {"
 
       it "preserves selection emptiness", ->
         editSession.setCursorBufferPosition([4, 0])
