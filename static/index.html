@@ -5,13 +5,13 @@
 
   <script>
     window.location.params = {}
-    var params = window.location.search.substring(1).split('&')
+    var params = window.location.hash.substring(1).split('&')
     params.forEach(function(param) {
-      var pair = param.split("=")
+      var pair = param.split("=");
       window.location.params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
     });
 
-    window.resourcePath = window.location.params.resourcePath
+    window.resourcePath = window.location.params.resourcePath;
     var bootstrapScript = window.location.params.bootstrapScript;
 
     window.onload = function() {

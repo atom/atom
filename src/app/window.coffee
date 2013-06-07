@@ -128,8 +128,11 @@ window.deserializeEditorWindow = ->
 
   window.git = Git.open(project.getPath())
   project.on 'path-changed', ->
+    projectPath = project.getPath()
+    atom.setPathToOpen(projectPath)
+
     window.git?.destroy()
-    window.git = Git.open(project.getPath())
+    window.git = Git.open(projectPath)
 
 window.deserializeConfigWindow = ->
   ConfigView = require 'config-view'

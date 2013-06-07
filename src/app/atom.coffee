@@ -17,6 +17,13 @@ window.atom =
   getPathToOpen: ->
     window.location.params.pathToOpen
 
+  setPathToOpen: (pathToOpen) ->
+    window.location.params.pathToOpen = pathToOpen
+    hashSegments = []
+    for name, value of window.location.params
+      hashSegments.push("#{encodeURIComponent(name)}=#{encodeURIComponent(value)}")
+    window.location.hash = '#' + hashSegments.join('&')
+
   getPackageState: (name) ->
     @packageStates[name]
 

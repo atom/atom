@@ -12,7 +12,7 @@ class AtomWindow
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 
-    url = "file://#{resourcePath}/static/index.html?bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
+    url = "file://#{resourcePath}/static/index.html#bootstrapScript=#{bootstrapScript}&resourcePath=#{resourcePath}"
     url += "&pathToOpen=#{@pathToOpen}" if @pathToOpen
     url += '&exitWhenDone=1' if exitWhenDone
 
