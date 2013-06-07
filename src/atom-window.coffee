@@ -23,7 +23,7 @@ class AtomWindow
       global.atomApplication.removeWindow(this)
 
     @browserWindow.on 'unresponsive', =>
-      chosen = dialog.showMessageBox
+      chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close', 'Keep Waiting']
         message: 'Editor window is frozen'
