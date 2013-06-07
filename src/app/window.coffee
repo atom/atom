@@ -121,7 +121,9 @@ window.deserializeEditorWindow = ->
   window.project = deserialize(windowState.project) ? new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 
-  if !windowState.rootView and (!pathToOpen or fsUtils.isFile(pathToOpen))
+  if !pathToOpen
+    rootView.open(pathToOpen)
+  else if !windowState.rootView and fsUtils.isFile(pathToOpen)
     rootView.open(pathToOpen)
 
   $(rootViewParentSelector).append(rootView)
