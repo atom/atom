@@ -162,7 +162,7 @@ class AtomApplication
       label: 'View'
       submenu:[
         { label: 'Reload', accelerator: 'Command+R', click: => BrowserWindow.getFocusedWindow()?.restart() }
-        { label: 'Toggle Full Screen', accelerator: 'Command+MacCtrl+F', click: => BrowserWindow.getFocusedWindow()?.setFullscreen(!BrowserWindow.getFocusedWindow().isFullscreen()) }
+        { label: 'Toggle Full Screen', accelerator: 'Command+MacCtrl+F', click: => BrowserWindow.getFocusedWindow()?.setFullScreen(!BrowserWindow.getFocusedWindow().isFullScreen()) }
         { label: 'Toggle Developer Tools', accelerator: 'Alt+Command+I', click: => BrowserWindow.getFocusedWindow()?.toggleDevTools() }
       ]
 

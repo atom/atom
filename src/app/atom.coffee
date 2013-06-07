@@ -219,10 +219,10 @@ window.atom =
     @setFullScreen(!@isFullScreen())
 
   setFullScreen: (fullScreen=false) ->
-    remote.getCurrentWindow().setFullscreen(fullScreen)
+    remote.getCurrentWindow().setFullScreen(fullScreen)
 
   isFullScreen: ->
-    remote.getCurrentWindow().isFullscreen()
+    remote.getCurrentWindow().isFullScreen()
 
   sendMessageToBrowserProcess: (name, data=[], callbacks) ->
     throw new Error("sendMessageToBrowserProcess no longer works for #{name}")
