@@ -216,8 +216,13 @@ window.atom =
     remote.require('app').exit(status)
 
   toggleFullScreen: ->
-    currentWindow = remote.getCurrentWindow()
-    currentWindow.setFullscreen(!currentWindow.isFullscreen())
+    @setFullScreen(!@isFullScreen())
+
+  setFullScreen: (fullScreen=false) ->
+    remote.getCurrentWindow().setFullscreen(fullScreen)
+
+  isFullScreen: ->
+    remote.getCurrentWindow().isFullscreen()
 
   sendMessageToBrowserProcess: (name, data=[], callbacks) ->
     throw new Error("sendMessageToBrowserProcess no longer works for #{name}")

@@ -33,11 +33,11 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @subview 'panes', panes ? new PaneContainer
 
-  @deserialize: ({ panes }) ->
+  @deserialize: ({panes, fullScreen}) ->
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
-    new RootView({panes})
+    new RootView({panes, fullScreen})
 
-  initialize: ->
+  initialize: ({fullScreen})->
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
@@ -75,10 +75,13 @@ class RootView extends View
     @command 'new-editor', =>
       @open()
 
+    _.nextTick -> atom.setFullScreen(fullScreen)
+
   serialize: ->
     version: RootView.version
     deserializer: 'RootView'
     panes: @panes.serialize()
+    fullScreen: atom.isFullScreen()
 
   handleFocus: (e) ->
     if @getActivePane()
