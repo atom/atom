@@ -60,13 +60,13 @@ describe "AutocompleteView", ->
         editor.setCursorBufferPosition([10,7])
         autocomplete.attach()
 
-        expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
-        expect(editor.getCursorBufferPosition()).toEqual [10,10]
-        expect(editor.getSelection().getBufferRange()).toEqual [[10,7], [10,10]]
+        expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
+        expect(editor.getCursorBufferPosition()).toEqual [10,11]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10,7], [10,11]]
 
         expect(autocomplete.list.find('li').length).toBe 2
-        expect(autocomplete.list.find('li:eq(0)')).toHaveText('sort')
-        expect(autocomplete.list.find('li:eq(1)')).toHaveText('shift')
+        expect(autocomplete.list.find('li:eq(0)')).toHaveText('shift')
+        expect(autocomplete.list.find('li:eq(1)')).toHaveText('sort')
 
       it 'autocompletes word when there is only a suffix', ->
         editor.getBuffer().insert([10,0] ,"extra:n:extra")
@@ -126,9 +126,9 @@ describe "AutocompleteView", ->
         editor.setSelectedBufferRange [[10,6],[10,12]]
         autocomplete.attach()
 
-        expect(editor.lineForBufferRow(10)).toBe "extra:quicksort:extra"
-        expect(editor.getCursorBufferPosition()).toEqual [10,14]
-        expect(editor.getSelection().getBufferRange()).toEqual [[10,6],[10,14]]
+        expect(editor.lineForBufferRow(10)).toBe "extra:concat:extra"
+        expect(editor.getCursorBufferPosition()).toEqual [10,11]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10,6],[10,11]]
 
         expect(autocomplete.list.find('li').length).toBe 7
         expect(autocomplete.list.find('li:contains(current)')).not.toExist()
@@ -222,8 +222,8 @@ describe "AutocompleteView", ->
       editor.setCursorBufferPosition([10,7])
       autocomplete.attach()
 
-      expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
-      expect(editor.getCursorBufferPosition()).toEqual [10,10]
+      expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
+      expect(editor.getCursorBufferPosition()).toEqual [10,11]
       autocomplete.trigger 'core:cancel'
       expect(editor.lineForBufferRow(10)).toBe "extra:S:extra"
       expect(editor.getCursorBufferPosition()).toEqual [10,7]
@@ -234,7 +234,7 @@ describe "AutocompleteView", ->
       autocomplete.attach()
 
       editor.getBuffer().append('hi')
-      expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
+      expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       autocomplete.trigger 'core:cancel'
       expect(editor.lineForBufferRow(10)).toBe "extra:s:extra"
 
@@ -248,13 +248,13 @@ describe "AutocompleteView", ->
       autocomplete.attach()
 
       miniEditor.trigger "core:move-up"
-      expect(editor.lineForBufferRow(10)).toBe "extra:concat:extra"
+      expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(7)')).toHaveClass('selected')
 
       miniEditor.trigger "core:move-up"
-      expect(editor.lineForBufferRow(10)).toBe "extra:right:extra"
+      expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(7)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(6)')).toHaveClass('selected')
@@ -266,12 +266,12 @@ describe "AutocompleteView", ->
       autocomplete.attach()
 
       miniEditor.trigger "core:move-down"
-      expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
+      expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).toHaveClass('selected')
 
       miniEditor.trigger "core:move-down"
-      expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
+      expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
 
@@ -319,8 +319,8 @@ describe "AutocompleteView", ->
         expect(autocomplete.list.find('li').length).toBe 4
         expect(autocomplete.list.find('li:eq(0)')).toHaveText 'pivot'
         expect(autocomplete.list.find('li:eq(0)')).toHaveClass 'selected'
-        expect(autocomplete.list.find('li:eq(1)')).toHaveText 'shift'
-        expect(autocomplete.list.find('li:eq(2)')).toHaveText 'right'
+        expect(autocomplete.list.find('li:eq(1)')).toHaveText 'right'
+        expect(autocomplete.list.find('li:eq(2)')).toHaveText 'shift'
         expect(autocomplete.list.find('li:eq(3)')).toHaveText 'quicksort'
         expect(editor.lineForBufferRow(10)).toEqual 'pivot'
 

@@ -62,7 +62,15 @@ class AutocompleteView extends SelectList
     matches = @currentBuffer.getText().match(@wordRegex)
     wordHash[word] ?= true for word in (matches or [])
 
-    @wordList = Object.keys(wordHash)
+    @wordList = Object.keys(wordHash).sort (word1, word2) ->
+      word1 = word1.toLowerCase()
+      word2 = word2.toLowerCase()
+      if word1 > word2
+        1
+      else if word1 < word2
+        -1
+      else
+        0
 
   confirmed: (match) ->
     @editor.getSelection().clear()
