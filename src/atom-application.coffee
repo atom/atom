@@ -207,7 +207,7 @@ class AtomApplication
         @promptForPath()
 
     ipc.on 'new-window', =>
-      @open()
+      @openPath(null)
 
     ipc.on 'install-update', =>
       @installUpdate?()
