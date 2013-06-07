@@ -286,7 +286,7 @@ class EditSession
 
   # Test if an entire row is a comment
   #
-  # Returns a {Boole}.
+  # Returns a {Boolean}.
   isBufferRowCommented: (bufferRow) ->
     if match = @lineForBufferRow(bufferRow).match(/\S/)
       scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
