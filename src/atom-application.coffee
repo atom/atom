@@ -247,7 +247,7 @@ class AtomApplication
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
 
-    openedWindow.browserWindow.on 'closed', =>
+    openedWindow.browserWindow.on 'destroyed', =>
       for pid, trackedWindow of @pidsToOpenWindows when trackedWindow is openedWindow
         try
           process.kill(pid)

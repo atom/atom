@@ -1,4 +1,5 @@
 BrowserWindow = require 'browser-window'
+dialog = require 'dialog'
 ipc = require 'ipc'
 
 module.exports =
@@ -20,6 +21,14 @@ class AtomWindow
   handleEvents: ->
     @browserWindow.on 'destroyed', =>
       global.atomApplication.removeWindow(this)
+
+    @browserWindow.on 'unresponsive', =>
+      chosen = dialog.showMessageBox
+        type: 'warning'
+        buttons: ['Close', 'Keep Waiting']
+        message: 'Editor window is frozen'
+        detail: "The editor window becomes frozen because of JavaScript dead loop, you can force closing it or just keep waiting."
+      @browserWindow.destroy() if chosen is 0
 
     if @isSpec
       # Spec window's web view should always have focus
