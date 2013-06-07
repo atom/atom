@@ -16,8 +16,6 @@ class ImageView extends ScrollView
   initialize: (imageEditSession) ->
     super
 
-    requireStylesheet 'image-view'
-
     @image.load =>
       @originalHeight = @image.height()
       @originalWidth = @image.width()

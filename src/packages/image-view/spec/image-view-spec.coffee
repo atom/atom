@@ -1,7 +1,7 @@
-ImageView = require 'image-view'
-ImageEditSession = require 'image-edit-session'
+ImageView = require '../lib/image-view'
+ImageEditSession = require '../lib/image-edit-session'
 
-describe "ImageView", ->
+fdescribe "ImageView", ->
   [view, path] = []
 
   beforeEach ->

@@ -317,5 +317,3 @@ class Project
       @on 'buffer-created', (buffer) -> callback(buffer)
 
 _.extend Project.prototype, EventEmitter
-
-require 'image-edit-session'

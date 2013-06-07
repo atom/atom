@@ -8,21 +8,19 @@ module.exports=
 class ImageEditSession
   registerDeserializer(this)
 
-  # Files with these extensions will be opened as images
-  @imageExtensions: ['.gif', '.jpeg', '.jpg', '.png']
+  @activate: ->
+    # Files with these extensions will be opened as images
+    imageExtensions = ['.gif', '.jpeg', '.jpg', '.png']
+    Project = require 'project'
+    Project.registerOpener (filePath) ->
+      if _.include(imageExtensions, fsUtils.extension(filePath))
+        new ImageEditSession(filePath)
 
-  ### Internal ###
-
-  Project = require 'project'
-  Project.registerOpener (path) =>
-    new ImageEditSession(path) if _.include(@imageExtensions, fsUtils.extension(path))
-
-
-  @deserialize: (state) ->
-    if fsUtils.exists(state.path)
-      project.open(state.path)
+  @deserialize: ({path}={}) ->
+    if fsUtils.exists(path)
+      new ImageEditSession(path)
     else
-      console.warn "Could not build edit session for path '#{state.path}' because that file no longer exists"
+      console.warn "Could not build image edit session for path '#{path}' because that file no longer exists"
 
   constructor: (@path) ->
 
@@ -31,7 +29,7 @@ class ImageEditSession
     path: @path
 
   getViewClass: ->
-    require 'image-view'
+    require './image-view'
 
   ### Public ###
 
