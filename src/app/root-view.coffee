@@ -37,7 +37,7 @@ class RootView extends View
     panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
     new RootView({panes, fullScreen})
 
-  initialize: ({fullScreen})->
+  initialize: ({fullScreen}={})->
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
