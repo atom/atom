@@ -19,6 +19,9 @@ window.atom =
 
   setPathToOpen: (pathToOpen) ->
     window.location.params.pathToOpen = pathToOpen
+    @saveWindowParameters()
+
+  saveWindowParameters: ->
     hashSegments = []
     for name, value of window.location.params
       hashSegments.push("#{encodeURIComponent(name)}=#{encodeURIComponent(value)}")
@@ -208,6 +211,7 @@ window.atom =
     remote.getCurrentWindow().toggleDevTools()
 
   reload: ->
+    @saveWindowParameters()
     remote.getCurrentWindow().restart()
 
   focus: ->
