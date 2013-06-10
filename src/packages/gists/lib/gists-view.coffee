@@ -67,7 +67,7 @@ class GistsView extends SelectList
 
   toggle: ->
     if @hasParent()
-      @detach()
+      @cancel()
     else
       @attach()
 
