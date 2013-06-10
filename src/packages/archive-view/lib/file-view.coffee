@@ -22,11 +22,11 @@ class FileView extends View
         else
           temp.mkdir 'atom-', (error, tempDirPath) ->
             if error?
-              console.error("Error creating temp directory: #{tempDirPath}")
+              console.error("Error creating temp directory: #{tempDirPath}", error.stack ? error)
             else
               tempFilePath = path.join(tempDirPath, path.basename(archivePath), entry.getName())
               fsUtils.writeAsync tempFilePath, contents, (error) ->
                 if error?
-                  console.error("Error writing to #{tempFilePath}")
+                  console.error("Error writing to #{tempFilePath}", error.stack ? error)
                 else
                   rootView.open(tempFilePath)
