@@ -8,7 +8,7 @@ class ArchiveView extends ScrollView
   @content: ->
     @div class: 'archive-view', tabindex: -1, =>
       @div class: 'archive-container', =>
-        @span outlet: 'loadingMessage', class: 'loading-message', 'Loading archive\u2026'
+        @div outlet: 'loadingMessage', class: 'loading-message', 'Loading archive\u2026'
         @div outlet: 'tree', class: 'archive-tree'
 
   initialize: (editSession) ->
