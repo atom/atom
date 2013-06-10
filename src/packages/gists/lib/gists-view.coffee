@@ -1,9 +1,13 @@
 {$$} = require 'space-pen'
 SelectList = require 'select-list'
+path = require 'path'
+fsUtils = require 'fs-utils'
 GitHub = require 'github'
 keytar = require 'keytar'
 _ = require 'underscore'
 humanize = require 'humanize-plus'
+{openGistFile} = require './gist-utils'
+GistFilesView = require './gist-files-view'
 
 module.exports =
 class GistsView extends SelectList
@@ -25,7 +29,7 @@ class GistsView extends SelectList
       done = (error, gists) =>
         if error?
           @setError("Error fetching Gists")
-          console.error("Error fetching gists", error.stack ? error)
+          console.error("Error fetching Gists", error.stack ? error)
         else
           @gists = gists
           @setArray(@gists)
@@ -82,3 +86,9 @@ class GistsView extends SelectList
 
   confirmed: (gist) ->
     @cancel()
+
+    files = _.values(gist.files)
+    if files.length is 1
+      openGistFile(gist, files[0])
+    else
+      new GistFilesView(gist).toggle()
