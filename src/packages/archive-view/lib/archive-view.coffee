@@ -37,6 +37,13 @@ class ArchiveView extends ScrollView
             @tree.append(new FileView(@path, entry))
 
         @tree.show()
+        @tree.find('.file').view()?.select()
+
+  focusSelectedFile: ->
+    @tree.find('.selected').view()?.focus()
+
+  focus: ->
+    @focusSelectedFile()
 
   setModel: (editSession) ->
     @setPath(editSession?.getPath())
