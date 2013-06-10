@@ -4,7 +4,7 @@ fsUtils = require 'fs-utils'
 describe "Archive viewer", ->
   beforeEach ->
     window.rootView = new RootView
-    atom.activatePackage('archive-view', sync: true)
+    atom.activatePackage('archive-view')
 
   describe ".initialize()", ->
     it "displays the files and folders in the archive file", ->
