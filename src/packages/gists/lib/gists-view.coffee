@@ -7,16 +7,9 @@ humanize = require 'humanize-plus'
 
 module.exports =
 class GistsView extends SelectList
-  @activate: -> new GistsView
-
   @viewClass: -> "#{super} gists-view overlay from-top"
 
   filterKey: 'filterText'
-
-  initialize: ->
-    super
-
-    rootView.command 'gists:view', => @toggle()
 
   loadGists: ->
     if @gists?
