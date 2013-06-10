@@ -17,9 +17,11 @@ class ArchiveView extends ScrollView
 
     @setModel(editSession)
 
-  setPath: (@path) ->
-    return unless @path?
+  setPath: (path) ->
+    return unless path?
+    return if @path is path
 
+    @path = path
     @tree.hide()
     @loadingMessage.show()
     archive.list @path, tree: true, (error, entries) =>
