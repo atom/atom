@@ -1,3 +1,4 @@
+* Added: Support for browsing .tar.gz and .zip files in the editor
 * Added: TODO/FIXME/CHANGED are now highlighted in comments.
 * Fixed: Full screen state of windows is now persisted across restarts.
 * Added: Makefile syntax highlighting now included.
