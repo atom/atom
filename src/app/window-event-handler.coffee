@@ -37,11 +37,8 @@ class WindowEventHandler
 
   openLink: (event) =>
     location = $(event.target).attr('href')
-    return unless location
-    return if location[0] is '#'
-
-    if /^https?:\/\//.test(location)
-      require('shell').openExternal location
+    if location and location[0] isnt '#' and /^https?:\/\//.test(location)
+      require('shell').openExternal(location)
     false
 
   eachTabIndexedElement: (callback) ->
