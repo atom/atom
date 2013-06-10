@@ -29,7 +29,7 @@ class AtomWindow
         type: 'warning'
         buttons: ['Close', 'Keep Waiting']
         message: 'Editor window is frozen'
-        detail: "The editor window becomes frozen because of JavaScript dead loop, you can force closing it or just keep waiting."
+        detail: 'The editor window becomes frozen because of JavaScript dead loop, you can force closing it or just keep waiting.'
       @browserWindow.destroy() if chosen is 0
 
     if @isSpec
@@ -38,8 +38,9 @@ class AtomWindow
         @browserWindow.focusOnWebView()
     else
       @browserWindow.on 'close', (event) =>
-        event.preventDefault()
-        @sendCommand 'window:close'
+        unless @browserWindow.isCrashed()
+          event.preventDefault()
+          @sendCommand 'window:close'
 
   sendCommand: (command, args...) ->
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command, args...
