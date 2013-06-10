@@ -18,7 +18,11 @@ class GistsView extends SelectList
 
     rootView.command 'gists:view', => @toggle()
 
-  getAllGists: ->
+  loadGists: ->
+    if @gists?
+      @setArray(@gists)
+      return
+
     @setLoading('Loading Gists\u2026')
 
     if token = require('keytar').getPassword('github.com', 'github')
@@ -30,7 +34,8 @@ class GistsView extends SelectList
           @setError("Error fetching Gists")
           console.error("Error fetching gists", error.stack ? error)
         else
-          @setArray(gists)
+          @gists = gists
+          @setArray(@gists)
       getNextPage = (error, gists) =>
         if error?
           done(error)
@@ -71,7 +76,7 @@ class GistsView extends SelectList
 
     rootView.append(this)
     @miniEditor.focus()
-    @getAllGists()
+    @loadGists()
 
   confirmed: (gist) ->
     @cancel()
