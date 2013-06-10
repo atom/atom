@@ -41,7 +41,7 @@ class GistsView extends SelectList
           done(error)
         else
           for gist in gists
-            gist.filterText = "#{gist.id} #{@getDescription(gist)}"
+            gist.filterText = @getFilterText(gist)
             allGists.push(gist)
           @loadingBadge.text(humanize.intcomma(allGists.length))
           if client.hasNextPage(gists)
@@ -50,19 +50,28 @@ class GistsView extends SelectList
             done(null, allGists)
       client.gists.getAll(per_page: 100, getNextPage)
 
+  getName: ({files, id}) ->
+    _.keys(files ? {})[0] ? "Gist #{id}"
+
   getDescription: ({description, files}) ->
     if description
       description
     else
-      filenames = []
-      filenames.push(name) for name, value of files ? {}
-      filenames.join(', ')
+      "No description"
+
+  getFilterText: ({description, files, id}) ->
+    segments = []
+    segments.push(id)
+    segments.push(description) if description
+    segments.push(name) for name, value of files ? {}
+    segments.join(' ')
 
   itemForElement: (gist) ->
+    name = @getName(gist)
     description = @getDescription(gist)
     $$ ->
       @li class: 'two-lines', =>
-        @div "Gist #{gist.id}", class: 'primary-line'
+        @div name, class: 'primary-line'
         @div description, class: 'secondary-line'
 
   toggle: ->
