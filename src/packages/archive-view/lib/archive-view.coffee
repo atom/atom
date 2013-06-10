@@ -2,6 +2,8 @@ ScrollView = require 'scroll-view'
 archive = require 'ls-archive'
 FileView = require './file-view'
 DirectoryView = require './directory-view'
+fs = require 'fs'
+humanize = require 'humanize-plus'
 
 module.exports =
 class ArchiveView extends ScrollView
@@ -9,6 +11,7 @@ class ArchiveView extends ScrollView
     @div class: 'archive-view', tabindex: -1, =>
       @div class: 'archive-container', =>
         @div outlet: 'loadingMessage', class: 'loading-message', 'Loading archive\u2026'
+        @div outlet: 'summary', class: 'summary'
         @div outlet: 'tree', class: 'archive-tree'
 
   initialize: (editSession) ->
@@ -21,6 +24,7 @@ class ArchiveView extends ScrollView
     return if @path is path
 
     @path = path
+    @summary.hide()
     @tree.hide()
     @loadingMessage.show()
     archive.list @path, tree: true, (error, entries) =>
@@ -40,6 +44,12 @@ class ArchiveView extends ScrollView
 
         @tree.show()
         @tree.find('.file').view()?.select()
+
+        fileCount = @tree.find('.file').length
+        fileLabel = if fileCount is 1 then "1 file" else "#{humanize.intcomma(fileCount)} files"
+        directoryCount = @tree.find('.directory').length
+        directoryLabel = if directoryCount is 1 then "1 folder" else "#{humanize.intcomma(directoryCount)} folders"
+        @summary.text("#{humanize.filesize(fs.statSync(@path).size)} with #{fileLabel} and #{directoryLabel}").show()
 
   focusSelectedFile: ->
     @tree.find('.selected').view()?.focus()
