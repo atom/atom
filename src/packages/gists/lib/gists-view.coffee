@@ -16,10 +16,9 @@ class GistsView extends SelectList
   initialize: ->
     super
 
-    rootView.command 'gists:view', => @getAllGists()
+    rootView.command 'gists:view', => @toggle()
 
   getAllGists: ->
-    @attach()
     @setLoading('Loading Gists\u2026')
 
     if token = require('keytar').getPassword('github.com', 'github')
@@ -61,11 +60,18 @@ class GistsView extends SelectList
         @div "Gist #{gist.id}", class: 'primary-line'
         @div description, class: 'secondary-line'
 
+  toggle: ->
+    if @hasParent()
+      @detach()
+    else
+      @attach()
+
   attach: ->
     super
 
     rootView.append(this)
     @miniEditor.focus()
+    @getAllGists()
 
-  confirmed : (gist) ->
+  confirmed: (gist) ->
     @cancel()
