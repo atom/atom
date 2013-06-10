@@ -19,6 +19,10 @@ class ArchiveView extends ScrollView
 
     @setModel(editSession)
 
+    @on 'focus', =>
+      @focusSelectedFile()
+      false
+
   setPath: (path) ->
     return unless path?
     return if @path is path
