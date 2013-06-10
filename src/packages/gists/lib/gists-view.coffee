@@ -48,7 +48,7 @@ class GistsView extends SelectList
             client.getNextPage(gists, getNextPage)
           else
             done(null, allGists)
-      client.gists.getAll({}, getNextPage)
+      client.gists.getAll(per_page: 100, getNextPage)
 
   getDescription: ({description, files}) ->
     if description
