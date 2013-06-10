@@ -53,6 +53,6 @@ class FileView extends View
                 rootView.open(tempFilePath)
 
   select: ->
-    @closest('.archive-view').find('.selected').view()?.name.removeClass('selected')
+    @closest('.archive-view').find('.selected').toggleClass('selected')
     @name.addClass('selected')
     @focus()
