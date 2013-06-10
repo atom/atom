@@ -4,7 +4,13 @@
 
 Check out our [documentation on the docs tab](https://github.com/github/atom/docs).
 
-## Building from source
+## Installing
+
+Download the latest Atom release from [speakeasy](https://speakeasy.githubapp.com/apps/27).
+
+It will automatically update when a new build is available.
+
+## Building
 
 ### Requirements
 
