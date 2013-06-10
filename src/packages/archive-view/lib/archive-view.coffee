@@ -24,6 +24,8 @@ class ArchiveView extends ScrollView
     @tree.hide()
     @loadingMessage.show()
     archive.list @path, tree: true, (error, entries) =>
+      return unless path is @path
+
       if error?
         console.error("Error listing archive file: #{@path}", error.stack ? error)
       else
