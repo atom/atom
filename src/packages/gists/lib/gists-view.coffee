@@ -28,6 +28,7 @@ class GistsView extends SelectList
       allGists = []
       done = (error, gists) =>
         if error?
+          @setError("Error fetching Gists")
           console.error("Error fetching gists", error.stack ? error)
         else
           @setArray(gists)
