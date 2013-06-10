@@ -8,7 +8,7 @@ Check out our [documentation on the docs tab](https://github.com/github/atom/doc
 
 Download the latest Atom release from [speakeasy](https://speakeasy.githubapp.com/apps/27).
 
-It will automatically update when a new build is available.
+It will automatically update when a new release is available.
 
 ## Building
 
