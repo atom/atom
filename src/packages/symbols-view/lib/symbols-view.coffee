@@ -70,7 +70,7 @@ class SymbolsView extends SelectList
         @miniEditor.hide()
         @setError("No symbols found")
 
-  confirmed : (tag) ->
+  confirmed: (tag) ->
     if tag.file and not fsUtils.isFile(project.resolve(tag.file))
       @setError('Selected file does not exist')
       setTimeout((=> @setError()), 2000)
