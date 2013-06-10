@@ -34,22 +34,29 @@ class ArchiveView extends ScrollView
         console.error("Error listing archive file: #{@path}", error.stack ? error)
       else
         @loadingMessage.hide()
-        @tree.empty()
+        @createTreeEntries(entries)
+        @updateSummary()
 
-        for entry in entries
-          if entry.isDirectory()
-            @tree.append(new DirectoryView(@path, entry))
-          else
-            @tree.append(new FileView(@path, entry))
+  createTreeEntries: (entries) ->
+    @tree.empty()
 
-        @tree.show()
-        @tree.find('.file').view()?.select()
+    for entry in entries
+      if entry.isDirectory()
+        @tree.append(new DirectoryView(@path, entry))
+      else
+        @tree.append(new FileView(@path, entry))
 
-        fileCount = @tree.find('.file').length
-        fileLabel = if fileCount is 1 then "1 file" else "#{humanize.intcomma(fileCount)} files"
-        directoryCount = @tree.find('.directory').length
-        directoryLabel = if directoryCount is 1 then "1 folder" else "#{humanize.intcomma(directoryCount)} folders"
-        @summary.text("#{humanize.filesize(fs.statSync(@path).size)} with #{fileLabel} and #{directoryLabel}").show()
+    @tree.show()
+    @tree.find('.file').view()?.select()
+
+  updateSummary: ->
+    fileCount = @tree.find('.file').length
+    fileLabel = if fileCount is 1 then "1 file" else "#{humanize.intcomma(fileCount)} files"
+
+    directoryCount = @tree.find('.directory').length
+    directoryLabel = if directoryCount is 1 then "1 folder" else "#{humanize.intcomma(directoryCount)} folders"
+
+    @summary.text("#{humanize.filesize(fs.statSync(@path).size)} with #{fileLabel} and #{directoryLabel}").show()
 
   focusSelectedFile: ->
     @tree.find('.selected').view()?.focus()
