@@ -1,6 +1,6 @@
 # Atom — Futuristic Text Editing
 
-![atom](https://f.cloud.github.com/assets/1300064/208230/4cefbca4-821a-11e2-8139-92c0328abf68.png)
+![atom](https://s3.amazonaws.com/speakeasy/apps/icons/27/medium/7db16e44-ba57-11e2-8c6f-981faf658e00.png)
 
 Check out our [documentation on the docs tab](https://github.com/github/atom/docs).
 
