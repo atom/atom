@@ -37,7 +37,6 @@ class ArchiveView extends ScrollView
           else
             @tree.append(new FileView(@path, entry))
 
-        @tree.find('.entry.file:first').addClass('selected')
         @tree.show()
 
   setModel: (editSession) ->

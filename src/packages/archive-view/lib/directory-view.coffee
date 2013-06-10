@@ -4,7 +4,8 @@ FileView = require './file-view'
 module.exports =
 class DirectoryView extends View
   @content: (archivePath, entry) ->
-    @div entry.getName(), class: 'entry directory'
+    @div class: 'entry', =>
+      @span entry.getName(), class: 'directory'
 
   initialize: (archivePath, entry) ->
     for child in entry.children
