@@ -1,6 +1,5 @@
 ScrollView = require 'scroll-view'
 archive = require 'ls-archive'
-{$$} = require 'space-pen'
 FileView = require './file-view'
 DirectoryView = require './directory-view'
 
