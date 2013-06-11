@@ -127,17 +127,14 @@ describe "Window", ->
       windowState = {}
       jasmine.unspy(atom, 'setWindowState')
       spyOn(atom, 'setWindowState').andCallFake (key, value) -> windowState[key] = value
-      projectPath = project.getPath()
 
       # JSON.stringify removes keys with undefined values
       rootViewState = rootView.serialize()
-      projectState = project.serialize()
       syntaxState = syntax.serialize()
 
       window.unloadEditorWindow()
 
       expect(windowState.rootView).toEqual rootViewState
-      expect(windowState.project).toEqual projectState
       expect(windowState.syntax).toEqual syntaxState
 
     it "unsubscribes from all buffers", ->

@@ -14,8 +14,6 @@ BufferedProcess = require 'buffered-process'
 # of directories and files that you can operate on.
 module.exports =
 class Project
-  registerDeserializer(this)
-
   @openers: []
 
   @registerOpener: (opener) ->
@@ -32,13 +30,6 @@ class Project
   ignoredPathRegexes: null
 
   ### Internal ###
-
-  serialize: ->
-    deserializer: 'Project'
-    path: @getPath()
-
-  @deserialize: (state) ->
-    new Project(state.path)
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()

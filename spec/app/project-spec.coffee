@@ -335,8 +335,3 @@ describe "Project", ->
         runs ->
           expect(paths.length).toBe 0
           expect(matches.length).toBe 0
-
-  describe "serialization", ->
-    it "restores the project path", ->
-      newProject = Project.deserialize(project.serialize())
-      expect(newProject.getPath()).toBe project.getPath()
