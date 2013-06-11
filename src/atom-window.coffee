@@ -37,8 +37,8 @@ class AtomWindow
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close', 'Keep Waiting']
-        message: 'Editor window is frozen'
-        detail: 'The editor window becomes frozen because of JavaScript dead loop, you can force closing it or just keep waiting.'
+        message: 'Editor is not responsing'
+        detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
       if chosen is 0
         setImmediate => @browserWindow.destroy()
 
