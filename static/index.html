@@ -10,6 +10,7 @@
         require('coffee-script');
         require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache');
         require(currentWindow.loadSettings.bootstrapScript);
+        currentWindow.emit('window:loaded')
       }
       catch (error) {
         currentWindow.openDevTools();

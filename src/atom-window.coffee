@@ -14,6 +14,7 @@ class AtomWindow
     @handleEvents()
 
     @browserWindow.loadSettings = {pathToOpen, bootstrapScript, resourcePath, exitWhenDone}
+    @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{resourcePath}/static/index.html"
 
   getPathToOpen: ->
@@ -63,8 +64,11 @@ class AtomWindow
           @sendCommand 'window:close'
 
   openPath: (pathToOpen) ->
-    @focus()
-    @sendCommand('window:open-path', pathToOpen)
+    if @loaded
+      @focus()
+      @sendCommand('window:open-path', pathToOpen)
+    else
+      @browserWindow.once 'window:loaded', => @openPath(pathToOpen)
 
   sendCommand: (command, args...) ->
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command, args...

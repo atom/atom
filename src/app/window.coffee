@@ -121,11 +121,6 @@ window.deserializeEditorWindow = ->
   window.project = new Project(pathToOpen)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 
-  if !pathToOpen
-    rootView.open(pathToOpen)
-  else if !windowState.rootView and fsUtils.isFile(pathToOpen)
-    rootView.open(pathToOpen)
-
   $(rootViewParentSelector).append(rootView)
 
   window.git = Git.open(project.getPath())
