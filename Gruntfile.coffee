@@ -122,7 +122,12 @@ module.exports = (grunt) ->
       options:
         'adjoining-classes': false
         'fallback-colors': false
-      src: ['themes/**/*.css', 'src/**/*.css']
+        'vendor-prefix': false
+      src: [
+        'src/**/*.css',
+        'static/**/*.css'
+        'themes/**/*.css'
+      ]
 
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-contrib-csslint')
