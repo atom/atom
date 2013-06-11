@@ -8,8 +8,11 @@ class CreateGist
     editor = rootView.getActiveView()
     return unless editor?
 
+    buffer = editor.getBuffer?()
+    return unless buffer?
+
     gist = { public: false, files: {} }
-    gist.files[editor.getBuffer().getBaseName()] =
+    gist.files[buffer.getBaseName()] =
       content: editor.getSelectedText() or editor.getText()
 
     gistUtils.createGist gist, (error, createdGist) ->
