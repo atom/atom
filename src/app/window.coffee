@@ -18,6 +18,8 @@ windowEventHandler = null
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = ->
+  window.resourcePath = remote.getCurrentWindow().loadSettings.resourcePath
+
   Config = require 'config'
   Syntax = require 'syntax'
   Pasteboard = require 'pasteboard'

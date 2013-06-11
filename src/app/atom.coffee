@@ -7,25 +7,19 @@ remote = require 'remote'
 crypto = require 'crypto'
 
 window.atom =
-  exitWhenDone: window.location.params.exitWhenDone
-  devMode: window.location.params.devMode
   loadedThemes: []
   loadedPackages: {}
   activePackages: {}
   packageStates: {}
 
+  getLoadSettings: ->
+    remote.getCurrentWindow().loadSettings
+
   getPathToOpen: ->
-    window.location.params.pathToOpen
+    @getLoadSettings().pathToOpen
 
   setPathToOpen: (pathToOpen) ->
-    window.location.params.pathToOpen = pathToOpen
-    @saveWindowParameters()
-
-  saveWindowParameters: ->
-    hashSegments = []
-    for name, value of window.location.params
-      hashSegments.push("#{encodeURIComponent(name)}=#{encodeURIComponent(value)}")
-    window.location.hash = '#' + hashSegments.join('&')
+    @getLoadSettings().pathToOpen = pathToOpen
 
   getPackageState: (name) ->
     @packageStates[name]
@@ -211,7 +205,6 @@ window.atom =
     remote.getCurrentWindow().toggleDevTools()
 
   reload: ->
-    @saveWindowParameters()
     remote.getCurrentWindow().restart()
 
   focus: ->

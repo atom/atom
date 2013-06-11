@@ -6,19 +6,17 @@ module.exports =
 class AtomWindow
   browserWindow: null
 
-  constructor: ({bootstrapScript, resourcePath, @pathToOpen, exitWhenDone, @isSpec}) ->
+  constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec}) ->
     global.atomApplication.addWindow(this)
 
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 
-    url = "file://#{resourcePath}/static/index.html#"
-    url += "bootstrapScript=#{encodeURIComponent(bootstrapScript)}"
-    url += "&resourcePath=#{encodeURIComponent(resourcePath)}"
-    url += "&pathToOpen=#{encodeURIComponent(@pathToOpen)}" if @pathToOpen
-    url += '&exitWhenDone=1' if exitWhenDone
+    @browserWindow.loadSettings = {pathToOpen, bootstrapScript, resourcePath, exitWhenDone}
+    @browserWindow.loadUrl "file://#{resourcePath}/static/index.html"
 
-    @browserWindow.loadUrl url
+  getPathToOpen: ->
+    @browserWindow.loadSettings.pathToOpen
 
   handleEvents: ->
     @browserWindow.on 'destroyed', =>

@@ -4,24 +4,14 @@
   <title></title>
 
   <script>
-    window.location.params = {}
-    var params = window.location.hash.substring(1).split('&')
-    params.forEach(function(param) {
-      var pair = param.split("=");
-      window.location.params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
-    });
-
-    window.resourcePath = window.location.params.resourcePath;
-    var bootstrapScript = window.location.params.bootstrapScript;
-
     window.onload = function() {
+      var currentWindow = require('remote').getCurrentWindow();
       try {
         require('coffee-script');
         require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache');
-        if (bootstrapScript) require(bootstrapScript);
+        require(currentWindow.loadSettings.bootstrapScript);
       }
       catch (error) {
-        var currentWindow = require('remote').getCurrentWindow();
         currentWindow.openDevTools();
         console.error(error.stack || error);
       }

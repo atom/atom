@@ -18,7 +18,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   $ = require 'jquery'
   TimeReporter = require 'time-reporter'
 
-  reporter = if atom.exitWhenDone
+  reporter = if atom.getLoadSettings().exitWhenDone
     new jasmine.ConsoleReporter(document, logErrors)
   else
     new AtomReporter()
