@@ -1,5 +1,5 @@
 RootView = require 'root-view'
-$ = require 'jquery'
+gistUtils = require '../lib/gist-utils'
 
 describe "Gists package", ->
   [editor] = []
@@ -9,28 +9,25 @@ describe "Gists package", ->
     rootView.open('sample.js')
     atom.activatePackage('gists')
     editor = rootView.getActiveView()
-    spyOn($, 'ajax')
+    spyOn(gistUtils, 'createGist')
 
   describe "when gist:create is triggered on an editor", ->
-
     describe "when the editor has no selection", ->
-      [request, originalFxOffValue] = []
+      [request, callback] = []
 
       beforeEach ->
         editor.trigger 'gist:create'
-        expect($.ajax).toHaveBeenCalled()
-        request = $.ajax.argsForCall[0][0]
+        expect(gistUtils.createGist).toHaveBeenCalled()
+        request = gistUtils.createGist.argsForCall[0][0]
+        callback = gistUtils.createGist.argsForCall[0][1]
 
-      it "creates an Ajax request to api.github.com with the entire buffer contents as the Gist's content", ->
-        expect(request.url).toBe 'https://api.github.com/gists'
-        expect(request.type).toBe 'POST'
-        requestData = JSON.parse(request.data)
-        expect(requestData.public).toBeFalsy()
-        expect(requestData.files).toEqual 'sample.js': content: editor.getText()
+      it "creates a Gist with the entire buffer contents as the Gist's content", ->
+        expect(request.public).toBeFalsy()
+        expect(request.files).toEqual 'sample.js': content: editor.getText()
 
       describe "when the server responds successfully", ->
         beforeEach ->
-          request.success(html_url: 'https://gist.github.com/1', id: '1')
+          callback(null, {html_url: 'https://gist.github.com/1', id: '1'})
 
         it "places the created Gist's URL on the clipboard", ->
           expect(pasteboard.read()[0]).toBe 'https://gist.github.com/1'
@@ -45,9 +42,8 @@ describe "Gists package", ->
       beforeEach ->
         editor.setSelectedBufferRange [[4, 0], [8, 0]]
 
-      it "creates an Ajax with the selected text as the Gist's content", ->
+      it "creates a request with the selected text as the Gist's content", ->
         editor.trigger 'gist:create'
-        expect($.ajax).toHaveBeenCalled()
-        request = $.ajax.argsForCall[0][0]
-        requestData = JSON.parse(request.data)
-        expect(requestData.files).toEqual 'sample.js': content: editor.getSelectedText()
+        expect(gistUtils.createGist).toHaveBeenCalled()
+        request = gistUtils.createGist.argsForCall[0][0]
+        expect(request.files).toEqual 'sample.js': content: editor.getSelectedText()

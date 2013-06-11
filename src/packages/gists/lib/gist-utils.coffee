@@ -50,4 +50,7 @@ getStarredGists = (callback) ->
   client = createClient()
   client.gists.starred({per_page: 100}, createPageIterator(client, callback))
 
-module.exports = {openGistFile, getAllGists, getStarredGists}
+createGist = (gist, callback) ->
+  createClient().gists.create(gist, callback)
+
+module.exports = {openGistFile, getAllGists, getStarredGists, createGist}
