@@ -24,15 +24,18 @@ class ArchiveView extends ScrollView
       false
 
   setPath: (path) ->
-    return unless path?
-    return if @path is path
+    if path and @path isnt path
+      @path = path
+      @refresh()
 
-    @path = path
+  refresh: ->
     @summary.hide()
     @tree.hide()
     @loadingMessage.show()
+
+    originalPath = @path
     archive.list @path, tree: true, (error, entries) =>
-      return unless path is @path
+      return unless originalPath is @path
 
       if error?
         console.error("Error listing archive file: #{@path}", error.stack ? error)
@@ -69,4 +72,11 @@ class ArchiveView extends ScrollView
     @focusSelectedFile()
 
   setModel: (editSession) ->
-    @setPath(editSession?.getPath())
+    @unsubscribe(@editSession) if @editSession
+    if editSession
+      @editSession = editSession
+      @setPath(editSession.getPath())
+      editSession.file.on 'contents-changed', =>
+        @refresh()
+      editSession.file.on 'removed', =>
+        @parent('.item-views').parent('.pane').view()?.destroyItem(editSession)

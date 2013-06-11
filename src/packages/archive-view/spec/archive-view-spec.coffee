@@ -1,4 +1,5 @@
 RootView = require 'root-view'
+fsUtils = require 'fs-utils'
 
 describe "Archive viewer", ->
   beforeEach ->
@@ -88,3 +89,29 @@ describe "Archive viewer", ->
         runs ->
           expect(rootView.getActiveView().getText()).toBe ''
           expect(rootView.getActivePaneItem().getTitle()).toBe 'f1.txt'
+
+  describe "when the file is removed", ->
+    it "destroys the view", ->
+      rootView.open('nested.tar')
+
+      archiveView = rootView.find('.archive-view')
+
+      waitsFor -> archiveView.find('.entry').length > 0
+
+      runs ->
+        expect(rootView.getActivePane().getItems().length).toBe 1
+        rootView.getActivePaneItem().file.trigger('removed')
+        expect(rootView.getActivePane()).toBeFalsy()
+
+  describe "when the file is modified", ->
+    it "refreshes the view", ->
+      rootView.open('nested.tar')
+
+      archiveView = rootView.find('.archive-view').view()
+
+      waitsFor -> archiveView.find('.entry').length > 0
+
+      runs ->
+        spyOn(archiveView, 'refresh')
+        rootView.getActivePaneItem().file.trigger('contents-changed')
+        expect(archiveView.refresh).toHaveBeenCalled()
