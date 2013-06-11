@@ -61,8 +61,8 @@ parseCommandLine = ->
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the Atom specs and exit with error code on failures.')
-  options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
+  options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   args = options.argv
 
   if args.h
