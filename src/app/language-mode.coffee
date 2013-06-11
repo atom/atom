@@ -37,14 +37,20 @@ class LanguageMode
   # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
-    return unless commentStartString = syntax.getProperty(scopes, "editor.commentStart")
+    properties = syntax.propertiesForScope(scopes, "editor.commentStart")[0]
+    return unless properties
+
+    commentStartString = _.valueForKeyPath(properties, "editor.commentStart")
+    commentEndString = _.valueForKeyPath(properties, "editor.commentEnd")
+
+    return unless commentStartString
 
     buffer = @editSession.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
     commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
     shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
-    if commentEndString = syntax.getProperty(scopes, "editor.commentEnd")
+    if commentEndString
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
         commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
