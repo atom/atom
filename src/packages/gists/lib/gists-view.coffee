@@ -14,7 +14,6 @@ class GistsView extends SelectList
 
   filterKey: 'filterText'
 
-
   initialize: ->
     super
 
