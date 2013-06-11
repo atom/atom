@@ -13,7 +13,10 @@ class TextMatePackage extends Package
 
   @getLoadQueue: ->
     return @loadQueue if @loadQueue
-    @loadQueue = async.queue (pack, done) -> pack.loadGrammars(done)
+    @loadQueue = async.queue (pack, done) ->
+      pack.loadGrammars ->
+        pack.loadScopedProperties(done)
+
     @loadQueue
 
   constructor: ->
@@ -44,21 +47,15 @@ class TextMatePackage extends Package
 
   loadGrammars: (done) ->
     fsUtils.isDirectoryAsync @getSyntaxesPath(), (isDirectory) =>
-      return done() unless isDirectory
-
-      fsUtils.listAsync @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
-        if error?
-          console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
-          done()
-          return
-
-        async.waterfall [
-            (next) =>
-              async.eachSeries paths, @loadGrammarAtPath, next
-            (next) =>
-              @loadScopedProperties()
-              next()
-        ], done
+      if isDirectory
+        fsUtils.listAsync @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
+          if error?
+            console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
+            done()
+          else
+            async.eachSeries(paths, @loadGrammarAtPath, done)
+      else
+        done()
 
   loadGrammarAtPath: (path, done) =>
     TextMateGrammar.load path, (err, grammar) =>
@@ -105,7 +102,7 @@ class TextMatePackage extends Package
     for {selector, properties} in @scopedProperties
       syntax.addProperties(@path, selector, properties)
 
-  loadScopedProperties: ->
+  loadScopedProperties: (callback) ->
     scopedProperties = []
 
     for grammar in @getGrammars()
@@ -124,6 +121,7 @@ class TextMatePackage extends Package
       if @isActive()
         for {selector, properties} in @scopedProperties
           syntax.addProperties(@path, selector, properties)
+      callback?()
     @loadTextMatePreferenceObjects(preferenceObjects, done)
 
   loadTextMatePreferenceObjects: (preferenceObjects, done) ->

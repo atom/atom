@@ -205,6 +205,18 @@ describe "the `atom` global", ->
           atom.activatePackage('ruby-tmbundle', sync: true)
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
+        describe "when the package has no grammars but does have preferences", ->
+          it "loads the package's preferences as scoped properties", ->
+            jasmine.unspy(window, 'setTimeout')
+            spyOn(syntax, 'addProperties').andCallThrough()
+
+            atom.activatePackage('package-with-preferences-tmbundle')
+
+            waitsFor ->
+              syntax.addProperties.callCount > 0
+            runs ->
+              expect(syntax.getProperty(['.source.pref'], 'editor.increaseIndentPattern')).toBe '^abc$'
+
     describe ".activatePackageConfig(id)", ->
       it "calls the optional .activateConfigMenu method on the package's main module", ->
         pack = atom.activatePackageConfig('package-with-activate-config')
