@@ -5,15 +5,15 @@ gistUtils = require './gist-utils'
 module.exports =
 class CreateGist
   createGist: ->
-    editor = rootView.getActiveView()
-    return unless editor?
+    activeItem = rootView.getActivePaneItem()
+    return unless activeItem?
 
-    buffer = editor.getBuffer?()
-    return unless buffer?
+    name = activeItem.getTitle?()
+    content = activeItem.getSelectedText?() or activeItem.getText?()
+    return unless name and content
 
     gist = { public: false, files: {} }
-    gist.files[buffer.getBaseName()] =
-      content: editor.getSelectedText() or editor.getText()
+    gist.files[name] = {content}
 
     gistUtils.createGist gist, (error, createdGist) ->
       if error?
