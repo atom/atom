@@ -15,12 +15,6 @@ window.atom =
   getLoadSettings: ->
     remote.getCurrentWindow().loadSettings
 
-  getPathToOpen: ->
-    @getLoadSettings().pathToOpen
-
-  setPathToOpen: (pathToOpen) ->
-    @getLoadSettings().pathToOpen = pathToOpen
-
   getPackageState: (name) ->
     @packageStates[name]
 
@@ -232,15 +226,16 @@ window.atom =
     throw new Error("sendMessageToBrowserProcess no longer works for #{name}")
 
   getWindowStatePath: ->
-    if @windowMode is 'config'
-      filename = 'config'
-    else if @windowMode is 'editor' and @getPathToOpen()
-      shasum = crypto.createHash('sha1')
-      shasum.update(@getPathToOpen())
-      filename = "editor-#{shasum.digest('hex')}"
-    else
-      filename = 'undefined'
+    switch @windowMode
+      when 'config'
+        filename = 'config'
+      when 'editor'
+        {initialPath} = @getLoadSettings()
+        if initialPath
+          sha1 = crypto.createHash('sha1').update(initialPath).digest('hex')
+          filename = "editor-#{sha1}"
 
+    filename ?= 'undefined'
     fsUtils.join(config.userStoragePath, filename)
 
   setWindowState: (keyPath, value) ->

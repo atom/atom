@@ -2,6 +2,7 @@ BrowserWindow = require 'browser-window'
 dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
+fs = require 'fs'
 
 module.exports =
 class AtomWindow
@@ -13,19 +14,25 @@ class AtomWindow
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 
-    @browserWindow.loadSettings = {pathToOpen, bootstrapScript, resourcePath, exitWhenDone}
+    initialPath = pathToOpen
+    try
+      initialPath = path.dirname(pathToOpen) if fs.statSync(pathToOpen).isFile()
+
+    @browserWindow.loadSettings = {initialPath, bootstrapScript, resourcePath, exitWhenDone}
     @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{resourcePath}/static/index.html"
 
-  getPathToOpen: ->
-    @browserWindow.loadSettings.pathToOpen
+    @openPath(pathToOpen)
+
+  getInitialPath: ->
+    @browserWindow.loadSettings.initialPath
 
   containsPath: (pathToCheck) ->
     if not pathToCheck
       false
-    else if pathToCheck is @getPathToOpen()
+    else if pathToCheck is @getInitialPath()
       true
-    else if pathToCheck.indexOf(path.join(@getPathToOpen(), path.sep)) is 0
+    else if pathToCheck.indexOf(path.join(@getInitialPath(), path.sep)) is 0
       true
     else
       false
