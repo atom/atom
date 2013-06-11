@@ -2,11 +2,9 @@
 SelectList = require 'select-list'
 path = require 'path'
 fsUtils = require 'fs-utils'
-GitHub = require 'github'
-keytar = require 'keytar'
 _ = require 'underscore'
 humanize = require 'humanize-plus'
-{openGistFile} = require './gist-utils'
+{getAllGists, getStarredGists, openGistFile} = require './gist-utils'
 GistFilesView = require './gist-files-view'
 
 module.exports =
@@ -22,30 +20,33 @@ class GistsView extends SelectList
 
     @setLoading('Loading Gists\u2026')
 
-    if token = require('keytar').getPassword('github.com', 'github')
-      client = new GitHub(version: '3.0.0')
-      client.authenticate({type: 'oauth', token})
-      allGists = []
-      done = (error, gists) =>
-        if error?
-          @setError("Error fetching Gists")
-          console.error("Error fetching Gists", error.stack ? error)
-        else
-          @gists = gists
-          @setArray(@gists)
-      getNextPage = (error, gists) =>
-        if error?
-          done(error)
-        else
-          for gist in gists
-            gist.filterText = @getFilterText(gist)
-            allGists.push(gist)
-          @loadingBadge.text(humanize.intcomma(allGists.length))
-          if client.hasNextPage(gists)
-            client.getNextPage(gists, getNextPage)
-          else
-            done(null, allGists)
-      client.gists.getAll(per_page: 100, getNextPage)
+    allGists = []
+    gistsCallback = (error, gists, hasMorePages) =>
+      if error?
+        @setError("Error fetching Gists")
+        console.error("Error fetching Gists", error.stack ? error)
+      else
+        for gist in gists
+          gist.filterText = @getFilterText(gist)
+          allGists.push(gist)
+        @loadingBadge.text(humanize.intcomma(allGists.length))
+
+    getAllGists (error, gists, hasMorePages) =>
+      gistsCallback(error, gists, hasMorePages)
+      if !error? and !hasMorePages
+        getStarredGists (error, gists, hasMorePages) =>
+          gistsCallback(error, gists, hasMorePages)
+          if !error? and !hasMorePages
+            @gists = allGists.sort (gist1, gist2) ->
+              date1 = Date.parse(gist1.created_at)
+              date2 = Date.parse(gist2.created_at)
+              if date1 < date2
+                1
+              else if date1 > date2
+                -1
+              else
+                0
+            @setArray(@gists)
 
   getName: ({files, id}) ->
     _.keys(files ? {})[0] ? "Gist #{id}"
