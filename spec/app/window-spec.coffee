@@ -8,7 +8,7 @@ describe "Window", ->
   [projectPath, windowEventHandler] = []
 
   beforeEach ->
-    spyOn(atom, 'getPathToOpen').andReturn(project.getPath())
+    atom.getLoadSettings().initialPath = project.getPath()
     windowEventHandler = new WindowEventHandler()
     window.deserializeEditorWindow()
     projectPath = project.getPath()
