@@ -220,16 +220,8 @@ class AtomApplication
       atomWindow.sendCommand(command, args...)
 
   windowForPath: (pathToOpen) ->
-    return null unless pathToOpen
-
-    for atomWindow in @windows when atomWindow.getPathToOpen()?
-      if pathToOpen is atomWindow.getPathToOpen()
-        return atomWindow
-
-      if pathToOpen.indexOf(path.join(atomWindow.getPathToOpen(), path.sep)) is 0
-        return atomWindow
-
-    null
+    for atomWindow in @windows
+      return atomWindow if atomWindow.containsPath(pathToOpen)
 
   openPaths: (pathsToOpen=[], pidToKillWhenClosed) ->
     @openPath(pathToOpen, pidToKillWhenClosed) for pathToOpen in pathsToOpen

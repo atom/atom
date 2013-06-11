@@ -1,6 +1,7 @@
 BrowserWindow = require 'browser-window'
 dialog = require 'dialog'
 ipc = require 'ipc'
+path = require 'path'
 
 module.exports =
 class AtomWindow
@@ -17,6 +18,16 @@ class AtomWindow
 
   getPathToOpen: ->
     @browserWindow.loadSettings.pathToOpen
+
+  containsPath: (pathToCheck) ->
+    if not pathToCheck
+      false
+    else if pathToCheck is @getPathToOpen()
+      true
+    else if pathToCheck.indexOf(path.join(@getPathToOpen(), path.sep)) is 0
+      true
+    else
+      false
 
   handleEvents: ->
     @browserWindow.on 'destroyed', =>
