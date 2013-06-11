@@ -1,3 +1,4 @@
+$ = require 'jquery'
 {$$} = require 'space-pen'
 SelectList = require 'select-list'
 path = require 'path'
@@ -12,6 +13,12 @@ class GistsView extends SelectList
   @viewClass: -> "#{super} gists-view overlay from-top"
 
   filterKey: 'filterText'
+
+
+  initialize: ->
+    super
+
+    @subscribe $(window), 'focus', => @gists = null
 
   loadGists: ->
     if @gists?
