@@ -54,8 +54,8 @@ class AtomWindow
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close Window', 'Reload', 'Keep It Open']
-        message: 'Renderer is crashed'
-        detail: "The renderer process has crashed, a crash report would be generated and you can report it to Atom's github page"
+        message: 'The editor has crashed'
+        detail: 'Please report this issue to https://github.com/github/atom/issues'
       switch chosen
         when 0 then setImmediate => @browserWindow.destroy()
         when 1 then @browserWindow.restart()
