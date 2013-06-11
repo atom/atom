@@ -5,6 +5,7 @@ path = require 'path'
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 humanize = require 'humanize-plus'
+keytar = require 'keytar'
 {getAllGists, getStarredGists, openGistFile} = require './gist-utils'
 GistFilesView = require './gist-files-view'
 
@@ -18,6 +19,7 @@ class GistsView extends SelectList
     super
 
     @subscribe $(window), 'focus', => @gists = null
+    @on 'github:signed-in', => @attach()
 
   loadGists: ->
     if @gists?
@@ -84,12 +86,17 @@ class GistsView extends SelectList
     else
       @attach()
 
+  hasToken: -> keytar.getPassword('github.com', 'github')
+
   attach: ->
     super
 
-    rootView.append(this)
-    @miniEditor.focus()
-    @loadGists()
+    if @hasToken()
+      rootView.append(this)
+      @miniEditor.focus()
+      @loadGists()
+    else
+      rootView.trigger('github:sign-in', [this])
 
   confirmed: (gist) ->
     @cancel()

@@ -16,7 +16,7 @@ class SignInView extends ScrollView
       @div outlet: 'alert', class: 'alert alert-error'
 
   initialize: ({@signedInUser}={})->
-    rootView.command 'github:sign-in', => @attach()
+    rootView.on 'github:sign-in', (event, @signedInEventHandler) => @attach()
 
     @username.on 'core:confirm', => @generateOAuth2Token()
     @username.on 'input', => @validate()
@@ -70,7 +70,9 @@ class SignInView extends ScrollView
       success: ({token}={}) =>
         if token?.length > 0
           @signedInUser = username
-          unless keytar.replacePassword('github.com', 'github', token)
+          if keytar.replacePassword('github.com', 'github', token)
+            @signedInEventHandler?.trigger?('github:signed-in')
+          else
             console.warn 'Unable to save GitHub token to keychain'
         @detach()
 
@@ -103,6 +105,11 @@ class SignInView extends ScrollView
       @password.focus()
     else
       @username.focus()
+
+  detach: ->
+    super
+
+    @signedInEventHandler = null
 
 module.exports =
   signInView: null
