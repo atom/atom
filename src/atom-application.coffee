@@ -230,8 +230,7 @@ class AtomApplication
     existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed
     if existingWindow
       openedWindow = existingWindow
-      openedWindow.focus()
-      openedWindow.sendCommand('window:open-path', pathToOpen)
+      openedWindow.openPath(pathToOpen)
     else
       bootstrapScript = 'window-bootstrap'
       openedWindow = new AtomWindow({pathToOpen, bootstrapScript, @resourcePath})

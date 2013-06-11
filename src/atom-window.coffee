@@ -62,6 +62,10 @@ class AtomWindow
           event.preventDefault()
           @sendCommand 'window:close'
 
+  openPath: (pathToOpen) ->
+    @focus()
+    @sendCommand('window:open-path', pathToOpen)
+
   sendCommand: (command, args...) ->
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command, args...
 
