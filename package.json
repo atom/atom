@@ -56,6 +56,7 @@
     "ruby-tmbundle": "1.0.0",
     "sass-tmbundle": "1.0.0",
     "shellscript-tmbundle": "1.0.0",
+    "source-tmbundle": "1.0.0",
     "sql-tmbundle": "1.0.0",
     "text-tmbundle": "1.0.0",
     "textmate-clojure": "1.0.0",
