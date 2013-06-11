@@ -59,6 +59,7 @@ parseCommandLine = ->
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
+  options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the Atom specs and exit with error code on failures.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   args = options.argv
@@ -71,6 +72,7 @@ parseCommandLine = ->
   pathsToOpen = args._
   pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
+  newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
 
   if args['resource-path']
@@ -85,4 +87,4 @@ parseCommandLine = ->
     dev = false
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, dev}
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, dev, newWindow}

@@ -38,7 +38,7 @@ class AtomApplication
   installUpdate: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, @version, test, pidToKillWhenClosed, @dev}) ->
+  constructor: ({@resourcePath, pathsToOpen, @version, test, pidToKillWhenClosed, @dev, newWindow}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -58,10 +58,10 @@ class AtomApplication
     if test
       @runSpecs(true)
     else if pathsToOpen.length > 0
-      @openPaths(pathsToOpen, pidToKillWhenClosed)
+      @openPaths(pathsToOpen, pidToKillWhenClosed, newWindow)
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath(null)
+      @openPath(null, pidToKillWhenClosed, newWindow)
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -96,8 +96,8 @@ class AtomApplication
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
-        {pathsToOpen, pidToKillWhenClosed} = JSON.parse(data)
-        @openPaths(pathsToOpen, pidToKillWhenClosed)
+        {pathsToOpen, pidToKillWhenClosed, newWindow} = JSON.parse(data)
+        @openPaths(pathsToOpen, pidToKillWhenClosed, newWindow)
 
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
@@ -223,11 +223,11 @@ class AtomApplication
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
 
-  openPaths: (pathsToOpen=[], pidToKillWhenClosed) ->
-    @openPath(pathToOpen, pidToKillWhenClosed) for pathToOpen in pathsToOpen
+  openPaths: (pathsToOpen=[], pidToKillWhenClosed, newWindow) ->
+    @openPath(pathToOpen, pidToKillWhenClosed, newWindow) for pathToOpen in pathsToOpen
 
-  openPath: (pathToOpen, pidToKillWhenClosed) ->
-    existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed
+  openPath: (pathToOpen, pidToKillWhenClosed, newWindow) ->
+    existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
     if existingWindow
       openedWindow = existingWindow
       openedWindow.openPath(pathToOpen)
