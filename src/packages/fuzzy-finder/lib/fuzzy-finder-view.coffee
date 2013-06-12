@@ -49,7 +49,7 @@ class FuzzyFinderView extends SelectList
           else if git.isStatusModified(status)
             @div class: 'status modified'
 
-        ext = fsUtils.extension(filePath)
+        ext = path.extname(filePath)
         if fsUtils.isReadmePath(filePath)
           typeClass = 'readme-name'
         else if fsUtils.isCompressedExtension(ext)

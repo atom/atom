@@ -54,14 +54,6 @@ describe "fsUtils", ->
       expect(fsUtils.split("/a/b/c.txt")).toEqual ["", "a", "b", "c.txt"]
       expect(fsUtils.split("a/b/c.txt")).toEqual ["a", "b", "c.txt"]
 
-  describe ".extension(path)", ->
-    it "returns the extension of a file", ->
-      expect(fsUtils.extension("a/b/corey.txt")).toBe '.txt'
-      expect(fsUtils.extension("a/b/corey.txt.coffee")).toBe '.coffee'
-
-    it "returns an empty string for paths without an extension", ->
-      expect(fsUtils.extension("a/b.not-extension/a-dir")).toBe ''
-
   describe ".makeTree(path)", ->
     beforeEach ->
       fsUtils.remove("/tmp/a") if fsUtils.exists("/tmp/a")

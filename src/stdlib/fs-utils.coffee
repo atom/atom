@@ -35,18 +35,6 @@ module.exports =
   exists: (path) ->
     path? and fs.existsSync(path)
 
-  # Returns the extension of a file. The extension of a file is the
-  # last dot (excluding any number of initial dots) followed by one or
-  # more non-dot characters. Returns an empty string if no valid
-  # extension exists.
-  extension: (path) ->
-    return '' unless typeof path is 'string'
-    match = Path.basename(path).match(/\.[^\.]+$/)
-    if match
-      match[0]
-    else
-      ""
-
   join: (paths...) ->
     return paths[0] if paths.length == 1
     [first, rest...] = paths
@@ -113,8 +101,7 @@ module.exports =
         ext
       else
         '.' + ext.replace(/^\./, '')
-    paths.filter (path) =>
-      _.include(extensions, @extension(path))
+    paths.filter (path) -> _.include(extensions, Path.extname(path))
 
   listTree: (rootPath) ->
     paths = []
@@ -309,7 +296,7 @@ module.exports =
     ], ext, true) >= 0
 
   isReadmePath: (path) ->
-    extension = @extension(path)
+    extension = Path.extname(path)
     base = Path.basename(path, extension).toLowerCase()
     base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
 

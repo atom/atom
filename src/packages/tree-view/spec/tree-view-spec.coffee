@@ -773,7 +773,7 @@ describe "TreeView", ->
           waits 50 # The move specs cause too many false positives because of their async nature, so wait a little bit before we cleanup
 
         it "opens a move dialog with the file's current path (excluding extension) populated", ->
-          extension = fsUtils.extension(filePath)
+          extension = path.extname(filePath)
           fileNameWithoutExtension = path.basename(filePath, extension)
           expect(moveDialog).toExist()
           expect(moveDialog.prompt.text()).toBe "Enter the new path for the file."

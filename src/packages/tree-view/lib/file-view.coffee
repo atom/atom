@@ -1,6 +1,7 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 module.exports =
 class FileView extends View
@@ -16,7 +17,7 @@ class FileView extends View
     if @file.symlink
       @fileName.addClass('symlink-icon')
     else
-      extension = fsUtils.extension(@getPath())
+      extension = path.extname(@getPath())
       if fsUtils.isReadmePath(@getPath())
         @fileName.addClass('readme-icon')
       else if fsUtils.isCompressedExtension(extension)

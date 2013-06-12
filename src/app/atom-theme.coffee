@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+path = require 'path'
 Theme = require 'theme'
 
 # Internal: Represents a theme that Atom can use.
@@ -13,7 +14,7 @@ class AtomTheme extends Theme
 
   # Loads the stylesheets found in a `package.cson` file.
   load: ->
-    if fsUtils.extension(@path) in ['.css', '.less']
+    if path.extname(@path) in ['.css', '.less']
       @loadStylesheet(@path)
     else
       metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['cson', 'json'])

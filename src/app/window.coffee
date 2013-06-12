@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+path = require 'path'
 $ = require 'jquery'
 less = require 'less'
 ipc = require 'ipc'
@@ -140,46 +141,46 @@ window.deserializeConfigWindow = ->
 window.stylesheetElementForId = (id) ->
   $("""head style[id="#{id}"]""")
 
-window.resolveStylesheet = (path) ->
-  if fsUtils.extension(path).length > 0
-    fsUtils.resolveOnLoadPath(path)
+window.resolveStylesheet = (stylesheetPath) ->
+  if path.extname(stylesheetPath).length > 0
+    fsUtils.resolveOnLoadPath(stylesheetPath)
   else
-    fsUtils.resolveOnLoadPath(path, ['css', 'less'])
+    fsUtils.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
 
-window.requireStylesheet = (path) ->
-  if fullPath = window.resolveStylesheet(path)
+window.requireStylesheet = (stylesheetPath) ->
+  if fullPath = window.resolveStylesheet(stylesheetPath)
     content = window.loadStylesheet(fullPath)
     window.applyStylesheet(fullPath, content)
   else
-    throw new Error("Could not find a file at path '#{path}'")
+    throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
-window.loadStylesheet = (path) ->
-  if fsUtils.extension(path) == '.less'
-    loadLessStylesheet(path)
+window.loadStylesheet = (stylesheetPath) ->
+  if path.extname(stylesheetPath) is '.less'
+    loadLessStylesheet(stylesheetPath)
   else
-    fsUtils.read(path)
+    fsUtils.read(stylesheetPath)
 
-window.loadLessStylesheet = (path) ->
+window.loadLessStylesheet = (lessStylesheetPath) ->
   parser = new less.Parser
     syncImport: true
     paths: config.lessSearchPaths
-    filename: path
+    filename: patlessStylesheetPath
   try
     content = null
-    parser.parse fsUtils.read(path), (e, tree) ->
+    parser.parse fsUtils.read(lessStylesheetPath), (e, tree) ->
       throw e if e?
       content = tree.toCSS()
     content
   catch e
     console.error """
-      Error compiling less stylesheet: #{path}
+      Error compiling less stylesheet: #{lessStylesheetPath}
       Line number: #{e.line}
       #{e.message}
     """
 
-window.removeStylesheet = (path) ->
-  unless fullPath = window.resolveStylesheet(path)
-    throw new Error("Could not find a file at path '#{path}'")
+window.removeStylesheet = (stylesheetPath) ->
+  unless fullPath = window.resolveStylesheet(stylesheetPath)
+    throw new Error("Could not find a file at path '#{stylesheetPath}'")
   window.stylesheetElementForId(fullPath).remove()
 
 window.applyStylesheet = (id, text, ttype = 'bundled') ->

@@ -14,7 +14,7 @@ class ImageEditSession
     imageExtensions = ['.gif', '.jpeg', '.jpg', '.png']
     Project = require 'project'
     Project.registerOpener (filePath) ->
-      if _.include(imageExtensions, fsUtils.extension(filePath))
+      if _.include(imageExtensions, path.extname(filePath))
         new ImageEditSession(filePath)
 
   @deserialize: ({path}={}) ->

@@ -22,7 +22,7 @@ class Dialog extends View
     @miniEditor.setText(initialPath)
 
     if select
-      extension = fsUtils.extension(initialPath)
+      extension = path.extname(initialPath)
       baseName = path.basename(initialPath)
       if baseName is extension
         selectionEnd = initialPath.length
