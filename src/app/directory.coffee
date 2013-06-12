@@ -40,17 +40,17 @@ class Directory
   getEntries: ->
     directories = []
     files = []
-    for path in fsUtils.list(@path)
+    for entryPath in fsUtils.list(@path)
       try
-        stat = fs.lstatSync(path)
+        stat = fs.lstatSync(entryPath)
         symlink = stat.isSymbolicLink()
-        stat = fs.statSync(path) if symlink
+        stat = fs.statSync(entryPath) if symlink
       catch e
         continue
       if stat.isDirectory()
-        directories.push(new Directory(path, symlink))
+        directories.push(new Directory(entryPath, symlink))
       else if stat.isFile()
-        files.push(new File(path, symlink))
+        files.push(new File(entryPath, symlink))
 
     directories.concat(files)
 
