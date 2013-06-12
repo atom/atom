@@ -205,7 +205,9 @@ class RootView extends View
   # callback - A {Function} to call
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
-    @on 'editor:attached', (e, editor) -> callback(editor)
+    attachedCallback = (e, editor) -> callback(editor)
+    @on('editor:attached', attachedCallback)
+    off: => @off('editor:attached', attachedCallback)
 
   # Fires a callback on each open {EditSession}.
   #

@@ -327,6 +327,18 @@ describe "RootView", ->
       expect(count).toBe 1
       expect(callbackEditor).toBe rootView.getActiveView()
 
+    it "returns a subscription that can be disabled", ->
+      count = 0
+      callback = (editor) -> count++
+
+      subscription = rootView.eachEditor(callback)
+      expect(count).toBe 1
+      rootView.getActiveView().splitRight()
+      expect(count).toBe 2
+      subscription.off()
+      rootView.getActiveView().splitRight()
+      expect(count).toBe 2
+
   describe ".eachBuffer(callback)", ->
     beforeEach ->
       rootView.attachToDom()
