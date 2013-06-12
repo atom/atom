@@ -11,24 +11,24 @@
 
 'patterns': [
   {
-    'match': '(?:^|\\s)(\\*\\*[^\\*]+\\*\\*)'
+    'match': '(?<=^|\\s)(\\*\\*[^\\*]+\\*\\*)'
     'captures':
-      '1': 'name': 'markup.bold.gfm'
+      '0': 'name': 'markup.bold.gfm'
   }
   {
-    'match': '(?:^|\\s)(__[^_]+__)'
+    'match': '(?<=^|\\s)(__[^_]+__)'
     'captures':
-      '1': 'name': 'markup.bold.gfm'
+      '0': 'name': 'markup.bold.gfm'
   }
   {
-    'match': '(?:^|\\s)(\\*[^\\*]+\\*)'
+    'match': '(?<=^|\\s)(\\*[^\\*]+\\*)'
     'captures':
-      '1': 'name': 'markup.italic.gfm'
+      '0': 'name': 'markup.italic.gfm'
   }
   {
-    'match': '(?:^|\\s)(_[^_]+_)'
+    'match': '(?<=^|\\s)(_[^_]+_)'
     'captures':
-      '1': 'name': 'markup.italic.gfm'
+      '0': 'name': 'markup.italic.gfm'
   }
   {
     'begin': '^#{1,6}\\s+'
