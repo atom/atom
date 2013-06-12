@@ -155,11 +155,11 @@ describe "Git", ->
       originalPathText = fsUtils.read(filePath)
 
     afterEach ->
-      fsUtils.write(path, originalPathText)
+      fsUtils.write(filePath, originalPathText)
 
     it "returns the number of lines added and deleted", ->
       expect(repo.getDiffStats(filePath)).toEqual {added: 0, deleted: 0}
-      fsUtils.write(path, "#{originalPathText} edited line")
+      fsUtils.write(filePath, "#{originalPathText} edited line")
       expect(repo.getDiffStats(filePath)).toEqual {added: 1, deleted: 1}
 
   describe ".getPathStatus(path)", ->
@@ -167,21 +167,21 @@ describe "Git", ->
 
     beforeEach ->
       repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'))
-      path = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
+      filePath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
       originalPathText = fsUtils.read(filePath)
 
     afterEach ->
-      fsUtils.write(path, originalPathText)
+      fsUtils.write(filePath, originalPathText)
 
     it "trigger a status-changed event when the new status differs from the last cached one", ->
       statusHandler = jasmine.createSpy("statusHandler")
       repo.on 'status-changed', statusHandler
-      fsUtils.write(path, '')
+      fsUtils.write(filePath, '')
       status = repo.getPathStatus(filePath)
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler.argsForCall[0][0..1]).toEqual [path, status]
+      expect(statusHandler.argsForCall[0][0..1]).toEqual [filePath, status]
 
-      fsUtils.write(path, 'abc')
+      fsUtils.write(filePath, 'abc')
       status = repo.getPathStatus(filePath)
       expect(statusHandler.callCount).toBe 1
 
