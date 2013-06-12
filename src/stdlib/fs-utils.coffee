@@ -3,6 +3,7 @@ fs = require 'fs'
 mkdirp = require 'mkdirp'
 Module = require 'module'
 async = require 'async'
+rimraf = require 'rimraf'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -134,20 +135,8 @@ module.exports =
 
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
-  remove: (path) ->
-    if @isFile(path)
-      fs.unlinkSync(path)
-    else if @isDirectory(path)
-      removeDirectory = (path) =>
-        for entry in fs.readdirSync(path)
-          entryPath = @join(path, entry)
-          stats = fs.statSync(entryPath)
-          if stats.isDirectory()
-            removeDirectory(entryPath)
-          else if stats.isFile()
-            fs.unlinkSync(entryPath)
-        fs.rmdirSync(path)
-      removeDirectory(path)
+  remove: (pathToRemove) ->
+    rimraf.sync(pathToRemove)
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
