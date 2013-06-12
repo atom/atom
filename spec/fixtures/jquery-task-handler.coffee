@@ -1,4 +1,6 @@
-module.exports =
-  load: ->
-    $ = require 'jquery'
-    callTaskMethod('loaded', $?)
+module.exports = ->
+  try
+    require 'jquery'
+    true
+  catch e
+    false

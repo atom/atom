@@ -11,6 +11,7 @@ class SpellCheckView extends View
   views: []
 
   initialize: (@editor) ->
+    @task = new Task('spell-check/lib/spell-check-handler')
     @subscribe @editor, 'editor:path-changed', @subscribeToBuffer
     @subscribe @editor, 'editor:grammar-changed', @subscribeToBuffer
     @observeConfig 'editor.fontSize', @subscribeToBuffer
@@ -53,10 +54,6 @@ class SpellCheckView extends View
       @append(view)
 
   updateMisspellings: =>
-    @task?.abort()
-
-    callback = (misspellings) =>
+    @task.start buffer.getText(), (misspellings) =>
       @destroyViews()
       @addViews(misspellings)
-    @task = new SpellCheckTask(@buffer.getText(), callback)
-    @task.start()

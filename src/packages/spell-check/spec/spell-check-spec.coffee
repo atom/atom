@@ -1,6 +1,6 @@
 RootView = require 'root-view'
 
-describe "Spell check", ->
+fdescribe "Spell check", ->
   [editor] = []
 
   beforeEach ->

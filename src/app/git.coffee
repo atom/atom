@@ -219,12 +219,12 @@ class Git
   refreshStatus: ->
     if @statusTask?
       @statusTask.off()
-      @statusTask.one 'task-completed', =>
+      @statusTask.one 'task:completed', =>
         @statusTask = null
         @refreshStatus()
     else
       @statusTask = new RepositoryStatusTask(this)
-      @statusTask.one 'task-completed', =>
+      @statusTask.one 'task:completed', =>
         @statusTask = null
       @statusTask.start()
 

@@ -1,16 +1,17 @@
-SpellChecker = require 'spellchecker'
+{isMisspelled} = require 'spellchecker'
 
-module.exports =
-  findMisspellings: (text) ->
-    wordRegex = /(?:^|[\s\[\]])([a-zA-Z']+)(?=[\s\.\[\]:,]|$)/g
-    row = 0
-    misspellings = []
-    for line in text.split('\n')
-      while matches = wordRegex.exec(line)
-        word = matches[1]
-        continue unless SpellChecker.isMisspelled(word)
-        startColumn = matches.index + matches[0].length - word.length
-        endColumn = startColumn + word.length
-        misspellings.push([[row, startColumn], [row, endColumn]])
-      row++
-    callTaskMethod('misspellingsFound', misspellings)
+wordRegex = /(?:^|[\s\[\]])([a-zA-Z']+)(?=[\s\.\[\]:,]|$)/g
+
+module.exports = (text, queue) ->
+  row = 0
+  misspellings = []
+  for line in text.split('\n')
+    while matches = wordRegex.exec(line)
+      word = matches[1]
+      continue unless isMisspelled(word)
+
+      startColumn = matches.index + matches[0].length - word.length
+      endColumn = startColumn + word.length
+      misspellings.push([[row, startColumn], [row, endColumn]])
+    row++
+  misspellings

@@ -1,61 +1,46 @@
 _ = require 'underscore'
 child_process = require 'child_process'
 EventEmitter = require 'event-emitter'
-fsUtils = require 'fs-utils'
 
 module.exports =
 class Task
-  aborted: false
+  callback: null
 
-  constructor: (@path) ->
+  constructor: (taskPath) ->
+    bootstrap = """
+      require('coffee-script');
+      require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache');
+      require('task-bootstrap');
+    """
+    taskPath = require.resolve(taskPath)
+    env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
+    args = [bootstrap, '--harmony_collections']
+    @childProcess = child_process.fork '--eval', args, {env, cwd: __dirname}
 
-  start: ->
-    throw new Error("Task already started") if @worker?
+    @on "task:log", -> console.log(arguments...)
+    @on "task:warn", -> console.warn(arguments...)
+    @on "task:error", -> console.error(arguments...)
+    @on "task:completed", (args...) => @callback(args...)
 
-    # Equivalent with node --eval "...".
-    blob = "require('coffee-script'); require('task-shell');"
-    @worker = child_process.fork '--eval', [ blob, '--harmony_collections' ], cwd: __dirname
+    @handleEvents()
 
-    @worker.on 'message', (data) =>
-      if @aborted
-        @done()
-        return
+  handleEvents: ->
+    @childProcess.removeAllListeners()
+    @childProcess.on 'message', ({event, args}) =>
+      @trigger(event, args...)
 
-      if data.method and this[data.method]
-        this[data.method](data.args...)
-      else
-        @onMessage(data)
+  start: (args...) ->
+    @handleEvents()
+    @callback = args.pop()
+    @childProcess.send({args})
 
-    @startWorker()
+  terminate: ->
+    return unless @childProcess?
 
-  log: -> console.log(arguments...)
-  warn: -> console.warn(arguments...)
-  error: -> console.error(arguments...)
+    @childProcess.removeAllListeners()
+    @childProcess.kill()
+    @childProcess = null
 
-  startWorker: ->
-    @callWorkerMethod 'start',
-      globals:
-        navigator:
-          userAgent: navigator.userAgent
-      handlerPath: @path
-
-  started: ->
-
-  onMessage: (message) ->
-
-  callWorkerMethod: (method, args...) ->
-    @postMessage({method, args})
-
-  postMessage: (data) ->
-    @worker.send(data)
-
-  abort: ->
-    @aborted = true
-
-  done: ->
-    @abort()
-    @worker?.kill()
-    @worker = null
-    @trigger 'task-completed'
+    @off()
 
 _.extend Task.prototype, EventEmitter
