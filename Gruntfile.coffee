@@ -121,7 +121,12 @@ module.exports = (grunt) ->
     csslint:
       options:
         'adjoining-classes': false
+        'box-sizing': false
+        'bulletproof-font-face': false
+        'compatible-vendor-prefixes': false
         'fallback-colors': false
+        'gradients': false
+        'important': false
         'vendor-prefix': false
       src: [
         'src/**/*.css',
@@ -129,7 +134,15 @@ module.exports = (grunt) ->
         'themes/**/*.css'
       ]
 
+    lesslint:
+      src: [
+        'src/**/*.less',
+        'static/**/*.less'
+        'themes/**/*.less'
+      ]
+
   grunt.loadNpmTasks('grunt-coffeelint')
+  grunt.loadNpmTasks('grunt-lesslint')
   grunt.loadNpmTasks('grunt-contrib-csslint')
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
@@ -242,6 +255,6 @@ module.exports = (grunt) ->
     grunt.util.async.waterfall commands, (error) -> done(!error?)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
-  grunt.registerTask('lint', ['coffeelint', 'csslint'])
+  grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
   grunt.registerTask('default', ['lint', 'build'])
