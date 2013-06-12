@@ -164,7 +164,7 @@ window.loadLessStylesheet = (lessStylesheetPath) ->
   parser = new less.Parser
     syncImport: true
     paths: config.lessSearchPaths
-    filename: patlessStylesheetPath
+    filename: lessStylesheetPath
   try
     content = null
     parser.parse fsUtils.read(lessStylesheetPath), (e, tree) ->
