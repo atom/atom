@@ -28,11 +28,14 @@ class AtomWindow
     @browserWindow.loadSettings.initialPath
 
   containsPath: (pathToCheck) ->
-    if not pathToCheck
+    initialPath = @getInitialPath()
+    if not initialPath
       false
-    else if pathToCheck is @getInitialPath()
+    else if not pathToCheck
+      false
+    else if pathToCheck is initialPath
       true
-    else if pathToCheck.indexOf(path.join(@getInitialPath(), path.sep)) is 0
+    else if pathToCheck.indexOf(path.join(initialPath, path.sep)) is 0
       true
     else
       false
