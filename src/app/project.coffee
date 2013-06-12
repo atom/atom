@@ -96,11 +96,11 @@ class Project
 
   # Identifies if a path is ignored.
   #
-  # path - The {String} name of the path to check
+  # repositoryPath - The {String} name of the path to check
   #
   # Returns a {Boolean}.
-  ignoreRepositoryPath: (path) ->
-    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
+  ignoreRepositoryPath: (repositoryPath) ->
+    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(path.join(@getPath(), repositoryPath))
 
   # Given a uri, this resolves it relative to the project directory. If the path
   # is already absolute or if it is prefixed with a scheme, it is returned unchanged.
@@ -112,7 +112,7 @@ class Project
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
-      uri = fsUtils.join(@getPath(), uri) unless uri[0] == '/'
+      uri = path.join(@getPath(), uri) unless uri[0] == '/'
       fsUtils.absolute uri
 
   # Given a path, this makes it relative to the project directory.

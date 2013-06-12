@@ -3,6 +3,7 @@ _ = require 'underscore'
 RootView = require 'root-view'
 StatusBar = require 'status-bar/lib/status-bar-view'
 fsUtils = require 'fs-utils'
+path = require 'path'
 {$$} = require 'space-pen'
 
 describe "StatusBar", ->
@@ -57,9 +58,9 @@ describe "StatusBar", ->
 
   describe "when the buffer content has changed from the content on disk", ->
     it "disables the buffer modified indicator on save", ->
-      path = "/tmp/atom-whitespace.txt"
-      fsUtils.write(path, "")
-      rootView.open(path)
+      filePath = "/tmp/atom-whitespace.txt"
+      fsUtils.write(filePath, "")
+      rootView.open(filePath)
       expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
       advanceClock(buffer.stoppedChangingDelay)
@@ -127,32 +128,32 @@ describe "StatusBar", ->
       expect(statusBar.branchLabel.text()).toBe ''
 
   describe "git status label", ->
-    [repo, path, originalPathText, newPath, ignoredPath] = []
+    [repo, filePath, originalPathText, newPath, ignoredPath] = []
 
     beforeEach ->
-      path = require.resolve('fixtures/git/working-dir/file.txt')
-      newPath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'new.txt')
+      filePath = require.resolve('fixtures/git/working-dir/file.txt')
+      newPath = path.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'new.txt')
       fsUtils.write(newPath, "I'm new here")
-      ignoredPath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'ignored.txt')
+      ignoredPath = path.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'ignored.txt')
       fsUtils.write(ignoredPath, 'ignored.txt')
-      git.getPathStatus(path)
+      git.getPathStatus(filePath)
       git.getPathStatus(newPath)
-      originalPathText = fsUtils.read(path)
+      originalPathText = fsUtils.read(filePath)
       rootView.attachToDom()
 
     afterEach ->
-      fsUtils.write(path, originalPathText)
+      fsUtils.write(filePath, originalPathText)
       fsUtils.remove(newPath) if fsUtils.exists(newPath)
       fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
 
     it "displays the modified icon for a changed file", ->
-      fsUtils.write(path, "i've changed for the worse")
-      git.getPathStatus(path)
-      rootView.open(path)
+      fsUtils.write(filePath, "i've changed for the worse")
+      git.getPathStatus(filePath)
+      rootView.open(filePath)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
 
     it "doesn't display the modified icon for an unchanged file", ->
-      rootView.open(path)
+      rootView.open(filePath)
       expect(statusBar.gitStatusIcon).toHaveText('')
 
     it "displays the new icon for a new file", ->
@@ -164,18 +165,18 @@ describe "StatusBar", ->
       expect(statusBar.gitStatusIcon).toHaveClass('ignored-status-icon')
 
     it "updates when a status-changed event occurs", ->
-      fsUtils.write(path, "i've changed for the worse")
-      git.getPathStatus(path)
-      rootView.open(path)
+      fsUtils.write(filePath, "i've changed for the worse")
+      git.getPathStatus(filePath)
+      rootView.open(filePath)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
-      fsUtils.write(path, originalPathText)
-      git.getPathStatus(path)
+      fsUtils.write(filePath, originalPathText)
+      git.getPathStatus(filePath)
       expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
 
     it "displays the diff stat for modified files", ->
-      fsUtils.write(path, "i've changed for the worse")
-      git.getPathStatus(path)
-      rootView.open(path)
+      fsUtils.write(filePath, "i've changed for the worse")
+      git.getPathStatus(filePath)
+      rootView.open(filePath)
       expect(statusBar.gitStatusIcon).toHaveText('+1,-1')
 
     it "displays the diff stat for new files", ->

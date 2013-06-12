@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe "fsUtils", ->
   describe ".read(path)", ->
@@ -12,13 +13,13 @@ describe "fsUtils", ->
     fixturesDir = fsUtils.resolveOnLoadPath('fixtures')
 
     it "returns true with a file path", ->
-      expect(fsUtils.isFile(fsUtils.join(fixturesDir,  'sample.js'))).toBe true
+      expect(fsUtils.isFile(path.join(fixturesDir,  'sample.js'))).toBe true
 
     it "returns false with a directory path", ->
       expect(fsUtils.isFile(fixturesDir)).toBe false
 
     it "returns false with a non-existent path", ->
-      expect(fsUtils.isFile(fsUtils.join(fixturesDir, 'non-existent'))).toBe false
+      expect(fsUtils.isFile(path.join(fixturesDir, 'non-existent'))).toBe false
       expect(fsUtils.isFile(null)).toBe false
 
   describe ".exists(path)", ->
@@ -29,13 +30,6 @@ describe "fsUtils", ->
       expect(fsUtils.exists(fsUtils.resolveOnLoadPath("fixtures") + "/-nope-does-not-exist")).toBe false
       expect(fsUtils.exists("")).toBe false
       expect(fsUtils.exists(null)).toBe false
-
-  describe ".join(paths...)", ->
-    it "concatenates the given paths with the directory separator", ->
-      expect(fsUtils.join('a')).toBe 'a'
-      expect(fsUtils.join('a', 'b', 'c')).toBe 'a/b/c'
-      expect(fsUtils.join('/a/b/', 'c', 'd')).toBe '/a/b/c/d'
-      expect(fsUtils.join('a', 'b/c/', 'd/')).toBe 'a/b/c/d/'
 
   describe ".split(path)", ->
     it "returns path components", ->
@@ -79,11 +73,11 @@ describe "fsUtils", ->
         expect(path).not.toMatch /\/dir\//
 
     it "returns entries if path is a symlink", ->
-      symlinkPath = fsUtils.join(fixturesDir, 'symlink-to-dir')
+      symlinkPath = path.join(fixturesDir, 'symlink-to-dir')
       symlinkPaths = []
       onSymlinkPath = (path) -> symlinkPaths.push(path.substring(symlinkPath.length + 1))
 
-      regularPath = fsUtils.join(fixturesDir, 'dir')
+      regularPath = path.join(fixturesDir, 'dir')
       paths = []
       onPath = (path) -> paths.push(path.substring(regularPath.length + 1))
 

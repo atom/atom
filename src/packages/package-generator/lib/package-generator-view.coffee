@@ -25,7 +25,7 @@ class PackageGeneratorView extends View
     @previouslyFocusedElement = $(':focus')
     @message.text("Enter package path")
     placeholderName = "package-name"
-    @miniEditor.setText(fsUtils.join(config.userPackagesDirPath, placeholderName))
+    @miniEditor.setText(path.join(config.userPackagesDirPath, placeholderName))
     pathLength = @miniEditor.getText().length
     @miniEditor.setSelectedBufferRange([[0, pathLength - placeholderName.length], [0, pathLength]])
 
@@ -46,7 +46,7 @@ class PackageGeneratorView extends View
   getPackagePath: ->
     packagePath = @miniEditor.getText()
     packageName = _.dasherize(path.basename(packagePath))
-    fsUtils.join(path.dirname(packagePath), packageName)
+    path.join(path.dirname(packagePath), packageName)
 
   validPackagePath: ->
     if fsUtils.exists(@getPackagePath())
@@ -57,7 +57,7 @@ class PackageGeneratorView extends View
       true
 
   createPackageFiles: ->
-    templatePath = fsUtils.resolveOnLoadPath(fsUtils.join("package-generator", "template"))
+    templatePath = fsUtils.resolveOnLoadPath(path.join("package-generator", "template"))
     packageName = path.basename(@getPackagePath())
 
     for path in fsUtils.listTree(templatePath)
@@ -66,7 +66,7 @@ class PackageGeneratorView extends View
       relativePath = relativePath.replace(/\.template$/, '')
       relativePath = @replacePackageNamePlaceholders(relativePath, packageName)
 
-      sourcePath = fsUtils.join(@getPackagePath(), relativePath)
+      sourcePath = path.join(@getPackagePath(), relativePath)
       if fsUtils.isDirectory(path)
         fsUtils.makeTree(sourcePath)
       if fsUtils.isFile(path)

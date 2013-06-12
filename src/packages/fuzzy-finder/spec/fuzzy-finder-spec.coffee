@@ -369,7 +369,7 @@ describe 'FuzzyFinder', ->
       ignoreFile = null
 
       beforeEach ->
-        ignoreFile = fsUtils.join(project.getPath(), '.gitignore')
+        ignoreFile = path.join(project.getPath(), '.gitignore')
         fsUtils.write(ignoreFile, 'sample.js')
         config.set("core.excludeVcsIgnoredPaths", true)
 

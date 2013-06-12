@@ -27,11 +27,6 @@ module.exports =
   exists: (path) ->
     path? and fs.existsSync(path)
 
-  join: (paths...) ->
-    return paths[0] if paths.length == 1
-    [first, rest...] = paths
-    first.replace(/\/?$/, "/") + @join(rest...)
-
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
@@ -75,7 +70,7 @@ module.exports =
     return [] unless @isDirectory(rootPath)
     paths = fs.readdirSync(rootPath)
     paths = @filterExtensions(paths, extensions) if extensions
-    paths = paths.map (path) => @join(rootPath, path)
+    paths = paths.map (path) -> Path.join(rootPath, path)
     paths
 
   listAsync: (rootPath, rest...) ->
@@ -84,7 +79,7 @@ module.exports =
     fs.readdir rootPath, (err, paths) =>
       return done(err) if err
       paths = @filterExtensions(paths, extensions) if extensions
-      paths = paths.map (path) => @join(rootPath, path)
+      paths = paths.map (path) -> Path.join(rootPath, path)
       done(null, paths)
 
   filterExtensions: (paths, extensions) ->
@@ -171,11 +166,11 @@ module.exports =
   traverseTreeSync: (rootPath, onFile, onDirectory) ->
     return unless @isDirectory(rootPath)
 
-    traverse = (rootPath, prefix, onFile, onDirectory) =>
+    traverse = (rootPath, prefix, onFile, onDirectory) ->
       prefix  = "#{prefix}/" if prefix
       for file in fs.readdirSync(rootPath)
         relativePath = "#{prefix}#{file}"
-        absolutePath = @join(rootPath, file)
+        absolutePath = Path.join(rootPath, file)
         stats = fs.statSync(absolutePath)
         if stats.isDirectory()
           traverse(absolutePath, relativePath, onFile, onDirectory) if onDirectory(absolutePath)
@@ -185,12 +180,12 @@ module.exports =
     traverse(rootPath, '', onFile, onDirectory)
 
   traverseTree: (rootPath, onFile, onDirectory, onDone) ->
-    fs.readdir rootPath, (error, files) =>
+    fs.readdir rootPath, (error, files) ->
       if error
         onDone?()
       else
-        queue = async.queue (path, callback) =>
-          fs.stat path, (error, stats) =>
+        queue = async.queue (path, callback) ->
+          fs.stat path, (error, stats) ->
             if error
               callback(error)
             else if stats.isFile()
@@ -198,18 +193,18 @@ module.exports =
               callback()
             else if stats.isDirectory()
               if onDirectory(path)
-                fs.readdir path, (error, files) =>
+                fs.readdir path, (error, files) ->
                   if error
                     callback(error)
                   else
                     for file in files
-                      queue.unshift(@join(path, file))
+                      queue.unshift(Path.join(path, file))
                     callback()
               else
                 callback()
         queue.concurrency = 1
         queue.drain = onDone
-        queue.push(@join(rootPath, file)) for file in files
+        queue.push(Path.join(rootPath, file)) for file in files
 
   md5ForPath: (path) ->
     contents = fs.readFileSync(path)
@@ -227,7 +222,7 @@ module.exports =
         return pathToResolve if @exists(pathToResolve)
 
     for loadPath in loadPaths
-      candidatePath = @join(loadPath, pathToResolve)
+      candidatePath = Path.join(loadPath, pathToResolve)
       if extensions
         if resolvedPath = @resolveExtension(candidatePath, extensions)
           return resolvedPath

@@ -3,18 +3,19 @@ _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 CSON = require 'season'
 fs = require 'fs'
+path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
 
 configDirPath = fsUtils.absolute("~/.atom")
-bundledPackagesDirPath = fsUtils.join(resourcePath, "src/packages")
-nodeModulesDirPath = fsUtils.join(resourcePath, "node_modules")
-bundledThemesDirPath = fsUtils.join(resourcePath, "themes")
-vendoredPackagesDirPath = fsUtils.join(resourcePath, "vendor/packages")
-vendoredThemesDirPath = fsUtils.join(resourcePath, "vendor/themes")
-userThemesDirPath = fsUtils.join(configDirPath, "themes")
-userPackagesDirPath = fsUtils.join(configDirPath, "packages")
-userStoragePath = fsUtils.join(configDirPath, ".storage")
+bundledPackagesDirPath = path.join(resourcePath, "src/packages")
+nodeModulesDirPath = path.join(resourcePath, "node_modules")
+bundledThemesDirPath = path.join(resourcePath, "themes")
+vendoredPackagesDirPath = path.join(resourcePath, "vendor/packages")
+vendoredThemesDirPath = .join(resourcePath, "vendor/themes")
+userThemesDirPath = path.join(configDirPath, "themes")
+userPackagesDirPath = path.join(configDirPath, "packages")
+userStoragePath = path.join(configDirPath, ".storage")
 
 # Public: Handles all of Atom's configuration details.
 #
@@ -28,7 +29,7 @@ class Config
   packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
   userStoragePath: userStoragePath
-  lessSearchPaths: [fsUtils.join(resourcePath, 'static'), fsUtils.join(resourcePath, 'vendor')]
+  lessSearchPaths: [path.join(resourcePath, 'static'), path.join(resourcePath, 'vendor')]
   defaultSettings: null
   settings: null
   configFileHasErrors: null
@@ -41,7 +42,7 @@ class Config
       editor: _.clone(require('editor').configDefaults)
     @settings = {}
     @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= fsUtils.join(configDirPath, 'config.cson')
+    @configFilePath ?= path.join(configDirPath, 'config.cson')
 
   initializeConfigDirectory: (done) ->
     return if fsUtils.exists(@configDirPath)
@@ -55,14 +56,14 @@ class Config
     templateConfigDirPath = fsUtils.resolve(window.resourcePath, 'dot-atom')
     onConfigDirFile = (sourcePath) =>
       relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
-      destinationPath = fsUtils.join(@configDirPath, relativePath)
+      destinationPath = path.join(@configDirPath, relativePath)
       queue.push({sourcePath, destinationPath})
     fsUtils.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
-    configThemeDirPath = fsUtils.join(@configDirPath, 'themes')
+    configThemeDirPath = path.join(@configDirPath, 'themes')
     onThemeDirFile = (sourcePath) ->
       relativePath = sourcePath.substring(bundledThemesDirPath.length + 1)
-      destinationPath = fsUtils.join(configThemeDirPath, relativePath)
+      destinationPath = path.join(configThemeDirPath, relativePath)
       queue.push({sourcePath, destinationPath})
     fsUtils.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
 

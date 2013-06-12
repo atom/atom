@@ -1,5 +1,6 @@
 fs = require 'fs'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe "Config", ->
   describe ".get(keyPath)", ->
@@ -81,7 +82,7 @@ describe "Config", ->
 
     describe "when ~/.atom/config.json exists", ->
       it "writes any non-default properties to ~/.atom/config.json", ->
-        config.configFilePath = fsUtils.join(config.configDirPath, "config.json")
+        config.configFilePath = path.join(config.configDirPath, "config.json")
         config.set("a.b.c", 1)
         config.set("a.b.d", 2)
         config.set("x.y.z", 3)
@@ -90,13 +91,13 @@ describe "Config", ->
         fs.writeFileSync.reset()
         config.save()
 
-        expect(fs.writeFileSync.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.json"))
+        expect(fs.writeFileSync.argsForCall[0][0]).toBe(path.join(config.configDirPath, "config.json"))
         writtenConfig = JSON.parse(fs.writeFileSync.argsForCall[0][1])
         expect(writtenConfig).toEqual config.settings
 
     describe "when ~/.atom/config.json doesn't exist", ->
       it "writes any non-default properties to ~/.atom/config.cson", ->
-        config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
+        config.configFilePath = path.join(config.configDirPath, "config.cson")
         config.set("a.b.c", 1)
         config.set("a.b.d", 2)
         config.set("x.y.z", 3)
@@ -105,7 +106,7 @@ describe "Config", ->
         fs.writeFileSync.reset()
         config.save()
 
-        expect(fs.writeFileSync.argsForCall[0][0]).toBe(fsUtils.join(config.configDirPath, "config.cson"))
+        expect(fs.writeFileSync.argsForCall[0][0]).toBe(path.join(config.configDirPath, "config.cson"))
         CoffeeScript = require 'coffee-script'
         writtenConfig = CoffeeScript.eval(fs.writeFileSync.argsForCall[0][1], bare: true)
         expect(writtenConfig).toEqual config.settings
@@ -176,10 +177,10 @@ describe "Config", ->
 
         runs ->
           expect(fsUtils.exists(config.configDirPath)).toBeTruthy()
-          expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'packages'))).toBeTruthy()
-          expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'snippets'))).toBeTruthy()
-          expect(fsUtils.exists(fsUtils.join(config.configDirPath, 'themes'))).toBeTruthy()
-          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'config.cson'))).toBeTruthy()
+          expect(fsUtils.exists(path.join(config.configDirPath, 'packages'))).toBeTruthy()
+          expect(fsUtils.exists(path.join(config.configDirPath, 'snippets'))).toBeTruthy()
+          expect(fsUtils.exists(path.join(config.configDirPath, 'themes'))).toBeTruthy()
+          expect(fsUtils.isFile(path.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
       it "copies the bundles themes to ~/.atom", ->
         initializationDone = false
@@ -190,15 +191,15 @@ describe "Config", ->
         waitsFor -> initializationDone
 
         runs ->
-          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
-          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
-          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-dark-syntax.less'))).toBeTruthy()
-          expect(fsUtils.isFile(fsUtils.join(config.configDirPath, 'themes/atom-light-syntax.less'))).toBeTruthy()
+          expect(fsUtils.isFile(path.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
+          expect(fsUtils.isFile(path.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
+          expect(fsUtils.isFile(path.join(config.configDirPath, 'themes/atom-dark-syntax.less'))).toBeTruthy()
+          expect(fsUtils.isFile(path.join(config.configDirPath, 'themes/atom-light-syntax.less'))).toBeTruthy()
 
   describe ".loadUserConfig()", ->
     beforeEach ->
       config.configDirPath = '/tmp/dot-atom-dir'
-      config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
+      config.configFilePath = path.join(config.configDirPath, "config.cson")
       expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
 
     afterEach ->
@@ -228,7 +229,7 @@ describe "Config", ->
 
     beforeEach ->
       config.configDirPath = '/tmp/dot-atom-dir'
-      config.configFilePath = fsUtils.join(config.configDirPath, "config.cson")
+      config.configFilePath = path.join(config.configDirPath, "config.cson")
       expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
       fsUtils.write(config.configFilePath, "foo: bar: 'baz'")
       config.loadUserConfig()

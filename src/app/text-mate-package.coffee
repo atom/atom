@@ -1,5 +1,6 @@
 Package = require 'package'
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
 async = require 'async'
@@ -74,18 +75,18 @@ class TextMatePackage extends Package
   getGrammars: -> @grammars
 
   getSyntaxesPath: ->
-    syntaxesPath = fsUtils.join(@path, "syntaxes")
+    syntaxesPath = path.join(@path, "syntaxes")
     if fsUtils.isDirectory(syntaxesPath)
       syntaxesPath
     else
-      fsUtils.join(@path, "Syntaxes")
+      path.join(@path, "Syntaxes")
 
   getPreferencesPath: ->
-    preferencesPath = fsUtils.join(@path, "preferences")
+    preferencesPath = path.join(@path, "preferences")
     if fsUtils.isDirectory(preferencesPath)
       preferencesPath
     else
-      fsUtils.join(@path, "Preferences")
+      path.join(@path, "Preferences")
 
   loadScopedPropertiesSync: ->
     for grammar in @getGrammars()

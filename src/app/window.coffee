@@ -89,11 +89,11 @@ window.unloadEditorWindow = ->
   window.git = null
 
 window.installAtomCommand = (callback) ->
-  commandPath = fsUtils.join(window.resourcePath, 'atom.sh')
+  commandPath = path.join(window.resourcePath, 'atom.sh')
   require('command-installer').install(commandPath, callback)
 
 window.installApmCommand = (callback) ->
-  commandPath = fsUtils.join(window.resourcePath, 'node_modules', '.bin', 'apm')
+  commandPath = path.join(window.resourcePath, 'node_modules', '.bin', 'apm')
   require('command-installer').install(commandPath, callback)
 
 window.unloadConfigWindow = ->

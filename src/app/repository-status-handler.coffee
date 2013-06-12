@@ -1,5 +1,6 @@
 Git = require 'git-utils'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 module.exports =
   loadStatuses: (path) ->
@@ -8,7 +9,7 @@ module.exports =
       workingDirectoryPath = repo.getWorkingDirectory()
       statuses = {}
       for path, status of repo.getStatus()
-        statuses[fsUtils.join(workingDirectoryPath, path)] = status
+        statuses[path.join(workingDirectoryPath, path)] = status
       upstream = repo.getAheadBehindCount()
       repo.release()
     else

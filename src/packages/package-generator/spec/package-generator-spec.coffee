@@ -42,14 +42,14 @@ describe 'Package Generator', ->
 
     it "forces the package's name to be lowercase with dashes", ->
       packageName = "CamelCaseIsForTheBirds"
-      packagePath = fsUtils.join(path.dirname(packagePath), packageName)
+      packagePath = path.join(path.dirname(packagePath), packageName)
       rootView.trigger("package-generator:generate")
       packageGeneratorView = rootView.find(".package-generator").view()
       packageGeneratorView.miniEditor.setText(packagePath)
       packageGeneratorView.trigger "core:confirm"
 
       expect(packagePath).not.toExistOnDisk()
-      expect(fsUtils.join(path.dirname(packagePath), "camel-case-is-for-the-birds")).toExistOnDisk()
+      expect(path.join(path.dirname(packagePath), "camel-case-is-for-the-birds")).toExistOnDisk()
 
     it "correctly lays out the package files and closes the package generator view", ->
       rootView.attachToDom()

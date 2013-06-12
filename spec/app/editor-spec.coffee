@@ -83,9 +83,9 @@ describe "Editor", ->
 
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
-      path = "/tmp/atom-changed-file.txt"
-      fsUtils.write(path, "")
-      editSession = project.open(path)
+      filePath = "/tmp/atom-changed-file.txt"
+      fsUtils.write(filePath, "")
+      editSession = project.open(filePath)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
 
@@ -94,7 +94,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fsUtils.write(path, "a file change")
+      fsUtils.write(filePath, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -148,9 +148,9 @@ describe "Editor", ->
       expect(editor.lineElementForScreenRow(3).text()).toMatch /^    vgoodbyear/
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
-      path = "/tmp/atom-changed-file.txt"
-      fsUtils.write(path, "")
-      tempEditSession = project.open(path)
+      filePath = "/tmp/atom-changed-file.txt"
+      fsUtils.write(filePath, "")
+      tempEditSession = project.open(filePath)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
 
@@ -158,7 +158,7 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fsUtils.write(path, "a file change")
+      fsUtils.write(filePath, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -241,24 +241,25 @@ describe "Editor", ->
       expect(openHandler).not.toHaveBeenCalled()
 
   describe "editor:path-changed event", ->
-    path = null
+    filePath = null
+
     beforeEach ->
-      path = "/tmp/something.txt"
-      fsUtils.write(path, path)
+      filePath = "/tmp/something.txt"
+      fsUtils.write(filePath, filePath)
 
     afterEach ->
-      fsUtils.remove(path) if fsUtils.exists(path)
+      fsUtils.remove(filePath) if fsUtils.exists(filePath)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor:path-changed', eventHandler
-      editor.getBuffer().saveAs(path)
+      editor.getBuffer().saveAs(filePath)
       expect(eventHandler).toHaveBeenCalled()
 
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor:path-changed', eventHandler
-      editor.edit(project.open(path))
+      editor.edit(project.open(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -266,7 +267,7 @@ describe "Editor", ->
       oldBuffer = editor.getBuffer()
       editor.on 'editor:path-changed', eventHandler
 
-      editor.edit(project.open(path))
+      editor.edit(project.open(filePath))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
@@ -279,7 +280,7 @@ describe "Editor", ->
 
     it "loads the grammar for the new path", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
-      editor.getBuffer().saveAs(path)
+      editor.getBuffer().saveAs(filePath)
       expect(editor.getGrammar().name).toBe 'Plain Text'
 
   describe "font family", ->
@@ -2074,15 +2075,15 @@ describe "Editor", ->
       expect(editor.getFirstVisibleScreenRow()).toBe(0)
 
   describe ".checkoutHead()", ->
-    [path, originalPathText] = []
+    [filePath, originalPathText] = []
 
     beforeEach ->
-      path = project.resolve('git/working-dir/file.txt')
-      originalPathText = fsUtils.read(path)
-      editor.edit(project.open(path))
+      filePath = project.resolve('git/working-dir/file.txt')
+      originalPathText = fsUtils.read(filePath)
+      editor.edit(project.open(filePath))
 
     afterEach ->
-      fsUtils.write(path, originalPathText)
+      fsUtils.write(filePath, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
@@ -2190,19 +2191,19 @@ describe "Editor", ->
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
 
   describe ".reloadGrammar()", ->
-    [path] = []
+    [filePath] = []
 
     beforeEach ->
-      path = fsUtils.join(fsUtils.absolute("/tmp"), "grammar-change.txt")
-      fsUtils.write(path, "var i;")
+      filePath = path.join(fsUtils.absolute("/tmp"), "grammar-change.txt")
+      fsUtils.write(filePath, "var i;")
 
     afterEach ->
-      fsUtils.remove(path) if fsUtils.exists(path)
+      fsUtils.remove(filePath) if fsUtils.exists(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
-      editor.edit(project.open(path))
+      editor.edit(project.open(filePath))
       expect(editor.getGrammar().name).toBe 'Plain Text'
-      syntax.setGrammarOverrideForPath(path, 'source.js')
+      syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editor.reloadGrammar()
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
@@ -2220,7 +2221,7 @@ describe "Editor", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
 
     it "emits an editor:grammar-changed event when updated", ->
-      editor.edit(project.open(path))
+      editor.edit(project.open(filePath))
 
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on('editor:grammar-changed', eventHandler)
@@ -2228,7 +2229,7 @@ describe "Editor", ->
 
       expect(eventHandler).not.toHaveBeenCalled()
 
-      syntax.setGrammarOverrideForPath(path, 'source.js')
+      syntax.setGrammarOverrideForPath(filePath, 'source.js')
       editor.reloadGrammar()
       expect(eventHandler).toHaveBeenCalled()
 

@@ -17,12 +17,12 @@ class AtomTheme extends Theme
     if path.extname(@path) in ['.css', '.less']
       @loadStylesheet(@path)
     else
-      metadataPath = fsUtils.resolveExtension(fsUtils.join(@path, 'package'), ['cson', 'json'])
+      metadataPath = fsUtils.resolveExtension(path.join(@path, 'package'), ['cson', 'json'])
       if fsUtils.isFile(metadataPath)
         stylesheetNames = fsUtils.readObject(metadataPath)?.stylesheets
         if stylesheetNames
           for name in stylesheetNames
-            filename = fsUtils.resolveExtension(fsUtils.join(@path, name), ['.css', '.less', ''])
+            filename = fsUtils.resolveExtension(path.join(@path, name), ['.css', '.less', ''])
             @loadStylesheet(filename)
       else
         @loadStylesheet(stylesheetPath) for stylesheetPath in fsUtils.list(@path, ['.css', '.less'])

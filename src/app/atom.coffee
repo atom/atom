@@ -90,7 +90,7 @@ window.atom =
     packagePath = fsUtils.resolve(config.packageDirPaths..., name)
     return packagePath if fsUtils.isDirectory(packagePath)
 
-    packagePath = fsUtils.join(window.resourcePath, 'node_modules', name)
+    packagePath = path.join(window.resourcePath, 'node_modules', name)
     return packagePath if @isInternalPackage(packagePath)
 
   isInternalPackage: (packagePath) ->
@@ -116,7 +116,7 @@ window.atom =
       for packagePath in fsUtils.list(packageDirPath)
         packagePaths.push(packagePath) if fsUtils.isDirectory(packagePath)
 
-    for packagePath in fsUtils.list(fsUtils.join(window.resourcePath, 'node_modules'))
+    for packagePath in fsUtils.list(path.join(window.resourcePath, 'node_modules'))
       packagePaths.push(packagePath) if @isInternalPackage(packagePath)
 
     _.uniq(packagePaths)
@@ -151,7 +151,7 @@ window.atom =
     @loadedThemes.push Theme.load(name)
 
   loadUserStylesheet: ->
-    userStylesheetPath = fsUtils.resolve(fsUtils.join(config.configDirPath, 'user'), ['css', 'less'])
+    userStylesheetPath = fsUtils.resolve(path.join(config.configDirPath, 'user'), ['css', 'less'])
     if fsUtils.isFile(userStylesheetPath)
       userStyleesheetContents = loadStylesheet(userStylesheetPath)
       applyStylesheet(userStylesheetPath, userStyleesheetContents, 'userTheme')
@@ -237,7 +237,7 @@ window.atom =
           filename = "editor-#{sha1}"
 
     filename ?= 'undefined'
-    fsUtils.join(config.userStoragePath, filename)
+    path.join(config.userStoragePath, filename)
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
@@ -273,7 +273,7 @@ window.atom =
     process.crash()
 
   requireUserInitScript: ->
-    userInitScriptPath = fsUtils.join(config.configDirPath, "user.coffee")
+    userInitScriptPath = path.join(config.configDirPath, "user.coffee")
     try
       require userInitScriptPath if fsUtils.isFile(userInitScriptPath)
     catch error

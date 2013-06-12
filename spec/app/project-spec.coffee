@@ -115,9 +115,9 @@ describe "Project", ->
   describe ".relativize(path)", ->
     it "returns an relative path based on the project's root", ->
       absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir')
-      expect(project.relativize(fsUtils.join(absolutePath, "b"))).toBe "b"
-      expect(project.relativize(fsUtils.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
-      expect(project.relativize(fsUtils.join(absolutePath, "file.coffee"))).toBe "file.coffee"
+      expect(project.relativize(path.join(absolutePath, "b"))).toBe "b"
+      expect(project.relativize(path.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
+      expect(project.relativize(path.join(absolutePath, "file.coffee"))).toBe "file.coffee"
 
   describe ".setPath(path)", ->
     describe "when path is a file", ->
@@ -173,7 +173,7 @@ describe "Project", ->
       ignoredFile = null
 
       beforeEach ->
-        ignoredFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored.txt')
+        ignoredFile = path.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored.txt')
         fsUtils.write(ignoredFile, "")
 
       afterEach ->
@@ -192,7 +192,7 @@ describe "Project", ->
       ignoredFile = null
 
       beforeEach ->
-        ignoredFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored/ignored.txt')
+        ignoredFile = path.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored/ignored.txt')
         fsUtils.write(ignoredFile, "")
 
       afterEach ->
@@ -246,9 +246,9 @@ describe "Project", ->
         paths = []
         matches = []
         waitsForPromise ->
-          project.scan /evil/, ({path, match, range}) ->
-            paths.push(path)
-            matches.push(match)
+          project.scan /evil/, (result) ->
+            paths.push(result.path)
+            matches.push(result.match)
 
         runs ->
           expect(paths.length).toBe 5
@@ -284,7 +284,7 @@ describe "Project", ->
 
         beforeEach ->
           projectPath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir')
-          ignoredPath = fsUtils.join(projectPath, 'ignored.txt')
+          ignoredPath = path.join(projectPath, 'ignored.txt')
           fsUtils.write(ignoredPath, 'this match should not be included')
 
         afterEach ->
@@ -306,7 +306,7 @@ describe "Project", ->
 
       it "includes files and folders that begin with a '.'", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-file'
-        filePath = fsUtils.join(projectPath, '.text')
+        filePath = path.join(projectPath, '.text')
         fsUtils.write(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
@@ -323,7 +323,7 @@ describe "Project", ->
 
       it "excludes values in core.ignoredNames", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-git/.git'
-        filePath = fsUtils.join(projectPath, 'test.txt')
+        filePath = path.join(projectPath, 'test.txt')
         fsUtils.write(filePath, 'match this')
         project.setPath(projectPath)
         paths = []

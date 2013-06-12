@@ -1,5 +1,6 @@
 Git = require 'git'
 fsUtils = require 'fs-utils'
+path = require 'path'
 Task = require 'task'
 
 describe "Git", ->
@@ -48,40 +49,40 @@ describe "Git", ->
       expect(repo.isPathIgnored('b.txt')).toBeFalsy()
 
   describe ".isPathModified(path)", ->
-    [repo, path, newPath, originalPathText] = []
+    [repo, filePath, newPath, originalPathText] = []
 
     beforeEach ->
       repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'))
-      path = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
-      newPath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'new-path.txt')
-      originalPathText = fsUtils.read(path)
+      filePath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
+      newPath = path.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'new-path.txt')
+      originalPathText = fsUtils.read(filePath)
 
     afterEach ->
-      fsUtils.write(path, originalPathText)
+      fsUtils.write(filePath, originalPathText)
       fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
     describe "when the path is unstaged", ->
       it "returns false if the path has not been modified", ->
-        expect(repo.isPathModified(path)).toBeFalsy()
+        expect(repo.isPathModified(filePath)).toBeFalsy()
 
       it "returns true if the path is modified", ->
-        fsUtils.write(path, "change")
-        expect(repo.isPathModified(path)).toBeTruthy()
+        fsUtils.write(filePath, "change")
+        expect(repo.isPathModified(filePath)).toBeTruthy()
 
       it "returns true if the path is deleted", ->
-        fsUtils.remove(path)
-        expect(repo.isPathModified(path)).toBeTruthy()
+        fsUtils.remove(filePath)
+        expect(repo.isPathModified(filePath)).toBeTruthy()
 
       it "returns false if the path is new", ->
         expect(repo.isPathModified(newPath)).toBeFalsy()
 
   describe ".isPathNew(path)", ->
-    [path, newPath] = []
+    [filePath, newPath] = []
 
     beforeEach ->
       repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'))
-      path = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
-      newPath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'new-path.txt')
+      filePath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
+      newPath = path.join(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'), 'new-path.txt')
       fsUtils.write(newPath, "i'm new here")
 
     afterEach ->
@@ -92,7 +93,7 @@ describe "Git", ->
         expect(repo.isPathNew(newPath)).toBeTruthy()
 
       it "returns false if the path isn't new", ->
-        expect(repo.isPathNew(path)).toBeFalsy()
+        expect(repo.isPathNew(filePath)).toBeFalsy()
 
   describe ".checkoutHead(path)", ->
     [path1, path2, originalPath1Text, originalPath2Text] = []
@@ -146,28 +147,28 @@ describe "Git", ->
       expect(-> repo.getHead()).toThrow()
 
   describe ".getDiffStats(path)", ->
-    [path, originalPathText] = []
+    [filePath, originalPathText] = []
 
     beforeEach ->
       repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'))
-      path = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
-      originalPathText = fsUtils.read(path)
+      filePath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
+      originalPathText = fsUtils.read(filePath)
 
     afterEach ->
       fsUtils.write(path, originalPathText)
 
     it "returns the number of lines added and deleted", ->
-      expect(repo.getDiffStats(path)).toEqual {added: 0, deleted: 0}
+      expect(repo.getDiffStats(filePath)).toEqual {added: 0, deleted: 0}
       fsUtils.write(path, "#{originalPathText} edited line")
-      expect(repo.getDiffStats(path)).toEqual {added: 1, deleted: 1}
+      expect(repo.getDiffStats(filePath)).toEqual {added: 1, deleted: 1}
 
   describe ".getPathStatus(path)", ->
-    [path, originalPathText] = []
+    [filePath, originalPathText] = []
 
     beforeEach ->
       repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/working-dir'))
       path = fsUtils.resolveOnLoadPath('fixtures/git/working-dir/file.txt')
-      originalPathText = fsUtils.read(path)
+      originalPathText = fsUtils.read(filePath)
 
     afterEach ->
       fsUtils.write(path, originalPathText)
@@ -176,12 +177,12 @@ describe "Git", ->
       statusHandler = jasmine.createSpy("statusHandler")
       repo.on 'status-changed', statusHandler
       fsUtils.write(path, '')
-      status = repo.getPathStatus(path)
+      status = repo.getPathStatus(filePath)
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler.argsForCall[0][0..1]).toEqual [path, status]
 
       fsUtils.write(path, 'abc')
-      status = repo.getPathStatus(path)
+      status = repo.getPathStatus(filePath)
       expect(statusHandler.callCount).toBe 1
 
   describe ".refreshStatus()", ->

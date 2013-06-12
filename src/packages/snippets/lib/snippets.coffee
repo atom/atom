@@ -1,6 +1,7 @@
 AtomPackage = require 'atom-package'
 fs = require 'fs'
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 SnippetExpansion = require './snippet-expansion'
 Snippet = require './snippet'
@@ -34,13 +35,13 @@ module.exports =
     else
       @loadAtomSnippets(pack.path, done)
 
-  loadAtomSnippets: (path, done) ->
-    snippetsDirPath = fsUtils.join(path, 'snippets')
+  loadAtomSnippets: (packagePath, done) ->
+    snippetsDirPath = path.join(packagePath, 'snippets')
     return done() unless fsUtils.isDirectory(snippetsDirPath)
 
     loadSnippetFile = (filename, done) =>
       return done() if filename.indexOf('.') is 0
-      filepath = fsUtils.join(snippetsDirPath, filename)
+      filepath = path.join(snippetsDirPath, filename)
       CSON.readFile filepath, (err, object) =>
         if err
           console.warn "Error reading snippets file '#{filepath}': #{err.stack}"
@@ -51,14 +52,14 @@ module.exports =
     fs.readdir snippetsDirPath, (err, paths) ->
       async.eachSeries(paths, loadSnippetFile, done)
 
-  loadTextMateSnippets: (path, done) ->
-    snippetsDirPath = fsUtils.join(path, 'Snippets')
+  loadTextMateSnippets: (bundlePath, done) ->
+    snippetsDirPath = path.join(bundlePath, 'Snippets')
     return done() unless fsUtils.isDirectory(snippetsDirPath)
 
     loadSnippetFile = (filename, done) =>
       return done() if filename.indexOf('.') is 0
 
-      filepath = fsUtils.join(snippetsDirPath, filename)
+      filepath = path.join(snippetsDirPath, filename)
 
       logError = (err) ->
         console.warn "Error reading snippets file '#{filepath}': #{err.stack ? err}"
