@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
 Range = require 'range'
