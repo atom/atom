@@ -58,15 +58,15 @@ class TextMatePackage extends Package
       else
         done()
 
-  loadGrammarAtPath: (path, done) =>
-    TextMateGrammar.load path, (err, grammar) =>
-      return console.log("Error loading grammar at path '#{path}':", err.stack ? err) if err
+  loadGrammarAtPath: (grammarPath, done) =>
+    TextMateGrammar.load grammarPath, (err, grammar) =>
+      return console.log("Error loading grammar at path '#{grammarPath}':", err.stack ? err) if err
       @addGrammar(grammar)
       done()
 
   loadGrammarsSync: ->
-    for path in fsUtils.list(@getSyntaxesPath(), @legalGrammarExtensions)
-      @addGrammar(TextMateGrammar.loadSync(path))
+    for grammarPath in fsUtils.list(@getSyntaxesPath(), @legalGrammarExtensions)
+      @addGrammar(TextMateGrammar.loadSync(grammarPath))
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
@@ -94,8 +94,8 @@ class TextMatePackage extends Package
         selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
         @scopedProperties.push({selector, properties})
 
-    for path in fsUtils.list(@getPreferencesPath())
-      {scope, settings} = fsUtils.readObject(path)
+    for preferencePath in fsUtils.list(@getPreferencesPath())
+      {scope, settings} = fsUtils.readObject(preferencePath)
       if properties = @propertiesFromTextMateSettings(settings)
         selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
         @scopedProperties.push({selector, properties})
@@ -135,10 +135,10 @@ class TextMatePackage extends Package
           done()
           return
 
-        loadPreferencesAtPath = (path, done) ->
-          fsUtils.readObjectAsync path, (error, preferences) =>
+        loadPreferencesAtPath = (preferencePath, done) ->
+          fsUtils.readObjectAsync preferencePath, (error, preferences) =>
             if error?
-              console.warn("Failed to parse preference at path '#{path}'", error.stack, error)
+              console.warn("Failed to parse preference at path '#{preferencePath}'", error.stack, error)
             else
               preferenceObjects.push(preferences)
             done()
