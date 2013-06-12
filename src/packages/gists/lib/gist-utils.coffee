@@ -1,9 +1,10 @@
 path = require 'path'
 request = require 'request'
-temp = require 'temp'
 keytar = require 'keytar'
 GitHub = require 'github'
 fsUtils = require 'fs-utils'
+
+gistsDir = path.join(config.configDirPath, '.gists')
 
 logError = (message, error) ->
   console.error(message, error.stack ? error)
@@ -20,18 +21,12 @@ openGistFile = (gist, file) ->
       logError("Error fetching Gist file contents", error)
       return
 
-    temp.mkdir 'atom-', (error, tempDirPath) =>
+    gistFilePath = path.join(gistsDir, gist.id, file.filename)
+    fsUtils.writeAsync gistFilePath, body, (error) =>
       if error?
-        logError("Error creating temp directory: #{tempDirPath}", error)
-        return
-
-      tempFilePath = path.join(tempDirPath, "gist-#{gist.id}", file.filename)
-      fsUtils.writeAsync tempFilePath, body, (error) =>
-        if error?
-          logError("Error writing to #{tempFilePath}", error)
-          return
-
-        rootView.open(tempFilePath)
+        logError("Error writing to #{gistFilePath}", error)
+      else
+        rootView.open(gistFilePath)
 
 createPageIterator = (client, callback) ->
   (error, gists) ->
