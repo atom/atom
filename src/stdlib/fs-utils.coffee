@@ -23,14 +23,6 @@ module.exports =
     catch e
       path
 
-  # Returns the path of a file's containing directory, albeit the
-  # parent directory if the file is a directory. A terminal directory
-  # separator is ignored.
-  directory: (path) ->
-    parentPath = path.replace(new RegExp("/#{Path.basename(_.escapeRegExp(path))}\/?$"), '')
-    return "" if path == parentPath
-    parentPath
-
   # Returns true if the file specified by path exists
   exists: (path) ->
     path? and fs.existsSync(path)

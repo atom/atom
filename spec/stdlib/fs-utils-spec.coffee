@@ -21,18 +21,6 @@ describe "fsUtils", ->
       expect(fsUtils.isFile(fsUtils.join(fixturesDir, 'non-existent'))).toBe false
       expect(fsUtils.isFile(null)).toBe false
 
-  describe ".directory(path)", ->
-    describe "when called with a file path", ->
-      it "returns the path to the directory", ->
-        expect(fsUtils.directory(fsUtils.resolveOnLoadPath('fixtures/dir/a'))).toBe fsUtils.resolveOnLoadPath('fixtures/dir')
-
-    describe "when called with a directory path", ->
-      it "return the path it was given", ->
-        expect(fsUtils.directory("/a/b/c")).toBe "/a/b"
-        expect(fsUtils.directory("/a")).toBe ""
-        expect(fsUtils.directory("a")).toBe ""
-        expect(fsUtils.directory("/a/b/c++")).toBe "/a/b"
-
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
       expect(fsUtils.exists(fsUtils.resolveOnLoadPath('fixtures'))).toBe true

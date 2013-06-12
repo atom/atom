@@ -52,12 +52,12 @@ class Project
 
   # Sets the project path.
   #
-  # path - A {String} representing the new path
-  setPath: (path) ->
+  # projectPath - A {String} representing the new path
+  setPath: (projectPath) ->
     @rootDirectory?.off()
 
-    if path?
-      directory = if fsUtils.isDirectory(path) then path else fsUtils.directory(path)
+    if projectPath?
+      directory = if fsUtils.isDirectory(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
     else
       @rootDirectory = null

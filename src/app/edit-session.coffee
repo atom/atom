@@ -50,7 +50,7 @@ class EditSession
 
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
-      @project.setPath(fsUtils.directory(@getPath())) unless @project.getPath()?
+      @project.setPath(path.dirname(@getPath())) unless @project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
@@ -112,7 +112,7 @@ class EditSession
   getLongTitle: ->
     if sessionPath = @getPath()
       fileName = path.basename(sessionPath)
-      directory = path.basename(fsUtils.directory(sessionPath))
+      directory = path.basename(path.dirname(sessionPath))
       "#{fileName} - #{directory}"
     else
       'untitled'

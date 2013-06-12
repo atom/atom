@@ -46,7 +46,7 @@ class PackageGeneratorView extends View
   getPackagePath: ->
     packagePath = @miniEditor.getText()
     packageName = _.dasherize(path.basename(packagePath))
-    fsUtils.join(fsUtils.directory(packagePath), packageName)
+    fsUtils.join(path.dirname(packagePath), packageName)
 
   validPackagePath: ->
     if fsUtils.exists(@getPackagePath())
@@ -70,7 +70,7 @@ class PackageGeneratorView extends View
       if fsUtils.isDirectory(path)
         fsUtils.makeTree(sourcePath)
       if fsUtils.isFile(path)
-        fsUtils.makeTree(fsUtils.directory(sourcePath))
+        fsUtils.makeTree(path.dirname(sourcePath))
         content = @replacePackageNamePlaceholders(fsUtils.read(path), packageName)
         fsUtils.write(sourcePath, content)
 

@@ -47,7 +47,7 @@ class TabView extends View
     if fileNameText?
       duplicates = @editor.getEditSessions().filter (session) -> fileNameText is session.buffer.getBaseName()
       if duplicates.length > 1
-        directory = path.basename(fsUtils.directory(@editSession.getPath()))
+        directory = path.basename(path.dirname(@editSession.getPath()))
         fileNameText = "#{fileNameText} - #{directory}" if directory
     else
       fileNameText = 'untitled'

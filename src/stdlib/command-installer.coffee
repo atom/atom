@@ -6,7 +6,7 @@ mkdirp = require 'mkdirp'
 fsUtils = require 'fs-utils'
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
-  mkdirp fsUtils.directory(destinationPath), (error) ->
+  mkdirp path.dirname(destinationPath), (error) ->
     if error?
       callback(error)
     else
