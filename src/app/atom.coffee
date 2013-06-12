@@ -67,9 +67,9 @@ window.atom =
     if @isPackageDisabled(name)
       return console.warn("Tried to load disabled package '#{name}'")
 
-    if path = @resolvePackagePath(name)
+    if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
-      pack = Package.load(path, options)
+      pack = Package.load(packagePath, options)
       @loadedPackages[pack.name] = pack
       pack
     else
@@ -87,8 +87,8 @@ window.atom =
   resolvePackagePath: (name) ->
     return name if fsUtils.isDirectory(name)
 
-    path = fsUtils.resolve(config.packageDirPaths..., name)
-    return path if fsUtils.isDirectory(path)
+    packagePath = fsUtils.resolve(config.packageDirPaths..., name)
+    return packagePath if fsUtils.isDirectory(packagePath)
 
     packagePath = fsUtils.join(window.resourcePath, 'node_modules', name)
     return packagePath if @isInternalPackage(packagePath)
