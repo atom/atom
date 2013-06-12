@@ -111,7 +111,10 @@ module.exports = (grunt) ->
         max_line_length:
           level: 'ignore'
 
-      src: ['src/**/*.coffee']
+      src: [
+        'dot-atom/**/*.coffee'
+        'src/**/*.coffee'
+      ]
       test: [
         'spec/*.coffee'
         'spec/app/**/*.coffee'
