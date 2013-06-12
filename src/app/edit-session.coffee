@@ -39,7 +39,7 @@ class EditSession
   softTabs: true
   softWrap: false
 
-  constructor: ({@project, @buffer, tabLength, softTabs, @softWrap }) ->
+  constructor: ({@project, @buffer, tabLength, softTabs, @softWrap}) ->
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
