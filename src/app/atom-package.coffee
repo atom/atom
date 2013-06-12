@@ -142,10 +142,10 @@ class AtomPackage extends Package
     else
       rootView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
 
-  handleActivationEvent: (event) =>
+  handleActivationEvent: (event, args...) =>
     bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
     @activateNow()
-    $(event.target).trigger(event)
+    $(event.target).trigger(event, args)
     @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
     @unsubscribeFromActivationEvents()
 
