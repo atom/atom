@@ -126,6 +126,7 @@ module.exports = (grunt) ->
         'bulletproof-font-face': false
         'compatible-vendor-prefixes': false
         'fallback-colors': false
+        'font-sizes': false
         'gradients': false
         'ids': false
         'important': false
