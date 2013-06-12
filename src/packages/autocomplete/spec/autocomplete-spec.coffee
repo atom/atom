@@ -33,6 +33,17 @@ describe "Autocomplete", ->
       rightEditor.trigger 'autocomplete:attach'
       expect(rightEditor.find('.autocomplete')).toExist()
 
+  describe "@deactivate()", ->
+    it "removes all autocomplete views and doesn't create new ones when new editors are opened", ->
+      atom.activatePackage('autocomplete')
+      rootView.getActiveView().trigger "autocomplete:attach"
+      expect(rootView.getActiveView().find('.autocomplete')).toExist()
+      atom.deactivatePackage('autocomplete')
+      expect(rootView.getActiveView().find('.autocomplete')).not.toExist()
+      rootView.getActiveView().splitRight()
+      rootView.getActiveView().trigger "autocomplete:attach"
+      expect(rootView.getActiveView().find('.autocomplete')).not.toExist()
+
 describe "AutocompleteView", ->
   autocomplete = null
   editor = null
