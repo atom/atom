@@ -8,6 +8,7 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe "Editor", ->
   [buffer, editor, editSession, cachedLineHeight, cachedCharWidth] = []
