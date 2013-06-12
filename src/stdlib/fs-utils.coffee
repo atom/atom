@@ -121,11 +121,11 @@ module.exports =
 
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
-    mkdirp.sync(@directory(path))
+    mkdirp.sync(Path.dirname(path))
     fs.writeFileSync(path, content)
 
   writeAsync: (path, content, callback) ->
-    mkdirp @directory(path), (error) ->
+    mkdirp Path.dirname(path), (error) ->
       if error?
         callback?(error)
       else
@@ -135,7 +135,7 @@ module.exports =
     fs.mkdirSync(path)
 
   copy: (sourcePath, destinationPath, done) ->
-    mkdirp @directory(destinationPath), (error) ->
+    mkdirp Path.dirname(destinationPath), (error) ->
       if error?
         done?(error)
         return
@@ -160,7 +160,7 @@ module.exports =
   makeTree: (path) ->
     return unless path
     if not @exists(path)
-      @makeTree(@directory(path))
+      @makeTree(Path.dirname(path))
       @makeDirectory(path)
 
   traverseTreeSync: (rootPath, onFile, onDirectory) ->
