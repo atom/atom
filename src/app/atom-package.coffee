@@ -59,8 +59,8 @@ class AtomPackage extends Package
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
     applyStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
-    for [propertiesPath, selector, properties] in @scopedProperties
-      syntax.addProperties(propertiesPath, selector, properties)
+    for [scopedPropertiesPath, selector, properties] in @scopedProperties
+      syntax.addProperties(scopedPropertiesPath, selector, properties)
 
   loadKeymaps: ->
     @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
@@ -112,7 +112,7 @@ class AtomPackage extends Package
 
   deactivateResources: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
-    syntax.removeProperties(path) for [path] in @scopedProperties
+    syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
     keymap.remove(keymapPath) for [keymapPath] in @keymaps
     removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
 
