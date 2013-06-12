@@ -1,5 +1,6 @@
 Project = require 'project'
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 BufferedProcess = require 'buffered-process'
 
@@ -147,7 +148,7 @@ describe "Project", ->
         expect(paths.length).toBeGreaterThan 0
 
     it "ignores files that return true from atom.ignorePath(path)", ->
-      spyOn(project, 'isPathIgnored').andCallFake (path) -> fsUtils.base(path).match /a$/
+      spyOn(project, 'isPathIgnored').andCallFake (filePath) -> path.basename(filePath).match /a$/
 
       paths = null
       waitsForPromise ->
@@ -256,7 +257,7 @@ describe "Project", ->
           expect(paths[1]).toMatch /file with spaces.txt$/
           expect(paths[2]).toMatch /goddam\nnewlines$/m
           expect(paths[3]).toMatch /quote".txt$/m
-          expect(fsUtils.base(paths[4])).toBe "utfa\u0306.md"
+          expect(path.basename(paths[4])).toBe "utfa\u0306.md"
 
       it "handles breaks in the search subprocess's output following the filename", ->
         spyOn(BufferedProcess.prototype, 'bufferStream')

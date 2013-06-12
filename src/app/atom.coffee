@@ -5,6 +5,7 @@ Theme = require 'theme'
 ipc = require 'ipc'
 remote = require 'remote'
 crypto = require 'crypto'
+path = require 'path'
 
 window.atom =
   loadedThemes: []
@@ -121,12 +122,12 @@ window.atom =
     _.uniq(packagePaths)
 
   getAvailablePackageNames: ->
-    fsUtils.base(path) for path in @getAvailablePackagePaths()
+    path.basename(packagePath) for packagePath in @getAvailablePackagePaths()
 
   getAvailablePackageMetadata: ->
     packages = []
     for packagePath in atom.getAvailablePackagePaths()
-      name = fsUtils.base(packagePath)
+      name = path.basename(packagePath)
       metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
@@ -144,7 +145,7 @@ window.atom =
     _.uniq(themePaths)
 
   getAvailableThemeNames: ->
-    fsUtils.base(path).split('.')[0] for path in @getAvailableThemePaths()
+    path.basename(themePath).split('.')[0] for themePath in @getAvailableThemePaths()
 
   loadTheme: (name) ->
     @loadedThemes.push Theme.load(name)

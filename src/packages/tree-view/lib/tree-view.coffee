@@ -222,7 +222,7 @@ class TreeView extends ScrollView
 
     dialog = new Dialog
       prompt: prompt
-      path: project.relativize(oldPath)
+      initialPath: project.relativize(oldPath)
       select: true
       iconClass: 'move'
       onConfirm: (newPath) =>
@@ -267,7 +267,7 @@ class TreeView extends ScrollView
 
     dialog = new Dialog
       prompt: "Enter the path for the new file/directory. Directories end with a '/'."
-      path: relativeDirectoryPath
+      initialPath: relativeDirectoryPath
       select: false
       iconClass: 'add-directory'
 

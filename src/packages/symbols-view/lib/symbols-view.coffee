@@ -4,6 +4,7 @@ TagGenerator = require './tag-generator'
 TagReader = require './tag-reader'
 Point = require 'point'
 fsUtils = require 'fs-utils'
+path = require 'path'
 $ = require 'jquery'
 
 module.exports =
@@ -30,7 +31,7 @@ class SymbolsView extends SelectList
         if position
           text = "Line #{position.row + 1}"
         else
-          text = fsUtils.base(file)
+          text = path.basename(file)
         @div text, class: 'secondary-line'
 
   toggleFileSymbols: ->
@@ -119,7 +120,7 @@ class SymbolsView extends SelectList
         continue unless position
         tags.push
           file: match.file
-          name: fsUtils.base(match.file)
+          name: path.basename(match.file)
           position: position
       @miniEditor.show()
       @setArray(tags)

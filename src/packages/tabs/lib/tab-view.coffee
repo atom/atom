@@ -1,6 +1,7 @@
 $ = require 'jquery'
 {View} = require 'space-pen'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 module.exports =
 class TabView extends View
@@ -46,7 +47,7 @@ class TabView extends View
     if fileNameText?
       duplicates = @editor.getEditSessions().filter (session) -> fileNameText is session.buffer.getBaseName()
       if duplicates.length > 1
-        directory = fsUtils.base(fsUtils.directory(@editSession.getPath()))
+        directory = path.basename(fsUtils.directory(@editSession.getPath()))
         fileNameText = "#{fileNameText} - #{directory}" if directory
     else
       fileNameText = 'untitled'

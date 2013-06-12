@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 
 # Public: Manages the states between {Editor}s, images, and the project as a whole.
@@ -39,8 +40,8 @@ class ImageEditSession
   #
   # Returns a {String}.
   getTitle: ->
-    if path = @getPath()
-      fsUtils.base(path)
+    if sessionPath = @getPath()
+      path.basename(sessionPath)
     else
       'untitled'
 

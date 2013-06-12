@@ -1,6 +1,6 @@
 EventEmitter = require 'event-emitter'
-
 fs = require 'fs'
+path = require 'path'
 fsUtils = require 'fs-utils'
 pathWatcher = require 'pathwatcher'
 _ = require 'underscore'
@@ -38,7 +38,7 @@ class File
   #
   # Returns a {String}.
   getBaseName: ->
-    fsUtils.base(@path)
+    path.basename(@path)
 
   # Writes (and saves) new contents to the file.
   #

@@ -22,13 +22,6 @@ module.exports =
     catch e
       path
 
-  # Return the basename of the given path. That is the path with
-  # any leading directory components removed. If specified, also
-  # remove a trailing extension.
-  base: (path, ext) ->
-    base = path.replace(/\/$/, '').split("/").pop()
-    if ext then base.replace(RegExp("#{_.escapeRegExp(ext)}$"), '') else base
-
   # Returns the path of a file's containing directory, albeit the
   # parent directory if the file is a directory. A terminal directory
   # separator is ignored.

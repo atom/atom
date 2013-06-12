@@ -33,13 +33,6 @@ describe "fsUtils", ->
         expect(fsUtils.directory("a")).toBe ""
         expect(fsUtils.directory("/a/b/c++")).toBe "/a/b"
 
-  describe ".base(path, ext)", ->
-    describe "when called with an extension", ->
-      it "return the base name without the extension when the path has the given extension", ->
-        expect(fsUtils.base("/a/b/c.txt", '.txt')).toBe "c"
-        expect(fsUtils.base("/a/b/c.txt", '.txt2')).toBe "c.txt"
-        expect(fsUtils.base("/a/b/c.+", '.+')).toBe "c"
-
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
       expect(fsUtils.exists(fsUtils.resolveOnLoadPath('fixtures'))).toBe true

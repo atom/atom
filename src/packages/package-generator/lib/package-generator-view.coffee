@@ -3,6 +3,7 @@ Editor = require 'editor'
 $ = require 'jquery'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 module.exports =
 class PackageGeneratorView extends View
@@ -44,7 +45,7 @@ class PackageGeneratorView extends View
 
   getPackagePath: ->
     packagePath = @miniEditor.getText()
-    packageName = _.dasherize(fsUtils.base(packagePath))
+    packageName = _.dasherize(path.basename(packagePath))
     fsUtils.join(fsUtils.directory(packagePath), packageName)
 
   validPackagePath: ->
@@ -57,7 +58,7 @@ class PackageGeneratorView extends View
 
   createPackageFiles: ->
     templatePath = fsUtils.resolveOnLoadPath(fsUtils.join("package-generator", "template"))
-    packageName = fsUtils.base(@getPackagePath())
+    packageName = path.basename(@getPackagePath())
 
     for path in fsUtils.listTree(templatePath)
       relativePath = path.replace(templatePath, "")

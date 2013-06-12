@@ -5,6 +5,7 @@ TreeView = require 'tree-view/lib/tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe "TreeView", ->
   [treeView, sampleJs, sampleTxt] = []
@@ -640,13 +641,13 @@ describe "TreeView", ->
 
             dirView.directory.trigger 'contents-changed'
             expect(directoryChangeHandler).toHaveBeenCalled()
-            expect(treeView.find('.selected').text()).toBe fsUtils.base(filePath)
+            expect(treeView.find('.selected').text()).toBe path.basename(filePath)
 
         describe "when the path without a trailing '/' is changed and confirmed", ->
           describe "when no file exists at that location", ->
             it "add a file, closes the dialog and selects the file in the tree-view", ->
               newPath = fsUtils.join(dirPath, "new-test-file.txt")
-              addDialog.miniEditor.insertText(fsUtils.base(newPath))
+              addDialog.miniEditor.insertText(path.basename(newPath))
               addDialog.trigger 'core:confirm'
               expect(fsUtils.exists(newPath)).toBeTruthy()
               expect(fsUtils.isFile(newPath)).toBeTruthy()
@@ -657,13 +658,13 @@ describe "TreeView", ->
                 dirView.entries.find("> .file").length > 1
 
               runs ->
-                expect(treeView.find('.selected').text()).toBe fsUtils.base(newPath)
+                expect(treeView.find('.selected').text()).toBe path.basename(newPath)
 
           describe "when a file already exists at that location", ->
             it "shows an error message and does not close the dialog", ->
               newPath = fsUtils.join(dirPath, "new-test-file.txt")
               fsUtils.write(newPath, '')
-              addDialog.miniEditor.insertText(fsUtils.base(newPath))
+              addDialog.miniEditor.insertText(path.basename(newPath))
               addDialog.trigger 'core:confirm'
 
               expect(addDialog.prompt.text()).toContain 'Error'
@@ -773,11 +774,11 @@ describe "TreeView", ->
 
         it "opens a move dialog with the file's current path (excluding extension) populated", ->
           extension = fsUtils.extension(filePath)
-          fileNameWithoutExtension = fsUtils.base(filePath, extension)
+          fileNameWithoutExtension = path.basename(filePath, extension)
           expect(moveDialog).toExist()
           expect(moveDialog.prompt.text()).toBe "Enter the new path for the file."
           expect(moveDialog.miniEditor.getText()).toBe(project.relativize(filePath))
-          expect(moveDialog.miniEditor.getSelectedText()).toBe fsUtils.base(fileNameWithoutExtension)
+          expect(moveDialog.miniEditor.getSelectedText()).toBe path.basename(fileNameWithoutExtension)
           expect(moveDialog.miniEditor.isFocused).toBeTruthy()
 
         describe "when the path is changed and confirmed", ->

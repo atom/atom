@@ -4,6 +4,7 @@ _ = require 'underscore'
 $ = require 'jquery'
 humanize = require 'humanize-plus'
 fsUtils = require 'fs-utils'
+path = require 'path'
 LoadPathsTask = require './load-paths-task'
 Point = require 'point'
 
@@ -38,18 +39,18 @@ class FuzzyFinderView extends SelectList
     @miniEditor.command 'pane:split-up', =>
       @splitOpenPath (pane, session) -> pane.splitUp(session)
 
-  itemForElement: ({path, projectRelativePath}) ->
+  itemForElement: ({filePath, projectRelativePath}) ->
     $$ ->
       @li class: 'two-lines', =>
         if git?
-          status = git.statuses[path]
+          status = git.statuses[filePath]
           if git.isStatusNew(status)
             @div class: 'status new'
           else if git.isStatusModified(status)
             @div class: 'status modified'
 
-        ext = fsUtils.extension(path)
-        if fsUtils.isReadmePath(path)
+        ext = fsUtils.extension(filePath)
+        if fsUtils.isReadmePath(filePath)
           typeClass = 'readme-name'
         else if fsUtils.isCompressedExtension(ext)
           typeClass = 'compressed-name'
@@ -62,13 +63,13 @@ class FuzzyFinderView extends SelectList
         else
           typeClass = 'text-name'
 
-        @div fsUtils.base(path), class: "primary-line file #{typeClass}"
+        @div path.basename(filePath), class: "primary-line file #{typeClass}"
         @div projectRelativePath, class: 'secondary-line path'
 
-  openPath: (path, lineNumber) ->
-    return unless path
+  openPath: (filePath, lineNumber) ->
+    return unless filePath
 
-    rootView.open(path, {@allowActiveEditorChange})
+    rootView.open(filePath, {@allowActiveEditorChange})
     @moveToLine(lineNumber)
 
   moveToLine: (lineNumber=-1) ->
@@ -81,23 +82,23 @@ class FuzzyFinderView extends SelectList
       editor.moveCursorToFirstCharacterOfLine()
 
   splitOpenPath: (fn) ->
-    {path} = @getSelectedElement()
-    return unless path
+    {filePath} = @getSelectedElement()
+    return unless filePath
 
     lineNumber = @getLineNumber()
     if pane = rootView.getActivePane()
-      fn(pane, project.open(path))
+      fn(pane, project.open(filePath))
       @moveToLine(lineNumber)
     else
-      @openPath(path, lineNumber)
+      @openPath(filePath, lineNumber)
 
-  confirmed : ({path}) ->
-    return unless path.length
+  confirmed : ({filePath}) ->
+    return unless filePath
 
-    if fsUtils.isFile(path)
+    if fsUtils.isFile(filePath)
       lineNumber = @getLineNumber()
       @cancel()
-      @openPath(path, lineNumber)
+      @openPath(filePath, lineNumber)
     else
       @setError('Selected path does not exist')
       setTimeout((=> @setError()), 2000)
@@ -168,15 +169,15 @@ class FuzzyFinderView extends SelectList
       parseInt(query[colon+1..]) - 1
 
   setArray: (paths) ->
-    projectRelativePaths = paths.map (path) ->
-      projectRelativePath = project.relativize(path)
-      {path, projectRelativePath}
+    projectRelativePaths = paths.map (filePath) ->
+      projectRelativePath = project.relativize(filePath)
+      {filePath, projectRelativePath}
 
     super(projectRelativePaths)
 
   populateGitStatusPaths: ->
     paths = []
-    paths.push(path) for path, status of git.statuses when fsUtils.isFile(path)
+    paths.push(filePath) for filePath, status of git.statuses when fsUtils.isFile(filePath)
 
     @setArray(paths)
 
@@ -184,8 +185,8 @@ class FuzzyFinderView extends SelectList
     if @projectPaths?
       listedItems =
         if options.filter?
-          @projectPaths.filter (path) ->
-            path.indexOf(options.filter) >= 0
+          @projectPaths.filter (filePath) ->
+            filePath.indexOf(options.filter) >= 0
         else
           @projectPaths
       @setArray(listedItems)

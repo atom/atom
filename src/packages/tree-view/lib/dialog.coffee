@@ -1,6 +1,7 @@
 {View} = require 'space-pen'
 Editor = require 'editor'
 fsUtils = require 'fs-utils'
+path = require 'path'
 $ = require 'jquery'
 
 module.exports =
@@ -11,23 +12,23 @@ class Dialog extends View
         @span prompt, outlet: 'promptText'
       @subview 'miniEditor', new Editor(mini: true)
 
-  initialize: ({path, @onConfirm, select, iconClass} = {}) ->
+  initialize: ({initialPath, @onConfirm, select, iconClass} = {}) ->
     @prompt.addClass(iconClass) if iconClass
     @miniEditor.focus()
     @on 'core:confirm', => @onConfirm(@miniEditor.getText())
     @on 'core:cancel', => @cancel()
     @miniEditor.on 'focusout', => @remove()
 
-    @miniEditor.setText(path)
+    @miniEditor.setText(initialPath)
 
     if select
-      extension = fsUtils.extension(path)
-      baseName = fsUtils.base(path)
+      extension = fsUtils.extension(initialPath)
+      baseName = path.basename(initialPath)
       if baseName is extension
-        selectionEnd = path.length
+        selectionEnd = initialPath.length
       else
-        selectionEnd = path.length - extension.length
-      range = [[0, path.length - baseName.length], [0, selectionEnd]]
+        selectionEnd = initialPath.length - extension.length
+      range = [[0, initialPath.length - baseName.length], [0, selectionEnd]]
       @miniEditor.setSelectedBufferRange(range)
 
   close: ->

@@ -5,6 +5,7 @@ _ = require 'underscore'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe 'FuzzyFinder', ->
   [finderView] = []
@@ -55,8 +56,8 @@ describe 'FuzzyFinder', ->
 
           runs ->
             expect(finderView.list.children('li').length).toBe paths.length
-            for path in paths
-              expect(finderView.list.find("li:contains(#{fsUtils.base(path)})")).toExist()
+            for filePath in paths
+              expect(finderView.list.find("li:contains(#{path.basename(filePath)})")).toExist()
             expect(finderView.list.children().first()).toHaveClass 'selected'
             expect(finderView.find(".loading")).not.toBeVisible()
 
