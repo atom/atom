@@ -32,8 +32,8 @@ class FileView extends View
         @fileName.addClass('text-icon')
 
     if git?
-      @subscribe git, 'status-changed', (path, status) =>
-        @updateStatus() if path is @getPath()
+      @subscribe git, 'status-changed', (changedPath, status) =>
+        @updateStatus() if changedPath is @getPath()
       @subscribe git, 'statuses-changed', =>
         @updateStatus()
 
@@ -43,11 +43,11 @@ class FileView extends View
     @removeClass('ignored modified new')
     return unless git?
 
-    path = @getPath()
-    if git.isPathIgnored(path)
+    filePath = @getPath()
+    if git.isPathIgnored(filePath)
       @addClass('ignored')
     else
-      status = git.statuses[path]
+      status = git.statuses[filePath]
       if git.isStatusModified(status)
         @addClass('modified')
       else if git.isStatusNew(status)
