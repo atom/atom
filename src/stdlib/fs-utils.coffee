@@ -4,6 +4,7 @@ mkdirp = require 'mkdirp'
 Module = require 'module'
 async = require 'async'
 rimraf = require 'rimraf'
+Path = require 'path'
 
 module.exports =
   # Make the given path absolute by resolving it against the
@@ -26,7 +27,7 @@ module.exports =
   # parent directory if the file is a directory. A terminal directory
   # separator is ignored.
   directory: (path) ->
-    parentPath = path.replace(new RegExp("/#{@base(_.escapeRegExp(path))}\/?$"), '')
+    parentPath = path.replace(new RegExp("/#{Path.basename(_.escapeRegExp(path))}\/?$"), '')
     return "" if path == parentPath
     parentPath
 
@@ -40,7 +41,7 @@ module.exports =
   # extension exists.
   extension: (path) ->
     return '' unless typeof path is 'string'
-    match = @base(path).match(/\.[^\.]+$/)
+    match = Path.basename(path).match(/\.[^\.]+$/)
     if match
       match[0]
     else
@@ -309,7 +310,7 @@ module.exports =
 
   isReadmePath: (path) ->
     extension = @extension(path)
-    base = @base(path, extension).toLowerCase()
+    base = Path.basename(path, extension).toLowerCase()
     base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
 
   readPlist: (path) ->
