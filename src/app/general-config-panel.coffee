@@ -16,8 +16,8 @@ class GeneralConfigPanel extends ConfigPanel
 
         @div class: 'control-group', =>
           @div class: 'checkbox', =>
-            @label for: 'editor.hideGitIgnoredFiles', =>
-              @input id: 'editor.hideGitIgnoredFiles', type: 'checkbox'
+            @label for: 'core.hideGitIgnoredFiles', =>
+              @input id: 'core.hideGitIgnoredFiles', type: 'checkbox'
               @text 'Hide Git-Ignored Files'
 
           @div class: 'checkbox', =>
