@@ -121,12 +121,19 @@ module.exports = (grunt) ->
     csslint:
       options:
         'adjoining-classes': false
+        'box-model': false
         'box-sizing': false
         'bulletproof-font-face': false
         'compatible-vendor-prefixes': false
         'fallback-colors': false
         'gradients': false
+        'ids': false
         'important': false
+        'known-properties': false
+        'overqualified-elements': false
+        'qualified-headings': false
+        'unique-headings': false
+        'universal-selector': false
         'vendor-prefix': false
       src: [
         'src/**/*.css',
