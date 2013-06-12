@@ -1,6 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+path = require 'path'
 CSON = require 'season'
 BindingSet = require 'binding-set'
 
