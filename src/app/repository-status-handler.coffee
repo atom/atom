@@ -3,8 +3,8 @@ fsUtils = require 'fs-utils'
 path = require 'path'
 
 module.exports =
-  loadStatuses: (path) ->
-    repo = Git.open(path)
+  loadStatuses: (repoPath) ->
+    repo = Git.open(repoPath)
     if repo?
       workingDirectoryPath = repo.getWorkingDirectory()
       statuses = {}
