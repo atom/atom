@@ -274,19 +274,19 @@ class TreeView extends ScrollView
 
       onConfirm: (relativePath) =>
         endsWithDirectorySeparator = /\/$/.test(relativePath)
-        path = project.resolve(relativePath)
+        pathToCreate = project.resolve(relativePath)
         try
-          if fsUtils.exists(path)
-            pathType = if fsUtils.isFile(path) then "file" else "directory"
+          if fsUtils.exists(pathToCreate)
+            pathType = if fsUtils.isFile(pathToCreate) then "file" else "directory"
             dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path.")
           else if endsWithDirectorySeparator
-            fsUtils.makeTree(path)
+            fsUtils.makeTree(pathToCreate)
             dialog.cancel()
-            @entryForPath(path).buildEntries()
-            @selectEntryForPath(path)
+            @entryForPath(pathToCreate).buildEntries()
+            @selectEntryForPath(pathToCreate)
           else
-            fsUtils.write(path, "")
-            rootView.open(path)
+            fsUtils.write(pathToCreate, "")
+            rootView.open(pathToCreate)
             dialog.close()
         catch e
           dialog.showError("Error: #{e.message} Try a different path.")
