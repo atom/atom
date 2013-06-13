@@ -152,7 +152,7 @@ class Git
   # Returns a {String}.
   relativize: (path) -> @getRepo().relativize(path)
 
-  # Retrieves a shortened version of {.getHead}.
+  # Retrieves a shortened version of the HEAD reference value.
   #
   # This removes the leading segments of `refs/heads`, `refs/tags`, or `refs/remotes`.
   # It also shortenes the SHA-1 of a detached `HEAD` to 7 characters.
