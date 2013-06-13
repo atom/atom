@@ -1,5 +1,6 @@
 RootView = require 'root-view'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe 'Package Generator', ->
   [packageGenerator] = []
