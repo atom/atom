@@ -151,18 +151,16 @@ module.exports =
   traverseTreeSync: (rootPath, onFile, onDirectory) ->
     return unless @isDirectorySync(rootPath)
 
-    traverse = (rootPath, prefix, onFile, onDirectory) ->
-      prefix  = "#{prefix}/" if prefix
-      for file in fs.readdirSync(rootPath)
-        relativePath = "#{prefix}#{file}"
-        absolutePath = path.join(rootPath, file)
-        stats = fs.statSync(absolutePath)
+    traverse = (directoryPath, onFile, onDirectory) ->
+      for file in fs.readdirSync(directoryPath)
+        childPath = path.join(directoryPath, file)
+        stats = fs.statSync(childPath)
         if stats.isDirectory()
-          traverse(absolutePath, relativePath, onFile, onDirectory) if onDirectory(absolutePath)
+          traverse(childPath, onFile, onDirectory) if onDirectory(childPath)
         else if stats.isFile()
-          onFile(absolutePath)
+          onFile(childPath)
 
-    traverse(rootPath, '', onFile, onDirectory)
+    traverse(rootPath, onFile, onDirectory)
 
   traverseTree: (rootPath, onFile, onDirectory, onDone) ->
     fs.readdir rootPath, (error, files) ->
