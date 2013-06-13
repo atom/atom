@@ -1,10 +1,9 @@
 Task = require 'task'
 _ = require 'underscore'
 
-# Internal:
+### Internal ###
 module.exports =
 class RepositoryStatusTask extends Task
-  
   constructor: (@repo) ->
     super('repository-status-handler')
 
