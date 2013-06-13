@@ -12,7 +12,7 @@ module.exports =
   absolute: (relativePath) ->
     return null unless relativePath?
 
-    if path.indexOf('~/') is 0
+    if relativePath.indexOf('~/') is 0
       if process.platform is 'win32'
         home = process.env.USERPROFILE
       else
@@ -254,6 +254,7 @@ module.exports =
     _.indexOf([
       '.markdown'
       '.md'
+      '.mdown'
       '.mkd'
       '.mkdown'
       '.ron'
