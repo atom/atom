@@ -24,7 +24,6 @@ describe "Project", ->
 
   describe "when an edit session is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
-      path = project.resolve('a')
       project.setPath(undefined)
       expect(project.getPath()).toBeUndefined()
       editSession = project.open()
