@@ -102,8 +102,7 @@ module.exports =
   move: (source, target) ->
     fs.renameSync(source, target)
 
-  # Remove a file at the given path. Throws an error if path is not a
-  # file or a symbolic link to a file.
+  # Remove the file or directory at the given path.
   remove: (pathToRemove) ->
     rimraf.sync(pathToRemove)
 
