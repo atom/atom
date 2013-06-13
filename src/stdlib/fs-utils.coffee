@@ -93,7 +93,7 @@ module.exports =
 
   listTreeSync: (rootPath) ->
     paths = []
-    onPath = (childPath) =>
+    onPath = (childPath) ->
       paths.push(childPath)
       true
     @traverseTreeSync(rootPath, onPath, onPath)
