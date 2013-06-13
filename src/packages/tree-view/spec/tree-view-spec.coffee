@@ -680,7 +680,7 @@ describe "TreeView", ->
               addDialog.miniEditor.insertText("new/dir/")
               addDialog.trigger 'core:confirm'
               expect(fsUtils.exists(newPath)).toBeTruthy()
-              expect(fsUtils.isDirectory(newPath)).toBeTruthy()
+              expect(fsUtils.isDirectorySync(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveView().getPath()).not.toBe newPath
               expect(treeView.find(".tree-view")).toMatchSelector(':focus')
@@ -693,7 +693,7 @@ describe "TreeView", ->
               addDialog.miniEditor.insertText("new2/")
               addDialog.trigger 'core:confirm'
               expect(fsUtils.exists(newPath)).toBeTruthy()
-              expect(fsUtils.isDirectory(newPath)).toBeTruthy()
+              expect(fsUtils.isDirectorySync(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveView().getPath()).not.toBe newPath
               expect(treeView.find(".tree-view")).toMatchSelector(':focus')

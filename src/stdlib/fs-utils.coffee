@@ -29,14 +29,14 @@ module.exports =
 
   # Returns true if the file specified by path exists and is a
   # directory.
-  isDirectory: (path) ->
+  isDirectorySync: (path) ->
     return false unless path?.length > 0
     try
       fs.statSync(path).isDirectory()
     catch e
       false
 
-  isDirectoryAsync: (path, done) ->
+  isDirectory: (path, done) ->
     return done(false) unless path?.length > 0
     fs.exists path, (exists) ->
       if exists
@@ -67,7 +67,7 @@ module.exports =
   # Returns an array with all the names of files contained
   # in the directory path.
   list: (rootPath, extensions) ->
-    return [] unless @isDirectory(rootPath)
+    return [] unless @isDirectorySync(rootPath)
     paths = fs.readdirSync(rootPath)
     paths = @filterExtensions(paths, extensions) if extensions
     paths = paths.map (path) -> Path.join(rootPath, path)
@@ -164,7 +164,7 @@ module.exports =
       @makeDirectory(path)
 
   traverseTreeSync: (rootPath, onFile, onDirectory) ->
-    return unless @isDirectory(rootPath)
+    return unless @isDirectorySync(rootPath)
 
     traverse = (rootPath, prefix, onFile, onDirectory) ->
       prefix  = "#{prefix}/" if prefix

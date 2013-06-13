@@ -7,7 +7,7 @@ describe "Git", ->
   repo = null
 
   beforeEach ->
-    fsUtils.remove('/tmp/.git') if fsUtils.isDirectory('/tmp/.git')
+    fsUtils.remove('/tmp/.git') if fsUtils.isDirectorySync('/tmp/.git')
 
   afterEach ->
     repo.destroy() if repo?.repo?

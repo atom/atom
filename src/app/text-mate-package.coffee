@@ -47,7 +47,7 @@ class TextMatePackage extends Package
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json']
 
   loadGrammars: (done) ->
-    fsUtils.isDirectoryAsync @getSyntaxesPath(), (isDirectory) =>
+    fsUtils.isDirectory @getSyntaxesPath(), (isDirectory) =>
       if isDirectory
         fsUtils.listAsync @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
           if error?
@@ -76,14 +76,14 @@ class TextMatePackage extends Package
 
   getSyntaxesPath: ->
     syntaxesPath = path.join(@path, "syntaxes")
-    if fsUtils.isDirectory(syntaxesPath)
+    if fsUtils.isDirectorySync(syntaxesPath)
       syntaxesPath
     else
       path.join(@path, "Syntaxes")
 
   getPreferencesPath: ->
     preferencesPath = path.join(@path, "preferences")
-    if fsUtils.isDirectory(preferencesPath)
+    if fsUtils.isDirectorySync(preferencesPath)
       preferencesPath
     else
       path.join(@path, "Preferences")
@@ -126,7 +126,7 @@ class TextMatePackage extends Package
     @loadTextMatePreferenceObjects(preferenceObjects, done)
 
   loadTextMatePreferenceObjects: (preferenceObjects, done) ->
-    fsUtils.isDirectoryAsync @getPreferencesPath(), (isDirectory) =>
+    fsUtils.isDirectory @getPreferencesPath(), (isDirectory) =>
       return done() unless isDirectory
 
       fsUtils.listAsync @getPreferencesPath(), (error, paths) =>

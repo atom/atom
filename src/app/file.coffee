@@ -21,7 +21,7 @@ class File
   # symlink - A {Boolean} indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
     try
-      if fs.statSync(@path).isDirectory()
+      if fs.statSync(@path).isDirectorySync()
         throw new Error("#{@path} is a directory")
 
   # Sets the path for the file.

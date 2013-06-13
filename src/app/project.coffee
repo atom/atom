@@ -58,7 +58,7 @@ class Project
     @rootDirectory?.off()
 
     if projectPath?
-      directory = if fsUtils.isDirectory(projectPath) then projectPath else path.dirname(projectPath)
+      directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
     else
       @rootDirectory = null

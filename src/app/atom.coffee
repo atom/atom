@@ -85,10 +85,10 @@ window.atom =
       throw new Error("No loaded package for name '#{name}'")
 
   resolvePackagePath: (name) ->
-    return name if fsUtils.isDirectory(name)
+    return name if fsUtils.isDirectorySync(name)
 
     packagePath = fsUtils.resolve(config.packageDirPaths..., name)
-    return packagePath if fsUtils.isDirectory(packagePath)
+    return packagePath if fsUtils.isDirectorySync(packagePath)
 
     packagePath = path.join(window.resourcePath, 'node_modules', name)
     return packagePath if @isInternalPackage(packagePath)
@@ -114,7 +114,7 @@ window.atom =
 
     for packageDirPath in config.packageDirPaths
       for packagePath in fsUtils.list(packageDirPath)
-        packagePaths.push(packagePath) if fsUtils.isDirectory(packagePath)
+        packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
 
     for packagePath in fsUtils.list(path.join(window.resourcePath, 'node_modules'))
       packagePaths.push(packagePath) if @isInternalPackage(packagePath)
