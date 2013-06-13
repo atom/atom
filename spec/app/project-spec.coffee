@@ -40,8 +40,8 @@ describe "Project", ->
       newEditSessionHandler = jasmine.createSpy('newEditSessionHandler')
       project.on 'edit-session-created', newEditSessionHandler
 
-      fooOpener = (path, options) -> { foo: path, options } if path?.match(/\.foo/)
-      barOpener = (path) -> { bar: path } if path?.match(/^bar:\/\//)
+      fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
+      barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
       Project.registerOpener(fooOpener)
       Project.registerOpener(barOpener)
 
@@ -212,8 +212,7 @@ describe "Project", ->
       it "calls the callback with all regex matches in all files in the project", ->
         matches = []
         waitsForPromise ->
-          project.scan /(a)+/, ({path, match, range}) ->
-            matches.push({path, match, range})
+          project.scan /(a)+/, (match) -> matches.push(match)
 
         runs ->
           expect(matches[0]).toEqual
@@ -229,8 +228,7 @@ describe "Project", ->
       it "works with with escaped literals (like $ and ^)", ->
         matches = []
         waitsForPromise ->
-          project.scan /\$\w+/, ({path, match, range}) ->
-            matches.push({path, match, range})
+          project.scan /\$\w+/, (match) -> matches.push(match)
 
         runs ->
           expect(matches.length).toBe 1
@@ -295,9 +293,9 @@ describe "Project", ->
           paths = []
           matches = []
           waitsForPromise ->
-            project.scan /match/, ({path, match, range}) ->
-              paths.push(path)
-              matches.push(match)
+            project.scan /match/, (result) ->
+              paths.push(result.path)
+              matches.push(result.match)
 
           runs ->
             expect(paths.length).toBe 0
@@ -311,9 +309,9 @@ describe "Project", ->
         paths = []
         matches = []
         waitsForPromise ->
-          project.scan /match this/, ({path, match, range}) ->
-            paths.push(path)
-            matches.push(match)
+          project.scan /match this/, (result) ->
+            paths.push(result.path)
+            matches.push(result.match)
 
         runs ->
           expect(paths.length).toBe 1
@@ -328,9 +326,9 @@ describe "Project", ->
         paths = []
         matches = []
         waitsForPromise ->
-          project.scan /match/, ({path, match, range}) ->
-            paths.push(path)
-            matches.push(match)
+          project.scan /match/, (result) ->
+            paths.push(result.path)
+            matches.push(result.match)
 
         runs ->
           expect(paths.length).toBe 0

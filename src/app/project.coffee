@@ -223,20 +223,20 @@ class Project
   scan: (regex, iterator) ->
     bufferedData = ""
     state = 'readingPath'
-    path = null
+    filePath = null
 
     readPath = (line) ->
       if /^[0-9,; ]+:/.test(line)
         state = 'readingLines'
       else if /^:/.test line
-        path = line.substr(1)
+        filePath = line.substr(1)
       else
-        path += ('\n' + line)
+        filePath += ('\n' + line)
 
     readLine = (line) ->
       if line.length == 0
         state = 'readingPath'
-        path = null
+        filePath = null
       else
         colonIndex = line.indexOf(':')
         matchInfo = line.substring(0, colonIndex)
@@ -251,7 +251,7 @@ class Project
       for [column, length] in matchPositions
         range = new Range([row, column], [row, column + length])
         match = lineText.substr(column, length)
-        iterator({path, range, match})
+        iterator({path: filePath, range, match})
 
     deferred = $.Deferred()
     errors = []
