@@ -90,7 +90,7 @@ module.exports =
         '.' + ext.replace(/^\./, '')
     paths.filter (path) -> _.include(extensions, Path.extname(path))
 
-  listTree: (rootPath) ->
+  listTreeSync: (rootPath) ->
     paths = []
     onPath = (path) =>
       paths.push(path)

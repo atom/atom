@@ -60,7 +60,7 @@ class PackageGeneratorView extends View
     templatePath = fsUtils.resolveOnLoadPath(path.join("package-generator", "template"))
     packageName = path.basename(@getPackagePath())
 
-    for templateChildPath in fsUtils.listTree(templatePath)
+    for templateChildPath in fsUtils.listTreeSync(templatePath)
       relativePath = templateChildPath.replace(templatePath, "")
       relativePath = relativePath.replace(/^\//, '')
       relativePath = relativePath.replace(/\.template$/, '')

@@ -56,7 +56,7 @@ describe "fsUtils", ->
         paths.push(childPath)
         true
       fsUtils.traverseTreeSync fixturesDir, onPath, onPath
-      expect(paths).toEqual fsUtils.listTree(fixturesDir)
+      expect(paths).toEqual fsUtils.listTreeSync(fixturesDir)
 
     it "does not recurse into a directory if it is pruned", ->
       paths = []
