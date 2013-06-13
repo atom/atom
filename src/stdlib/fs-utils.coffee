@@ -77,11 +77,13 @@ module.exports =
   list: (rootPath, rest...) ->
     extensions = rest.shift() if rest.length > 1
     done = rest.shift()
-    fs.readdir rootPath, (err, paths) =>
-      return done(err) if err
-      paths = @filterExtensions(paths, extensions) if extensions
-      paths = paths.map (childPath) -> path.join(rootPath, childPath)
-      done(null, paths)
+    fs.readdir rootPath, (error, paths) =>
+      if error?
+        done(error)
+      else
+        paths = @filterExtensions(paths, extensions) if extensions
+        paths = paths.map (childPath) -> path.join(rootPath, childPath)
+        done(null, paths)
 
   filterExtensions: (paths, extensions) ->
     extensions = extensions.map (ext) ->
@@ -277,12 +279,14 @@ module.exports =
 
   readPlist: (plistPath, done) ->
     plist = require 'plist'
-    fs.readFile plistPath, 'utf8', (err, contents) ->
-      return done(err) if err
-      try
-        done(null, plist.parseStringSync(contents))
-      catch err
-        done(err)
+    fs.readFile plistPath, 'utf8', (error, contents) ->
+      if error?
+        done(error)
+      else
+        try
+          done(null, plist.parseStringSync(contents))
+        catch parseError
+          done(parseError)
 
   readObjectSync: (objectPath) ->
     CSON = require 'season'
