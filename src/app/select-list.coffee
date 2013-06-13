@@ -11,7 +11,7 @@ class SelectList extends View
   @content: ->
     @div class: @viewClass(), =>
       @subview 'miniEditor', new Editor(mini: true)
-      @div class: 'error', outlet: 'error'
+      @div class: 'error-message', outlet: 'error'
       @div class: 'loading', outlet: 'loadingArea', =>
         @span class: 'loading-message', outlet: 'loading'
         @span class: 'badge', outlet: 'loadingBadge'
@@ -62,12 +62,10 @@ class SelectList extends View
 
   setError: (message='') ->
     if message.length is 0
-      @error.text("").hide()
-      @removeClass("error")
+      @error.text('').hide()
     else
       @setLoading()
       @error.text(message).show()
-      @addClass("error")
 
   setLoading: (message='') ->
     if message.length is 0
@@ -103,7 +101,9 @@ class SelectList extends View
 
       @selectItem(@list.find('li:first'))
     else
-      @setError("No matches found")
+      @setError(@getEmptyMessage(@array.length, filteredArray.length))
+
+  getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
   selectPreviousItem: ->
     item = @getSelectedItem().prev()

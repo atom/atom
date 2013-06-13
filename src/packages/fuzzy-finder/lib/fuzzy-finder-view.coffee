@@ -11,6 +11,7 @@ Point = require 'point'
 module.exports =
 class FuzzyFinderView extends SelectList
   filenameRegex: /[\w\.\-\/\\]+/
+  finderMode: null
 
   @viewClass: ->
     [super, 'fuzzy-finder', 'overlay', 'from-top'].join(' ')
@@ -104,6 +105,7 @@ class FuzzyFinderView extends SelectList
       setTimeout((=> @setError()), 2000)
 
   toggleFileFinder: ->
+    @finderMode = 'file'
     if @hasParent()
       @cancel()
     else
@@ -113,6 +115,7 @@ class FuzzyFinderView extends SelectList
       @attach()
 
   toggleBufferFinder: ->
+    @finderMode = 'buffer'
     if @hasParent()
       @cancel()
     else
@@ -121,6 +124,7 @@ class FuzzyFinderView extends SelectList
       @attach() if @paths?.length
 
   toggleGitFinder: ->
+    @finderMode = 'git'
     if @hasParent()
       @cancel()
     else
@@ -128,6 +132,20 @@ class FuzzyFinderView extends SelectList
       @allowActiveEditorChange = false
       @populateGitStatusPaths()
       @attach()
+
+  getEmptyMessage: (itemCount) ->
+    if itemCount is 0
+      switch @finderMode
+        when 'git'
+          'Nothing to commit, working directory clean'
+        when 'buffer'
+          'No open editors'
+        when 'file'
+          'Project is empty'
+        else
+          super
+    else
+      super
 
   findUnderCursor: ->
     if @hasParent()

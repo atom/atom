@@ -9,7 +9,6 @@ $ = require 'jquery'
 
 module.exports =
 class SymbolsView extends SelectList
-
   @activate: ->
     new SymbolsView
 
@@ -34,6 +33,12 @@ class SymbolsView extends SelectList
           text = path.basename(file)
         @div text, class: 'secondary-line'
 
+  getEmptyMessage: (itemCount) ->
+    if itemCount is 0
+      'No symbols found'
+    else
+      super
+
   toggleFileSymbols: ->
     if @hasParent()
       @cancel()
@@ -46,11 +51,8 @@ class SymbolsView extends SelectList
     @list.empty()
     @setLoading("Generating symbols...")
     new TagGenerator(filePath).generate().done (tags) =>
-      if tags.length > 0
-        @maxItem = Infinity
-        @setArray(tags)
-      else
-        @setError("No symbols found")
+      @maxItem = Infinity
+      @setArray(tags)
 
   toggleProjectSymbols: ->
     if @hasParent()
@@ -63,13 +65,8 @@ class SymbolsView extends SelectList
     @list.empty()
     @setLoading("Loading symbols...")
     TagReader.getAllTags(project).done (tags) =>
-      if tags.length > 0
-        @miniEditor.show()
-        @maxItems = 10
-        @setArray(tags)
-      else
-        @miniEditor.hide()
-        @setError("No symbols found")
+      @maxItems = 10
+      @setArray(tags)
 
   confirmed : (tag) ->
     if tag.file and not fsUtils.isFileSync(project.resolve(tag.file))

@@ -116,9 +116,9 @@ describe 'FuzzyFinder', ->
           finderView.confirmed({filePath: 'dir/this/is/not/a/file.txt'})
           expect(finderView.hasParent()).toBeTruthy()
           expect(rootView.getActiveView().getPath()).toBe editorPath
-          expect(finderView.find('.error').text().length).toBeGreaterThan 0
+          expect(finderView.error.text().length).toBeGreaterThan 0
           advanceClock(2000)
-          expect(finderView.find('.error').text().length).toBe 0
+          expect(finderView.error.text().length).toBe 0
 
   describe "buffer-finder behavior", ->
     describe "toggling", ->
@@ -429,7 +429,7 @@ describe 'FuzzyFinder', ->
         finderView.is(':visible')
 
       runs ->
-        expect(finderView.find('.error').text().length).toBeGreaterThan 0
+        expect(finderView.error.text().length).toBeGreaterThan 0
 
     it "displays error when there is no word under the cursor", ->
       editor.setText("&&&&&&&&&&&&&&& sample")
@@ -441,7 +441,7 @@ describe 'FuzzyFinder', ->
         finderView.is(':visible')
 
       runs ->
-        expect(finderView.find('.error').text().length).toBeGreaterThan 0
+        expect(finderView.error.text().length).toBeGreaterThan 0
 
   describe "opening a path into a split", ->
     it "opens the path by splitting the active editor left", ->

@@ -1,20 +1,26 @@
-.select-list.autocomplete {
-  box-sizing: content-box;
-  margin-left: 0;
-}
+.autocomplete {
+  &.select-list {
+    box-sizing: content-box;
+    margin-left: 0;
 
-.autocomplete ol {
-  box-sizing: content-box;
-  position: relative;
-  overflow-y: scroll;
-  max-height: 200px;
-}
+    ol li {
+      padding: 5px 0 5px 0;
+    }
+  }
 
-.select-list.autocomplete ol li {
-  padding: 5px 0 5px 0;
-}
+  ol {
+    box-sizing: content-box;
+    position: relative;
+    overflow-y: scroll;
+    max-height: 200px;
+  }
 
-.autocomplete span {
-  padding-left: 5px;
-  padding-right: 5px;
+  span {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  .error-message {
+    margin: 2px;
+  }
 }

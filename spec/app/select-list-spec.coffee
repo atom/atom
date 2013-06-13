@@ -42,7 +42,6 @@ describe "SelectList", ->
       expect(list.find('li:contains(Delta)')).toExist()
       expect(list.find('li:first')).toHaveClass 'selected'
       expect(selectList.error).not.toBeVisible()
-      expect(selectList).not.toHaveClass("error")
 
     it "displays an error if there are no matches, removes error when there are matches", ->
       miniEditor.insertText('nothing will match this')
@@ -50,14 +49,12 @@ describe "SelectList", ->
 
       expect(list.find('li').length).toBe 0
       expect(selectList.error).not.toBeHidden()
-      expect(selectList).toHaveClass("error")
 
       miniEditor.setText('la')
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 2
       expect(selectList.error).not.toBeVisible()
-      expect(selectList).not.toHaveClass("error")
 
     it "displays no elements until the array has been set on the list", ->
       selectList.array = null
@@ -66,7 +63,7 @@ describe "SelectList", ->
       window.advanceClock(selectList.inputThrottle)
 
       expect(list.find('li').length).toBe 0
-      expect(selectList).not.toHaveClass("error")
+      expect(selectList.error).toBeHidden()
       selectList.setArray(array)
       expect(list.find('li').length).toBe 2
 

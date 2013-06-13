@@ -34,7 +34,6 @@ describe "SymbolsView", ->
         expect(symbolsView.list.children('li:first').find('.secondary-line')).toHaveText 'Line 1'
         expect(symbolsView.list.children('li:last').find('.primary-line')).toHaveText 'quicksort.sort'
         expect(symbolsView.list.children('li:last').find('.secondary-line')).toHaveText 'Line 2'
-        expect(symbolsView).not.toHaveClass "error"
         expect(symbolsView.error).not.toBeVisible()
 
     it "displays error when no tags match text in mini-editor", ->
@@ -53,14 +52,12 @@ describe "SymbolsView", ->
         expect(symbolsView.list.children('li').length).toBe 0
         expect(symbolsView.error).toBeVisible()
         expect(symbolsView.error.text().length).toBeGreaterThan 0
-        expect(symbolsView).toHaveClass "error"
 
         # Should remove error
         symbolsView.miniEditor.setText("")
         window.advanceClock(symbolsView.inputThrottle)
 
         expect(symbolsView.list.children('li').length).toBe 2
-        expect(symbolsView).not.toHaveClass "error"
         expect(symbolsView.error).not.toBeVisible()
 
   describe "when tags can't be generated for a file", ->
@@ -78,7 +75,6 @@ describe "SymbolsView", ->
         expect(symbolsView.list.children('li').length).toBe 0
         expect(symbolsView.error).toBeVisible()
         expect(symbolsView.error.text().length).toBeGreaterThan 0
-        expect(symbolsView).toHaveClass "error"
         expect(symbolsView.loadingArea).not.toBeVisible()
 
   it "moves the cursor to the selected function", ->
@@ -196,7 +192,6 @@ describe "SymbolsView", ->
         expect(symbolsView.list.children('li:first').find('.secondary-line')).toHaveText 'tagged.js'
         expect(symbolsView.list.children('li:last').find('.primary-line')).toHaveText 'thisIsCrazy'
         expect(symbolsView.list.children('li:last').find('.secondary-line')).toHaveText 'tagged.js'
-        expect(symbolsView).not.toHaveClass "error"
         expect(symbolsView.error).not.toBeVisible()
 
     describe "when selecting a tag", ->
@@ -223,4 +218,3 @@ describe "SymbolsView", ->
             symbolsView.list.children('li:first').mousedown().mouseup()
             expect(rootView.open).not.toHaveBeenCalled()
             expect(symbolsView.error.text().length).toBeGreaterThan 0
-            expect(symbolsView).toHaveClass "error"
