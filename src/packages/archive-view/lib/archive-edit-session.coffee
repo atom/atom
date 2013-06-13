@@ -14,7 +14,7 @@ class ArchiveEditSession
       new ArchiveEditSession(filePath) if archive.isPathSupported(filePath)
 
   @deserialize: ({path}={}) ->
-    if fsUtils.isFile(path)
+    if fsUtils.isFileSync(path)
       new ArchiveEditSession(path)
     else
       console.warn "Could not build edit session for path '#{path}' because that file no longer exists"

@@ -5,6 +5,7 @@ DirectoryView = require './directory-view'
 FileView = require './file-view'
 Dialog = require './dialog'
 fsUtils = require 'fs-utils'
+path = require 'path'
 shell = require 'shell'
 $ = require 'jquery'
 _ = require 'underscore'
@@ -222,7 +223,7 @@ class TreeView extends ScrollView
 
     dialog = new Dialog
       prompt: prompt
-      path: project.relativize(oldPath)
+      initialPath: project.relativize(oldPath)
       select: true
       iconClass: 'move'
       onConfirm: (newPath) =>
@@ -235,7 +236,7 @@ class TreeView extends ScrollView
           dialog.showError("Error: #{newPath} already exists. Try a different path.")
           return
 
-        directoryPath = fsUtils.directory(newPath)
+        directoryPath = path.dirname(newPath)
         try
           fsUtils.makeTree(directoryPath) unless fsUtils.exists(directoryPath)
           fsUtils.move(oldPath, newPath)
@@ -261,31 +262,31 @@ class TreeView extends ScrollView
   add: ->
     selectedEntry = @selectedEntry() or @root
     selectedPath = selectedEntry.getPath()
-    directoryPath = if fsUtils.isFile(selectedPath) then fsUtils.directory(selectedPath) else selectedPath
+    directoryPath = if fsUtils.isFileSync(selectedPath) then path.dirname(selectedPath) else selectedPath
     relativeDirectoryPath = project.relativize(directoryPath)
     relativeDirectoryPath += '/' if relativeDirectoryPath.length > 0
 
     dialog = new Dialog
       prompt: "Enter the path for the new file/directory. Directories end with a '/'."
-      path: relativeDirectoryPath
+      initialPath: relativeDirectoryPath
       select: false
       iconClass: 'add-directory'
 
       onConfirm: (relativePath) =>
         endsWithDirectorySeparator = /\/$/.test(relativePath)
-        path = project.resolve(relativePath)
+        pathToCreate = project.resolve(relativePath)
         try
-          if fsUtils.exists(path)
-            pathType = if fsUtils.isFile(path) then "file" else "directory"
+          if fsUtils.exists(pathToCreate)
+            pathType = if fsUtils.isFileSync(pathToCreate) then "file" else "directory"
             dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path.")
           else if endsWithDirectorySeparator
-            fsUtils.makeTree(path)
+            fsUtils.makeTree(pathToCreate)
             dialog.cancel()
-            @entryForPath(path).buildEntries()
-            @selectEntryForPath(path)
+            @entryForPath(pathToCreate).buildEntries()
+            @selectEntryForPath(pathToCreate)
           else
-            fsUtils.write(path, "")
-            rootView.open(path)
+            fsUtils.writeSync(pathToCreate, "")
+            rootView.open(pathToCreate)
             dialog.close()
         catch e
           dialog.showError("Error: #{e.message} Try a different path.")

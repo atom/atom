@@ -1,5 +1,6 @@
 $ = require 'jquery'
 fsUtils = require 'fs-utils'
+path = require 'path'
 Project = require 'project'
 RootView = require 'root-view'
 Buffer = require 'text-buffer'
@@ -83,7 +84,7 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
-          expect(rootView.title).toBe "#{fsUtils.base(editor2.getPath())} - #{project.getPath()}"
+          expect(rootView.title).toBe "#{path.basename(editor2.getPath())} - #{project.getPath()}"
 
       describe "where there are no open editors", ->
         it "constructs the view with no open editors", ->

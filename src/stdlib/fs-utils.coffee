@@ -3,74 +3,43 @@ fs = require 'fs'
 mkdirp = require 'mkdirp'
 Module = require 'module'
 async = require 'async'
+rimraf = require 'rimraf'
+path = require 'path'
 
 module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
-  absolute: (path) ->
-    return null unless path?
+  absolute: (relativePath) ->
+    return null unless relativePath?
 
-    if path.indexOf('~/') is 0
+    if relativePath.indexOf('~/') is 0
       if process.platform is 'win32'
         home = process.env.USERPROFILE
       else
         home = process.env.HOME
-      path = "#{home}#{path.substring(1)}"
+      relativePath = "#{home}#{relativePath.substring(1)}"
     try
-      fs.realpathSync(path)
+      fs.realpathSync(relativePath)
     catch e
-      path
+      relativePath
 
-  # Return the basename of the given path. That is the path with
-  # any leading directory components removed. If specified, also
-  # remove a trailing extension.
-  base: (path, ext) ->
-    base = path.replace(/\/$/, '').split("/").pop()
-    if ext then base.replace(RegExp("#{_.escapeRegExp(ext)}$"), '') else base
+  # Returns true if a file or folder at the specified path exists.
+  exists: (pathToCheck) ->
+    pathToCheck? and fs.existsSync(pathToCheck)
 
-  # Returns the path of a file's containing directory, albeit the
-  # parent directory if the file is a directory. A terminal directory
-  # separator is ignored.
-  directory: (path) ->
-    parentPath = path.replace(new RegExp("/#{@base(_.escapeRegExp(path))}\/?$"), '')
-    return "" if path == parentPath
-    parentPath
-
-  # Returns true if the file specified by path exists
-  exists: (path) ->
-    path? and fs.existsSync(path)
-
-  # Returns the extension of a file. The extension of a file is the
-  # last dot (excluding any number of initial dots) followed by one or
-  # more non-dot characters. Returns an empty string if no valid
-  # extension exists.
-  extension: (path) ->
-    return '' unless typeof path is 'string'
-    match = @base(path).match(/\.[^\.]+$/)
-    if match
-      match[0]
-    else
-      ""
-
-  join: (paths...) ->
-    return paths[0] if paths.length == 1
-    [first, rest...] = paths
-    first.replace(/\/?$/, "/") + @join(rest...)
-
-  # Returns true if the file specified by path exists and is a
-  # directory.
-  isDirectory: (path) ->
-    return false unless path?.length > 0
+  # Returns true if the specified path is a directory that exists.
+  isDirectorySync: (directoryPath) ->
+    return false unless directoryPath?.length > 0
     try
-      fs.statSync(path).isDirectory()
+      fs.statSync(directoryPath).isDirectory()
     catch e
       false
 
-  isDirectoryAsync: (path, done) ->
-    return done(false) unless path?.length > 0
-    fs.exists path, (exists) ->
+  isDirectory: (directoryPath, done) ->
+    return done(false) unless directoryPath?.length > 0
+    fs.exists directoryPath, (exists) ->
       if exists
-        fs.stat path, (error, stat) ->
+        fs.stat directoryPath, (error, stat) ->
           if error?
             done(false)
           else
@@ -78,39 +47,41 @@ module.exports =
       else
         done(false)
 
-  # Returns true if the file specified by path exists and is a
-  # regular file.
-  isFile: (path) ->
-    return false unless path?.length > 0
+  # Returns true if the specified path is a regular file that exists.
+  isFileSync: (filePath) ->
+    return false unless filePath?.length > 0
     try
-      path? and fs.statSync(path).isFile()
+      fs.statSync(filePath).isFile()
     catch e
       false
 
-  # Returns true if the specified path is exectuable.
-  isExecutable: (path) ->
+  # Returns true if the specified path is executable.
+  isExecutableSync: (pathToCheck) ->
+    return false unless pathToCheck?.length > 0
     try
-      (fs.statSync(path).mode & 0o777 & 1) isnt 0
+      (fs.statSync(pathToCheck).mode & 0o777 & 1) isnt 0
     catch e
       false
 
-  # Returns an array with all the names of files contained
-  # in the directory path.
-  list: (rootPath, extensions) ->
-    return [] unless @isDirectory(rootPath)
+  # Returns an array with the paths of the files and folders
+  # contained in the directory path.
+  listSync: (rootPath, extensions) ->
+    return [] unless @isDirectorySync(rootPath)
     paths = fs.readdirSync(rootPath)
     paths = @filterExtensions(paths, extensions) if extensions
-    paths = paths.map (path) => @join(rootPath, path)
+    paths = paths.map (childPath) -> path.join(rootPath, childPath)
     paths
 
-  listAsync: (rootPath, rest...) ->
+  list: (rootPath, rest...) ->
     extensions = rest.shift() if rest.length > 1
     done = rest.shift()
-    fs.readdir rootPath, (err, paths) =>
-      return done(err) if err
-      paths = @filterExtensions(paths, extensions) if extensions
-      paths = paths.map (path) => @join(rootPath, path)
-      done(null, paths)
+    fs.readdir rootPath, (error, paths) =>
+      if error?
+        done(error)
+      else
+        paths = @filterExtensions(paths, extensions) if extensions
+        paths = paths.map (childPath) -> path.join(rootPath, childPath)
+        done(null, paths)
 
   filterExtensions: (paths, extensions) ->
     extensions = extensions.map (ext) ->
@@ -118,13 +89,12 @@ module.exports =
         ext
       else
         '.' + ext.replace(/^\./, '')
-    paths.filter (path) =>
-      _.include(extensions, @extension(path))
+    paths.filter (pathToCheck) -> _.include(extensions, path.extname(pathToCheck))
 
-  listTree: (rootPath) ->
+  listTreeSync: (rootPath) ->
     paths = []
-    onPath = (path) =>
-      paths.push(path)
+    onPath = (childPath) ->
+      paths.push(childPath)
       true
     @traverseTreeSync(rootPath, onPath, onPath)
     paths
@@ -132,53 +102,28 @@ module.exports =
   move: (source, target) ->
     fs.renameSync(source, target)
 
-  # Remove a file at the given path. Throws an error if path is not a
-  # file or a symbolic link to a file.
-  remove: (path) ->
-    if @isFile(path)
-      fs.unlinkSync(path)
-    else if @isDirectory(path)
-      removeDirectory = (path) =>
-        for entry in fs.readdirSync(path)
-          entryPath = @join(path, entry)
-          stats = fs.statSync(entryPath)
-          if stats.isDirectory()
-            removeDirectory(entryPath)
-          else if stats.isFile()
-            fs.unlinkSync(entryPath)
-        fs.rmdirSync(path)
-      removeDirectory(path)
+  # Remove the file or directory at the given path.
+  remove: (pathToRemove) ->
+    rimraf.sync(pathToRemove)
 
   # Open, read, and close a file, returning the file's contents.
-  read: (path) ->
-    String fs.readFileSync(path)
-
-  # Returns an array of path components. If the path is absolute, the first
-  # component will be an indicator of the root of the file system; for file
-  # systems with drives (such as Windows), this is the drive identifier with a
-  # colon, like "c:"; on Unix, this is an empty string "". The intent is that
-  # calling "join.apply" with the result of "split" as arguments will
-  # reconstruct the path.
-  split: (path) ->
-    path.split("/")
+  read: (filePath) ->
+    fs.readFileSync(filePath, 'utf8')
 
   # Open, write, flush, and close a file, writing the given content.
-  write: (path, content) ->
-    mkdirp.sync(@directory(path))
-    fs.writeFileSync(path, content)
+  writeSync: (filePath, content) ->
+    mkdirp.sync(path.dirname(filePath))
+    fs.writeFileSync(filePath, content)
 
-  writeAsync: (path, content, callback) ->
-    mkdirp @directory(path), (error) ->
+  write: (filePath, content, callback) ->
+    mkdirp path.dirname(filePath), (error) ->
       if error?
         callback?(error)
       else
-        fs.writeFile(path, content, callback)
-
-  makeDirectory: (path) ->
-    fs.mkdirSync(path)
+        fs.writeFile(filePath, content, callback)
 
   copy: (sourcePath, destinationPath, done) ->
-    mkdirp @directory(destinationPath), (error) ->
+    mkdirp path.dirname(destinationPath), (error) ->
       if error?
         done?(error)
         return
@@ -198,59 +143,54 @@ module.exports =
 
       sourceStream.pipe(destinationStream)
 
-  # Creates the directory specified by "path" including any missing parent
+  # Create a directory at the specified path including any missing parent
   # directories.
-  makeTree: (path) ->
-    return unless path
-    if not @exists(path)
-      @makeTree(@directory(path))
-      @makeDirectory(path)
+  makeTree: (directoryPath) ->
+    mkdirp.sync(directoryPath) if directoryPath and not @exists(directoryPath)
 
   traverseTreeSync: (rootPath, onFile, onDirectory) ->
-    return unless @isDirectory(rootPath)
+    return unless @isDirectorySync(rootPath)
 
-    traverse = (rootPath, prefix, onFile, onDirectory) =>
-      prefix  = "#{prefix}/" if prefix
-      for file in fs.readdirSync(rootPath)
-        relativePath = "#{prefix}#{file}"
-        absolutePath = @join(rootPath, file)
-        stats = fs.statSync(absolutePath)
+    traverse = (directoryPath, onFile, onDirectory) ->
+      for file in fs.readdirSync(directoryPath)
+        childPath = path.join(directoryPath, file)
+        stats = fs.statSync(childPath)
         if stats.isDirectory()
-          traverse(absolutePath, relativePath, onFile, onDirectory) if onDirectory(absolutePath)
+          traverse(childPath, onFile, onDirectory) if onDirectory(childPath)
         else if stats.isFile()
-          onFile(absolutePath)
+          onFile(childPath)
 
-    traverse(rootPath, '', onFile, onDirectory)
+    traverse(rootPath, onFile, onDirectory)
 
   traverseTree: (rootPath, onFile, onDirectory, onDone) ->
-    fs.readdir rootPath, (error, files) =>
+    fs.readdir rootPath, (error, files) ->
       if error
         onDone?()
       else
-        queue = async.queue (path, callback) =>
-          fs.stat path, (error, stats) =>
+        queue = async.queue (childPath, callback) ->
+          fs.stat childPath, (error, stats) ->
             if error
               callback(error)
             else if stats.isFile()
-              onFile(path)
+              onFile(childPath)
               callback()
             else if stats.isDirectory()
-              if onDirectory(path)
-                fs.readdir path, (error, files) =>
+              if onDirectory(childPath)
+                fs.readdir childPath, (error, files) ->
                   if error
                     callback(error)
                   else
                     for file in files
-                      queue.unshift(@join(path, file))
+                      queue.unshift(path.join(childPath, file))
                     callback()
               else
                 callback()
         queue.concurrency = 1
         queue.drain = onDone
-        queue.push(@join(rootPath, file)) for file in files
+        queue.push(path.join(rootPath, file)) for file in files
 
-  md5ForPath: (path) ->
-    contents = fs.readFileSync(path)
+  md5ForPath: (pathToDigest) ->
+    contents = fs.readFileSync(pathToDigest)
     require('crypto').createHash('md5').update(contents).digest('hex')
 
   resolve: (args...) ->
@@ -265,7 +205,7 @@ module.exports =
         return pathToResolve if @exists(pathToResolve)
 
     for loadPath in loadPaths
-      candidatePath = @join(loadPath, pathToResolve)
+      candidatePath = path.join(loadPath, pathToResolve)
       if extensions
         if resolvedPath = @resolveExtension(candidatePath, extensions)
           return resolvedPath
@@ -277,12 +217,12 @@ module.exports =
     loadPaths = Module.globalPaths.concat(module.paths)
     @resolve(loadPaths..., args...)
 
-  resolveExtension: (path, extensions) ->
+  resolveExtension: (pathToResolve, extensions) ->
     for extension in extensions
       if extension == ""
-        return @absolute(path) if @exists(path)
+        return @absolute(pathToResolve) if @exists(pathToResolve)
       else
-        pathWithExtension = path + "." + extension.replace(/^\./, "")
+        pathWithExtension = pathToResolve + "." + extension.replace(/^\./, "")
         return @absolute(pathWithExtension) if @exists(pathWithExtension)
     undefined
 
@@ -311,6 +251,7 @@ module.exports =
     _.indexOf([
       '.markdown'
       '.md'
+      '.mdown'
       '.mkd'
       '.mkdown'
       '.ron'
@@ -325,34 +266,36 @@ module.exports =
       '.woff'
     ], ext, true) >= 0
 
-  isReadmePath: (path) ->
-    extension = @extension(path)
-    base = @base(path, extension).toLowerCase()
+  isReadmePath: (readmePath) ->
+    extension = path.extname(readmePath)
+    base = path.basename(readmePath, extension).toLowerCase()
     base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
 
-  readPlist: (path) ->
+  readPlistSync: (plistPath) ->
     plist = require 'plist'
-    plist.parseStringSync(@read(path))
+    plist.parseStringSync(@read(plistPath))
 
-  readPlistAsync: (path, done) ->
+  readPlist: (plistPath, done) ->
     plist = require 'plist'
-    fs.readFile path, 'utf8', (err, contents) ->
-      return done(err) if err
-      try
-        done(null, plist.parseStringSync(contents))
-      catch err
-        done(err)
+    fs.readFile plistPath, 'utf8', (error, contents) ->
+      if error?
+        done(error)
+      else
+        try
+          done(null, plist.parseStringSync(contents))
+        catch parseError
+          done(parseError)
 
-  readObject: (path) ->
+  readObjectSync: (objectPath) ->
     CSON = require 'season'
-    if CSON.isObjectPath(path)
-      CSON.readFileSync(path)
+    if CSON.isObjectPath(objectPath)
+      CSON.readFileSync(objectPath)
     else
-      @readPlist(path)
+      @readPlistSync(objectPath)
 
-  readObjectAsync: (path, done) ->
+  readObject: (objectPath, done) ->
     CSON = require 'season'
-    if CSON.isObjectPath(path)
-      CSON.readFile(path, done)
+    if CSON.isObjectPath(objectPath)
+      CSON.readFile(objectPath, done)
     else
-      @readPlistAsync(path, done)
+      @readPlist(objectPath, done)

@@ -4,6 +4,7 @@ TagGenerator = require './tag-generator'
 TagReader = require './tag-reader'
 Point = require 'point'
 fsUtils = require 'fs-utils'
+path = require 'path'
 $ = require 'jquery'
 
 module.exports =
@@ -30,7 +31,7 @@ class SymbolsView extends SelectList
         if position
           text = "Line #{position.row + 1}"
         else
-          text = fsUtils.base(file)
+          text = path.basename(file)
         @div text, class: 'secondary-line'
 
   toggleFileSymbols: ->
@@ -41,10 +42,10 @@ class SymbolsView extends SelectList
       @attach()
 
   populateFileSymbols: ->
-    path = rootView.getActiveView().getPath()
+    filePath = rootView.getActiveView().getPath()
     @list.empty()
     @setLoading("Generating symbols...")
-    new TagGenerator(path).generate().done (tags) =>
+    new TagGenerator(filePath).generate().done (tags) =>
       if tags.length > 0
         @maxItem = Infinity
         @setArray(tags)
@@ -71,7 +72,7 @@ class SymbolsView extends SelectList
         @setError("No symbols found")
 
   confirmed : (tag) ->
-    if tag.file and not fsUtils.isFile(project.resolve(tag.file))
+    if tag.file and not fsUtils.isFileSync(project.resolve(tag.file))
       @setError('Selected file does not exist')
       setTimeout((=> @setError()), 2000)
     else
@@ -100,7 +101,7 @@ class SymbolsView extends SelectList
     pattern = $.trim(tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '')) # Remove leading /^ and trailing $/
     return unless pattern
     file = project.resolve(tag.file)
-    return unless fsUtils.isFile(file)
+    return unless fsUtils.isFileSync(file)
     for line, index in fsUtils.read(file).split('\n')
       return new Point(index, 0) if pattern is $.trim(line)
 
@@ -119,7 +120,7 @@ class SymbolsView extends SelectList
         continue unless position
         tags.push
           file: match.file
-          name: fsUtils.base(match.file)
+          name: path.basename(match.file)
           position: position
       @miniEditor.show()
       @setArray(tags)

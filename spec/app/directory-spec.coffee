@@ -1,5 +1,6 @@
 Directory = require 'directory'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe "Directory", ->
   directory = null
@@ -14,7 +15,7 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures'), 'temporary')
+      temporaryFilePath = path.join(fsUtils.resolveOnLoadPath('fixtures'), 'temporary')
       fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
 
     afterEach ->
@@ -26,7 +27,7 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fsUtils.write(temporaryFilePath, '')
+        fsUtils.writeSync(temporaryFilePath, '')
 
       waitsFor "first change", -> changeHandler.callCount > 0
 
@@ -40,7 +41,7 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fsUtils.join(directory.path, 'temporary')
+      temporaryFilePath = path.join(directory.path, 'temporary')
       fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
 
     afterEach ->
@@ -52,7 +53,7 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fsUtils.write(temporaryFilePath, '')
+        fsUtils.writeSync(temporaryFilePath, '')
 
       waitsFor "change event", -> changeHandler.callCount > 0
 

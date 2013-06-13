@@ -5,6 +5,7 @@ Theme = require 'theme'
 ipc = require 'ipc'
 remote = require 'remote'
 crypto = require 'crypto'
+path = require 'path'
 
 window.atom =
   loadedThemes: []
@@ -66,9 +67,9 @@ window.atom =
     if @isPackageDisabled(name)
       return console.warn("Tried to load disabled package '#{name}'")
 
-    if path = @resolvePackagePath(name)
+    if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
-      pack = Package.load(path, options)
+      pack = Package.load(packagePath, options)
       @loadedPackages[pack.name] = pack
       pack
     else
@@ -84,12 +85,12 @@ window.atom =
       throw new Error("No loaded package for name '#{name}'")
 
   resolvePackagePath: (name) ->
-    return name if fsUtils.isDirectory(name)
+    return name if fsUtils.isDirectorySync(name)
 
-    path = fsUtils.resolve(config.packageDirPaths..., name)
-    return path if fsUtils.isDirectory(path)
+    packagePath = fsUtils.resolve(config.packageDirPaths..., name)
+    return packagePath if fsUtils.isDirectorySync(packagePath)
 
-    packagePath = fsUtils.join(window.resourcePath, 'node_modules', name)
+    packagePath = path.join(window.resourcePath, 'node_modules', name)
     return packagePath if @isInternalPackage(packagePath)
 
   isInternalPackage: (packagePath) ->
@@ -112,21 +113,21 @@ window.atom =
     packagePaths = []
 
     for packageDirPath in config.packageDirPaths
-      for packagePath in fsUtils.list(packageDirPath)
-        packagePaths.push(packagePath) if fsUtils.isDirectory(packagePath)
+      for packagePath in fsUtils.listSync(packageDirPath)
+        packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
 
-    for packagePath in fsUtils.list(fsUtils.join(window.resourcePath, 'node_modules'))
+    for packagePath in fsUtils.listSync(path.join(window.resourcePath, 'node_modules'))
       packagePaths.push(packagePath) if @isInternalPackage(packagePath)
 
     _.uniq(packagePaths)
 
   getAvailablePackageNames: ->
-    fsUtils.base(path) for path in @getAvailablePackagePaths()
+    path.basename(packagePath) for packagePath in @getAvailablePackagePaths()
 
   getAvailablePackageMetadata: ->
     packages = []
     for packagePath in atom.getAvailablePackagePaths()
-      name = fsUtils.base(packagePath)
+      name = path.basename(packagePath)
       metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
@@ -140,18 +141,18 @@ window.atom =
   getAvailableThemePaths: ->
     themePaths = []
     for themeDirPath in config.themeDirPaths
-      themePaths.push(fsUtils.list(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
+      themePaths.push(fsUtils.listSync(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
     _.uniq(themePaths)
 
   getAvailableThemeNames: ->
-    fsUtils.base(path).split('.')[0] for path in @getAvailableThemePaths()
+    path.basename(themePath).split('.')[0] for themePath in @getAvailableThemePaths()
 
   loadTheme: (name) ->
     @loadedThemes.push Theme.load(name)
 
   loadUserStylesheet: ->
-    userStylesheetPath = fsUtils.resolve(fsUtils.join(config.configDirPath, 'user'), ['css', 'less'])
-    if fsUtils.isFile(userStylesheetPath)
+    userStylesheetPath = fsUtils.resolve(path.join(config.configDirPath, 'user'), ['css', 'less'])
+    if fsUtils.isFileSync(userStylesheetPath)
       userStyleesheetContents = loadStylesheet(userStylesheetPath)
       applyStylesheet(userStylesheetPath, userStyleesheetContents, 'userTheme')
 
@@ -236,12 +237,12 @@ window.atom =
           filename = "editor-#{sha1}"
 
     filename ?= 'undefined'
-    fsUtils.join(config.userStoragePath, filename)
+    path.join(config.userStoragePath, filename)
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
     _.setValueForKeyPath(windowState, keyPath, value)
-    fsUtils.write(@getWindowStatePath(), JSON.stringify(windowState))
+    fsUtils.writeSync(@getWindowStatePath(), JSON.stringify(windowState))
     windowState
 
   getWindowState: (keyPath) ->
@@ -272,9 +273,9 @@ window.atom =
     process.crash()
 
   requireUserInitScript: ->
-    userInitScriptPath = fsUtils.join(config.configDirPath, "user.coffee")
+    userInitScriptPath = path.join(config.configDirPath, "user.coffee")
     try
-      require userInitScriptPath if fsUtils.isFile(userInitScriptPath)
+      require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 

@@ -5,6 +5,7 @@ TreeView = require 'tree-view/lib/tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe "TreeView", ->
   [treeView, sampleJs, sampleTxt] = []
@@ -595,14 +596,14 @@ describe "TreeView", ->
     beforeEach ->
       atom.deactivatePackage('tree-view')
 
-      rootDirPath = fsUtils.join(fsUtils.absolute("/tmp"), "atom-tests")
+      rootDirPath = path.join(fsUtils.absolute("/tmp"), "atom-tests")
       fsUtils.remove(rootDirPath) if fsUtils.exists(rootDirPath)
 
-      dirPath = fsUtils.join(rootDirPath, "test-dir")
-      filePath = fsUtils.join(dirPath, "test-file.txt")
-      fsUtils.makeDirectory(rootDirPath)
-      fsUtils.makeDirectory(dirPath)
-      fsUtils.write(filePath, "doesn't matter")
+      dirPath = path.join(rootDirPath, "test-dir")
+      filePath = path.join(dirPath, "test-file.txt")
+      fsUtils.makeTree(rootDirPath)
+      fsUtils.makeTree(dirPath)
+      fsUtils.writeSync(filePath, "doesn't matter")
 
       project.setPath(rootDirPath)
 
@@ -640,16 +641,16 @@ describe "TreeView", ->
 
             dirView.directory.trigger 'contents-changed'
             expect(directoryChangeHandler).toHaveBeenCalled()
-            expect(treeView.find('.selected').text()).toBe fsUtils.base(filePath)
+            expect(treeView.find('.selected').text()).toBe path.basename(filePath)
 
         describe "when the path without a trailing '/' is changed and confirmed", ->
           describe "when no file exists at that location", ->
             it "add a file, closes the dialog and selects the file in the tree-view", ->
-              newPath = fsUtils.join(dirPath, "new-test-file.txt")
-              addDialog.miniEditor.insertText(fsUtils.base(newPath))
+              newPath = path.join(dirPath, "new-test-file.txt")
+              addDialog.miniEditor.insertText(path.basename(newPath))
               addDialog.trigger 'core:confirm'
               expect(fsUtils.exists(newPath)).toBeTruthy()
-              expect(fsUtils.isFile(newPath)).toBeTruthy()
+              expect(fsUtils.isFileSync(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveView().getPath()).toBe newPath
 
@@ -657,13 +658,13 @@ describe "TreeView", ->
                 dirView.entries.find("> .file").length > 1
 
               runs ->
-                expect(treeView.find('.selected').text()).toBe fsUtils.base(newPath)
+                expect(treeView.find('.selected').text()).toBe path.basename(newPath)
 
           describe "when a file already exists at that location", ->
             it "shows an error message and does not close the dialog", ->
-              newPath = fsUtils.join(dirPath, "new-test-file.txt")
-              fsUtils.write(newPath, '')
-              addDialog.miniEditor.insertText(fsUtils.base(newPath))
+              newPath = path.join(dirPath, "new-test-file.txt")
+              fsUtils.writeSync(newPath, '')
+              addDialog.miniEditor.insertText(path.basename(newPath))
               addDialog.trigger 'core:confirm'
 
               expect(addDialog.prompt.text()).toContain 'Error'
@@ -675,11 +676,11 @@ describe "TreeView", ->
           describe "when no file or directory exists at the given path", ->
             it "adds a directory and closes the dialog", ->
               treeView.attachToDom()
-              newPath = fsUtils.join(dirPath, "new/dir")
+              newPath = path.join(dirPath, "new/dir")
               addDialog.miniEditor.insertText("new/dir/")
               addDialog.trigger 'core:confirm'
               expect(fsUtils.exists(newPath)).toBeTruthy()
-              expect(fsUtils.isDirectory(newPath)).toBeTruthy()
+              expect(fsUtils.isDirectorySync(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveView().getPath()).not.toBe newPath
               expect(treeView.find(".tree-view")).toMatchSelector(':focus')
@@ -688,11 +689,11 @@ describe "TreeView", ->
 
             it "selects the created directory", ->
               treeView.attachToDom()
-              newPath = fsUtils.join(dirPath, "new2/")
+              newPath = path.join(dirPath, "new2/")
               addDialog.miniEditor.insertText("new2/")
               addDialog.trigger 'core:confirm'
               expect(fsUtils.exists(newPath)).toBeTruthy()
-              expect(fsUtils.isDirectory(newPath)).toBeTruthy()
+              expect(fsUtils.isDirectorySync(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveView().getPath()).not.toBe newPath
               expect(treeView.find(".tree-view")).toMatchSelector(':focus')
@@ -701,8 +702,8 @@ describe "TreeView", ->
 
           describe "when a file or directory already exists at the given path", ->
             it "shows an error message and does not close the dialog", ->
-              newPath = fsUtils.join(dirPath, "new-dir")
-              fsUtils.makeDirectory(newPath)
+              newPath = path.join(dirPath, "new-dir")
+              fsUtils.makeTree(newPath)
               addDialog.miniEditor.insertText("new-dir/")
               addDialog.trigger 'core:confirm'
 
@@ -772,18 +773,18 @@ describe "TreeView", ->
           waits 50 # The move specs cause too many false positives because of their async nature, so wait a little bit before we cleanup
 
         it "opens a move dialog with the file's current path (excluding extension) populated", ->
-          extension = fsUtils.extension(filePath)
-          fileNameWithoutExtension = fsUtils.base(filePath, extension)
+          extension = path.extname(filePath)
+          fileNameWithoutExtension = path.basename(filePath, extension)
           expect(moveDialog).toExist()
           expect(moveDialog.prompt.text()).toBe "Enter the new path for the file."
           expect(moveDialog.miniEditor.getText()).toBe(project.relativize(filePath))
-          expect(moveDialog.miniEditor.getSelectedText()).toBe fsUtils.base(fileNameWithoutExtension)
+          expect(moveDialog.miniEditor.getSelectedText()).toBe path.basename(fileNameWithoutExtension)
           expect(moveDialog.miniEditor.isFocused).toBeTruthy()
 
         describe "when the path is changed and confirmed", ->
           describe "when all the directories along the new path exist", ->
             it "moves the file, updates the tree view, and closes the dialog", ->
-              newPath = fsUtils.join(rootDirPath, 'renamed-test-file.txt')
+              newPath = path.join(rootDirPath, 'renamed-test-file.txt')
               moveDialog.miniEditor.setText(newPath)
 
               moveDialog.trigger 'core:confirm'
@@ -802,7 +803,7 @@ describe "TreeView", ->
 
           describe "when the directories along the new path don't exist", ->
             it "creates the target directory before moving the file", ->
-              newPath = fsUtils.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
+              newPath = path.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
               moveDialog.miniEditor.setText(newPath)
 
               moveDialog.trigger 'core:confirm'
@@ -817,8 +818,8 @@ describe "TreeView", ->
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->
               runs ->
-                fsUtils.write(fsUtils.join(rootDirPath, 'target.txt'), '')
-                newPath = fsUtils.join(rootDirPath, 'target.txt')
+                fsUtils.writeSync(path.join(rootDirPath, 'target.txt'), '')
+                newPath = path.join(rootDirPath, 'target.txt')
                 moveDialog.miniEditor.setText(newPath)
 
                 moveDialog.trigger 'core:confirm'
@@ -846,8 +847,8 @@ describe "TreeView", ->
         [dotFilePath, dotFileView, moveDialog] = []
 
         beforeEach ->
-          dotFilePath = fsUtils.join(dirPath, ".dotfile")
-          fsUtils.write(dotFilePath, "dot")
+          dotFilePath = path.join(dirPath, ".dotfile")
+          fsUtils.writeSync(dotFilePath, "dot")
           dirView.collapse()
           dirView.expand()
           dotFileView = treeView.find('.file:contains(.dotfile)').view()
@@ -877,7 +878,7 @@ describe "TreeView", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), 'temporary')
+      temporaryFilePath = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), 'temporary')
       if fsUtils.exists(temporaryFilePath)
         fsUtils.remove(temporaryFilePath)
         waits(20)
@@ -892,7 +893,7 @@ describe "TreeView", ->
         runs ->
           expect(fsUtils.exists(temporaryFilePath)).toBeFalsy()
           entriesCountBefore = treeView.root.entries.find('.entry').length
-          fsUtils.write temporaryFilePath, 'hi'
+          fsUtils.writeSync temporaryFilePath, 'hi'
 
         waitsFor "directory view contens to refresh", ->
           treeView.root.entries.find('.entry').length == entriesCountBefore + 1
@@ -909,8 +910,8 @@ describe "TreeView", ->
     [ignoreFile] = []
 
     beforeEach ->
-      ignoreFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
-      fsUtils.write(ignoreFile, 'tree-view.js')
+      ignoreFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
+      fsUtils.writeSync(ignoreFile, 'tree-view.js')
       config.set "core.hideGitIgnoredFiles", false
 
     afterEach ->
@@ -932,17 +933,17 @@ describe "TreeView", ->
 
     beforeEach ->
       config.set "core.hideGitIgnoredFiles", false
-      ignoreFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
-      fsUtils.write(ignoreFile, 'tree-view.js')
+      ignoreFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
+      fsUtils.writeSync(ignoreFile, 'tree-view.js')
       git.getPathStatus(ignoreFile)
 
-      newFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/tree-view/dir2'), 'new2')
-      fsUtils.write(newFile, '')
+      newFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view/dir2'), 'new2')
+      fsUtils.writeSync(newFile, '')
       git.getPathStatus(newFile)
 
-      modifiedFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/tree-view/dir1'), 'file1')
+      modifiedFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view/dir1'), 'file1')
       originalFileContent = fsUtils.read(modifiedFile)
-      fsUtils.write modifiedFile, 'ch ch changes'
+      fsUtils.writeSync modifiedFile, 'ch ch changes'
       git.getPathStatus(modifiedFile)
 
       treeView.updateRoot()
@@ -951,7 +952,7 @@ describe "TreeView", ->
     afterEach ->
       fsUtils.remove(ignoreFile) if fsUtils.exists(ignoreFile)
       fsUtils.remove(newFile) if fsUtils.exists(newFile)
-      fsUtils.write modifiedFile, originalFileContent
+      fsUtils.writeSync modifiedFile, originalFileContent
 
     describe "when a file is modified", ->
       it "adds a custom style", ->

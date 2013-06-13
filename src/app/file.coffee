@@ -1,6 +1,6 @@
 EventEmitter = require 'event-emitter'
-
 fs = require 'fs'
+path = require 'path'
 fsUtils = require 'fs-utils'
 pathWatcher = require 'pathwatcher'
 _ = require 'underscore'
@@ -21,7 +21,7 @@ class File
   # symlink - A {Boolean} indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
     try
-      if fs.statSync(@path).isDirectory()
+      if fs.statSync(@path).isDirectorySync()
         throw new Error("#{@path} is a directory")
 
   # Sets the path for the file.
@@ -38,7 +38,7 @@ class File
   #
   # Returns a {String}.
   getBaseName: ->
-    fsUtils.base(@path)
+    path.basename(@path)
 
   # Writes (and saves) new contents to the file.
   #
@@ -46,7 +46,7 @@ class File
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fsUtils.write(@getPath(), text)
+    fsUtils.writeSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   # Reads the file.

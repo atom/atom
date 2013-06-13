@@ -1,6 +1,7 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
+path = require 'path'
 {less} = require 'less'
 WindowEventHandler = require 'window-event-handler'
 
@@ -114,7 +115,7 @@ describe "Window", ->
 
   describe ".removeStylesheet(path)", ->
     it "removes styling applied by given stylesheet path", ->
-      cssPath = require.resolve(fsUtils.join("fixtures", "css.css"))
+      cssPath = require.resolve(path.join("fixtures", "css.css"))
 
       expect($(document.body).css('font-weight')).not.toBe("bold")
       requireStylesheet(cssPath)

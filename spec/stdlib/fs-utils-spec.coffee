@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 describe "fsUtils", ->
   describe ".read(path)", ->
@@ -8,37 +9,18 @@ describe "fsUtils", ->
     it "does not through an exception when the path is a binary file", ->
       expect(-> fsUtils.read(require.resolve("fixtures/binary-file.png"))).not.toThrow()
 
-  describe ".isFile(path)", ->
+  describe ".isFileSync(path)", ->
     fixturesDir = fsUtils.resolveOnLoadPath('fixtures')
 
     it "returns true with a file path", ->
-      expect(fsUtils.isFile(fsUtils.join(fixturesDir,  'sample.js'))).toBe true
+      expect(fsUtils.isFileSync(path.join(fixturesDir,  'sample.js'))).toBe true
 
     it "returns false with a directory path", ->
-      expect(fsUtils.isFile(fixturesDir)).toBe false
+      expect(fsUtils.isFileSync(fixturesDir)).toBe false
 
     it "returns false with a non-existent path", ->
-      expect(fsUtils.isFile(fsUtils.join(fixturesDir, 'non-existent'))).toBe false
-      expect(fsUtils.isFile(null)).toBe false
-
-  describe ".directory(path)", ->
-    describe "when called with a file path", ->
-      it "returns the path to the directory", ->
-        expect(fsUtils.directory(fsUtils.resolveOnLoadPath('fixtures/dir/a'))).toBe fsUtils.resolveOnLoadPath('fixtures/dir')
-
-    describe "when called with a directory path", ->
-      it "return the path it was given", ->
-        expect(fsUtils.directory("/a/b/c")).toBe "/a/b"
-        expect(fsUtils.directory("/a")).toBe ""
-        expect(fsUtils.directory("a")).toBe ""
-        expect(fsUtils.directory("/a/b/c++")).toBe "/a/b"
-
-  describe ".base(path, ext)", ->
-    describe "when called with an extension", ->
-      it "return the base name without the extension when the path has the given extension", ->
-        expect(fsUtils.base("/a/b/c.txt", '.txt')).toBe "c"
-        expect(fsUtils.base("/a/b/c.txt", '.txt2')).toBe "c.txt"
-        expect(fsUtils.base("/a/b/c.+", '.+')).toBe "c"
+      expect(fsUtils.isFileSync(path.join(fixturesDir, 'non-existent'))).toBe false
+      expect(fsUtils.isFileSync(null)).toBe false
 
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
@@ -48,26 +30,6 @@ describe "fsUtils", ->
       expect(fsUtils.exists(fsUtils.resolveOnLoadPath("fixtures") + "/-nope-does-not-exist")).toBe false
       expect(fsUtils.exists("")).toBe false
       expect(fsUtils.exists(null)).toBe false
-
-  describe ".join(paths...)", ->
-    it "concatenates the given paths with the directory separator", ->
-      expect(fsUtils.join('a')).toBe 'a'
-      expect(fsUtils.join('a', 'b', 'c')).toBe 'a/b/c'
-      expect(fsUtils.join('/a/b/', 'c', 'd')).toBe '/a/b/c/d'
-      expect(fsUtils.join('a', 'b/c/', 'd/')).toBe 'a/b/c/d/'
-
-  describe ".split(path)", ->
-    it "returns path components", ->
-      expect(fsUtils.split("/a/b/c.txt")).toEqual ["", "a", "b", "c.txt"]
-      expect(fsUtils.split("a/b/c.txt")).toEqual ["a", "b", "c.txt"]
-
-  describe ".extension(path)", ->
-    it "returns the extension of a file", ->
-      expect(fsUtils.extension("a/b/corey.txt")).toBe '.txt'
-      expect(fsUtils.extension("a/b/corey.txt.coffee")).toBe '.coffee'
-
-    it "returns an empty string for paths without an extension", ->
-      expect(fsUtils.extension("a/b.not-extension/a-dir")).toBe ''
 
   describe ".makeTree(path)", ->
     beforeEach ->
@@ -85,32 +47,32 @@ describe "fsUtils", ->
 
     it "calls fn for every path in the tree at the given path", ->
       paths = []
-      onPath = (path) ->
-        paths.push(path)
+      onPath = (childPath) ->
+        paths.push(childPath)
         true
       fsUtils.traverseTreeSync fixturesDir, onPath, onPath
-      expect(paths).toEqual fsUtils.listTree(fixturesDir)
+      expect(paths).toEqual fsUtils.listTreeSync(fixturesDir)
 
     it "does not recurse into a directory if it is pruned", ->
       paths = []
-      onPath = (path) ->
-        if path.match(/\/dir$/)
+      onPath = (childPath) ->
+        if childPath.match(/\/dir$/)
           false
         else
-          paths.push(path)
+          paths.push(childPath)
           true
       fsUtils.traverseTreeSync fixturesDir, onPath, onPath
 
       expect(paths.length).toBeGreaterThan 0
-      for path in paths
-        expect(path).not.toMatch /\/dir\//
+      for filePath in paths
+        expect(filePath).not.toMatch /\/dir\//
 
     it "returns entries if path is a symlink", ->
-      symlinkPath = fsUtils.join(fixturesDir, 'symlink-to-dir')
+      symlinkPath = path.join(fixturesDir, 'symlink-to-dir')
       symlinkPaths = []
       onSymlinkPath = (path) -> symlinkPaths.push(path.substring(symlinkPath.length + 1))
 
-      regularPath = fsUtils.join(fixturesDir, 'dir')
+      regularPath = path.join(fixturesDir, 'dir')
       paths = []
       onPath = (path) -> paths.push(path.substring(regularPath.length + 1))
 
@@ -125,27 +87,27 @@ describe "fsUtils", ->
 
   describe ".list(path, extensions)", ->
     it "returns the absolute paths of entries within the given directory", ->
-      paths = fsUtils.list(project.getPath())
+      paths = fsUtils.listSync(project.getPath())
       expect(paths).toContain project.resolve('css.css')
       expect(paths).toContain project.resolve('coffee.coffee')
       expect(paths).toContain project.resolve('two-hundred.txt')
 
     it "returns an empty array for paths that aren't directories or don't exist", ->
-      expect(fsUtils.list(project.resolve('sample.js'))).toEqual []
-      expect(fsUtils.list('/non/existent/directory')).toEqual []
+      expect(fsUtils.listSync(project.resolve('sample.js'))).toEqual []
+      expect(fsUtils.listSync('/non/existent/directory')).toEqual []
 
     it "can filter the paths by an optional array of file extensions", ->
-      paths = fsUtils.list(project.getPath(), ['.css', 'coffee'])
+      paths = fsUtils.listSync(project.getPath(), ['.css', 'coffee'])
       expect(paths).toContain project.resolve('css.css')
       expect(paths).toContain project.resolve('coffee.coffee')
       expect(path).toMatch /(css|coffee)$/ for path in paths
 
-  describe ".listAsync(path, [extensions,] callback)", ->
+  describe ".list(path, [extensions,] callback)", ->
     paths = null
 
     it "calls the callback with the absolute paths of entries within the given directory", ->
       waitsFor (done) ->
-        fsUtils.listAsync project.getPath(), (err, result) ->
+        fsUtils.list project.getPath(), (err, result) ->
           paths = result
           done()
       runs ->
@@ -155,7 +117,7 @@ describe "fsUtils", ->
 
     it "can filter the paths by an optional array of file extensions", ->
       waitsFor (done) ->
-        fsUtils.listAsync project.getPath(), ['css', '.coffee'], (err, result) ->
+        fsUtils.list project.getPath(), ['css', '.coffee'], (err, result) ->
           paths = result
           done()
       runs ->

@@ -1,6 +1,7 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 module.exports =
 class FileView extends View
@@ -16,7 +17,7 @@ class FileView extends View
     if @file.symlink
       @fileName.addClass('symlink-icon')
     else
-      extension = fsUtils.extension(@getPath())
+      extension = path.extname(@getPath())
       if fsUtils.isReadmePath(@getPath())
         @fileName.addClass('readme-icon')
       else if fsUtils.isCompressedExtension(extension)
@@ -31,8 +32,8 @@ class FileView extends View
         @fileName.addClass('text-icon')
 
     if git?
-      @subscribe git, 'status-changed', (path, status) =>
-        @updateStatus() if path is @getPath()
+      @subscribe git, 'status-changed', (changedPath, status) =>
+        @updateStatus() if changedPath is @getPath()
       @subscribe git, 'statuses-changed', =>
         @updateStatus()
 
@@ -42,11 +43,11 @@ class FileView extends View
     @removeClass('ignored modified new')
     return unless git?
 
-    path = @getPath()
-    if git.isPathIgnored(path)
+    filePath = @getPath()
+    if git.isPathIgnored(filePath)
       @addClass('ignored')
     else
-      status = git.statuses[path]
+      status = git.statuses[filePath]
       if git.isStatusModified(status)
         @addClass('modified')
       else if git.isStatusNew(status)

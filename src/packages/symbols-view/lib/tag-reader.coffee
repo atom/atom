@@ -7,7 +7,7 @@ module.exports =
 
 getTagsFile: (project) ->
   tagsFile = project.resolve("tags") or project.resolve("TAGS")
-  return tagsFile if fsUtils.isFile(tagsFile)
+  return tagsFile if fsUtils.isFileSync(tagsFile)
 
 find: (editor) ->
   word = editor.getTextInRange(editor.getCursor().getCurrentWordBufferRange())

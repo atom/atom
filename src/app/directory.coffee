@@ -1,5 +1,6 @@
 _ = require 'underscore'
 fs = require 'fs'
+path = require 'path'
 fsUtils = require 'fs-utils'
 pathWatcher = require 'pathwatcher'
 File = require 'file'
@@ -13,7 +14,7 @@ class Directory
   path: null
 
   ### Public ###
-  
+
   # Creates a new directory.
   #
   # path - A {String} representing the file directory
@@ -24,7 +25,7 @@ class Directory
   #
   # Returns a {String}.
   getBaseName: ->
-    fsUtils.base(@path)
+    path.basename(@path)
 
   # Retrieves the directory's path.
   #
@@ -39,17 +40,17 @@ class Directory
   getEntries: ->
     directories = []
     files = []
-    for path in fsUtils.list(@path)
+    for entryPath in fsUtils.listSync(@path)
       try
-        stat = fs.lstatSync(path)
+        stat = fs.lstatSync(entryPath)
         symlink = stat.isSymbolicLink()
-        stat = fs.statSync(path) if symlink
+        stat = fs.statSync(entryPath) if symlink
       catch e
         continue
       if stat.isDirectory()
-        directories.push(new Directory(path, symlink))
+        directories.push(new Directory(entryPath, symlink))
       else if stat.isFile()
-        files.push(new File(path, symlink))
+        files.push(new File(entryPath, symlink))
 
     directories.concat(files)
 

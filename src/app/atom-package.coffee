@@ -1,6 +1,7 @@
 TextMateGrammar = require 'text-mate-grammar'
 Package = require 'package'
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
 CSON = require 'season'
@@ -55,42 +56,43 @@ class AtomPackage extends Package
       @mainModule?.activateConfig?()
 
   activateResources: ->
-    keymap.add(path, map) for [path, map] in @keymaps
-    applyStylesheet(path, content) for [path, content] in @stylesheets
+    keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
+    applyStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
-    syntax.addProperties(path, selector, properties) for [path, selector, properties] in @scopedProperties
+    for [scopedPropertiesPath, selector, properties] in @scopedProperties
+      syntax.addProperties(scopedPropertiesPath, selector, properties)
 
   loadKeymaps: ->
-    @keymaps = @getKeymapPaths().map (path) -> [path, CSON.readFileSync(path)]
+    @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
 
   getKeymapPaths: ->
-    keymapsDirPath = fsUtils.join(@path, 'keymaps')
+    keymapsDirPath = path.join(@path, 'keymaps')
     if @metadata.keymaps
       @metadata.keymaps.map (name) -> fsUtils.resolve(keymapsDirPath, name, ['json', 'cson', ''])
     else
-      fsUtils.list(keymapsDirPath, ['cson', 'json'])
+      fsUtils.listSync(keymapsDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
-    @stylesheets = @getStylesheetPaths().map (path) -> [path, loadStylesheet(path)]
+    @stylesheets = @getStylesheetPaths().map (stylesheetPath) -> [stylesheetPath, loadStylesheet(stylesheetPath)]
 
   getStylesheetPaths: ->
-    stylesheetDirPath = fsUtils.join(@path, 'stylesheets')
+    stylesheetDirPath = path.join(@path, 'stylesheets')
     if @metadata.stylesheets
       @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
     else
-      fsUtils.list(stylesheetDirPath, ['css', 'less'])
+      fsUtils.listSync(stylesheetDirPath, ['css', 'less'])
 
   loadGrammars: ->
     @grammars = []
-    grammarsDirPath = fsUtils.join(@path, 'grammars')
-    for grammarPath in fsUtils.list(grammarsDirPath, ['.json', '.cson'])
+    grammarsDirPath = path.join(@path, 'grammars')
+    for grammarPath in fsUtils.listSync(grammarsDirPath, ['.json', '.cson'])
       @grammars.push(TextMateGrammar.loadSync(grammarPath))
 
   loadScopedProperties: ->
     @scopedProperties = []
-    scopedPropertiessDirPath = fsUtils.join(@path, 'scoped-properties')
-    for scopedPropertiesPath in fsUtils.list(scopedPropertiessDirPath, ['.json', '.cson'])
-      for selector, properties of fsUtils.readObject(scopedPropertiesPath)
+    scopedPropertiessDirPath = path.join(@path, 'scoped-properties')
+    for scopedPropertiesPath in fsUtils.listSync(scopedPropertiessDirPath, ['.json', '.cson'])
+      for selector, properties of fsUtils.readObjectSync(scopedPropertiesPath)
         @scopedProperties.push([scopedPropertiesPath, selector, properties])
 
   serialize: ->
@@ -110,23 +112,23 @@ class AtomPackage extends Package
 
   deactivateResources: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
-    syntax.removeProperties(path) for [path] in @scopedProperties
-    keymap.remove(path) for [path] in @keymaps
-    removeStylesheet(path) for [path] in @stylesheets
+    syntax.removeProperties(scopedPropertiesPath) for [scopedPropertiesPath] in @scopedProperties
+    keymap.remove(keymapPath) for [keymapPath] in @keymaps
+    removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
 
   requireMainModule: ->
     return @mainModule if @mainModule
     mainModulePath = @getMainModulePath()
-    @mainModule = require(mainModulePath) if fsUtils.isFile(mainModulePath)
+    @mainModule = require(mainModulePath) if fsUtils.isFileSync(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
     @resolvedMainModulePath = true
     mainModulePath =
       if @metadata.main
-        fsUtils.join(@path, @metadata.main)
+        path.join(@path, @metadata.main)
       else
-        fsUtils.join(@path, 'index')
+        path.join(@path, 'index')
     @mainModulePath = fsUtils.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   registerDeferredDeserializers: ->

@@ -3,6 +3,7 @@ Editor = require 'editor'
 $ = require 'jquery'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+path = require 'path'
 
 module.exports =
 class PackageGeneratorView extends View
@@ -24,7 +25,7 @@ class PackageGeneratorView extends View
     @previouslyFocusedElement = $(':focus')
     @message.text("Enter package path")
     placeholderName = "package-name"
-    @miniEditor.setText(fsUtils.join(config.userPackagesDirPath, placeholderName))
+    @miniEditor.setText(path.join(config.userPackagesDirPath, placeholderName))
     pathLength = @miniEditor.getText().length
     @miniEditor.setSelectedBufferRange([[0, pathLength - placeholderName.length], [0, pathLength]])
 
@@ -44,8 +45,8 @@ class PackageGeneratorView extends View
 
   getPackagePath: ->
     packagePath = @miniEditor.getText()
-    packageName = _.dasherize(fsUtils.base(packagePath))
-    fsUtils.join(fsUtils.directory(packagePath), packageName)
+    packageName = _.dasherize(path.basename(packagePath))
+    path.join(path.dirname(packagePath), packageName)
 
   validPackagePath: ->
     if fsUtils.exists(@getPackagePath())
@@ -56,22 +57,22 @@ class PackageGeneratorView extends View
       true
 
   createPackageFiles: ->
-    templatePath = fsUtils.resolveOnLoadPath(fsUtils.join("package-generator", "template"))
-    packageName = fsUtils.base(@getPackagePath())
+    templatePath = fsUtils.resolveOnLoadPath(path.join("package-generator", "template"))
+    packageName = path.basename(@getPackagePath())
 
-    for path in fsUtils.listTree(templatePath)
-      relativePath = path.replace(templatePath, "")
+    for templateChildPath in fsUtils.listTreeSync(templatePath)
+      relativePath = templateChildPath.replace(templatePath, "")
       relativePath = relativePath.replace(/^\//, '')
       relativePath = relativePath.replace(/\.template$/, '')
       relativePath = @replacePackageNamePlaceholders(relativePath, packageName)
 
-      sourcePath = fsUtils.join(@getPackagePath(), relativePath)
-      if fsUtils.isDirectory(path)
+      sourcePath = path.join(@getPackagePath(), relativePath)
+      if fsUtils.isDirectorySync(templateChildPath)
         fsUtils.makeTree(sourcePath)
-      if fsUtils.isFile(path)
-        fsUtils.makeTree(fsUtils.directory(sourcePath))
-        content = @replacePackageNamePlaceholders(fsUtils.read(path), packageName)
-        fsUtils.write(sourcePath, content)
+      if fsUtils.isFileSync(templateChildPath)
+        fsUtils.makeTree(path.dirname(sourcePath))
+        content = @replacePackageNamePlaceholders(fsUtils.read(templateChildPath), packageName)
+        fsUtils.writeSync(sourcePath, content)
 
   replacePackageNamePlaceholders: (string, packageName) ->
     placeholderRegex = /__(?:(package-name)|([pP]ackageName)|(package_name))__/g

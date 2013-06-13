@@ -1,5 +1,6 @@
 Project = require 'project'
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 BufferedProcess = require 'buffered-process'
 
@@ -23,7 +24,6 @@ describe "Project", ->
 
   describe "when an edit session is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
-      path = project.resolve('a')
       project.setPath(undefined)
       expect(project.getPath()).toBeUndefined()
       editSession = project.open()
@@ -40,8 +40,8 @@ describe "Project", ->
       newEditSessionHandler = jasmine.createSpy('newEditSessionHandler')
       project.on 'edit-session-created', newEditSessionHandler
 
-      fooOpener = (path, options) -> { foo: path, options } if path?.match(/\.foo/)
-      barOpener = (path) -> { bar: path } if path?.match(/^bar:\/\//)
+      fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
+      barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
       Project.registerOpener(fooOpener)
       Project.registerOpener(barOpener)
 
@@ -114,9 +114,9 @@ describe "Project", ->
   describe ".relativize(path)", ->
     it "returns an relative path based on the project's root", ->
       absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir')
-      expect(project.relativize(fsUtils.join(absolutePath, "b"))).toBe "b"
-      expect(project.relativize(fsUtils.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
-      expect(project.relativize(fsUtils.join(absolutePath, "file.coffee"))).toBe "file.coffee"
+      expect(project.relativize(path.join(absolutePath, "b"))).toBe "b"
+      expect(project.relativize(path.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
+      expect(project.relativize(path.join(absolutePath, "file.coffee"))).toBe "file.coffee"
 
   describe ".setPath(path)", ->
     describe "when path is a file", ->
@@ -147,7 +147,7 @@ describe "Project", ->
         expect(paths.length).toBeGreaterThan 0
 
     it "ignores files that return true from atom.ignorePath(path)", ->
-      spyOn(project, 'isPathIgnored').andCallFake (path) -> fsUtils.base(path).match /a$/
+      spyOn(project, 'isPathIgnored').andCallFake (filePath) -> path.basename(filePath).match /a$/
 
       paths = null
       waitsForPromise ->
@@ -172,8 +172,8 @@ describe "Project", ->
       ignoredFile = null
 
       beforeEach ->
-        ignoredFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored.txt')
-        fsUtils.write(ignoredFile, "")
+        ignoredFile = path.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored.txt')
+        fsUtils.writeSync(ignoredFile, "")
 
       afterEach ->
         fsUtils.remove(ignoredFile)
@@ -191,8 +191,8 @@ describe "Project", ->
       ignoredFile = null
 
       beforeEach ->
-        ignoredFile = fsUtils.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored/ignored.txt')
-        fsUtils.write(ignoredFile, "")
+        ignoredFile = path.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored/ignored.txt')
+        fsUtils.writeSync(ignoredFile, "")
 
       afterEach ->
         fsUtils.remove(ignoredFile)
@@ -212,8 +212,7 @@ describe "Project", ->
       it "calls the callback with all regex matches in all files in the project", ->
         matches = []
         waitsForPromise ->
-          project.scan /(a)+/, ({path, match, range}) ->
-            matches.push({path, match, range})
+          project.scan /(a)+/, (match) -> matches.push(match)
 
         runs ->
           expect(matches[0]).toEqual
@@ -229,8 +228,7 @@ describe "Project", ->
       it "works with with escaped literals (like $ and ^)", ->
         matches = []
         waitsForPromise ->
-          project.scan /\$\w+/, ({path, match, range}) ->
-            matches.push({path, match, range})
+          project.scan /\$\w+/, (match) -> matches.push(match)
 
         runs ->
           expect(matches.length).toBe 1
@@ -245,9 +243,9 @@ describe "Project", ->
         paths = []
         matches = []
         waitsForPromise ->
-          project.scan /evil/, ({path, match, range}) ->
-            paths.push(path)
-            matches.push(match)
+          project.scan /evil/, (result) ->
+            paths.push(result.path)
+            matches.push(result.match)
 
         runs ->
           expect(paths.length).toBe 5
@@ -256,7 +254,7 @@ describe "Project", ->
           expect(paths[1]).toMatch /file with spaces.txt$/
           expect(paths[2]).toMatch /goddam\nnewlines$/m
           expect(paths[3]).toMatch /quote".txt$/m
-          expect(fsUtils.base(paths[4])).toBe "utfa\u0306.md"
+          expect(path.basename(paths[4])).toBe "utfa\u0306.md"
 
       it "handles breaks in the search subprocess's output following the filename", ->
         spyOn(BufferedProcess.prototype, 'bufferStream')
@@ -283,8 +281,8 @@ describe "Project", ->
 
         beforeEach ->
           projectPath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir')
-          ignoredPath = fsUtils.join(projectPath, 'ignored.txt')
-          fsUtils.write(ignoredPath, 'this match should not be included')
+          ignoredPath = path.join(projectPath, 'ignored.txt')
+          fsUtils.writeSync(ignoredPath, 'this match should not be included')
 
         afterEach ->
           fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
@@ -295,9 +293,9 @@ describe "Project", ->
           paths = []
           matches = []
           waitsForPromise ->
-            project.scan /match/, ({path, match, range}) ->
-              paths.push(path)
-              matches.push(match)
+            project.scan /match/, (result) ->
+              paths.push(result.path)
+              matches.push(result.match)
 
           runs ->
             expect(paths.length).toBe 0
@@ -305,15 +303,15 @@ describe "Project", ->
 
       it "includes files and folders that begin with a '.'", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-file'
-        filePath = fsUtils.join(projectPath, '.text')
-        fsUtils.write(filePath, 'match this')
+        filePath = path.join(projectPath, '.text')
+        fsUtils.writeSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []
         waitsForPromise ->
-          project.scan /match this/, ({path, match, range}) ->
-            paths.push(path)
-            matches.push(match)
+          project.scan /match this/, (result) ->
+            paths.push(result.path)
+            matches.push(result.match)
 
         runs ->
           expect(paths.length).toBe 1
@@ -322,15 +320,15 @@ describe "Project", ->
 
       it "excludes values in core.ignoredNames", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-git/.git'
-        filePath = fsUtils.join(projectPath, 'test.txt')
-        fsUtils.write(filePath, 'match this')
+        filePath = path.join(projectPath, 'test.txt')
+        fsUtils.writeSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []
         waitsForPromise ->
-          project.scan /match/, ({path, match, range}) ->
-            paths.push(path)
-            matches.push(match)
+          project.scan /match/, (result) ->
+            paths.push(result.path)
+            matches.push(result.match)
 
         runs ->
           expect(paths.length).toBe 0

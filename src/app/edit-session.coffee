@@ -9,6 +9,7 @@ Subscriber = require 'subscriber'
 Range = require 'range'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+path = require 'path'
 TextMateScopeSelector = require 'text-mate-scope-selector'
 
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
@@ -49,7 +50,7 @@ class EditSession
 
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
-      @project.setPath(fsUtils.directory(@getPath())) unless @project.getPath()?
+      @project.setPath(path.dirname(@getPath())) unless @project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
@@ -98,8 +99,8 @@ class EditSession
   #
   # Returns a {String}.
   getTitle: ->
-    if path = @getPath()
-      fsUtils.base(path)
+    if sessionPath = @getPath()
+      path.basename(sessionPath)
     else
       'untitled'
 
@@ -109,9 +110,9 @@ class EditSession
   #
   # Returns a {String}.
   getLongTitle: ->
-    if path = @getPath()
-      fileName = fsUtils.base(path)
-      directory = fsUtils.base(fsUtils.directory(path))
+    if sessionPath = @getPath()
+      fileName = path.basename(sessionPath)
+      directory = path.basename(path.dirname(sessionPath))
       "#{fileName} - #{directory}"
     else
       'untitled'

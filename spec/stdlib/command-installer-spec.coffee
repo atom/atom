@@ -14,10 +14,10 @@ describe "install(commandPath, callback)", ->
     fsUtils.remove(directory) if fsUtils.exists(directory)
 
   it "symlinks the command and makes it executable", ->
-    fsUtils.write(commandPath, 'test')
-    expect(fsUtils.isFile(commandPath)).toBeTruthy()
-    expect(fsUtils.isExecutable(commandPath)).toBeFalsy()
-    expect(fsUtils.isFile(destinationPath)).toBeFalsy()
+    fsUtils.writeSync(commandPath, 'test')
+    expect(fsUtils.isFileSync(commandPath)).toBeTruthy()
+    expect(fsUtils.isExecutableSync(commandPath)).toBeFalsy()
+    expect(fsUtils.isFileSync(destinationPath)).toBeFalsy()
 
     installDone = false
     installError = null
@@ -29,6 +29,6 @@ describe "install(commandPath, callback)", ->
 
     runs ->
       expect(installError).toBeNull()
-      expect(fsUtils.isFile(destinationPath)).toBeTruthy()
+      expect(fsUtils.isFileSync(destinationPath)).toBeTruthy()
       expect(fs.realpathSync(destinationPath)).toBe fs.realpathSync(commandPath)
-      expect(fsUtils.isExecutable(destinationPath)).toBeTruthy()
+      expect(fsUtils.isExecutableSync(destinationPath)).toBeTruthy()

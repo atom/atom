@@ -1,5 +1,6 @@
 Package = require 'package'
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 TextMateGrammar = require 'text-mate-grammar'
 async = require 'async'
@@ -46,9 +47,9 @@ class TextMatePackage extends Package
   legalGrammarExtensions: ['plist', 'tmLanguage', 'tmlanguage', 'json']
 
   loadGrammars: (done) ->
-    fsUtils.isDirectoryAsync @getSyntaxesPath(), (isDirectory) =>
+    fsUtils.isDirectory @getSyntaxesPath(), (isDirectory) =>
       if isDirectory
-        fsUtils.listAsync @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
+        fsUtils.list @getSyntaxesPath(), @legalGrammarExtensions, (error, paths) =>
           if error?
             console.log("Error loading grammars of TextMate package '#{@path}':", error.stack, error)
             done()
@@ -57,15 +58,15 @@ class TextMatePackage extends Package
       else
         done()
 
-  loadGrammarAtPath: (path, done) =>
-    TextMateGrammar.load path, (err, grammar) =>
-      return console.log("Error loading grammar at path '#{path}':", err.stack ? err) if err
+  loadGrammarAtPath: (grammarPath, done) =>
+    TextMateGrammar.load grammarPath, (err, grammar) =>
+      return console.log("Error loading grammar at path '#{grammarPath}':", err.stack ? err) if err
       @addGrammar(grammar)
       done()
 
   loadGrammarsSync: ->
-    for path in fsUtils.list(@getSyntaxesPath(), @legalGrammarExtensions)
-      @addGrammar(TextMateGrammar.loadSync(path))
+    for grammarPath in fsUtils.listSync(@getSyntaxesPath(), @legalGrammarExtensions)
+      @addGrammar(TextMateGrammar.loadSync(grammarPath))
 
   addGrammar: (grammar) ->
     @grammars.push(grammar)
@@ -74,18 +75,18 @@ class TextMatePackage extends Package
   getGrammars: -> @grammars
 
   getSyntaxesPath: ->
-    syntaxesPath = fsUtils.join(@path, "syntaxes")
-    if fsUtils.isDirectory(syntaxesPath)
+    syntaxesPath = path.join(@path, "syntaxes")
+    if fsUtils.isDirectorySync(syntaxesPath)
       syntaxesPath
     else
-      fsUtils.join(@path, "Syntaxes")
+      path.join(@path, "Syntaxes")
 
   getPreferencesPath: ->
-    preferencesPath = fsUtils.join(@path, "preferences")
-    if fsUtils.isDirectory(preferencesPath)
+    preferencesPath = path.join(@path, "preferences")
+    if fsUtils.isDirectorySync(preferencesPath)
       preferencesPath
     else
-      fsUtils.join(@path, "Preferences")
+      path.join(@path, "Preferences")
 
   loadScopedPropertiesSync: ->
     for grammar in @getGrammars()
@@ -93,8 +94,8 @@ class TextMatePackage extends Package
         selector = syntax.cssSelectorFromScopeSelector(grammar.scopeName)
         @scopedProperties.push({selector, properties})
 
-    for path in fsUtils.list(@getPreferencesPath())
-      {scope, settings} = fsUtils.readObject(path)
+    for preferencePath in fsUtils.listSync(@getPreferencesPath())
+      {scope, settings} = fsUtils.readObjectSync(preferencePath)
       if properties = @propertiesFromTextMateSettings(settings)
         selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
         @scopedProperties.push({selector, properties})
@@ -125,19 +126,19 @@ class TextMatePackage extends Package
     @loadTextMatePreferenceObjects(preferenceObjects, done)
 
   loadTextMatePreferenceObjects: (preferenceObjects, done) ->
-    fsUtils.isDirectoryAsync @getPreferencesPath(), (isDirectory) =>
+    fsUtils.isDirectory @getPreferencesPath(), (isDirectory) =>
       return done() unless isDirectory
 
-      fsUtils.listAsync @getPreferencesPath(), (error, paths) =>
+      fsUtils.list @getPreferencesPath(), (error, paths) =>
         if error?
           console.log("Error loading preferences of TextMate package '#{@path}':", error.stack, error)
           done()
           return
 
-        loadPreferencesAtPath = (path, done) ->
-          fsUtils.readObjectAsync path, (error, preferences) =>
+        loadPreferencesAtPath = (preferencePath, done) ->
+          fsUtils.readObject preferencePath, (error, preferences) =>
             if error?
-              console.warn("Failed to parse preference at path '#{path}'", error.stack, error)
+              console.warn("Failed to parse preference at path '#{preferencePath}'", error.stack, error)
             else
               preferenceObjects.push(preferences)
             done()

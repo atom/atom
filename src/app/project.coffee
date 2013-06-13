@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
 Range = require 'range'
@@ -52,12 +53,12 @@ class Project
 
   # Sets the project path.
   #
-  # path - A {String} representing the new path
-  setPath: (path) ->
+  # projectPath - A {String} representing the new path
+  setPath: (projectPath) ->
     @rootDirectory?.off()
 
-    if path?
-      directory = if fsUtils.isDirectory(path) then path else fsUtils.directory(path)
+    if projectPath?
+      directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
     else
       @rootDirectory = null
@@ -96,11 +97,11 @@ class Project
 
   # Identifies if a path is ignored.
   #
-  # path - The {String} name of the path to check
+  # repositoryPath - The {String} name of the path to check
   #
   # Returns a {Boolean}.
-  ignoreRepositoryPath: (path) ->
-    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(fsUtils.join(@getPath(), path))
+  ignoreRepositoryPath: (repositoryPath) ->
+    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(path.join(@getPath(), repositoryPath))
 
   # Given a uri, this resolves it relative to the project directory. If the path
   # is already absolute or if it is prefixed with a scheme, it is returned unchanged.
@@ -112,7 +113,7 @@ class Project
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
     else
-      uri = fsUtils.join(@getPath(), uri) unless uri[0] == '/'
+      uri = path.join(@getPath(), uri) unless uri[0] == '/'
       fsUtils.absolute uri
 
   # Given a path, this makes it relative to the project directory.
@@ -222,20 +223,20 @@ class Project
   scan: (regex, iterator) ->
     bufferedData = ""
     state = 'readingPath'
-    path = null
+    filePath = null
 
     readPath = (line) ->
       if /^[0-9,; ]+:/.test(line)
         state = 'readingLines'
       else if /^:/.test line
-        path = line.substr(1)
+        filePath = line.substr(1)
       else
-        path += ('\n' + line)
+        filePath += ('\n' + line)
 
     readLine = (line) ->
       if line.length == 0
         state = 'readingPath'
-        path = null
+        filePath = null
       else
         colonIndex = line.indexOf(':')
         matchInfo = line.substring(0, colonIndex)
@@ -250,7 +251,7 @@ class Project
       for [column, length] in matchPositions
         range = new Range([row, column], [row, column + length])
         match = lineText.substr(column, length)
-        iterator({path, range, match})
+        iterator({path: filePath, range, match})
 
     deferred = $.Deferred()
     errors = []

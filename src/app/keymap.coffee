@@ -1,6 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
+path = require 'path'
 CSON = require 'season'
 BindingSet = require 'binding-set'
 
@@ -39,10 +40,10 @@ class Keymap
     @loadDirectory(fsUtils.resolveOnLoadPath('keymaps'))
 
   loadUserKeymaps: ->
-    @loadDirectory(fsUtils.join(config.configDirPath, 'keymaps'))
+    @loadDirectory(path.join(config.configDirPath, 'keymaps'))
 
   loadDirectory: (directoryPath) ->
-    @load(filePath) for filePath in fsUtils.list(directoryPath, ['.cson', '.json'])
+    @load(filePath) for filePath in fsUtils.listSync(directoryPath, ['.cson', '.json'])
 
   load: (path) ->
     @add(path, CSON.readFileSync(path))

@@ -1605,7 +1605,7 @@ class Editor extends View
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
-      fsUtils.write(path, @getDebugSnapshot()) if path
+      fsUtils.writeSync(path, @getDebugSnapshot()) if path
 
   getDebugSnapshot: ->
     [
