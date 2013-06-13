@@ -42,10 +42,10 @@ class SymbolsView extends SelectList
       @attach()
 
   populateFileSymbols: ->
-    path = rootView.getActiveView().getPath()
+    filePath = rootView.getActiveView().getPath()
     @list.empty()
     @setLoading("Generating symbols...")
-    new TagGenerator(path).generate().done (tags) =>
+    new TagGenerator(filePath).generate().done (tags) =>
       if tags.length > 0
         @maxItem = Infinity
         @setArray(tags)

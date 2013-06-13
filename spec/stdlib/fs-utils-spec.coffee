@@ -52,25 +52,25 @@ describe "fsUtils", ->
 
     it "calls fn for every path in the tree at the given path", ->
       paths = []
-      onPath = (path) ->
-        paths.push(path)
+      onPath = (childPath) ->
+        paths.push(childPath)
         true
       fsUtils.traverseTreeSync fixturesDir, onPath, onPath
       expect(paths).toEqual fsUtils.listTree(fixturesDir)
 
     it "does not recurse into a directory if it is pruned", ->
       paths = []
-      onPath = (path) ->
-        if path.match(/\/dir$/)
+      onPath = (childPath) ->
+        if childPath.match(/\/dir$/)
           false
         else
-          paths.push(path)
+          paths.push(childPath)
           true
       fsUtils.traverseTreeSync fixturesDir, onPath, onPath
 
       expect(paths.length).toBeGreaterThan 0
-      for path in paths
-        expect(path).not.toMatch /\/dir\//
+      for filePath in paths
+        expect(filePath).not.toMatch /\/dir\//
 
     it "returns entries if path is a symlink", ->
       symlinkPath = path.join(fixturesDir, 'symlink-to-dir')

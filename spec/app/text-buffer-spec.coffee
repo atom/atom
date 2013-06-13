@@ -1,6 +1,7 @@
 Project = require 'project'
 Buffer = require 'text-buffer'
 fsUtils = require 'fs-utils'
+path = require 'path'
 _ = require 'underscore'
 
 describe 'TextBuffer', ->
