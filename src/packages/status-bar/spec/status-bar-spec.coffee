@@ -115,9 +115,8 @@ describe "StatusBar", ->
       rootView.attachToDom()
 
     it "displays the current branch for files in repositories", ->
-      path = require.resolve('fixtures/git/master.git/HEAD')
       project.setPath(fsUtils.resolveOnLoadPath('fixtures/git/master.git'))
-      rootView.open(path)
+      rootView.open(require.resolve('fixtures/git/master.git/HEAD'))
       expect(statusBar.branchArea).toBeVisible()
       expect(statusBar.branchLabel.text()).toBe 'master'
 
