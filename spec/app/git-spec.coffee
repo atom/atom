@@ -29,16 +29,6 @@ describe "Git", ->
       repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/master.git'))
       expect(repo.getPath()).toBe fsUtils.resolveOnLoadPath('fixtures/git/master.git')
 
-  describe ".getHead()", ->
-    it "returns a branch name for a non-empty repository", ->
-      repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/master.git'))
-      expect(repo.getHead()).toBe 'refs/heads/master'
-
-  describe ".getShortHead()", ->
-    it "returns a branch name for a non-empty repository", ->
-      repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/master.git'))
-      expect(repo.getShortHead()).toBe 'master'
-
   describe ".isPathIgnored(path)", ->
     it "returns true for an ignored path", ->
       repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/ignore.git'))
@@ -144,7 +134,7 @@ describe "Git", ->
     it "throws an exception when any method is called after it is called", ->
       repo = new Git(fsUtils.resolveOnLoadPath('fixtures/git/master.git/HEAD'))
       repo.destroy()
-      expect(-> repo.getHead()).toThrow()
+      expect(-> repo.getShortHead()).toThrow()
 
   describe ".getDiffStats(path)", ->
     [filePath, originalPathText] = []

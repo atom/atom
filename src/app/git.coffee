@@ -7,10 +7,10 @@ GitUtils = require 'git-utils'
 
 # Public: Represents the underlying git operations performed by Atom.
 #
-# Ultimately, this is an overlay to the native [git-utils](https://github.com/atom/node-git) model.
+# Ultimately, this is an overlay to the native [git-utils](https://github.com/atom/node-git) module.
 module.exports =
 class Git
-
+  path: null
   statuses: null
   upstream: null
   statusTask: null
@@ -92,16 +92,7 @@ class Git
   # Retrieves the working directory of the repository.
   #
   # Returns a {String}.
-  getWorkingDirectory: ->
-    @getRepo().getWorkingDirectory()
-
-  # Retrieves the reference or SHA-1 that `HEAD` points to.
-  #
-  # This can be `refs/heads/master`, or a full SHA-1 if the repository is in a detached `HEAD` state.
-  #
-  # Returns a {String}.
-  getHead: ->
-    @getRepo().getHead() ? ''
+  getWorkingDirectory: -> @getRepo().getWorkingDirectory()
 
   # Retrieves the status of a single path in the repository.
   #
@@ -124,48 +115,42 @@ class Git
   # path - The {String} path to check
   #
   # Returns a {Boolean}.
-  isPathIgnored: (path) ->
-    @getRepo().isIgnored(@relativize(path))
+  isPathIgnored: (path) -> @getRepo().isIgnored(@relativize(path))
 
   # Identifies if a value represents a status code.
   #
   # status - The code {Number} to check
   #
   # Returns a {Boolean}.
-  isStatusModified: (status) ->
-    @getRepo().isStatusModified(status)
+  isStatusModified: (status) -> @getRepo().isStatusModified(status)
 
   # Identifies if a path was modified.
   #
   # path - The {String} path to check
   #
   # Returns a {Boolean}.
-  isPathModified: (path) ->
-    @isStatusModified(@getPathStatus(path))
+  isPathModified: (path) -> @isStatusModified(@getPathStatus(path))
 
   # Identifies if a status code represents a new path.
   #
   # status - The code {Number} to check
   #
   # Returns a {Boolean}.
-  isStatusNew: (status) ->
-    @getRepo().isStatusNew(status)
+  isStatusNew: (status) -> @getRepo().isStatusNew(status)
 
   # Identifies if a path is new.
   #
   # path - The {String} path to check
   #
   # Returns a {Boolean}.
-  isPathNew: (path) ->
-    @isStatusNew(@getPathStatus(path))
+  isPathNew: (path) -> @isStatusNew(@getPathStatus(path))
 
   # Makes a path relative to the repository's working directory.
   #
   # path - The {String} path to convert
   #
   # Returns a {String}.
-  relativize: (path) ->
-    @getRepo().relativize(path)
+  relativize: (path) -> @getRepo().relativize(path)
 
   # Retrieves a shortened version of {.getHead}.
   #
@@ -173,8 +158,7 @@ class Git
   # It also shortenes the SHA-1 of a detached `HEAD` to 7 characters.
   #
   # Returns a {String}.
-  getShortHead: ->
-    @getRepo().getShortHead()
+  getShortHead: -> @getRepo().getShortHead()
 
   # Restore the contents of a path in the working directory and index to the version at `HEAD`.
   #
@@ -199,16 +183,14 @@ class Git
   # path - The {String} path to check
   #
   # Returns an object with two keys, `added` and `deleted`. These will always be greater than 0.
-  getDiffStats: (path) ->
-    @getRepo().getDiffStats(@relativize(path))
+  getDiffStats: (path) -> @getRepo().getDiffStats(@relativize(path))
 
   # Identifies if a path is a submodule.
   #
   # path - The {String} path to check
   #
   # Returns a {Boolean}.
-  isSubmodule: (path) ->
-    @getRepo().isSubmodule(@relativize(path))
+  isSubmodule: (path) -> @getRepo().isSubmodule(@relativize(path))
 
   # Retrieves the status of a directory.
   #
@@ -222,14 +204,6 @@ class Git
       directoryStatus |= status if path.indexOf(directoryPath) is 0
     directoryStatus
 
-  # Retrieves the number of commits the `HEAD` branch is ahead/behind the remote branch it is tracking.
-  #
-  # This is similar to the commit numbers reported by `git status` when a remote tracking branch exists.
-  #
-  # Returns an object with two keys, `ahead` and `behind`. These will always be greater than zero.
-  getAheadBehindCounts: ->
-    @getRepo().getAheadBehindCount()
-
   # Retrieves the line diffs comparing the `HEAD` version of the given path and the given text.
   #
   # This is similar to the commit numbers reported by `git status` when a remote tracking branch exists.
@@ -238,8 +212,7 @@ class Git
   # text - The {String} to compare against the `HEAD` contents
   #
   # Returns an object with two keys, `ahead` and `behind`. These will always be greater than zero.
-  getLineDiffs: (path, text) ->
-    @getRepo().getLineDiffs(@relativize(path), text)
+  getLineDiffs: (path, text) -> @getRepo().getLineDiffs(@relativize(path), text)
 
   ### Internal ###
 
