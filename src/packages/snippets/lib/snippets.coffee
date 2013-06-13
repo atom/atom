@@ -65,13 +65,7 @@ module.exports =
         console.warn "Error reading snippets file '#{filepath}': #{err.stack ? err}"
 
       try
-        readObject =
-          if CSON.isObjectPath(filepath)
-            CSON.readFile.bind(CSON)
-          else
-            fsUtils.readPlistAsync.bind(fsUtils)
-
-        readObject filepath, (err, object) =>
+        fsUtils.readObject filepath, (err, object) =>
           try
             if err
               logError(err)
