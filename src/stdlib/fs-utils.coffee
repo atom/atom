@@ -287,11 +287,11 @@ module.exports =
     base = Path.basename(path, extension).toLowerCase()
     base is 'readme' and (extension is '' or @isMarkdownExtension(extension))
 
-  readPlist: (path) ->
+  readPlistSync: (path) ->
     plist = require 'plist'
     plist.parseStringSync(@read(path))
 
-  readPlistAsync: (path, done) ->
+  readPlist: (path, done) ->
     plist = require 'plist'
     fs.readFile path, 'utf8', (err, contents) ->
       return done(err) if err
@@ -305,11 +305,11 @@ module.exports =
     if CSON.isObjectPath(path)
       CSON.readFileSync(path)
     else
-      @readPlist(path)
+      @readPlistSync(path)
 
   readObject: (path, done) ->
     CSON = require 'season'
     if CSON.isObjectPath(path)
       CSON.readFile(path, done)
     else
-      @readPlistAsync(path, done)
+      @readPlist(path, done)

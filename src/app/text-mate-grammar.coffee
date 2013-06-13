@@ -12,9 +12,6 @@ TextMateScopeSelector = require 'text-mate-scope-selector'
 
 module.exports =
 class TextMateGrammar
-  @readFromPath: (path) ->
-    fsUtils.readPlist(path)
-
   @load: (path, done) ->
     fsUtils.readObject path, (err, object) ->
       if err
