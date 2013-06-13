@@ -285,7 +285,7 @@ class TreeView extends ScrollView
             @entryForPath(pathToCreate).buildEntries()
             @selectEntryForPath(pathToCreate)
           else
-            fsUtils.write(pathToCreate, "")
+            fsUtils.writeSync(pathToCreate, "")
             rootView.open(pathToCreate)
             dialog.close()
         catch e

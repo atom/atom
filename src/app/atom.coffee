@@ -242,7 +242,7 @@ window.atom =
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
     _.setValueForKeyPath(windowState, keyPath, value)
-    fsUtils.write(@getWindowStatePath(), JSON.stringify(windowState))
+    fsUtils.writeSync(@getWindowStatePath(), JSON.stringify(windowState))
     windowState
 
   getWindowState: (keyPath) ->

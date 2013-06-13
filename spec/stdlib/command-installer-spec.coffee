@@ -14,7 +14,7 @@ describe "install(commandPath, callback)", ->
     fsUtils.remove(directory) if fsUtils.exists(directory)
 
   it "symlinks the command and makes it executable", ->
-    fsUtils.write(commandPath, 'test')
+    fsUtils.writeSync(commandPath, 'test')
     expect(fsUtils.isFileSync(commandPath)).toBeTruthy()
     expect(fsUtils.isExecutableSync(commandPath)).toBeFalsy()
     expect(fsUtils.isFileSync(destinationPath)).toBeFalsy()

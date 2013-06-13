@@ -8,7 +8,7 @@ describe 'File', ->
   beforeEach ->
     filePath = path.join(fsUtils.resolveOnLoadPath('fixtures'), "atom-file-test.txt") # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
     fsUtils.remove(filePath) if fsUtils.exists(filePath)
-    fsUtils.write(filePath, "this is old!")
+    fsUtils.writeSync(filePath, "this is old!")
     file = new File(filePath)
     file.read()
 
@@ -21,14 +21,14 @@ describe 'File', ->
       changeHandler = null
       changeHandler = jasmine.createSpy('changeHandler')
       file.on 'contents-changed', changeHandler
-      fsUtils.write(file.getPath(), "this is new!")
+      fsUtils.writeSync(file.getPath(), "this is new!")
 
       waitsFor "change event", ->
         changeHandler.callCount > 0
 
       runs ->
         changeHandler.reset()
-        fsUtils.write(file.getPath(), "this is newer!")
+        fsUtils.writeSync(file.getPath(), "this is newer!")
 
       waitsFor "second change event", ->
         changeHandler.callCount > 0
@@ -84,7 +84,7 @@ describe 'File', ->
 
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
-        fsUtils.write(file.getPath(), "this is new!")
+        fsUtils.writeSync(file.getPath(), "this is new!")
 
       waitsFor "change event", ->
         changeHandler.callCount > 0
@@ -106,7 +106,7 @@ describe 'File', ->
       expect(changeHandler).not.toHaveBeenCalled()
       waits 20
       runs ->
-        fsUtils.write(filePath, "HE HAS RISEN!")
+        fsUtils.writeSync(filePath, "HE HAS RISEN!")
         expect(changeHandler).not.toHaveBeenCalled()
 
       waitsFor "resurrection change event", ->
@@ -114,7 +114,7 @@ describe 'File', ->
 
       runs ->
         expect(removeHandler).not.toHaveBeenCalled()
-        fsUtils.write(filePath, "Hallelujah!")
+        fsUtils.writeSync(filePath, "Hallelujah!")
         changeHandler.reset()
 
       waitsFor "post-resurrection change event", ->

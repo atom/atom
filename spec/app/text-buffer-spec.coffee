@@ -51,7 +51,7 @@ describe 'TextBuffer', ->
     beforeEach ->
       filePath = path.join(fsUtils.resolveOnLoadPath("fixtures"), "atom-manipulate-me")
       newPath = "#{filePath}-i-moved"
-      fsUtils.write(filePath, "")
+      fsUtils.writeSync(filePath, "")
       bufferToChange = project.bufferForPath(filePath)
       eventHandler = jasmine.createSpy('eventHandler')
       bufferToChange.on 'path-changed', eventHandler
@@ -82,7 +82,7 @@ describe 'TextBuffer', ->
 
     beforeEach ->
       filePath = "/tmp/tmp.txt"
-      fsUtils.write(filePath, "first")
+      fsUtils.writeSync(filePath, "first")
       buffer.release()
       buffer = project.bufferForPath(filePath).retain()
 
@@ -105,7 +105,7 @@ describe 'TextBuffer', ->
       it "changes the memory contents of the buffer to match the new disk contents and triggers a 'changed' event", ->
         changeHandler = jasmine.createSpy('changeHandler')
         buffer.on 'changed', changeHandler
-        fsUtils.write(filePath, "second")
+        fsUtils.writeSync(filePath, "second")
 
         expect(changeHandler.callCount).toBe 0
         waitsFor "file to trigger change event", ->
@@ -125,7 +125,7 @@ describe 'TextBuffer', ->
         buffer.file.on 'contents-changed', fileChangeHandler
 
         buffer.insert([0, 0], "a change")
-        fsUtils.write(filePath, "second")
+        fsUtils.writeSync(filePath, "second")
 
         expect(fileChangeHandler.callCount).toBe 0
         waitsFor "file to trigger 'contents-changed' event", ->
@@ -140,7 +140,7 @@ describe 'TextBuffer', ->
         buffer.insert([0, 0], "a second change")
 
         handler = jasmine.createSpy('fileChange')
-        fsUtils.write(filePath, "second")
+        fsUtils.writeSync(filePath, "second")
         buffer.on 'contents-conflicted', handler
 
         expect(handler.callCount).toBe 0
@@ -155,7 +155,7 @@ describe 'TextBuffer', ->
 
     beforeEach ->
       filePath = "/tmp/atom-file-to-delete.txt"
-      fsUtils.write(filePath, 'delete me')
+      fsUtils.writeSync(filePath, 'delete me')
       bufferToDelete = project.bufferForPath(filePath)
       filePath = bufferToDelete.getPath() # symlinks may have been converted
 
@@ -180,7 +180,7 @@ describe 'TextBuffer', ->
       expect(bufferToDelete.fileExists()).toBeTruthy()
       expect(bufferToDelete.isInConflict()).toBeFalsy()
 
-      fsUtils.write(filePath, 'moo')
+      fsUtils.writeSync(filePath, 'moo')
 
       changeHandler = jasmine.createSpy('changeHandler')
       bufferToDelete.on 'changed', changeHandler
@@ -213,7 +213,7 @@ describe 'TextBuffer', ->
     it "reports the modified status changing to true after the underlying file is deleted", ->
       buffer.release()
       filePath = "/tmp/atom-tmp-file"
-      fsUtils.write(filePath, 'delete me')
+      fsUtils.writeSync(filePath, 'delete me')
       buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
       buffer.on 'modified-status-changed', modifiedHandler
@@ -225,7 +225,7 @@ describe 'TextBuffer', ->
 
     it "reports the modified status changing to false after a modified buffer is saved", ->
       filePath = "/tmp/atom-tmp-file"
-      fsUtils.write(filePath, '')
+      fsUtils.writeSync(filePath, '')
       buffer.release()
       buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
@@ -249,7 +249,7 @@ describe 'TextBuffer', ->
 
     it "reports the modified status changing to false after a modified buffer is reloaded", ->
       filePath = "/tmp/atom-tmp-file"
-      fsUtils.write(filePath, '')
+      fsUtils.writeSync(filePath, '')
       buffer.release()
       buffer = project.bufferForPath(filePath)
       modifiedHandler = jasmine.createSpy("modifiedHandler")
@@ -452,7 +452,7 @@ describe 'TextBuffer', ->
 
       beforeEach ->
         filePath = '/tmp/temp.txt'
-        fsUtils.write(filePath, "")
+        fsUtils.writeSync(filePath, "")
         saveBuffer = project.bufferForPath(filePath)
         saveBuffer.setText("blah")
 
@@ -461,7 +461,7 @@ describe 'TextBuffer', ->
         saveBuffer.save()
         expect(fsUtils.read(filePath)).toEqual 'Buffer contents!'
 
-      it "fires will-be-saved and saved events around the call to fsUtils.write", ->
+      it "fires will-be-saved and saved events around the call to fsUtils.writeSync", ->
         events = []
         beforeSave1 = -> events.push('beforeSave1')
         beforeSave2 = -> events.push('beforeSave2')
@@ -470,12 +470,12 @@ describe 'TextBuffer', ->
 
         saveBuffer.on 'will-be-saved', beforeSave1
         saveBuffer.on 'will-be-saved', beforeSave2
-        spyOn(fsUtils, 'write').andCallFake -> events.push 'fsUtils.write'
+        spyOn(fsUtils, 'writeSync').andCallFake -> events.push 'fsUtils.writeSync'
         saveBuffer.on 'saved', afterSave1
         saveBuffer.on 'saved', afterSave2
 
         saveBuffer.save()
-        expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fsUtils.write', 'afterSave1', 'afterSave2']
+        expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fsUtils.writeSync', 'afterSave1', 'afterSave2']
 
       it "fires will-reload and reloaded events when reloaded", ->
         events = []
@@ -524,7 +524,7 @@ describe 'TextBuffer', ->
     it "stops listening to events on previous path and begins listening to events on new path", ->
       originalPath = "/tmp/original.txt"
       newPath = "/tmp/new.txt"
-      fsUtils.write(originalPath, "")
+      fsUtils.writeSync(originalPath, "")
 
       saveAsBuffer = project.bufferForPath(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
@@ -532,11 +532,11 @@ describe 'TextBuffer', ->
       saveAsBuffer.saveAs(newPath)
       expect(changeHandler).not.toHaveBeenCalled()
 
-      fsUtils.write(originalPath, "should not trigger buffer event")
+      fsUtils.writeSync(originalPath, "should not trigger buffer event")
       waits 20
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
-        fsUtils.write(newPath, "should trigger buffer event")
+        fsUtils.writeSync(newPath, "should trigger buffer event")
 
       waitsFor ->
         changeHandler.callCount > 0

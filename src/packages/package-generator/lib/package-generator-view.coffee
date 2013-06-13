@@ -72,7 +72,7 @@ class PackageGeneratorView extends View
       if fsUtils.isFileSync(templateChildPath)
         fsUtils.makeTree(path.dirname(sourcePath))
         content = @replacePackageNamePlaceholders(fsUtils.read(templateChildPath), packageName)
-        fsUtils.write(sourcePath, content)
+        fsUtils.writeSync(sourcePath, content)
 
   replacePackageNamePlaceholders: (string, packageName) ->
     placeholderRegex = /__(?:(package-name)|([pP]ackageName)|(package_name))__/g

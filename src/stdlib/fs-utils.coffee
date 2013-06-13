@@ -120,11 +120,11 @@ module.exports =
     path.split("/")
 
   # Open, write, flush, and close a file, writing the given content.
-  write: (path, content) ->
+  writeSync: (path, content) ->
     mkdirp.sync(Path.dirname(path))
     fs.writeFileSync(path, content)
 
-  writeAsync: (path, content, callback) ->
+  write: (path, content, callback) ->
     mkdirp Path.dirname(path), (error) ->
       if error?
         callback?(error)

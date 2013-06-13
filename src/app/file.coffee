@@ -46,7 +46,7 @@ class File
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
-    fsUtils.write(@getPath(), text)
+    fsUtils.writeSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
   # Reads the file.

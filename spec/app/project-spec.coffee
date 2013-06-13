@@ -173,7 +173,7 @@ describe "Project", ->
 
       beforeEach ->
         ignoredFile = path.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored.txt')
-        fsUtils.write(ignoredFile, "")
+        fsUtils.writeSync(ignoredFile, "")
 
       afterEach ->
         fsUtils.remove(ignoredFile)
@@ -192,7 +192,7 @@ describe "Project", ->
 
       beforeEach ->
         ignoredFile = path.join(fsUtils.resolveOnLoadPath('fixtures/dir'), 'ignored/ignored.txt')
-        fsUtils.write(ignoredFile, "")
+        fsUtils.writeSync(ignoredFile, "")
 
       afterEach ->
         fsUtils.remove(ignoredFile)
@@ -282,7 +282,7 @@ describe "Project", ->
         beforeEach ->
           projectPath = fsUtils.resolveOnLoadPath('fixtures/git/working-dir')
           ignoredPath = path.join(projectPath, 'ignored.txt')
-          fsUtils.write(ignoredPath, 'this match should not be included')
+          fsUtils.writeSync(ignoredPath, 'this match should not be included')
 
         afterEach ->
           fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
@@ -304,7 +304,7 @@ describe "Project", ->
       it "includes files and folders that begin with a '.'", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-file'
         filePath = path.join(projectPath, '.text')
-        fsUtils.write(filePath, 'match this')
+        fsUtils.writeSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []
@@ -321,7 +321,7 @@ describe "Project", ->
       it "excludes values in core.ignoredNames", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-git/.git'
         filePath = path.join(projectPath, 'test.txt')
-        fsUtils.write(filePath, 'match this')
+        fsUtils.writeSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []

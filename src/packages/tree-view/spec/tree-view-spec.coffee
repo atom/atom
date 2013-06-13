@@ -603,7 +603,7 @@ describe "TreeView", ->
       filePath = path.join(dirPath, "test-file.txt")
       fsUtils.makeDirectory(rootDirPath)
       fsUtils.makeDirectory(dirPath)
-      fsUtils.write(filePath, "doesn't matter")
+      fsUtils.writeSync(filePath, "doesn't matter")
 
       project.setPath(rootDirPath)
 
@@ -663,7 +663,7 @@ describe "TreeView", ->
           describe "when a file already exists at that location", ->
             it "shows an error message and does not close the dialog", ->
               newPath = path.join(dirPath, "new-test-file.txt")
-              fsUtils.write(newPath, '')
+              fsUtils.writeSync(newPath, '')
               addDialog.miniEditor.insertText(path.basename(newPath))
               addDialog.trigger 'core:confirm'
 
@@ -818,7 +818,7 @@ describe "TreeView", ->
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->
               runs ->
-                fsUtils.write(path.join(rootDirPath, 'target.txt'), '')
+                fsUtils.writeSync(path.join(rootDirPath, 'target.txt'), '')
                 newPath = path.join(rootDirPath, 'target.txt')
                 moveDialog.miniEditor.setText(newPath)
 
@@ -848,7 +848,7 @@ describe "TreeView", ->
 
         beforeEach ->
           dotFilePath = path.join(dirPath, ".dotfile")
-          fsUtils.write(dotFilePath, "dot")
+          fsUtils.writeSync(dotFilePath, "dot")
           dirView.collapse()
           dirView.expand()
           dotFileView = treeView.find('.file:contains(.dotfile)').view()
@@ -893,7 +893,7 @@ describe "TreeView", ->
         runs ->
           expect(fsUtils.exists(temporaryFilePath)).toBeFalsy()
           entriesCountBefore = treeView.root.entries.find('.entry').length
-          fsUtils.write temporaryFilePath, 'hi'
+          fsUtils.writeSync temporaryFilePath, 'hi'
 
         waitsFor "directory view contens to refresh", ->
           treeView.root.entries.find('.entry').length == entriesCountBefore + 1
@@ -911,7 +911,7 @@ describe "TreeView", ->
 
     beforeEach ->
       ignoreFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
-      fsUtils.write(ignoreFile, 'tree-view.js')
+      fsUtils.writeSync(ignoreFile, 'tree-view.js')
       config.set "core.hideGitIgnoredFiles", false
 
     afterEach ->
@@ -934,16 +934,16 @@ describe "TreeView", ->
     beforeEach ->
       config.set "core.hideGitIgnoredFiles", false
       ignoreFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
-      fsUtils.write(ignoreFile, 'tree-view.js')
+      fsUtils.writeSync(ignoreFile, 'tree-view.js')
       git.getPathStatus(ignoreFile)
 
       newFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view/dir2'), 'new2')
-      fsUtils.write(newFile, '')
+      fsUtils.writeSync(newFile, '')
       git.getPathStatus(newFile)
 
       modifiedFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view/dir1'), 'file1')
       originalFileContent = fsUtils.read(modifiedFile)
-      fsUtils.write modifiedFile, 'ch ch changes'
+      fsUtils.writeSync modifiedFile, 'ch ch changes'
       git.getPathStatus(modifiedFile)
 
       treeView.updateRoot()
@@ -952,7 +952,7 @@ describe "TreeView", ->
     afterEach ->
       fsUtils.remove(ignoreFile) if fsUtils.exists(ignoreFile)
       fsUtils.remove(newFile) if fsUtils.exists(newFile)
-      fsUtils.write modifiedFile, originalFileContent
+      fsUtils.writeSync modifiedFile, originalFileContent
 
     describe "when a file is modified", ->
       it "adds a custom style", ->

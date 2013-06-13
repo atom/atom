@@ -6,7 +6,7 @@ describe "Whitespace", ->
 
   beforeEach ->
     path = "/tmp/atom-whitespace.txt"
-    fsUtils.write(path, "")
+    fsUtils.writeSync(path, "")
     window.rootView = new RootView
     rootView.open(path)
 

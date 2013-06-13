@@ -85,7 +85,7 @@ describe "Editor", ->
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
       filePath = "/tmp/atom-changed-file.txt"
-      fsUtils.write(filePath, "")
+      fsUtils.writeSync(filePath, "")
       editSession = project.open(filePath)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
@@ -95,7 +95,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fsUtils.write(filePath, "a file change")
+      fsUtils.writeSync(filePath, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -150,7 +150,7 @@ describe "Editor", ->
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       filePath = "/tmp/atom-changed-file.txt"
-      fsUtils.write(filePath, "")
+      fsUtils.writeSync(filePath, "")
       tempEditSession = project.open(filePath)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
@@ -159,7 +159,7 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fsUtils.write(filePath, "a file change")
+      fsUtils.writeSync(filePath, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -246,7 +246,7 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = "/tmp/something.txt"
-      fsUtils.write(filePath, filePath)
+      fsUtils.writeSync(filePath, filePath)
 
     afterEach ->
       fsUtils.remove(filePath) if fsUtils.exists(filePath)
@@ -2084,7 +2084,7 @@ describe "Editor", ->
       editor.edit(project.open(filePath))
 
     afterEach ->
-      fsUtils.write(filePath, originalPathText)
+      fsUtils.writeSync(filePath, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
@@ -2196,7 +2196,7 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = path.join(fsUtils.absolute("/tmp"), "grammar-change.txt")
-      fsUtils.write(filePath, "var i;")
+      fsUtils.writeSync(filePath, "var i;")
 
     afterEach ->
       fsUtils.remove(filePath) if fsUtils.exists(filePath)
@@ -2543,15 +2543,15 @@ describe "Editor", ->
     it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
       saveDialogCallback = null
       spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fsUtils, 'write')
+      spyOn(fsUtils, 'writeSync')
 
       editor.trigger 'editor:save-debug-snapshot'
 
       expect(atom.showSaveDialog).toHaveBeenCalled()
       saveDialogCallback('/tmp/state')
-      expect(fsUtils.write).toHaveBeenCalled()
-      expect(fsUtils.write.argsForCall[0][0]).toBe '/tmp/state'
-      expect(typeof fsUtils.write.argsForCall[0][1]).toBe 'string'
+      expect(fsUtils.writeSync).toHaveBeenCalled()
+      expect(fsUtils.writeSync.argsForCall[0][0]).toBe '/tmp/state'
+      expect(typeof fsUtils.writeSync.argsForCall[0][1]).toBe 'string'
 
   describe "when the escape key is pressed on the editor", ->
     it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->

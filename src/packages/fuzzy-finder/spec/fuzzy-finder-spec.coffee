@@ -240,15 +240,15 @@ describe 'FuzzyFinder', ->
       editor = rootView.getActiveView()
       originalText = editor.getText()
       originalPath = editor.getPath()
-      fsUtils.write(originalPath, 'making a change for the better')
+      fsUtils.writeSync(originalPath, 'making a change for the better')
       git.getPathStatus(originalPath)
 
       newPath = project.resolve('newsample.js')
-      fsUtils.write(newPath, '')
+      fsUtils.writeSync(newPath, '')
       git.getPathStatus(newPath)
 
     afterEach ->
-      fsUtils.write(originalPath, originalText)
+      fsUtils.writeSync(originalPath, originalText)
       fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
     it "displays all new and modified paths", ->
@@ -370,7 +370,7 @@ describe 'FuzzyFinder', ->
 
       beforeEach ->
         ignoreFile = path.join(project.getPath(), '.gitignore')
-        fsUtils.write(ignoreFile, 'sample.js')
+        fsUtils.writeSync(ignoreFile, 'sample.js')
         config.set("core.excludeVcsIgnoredPaths", true)
 
       afterEach ->
@@ -504,10 +504,10 @@ describe 'FuzzyFinder', ->
       originalText = editor.getText()
       originalPath = editor.getPath()
       newPath = project.resolve('newsample.js')
-      fsUtils.write(newPath, '')
+      fsUtils.writeSync(newPath, '')
 
     afterEach ->
-      fsUtils.write(originalPath, originalText)
+      fsUtils.writeSync(originalPath, originalText)
       fsUtils.remove(newPath) if fsUtils.exists(newPath)
 
     describe "when a modified file is shown in the list", ->
