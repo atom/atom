@@ -31,11 +31,6 @@ describe "fsUtils", ->
       expect(fsUtils.exists("")).toBe false
       expect(fsUtils.exists(null)).toBe false
 
-  describe ".split(path)", ->
-    it "returns path components", ->
-      expect(fsUtils.split("/a/b/c.txt")).toEqual ["", "a", "b", "c.txt"]
-      expect(fsUtils.split("a/b/c.txt")).toEqual ["a", "b", "c.txt"]
-
   describe ".makeTree(path)", ->
     beforeEach ->
       fsUtils.remove("/tmp/a") if fsUtils.exists("/tmp/a")

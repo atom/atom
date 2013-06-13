@@ -110,15 +110,6 @@ module.exports =
   read: (path) ->
     String fs.readFileSync(path)
 
-  # Returns an array of path components. If the path is absolute, the first
-  # component will be an indicator of the root of the file system; for file
-  # systems with drives (such as Windows), this is the drive identifier with a
-  # colon, like "c:"; on Unix, this is an empty string "". The intent is that
-  # calling "join.apply" with the result of "split" as arguments will
-  # reconstruct the path.
-  split: (path) ->
-    path.split("/")
-
   # Open, write, flush, and close a file, writing the given content.
   writeSync: (path, content) ->
     mkdirp.sync(Path.dirname(path))
