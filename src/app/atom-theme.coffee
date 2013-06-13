@@ -25,6 +25,6 @@ class AtomTheme extends Theme
             filename = fsUtils.resolveExtension(path.join(@path, name), ['.css', '.less', ''])
             @loadStylesheet(filename)
       else
-        @loadStylesheet(stylesheetPath) for stylesheetPath in fsUtils.list(@path, ['.css', '.less'])
+        @loadStylesheet(stylesheetPath) for stylesheetPath in fsUtils.listSync(@path, ['.css', '.less'])
 
     super

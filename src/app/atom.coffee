@@ -113,10 +113,10 @@ window.atom =
     packagePaths = []
 
     for packageDirPath in config.packageDirPaths
-      for packagePath in fsUtils.list(packageDirPath)
+      for packagePath in fsUtils.listSync(packageDirPath)
         packagePaths.push(packagePath) if fsUtils.isDirectorySync(packagePath)
 
-    for packagePath in fsUtils.list(path.join(window.resourcePath, 'node_modules'))
+    for packagePath in fsUtils.listSync(path.join(window.resourcePath, 'node_modules'))
       packagePaths.push(packagePath) if @isInternalPackage(packagePath)
 
     _.uniq(packagePaths)
@@ -141,7 +141,7 @@ window.atom =
   getAvailableThemePaths: ->
     themePaths = []
     for themeDirPath in config.themeDirPaths
-      themePaths.push(fsUtils.list(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
+      themePaths.push(fsUtils.listSync(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
     _.uniq(themePaths)
 
   getAvailableThemeNames: ->

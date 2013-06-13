@@ -66,14 +66,14 @@ module.exports =
 
   # Returns an array with all the names of files contained
   # in the directory path.
-  list: (rootPath, extensions) ->
+  listSync: (rootPath, extensions) ->
     return [] unless @isDirectorySync(rootPath)
     paths = fs.readdirSync(rootPath)
     paths = @filterExtensions(paths, extensions) if extensions
     paths = paths.map (path) -> Path.join(rootPath, path)
     paths
 
-  listAsync: (rootPath, rest...) ->
+  list: (rootPath, rest...) ->
     extensions = rest.shift() if rest.length > 1
     done = rest.shift()
     fs.readdir rootPath, (err, paths) =>

@@ -40,7 +40,7 @@ class Directory
   getEntries: ->
     directories = []
     files = []
-    for entryPath in fsUtils.list(@path)
+    for entryPath in fsUtils.listSync(@path)
       try
         stat = fs.lstatSync(entryPath)
         symlink = stat.isSymbolicLink()

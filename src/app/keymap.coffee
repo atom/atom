@@ -43,7 +43,7 @@ class Keymap
     @loadDirectory(path.join(config.configDirPath, 'keymaps'))
 
   loadDirectory: (directoryPath) ->
-    @load(filePath) for filePath in fsUtils.list(directoryPath, ['.cson', '.json'])
+    @load(filePath) for filePath in fsUtils.listSync(directoryPath, ['.cson', '.json'])
 
   load: (path) ->
     @add(path, CSON.readFileSync(path))

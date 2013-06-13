@@ -11,6 +11,6 @@ measure 'spec suite require time', ->
 
   # Run extension specs
   for packageDirPath in config.packageDirPaths
-    for packagePath in fsUtils.list(packageDirPath)
+    for packagePath in fsUtils.listSync(packageDirPath)
       for specPath in fsUtils.listTree(path.join(packagePath, "spec")) when /-spec\.coffee$/.test specPath
         require specPath

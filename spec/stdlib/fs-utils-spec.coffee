@@ -92,27 +92,27 @@ describe "fsUtils", ->
 
   describe ".list(path, extensions)", ->
     it "returns the absolute paths of entries within the given directory", ->
-      paths = fsUtils.list(project.getPath())
+      paths = fsUtils.listSync(project.getPath())
       expect(paths).toContain project.resolve('css.css')
       expect(paths).toContain project.resolve('coffee.coffee')
       expect(paths).toContain project.resolve('two-hundred.txt')
 
     it "returns an empty array for paths that aren't directories or don't exist", ->
-      expect(fsUtils.list(project.resolve('sample.js'))).toEqual []
-      expect(fsUtils.list('/non/existent/directory')).toEqual []
+      expect(fsUtils.listSync(project.resolve('sample.js'))).toEqual []
+      expect(fsUtils.listSync('/non/existent/directory')).toEqual []
 
     it "can filter the paths by an optional array of file extensions", ->
-      paths = fsUtils.list(project.getPath(), ['.css', 'coffee'])
+      paths = fsUtils.listSync(project.getPath(), ['.css', 'coffee'])
       expect(paths).toContain project.resolve('css.css')
       expect(paths).toContain project.resolve('coffee.coffee')
       expect(path).toMatch /(css|coffee)$/ for path in paths
 
-  describe ".listAsync(path, [extensions,] callback)", ->
+  describe ".list(path, [extensions,] callback)", ->
     paths = null
 
     it "calls the callback with the absolute paths of entries within the given directory", ->
       waitsFor (done) ->
-        fsUtils.listAsync project.getPath(), (err, result) ->
+        fsUtils.list project.getPath(), (err, result) ->
           paths = result
           done()
       runs ->
@@ -122,7 +122,7 @@ describe "fsUtils", ->
 
     it "can filter the paths by an optional array of file extensions", ->
       waitsFor (done) ->
-        fsUtils.listAsync project.getPath(), ['css', '.coffee'], (err, result) ->
+        fsUtils.list project.getPath(), ['css', '.coffee'], (err, result) ->
           paths = result
           done()
       runs ->
