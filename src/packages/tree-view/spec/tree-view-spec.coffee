@@ -650,7 +650,7 @@ describe "TreeView", ->
               addDialog.miniEditor.insertText(path.basename(newPath))
               addDialog.trigger 'core:confirm'
               expect(fsUtils.exists(newPath)).toBeTruthy()
-              expect(fsUtils.isFile(newPath)).toBeTruthy()
+              expect(fsUtils.isFileSync(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveView().getPath()).toBe newPath
 

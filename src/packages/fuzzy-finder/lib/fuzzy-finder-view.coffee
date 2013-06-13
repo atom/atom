@@ -95,7 +95,7 @@ class FuzzyFinderView extends SelectList
   confirmed : ({filePath}) ->
     return unless filePath
 
-    if fsUtils.isFile(filePath)
+    if fsUtils.isFileSync(filePath)
       lineNumber = @getLineNumber()
       @cancel()
       @openPath(filePath, lineNumber)
@@ -177,7 +177,7 @@ class FuzzyFinderView extends SelectList
 
   populateGitStatusPaths: ->
     paths = []
-    paths.push(filePath) for filePath, status of git.statuses when fsUtils.isFile(filePath)
+    paths.push(filePath) for filePath, status of git.statuses when fsUtils.isFileSync(filePath)
 
     @setArray(paths)
 

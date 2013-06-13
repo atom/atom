@@ -69,7 +69,7 @@ class PackageGeneratorView extends View
       sourcePath = path.join(@getPackagePath(), relativePath)
       if fsUtils.isDirectorySync(templateChildPath)
         fsUtils.makeTree(sourcePath)
-      if fsUtils.isFile(templateChildPath)
+      if fsUtils.isFileSync(templateChildPath)
         fsUtils.makeTree(path.dirname(sourcePath))
         content = @replacePackageNamePlaceholders(fsUtils.read(templateChildPath), packageName)
         fsUtils.write(sourcePath, content)

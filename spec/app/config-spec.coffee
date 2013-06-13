@@ -180,7 +180,7 @@ describe "Config", ->
           expect(fsUtils.exists(path.join(config.configDirPath, 'packages'))).toBeTruthy()
           expect(fsUtils.exists(path.join(config.configDirPath, 'snippets'))).toBeTruthy()
           expect(fsUtils.exists(path.join(config.configDirPath, 'themes'))).toBeTruthy()
-          expect(fsUtils.isFile(path.join(config.configDirPath, 'config.cson'))).toBeTruthy()
+          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
       it "copies the bundles themes to ~/.atom", ->
         initializationDone = false
@@ -191,10 +191,10 @@ describe "Config", ->
         waitsFor -> initializationDone
 
         runs ->
-          expect(fsUtils.isFile(path.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
-          expect(fsUtils.isFile(path.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
-          expect(fsUtils.isFile(path.join(config.configDirPath, 'themes/atom-dark-syntax.less'))).toBeTruthy()
-          expect(fsUtils.isFile(path.join(config.configDirPath, 'themes/atom-light-syntax.less'))).toBeTruthy()
+          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
+          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
+          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'themes/atom-dark-syntax.less'))).toBeTruthy()
+          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'themes/atom-light-syntax.less'))).toBeTruthy()
 
   describe ".loadUserConfig()", ->
     beforeEach ->

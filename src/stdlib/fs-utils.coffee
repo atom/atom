@@ -50,7 +50,7 @@ module.exports =
 
   # Returns true if the file specified by path exists and is a
   # regular file.
-  isFile: (path) ->
+  isFileSync: (path) ->
     return false unless path?.length > 0
     try
       path? and fs.statSync(path).isFile()

@@ -119,7 +119,7 @@ class AtomPackage extends Package
   requireMainModule: ->
     return @mainModule if @mainModule
     mainModulePath = @getMainModulePath()
-    @mainModule = require(mainModulePath) if fsUtils.isFile(mainModulePath)
+    @mainModule = require(mainModulePath) if fsUtils.isFileSync(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath

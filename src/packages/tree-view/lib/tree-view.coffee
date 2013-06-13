@@ -262,7 +262,7 @@ class TreeView extends ScrollView
   add: ->
     selectedEntry = @selectedEntry() or @root
     selectedPath = selectedEntry.getPath()
-    directoryPath = if fsUtils.isFile(selectedPath) then path.dirname(selectedPath) else selectedPath
+    directoryPath = if fsUtils.isFileSync(selectedPath) then path.dirname(selectedPath) else selectedPath
     relativeDirectoryPath = project.relativize(directoryPath)
     relativeDirectoryPath += '/' if relativeDirectoryPath.length > 0
 
@@ -277,7 +277,7 @@ class TreeView extends ScrollView
         pathToCreate = project.resolve(relativePath)
         try
           if fsUtils.exists(pathToCreate)
-            pathType = if fsUtils.isFile(pathToCreate) then "file" else "directory"
+            pathType = if fsUtils.isFileSync(pathToCreate) then "file" else "directory"
             dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path.")
           else if endsWithDirectorySeparator
             fsUtils.makeTree(pathToCreate)

@@ -152,7 +152,7 @@ window.atom =
 
   loadUserStylesheet: ->
     userStylesheetPath = fsUtils.resolve(path.join(config.configDirPath, 'user'), ['css', 'less'])
-    if fsUtils.isFile(userStylesheetPath)
+    if fsUtils.isFileSync(userStylesheetPath)
       userStyleesheetContents = loadStylesheet(userStylesheetPath)
       applyStylesheet(userStylesheetPath, userStyleesheetContents, 'userTheme')
 
@@ -275,7 +275,7 @@ window.atom =
   requireUserInitScript: ->
     userInitScriptPath = path.join(config.configDirPath, "user.coffee")
     try
-      require userInitScriptPath if fsUtils.isFile(userInitScriptPath)
+      require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 

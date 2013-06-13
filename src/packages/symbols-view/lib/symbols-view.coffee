@@ -72,7 +72,7 @@ class SymbolsView extends SelectList
         @setError("No symbols found")
 
   confirmed : (tag) ->
-    if tag.file and not fsUtils.isFile(project.resolve(tag.file))
+    if tag.file and not fsUtils.isFileSync(project.resolve(tag.file))
       @setError('Selected file does not exist')
       setTimeout((=> @setError()), 2000)
     else
@@ -101,7 +101,7 @@ class SymbolsView extends SelectList
     pattern = $.trim(tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '')) # Remove leading /^ and trailing $/
     return unless pattern
     file = project.resolve(tag.file)
-    return unless fsUtils.isFile(file)
+    return unless fsUtils.isFileSync(file)
     for line, index in fsUtils.read(file).split('\n')
       return new Point(index, 0) if pattern is $.trim(line)
 

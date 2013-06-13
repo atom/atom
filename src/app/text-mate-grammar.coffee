@@ -74,7 +74,7 @@ class TextMateGrammar
     true
 
   getScore: (path, contents) ->
-    contents = fsUtils.read(path) if not contents? and fsUtils.isFile(path)
+    contents = fsUtils.read(path) if not contents? and fsUtils.isFileSync(path)
 
     if syntax.grammarOverrideForPath(path) is @scopeName
       3

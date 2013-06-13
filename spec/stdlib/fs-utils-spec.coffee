@@ -9,18 +9,18 @@ describe "fsUtils", ->
     it "does not through an exception when the path is a binary file", ->
       expect(-> fsUtils.read(require.resolve("fixtures/binary-file.png"))).not.toThrow()
 
-  describe ".isFile(path)", ->
+  describe ".isFileSync(path)", ->
     fixturesDir = fsUtils.resolveOnLoadPath('fixtures')
 
     it "returns true with a file path", ->
-      expect(fsUtils.isFile(path.join(fixturesDir,  'sample.js'))).toBe true
+      expect(fsUtils.isFileSync(path.join(fixturesDir,  'sample.js'))).toBe true
 
     it "returns false with a directory path", ->
-      expect(fsUtils.isFile(fixturesDir)).toBe false
+      expect(fsUtils.isFileSync(fixturesDir)).toBe false
 
     it "returns false with a non-existent path", ->
-      expect(fsUtils.isFile(path.join(fixturesDir, 'non-existent'))).toBe false
-      expect(fsUtils.isFile(null)).toBe false
+      expect(fsUtils.isFileSync(path.join(fixturesDir, 'non-existent'))).toBe false
+      expect(fsUtils.isFileSync(null)).toBe false
 
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
