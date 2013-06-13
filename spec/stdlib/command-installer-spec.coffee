@@ -16,7 +16,7 @@ describe "install(commandPath, callback)", ->
   it "symlinks the command and makes it executable", ->
     fsUtils.write(commandPath, 'test')
     expect(fsUtils.isFileSync(commandPath)).toBeTruthy()
-    expect(fsUtils.isExecutable(commandPath)).toBeFalsy()
+    expect(fsUtils.isExecutableSync(commandPath)).toBeFalsy()
     expect(fsUtils.isFileSync(destinationPath)).toBeFalsy()
 
     installDone = false
@@ -31,4 +31,4 @@ describe "install(commandPath, callback)", ->
       expect(installError).toBeNull()
       expect(fsUtils.isFileSync(destinationPath)).toBeTruthy()
       expect(fs.realpathSync(destinationPath)).toBe fs.realpathSync(commandPath)
-      expect(fsUtils.isExecutable(destinationPath)).toBeTruthy()
+      expect(fsUtils.isExecutableSync(destinationPath)).toBeTruthy()

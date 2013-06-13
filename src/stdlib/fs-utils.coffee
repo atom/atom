@@ -58,7 +58,7 @@ module.exports =
       false
 
   # Returns true if the specified path is exectuable.
-  isExecutable: (path) ->
+  isExecutableSync: (path) ->
     try
       (fs.statSync(path).mode & 0o777 & 1) isnt 0
     catch e
