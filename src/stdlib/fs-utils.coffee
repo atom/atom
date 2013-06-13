@@ -23,12 +23,11 @@ module.exports =
     catch e
       relativePath
 
-  # Returns true if the file specified by path exists
+  # Returns true if a file or folder at the specified path exists.
   exists: (pathToCheck) ->
     pathToCheck? and fs.existsSync(pathToCheck)
 
-  # Returns true if the file specified by path exists and is a
-  # directory.
+  # Returns true if the specified path is a directory that exists.
   isDirectorySync: (directoryPath) ->
     return false unless directoryPath?.length > 0
     try
@@ -48,8 +47,7 @@ module.exports =
       else
         done(false)
 
-  # Returns true if the file specified by path exists and is a
-  # regular file.
+  # Returns true if the specified path is a regular file that exists.
   isFileSync: (filePath) ->
     return false unless filePath?.length > 0
     try
@@ -57,7 +55,7 @@ module.exports =
     catch e
       false
 
-  # Returns true if the specified path is exectuable.
+  # Returns true if the specified path is executable.
   isExecutableSync: (pathToCheck) ->
     return false unless pathToCheck?.length > 0
     try
@@ -65,8 +63,8 @@ module.exports =
     catch e
       false
 
-  # Returns an array with all the names of files contained
-  # in the directory path.
+  # Returns an array with the paths of the files and folders
+  # contained in the directory path.
   listSync: (rootPath, extensions) ->
     return [] unless @isDirectorySync(rootPath)
     paths = fs.readdirSync(rootPath)
@@ -145,7 +143,7 @@ module.exports =
 
       sourceStream.pipe(destinationStream)
 
-  # Creates the directory specified by "path" including any missing parent
+  # Create a directory at the specified path including any missing parent
   # directories.
   makeTree: (directoryPath) ->
     mkdirp.sync(directoryPath) if directoryPath and not @exists(directoryPath)
