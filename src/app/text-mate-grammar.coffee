@@ -16,14 +16,14 @@ class TextMateGrammar
     fsUtils.readPlist(path)
 
   @load: (path, done) ->
-    fsUtils.readObjectAsync path, (err, object) ->
+    fsUtils.readObject path, (err, object) ->
       if err
         done(err)
       else
         done(null, new TextMateGrammar(object))
 
   @loadSync: (path) ->
-    new TextMateGrammar(fsUtils.readObject(path))
+    new TextMateGrammar(fsUtils.readObjectSync(path))
 
   name: null
   rawPatterns: null

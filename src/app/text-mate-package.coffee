@@ -95,7 +95,7 @@ class TextMatePackage extends Package
         @scopedProperties.push({selector, properties})
 
     for preferencePath in fsUtils.listSync(@getPreferencesPath())
-      {scope, settings} = fsUtils.readObject(preferencePath)
+      {scope, settings} = fsUtils.readObjectSync(preferencePath)
       if properties = @propertiesFromTextMateSettings(settings)
         selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
         @scopedProperties.push({selector, properties})
@@ -136,7 +136,7 @@ class TextMatePackage extends Package
           return
 
         loadPreferencesAtPath = (preferencePath, done) ->
-          fsUtils.readObjectAsync preferencePath, (error, preferences) =>
+          fsUtils.readObject preferencePath, (error, preferences) =>
             if error?
               console.warn("Failed to parse preference at path '#{preferencePath}'", error.stack, error)
             else

@@ -92,7 +92,7 @@ class AtomPackage extends Package
     @scopedProperties = []
     scopedPropertiessDirPath = path.join(@path, 'scoped-properties')
     for scopedPropertiesPath in fsUtils.listSync(scopedPropertiessDirPath, ['.json', '.cson'])
-      for selector, properties of fsUtils.readObject(scopedPropertiesPath)
+      for selector, properties of fsUtils.readObjectSync(scopedPropertiesPath)
         @scopedProperties.push([scopedPropertiesPath, selector, properties])
 
   serialize: ->

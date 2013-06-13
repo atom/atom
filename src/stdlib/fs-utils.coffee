@@ -300,14 +300,14 @@ module.exports =
       catch err
         done(err)
 
-  readObject: (path) ->
+  readObjectSync: (path) ->
     CSON = require 'season'
     if CSON.isObjectPath(path)
       CSON.readFileSync(path)
     else
       @readPlist(path)
 
-  readObjectAsync: (path, done) ->
+  readObject: (path, done) ->
     CSON = require 'season'
     if CSON.isObjectPath(path)
       CSON.readFile(path, done)

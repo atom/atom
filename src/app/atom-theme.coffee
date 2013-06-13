@@ -19,7 +19,7 @@ class AtomTheme extends Theme
     else
       metadataPath = fsUtils.resolveExtension(path.join(@path, 'package'), ['cson', 'json'])
       if fsUtils.isFileSync(metadataPath)
-        stylesheetNames = fsUtils.readObject(metadataPath)?.stylesheets
+        stylesheetNames = fsUtils.readObjectSync(metadataPath)?.stylesheets
         if stylesheetNames
           for name in stylesheetNames
             filename = fsUtils.resolveExtension(path.join(@path, name), ['.css', '.less', ''])
