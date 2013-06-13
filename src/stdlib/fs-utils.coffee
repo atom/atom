@@ -108,7 +108,7 @@ module.exports =
 
   # Open, read, and close a file, returning the file's contents.
   read: (filePath) ->
-    String fs.readFileSync(filePath)
+    fs.readFileSync(filePath, 'utf8')
 
   # Open, write, flush, and close a file, writing the given content.
   writeSync: (filePath, content) ->
