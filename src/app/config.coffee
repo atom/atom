@@ -47,7 +47,7 @@ class Config
   initializeConfigDirectory: (done) ->
     return if fsUtils.exists(@configDirPath)
 
-    fsUtils.makeDirectory(@configDirPath)
+    fsUtils.makeTree(@configDirPath)
 
     queue = async.queue ({sourcePath, destinationPath}, callback) =>
       fsUtils.copy(sourcePath, destinationPath, callback)

@@ -601,8 +601,8 @@ describe "TreeView", ->
 
       dirPath = path.join(rootDirPath, "test-dir")
       filePath = path.join(dirPath, "test-file.txt")
-      fsUtils.makeDirectory(rootDirPath)
-      fsUtils.makeDirectory(dirPath)
+      fsUtils.makeTree(rootDirPath)
+      fsUtils.makeTree(dirPath)
       fsUtils.writeSync(filePath, "doesn't matter")
 
       project.setPath(rootDirPath)
@@ -703,7 +703,7 @@ describe "TreeView", ->
           describe "when a file or directory already exists at the given path", ->
             it "shows an error message and does not close the dialog", ->
               newPath = path.join(dirPath, "new-dir")
-              fsUtils.makeDirectory(newPath)
+              fsUtils.makeTree(newPath)
               addDialog.miniEditor.insertText("new-dir/")
               addDialog.trigger 'core:confirm'
 

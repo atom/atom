@@ -131,9 +131,6 @@ module.exports =
       else
         fs.writeFile(path, content, callback)
 
-  makeDirectory: (path) ->
-    fs.mkdirSync(path)
-
   copy: (sourcePath, destinationPath, done) ->
     mkdirp Path.dirname(destinationPath), (error) ->
       if error?
