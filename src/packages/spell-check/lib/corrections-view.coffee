@@ -39,14 +39,17 @@ class CorrectionsView extends SelectList
 
   attach: ->
     @aboveCursor = false
-    if @corrections.length > 0
-      @setArray(@corrections)
-    else
-      @setError("No corrections found")
+    @setArray(@corrections)
 
     @editor.appendToLinesView(this)
     @setPosition()
     @miniEditor.focus()
+
+  getEmptyMessage: (itemCount) ->
+    if itemCount is 0
+      'No corrections'
+    else
+      super
 
   detach: ->
     super

@@ -97,7 +97,7 @@ describe "Spell check", ->
           editor.trigger 'editor:correct-misspelling'
           expect(editor.find('.corrections').length).toBe 1
           expect(editor.find('.corrections li').length).toBe 0
-          expect(editor.find('.corrections .error').text()).toBe "No corrections found"
+          expect(editor.find('.corrections').view().error.text()).toBe "No corrections"
 
   describe "when the edit session is destroyed", ->
     it "destroys all misspelling markers", ->
