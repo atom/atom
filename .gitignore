@@ -8,7 +8,7 @@ build
 .xcodebuild-info
 node_modules
 npm-debug.log
-tags
+/tags
 /atom-shell/
 /sources.gypi
 docs/api
