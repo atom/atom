@@ -101,7 +101,7 @@ describe 'FuzzyFinder', ->
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
         expectedPath = project.resolve('dir/a')
-        finderView.confirmed({path: expectedPath})
+        finderView.confirmed({filePath: expectedPath})
 
         expect(finderView.hasParent()).toBeFalsy()
         expect(editor1.getPath()).not.toBe expectedPath
@@ -113,7 +113,7 @@ describe 'FuzzyFinder', ->
           rootView.attachToDom()
           editorPath = rootView.getActiveView().getPath()
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          finderView.confirmed({path: 'dir/this/is/not/a/file.txt'})
+          finderView.confirmed({filePath: 'dir/this/is/not/a/file.txt'})
           expect(finderView.hasParent()).toBeTruthy()
           expect(rootView.getActiveView().getPath()).toBe editorPath
           expect(finderView.find('.error').text().length).toBeGreaterThan 0
@@ -172,8 +172,8 @@ describe 'FuzzyFinder', ->
 
           paths = [ 'sample-with-tabs.coffee', 'sample.txt', 'sample.js' ]
 
-          for [time, path] in states
-            expect(_.last path.split '/').toBe paths.shift()
+          for [time, bufferPath] in states
+            expect(_.last bufferPath.split '/').toBe paths.shift()
             expect(time).toBeGreaterThan 50000
 
       describe "when there are only panes with anonymous items", ->
@@ -211,7 +211,7 @@ describe 'FuzzyFinder', ->
       describe "when the active pane has an item for the selected path", ->
         it "switches to the item for the selected path", ->
           expectedPath = project.resolve('sample.txt')
-          finderView.confirmed({path: expectedPath})
+          finderView.confirmed({filePath: expectedPath})
 
           expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).not.toBe expectedPath
@@ -227,7 +227,7 @@ describe 'FuzzyFinder', ->
           expect(rootView.getActiveView()).toBe editor1
 
           expectedPath = project.resolve('sample.txt')
-          finderView.confirmed({path: expectedPath})
+          finderView.confirmed({filePath: expectedPath})
 
           expect(finderView.hasParent()).toBeFalsy()
           expect(editor1.getPath()).toBe expectedPath
@@ -450,12 +450,12 @@ describe 'FuzzyFinder', ->
       spyOn(pane, "splitLeft").andCallThrough()
 
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-      {path} = finderView.getSelectedElement()
+      {filePath} = finderView.getSelectedElement()
       finderView.miniEditor.trigger 'pane:split-left'
 
       expect(rootView.getPanes().length).toBe 2
       expect(pane.splitLeft).toHaveBeenCalled()
-      expect(rootView.getActiveView().getPath()).toBe project.resolve(path)
+      expect(rootView.getActiveView().getPath()).toBe project.resolve(filePath)
 
     it "opens the path by splitting the active editor right", ->
       expect(rootView.getPanes().length).toBe 1
@@ -463,12 +463,12 @@ describe 'FuzzyFinder', ->
       spyOn(pane, "splitRight").andCallThrough()
 
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-      {path} = finderView.getSelectedElement()
+      {filePath} = finderView.getSelectedElement()
       finderView.miniEditor.trigger 'pane:split-right'
 
       expect(rootView.getPanes().length).toBe 2
       expect(pane.splitRight).toHaveBeenCalled()
-      expect(rootView.getActiveView().getPath()).toBe project.resolve(path)
+      expect(rootView.getActiveView().getPath()).toBe project.resolve(filePath)
 
     it "opens the path by splitting the active editor up", ->
       expect(rootView.getPanes().length).toBe 1
@@ -476,12 +476,12 @@ describe 'FuzzyFinder', ->
       spyOn(pane, "splitUp").andCallThrough()
 
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-      {path} = finderView.getSelectedElement()
+      {filePath} = finderView.getSelectedElement()
       finderView.miniEditor.trigger 'pane:split-up'
 
       expect(rootView.getPanes().length).toBe 2
       expect(pane.splitUp).toHaveBeenCalled()
-      expect(rootView.getActiveView().getPath()).toBe project.resolve(path)
+      expect(rootView.getActiveView().getPath()).toBe project.resolve(filePath)
 
     it "opens the path by splitting the active editor down", ->
       expect(rootView.getPanes().length).toBe 1
@@ -489,12 +489,12 @@ describe 'FuzzyFinder', ->
       spyOn(pane, "splitDown").andCallThrough()
 
       rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
-      {path} = finderView.getSelectedElement()
+      {filePath} = finderView.getSelectedElement()
       finderView.miniEditor.trigger 'pane:split-down'
 
       expect(rootView.getPanes().length).toBe 2
       expect(pane.splitDown).toHaveBeenCalled()
-      expect(rootView.getActiveView().getPath()).toBe project.resolve(path)
+      expect(rootView.getActiveView().getPath()).toBe project.resolve(filePath)
 
   describe "git status decorations", ->
     [originalText, originalPath, editor, newPath] = []
