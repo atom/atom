@@ -47,7 +47,7 @@ class Directory
         stat = fs.statSync(entryPath) if symlink
       catch e
         continue
-      if stat.isDirectorySync()
+      if stat.isDirectory()
         directories.push(new Directory(entryPath, symlink))
       else if stat.isFile()
         files.push(new File(entryPath, symlink))
