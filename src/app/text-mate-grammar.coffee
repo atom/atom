@@ -3,24 +3,24 @@ fsUtils = require 'fs-utils'
 plist = require 'plist'
 Token = require 'token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
-nodePath = require 'path'
+path = require 'path'
 EventEmitter = require 'event-emitter'
-pathSplitRegex = new RegExp("[#{nodePath.sep}.]")
+pathSplitRegex = new RegExp("[#{path.sep}.]")
 TextMateScopeSelector = require 'text-mate-scope-selector'
 
 ### Internal ###
 
 module.exports =
 class TextMateGrammar
-  @load: (path, done) ->
-    fsUtils.readObject path, (err, object) ->
-      if err
-        done(err)
+  @load: (grammarPath, done) ->
+    fsUtils.readObject grammarPath, (error, object) ->
+      if error?
+        done(error)
       else
         done(null, new TextMateGrammar(object))
 
-  @loadSync: (path) ->
-    new TextMateGrammar(fsUtils.readObjectSync(path))
+  @loadSync: (grammarPath) ->
+    new TextMateGrammar(fsUtils.readObjectSync(grammarPath))
 
   name: null
   rawPatterns: null
@@ -70,14 +70,14 @@ class TextMateGrammar
     @trigger 'grammar-updated'
     true
 
-  getScore: (path, contents) ->
-    contents = fsUtils.read(path) if not contents? and fsUtils.isFileSync(path)
+  getScore: (filePath, contents) ->
+    contents = fsUtils.read(filePath) if not contents? and fsUtils.isFileSync(filePath)
 
-    if syntax.grammarOverrideForPath(path) is @scopeName
+    if syntax.grammarOverrideForPath(filePath) is @scopeName
       3
     else if @matchesContents(contents)
       2
-    else if @matchesPath(path)
+    else if @matchesPath(filePath)
       1
     else
       -1
@@ -99,9 +99,9 @@ class TextMateGrammar
     lines = contents.split('\n')
     @firstLineRegex.test(lines[0..numberOfNewlinesInRegex].join('\n'))
 
-  matchesPath: (path) ->
-    return false unless path?
-    pathComponents = path.split(pathSplitRegex)
+  matchesPath: (filePath) ->
+    return false unless filePath?
+    pathComponents = filePath.split(pathSplitRegex)
     _.find @fileTypes, (fileType) ->
       fileTypeComponents = fileType.split(pathSplitRegex)
       pathSuffix = pathComponents[-fileTypeComponents.length..-1]
