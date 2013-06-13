@@ -158,10 +158,7 @@ module.exports =
   # Creates the directory specified by "path" including any missing parent
   # directories.
   makeTree: (path) ->
-    return unless path
-    if not @exists(path)
-      @makeTree(Path.dirname(path))
-      @makeDirectory(path)
+    mkdirp.sync(path) if path and not @exists(path)
 
   traverseTreeSync: (rootPath, onFile, onDirectory) ->
     return unless @isDirectorySync(rootPath)
