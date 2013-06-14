@@ -63,8 +63,12 @@ class Directory
   #
   # Returns a {String}.
   relativize: (fullPath='') ->
-    if fullPath.indexOf(path.join(@getPath(), path.sep)) is 0
+    if fullPath is @getPath()
+      ''
+    else if fullPath.indexOf(path.join(@getPath(), path.sep)) is 0
       fullPath.substring(@getPath().length + 1)
+    else if fullPath is @getRealPath()
+      ''
     else if fullPath.indexOf(path.join(@getRealPath(), path.sep)) is 0
       fullPath.substring(@getRealPath().length + 1)
     else

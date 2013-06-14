@@ -78,6 +78,7 @@ describe "Directory", ->
   describe ".relativize(path)", ->
     it "returns a relative path based on the directory's path", ->
       absolutePath = directory.getPath()
+      expect(directory.relativize(absolutePath)).toBe ''
       expect(directory.relativize(path.join(absolutePath, "b"))).toBe "b"
       expect(directory.relativize(path.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
       expect(directory.relativize(path.join(absolutePath, "file.coffee"))).toBe "file.coffee"
@@ -86,6 +87,7 @@ describe "Directory", ->
       symlinkPath = path.join(fsUtils.resolveOnLoadPath('fixtures'), 'symlink-to-dir')
       symlinkDirectory = new Directory(symlinkPath)
       realFilePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
+      expect(symlinkDirectory.relativize(symlinkPath)).toBe ''
       expect(symlinkDirectory.relativize(realFilePath)).toBe 'a'
 
     it "returns the full path if the directory's path is not a prefix of the path", ->
