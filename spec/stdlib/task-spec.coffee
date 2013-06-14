@@ -8,7 +8,7 @@ describe "Task", ->
         spyOn(console, 'error')
         spyOn(console, 'warn')
 
-        jqueryTask = new Task('fixtures/jquery-task-handler.coffee')
+        jqueryTask = new Task('fixtures/jquery-task-handler')
         jqueryLoaded = false
         jqueryTask.start (loaded) -> jqueryLoaded = loaded
 
