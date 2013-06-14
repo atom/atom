@@ -9,6 +9,8 @@ optimist = require 'optimist'
 nslog = require 'nslog'
 _ = require 'underscore'
 
+global.homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
 
@@ -34,9 +36,6 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen)
 
     AtomApplication.open(args)
-
-getHomeDir = ->
-  process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
 
 setupCrashReporter = ->
   crashReporter.setCompanyName 'GitHub'
@@ -85,7 +84,7 @@ parseCommandLine = ->
     dev = true
     resourcePath = args['resource-path']
   else if dev
-    resourcePath = path.join(getHomeDir(), 'github', 'atom')
+    resourcePath = path.join(global.homeDir, 'github', 'atom')
 
   try
     fs.statSync resourcePath

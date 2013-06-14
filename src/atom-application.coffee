@@ -261,7 +261,7 @@ class AtomApplication
   runSpecs: (exitWhenDone) ->
     specWindow = new AtomWindow
       bootstrapScript: 'spec-bootstrap'
-      resourcePath: path.join(@getHomeDir(), 'github', 'atom')
+      resourcePath: path.join(global.homeDir, 'github', 'atom')
       exitWhenDone: exitWhenDone
       isSpec: true
 
