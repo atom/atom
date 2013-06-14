@@ -84,18 +84,17 @@ class StatusBarView extends View
       @isModified = false
 
   updateBranchText: ->
-    path = @getActiveItemPath()
     @branchArea.hide()
-    return unless path
+    return unless project.contains(@getActiveItemPath())
 
     head = git?.getShortHead() or ''
     @branchLabel.text(head)
     @branchArea.show() if head
 
   updateStatusText: ->
-    path = @getActiveItemPath()
+    itemPath = @getActiveItemPath()
     @gitStatusIcon.removeClass()
-    return unless path
+    return unless project.contains(itemPath)
 
     @gitStatusIcon.addClass('git-status octicons')
     return unless git?
@@ -110,10 +109,10 @@ class StatusBarView extends View
     else
       @commitsBehind.hide()
 
-    status = git.statuses[path]
+    status = git.statuses[itemPath]
     if git.isStatusModified(status)
       @gitStatusIcon.addClass('modified-status-icon')
-      stats = git.getDiffStats(path)
+      stats = git.getDiffStats(itemPath)
       if stats.added and stats.deleted
         @gitStatusIcon.text("+#{stats.added},-#{stats.deleted}")
       else if stats.added
@@ -128,7 +127,7 @@ class StatusBarView extends View
         @gitStatusIcon.text("+#{@buffer.getLineCount()}")
       else
         @gitStatusIcon.text('')
-    else if git.isPathIgnored(path)
+    else if git.isPathIgnored(itemPath)
       @gitStatusIcon.addClass('ignored-status-icon')
       @gitStatusIcon.text('')
 

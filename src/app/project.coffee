@@ -118,12 +118,23 @@ class Project
 
   # Given a path, this makes it relative to the project directory.
   #
-  # filePath - The {String} name of the path to convert
+  # fullPath - The {String} path to convert.
   #
   # Returns a {String}.
   relativize: (fullPath) ->
     return fullPath unless fullPath.lastIndexOf(@getPath()) is 0
     fullPath.replace(@getPath(), "").replace(/^\//, '')
+
+  # Is the given path inside this project?
+  #
+  # pathToCheck - the {String} path to check.
+  #
+  # Returns a {Boolean}.
+  contains: (pathToCheck) ->
+    if pathToCheck
+      if projectPath = @getPath()
+        return pathToCheck.indexOf(path.join(projectPath, path.sep)) is 0
+    false
 
   # Identifies if the project is using soft tabs.
   #

@@ -124,7 +124,10 @@ describe "StatusBar", ->
       project.setPath('/tmp')
       rootView.open('/tmp/temp.txt')
       expect(statusBar.branchArea).toBeHidden()
-      expect(statusBar.branchLabel.text()).toBe ''
+
+    it "doesn't display the current branch for a file outside the current project", ->
+      rootView.open('/tmp/atom-specs/not-in-project.txt')
+      expect(statusBar.branchArea).toBeHidden()
 
   describe "git status label", ->
     [repo, filePath, originalPathText, newPath, ignoredPath] = []
@@ -181,6 +184,10 @@ describe "StatusBar", ->
     it "displays the diff stat for new files", ->
       rootView.open(newPath)
       expect(statusBar.gitStatusIcon).toHaveText('+1')
+
+    it "does not display for files not in the current project", ->
+      rootView.open('/tmp/atom-specs/not-in-project.txt')
+      expect(statusBar.gitStatusIcon).toBeHidden()
 
   describe "grammar label", ->
     beforeEach ->
