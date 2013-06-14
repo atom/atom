@@ -14,7 +14,6 @@ class Git
   statuses: null
   upstream: null
   statusTask: null
-  task: null
 
   ### Internal ###
 
@@ -30,7 +29,6 @@ class Git
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
-    @task = new Task('repository-status-handler')
 
     refreshOnWindowFocus = options.refreshOnWindowFocus ? true
     if refreshOnWindowFocus
@@ -48,8 +46,7 @@ class Git
 
   destroy: ->
     if @statusTask?
-      @statusTask.abort()
-      @statusTask.off()
+      @statusTask.terminate()
       @statusTask = null
 
     if @repo?
@@ -219,7 +216,7 @@ class Git
   ### Internal ###
 
   refreshStatus: ->
-    @task.start @getPath(), ({statuses, upstream}) =>
+    @statusTask = Task.once 'repository-status-handler', @getPath(), ({statuses, upstream}) =>
       statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream)
       @statuses = statuses
       @upstream = upstream
