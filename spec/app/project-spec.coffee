@@ -111,13 +111,6 @@ describe "Project", ->
       it "does not modify uris that begin with a scheme", ->
         expect(project.resolve('http://zombo.com')).toBe 'http://zombo.com'
 
-  describe ".relativize(path)", ->
-    it "returns an relative path based on the project's root", ->
-      absolutePath = fsUtils.resolveOnLoadPath('fixtures/dir')
-      expect(project.relativize(path.join(absolutePath, "b"))).toBe "b"
-      expect(project.relativize(path.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
-      expect(project.relativize(path.join(absolutePath, "file.coffee"))).toBe "file.coffee"
-
   describe ".setPath(path)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->

@@ -122,8 +122,7 @@ class Project
   #
   # Returns a {String}.
   relativize: (fullPath) ->
-    return fullPath unless fullPath.lastIndexOf(@getPath()) is 0
-    fullPath.replace(@getPath(), "").replace(/^\//, '')
+    @rootDirectory?.relativize(fullPath) ? fullPath
 
   # Is the given path inside this project?
   #
@@ -131,10 +130,7 @@ class Project
   #
   # Returns a {Boolean}.
   contains: (pathToCheck) ->
-    if pathToCheck
-      if projectPath = @getPath()
-        return pathToCheck.indexOf(path.join(projectPath, path.sep)) is 0
-    false
+    @rootDirectory?.contains(pathToCheck) ? false
 
   # Identifies if the project is using soft tabs.
   #

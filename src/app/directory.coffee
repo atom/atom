@@ -12,6 +12,7 @@ EventEmitter = require 'event-emitter'
 module.exports =
 class Directory
   path: null
+  realPath: null
 
   ### Public ###
 
@@ -31,6 +32,43 @@ class Directory
   #
   # Returns a {String}.
   getPath: -> @path
+
+  # Retrieves this directory's real path.
+  #
+  # Returns a {String}.
+  getRealPath: ->
+    unless @realPath?
+      try
+        @realPath = fs.realpathSync(@path)
+      catch e
+        @realPath = @path
+    @realPath
+
+  # Is the given path inside this directory?
+  #
+  # pathToCheck - the {String} path to check.
+  #
+  # Returns a {Boolean}.
+  contains: (pathToCheck='') ->
+    if pathToCheck.indexOf(path.join(@getPath(), path.sep)) is 0
+      true
+    else if pathToCheck.indexOf(path.join(@getRealPath(), path.sep)) is 0
+      true
+    else
+      false
+
+  # Make a full path relative to this directory's path.
+  #
+  # fullPath - The {String} path to convert.
+  #
+  # Returns a {String}.
+  relativize: (fullPath='') ->
+    if fullPath.indexOf(path.join(@getPath(), path.sep)) is 0
+      fullPath.substring(@getPath().length + 1)
+    else if fullPath.indexOf(path.join(@getRealPath(), path.sep)) is 0
+      fullPath.substring(@getRealPath().length + 1)
+    else
+      fullPath
 
   # Retrieves the file entries in the directory.
   #
