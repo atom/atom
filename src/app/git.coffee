@@ -2,7 +2,7 @@ _ = require 'underscore'
 fsUtils = require 'fs-utils'
 Subscriber = require 'subscriber'
 EventEmitter = require 'event-emitter'
-RepositoryStatusTask = require 'repository-status-task'
+Task = require 'task'
 GitUtils = require 'git-utils'
 
 # Public: Represents the underlying git operations performed by Atom.
@@ -14,6 +14,7 @@ class Git
   statuses: null
   upstream: null
   statusTask: null
+  task: null
 
   ### Internal ###
 
@@ -29,6 +30,7 @@ class Git
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
+    @task = new Task('repository-status-handler')
 
     refreshOnWindowFocus = options.refreshOnWindowFocus ? true
     if refreshOnWindowFocus
@@ -217,16 +219,11 @@ class Git
   ### Internal ###
 
   refreshStatus: ->
-    if @statusTask?
-      @statusTask.off()
-      @statusTask.one 'task:completed', =>
-        @statusTask = null
-        @refreshStatus()
-    else
-      @statusTask = new RepositoryStatusTask(this)
-      @statusTask.one 'task:completed', =>
-        @statusTask = null
-      @statusTask.start()
+    @task.start @getPath(), ({statuses, upstream}) =>
+      statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream)
+      @statuses = statuses
+      @upstream = upstream
+      @trigger 'statuses-changed' unless statusesUnchanged
 
 _.extend Git.prototype, Subscriber
 _.extend Git.prototype, EventEmitter

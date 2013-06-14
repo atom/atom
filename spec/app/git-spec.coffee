@@ -204,22 +204,3 @@ describe "Git", ->
         expect(statuses[cleanPath]).toBeUndefined()
         expect(repo.isStatusNew(statuses[newPath])).toBeTruthy()
         expect(repo.isStatusModified(statuses[modifiedPath])).toBeTruthy()
-
-    it "only starts a single task at a time and schedules a restart if one is already running", =>
-      fsUtils.writeSync(modifiedPath, 'making this path modified')
-      statusHandler = jasmine.createSpy('statusHandler')
-      repo.on 'statuses-changed', statusHandler
-
-      spyOn(Task.prototype, "start").andCallThrough()
-      repo.refreshStatus()
-      expect(Task.prototype.start.callCount).toBe 1
-      repo.refreshStatus()
-      expect(Task.prototype.start.callCount).toBe 1
-      repo.refreshStatus()
-      expect(Task.prototype.start.callCount).toBe 1
-
-      waitsFor ->
-        statusHandler.callCount > 0
-
-      runs ->
-        expect(Task.prototype.start.callCount).toBe 2
