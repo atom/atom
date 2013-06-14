@@ -27,6 +27,8 @@ class AutocompleteView extends SelectList
         @span match.word
 
   handleEvents: ->
+    @on 'mousewheel', (event) -> event.stopPropagation()
+
     @editor.on 'editor:path-changed', => @setCurrentBuffer(@editor.getBuffer())
     @editor.command 'autocomplete:attach', => @attach()
     @editor.command 'autocomplete:next', => @selectNextItem()
