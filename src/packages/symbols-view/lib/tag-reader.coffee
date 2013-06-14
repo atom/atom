@@ -1,10 +1,11 @@
 fsUtils = require 'fs-utils'
 $ = require 'jquery'
-LoadTagsTask = require './load-tags-task'
+Task = require 'task'
 ctags = require 'ctags'
 
-module.exports =
+handlerPath = require.resolve('./load-tags-handler')
 
+module.exports =
 getTagsFile: (project) ->
   tagsFile = project.resolve("tags") or project.resolve("TAGS")
   return tagsFile if fsUtils.isFileSync(tagsFile)
@@ -20,7 +21,10 @@ find: (editor) ->
 
 getAllTags: (project, callback) ->
   deferred = $.Deferred()
-  callback = (tags=[]) =>
+
+  task = new Task(handlerPath)
+  task.start project.getPath(), (tags) ->
     deferred.resolve(tags)
-  new LoadTagsTask(callback).start()
+    task.terminate()
+
   deferred.promise()
