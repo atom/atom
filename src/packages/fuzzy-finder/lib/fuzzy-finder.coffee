@@ -23,10 +23,13 @@ module.exports =
       editSession.lastOpened = state[editSession.getPath()]
 
   deactivate: ->
-    @loadPathsTask?.terminate()
-    @loadPathsTask = null
-    @fuzzyFinderView?.cancel()
-    @fuzzyFinderView = null
+    if @loadPathsTask?
+      @loadPathsTask.terminate()
+      @loadPathsTask = null
+    if @fuzzyFinderView?
+      @fuzzyFinderView.cancel()
+      @fuzzyFinderView.remove()
+      @fuzzyFinderView = null
     @projectPaths = null
 
   serialize: ->
