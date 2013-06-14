@@ -5,7 +5,7 @@ $ = require 'jquery'
 humanize = require 'humanize-plus'
 fsUtils = require 'fs-utils'
 path = require 'path'
-LoadPathsTask = require './load-paths-task'
+PathLoader = require './path-loader'
 Point = require 'point'
 
 module.exports =
@@ -217,7 +217,7 @@ class FuzzyFinderView extends SelectList
 
     if @reloadProjectPaths
       @loadPathsTask?.terminate()
-      @loadPathsTask = LoadPathsTask.once (paths) =>
+      @loadPathsTask = PathLoader.startTask (paths) =>
         @projectPaths = paths
         @reloadProjectPaths = false
         @populateProjectPaths(options)

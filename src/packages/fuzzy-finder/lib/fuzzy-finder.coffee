@@ -16,8 +16,8 @@ module.exports =
       @createView().toggleGitFinder()
 
     if project.getPath()?
-      LoadPathsTask = require './load-paths-task'
-      @loadPathsTask = LoadPathsTask.once (paths) => @projectPaths = paths
+      PathLoader = require './path-loader'
+      @loadPathsTask = PathLoader.startTask (paths) => @projectPaths = paths
 
     for editSession in project.getEditSessions()
       editSession.lastOpened = state[editSession.getPath()]

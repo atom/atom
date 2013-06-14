@@ -1,8 +1,7 @@
 Task = require 'task'
 
 module.exports =
-class LoadPathsTask
-  @once: (callback) ->
+  startTask: (callback) ->
     projectPaths = []
     taskPath = require.resolve('./load-paths-handler')
     ignoredNames = config.get('fuzzyFinder.ignoredNames') ? []
