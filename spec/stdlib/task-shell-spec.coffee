@@ -7,15 +7,13 @@ describe "Task shell", ->
         spyOn(console, 'log')
         spyOn(console, 'error')
         spyOn(console, 'warn')
-        class JQueryTask extends Task
-          constructor: -> super('fixtures/jquery-task-handler.coffee')
-          started: -> @callWorkerMethod('load')
-          loaded: (@jqueryLoaded) ->
 
         task = new JQueryTask()
         task.start()
+
         waitsFor "child process to start and jquery to be required", 5000, ->
           task.jqueryLoaded
+
         runs ->
           expect(task.jqueryLoaded).toBeTruthy()
           expect(console.log).not.toHaveBeenCalled()
