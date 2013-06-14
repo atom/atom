@@ -30,6 +30,8 @@ class Task
       @trigger(event, args...)
 
   start: (args...) ->
+    throw new Error("Cannot start terminated process") unless @childProcess?
+
     @handleEvents()
     @callback = args.pop()
     @childProcess.send({args})
