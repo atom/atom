@@ -113,7 +113,7 @@ class AtomApplication
 
     if @dev
       menus.push
-        label: '\uD83D\uDC80'
+        label: '\uD83D\uDC80' # Skull emoji
         submenu: [ { label: 'In Development Mode', enabled: false } ]
 
     menus.push
