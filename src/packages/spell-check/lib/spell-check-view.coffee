@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
 _ = require 'underscore'
-SpellCheckTask = require './spell-check-task'
+Task = require 'task'
 MisspellingView = require './misspelling-view'
 
 module.exports =
@@ -8,6 +8,7 @@ class SpellCheckView extends View
   @content: ->
     @div class: 'spell-check'
 
+  task: null
   views: []
 
   initialize: (@editor) ->
@@ -21,10 +22,10 @@ class SpellCheckView extends View
 
   beforeRemove: ->
     @unsubscribeFromBuffer()
+    @task?.terminate
 
   unsubscribeFromBuffer: ->
     @destroyViews()
-    @task?.abort()
 
     if @buffer?
       @buffer.off 'contents-modified', @updateMisspellings
@@ -54,6 +55,6 @@ class SpellCheckView extends View
       @append(view)
 
   updateMisspellings: =>
-    @task.start buffer.getText(), (misspellings) =>
+    @task.start @buffer.getText(), (misspellings) =>
       @destroyViews()
       @addViews(misspellings)

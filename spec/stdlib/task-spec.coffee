@@ -1,12 +1,12 @@
 Task = require 'task'
 
-fdescribe "Task", ->
+describe "Task", ->
   describe "populating the window with fake properties", ->
     describe "when jQuery is loaded in a child process", ->
       it "doesn't log to the console", ->
-        spyOn(console, 'log').andCallThrough()
-        spyOn(console, 'error').andCallThrough()
-        spyOn(console, 'warn').andCallThrough()
+        spyOn(console, 'log')
+        spyOn(console, 'error')
+        spyOn(console, 'warn')
 
         jqueryTask = new Task('fixtures/jquery-task-handler.coffee')
         jqueryLoaded = false
