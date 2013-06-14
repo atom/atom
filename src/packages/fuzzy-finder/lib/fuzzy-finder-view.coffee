@@ -239,7 +239,7 @@ class FuzzyFinderView extends SelectList
 
     @setArray(_.uniq(@paths))
 
-  afterRemove: ->
+  beforeRemove: ->
     @loadPathsTask?.terminate()
 
   attach: ->
