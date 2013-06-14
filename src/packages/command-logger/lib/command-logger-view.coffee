@@ -1,6 +1,7 @@
 {$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
 _ = require 'underscore'
+humanize = require 'humanize-plus'
 
 module.exports =
 class CommandLoggerView extends ScrollView
@@ -77,7 +78,10 @@ class CommandLoggerView extends ScrollView
       else
         previous + 1
     commandCount = node.children.reduce(reduceCommandCount, 0)
-    @categorySummary.text("#{_.pluralize(commandCount, 'command')}, #{_.pluralize(runCount, 'invocation')}")
+
+    commandText = "#{humanize.intcomma(commandCount)} #{humanize.pluralize(commandCount, 'command')}"
+    invocationText = "#{humanize.intcomma(runCount)} #{humanize.pluralize(runCount, 'invocation')}"
+    @categorySummary.text("#{commandText}, #{invocationText}")
 
   updateTreeMapSize: ->
     @treeMap.width(@width() - 20)
