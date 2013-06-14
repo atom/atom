@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+$ = require 'jquery'
 _ = require 'underscore'
 Package = require 'package'
 Theme = require 'theme'
@@ -204,6 +205,7 @@ window.atom =
 
   focus: ->
     remote.getCurrentWindow().focus()
+    $(window).focus()
 
   show: ->
     remote.getCurrentWindow().show()
