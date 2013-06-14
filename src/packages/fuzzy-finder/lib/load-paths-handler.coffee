@@ -6,12 +6,14 @@ Git = require 'git'
 class PathLoader
   asyncCallsInProgress: 0
   pathsChunkSize: 100
-  paths: []
+  paths: null
   repo: null
   rootPath: null
   ignoredNames: null
+  callback: null
 
-  constructor: (@rootPath, ignoreVcsIgnores=false, @ignoredNames=[]) ->
+  constructor: (@rootPath, ignoreVcsIgnores=false, @ignoredNames=[], @callback) ->
+    @paths = []
     @repo = Git.open(@rootPath, refreshOnWindowFocus: false) if ignoreVcsIgnores
     @ignoredNames.sort()
 
@@ -24,13 +26,13 @@ class PathLoader
   asyncCallDone: ->
     if --@asyncCallsInProgress is 0
       @repo?.destroy()
-      callTaskMethod('pathsLoaded', @paths)
-      callTaskMethod('pathLoadingComplete')
+      emit('load-paths:paths-found', @paths)
+      @callback()
 
   pathLoaded: (path) ->
     @paths.push(path) unless @isIgnored(path)
     if @paths.length is @pathsChunkSize
-      callTaskMethod('pathsLoaded', @paths)
+      emit('load-paths:paths-found', @paths)
       @paths = []
 
   loadPath: (path) ->
@@ -58,7 +60,7 @@ class PathLoader
   load: ->
     @loadFolder(@rootPath)
 
-module.exports =
-  loadPaths: (rootPath, ignoreVcsIgnores, ignoredNames) ->
-    pathLoader = new PathLoader(rootPath, ignoreVcsIgnores, ignoredNames)
-    pathLoader.load()
+module.exports = (rootPath, ignoreVcsIgnores, ignoredNames) ->
+  callback = @async()
+  pathLoader = new PathLoader(rootPath, ignoreVcsIgnores, ignoredNames, callback)
+  pathLoader.load()

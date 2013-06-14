@@ -16,15 +16,14 @@ module.exports =
       @createView().toggleGitFinder()
 
     if project.getPath()?
-      LoadPathsTask = require 'fuzzy-finder/lib/load-paths-task'
-      @loadPathsTask = new LoadPathsTask((paths) => @projectPaths = paths)
-      @loadPathsTask.start()
+      LoadPathsTask = require './load-paths-task'
+      @loadPathsTask = LoadPathsTask.once (paths) => @projectPaths = paths
 
     for editSession in project.getEditSessions()
       editSession.lastOpened = state[editSession.getPath()]
 
   deactivate: ->
-    @loadPathsTask?.abort()
+    @loadPathsTask?.terminate()
     @loadPathsTask = null
     @fuzzyFinderView?.cancel()
     @fuzzyFinderView = null
@@ -40,10 +39,7 @@ module.exports =
 
   createView:  ->
     unless @fuzzyFinderView
-      @loadPathsTask?.abort()
+      @loadPathsTask?.terminate()
       FuzzyFinderView  = require './fuzzy-finder-view'
-      @fuzzyFinderView = new FuzzyFinderView()
-      if @projectPaths?.length > 0 and not @fuzzyFinderView.projectPaths?
-        @fuzzyFinderView.projectPaths = @projectPaths
-        @fuzzyFinderView.reloadProjectPaths = false
+      @fuzzyFinderView = new FuzzyFinderView(@projectPaths)
     @fuzzyFinderView

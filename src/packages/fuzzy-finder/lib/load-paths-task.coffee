@@ -1,21 +1,18 @@
 Task = require 'task'
 
 module.exports =
-class LoadPathsTask extends Task
-  constructor: (@callback) ->
-    super(require.resolve('./load-paths-handler'))
-
-  started: ->
-    @paths = []
+class LoadPathsTask
+  @once: (callback) ->
+    projectPaths = []
+    taskPath = require.resolve('./load-paths-handler')
     ignoredNames = config.get('fuzzyFinder.ignoredNames') ? []
     ignoredNames = ignoredNames.concat(config.get('core.ignoredNames') ? [])
     ignoreVcsIgnores = config.get('core.excludeVcsIgnoredPaths')
-    @callWorkerMethod('loadPaths', project.getPath(), ignoreVcsIgnores, ignoredNames)
 
-  pathsLoaded: (paths) ->
-    @paths.push(paths...)
-    @trigger 'paths-loaded', @paths
+    task = Task.once taskPath, project.getPath(), ignoreVcsIgnores, ignoredNames, ->
+      callback(projectPaths)
 
-  pathLoadingComplete: ->
-    @callback(@paths)
-    @done()
+    task.on 'load-paths:paths-found', (paths) =>
+      projectPaths.push(paths...)
+
+    task

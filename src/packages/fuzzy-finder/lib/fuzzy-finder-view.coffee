@@ -22,8 +22,10 @@ class FuzzyFinderView extends SelectList
   reloadProjectPaths: true
   filterKey: 'projectRelativePath'
 
-  initialize: ->
+  initialize: (@projectPaths)->
     super
+
+    @reloadProjectPaths = false if @projectPaths?.length > 0
 
     @subscribe $(window), 'focus', => @reloadProjectPaths = true
     @observeConfig 'fuzzy-finder.ignoredNames', => @reloadProjectPaths = true
@@ -214,15 +216,13 @@ class FuzzyFinderView extends SelectList
       @loadingBadge.text("")
 
     if @reloadProjectPaths
-      @loadPathsTask?.abort()
-      callback = (paths) =>
+      @loadPathsTask?.terminate()
+      @loadPathsTask = LoadPathsTask.once (paths) =>
         @projectPaths = paths
         @reloadProjectPaths = false
         @populateProjectPaths(options)
-      @loadPathsTask = new LoadPathsTask(callback)
-      @loadPathsTask.on 'paths-loaded', (paths) =>
+      @loadPathsTask.on 'load-paths:paths-loaded', (paths) =>
         @loadingBadge.text(humanize.intcomma(paths.length))
-      @loadPathsTask.start()
 
   populateOpenBufferPaths: ->
     editSessions = project.getEditSessions().filter (editSession) ->
@@ -239,10 +239,8 @@ class FuzzyFinderView extends SelectList
 
     @setArray(_.uniq(@paths))
 
-  detach: ->
-    super
-
-    @loadPathsTask?.abort()
+  afterRemove: ->
+    @loadPathsTask?.terminate()
 
   attach: ->
     super

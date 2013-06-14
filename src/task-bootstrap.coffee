@@ -29,8 +29,13 @@ setupGlobals = ->
 handleEvents = ->
   process.on 'uncaughtException', (error) -> console.error(error.message)
   process.on 'message', ({args}) ->
-    result = handler(args...)
-    emit('task:completed', result)
+    isAsync = false
+    async = ->
+      isAsync = true
+      (result) ->
+        emit('task:completed', result)
+    result = handler.bind({async})(args...)
+    emit('task:completed', result) unless isAsync
 
 setupGlobals()
 handleEvents()

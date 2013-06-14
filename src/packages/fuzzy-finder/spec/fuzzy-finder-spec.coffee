@@ -55,6 +55,7 @@ describe 'FuzzyFinder', ->
               true
 
           runs ->
+            expect(paths.length).toBeGreaterThan 0
             expect(finderView.list.children('li').length).toBe paths.length
             for filePath in paths
               expect(finderView.list.find("li:contains(#{path.basename(filePath)})")).toExist()
@@ -301,15 +302,15 @@ describe 'FuzzyFinder', ->
 
   describe "cached file paths", ->
     it "caches file paths after first time", ->
-      spyOn(LoadPathsTask.prototype, "start").andCallThrough()
+      spyOn(LoadPathsTask, "once").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(finderView.loadPathsTask.start).toHaveBeenCalled()
-        finderView.loadPathsTask.start.reset()
+        expect(LoadPathsTask.once).toHaveBeenCalled()
+        LoadPathsTask.once.reset()
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
@@ -317,7 +318,7 @@ describe 'FuzzyFinder', ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(finderView.loadPathsTask.start).not.toHaveBeenCalled()
+        expect(LoadPathsTask.once).not.toHaveBeenCalled()
 
     it "doesn't cache buffer paths", ->
       spyOn(project, "getEditSessions").andCallThrough()
@@ -339,19 +340,19 @@ describe 'FuzzyFinder', ->
         expect(project.getEditSessions).toHaveBeenCalled()
 
     it "busts the cache when the window gains focus", ->
-      spyOn(LoadPathsTask.prototype, "start").andCallThrough()
+      spyOn(LoadPathsTask, "once").andCallThrough()
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       waitsFor ->
         finderView.list.children('li').length > 0
 
       runs ->
-        expect(finderView.loadPathsTask.start).toHaveBeenCalled()
-        finderView.loadPathsTask.start.reset()
+        expect(LoadPathsTask.once).toHaveBeenCalled()
+        LoadPathsTask.once.reset()
         $(window).trigger 'focus'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
-        expect(finderView.loadPathsTask.start).toHaveBeenCalled()
+        expect(LoadPathsTask.once).toHaveBeenCalled()
 
   describe "path ignoring", ->
     it "ignores paths that match entries in config.fuzzyFinder.ignoredNames", ->

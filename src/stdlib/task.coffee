@@ -4,6 +4,12 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class Task
+  @once: (taskPath, args...) ->
+    task = new Task(taskPath)
+    task.one 'task:completed', -> task.terminate()
+    task.start(args...)
+    task
+
   callback: null
 
   constructor: (taskPath) ->
@@ -12,7 +18,9 @@ class Task
       require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache');
       require('task-bootstrap');
     """
+
     taskPath = require.resolve(taskPath)
+
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
     args = [bootstrap, '--harmony_collections']
     @childProcess = child_process.fork '--eval', args, {env, cwd: __dirname}
@@ -20,7 +28,7 @@ class Task
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
     @on "task:error", -> console.error(arguments...)
-    @on "task:completed", (args...) => @callback(args...)
+    @on "task:completed", (args...) => @callback?(args...)
 
     @handleEvents()
 
@@ -33,7 +41,7 @@ class Task
     throw new Error("Cannot start terminated process") unless @childProcess?
 
     @handleEvents()
-    @callback = args.pop()
+    @callback = args.pop() if _.isFunction(args[args.length - 1])
     @childProcess.send({args})
 
   terminate: ->
