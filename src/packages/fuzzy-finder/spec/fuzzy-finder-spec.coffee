@@ -7,7 +7,7 @@ $ = require 'jquery'
 fsUtils = require 'fs-utils'
 path = require 'path'
 
-describe 'FuzzyFinder', ->
+fdescribe 'FuzzyFinder', ->
   [finderView] = []
 
   beforeEach ->

@@ -46,7 +46,6 @@ class AtomApplication
     @windows = []
 
     @listenForArgumentsFromNewProcess()
-    @setupNodePath()
     @setupJavaScriptArguments()
     @buildApplicationMenu()
     @handleEvents()
@@ -68,29 +67,6 @@ class AtomApplication
 
   addWindow: (window) ->
     @windows.push window
-
-  getHomeDir: ->
-    process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
-
-  setupNodePath: ->
-    resourcePaths = [
-      'src/stdlib'
-      'src/app'
-      'src/packages'
-      'src'
-      'vendor'
-      'static'
-      'node_modules'
-      'spec'
-      ''
-    ]
-
-    resourcePaths.push path.join(@getHomeDir(), '.atom', 'packages')
-
-    resourcePaths = resourcePaths.map (relativeOrAbsolutePath) =>
-      path.resolve @resourcePath, relativeOrAbsolutePath
-
-    process.env['NODE_PATH'] = resourcePaths.join path.delimiter
 
   listenForArgumentsFromNewProcess: ->
     fs.unlinkSync socketPath if fs.existsSync(socketPath)

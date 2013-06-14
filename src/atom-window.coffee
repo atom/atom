@@ -11,6 +11,7 @@ class AtomWindow
   constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec}) ->
     global.atomApplication.addWindow(this)
 
+    @setupNodePath(resourcePath)
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents()
 
@@ -23,6 +24,26 @@ class AtomWindow
     @browserWindow.loadUrl "file://#{resourcePath}/static/index.html"
 
     @openPath(pathToOpen)
+
+  setupNodePath: (resourcePath) ->
+    paths = [
+      'src/stdlib'
+      'src/app'
+      'src/packages'
+      'src'
+      'vendor'
+      'static'
+      'node_modules'
+      'spec'
+      ''
+    ]
+
+    paths.push path.join(global.homeDir, '.atom', 'packages')
+
+    paths = paths.map (relativeOrAbsolutePath) ->
+      path.resolve resourcePath, relativeOrAbsolutePath
+
+    process.env['NODE_PATH'] = paths.join path.delimiter
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
