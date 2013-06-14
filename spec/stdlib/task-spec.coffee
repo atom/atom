@@ -20,3 +20,23 @@ describe "Task", ->
           expect(console.log).not.toHaveBeenCalled()
           expect(console.error).not.toHaveBeenCalled()
           expect(console.warn).not.toHaveBeenCalled()
+
+  describe "@once(taskPath, args..., callback)", ->
+    it "terminates the process after it completes", ->
+      handlerResult = null
+      task = Task.once 'fixtures/task-spec-handler', (result) ->
+        handlerResult = result
+
+      processClosed = false
+      processErrored = false
+      childProcess = task.childProcess
+      spyOn(childProcess, 'kill').andCallThrough()
+      task.childProcess.on 'error', -> processErrored = true
+
+      waitsFor ->
+        handlerResult?
+
+      runs ->
+        expect(handlerResult).toBe 'hello'
+        expect(childProcess.kill).toHaveBeenCalled()
+        expect(processErrored).toBe false
