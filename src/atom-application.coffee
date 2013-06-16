@@ -55,7 +55,7 @@ class AtomApplication
       @checkForUpdates()
 
     if test
-      @runSpecs(true)
+      @runSpecs(true, @resourcePath)
     else if pathsToOpen.length > 0
       @openPaths(pathsToOpen, pidToKillWhenClosed, newWindow)
     else
@@ -98,7 +98,12 @@ class AtomApplication
         { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
         { label: 'Show All', selector: 'unhideAllApplications:' }
         { type: 'separator' }
-        { label: 'Run Specs', accelerator: 'Command+MacCtrl+Alt+S', click: => @runSpecs() }
+        {
+          label: 'Run Specs'
+          accelerator: 'Command+MacCtrl+Alt+S'
+          click: =>
+            @runSpecs(false, path.join(global.homeDir, 'github', 'atom'))
+        }
         { type: 'separator' }
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
@@ -235,12 +240,10 @@ class AtomApplication
     @configWindow.browserWindow.on 'destroyed', =>
       @configWindow = null
 
-  runSpecs: (exitWhenDone) ->
-    specWindow = new AtomWindow
-      bootstrapScript: 'spec-bootstrap'
-      resourcePath: path.join(global.homeDir, 'github', 'atom')
-      exitWhenDone: exitWhenDone
-      isSpec: true
+  runSpecs: (exitWhenDone, resourcePath) ->
+    bootstrapScript = 'spec-bootstrap'
+    isSpec = true
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec})
 
   promptForPath: ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']

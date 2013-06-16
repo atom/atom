@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 Editor = require 'editor'
 
-describe "WrapGuide", ->
+fdescribe "WrapGuide", ->
   [editor, wrapGuide] = []
 
   beforeEach ->
