@@ -2,7 +2,6 @@
 fs = require 'fs'
 path = require 'path'
 _ = require 'underscore'
-CSON = require 'season'
 
 BUILD_DIR = '/tmp/atom-build/atom-shell'
 APP_NAME = 'Atom.app'
@@ -94,6 +93,8 @@ module.exports = (grunt) ->
         ext: '.css'
 
     cson:
+      options:
+        rootObject: true
       glob_to_multiple:
         expand: true
         src: [
@@ -154,25 +155,10 @@ module.exports = (grunt) ->
 
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
+  grunt.loadNpmTasks('grunt-cson')
   grunt.loadNpmTasks('grunt-contrib-csslint')
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
-
-  grunt.registerMultiTask 'cson', 'Compile CSON files to JSON', ->
-    for mapping in @files
-      source = mapping.src[0]
-      destination = mapping.dest
-      try
-        object = CSON.readFileSync(source)
-        if !_.isObject(object) or _.isArray(object)
-          grunt.log.error("#{source} does not contain a root object")
-          return false
-        mkdir path.dirname(destination)
-        CSON.writeFileSync(destination, object)
-        grunt.log.writeln("File #{destination.cyan} created.")
-      catch e
-        grunt.log.error("Parsing #{source} failed: #{e.message}")
-        return false
 
   grunt.registerTask 'postbuild', 'Run postbuild scripts', ->
     done = @async()
