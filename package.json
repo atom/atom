@@ -72,7 +72,7 @@
     "grunt-cli": "~0.1.9",
     "grunt-coffeelint": "0.0.6",
     "grunt-lesslint": "0.4.0",
-    "grunt-cson": "0.2.0",
+    "grunt-cson": "0.3.0",
     "grunt-contrib-csslint": "~0.1.2",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-less": "~0.5.2"
