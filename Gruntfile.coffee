@@ -160,35 +160,6 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
 
-  grunt.registerTask 'postbuild', 'Run postbuild scripts', ->
-    done = @async()
-
-    exec 'git', ['rev-parse', '--short', 'HEAD'], (error, version) ->
-      if error?
-        done(false)
-      else
-        version = version.trim()
-        grunt.file.write(path.resolve(APP_DIR, '..', 'version'), version)
-
-        commands = []
-        commands.push (callback) ->
-          args = [
-            version
-            'resources/mac/app-Info.plist'
-            'Atom.app/Contents/Info.plist'
-          ]
-          exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
-
-        commands.push (result, callback) ->
-          args = [
-            version
-            'resources/mac/helper-Info.plist'
-            'Atom.app/Contents/Frameworks/Atom Helper.app/Contents/Info.plist'
-          ]
-          exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
-
-        grunt.util.async.waterfall commands, (error) -> done(!error?)
-
   grunt.registerTask 'clean', 'Delete all build files', ->
     rm BUILD_DIR
     rm '/tmp/atom-coffee-cache'
@@ -226,7 +197,37 @@ module.exports = (grunt) ->
       unless /.+\.plist/.test(sourcePath)
         grunt.file.copy(sourcePath, path.resolve(APP_DIR, '..', subDirectory, filename))
 
-    grunt.task.run('compile', 'postbuild')
+    grunt.task.run('compile', 'update-version', 'codesign')
+
+  grunt.registerTask 'update-version', 'Set version to current sha', ->
+    done = @async()
+
+    exec 'git', ['rev-parse', '--short', 'HEAD'], (error, version) ->
+      if error?
+        done(false)
+      else
+        version = version.trim()
+        grunt.file.write(path.resolve(APP_DIR, '..', 'version'), version)
+
+        commands = []
+        commands.push (callback) ->
+          args = [
+            version
+            'resources/mac/app-Info.plist'
+            'Atom.app/Contents/Info.plist'
+          ]
+          exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
+
+        commands.push (result, callback) ->
+          args = [
+            version
+            'resources/mac/helper-Info.plist'
+            'Atom.app/Contents/Frameworks/Atom Helper.app/Contents/Info.plist'
+          ]
+          exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
+
+        grunt.util.async.waterfall commands, (error) -> done(!error?)
+
 
   grunt.registerTask 'install', 'Install the built application', ->
     rm INSTALL_DIR
