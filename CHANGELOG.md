@@ -1,3 +1,4 @@
+* Fixed: Java files not syntax highlighting correctly.
 * Fixed: LESS/CSS now indents properly after hitting enter.
 * Added: Support for browsing .tar.gz and .zip files in the editor
 * Added: TODO/FIXME/CHANGED are now highlighted in comments.

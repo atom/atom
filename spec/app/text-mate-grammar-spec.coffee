@@ -489,7 +489,7 @@ describe "TextMateGrammar", ->
           expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
 
     describe "when the position doesn't advance and rule includes $self and matches itself", ->
-      it "token the entire line using the rule", ->
+      it "tokenizes the entire line using the rule", ->
         grammar = new TextMateGrammar
           name: "test"
           scopeName: "source"
@@ -615,18 +615,25 @@ describe "TextMateGrammar", ->
       beforeEach ->
         atom.activatePackage('java-tmbundle', sync: true)
         grammar = syntax.selectGrammar('Function.java')
+
+      it "correctly parses single line comments", ->
         lines = grammar.tokenizeLines """
           public void test() {
           //comment
           }
         """
 
-      it "correctly parses single line comments", ->
         tokens = lines[1]
         expect(tokens[0].scopes).toEqual ["source.java", "comment.line.double-slash.java", "punctuation.definition.comment.java"]
         expect(tokens[0].value).toEqual '//'
         expect(tokens[1].scopes).toEqual ["source.java", "comment.line.double-slash.java"]
         expect(tokens[1].value).toEqual 'comment'
+
+      it "correctly parses nested method calls", ->
+        tokens = grammar.tokenizeLines('a(b(new Object[0]));')[0]
+        lastToken = _.last(tokens)
+        expect(lastToken.scopes).toEqual ['source.java', 'punctuation.terminator.java']
+        expect(lastToken.value).toEqual ';'
 
     describe "HTML (Ruby - ERB)", ->
       beforeEach ->
