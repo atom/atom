@@ -255,4 +255,4 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
-  grunt.registerTask('default', ['lint', 'build'])
+  grunt.registerTask('default', 'build')
