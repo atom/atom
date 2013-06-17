@@ -228,6 +228,10 @@ module.exports = (grunt) ->
 
         grunt.util.async.waterfall commands, (error) -> done(!error?)
 
+  grunt.registerTask 'codesign', 'Codesign the app', ->
+    done = @async()
+    args = ["-f", "-v", "-s", "Developer ID Application: GitHub", "#{path.join(BUILD_DIR, APP_NAME)}"]
+    exec "codesign", args, (error) -> done(!error?)
 
   grunt.registerTask 'install', 'Install the built application', ->
     rm INSTALL_DIR
