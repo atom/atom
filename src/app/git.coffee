@@ -155,7 +155,7 @@ class Git
   # Retrieves a shortened version of the HEAD reference value.
   #
   # This removes the leading segments of `refs/heads`, `refs/tags`, or `refs/remotes`.
-  # It also shortenes the SHA-1 of a detached `HEAD` to 7 characters.
+  # It also shortens the SHA-1 of a detached `HEAD` to 7 characters.
   #
   # Returns a {String}.
   getShortHead: -> @getRepo().getShortHead()
