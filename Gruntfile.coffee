@@ -223,7 +223,7 @@ module.exports = (grunt) ->
     cp 'static', path.join(APP_DIR, 'static'), filter: /.+\.less$/
     cp 'themes', path.join(APP_DIR, 'themes'), filter: /.+\.(cson|less)$/
 
-    grunt.file.recurse path.join('resources/mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
+    grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
       unless /.+\.plist/.test(sourcePath)
         grunt.file.copy(sourcePath, path.resolve(APP_DIR, '..', subDirectory, filename))
 
