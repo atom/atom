@@ -154,12 +154,12 @@ module.exports = (grunt) ->
   grunt.registerTask 'update-info-plist', 'Copy plist and set version to current sha', ->
     done = @async()
     grunt.util.spawn cmd: 'script/update-info-plist', args: [BUILD_DIR], (error, result, code) ->
-      done(!error?)
+      done(error)
 
   grunt.registerTask 'codesign', 'Codesign the app', ->
     done = @async()
     args = ["-f", "-v", "-s", "Developer ID Application: GitHub", SHELL_APP_DIR]
-    grunt.util.spawn cmd: "codesign", args: args, (error) -> done(!error?)
+    grunt.util.spawn cmd: "codesign", args: args, (error) -> done(error)
 
   grunt.registerTask 'install', 'Install the built application', ->
     rm INSTALL_DIR
@@ -173,7 +173,7 @@ module.exports = (grunt) ->
       grunt.util.spawn cmd: 'script/bootstrap', callback
     commands.push (result, callback) ->
       grunt.util.spawn cmd: 'script/update-atom-shell', callback
-    grunt.util.async.waterfall commands, (error) -> done(!error?)
+    grunt.util.async.waterfall commands, (error) -> done(error)
 
   grunt.registerTask 'test', 'Run the specs', ->
     done = @async()
@@ -183,7 +183,7 @@ module.exports = (grunt) ->
     commands.push (result, callback) ->
       atomBinary = path.join(CONTENTS_DIR, 'MacOS', 'Atom')
       grunt.util.spawn cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], callback
-    grunt.util.async.waterfall commands, (error) -> done(!error?)
+    grunt.util.async.waterfall commands, (error) -> done(error)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
@@ -210,6 +210,8 @@ module.exports = (grunt) ->
 
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 
-  mkdir = (args...) -> grunt.file.mkdir(args...)
+  mkdir = (args...) ->
+    grunt.file.mkdir(args...)
+
   rm = (args...) ->
     grunt.file.delete(args..., force: true) if grunt.file.exists(args...)
