@@ -244,7 +244,9 @@ class DisplayBuffer
     { row, column } = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
-      screenLine = @screenLines[screenRow]
+      unless screenLine = @screenLines[screenRow]
+        throw new Error("No screen line exists for screen row #{screenRow}, converted from buffer position (#{row}, #{column})")
+
       maxBufferColumn = screenLine.getMaxBufferColumn()
       if screenLine.isSoftWrapped() and column > maxBufferColumn
         continue
