@@ -149,36 +149,12 @@ module.exports = (grunt) ->
       unless /.+\.plist/.test(sourcePath)
         grunt.file.copy(sourcePath, path.resolve(APP_DIR, '..', subDirectory, filename))
 
-    grunt.task.run('compile', 'copy-info-plist', 'codesign')
+    grunt.task.run('compile', 'update-info-plist', 'codesign')
 
-  grunt.registerTask 'copy-info-plist', 'Copy plist and set version to current sha', ->
+  grunt.registerTask 'update-info-plist', 'Copy plist and set version to current sha', ->
     done = @async()
-
-    exec 'git', ['rev-parse', '--short', 'HEAD'], (error, version) ->
-      if error?
-        done(false)
-      else
-        version = version.trim()
-        grunt.file.write(path.resolve(APP_DIR, '..', 'version'), version)
-
-        commands = []
-        commands.push (callback) ->
-          args = [
-            version
-            'resources/mac/atom-Info.plist'
-            'Atom.app/Contents/Info.plist'
-          ]
-          exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
-
-        commands.push (result, callback) ->
-          args = [
-            version
-            'resources/mac/helper-Info.plist'
-            'Atom.app/Contents/Frameworks/Atom Helper.app/Contents/Info.plist'
-          ]
-          exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
-
-        grunt.util.async.waterfall commands, (error) -> done(!error?)
+    grunt.util.spawn cmd: 'script/update-info-plist', args: [BUILD_DIR], (error, result, code) ->
+      done(!error?)
 
   grunt.registerTask 'codesign', 'Codesign the app', ->
     done = @async()
