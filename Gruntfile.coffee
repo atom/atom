@@ -135,6 +135,7 @@ module.exports = (grunt) ->
         'ids': false
         'important': false
         'known-properties': false
+        'outline-none': false
         'overqualified-elements': false
         'qualified-headings': false
         'unique-headings': false
