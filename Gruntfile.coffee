@@ -10,55 +10,6 @@ module.exports = (grunt) ->
   APP_DIR = path.join(CONTENTS_DIR, "Resources", "app")
   INSTALL_DIR = path.join('/Applications', APP_NAME)
 
-  exec = (command, args, options, callback) ->
-    if grunt.util._.isFunction(args)
-      options = args
-      args = []
-    if grunt.util._.isFunction(options)
-      callback = options
-      options = undefined
-
-    spawned = spawn(command, args, options)
-    stdoutChunks = []
-    spawned.stdout.on 'data', (data) -> stdoutChunks.push(data)
-    stderrChunks = []
-    spawned.stderr.on 'data', (data) -> stderrChunks.push(data)
-    spawned.on 'close', (code) ->
-      if code is 0 or options?.ignoreFailures
-        callback(null, Buffer.concat(stdoutChunks).toString())
-      else if stderrChunks.length > 0
-        error = Buffer.concat(stderrChunks).toString()
-        grunt.log.error(error)
-        callback(error)
-      else
-        error = "`#{command}` Failed with code: #{code}"
-        grunt.log.error(error)
-        callback(error)
-
-  cp = (source, destination, {filter}={}) ->
-    copyFile = (source, destination) ->
-      if grunt.file.isLink(source)
-        grunt.file.mkdir(path.dirname(destination))
-        fs.symlinkSync(fs.readlinkSync(source), destination)
-      else
-        grunt.file.copy(source, destination)
-
-      if grunt.file.exists(destination)
-        fs.chmodSync(destination, fs.statSync(source).mode)
-
-    if grunt.file.isDir(source)
-      grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
-        unless filter?.test(sourcePath)
-          copyFile(sourcePath, path.join(destination, subDirectory, filename))
-    else
-      copyFile(source, destination)
-
-    grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
-
-  mkdir = (args...) -> grunt.file.mkdir(args...)
-  rm = (args...) ->
-    grunt.file.delete(args..., force: true) if grunt.file.exists(args...)
-
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
@@ -198,9 +149,9 @@ module.exports = (grunt) ->
       unless /.+\.plist/.test(sourcePath)
         grunt.file.copy(sourcePath, path.resolve(APP_DIR, '..', subDirectory, filename))
 
-    grunt.task.run('compile', 'update-version', 'codesign')
+    grunt.task.run('compile', 'copy-info-plist', 'codesign')
 
-  grunt.registerTask 'update-version', 'Set version to current sha', ->
+  grunt.registerTask 'copy-info-plist', 'Copy plist and set version to current sha', ->
     done = @async()
 
     exec 'git', ['rev-parse', '--short', 'HEAD'], (error, version) ->
@@ -261,3 +212,52 @@ module.exports = (grunt) ->
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
   grunt.registerTask('default', ['build'])
+
+  exec = (command, args, options, callback) ->
+    if grunt.util._.isFunction(args)
+      options = args
+      args = []
+    if grunt.util._.isFunction(options)
+      callback = options
+      options = undefined
+
+    spawned = spawn(command, args, options)
+    stdoutChunks = []
+    spawned.stdout.on 'data', (data) -> stdoutChunks.push(data)
+    stderrChunks = []
+    spawned.stderr.on 'data', (data) -> stderrChunks.push(data)
+    spawned.on 'close', (code) ->
+      if code is 0 or options?.ignoreFailures
+        callback(null, Buffer.concat(stdoutChunks).toString())
+      else if stderrChunks.length > 0
+        error = Buffer.concat(stderrChunks).toString()
+        grunt.log.error(error)
+        callback(error)
+      else
+        error = "`#{command}` Failed with code: #{code}"
+        grunt.log.error(error)
+        callback(error)
+
+  cp = (source, destination, {filter}={}) ->
+    copyFile = (source, destination) ->
+      if grunt.file.isLink(source)
+        grunt.file.mkdir(path.dirname(destination))
+        fs.symlinkSync(fs.readlinkSync(source), destination)
+      else
+        grunt.file.copy(source, destination)
+
+      if grunt.file.exists(destination)
+        fs.chmodSync(destination, fs.statSync(source).mode)
+
+    if grunt.file.isDir(source)
+      grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
+        unless filter?.test(sourcePath)
+          copyFile(sourcePath, path.join(destination, subDirectory, filename))
+    else
+      copyFile(source, destination)
+
+    grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
+
+  mkdir = (args...) -> grunt.file.mkdir(args...)
+  rm = (args...) ->
+    grunt.file.delete(args..., force: true) if grunt.file.exists(args...)
