@@ -123,7 +123,7 @@ module.exports = (grunt) ->
     rm 'prebuilt-cef'
 
   grunt.registerTask 'build', 'Build the application', ->
-    rm BUILD_DIR
+    rm SHELL_APP_DIR
     mkdir path.dirname(BUILD_DIR)
     cp 'atom-shell/Atom.app', SHELL_APP_DIR
 
