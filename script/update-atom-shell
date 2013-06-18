@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. $(dirname $0)/lib/polite-curl
+
 cd "$(dirname "${BASH_SOURCE[0]}" )/.."
 
 TARGET=${1:-atom-shell}
@@ -20,7 +22,7 @@ if [[ ${LATEST_VERSION} != ${CURRENT_VERSION} ]]; then
   else
     echo "Downloading/extracting atom-shell ${LATEST_VERSION}..."
     mkdir -p $TEMP_DIR
-    curl "${DISTURL}/${LATEST_VERSION}/atom-shell.zip" > "${TEMP_DIR}/atom-shell.zip"
+    polite_curl "${DISTURL}/${LATEST_VERSION}/atom-shell.zip" > "${TEMP_DIR}/atom-shell.zip"
     unzip -q "${TEMP_DIR}/atom-shell.zip" -d "${TEMP_DIR}"
     rm "${TEMP_DIR}/atom-shell.zip"
   fi
