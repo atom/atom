@@ -159,7 +159,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'codesign', 'Codesign the app', ->
     done = @async()
     args = ["-f", "-v", "-s", "Developer ID Application: GitHub", SHELL_APP_DIR]
-    exec "codesign", args, (error) -> done(!error?)
+    grunt.util.spawn cmd: "codesign", args: args, (error) -> done(!error?)
 
   grunt.registerTask 'install', 'Install the built application', ->
     rm INSTALL_DIR
@@ -170,49 +170,25 @@ module.exports = (grunt) ->
     done = @async()
     commands = []
     commands.push (callback) ->
-      exec('script/bootstrap', callback)
+      grunt.util.spawn cmd: 'script/bootstrap', callback
     commands.push (result, callback) ->
-      exec('script/update-atom-shell', callback)
+      grunt.util.spawn cmd: 'script/update-atom-shell', callback
     grunt.util.async.waterfall commands, (error) -> done(!error?)
 
   grunt.registerTask 'test', 'Run the specs', ->
     done = @async()
     commands = []
     commands.push (callback) ->
-      exec('pkill', ['Atom'], ignoreFailures: true, callback)
+      grunt.util.spawn cmd: 'pkill', args: ['Atom'], -> callback()
     commands.push (result, callback) ->
-      exec(path.join(CONTENTS_DIR, 'MacOS', 'Atom'), ['--test', "--resource-path=#{__dirname}"], callback)
+      atomBinary = path.join(CONTENTS_DIR, 'MacOS', 'Atom')
+      grunt.util.spawn cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], callback
     grunt.util.async.waterfall commands, (error) -> done(!error?)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
   grunt.registerTask('default', ['build'])
-
-  exec = (command, args, options, callback) ->
-    if grunt.util._.isFunction(args)
-      options = args
-      args = []
-    if grunt.util._.isFunction(options)
-      callback = options
-      options = undefined
-
-    spawned = spawn(command, args, options)
-    stdoutChunks = []
-    spawned.stdout.on 'data', (data) -> stdoutChunks.push(data)
-    stderrChunks = []
-    spawned.stderr.on 'data', (data) -> stderrChunks.push(data)
-    spawned.on 'close', (code) ->
-      if code is 0 or options?.ignoreFailures
-        callback(null, Buffer.concat(stdoutChunks).toString())
-      else if stderrChunks.length > 0
-        error = Buffer.concat(stderrChunks).toString()
-        grunt.log.error(error)
-        callback(error)
-      else
-        error = "`#{command}` Failed with code: #{code}"
-        grunt.log.error(error)
-        callback(error)
 
   cp = (source, destination, {filter}={}) ->
     copyFile = (source, destination) ->
