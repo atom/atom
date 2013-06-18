@@ -1565,6 +1565,20 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
+      describe "when the indentation level on a line after an empty line is changed", ->
+        it "updates the indent guide on the empty line", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 1
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '  '
+
+          editor.setCursorBufferPosition([11])
+          editor.indentSelectedRows()
+
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
+
       describe "when a line contains only whitespace", ->
         it "displays an indent guide on the line", ->
           editor.attachToDom()
@@ -1577,6 +1591,16 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').length).toBe 2
           expect(editor.renderedLines.find('.line:eq(10) .indent-guide').text()).toBe '    '
 
+        it "uses the highest indent guide level from the next or previous non-empty line", ->
+          editor.attachToDom()
+          config.set("editor.showIndentGuide", true)
+
+          editor.setCursorBufferPosition([1, Infinity])
+          editor.insertNewline()
+          expect(editor.getCursorBufferPosition()).toEqual [2, 0]
+          expect(editor.renderedLines.find('.line:eq(2) .indent-guide').length).toBe 2
+          expect(editor.renderedLines.find('.line:eq(2) .indent-guide').text()).toBe '    '
+
       describe "when the line has leading and trailing whitespace", ->
         it "does not display the indent guide in the trailing whitespace", ->
           editor.attachToDom()
@@ -1587,7 +1611,7 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(1) .indent-guide')).toHaveClass('leading-whitespace')
 
       describe "when the line is empty and end of show invisibles are enabled", ->
-        it "renders the indent guides interleaved the end of line invisibles", ->
+        it "renders the indent guides interleaved with the end of line invisibles", ->
           editor.attachToDom()
           config.set("editor.showIndentGuide", true)
           config.set("editor.showInvisibles", true)

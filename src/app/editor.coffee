@@ -1185,21 +1185,34 @@ class Editor extends View
     @updateLayerDimensions()
     @updatePaddingOfRenderedLines()
 
+  computeSurroundingEmptyLineChanges: (change) ->
+    emptyLineChanges = []
+
+    if change.bufferDelta?
+      afterStart = change.end + change.bufferDelta + 1
+      if @lineForBufferRow(afterStart) is ''
+        afterEnd = afterStart
+        afterEnd++ while @lineForBufferRow(afterEnd + 1) is ''
+        emptyLineChanges.push({start: afterStart, end: afterEnd, screenDelta: 0})
+
+      beforeEnd = change.start - 1
+      if @lineForBufferRow(beforeEnd) is ''
+        beforeStart = beforeEnd
+        beforeStart-- while @lineForBufferRow(beforeStart - 1) is ''
+        emptyLineChanges.push({start: beforeStart, end: beforeEnd, screenDelta: 0})
+
+    emptyLineChanges
+
   computeIntactRanges: ->
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
 
     intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
 
     if not @mini and @showIndentGuide
-      trailingEmptyLineChanges = []
+      emptyLineChanges = []
       for change in @pendingChanges
-        continue unless change.bufferDelta?
-        start = change.end + change.bufferDelta + 1
-        continue unless @lineForBufferRow(start) is ''
-        end = start
-        end++ while @lineForBufferRow(end + 1) is ''
-        trailingEmptyLineChanges.push({start, end, screenDelta: 0})
-        @pendingChanges.push(trailingEmptyLineChanges...)
+        emptyLineChanges.push(@computeSurroundingEmptyLineChanges(change)...)
+      @pendingChanges.push(emptyLineChanges...)
 
     for change in @pendingChanges
       newIntactRanges = []
@@ -1355,15 +1368,31 @@ class Editor extends View
     Editor.buildLineHtml({tokens, text, lineEnding, fold, isSoftWrapped, invisibles, eolInvisibles, htmlEolInvisibles, attributes, @showIndentGuide, indentation, @activeEditSession, @mini})
 
   @buildIndentation: (screenRow, activeEditSession) ->
-    indentation = 0
-    while --screenRow >= 0
-      bufferRow = activeEditSession.bufferPositionForScreenPosition([screenRow]).row
-      bufferLine = activeEditSession.lineForBufferRow(bufferRow)
-      unless bufferLine is ''
-        indentation = Math.ceil(activeEditSession.indentLevelForLine(bufferLine))
-        break
+    bufferRow = activeEditSession.bufferPositionForScreenPosition([screenRow]).row
+    bufferLine = activeEditSession.lineForBufferRow(bufferRow)
+    if bufferLine is ''
+      indentation = 0
+      nextRow = screenRow + 1
+      while nextRow < activeEditSession.getBuffer().getLineCount()
+        bufferRow = activeEditSession.bufferPositionForScreenPosition([nextRow]).row
+        bufferLine = activeEditSession.lineForBufferRow(bufferRow)
+        if bufferLine isnt ''
+          indentation = Math.ceil(activeEditSession.indentLevelForLine(bufferLine))
+          break
+        nextRow++
 
-    indentation
+      previousRow = screenRow - 1
+      while previousRow >= 0
+        bufferRow = activeEditSession.bufferPositionForScreenPosition([previousRow]).row
+        bufferLine = activeEditSession.lineForBufferRow(bufferRow)
+        if bufferLine isnt ''
+          indentation = Math.max(indentation, Math.ceil(activeEditSession.indentLevelForLine(bufferLine)))
+          break
+        previousRow--
+
+      indentation
+    else
+      Math.ceil(activeEditSession.indentLevelForLine(bufferLine))
 
   buildHtmlEndOfLineInvisibles: (screenLine) ->
     invisibles = []
@@ -1571,9 +1600,8 @@ class Editor extends View
 
         return indentGuideHtml.join('')
 
-    invisibles = htmlEolInvisibles
-    if invisibles.length > 0
-      invisibles
+    if htmlEolInvisibles.length > 0
+      htmlEolInvisibles
     else
       '&nbsp;'
 
