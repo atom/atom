@@ -1,7 +1,6 @@
 {spawn} = require 'child_process'
 fs = require 'fs'
 path = require 'path'
-_ = require 'underscore'
 
 BUILD_DIR = '/tmp/atom-build/atom-shell'
 APP_NAME = 'Atom.app'
@@ -11,10 +10,10 @@ INSTALL_DIR = path.join('/Applications', APP_NAME)
 
 module.exports = (grunt) ->
   exec = (command, args, options, callback) ->
-    if _.isFunction(args)
+    if grunt.util._.isFunction(args)
       options = args
       args = []
-    if _.isFunction(options)
+    if grunt.util._.isFunction(options)
       callback = options
       options = undefined
 
