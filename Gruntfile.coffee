@@ -125,7 +125,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'build', 'Build the application', ->
     rm BUILD_DIR
     mkdir path.dirname(BUILD_DIR)
-    cp 'atom-shell/Atom.app', BUILD_DIR
+    cp 'atom-shell/Atom.app', SHELL_APP_DIR
 
     mkdir APP_DIR
 
