@@ -2,13 +2,14 @@
 fs = require 'fs'
 path = require 'path'
 
-BUILD_DIR = '/tmp/atom-build/atom-shell'
-APP_NAME = 'Atom.app'
-CONTENTS_DIR = path.join(BUILD_DIR, APP_NAME, 'Contents')
-APP_DIR = path.join(CONTENTS_DIR, 'Resources', 'app')
-INSTALL_DIR = path.join('/Applications', APP_NAME)
-
 module.exports = (grunt) ->
+  APP_NAME = "Atom.app"
+  BUILD_DIR = grunt.option('build-dir') ? "/tmp/atom-build/"
+  SHELL_APP_DIR = path.join(BUILD_DIR, APP_NAME)
+  CONTENTS_DIR = path.join(SHELL_APP_DIR, 'Contents')
+  APP_DIR = path.join(CONTENTS_DIR, "Resources", "app")
+  INSTALL_DIR = path.join('/Applications', APP_NAME)
+
   exec = (command, args, options, callback) ->
     if grunt.util._.isFunction(args)
       options = args
@@ -213,7 +214,7 @@ module.exports = (grunt) ->
         commands.push (callback) ->
           args = [
             version
-            'resources/mac/app-Info.plist'
+            'resources/mac/atom-Info.plist'
             'Atom.app/Contents/Info.plist'
           ]
           exec('script/generate-info-plist', args, env: {BUILT_PRODUCTS_DIR: BUILD_DIR}, callback)
@@ -230,13 +231,13 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'codesign', 'Codesign the app', ->
     done = @async()
-    args = ["-f", "-v", "-s", "Developer ID Application: GitHub", "#{path.join(BUILD_DIR, APP_NAME)}"]
+    args = ["-f", "-v", "-s", "Developer ID Application: GitHub", SHELL_APP_DIR]
     exec "codesign", args, (error) -> done(!error?)
 
   grunt.registerTask 'install', 'Install the built application', ->
     rm INSTALL_DIR
     mkdir path.dirname(INSTALL_DIR)
-    cp path.join(BUILD_DIR, APP_NAME), INSTALL_DIR
+    cp SHELL_APP_DIR, INSTALL_DIR
 
   grunt.registerTask 'bootstrap', 'Bootstrap modules and atom-shell', ->
     done = @async()
@@ -259,4 +260,4 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
-  grunt.registerTask('default', 'build')
+  grunt.registerTask('default', ['build'])
