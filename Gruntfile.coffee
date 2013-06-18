@@ -125,7 +125,8 @@ module.exports = (grunt) ->
   grunt.registerTask 'build', 'Build the application', ->
     rm SHELL_APP_DIR
     mkdir path.dirname(BUILD_DIR)
-    cp 'atom-shell', BUILD_DIR
+    console.log fs.realpathSync("atom-shell/Atom.app")
+    cp 'atom-shell/Atom.app', SHELL_APP_DIR
 
     mkdir APP_DIR
 
@@ -170,9 +171,9 @@ module.exports = (grunt) ->
     done = @async()
     commands = []
     commands.push (callback) ->
-      grunt.util.spawn cmd: 'script/bootstrap', callback
-    commands.push (result, callback) ->
-      grunt.util.spawn cmd: 'script/update-atom-shell', callback
+      grunt.util.spawn cmd: 'script/bootstrap', (error) -> callback(error)
+    commands.push (callback) ->
+      grunt.util.spawn cmd: 'script/update-atom-shell', (error) -> callback(error)
     grunt.util.async.waterfall commands, (error) -> done(error)
 
   grunt.registerTask 'test', 'Run the specs', ->
@@ -180,9 +181,9 @@ module.exports = (grunt) ->
     commands = []
     commands.push (callback) ->
       grunt.util.spawn cmd: 'pkill', args: ['Atom'], -> callback()
-    commands.push (result, callback) ->
+    commands.push (callback) ->
       atomBinary = path.join(CONTENTS_DIR, 'MacOS', 'Atom')
-      grunt.util.spawn cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], callback
+      grunt.util.spawn cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], (error) -> callback(error)
     grunt.util.async.waterfall commands, (error) -> done(error)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])

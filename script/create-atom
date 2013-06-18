@@ -1,16 +1,14 @@
 #!/bin/sh
 
-set -e
+set -ex
 
 # This entire file is a hack so that constructicon can build Atom via
 # xcode
 
 cd "$(dirname "$0")/.."
 ./script/bootstrap
-./node_modules/.bin/grunt -v --build-dir="$BUILT_PRODUCTS_DIR bootstrap build"
+./node_modules/.bin/grunt --build-dir="$BUILT_PRODUCTS_DIR" bootstrap build
 
-echo <<OUTPUT_FOR_CONSTRUCTICON
-TARGET_BUILD_DIR=$BUILT_PRODUCTS_DIR
-FULL_PRODUCT_NAME=Atom.app
-PRODUCT_NAME=Atom
-OUTPUT_FOR_CONSTRUCTICON
+echo "TARGET_BUILD_DIR=$BUILT_PRODUCTS_DIR"
+echo "FULL_PRODUCT_NAME=Atom.app"
+echo "PRODUCT_NAME=Atom"

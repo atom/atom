@@ -3,14 +3,6 @@
 # exit on subprocess errors
 set -o errexit
 
-exit_unless_xcode_exists() {
-  if [ ! -d /Applications/Xcode.app ]; then
-    echo "ERROR: Atom requires Xcode"
-    echo "You must to download Xcode from the App Store (http://itunes.apple.com/us/app/xcode/id497799835)"
-    exit 1
-  fi
-}
-
 exit_unless_npm_exists() {
   if ! hash npm 2> /dev/null; then
     echo "ERROR: Atom requires npm"
@@ -18,7 +10,6 @@ exit_unless_npm_exists() {
   fi
 }
 
-exit_unless_xcode_exists
 exit_unless_npm_exists
 
 git submodule --quiet sync
