@@ -6,7 +6,8 @@ set -e
 # xcode
 
 cd "$(dirname "$0")/.."
-./node_modules/.bin/grunt --build-dir="$BUILT_PRODUCTS_DIR"
+./script/bootstrap
+./node_modules/.bin/grunt --build-dir="$BUILT_PRODUCTS_DIR build"
 
 echo <<OUTPUT_FOR_CONSTRUCTICON
 TARGET_BUILD_DIR=$BUILT_PRODUCTS_DIR
