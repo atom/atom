@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -ex
+cd "$(dirname "$0")/../.."
+export PATH="atom-shell/Atom.app/Contents/Resources/:${PATH}"
+
+rm -rf atom.xcodeproj
+gyp --depth=. atom.gyp

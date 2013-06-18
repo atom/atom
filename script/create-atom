@@ -2,5 +2,14 @@
 
 set -e
 
+# This entire file is a hack so that constructicon can build Atom via
+# xcode
+
 cd "$(dirname "$0")/.."
 ./node_modules/.bin/grunt --build-dir="$BUILT_PRODUCTS_DIR"
+
+echo <<OUTPUT_FOR_CONSTRUCTICON
+TARGET_BUILD_DIR=$BUILT_PRODUCTS_DIR
+FULL_PRODUCT_NAME=Atom.app
+PRODUCT_NAME=Atom
+OUTPUT_FOR_CONSTRUCTICON
