@@ -32,8 +32,6 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>AtomApplication</string>
-	<key>SUFeedURL</key>
-	<string>https://speakeasy.githubapp.com/apps/27/appcast.xml</string>
 	<key>SUPublicDSAKeyFile</key>
 	<string>speakeasy.pem</string>
 	<key>SUScheduledCheckInterval</key>

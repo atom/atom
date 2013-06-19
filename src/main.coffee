@@ -41,7 +41,6 @@ setupCrashReporter = ->
   crashReporter.setAutoSubmit true
 
 setupAutoUpdater = ->
-  autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
   autoUpdater.setAutomaticallyChecksForUpdates false
   autoUpdater.setAutomaticallyDownloadsUpdates true
 
