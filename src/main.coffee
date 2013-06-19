@@ -46,8 +46,7 @@ setupAutoUpdater = ->
   autoUpdater.setAutomaticallyDownloadsUpdates true
 
 parseCommandLine = ->
-  version = fs.readFileSync(path.join(__dirname, '..', '..', 'version'), 'utf8')
-
+  version = app.getVersion()
   options = optimist(process.argv[1..])
   options.usage """
     Atom #{version}
