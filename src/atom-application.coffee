@@ -241,6 +241,9 @@ class AtomApplication
       @configWindow = null
 
   runSpecs: (exitWhenDone, resourcePath) ->
+    if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
+      resourcePath = @resourcePath
+
     bootstrapScript = 'spec-bootstrap'
     isSpec = true
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec})
