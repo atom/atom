@@ -102,7 +102,7 @@ class AtomApplication
           label: 'Run Specs'
           accelerator: 'Command+MacCtrl+Alt+S'
           click: =>
-            @runSpecs(false, path.join(global.homeDir, 'github', 'atom'))
+            @runSpecs(false, path.join(app.getHomeDir(), 'github', 'atom'))
         }
         { type: 'separator' }
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }

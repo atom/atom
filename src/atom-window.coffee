@@ -1,4 +1,5 @@
 BrowserWindow = require 'browser-window'
+app = require 'app'
 dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
@@ -38,7 +39,7 @@ class AtomWindow
       ''
     ]
 
-    paths.push path.join(global.homeDir, '.atom', 'packages')
+    paths.push path.join(app.getHomeDir(), '.atom', 'packages')
 
     paths = paths.map (relativeOrAbsolutePath) ->
       path.resolve resourcePath, relativeOrAbsolutePath

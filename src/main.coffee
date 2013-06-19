@@ -9,8 +9,6 @@ optimist = require 'optimist'
 nslog = require 'nslog'
 _ = require 'underscore'
 
-global.homeDir = app.getHomeDir()
-
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
 
@@ -84,7 +82,7 @@ parseCommandLine = ->
     dev = true
     resourcePath = args['resource-path']
   else if dev
-    resourcePath = path.join(global.homeDir, 'github', 'atom')
+    resourcePath = path.join(app.getHomeDir(), 'github', 'atom')
 
   try
     fs.statSync resourcePath
