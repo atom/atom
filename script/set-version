@@ -8,7 +8,6 @@ HELPER_PLIST_PATH="$BUILT_PRODUCTS_DIR/Atom.app/Contents/Frameworks/Atom Helper.
 
 # Update version
 VERSION=$(git rev-parse --short HEAD | tr -d "\n")
-echo $VERSION > "$BUILT_PRODUCTS_DIR/Atom.app/Contents/Resources/version"
 /usr/libexec/PlistBuddy -c "Set CFBundleShortVersionString $VERSION" "$PLIST_PATH"
 /usr/libexec/PlistBuddy -c "Set CFBundleVersion $VERSION" "$PLIST_PATH"
 /usr/libexec/PlistBuddy -c "Set CFBundleShortVersionString $VERSION" "$HELPER_PLIST_PATH"
