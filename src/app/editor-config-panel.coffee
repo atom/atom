@@ -37,6 +37,12 @@ class EditorConfigPanel extends ConfigPanel
 
           @div class: 'controls', =>
             @div class: 'checkbox', =>
+              @label for: 'editor.normalizeIndentOnPaste', =>
+                @input id: 'editor.normalizeIndentOnPaste', type: 'checkbox'
+                @text 'Normalize Indent on Paste'
+
+          @div class: 'controls', =>
+            @div class: 'checkbox', =>
               @label for: 'editor.showLineNumbers', =>
                 @input id: 'editor.showLineNumbers', type: 'checkbox'
                 @text 'Show Line Numbers'
