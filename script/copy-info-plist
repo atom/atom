@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+BUILT_PRODUCTS_DIR=$1
+PLIST_PATH="$BUILT_PRODUCTS_DIR/Atom.app/Contents/Info.plist"
+HELPER_PLIST_PATH="$BUILT_PRODUCTS_DIR/Atom.app/Contents/Frameworks/Atom Helper.app/Contents/Info.plist"
+
+# Copy custom plist files
+cp resources/mac/atom-Info.plist "$PLIST_PATH"
+cp resources/mac/helper-Info.plist "$HELPER_PLIST_PATH"

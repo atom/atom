@@ -150,11 +150,16 @@ module.exports = (grunt) ->
       unless /.+\.plist/.test(sourcePath)
         grunt.file.copy(sourcePath, path.resolve(APP_DIR, '..', subDirectory, filename))
 
-    grunt.task.run('compile', 'update-info-plist', 'codesign')
+    grunt.task.run('compile', 'copy-info-plist', 'codesign')
 
-  grunt.registerTask 'update-info-plist', 'Copy plist and set version to current sha', ->
+  grunt.registerTask 'copy-info-plist', 'Copy plist', ->
     done = @async()
-    grunt.util.spawn cmd: 'script/update-info-plist', args: [BUILD_DIR], (error, result, code) ->
+    grunt.util.spawn cmd: 'script/copy-info-plist', args: [BUILD_DIR], (error, result, code) ->
+      done(error)
+
+  grunt.registerTask 'set-development-version', "Sets version to current sha", ->
+    done = @async()
+    grunt.util.spawn cmd: 'script/set-version', args: [BUILD_DIR], (error, result, code) ->
       done(error)
 
   grunt.registerTask 'codesign', 'Codesign the app', ->
