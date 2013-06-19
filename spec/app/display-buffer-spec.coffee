@@ -532,6 +532,13 @@ describe "DisplayBuffer", ->
       buffer.delete([[6, 0], [6, 65]])
       expect(displayBuffer.getMaxLineLength()).toBe 62
 
+  describe ".destroy()", ->
+    it "unsubscribes all display buffer markers from their underlying buffer marker (regression)", ->
+      marker = displayBuffer.markBufferPosition([12, 2])
+      displayBuffer.destroy()
+      expect(marker.bufferMarker.subscriptionCount()).toBe 0
+      expect( -> buffer.insert([12, 2], '\n')).not.toThrow()
+
   describe "markers", ->
     beforeEach ->
       displayBuffer.createFold(4, 7)

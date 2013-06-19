@@ -1,6 +1,7 @@
 Range = require 'range'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
+Subscriber = require 'subscriber'
 
 module.exports =
 class DisplayBufferMarker
@@ -131,6 +132,7 @@ class DisplayBufferMarker
   # Destroys the marker
   destroy: ->
     @bufferMarker.destroy()
+    @unsubscribe()
 
   # Returns a {String} representation of the marker
   inspect: ->
@@ -143,11 +145,11 @@ class DisplayBufferMarker
     @trigger 'destroyed'
 
   observeBufferMarker: ->
-    @bufferMarker.on 'destroyed', => @destroyed()
+    @subscribe @bufferMarker, 'destroyed', => @destroyed()
 
     @getHeadScreenPosition() # memoize current value
     @getTailScreenPosition() # memoize current value
-    @bufferMarker.on 'changed', ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
+    @subscribe @bufferMarker, 'changed', ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
       @notifyObservers
         oldHeadBufferPosition: oldHeadPosition
         newHeadBufferPosition: newHeadPosition
@@ -192,3 +194,4 @@ class DisplayBufferMarker
     }
 
 _.extend DisplayBufferMarker.prototype, EventEmitter
+_.extend DisplayBufferMarker.prototype, Subscriber

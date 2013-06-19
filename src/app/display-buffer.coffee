@@ -393,9 +393,12 @@ class DisplayBuffer
   #
   # Returns the {DisplayBufferMarker} (if it exists).
   getMarker: (id) ->
-    @markers[id] ?= do =>
+    marker = @markers[id]
+    unless marker?
       if bufferMarker = @buffer.getMarker(id)
-        new DisplayBufferMarker({bufferMarker, displayBuffer: this})
+        marker = new DisplayBufferMarker({bufferMarker, displayBuffer: this})
+        @markers[id] = marker
+    marker
 
   # Retrieves the active markers in the buffer.
   #
@@ -492,6 +495,7 @@ class DisplayBuffer
       marker.notifyObservers(bufferChanged: false)
 
   destroy: ->
+    marker.unsubscribe() for marker in @getMarkers()
     @tokenizedBuffer.destroy()
     @unsubscribe()
 
