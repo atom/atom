@@ -2379,39 +2379,27 @@ describe "EditSession", ->
           expect(editSession.lineForBufferRow(5)).toBe "  foo    current = items.shift();"
 
       describe "when the inserted text contains newlines", ->
-        describe "when copied text includes whitespace on first line", ->
-          describe "when cursor is preceded by whitespace and followed non-whitespace", ->
-            it "normalizes indented lines to the cursor's current indentation level", ->
-              copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 4})
-              editSession.setCursorBufferPosition([3, 4])
-              editSession.pasteText()
+        describe "when the cursor is preceded only by whitespace characters", ->
+          it "normalizes indented lines to the cursor's current indentation level", ->
+            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2})
+            editSession.setCursorBufferPosition([3, 4])
+            editSession.pasteText()
 
-              expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
-              expect(editSession.lineForBufferRow(4)).toBe "      foo();"
-              expect(editSession.lineForBufferRow(5)).toBe "    }"
-              expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
+            expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
+            expect(editSession.lineForBufferRow(4)).toBe "      foo();"
+            expect(editSession.lineForBufferRow(5)).toBe "    }"
+            expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
 
-          describe "when cursor is preceded by whitespace and followed by whitespace", ->
-            it "normalizes indented lines to the cursor's current indentation level", ->
-              copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
-              editSession.setCursorBufferPosition([3, 4])
-              editSession.pasteText()
+        describe "when the cursor is preceded by non-whitespace characters", ->
+          it "normalizes the indentation level of all lines based on the level of the existing first line", ->
+            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
+            editSession.setCursorBufferPosition([1, Infinity])
+            editSession.pasteText()
 
-              expect(editSession.lineForBufferRow(3)).toBe "        while (true) {"
-              expect(editSession.lineForBufferRow(4)).toBe "          foo();"
-              expect(editSession.lineForBufferRow(5)).toBe "        }"
-              expect(editSession.lineForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
-
-          describe "when the cursor is preceded by non-whitespace characters", ->
-            it "normalizes the indentation level of all lines based on the level of the existing first line", ->
-              copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
-              editSession.setCursorBufferPosition([1, Infinity])
-              editSession.pasteText()
-
-              expect(editSession.lineForBufferRow(1)).toBe "  var sort = function(items) {    while (true) {"
-              expect(editSession.lineForBufferRow(2)).toBe "    foo();"
-              expect(editSession.lineForBufferRow(3)).toBe "  }"
-              expect(editSession.lineForBufferRow(4)).toBe ""
+            expect(editSession.lineForBufferRow(1)).toBe "  var sort = function(items) {while (true) {"
+            expect(editSession.lineForBufferRow(2)).toBe "    foo();"
+            expect(editSession.lineForBufferRow(3)).toBe "  }"
+            expect(editSession.lineForBufferRow(4)).toBe ""
 
     it "autoIndentSelectedRows auto-indents the selection", ->
       editSession.setCursorBufferPosition([2, 0])

@@ -293,13 +293,13 @@ class Selection
     if isCursorInsideExistingLine
       minimumIndentLevel = @editSession.indentationForBufferRow(@cursor.getBufferRow())
     else
-      minimumIndentLevel = @cursor.getIndentLevel() + firstLineIndentLevel
-    normalizedLines = []
+      minimumIndentLevel = @cursor.getIndentLevel()
 
+    normalizedLines = []
     for line, i in lines
       if i == 0
-        indentLevel = firstLineIndentLevel
-      else if /$^/.test line # remove all indentation from empty lines
+        indentLevel = 0
+      else if line == '' # remove all indentation from empty lines
         indentLevel = 0
       else
         lineIndentLevel = @editSession.indentLevelForLine(lines[i])
