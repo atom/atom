@@ -221,8 +221,11 @@ class FuzzyFinderView extends SelectList
         @projectPaths = paths
         @reloadProjectPaths = false
         @populateProjectPaths(options)
-      @loadPathsTask.on 'load-paths:paths-loaded', (paths) =>
-        @loadingBadge.text(humanize.intcomma(paths.length))
+
+      pathsFound = 0
+      @loadPathsTask.on 'load-paths:paths-found', (paths) =>
+        pathsFound += paths.length
+        @loadingBadge.text(humanize.intcomma(pathsFound))
 
   populateOpenBufferPaths: ->
     editSessions = project.getEditSessions().filter (editSession) ->
