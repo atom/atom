@@ -6,7 +6,7 @@
       'postbuilds': [
         {
           'postbuild_name': 'Create Atom, basically do everything',
-          'action': ['script/create-atom'],
+          'action': ['script/constructicon/build'],
         },
       ],
     },
