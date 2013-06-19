@@ -9,7 +9,7 @@ optimist = require 'optimist'
 nslog = require 'nslog'
 _ = require 'underscore'
 
-global.homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
+global.homeDir = app.getHomeDir()
 
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
