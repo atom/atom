@@ -150,7 +150,7 @@ module.exports = (grunt) ->
       unless /.+\.plist/.test(sourcePath)
         grunt.file.copy(sourcePath, path.resolve(APP_DIR, '..', subDirectory, filename))
 
-    grunt.task.run('compile', 'copy-info-plist', 'codesign')
+    grunt.task.run('compile', 'copy-info-plist')
 
   grunt.registerTask 'copy-info-plist', 'Copy plist', ->
     done = @async()
@@ -194,6 +194,7 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
+  grint.registerTask('deploy', ['clean', 'bootstrap', 'build', 'codesign'])
   grunt.registerTask('default', ['build', 'install'])
 
   cp = (source, destination, {filter}={}) ->
