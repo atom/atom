@@ -182,20 +182,6 @@ describe "Config", ->
           expect(fsUtils.exists(path.join(config.configDirPath, 'themes'))).toBeTruthy()
           expect(fsUtils.isFileSync(path.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
-      it "copies the bundles themes to ~/.atom", ->
-        initializationDone = false
-        jasmine.unspy(window, "setTimeout")
-        config.initializeConfigDirectory ->
-          initializationDone = true
-
-        waitsFor -> initializationDone
-
-        runs ->
-          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'themes/atom-dark-ui/package.cson'))).toBeTruthy()
-          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'themes/atom-light-ui/package.cson'))).toBeTruthy()
-          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'themes/atom-dark-syntax.less'))).toBeTruthy()
-          expect(fsUtils.isFileSync(path.join(config.configDirPath, 'themes/atom-light-syntax.less'))).toBeTruthy()
-
   describe ".loadUserConfig()", ->
     beforeEach ->
       config.configDirPath = '/tmp/dot-atom-dir'
