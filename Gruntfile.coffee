@@ -169,14 +169,10 @@ module.exports = (grunt) ->
     mkdir path.dirname(INSTALL_DIR)
     cp SHELL_APP_DIR, INSTALL_DIR
 
-  grunt.registerTask 'bootstrap', 'Bootstrap modules and atom-shell', ->
+  grunt.registerTask 'update-atom-shell', 'Update atom-shell', ->
     done = @async()
-    commands = []
     commands.push (callback) ->
-      spawn cmd: 'script/bootstrap', (error) -> callback(error)
-    commands.push (callback) ->
-      spawn cmd: 'script/update-atom-shell', (error) -> callback(error)
-    grunt.util.async.waterfall commands, (error) -> done(error)
+      spawn cmd: 'script/update-atom-shell', (error) -> done(error)
 
   grunt.registerTask 'test', 'Run the specs', ->
     done = @async()
@@ -190,9 +186,9 @@ module.exports = (grunt) ->
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
-  grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
-  grunt.registerTask('deploy', ['clean', 'bootstrap', 'build', 'codesign'])
-  grunt.registerTask('default', ['bootstrap', 'build', 'set-development-version', 'install'])
+  grunt.registerTask('ci', ['clean', 'update-atom-shell', 'build', 'test'])
+  grunt.registerTask('deploy', ['clean', 'update-atom-shell', 'build', 'codesign'])
+  grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
 
   spawn = (options, callback) ->
     grunt.util.spawn options, (error, results, code) ->
