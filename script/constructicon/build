@@ -5,7 +5,7 @@ set -ex
 # This entire file is a hack so that constructicon can build Atom via
 # xcode
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 ./script/bootstrap
 ./node_modules/.bin/grunt --build-dir="$BUILT_PRODUCTS_DIR" bootstrap build
 
