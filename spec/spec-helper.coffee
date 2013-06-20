@@ -41,7 +41,7 @@ beforeEach ->
   window.resetTimeouts()
   atom.windowMode = 'editor'
   atom.packageStates = {}
-  spyOn(atom, 'setWindowState')
+  spyOn(atom, 'saveWindowState')
   syntax.clearGrammarOverrides()
   syntax.clearProperties()
 
@@ -90,7 +90,7 @@ afterEach ->
     git.destroy()
     window.git = null
   $('#jasmine-content').empty()
-  jasmine.unspy(atom, 'setWindowState')
+  jasmine.unspy(atom, 'saveWindowState')
   ensureNoPathSubscriptions()
   syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently

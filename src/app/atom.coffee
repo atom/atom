@@ -246,20 +246,12 @@ window.atom =
     else
       null
 
-  saveWindowState: (windowState) ->
-    windowStateJson = JSON.stringify(windowState)
-    if windowStatePath = @getWindowStatePath()
-      fsUtils.writeSync(windowStatePath, windowStateJson)
-    else
-      @getLoadSettings().windowState = windowStateJson
-
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
     windowState.set(keyPath, value)
-    @saveWindowState(windowState.toObject())
     windowState
 
-  getWindowState: (keyPath) ->
+  loadWindowState: ->
     if windowStatePath = @getWindowStatePath()
       if fsUtils.exists(windowStatePath)
         try
@@ -275,11 +267,21 @@ window.atom =
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
     windowState ?= {}
-    doc = telepath.Document.fromObject(telepath.createSite(1), windowState)
-    if keyPath
-      doc.get(keyPath)
+    telepath.Document.fromObject(telepath.createSite(1), windowState)
+
+  saveWindowState: ->
+    windowStateJson = JSON.stringify(@getWindowState().toObject())
+    if windowStatePath = @getWindowStatePath()
+      fsUtils.writeSync(windowStatePath, windowStateJson)
     else
-      doc
+      @getLoadSettings().windowState = windowStateJson
+
+  getWindowState: (keyPath) ->
+    @windowState ?= @loadWindowState()
+    if keyPath
+      @windowState.get(keyPath)
+    else
+      @windowState
 
   update: ->
     ipc.sendChannel 'install-update'
