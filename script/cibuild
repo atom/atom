@@ -6,4 +6,6 @@ cd "$(dirname "$0")/.."
 
 rm -rf ~/.atom
 git clean -dff
+
+./script/bootstrap
 ./node_modules/.bin/grunt ci --stack
