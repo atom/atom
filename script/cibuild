@@ -1,6 +1,9 @@
 #!/bin/sh
 
-set -ex
+set -e
+
+cd "$(dirname "$0")/.."
+
 rm -rf ~/.atom
 git clean -dff
-rake clean test
+./node_modules/.bin/grunt ci --stack
