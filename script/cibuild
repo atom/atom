@@ -8,4 +8,4 @@ rm -rf ~/.atom
 git clean -dff
 
 ./script/bootstrap
-./node_modules/.bin/grunt ci --stack
+./node_modules/.bin/grunt ci --stack --no-color
