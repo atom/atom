@@ -2,7 +2,7 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
-
+telepath = require 'telepath'
 {View} = require 'space-pen'
 Buffer = require 'text-buffer'
 Editor = require 'editor'
@@ -26,18 +26,23 @@ class RootView extends View
     themes: ['atom-dark-ui', 'atom-dark-syntax']
 
   ### Internal ###
+  @acceptsDocuments: true
 
-  @content: ({panes}={}) ->
+  @content: (state) ->
     @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
-          @subview 'panes', panes ? new PaneContainer
+          @subview 'panes', deserialize(state?.get?('panes')) ? new PaneContainer
 
-  @deserialize: ({panes, fullScreen}) ->
-    panes = deserialize(panes) if panes?.deserializer is 'PaneContainer'
-    new RootView({panes, fullScreen})
+  @deserialize: (state) ->
+    new RootView(state)
 
-  initialize: ({fullScreen}={})->
+  initialize: (state={}) ->
+    if state instanceof telepath.Document
+      @state = state
+    else
+      @state = telepath.Document.fromObject(_.extend(version: RootView.version, deserializer: 'RootView', panes: @panes.serialize(), state))
+
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
@@ -75,13 +80,12 @@ class RootView extends View
     @command 'new-editor', =>
       @open()
 
-    _.nextTick -> atom.setFullScreen(fullScreen)
+    _.nextTick => atom.setFullScreen(@state.get('fullScreen'))
 
   serialize: ->
-    version: RootView.version
-    deserializer: 'RootView'
-    panes: @panes.serialize()
-    fullScreen: atom.isFullScreen()
+    @panes.serialize()
+    @state.set('fullScreen', atom.isFullScreen())
+    @state
 
   handleFocus: (e) ->
     if @getActivePane()
@@ -117,7 +121,7 @@ class RootView extends View
     else
       editSession = project.open(path)
       activePane = new Pane(editSession)
-      @panes.append(activePane)
+      @panes.setRoot(activePane)
 
     activePane.focus() if changeFocus
     editSession

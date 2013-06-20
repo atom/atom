@@ -123,6 +123,7 @@ window.deserializeEditorWindow = ->
   atom.packageStates = windowState.getObject('packageStates') ? {}
   window.project = new Project(initialPath)
   window.rootView = deserialize(windowState.get('rootView')) ? new RootView
+  windowState.set('rootView', window.rootView.serialize())
 
   $(rootViewParentSelector).append(rootView)
 

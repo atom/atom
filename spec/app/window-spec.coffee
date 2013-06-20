@@ -143,7 +143,7 @@ describe "Window", ->
 
       window.unloadEditorWindow()
 
-      expect(atom.getWindowState().getObject('rootView')).toEqual rootViewState
+      expect(atom.getWindowState().getObject('rootView')).toEqual rootViewState.toObject()
       expect(atom.getWindowState().getObject('syntax')).toEqual syntaxState
       expect(atom.saveWindowState).toHaveBeenCalled()
 
