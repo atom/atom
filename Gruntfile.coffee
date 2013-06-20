@@ -194,7 +194,7 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
-  grunt.registerTask('default', ['build'])
+  grunt.registerTask('default', ['build', 'install'])
 
   cp = (source, destination, {filter}={}) ->
     copyFile = (source, destination) ->
