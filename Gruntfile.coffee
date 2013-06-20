@@ -111,13 +111,15 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
 
-  grunt.registerTask 'clean', 'Delete all build files', ->
+  grunt.registerTask 'partial-clean', 'Delete some of the build files', ->
     rm BUILD_DIR
     rm '/tmp/atom-coffee-cache'
     rm '/tmp/atom-cached-atom-shells'
-    rm 'node_modules'
-    rm 'atom-shell'
     rm 'node'
+
+  grunt.registerTask 'clean', 'Delete all the build files', ->
+    rm 'node_modules'
+    grunt.task.run('partial-clean')
 
   grunt.registerTask 'build', 'Build the application', ->
     rm SHELL_APP_DIR
@@ -184,8 +186,8 @@ module.exports = (grunt) ->
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
-  grunt.registerTask('ci', ['clean', 'update-atom-shell', 'build', 'test'])
-  grunt.registerTask('deploy', ['clean', 'update-atom-shell', 'build', 'codesign'])
+  grunt.registerTask('ci', ['partial-clean', 'update-atom-shell', 'build', 'test'])
+  grunt.registerTask('deploy', ['update-atom-shell', 'build', 'codesign'])
   grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
 
   spawn = (options, callback) ->
