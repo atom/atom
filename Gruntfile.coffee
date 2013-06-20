@@ -151,18 +151,18 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'copy-info-plist', 'Copy plist', ->
     done = @async()
-    grunt.util.spawn cmd: 'script/copy-info-plist', args: [BUILD_DIR], (error, result, code) ->
+    spawn cmd: 'script/copy-info-plist', args: [BUILD_DIR], (error, result, code) ->
       done(error)
 
   grunt.registerTask 'set-development-version', "Sets version to current sha", ->
     done = @async()
-    grunt.util.spawn cmd: 'script/set-version', args: [BUILD_DIR], (error, result, code) ->
+    spawn cmd: 'script/set-version', args: [BUILD_DIR], (error, result, code) ->
       done(error)
 
   grunt.registerTask 'codesign', 'Codesign the app', ->
     done = @async()
     args = ["-f", "-v", "-s", "Developer ID Application: GitHub", SHELL_APP_DIR]
-    grunt.util.spawn cmd: "codesign", args: args, (error) -> done(error)
+    spawn cmd: "codesign", args: args, (error) -> done(error)
 
   grunt.registerTask 'install', 'Install the built application', ->
     rm INSTALL_DIR
@@ -173,19 +173,19 @@ module.exports = (grunt) ->
     done = @async()
     commands = []
     commands.push (callback) ->
-      grunt.util.spawn cmd: 'script/bootstrap', (error) -> callback(error)
+      spawn cmd: 'script/bootstrap', (error) -> callback(error)
     commands.push (callback) ->
-      grunt.util.spawn cmd: 'script/update-atom-shell', (error) -> callback(error)
+      spawn cmd: 'script/update-atom-shell', (error) -> callback(error)
     grunt.util.async.waterfall commands, (error) -> done(error)
 
   grunt.registerTask 'test', 'Run the specs', ->
     done = @async()
     commands = []
     commands.push (callback) ->
-      grunt.util.spawn cmd: 'pkill', args: ['Atom'], -> callback()
+      spawn cmd: 'pkill', args: ['Atom'], -> callback()
     commands.push (callback) ->
       atomBinary = path.join(CONTENTS_DIR, 'MacOS', 'Atom')
-      grunt.util.spawn cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], (error) -> callback(error)
+      spawn  cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], (error) -> callback(error)
     grunt.util.async.waterfall commands, (error) -> done(error)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
@@ -193,6 +193,11 @@ module.exports = (grunt) ->
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
   grint.registerTask('deploy', ['clean', 'bootstrap', 'build', 'codesign'])
   grunt.registerTask('default', ['build', 'install'])
+
+  spawn = (options, callback) ->
+    grunt.util.spawn options, (error, results, code) ->
+      grunt.log.errorlns results.stderr if results.stderr
+      callback(error, results, code)
 
   cp = (source, destination, {filter}={}) ->
     copyFile = (source, destination) ->
