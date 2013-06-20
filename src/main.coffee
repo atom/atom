@@ -35,6 +35,8 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 
     AtomApplication.open(args)
 
+global.devResourcePath = path.join(app.getHomeDir(), 'github', 'atom')
+
 setupCrashReporter = ->
   crashReporter.setCompanyName 'GitHub'
   crashReporter.setSubmissionUrl 'https://speakeasy.githubapp.com/submit_crash_log'
@@ -80,7 +82,7 @@ parseCommandLine = ->
     dev = true
     resourcePath = args['resource-path']
   else if dev
-    resourcePath = path.join(app.getHomeDir(), 'github', 'atom')
+    resourcePath = global.devResourcePath
 
   try
     fs.statSync resourcePath

@@ -57,10 +57,10 @@ class AtomApplication
     if test
       @runSpecs(true, @resourcePath)
     else if pathsToOpen.length > 0
-      @openPaths(pathsToOpen, pidToKillWhenClosed, newWindow)
+      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow})
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath(null, pidToKillWhenClosed, newWindow)
+      @openPath({pidToKillWhenClosed, newWindow})
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -73,7 +73,7 @@ class AtomApplication
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
         {pathsToOpen, pidToKillWhenClosed, newWindow} = JSON.parse(data)
-        @openPaths(pathsToOpen, pidToKillWhenClosed, newWindow)
+        @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow})
 
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
@@ -102,7 +102,7 @@ class AtomApplication
           label: 'Run Specs'
           accelerator: 'Command+MacCtrl+Alt+S'
           click: =>
-            @runSpecs(false, path.join(app.getHomeDir(), 'github', 'atom'))
+            @runSpecs(false, global.devResourcePath)
         }
         { type: 'separator' }
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
@@ -125,6 +125,7 @@ class AtomApplication
       label: 'File'
       submenu: [
         { label: 'Open...', accelerator: 'Command+O', click: => @promptForPath() }
+        { label: 'Open In Dev Mode...', accelerator: 'Command+Shift+O', click: => @promptForPath(devMode: true) }
       ]
 
     menus.push
@@ -165,9 +166,9 @@ class AtomApplication
     app.on 'will-quit', =>
       fs.unlinkSync socketPath if fs.existsSync(socketPath)
 
-    app.on 'open-file', (event, filePath) =>
+    app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()
-      @openPath filePath
+      @openPath({pathToOpen})
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdate) =>
       event.preventDefault()
@@ -184,12 +185,18 @@ class AtomApplication
 
     ipc.on 'open', (processId, routingId, pathsToOpen) =>
       if pathsToOpen?.length > 0
-        @openPaths(pathsToOpen)
+        @openPaths({pathsToOpen})
       else
         @promptForPath()
 
+    ipc.on 'open-dev', (processId, routingId, pathsToOpen) =>
+      if pathsToOpen?.length > 0
+        @openPaths({pathsToOpen, devMode: true})
+      else
+        @promptForPath(devMode: true)
+
     ipc.on 'new-window', =>
-      @openPath(null)
+      @openPath()
 
     ipc.on 'install-update', =>
       @installUpdate?()
@@ -205,17 +212,22 @@ class AtomApplication
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
 
-  openPaths: (pathsToOpen=[], pidToKillWhenClosed, newWindow) ->
-    @openPath(pathToOpen, pidToKillWhenClosed, newWindow) for pathToOpen in pathsToOpen
+  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode}) ->
+    @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode}) for pathToOpen in pathsToOpen ? []
 
-  openPath: (pathToOpen, pidToKillWhenClosed, newWindow) ->
-    existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode}={}) ->
+    unless devMode
+      existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
     if existingWindow
       openedWindow = existingWindow
       openedWindow.openPath(pathToOpen)
     else
       bootstrapScript = 'window-bootstrap'
-      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, @resourcePath})
+      if devMode
+        resourcePath = global.devResourcePath
+      else
+        resourcePath = @resourcePath
+      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, resourcePath})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -248,6 +260,6 @@ class AtomApplication
     isSpec = true
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec})
 
-  promptForPath: ->
+  promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-    @openPaths(pathsToOpen)
+    @openPaths({pathsToOpen, devMode})

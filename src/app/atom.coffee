@@ -164,8 +164,8 @@ window.atom =
   open: (url...) ->
     ipc.sendChannel('open', [url...])
 
-  openDev: (url) ->
-    console.error("atom.openDev does not work yet")
+  openDev: (url...) ->
+    ipc.sendChannel('open-dev', [url...])
 
   newWindow: ->
     ipc.sendChannel('new-window')
