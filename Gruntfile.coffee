@@ -118,14 +118,11 @@ module.exports = (grunt) ->
     rm '/tmp/atom-cached-atom-shells'
     rm 'node_modules'
     rm 'atom-shell'
-    rm 'cef'
     rm 'node'
-    rm 'prebuilt-cef'
 
   grunt.registerTask 'build', 'Build the application', ->
     rm SHELL_APP_DIR
     mkdir path.dirname(BUILD_DIR)
-    console.log fs.realpathSync("atom-shell/Atom.app")
     cp 'atom-shell/Atom.app', SHELL_APP_DIR
 
     mkdir APP_DIR
