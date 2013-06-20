@@ -191,8 +191,8 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
-  grint.registerTask('deploy', ['clean', 'bootstrap', 'build', 'codesign'])
-  grunt.registerTask('default', ['build', 'install'])
+  grunt.registerTask('deploy', ['clean', 'bootstrap', 'build', 'codesign'])
+  grunt.registerTask('default', ['bootstrap', 'build', 'set-development-version', 'install'])
 
   spawn = (options, callback) ->
     grunt.util.spawn options, (error, results, code) ->
