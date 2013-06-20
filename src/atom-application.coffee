@@ -55,7 +55,7 @@ class AtomApplication
       @checkForUpdates()
 
     if test
-      @runSpecs(true, @resourcePath)
+      @runSpecs({exitWhenDone: true, @resourcePath})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow})
     else
@@ -102,7 +102,7 @@ class AtomApplication
           label: 'Run Specs'
           accelerator: 'Command+MacCtrl+Alt+S'
           click: =>
-            @runSpecs(false, global.devResourcePath)
+            @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
         }
         { type: 'separator' }
         { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
@@ -252,7 +252,7 @@ class AtomApplication
     @configWindow.browserWindow.on 'destroyed', =>
       @configWindow = null
 
-  runSpecs: (exitWhenDone, resourcePath) ->
+  runSpecs: ({exitWhenDone, resourcePath}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
