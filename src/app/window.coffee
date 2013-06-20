@@ -1,5 +1,6 @@
 fsUtils = require 'fs-utils'
 path = require 'path'
+telepath = require 'telepath'
 $ = require 'jquery'
 less = require 'less'
 ipc = require 'ipc'
@@ -118,7 +119,7 @@ window.deserializeEditorWindow = ->
 
   windowState = atom.getWindowState()
 
-  atom.packageStates = windowState.packageStates ? {}
+  atom.packageStates = windowState.getObject('packageStates') ? {}
   window.project = new Project(initialPath)
   window.rootView = deserialize(windowState.rootView) ? new RootView
 
@@ -134,8 +135,7 @@ window.deserializeEditorWindow = ->
 
 window.deserializeConfigWindow = ->
   ConfigView = require 'config-view'
-  windowState = atom.getWindowState()
-  window.configView = deserialize(windowState.configView) ? new ConfigView()
+  window.configView = deserialize(atom.getWindowState('configView')) ? new ConfigView()
   $(rootViewParentSelector).append(configView)
 
 window.stylesheetElementForId = (id) ->
@@ -205,7 +205,7 @@ window.setDimensions = ({x, y, width, height}) ->
     browserWindow.center()
 
 window.restoreDimensions = ->
-  dimensions = atom.getWindowState('dimensions')
+  dimensions = atom.getWindowState().getObject('dimensions')
   dimensions = defaultWindowDimensions unless dimensions?.width and dimensions?.height
   window.setDimensions(dimensions)
   $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
@@ -227,11 +227,16 @@ window.unregisterDeserializer = (klass) ->
 
 window.deserialize = (state) ->
   if deserializer = getDeserializer(state)
-    return if deserializer.version? and deserializer.version isnt state.version
+    stateVersion = state.get?('version') ? state.version
+    return if deserializer.version? and deserializer.version isnt stateVersion
+    if (state instanceof telepath.Document) and not deserializer.acceptsDocuments
+      state = state.toObject()
     deserializer.deserialize(state)
 
 window.getDeserializer = (state) ->
-  name = state?.deserializer
+  return unless state?
+
+  name = state.get?('deserializer') ? state.deserializer
   if deferredDeserializers[name]
     deferredDeserializers[name]()
     delete deferredDeserializers[name]

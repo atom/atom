@@ -8,6 +8,7 @@ remote = require 'remote'
 crypto = require 'crypto'
 path = require 'path'
 dialog = remote.require 'dialog'
+telepath = require 'telepath'
 
 window.atom =
   loadedThemes: []
@@ -254,8 +255,8 @@ window.atom =
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
-    _.setValueForKeyPath(windowState, keyPath, value)
-    @saveWindowState(windowState)
+    windowState.set(keyPath, value)
+    @saveWindowState(windowState.toObject())
     windowState
 
   getWindowState: (keyPath) ->
@@ -274,10 +275,11 @@ window.atom =
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
     windowState ?= {}
+    doc = telepath.Document.fromObject(telepath.createSite(1), windowState)
     if keyPath
-      _.valueForKeyPath(windowState, keyPath)
+      doc.get(keyPath)
     else
-      windowState
+      doc
 
   update: ->
     ipc.sendChannel 'install-update'
