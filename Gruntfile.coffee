@@ -171,8 +171,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'update-atom-shell', 'Update atom-shell', ->
     done = @async()
-    commands.push (callback) ->
-      spawn cmd: 'script/update-atom-shell', (error) -> done(error)
+    spawn cmd: 'script/update-atom-shell', (error) -> done(error)
 
   grunt.registerTask 'test', 'Run the specs', ->
     done = @async()
