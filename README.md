@@ -21,4 +21,8 @@ It will automatically update when a new release is available.
 
   1. `gh-setup atom`
 
-  2. `cd ~/github/atom && ./script/bootstrap && grunt install`
+  2. `cd ~/github/atom`
+
+  3. `./script/bootstrap`
+  
+  4. `./script/build`

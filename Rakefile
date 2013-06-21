@@ -5,7 +5,7 @@ rule "" do |t|
 
     tl;dr
     -----
-    Run ./script/bootstrap again, then use grunt install instead
+    Run ./script/bootstrap again, then use ./script/build instead
     of rake install.
 
   HELP
