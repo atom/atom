@@ -15,7 +15,7 @@ It will automatically update when a new release is available.
 ### Requirements
 
   * Mountain Lion
-  * Boxen (Obviously Atom won't release with the requirement)
+  * Boxen (Obviously Atom won't release with this requirement)
 
 ### Installation
 
