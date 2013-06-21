@@ -3,12 +3,8 @@
 .project
 .svn
 .nvm-version
-atom.xcodeproj
-build
-.xcodebuild-info
 node_modules
 npm-debug.log
 /tags
 /atom-shell/
-/sources.gypi
 docs/api

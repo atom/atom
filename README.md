@@ -15,11 +15,14 @@ It will automatically update when a new release is available.
 ### Requirements
 
   * Mountain Lion
-  * The Setup™ or Boxen
-  * Xcode (available in the App Store)
+  * Boxen (Obviously Atom won't release with the requirement)
 
 ### Installation
 
   1. `gh-setup atom`
 
-  2. `cd ~/github/atom && rake install`
+  2. `cd ~/github/atom`
+
+  3. `./script/bootstrap`
+  
+  4. `./script/build`

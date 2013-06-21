@@ -1,4 +1,3 @@
-{spawn} = require 'child_process'
 fs = require 'fs'
 path = require 'path'
 
@@ -112,20 +111,19 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
 
-  grunt.registerTask 'clean', 'Delete all build files', ->
+  grunt.registerTask 'partial-clean', 'Delete some of the build files', ->
     rm BUILD_DIR
     rm '/tmp/atom-coffee-cache'
     rm '/tmp/atom-cached-atom-shells'
-    rm 'node_modules'
-    rm 'atom-shell'
-    rm 'cef'
     rm 'node'
-    rm 'prebuilt-cef'
+
+  grunt.registerTask 'clean', 'Delete all the build files', ->
+    rm 'node_modules'
+    grunt.task.run('partial-clean')
 
   grunt.registerTask 'build', 'Build the application', ->
     rm SHELL_APP_DIR
     mkdir path.dirname(BUILD_DIR)
-    console.log fs.realpathSync("atom-shell/Atom.app")
     cp 'atom-shell/Atom.app', SHELL_APP_DIR
 
     mkdir APP_DIR
@@ -150,51 +148,52 @@ module.exports = (grunt) ->
       unless /.+\.plist/.test(sourcePath)
         grunt.file.copy(sourcePath, path.resolve(APP_DIR, '..', subDirectory, filename))
 
-    grunt.task.run('compile', 'copy-info-plist', 'codesign')
+    grunt.task.run('compile', 'copy-info-plist')
 
   grunt.registerTask 'copy-info-plist', 'Copy plist', ->
     done = @async()
-    grunt.util.spawn cmd: 'script/copy-info-plist', args: [BUILD_DIR], (error, result, code) ->
+    spawn cmd: 'script/copy-info-plist', args: [BUILD_DIR], (error, result, code) ->
       done(error)
 
   grunt.registerTask 'set-development-version', "Sets version to current sha", ->
     done = @async()
-    grunt.util.spawn cmd: 'script/set-version', args: [BUILD_DIR], (error, result, code) ->
+    spawn cmd: 'script/set-version', args: [BUILD_DIR], (error, result, code) ->
       done(error)
 
   grunt.registerTask 'codesign', 'Codesign the app', ->
     done = @async()
     args = ["-f", "-v", "-s", "Developer ID Application: GitHub", SHELL_APP_DIR]
-    grunt.util.spawn cmd: "codesign", args: args, (error) -> done(error)
+    spawn cmd: "codesign", args: args, (error) -> done(error)
 
   grunt.registerTask 'install', 'Install the built application', ->
     rm INSTALL_DIR
     mkdir path.dirname(INSTALL_DIR)
     cp SHELL_APP_DIR, INSTALL_DIR
 
-  grunt.registerTask 'bootstrap', 'Bootstrap modules and atom-shell', ->
+  grunt.registerTask 'update-atom-shell', 'Update atom-shell', ->
     done = @async()
-    commands = []
-    commands.push (callback) ->
-      grunt.util.spawn cmd: 'script/bootstrap', (error) -> callback(error)
-    commands.push (callback) ->
-      grunt.util.spawn cmd: 'script/update-atom-shell', (error) -> callback(error)
-    grunt.util.async.waterfall commands, (error) -> done(error)
+    spawn cmd: 'script/update-atom-shell', (error) -> done(error)
 
   grunt.registerTask 'test', 'Run the specs', ->
     done = @async()
     commands = []
     commands.push (callback) ->
-      grunt.util.spawn cmd: 'pkill', args: ['Atom'], -> callback()
+      spawn cmd: 'pkill', args: ['Atom'], -> callback()
     commands.push (callback) ->
       atomBinary = path.join(CONTENTS_DIR, 'MacOS', 'Atom')
-      grunt.util.spawn cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], (error) -> callback(error)
+      spawn  cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], (error) -> callback(error)
     grunt.util.async.waterfall commands, (error) -> done(error)
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
-  grunt.registerTask('ci', ['clean', 'bootstrap', 'build', 'test'])
-  grunt.registerTask('default', ['build', 'install'])
+  grunt.registerTask('ci', ['partial-clean', 'update-atom-shell', 'build', 'test'])
+  grunt.registerTask('deploy', ['update-atom-shell', 'build', 'codesign'])
+  grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
+
+  spawn = (options, callback) ->
+    grunt.util.spawn options, (error, results, code) ->
+      grunt.log.errorlns results.stderr if results.stderr
+      callback(error, results, code)
 
   cp = (source, destination, {filter}={}) ->
     copyFile = (source, destination) ->

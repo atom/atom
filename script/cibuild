@@ -1,6 +1,11 @@
 #!/bin/sh
 
-set -ex
+set -e
+
+cd "$(dirname "$0")/.."
+
 rm -rf ~/.atom
 git clean -dff
-rake clean test
+
+./script/bootstrap
+./node_modules/.bin/grunt ci --stack --no-color

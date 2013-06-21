@@ -60,13 +60,6 @@ class Config
       queue.push({sourcePath, destinationPath})
     fsUtils.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
-    configThemeDirPath = path.join(@configDirPath, 'themes')
-    onThemeDirFile = (sourcePath) ->
-      relativePath = sourcePath.substring(bundledThemesDirPath.length + 1)
-      destinationPath = path.join(configThemeDirPath, relativePath)
-      queue.push({sourcePath, destinationPath})
-    fsUtils.traverseTree(bundledThemesDirPath, onThemeDirFile, (path) -> true)
-
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()

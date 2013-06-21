@@ -297,7 +297,7 @@ describe "the `atom` global", ->
   describe "API documentation", ->
     it "meets a minimum threshold for /app (with no errors)", ->
       docRunner = jasmine.createSpy("docRunner")
-      Exec "rake docs:app:stats", cwd: project.resolve('../..'), docRunner
+      Exec "./node_modules/.bin/coffee ./node_modules/.bin/biscotto -- --statsOnly src/app/", cwd: project.resolve('../..'), docRunner
       waitsFor ->
         docRunner.callCount > 0
 
