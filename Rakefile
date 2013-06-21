@@ -5,8 +5,7 @@ rule "" do |t|
 
     tl;dr
     -----
-    Run ./script/bootstrap again, then use ./script/build instead
-    of rake install.
+    Run ./script/build instead of rake install.
 
   HELP
 end
