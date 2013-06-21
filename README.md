@@ -23,6 +23,6 @@ It will automatically update when a new release is available.
 
   2. `cd ~/github/atom`
 
-  3. `./script/bootstrap`
+  3. `script/bootstrap`
   
-  4. `./script/build`
+  4. `script/build`
