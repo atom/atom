@@ -151,9 +151,12 @@ module.exports = (grunt) ->
     grunt.task.run('compile', 'copy-info-plist')
 
   grunt.registerTask 'copy-info-plist', 'Copy plist', ->
-    done = @async()
-    spawn cmd: 'script/copy-info-plist', args: [BUILD_DIR], (error, result, code) ->
-      done(error)
+    plistPath = path.join(CONTENTS_DIR, 'Info.plist')
+    helperPlistPath = path.join(CONTENTS_DIR, 'Frameworks/Atom Helper.app/Contents/Info.plist')
+
+    # Copy custom plist files
+    cp 'resources/mac/atom-Info.plist', plistPath
+    cp 'resources/mac/helper-Info.plist',  helperPlistPath
 
   grunt.registerTask 'set-development-version', "Sets version to current sha", ->
     done = @async()
