@@ -152,6 +152,7 @@ module.exports = (grunt) ->
       path.join('git-utils', 'deps')
       path.join('oniguruma', 'deps')
       path.join('vendor', 'apm')
+      path.join('vendor', 'bootstrap', 'docs')
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
