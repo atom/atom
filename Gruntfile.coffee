@@ -138,7 +138,7 @@ module.exports = (grunt) ->
       'vendor'
     ]
 
-    {devDependencies, dependecies} = grunt.file.readJSON('package.json')
+    {devDependencies, dependencies} = grunt.file.readJSON('package.json')
     for child in fs.readdirSync('node_modules')
       directory = path.join('node_modules', child)
       try
