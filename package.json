@@ -76,7 +76,8 @@
     "grunt-contrib-csslint": "~0.1.2",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-less": "~0.5.2",
-    "jasmine-focused": "~0.6.0"
+    "jasmine-focused": "~0.6.0",
+    "walkdir": "0.0.7"
   },
   "private": true,
   "scripts": {

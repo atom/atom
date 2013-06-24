@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+walkdir = require 'walkdir'
 
 module.exports = (grunt) ->
   APP_NAME = "Atom.app"
@@ -212,22 +213,18 @@ module.exports = (grunt) ->
       callback(error, results, code)
 
   cp = (source, destination, {filter}={}) ->
-    copyFile = (source, destination) ->
-      if grunt.file.isLink(source)
-        grunt.file.mkdir(path.dirname(destination))
-        fs.symlinkSync(fs.readlinkSync(source), destination)
-      else
-        grunt.file.copy(source, destination)
+    walkdir.sync source, (sourcePath, stats) ->
+      return if filter?.test(sourcePath)
 
-      if grunt.file.exists(destination)
-        fs.chmodSync(destination, fs.statSync(source).mode)
+      destinationPath = path.join(destination, path.relative(source, sourcePath))
+      if stats.isSymbolicLink()
+        grunt.file.mkdir(path.dirname(destinationPath))
+        fs.symlinkSync(fs.readlinkSync(sourcePath), destinationPath)
+      else if stats.isFile()
+        grunt.file.copy(sourcePath, destinationPath)
 
-    if grunt.file.isDir(source)
-      grunt.file.recurse source, (sourcePath, rootDirectory, subDirectory='', filename) ->
-        unless filter?.test(sourcePath)
-          copyFile(sourcePath, path.join(destination, subDirectory, filename))
-    else
-      copyFile(source, destination)
+      if grunt.file.exists(destinationPath)
+        fs.chmodSync(destinationPath, fs.statSync(sourcePath).mode)
 
     grunt.log.writeln("Copied #{source.cyan} to #{destination.cyan}.")
 
