@@ -151,7 +151,10 @@ class SelectList extends View
     @previouslyFocusedElement = $(':focus')
 
   restoreFocus: ->
-    @previouslyFocusedElement?.focus()
+    if @previouslyFocusedElement?.isOnDom()
+      @previouslyFocusedElement.focus()
+    else
+      rootView.focus()
 
   cancelled: ->
     @miniEditor.setText('')

@@ -36,6 +36,11 @@ class GoToLineView extends View
     @detaching = true
     @miniEditor.setText('')
 
+    if @previouslyFocusedElement?.isOnDom()
+      @previouslyFocusedElement.focus()
+    else
+      rootView.focus()
+
     super
 
     @detaching = false
