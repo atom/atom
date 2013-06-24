@@ -21,7 +21,7 @@
   },
   "scripts": {
     "prepublish": "grunt coffee",
-    "test": "jasmine-focused --captureExceptions --coffee spec/"
+    "test": "grunt test"
   },
   "dependencies": {
     "optimist": "~0.4.0",
