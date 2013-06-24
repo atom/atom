@@ -1,38 +1,40 @@
-.is-blurred .tree-view {
-  background: #f3f3f3;
-  border-right: 1px solid #c5c5c5;
-}
+.is-blurred {
+  .tree-view {
+    background: #f3f3f3;
+    border-right: 1px solid #c5c5c5;
 
-.is-blurred .tab {
-  background-image: -webkit-linear-gradient(#e7e7e7, #cfcfcf);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5), /* top hightlight */
-    inset 1px 0 0 rgba(255, 255, 255, 0.3), /* left highlight */
-    inset 0 -1px 0 rgba(255, 255, 255, 0.2), /* bottom shadow */
-    inset -1px 0 0 rgba(0, 0, 0, 0.2), /* right shadow */
-    inset -2px 0 0 rgba(255, 255, 255, 0.1); /* right hightlight */
-  color: #777;
-}
+    &:focus .selected > .highlight {
+      border-top: 1px solid #3D4552;
+      border-bottom: 1px solid #3D4552;
+      background-image: none;
+      background-color: #69717b;
+    }
 
-.is-blurred .tab .close-icon {
-  color: #8d8d8d;
-}
+    .selected > .highlight {
+      box-sizing: border-box;
+      border-top: 1px solid #97a4a7;
+      border-bottom: 1px solid #97a4a7;
+      background-image: none;
+      background-color: #DFDFDF;
+    }
 
-.is-blurred .tree-view:focus .selected > .highlight {
-  border-top: 1px solid #3D4552;
-  border-bottom: 1px solid #3D4552;
-  background-image: none;
-  background-color: #69717b;
-}
+    .name:before {
+      color: #7e7e7e;
+    }
+  }
 
-.is-blurred .tree-view .selected > .highlight {
-  box-sizing: border-box;
-  border-top: 1px solid #97a4a7;
-  border-bottom: 1px solid #97a4a7;
-  background-image: none;
-  background-color: #DFDFDF;
-}
+  .tab {
+    background-image: -webkit-linear-gradient(#e7e7e7, #cfcfcf);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5), /* top hightlight */
+      inset 1px 0 0 rgba(255, 255, 255, 0.3), /* left highlight */
+      inset 0 -1px 0 rgba(255, 255, 255, 0.2), /* bottom shadow */
+      inset -1px 0 0 rgba(0, 0, 0, 0.2), /* right shadow */
+      inset -2px 0 0 rgba(255, 255, 255, 0.1); /* right hightlight */
+    color: #777;
 
-.is-blurred .tree-view .name:before {
-  color: #7e7e7e;
+    .close-icon {
+      color: #8d8d8d;
+    }
+  }
 }
