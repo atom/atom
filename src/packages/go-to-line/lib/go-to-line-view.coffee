@@ -13,9 +13,11 @@ class GoToLineView extends View
       @subview 'miniEditor', new Editor(mini: true)
       @div class: 'message', outlet: 'message'
 
+  detaching: false
+
   initialize: ->
     rootView.command 'editor:go-to-line', '.editor', => @toggle()
-    @miniEditor.on 'focusout', => @detach()
+    @miniEditor.on 'focusout', => @detach() unless @detaching
     @on 'core:confirm', => @confirm()
     @on 'core:cancel', => @detach()
 
@@ -29,12 +31,14 @@ class GoToLineView extends View
       @attach()
 
   detach: ->
-    return unless @hasParent()
+    return unless @isOnDom()
 
+    @detaching = true
     @miniEditor.setText('')
-    @previouslyFocusedElement?.focus()
 
     super
+
+    @detaching = false
 
   confirm: ->
     lineNumber = @miniEditor.getText()
