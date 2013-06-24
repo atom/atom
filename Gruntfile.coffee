@@ -134,10 +134,21 @@ module.exports = (grunt) ->
     directories = [
       'benchmark'
       'dot-atom'
-      'node_modules'
       'spec'
       'vendor'
     ]
+
+    {devDependencies} = grunt.file.readJSON('package.json')
+    {dependencies} = grunt.file.readJSON('package.json')
+    for child in fs.readdirSync('node_modules')
+      directory = path.join('node_modules', child)
+      try
+        {name} = grunt.file.readJSON(path.join(directory, 'package.json'))
+        if not devDependencies[name]? or dependencies[name]?
+          directories.push(directory)
+      catch e
+        directories.push(directory)
+
     cp directory, path.join(APP_DIR, directory) for directory in directories
 
     cp 'src', path.join(APP_DIR, 'src'), filter: /.+\.(cson|coffee|less)$/
