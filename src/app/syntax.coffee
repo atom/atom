@@ -57,7 +57,8 @@ class Syntax
     @grammarOverridesByPath = {}
 
   selectGrammar: (filePath, fileContents) ->
-    _.max @grammars, (grammar) -> grammar.getScore(filePath, fileContents)
+    grammar = _.max @grammars, (grammar) -> grammar.getScore(filePath, fileContents)
+    grammar
 
   grammarOverrideForPath: (path) ->
     @grammarOverridesByPath[path]

@@ -5,8 +5,9 @@ Token = require 'token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 path = require 'path'
 EventEmitter = require 'event-emitter'
-pathSplitRegex = new RegExp("[#{path.sep}.]")
 TextMateScopeSelector = require 'text-mate-scope-selector'
+
+pathSplitRegex = new RegExp("[#{path.sep}.]")
 
 ### Internal ###
 
