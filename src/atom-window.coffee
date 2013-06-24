@@ -20,7 +20,7 @@ class AtomWindow
     try
       initialPath = path.dirname(pathToOpen) if fs.statSync(pathToOpen).isFile()
 
-    @browserWindow.loadSettings = {initialPath, bootstrapScript, resourcePath, exitWhenDone}
+    @browserWindow.loadSettings = {initialPath, bootstrapScript, resourcePath, exitWhenDone, windowState: ''}
     @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{resourcePath}/static/index.html"
 

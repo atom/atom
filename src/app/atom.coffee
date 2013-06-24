@@ -235,25 +235,40 @@ window.atom =
           sha1 = crypto.createHash('sha1').update(initialPath).digest('hex')
           filename = "editor-#{sha1}"
 
-    filename ?= 'undefined'
-    path.join(config.userStoragePath, filename)
+    if filename
+      path.join(config.userStoragePath, filename)
+    else
+      null
+
+  saveWindowState: (windowState) ->
+    windowStateJson = JSON.stringify(windowState)
+    if windowStatePath = @getWindowStatePath()
+      fsUtils.writeSync(windowStatePath, windowStateJson)
+    else
+      @getLoadSettings().windowState = windowStateJson
 
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
     _.setValueForKeyPath(windowState, keyPath, value)
-    fsUtils.writeSync(@getWindowStatePath(), JSON.stringify(windowState))
+    @saveWindowState(windowState)
     windowState
 
   getWindowState: (keyPath) ->
-    windowStatePath = @getWindowStatePath()
-    return {} unless fsUtils.exists(windowStatePath)
+    if windowStatePath = @getWindowStatePath()
+      if fsUtils.exists(windowStatePath)
+        try
+          windowStateJson  = fsUtils.read(windowStatePath)
+        catch error
+          console.warn "Error reading window state: #{windowStatePath}", error.stack, error
+    else
+      windowStateJson = @getLoadSettings().windowState
 
     try
-      windowState = JSON.parse(fsUtils.read(windowStatePath) or '{}')
+      windowState = JSON.parse(windowStateJson or '{}')
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
-      windowState = {}
 
+    windowState ?= {}
     if keyPath
       _.valueForKeyPath(windowState, keyPath)
     else
