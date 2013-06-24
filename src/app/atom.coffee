@@ -225,9 +225,6 @@ window.atom =
   isFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
 
-  sendMessageToBrowserProcess: (name, data=[], callbacks) ->
-    throw new Error("sendMessageToBrowserProcess no longer works for #{name}")
-
   getWindowStatePath: ->
     switch @windowMode
       when 'config'
@@ -264,9 +261,6 @@ window.atom =
 
   update: ->
     ipc.sendChannel 'install-update'
-
-  getUpdateStatus: (callback) ->
-    throw new Error('atom.getUpdateStatus is not implemented')
 
   crashMainProcess: ->
     remote.process.crash()
