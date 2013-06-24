@@ -127,7 +127,7 @@ window.deserializeEditorWindow = ->
   window.git = Git.open(project.getPath())
   project.on 'path-changed', ->
     projectPath = project.getPath()
-    atom.setPathToOpen(projectPath)
+    atom.getLoadSettings().initialPath = projectPath
 
     window.git?.destroy()
     window.git = Git.open(projectPath)
