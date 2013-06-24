@@ -55,7 +55,7 @@
     'name': 'comment.hr.gfm'
   }
   {
-    'begin': '^`{3,}coffee(script)?$'
+    'begin': '^`{3,}\\s*coffee(script)?$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
@@ -65,7 +65,7 @@
     'patterns': ['include': 'source.coffee']
   }
   {
-    'begin': '^`{3,}(javascript|js)$'
+    'begin': '^`{3,}\\s*(javascript|js)$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
@@ -75,7 +75,7 @@
     'patterns': ['include': 'source.js']
   }
   {
-    'begin': '^`{3,}css$'
+    'begin': '^`{3,}\\s*css$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
@@ -85,7 +85,7 @@
     'patterns': ['include': 'source.css']
   }
   {
-    'begin': '^`{3,}xml$'
+    'begin': '^`{3,}\\s*xml$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
@@ -95,7 +95,7 @@
     'patterns': ['include': 'text.xml']
   }
   {
-    'begin': '^`{3,}(ruby|rb)$'
+    'begin': '^`{3,}\\s*(ruby|rb)$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
@@ -105,7 +105,7 @@
     'patterns': ['include': 'source.ruby']
   }
   {
-    'begin': '^`{3,}java$'
+    'begin': '^`{3,}\\s*java$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
@@ -115,7 +115,7 @@
     'patterns': ['include': 'source.java']
   }
   {
-    'begin': '^`{3,}(sh|bash)$'
+    'begin': '^`{3,}\\s*(sh|bash)$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
@@ -125,7 +125,7 @@
     'patterns': ['include': 'source.shell']
   }
   {
-    'begin': '^`{3,}py(thon)?$'
+    'begin': '^`{3,}\\s*py(thon)?$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
