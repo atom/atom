@@ -149,7 +149,14 @@ module.exports = (grunt) ->
       catch e
         directories.push(directory)
 
-    cp directory, path.join(APP_DIR, directory) for directory in directories
+    ignoredPaths = [
+      path.join('git-utils', 'deps')
+      path.join('oniguruma', 'deps')
+    ]
+    ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
+    nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
+    for directory in directories
+      cp directory, path.join(APP_DIR, directory), filter: nodeModulesFilter
 
     cp 'src', path.join(APP_DIR, 'src'), filter: /.+\.(cson|coffee|less)$/
     cp 'static', path.join(APP_DIR, 'static'), filter: /.+\.less$/
