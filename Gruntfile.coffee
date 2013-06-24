@@ -22,7 +22,6 @@ module.exports = (grunt) ->
         src: [
           'src/**/*.coffee'
           'static/**/*.coffee'
-          'vendor/**/*.coffee'
         ]
         dest: APP_DIR
         ext: '.js'
@@ -152,6 +151,7 @@ module.exports = (grunt) ->
     ignoredPaths = [
       path.join('git-utils', 'deps')
       path.join('oniguruma', 'deps')
+      path.join('vendor', 'apm')
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
