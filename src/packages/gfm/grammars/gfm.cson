@@ -125,6 +125,16 @@
     'patterns': ['include': 'source.shell']
   }
   {
+    'begin': '^`{3,}py(thon)?$'
+    'beginCaptures':
+      '0': 'name': 'support.gfm'
+    'end': '^`{3,}$'
+    'endCaptures':
+      '0': 'name': 'support.gfm'
+    'name': 'markup.code.shell.gfm'
+    'patterns': ['include': 'source.shell']
+  }
+  {
     'begin': '^`{3,}.*$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
