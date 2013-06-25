@@ -1,3 +1,5 @@
+* Fixed: cmd-shift-p and cmd-alt-w not doing anything when pressed
+
 * Improved: Use grunt (instead of rake) for build system
 * Fixed: Java files not syntax highlighting correctly.
 * Fixed: LESS/CSS now indents properly after hitting enter.
