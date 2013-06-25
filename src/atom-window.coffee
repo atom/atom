@@ -4,24 +4,28 @@ dialog = require 'dialog'
 ipc = require 'ipc'
 path = require 'path'
 fs = require 'fs'
+_ = require 'underscore'
 
 module.exports =
 class AtomWindow
   browserWindow: null
 
-  constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec, windowState}) ->
+  constructor: (settings={}) ->
+    {resourcePath, pathToOpen, isSpec} = settings
     global.atomApplication.addWindow(this)
 
     @setupNodePath(resourcePath)
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
-    @handleEvents()
+    @handleEvents(isSpec)
 
-    initialPath = pathToOpen
+    loadSettings = _.extend({}, settings)
+    loadSettings.windowState ?= ''
+    loadSettings.initialPath = pathToOpen
     try
-      initialPath = path.dirname(pathToOpen) if fs.statSync(pathToOpen).isFile()
+      if fs.statSync(pathToOpen).isFile()
+        loadSettings.initialPath = path.dirname(pathToOpen)
 
-    windowState ?= ''
-    @browserWindow.loadSettings = {initialPath, bootstrapScript, resourcePath, exitWhenDone, windowState}
+    @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{resourcePath}/static/index.html"
 
@@ -63,7 +67,7 @@ class AtomWindow
     else
       false
 
-  handleEvents: ->
+  handleEvents: (isSpec)->
     @browserWindow.on 'destroyed', =>
       global.atomApplication.removeWindow(this)
 
@@ -86,7 +90,7 @@ class AtomWindow
         when 0 then setImmediate => @browserWindow.destroy()
         when 1 then @browserWindow.restart()
 
-    if @isSpec
+    if isSpec
       # Spec window's web view should always have focus
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
