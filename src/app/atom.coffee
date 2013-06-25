@@ -175,6 +175,9 @@ window.atom =
   openConfig: ->
     ipc.sendChannel('open-config')
 
+  openWindow: (windowSettings) ->
+    ipc.sendChannel('open-window', windowSettings)
+
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     buttons = []
     callbacks = []
