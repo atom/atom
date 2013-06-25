@@ -116,14 +116,19 @@ window.deserializeEditorWindow = ->
   Project = require 'project'
   Git = require 'git'
 
-  {initialPath} = atom.getLoadSettings()
-
   windowState = atom.getWindowState()
 
   atom.packageStates = windowState.getObject('packageStates') ? {}
-  window.project = new Project(initialPath)
-  window.rootView = deserialize(windowState.get('rootView')) ? new RootView
-  windowState.set('rootView', window.rootView.serialize())
+
+  window.project = deserialize(windowState.get('project'))
+  unless window.project?
+    window.project = new Project(atom.getLoadSettings().initialPath)
+    windowState.set('project', window.project.serialize())
+
+  window.rootView = deserialize(windowState.get('rootView'))
+  unless window.rootView?
+    window.rootView = new RootView()
+    windowState.set('rootView', window.rootView.serialize())
 
   $(rootViewParentSelector).append(rootView)
 
