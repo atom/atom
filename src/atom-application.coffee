@@ -50,9 +50,7 @@ class AtomApplication
     @buildApplicationMenu()
     @handleEvents()
 
-    # Don't check for updates if it's a custom build.
-    if @version.indexOf('.') isnt -1
-      @checkForUpdates()
+    @checkForUpdates()
 
     if test
       @runSpecs({exitWhenDone: true, @resourcePath})
@@ -82,6 +80,8 @@ class AtomApplication
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
   checkForUpdates: ->
+    return if /\w{7}/.test @version # Don't check for updates if version is a short sha
+
     autoUpdater.setAutomaticallyChecksForUpdates true
     autoUpdater.checkForUpdatesInBackground()
 
