@@ -1,4 +1,4 @@
-ConfigPanel = require 'config-panel'
+ConfigPanel = require './config-panel'
 {$$} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'

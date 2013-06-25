@@ -1,6 +1,6 @@
-ConfigPanel = require 'config-panel'
-InstalledPackagesConfigPanel = require 'installed-packages-config-panel'
-AvailablePackagesConfigPanel = require 'available-packages-config-panel'
+ConfigPanel = require './config-panel'
+InstalledPackagesConfigPanel = require './installed-packages-config-panel'
+AvailablePackagesConfigPanel = require './available-packages-config-panel'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 

@@ -1,0 +1,2 @@
+'main': './lib/config-view'
+'deferredDeserializers': ['ConfigView']

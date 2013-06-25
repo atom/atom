@@ -1,6 +1,6 @@
-PackageConfigView = require 'package-config-view'
-ConfigPanel = require 'config-panel'
-packageManager = require 'package-manager'
+PackageConfigView = require './package-config-view'
+ConfigPanel = require './config-panel'
+packageManager = require './package-manager'
 
 ### Internal ###
 module.exports =

@@ -1,5 +1,5 @@
 $ = require 'jquery'
-ThemeConfigPanel = require 'theme-config-panel'
+ThemeConfigPanel = require '../lib/theme-config-panel'
 
 describe "ThemeConfigPanel", ->
   panel = null

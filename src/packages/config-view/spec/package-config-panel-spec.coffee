@@ -1,5 +1,5 @@
-PackageConfigPanel = require 'package-config-panel'
-packageManager = require 'package-manager'
+PackageConfigPanel = require '../lib/package-config-panel'
+packageManager = require '../lib/package-manager'
 _ = require 'underscore'
 
 describe "PackageConfigPanel", ->

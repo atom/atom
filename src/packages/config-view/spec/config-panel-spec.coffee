@@ -1,4 +1,4 @@
-ConfigPanel = require 'config-panel'
+ConfigPanel = require '../lib/config-panel'
 Editor = require 'editor'
 
 describe "ConfigPanel", ->

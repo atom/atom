@@ -1,4 +1,4 @@
-ConfigView = require 'config-view'
+ConfigView = require '../lib/config-view'
 {$$} = require 'space-pen'
 
 describe "ConfigView", ->

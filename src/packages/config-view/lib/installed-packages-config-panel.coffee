@@ -1,7 +1,7 @@
 _ = require 'underscore'
-ConfigPanel = require 'config-panel'
-PackageConfigView = require 'package-config-view'
-packageManager = require 'package-manager'
+ConfigPanel = require './config-panel'
+PackageConfigView = require './package-config-view'
+packageManager = require './package-manager'
 
 ### Internal ###
 module.exports =

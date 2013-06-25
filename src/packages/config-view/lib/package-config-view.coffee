@@ -1,6 +1,6 @@
 Package = require 'package'
 semver = require 'semver'
-packageManager = require 'package-manager'
+packageManager = require './package-manager'
 _ = require 'underscore'
 {$$, View} = require 'space-pen'
 requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'

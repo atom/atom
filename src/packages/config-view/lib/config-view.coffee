@@ -1,23 +1,33 @@
-{View, $$} = require 'space-pen'
+{$$} = require 'space-pen'
+ScrollView = require 'scroll-view'
 $ = require 'jquery'
 _ = require 'underscore'
-GeneralConfigPanel = require 'general-config-panel'
-EditorConfigPanel = require 'editor-config-panel'
-ThemeConfigPanel = require 'theme-config-panel'
-PackageConfigPanel = require 'package-config-panel'
+Pane = require 'pane'
+GeneralConfigPanel = require './general-config-panel'
+EditorConfigPanel = require './editor-config-panel'
+ThemeConfigPanel = require './theme-config-panel'
+PackageConfigPanel = require './package-config-panel'
 
 ###
 # Internal #
 ###
 
 module.exports =
-class ConfigView extends View
+class ConfigView extends ScrollView
   registerDeserializer(this)
 
-  @deserialize: ({activePanelName}) ->
-    view = new ConfigView()
-    view.showPanel(activePanelName)
-    view
+  @activate: (state) ->
+    rootView.command 'config-view:toggle', ->
+      configView = new ConfigView()
+      activePane = rootView.getActivePane()
+      if activePane
+        activePane.showItem(configView)
+      else
+        activePane = new Pane(configView)
+        rootView.panes.append(activePane)
+
+  @deserialize: ({activePanelName}={}) ->
+    new ConfigView(activePanelName)
 
   @content: ->
     @div id: 'config-view', =>
@@ -26,7 +36,10 @@ class ConfigView extends View
         @button "open .atom", id: 'open-dot-atom', class: 'btn btn-default btn-small'
       @div id: 'panels', outlet: 'panels'
 
-  initialize: ->
+  activePanelName: null
+
+  initialize: (activePanelName) ->
+    super
     @panelsByName = {}
     document.title = "Atom Configuration"
     @on 'click', '#panels-menu li a', (e) =>
@@ -39,6 +52,11 @@ class ConfigView extends View
     @addPanel('Editor', new EditorConfigPanel)
     @addPanel('Themes', new ThemeConfigPanel)
     @addPanel('Packages', new PackageConfigPanel)
+    @showPanel(activePanelName) if activePanelName
+
+  serialize: ->
+    deserializer: 'ConfigView'
+    activePanelName: @activePanelName
 
   addPanel: (name, panel) ->
     panelItem = $$ -> @li name: name, => @a name
@@ -64,6 +82,11 @@ class ConfigView extends View
     else
       @panelToShow = name
 
-  serialize: ->
-    deserializer: @constructor.name
-    activePanelName: @activePanelName
+  getTitle: ->
+    "Atom Config"
+
+  getUri: ->
+    "atom://config"
+
+  isEqual: (other) ->
+    other instanceof ConfigView
