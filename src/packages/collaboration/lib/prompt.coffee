@@ -8,12 +8,12 @@ module.exports =
 class Prompt extends View
   @activate: -> new Prompt
 
-  @content: ({message}) ->
+  @content: ->
     @div class: 'overlay from-top mini', =>
       @subview 'miniEditor', new Editor(mini: true)
-      @div class: 'message', outlet: 'message', message
+      @div class: 'message', outlet: 'message', 'Enter a session id to join'
 
-  initialize: (message, @confirmed) ->
+  initialize: (@confirmed) ->
     @miniEditor.on 'focusout', => @remove()
     @on 'core:confirm', => @confirm()
     @on 'core:cancel', => @remove()

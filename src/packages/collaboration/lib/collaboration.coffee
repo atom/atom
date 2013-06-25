@@ -54,5 +54,4 @@ module.exports =
         pasteboard.write(sessionId)
 
     rootView.command 'collaboration:join-session', ->
-      new Prompt 'Enter a session id to join', (id) ->
-        joinSession(id)
+      new Prompt(joinSession)
