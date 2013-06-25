@@ -44,8 +44,14 @@ joinSession = (id) ->
 
 module.exports =
   activate: ->
+    sessionId = null
+
+    rootView.command 'collaboration:copy-session-id', ->
+      pasteboart.write(sessionId) if sessionId
+
     rootView.command 'collaboration:start-session', ->
-      pasteboard.write(startSession())
+      if sessionId = startSession()
+        pasteboard.write(sessionId)
 
     rootView.command 'collaboration:join-session', ->
       new Prompt 'Enter a session id to join', (id) ->
