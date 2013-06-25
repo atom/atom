@@ -47,11 +47,16 @@ module.exports =
     sessionId = null
 
     rootView.command 'collaboration:copy-session-id', ->
-      pasteboart.write(sessionId) if sessionId
+      pasteboard.write(sessionId) if sessionId
 
     rootView.command 'collaboration:start-session', ->
       if sessionId = startSession()
         pasteboard.write(sessionId)
 
     rootView.command 'collaboration:join-session', ->
-      new Prompt(joinSession)
+      new Prompt (id) ->
+        windowSettings =
+          bootstrapScript: require.resolve('collaboration/lib/bootstrap')
+          resourcePath: window.resourcePath
+          sessionId: id
+        atom.openWindow(windowSettings)

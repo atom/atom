@@ -295,8 +295,8 @@ class Pane extends View
     @viewForItem(@activeItem)
 
   serialize: ->
+    @state.get('items').set(index, item.serialize()) for item, index in @items
     @state.set
-      items: @items.map (item) -> item.serialize()
       focused: @is(':has(:focus)')
       activeItemUri: @activeItem.getUri?()
     @state
