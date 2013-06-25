@@ -1,46 +1,16 @@
-Peer = require './peer'
-Guid = require 'guid'
 Prompt = require './prompt'
 {createSite, Document} = require 'telepath'
-$ = require 'jquery'
-
-peerJsSettings =
-  host: 'ec2-54-218-51-127.us-west-2.compute.amazonaws.com'
-  port: 8080
-
-wireDocumentEvents = (connection, sharedDocument) ->
-  sharedDocument.outputEvents.on 'changed', (event) ->
-    console.log 'sending event', event
-    connection.send(event)
-
-  connection.on 'data', (event) ->
-    console.log 'receiving event', event
-    sharedDocument.handleInputEvent(event)
+{createPeer, connectDocument} = require './session-utils'
 
 startSession = ->
-  id = Guid.create().toString()
-  peer = new Peer(id, peerJsSettings)
+  peer = createPeer()
   peer.on 'connection', (connection) ->
     connection.on 'open', ->
-      console.log 'sending document', atom.getWindowState().serialize()
-      connection.send(atom.getWindowState().serialize())
-      wireDocumentEvents(connection, atom.getWindowState())
-  id
-
-joinSession = (id) ->
-  siteId = Guid.create().toString()
-  peer = new Peer(siteId, peerJsSettings)
-  connection = peer.connect(id, reliable: true)
-  connection.on 'open', ->
-    console.log 'connection opened'
-    connection.once 'data', (data) ->
-      console.log 'received data', data
-      remoteWindowState = Document.deserialize(createSite(siteId), data)
-      window.remoteWindowState = remoteWindowState
-      wireDocumentEvents(connection, remoteWindowState)
-      rootView.remove()
-      window.rootView = deserialize(remoteWindowState.get('rootView'))
-      $('body').append(rootView)
+      console.log 'sending document'
+      windowState = atom.getWindowState()
+      connection.send(windowState.serialize())
+      connectDocument(windowState, connection)
+  peer.id
 
 module.exports =
   activate: ->
