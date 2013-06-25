@@ -203,11 +203,15 @@ module.exports = (grunt) ->
       spawn cmd: 'pkill', args: ['Atom'], -> callback()
     commands.push (callback) ->
       atomBinary = path.join(CONTENTS_DIR, 'MacOS', 'Atom')
-      spawn  cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], (error, result) ->
+      spawn cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], (error, result) ->
         process.stderr.write(result.stderr)
         process.stdout.write(result.stdout)
         callback(error)
     grunt.util.async.waterfall commands, (error) -> done(error)
+
+  grunt.registerTask 'nof', 'Un-focus all specs', ->
+    nof = require.resolve('.bin/nof')
+    spawn({cmd: nof, args: ['spec', 'src']}, @async())
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
