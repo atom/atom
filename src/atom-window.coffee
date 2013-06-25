@@ -9,7 +9,7 @@ module.exports =
 class AtomWindow
   browserWindow: null
 
-  constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec}) ->
+  constructor: ({bootstrapScript, resourcePath, pathToOpen, exitWhenDone, @isSpec, windowState}) ->
     global.atomApplication.addWindow(this)
 
     @setupNodePath(resourcePath)
@@ -20,7 +20,8 @@ class AtomWindow
     try
       initialPath = path.dirname(pathToOpen) if fs.statSync(pathToOpen).isFile()
 
-    @browserWindow.loadSettings = {initialPath, bootstrapScript, resourcePath, exitWhenDone, windowState: ''}
+    windowState ?= ''
+    @browserWindow.loadSettings = {initialPath, bootstrapScript, resourcePath, exitWhenDone, windowState}
     @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{resourcePath}/static/index.html"
 
