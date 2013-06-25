@@ -233,12 +233,15 @@ window.unregisterDeserializer = (klass) ->
   delete deserializers[klass.name]
 
 window.deserialize = (state) ->
+  return unless state?
   if deserializer = getDeserializer(state)
     stateVersion = state.get?('version') ? state.version
     return if deserializer.version? and deserializer.version isnt stateVersion
     if (state instanceof telepath.Document) and not deserializer.acceptsDocuments
       state = state.toObject()
     deserializer.deserialize(state)
+  else
+    console.warn "No deserializer found for", state
 
 window.getDeserializer = (state) ->
   return unless state?
@@ -247,6 +250,7 @@ window.getDeserializer = (state) ->
   if deferredDeserializers[name]
     deferredDeserializers[name]()
     delete deferredDeserializers[name]
+
   deserializers[name]
 
 window.requireWithGlobals = (id, globals={}) ->
