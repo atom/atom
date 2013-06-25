@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+TextMateGrammar = require 'text-mate-grammar'
 
 describe "the `syntax` global", ->
   beforeEach ->
@@ -56,6 +57,23 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar(path).name).toBe 'Ruby'
       syntax.clearGrammarOverrideForPath(path)
       expect(syntax.selectGrammar(path).name).not.toBe 'Ruby'
+
+    describe "when multiple grammars have matching fileTypes", ->
+      it "selects the grammar with the longest fileType match", ->
+        grammar1 = new TextMateGrammar
+          name: 'test1'
+          scopeName: 'source1'
+          fileTypes: ['test', 'more.test']
+
+        grammar2 = new TextMateGrammar
+          name: 'test2'
+          scopeName: 'source2'
+          fileTypes: ['test']
+
+        syntax.addGrammar(grammar1)
+        syntax.addGrammar(grammar2)
+
+        expect(syntax.selectGrammar('more.test', '')).toBe grammar1
 
   describe ".removeGrammar(grammar)", ->
     it "removes the grammar, so it won't be returned by selectGrammar", ->

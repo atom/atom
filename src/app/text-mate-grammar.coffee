@@ -74,14 +74,13 @@ class TextMateGrammar
   getScore: (filePath, contents) ->
     contents = fsUtils.read(filePath) if not contents? and fsUtils.isFileSync(filePath)
 
+
     if syntax.grammarOverrideForPath(filePath) is @scopeName
-      3
+      2 + filePath.length
     else if @matchesContents(contents)
-      2
-    else if @matchesPath(filePath)
-      1
+      1 + filePath.length
     else
-      -1
+      @getPathScore(filePath)
 
   matchesContents: (contents) ->
     return false unless contents? and @firstLineRegex?
@@ -100,13 +99,18 @@ class TextMateGrammar
     lines = contents.split('\n')
     @firstLineRegex.test(lines[0..numberOfNewlinesInRegex].join('\n'))
 
-  matchesPath: (filePath) ->
-    return false unless filePath?
+  getPathScore: (filePath) ->
+    return -1 unless filePath?
+
     pathComponents = filePath.split(pathSplitRegex)
-    _.find @fileTypes, (fileType) ->
+    pathScore = -1
+    @fileTypes.forEach (fileType) ->
       fileTypeComponents = fileType.split(pathSplitRegex)
       pathSuffix = pathComponents[-fileTypeComponents.length..-1]
-      _.isEqual(pathSuffix, fileTypeComponents)
+      if _.isEqual(pathSuffix, fileTypeComponents)
+        pathScore = Math.max(pathScore, fileType.length)
+
+    pathScore
 
   tokenizeLine: (line, ruleStack=[@getInitialRule()], firstLine=false) ->
     originalRuleStack = ruleStack
