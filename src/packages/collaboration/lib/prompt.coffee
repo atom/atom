@@ -9,7 +9,7 @@ class Prompt extends View
   @activate: -> new Prompt
 
   @content: ->
-    @div class: 'overlay from-top mini', =>
+    @div class: 'overlay from-top', =>
       @subview 'miniEditor', new Editor(mini: true)
       @div class: 'message', outlet: 'message', 'Enter a session id to join'
 
