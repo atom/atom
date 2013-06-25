@@ -26,11 +26,13 @@ class ConfigView extends ScrollView
         activePane = new Pane(configView)
         rootView.panes.append(activePane)
 
+      activePane.focus()
+
   @deserialize: ({activePanelName}={}) ->
     new ConfigView(activePanelName)
 
   @content: ->
-    @div id: 'config-view', =>
+    @div id: 'config-view', tabindex: -1, =>
       @div id: 'config-menu', =>
         @ul id: 'panels-menu', class: 'nav nav-pills nav-stacked', outlet: 'panelMenu'
         @button "open .atom", id: 'open-dot-atom', class: 'btn btn-default btn-small'
