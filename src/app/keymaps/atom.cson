@@ -52,6 +52,8 @@
   'meta-8': 'pane:show-item-8'
   'meta-9': 'pane:show-item-9'
   'meta-T': 'pane:reopen-closed-item'
+  'alt-meta-w': 'pane:close-other-items'
+  'meta-P': 'pane:close'
 
   'meta-n': 'new-window'
   'meta-N': 'new-editor'

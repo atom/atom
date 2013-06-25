@@ -20,8 +20,6 @@
   'meta-alt-p': 'editor:log-cursor-scope'
   'meta-u': 'editor:upper-case'
   'meta-U': 'editor:lower-case'
-  'alt-meta-w': 'editor:close-other-edit-sessions'
-  'meta-P': 'editor:close-all-edit-sessions'
   'ctrl-C': 'editor:copy-path'
   'ctrl-meta-up': 'editor:move-line-up'
   'ctrl-meta-down': 'editor:move-line-down'
