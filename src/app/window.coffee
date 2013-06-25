@@ -60,20 +60,6 @@ window.startEditorWindow = ->
   atom.show()
   atom.focus()
 
-window.startConfigWindow = ->
-  restoreDimensions()
-  windowEventHandler = new WindowEventHandler
-  config.load()
-  keymap.loadBundledKeymaps()
-  atom.loadThemes()
-  atom.loadPackages()
-  deserializeConfigWindow()
-  atom.activatePackageConfigs()
-  keymap.loadUserKeymaps()
-  $(window).on 'unload', -> unloadConfigWindow(); false
-  atom.show()
-  atom.focus()
-
 window.unloadEditorWindow = ->
   return if not project and not rootView
   windowState = atom.getWindowState()
@@ -97,13 +83,6 @@ window.installAtomCommand = (callback) ->
 window.installApmCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'node_modules', '.bin', 'apm')
   require('command-installer').install(commandPath, callback)
-
-window.unloadConfigWindow = ->
-  return if not configView
-  atom.getWindowState().set('configView', configView.serialize())
-  configView.remove()
-  windowEventHandler?.unsubscribe()
-  window.configView = null
 
 window.onDrop = (e) ->
   e.preventDefault()
@@ -139,11 +118,6 @@ window.deserializeEditorWindow = ->
 
     window.git?.destroy()
     window.git = Git.open(projectPath)
-
-window.deserializeConfigWindow = ->
-  ConfigView = require 'config-view'
-  window.configView = deserialize(atom.getWindowState('configView')) ? new ConfigView()
-  $(rootViewParentSelector).append(configView)
 
 window.stylesheetElementForId = (id) ->
   $("""head style[id="#{id}"]""")

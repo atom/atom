@@ -54,15 +54,6 @@ window.atom =
   getActivePackages: ->
     _.values(@activePackages)
 
-  activatePackageConfigs: ->
-    @activatePackageConfig(pack.name) for pack in @getLoadedPackages()
-
-  activatePackageConfig: (name, options) ->
-    if pack = @loadPackage(name, options)
-      @activePackages[pack.name] = pack
-      pack.activateConfig()
-      pack
-
   loadPackages: ->
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
 
@@ -172,9 +163,6 @@ window.atom =
   newWindow: ->
     ipc.sendChannel('new-window')
 
-  openConfig: ->
-    ipc.sendChannel('open-config')
-
   openWindow: (windowSettings) ->
     ipc.sendChannel('open-window', windowSettings)
 
@@ -237,7 +225,7 @@ window.atom =
 
   getWindowStatePath: ->
     switch @windowMode
-      when 'config', 'spec'
+      when 'spec'
         filename = @windowMode
       when 'editor'
         {initialPath} = @getLoadSettings()
