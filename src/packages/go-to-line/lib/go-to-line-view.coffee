@@ -31,7 +31,7 @@ class GoToLineView extends View
       @attach()
 
   detach: ->
-    return unless @isOnDom()
+    return unless @hasParent()
 
     @detaching = true
     @miniEditor.setText('')
