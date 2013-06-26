@@ -230,7 +230,7 @@ $.fn.enableKeymap = ->
   @on 'keydown', (e) => window.keymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
-  $('#jasmine-content').append(this)
+  @appendTo($('#jasmine-content'))
 
 $.fn.simulateDomAttachment = ->
   $('<html>').append(this)
