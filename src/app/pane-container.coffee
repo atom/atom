@@ -35,6 +35,8 @@ class PaneContainer extends View
     @getRoot()?.serialize()
     @state
 
+  getState: -> @state
+
   ### Public ###
 
   focusNextPane: ->
