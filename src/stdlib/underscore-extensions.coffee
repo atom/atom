@@ -93,6 +93,10 @@ _.mixin
       else
         "-"
 
+  uncamelcase: (string) ->
+    result = string.replace /([A-Z])|(_)/g, (m, letter, underscore) -> " " + letter
+    _.capitalize(result)
+
   undasherize: (string) ->
     string.split('-').map(_.capitalize).join(' ')
 
