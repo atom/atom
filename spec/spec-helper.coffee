@@ -89,7 +89,7 @@ afterEach ->
   if git?
     git.destroy()
     window.git = null
-  $('#jasmine-content').empty()
+  $('#jasmine-content').empty() unless window.debugContent
   jasmine.unspy(atom, 'saveWindowState')
   ensureNoPathSubscriptions()
   syntax.off()
