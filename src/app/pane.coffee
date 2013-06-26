@@ -32,7 +32,7 @@ class Pane extends View
     else
       @items = args
       @state = telepath.Document.fromObject
-        items: @items.map (item) -> item.serialize()
+        items: @items.map (item) -> item.getState?() ? item.serialize()
 
     @state.get('items').observe ({index, value, type, site}) =>
       return if site is @state.site.id
@@ -155,7 +155,7 @@ class Pane extends View
   addItem: (item, index=@getActiveItemIndex()+1, options={}) ->
     return if _.include(@items, item)
 
-    @state.get('items').splice(index, 0, item.serialize()) if options.updateState ? true
+    @state.get('items').splice(index, 0, item.getState?() ? item.serialize()) if options.updateState ? true
     @items.splice(index, 0, item)
     @getContainer().itemAdded(item)
     @trigger 'pane:item-added', [item, index]
@@ -245,7 +245,7 @@ class Pane extends View
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
     @state.get('items').splice(oldIndex, 1)
-    @state.get('items').splice(newIndex, 0, item.serialize())
+    @state.get('items').splice(newIndex, 0, item.getState?() ? item.serialize())
     @trigger 'pane:item-moved', [item, newIndex]
 
   moveItemToPane: (item, pane, index) ->
@@ -278,7 +278,7 @@ class Pane extends View
         viewToRemove?.remove()
     else
       viewToRemove?.detach() if @isMovingItem and item is viewToRemove
-      @remove()
+      @parent().view().removeChild(this, updateState: false)
 
   viewForItem: (item) ->
     if item instanceof $
@@ -300,6 +300,8 @@ class Pane extends View
       focused: @is(':has(:focus)')
       activeItemUri: @activeItem.getUri?()
     @state
+
+  getState: -> @state
 
   adjustDimensions: -> # do nothing
 

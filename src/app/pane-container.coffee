@@ -90,7 +90,7 @@ class PaneContainer extends View
   setRoot: (root, options={}) ->
     @empty()
     @append(root) if root?
-    @state.set(root: root?.serialize() ? null) if options.updateState ? true
+    @state.set(root: root?.getState()) if options.updateState ? true
 
   removeChild: (child) ->
     throw new Error("Removing non-existant child") unless @getRoot() is child

@@ -4,14 +4,14 @@ PaneContainer = require 'pane-container'
 Pane = require 'pane'
 
 describe "PaneContainer replication", ->
-  [container1, pane1a, pane1b, pane1c] = []
-  [container2, pane2a, pane2b, pane2c] = []
+  [container1, container2, pane1a, pane1b, pane1c] = []
 
   class TestView extends View
     @deserialize: ({name}) -> new TestView(name)
     @content: -> @div tabindex: -1
     initialize: (@name) -> @text(@name)
     serialize: -> { deserializer: 'TestView', @name }
+    getState: -> @serialize()
     getUri: -> "/tmp/#{@name}"
     isEqual: (other) -> @name is other.name
 
@@ -62,7 +62,6 @@ describe "PaneContainer replication", ->
     expect(container2.find('.row > :eq(1)')).toHaveClass('column')
     expect(container2.find('.row > :eq(1) > :eq(0):contains(D)')).toExist()
     expect(container2.find('.row > :eq(1) > :eq(1):contains(E)')).toExist()
-
 
   it "replicates removal of panes", ->
     pane1c.remove()

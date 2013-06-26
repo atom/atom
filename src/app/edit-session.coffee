@@ -87,6 +87,8 @@ class EditSession
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
 
+  getState: -> @serialize()
+
   # Creates a copy of the current {EditSession}.Returns an identical `EditSession`.
   copy: ->
     EditSession.deserialize(@serialize(), @project)

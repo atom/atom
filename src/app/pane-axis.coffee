@@ -74,21 +74,20 @@ class PaneAxis extends View
     newChild.insertBefore(child)
     if options.updateState ? true
       children = @state.get('children')
-      childIndex = children.indexOf(child.serialize())
-      children.insert(childIndex, newChild.serialize())
+      childIndex = children.indexOf(child.getState())
+      children.insert(childIndex, newChild.getState())
 
   insertChildAfter: (child, newChild) ->
     newChild.insertAfter(child)
     children = @state.get('children')
-    childIndex = children.indexOf(child.serialize())
-    children.insert(childIndex + 1, newChild.serialize())
+    childIndex = children.indexOf(child.getState())
+    children.insert(childIndex + 1, newChild.getState())
 
   serialize: ->
     child.serialize() for child in @children().views()
     @state
 
-  childViewStates: ->
-    $(child).view().serialize() for child in @children()
+  getState: -> @state
 
   horizontalChildUnits: ->
     $(child).view().horizontalGridUnits() for child in @children()
