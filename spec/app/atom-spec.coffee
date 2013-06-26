@@ -293,28 +293,3 @@ describe "the `atom` global", ->
   describe ".getVersion", ->
     it "returns the current version number", ->
       expect(typeof atom.getVersion()).toBe 'string'
-
-  describe "API documentation", ->
-    it "meets a minimum threshold for /app (with no errors)", ->
-      docRunner = jasmine.createSpy("docRunner")
-      Exec "./node_modules/.bin/coffee ./node_modules/.bin/biscotto -- --statsOnly src/app/", cwd: project.resolve('../..'), docRunner
-      waitsFor ->
-        docRunner.callCount > 0
-
-      runs ->
-        # error
-        expect(docRunner.argsForCall[0][0]).toBeNull()
-
-        results = docRunner.argsForCall[0][1].split("\n")
-        results.pop()
-
-        errors = parseInt results.pop().match(/\d+/)
-        if errors > 0
-          console.error results.join('\n')
-          throw new Error("There were errors compiling documentation. See console for details.")
-
-        coverage = parseFloat results.pop().match(/.+?%/)
-        expect(coverage).toBeGreaterThan 75
-
-        # stderr
-        expect(docRunner.argsForCall[0][2]).toBe ''
