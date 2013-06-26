@@ -3,6 +3,7 @@ InstalledPackagesConfigPanel = require './installed-packages-config-panel'
 AvailablePackagesConfigPanel = require './available-packages-config-panel'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
+Editor = require 'editor'
 
 ### Internal ###
 class PackageEventEmitter
@@ -20,6 +21,8 @@ class PackageConfigPanel extends ConfigPanel
         @li outlet: 'availableLink', =>
           @a 'Available', =>
             @span class: 'badge pull-right', outlet: 'availableCount'
+
+      @subview 'packageFilter', new Editor(mini: true, attributes: {id: 'package-filter'})
 
   initialize: ->
     @packageEventEmitter = new PackageEventEmitter()
@@ -46,3 +49,7 @@ class PackageConfigPanel extends ConfigPanel
 
     @packageEventEmitter.on 'available-packages-loaded', =>
       @availableCount.text(@available.getPackageCount())
+
+    @packageFilter.getBuffer().on 'contents-modified', =>
+      @available.filterPackages(@packageFilter.getText())
+      @installed.filterPackages(@packageFilter.getText())

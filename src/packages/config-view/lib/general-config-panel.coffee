@@ -17,7 +17,9 @@ class GeneralConfigPanel extends ConfigPanel
   form: null
 
   initialize: ->
-    @appendSettings(namespace, settings) for namespace, settings of config.getSettings()
+    for namespace, settings of config.getSettings()
+      continue unless namespace is 'editor' or namespace is 'core'
+      @appendSettings(namespace, settings)
     super
 
   appendSettings: (namespace, settings) ->

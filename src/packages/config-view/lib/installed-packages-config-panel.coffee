@@ -1,11 +1,14 @@
+$ = require 'jquery'
 _ = require 'underscore'
+{View} = require 'space-pen'
 ConfigPanel = require './config-panel'
 PackageConfigView = require './package-config-view'
 packageManager = require './package-manager'
+stringScore = require 'stringscore'
 
 ### Internal ###
 module.exports =
-class InstalledPackagesConfigPanel extends ConfigPanel
+class InstalledPackagesConfigPanel extends View
   @content: ->
     @div class: 'installed-packages', =>
       @div outlet: 'loadingArea', class: 'alert alert-info loading-area', =>
@@ -40,5 +43,13 @@ class InstalledPackagesConfigPanel extends ConfigPanel
       @packagesArea.append(view)
     else
       @packagesArea.children(":eq(#{index})").before(view)
+
+  filterPackages: (filterString) ->
+    packageViews = @packagesArea.children()
+    for packageView in packageViews
+      if /^\s*$/.test(filterString) or stringScore(packageView.getAttribute('name'), filterString)
+        $(packageView).show()
+      else
+        $(packageView).hide()
 
   getPackageCount: -> @packages.length
