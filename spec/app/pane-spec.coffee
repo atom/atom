@@ -679,11 +679,11 @@ describe "Pane", ->
       expect(pane.itemForUri(editSession2.getUri())).toBe editSession2
 
   describe "serialization", ->
-    it "can serialize and deserialize the pane and all its serializable items", ->
+    it "can serialize and deserialize the pane and all its items", ->
       newPane = deserialize(pane.serialize())
       expect(newPane.getItems()).toEqual [view1, editSession1, view2, editSession2]
 
-    it "restores the active item on deserialization if it serializable", ->
+    it "restores the active item on deserialization", ->
       pane.showItem(editSession2)
       newPane = deserialize(pane.serialize())
       expect(newPane.activeItem).toEqual editSession2

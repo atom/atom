@@ -1095,8 +1095,8 @@ class Editor extends View
 
     @clearRenderedLines()
     @removeAllCursorAndSelectionViews()
-    editSessionScrollTop = @activeEditSession.scrollTop ? 0
-    editSessionScrollLeft = @activeEditSession.scrollLeft ? 0
+    editSessionScrollTop = @activeEditSession.getScrollTop() ? 0
+    editSessionScrollLeft = @activeEditSession.getScrollLeft() ? 0
     @updateLayerDimensions()
     @scrollTop(editSessionScrollTop)
     @scrollLeft(editSessionScrollLeft)

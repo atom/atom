@@ -48,6 +48,8 @@ class EditSession
       @state = telepath.Document.fromObject
         deserializer: 'EditSession'
         version: @constructor.version
+        scrollTop: 0
+        scrollLeft: 0
       cursorScreenPosition = [0, 0]
 
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
@@ -1296,7 +1298,7 @@ class EditSession
   abort: -> @buffer.abort()
 
   inspect: ->
-    JSON.stringify @serialize()
+    JSON.stringify @state.toObject()
 
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
