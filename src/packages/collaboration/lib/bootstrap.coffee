@@ -1,6 +1,5 @@
 require 'atom'
 require 'window'
-_ = require 'underscore'
 {createPeer, connectDocument} = require './session-utils'
 {createSite, Document} = require 'telepath'
 
