@@ -297,7 +297,6 @@ class Project
 
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
-    options.project = this
     options.buffer = buffer
     editSession = new EditSession(options)
     @editSessions.push editSession

@@ -728,6 +728,12 @@ class Editor extends View
     @activeEditSession.on 'screen-lines-changed.editor', (e) =>
       @handleScreenLinesChange(e)
 
+    @activeEditSession.on 'scroll-top-changed.editor', (scrollTop) =>
+      @scrollTop(scrollTop)
+
+    @activeEditSession.on 'scroll-left-changed.editor', (scrollLeft) =>
+      @scrollLeft(scrollLeft)
+
     @trigger 'editor:path-changed'
     @resetDisplay()
 

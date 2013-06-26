@@ -1,3 +1,7 @@
+_ = require 'underscore'
+fsUtils = require 'fs-utils'
+path = require 'path'
+telepath = require 'telepath'
 Point = require 'point'
 Buffer = require 'text-buffer'
 LanguageMode = require 'language-mode'
@@ -7,14 +11,13 @@ Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
-_ = require 'underscore'
-fsUtils = require 'fs-utils'
-path = require 'path'
 TextMateScopeSelector = require 'text-mate-scope-selector'
 
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
 module.exports =
 class EditSession
+  @acceptsDocuments: true
+
   registerDeserializer(this)
 
   ### Internal ###
@@ -22,17 +25,8 @@ class EditSession
   @version: 1
 
   @deserialize: (state) ->
-    session = project.buildEditSessionForBuffer(Buffer.deserialize(state.buffer))
-    if !session?
-      console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists" if state.buffer
-      session = project.open(null)
-    session.setScrollTop(state.scrollTop)
-    session.setScrollLeft(state.scrollLeft)
-    session.setCursorScreenPosition(state.cursorScreenPosition)
-    session
+    new EditSession(state)
 
-  scrollTop: 0
-  scrollLeft: 0
   languageMode: null
   displayBuffer: null
   cursors: null
@@ -40,17 +34,32 @@ class EditSession
   softTabs: true
   softWrap: false
 
-  constructor: ({@project, @buffer, tabLength, softTabs, @softWrap}) ->
+  constructor: (optionsOrState) ->
+    if optionsOrState instanceof telepath.Document
+      project.editSessions.push(this)
+      @state = optionsOrState
+      {tabLength, softTabs, @softWrap} = @state.toObject()
+      @buffer = deserialize(@state.get('buffer'))
+      @setScrollTop(@state.get('scrollTop'))
+      @setScrollLeft(@state.get('scrollLeft'))
+      cursorScreenPosition = @state.getObject('cursorScreenPosition')
+    else
+      {@buffer, tabLength, softTabs, @softWrap} = optionsOrState
+      @state = telepath.Document.fromObject
+        deserializer: 'EditSession'
+        version: @constructor.version
+      cursorScreenPosition = [0, 0]
+
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
     @cursors = []
     @selections = []
-    @addCursorAtScreenPosition([0, 0])
+    @addCursorAtScreenPosition(cursorScreenPosition)
 
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
-      @project.setPath(path.dirname(@getPath())) unless @project.getPath()?
+      project.setPath(path.dirname(@getPath())) unless project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
@@ -64,6 +73,13 @@ class EditSession
 
     @displayBuffer.on 'grammar-changed', => @handleGrammarChange()
 
+    @state.observe ({key, value, site}) =>
+      switch key
+        when 'scrollTop'
+          @trigger 'scroll-top-changed', value
+        when 'scrollLeft'
+          @trigger 'scroll-left-changed', value
+
   getViewClass: ->
     require 'editor'
 
@@ -75,23 +91,26 @@ class EditSession
     selection.destroy() for selection in @getSelections()
     @displayBuffer.destroy()
     @languageMode.destroy()
-    @project?.removeEditSession(this)
+    project?.removeEditSession(this)
     @trigger 'destroyed'
     @off()
 
   serialize: ->
-    deserializer: 'EditSession'
-    version: @constructor.version
-    buffer: @buffer.serialize()
-    scrollTop: @getScrollTop()
-    scrollLeft: @getScrollLeft()
-    cursorScreenPosition: @getCursorScreenPosition().serialize()
+    @state.set
+      buffer: @buffer.serialize()
+      scrollTop: @getScrollTop()
+      scrollLeft: @getScrollLeft()
+      tabLength: @getTabLength()
+      softTabs: @softTabs
+      softWrap: @softWrap
+      cursorScreenPosition: @getCursorScreenPosition().serialize()
+    @state
 
   getState: -> @serialize()
 
   # Creates a copy of the current {EditSession}.Returns an identical `EditSession`.
   copy: ->
-    EditSession.deserialize(@serialize(), @project)
+    EditSession.deserialize(@serialize())
 
   ### Public ###
 
@@ -131,8 +150,8 @@ class EditSession
   isEqual: (other) ->
     return false unless other instanceof EditSession
     @buffer == other.buffer and
-      @scrollTop == other.getScrollTop() and
-      @scrollLeft == other.getScrollLeft() and
+      @getScrollTop() == other.getScrollTop() and
+      @getScrollLeft() == other.getScrollLeft() and
       @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
 
   setVisible: (visible) -> @displayBuffer.setVisible(visible)
@@ -140,22 +159,23 @@ class EditSession
   # Defines the value of the `EditSession`'s `scrollTop` property.
   #
   # scrollTop - A {Number} defining the `scrollTop`, in pixels.
-  setScrollTop: (@scrollTop) ->
+  setScrollTop: (scrollTop) -> @state.set('scrollTop', scrollTop)
 
   # Gets the value of the `EditSession`'s `scrollTop` property.
   #
   # Returns a {Number} defining the `scrollTop`, in pixels.
-  getScrollTop: -> @scrollTop
+  getScrollTop: ->
+    @state.get('scrollTop') ? 0
 
   # Defines the value of the `EditSession`'s `scrollLeft` property.
   #
   # scrollLeft - A {Number} defining the `scrollLeft`, in pixels.
-  setScrollLeft: (@scrollLeft) ->
+  setScrollLeft: (scrollLeft) -> @state.set('scrollLeft', scrollLeft)
 
   # Gets the value of the `EditSession`'s `scrollLeft` property.
   #
   # Returns a {Number} defining the `scrollLeft`, in pixels.
-  getScrollLeft: -> @scrollLeft
+  getScrollLeft: -> @state.get('scrollLeft')
 
   # Defines the limit at which the buffer begins to soft wrap text.
   #
