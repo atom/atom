@@ -1,4 +1,4 @@
-Prompt = require './prompt'
+JoinPromptView = require './join-prompt-view'
 {createSite, Document} = require 'telepath'
 {createPeer, connectDocument} = require './session-utils'
 
@@ -24,7 +24,7 @@ module.exports =
         pasteboard.write(sessionId)
 
     rootView.command 'collaboration:join-session', ->
-      new Prompt (id) ->
+      new JoinPromptView (id) ->
         windowSettings =
           bootstrapScript: require.resolve('collaboration/lib/bootstrap')
           resourcePath: window.resourcePath

@@ -3,9 +3,10 @@ Editor = require 'editor'
 $ = require 'jquery'
 Point = require 'point'
 _ = require 'underscore'
+Guid = require 'guid'
 
 module.exports =
-class Prompt extends View
+class JoinPromptView extends View
   @activate: -> new Prompt
 
   @content: ->
@@ -17,6 +18,11 @@ class Prompt extends View
     @miniEditor.on 'focusout', => @remove()
     @on 'core:confirm', => @confirm()
     @on 'core:cancel', => @remove()
+
+    clipboard = pasteboard.read()[0]
+    if Guid.isGuid(clipboard)
+      @miniEditor.setText(clipboard)
+
     @attach()
 
   beforeRemove: ->
