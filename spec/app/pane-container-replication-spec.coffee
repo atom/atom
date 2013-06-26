@@ -23,7 +23,7 @@ describe "PaneContainer replication", ->
     pane1b = pane1a.splitRight(new TestView('B'))
     pane1c = pane1b.splitDown(new TestView('C'))
 
-    doc1 = container1.serialize()
+    doc1 = container1.getState()
     doc2 = doc1.clone(createSite(2))
     doc1.connect(doc2)
     container2 = deserialize(doc2)

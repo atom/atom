@@ -13,7 +13,7 @@ describe "Pane replication", ->
     pane1 = new Pane(editSession1a, editSession1b)
     container1.setRoot(pane1)
 
-    doc1 = container1.serialize()
+    doc1 = container1.getState()
     doc2 = doc1.clone(createSite(2))
     doc1.connect(doc2)
 
