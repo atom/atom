@@ -1,5 +1,6 @@
 require 'window'
 window.setUpEnvironment()
+window.setDimensions(height: 800, width: 600)
 
 nakedLoad 'jasmine-jquery'
 $ = jQuery = require 'jquery'
