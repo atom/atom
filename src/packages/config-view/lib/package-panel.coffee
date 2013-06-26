@@ -27,10 +27,7 @@ class PackagePanel extends ConfigPanel
             @span class: 'badge pull-right', outlet: 'availableCount'
 
       @subview 'packageFilter', new Editor(mini: true, attributes: {id: 'package-filter'})
-
-      @div outlet: 'loadingArea', class: 'alert alert-info loading-area', =>
-        @span 'Loading installed packages\u2026'
-
+      @div outlet: 'loadingArea', class: 'alert alert-info loading-area'
       @div outlet: 'installedViews'
 
 
@@ -72,10 +69,11 @@ class PackagePanel extends ConfigPanel
       @updateInstalledCount()
 
   createInstalledViews: ->
+    @setLoadingText('Loading installed packages\u2026')
     @loadingArea.show()
     packages = _.sortBy(atom.getAvailablePackageMetadata(), 'name')
     packageManager.renderMarkdownInMetadata packages, =>
-      @loadingArea.hide()
+      @setLoadingText(null)
       for pack in packages
         view = new PackageView(pack, @packageEventEmitter)
         @installedViews.append(view)
@@ -84,6 +82,10 @@ class PackagePanel extends ConfigPanel
 
   updateInstalledCount: ->
     @installedCount.text(@installedViews.children().length)
+
+  setLoadingText: (text) ->
+    @loadingArea.text(text)
+    if text then @loadingArea.show() else @loadingArea.hide()
 
   removePackage: ({name}) ->
     @installedViews.children("[name=#{name}]").remove()
