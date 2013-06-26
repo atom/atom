@@ -32,3 +32,9 @@ describe "Pane replication", ->
   it "replicates the movement of pane items", ->
     pane1.moveItem(editSession1a, 1)
     expect(pane2.items).toEqual(pane1.items)
+
+  it "replicates which pane item is active", ->
+    pane1.showNextItem()
+    expect(pane2.activeItem).toEqual pane1.activeItem
+    pane1.showNextItem()
+    expect(pane2.activeItem).toEqual pane1.activeItem

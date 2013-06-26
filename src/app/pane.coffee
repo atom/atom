@@ -32,6 +32,7 @@ class Pane extends View
     else
       @items = args
       @state = telepath.Document.fromObject
+        deserializer: 'Pane'
         items: @items.map (item) -> item.getState?() ? item.serialize()
 
     @state.get('items').observe ({index, value, type, site}) =>
@@ -42,7 +43,9 @@ class Pane extends View
         when 'remove'
           @removeItemAtIndex(index, updateState: false)
 
-    @state.set(deserializer: 'Pane')
+    @state.observe ({key, value, site}) =>
+      return if site is @state.site.id
+      @showItemForUri(value) if key is 'activeItemUri'
 
     @viewsByClassName = {}
     @showItem(@items[0]) if @items.length > 0
@@ -148,6 +151,8 @@ class Pane extends View
     @activeItem = item
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
+
+    @state.set('activeItemUri', item.getUri?())
 
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
@@ -296,9 +301,7 @@ class Pane extends View
 
   serialize: ->
     @state.get('items').set(index, item.serialize()) for item, index in @items
-    @state.set
-      focused: @is(':has(:focus)')
-      activeItemUri: @activeItem.getUri?()
+    @state.set focused: @is(':has(:focus)')
     @state
 
   getState: -> @state
