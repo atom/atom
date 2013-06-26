@@ -100,6 +100,9 @@ class Config
 
   ### Public ###
 
+  getSettings: ->
+    _.deepExtend(@settings, @defaultSettings)
+
   # Retrieves the setting for the given key.
   #
   # keyPath - The {String} name of the key to retrieve

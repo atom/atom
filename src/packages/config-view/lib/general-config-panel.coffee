@@ -7,20 +7,55 @@ _ = require 'underscore'
 # Internal #
 ###
 
+Editor = require 'editor'
+
 module.exports =
 class GeneralConfigPanel extends ConfigPanel
   @content: ->
     @form id: 'general-config-panel', class: 'form-horizontal', =>
+
+  form: null
+
+  initialize: ->
+    @appendSettings(namespace, settings) for namespace, settings of config.getSettings()
+    super
+
+  appendSettings: (namespace, settings) ->
+    return if _.isEmpty(settings)
+
+    appendSetting = (namespace, name, value) ->
+      @div class: 'control-group', =>
+        @div class: 'controls', =>
+          if _.isBoolean(value)
+            appendCheckbox.call(this, namespace, name, value)
+          else if _.isArray(value)
+            appendArray.call(this, namespace, name, value)
+          else
+            appendEditor.call(this, namespace, name, value)
+
+    appendCheckbox = (namespace, name, value) ->
+      englishName = _.uncamelcase(name)
+      keyPath = "#{namespace}.#{name}"
+      @div class: 'checkbox', =>
+        @label for: keyPath, =>
+          @input id: keyPath, type: 'checkbox'
+          @text englishName
+
+    appendEditor = (namespace, name, value) ->
+      englishName = _.uncamelcase(name)
+      keyPath = "#{namespace}.#{name}"
+      type = if _.isNumber(value) then 'number' else 'string'
+      @label class: 'control-label', englishName
+      @div class: 'controls', =>
+        @subview keyPath.replace('.', ''), new Editor(mini: true, attributes: {id: keyPath, type: type})
+
+    appendArray = (namespace, name, value) ->
+      englishName = _.uncamelcase(name)
+      @label class: 'control-label', englishName
+      @div class: 'controls', =>
+        @text value.join(", ")
+
+    @append $$ ->
       @fieldset =>
-        @legend "General Settings"
-
-        @div class: 'control-group', =>
-          @div class: 'checkbox', =>
-            @label for: 'core.hideGitIgnoredFiles', =>
-              @input id: 'core.hideGitIgnoredFiles', type: 'checkbox'
-              @text 'Hide Git-Ignored Files'
-
-          @div class: 'checkbox', =>
-            @label for: 'core.autosave', =>
-              @input id: 'core.autosave', type: 'checkbox'
-              @text 'Auto-Save on Focus Change'
+        @legend "#{_.uncamelcase(namespace)} settings"
+        appendSetting.call(this, namespace, name, value) for name, value of settings
