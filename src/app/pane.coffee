@@ -17,8 +17,6 @@ class Pane extends View
 
   @deserialize: (state) ->
     pane = new Pane(state)
-    if activeItemUri = state.get('activeItemUri')
-      pane.showItemForUri(activeItemUri)
     pane.focusOnAttach = true if state.get('focused')
     pane
 
@@ -48,7 +46,10 @@ class Pane extends View
       @showItemForUri(value) if key is 'activeItemUri'
 
     @viewsByClassName = {}
-    @showItem(@items[0]) if @items.length > 0
+    if activeItemUri = @state.get('activeItemUri')
+      @showItemForUri(activeItemUri)
+    else
+      @showItem(@items[0]) if @items.length > 0
 
     @command 'core:close', @destroyActiveItem
     @command 'core:save', @saveActiveItem
