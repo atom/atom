@@ -34,7 +34,6 @@
     "humanize-plus": "1.1.0",
     "semver": "1.1.4",
     "guid": "0.0.10",
-    "telepath": "git://github.com/atom/telepath.git",
     "c-tmbundle": "1.0.0",
     "coffee-script-tmbundle": "2.0.0",
     "css-tmbundle": "1.0.0",
