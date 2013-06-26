@@ -5,7 +5,7 @@ _ = require 'underscore'
 Pane = require 'pane'
 GeneralConfigPanel = require './general-config-panel'
 ThemeConfigPanel = require './theme-config-panel'
-PackageConfigPanel = require './package-config-panel'
+PackagePanel = require './package-panel'
 
 ###
 # Internal #
@@ -51,7 +51,7 @@ class ConfigView extends ScrollView
 
     @addPanel('General', new GeneralConfigPanel)
     @addPanel('Themes', new ThemeConfigPanel)
-    @addPanel('Packages', new PackageConfigPanel)
+    @addPanel('Packages', new PackagePanel)
     @showPanel(activePanelName) if activePanelName
 
   serialize: ->

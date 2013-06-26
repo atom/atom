@@ -9,11 +9,11 @@ describe "ConfigView", ->
 
   describe "serialization", ->
     it "remembers which panel was visible", ->
-      configView.showPanel('Editor')
+      configView.showPanel('Packages')
       newConfigView = deserialize(configView.serialize())
       configView.remove()
       newConfigView.attachToDom()
-      expect(newConfigView.activePanelName).toBe 'Editor'
+      expect(newConfigView.activePanelName).toBe 'Packages'
 
     it "shows the previously active panel if it is added after deserialization", ->
       configView.addPanel('Panel 1', $$ -> @div id: 'panel-1')

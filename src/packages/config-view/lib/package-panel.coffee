@@ -1,9 +1,10 @@
+$ = require 'jquery'
+_ = require 'underscore'
 ConfigPanel = require './config-panel'
 AvailablePackagesConfigPanel = require './available-packages-config-panel'
-_ = require 'underscore'
 EventEmitter = require 'event-emitter'
 Editor = require 'editor'
-PackageConfigView = require './package-config-view'
+PackageView = require './package-view'
 packageManager = require './package-manager'
 stringScore = require 'stringscore'
 
@@ -13,7 +14,7 @@ class PackageEventEmitter
 _.extend PackageEventEmitter.prototype, EventEmitter
 
 module.exports =
-class PackageConfigPanel extends ConfigPanel
+class PackagePanel extends ConfigPanel
   @content: ->
     @div class: 'package-panel', =>
       @legend 'Packages'
@@ -47,11 +48,11 @@ class PackageConfigPanel extends ConfigPanel
       @availableLink.removeClass('active')
       @available.hide()
       @installedLink.addClass('active')
-      @installed.show()
+      @installedViews.show()
 
     @availableLink.on 'click', =>
       @installedLink.removeClass('active')
-      @installed.hide()
+      @installedViews.hide()
       @availableLink.addClass('active')
       @available.show()
 
@@ -76,7 +77,7 @@ class PackageConfigPanel extends ConfigPanel
     packageManager.renderMarkdownInMetadata packages, =>
       @loadingArea.hide()
       for pack in packages
-        view = new PackageConfigView(pack, @packageEventEmitter)
+        view = new PackageView(pack, @packageEventEmitter)
         @installedViews.append(view)
 
       @updateInstalledCount()
@@ -85,15 +86,15 @@ class PackageConfigPanel extends ConfigPanel
     @installedCount.text(@installedViews.children().length)
 
   removePackage: ({name}) ->
-    @packagesArea.children("[name=#{name}]").remove()
+    @installedViews.children("[name=#{name}]").remove()
 
   addPackage: (pack) ->
-    packageNames = @installedViews.children().map (el) -> el.getAttribute('name')
-    packageNames.push(pack.name)
+    packageNames = [pack.name]
+    @installedViews.children().each (index, el) -> packageNames.push(el.getAttribute('name'))
     packageNames.sort()
     insertAfterIndex = packageNames.indexOf(pack.name) - 1
 
-    view = new PackageConfigView(pack, @packageEventEmitter)
+    view = new PackageView(pack, @packageEventEmitter)
     if insertAfterIndex < 0
       @installedViews.prepend(view)
     else

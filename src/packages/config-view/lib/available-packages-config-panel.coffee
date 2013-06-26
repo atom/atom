@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
-PackageConfigView = require './package-config-view'
+PackageView = require './package-view'
 packageManager = require './package-manager'
 stringScore = require 'stringscore'
 
@@ -32,7 +32,7 @@ class AvailablePackagesConfigPanel extends View
       else
         @packagesArea.empty()
         for pack in @packages
-          @packagesArea.append(new PackageConfigView(pack, @packageEventEmitter))
+          @packagesArea.append(new PackageView(pack, @packageEventEmitter))
       @packageEventEmitter.trigger('available-packages-loaded', @packages)
 
   filterPackages: (filterString) ->

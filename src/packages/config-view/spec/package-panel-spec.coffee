@@ -1,8 +1,8 @@
-PackageConfigPanel = require '../lib/package-config-panel'
+PackagePanel = require '../lib/package-panel'
 packageManager = require '../lib/package-manager'
 _ = require 'underscore'
 
-describe "PackageConfigPanel", ->
+describe "PackagePanel", ->
   [panel, configObserver] = []
 
   beforeEach ->
@@ -58,57 +58,56 @@ describe "PackageConfigPanel", ->
     config.set('core.disabledPackages', ['p1', 'p3'])
     configObserver.reset()
     jasmine.unspy(window, "setTimeout")
-    panel = new PackageConfigPanel
+    panel = new PackagePanel
 
-    installedCallback = jasmine.createSpy("installed packages callback")
-    panel.packageEventEmitter.on("installed-packages-loaded", installedCallback)
-    waitsFor -> installedCallback.callCount > 0
+    waitsFor ->
+      panel.installedViews.children().length > 0
 
   describe 'Installed tab', ->
     it "lists all installed packages with a link to enable or disable the package", ->
-      p1View = panel.installed.find("[name='p1']").view()
+      p1View = panel.installedViews.find("[name='p1']").view()
       expect(p1View).toExist()
       expect(p1View.enableToggle.find('a').text()).toBe 'Enable'
 
-      p2View = panel.installed.find("[name='p2']").view()
+      p2View = panel.installedViews.find("[name='p2']").view()
       expect(p2View).toExist()
       expect(p2View.enableToggle.find('a').text()).toBe 'Disable'
 
-      p3View = panel.installed.find("[name='p3']").view()
+      p3View = panel.installedViews.find("[name='p3']").view()
       expect(p3View).toExist()
       expect(p3View.enableToggle.find('a').text()).toBe 'Enable'
 
     describe "when the core.disabledPackages array changes", ->
       it "updates the checkboxes for newly disabled / enabled packages", ->
         config.set('core.disabledPackages', ['p2'])
-        p1View = panel.installed.find("[name='p1']").view()
+        p1View = panel.installedViews.find("[name='p1']").view()
         expect(p1View.enableToggle.find('a').text()).toBe 'Disable'
 
-        p2View = panel.installed.find("[name='p2']").view()
+        p2View = panel.installedViews.find("[name='p2']").view()
         expect(p2View.enableToggle.find('a').text()).toBe 'Enable'
 
-        p3View = panel.installed.find("[name='p3']").view()
+        p3View = panel.installedViews.find("[name='p3']").view()
         expect(p3View.enableToggle.find('a').text()).toBe 'Disable'
 
     describe "when the disable link is clicked", ->
       it "adds the package name to the disabled packages array", ->
-        p2View = panel.installed.find("[name='p2']").view()
+        p2View = panel.installedViews.find("[name='p2']").view()
         p2View.enableToggle.find('a').click()
         expect(configObserver).toHaveBeenCalledWith(['p1', 'p3', 'p2'])
 
     describe "when the enable link is clicked", ->
       it "removes the package name from the disabled packages array", ->
-        p3View = panel.installed.find("[name='p3']").view()
+        p3View = panel.installedViews.find("[name='p3']").view()
         p3View.enableToggle.find('a').click()
         expect(configObserver).toHaveBeenCalledWith(['p1'])
 
     describe "when Uninstall is clicked", ->
       it "removes the package from the tab", ->
-        expect(panel.installed.find("[name='p1']")).toExist()
-        p1View = panel.installed.find("[name='p1']").view()
+        expect(panel.installedViews.find("[name='p1']")).toExist()
+        p1View = panel.installedViews.find("[name='p1']").view()
         expect(p1View.defaultAction.text()).toBe 'Uninstall'
         p1View.defaultAction.click()
-        expect(panel.installed.find("[name='p1']")).not.toExist()
+        expect(panel.installedViews.find("[name='p1']")).not.toExist()
 
   describe 'Available tab', ->
     it 'lists all available packages', ->
@@ -145,10 +144,10 @@ describe "PackageConfigPanel", ->
 
     describe "when Install is clicked", ->
       it "adds the package to the Installed tab", ->
-        expect(panel.installed.find("[name='p4']")).not.toExist()
+        expect(panel.installedViews.find("[name='p4']")).not.toExist()
         expect(panel.available.find("[name='p4']")).toExist()
         p4View = panel.available.find("[name='p4']").view()
         expect(p4View.defaultAction.text()).toBe 'Install'
         p4View.defaultAction.click()
-        expect(panel.installed.find("[name='p4']")).toExist()
+        expect(panel.installedViews.find("[name='p4']")).toExist()
         expect(p4View.defaultAction.text()).toBe 'Uninstall'

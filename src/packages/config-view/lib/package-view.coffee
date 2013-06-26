@@ -7,7 +7,7 @@ requireWithGlobals 'bootstrap/js/bootstrap-dropdown', jQuery: require 'jquery'
 
 ### Internal ###
 module.exports =
-class PackageConfigView extends View
+class PackageView extends View
   @content: ->
     @div class: 'panel', =>
       @div outlet: 'heading', class: 'panel-heading', =>
