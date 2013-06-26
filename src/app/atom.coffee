@@ -236,8 +236,8 @@ window.atom =
 
   getWindowStatePath: ->
     switch @windowMode
-      when 'config'
-        filename = 'config'
+      when 'config', 'spec'
+        filename = @windowMode
       when 'editor'
         {initialPath} = @getLoadSettings()
         if initialPath

@@ -1,6 +1,6 @@
 require 'window'
-window.setUpEnvironment()
-window.setDimensions(height: 800, width: 600)
+window.setUpEnvironment('spec')
+window.restoreDimensions()
 
 nakedLoad 'jasmine-jquery'
 $ = jQuery = require 'jquery'
@@ -25,6 +25,9 @@ keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 $(window).on 'core:close', -> window.close()
+$(window).on 'unload', ->
+  atom.windowMode = 'spec'
+  atom.saveWindowState()
 $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
