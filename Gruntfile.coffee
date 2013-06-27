@@ -210,6 +210,7 @@ module.exports = (grunt) ->
     nof = require.resolve('.bin/nof')
     spawn({cmd: nof, args: ['spec', 'src']}, @async())
 
+  grunt.loadTasks('tasks')
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['lint', 'partial-clean', 'update-atom-shell', 'build', 'test'])
