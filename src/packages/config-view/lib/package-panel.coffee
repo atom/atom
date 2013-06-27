@@ -73,7 +73,7 @@ class PackagePanel extends ConfigPanel
 
   loadAvailableViews: ->
     @availablePackages.empty()
-    @availablePackages.append @createLoadingView('Loading installed packages\u2026')
+    @availablePackages.append @createLoadingView('Loading available packages\u2026')
 
     packageManager.getAvailable (error, @packages=[]) =>
       @availablePackages.empty()
