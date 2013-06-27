@@ -13,6 +13,7 @@
         currentWindow.emit('window:loaded');
       }
       catch (error) {
+        currentWindow.show();
         currentWindow.openDevTools();
         console.error(error.stack || error);
       }
