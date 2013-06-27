@@ -16,7 +16,6 @@ module.exports = (grunt) ->
     coffee:
       options:
         sourceMap: true
-
       glob_to_multiple:
         expand: true
         src: [
@@ -61,7 +60,6 @@ module.exports = (grunt) ->
           level: 'error'
         max_line_length:
           level: 'ignore'
-
       src: [
         'dot-atom/**/*.coffee'
         'src/**/*.coffee'
