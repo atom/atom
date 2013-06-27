@@ -729,12 +729,12 @@ class EditSession
 
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
-    @mutateSelectedText (selection) =>
+    @mutateSelectedText (selection) ->
       range = selection.getBufferRange()
       if selectWordIfEmpty and selection.isEmpty()
         selection.selectWord()
       text = selection.getText()
-      selection.delete()
+      selection.deleteSelectedText()
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 

@@ -2117,6 +2117,26 @@ describe "EditSession", ->
         expect(editSession.isFoldedAtScreenRow(4)).toBeTruthy()
         expect(buffer.lineForRow(3)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
 
+  describe ".replaceSelectedText(options, fn)", ->
+    describe "when no text is selected", ->
+      it "inserts the text returned from the function at the cursor position", ->
+        editSession.replaceSelectedText {}, -> '123'
+        expect(buffer.lineForRow(0)).toBe '123var quicksort = function () {'
+
+        editSession.replaceSelectedText {selectWordIfEmpty: true}, -> 'var'
+        editSession.setCursorBufferPosition([0])
+        expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+
+        editSession.setCursorBufferPosition([10])
+        editSession.replaceSelectedText null, -> ''
+        expect(buffer.lineForRow(10)).toBe ''
+
+    describe "when text is selected", ->
+      it "replaces the selected text with the text returned from the function", ->
+        editSession.setSelectedBufferRange([[0, 1], [0, 3]])
+        editSession.replaceSelectedText {}, -> 'ia'
+        expect(buffer.lineForRow(0)).toBe 'via quicksort = function () {'
+
   describe ".transpose()", ->
     it "swaps two characters", ->
       editSession.buffer.setText("abc")
