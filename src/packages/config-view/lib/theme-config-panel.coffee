@@ -1,5 +1,4 @@
-ConfigPanel = require './config-panel'
-{$$} = require 'space-pen'
+{View, $$} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -16,7 +15,7 @@ require 'jqueryui-browser/ui/jquery.ui.draggable'
 delete window.jQuery
 
 module.exports =
-class ThemeConfigPanel extends ConfigPanel
+class ThemeConfigPanel extends View
   @content: ->
     @div id: 'themes-config', =>
       @legend "Themes"

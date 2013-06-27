@@ -1,7 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
-{$$} = require 'space-pen'
-ConfigPanel = require './config-panel'
+{View, $$} = require 'space-pen'
 EventEmitter = require 'event-emitter'
 Editor = require 'editor'
 PackageView = require './package-view'
@@ -14,7 +13,7 @@ class PackageEventEmitter
 _.extend PackageEventEmitter.prototype, EventEmitter
 
 module.exports =
-class PackagePanel extends ConfigPanel
+class PackagePanel extends View
   @content: ->
     @div class: 'package-panel', =>
       @legend 'Packages'
