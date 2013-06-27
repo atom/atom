@@ -10,9 +10,9 @@ _ = require 'underscore'
 Editor = require 'editor'
 
 module.exports =
-class GeneralConfigPanel extends ConfigPanel
+class SettingsPanel extends ConfigPanel
   @content: ->
-    @form id: 'general-config-panel', class: 'form-horizontal', =>
+    @form id: 'settings-panel', class: 'form-horizontal', =>
 
   form: null
 
@@ -55,7 +55,7 @@ class GeneralConfigPanel extends ConfigPanel
       englishName = _.uncamelcase(name)
       @label class: 'control-label', englishName
       @div class: 'controls', =>
-        @text value.join(", ")
+        @text "readOnly: " + value.join(", ")
 
     @append $$ ->
       @fieldset =>
