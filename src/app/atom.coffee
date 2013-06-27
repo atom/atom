@@ -186,7 +186,7 @@ window.atom =
     callbacks[chosen]?()
 
   confirmSync: (message, detailedMessage, buttons, browserWindow = null) ->
-    chosen = dialog.showMessageBox browserWindow,
+    dialog.showMessageBox browserWindow,
       type: 'info'
       message: message
       detail: detailedMessage
