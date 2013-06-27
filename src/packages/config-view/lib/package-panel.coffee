@@ -2,7 +2,6 @@ $ = require 'jquery'
 _ = require 'underscore'
 {$$} = require 'space-pen'
 ConfigPanel = require './config-panel'
-AvailablePackagesConfigPanel = require './available-packages-config-panel'
 EventEmitter = require 'event-emitter'
 Editor = require 'editor'
 PackageView = require './package-view'
@@ -28,67 +27,65 @@ class PackagePanel extends ConfigPanel
             @span class: 'badge pull-right', outlet: 'availableCount'
 
       @subview 'packageFilter', new Editor(mini: true, attributes: {id: 'package-filter'})
-      @div outlet: 'installedViews'
-      @div outlet: 'availableViews'
+      @div outlet: 'installedPackages'
+      @div outlet: 'availablePackages'
 
   initialize: ->
     @packageEventEmitter = new PackageEventEmitter()
 
-    @availableViews.hide()
+    @availablePackages.hide()
     @loadInstalledViews()
     @loadAvailableViews()
 
     @installedLink.on 'click', =>
       @availableLink.removeClass('active')
-      @availableViews.hide()
+      @availablePackages.hide()
       @installedLink.addClass('active')
-      @installedViews.show()
+      @installedPackages.show()
 
     @availableLink.on 'click', =>
       @installedLink.removeClass('active')
-      @installedViews.hide()
+      @installedPackages.hide()
       @availableLink.addClass('active')
-      @availableViews.show()
+      @availablePackages.show()
 
     @packageEventEmitter.on 'package-installed', (error, pack) =>
-      @addPackage(pack) unless error?
-      @updateInstalledCount()
+      @addInstalledPackage(pack) unless error?
 
     @packageEventEmitter.on 'package-uninstalled', (error, pack) =>
-      @removePackage(pack) unless error?
-      @updateInstalledCount()
+      @removeInstalledPackage(pack) unless error?
 
     @packageFilter.getBuffer().on 'contents-modified', =>
       @filterPackages(@packageFilter.getText())
 
   loadInstalledViews: ->
-    @installedViews.empty()
-    @installedViews.append @createLoadingView('Loading installed packages\u2026')
+    @installedPackages.empty()
+    @installedPackages.append @createLoadingView('Loading installed packages\u2026')
 
     packages = _.sortBy(atom.getAvailablePackageMetadata(), 'name')
     packageManager.renderMarkdownInMetadata packages, =>
-      @installedViews.empty()
+      @installedPackages.empty()
       for pack in packages
         view = new PackageView(pack, @packageEventEmitter)
-        @installedViews.append(view)
+        @installedPackages.append(view)
 
       @updateInstalledCount()
 
   loadAvailableViews: ->
-    @availableViews.empty()
-    @availableViews.append @createLoadingView('Loading installed packages\u2026')
+    @availablePackages.empty()
+    @availablePackages.append @createLoadingView('Loading installed packages\u2026')
 
     packageManager.getAvailable (error, @packages=[]) =>
-      @availableViews.empty()
+      @availablePackages.empty()
       if error?
         errorView = @createErrorView('Error fetching available packages.')
         errorView.on 'click', => @loadAvailableViews()
-        @availableViews.append errorView
+        @availablePackages.append errorView
         console.error(error.stack ? error)
       else
         for pack in @packages
           view = new PackageView(pack, @packageEventEmitter)
-          @availableViews.append(view)
+          @availablePackages.append(view)
 
       @updateAvailableCount()
 
@@ -103,28 +100,31 @@ class PackagePanel extends ConfigPanel
         @button class: 'btn btn-mini btn-retry', 'Retry'
 
   updateInstalledCount: ->
-    @installedCount.text(@installedViews.children().length)
+    @installedCount.text(@installedPackages.children().length)
 
   updateAvailableCount: ->
-    @availableCount.text(@availableViews.children().length)
+    @availableCount.text(@availablePackages.children().length)
 
-  removePackage: ({name}) ->
-    @installedViews.children("[name=#{name}]").remove()
+  removeInstalledPackage: ({name}) ->
+    @installedPackages.children("[name=#{name}]").remove()
+    @updateInstalledCount()
 
-  addPackage: (pack) ->
+  addInstalledPackage: (pack) ->
     packageNames = [pack.name]
-    @installedViews.children().each (index, el) -> packageNames.push(el.getAttribute('name'))
+    @installedPackages.children().each (index, el) -> packageNames.push(el.getAttribute('name'))
     packageNames.sort()
     insertAfterIndex = packageNames.indexOf(pack.name) - 1
 
     view = new PackageView(pack, @packageEventEmitter)
     if insertAfterIndex < 0
-      @installedViews.prepend(view)
+      @installedPackages.prepend(view)
     else
-      @installedViews.children(":eq(#{insertAfterIndex})").after(view)
+      @installedPackages.children(":eq(#{insertAfterIndex})").after(view)
+
+    @updateInstalledCount()
 
   filterPackages: (filterString) ->
-    for children in [@installedViews.children(), @availableViews.children()]
+    for children in [@installedPackages.children(), @availablePackages.children()]
       for packageView in children
         if /^\s*$/.test(filterString) or stringScore(packageView.getAttribute('name'), filterString)
           $(packageView).show()
