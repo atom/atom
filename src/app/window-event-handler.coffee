@@ -18,7 +18,7 @@ class WindowEventHandler
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
     @subscribeToCommand $(window), 'window:close', =>
       if rootView?
-        rootView.confirmClose().done -> closeWithoutConfirm()
+        closeWithoutConfirm() if rootView.confirmClose()
       else
         closeWithoutConfirm()
     @subscribeToCommand $(window), 'window:reload', => atom.reload()
