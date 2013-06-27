@@ -13,12 +13,8 @@ class SettingsPanel extends View
   @content: ->
     @form id: 'settings-panel', class: 'form-horizontal', =>
 
-  form: null
-
   initialize: ->
-    for namespace, settings of config.getSettings()
-      @appendSettings(namespace, settings)
-
+    @appendSettings(name, settings) for name, settings of config.getSettings()
     @bindFormFields()
     @bindEditors()
 
