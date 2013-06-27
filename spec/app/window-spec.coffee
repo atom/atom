@@ -47,21 +47,21 @@ describe "Window", ->
     describe "when pane items are are modified", ->
       it "prompts user to save and and calls window.closeWithoutConfirm", ->
         spyOn(window, 'closeWithoutConfirm')
-        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSave) -> noSave()
+        spyOn(atom, "confirmSync").andReturn(2)
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
         $(window).trigger 'window:close'
         expect(window.closeWithoutConfirm).toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        expect(atom.confirmSync).toHaveBeenCalled()
 
       it "prompts user to save and aborts if dialog is canceled", ->
         spyOn(window, 'closeWithoutConfirm')
-        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancel) -> cancel()
+        spyOn(atom, "confirmSync").andReturn(1)
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
         $(window).trigger 'window:close'
         expect(window.closeWithoutConfirm).not.toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        expect(atom.confirmSync).toHaveBeenCalled()
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->
