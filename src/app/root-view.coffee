@@ -21,7 +21,9 @@ class RootView extends View
   @version: 1
 
   @configDefaults:
+    autosave: false
     ignoredNames: [".git", ".svn", ".DS_Store"]
+    excludeVcsIgnoredPaths: false
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
 
