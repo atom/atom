@@ -151,41 +151,27 @@ describe "PaneContainer", ->
           expect(item.saved).toBeTruthy()
 
   describe ".confirmClose()", ->
-    it "resolves the returned promise after modified files are saved", ->
+    it "returns true after modified files are saved", ->
       pane1.itemAtIndex(0).isModified = -> true
       pane2.itemAtIndex(0).isModified = -> true
-      spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSaveFn) -> noSaveFn()
+      spyOn(atom, "confirmSync").andReturn(0)
 
-      promiseHandler = jasmine.createSpy("promiseHandler")
-      failedPromiseHandler = jasmine.createSpy("failedPromiseHandler")
-      promise = container.confirmClose()
-      promise.done promiseHandler
-      promise.fail failedPromiseHandler
-
-      waitsFor ->
-        promiseHandler.wasCalled
+      saved = container.confirmClose()
 
       runs ->
-        expect(failedPromiseHandler).not.toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        expect(saved).toBeTruthy()
+        expect(atom.confirmSync).toHaveBeenCalled()
 
-    it "rejects the returned promise if the user cancels saving", ->
+    it "returns false if the user cancels saving", ->
       pane1.itemAtIndex(0).isModified = -> true
       pane2.itemAtIndex(0).isModified = -> true
-      spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancelFn, f, g) -> cancelFn()
+      spyOn(atom, "confirmSync").andReturn(1)
 
-      promiseHandler = jasmine.createSpy("promiseHandler")
-      failedPromiseHandler = jasmine.createSpy("failedPromiseHandler")
-      promise = container.confirmClose()
-      promise.done promiseHandler
-      promise.fail failedPromiseHandler
-
-      waitsFor ->
-        failedPromiseHandler.wasCalled
+      saved = container.confirmClose()
 
       runs ->
-        expect(promiseHandler).not.toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        expect(saved).toBeFalsy()
+        expect(atom.confirmSync).toHaveBeenCalled()
 
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->

@@ -38,30 +38,43 @@ describe "Window", ->
         expect($("body")).not.toHaveClass("is-blurred")
 
   describe "window:close event", ->
-    describe "when no pane items are modified", ->
-      it "calls window.closeWithoutConfirm", ->
-        spyOn window, 'closeWithoutConfirm'
-        $(window).trigger 'window:close'
-        expect(window.closeWithoutConfirm).toHaveBeenCalled()
+    it "closes the window", ->
+      spyOn(window, 'close')
+      $(window).trigger 'window:close'
+      expect(window.close).toHaveBeenCalled()
 
+    it "emits the beforeunload event", ->
+      $(window).off 'beforeunload'
+      beforeunload = jasmine.createSpy('beforeunload').andReturn(false)
+      $(window).on 'beforeunload', beforeunload
+
+      $(window).trigger 'window:close'
+      expect(beforeunload).toHaveBeenCalled()
+
+  describe "beforeunload event", ->
     describe "when pane items are are modified", ->
-      it "prompts user to save and and calls window.closeWithoutConfirm", ->
-        spyOn(window, 'closeWithoutConfirm')
-        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSave) -> noSave()
+      it "prompts user to save and and calls rootView.confirmClose", ->
+        spyOn(rootView, 'confirmClose').andCallThrough()
+        spyOn(atom, "confirmSync").andReturn(2)
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
-        $(window).trigger 'window:close'
-        expect(window.closeWithoutConfirm).toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        $(window).trigger 'beforeunload'
+        expect(rootView.confirmClose).toHaveBeenCalled()
+        expect(atom.confirmSync).toHaveBeenCalled()
 
-      it "prompts user to save and aborts if dialog is canceled", ->
-        spyOn(window, 'closeWithoutConfirm')
-        spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancel) -> cancel()
+      it "prompts user to save and handler returns true if don't save", ->
+        spyOn(atom, "confirmSync").andReturn(2)
         editSession = rootView.open("sample.js")
         editSession.insertText("I look different, I feel different.")
-        $(window).trigger 'window:close'
-        expect(window.closeWithoutConfirm).not.toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        expect(window.onbeforeunload(new Event('beforeunload'))).toBeTruthy()
+        expect(atom.confirmSync).toHaveBeenCalled()
+
+      it "prompts user to save and handler returns false if dialog is canceled", ->
+        spyOn(atom, "confirmSync").andReturn(1)
+        editSession = rootView.open("sample.js")
+        editSession.insertText("I look different, I feel different.")
+        expect(window.onbeforeunload(new Event('beforeunload'))).toBeFalsy()
+        expect(atom.confirmSync).toHaveBeenCalled()
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->
