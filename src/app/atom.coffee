@@ -7,6 +7,7 @@ ipc = require 'ipc'
 remote = require 'remote'
 crypto = require 'crypto'
 path = require 'path'
+dialog = remote.require 'dialog'
 
 window.atom =
   loadedThemes: []
@@ -181,18 +182,22 @@ window.atom =
         buttons.push buttonLabelsAndCallbacks.shift()
         callbacks.push buttonLabelsAndCallbacks.shift()
 
-    chosen = remote.require('dialog').showMessageBox
+    chosen = confirmSync(message, detailedMessage, buttons)
+    callbacks[chosen]?()
+
+  confirmSync: (message, detailedMessage, buttons) ->
+    chosen = dialog.showMessageBox
       type: 'info'
       message: message
       detail: detailedMessage
       buttons: buttons
 
-    callbacks[chosen]?()
-
   showSaveDialog: (callback) ->
+    callback(showSaveDialogSync())
+
+  showSaveDialogSync: ->
     currentWindow = remote.getCurrentWindow()
-    result = remote.require('dialog').showSaveDialog currentWindow, title: 'Save File'
-    callback(result)
+    dialog.showSaveDialog currentWindow, title: 'Save File'
 
   openDevTools: ->
     remote.getCurrentWindow().openDevTools()

@@ -154,7 +154,7 @@ class Pane extends View
     @autosaveItem(item)
 
     if item.shouldPromptToSave?()
-      @promptToSaveItem(item, reallyDestroyItem)
+      reallyDestroyItem() if @promptToSaveItem(item)
     else
       reallyDestroyItem()
 
@@ -164,15 +164,17 @@ class Pane extends View
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
-  promptToSaveItem: (item, nextAction, cancelAction) ->
+  promptToSaveItem: (item) ->
     uri = item.getUri()
-    atom.confirm(
+    chosen = atom.confirmSync(
       "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
       "Your changes will be lost if you close this item without saving."
-      "Save", => @saveItem(item, nextAction)
-      "Cancel", cancelAction
-      "Don't Save", nextAction
+      ["Save", "Cancel", "Don't Save"]
     )
+    switch chosen
+      when 0 then @saveItem(item, -> true)
+      when 1 then false
+      when 2 then true
 
   saveActiveItem: =>
     @saveItem(@activeItem)
@@ -189,10 +191,10 @@ class Pane extends View
 
   saveItemAs: (item, nextAction) ->
     return unless item.saveAs?
-    atom.showSaveDialog (path) =>
-      if path
-        item.saveAs(path)
-        nextAction?()
+    path = atom.showSaveDialogSync()
+    if path
+      item.saveAs(path)
+      nextAction?()
 
   saveItems: =>
     @saveItem(item) for item in @getItems()

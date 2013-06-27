@@ -91,7 +91,10 @@ class PaneContainer extends View
         deferred.resolve()
       else
         item = modifiedItems.pop()
-        @paneAtIndex(0).promptToSaveItem item, saveNextModifiedItem, cancel
+        if @paneAtIndex(0).promptToSaveItem item
+          saveNextModifiedItem()
+        else
+          cancel()
 
     saveNextModifiedItem()
     deferred.promise()

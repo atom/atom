@@ -154,7 +154,7 @@ describe "PaneContainer", ->
     it "resolves the returned promise after modified files are saved", ->
       pane1.itemAtIndex(0).isModified = -> true
       pane2.itemAtIndex(0).isModified = -> true
-      spyOn(atom, "confirm").andCallFake (a, b, c, d, e, f, g, noSaveFn) -> noSaveFn()
+      spyOn(atom, "confirmSync").andReturn(0)
 
       promiseHandler = jasmine.createSpy("promiseHandler")
       failedPromiseHandler = jasmine.createSpy("failedPromiseHandler")
@@ -167,12 +167,12 @@ describe "PaneContainer", ->
 
       runs ->
         expect(failedPromiseHandler).not.toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        expect(atom.confirmSync).toHaveBeenCalled()
 
     it "rejects the returned promise if the user cancels saving", ->
       pane1.itemAtIndex(0).isModified = -> true
       pane2.itemAtIndex(0).isModified = -> true
-      spyOn(atom, "confirm").andCallFake (a, b, c, d, e, cancelFn, f, g) -> cancelFn()
+      spyOn(atom, "confirmSync").andReturn(1)
 
       promiseHandler = jasmine.createSpy("promiseHandler")
       failedPromiseHandler = jasmine.createSpy("failedPromiseHandler")
@@ -185,7 +185,7 @@ describe "PaneContainer", ->
 
       runs ->
         expect(promiseHandler).not.toHaveBeenCalled()
-        expect(atom.confirm).toHaveBeenCalled()
+        expect(atom.confirmSync).toHaveBeenCalled()
 
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
