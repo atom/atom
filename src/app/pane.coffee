@@ -166,10 +166,12 @@ class Pane extends View
 
   promptToSaveItem: (item) ->
     uri = item.getUri()
+    currentWindow = require('remote').getCurrentWindow()
     chosen = atom.confirmSync(
       "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
       "Your changes will be lost if you close this item without saving."
       ["Save", "Cancel", "Don't Save"]
+      currentWindow
     )
     switch chosen
       when 0 then @saveItem(item, -> true)
