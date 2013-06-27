@@ -89,11 +89,6 @@ class AtomWindow
       # Spec window's web view should always have focus
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
-    else
-      @browserWindow.on 'close', (event) =>
-        unless @browserWindow.isCrashed()
-          event.preventDefault()
-          @sendCommand 'window:close'
 
   openPath: (pathToOpen) ->
     if @loaded

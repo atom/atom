@@ -83,7 +83,9 @@ class PaneContainer extends View
     saved = true
     for pane in @getPanes()
       for item in pane.getItems() when item.isModified?()
-        saved = false if not pane.promptToSaveItem item
+        if not @paneAtIndex(0).promptToSaveItem item
+          saved = false
+          break
     saved
 
   getPanes: ->

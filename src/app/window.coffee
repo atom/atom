@@ -210,10 +210,6 @@ window.restoreDimensions = ->
   window.setDimensions(dimensions)
   $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
 
-window.closeWithoutConfirm = ->
-  atom.hide()
-  ipc.sendChannel 'close-without-confirm'
-
 window.onerror = ->
   atom.openDevTools()
 
