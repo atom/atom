@@ -1,6 +1,8 @@
 {$$, View} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'
+async = require 'async'
+AtomPackage = require 'atom-package'
 
 ###
 # Internal #
@@ -12,11 +14,28 @@ module.exports =
 class SettingsPanel extends View
   @content: ->
     @form id: 'settings-panel', class: 'form-horizontal', =>
+      @div outlet: "loadingElement", class: 'alert alert-info loading-area', "Loading settings"
 
   initialize: ->
+    window.setTimeout (=> @activatePackages => @showSettings()), 1
+
+  showSettings: ->
+    @loadingElement.hide()
     @appendSettings(name, settings) for name, settings of config.getSettings()
     @bindFormFields()
     @bindEditors()
+
+  activatePackages: (finishedCallback) ->
+    iterator = (pack, callback) ->
+      try
+        if pack instanceof AtomPackage and not pack.isActive()
+          pack.activate({immediate: true})
+      catch e
+        console.error e
+      finally
+        callback()
+
+    async.map atom.getLoadedPackages(), iterator, finishedCallback
 
   appendSettings: (namespace, settings) ->
     return if _.isEmpty(settings)
