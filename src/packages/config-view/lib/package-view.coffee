@@ -29,33 +29,41 @@ class PackageView extends View
           @a 'Show README', outlet: 'readmeLink'
           @div class: 'readme', outlet: 'readme'
 
+  pack: null
+  metadata: null
   installed: false
   disabled: false
   bundled: false
   updateAvailable: false
 
-  initialize: (@pack, @packageEventEmitter) ->
+  initialize: (pack, @packageEventEmitter) ->
+    if pack instanceof Package
+      @pack = pack
+      @metadata = @pack.metadata
+    else
+      @metadata = pack
+
     @updatePackageState()
 
-    @attr('name', @pack.name)
-    @name.text(@pack.name)
-    if version = semver.valid(@pack.version)
+    @attr('name', @metadata.name)
+    @name.text(@metadata.name)
+    if version = semver.valid(@metadata.version)
       @version.text(version)
     else
       @version.hide()
 
-    if @pack.descriptionHtml
-      @description.html(@pack.descriptionHtml)
-    else if @pack.description
-      @description.text(@pack.description)
+    if @metadata.descriptionHtml
+      @description.html(@metadata.descriptionHtml)
+    else if @metadata.description
+      @description.text(@metadata.description)
     else
       @description.text('No further description available.')
 
     @readme.hide()
-    if @pack.readmeHtml
-      @readme.html(pack.readmeHtml)
-    else if @pack.readme
-      @readme.text(@pack.readme)
+    if @metadata.readmeHtml
+      @readme.html(@metadata.readmeHtml)
+    else if @metadata.readme
+      @readme.text(@metadata.readme)
     else
       @readmeArea.hide()
 
@@ -67,12 +75,12 @@ class PackageView extends View
         @readme.show()
         @readmeLink.text('Hide README')
 
-    homepage = @pack.homepage
+    homepage = @metadata.homepage
     unless homepage
-      if _.isString(@pack.repository)
-        repoUrl = @pack.repository
+      if _.isString(@metadata.repository)
+        repoUrl = @metadata.repository
       else
-        repoUrl = @pack.repository?.url
+        repoUrl = @metadata.repository?.url
       if repoUrl
         repoUrl = repoUrl.replace(/.git$/, '')
         homepage = repoUrl if require('url').parse(repoUrl).host is 'github.com'
@@ -81,7 +89,7 @@ class PackageView extends View
     else
       @homepage.hide()
 
-    if issues = @pack.bugs?.url
+    if issues = @metadata.bugs?.url
       @issues.find('a').attr('href', issues)
     else
       @issues.hide()
@@ -96,16 +104,16 @@ class PackageView extends View
       if @installed
         if @updateAvailable
           @defaultAction.text('Upgrading\u2026')
-          packageManager.install @pack, (error) =>
-            @packageEventEmitter.trigger('package-upgraded', error, @pack)
+          packageManager.install @metadata, (error) =>
+            @packageEventEmitter.trigger('package-upgraded', error, @metadata)
         else
           @defaultAction.text('Uninstalling\u2026')
-          packageManager.uninstall @pack, (error) =>
-            @packageEventEmitter.trigger('package-uninstalled', error, @pack)
+          packageManager.uninstall @metadata, (error) =>
+            @packageEventEmitter.trigger('package-uninstalled', error, @metadata)
       else
         @defaultAction.text('Installing\u2026')
-        packageManager.install @pack, (error) =>
-          @packageEventEmitter.trigger('package-installed', error, @pack)
+        packageManager.install @metadata, (error) =>
+          @packageEventEmitter.trigger('package-installed', error, @metadata)
 
     @updateDefaultAction()
 
@@ -116,24 +124,24 @@ class PackageView extends View
       @updateDefaultAction()
       @updateEnabledState()
 
-    @packageEventEmitter.on 'package-installed package-uninstalled package-upgraded', (error, pack) =>
-      if pack?.name is @pack.name
+    @packageEventEmitter.on 'package-installed package-uninstalled package-upgraded', (error, metadata) =>
+      if metadata?.name is @metadata.name
         @defaultAction.enable()
         @updatePackageState()
         @updateDefaultAction()
 
   togglePackageEnablement: ->
     if @disabled
-      config.removeAtKeyPath('core.disabledPackages', @pack.name)
+      config.removeAtKeyPath('core.disabledPackages', @metadata.name)
     else
-      config.pushAtKeyPath('core.disabledPackages', @pack.name)
+      config.pushAtKeyPath('core.disabledPackages', @metadata.name)
 
   updatePackageState: ->
-    @disabled = atom.isPackageDisabled(@pack.name)
+    @disabled = atom.isPackageDisabled(@metadata.name)
     @updateAvailable = false
     @bundled = false
-    loadedPackage = atom.getLoadedPackage(@pack.name)
-    packagePath = loadedPackage?.path ? atom.resolvePackagePath(@pack.name)
+    loadedPackage = atom.getLoadedPackage(@metadata.name)
+    packagePath = loadedPackage?.path ? atom.resolvePackagePath(@metadata.name)
     @installed = packagePath?
     if @installed
       for packageDirPath in config.bundledPackageDirPaths
@@ -144,8 +152,8 @@ class PackageView extends View
       version = loadedPackage?.metadata.version
       unless version
         try
-          version = Package.loadMetadata(@pack.name).version
-      @updateAvailable = semver.gt(@pack.version, version)
+          version = Package.loadMetadata(@metadata.name).version
+      @updateAvailable = semver.gt(@metadata.version, version)
 
     if @updateAvailable
       @update.show()
