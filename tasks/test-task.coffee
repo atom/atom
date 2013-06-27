@@ -10,5 +10,6 @@ module.exports = (grunt) ->
       spawn cmd: 'pkill', args: ['Atom'], -> callback()
     commands.push (callback) ->
       atomBinary = path.join(grunt.config.get('atom.contentsDir'), 'MacOS', 'Atom')
-      spawn cmd: atomBinary, args: ['--test', "--resource-path=#{__dirname}"], (error) ->  callback(error)
+      resourcePath = path.resolve(__dirname, '..')
+      spawn cmd: atomBinary, args: ['--test', "--resource-path=#{resourcePath}"], (error) ->  callback(error)
     grunt.util.async.waterfall commands, (error) -> done(error)
