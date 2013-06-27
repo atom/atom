@@ -106,28 +106,17 @@ describe "Pane", ->
 
     describe "if the item is modified", ->
       beforeEach ->
-        spyOn(atom, 'confirm')
-        spyOn(atom, 'showSaveDialog')
         spyOn(editSession2, 'save')
         spyOn(editSession2, 'saveAs')
 
-        atom.confirm.selectOption = (buttonText) ->
-          for arg, i in @argsForCall[0] when arg is buttonText
-            @argsForCall[0][i + 1]?()
-
         editSession2.insertText('a')
         expect(editSession2.isModified()).toBeTruthy()
-        pane.destroyItem(editSession2)
-
-      it "presents a dialog with the option to save the item first", ->
-        expect(atom.confirm).toHaveBeenCalled()
-        expect(pane.getItems().indexOf(editSession2)).not.toBe -1
-        expect(editSession2.destroyed).toBeFalsy()
 
       describe "if the [Save] option is selected", ->
         describe "when the item has a uri", ->
           it "saves the item before removing and destroying it", ->
-            atom.confirm.selectOption('Save')
+            spyOn(atom, 'confirmSync').andReturn(0)
+            pane.destroyItem(editSession2)
 
             expect(editSession2.save).toHaveBeenCalled()
             expect(pane.getItems().indexOf(editSession2)).toBe -1
@@ -137,11 +126,11 @@ describe "Pane", ->
           it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
             editSession2.buffer.setPath(undefined)
 
-            atom.confirm.selectOption('Save')
+            spyOn(atom, 'showSaveDialogSync').andReturn("/selected/path")
+            spyOn(atom, 'confirmSync').andReturn(0)
+            pane.destroyItem(editSession2)
 
-            expect(atom.showSaveDialog).toHaveBeenCalled()
-
-            atom.showSaveDialog.argsForCall[0][0]("/selected/path")
+            expect(atom.showSaveDialogSync).toHaveBeenCalled()
 
             expect(editSession2.saveAs).toHaveBeenCalledWith("/selected/path")
             expect(pane.getItems().indexOf(editSession2)).toBe -1
@@ -149,7 +138,8 @@ describe "Pane", ->
 
       describe "if the [Don't Save] option is selected", ->
         it "removes and destroys the item without saving it", ->
-          atom.confirm.selectOption("Don't Save")
+          spyOn(atom, 'confirmSync').andReturn(2)
+          pane.destroyItem(editSession2)
 
           expect(editSession2.save).not.toHaveBeenCalled()
           expect(pane.getItems().indexOf(editSession2)).toBe -1
@@ -157,7 +147,8 @@ describe "Pane", ->
 
       describe "if the [Cancel] option is selected", ->
         it "does not save, remove, or destroy the item", ->
-          atom.confirm.selectOption("Cancel")
+          spyOn(atom, 'confirmSync').andReturn(1)
+          pane.destroyItem(editSession2)
 
           expect(editSession2.save).not.toHaveBeenCalled()
           expect(pane.getItems().indexOf(editSession2)).not.toBe -1
@@ -309,7 +300,7 @@ describe "Pane", ->
 
     describe "when the current item has no uri", ->
       beforeEach ->
-        spyOn(atom, 'showSaveDialog')
+        spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
 
       describe "when the current item has a saveAs method", ->
         it "opens a save dialog and saves the current item as the selected path", ->
@@ -319,19 +310,18 @@ describe "Pane", ->
 
           pane.trigger 'core:save'
 
-          expect(atom.showSaveDialog).toHaveBeenCalled()
-          atom.showSaveDialog.argsForCall[0][0]('/selected/path')
+          expect(atom.showSaveDialogSync).toHaveBeenCalled()
           expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
 
       describe "when the current item has no saveAs method", ->
         it "does nothing", ->
           expect(pane.activeItem.saveAs).toBeUndefined()
           pane.trigger 'core:save'
-          expect(atom.showSaveDialog).not.toHaveBeenCalled()
+          expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
   describe "core:save-as", ->
     beforeEach ->
-      spyOn(atom, 'showSaveDialog')
+      spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
 
     describe "when the current item has a saveAs method", ->
       it "opens the save dialog and calls saveAs on the item with the selected path", ->
@@ -340,15 +330,14 @@ describe "Pane", ->
 
         pane.trigger 'core:save-as'
 
-        expect(atom.showSaveDialog).toHaveBeenCalled()
-        atom.showSaveDialog.argsForCall[0][0]('/selected/path')
+        expect(atom.showSaveDialogSync).toHaveBeenCalled()
         expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
       it "does nothing", ->
         expect(pane.activeItem.saveAs).toBeUndefined()
         pane.trigger 'core:save-as'
-        expect(atom.showSaveDialog).not.toHaveBeenCalled()
+        expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
   describe "pane:show-next-item and pane:show-previous-item", ->
     it "advances forward/backward through the pane's items, looping around at either end", ->

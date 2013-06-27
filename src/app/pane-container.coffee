@@ -80,21 +80,13 @@ class PaneContainer extends View
     pane.saveItems() for pane in @getPanes()
 
   confirmClose: ->
-    deferred = $.Deferred()
-    modifiedItems = []
+    saved = true
     for pane in @getPanes()
-      modifiedItems.push(item) for item in pane.getItems() when item.isModified?()
-
-    cancel = => deferred.reject()
-    saveNextModifiedItem = =>
-      if modifiedItems.length == 0
-        deferred.resolve()
-      else
-        item = modifiedItems.pop()
-        @paneAtIndex(0).promptToSaveItem item, saveNextModifiedItem, cancel
-
-    saveNextModifiedItem()
-    deferred.promise()
+      for item in pane.getItems() when item.isModified?()
+        if not @paneAtIndex(0).promptToSaveItem item
+          saved = false
+          break
+    saved
 
   getPanes: ->
     @find('.pane').views()
