@@ -2,7 +2,7 @@ module.exports = (grunt) ->
   {rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'partial-clean', 'Delete some of the build files', ->
-    rm grunt.config.get('globals.buildDir')
+    rm grunt.config.get('atom.buildDir')
     rm '/tmp/atom-coffee-cache'
     rm '/tmp/atom-cached-atom-shells'
     rm 'node'
