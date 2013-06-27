@@ -1,12 +1,12 @@
 $ = require 'jquery'
-ThemeConfigPanel = require '../lib/theme-config-panel'
+ThemePanel = require '../lib/theme-panel'
 
-describe "ThemeConfigPanel", ->
+describe "ThemePanel", ->
   panel = null
 
   beforeEach ->
     config.set('core.themes', ['atom-dark-ui', 'atom-dark-syntax'])
-    panel = new ThemeConfigPanel
+    panel = new ThemePanel
 
   describe "when an enabled theme is reloced in the themes list", ->
     it "updates the 'core.themes' config key to reflect the new order", ->

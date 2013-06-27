@@ -4,7 +4,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 Pane = require 'pane'
 SettingsPanel = require './settings-panel'
-ThemeConfigPanel = require './theme-config-panel'
+ThemePanel = require './theme-panel'
 PackagePanel = require './package-panel'
 
 ###
@@ -50,7 +50,7 @@ class ConfigView extends ScrollView
       atom.open(config.configDirPath)
 
     @addPanel('Settings', new SettingsPanel)
-    @addPanel('Themes', new ThemeConfigPanel)
+    @addPanel('Themes', new ThemePanel)
     @addPanel('Packages', new PackagePanel)
     @showPanel(activePanelName) if activePanelName
 
