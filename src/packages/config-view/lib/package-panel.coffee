@@ -19,10 +19,10 @@ class PackagePanel extends ConfigPanel
     @div class: 'package-panel', =>
       @legend 'Packages'
       @ul class: 'nav nav-tabs', =>
-        @li class: 'active', outlet: 'installedLink', =>
+        @li class: 'active', =>
           @a 'Installed', =>
             @span class: 'badge pull-right', outlet: 'installedCount'
-        @li outlet: 'availableLink', =>
+        @li =>
           @a 'Available', =>
             @span class: 'badge pull-right', outlet: 'availableCount'
 
@@ -37,17 +37,11 @@ class PackagePanel extends ConfigPanel
     @loadInstalledViews()
     @loadAvailableViews()
 
-    @installedLink.on 'click', =>
-      @availableLink.removeClass('active')
-      @availablePackages.hide()
-      @installedLink.addClass('active')
-      @installedPackages.show()
-
-    @availableLink.on 'click', =>
-      @installedLink.removeClass('active')
-      @installedPackages.hide()
-      @availableLink.addClass('active')
-      @availablePackages.show()
+    @find('.nav-tabs li').on 'click', (event) =>
+      return if $(event.currentTarget).hasClass('active')
+      @find('.nav-tabs li').toggleClass('active')
+      @availablePackages.toggle()
+      @installedPackages.toggle()
 
     @packageEventEmitter.on 'package-installed', (error, pack) =>
       @addInstalledPackage(pack) unless error?
