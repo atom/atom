@@ -1,5 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
+{$$} = require 'space-pen'
 ConfigPanel = require './config-panel'
 AvailablePackagesConfigPanel = require './available-packages-config-panel'
 EventEmitter = require 'event-emitter'
@@ -27,23 +28,19 @@ class PackagePanel extends ConfigPanel
             @span class: 'badge pull-right', outlet: 'availableCount'
 
       @subview 'packageFilter', new Editor(mini: true, attributes: {id: 'package-filter'})
-      @div outlet: 'loadingArea', class: 'alert alert-info loading-area'
       @div outlet: 'installedViews'
-
+      @div outlet: 'availableViews'
 
   initialize: ->
     @packageEventEmitter = new PackageEventEmitter()
 
-    @createInstalledViews()
-
-    @available = new AvailablePackagesConfigPanel(@packageEventEmitter)
-    @append(@available)
-
-    @available.hide()
+    @availableViews.hide()
+    @loadInstalledViews()
+    @loadAvailableViews()
 
     @installedLink.on 'click', =>
       @availableLink.removeClass('active')
-      @available.hide()
+      @availableViews.hide()
       @installedLink.addClass('active')
       @installedViews.show()
 
@@ -51,14 +48,7 @@ class PackagePanel extends ConfigPanel
       @installedLink.removeClass('active')
       @installedViews.hide()
       @availableLink.addClass('active')
-      @available.show()
-
-    @packageEventEmitter.on 'available-packages-loaded', =>
-      @availableCount.text(@available.getPackageCount())
-
-    @packageFilter.getBuffer().on 'contents-modified', =>
-      @available.filterPackages(@packageFilter.getText())
-      @filterPackages(@packageFilter.getText())
+      @availableViews.show()
 
     @packageEventEmitter.on 'package-installed', (error, pack) =>
       @addPackage(pack) unless error?
@@ -68,24 +58,55 @@ class PackagePanel extends ConfigPanel
       @removePackage(pack) unless error?
       @updateInstalledCount()
 
-  createInstalledViews: ->
-    @setLoadingText('Loading installed packages\u2026')
-    @loadingArea.show()
+    @packageFilter.getBuffer().on 'contents-modified', =>
+      @filterPackages(@packageFilter.getText())
+
+  loadInstalledViews: ->
+    @installedViews.empty()
+    @installedViews.append @createLoadingView('Loading installed packages\u2026')
+
     packages = _.sortBy(atom.getAvailablePackageMetadata(), 'name')
     packageManager.renderMarkdownInMetadata packages, =>
-      @setLoadingText(null)
+      @installedViews.empty()
       for pack in packages
         view = new PackageView(pack, @packageEventEmitter)
         @installedViews.append(view)
 
       @updateInstalledCount()
 
+  loadAvailableViews: ->
+    @availableViews.empty()
+    @availableViews.append @createLoadingView('Loading installed packages\u2026')
+
+    packageManager.getAvailable (error, @packages=[]) =>
+      @availableViews.empty()
+      if error?
+        errorView = @createErrorView('Error fetching available packages.')
+        errorView.on 'click', => @loadAvailableViews()
+        @availableViews.append errorView
+        console.error(error.stack ? error)
+      else
+        for pack in @packages
+          view = new PackageView(pack, @packageEventEmitter)
+          @availableViews.append(view)
+
+      @updateAvailableCount()
+
+  createLoadingView: (text) ->
+    $$ ->
+      @div class: 'alert alert-info loading-area', text
+
+  createErrorView: (text) ->
+    $$ ->
+      @div class: 'alert alert-error', =>
+        @span text
+        @button class: 'btn btn-mini btn-retry', 'Retry'
+
   updateInstalledCount: ->
     @installedCount.text(@installedViews.children().length)
 
-  setLoadingText: (text) ->
-    @loadingArea.text(text)
-    if text then @loadingArea.show() else @loadingArea.hide()
+  updateAvailableCount: ->
+    @availableCount.text(@availableViews.children().length)
 
   removePackage: ({name}) ->
     @installedViews.children("[name=#{name}]").remove()
@@ -103,8 +124,9 @@ class PackagePanel extends ConfigPanel
       @installedViews.children(":eq(#{insertAfterIndex})").after(view)
 
   filterPackages: (filterString) ->
-    for packageView in @installedViews.children()
-      if /^\s*$/.test(filterString) or stringScore(packageView.getAttribute('name'), filterString)
-        $(packageView).show()
-      else
-        $(packageView).hide()
+    for children in [@installedViews.children(), @availableViews.children()]
+      for packageView in children
+        if /^\s*$/.test(filterString) or stringScore(packageView.getAttribute('name'), filterString)
+          $(packageView).show()
+        else
+          $(packageView).hide()
