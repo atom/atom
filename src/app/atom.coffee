@@ -186,7 +186,7 @@ window.atom =
         buttons.push buttonLabelsAndCallbacks.shift()
         callbacks.push buttonLabelsAndCallbacks.shift()
 
-    chosen = confirmSync(message, detailedMessage, buttons)
+    chosen = @confirmSync(message, detailedMessage, buttons)
     callbacks[chosen]?()
 
   confirmSync: (message, detailedMessage, buttons, browserWindow = null) ->
