@@ -150,6 +150,7 @@ class Keymap
     if event.originalEvent.keyIdentifier.indexOf('U+') == 0
       hexCharCode = event.originalEvent.keyIdentifier[2..]
       charCode = parseInt(hexCharCode, 16)
+      charCode = Math.min(event.which, charCode) if event.which?
       key = @keyFromCharCode(charCode)
     else
       key = event.originalEvent.keyIdentifier.toLowerCase()

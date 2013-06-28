@@ -35,9 +35,21 @@ describe "Keymap", ->
       keymap.handleKeyEvent(event)
       expect(event.keystrokes).toBe 'alt-meta-x'
 
+      event = keydownEvent(',', metaKey: true)
+      event.which = 188
+      keymap.handleKeyEvent(event)
+      expect(event.keystrokes).toBe 'meta-,'
+
     describe "when no binding matches the event's keystroke", ->
       it "does not return false so the event continues to propagate", ->
         expect(keymap.handleKeyEvent(keydownEvent('0', target: fragment[0]))).not.toBe false
+
+    describe "when a non-English keyboard language is used", ->
+      it "uses the physical character pressed instead of the character it maps to in the current language", ->
+        event = keydownEvent('U+03B6', metaKey: true) # This is the 'z' key using the Greek keyboard layout
+        event.which = 122
+        keymap.handleKeyEvent(event)
+        expect(event.keystrokes).toBe 'meta-z'
 
     describe "when at least one binding fully matches the event's keystroke", ->
       describe "when the event's target node matches a selector with a matching binding", ->
