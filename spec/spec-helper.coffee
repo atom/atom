@@ -93,6 +93,7 @@ afterEach ->
     git.destroy()
     window.git = null
   $('#jasmine-content').empty() unless window.debugContent
+  delete atom.windowState
   jasmine.unspy(atom, 'saveWindowState')
   ensureNoPathSubscriptions()
   syntax.off()
