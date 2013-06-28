@@ -1,5 +1,6 @@
 fsUtils = require 'fs-utils'
 path = require 'path'
+telepath = require 'telepath'
 $ = require 'jquery'
 less = require 'less'
 ipc = require 'ipc'
@@ -18,7 +19,8 @@ defaultWindowDimensions = {width: 800, height: 600}
 windowEventHandler = null
 
 # This method is called in any window needing a general environment, including specs
-window.setUpEnvironment = ->
+window.setUpEnvironment = (windowMode) ->
+  atom.windowMode = windowMode
   window.resourcePath = remote.getCurrentWindow().loadSettings.resourcePath
 
   Config = require 'config'
@@ -44,7 +46,6 @@ window.startEditorWindow = ->
   installAtomCommand()
   installApmCommand()
 
-  atom.windowMode = 'editor'
   windowEventHandler = new WindowEventHandler
   restoreDimensions()
   config.load()
@@ -60,7 +61,6 @@ window.startEditorWindow = ->
   atom.focus()
 
 window.startConfigWindow = ->
-  atom.windowMode = 'config'
   restoreDimensions()
   windowEventHandler = new WindowEventHandler
   config.load()
@@ -76,10 +76,12 @@ window.startConfigWindow = ->
 
 window.unloadEditorWindow = ->
   return if not project and not rootView
-  atom.setWindowState('syntax', syntax.serialize())
-  atom.setWindowState('rootView', rootView.serialize())
+  windowState = atom.getWindowState()
+  windowState.set('syntax', syntax.serialize())
+  windowState.set('rootView', rootView.serialize())
   atom.deactivatePackages()
-  atom.setWindowState('packageStates', atom.packageStates)
+  windowState.set('packageStates', atom.packageStates)
+  atom.saveWindowState()
   rootView.remove()
   project.destroy()
   git?.destroy()
@@ -98,7 +100,7 @@ window.installApmCommand = (callback) ->
 
 window.unloadConfigWindow = ->
   return if not configView
-  atom.setWindowState('configView', configView.serialize())
+  atom.getWindowState().set('configView', configView.serialize())
   configView.remove()
   windowEventHandler?.unsubscribe()
   window.configView = null
@@ -114,13 +116,19 @@ window.deserializeEditorWindow = ->
   Project = require 'project'
   Git = require 'git'
 
-  {initialPath} = atom.getLoadSettings()
-
   windowState = atom.getWindowState()
 
-  atom.packageStates = windowState.packageStates ? {}
-  window.project = new Project(initialPath)
-  window.rootView = deserialize(windowState.rootView) ? new RootView
+  atom.packageStates = windowState.getObject('packageStates') ? {}
+
+  window.project = deserialize(windowState.get('project'))
+  unless window.project?
+    window.project = new Project(atom.getLoadSettings().initialPath)
+    windowState.set('project', window.project.serialize())
+
+  window.rootView = deserialize(windowState.get('rootView'))
+  unless window.rootView?
+    window.rootView = new RootView()
+    windowState.set('rootView', window.rootView.serialize())
 
   $(rootViewParentSelector).append(rootView)
 
@@ -134,8 +142,7 @@ window.deserializeEditorWindow = ->
 
 window.deserializeConfigWindow = ->
   ConfigView = require 'config-view'
-  windowState = atom.getWindowState()
-  window.configView = deserialize(windowState.configView) ? new ConfigView()
+  window.configView = deserialize(atom.getWindowState('configView')) ? new ConfigView()
   $(rootViewParentSelector).append(configView)
 
 window.stylesheetElementForId = (id) ->
@@ -205,10 +212,10 @@ window.setDimensions = ({x, y, width, height}) ->
     browserWindow.center()
 
 window.restoreDimensions = ->
-  dimensions = atom.getWindowState('dimensions')
+  dimensions = atom.getWindowState().getObject('dimensions')
   dimensions = defaultWindowDimensions unless dimensions?.width and dimensions?.height
   window.setDimensions(dimensions)
-  $(window).on 'unload', -> atom.setWindowState('dimensions', window.getDimensions())
+  $(window).on 'unload', -> atom.getWindowState().set('dimensions', window.getDimensions())
 
 window.onerror = ->
   atom.openDevTools()
@@ -227,11 +234,16 @@ window.unregisterDeserializer = (klass) ->
 
 window.deserialize = (state) ->
   if deserializer = getDeserializer(state)
-    return if deserializer.version? and deserializer.version isnt state.version
+    stateVersion = state.get?('version') ? state.version
+    return if deserializer.version? and deserializer.version isnt stateVersion
+    if (state instanceof telepath.Document) and not deserializer.acceptsDocuments
+      state = state.toObject()
     deserializer.deserialize(state)
 
 window.getDeserializer = (state) ->
-  name = state?.deserializer
+  return unless state?
+
+  name = state.get?('deserializer') ? state.deserializer
   if deferredDeserializers[name]
     deferredDeserializers[name]()
     delete deferredDeserializers[name]

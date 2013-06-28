@@ -184,6 +184,9 @@ class AtomApplication
       else
         @promptForPath()
 
+    ipc.on 'open-window', (processId, routingId, windowSettings) ->
+      new AtomWindow(windowSettings)
+
     ipc.on 'open-dev', (processId, routingId, pathsToOpen) =>
       if pathsToOpen?.length > 0
         @openPaths({pathsToOpen, devMode: true})

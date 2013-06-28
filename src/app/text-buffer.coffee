@@ -13,7 +13,7 @@ BufferMarker = require 'buffer-marker'
 # The `Buffer` is often associated with a {File}. However, this is not always
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
-class Buffer
+class TextBuffer
   @idCounter = 1
   registerDeserializer(this)
   stoppedChangingDelay: 300
@@ -695,4 +695,4 @@ class Buffer
       lines.push "#{row}: #{@lineForRow(row)}"
     lines.join('\n')
 
-_.extend(Buffer.prototype, EventEmitter)
+_.extend(TextBuffer.prototype, EventEmitter)

@@ -728,6 +728,12 @@ class Editor extends View
     @activeEditSession.on 'screen-lines-changed.editor', (e) =>
       @handleScreenLinesChange(e)
 
+    @activeEditSession.on 'scroll-top-changed.editor', (scrollTop) =>
+      @scrollTop(scrollTop)
+
+    @activeEditSession.on 'scroll-left-changed.editor', (scrollLeft) =>
+      @scrollLeft(scrollLeft)
+
     @trigger 'editor:path-changed'
     @resetDisplay()
 
@@ -1089,8 +1095,8 @@ class Editor extends View
 
     @clearRenderedLines()
     @removeAllCursorAndSelectionViews()
-    editSessionScrollTop = @activeEditSession.scrollTop ? 0
-    editSessionScrollLeft = @activeEditSession.scrollLeft ? 0
+    editSessionScrollTop = @activeEditSession.getScrollTop() ? 0
+    editSessionScrollLeft = @activeEditSession.getScrollLeft() ? 0
     @updateLayerDimensions()
     @scrollTop(editSessionScrollTop)
     @scrollLeft(editSessionScrollLeft)

@@ -1,29 +1,42 @@
 {View} = require 'space-pen'
 Pane = require 'pane'
 $ = require 'jquery'
+telepath = require 'telepath'
 
 module.exports =
 class PaneContainer extends View
   registerDeserializer(this)
 
   ### Internal ###
+  @acceptsDocuments: true
 
-  @deserialize: ({root}) ->
-    container = new PaneContainer
-    container.append(deserialize(root)) if root
+  @deserialize: (state) ->
+    container = new PaneContainer(state)
     container.removeEmptyPanes()
     container
 
   @content: ->
     @div id: 'panes'
 
-  initialize: ->
+  initialize: (@state) ->
+    if @state?
+      @setRoot(deserialize(@state.get('root')), updateState: false)
+    else
+      @state = telepath.Document.create(deserializer: 'PaneContainer')
+
+    @state.observe ({key, newValue, site}) =>
+      return if site is @state.site.id
+      if key is 'root'
+        @setRoot(deserialize(newValue), updateState: false)
+
     @destroyedItemStates = []
 
   serialize: ->
-    deserializer: 'PaneContainer'
-    root: @getRoot()?.serialize()
- 
+    @getRoot()?.serialize()
+    @state
+
+  getState: -> @state
+
   ### Public ###
 
   focusNextPane: ->
@@ -60,7 +73,7 @@ class PaneContainer extends View
         true
       else
         newPane = new Pane(deserialize(lastItemState))
-        @append(newPane)
+        @setRoot(newPane)
         newPane.focus()
 
   itemDestroyed: (item) ->
@@ -75,6 +88,16 @@ class PaneContainer extends View
 
   getRoot: ->
     @children().first().view()
+
+  setRoot: (root, options={}) ->
+    @empty()
+    @append(root) if root?
+    @state.set(root: root?.getState()) if options.updateState ? true
+
+  removeChild: (child) ->
+    throw new Error("Removing non-existant child") unless @getRoot() is child
+    @setRoot(null)
+    @trigger 'pane:removed', [child] if child instanceof Pane
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()

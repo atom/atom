@@ -1,6 +1,7 @@
 {View} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'
+telepath = require 'telepath'
 PaneRow = require 'pane-row'
 PaneColumn = require 'pane-column'
 
@@ -8,24 +9,46 @@ module.exports =
 class Pane extends View
 
   ### Internal ###
+  @acceptsDocuments: true
 
   @content: (wrappedView) ->
     @div class: 'pane', =>
       @div class: 'item-views', outlet: 'itemViews'
 
-  @deserialize: ({items, focused, activeItemUri}) ->
-    deserializedItems = _.compact(items.map((item) -> deserialize(item)))
-    pane = new Pane(deserializedItems...)
-    pane.showItemForUri(activeItemUri) if activeItemUri
-    pane.focusOnAttach = true if focused
+  @deserialize: (state) ->
+    pane = new Pane(state)
+    pane.focusOnAttach = true if state.get('focused')
     pane
 
   activeItem: null
   items: null
 
-  initialize: (@items...) ->
+  initialize: (args...) ->
+    if args[0] instanceof telepath.Document
+      @state = args[0]
+      @items = @state.get('items').map (item) -> deserialize(item)
+    else
+      @items = args
+      @state = telepath.Document.create
+        deserializer: 'Pane'
+        items: @items.map (item) -> item.getState?() ? item.serialize()
+
+    @state.get('items').observe ({index, removed, inserted, site}) =>
+      return if site is @state.site.id
+      for itemState in removed
+        @removeItemAtIndex(index, updateState: false)
+      for itemState, i in inserted
+        @addItem(deserialize(itemState), index + i, updateState: false)
+
+    @state.observe ({key, newValue, site}) =>
+      return if site is @state.site.id
+      @showItemForUri(newValue) if key is 'activeItemUri'
+
     @viewsByClassName = {}
-    @showItem(@items[0]) if @items.length > 0
+    if activeItemUri = @state.get('activeItemUri')
+      @showItemForUri(activeItemUri)
+    else
+      @showItem(@items[0]) if @items.length > 0
 
     @command 'core:close', @destroyActiveItem
     @command 'core:save', @saveActiveItem
@@ -129,12 +152,15 @@ class Pane extends View
     @activeView = view
     @trigger 'pane:active-item-changed', [item]
 
+    @state.set('activeItemUri', item.getUri?())
+
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
 
-  addItem: (item) ->
+  addItem: (item, index=@getActiveItemIndex()+1, options={}) ->
     return if _.include(@items, item)
-    index = @getActiveItemIndex() + 1
+
+    @state.get('items').splice(index, 0, item.getState?() ? item.serialize()) if options.updateState ? true
     @items.splice(index, 0, item)
     @getContainer().itemAdded(item)
     @trigger 'pane:item-added', [item, index]
@@ -209,10 +235,13 @@ class Pane extends View
 
   removeItem: (item) ->
     index = @items.indexOf(item)
-    return if index == -1
+    @removeItemAtIndex(index) if index >= 0
 
+  removeItemAtIndex: (index, options={}) ->
+    item = @items[index]
     @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
+    @state.get('items').remove(index) if options.updateState ? true
     @cleanupItemView(item)
     @trigger 'pane:item-removed', [item, index]
 
@@ -220,6 +249,8 @@ class Pane extends View
     oldIndex = @items.indexOf(item)
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
+    @state.get('items').splice(oldIndex, 1)
+    @state.get('items').splice(newIndex, 0, item.getState?() ? item.serialize())
     @trigger 'pane:item-moved', [item, newIndex]
 
   moveItemToPane: (item, pane, index) ->
@@ -252,7 +283,7 @@ class Pane extends View
         viewToRemove?.remove()
     else
       viewToRemove?.detach() if @isMovingItem and item is viewToRemove
-      @remove()
+      @parent().view().removeChild(this, updateState: false)
 
   viewForItem: (item) ->
     if item instanceof $
@@ -269,10 +300,11 @@ class Pane extends View
     @viewForItem(@activeItem)
 
   serialize: ->
-    deserializer: "Pane"
-    focused: @is(':has(:focus)')
-    activeItemUri: @activeItem.getUri?() if typeof @activeItem.serialize is 'function'
-    items: _.compact(@getItems().map (item) -> item.serialize?())
+    @state.get('items').set(index, item.serialize()) for item, index in @items
+    @state.set focused: @is(':has(:focus)')
+    @state
+
+  getState: -> @state
 
   adjustDimensions: -> # do nothing
 
@@ -293,22 +325,35 @@ class Pane extends View
     @split(items, 'row', 'after')
 
   split: (items, axis, side) ->
-    unless @parent().hasClass(axis)
-      @buildPaneAxis(axis)
-        .insertBefore(this)
-        .append(@detach())
+    PaneContainer = require 'pane-container'
+
+    parent = @parent().view()
+    unless parent.hasClass(axis)
+      axis = @buildPaneAxis(axis)
+      if parent instanceof PaneContainer
+        @detach()
+        parent.setRoot(axis)
+      else
+        parent.insertChildBefore(this, axis)
+        parent.detachChild(this)
+
+      axis.addChild(this)
+      parent = axis
 
     items = [@copyActiveItem()] unless items.length
-    pane = new Pane(items...)
-    this[side](pane)
+    newPane = new Pane(items...)
+
+    switch side
+      when 'before' then parent.insertChildBefore(this, newPane)
+      when 'after' then parent.insertChildAfter(this, newPane)
     @getContainer().adjustPaneDimensions()
-    pane.focus()
-    pane
+    newPane.focus()
+    newPane
 
   buildPaneAxis: (axis) ->
     switch axis
-      when 'row' then new PaneRow
-      when 'column' then new PaneColumn
+      when 'row' then new PaneRow()
+      when 'column' then new PaneColumn()
 
   getContainer: ->
     @closest('#panes').view()
@@ -318,26 +363,12 @@ class Pane extends View
 
   remove: (selector, keepData) ->
     return super if keepData
-
-    # find parent elements before removing from dom
-    container = @getContainer()
-    parentAxis = @parent('.row, .column')
-
-    if @is(':has(:focus)')
-      container.focusNextPane() or rootView?.focus()
-    else if @isActive()
-      container.makeNextPaneActive()
-
-    super
-
-    if parentAxis.children().length == 1
-      sibling = parentAxis.children()
-      siblingFocused = sibling.is(':has(:focus)')
-      sibling.detach()
-      parentAxis.replaceWith(sibling)
-      sibling.focus() if siblingFocused
-    container.adjustPaneDimensions()
-    container.trigger 'pane:removed', [this]
+    @parent().view().removeChild(this)
 
   beforeRemove: ->
+    if @is(':has(:focus)')
+      @getContainer().focusNextPane() or rootView?.focus()
+    else if @isActive()
+      @getContainer().makeNextPaneActive()
+
     item.destroy?() for item in @getItems()

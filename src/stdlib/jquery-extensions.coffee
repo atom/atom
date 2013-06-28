@@ -46,6 +46,19 @@ $.fn.enable = ->
 $.fn.disable = ->
   @attr('disabled', 'disabled')
 
+$.fn.insertAt = (index, element) ->
+  target = @children(":eq(#{index})")
+  if target.length
+    $(element).insertBefore(target)
+  else
+    @append(element)
+
+$.fn.removeAt = (index) ->
+  @children(":eq(#{index})").remove()
+
+$.fn.indexOf = (child) ->
+  @children().toArray().indexOf($(child)[0])
+
 $.fn.containsElement = (element) ->
   (element[0].compareDocumentPosition(this[0]) & 8) == 8
 

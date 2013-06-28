@@ -1,5 +1,5 @@
 require 'window'
-window.setUpEnvironment()
+window.setUpEnvironment('spec')
 window.restoreDimensions()
 
 nakedLoad 'jasmine-jquery'
@@ -25,6 +25,9 @@ keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 $(window).on 'core:close', -> window.close()
+$(window).on 'unload', ->
+  atom.windowMode = 'spec'
+  atom.saveWindowState()
 $('html,body').css('overflow', 'auto')
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
@@ -41,7 +44,7 @@ beforeEach ->
   window.resetTimeouts()
   atom.windowMode = 'editor'
   atom.packageStates = {}
-  spyOn(atom, 'setWindowState')
+  spyOn(atom, 'saveWindowState')
   syntax.clearGrammarOverrides()
   syntax.clearProperties()
 
@@ -89,8 +92,9 @@ afterEach ->
   if git?
     git.destroy()
     window.git = null
-  $('#jasmine-content').empty()
-  jasmine.unspy(atom, 'setWindowState')
+  $('#jasmine-content').empty() unless window.debugContent
+  delete atom.windowState
+  jasmine.unspy(atom, 'saveWindowState')
   ensureNoPathSubscriptions()
   syntax.off()
   waits(0) # yield to ui thread to make screen update more frequently
@@ -230,7 +234,7 @@ $.fn.enableKeymap = ->
   @on 'keydown', (e) => window.keymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
-  $('#jasmine-content').append(this)
+  @appendTo($('#jasmine-content'))
 
 $.fn.simulateDomAttachment = ->
   $('<html>').append(this)

@@ -124,7 +124,7 @@ describe "Editor", ->
       previousScrollTop = editor.scrollTop()
       previousScrollLeft = editor.scrollLeft()
 
-      newEditSession.scrollTop = 120
+      newEditSession.setScrollTop(120)
       newEditSession.setSelectedBufferRange([[40, 0], [43, 1]])
 
       editor.edit(newEditSession)
@@ -214,18 +214,18 @@ describe "Editor", ->
         expect(editor.scrollTop()).toBe 50
 
     it "sets the new scroll top position on the active edit session", ->
-      expect(editor.activeEditSession.scrollTop).toBe 0
+      expect(editor.activeEditSession.getScrollTop()).toBe 0
       editor.scrollTop(123)
-      expect(editor.activeEditSession.scrollTop).toBe 123
+      expect(editor.activeEditSession.getScrollTop()).toBe 123
 
   describe ".scrollHorizontally(pixelPosition)", ->
     it "sets the new scroll left position on the active edit session", ->
       editor.attachToDom(heightInLines: 5)
       setEditorWidthInChars(editor, 5)
-      expect(editor.activeEditSession.scrollLeft).toBe 0
+      expect(editor.activeEditSession.getScrollLeft()).toBe 0
       editor.scrollHorizontally(left: 50)
-      expect(editor.activeEditSession.scrollLeft).toBeGreaterThan 0
-      expect(editor.activeEditSession.scrollLeft).toBe editor.scrollLeft()
+      expect(editor.activeEditSession.getScrollLeft()).toBeGreaterThan 0
+      expect(editor.activeEditSession.getScrollLeft()).toBe editor.scrollLeft()
 
   describe "editor:attached event", ->
     it 'only triggers an editor:attached event when it is first added to the DOM', ->

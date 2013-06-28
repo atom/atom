@@ -15,6 +15,10 @@ BufferedProcess = require 'buffered-process'
 # of directories and files that you can operate on.
 module.exports =
 class Project
+  registerDeserializer(this)
+
+  @deserialize: (state) -> new Project(state.path)
+
   @openers: []
 
   @registerOpener: (opener) ->
@@ -44,6 +48,10 @@ class Project
     @setPath(path)
     @editSessions = []
     @buffers = []
+
+  serialize: ->
+    deserializer: 'Project'
+    path: @getPath()
 
   # Retrieves the project path.
   #
@@ -289,7 +297,6 @@ class Project
 
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
-    options.project = this
     options.buffer = buffer
     editSession = new EditSession(options)
     @editSessions.push editSession

@@ -39,64 +39,63 @@ describe "RootView", ->
         expect(rootView.getActiveView().getText()).toBe buffer.getText()
         expect(rootView.title).toBe "untitled - #{project.getPath()}"
 
-    describe "when the serialized RootView has a project", ->
-      describe "when there are open editors", ->
-        it "constructs the view with the same panes", ->
-          rootView.attachToDom()
-          pane1 = rootView.getActivePane()
-          pane2 = pane1.splitRight()
-          pane3 = pane2.splitRight()
-          pane4 = pane2.splitDown()
-          pane2.showItem(project.open('b'))
-          pane3.showItem(project.open('../sample.js'))
-          pane3.activeItem.setCursorScreenPosition([2, 4])
-          pane4.showItem(project.open('../sample.txt'))
-          pane4.activeItem.setCursorScreenPosition([0, 2])
-          pane2.focus()
+    describe "when there are open editors", ->
+      it "constructs the view with the same panes", ->
+        rootView.attachToDom()
+        pane1 = rootView.getActivePane()
+        pane2 = pane1.splitRight()
+        pane3 = pane2.splitRight()
+        pane4 = pane2.splitDown()
+        pane2.showItem(project.open('b'))
+        pane3.showItem(project.open('../sample.js'))
+        pane3.activeItem.setCursorScreenPosition([2, 4])
+        pane4.showItem(project.open('../sample.txt'))
+        pane4.activeItem.setCursorScreenPosition([0, 2])
+        pane2.focus()
 
-          viewState = rootView.serialize()
-          rootView.remove()
-          window.rootView = deserialize(viewState)
-          rootView.attachToDom()
+        viewState = rootView.serialize()
+        rootView.remove()
+        window.rootView = deserialize(viewState)
+        rootView.attachToDom()
 
-          expect(rootView.getEditors().length).toBe 4
-          editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
-          editor3 = rootView.panes.find('.row > .pane .editor:eq(1)').view()
-          editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
-          editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
+        expect(rootView.getEditors().length).toBe 4
+        editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
+        editor3 = rootView.panes.find('.row > .pane .editor:eq(1)').view()
+        editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
+        editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
 
-          expect(editor1.getPath()).toBe project.resolve('a')
-          expect(editor2.getPath()).toBe project.resolve('b')
-          expect(editor3.getPath()).toBe project.resolve('../sample.js')
-          expect(editor3.getCursorScreenPosition()).toEqual [2, 4]
-          expect(editor4.getPath()).toBe project.resolve('../sample.txt')
-          expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
+        expect(editor1.getPath()).toBe project.resolve('a')
+        expect(editor2.getPath()).toBe project.resolve('b')
+        expect(editor3.getPath()).toBe project.resolve('../sample.js')
+        expect(editor3.getCursorScreenPosition()).toEqual [2, 4]
+        expect(editor4.getPath()).toBe project.resolve('../sample.txt')
+        expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
 
-          # ensure adjust pane dimensions is called
-          expect(editor1.width()).toBeGreaterThan 0
-          expect(editor2.width()).toBeGreaterThan 0
-          expect(editor3.width()).toBeGreaterThan 0
-          expect(editor4.width()).toBeGreaterThan 0
+        # ensure adjust pane dimensions is called
+        expect(editor1.width()).toBeGreaterThan 0
+        expect(editor2.width()).toBeGreaterThan 0
+        expect(editor3.width()).toBeGreaterThan 0
+        expect(editor4.width()).toBeGreaterThan 0
 
-          # ensure correct editor is focused again
-          expect(editor2.isFocused).toBeTruthy()
-          expect(editor1.isFocused).toBeFalsy()
-          expect(editor3.isFocused).toBeFalsy()
-          expect(editor4.isFocused).toBeFalsy()
+        # ensure correct editor is focused again
+        expect(editor2.isFocused).toBeTruthy()
+        expect(editor1.isFocused).toBeFalsy()
+        expect(editor3.isFocused).toBeFalsy()
+        expect(editor4.isFocused).toBeFalsy()
 
-          expect(rootView.title).toBe "#{path.basename(editor2.getPath())} - #{project.getPath()}"
+        expect(rootView.title).toBe "#{path.basename(editor2.getPath())} - #{project.getPath()}"
 
-      describe "where there are no open editors", ->
-        it "constructs the view with no open editors", ->
-          rootView.getActivePane().remove()
-          expect(rootView.getEditors().length).toBe 0
+    describe "where there are no open editors", ->
+      it "constructs the view with no open editors", ->
+        rootView.getActivePane().remove()
+        expect(rootView.getEditors().length).toBe 0
 
-          viewState = rootView.serialize()
-          rootView.remove()
-          window.rootView = deserialize(viewState)
+        viewState = rootView.serialize()
+        rootView.remove()
+        window.rootView = deserialize(viewState)
 
-          rootView.attachToDom()
-          expect(rootView.getEditors().length).toBe 0
+        rootView.attachToDom()
+        expect(rootView.getEditors().length).toBe 0
 
   describe "focus", ->
     describe "when there is an active view", ->

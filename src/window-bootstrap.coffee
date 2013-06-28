@@ -3,6 +3,6 @@ date = new Date().getTime()
 require 'atom'
 require 'window'
 
-window.setUpEnvironment()
+window.setUpEnvironment('editor')
 window.startEditorWindow()
 console.log "Load time: #{new Date().getTime() - date}"

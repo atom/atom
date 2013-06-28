@@ -8,6 +8,7 @@ remote = require 'remote'
 crypto = require 'crypto'
 path = require 'path'
 dialog = remote.require 'dialog'
+telepath = require 'telepath'
 
 window.atom =
   loadedThemes: []
@@ -174,6 +175,9 @@ window.atom =
   openConfig: ->
     ipc.sendChannel('open-config')
 
+  openWindow: (windowSettings) ->
+    ipc.sendChannel('open-window', windowSettings)
+
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     buttons = []
     callbacks = []
@@ -232,8 +236,8 @@ window.atom =
 
   getWindowStatePath: ->
     switch @windowMode
-      when 'config'
-        filename = 'config'
+      when 'config', 'spec'
+        filename = @windowMode
       when 'editor'
         {initialPath} = @getLoadSettings()
         if initialPath
@@ -245,20 +249,12 @@ window.atom =
     else
       null
 
-  saveWindowState: (windowState) ->
-    windowStateJson = JSON.stringify(windowState)
-    if windowStatePath = @getWindowStatePath()
-      fsUtils.writeSync(windowStatePath, windowStateJson)
-    else
-      @getLoadSettings().windowState = windowStateJson
-
   setWindowState: (keyPath, value) ->
     windowState = @getWindowState()
-    _.setValueForKeyPath(windowState, keyPath, value)
-    @saveWindowState(windowState)
+    windowState.set(keyPath, value)
     windowState
 
-  getWindowState: (keyPath) ->
+  loadWindowState: ->
     if windowStatePath = @getWindowStatePath()
       if fsUtils.exists(windowStatePath)
         try
@@ -274,10 +270,21 @@ window.atom =
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
     windowState ?= {}
-    if keyPath
-      _.valueForKeyPath(windowState, keyPath)
+    telepath.Document.create(windowState, site: telepath.createSite(1))
+
+  saveWindowState: ->
+    windowStateJson = JSON.stringify(@getWindowState().toObject())
+    if windowStatePath = @getWindowStatePath()
+      fsUtils.writeSync(windowStatePath, windowStateJson)
     else
-      windowState
+      @getLoadSettings().windowState = windowStateJson
+
+  getWindowState: (keyPath) ->
+    @windowState ?= @loadWindowState()
+    if keyPath
+      @windowState.get(keyPath)
+    else
+      @windowState
 
   update: ->
     ipc.sendChannel 'install-update'
