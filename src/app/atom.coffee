@@ -270,7 +270,7 @@ window.atom =
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
     windowState ?= {}
-    telepath.Document.fromObject(telepath.createSite(1), windowState)
+    telepath.Document.create(windowState, site: telepath.createSite(1))
 
   saveWindowState: ->
     windowStateJson = JSON.stringify(@getWindowState().toObject())

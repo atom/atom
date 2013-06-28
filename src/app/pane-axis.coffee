@@ -15,16 +15,15 @@ class PaneAxis extends View
       @state = args[0]
       @state.get('children').each (child, index) => @addChild(deserialize(child), index, updateState: false)
     else
-      @state = telepath.Document.fromObject(deserializer: @className(), children: [])
+      @state = telepath.Document.create(deserializer: @className(), children: [])
       @addChild(child) for child in args
 
-    @state.get('children').observe ({index, value, type, site}) =>
+    @state.get('children').observe ({index, inserted, removed, site}) =>
       return if site is @state.site.id
-      switch type
-        when 'insert'
-          @addChild(deserialize(value), index, updateState: false)
-        when 'remove'
-          @removeChild(@children(":eq(#{index})").view(), updateState: false)
+      for childState in removed
+        @removeChild(@children(":eq(#{index})").view(), updateState: false)
+      for childState, i in inserted
+        @addChild(deserialize(childState), index + i, updateState: false)
 
   addChild: (child, index=@children().length, options={}) ->
     @insertAt(index, child)

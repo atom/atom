@@ -45,7 +45,7 @@ class EditSession
       cursorScreenPosition = @state.getObject('cursorScreenPosition')
     else
       {@buffer, tabLength, softTabs, @softWrap} = optionsOrState
-      @state = telepath.Document.fromObject
+      @state = telepath.Document.create
         deserializer: 'EditSession'
         version: @constructor.version
         scrollTop: 0
@@ -75,12 +75,12 @@ class EditSession
 
     @displayBuffer.on 'grammar-changed', => @handleGrammarChange()
 
-    @state.observe ({key, value, site}) =>
+    @state.observe ({key, newValue}) =>
       switch key
         when 'scrollTop'
-          @trigger 'scroll-top-changed', value
+          @trigger 'scroll-top-changed', newValue
         when 'scrollLeft'
-          @trigger 'scroll-left-changed', value
+          @trigger 'scroll-left-changed', newValue
 
   getViewClass: ->
     require 'editor'

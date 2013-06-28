@@ -22,12 +22,12 @@ class PaneContainer extends View
     if @state?
       @setRoot(deserialize(@state.get('root')), updateState: false)
     else
-      @state = telepath.Document.fromObject(deserializer: 'PaneContainer')
+      @state = telepath.Document.create(deserializer: 'PaneContainer')
 
-    @state.observe ({key, value, type, site}) =>
+    @state.observe ({key, newValue, site}) =>
       return if site is @state.site.id
-      if key is 'root' and type is 'set'
-        @setRoot(deserialize(value), updateState: false)
+      if key is 'root'
+        @setRoot(deserialize(newValue), updateState: false)
 
     @destroyedItemStates = []
 

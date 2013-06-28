@@ -41,7 +41,7 @@ class RootView extends View
     if state instanceof telepath.Document
       @state = state
     else
-      @state = telepath.Document.fromObject(_.extend(version: RootView.version, deserializer: 'RootView', panes: @panes.serialize(), state))
+      @state = telepath.Document.create(_.extend({version: RootView.version, deserializer: 'RootView', panes: @panes.serialize()}, state))
 
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>

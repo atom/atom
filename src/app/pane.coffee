@@ -29,21 +29,20 @@ class Pane extends View
       @items = @state.get('items').map (item) -> deserialize(item)
     else
       @items = args
-      @state = telepath.Document.fromObject
+      @state = telepath.Document.create
         deserializer: 'Pane'
         items: @items.map (item) -> item.getState?() ? item.serialize()
 
-    @state.get('items').observe ({index, value, type, site}) =>
+    @state.get('items').observe ({index, removed, inserted, site}) =>
       return if site is @state.site.id
-      switch type
-        when 'insert'
-          @addItem(deserialize(value), index, updateState: false)
-        when 'remove'
-          @removeItemAtIndex(index, updateState: false)
+      for itemState in removed
+        @removeItemAtIndex(index, updateState: false)
+      for itemState, i in inserted
+        @addItem(deserialize(itemState), index + i, updateState: false)
 
-    @state.observe ({key, value, site}) =>
+    @state.observe ({key, newValue, site}) =>
       return if site is @state.site.id
-      @showItemForUri(value) if key is 'activeItemUri'
+      @showItemForUri(newValue) if key is 'activeItemUri'
 
     @viewsByClassName = {}
     if activeItemUri = @state.get('activeItemUri')
