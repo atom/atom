@@ -1,4 +1,5 @@
 fsUtils = require 'fs-utils'
+fs = require 'fs'
 path = require 'path'
 
 describe "fsUtils", ->
@@ -127,6 +128,6 @@ describe "fsUtils", ->
 
   describe ".absolute(relativePath)", ->
     it "converts a leading ~ segment to the HOME directory", ->
-      expect(fsUtils.absolute('~')).toBe process.env.HOME
-      expect(fsUtils.absolute(path.join('~', 'a'))).toBe path.join(process.env.HOME, 'a')
+      expect(fsUtils.absolute('~')).toBe fs.realpathSync(process.env.HOME)
+      expect(fsUtils.absolute(path.join('~', 'a'))).toBe path.join(fs.realpathSync(process.env.HOME), 'a')
       expect(fsUtils.absolute('~test')).toBe '~test'
