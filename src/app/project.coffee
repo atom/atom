@@ -38,6 +38,7 @@ class Project
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
+    buffer.release() for buffer in @getBuffers()
 
   ### Public ###
 
