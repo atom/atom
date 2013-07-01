@@ -718,14 +718,14 @@ describe "Pane", ->
       newPane = deserialize(pane.serialize())
       expect(newPane.activeItem).toEqual editSession2
 
-    xit "defaults to the first item on deserialization if the active item was not serializable", ->
-      expect(view2.serialize?()).toBeFalsy()
+    it "does not show items that cannot be deserialized", ->
       pane.showItem(view2)
+      paneState = pane.serialize()
+      paneState.get('items').set(pane.items.indexOf(view2), {deserializer: 'Bogus'}) # nuke serialized state of active item
 
-      console.log pane.serialize().toObject()
-
-      newPane = deserialize(pane.serialize())
-      expect(newPane.activeItem).toEqual editSession1
+      newPane = deserialize(paneState)
+      expect(newPane.activeItem).toEqual pane.items[0]
+      expect(newPane.items.length).toBe pane.items.length - 1
 
     it "focuses the pane after attach only if had focus when serialized", ->
       container.attachToDom()

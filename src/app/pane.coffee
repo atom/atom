@@ -28,7 +28,7 @@ class Pane extends View
   initialize: (args...) ->
     if args[0] instanceof telepath.Document
       @state = args[0]
-      @items = @state.get('items').map (item) -> deserialize(item)
+      @items = _.compact(@state.get('items').map (item) -> deserialize(item))
     else
       @items = args
       @state = telepath.Document.create
@@ -48,9 +48,8 @@ class Pane extends View
 
     @viewsByClassName = {}
     @viewsByItem = new WeakMap()
-    if activeItemUri = @state.get('activeItemUri')
-      @showItemForUri(activeItemUri)
-    else
+    activeItemUri = @state.get('activeItemUri')
+    unless activeItemUri? and @showItemForUri(activeItemUri)
       @showItem(@items[0]) if @items.length > 0
 
     @command 'core:close', @destroyActiveItem
@@ -266,7 +265,11 @@ class Pane extends View
     _.detect @items, (item) -> item.getUri?() is uri
 
   showItemForUri: (uri) ->
-    @showItem(@itemForUri(uri))
+    if item = @itemForUri(uri)
+      @showItem(item)
+      true
+    else
+      false
 
   cleanupItemView: (item) ->
     if item instanceof $
