@@ -1,5 +1,5 @@
 path = require 'path'
-fs = require 'fs'
+fs = require './fs'
 CSON = require 'season'
 config = require './config'
 
@@ -13,10 +13,8 @@ class Linker
 
     targetPath = path.join(config.getAtomDirectory(), 'packages', packageName)
     try
-      if fs.existsSync(targetPath)
-        fs.unlinkSync(targetPath)
-      else
-        fs.symlinkSync(linkPath, targetPath)
+      fs.unlinkSync(targetPath) if fs.isLink(targetPath)
+      fs.symlinkSync(linkPath, targetPath)
       console.log "#{targetPath} -> #{linkPath}"
     catch error
       console.error("Linking #{targetPath} to #{linkPath} failed")

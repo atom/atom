@@ -15,6 +15,12 @@ fsAdditions =
     catch e
       false
 
+  isLink: (filePath) ->
+    try
+      fs.lstatSync(filePath).isSymbolicLink()
+    catch e
+      false
+
   list: (directoryPath) ->
     if @isDirectory(directoryPath)
       try
