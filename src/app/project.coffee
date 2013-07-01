@@ -190,10 +190,7 @@ class Project
   #
   # Returns an {Array} of {Buffer}s.
   getBuffers: ->
-    buffers = []
-    for editSession in @editSessions when not _.include(buffers, editSession.buffer)
-      buffers.push editSession.buffer
-    buffers
+    new Array(@buffers...)
 
   # Given a file path, this retrieves or creates a new {Buffer}.
   #
