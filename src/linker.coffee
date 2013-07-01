@@ -9,8 +9,7 @@ class Linker
     linkPath = path.resolve(process.cwd(), options.commandArgs.shift() ? '.')
     try
       packageName = CSON.readFileSync(CSON.resolve(path.join(linkPath, 'package'))).name
-    catch error
-      packageName = path.basename(linkPath)
+    packageName = path.basename(linkPath) unless packageName
 
     targetPath = path.join(config.getAtomDirectory(), 'packages', packageName)
     try
