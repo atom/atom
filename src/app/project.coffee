@@ -17,6 +17,7 @@ BufferedProcess = require 'buffered-process'
 module.exports =
 class Project
   @acceptsDocuments: true
+  @version: 1
 
   registerDeserializer(this)
 
@@ -58,7 +59,7 @@ class Project
       @state.get('buffers').each (bufferState) =>
         @addBuffer(deserialize(bufferState))
     else
-      @state = telepath.Document.create(deserializer: @constructor.name, buffers: [])
+      @state = telepath.Document.create(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
 
   serialize: ->
