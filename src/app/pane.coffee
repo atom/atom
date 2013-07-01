@@ -293,7 +293,8 @@ class Pane extends View
       if view = @viewsByClassName[viewClass.name]
         view.setModel(item)
       else
-        view = @viewsByClassName[viewClass.name] = new viewClass(item)
+        view = new viewClass(item)
+        @viewsByClassName[viewClass.name] = view if _.isFunction(view.setModel)
       view
 
   viewForActiveItem: ->

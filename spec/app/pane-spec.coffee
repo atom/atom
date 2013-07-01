@@ -8,7 +8,7 @@ describe "Pane", ->
 
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
-    @content: ({id, text}) -> @div id: id, tabindex: -1, text
+    @content: ({id, text}) -> @div class: 'test-view', id: id, tabindex: -1, text
     initialize: ({@id, @text}) ->
     serialize: -> { deserializer: 'TestView', @id, @text }
     getUri: -> @id
@@ -94,13 +94,34 @@ describe "Pane", ->
           expect(editor.activeEditSession).toBe editSession1
 
       describe "when a valid view has already been appended for another item", ->
-        it "recycles the existing view by assigning the selected item to it", ->
-          pane.showItem(editSession1)
-          pane.showItem(editSession2)
-          expect(pane.itemViews.find('.editor').length).toBe 1
-          editor = pane.activeView
-          expect(editor.css('display')).toBe ''
-          expect(editor.activeEditSession).toBe editSession2
+        describe "when the view has a setModel method", ->
+          it "recycles the existing view by assigning the selected item to it", ->
+            pane.showItem(editSession1)
+            pane.showItem(editSession2)
+            expect(pane.itemViews.find('.editor').length).toBe 1
+            editor = pane.activeView
+            expect(editor.css('display')).toBe ''
+            expect(editor.activeEditSession).toBe editSession2
+
+        describe "when the view does not have a setModel method", ->
+          it "creates a new view with the item", ->
+            initialViewCount = pane.itemViews.find('.test-view').length
+
+            model1 =
+              id: 'test-model-1'
+              text: 'Test Model 1'
+              serialize: -> {@id, @text}
+              getViewClass: -> TestView
+
+            model2 =
+              id: 'test-model-2'
+              text: 'Test Model 2'
+              serialize: -> {@id, @text}
+              getViewClass: -> TestView
+
+            pane.showItem(model1)
+            pane.showItem(model2)
+            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
     describe "when showing a view item", ->
       it "appends it to the itemViews div if it hasn't already been appended and shows it", ->
