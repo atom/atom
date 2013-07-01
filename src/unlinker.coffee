@@ -1,0 +1,23 @@
+path = require 'path'
+fs = require 'fs'
+CSON = require 'season'
+config = require './config'
+
+module.exports =
+class Unlinker
+  constructor: ->
+
+  run: (options) ->
+    linkPath = path.resolve(process.cwd(), options.commandArgs.shift() ? '.')
+    try
+      packageName = CSON.readFileSync(CSON.resolve(path.join(linkPath, 'package'))).name
+    catch error
+      packageName = path.basename(linkPath)
+
+    targetPath = path.join(config.getAtomDirectory(), 'packages', packageName)
+    try
+      fs.unlinkSync(targetPath) if fs.existsSync(targetPath)
+      console.log "Unlinked #{targetPath}"
+    catch error
+      console.error("Unlinking #{targetPath} failed")
+      options.callback(error)

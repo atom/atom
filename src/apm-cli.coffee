@@ -5,6 +5,8 @@ Uninstaller = require './uninstaller'
 Lister = require './lister'
 Publisher = require './publisher'
 Fetcher = require './fetcher'
+Linker = require './linker'
+Unlinker = require './unlinker'
 
 parseOptions = (args=[]) ->
   options = optimist(args)
@@ -44,12 +46,14 @@ module.exports =
       options.showHelp()
     else if command
       switch command
+        when 'available' then new Fetcher().run(options)
         when 'help' then options.showHelp()
         when 'install' then new Installer().run(options)
-        when 'uninstall' then new Uninstaller().run(options)
+        when 'link' then new Linker().run(options)
         when 'list', 'ls' then new Lister().run(options)
         when 'publish' then new Publisher().run(options)
-        when 'available' then new Fetcher().run(options)
+        when 'uninstall' then new Uninstaller().run(options)
+        when 'unlink' then new Unlinker().run(options)
         else
           options.callback("Unrecognized command: #{command}")
     else
