@@ -77,8 +77,10 @@ class TextBuffer
     path: @getPath()
     text: @getText() if @isModified()
 
+  getState: -> @serialize()
+
   @deserialize: ({path, text}) ->
-    project.bufferForPath(path, text)
+    new TextBuffer(path, text)
 
   subscribeToFile: ->
     @file.on "contents-changed", =>

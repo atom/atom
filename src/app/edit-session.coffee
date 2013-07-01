@@ -22,7 +22,7 @@ class EditSession
 
   ### Internal ###
 
-  @version: 1
+  @version: 2
 
   @deserialize: (state) ->
     new EditSession(state)
@@ -39,7 +39,7 @@ class EditSession
       project.editSessions.push(this)
       @state = optionsOrState
       {tabLength, softTabs, @softWrap} = @state.toObject()
-      @buffer = deserialize(@state.get('buffer'))
+      @buffer = project.bufferForPath(@state.get('bufferPath'))
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
       cursorScreenPosition = @state.getObject('cursorScreenPosition')
@@ -99,7 +99,7 @@ class EditSession
 
   serialize: ->
     @state.set
-      buffer: @buffer.serialize()
+      bufferPath: @buffer.getPath()
       scrollTop: @getScrollTop()
       scrollLeft: @getScrollLeft()
       tabLength: @getTabLength()

@@ -1352,9 +1352,3 @@ describe 'TextBuffer', ->
         expect(serializedState.path).toBeUndefined()
         expect(buffer.getPath()).toBeUndefined()
         expect(buffer.getText()).toBe("abc")
-
-    it "never deserializes two separate instances of the same buffer", ->
-      serializedState = buffer.serialize()
-      buffer.release()
-      buffer = Buffer.deserialize(serializedState)
-      expect(Buffer.deserialize(serializedState)).toBe buffer

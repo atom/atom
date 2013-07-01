@@ -2,6 +2,7 @@ fsUtils = require 'fs-utils'
 path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
+telepath = require 'telepath'
 Range = require 'range'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
@@ -15,9 +16,11 @@ BufferedProcess = require 'buffered-process'
 # of directories and files that you can operate on.
 module.exports =
 class Project
+  @acceptsDocuments: true
+
   registerDeserializer(this)
 
-  @deserialize: (state) -> new Project(state.path)
+  @deserialize: (state) -> new Project(state)
 
   @openers: []
 
@@ -45,14 +48,21 @@ class Project
   # Establishes a new project at a given path.
   #
   # path - The {String} name of the path
-  constructor: (path) ->
-    @setPath(path)
+  constructor: (pathOrState) ->
     @editSessions = []
     @buffers = []
 
+    if pathOrState instanceof telepath.Document
+      @state = pathOrState
+      @setPath(pathOrState.get('path'))
+      @state.get('buffers').each (bufferState) =>
+        @addBuffer(deserialize(bufferState))
+    else
+      @state = telepath.Document.create(deserializer: @constructor.name, buffers: [])
+      @setPath(pathOrState)
+
   serialize: ->
-    deserializer: 'Project'
-    path: @getPath()
+    @state
 
   # Retrieves the project path.
   #
@@ -72,6 +82,7 @@ class Project
     else
       @rootDirectory = null
 
+    @state.set('path', projectPath)
     @trigger "path-changed"
 
   # Retrieves the name of the root directory.
@@ -219,15 +230,23 @@ class Project
   # Returns the {Buffer}.
   buildBuffer: (filePath, text) ->
     buffer = new Buffer(filePath, text)
-    @buffers.push buffer
+    @addBuffer(buffer)
     @trigger 'buffer-created', buffer
     buffer
+
+  addBuffer: (buffer, options={}) ->
+    @buffers.push(buffer)
+    @state.get('buffers').push(buffer.getState()) if options.updateState ? true
 
   # Removes a {Buffer} association from the project.
   #
   # Returns the removed {Buffer}.
   removeBuffer: (buffer) ->
-    _.remove(@buffers, buffer)
+    @removeBufferAtIndex(@buffers.indexOf(buffer))
+
+  removeBufferAtIndex: (index, options={}) ->
+    @buffers.splice(index, 1)
+    @state.get('buffers').remove(index) if options.updateState ? true
 
   # Performs a search across all the files in the project.
   #
