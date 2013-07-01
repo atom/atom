@@ -101,7 +101,7 @@ describe "fsUtils", ->
       paths = fsUtils.listSync(project.getPath(), ['.css', 'coffee'])
       expect(paths).toContain project.resolve('css.css')
       expect(paths).toContain project.resolve('coffee.coffee')
-      expect(path).toMatch /(css|coffee)$/ for path in paths
+      expect(listedPath).toMatch /(css|coffee)$/ for listedPath in paths
 
   describe ".list(path, [extensions,] callback)", ->
     paths = null
@@ -124,7 +124,7 @@ describe "fsUtils", ->
       runs ->
         expect(paths).toContain project.resolve('css.css')
         expect(paths).toContain project.resolve('coffee.coffee')
-        expect(path).toMatch /(css|coffee)$/ for path in paths
+        expect(listedPath).toMatch /(css|coffee)$/ for listedPath in paths
 
   describe ".absolute(relativePath)", ->
     it "converts a leading ~ segment to the HOME directory", ->
