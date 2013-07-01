@@ -129,5 +129,5 @@ describe "fsUtils", ->
   describe ".absolute(relativePath)", ->
     it "converts a leading ~ segment to the HOME directory", ->
       expect(fsUtils.absolute('~')).toBe fs.realpathSync(process.env.HOME)
-      expect(fsUtils.absolute(path.join('~', 'a'))).toBe path.join(fs.realpathSync(process.env.HOME), 'a')
+      expect(fsUtils.absolute(path.join('~', 'does', 'not', 'exist'))).toBe path.join(process.env.HOME, 'does', 'not', 'exist')
       expect(fsUtils.absolute('~test')).toBe '~test'
