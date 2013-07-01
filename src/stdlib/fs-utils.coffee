@@ -12,12 +12,11 @@ module.exports =
   absolute: (relativePath) ->
     return null unless relativePath?
 
-    if relativePath.indexOf('~/') is 0
-      if process.platform is 'win32'
-        home = process.env.USERPROFILE
-      else
-        home = process.env.HOME
-      relativePath = "#{home}#{relativePath.substring(1)}"
+    if relativePath is '~'
+      relativePath = process.env.HOME
+    else if relativePath.indexOf('~/') is 0
+      relativePath = "#{process.env.HOME}#{relativePath.substring(1)}"
+
     try
       fs.realpathSync(relativePath)
     catch e

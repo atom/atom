@@ -124,3 +124,9 @@ describe "fsUtils", ->
         expect(paths).toContain project.resolve('css.css')
         expect(paths).toContain project.resolve('coffee.coffee')
         expect(path).toMatch /(css|coffee)$/ for path in paths
+
+  describe ".absolute(relativePath)", ->
+    it "converts a leading ~ segment to the HOME directory", ->
+      expect(fsUtils.absolute('~')).toBe process.env.HOME
+      expect(fsUtils.absolute(path.join('~', 'a'))).toBe path.join(process.env.HOME, 'a')
+      expect(fsUtils.absolute('~test')).toBe '~test'
