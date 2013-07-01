@@ -1,4 +1,5 @@
 _ = require 'underscore'
+telepath = require 'telepath'
 fsUtils = require 'fs-utils'
 File = require 'file'
 Point = require 'point'
@@ -14,16 +15,19 @@ BufferMarker = require 'buffer-marker'
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer
+  @acceptsDocuments: true
   @idCounter = 1
   registerDeserializer(this)
+
+  @deserialize: (state) ->
+    new TextBuffer(state)
+
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
   undoManager: null
   cachedDiskContents: null
   cachedMemoryContents: null
   conflict: false
-  lines: null
-  lineEndings: null
   file: null
   validMarkers: null
   invalidMarkers: null
@@ -33,13 +37,20 @@ class TextBuffer
   #
   # path - A {String} representing the file path
   # initialText - A {String} setting the starting text
-  constructor: (path, initialText) ->
+  constructor: (args...) ->
     @id = @constructor.idCounter++
     @nextMarkerId = 1
     @validMarkers = {}
     @invalidMarkers = {}
-    @lines = ['']
-    @lineEndings = []
+
+    if args[0] instanceof telepath.Document
+      @state = args[0]
+      @text = @state.get('text')
+      path = @state.get('path')
+    else
+      [path, initialText] = args
+      @text = telepath.Document.create('', shareStrings: true)
+      @state = telepath.Document.create(deserializer: @constructor.name, text: @text)
 
     if path
       @setPath(path)
@@ -72,15 +83,8 @@ class TextBuffer
     @destroy() if @refcount <= 0
     this
 
-  serialize: ->
-    deserializer: 'TextBuffer'
-    path: @getPath()
-    text: @getText() if @isModified()
-
-  getState: -> @serialize()
-
-  @deserialize: ({path, text}) ->
-    new TextBuffer(path, text)
+  serialize: -> @state
+  getState: -> @state
 
   subscribeToFile: ->
     @file.on "contents-changed", =>
@@ -146,6 +150,8 @@ class TextBuffer
     @file.read() if @file.exists()
     @subscribeToFile()
 
+    @state.set('path', path)
+
     @trigger "path-changed", this
 
   # Retrieves the current buffer's file extension.
@@ -181,25 +187,13 @@ class TextBuffer
   #
   # Returns a {String} of the combined lines.
   getTextInRange: (range) ->
-    range = @clipRange(range)
-    if range.start.row == range.end.row
-      return @lineForRow(range.start.row)[range.start.column...range.end.column]
-
-    multipleLines = []
-    multipleLines.push @lineForRow(range.start.row)[range.start.column..] # first line
-    multipleLines.push @lineEndingForRow(range.start.row)
-    for row in [range.start.row + 1...range.end.row]
-      multipleLines.push @lineForRow(row) # middle lines
-      multipleLines.push @lineEndingForRow(row)
-    multipleLines.push @lineForRow(range.end.row)[0...range.end.column] # last line
-
-    return multipleLines.join ''
+    @text.getTextInRange(@clipRange(range))
 
   # Gets all the lines in a file.
   #
   # Returns an {Array} of {String}s.
   getLines: ->
-    @lines
+    @text.getLines()
 
   # Given a row, returns the line of text.
   #
@@ -207,7 +201,7 @@ class TextBuffer
   #
   # Returns a {String}.
   lineForRow: (row) ->
-    @lines[row]
+    @text.lineForRow(row)
 
   # Given a row, returns its line ending.
   #
@@ -215,7 +209,7 @@ class TextBuffer
   #
   # Returns a {String}, or `undefined` if `row` is the final row.
   lineEndingForRow: (row) ->
-    @lineEndings[row] unless row is @getLastRow()
+    @text.lineEndingForRow(row)
 
   suggestedLineEndingForRow: (row) ->
     @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
@@ -226,7 +220,7 @@ class TextBuffer
   #
   # Returns a {Number}.
   lineLengthForRow: (row) ->
-    @lines[row].length
+    @text.lineLengthForRow(row)
 
   # Given a row, returns the length of the line ending
   #
@@ -253,13 +247,13 @@ class TextBuffer
   #
   # Returns a {Number}.
   getLineCount: ->
-    @getLines().length
+    @text.getLineCount()
 
   # Gets the row number of the last line.
   #
   # Returns a {Number}.
   getLastRow: ->
-    @getLines().length - 1
+    @getLineCount() - 1
 
   # Finds the last line in the current buffer.
   #
@@ -275,20 +269,10 @@ class TextBuffer
     new Point(lastRow, @lineLengthForRow(lastRow))
 
   characterIndexForPosition: (position) ->
-    position = @clipPosition(position)
-
-    index = 0
-    for row in [0...position.row]
-      index += @lineLengthForRow(row) + Math.max(@lineEndingLengthForRow(row), 1)
-    index + position.column
+    @text.indexForPoint(position)
 
   positionForCharacterIndex: (index) ->
-    row = 0
-    while index >= (lineLength = @lineLengthForRow(row) + Math.max(@lineEndingLengthForRow(row), 1))
-      index -= lineLength
-      row++
-
-    new Point(row, index)
+    @text.pointForIndex(index)
 
   # Given a row, this deletes it from the buffer.
   #
@@ -365,10 +349,6 @@ class TextBuffer
     range = Range.fromObject(range)
     new Range(@clipPosition(range.start), @clipPosition(range.end))
 
-  prefixAndSuffixForRange: (range) ->
-    prefix: @lines[range.start.row][0...range.start.column]
-    suffix: @lines[range.end.row][range.end.column..]
-
   # Undos the last operation.
   #
   # editSession - The {EditSession} associated with the buffer.
@@ -413,7 +393,7 @@ class TextBuffer
   # Identifies if a buffer is empty.
   #
   # Returns a {Boolean}.
-  isEmpty: -> @lines.length is 1 and @lines[0].length is 0
+  isEmpty: -> @text.isEmpty()
 
   # Returns all valid {BufferMarker}s on the buffer.
   getMarkers: ({includeInvalid} = {}) ->
