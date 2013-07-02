@@ -1,5 +1,4 @@
-Point = require 'point'
-Range = require 'range'
+{Point, Range} = require 'telepath'
 {View, $$} = require 'space-pen'
 
 # Internal:

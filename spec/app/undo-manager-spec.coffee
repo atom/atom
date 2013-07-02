@@ -1,6 +1,6 @@
 UndoManager = require 'undo-manager'
 Buffer = require 'text-buffer'
-Range = require 'range'
+{Range} = require 'telepath'
 
 describe "UndoManager", ->
   [buffer, undoManager] = []

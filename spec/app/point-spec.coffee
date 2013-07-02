@@ -1,4 +1,4 @@
-Point = require 'point'
+{Point} = require 'telepath'
 
 describe "Point", ->
   describe ".isEqual(value)", ->

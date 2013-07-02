@@ -1,5 +1,4 @@
-Point = require 'point'
-Range = require 'range'
+{Point, Range} = require 'telepath'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 

@@ -1,5 +1,4 @@
-Range = require 'range'
-Point = require 'point'
+{Point, Range} = require 'telepath'
 
 # Public: Represents a fold that collapses multiple buffer lines into a single
 # line on the screen.

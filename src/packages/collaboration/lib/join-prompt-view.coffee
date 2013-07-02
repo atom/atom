@@ -1,7 +1,6 @@
 {View} = require 'space-pen'
 Editor = require 'editor'
 $ = require 'jquery'
-Point = require 'point'
 _ = require 'underscore'
 Guid = require 'guid'
 

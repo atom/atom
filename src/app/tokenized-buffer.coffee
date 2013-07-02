@@ -3,8 +3,7 @@ TokenizedLine = require 'tokenized-line'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Token = require 'token'
-Range = require 'range'
-Point = require 'point'
+{Point, Range} = require 'telepath'
 
 ### Internal ###
 

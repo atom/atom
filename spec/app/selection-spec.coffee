@@ -1,6 +1,6 @@
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
-Range = require 'range'
+{Range} = require 'telepath'
 
 describe "Selection", ->
   [buffer, editSession, selection] = []

@@ -1,6 +1,6 @@
 TokenizedBuffer = require 'tokenized-buffer'
 Buffer = require 'text-buffer'
-Range = require 'range'
+{Range} = require 'telepath'
 _ = require 'underscore'
 
 describe "TokenizedBuffer", ->

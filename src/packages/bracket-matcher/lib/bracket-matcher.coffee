@@ -1,6 +1,6 @@
 _ = require 'underscore'
 {$$} = require 'space-pen'
-Range = require 'range'
+{Range} = require 'telepath'
 
 module.exports =
   pairedCharacters:

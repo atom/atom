@@ -1,4 +1,4 @@
-Range = require 'range'
+{Range} = require 'telepath'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 

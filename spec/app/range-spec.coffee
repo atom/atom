@@ -1,5 +1,4 @@
-Range = require 'range'
-Point = require 'point'
+{Point, Range} = require 'telepath'
 
 describe "Range", ->
   describe "constructor", ->

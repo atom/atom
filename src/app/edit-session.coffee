@@ -2,7 +2,7 @@ _ = require 'underscore'
 fsUtils = require 'fs-utils'
 path = require 'path'
 telepath = require 'telepath'
-Point = require 'point'
+{Point, Range} = telepath
 Buffer = require 'text-buffer'
 LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
@@ -10,7 +10,6 @@ Cursor = require 'cursor'
 Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
-Range = require 'range'
 TextMateScopeSelector = require 'text-mate-scope-selector'
 
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.

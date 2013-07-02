@@ -1,5 +1,5 @@
 Address = require './address'
-Range = require 'range'
+{Range} = require 'telepath'
 
 module.exports =
 class LineAddress extends Address

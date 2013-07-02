@@ -1,5 +1,5 @@
 {View, $$, $$$} = require 'space-pen'
-Range = require 'range'
+{Range} = require 'telepath'
 $ = require 'jquery'
 _ = require 'underscore'
 

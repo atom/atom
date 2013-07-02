@@ -1,7 +1,7 @@
 {View} = require 'space-pen'
 Editor = require 'editor'
 $ = require 'jquery'
-Point = require 'point'
+{Point} = require 'telepath'
 
 module.exports =
 class GoToLineView extends View
