@@ -49,15 +49,6 @@ class BufferChangeOperation
 
   changeBuffer: ({ oldRange, newRange, newText, oldText }) ->
     @buffer.text.change(oldRange, newText)
-
-    @buffer.cachedMemoryContents = null
-    @buffer.conflict = false if @buffer.conflict and !@buffer.isModified()
-
-    event = { oldRange, newRange, oldText, newText }
-    @updateMarkers(event)
-    @buffer.trigger 'changed', event
-    @buffer.scheduleModifiedEvents()
-
     newRange
 
   invalidateMarkers: (oldRange) ->
@@ -69,9 +60,6 @@ class BufferChangeOperation
   resumeMarkerObservation: ->
     marker.resumeEvents() for marker in @buffer.getMarkers(includeInvalid: true)
     @buffer.trigger 'markers-updated' if @oldRange?
-
-  updateMarkers: (bufferChange) ->
-    marker.handleBufferChange(bufferChange) for marker in @buffer.getMarkers()
 
   restoreMarkers: (markersToRestore) ->
     for [id, previousRange] in markersToRestore

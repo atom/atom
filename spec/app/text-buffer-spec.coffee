@@ -1316,39 +1316,47 @@ describe 'TextBuffer', ->
         expect(buffer.clipPosition([10,Infinity])).toEqual [0,9]
 
   describe "serialization", ->
-    serializedState = null
+    buffer2 = null
 
-    reloadBuffer = ->
-      serializedState = buffer.serialize()
-      buffer.release()
-      buffer = Buffer.deserialize(serializedState)
+    afterEach ->
+      buffer2.release()
 
     describe "when the serialized buffer had no unsaved changes", ->
       it "loads the current contents of the file at the serialized path", ->
-        path = buffer.getPath()
-        text = buffer.getText()
-        reloadBuffer()
-        expect(serializedState.text).toBeUndefined()
-        expect(buffer.getPath()).toBe(path)
-        expect(buffer.getText()).toBe(text)
+        expect(buffer.isModified()).toBeFalsy()
+
+        state = buffer.serialize()
+        expect(state.get('text')).toBeUndefined()
+
+        buffer2 = deserialize(state)
+        expect(buffer2.isModified()).toBeFalsy()
+        expect(buffer2.getPath()).toBe(buffer.getPath())
+        expect(buffer2.getText()).toBe(buffer.getText())
 
     describe "when the serialized buffer had unsaved changes", ->
       it "restores the previous unsaved state of the buffer", ->
-        path = buffer.getPath()
         previousText = buffer.getText()
         buffer.setText("abc")
-        reloadBuffer()
-        expect(serializedState.text).toBe "abc"
-        expect(buffer.getPath()).toBe(path)
-        expect(buffer.getText()).toBe("abc")
-        buffer.setText(previousText)
-        expect(buffer.isModified()).toBeFalsy()
+
+        state = buffer.serialize()
+        expect(state.getObject('text')).toBe 'abc'
+
+        buffer2 = deserialize(state)
+        expect(buffer2.getPath()).toBe(buffer.getPath())
+        expect(buffer2.getText()).toBe(buffer.getText())
+        expect(buffer2.isModified()).toBeTruthy()
+        buffer2.setText(previousText)
+        expect(buffer2.isModified()).toBeFalsy()
 
     describe "when the serialized buffer was unsaved and had no path", ->
       it "restores the previous unsaved state of the buffer", ->
         buffer.setPath(undefined)
         buffer.setText("abc")
-        reloadBuffer()
-        expect(serializedState.path).toBeUndefined()
-        expect(buffer.getPath()).toBeUndefined()
-        expect(buffer.getText()).toBe("abc")
+
+        state = buffer.serialize()
+        expect(state.get('path')).toBeUndefined()
+        expect(state.getObject('text')).toBe 'abc'
+
+        buffer2 = deserialize(state)
+        expect(buffer2.getPath()).toBeUndefined()
+        expect(buffer2.getText()).toBe("abc")

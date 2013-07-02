@@ -49,24 +49,32 @@ class TextBuffer
       path = @state.get('path')
     else
       [path, initialText] = args
-      @text = telepath.Document.create('', shareStrings: true)
-      @state = telepath.Document.create(deserializer: @constructor.name, text: @text)
+      @text = telepath.Document.create(initialText, shareStrings: true) if initialText
+      @state = telepath.Document.create(deserializer: @constructor.name)
 
     if path
       @setPath(path)
-      if initialText?
-        @setText(initialText)
+      if @text
         @updateCachedDiskContents()
-      else if fsUtils.exists(path)
-        @reload()
       else
-        @setText('')
+        @text = telepath.Document.create('', shareStrings: true)
+        @reload() if fsUtils.exists(path)
     else
-      @setText(initialText ? '')
+      @text ?= telepath.Document.create('', shareStrings: true)
 
+    @state.set('text', @text)
+    @text.observe(@handleTextChange)
     @undoManager = new UndoManager(this)
 
   ### Internal ###
+
+  handleTextChange: (event) =>
+    event = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
+    @cachedMemoryContents = null
+    @conflict = false if @conflict and !@isModified()
+    marker.handleBufferChange(event) for marker in @getMarkers()
+    @trigger 'changed', event
+    @scheduleModifiedEvents()
 
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
@@ -83,7 +91,11 @@ class TextBuffer
     @destroy() if @refcount <= 0
     this
 
-  serialize: -> @state
+  serialize: ->
+    state = @state.clone()
+    state.remove('text') unless @isModified()
+    state
+
   getState: -> @state
 
   subscribeToFile: ->
