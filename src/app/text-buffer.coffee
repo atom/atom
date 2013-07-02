@@ -282,7 +282,7 @@ class TextBuffer
     new Point(lastRow, @lineLengthForRow(lastRow))
 
   characterIndexForPosition: (position) ->
-    @text.indexForPoint(position)
+    @text.indexForPoint(@clipPosition(position))
 
   positionForCharacterIndex: (index) ->
     @text.pointForIndex(index)
