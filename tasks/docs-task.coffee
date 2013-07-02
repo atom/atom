@@ -13,10 +13,10 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
     done = @async()
-    args = [commonArgs..., '--statsOnly', 'src/app/']
+    args = [commonArgs..., '--noOutput', 'src/app/']
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'missing-docs', 'Generate stats about the doc coverage', ->
     done = @async()
-    args = [commonArgs..., '--listMissing', 'src/app/']
+    args = [commonArgs..., '--noOutput', '--missing', 'src/app/']
     grunt.util.spawn({cmd, args, opts}, done)
