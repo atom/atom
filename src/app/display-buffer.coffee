@@ -605,9 +605,9 @@ class DisplayBuffer
         @maxLineLength = length
 
   handleMarkersUpdated: =>
-    event = @pendingChangeEvent
-    @pendingChangeEvent = null
-    @triggerChanged(event, false)
+    if event = @pendingChangeEvent
+      @pendingChangeEvent = null
+      @triggerChanged(event, false)
 
   handleMarkerCreated: (marker) =>
     new Fold(this, marker) if marker.matchesAttributes(@foldMarkerAttributes())
