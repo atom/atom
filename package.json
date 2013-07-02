@@ -68,7 +68,7 @@
     "nslog": "0.1.0"
   },
   "devDependencies": {
-    "biscotto": "0.0.11",
+    "biscotto": "0.0.12",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.9",
     "grunt-coffeelint": "0.0.6",
