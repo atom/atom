@@ -1,3 +1,6 @@
+* Added: Initial collaboration sessions
+* Fixed: Empty lines being deleted via uppercase/downcase command
+* Fixed: Keybindings not working when using non-English keyboard language
 * Fixed: cmd-shift-p and cmd-alt-w not doing anything when pressed
 
 * Improved: Use grunt (instead of rake) for build system
