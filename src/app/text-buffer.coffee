@@ -15,7 +15,8 @@ BufferMarker = require 'buffer-marker'
 module.exports =
 class TextBuffer
   @acceptsDocuments: true
-  @idCounter = 1
+  @version: 1
+  @idCounter: 1
   registerDeserializer(this)
 
   @deserialize: (state) ->
