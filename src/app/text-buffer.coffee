@@ -191,7 +191,8 @@ class TextBuffer
   #
   # Returns a new {Range}, from `[0, 0]` to the end of the buffer.
   getRange: ->
-    new Range([0, 0], [@getLastRow(), @getLastLine().length])
+    lastRow = @getLastRow()
+    new Range([0, 0], [lastRow, @lineLengthForRow(lastRow)])
 
   # Given a range, returns the lines of text within it.
   #
@@ -653,11 +654,18 @@ class TextBuffer
 
   abort: -> @undoManager.abort()
 
-  change: (oldRange, newText, options) ->
+  change: (oldRange, newText, options={}) ->
     oldRange = Range.fromObject(oldRange)
+    newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
     operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
     range = @pushOperation(operation)
     range
+
+  normalizeLineEndings: (startRow, text) ->
+    if lineEnding = @suggestedLineEndingForRow(startRow)
+      text.replace(/\r?\n/g, lineEnding)
+    else
+      text
 
   destroyMarker: (id) ->
     if marker = @validMarkers[id] ? @invalidMarkers[id]

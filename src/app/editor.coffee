@@ -1245,6 +1245,7 @@ class Editor extends View
             )
       intactRanges = newIntactRanges
     @pendingChanges = []
+
     intactRanges
 
   truncateIntactRanges: (intactRanges, renderFrom, renderTo) ->
