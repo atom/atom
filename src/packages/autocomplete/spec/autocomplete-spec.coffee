@@ -306,7 +306,7 @@ describe "AutocompleteView", ->
 
     describe "when text is removed from the mini-editor", ->
       it "reloads the match list based on the mini-editor's text", ->
-        editor.getBuffer().insert([10,0] ,"t")
+        editor.getBuffer().insert([10,0], "t")
         editor.setCursorBufferPosition([10,0])
         autocomplete.attach()
 
