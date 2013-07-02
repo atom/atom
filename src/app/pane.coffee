@@ -22,8 +22,8 @@ class Pane extends View
 
   activeItem: null
   items: null
-  viewsByClassName: null
-  viewsByItem: null
+  viewsByClassName: null # Views with a setModel() method are stored here
+  viewsByItem: null      # Views without a setModel() method are stored here
 
   initialize: (args...) ->
     if args[0] instanceof telepath.Document
