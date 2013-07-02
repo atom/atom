@@ -22,6 +22,8 @@ class Pane extends View
 
   activeItem: null
   items: null
+  viewsByClassName: null
+  viewsByItem: null
 
   initialize: (args...) ->
     if args[0] instanceof telepath.Document
@@ -45,6 +47,7 @@ class Pane extends View
       @showItemForUri(newValue) if key is 'activeItemUri'
 
     @viewsByClassName = {}
+    @viewsByItem = new WeakMap()
     if activeItemUri = @state.get('activeItemUri')
       @showItemForUri(activeItemUri)
     else
@@ -269,12 +272,15 @@ class Pane extends View
     if item instanceof $
       viewToRemove = item
     else
-      viewClass = item.getViewClass()
-      otherItemsForView = @items.filter (i) -> i.getViewClass?() is viewClass
-      unless otherItemsForView.length
-        viewToRemove = @viewsByClassName[viewClass.name]
-        viewToRemove?.setModel(null)
-        delete @viewsByClassName[viewClass.name]
+      if viewToRemove = @viewsByItem.get(item)
+        @viewsByItem.delete(item)
+      else
+        viewClass = item.getViewClass()
+        otherItemsForView = @items.filter (i) -> i.getViewClass?() is viewClass
+        unless otherItemsForView.length
+          viewToRemove = @viewsByClassName[viewClass.name]
+          viewToRemove?.setModel(null)
+          delete @viewsByClassName[viewClass.name]
 
     if @items.length > 0
       if @isMovingItem and item is viewToRemove
@@ -288,13 +294,18 @@ class Pane extends View
   viewForItem: (item) ->
     if item instanceof $
       item
+    else if view = @viewsByItem.get(item)
+      view
     else
       viewClass = item.getViewClass()
       if view = @viewsByClassName[viewClass.name]
         view.setModel(item)
       else
         view = new viewClass(item)
-        @viewsByClassName[viewClass.name] = view if _.isFunction(view.setModel)
+        if _.isFunction(view.setModel)
+          @viewsByClassName[viewClass.name] = view
+        else
+          @viewsByItem.set(item, view)
       view
 
   viewForActiveItem: ->

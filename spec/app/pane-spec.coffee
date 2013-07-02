@@ -123,6 +123,15 @@ describe "Pane", ->
             pane.showItem(model2)
             expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
 
+            pane.showPreviousItem()
+            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 2
+
+            pane.removeItem(model2)
+            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount + 1
+
+            pane.removeItem(model1)
+            expect(pane.itemViews.find('.test-view').length).toBe initialViewCount
+
     describe "when showing a view item", ->
       it "appends it to the itemViews div if it hasn't already been appended and shows it", ->
         expect(pane.itemViews.find('#view-2')).not.toExist()
