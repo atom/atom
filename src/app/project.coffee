@@ -57,10 +57,19 @@ class Project
       @state = pathOrState
       @setPath(pathOrState.get('path'))
       @state.get('buffers').each (bufferState) =>
-        @addBuffer(deserialize(bufferState))
+        if buffer = deserialize(bufferState)
+          @addBuffer(buffer, updateState: false)
     else
       @state = telepath.Document.create(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
+
+    @state.get('buffers').observe ({inserted, removed, index, site}) =>
+      return if site is @state.site.id
+
+      for removedBuffer in removed
+        @removeBufferAtIndex(index, updateState: false)
+      for insertedBuffer, i in inserted
+        @addBufferAtIndex(deserialize(insertedBuffer), index + i, updateState: false)
 
   serialize: ->
     @state
@@ -236,8 +245,11 @@ class Project
     buffer
 
   addBuffer: (buffer, options={}) ->
-    @buffers.push(buffer)
-    @state.get('buffers').push(buffer.getState()) if options.updateState ? true
+    @addBufferAtIndex(buffer, @buffers.length, options)
+
+  addBufferAtIndex: (buffer, index, options={}) ->
+    @buffers[index] = buffer
+    @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
 
   # Removes a {Buffer} association from the project.
   #
@@ -246,8 +258,9 @@ class Project
     @removeBufferAtIndex(@buffers.indexOf(buffer))
 
   removeBufferAtIndex: (index, options={}) ->
-    @buffers.splice(index, 1)
+    [buffer] = @buffers.splice(index, 1)
     @state.get('buffers').remove(index) if options.updateState ? true
+    buffer?.destroy()
 
   # Performs a search across all the files in the project.
   #

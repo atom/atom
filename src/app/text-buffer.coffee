@@ -50,7 +50,7 @@ class TextBuffer
     else
       [path, initialText] = args
       @text = telepath.Document.create(initialText, shareStrings: true) if initialText
-      @state = telepath.Document.create(deserializer: @constructor.name)
+      @state = telepath.Document.create(deserializer: @constructor.name, version: @constructor.version)
 
     if path
       @setPath(path)
@@ -77,10 +77,10 @@ class TextBuffer
     @scheduleModifiedEvents()
 
   destroy: ->
-    throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
-    @file?.off()
-    @destroyed = true
-    project?.removeBuffer(this)
+    unless @destroyed
+      @file?.off()
+      @destroyed = true
+      project?.removeBuffer(this)
 
   retain: ->
     @refcount++
