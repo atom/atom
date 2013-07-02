@@ -655,7 +655,7 @@ class TextBuffer
   abort: -> @undoManager.abort()
 
   change: (oldRange, newText, options={}) ->
-    oldRange = Range.fromObject(oldRange)
+    oldRange = @clipRange(oldRange)
     newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
     operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
     range = @pushOperation(operation)
