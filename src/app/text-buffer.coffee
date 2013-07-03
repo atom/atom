@@ -73,14 +73,13 @@ class TextBuffer
   ### Internal ###
 
   handleTextChange: (event) =>
-    event = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
     @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
-    marker.handleBufferChange(event) for marker in @getMarkers()
-    @trigger 'changed', event
+    bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
+    marker.handleBufferChange(bufferChangeEvent) for marker in @getMarkers()
+    @trigger 'changed', bufferChangeEvent
     @scheduleModifiedEvents()
-    if @state.site.id isnt event.site
-      @trigger 'markers-updated'
+    @trigger 'markers-updated' if @state.site.id isnt event.site
 
   destroy: ->
     unless @destroyed
