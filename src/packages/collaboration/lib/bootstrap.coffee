@@ -22,6 +22,6 @@ connection.on 'open', ->
   connection.once 'data', (data) ->
     loadingView.remove()
     console.log 'received document'
-    atom.windowState = Document.deserialize(createSite(peer.id), data)
+    atom.windowState = Document.deserialize(data, site: createSite(peer.id))
     connectDocument(atom.windowState, connection)
     window.startEditorWindow()
