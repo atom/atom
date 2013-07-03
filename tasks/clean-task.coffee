@@ -1,3 +1,5 @@
+path = require 'path'
+
 module.exports = (grunt) ->
   {rm} = require('./task-helpers')(grunt)
 
@@ -9,4 +11,5 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'clean', 'Delete all the build files', ->
     rm 'node_modules'
+    rm path.join(process.env.HOME, '.atom', '.node-gyp')
     grunt.task.run('partial-clean')
