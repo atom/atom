@@ -15,7 +15,7 @@ parseOptions = (args=[]) ->
     Usage: apm <command>
 
     where <command> is one of:
-        available, help, install, list, publish, uninstall
+        available, help, install, link, list, publish, uninstall, unlink
   """
   options.alias('v', 'version').describe('v', 'Print the apm version')
   options.alias('h', 'help').describe('h', 'Print this usage message')
