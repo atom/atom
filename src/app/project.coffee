@@ -232,6 +232,9 @@ class Project
     else
       @buildBuffer(null, text)
 
+  bufferForId: (id) ->
+    _.find @buffers, (buffer) -> buffer.id is id
+
   # Given a file path, this sets its {Buffer}.
   #
   # filePath - A {String} representing a path

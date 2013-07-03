@@ -7,6 +7,7 @@ EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 BufferMarker = require 'buffer-marker'
+guid = require 'guid'
 
 # Public: Represents the contents of a file.
 #
@@ -15,8 +16,7 @@ BufferMarker = require 'buffer-marker'
 module.exports =
 class TextBuffer
   @acceptsDocuments: true
-  @version: 1
-  @idCounter: 1
+  @version: 2
   registerDeserializer(this)
 
   @deserialize: (state) ->
@@ -38,7 +38,6 @@ class TextBuffer
   # path - A {String} representing the file path
   # initialText - A {String} setting the starting text
   constructor: (args...) ->
-    @id = @constructor.idCounter++
     @nextMarkerId = 1
     @validMarkers = {}
     @invalidMarkers = {}
@@ -47,10 +46,15 @@ class TextBuffer
       @state = args[0]
       @text = @state.get('text')
       path = @state.get('path')
+      @id = @state.get('id')
     else
       [path, initialText] = args
       @text = telepath.Document.create(initialText, shareStrings: true) if initialText
-      @state = telepath.Document.create(deserializer: @constructor.name, version: @constructor.version)
+      @id = guid.create().toString()
+      @state = telepath.Document.create
+        id: @id
+        deserializer: @constructor.name
+        version: @constructor.version
 
     if path
       @setPath(path)
