@@ -270,10 +270,11 @@ window.atom =
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
     windowState ?= {}
-    telepath.Document.create(windowState, site: telepath.createSite(1))
+    site = telepath.createSite(1)
+    telepath.Document.deserialize(windowState, {site}) ? telepath.Document.create({}, {site})
 
   saveWindowState: ->
-    windowStateJson = JSON.stringify(@getWindowState().toObject())
+    windowStateJson = JSON.stringify(@getWindowState().serialize())
     if windowStatePath = @getWindowStatePath()
       fsUtils.writeSync(windowStatePath, windowStateJson)
     else
