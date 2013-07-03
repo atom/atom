@@ -79,6 +79,8 @@ class TextBuffer
     marker.handleBufferChange(event) for marker in @getMarkers()
     @trigger 'changed', event
     @scheduleModifiedEvents()
+    if @state.site.id isnt event.site
+      @trigger 'markers-updated'
 
   destroy: ->
     unless @destroyed
