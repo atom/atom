@@ -78,6 +78,7 @@ describe 'apm command line interface', ->
         atomHome = temp.mkdirSync('apm-home-dir-')
         process.env.ATOM_HOME = atomHome
         process.env.ATOM_NODE_URL = "http://localhost:3000/node"
+        process.env.ATOM_NODE_VERSION = 'v0.10.3'
 
       afterEach ->
         server.close()
