@@ -8,9 +8,9 @@ module.exports = (grunt) ->
     rm '/tmp/atom-coffee-cache'
     rm '/tmp/atom-cached-atom-shells'
     rm 'node'
+    rm 'atom-shell'
 
   grunt.registerTask 'clean', 'Delete all the build files', ->
     rm 'node_modules'
-    rm 'atom-shell'
     rm path.join(process.env.HOME, '.atom', '.node-gyp')
     grunt.task.run('partial-clean')
