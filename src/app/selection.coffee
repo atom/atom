@@ -149,7 +149,7 @@ class Selection
     @modifySelection =>
       if @initialScreenRange
         if position.isLessThan(@initialScreenRange.start)
-          @marker.setScreenRange([position, @initialScreenRange.end], reverse: true)
+          @marker.setScreenRange([position, @initialScreenRange.end], isReversed: true)
         else
           @marker.setScreenRange([@initialScreenRange.start, position])
       else
@@ -271,7 +271,7 @@ class Selection
 
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     if options.select
-      @setBufferRange(newBufferRange, reverse: wasReversed)
+      @setBufferRange(newBufferRange, isReversed: wasReversed)
     else
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
@@ -478,7 +478,7 @@ class Selection
 
   modifySelection: (fn) ->
     @retainSelection = true
-    @placeTail()
+    @plantTail()
     fn()
     @retainSelection = false
 
@@ -487,8 +487,8 @@ class Selection
   # This only works if there isn't already a tail position.
   #
   # Returns a {Point} representing the new tail position.
-  placeTail: ->
-    @marker.placeTail()
+  plantTail: ->
+    @marker.plantTail()
 
   # Identifies if a selection intersects with a given buffer range.
   #

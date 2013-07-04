@@ -203,7 +203,7 @@ module.exports =
       return if selection.isEmpty()
 
       range = selection.getBufferRange()
-      options = reverse: selection.isReversed()
+      options = isReversed: selection.isReversed()
       selection.insertText("#{bracket}#{selection.getText()}#{pair}")
       selectionStart = range.start.add([0, 1])
       if range.start.row is range.end.row

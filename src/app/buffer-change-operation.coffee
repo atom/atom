@@ -19,7 +19,7 @@ class BufferChangeOperation
   do: ->
     @buffer.pauseEvents()
     @pauseMarkerObservation()
-    @markersToRestoreOnUndo = @invalidateMarkers(@oldRange)
+#     @markersToRestoreOnUndo = @invalidateMarkers(@oldRange)
     if @oldRange?
       @oldText = @buffer.getTextInRange(@oldRange)
       @newRange = Range.fromText(@oldRange.start, @newText)
@@ -28,7 +28,7 @@ class BufferChangeOperation
         newRange: @newRange
         oldText: @oldText
         newText: @newText
-    @restoreMarkers(@markersToRestoreOnRedo) if @markersToRestoreOnRedo
+#     @restoreMarkers(@markersToRestoreOnRedo) if @markersToRestoreOnRedo
     @buffer.resumeEvents()
     @resumeMarkerObservation()
     newRange
@@ -36,14 +36,14 @@ class BufferChangeOperation
   undo: ->
     @buffer.pauseEvents()
     @pauseMarkerObservation()
-    @markersToRestoreOnRedo = @invalidateMarkers(@newRange)
+#     @markersToRestoreOnRedo = @invalidateMarkers(@newRange)
     if @oldRange?
       @changeBuffer
         oldRange: @newRange
         newRange: @oldRange
         oldText: @newText
         newText: @oldText
-    @restoreMarkers(@markersToRestoreOnUndo)
+#     @restoreMarkers(@markersToRestoreOnUndo)
     @buffer.resumeEvents()
     @resumeMarkerObservation()
 

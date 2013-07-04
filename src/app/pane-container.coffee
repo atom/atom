@@ -24,7 +24,7 @@ class PaneContainer extends View
     else
       @state = telepath.Document.create(deserializer: 'PaneContainer')
 
-    @state.observe ({key, newValue, site}) =>
+    @state.on 'changed', ({key, newValue, site}) =>
       return if site is @state.site.id
       if key is 'root'
         @setRoot(deserialize(newValue), updateState: false)

@@ -466,12 +466,11 @@ class DisplayBuffer
   #
   # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (attributes) ->
-    { startBufferRow, endBufferRow, containsBufferRange, containsBufferRow } = attributes
+    { startBufferRow, endBufferRow, containsBufferRange } = attributes
     attributes.startRow = startBufferRow if startBufferRow?
     attributes.endRow = endBufferRow if endBufferRow?
     attributes.containsRange = containsBufferRange if containsBufferRange?
-    attributes.containsRow = containsBufferRow if containsBufferRow?
-    attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow', 'containsBufferRange', 'containsBufferRow'])
+    attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow', 'containsBufferRange'])
     @buffer.findMarkers(attributes).map ({id}) => @getMarker(id)
 
   findFoldMarker: (attributes) ->
@@ -491,7 +490,7 @@ class DisplayBuffer
 
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
-      marker.notifyObservers(bufferChanged: false)
+      marker.notifyObservers(textChanged: false)
 
   destroy: ->
     marker.unsubscribe() for marker in @getMarkers()

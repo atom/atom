@@ -6,7 +6,6 @@ File = require 'file'
 EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
-BufferMarker = require 'buffer-marker'
 guid = require 'guid'
 
 # Public: Represents the contents of a file.
@@ -29,8 +28,6 @@ class TextBuffer
   cachedMemoryContents: null
   conflict: false
   file: null
-  validMarkers: null
-  invalidMarkers: null
   refcount: 0
 
   # Creates a new buffer.
@@ -38,10 +35,6 @@ class TextBuffer
   # path - A {String} representing the file path
   # initialText - A {String} setting the starting text
   constructor: (args...) ->
-    @nextMarkerId = 1
-    @validMarkers = {}
-    @invalidMarkers = {}
-
     if args[0] instanceof telepath.Document
       @state = args[0]
       @text = @state.get('text')
@@ -67,7 +60,9 @@ class TextBuffer
       @text ?= telepath.Document.create('', shareStrings: true)
 
     @state.set('text', @text)
-    @text.observe(@handleTextChange)
+    @text.on 'changed', @handleTextChange
+    @text.on 'marker-created', (marker) => @trigger 'marker-created', marker
+    @text.on 'markers-updated', => @trigger 'markers-updated'
     @undoManager = new UndoManager(this)
 
   ### Internal ###
@@ -76,10 +71,8 @@ class TextBuffer
     @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
     bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
-    marker.handleBufferChange(bufferChangeEvent) for marker in @getMarkers()
     @trigger 'changed', bufferChangeEvent
     @scheduleModifiedEvents()
-    @trigger 'markers-updated' if @state.site.id isnt event.site
 
   destroy: ->
     unless @destroyed
@@ -314,7 +307,6 @@ class TextBuffer
     else
       startPoint = [start, 0]
       endPoint = [end + 1, 0]
-
     @delete(new Range(startPoint, endPoint))
 
   # Adds text to the end of the buffer.
@@ -325,10 +317,10 @@ class TextBuffer
 
   # Adds text to a specific point in the buffer
   #
-  # point - A {Point} in the buffer to insert into
+  # position - A {Point} in the buffer to insert into
   # text - A {String} of text to add
-  insert: (point, text) ->
-    @change(new Range(point, point), text)
+  insert: (position, text) ->
+    @change(new Range(position, position), text)
 
   # Deletes text from the buffer
   #
@@ -344,15 +336,7 @@ class TextBuffer
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipPosition: (position) ->
-    position = Point.fromObject(position)
-    eofPosition = @getEofPosition()
-    if position.isGreaterThan(eofPosition)
-      eofPosition
-    else
-      row = Math.max(position.row, 0)
-      column = Math.max(position.column, 0)
-      column = Math.min(@lineLengthForRow(row), column)
-      new Point(row, column)
+    @text.clipPosition(position)
 
   # Given a range, this clips it to a real range.
   #
@@ -414,22 +398,18 @@ class TextBuffer
   isEmpty: -> @text.isEmpty()
 
   # Returns all valid {BufferMarker}s on the buffer.
-  getMarkers: ({includeInvalid} = {}) ->
-    markers = _.values(@validMarkers)
-    if includeInvalid
-      markers.concat(_.values(@invalidMarkers))
-    else
-      markers
+  getMarkers: ->
+    @text.getMarkers()
 
   # Returns the {BufferMarker} with the given id.
   getMarker: (id) ->
-    @validMarkers[id]
+    @text.getMarker(id)
 
   # Public: Finds the first marker satisfying the given attributes
   #
   # Returns a {String} marker-identifier
   findMarker: (attributes) ->
-    @findMarkers(attributes)[0]
+    @text.findMarker(attributes)
 
   # Public: Finds all markers satisfying the given attributes
   #
@@ -440,14 +420,13 @@ class TextBuffer
   #
   # Returns an {Array} of {BufferMarker}s
   findMarkers: (attributes) ->
-    markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
-    markers.sort (a, b) -> a.getRange().compare(b.getRange())
+    @text.findMarkers(attributes)
 
   # Retrieves the quantity of markers in a buffer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
-    _.size(@validMarkers)
+    @text.getMarkers().length
 
   # Constructs a new marker at a given range.
   #
@@ -456,23 +435,12 @@ class TextBuffer
   #   Any attributes you pass will be associated with the marker and can be retrieved
   #   or used in marker queries.
   #   The following attribute keys reserved, and control the marker's initial range
-  #   reverse - if `true`, the marker is reversed; that is, its head precedes the tail
-  #   noTail - if `true`, the marker is created without a tail
+  #   isReversed - if `true`, the marker is reversed; that is, its head precedes the tail
+  #   hasTail - if `false`, the marker is created without a tail
   #
   # Returns a {Number} representing the new marker's ID.
   markRange: (range, attributes={}) ->
-    optionKeys = ['invalidationStrategy', 'noTail', 'reverse']
-    options = _.pick(attributes, optionKeys)
-    attributes = _.omit(attributes, optionKeys)
-    marker = new BufferMarker(_.defaults({
-      id: (@nextMarkerId++).toString()
-      buffer: this
-      range
-      attributes
-    }, options))
-    @validMarkers[marker.id] = marker
-    @trigger 'marker-created', marker
-    marker
+    @text.markRange(range, attributes)
 
   # Constructs a new marker at a given position.
   #
@@ -481,16 +449,7 @@ class TextBuffer
   #
   # Returns a {Number} representing the new marker's ID.
   markPosition: (position, options) ->
-    @markRange([position, position], _.defaults({noTail: true}, options))
-
-  # Given a buffer position, this finds all markers that contain the position.
-  #
-  # bufferPosition - A {Point} to check
-  #
-  # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
-  markersForPosition: (position) ->
-    position = Point.fromObject(position)
-    @getMarkers().filter (marker) -> marker.containsPoint(position)
+    @text.markPosition(position, options)
 
   # Identifies if a character sequence is within a certain range.
   #
@@ -662,20 +621,13 @@ class TextBuffer
   change: (oldRange, newText, options={}) ->
     oldRange = @clipRange(oldRange)
     newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
-    operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
-    range = @pushOperation(operation)
-    range
+    @text.change(oldRange, newText, options)
 
   normalizeLineEndings: (startRow, text) ->
     if lineEnding = @suggestedLineEndingForRow(startRow)
       text.replace(/\r?\n/g, lineEnding)
     else
       text
-
-  destroyMarker: (id) ->
-    if marker = @validMarkers[id] ? @invalidMarkers[id]
-      delete @validMarkers[id]
-      delete @invalidMarkers[id]
 
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout

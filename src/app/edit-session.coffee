@@ -74,7 +74,7 @@ class EditSession
 
     @displayBuffer.on 'grammar-changed', => @handleGrammarChange()
 
-    @state.observe ({key, newValue}) =>
+    @state.on 'changed', ({key, newValue}) =>
       switch key
         when 'scrollTop'
           @trigger 'scroll-top-changed', newValue
@@ -1112,7 +1112,7 @@ class EditSession
   selectToScreenPosition: (position) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
-    @mergeIntersectingSelections(reverse: lastSelection.isReversed())
+    @mergeIntersectingSelections(isReversed: lastSelection.isReversed())
 
   # Selects the text one position right of the cursor.
   selectRight: ->
@@ -1247,7 +1247,7 @@ class EditSession
 
   expandSelectionsBackward: (fn) ->
     fn(selection) for selection in @getSelections()
-    @mergeIntersectingSelections(reverse: true)
+    @mergeIntersectingSelections(isReversed: true)
 
   finalizeSelections: ->
     selection.finalize() for selection in @getSelections()

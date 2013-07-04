@@ -2024,7 +2024,7 @@ describe "Editor", ->
       it "adds/removes the 'selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
         editor.createFold(2, 4)
 
-        editor.setSelectedBufferRange([[1, 0], [2, 0]], preserveFolds: true, reverse: true)
+        editor.setSelectedBufferRange([[1, 0], [2, 0]], preserveFolds: true, isReversed: true)
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
 
         editor.setSelectedBufferRange([[1, 0], [1, 1]], preserveFolds: true)

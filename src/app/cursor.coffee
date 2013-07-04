@@ -21,17 +21,17 @@ class Cursor
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
-      {bufferChanged} = e
+      {textChanged} = e
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
-      @needsAutoscroll ?= @isLastCursor() and !bufferChanged
+      @needsAutoscroll ?= @isLastCursor() and !textChanged
 
       movedEvent =
         oldBufferPosition: oldHeadBufferPosition
         oldScreenPosition: oldHeadScreenPosition
         newBufferPosition: newHeadBufferPosition
         newScreenPosition: newHeadScreenPosition
-        bufferChanged: bufferChanged
+        textChanged: textChanged
 
       @trigger 'moved', movedEvent
       @editSession.trigger 'cursor-moved', movedEvent

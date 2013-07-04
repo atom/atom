@@ -63,7 +63,7 @@ class Project
       @state = telepath.Document.create(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
 
-    @state.get('buffers').observe ({inserted, removed, index, site}) =>
+    @state.get('buffers').on 'changed', ({inserted, removed, index, site}) =>
       return if site is @state.site.id
 
       for removedBuffer in removed

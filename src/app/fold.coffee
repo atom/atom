@@ -17,10 +17,14 @@ class Fold
     @displayBuffer.foldsByMarkerId[@marker.id] = this
     @updateDisplayBuffer()
     @marker.on 'destroyed', => @destroyed()
+    @marker.on 'changed', ({isValid}) => @destroy() unless isValid
 
   # Returns whether this fold is contained within another fold
   isInsideLargerFold: ->
-    @displayBuffer.findMarker(class: 'fold', containsBufferRange: @getBufferRange())?
+    if largestContainingFoldMarker = @displayBuffer.findMarker(class: 'fold', containsBufferRange: @getBufferRange())
+      not largestContainingFoldMarker.getBufferRange().isEqual(@getBufferRange())
+    else
+      false
 
   # Destroys this fold
   destroy: ->
