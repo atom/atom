@@ -1,3 +1,4 @@
+* Fixed: Atom can now be launched when ~/.atom/config.cson doesn't exist
 * Added: Initial collaboration sessions
 * Fixed: Empty lines being deleted via uppercase/downcase command
 * Fixed: Keybindings not working when using non-English keyboard language

@@ -66,16 +66,19 @@ class Config
     @observeUserConfig()
 
   loadUserConfig: ->
-    if fsUtils.exists(@configFilePath)
-      try
-        userConfig = CSON.readFileSync(@configFilePath)
-        _.extend(@settings, userConfig)
-        @configFileHasErrors = false
-        @trigger 'updated'
-      catch e
-        @configFileHasErrors = true
-        console.error "Failed to load user config '#{@configFilePath}'", e.message
-        console.error e.stack
+    if !fsUtils.exists(@configFilePath)
+      fsUtils.makeTree(path.dirname(@configFilePath))
+      CSON.writeFileSync(@configFilePath, {})
+
+    try
+      userConfig = CSON.readFileSync(@configFilePath)
+      _.extend(@settings, userConfig)
+      @configFileHasErrors = false
+      @trigger 'updated'
+    catch e
+      @configFileHasErrors = true
+      console.error "Failed to load user config '#{@configFilePath}'", e.message
+      console.error e.stack
 
   observeUserConfig: ->
     @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>

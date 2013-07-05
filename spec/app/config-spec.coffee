@@ -1,6 +1,7 @@
 fs = require 'fs'
 fsUtils = require 'fs-utils'
 path = require 'path'
+CSON = require 'season'
 
 describe "Config", ->
   describe ".get(keyPath)", ->
@@ -209,6 +210,13 @@ describe "Config", ->
         expect(console.error).toHaveBeenCalled()
         config.set("hair", "blonde") # trigger a save
         expect(config.save).not.toHaveBeenCalled()
+
+    describe "when the config file does not exist", ->
+      it "creates it with an empty object", ->
+        fsUtils.makeTree(config.configDirPath)
+        config.loadUserConfig()
+        expect(fsUtils.exists(config.configFilePath)).toBe true
+        expect(CSON.readFileSync(config.configFilePath)).toEqual {}
 
   describe ".observeUserConfig()", ->
     updatedHandler = null
