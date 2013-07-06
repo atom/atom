@@ -166,12 +166,25 @@ class SpecResultView extends View
     @description.html @spec.description
 
     for result in @spec.results().getItems() when not result.passed()
+      stackTrace = @formatStackTrace(result.trace.stack)
       @specFailures.append $$ ->
         @div result.message, class: 'resultMessage fail'
-        @div result.trace.stack, class: 'stackTrace' if result.trace.stack
+        @div stackTrace, class: 'stackTrace' if stackTrace
 
   attach: ->
     @parentSuiteView().append this
+
+  formatStackTrace: (stackTrace) ->
+    return stackTrace unless stackTrace
+
+    jasminePath = require.resolve('jasmine')
+    jasminePattern = new RegExp("\\(#{_.escapeRegExp(jasminePath)}:\\d+:\\d+\\)\\s*$")
+    convertedLines = []
+    for line in stackTrace.split('\n')
+      unless jasminePattern.test(line)
+        convertedLines.push(line)
+
+    convertedLines.join('\n')
 
   parentSuiteView: ->
     if not suiteView = $(".suite-view-#{@spec.suite.id}").view()
