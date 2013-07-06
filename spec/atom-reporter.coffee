@@ -1,6 +1,19 @@
 $ = require 'jquery'
 {View, $$} = require 'space-pen'
 _ = require 'underscore'
+{convertStackTrace} = require 'coffeestack'
+
+sourceMaps = {}
+formatStackTrace = (stackTrace) ->
+  return stackTrace unless stackTrace
+
+  jasminePath = require.resolve('jasmine')
+  jasminePattern = new RegExp("\\(#{_.escapeRegExp(jasminePath)}:\\d+:\\d+\\)\\s*$")
+  convertedLines = []
+  for line in stackTrace.split('\n')
+    convertedLines.push(line) unless jasminePattern.test(line)
+
+  convertStackTrace(convertedLines.join('\n'), sourceMaps)
 
 module.exports =
 class AtomReporter extends View
@@ -42,6 +55,7 @@ class AtomReporter extends View
 
   reportSpecResults: (spec) ->
     @completeSpecCount++
+    spec.endedAt = new Date().getTime()
     @specComplete(spec)
     @updateStatusView(spec)
 
@@ -99,7 +113,7 @@ class AtomReporter extends View
     rootSuite = rootSuite.parentSuite while rootSuite.parentSuite
     @message.text rootSuite.description
 
-    time = "#{Math.round((new Date().getTime() - @startedAt.getTime()) / 10)}"
+    time = "#{Math.round((spec.endedAt - @startedAt.getTime()) / 10)}"
     time = "0#{time}" if time.length < 3
     @time.text "#{time[0...-2]}.#{time[-2..]}s"
 
@@ -166,25 +180,13 @@ class SpecResultView extends View
     @description.html @spec.description
 
     for result in @spec.results().getItems() when not result.passed()
-      stackTrace = @formatStackTrace(result.trace.stack)
+      stackTrace = formatStackTrace(result.trace.stack)
       @specFailures.append $$ ->
         @div result.message, class: 'resultMessage fail'
         @div stackTrace, class: 'stackTrace' if stackTrace
 
   attach: ->
     @parentSuiteView().append this
-
-  formatStackTrace: (stackTrace) ->
-    return stackTrace unless stackTrace
-
-    jasminePath = require.resolve('jasmine')
-    jasminePattern = new RegExp("\\(#{_.escapeRegExp(jasminePath)}:\\d+:\\d+\\)\\s*$")
-    convertedLines = []
-    for line in stackTrace.split('\n')
-      unless jasminePattern.test(line)
-        convertedLines.push(line)
-
-    convertedLines.join('\n')
 
   parentSuiteView: ->
     if not suiteView = $(".suite-view-#{@spec.suite.id}").view()
