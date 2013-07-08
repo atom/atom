@@ -2,12 +2,17 @@ keytar = require 'keytar'
 _ = require 'underscore'
 Pusher = require '../vendor/pusher.js'
 
-availablePeople = {}
-
 module.exports =
-  getAvailablePeople: -> _.values(availablePeople)
+class Presence
+  _.extend @prototype, require('event-emitter')
 
-  advertisePresence: ->
+  people: null
+
+  constructor: ->
+    @people = {}
+    @connect()
+
+  connect: ->
     token = keytar.getPassword('github.com', 'github')
     return unless token
 
@@ -18,7 +23,7 @@ module.exports =
         params:
           oauth_token: token
     channel = pusher.subscribe('presence-atom')
-    channel.bind 'pusher:subscription_succeeded', (members) ->
+    channel.bind 'pusher:subscription_succeeded', (members) =>
       console.log 'subscribed to presence channel'
       event = id: members.me.id
       event.state = {}
@@ -33,17 +38,22 @@ module.exports =
         id: members.me.id
         user: members.me.info
         state: event.state
-      availablePeople[self.id] = self
+      @people[self.id] = self
 
-    channel.bind 'pusher:member_added', (member) ->
+    channel.bind 'pusher:member_added', (member) =>
       console.log 'member added', member
-      availablePeople[member.id] = {user: member.info}
+      @people[member.id] = {user: member.info}
+      @trigger 'person-added', @people[member.id]
 
-    channel.bind 'pusher:member_removed', (member) ->
+    channel.bind 'pusher:member_removed', (member) =>
       console.log 'member removed', member
-      availablePeople.delete(member.id)
+      @people.delete(member.id)
+      @trigger 'person-removed'
 
-    channel.bind 'client-state-changed', (event) ->
+    channel.bind 'client-state-changed', (event) =>
       console.log 'client state changed', event
-      if person = availablePeople[event.id]
+      if person = @people[event.id]
         person.state = event.state
+      @trigger 'person-status-changed', person
+
+  getPeople: -> _.values(@people)

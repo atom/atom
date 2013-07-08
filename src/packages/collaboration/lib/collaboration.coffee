@@ -1,7 +1,7 @@
 JoinPromptView = require './join-prompt-view'
 {createSite, Document} = require 'telepath'
 {createPeer, connectDocument} = require './session-utils'
-{advertisePresence} = require './presence-utils'
+Presence = require './presence'
 BuddyList = require './buddy-list'
 
 startSession = ->
@@ -16,11 +16,13 @@ startSession = ->
 
 module.exports =
   activate: ->
-    advertisePresence()
-
+    presence = new Presence()
+    buddyList = null
     sessionId = null
 
-    rootView.command 'collaboration:buddy-list', -> new BuddyList()
+    rootView.command 'collaboration:toggle-buddy-list', ->
+      buddyList ?= new BuddyList(presence)
+      buddyList.toggle()
 
     rootView.command 'collaboration:copy-session-id', ->
       pasteboard.write(sessionId) if sessionId
