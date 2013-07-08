@@ -4,7 +4,7 @@ url = require 'url'
 module.exports =
 class BuddyView extends View
   @content: ({user, state}) ->
-    @div class: 'two-lines', =>
+    @div =>
       @div "#{user.login} (#{user.name})"
       if state.repository
         [owner, name] = url.parse(state.repository.url).path.split('/')[-2..]
