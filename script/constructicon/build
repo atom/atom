@@ -6,6 +6,7 @@ set -ex
 # xcode
 
 cd "$(dirname "$0")/../.."
+rm -fr node_modules
 ./script/bootstrap
 ./node_modules/.bin/grunt --build-dir="$BUILT_PRODUCTS_DIR" deploy
 
