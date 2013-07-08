@@ -210,6 +210,7 @@
 }).call(this);
 
 ;(function() {
+  Pusher = this.Pusher;
   Pusher.Util = {
     now: function() {
       if (Date.now) {
@@ -3609,3 +3610,5 @@
     }
   };
 }).call(this);
+
+module.exports = this.Pusher;
