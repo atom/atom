@@ -1,4 +1,4 @@
-Peer = require './peer'
+Peer = require '../vendor/peer.js'
 Guid = require 'guid'
 
 module.exports =
