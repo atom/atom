@@ -19,19 +19,31 @@ module.exports =
           oauth_token: token
     channel = pusher.subscribe('presence-atom')
     channel.bind 'pusher:subscription_succeeded', (members) ->
-      availablePeople[members.me.id] = members.me
       console.log 'subscribed to presence channel'
       event = id: members.me.id
+      event.state = {}
       if git?
-        event.repository =
+        event.state.repository =
           branch: git.getShortHead()
           url: git.getConfigValue('remote.origin.url')
-      channel.trigger('client-details', event)
+      channel.trigger('client-state-changed', event)
+
+      # List self as available for debugging UI when no one else is around
+      self =
+        id: members.me.id
+        user: members.me.info
+        state: event.state
+      availablePeople[self.id] = self
 
     channel.bind 'pusher:member_added', (member) ->
       console.log 'member added', member
-      availablePeople[member.id] = member
+      availablePeople[member.id] = {user: member.info}
 
     channel.bind 'pusher:member_removed', (member) ->
       console.log 'member removed', member
       availablePeople.delete(member.id)
+
+    channel.bind 'client-state-changed', (event) ->
+      console.log 'client state changed', event
+      if person = availablePeople[event.id]
+        person.state = event.state
