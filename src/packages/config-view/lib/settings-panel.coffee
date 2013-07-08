@@ -35,7 +35,7 @@ class SettingsPanel extends View
       finally
         callback()
 
-    async.map atom.getLoadedPackages(), iterator, finishedCallback
+    async.each atom.getLoadedPackages(), iterator, finishedCallback
 
   appendSettings: (namespace, settings) ->
     return if _.isEmpty(settings)

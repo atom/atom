@@ -6,6 +6,9 @@ Pane = require 'pane'
 SettingsPanel = require './settings-panel'
 ThemePanel = require './theme-panel'
 PackagePanel = require './package-panel'
+Project = require 'project'
+
+configUri = "atom://config"
 
 ###
 # Internal #
@@ -16,16 +19,11 @@ class ConfigView extends ScrollView
   registerDeserializer(this)
 
   @activate: (state) ->
-    rootView.command 'config-view:toggle', ->
-      configView = new ConfigView()
-      activePane = rootView.getActivePane()
-      if activePane
-        activePane.showItem(configView)
-      else
-        activePane = new Pane(configView)
-        rootView.panes.append(activePane)
+    Project.registerOpener (filePath) ->
+      new ConfigView() if filePath is configUri
 
-      activePane.focus()
+    rootView.command 'config-view:toggle', ->
+      rootView.open(configUri)
 
   @deserialize: ({activePanelName}={}) ->
     new ConfigView(activePanelName)
@@ -86,7 +84,7 @@ class ConfigView extends ScrollView
     "Atom Config"
 
   getUri: ->
-    "atom://config"
+    configUri
 
   isEqual: (other) ->
     other instanceof ConfigView
