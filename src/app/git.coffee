@@ -213,6 +213,8 @@ class Git
   # Returns an object with two keys, `ahead` and `behind`. These will always be greater than zero.
   getLineDiffs: (path, text) -> @getRepo().getLineDiffs(@relativize(path), text)
 
+  getConfigValue: (key) -> @getRepo().getConfigValue(key)
+
   ### Internal ###
 
   refreshStatus: ->
