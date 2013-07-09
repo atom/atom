@@ -11,9 +11,9 @@ class BuddyList extends ScrollView
   initialize: (@presence) ->
     super
 
-    @presence.on 'person-added', -> @updateBuddies()
-    @presence.on 'person-removed', -> @updateBuddies()
-    @presence.on 'person-status-changed', -> @updateBuddies()
+    @presence.on 'person-added', => @updateBuddies()
+    @presence.on 'person-removed', => @updateBuddies()
+    @presence.on 'person-status-changed', => @updateBuddies()
 
   toggle: ->
     if @hasParent()
