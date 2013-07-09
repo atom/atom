@@ -1,2 +1,3 @@
 'main': './lib/settings'
 'deferredDeserializers': ['SettingsView']
+'description': 'GUI pane for Atom settings'
