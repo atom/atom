@@ -1,3 +1,5 @@
+guid = require 'guid'
+$ = require 'jquery'
 keytar = require 'keytar'
 _ = require 'underscore'
 Pusher = require '../vendor/pusher.js'
@@ -7,9 +9,12 @@ class Presence
   _.extend @prototype, require('event-emitter')
 
   people: null
+  personId: null
+  windowId: null
 
   constructor: ->
     @people = {}
+    @windowId = guid.create().toString()
     @connect()
 
   connect: ->
@@ -25,24 +30,26 @@ class Presence
     channel = pusher.subscribe('presence-atom')
     channel.bind 'pusher:subscription_succeeded', (members) =>
       console.log 'subscribed to presence channel'
-      event = id: members.me.id
-      event.state = {}
+      @personId = members.me.id
+      event = id: @personId
+      event.window = id: @windowId
       if git?
-        event.state.repository =
+        event.window.repository =
           branch: git.getShortHead()
           url: git.getConfigValue('remote.origin.url')
-      channel.trigger('client-state-changed', event)
+      channel.trigger('client-window-opened', event)
 
       # List self as available for debugging UI when no one else is around
       self =
-        id: members.me.id
+        id: @personId
         user: members.me.info
-        state: event.state
+        windows: {}
+      self.windows[@windowId] = event.window
       @people[self.id] = self
 
     channel.bind 'pusher:member_added', (member) =>
       console.log 'member added', member
-      @people[member.id] = {user: member.info}
+      @people[member.id] = {user: member.info, windows: {}}
       @trigger 'person-added', @people[member.id]
 
     channel.bind 'pusher:member_removed', (member) =>
@@ -50,10 +57,19 @@ class Presence
       @people.delete(member.id)
       @trigger 'person-removed'
 
-    channel.bind 'client-state-changed', (event) =>
-      console.log 'client state changed', event
+    channel.bind 'client-window-opened', (event) =>
+      console.log 'window opened', event
       if person = @people[event.id]
-        person.state = event.state
+        person.windows[event.window.id] = event.window
       @trigger 'person-status-changed', person
+
+    channel.bind 'client-window-closed', (event) =>
+      console.log 'window closed', event
+      if person = @people[event.id]
+        delete person.windows[event.windowId]
+        @trigger 'person-status-changed', person
+
+    $(window).on 'beforeunload', =>
+      channel.trigger 'client-window-closed', {id: @personId, @windowId}
 
   getPeople: -> _.values(@people)
