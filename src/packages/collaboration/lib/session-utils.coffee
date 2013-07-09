@@ -4,7 +4,7 @@ Guid = require 'guid'
 module.exports =
   createPeer: ->
     id = Guid.create().toString()
-    new Peer(id, host: 'ec2-54-218-51-127.us-west-2.compute.amazonaws.com', port: 8080)
+    new Peer(id, key: '0njqmaln320dlsor')
 
   connectDocument: (doc, connection) ->
     nextOutputEventId = 1

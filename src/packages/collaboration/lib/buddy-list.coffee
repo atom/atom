@@ -6,14 +6,39 @@ BuddyView = require './buddy-view'
 module.exports =
 class BuddyList extends ScrollView
   @content: ->
-    @div class: 'buddy-list', tabindex: -1
+    @div class: 'buddy-list', tabindex: -1, =>
+      @button outlet: 'shareButton', type: 'button', class: 'btn btn-default'
+      @div outlet: 'buddies'
 
-  initialize: (@presence) ->
+  presence: null
+  sharingSession: null
+
+  initialize: (@presence, @sharingSession) ->
     super
+
+    if @sharingSession.isSharing()
+      @shareButton.text('Stop')
+    else
+      @shareButton.text('Start')
 
     @presence.on 'person-added', => @updateBuddies()
     @presence.on 'person-removed', => @updateBuddies()
     @presence.on 'person-status-changed', => @updateBuddies()
+    @shareButton.on 'click', =>
+      @shareButton.disable()
+
+      if @sharingSession.isSharing()
+        @shareButton.text('Stopping...')
+        @sharingSession.stop()
+      else
+        @shareButton.text('Starting...')
+        @sharingSession.start()
+
+    @sharingSession.on 'started', =>
+      @shareButton.text('Stop').enable()
+
+    @sharingSession.on 'stopped', =>
+      @shareButton.text('Start').enable()
 
   toggle: ->
     if @hasParent()
@@ -27,5 +52,5 @@ class BuddyList extends ScrollView
     @updateBuddies()
 
   updateBuddies: ->
-    @empty()
-    @append(new BuddyView(buddy)) for buddy in @presence.getPeople()
+    @buddies.empty()
+    @buddies.append(new BuddyView(buddy)) for buddy in @presence.getPeople()
