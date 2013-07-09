@@ -46,6 +46,7 @@ class Presence
         windows: {}
       self.windows[@windowId] = event.window
       @people[self.id] = self
+      @trigger 'person-status-changed', self
 
     channel.bind 'pusher:member_added', (member) =>
       console.log 'member added', member
