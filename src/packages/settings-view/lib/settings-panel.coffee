@@ -3,12 +3,11 @@ $ = require 'jquery'
 _ = require 'underscore'
 async = require 'async'
 AtomPackage = require 'atom-package'
+Editor = require 'editor'
 
 ###
 # Internal #
 ###
-
-Editor = require 'editor'
 
 module.exports =
 class SettingsPanel extends View
