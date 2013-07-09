@@ -3,7 +3,7 @@ ScrollView = require 'scroll-view'
 $ = require 'jquery'
 _ = require 'underscore'
 Pane = require 'pane'
-SettingsPanel = require './settings-panel'
+GeneralPanel = require './general-panel'
 ThemePanel = require './theme-panel'
 PackagePanel = require './package-panel'
 Project = require 'project'
@@ -40,14 +40,13 @@ class SettingsView extends ScrollView
   initialize: (activePanelName) ->
     super
     @panelsByName = {}
-    document.title = "Atom Configuration"
     @on 'click', '#panels-menu li a', (e) =>
       @showPanel($(e.target).closest('li').attr('name'))
 
     @on 'click', '#open-dot-atom', ->
       atom.open(config.configDirPath)
 
-    @addPanel('Settings', new SettingsPanel)
+    @addPanel('General', new GeneralPanel)
     @addPanel('Themes', new ThemePanel)
     @addPanel('Packages', new PackagePanel)
     @showPanel(activePanelName) if activePanelName

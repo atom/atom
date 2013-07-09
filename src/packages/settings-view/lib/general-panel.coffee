@@ -10,9 +10,9 @@ Editor = require 'editor'
 ###
 
 module.exports =
-class SettingsPanel extends View
+class GeneralPanel extends View
   @content: ->
-    @form id: 'settings-panel', class: 'form-horizontal', =>
+    @form id: 'general-panel', class: 'form-horizontal', =>
       @div outlet: "loadingElement", class: 'alert alert-info loading-area', "Loading settings"
 
   initialize: ->

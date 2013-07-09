@@ -1,7 +1,7 @@
-SettingsPanel = require '../lib/settings-panel'
+GeneralPanel = require '../lib/general-panel'
 Editor = require 'editor'
 
-describe "SettingsPanel", ->
+describe "GeneralPanel", ->
   panel = null
 
   getValueForId = (id) ->
@@ -27,7 +27,7 @@ describe "SettingsPanel", ->
     config.set('foo.boolean', true)
     config.set('foo.string', 'hey')
 
-    panel = new SettingsPanel()
+    panel = new GeneralPanel()
     spyOn(panel, "showSettings").andCallThrough()
     window.advanceClock(10000)
     waitsFor ->
