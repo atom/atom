@@ -1,3 +1,0 @@
-# DOCUMENT: link to keymap documentation
-'body':
-  'meta-,': 'config-view:toggle'

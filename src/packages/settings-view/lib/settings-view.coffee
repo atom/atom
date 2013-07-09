@@ -15,21 +15,21 @@ configUri = "atom://config"
 ###
 
 module.exports =
-class ConfigView extends ScrollView
+class SettingsView extends ScrollView
   registerDeserializer(this)
 
   @activate: (state) ->
     Project.registerOpener (filePath) ->
-      new ConfigView() if filePath is configUri
+      new SettingsView() if filePath is configUri
 
-    rootView.command 'config-view:toggle', ->
+    rootView.command 'settings-view:toggle', ->
       rootView.open(configUri)
 
   @deserialize: ({activePanelName}={}) ->
-    new ConfigView(activePanelName)
+    new SettingsView(activePanelName)
 
   @content: ->
-    @div id: 'config-view', tabindex: -1, =>
+    @div id: 'settings-view', tabindex: -1, =>
       @div id: 'config-menu', =>
         @ul id: 'panels-menu', class: 'nav nav-pills nav-stacked', outlet: 'panelMenu'
         @button "open .atom", id: 'open-dot-atom', class: 'btn btn-default btn-small'
@@ -53,7 +53,7 @@ class ConfigView extends ScrollView
     @showPanel(activePanelName) if activePanelName
 
   serialize: ->
-    deserializer: 'ConfigView'
+    deserializer: 'SettingsView'
     activePanelName: @activePanelName
 
   addPanel: (name, panel) ->
@@ -81,10 +81,10 @@ class ConfigView extends ScrollView
       @panelToShow = name
 
   getTitle: ->
-    "Atom Config"
+    "Settings"
 
   getUri: ->
     configUri
 
   isEqual: (other) ->
-    other instanceof ConfigView
+    other instanceof SettingsView
