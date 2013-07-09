@@ -1,34 +1,24 @@
-JoinPromptView = require './join-prompt-view'
-{createSite, Document} = require 'telepath'
-{createPeer, connectDocument} = require './session-utils'
 Presence = require './presence'
+SharingSession = require './sharing-session'
 BuddyList = require './buddy-list'
-
-startSession = ->
-  peer = createPeer()
-  peer.on 'connection', (connection) ->
-    connection.on 'open', ->
-      console.log 'sending document'
-      windowState = atom.getWindowState()
-      connection.send(windowState.serialize())
-      connectDocument(windowState, connection)
-  peer.id
+JoinPromptView = require './join-prompt-view'
 
 module.exports =
   activate: ->
     presence = new Presence()
+    sharingSession = new SharingSession()
     buddyList = null
-    sessionId = null
 
     rootView.command 'collaboration:toggle-buddy-list', ->
-      buddyList ?= new BuddyList(presence)
+      buddyList ?= new BuddyList(presence, sharingSession)
       buddyList.toggle()
 
     rootView.command 'collaboration:copy-session-id', ->
+      sessionId = sharingSession.getId()
       pasteboard.write(sessionId) if sessionId
 
     rootView.command 'collaboration:start-session', ->
-      if sessionId = startSession()
+      if sessionId = sharingSession.start()
         pasteboard.write(sessionId)
 
     rootView.command 'collaboration:join-session', ->
@@ -38,3 +28,5 @@ module.exports =
           resourcePath: window.resourcePath
           sessionId: id
         atom.openWindow(windowSettings)
+
+    rootView.trigger 'collaboration:toggle-buddy-list' # TEMP

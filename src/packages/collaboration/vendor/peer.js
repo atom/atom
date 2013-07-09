@@ -782,7 +782,7 @@ var util = {
       global.attachEvent('onmessage', handleMessage);
     }
     return setZeroTimeoutPostMessage;
-  }(this)),
+  }(window)),
 
   blobToArrayBuffer: function(blob, cb){
     var fr = new FileReader();
