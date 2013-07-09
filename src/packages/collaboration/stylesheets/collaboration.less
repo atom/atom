@@ -1,0 +1,42 @@
+@import "bootstrap/less/variables.less";
+@import "octicon-mixins.less";
+
+.buddy-list {
+  @item-line-height: @line-height-base * 1.25;
+  padding: 10px;
+  -webkit-user-select: none;
+  cursor: pointer;
+
+  .buddy-name {
+    line-height: 30px;
+    margin-bottom: 5px;
+
+    .avatar {
+      border-radius: 3px;
+      height: 30px;
+      width: 30px;
+      float: left;
+      margin-right: 5px;
+    }
+  }
+
+  .repo-name {
+    margin-left: 5px;
+    line-height: @item-line-height;
+    .mini-icon(public-repo);
+
+    span {
+      padding-left: 5px;
+    }
+  }
+
+  .branch-name {
+    margin-left: 5px;
+    line-height: @item-line-height;
+    .mini-icon(branch);
+
+    span {
+      padding-left: 5px;
+    }
+  }
+}
