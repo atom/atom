@@ -1,3 +1,5 @@
+* Added: j/k now can be used to navigate the tree view and archive editor
+
 * Fixed: Atom can now be launched when ~/.atom/config.cson doesn't exist
 * Added: Initial collaboration sessions
 * Fixed: Empty lines being deleted via uppercase/downcase command
