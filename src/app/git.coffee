@@ -10,6 +10,28 @@ GitUtils = require 'git-utils'
 # Ultimately, this is an overlay to the native [git-utils](https://github.com/atom/node-git) module.
 module.exports =
 class Git
+  ### Public ###
+  # Creates a new `Git` instance.
+  #
+  # path - The git repository to open
+  # options - A hash with one key:
+  #           refreshOnWindowFocus: A {Boolean} that identifies if the windows should refresh
+  #
+  # Returns a new {Git} object.
+  @open: (path, options) ->
+    return null unless path
+    try
+      new Git(path, options)
+    catch e
+      null
+
+  @exists: (path) ->
+    if git = @open(path)
+      git.destroy()
+      true
+    else
+      false
+
   path: null
   statuses: null
   upstream: null
@@ -56,20 +78,6 @@ class Git
     @unsubscribe()
 
   ### Public ###
-
-  # Creates a new `Git` instance.
-  #
-  # path - The git repository to open
-  # options - A hash with one key:
-  #           refreshOnWindowFocus: A {Boolean} that identifies if the windows should refresh
-  #
-  # Returns a new {Git} object.
-  @open: (path, options) ->
-    return null unless path
-    try
-      new Git(path, options)
-    catch e
-      null
 
   # Retrieves the git repository.
   #

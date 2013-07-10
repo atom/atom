@@ -1,5 +1,11 @@
+path = require 'path'
+remote = require 'remote'
+url = require 'url'
+
 _ = require 'underscore'
+patrick = require 'patrick'
 telepath = require 'telepath'
+
 {connectDocument, createPeer} = require './session-utils'
 
 module.exports =
@@ -17,16 +23,29 @@ class GuestSession
       console.log 'connection opened'
       connection.once 'data', (data) =>
         console.log 'received document', data
-        @repositoryDelta = data.repositoryDelta
         doc = telepath.Document.deserialize(data.doc, site: telepath.createSite(@getId()))
         atom.windowState = doc.get('windowState')
+        @repository = doc.get('collaborationState.repositoryState')
         @participants = doc.get('collaborationState.participants')
         @participants.on 'changed', =>
           @trigger 'participants-changed', @participants.toObject()
-        @repository = doc.get('collaborationState.repositoryState')
         connectDocument(doc, connection)
+        @mirrorRepository(data.repoSnapshot)
 
+  mirrorRepository: (repoSnapshot)->
+    repoUrl = @repository.get('url')
+    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
+    repoName = repoName.replace(/\.git$/, '')
+    repoPath = path.join(remote.require('app').getHomeDir(), 'github', repoName)
+
+    patrick.mirror repoPath, repoSnapshot, (error) =>
+      if error?
+        console.error(error)
+      else
         @trigger 'started'
+
+        atom.getLoadSettings().initialPath = repoPath
+        window.startEditorWindow()
 
         @participants.push
           id: @getId()
