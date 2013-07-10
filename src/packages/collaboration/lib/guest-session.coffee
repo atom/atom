@@ -7,6 +7,7 @@ class GuestSession
   _.extend @prototype, require('event-emitter')
 
   participants: null
+  repository: null
   peer: null
 
   constructor: (sessionId) ->
@@ -21,6 +22,7 @@ class GuestSession
         @participants = doc.get('collaborationState.participants')
         @participants.on 'changed', =>
           @trigger 'participants-changed', @participants.toObject()
+        @repository = doc.get('collaborationState.repository')
         connectDocument(doc, connection)
 
         @trigger 'started'
