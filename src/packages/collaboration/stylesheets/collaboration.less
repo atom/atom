@@ -10,10 +10,14 @@
 
   .share {
     .mini-icon(notifications);
+    margin-bottom: 5px;
   }
 
   .guest {
     .mini-icon(watchers);
+    position: relative;
+    right: -2px;
+    margin-bottom: 5px;
     color: #96CBFE;
   }
 
@@ -23,5 +27,12 @@
     &:hover {
       color: lighten(@runningColor, 15%);
     }
+  }
+
+  .avatar {
+    border-radius: 3px;
+    height: 16px;
+    width: 16px;
+    margin: 2px;
   }
 }
