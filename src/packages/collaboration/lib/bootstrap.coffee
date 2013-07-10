@@ -34,7 +34,7 @@ syncRepositoryState = ->
   # abort if working directory is unclean
 
   # apply bundle of unpushed changes from host
-  {unpushedChanges, head} =atom.guestSession.repositoryDelta
+  {unpushedChanges, head} = atom.guestSession.repositoryDelta
   if unpushedChanges
     tempFile = temp.path(suffix: '.bundle')
     fs.writeFileSync(tempFile, new Buffer(atom.guestSession.repositoryDelta.unpushedChanges, 'base64'))
