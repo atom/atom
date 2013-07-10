@@ -7,6 +7,7 @@ fs = require 'fs'
 path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
+dialog = require 'dialog'
 _ = require 'underscore'
 
 console.log = (args...) ->
@@ -20,6 +21,13 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
   addPathToOpen = (event, filePath) ->
     event.preventDefault()
     args.pathsToOpen.push(filePath)
+
+  app.on 'open-url', (event, url) =>
+    event.preventDefault()
+    dialog.showMessageBox
+      message: 'Atom opened with URL'
+      detail: url
+      buttons: ['OK']
 
   app.on 'open-file', addPathToOpen
 

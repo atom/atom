@@ -36,6 +36,17 @@
 	<string>speakeasy.pem</string>
 	<key>SUScheduledCheckInterval</key>
 	<string>3600</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>atom</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>Atom Shared Session Protocol</string>
+		</dict>
+	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
