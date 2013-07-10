@@ -16,7 +16,7 @@ class GuestSession
       console.log 'connection opened'
       connection.once 'data', (data) =>
         console.log 'received document'
-        doc = telepath.Document.deserialize(telepath.createSite(@getId()), data)
+        doc = telepath.Document.deserialize(data, site: telepath.createSite(@getId()))
         atom.windowState = doc.get('windowState')
         @participants = doc.get('participants')
         connectDocument(doc, connection)

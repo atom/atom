@@ -18,7 +18,7 @@ class PaneAxis extends View
       @state = telepath.Document.create(deserializer: @className(), children: [])
       @addChild(child) for child in args
 
-    @state.get('children').observe ({index, inserted, removed, site}) =>
+    @state.get('children').on 'changed', ({index, inserted, removed, site}) =>
       return if site is @state.site.id
       for childState in removed
         @removeChild(@children(":eq(#{index})").view(), updateState: false)

@@ -35,14 +35,14 @@ class Pane extends View
         deserializer: 'Pane'
         items: @items.map (item) -> item.getState?() ? item.serialize()
 
-    @state.get('items').observe ({index, removed, inserted, site}) =>
+    @state.get('items').on 'changed', ({index, removed, inserted, site}) =>
       return if site is @state.site.id
       for itemState in removed
         @removeItemAtIndex(index, updateState: false)
       for itemState, i in inserted
         @addItem(deserialize(itemState), index + i, updateState: false)
 
-    @state.observe ({key, newValue, site}) =>
+    @state.on 'changed', ({key, newValue, site}) =>
       return if site is @state.site.id
       @showItemForUri(newValue) if key is 'activeItemUri'
 

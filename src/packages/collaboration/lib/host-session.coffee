@@ -22,11 +22,10 @@ class HostSession
     @participants.push
       id: @getId()
       email: git.getConfigValue('user.email')
-    @participants.observe =>
+    @participants.on 'changed', =>
       @trigger 'participants-changed', @participants.toObject()
 
     @peer.on 'connection', (connection) =>
-      console.log connection
       connection.on 'open', =>
         console.log 'sending document'
         connection.send(@doc.serialize())
