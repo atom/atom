@@ -2,8 +2,7 @@ require 'atom'
 require 'window'
 $ = require 'jquery'
 {$$} = require 'space-pen'
-{createPeer, connectDocument} = require './session-utils'
-{createSite, Document} = require 'telepath'
+GuestSession = require './guest-session'
 
 window.setDimensions(width: 350, height: 100)
 window.setUpEnvironment('editor')
@@ -15,13 +14,7 @@ loadingView = $$ ->
 $(window.rootViewParentSelector).append(loadingView)
 atom.show()
 
-peer = createPeer()
-connection = peer.connect(sessionId, reliable: true)
-connection.on 'open', ->
-  console.log 'connection opened'
-  connection.once 'data', (data) ->
-    loadingView.remove()
-    console.log 'received document'
-    atom.windowState = Document.deserialize(createSite(peer.id), data)
-    connectDocument(atom.windowState, connection)
-    window.startEditorWindow()
+atom.guestSession = new GuestSession(sessionId)
+atom.guestSession.on 'started', ->
+  loadingView.remove()
+  window.startEditorWindow()

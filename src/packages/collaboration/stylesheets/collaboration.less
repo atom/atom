@@ -2,7 +2,6 @@
 @import "octicon-mixins.less";
 @runningColor: #99CC99;
 
-
 .collaboration {
   @item-line-height: @line-height-base * 1.25;
   padding: 10px;
@@ -11,6 +10,11 @@
 
   .share {
     .mini-icon(notifications);
+  }
+
+  .guest {
+    .mini-icon(watchers);
+    color: #96CBFE;
   }
 
   .running {
