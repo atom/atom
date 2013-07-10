@@ -16,13 +16,14 @@ class GuestSession
     connection.on 'open', =>
       console.log 'connection opened'
       connection.once 'data', (data) =>
-        console.log 'received document'
-        doc = telepath.Document.deserialize(data, site: telepath.createSite(@getId()))
+        console.log 'received document', data
+        @repositoryDelta = data.repositoryDelta
+        doc = telepath.Document.deserialize(data.doc, site: telepath.createSite(@getId()))
         atom.windowState = doc.get('windowState')
         @participants = doc.get('collaborationState.participants')
         @participants.on 'changed', =>
           @trigger 'participants-changed', @participants.toObject()
-        @repository = doc.get('collaborationState.repository')
+        @repository = doc.get('collaborationState.repositoryState')
         connectDocument(doc, connection)
 
         @trigger 'started'

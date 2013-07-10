@@ -215,6 +215,12 @@ class Git
 
   getConfigValue: (key) -> @getRepo().getConfigValue(key)
 
+  getReferenceTarget: (reference) -> @getRepo().getReferenceTarget(reference)
+
+  getAheadBehindCount: (reference) -> @getRepo().getAheadBehindCount(reference)
+
+  hasBranch: (branch) -> @getReferenceTarget("refs/heads/#{branch}")?
+
   ### Internal ###
 
   refreshStatus: ->
