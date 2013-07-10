@@ -17,8 +17,13 @@ class HostSession
     @peer = createPeer()
     @doc = telepath.Document.create({}, site: telepath.createSite(@getId()))
     @doc.set('windowState', atom.windowState)
-    @doc.set('participants', [])
-    @participants = @doc.get('participants')
+    @doc.set 'collaborationState',
+      participants: []
+      repository:
+        url: git.getConfigValue('remote.origin.url')
+        branch: git.getShortHead()
+
+    @participants = @doc.get('collaborationState.participants')
     @participants.push
       id: @getId()
       email: git.getConfigValue('user.email')
