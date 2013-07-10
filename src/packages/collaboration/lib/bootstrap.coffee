@@ -53,7 +53,17 @@ syncRepositoryState = ->
               return
         else
           # prompt for new branch name
-          # create branch at head
+
+          i = 1
+          loop
+            newBranch = "#{branch}-#{i++}"
+            break unless git.hasBranch(newBranch)
+
+          command = "git checkout -b #{newBranch} #{head}"
+          exec command, {cwd: repoPath}, (error, stdout, stderr) ->
+            if error?
+              console.error error
+              return
       else
         # create branch at head
 
