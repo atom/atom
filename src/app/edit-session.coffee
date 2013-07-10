@@ -75,7 +75,7 @@ class EditSession
 
     @displayBuffer.on 'grammar-changed', => @handleGrammarChange()
 
-    @state.observe ({key, newValue}) =>
+    @state.on 'changed', ({key, newValue}) =>
       switch key
         when 'scrollTop'
           @trigger 'scroll-top-changed', newValue
