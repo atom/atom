@@ -9,6 +9,7 @@ module.exports =
   connectDocument: (doc, connection) ->
     nextOutputEventId = 1
     outputListener = (event) ->
+      return unless connection.open
       event.id = nextOutputEventId++
       console.log 'sending event', event.id, event
       connection.send(event)
