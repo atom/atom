@@ -31,7 +31,7 @@ class HostView extends View
 
   updateParticipants: (participants) ->
     @participants.empty()
-    for {email, id} in participants when id is @hostSession.getId()
+    for {email, id} in participants when id isnt @hostSession.getId()
       @participants.append $$ ->
         @div email
 
