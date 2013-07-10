@@ -1,8 +1,9 @@
 fs = require 'fs'
+
 _ = require 'underscore'
-async = require 'async'
-temp = require 'temp'
+patrick = require 'patrick'
 telepath = require 'telepath'
+
 {createPeer, connectDocument} = require './session-utils'
 
 module.exports =
@@ -14,44 +15,13 @@ class HostSession
   peer: null
   sharing: false
 
-  bundleUnpushedChanges: (callback) ->
-    localBranch = git.getShortHead()
-    upstreamBranch = git.getRepo().getUpstreamBranch()
-
-    {exec} = require 'child_process'
-    tempFile = temp.path(suffix: '.bundle')
-    command = "git bundle create #{tempFile} #{upstreamBranch}..#{localBranch}"
-    exec command, {cwd: git.getWorkingDirectory()}, (error, stdout, stderr) ->
-      callback(error, tempFile)
-
-  bundleWorkingDirectoryChanges: ->
-
-
-  bundleRepositoryDelta: (callback) ->
-    repositoryDelta = {}
-
-    operations = []
-    if git.upstream.ahead > 0
-      operations.push (callback) =>
-        @bundleUnpushedChanges (error, bundleFile) ->
-          unless error?
-            repositoryDelta.unpushedChanges = fs.readFileSync(bundleFile, 'base64')
-            repositoryDelta.head = git.getRepo().getReferenceTarget(git.getRepo().getHead())
-          callback(error)
-
-    async.waterfall operations, (error) ->
-      callback(error, repositoryDelta)
-
-    unless _.isEmpty(git.statuses)
-      repositoryDelta.workingDirectoryChanges = @bundleWorkingDirectoryChanges()
-
   start: ->
     return if @peer?
 
     @peer = createPeer()
     @doc = telepath.Document.create({}, site: telepath.createSite(@getId()))
     @doc.set('windowState', atom.windowState)
-    @bundleRepositoryDelta (error, repositoryDelta) =>
+    patrick.snapshot project.getPath(), (error, repoSnapshot) =>
       if error?
         console.error(error)
         return
@@ -72,7 +42,7 @@ class HostSession
       @peer.on 'connection', (connection) =>
         connection.on 'open', =>
           console.log 'sending document'
-          connection.send({repositoryDelta, doc: @doc.serialize()})
+          connection.send({repoSnapshot, doc: @doc.serialize()})
           connectDocument(@doc, connection)
 
         connection.on 'close', =>
