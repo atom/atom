@@ -5,6 +5,8 @@ JoinPromptView = require './join-prompt-view'
 
 module.exports =
   activate: ->
+    hostView = null
+
     if atom.getLoadSettings().sessionId
       new GuestView(atom.guestSession)
     else
@@ -15,7 +17,7 @@ module.exports =
         pasteboard.write(sessionId) if sessionId
 
       rootView.command 'collaboration:start-session', ->
-        new HostView(hostSession)
+        hostView ?= new HostView(hostSession)
         if sessionId = hostSession.start()
           pasteboard.write(sessionId)
 
