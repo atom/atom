@@ -1,4 +1,5 @@
 {$$, View} = require 'space-pen'
+ParticipantView = require './participant-view'
 
 module.exports =
 class HostView extends View
@@ -31,9 +32,9 @@ class HostView extends View
 
   updateParticipants: (participants) ->
     @participants.empty()
-    for {email, id} in participants when id isnt @hostSession.getId()
-      @participants.append $$ ->
-        @div email
+    hostId = @hostSession.getId()
+    for participant in participants when participant.id isnt hostId
+      @participants.append(new ParticipantView(participant))
 
   toggle: ->
     if @hasParent()
