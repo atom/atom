@@ -162,6 +162,7 @@ class Project
   #
   # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
   open: (filePath, options={}) ->
+    filePath = @resolve(filePath) if filePath?
     for opener in @constructor.openers
       return resource if resource = opener(filePath, options)
 

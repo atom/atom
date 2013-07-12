@@ -14,10 +14,11 @@ class ArchiveEditSession
       new ArchiveEditSession(filePath) if archive.isPathSupported(filePath)
 
   @deserialize: ({path}={}) ->
+    path = project.resolve(path)
     if fsUtils.isFileSync(path)
       new ArchiveEditSession(path)
     else
-      console.warn "Could not build edit session for path '#{path}' because that file no longer exists"
+      console.warn "Could not build archive edit session for path '#{path}' because that file no longer exists"
 
   constructor: (@path) ->
     @file = new File(@path)
@@ -27,7 +28,7 @@ class ArchiveEditSession
 
   serialize: ->
     deserializer: 'ArchiveEditSession'
-    path: @path
+    path: @getUri()
 
   getViewClass: ->
     require './archive-view'
@@ -38,7 +39,7 @@ class ArchiveEditSession
     else
       'untitled'
 
-  getUri: -> @path
+  getUri: -> project?.relativize(@getPath()) ? @getPath()
 
   getPath: -> @path
 
