@@ -1,3 +1,5 @@
+* Fixed: cmd-n now works when no windows are open
+
 * Fixed: Error selecting a grammar for an untitled editor
 
 * Added: j/k now can be used to navigate the tree view and archive editor

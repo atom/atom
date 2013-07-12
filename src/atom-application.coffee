@@ -124,6 +124,7 @@ class AtomApplication
     menus.push
       label: 'File'
       submenu: [
+        { label: 'New Window', accelerator: 'Command+N', click: => @openPath() }
         { label: 'Open...', accelerator: 'Command+O', click: => @promptForPath() }
         { label: 'Open In Dev Mode...', accelerator: 'Command+Shift+O', click: => @promptForPath(devMode: true) }
       ]
