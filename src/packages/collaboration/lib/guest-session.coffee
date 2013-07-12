@@ -21,7 +21,9 @@ class GuestSession
     connection = @peer.connect(sessionId, {reliable: true, connectionId: @getId()})
     connection.on 'open', =>
       console.log 'connection opened'
+      @trigger 'connection-opened'
       connection.once 'data', (data) =>
+        @trigger 'connection-document-received'
         console.log 'received document', data
         doc = telepath.Document.deserialize(data.doc, site: telepath.createSite(@getId()))
         atom.windowState = doc.get('windowState')
@@ -38,7 +40,9 @@ class GuestSession
     repoName = repoName.replace(/\.git$/, '')
     repoPath = path.join(remote.require('app').getHomeDir(), 'github', repoName)
 
-    patrick.mirror repoPath, repoSnapshot, (error) =>
+    progressCallback = (args...) => @trigger 'mirror-progress', args...
+
+    patrick.mirror repoPath, repoSnapshot, {progressCallback}, (error) =>
       if error?
         console.error(error)
       else
@@ -46,7 +50,6 @@ class GuestSession
 
         atom.getLoadSettings().initialPath = repoPath
         window.startEditorWindow()
-
         @participants.push
           id: @getId()
           email: git.getConfigValue('user.email')
