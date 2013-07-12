@@ -30,7 +30,7 @@ class JoinPromptView extends View
     @miniEditor.setText('')
 
   confirm: ->
-    @confirmed(@miniEditor.getText())
+    @confirmed(@miniEditor.getText().trim())
     @remove()
 
   attach: ->
