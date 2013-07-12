@@ -1,3 +1,5 @@
+@runningColor: #99CC99;
+
 .collaboration {
   background: #1b1c1e;
   box-shadow:
@@ -5,4 +7,16 @@
     inset -1px 0 0 rgba(255, 255, 255, 0.02),
     1px 0 3px rgba(0, 0, 0, 0.2);
   color: #cecece;
+
+  .guest {
+    color: #96CBFE;
+  }
+
+  .running {
+    color: @runningColor;
+
+    &:hover {
+      color: lighten(@runningColor, 15%);
+    }
+  }
 }

@@ -1,14 +1,13 @@
 @import "bootstrap/less/variables.less";
 @import "octicon-mixins.less";
-@runningColor: #99CC99;
 
 .collaboration {
   @item-line-height: @line-height-base * 1.25;
   padding: 10px;
   -webkit-user-select: none;
-  cursor: pointer;
 
   .share {
+    cursor: pointer;
     .mini-icon(notifications);
     position: relative;
     right: -1px;
@@ -20,15 +19,6 @@
     position: relative;
     right: -2px;
     margin-bottom: 5px;
-    color: #96CBFE;
-  }
-
-  .running {
-    color: @runningColor;
-
-    &:hover {
-      color: lighten(@runningColor, 15%);
-    }
   }
 
   .avatar {
