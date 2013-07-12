@@ -304,7 +304,7 @@ class EditSession
   # Retrieves the current buffer's URI.
   #
   # Returns a {String}.
-  getUri: -> @getPath()
+  getUri: -> @buffer.getUri()
 
   # {Delegates to: Buffer.isRowBlank}
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)

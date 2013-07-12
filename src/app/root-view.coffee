@@ -114,7 +114,7 @@ class RootView extends View
   # Returns the `EditSession` for the file URI.
   open: (path, options = {}) ->
     changeFocus = options.changeFocus ? true
-    path = project.resolve(path) if path?
+    path = project.relativize(path)
     if activePane = @getActivePane()
       editSession = activePane.itemForUri(path) ? project.open(path)
       activePane.showItem(editSession)
