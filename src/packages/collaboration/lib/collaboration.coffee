@@ -23,6 +23,7 @@ module.exports =
 
       rootView.command 'collaboration:join-session', ->
         new JoinPromptView (id) ->
+          return unless id
           windowSettings =
             bootstrapScript: require.resolve('collaboration/lib/bootstrap')
             resourcePath: window.resourcePath
