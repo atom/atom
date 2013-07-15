@@ -18,11 +18,21 @@ require 'coffee-script'
 delegate.browserMainParts.preMainMessageLoopRun = ->
   args = parseCommandLine()
 
-  addPathToOpen = (event, filePath) ->
+  addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
-    args.pathsToOpen.push(filePath)
+    args.pathsToOpen.push(pathToOpen)
+
+  args.urlsToOpen = []
+  addUrlToOpen = (event, urlToOpen) ->
+    event.preventDefault()
+    args.urlsToOpen.push(urlToOpen)
+
+  app.on 'open-url', (event, urlToOpen) ->
+    event.preventDefault()
+    args.urlsToOpen.push(urlToOpen)
 
   app.on 'open-file', addPathToOpen
+  app.on 'open-url', addUrlToOpen
 
   app.on 'will-finish-launching', ->
     setupCrashReporter()
@@ -30,6 +40,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 
   app.on 'finish-launching', ->
     app.removeListener 'open-file', addPathToOpen
+    app.removeListener 'open-url', addUrlToOpen
 
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen)
