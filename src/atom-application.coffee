@@ -39,7 +39,7 @@ class AtomApplication
   installUpdate: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, @version, test, pidToKillWhenClosed, @dev, newWindow}) ->
+  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, @dev, newWindow}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -57,6 +57,8 @@ class AtomApplication
       @runSpecs({exitWhenDone: true, @resourcePath})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow})
+    else if urlsToOpen.length > 0
+      @openUrl(urlToOpen) for urlToOpen in urlsToOpen
     else
       # Always open a editor window if this is the first instance of Atom.
       @openPath({pidToKillWhenClosed, newWindow})
@@ -174,13 +176,7 @@ class AtomApplication
 
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
-
-      parsedUrl = url.parse(urlToOpen)
-      if parsedUrl.host is 'session'
-        sessionId = parsedUrl.path.split('/')[1]
-        if sessionId
-          bootstrapScript = 'collaboration/lib/bootstrap'
-          new AtomWindow({bootstrapScript, @resourcePath, sessionId})
+      @openUrl(urlToOpen)
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdate) =>
       event.preventDefault()
@@ -250,6 +246,14 @@ class AtomApplication
           if error.code isnt 'ESRCH'
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
+
+  openUrl: (urlToOpen) ->
+    parsedUrl = url.parse(urlToOpen)
+    if parsedUrl.host is 'session'
+      sessionId = parsedUrl.path.split('/')[1]
+      if sessionId
+        bootstrapScript = 'collaboration/lib/bootstrap'
+        new AtomWindow({bootstrapScript, @resourcePath, sessionId})
 
   openConfig: ->
     if @configWindow
