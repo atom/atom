@@ -8,6 +8,7 @@ _ = require 'underscore'
 module.exports=
 class ImageEditSession
   registerDeserializer(this)
+  @version: 1
 
   @activate: ->
     # Files with these extensions will be opened as images
