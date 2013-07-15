@@ -25,7 +25,7 @@ updateProgressBar = (message, percentDone) ->
 guestSession = new GuestSession(sessionId)
 guestSession.on 'started', -> loadingView.remove()
 guestSession.on 'connection-opened', -> updateProgressBar('Downloading session data', 25)
-guestSession.on 'document-received', -> updateProgressBar('Synchronize repository', 50)
+guestSession.on 'document-received', -> updateProgressBar('Synchronizing repository', 50)
 operationsDone = -1
 guestSession.on 'mirror-progress', (message, command, operationCount) ->
   operationsDone++
