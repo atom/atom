@@ -78,6 +78,7 @@ beforeEach ->
   spyOn(clipboard, 'readText').andCallFake -> pasteboardContent
 
   addCustomMatchers(this)
+  atom.focus() # Hack to get async events to fire
 
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
