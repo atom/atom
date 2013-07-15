@@ -2,6 +2,7 @@ GuestView = require './guest-view'
 HostView = require './host-view'
 HostSession = require './host-session'
 JoinPromptView = require './join-prompt-view'
+{getSessionUrl} = require './session-utils'
 
 module.exports =
   activate: ->
@@ -12,14 +13,15 @@ module.exports =
     else
       hostSession = new HostSession()
 
-      rootView.command 'collaboration:copy-session-id', ->
+      copySession = ->
         sessionId = hostSession.getId()
-        pasteboard.write(sessionId) if sessionId
+        pasteboard.write(getSessionUrl(sessionId)) if sessionId
+
+      rootView.command 'collaboration:copy-session-id', copySession
 
       rootView.command 'collaboration:start-session', ->
         hostView ?= new HostView(hostSession)
-        if sessionId = hostSession.start()
-          pasteboard.write(sessionId)
+        copySession() if hostSession.start()
 
       rootView.command 'collaboration:join-session', ->
         new JoinPromptView (id) ->
