@@ -7,6 +7,7 @@ File = require 'file'
 module.exports=
 class ArchiveEditSession
   registerDeserializer(this)
+  @version: 1
 
   @activate: ->
     Project = require 'project'
