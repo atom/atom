@@ -1,3 +1,5 @@
+* Fixed: Search never completing in the command panel
+
 * Fixed: cmd-n now works when no windows are open
 
 * Fixed: Error selecting a grammar for an untitled editor

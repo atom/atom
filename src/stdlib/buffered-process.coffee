@@ -43,7 +43,7 @@ class BufferedProcess
   addNodeDirectoryToPath: (options) ->
     options.env ?= process.env
     pathSegments = []
-    nodeDirectoryPath = path.resolve(process.execPath, '..', '..', '..', '..', 'Resources')
+    nodeDirectoryPath = path.resolve(process.execPath, '..', '..', '..', '..', '..', 'Resources')
     pathSegments.push(nodeDirectoryPath)
     pathSegments.push(options.env.PATH) if options.env.PATH
     options.env = _.extend({}, options.env, PATH: pathSegments.join(path.delimiter))
