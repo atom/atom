@@ -22,13 +22,6 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
     event.preventDefault()
     args.pathsToOpen.push(filePath)
 
-  app.on 'open-url', (event, url) =>
-    event.preventDefault()
-    dialog.showMessageBox
-      message: 'Atom opened with URL'
-      detail: url
-      buttons: ['OK']
-
   app.on 'open-file', addPathToOpen
 
   app.on 'will-finish-launching', ->

@@ -8,6 +8,7 @@ dialog = require 'dialog'
 fs = require 'fs'
 path = require 'path'
 net = require 'net'
+url = require 'url'
 
 socketPath = '/tmp/atom.sock'
 
@@ -170,6 +171,16 @@ class AtomApplication
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()
       @openPath({pathToOpen})
+
+    app.on 'open-url', (event, urlToOpen) =>
+      event.preventDefault()
+
+      parsedUrl = url.parse(urlToOpen)
+      if parsedUrl.host is 'session'
+        sessionId = parsedUrl.path.split('/')[1]
+        if sessionId
+          bootstrapScript = 'collaboration/lib/bootstrap'
+          new AtomWindow({bootstrapScript, @resourcePath, sessionId})
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdate) =>
       event.preventDefault()
