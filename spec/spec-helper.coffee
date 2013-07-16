@@ -78,7 +78,6 @@ beforeEach ->
   spyOn(clipboard, 'readText').andCallFake -> pasteboardContent
 
   addCustomMatchers(this)
-  $(window).focus() # Hack to get async events to fire
 
 afterEach ->
   keymap.bindingSets = bindingSetsToRestore
