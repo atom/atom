@@ -403,7 +403,7 @@ class DisplayBuffer
   #
   # Returns an {Array} of existing {DisplayBufferMarker}s.
   getMarkers: ->
-    _.values(@markers)
+    @buffer.getMarkers().map ({id}) => @getMarker(id)
 
   # Constructs a new marker at the given screen range.
   #
