@@ -12,7 +12,7 @@ module.exports =
       event.id = nextOutputEventId++
       console.log 'sending event', event.id, event
       connection.send(event)
-    doc.outputEvents.on('changed', outputListener)
+    doc.on('output', outputListener)
 
     queuedEvents = []
     nextInputEventId = 1
@@ -39,7 +39,7 @@ module.exports =
         queuedEvents.push(event)
 
     connection.on 'close', ->
-      doc.outputEvents.removeListener('changed', outputListener)
+      doc.off('output', outputListener)
 
     connection.on 'error', (error) ->
       console.error 'connection error', error.stack ? error
