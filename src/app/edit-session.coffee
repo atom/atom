@@ -510,7 +510,6 @@ class EditSession
   pasteText: (options={}) ->
     [text, metadata] = pasteboard.read()
 
-    options.autoIndent ?= @shouldAutoIndentPastedText()
     if config.get('editor.normalizeIndentOnPaste') and metadata
       options.indentBasis ?= metadata.indentBasis
 
@@ -1287,9 +1286,6 @@ class EditSession
 
   shouldAutoIndent: ->
     config.get("editor.autoIndent")
-
-  shouldAutoIndentPastedText: ->
-    config.get("editor.autoIndentOnPaste")
 
   transact: (fn) -> @buffer.transact(fn)
 

@@ -2334,54 +2334,9 @@ describe "EditSession", ->
             editSession.insertText('foo')
             expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
-    describe "editor.autoIndentOnPaste", ->
-      describe "when the text contains multiple lines", ->
-        beforeEach ->
-          copyText("function() {\ninside=true\n}\n  i=1\n")
-          editSession.setCursorBufferPosition([2, 0])
-
-        it "does not auto-indent pasted text by default", ->
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(2)).toBe "function() {"
-          expect(editSession.lineForBufferRow(3)).toBe "inside=true"
-          expect(editSession.lineForBufferRow(4)).toBe "}"
-          expect(editSession.lineForBufferRow(5)).toBe "  i=1"
-
-        it "auto-indents pasted text when editor.autoIndentOnPaste is true", ->
-          config.set("editor.autoIndentOnPaste", true)
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(2)).toBe "    function() {"
-          expect(editSession.lineForBufferRow(3)).toBe "      inside=true"
-          expect(editSession.lineForBufferRow(4)).toBe "    }"
-          expect(editSession.lineForBufferRow(5)).toBe "    i=1"
-
-      describe "when the text contains no newlines", ->
-        it "increaseses indent of pasted text when editor.autoIndentOnPaste is true", ->
-          copyText("var number")
-          editSession.setCursorBufferPosition([10, 0])
-          config.set("editor.autoIndentOnPaste", true)
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(10)).toBe "  var number"
-
-        it "decreaseses indent of pasted text when editor.autoIndentOnPaste is true", ->
-          copyText("    var number")
-          editSession.setCursorBufferPosition([10, 0])
-          config.set("editor.autoIndentOnPaste", true)
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(10)).toBe "  var number"
-
     describe "editor.normalizeIndentOnPaste", ->
       beforeEach ->
         config.set('editor.normalizeIndentOnPaste', true)
-
-      it "does not normalize the indentation level of the text when editor.autoIndentOnPaste is true", ->
-        copyText("   function() {\nvar cool = 1;\n  }\n")
-        config.set('editor.autoIndentOnPaste', true)
-        editSession.setCursorBufferPosition([5, ])
-        editSession.pasteText()
-        expect(editSession.lineForBufferRow(5)).toBe "      function() {"
-        expect(editSession.lineForBufferRow(6)).toBe "        var cool = 1;"
-        expect(editSession.lineForBufferRow(7)).toBe "      }"
 
       it "does not normalize the indentation level of the text when editor.normalizeIndentOnPaste is false", ->
         copyText("   function() {\nvar cool = 1;\n  }\n")
