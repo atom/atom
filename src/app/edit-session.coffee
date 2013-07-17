@@ -44,7 +44,7 @@ class EditSession
       @buffer = project.bufferForId(@state.get('bufferId'))
 
       @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
-      @subscribe @displayBuffer, 'marker-created', @handleMarkerCreation
+      @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
 
       for marker in @findMarkers(@getSelectionMarkerAttributes())
         @addSelection(marker)
@@ -59,7 +59,7 @@ class EditSession
         scrollLeft: 0
 
       @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
-      @subscribe @displayBuffer, 'marker-created', @handleMarkerCreation
+      @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
       @addCursorAtScreenPosition([0, 0])
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
@@ -1312,7 +1312,7 @@ class EditSession
     @unfoldAll()
     @trigger 'grammar-changed'
 
-  handleMarkerCreation: (marker) =>
+  handleMarkerCreated: (marker) =>
     if marker.matchesAttributes(@getSelectionMarkerAttributes())
       @addSelection(marker)
 
