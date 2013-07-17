@@ -2,6 +2,7 @@ _ = require 'underscore'
 fsUtils = require 'fs-utils'
 path = require 'path'
 telepath = require 'telepath'
+guid = require 'guid'
 {Point, Range} = telepath
 Buffer = require 'text-buffer'
 LanguageMode = require 'language-mode'
@@ -26,6 +27,7 @@ class EditSession
   @deserialize: (state) ->
     new EditSession(state)
 
+  id: null
   languageMode: null
   displayBuffer: null
   cursors: null
@@ -40,7 +42,7 @@ class EditSession
     if optionsOrState instanceof telepath.Document
       project.editSessions.push(this)
       @state = optionsOrState
-      {tabLength, softTabs, @softWrap} = @state.toObject()
+      {@id, tabLength, softTabs, @softWrap} = @state.toObject()
       @setBuffer(project.bufferForId(@state.get('bufferId')))
       @buildDisplayBuffer({tabLength})
       @addSelection(marker) for marker in @findMarkers(@getSelectionMarkerAttributes())
@@ -48,9 +50,11 @@ class EditSession
       @setScrollLeft(@state.get('scrollLeft'))
     else
       {buffer, tabLength, softTabs, @softWrap} = optionsOrState
+      @id = guid.create().toString()
       @state = telepath.Document.create
         deserializer: 'EditSession'
         version: @constructor.version
+        id: @id
         scrollTop: 0
         scrollLeft: 0
       @setBuffer(buffer)

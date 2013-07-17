@@ -946,6 +946,12 @@ describe "EditSession", ->
         editSession.setCursorScreenPosition([3, 3])
         expect(selection.isEmpty()).toBeTruthy()
 
+    it "does not share selections between different edit sessions for the same buffer", ->
+      editSession2 = project.open('sample.js')
+      editSession.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+      editSession2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
+      expect(editSession2.getSelectedBufferRanges()).not.toEqual editSession.getSelectedBufferRanges()
+
   describe "buffer manipulation", ->
     describe ".insertText(text)", ->
       describe "when there are multiple empty selections", ->
