@@ -15,7 +15,14 @@ describe "EditSession replication", ->
     doc1.connect(doc2)
     editSession2 = deserialize(doc2)
 
-  it "replicates the selections", ->
+  it "replicates the initial selections", ->
+    expect(editSession2.getSelectedBufferRanges()).toEqual editSession1.getSelectedBufferRanges()
+
+  it "replicates changes to selections", ->
+    editSession1.getLastSelection().setBufferRange([[2, 3], [4, 5]])
+    expect(editSession2.getLastSelection().getBufferRange()).toEqual [[2, 3], [4, 5]]
+
+    editSession1.addCursorAtBufferPosition([5, 6])
     expect(editSession2.getSelectedBufferRanges()).toEqual editSession1.getSelectedBufferRanges()
 
   it "replicates the scroll position", ->

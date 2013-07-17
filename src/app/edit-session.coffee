@@ -44,6 +44,7 @@ class EditSession
       @buffer = project.bufferForId(@state.get('bufferId'))
 
       @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
+      @subscribe @displayBuffer, 'marker-created', @handleMarkerCreation
 
       for marker in @findMarkers(@getSelectionMarkerAttributes())
         @addSelection(marker)
@@ -56,7 +57,9 @@ class EditSession
         version: @constructor.version
         scrollTop: 0
         scrollLeft: 0
+
       @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
+      @subscribe @displayBuffer, 'marker-created', @handleMarkerCreation
       @addCursorAtScreenPosition([0, 0])
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
@@ -69,7 +72,6 @@ class EditSession
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
     @subscribe @buffer, "markers-updated", => @mergeCursors()
     @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
-
     @preserveCursorPositionOnBufferReload()
 
     @subscribe @displayBuffer, "changed", (e) =>
@@ -823,11 +825,8 @@ class EditSession
   #
   # Returns the new {Cursor}.
   addCursorAtScreenPosition: (screenPosition) ->
-    marker = @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
-    @addSelection(marker).cursor
-
-  getSelectionMarkerAttributes: ->
-    type: 'selection', editSessionId: @id, invalidation: 'never'
+    @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor
 
   # Adds a cursor at the provided `bufferPosition`.
   #
@@ -835,8 +834,8 @@ class EditSession
   #
   # Returns the new {Cursor}.
   addCursorAtBufferPosition: (bufferPosition) ->
-    marker = @markBufferPosition(bufferPosition, invalidation: 'never', type: 'selection')
-    @addSelection(marker).cursor
+    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor
 
   # Adds a cursor to the `EditSession`.
   #
@@ -886,9 +885,8 @@ class EditSession
   #
   # Returns the new {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    options = _.defaults(@getSelectionMarkerAttributes(), options)
-    marker = @markBufferRange(bufferRange, options)
-    @addSelection(marker, options)
+    @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @getLastSelection()
 
   # Given a buffer range, this removes all previous selections and creates a new selection for it.
   #
@@ -1313,6 +1311,13 @@ class EditSession
   handleGrammarChange: ->
     @unfoldAll()
     @trigger 'grammar-changed'
+
+  handleMarkerCreation: (marker) =>
+    if marker.matchesAttributes(@getSelectionMarkerAttributes())
+      @addSelection(marker)
+
+  getSelectionMarkerAttributes: ->
+    type: 'selection', editSessionId: @id, invalidation: 'never'
 
   getDebugSnapshot: ->
     [
