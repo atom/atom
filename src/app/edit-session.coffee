@@ -43,15 +43,9 @@ class EditSession
       {tabLength, softTabs, @softWrap} = @state.toObject()
       @buffer = project.bufferForId(@state.get('bufferId'))
 
-      console.log @buffer.getMarkers().map (m) -> m.getAttributes()
-
       @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
 
-      console.log "looking for", @getSelectionMarkerAttributes()
-
       for marker in @findMarkers(@getSelectionMarkerAttributes())
-
-        console.log marker
         @addSelection(marker)
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
