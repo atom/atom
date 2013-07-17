@@ -25,6 +25,9 @@ describe "EditSession replication", ->
     editSession1.addCursorAtBufferPosition([5, 6])
     expect(editSession2.getSelectedBufferRanges()).toEqual editSession1.getSelectedBufferRanges()
 
+    editSession1.consolidateSelections()
+    expect(editSession2.getSelectedBufferRanges()).toEqual editSession1.getSelectedBufferRanges()
+
   it "replicates the scroll position", ->
     expect(editSession2.getScrollTop()).toBe editSession1.getScrollTop()
     expect(editSession2.getScrollLeft()).toBe editSession1.getScrollLeft()

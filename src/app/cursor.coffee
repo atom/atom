@@ -35,13 +35,14 @@ class Cursor
 
       @trigger 'moved', movedEvent
       @editSession.trigger 'cursor-moved', movedEvent
+    @marker.on 'destroyed', =>
+      @destroyed = true
+      @editSession.removeCursor(this)
+      @trigger 'destroyed'
     @needsAutoscroll = true
 
   destroy: ->
-    @destroyed = true
     @marker.destroy()
-    @editSession.removeCursor(this)
-    @trigger 'destroyed'
 
   changePosition: (options, fn) ->
     @goalColumn = null

@@ -18,16 +18,13 @@ class Selection
   constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
     @cursor.selection = this
     @marker.on 'changed', => @screenRangeChanged()
-    @cursor.on 'destroyed.selection', =>
-      @cursor = null
-      @destroy()
+    @marker.on 'destroyed', =>
+      @destroyed = true
+      @editSession.removeSelection(this)
+      @trigger 'destroyed' unless @editSession.destroyed
 
   destroy: ->
-    return if @destroyed
-    @destroyed = true
-    @editSession.removeSelection(this)
-    @trigger 'destroyed' unless @editSession.destroyed
-    @cursor?.destroy()
+    @marker.destroy()
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
