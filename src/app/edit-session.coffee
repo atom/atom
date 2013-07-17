@@ -34,14 +34,27 @@ class EditSession
   softWrap: false
 
   constructor: (optionsOrState) ->
+    @cursors = []
+    @selections = []
+
     if optionsOrState instanceof telepath.Document
       project.editSessions.push(this)
       @state = optionsOrState
       {tabLength, softTabs, @softWrap} = @state.toObject()
       @buffer = project.bufferForId(@state.get('bufferId'))
+
+      console.log @buffer.getMarkers().map (m) -> m.getAttributes()
+
+      @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
+
+      console.log "looking for", @getSelectionMarkerAttributes()
+
+      for marker in @findMarkers(@getSelectionMarkerAttributes())
+
+        console.log marker
+        @addSelection(marker)
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
-      cursorScreenPosition = @state.getObject('cursorScreenPosition')
     else
       {@buffer, tabLength, softTabs, @softWrap} = optionsOrState
       @state = telepath.Document.create
@@ -49,15 +62,11 @@ class EditSession
         version: @constructor.version
         scrollTop: 0
         scrollLeft: 0
-      cursorScreenPosition = [0, 0]
+      @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
+      @addCursorAtScreenPosition([0, 0])
 
-    @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
-    @cursors = []
-    @selections = []
-    @addCursorAtScreenPosition(cursorScreenPosition)
-
+    @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
       project.setPath(path.dirname(@getPath())) unless project.getPath()?
@@ -770,6 +779,9 @@ class EditSession
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
+  findMarkers: (attributes) ->
+    @displayBuffer.findMarkers(attributes)
+
   # {Delegates to: DisplayBuffer.markScreenRange}
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
@@ -817,8 +829,11 @@ class EditSession
   #
   # Returns the new {Cursor}.
   addCursorAtScreenPosition: (screenPosition) ->
-    marker = @markScreenPosition(screenPosition, invalidationStrategy: 'never')
+    marker = @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
     @addSelection(marker).cursor
+
+  getSelectionMarkerAttributes: ->
+    type: 'selection', editSessionId: @id, invalidation: 'never'
 
   # Adds a cursor at the provided `bufferPosition`.
   #
@@ -826,7 +841,7 @@ class EditSession
   #
   # Returns the new {Cursor}.
   addCursorAtBufferPosition: (bufferPosition) ->
-    marker = @markBufferPosition(bufferPosition, invalidationStrategy: 'never')
+    marker = @markBufferPosition(bufferPosition, invalidation: 'never', type: 'selection')
     @addSelection(marker).cursor
 
   # Adds a cursor to the `EditSession`.
@@ -877,7 +892,7 @@ class EditSession
   #
   # Returns the new {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    options = _.defaults({invalidationStrategy: 'never'}, options)
+    options = _.defaults(@getSelectionMarkerAttributes(), options)
     marker = @markBufferRange(bufferRange, options)
     @addSelection(marker, options)
 
