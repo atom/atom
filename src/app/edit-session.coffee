@@ -41,30 +41,33 @@ class EditSession
       project.editSessions.push(this)
       @state = optionsOrState
       {tabLength, softTabs, @softWrap} = @state.toObject()
-      @buffer = project.bufferForId(@state.get('bufferId'))
-
-      @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
-      @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
-
-      for marker in @findMarkers(@getSelectionMarkerAttributes())
-        @addSelection(marker)
+      @setBuffer(project.bufferForId(@state.get('bufferId')))
+      @buildDisplayBuffer({tabLength})
+      @addSelection(marker) for marker in @findMarkers(@getSelectionMarkerAttributes())
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
     else
-      {@buffer, tabLength, softTabs, @softWrap} = optionsOrState
+      {buffer, tabLength, softTabs, @softWrap} = optionsOrState
       @state = telepath.Document.create
         deserializer: 'EditSession'
         version: @constructor.version
         scrollTop: 0
         scrollLeft: 0
-
-      @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
-      @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
+      @setBuffer(buffer)
+      @buildDisplayBuffer({tabLength})
       @addCursorAtScreenPosition([0, 0])
 
+    @state.on 'changed', ({key, newValue}) =>
+      switch key
+        when 'scrollTop'
+          @trigger 'scroll-top-changed', newValue
+        when 'scrollLeft'
+          @trigger 'scroll-left-changed', newValue
+
+  setBuffer: (@buffer) ->
+    @buffer.retain()
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
-    @buffer.retain()
     @subscribe @buffer, "path-changed", =>
       project.setPath(path.dirname(@getPath())) unless project.getPath()?
       @trigger "title-changed"
@@ -74,17 +77,12 @@ class EditSession
     @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
     @preserveCursorPositionOnBufferReload()
 
+  buildDisplayBuffer: ({tabLength}) ->
+    @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
+    @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
     @subscribe @displayBuffer, "changed", (e) =>
       @trigger 'screen-lines-changed', e
-
-    @displayBuffer.on 'grammar-changed', => @handleGrammarChange()
-
-    @state.on 'changed', ({key, newValue}) =>
-      switch key
-        when 'scrollTop'
-          @trigger 'scroll-top-changed', newValue
-        when 'scrollLeft'
-          @trigger 'scroll-left-changed', newValue
+    @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
 
   getViewClass: ->
     require 'editor'
