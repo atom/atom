@@ -135,6 +135,9 @@ class DisplayBufferMarker
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
+  getAttributes: ->
+    @bufferMarker.getAttributes()
+
   matchesAttributes: (attributes) ->
     @bufferMarker.matchesAttributes(attributes)
 
