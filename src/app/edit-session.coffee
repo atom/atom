@@ -57,6 +57,9 @@ class EditSession
       @buildDisplayBuffer({tabLength})
       @addCursorAtScreenPosition([0, 0])
 
+    @languageMode = new LanguageMode(this, @buffer.getExtension())
+    @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
+
     @state.on 'changed', ({key, newValue}) =>
       switch key
         when 'scrollTop'
@@ -66,8 +69,6 @@ class EditSession
 
   setBuffer: (@buffer) ->
     @buffer.retain()
-    @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @subscribe @buffer, "path-changed", =>
       project.setPath(path.dirname(@getPath())) unless project.getPath()?
       @trigger "title-changed"
