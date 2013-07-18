@@ -44,12 +44,12 @@ describe "LanguageMode", ->
           expect(languageMode.doesBufferRowStartFold(2)).toBeFalsy()
           expect(languageMode.doesBufferRowStartFold(3)).toBeFalsy()
 
-      describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
+      describe ".rowRangeForCodeFoldAtBufferRow(bufferRow)", ->
         it "returns the start/end rows of the foldable region starting at the given row", ->
-          expect(languageMode.rowRangeForFoldAtBufferRow(0)).toEqual [0, 12]
-          expect(languageMode.rowRangeForFoldAtBufferRow(1)).toEqual [1, 9]
-          expect(languageMode.rowRangeForFoldAtBufferRow(2)).toBeNull()
-          expect(languageMode.rowRangeForFoldAtBufferRow(4)).toEqual [4, 7]
+          expect(languageMode.rowRangeForCodeFoldAtBufferRow(0)).toEqual [0, 12]
+          expect(languageMode.rowRangeForCodeFoldAtBufferRow(1)).toEqual [1, 9]
+          expect(languageMode.rowRangeForCodeFoldAtBufferRow(2)).toBeNull()
+          expect(languageMode.rowRangeForCodeFoldAtBufferRow(4)).toEqual [4, 7]
 
     describe "suggestedIndentForBufferRow", ->
       it "returns the suggested indentation based on auto-indent/outdent rules", ->
@@ -98,12 +98,12 @@ describe "LanguageMode", ->
           expect(languageMode.doesBufferRowStartFold(3)).toBeFalsy()
           expect(languageMode.doesBufferRowStartFold(19)).toBeTruthy()
 
-      describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
+      describe ".rowRangeForCodeFoldAtBufferRow(bufferRow)", ->
         it "returns the start/end rows of the foldable region starting at the given row", ->
-          expect(languageMode.rowRangeForFoldAtBufferRow(0)).toEqual [0, 20]
-          expect(languageMode.rowRangeForFoldAtBufferRow(1)).toEqual [1, 17]
-          expect(languageMode.rowRangeForFoldAtBufferRow(2)).toBeNull()
-          expect(languageMode.rowRangeForFoldAtBufferRow(19)).toEqual [19, 20]
+          expect(languageMode.rowRangeForCodeFoldAtBufferRow(0)).toEqual [0, 20]
+          expect(languageMode.rowRangeForCodeFoldAtBufferRow(1)).toEqual [1, 17]
+          expect(languageMode.rowRangeForCodeFoldAtBufferRow(2)).toBeNull()
+          expect(languageMode.rowRangeForCodeFoldAtBufferRow(19)).toEqual [19, 20]
 
   describe "css", ->
     beforeEach ->
@@ -158,7 +158,7 @@ describe "LanguageMode", ->
         languageMode.toggleLineCommentsForBufferRows(0, 0)
         expect(buffer.lineForRow(0)).toBe "// @color: #4D926F;"
 
-  fdescribe "folding", ->
+  describe "folding", ->
 
     describe "with comments", ->
       beforeEach ->
@@ -189,7 +189,7 @@ describe "LanguageMode", ->
           fold3 = editSession.lineForScreenRow(2).fold.destroy()
 
           fold4 = editSession.lineForScreenRow(3).fold
-          expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [6, 8]
+          expect([fold4.getStartRow(), fold4.getEndRow()]).toEqual [6, 8]
 
 
 

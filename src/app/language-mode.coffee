@@ -91,7 +91,6 @@ class LanguageMode
     for currentRow in [0..@buffer.getLastRow()]
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
-
       @editSession.createFold(startRow, endRow)
 
   # Unfolds all the foldable lines in the buffer.
@@ -106,9 +105,7 @@ class LanguageMode
   # Returns the new {Fold}.
   foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
-      rowRange = @rowRangeForCommentAtBufferRow(currentRow)
-      rowRange ?= @rowRangeForFoldAtBufferRow(currentRow)
-      [startRow, endRow] = rowRange ? []
+      [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
       fold = @editSession.displayBuffer.largestFoldStartingAtBufferRow(startRow)
       return @editSession.createFold(startRow, endRow) unless fold
@@ -119,13 +116,24 @@ class LanguageMode
   unfoldBufferRow: (bufferRow) ->
     @editSession.displayBuffer.largestFoldContainingBufferRow(bufferRow)?.destroy()
 
+  # Find the row range for a fold at a given bufferRow. Will handle comments
+  # and code.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns an {Array} of the [startRow, endRow]. Returns null if no range.
+  rowRangeForFoldAtBufferRow: (bufferRow) ->
+    rowRange = @rowRangeForCommentFoldAtBufferRow(bufferRow)
+    rowRange ?= @rowRangeForCodeFoldAtBufferRow(bufferRow)
+    rowRange
+
   doesBufferRowStartFold: (bufferRow) ->
     return false if @editSession.isBufferRowBlank(bufferRow)
     nextNonEmptyRow = @editSession.nextNonBlankBufferRow(bufferRow)
     return false unless nextNonEmptyRow?
     @editSession.indentationForBufferRow(nextNonEmptyRow) > @editSession.indentationForBufferRow(bufferRow)
 
-  rowRangeForFoldAtBufferRow: (bufferRow) ->
+  rowRangeForCodeFoldAtBufferRow: (bufferRow) ->
     return null unless @doesBufferRowStartFold(bufferRow)
 
     startIndentLevel = @editSession.indentationForBufferRow(bufferRow)
@@ -142,7 +150,7 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
-  rowRangeForCommentAtBufferRow: (row) ->
+  rowRangeForCommentFoldAtBufferRow: (row) ->
     return unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
 
     startRow = row
