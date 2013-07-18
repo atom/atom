@@ -117,9 +117,18 @@ class EditSession
 
   getState: -> @serialize()
 
-  # Creates a copy of the current {EditSession}.Returns an identical `EditSession`.
+  # Creates an {EditSession} with the same initial state
   copy: ->
-    EditSession.deserialize(@serialize())
+    tabLength = @getTabLength()
+    copy = new EditSession({@buffer, tabLength, @softTabs, @softWrap})
+    copy.setScrollTop(@getScrollTop())
+    copy.setScrollLeft(@getScrollLeft())
+    for selection, i in @getSelections()
+      if i is 0
+        copy.setSelectedBufferRange(selection.getBufferRange(), isReversed: selection.isReversed())
+      else
+        copy.addSelectionForBufferRange(selection.getBufferRange(), isReversed: selection.isReversed())
+    copy
 
   ### Public ###
 

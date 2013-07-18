@@ -15,6 +15,18 @@ describe "EditSession", ->
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
 
+  describe ".copy()", ->
+    it "returns a different edit session with the same initial state", ->
+      editSession.setSelectedBufferRange([[1, 2], [3, 4]])
+      editSession.addSelectionForBufferRange([[5, 6], [7, 8]], isReversed: true)
+      editSession2 = editSession.copy()
+      expect(editSession2.id).not.toBe editSession.id
+      expect(editSession2.getSelectedBufferRanges()).toEqual editSession.getSelectedBufferRanges()
+      expect(editSession2.getSelection(1).isReversed()).toBeTruthy()
+
+      editSession2.getSelection().setBufferRange([[2, 1], [4, 3]])
+      expect(editSession2.getSelectedBufferRanges()).not.toEqual editSession.getSelectedBufferRanges()
+
   describe "title", ->
     describe ".getTitle()", ->
       it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
