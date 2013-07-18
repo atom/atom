@@ -1,4 +1,6 @@
 BrowserWindow = require 'browser-window'
+Menu = require 'menu'
+MenuItem = require 'menu-item'
 app = require 'app'
 dialog = require 'dialog'
 ipc = require 'ipc'
@@ -9,12 +11,15 @@ _ = require 'underscore'
 module.exports =
 class AtomWindow
   browserWindow: null
+  contextMenu: null
+  inspectElementMenuItem: null
 
   constructor: (settings={}) ->
     {resourcePath, pathToOpen, isSpec} = settings
     global.atomApplication.addWindow(this)
 
     @setupNodePath(resourcePath)
+    @createContextMenu()
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
     @handleEvents(isSpec)
 
@@ -77,8 +82,7 @@ class AtomWindow
         buttons: ['Close', 'Keep Waiting']
         message: 'Editor is not responsing'
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
-      if chosen is 0
-        setImmediate => @browserWindow.destroy()
+      @browserWindow.destroy() if chosen is 0
 
     @browserWindow.on 'crashed', =>
       chosen = dialog.showMessageBox @browserWindow,
@@ -87,8 +91,12 @@ class AtomWindow
         message: 'The editor has crashed'
         detail: 'Please report this issue to https://github.com/github/atom/issues'
       switch chosen
-        when 0 then setImmediate => @browserWindow.destroy()
+        when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
+
+    @browserWindow.on 'context-menu', (x, y) =>
+      @inspectElementMenuItem.click = => @browserWindow.inspectElement(x, y)
+      @contextMenu.popup(@browserWindow)
 
     if isSpec
       # Spec window's web view should always have focus
@@ -101,6 +109,11 @@ class AtomWindow
       @sendCommand('window:open-path', pathToOpen)
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen)
+
+  createContextMenu: ->
+    @contextMenu = new Menu
+    @inspectElementMenuItem = new MenuItem(label: 'Inspect Element')
+    @contextMenu.append(@inspectElementMenuItem)
 
   sendCommand: (command, args...) ->
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command, args...

@@ -81,8 +81,10 @@ class LanguageMode
             columnEnd = columnStart + match[2].length
             buffer.change([[row, columnStart], [row, columnEnd]], "")
       else
+        indent = @minIndentLevelForRowRange(start, end)
+        indentString = @editSession.buildIndentString(indent)
         for row in [start..end]
-          buffer.insert([row, 0], commentStartString)
+          buffer.change([[row, 0], [row, indentString.length]], indentString + commentStartString)
 
   # Folds all the foldable lines in the buffer.
   foldAll: ->
@@ -179,6 +181,17 @@ class LanguageMode
     desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
 
     desiredIndentLevel
+
+  # Calculate a minimum indent level for a range of lines excluding empty lines.
+  #
+  # startRow - The row {Number} to start at
+  # endRow - The row {Number} to end at
+  #
+  # Returns a {Number} of the indent level of the block of lines.
+  minIndentLevelForRowRange: (startRow, endRow) ->
+    indents = (@editSession.indentationForBufferRow(row) for row in [startRow..endRow] when not @editSession.isBufferRowBlank(row))
+    indents = [0] unless indents.length
+    Math.min(indents...)
 
   # Indents all the rows between two buffer row numbers.
   #
