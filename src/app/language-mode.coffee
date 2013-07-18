@@ -84,7 +84,7 @@ class LanguageMode
         indent = @minIndentLevelForRowRange(start, end)
         indentString = @editSession.buildIndentString(indent)
         for row in [start..end]
-          buffer.change([[row, 0], [row, indentString.length]], indentString+commentStartString)
+          buffer.change([[row, 0], [row, indentString.length]], indentString + commentStartString)
 
   # Folds all the foldable lines in the buffer.
   foldAll: ->
