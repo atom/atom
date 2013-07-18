@@ -2,7 +2,7 @@ Project = require 'project'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 
-describe "LanguageMode", ->
+fdescribe "LanguageMode", ->
   [editSession, buffer, languageMode] = []
 
   afterEach ->
@@ -14,11 +14,11 @@ describe "LanguageMode", ->
       editSession = project.open('sample.js', autoIndent: false)
       {buffer, languageMode} = editSession
 
-    describe ".calcMinIndent(startRow, endRow)", ->
+    describe ".minIndentLevelForRowRange(startRow, endRow)", ->
       it "returns indent levels for ranges", ->
-        expect(languageMode.calcMinIndent(4, 7)).toBe 2
-        expect(languageMode.calcMinIndent(5, 7)).toBe 2
-        expect(languageMode.calcMinIndent(5, 6)).toBe 3
+        expect(languageMode.minIndentLevelForRowRange(4, 7)).toBe 2
+        expect(languageMode.minIndentLevelForRowRange(5, 7)).toBe 2
+        expect(languageMode.minIndentLevelForRowRange(5, 6)).toBe 3
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -62,10 +62,10 @@ describe "LanguageMode", ->
       editSession = project.open('coffee.coffee', autoIndent: false)
       {buffer, languageMode} = editSession
 
-    describe ".calcMinIndent(startRow, endRow)", ->
+    describe ".minIndentLevelForRowRange(startRow, endRow)", ->
       it "returns indent levels for ranges", ->
-        expect(languageMode.calcMinIndent(4, 6)).toBe 2
-        expect(languageMode.calcMinIndent(4, 7)).toBe 2
+        expect(languageMode.minIndentLevelForRowRange(4, 6)).toBe 2
+        expect(languageMode.minIndentLevelForRowRange(4, 7)).toBe 2
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->

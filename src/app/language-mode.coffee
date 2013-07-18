@@ -81,7 +81,7 @@ class LanguageMode
             columnEnd = columnStart + match[2].length
             buffer.change([[row, columnStart], [row, columnEnd]], "")
       else
-        indent = @calcMinIndent(start, end)
+        indent = @minIndentLevelForRowRange(start, end)
         indentString = @editSession.buildIndentString(indent)
         for row in [start..end]
           buffer.change(new Range([row, 0], [row, indentString.length]), indentString+commentStartString)
@@ -188,7 +188,7 @@ class LanguageMode
   # endRow - The row {Number} to end at
   #
   # Returns a {Number} of the indent level of the block of lines.
-  calcMinIndent: (startRow, endRow) ->
+  minIndentLevelForRowRange: (startRow, endRow) ->
     buffer = @editSession.buffer
     indents = (@editSession.indentationForBufferRow(row) for row in [startRow..endRow] when buffer.lineForRow(row).trim())
     Math.min(indents...)
