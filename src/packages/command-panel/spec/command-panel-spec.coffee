@@ -453,7 +453,7 @@ describe "CommandPanel", ->
 
     it "displays the number of files and operations", ->
       rootView.attachToDom()
-      expect(commandPanel.previewCount.text()).toBe '17 matches in 4 files'
+      expect(commandPanel.previewCount.text()).toBe '22 matches in 5 files'
 
     describe "when move-down and move-up are triggered on the preview list", ->
       it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->
