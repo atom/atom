@@ -98,6 +98,18 @@ class LanguageMode
     for row in [@buffer.getLastRow()..0]
       fold.destroy() for fold in @editSession.displayBuffer.foldsStartingAtBufferRow(row)
 
+  # Fold all comment and code blocks at a given indentLevel
+  #
+  # indentLevel - A {Number} indicating indentLevel; 0 based.
+  foldAllAtIndentLevel: (indentLevel) ->
+    for currentRow in [0..@buffer.getLastRow()]
+      [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
+      continue unless startRow?
+
+      # assumption: startRow will always be the min indent level for the entire range
+      if @editSession.indentationForBufferRow(startRow) == indentLevel
+        @editSession.createFold(startRow, endRow)
+
   # Given a buffer row, creates a fold at it.
   #
   # bufferRow - A {Number} indicating the buffer row
