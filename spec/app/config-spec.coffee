@@ -183,6 +183,20 @@ describe "Config", ->
           expect(fsUtils.exists(path.join(config.configDirPath, 'themes'))).toBeTruthy()
           expect(fsUtils.isFileSync(path.join(config.configDirPath, 'config.cson'))).toBeTruthy()
 
+  describe ".initializePackageDirectory()", ->
+    beforeEach ->
+      config.configDirPath = '/tmp/dot-atom-dir'
+      config.userPackagesDirPath = '/tmp/dot-atom-dir/packages'
+      expect(fsUtils.exists(config.configDirPath)).toBeFalsy()
+
+    afterEach ->
+      fsUtils.remove('/tmp/dot-atom-dir') if fsUtils.exists('/tmp/dot-atom-dir')
+
+    describe "when the userPackagesDirPath doesn't exist", ->
+      it "creates it", ->
+        config.initializePackageDirectory()
+        expect(fsUtils.exists(config.userPackagesDirPath)).toBeTruthy()
+
   describe ".loadUserConfig()", ->
     beforeEach ->
       config.configDirPath = '/tmp/dot-atom-dir'

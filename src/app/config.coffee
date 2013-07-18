@@ -60,8 +60,13 @@ class Config
       queue.push({sourcePath, destinationPath})
     fsUtils.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
+  initializePackageDirectory: ->
+    return if fsUtils.exists(@userPackagesDirPath)
+    fsUtils.makeTree(@userPackagesDirPath)
+
   load: ->
     @initializeConfigDirectory()
+    @initializePackageDirectory()
     @loadUserConfig()
     @observeUserConfig()
 
