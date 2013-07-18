@@ -16,6 +16,28 @@ describe "DisplayBuffer", ->
     displayBuffer.destroy()
     buffer.release()
 
+  describe ".copy()", ->
+    it "creates a new DisplayBuffer with the same initial state", ->
+      marker1 = displayBuffer.markBufferRange([[1, 2], [3, 4]], id: 1)
+      marker2 = displayBuffer.markBufferRange([[2, 3], [4, 5]], isReversed: true, id: 2)
+      marker3 = displayBuffer.markBufferPosition([5, 6], id: 3)
+      displayBuffer.createFold(3, 5)
+
+      displayBuffer2 = displayBuffer.copy()
+      expect(displayBuffer2.id).not.toBe displayBuffer.id
+      expect(displayBuffer2.buffer).toBe displayBuffer.buffer
+      expect(displayBuffer2.getTabLength()).toBe displayBuffer.getTabLength()
+
+      expect(displayBuffer2.getMarkerCount()).toEqual displayBuffer.getMarkerCount()
+      expect(displayBuffer2.findMarker(id: 1)).toEqual marker1
+      expect(displayBuffer2.findMarker(id: 2)).toEqual marker2
+      expect(displayBuffer2.findMarker(id: 3)).toEqual marker3
+      expect(displayBuffer2.isFoldedAtBufferRow(3)).toBeTruthy()
+
+      # can diverge from origin
+      displayBuffer2.destroyFoldsContainingBufferRow(3)
+      expect(displayBuffer2.isFoldedAtBufferRow(3)).not.toBe displayBuffer.isFoldedAtBufferRow(3)
+
   describe "when the buffer changes", ->
     it "renders line numbers correctly", ->
       originalLineCount = displayBuffer.getLineCount()

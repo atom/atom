@@ -154,10 +154,7 @@ class DisplayBufferMarker
 
   isEqual: (other) ->
     return false unless other instanceof @constructor
-    @getBufferRange().isEqual(other.getBufferRange()) and
-      @isReversed() is other.isReversed() and
-      @hasTail() is other.hasTail() and
-      _.isEqual(@getAttributes(), other.getAttributes())
+    @bufferMarker.isEqual(other.bufferMarker)
 
   # Returns a {String} representation of the marker
   inspect: ->

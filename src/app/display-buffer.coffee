@@ -1,8 +1,9 @@
 _ = require 'underscore'
+guid = require 'guid'
+{Point, Range} = require 'telepath'
 TokenizedBuffer = require 'tokenized-buffer'
 RowMap = require 'row-map'
 EventEmitter = require 'event-emitter'
-{Point, Range} = require 'telepath'
 Fold = require 'fold'
 Token = require 'token'
 DisplayBufferMarker = require 'display-buffer-marker'
@@ -20,7 +21,7 @@ class DisplayBuffer
   ### Internal ###
 
   constructor: (@buffer, options={}) ->
-    @id = @constructor.idCounter++
+    @id = guid.create().toString()
     @tokenizedBuffer = new TokenizedBuffer(@buffer, options)
     @softWrapColumn = options.softWrapColumn ? Infinity
     @markers = {}
@@ -31,6 +32,11 @@ class DisplayBuffer
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
     @subscribe @buffer, 'markers-updated', @handleMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleMarkerCreated
+
+  copy: ->
+    newDisplayBuffer = new DisplayBuffer(@buffer, tabLength: @getTabLength())
+    @findMarkers(displayBufferId: @id).map (marker) -> marker.copy(displayBufferId: newDisplayBuffer.id)
+    newDisplayBuffer
 
   updateAllScreenLines: ->
     @maxLineLength = 0
@@ -108,6 +114,12 @@ class DisplayBuffer
       @findFoldMarker({startRow, endRow}) ?
         @buffer.markRange([[startRow, 0], [endRow, Infinity]], @foldMarkerAttributes())
     @foldForMarker(foldMarker)
+
+  isFoldedAtBufferRow: (bufferRow) ->
+    @largestFoldContainingBufferRow(bufferRow)?
+
+  isFoldedAtScreenRow: (screenRow) ->
+    @largestFoldContainingBufferRow(@bufferRowForScreenRow(screenRow))?
 
   # Destroys the fold with the given id
   destroyFoldWithId: (id) ->
@@ -404,6 +416,9 @@ class DisplayBuffer
   # Returns an {Array} of existing {DisplayBufferMarker}s.
   getMarkers: ->
     @buffer.getMarkers().map ({id}) => @getMarker(id)
+
+  getMarkerCount: ->
+    @buffer.getMarkerCount()
 
   # Constructs a new marker at the given screen range.
   #
