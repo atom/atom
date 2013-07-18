@@ -182,7 +182,7 @@ class LanguageMode
 
     desiredIndentLevel
 
-  # Calculate a minimum indent level for a range of lines.
+  # Calculate a minimum indent level for a range of lines excluding empty lines.
   #
   # startRow - The row {Number} to start at
   # endRow - The row {Number} to end at
