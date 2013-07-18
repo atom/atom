@@ -531,6 +531,9 @@ class EditSession
   unfoldAll: ->
     @languageMode.unfoldAll()
 
+  foldAllAtIndentLevel: (indentLevel) ->
+    @languageMode.foldAllAtIndentLevel(indentLevel)
+
   # Folds the current row.
   foldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row

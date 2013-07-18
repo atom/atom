@@ -191,6 +191,29 @@ describe "LanguageMode", ->
           fold4 = editSession.lineForScreenRow(3).fold
           expect([fold4.getStartRow(), fold4.getEndRow()]).toEqual [6, 8]
 
+      describe ".foldAllAtIndentLevel()", ->
+        it "folds every foldable range at a given indentLevel", ->
+          editSession.foldAllAtIndentLevel(2)
+
+          fold1 = editSession.lineForScreenRow(6).fold
+          expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [6, 8]
+          fold1.destroy()
+
+          fold2 = editSession.lineForScreenRow(11).fold
+          expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [11, 14]
+          fold2.destroy()
+
+        it "does not fold anything but the indentLevel", ->
+          editSession.foldAllAtIndentLevel(0)
+
+          fold1 = editSession.lineForScreenRow(0).fold
+          expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
+          fold1.destroy()
+
+          fold2 = editSession.lineForScreenRow(5).fold
+          expect(fold2).toBeFalsy()
+
+
 
 
 
