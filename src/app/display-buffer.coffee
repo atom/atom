@@ -487,6 +487,7 @@ class DisplayBuffer
 
   resumeMarkerObservers: ->
     marker.resumeEvents() for marker in @getMarkers()
+    @trigger 'markers-updated'
 
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()

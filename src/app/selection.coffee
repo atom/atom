@@ -9,13 +9,12 @@ class Selection
   marker: null
   editSession: null
   initialScreenRange: null
-  goalBufferRange: null
   wordwise: false
   needsAutoscroll: null
 
   ### Internal ###
 
-  constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
+  constructor: ({@cursor, @marker, @editSession}) ->
     @cursor.selection = this
     @marker.on 'changed', => @screenRangeChanged()
     @marker.on 'destroyed', =>
@@ -109,7 +108,8 @@ class Selection
 
   # Clears the selection, moving the marker to move to the head.
   clear: ->
-    @marker.clearTail()
+    @setGoalBufferRange(null)
+    @marker.clearTail() unless @retainSelection
 
   # Modifies the selection to mark the current word.
   #
@@ -213,7 +213,7 @@ class Selection
 
   # Moves the selection down one row.
   addSelectionBelow: ->
-    range = (@goalBufferRange ? @getBufferRange()).copy()
+    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
     nextRow = range.end.row + 1
 
     for row in [nextRow..@editSession.getLastBufferRow()]
@@ -226,12 +226,18 @@ class Selection
       else
         continue if clippedRange.isEmpty()
 
-      @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+      @editSession.addSelectionForBufferRange(range, goalBufferRange: range)
       break
+
+  getGoalBufferRange: ->
+    @marker.getAttributes().goalBufferRange
+
+  setGoalBufferRange: (goalBufferRange) ->
+    @marker.getAttributes().goalBufferRange = goalBufferRange
 
   # Moves the selection up one row.
   addSelectionAbove: ->
-    range = (@goalBufferRange ? @getBufferRange()).copy()
+    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
     previousRow = range.end.row - 1
 
     for row in [previousRow..0]
@@ -244,7 +250,7 @@ class Selection
       else
         continue if clippedRange.isEmpty()
 
-      @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+      @editSession.addSelectionForBufferRange(range, goalBufferRange: range)
       break
 
   # Replaces text at the current selection.
@@ -509,10 +515,13 @@ class Selection
   # options - A hash of options matching those found in {.setBufferRange}
   merge: (otherSelection, options) ->
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
-    if @goalBufferRange and otherSelection.goalBufferRange
-      @goalBufferRange = @goalBufferRange.union(otherSelection.goalBufferRange)
-    else if otherSelection.goalBufferRange
-      @goalBufferRange = otherSelection.goalBufferRange
+
+    myGoalBufferRange = @getGoalBufferRange()
+    otherGoalBufferRange = otherSelection.getGoalBufferRange()
+    if myGoalBufferRange? and otherGoalBufferRange?
+      @setGoalBufferRange(myGoalBufferRange.union(otherGoalBufferRange))
+    else if otherGoalBufferRange
+      @setGoalBufferRange(otherGoalBufferRange)
     otherSelection.destroy()
 
   ### Internal ###

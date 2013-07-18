@@ -34,6 +34,7 @@ class EditSession
   selections: null
   softTabs: true
   softWrap: false
+  suppressSelectionMerging: false
 
   constructor: (optionsOrState) ->
     @cursors = []
@@ -78,15 +79,14 @@ class EditSession
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
-    @subscribe @buffer, "markers-updated", => @mergeCursors()
     @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
     @preserveCursorPositionOnBufferReload()
 
   buildDisplayBuffer: ({tabLength}) ->
     @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
-    @subscribe @displayBuffer, "changed", (e) =>
-      @trigger 'screen-lines-changed', e
+    @subscribe @displayBuffer, "changed", (e) => @trigger 'screen-lines-changed', e
+    @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
 
   getViewClass: ->
@@ -872,7 +872,7 @@ class EditSession
     selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
-    @mergeIntersectingSelections() unless options.suppressMerge
+    @mergeIntersectingSelections()
     if selection.destroyed
       for selection in @getSelections()
         if selection.intersectsBufferRange(selectionBufferRange)
@@ -908,13 +908,13 @@ class EditSession
     selections = @getSelections()
     selection.destroy() for selection in selections[bufferRanges.length...]
 
-    for bufferRange, i in bufferRanges
-      bufferRange = Range.fromObject(bufferRange)
-      if selections[i]
-        selections[i].setBufferRange(bufferRange, options)
-      else
-        @addSelectionForBufferRange(bufferRange, options)
-    @mergeIntersectingSelections(options)
+    @mergeIntersectingSelections options, =>
+      for bufferRange, i in bufferRanges
+        bufferRange = Range.fromObject(bufferRange)
+        if selections[i]
+          selections[i].setBufferRange(bufferRange, options)
+        else
+          @addSelectionForBufferRange(bufferRange, options)
 
   # Unselects a given selection.
   #
@@ -1252,25 +1252,38 @@ class EditSession
         positions.push(position)
 
   expandSelectionsForward: (fn) ->
-    fn(selection) for selection in @getSelections()
-    @mergeIntersectingSelections()
+    @mergeIntersectingSelections =>
+      fn(selection) for selection in @getSelections()
 
   expandSelectionsBackward: (fn) ->
-    fn(selection) for selection in @getSelections()
-    @mergeIntersectingSelections(isReversed: true)
+    @mergeIntersectingSelections isReversed: true, =>
+      fn(selection) for selection in @getSelections()
 
   finalizeSelections: ->
     selection.finalize() for selection in @getSelections()
 
-  mergeIntersectingSelections: (options) ->
-    for selection in @getSelections()
-      otherSelections = @getSelections()
-      _.remove(otherSelections, selection)
-      for otherSelection in otherSelections
-        if selection.intersectsWith(otherSelection)
-          selection.merge(otherSelection, options)
-          @mergeIntersectingSelections(options)
-          return
+  # Merges intersecting selections. If passed a function, it executes the function
+  # with merging suppressed, then merges intersecting selections afterward.
+  mergeIntersectingSelections: (args...) ->
+    fn = args.pop() if _.isFunction(_.last(args))
+    options = args.pop() ? {}
+
+    return fn?() if @suppressSelectionMerging
+
+    if fn?
+      @suppressSelectionMerging = true
+      result = fn()
+      @suppressSelectionMerging = false
+
+    reducer = (disjointSelections, selection) ->
+      intersectingSelection = _.find(disjointSelections, (s) -> s.intersectsWith(selection))
+      if intersectingSelection?
+        intersectingSelection.merge(selection, options)
+        disjointSelections
+      else
+        disjointSelections.concat([selection])
+
+    _.reduce(@getSelections(), reducer, [])
 
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null

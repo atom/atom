@@ -134,9 +134,7 @@ class Cursor
 
   # Deselects whatever the cursor is selecting.
   clearSelection: ->
-    if @selection
-      @selection.goalBufferRange = null
-      @selection.clear() unless @selection.retainSelection
+    @selection?.clear()
 
   # Retrieves the cursor's screen row.
   #
