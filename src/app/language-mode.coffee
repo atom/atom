@@ -127,11 +127,20 @@ class LanguageMode
     rowRange ?= @rowRangeForCodeFoldAtBufferRow(bufferRow)
     rowRange
 
-  doesBufferRowStartFold: (bufferRow) ->
-    return false if @editSession.isBufferRowBlank(bufferRow)
-    nextNonEmptyRow = @editSession.nextNonBlankBufferRow(bufferRow)
-    return false unless nextNonEmptyRow?
-    @editSession.indentationForBufferRow(nextNonEmptyRow) > @editSession.indentationForBufferRow(bufferRow)
+  rowRangeForCommentFoldAtBufferRow: (bufferRow) ->
+    return unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+
+    startRow = bufferRow
+    for currentRow in [bufferRow-1..0]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      startRow = currentRow
+    endRow = bufferRow
+    for currentRow in [bufferRow+1..@buffer.getLastRow()]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      endRow = currentRow
+    return [startRow, endRow] if startRow isnt endRow
 
   rowRangeForCodeFoldAtBufferRow: (bufferRow) ->
     return null unless @doesBufferRowStartFold(bufferRow)
@@ -150,20 +159,11 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
-  rowRangeForCommentFoldAtBufferRow: (row) ->
-    return unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
-
-    startRow = row
-    for currentRow in [row-1..0]
-      break if @buffer.isRowBlank(currentRow)
-      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
-      startRow = currentRow
-    endRow = row
-    for currentRow in [row+1..@buffer.getLastRow()]
-      break if @buffer.isRowBlank(currentRow)
-      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
-      endRow = currentRow
-    return [startRow, endRow] if startRow isnt endRow
+  doesBufferRowStartFold: (bufferRow) ->
+    return false if @editSession.isBufferRowBlank(bufferRow)
+    nextNonEmptyRow = @editSession.nextNonBlankBufferRow(bufferRow)
+    return false unless nextNonEmptyRow?
+    @editSession.indentationForBufferRow(nextNonEmptyRow) > @editSession.indentationForBufferRow(bufferRow)
 
   # Given a buffer row, this returns a suggested indentation level.
   #
