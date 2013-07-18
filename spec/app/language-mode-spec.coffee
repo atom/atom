@@ -20,6 +20,7 @@ describe "LanguageMode", ->
         expect(languageMode.minIndentLevelForRowRange(5, 7)).toBe 2
         expect(languageMode.minIndentLevelForRowRange(5, 6)).toBe 3
         expect(languageMode.minIndentLevelForRowRange(9, 11)).toBe 1
+        expect(languageMode.minIndentLevelForRowRange(10, 10)).toBe 0
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
