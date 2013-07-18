@@ -15,10 +15,11 @@ fdescribe "LanguageMode", ->
       {buffer, languageMode} = editSession
 
     describe ".minIndentLevelForRowRange(startRow, endRow)", ->
-      it "returns indent levels for ranges", ->
+      it "returns the minimum indent level for the given row range", ->
         expect(languageMode.minIndentLevelForRowRange(4, 7)).toBe 2
         expect(languageMode.minIndentLevelForRowRange(5, 7)).toBe 2
         expect(languageMode.minIndentLevelForRowRange(5, 6)).toBe 3
+        expect(languageMode.minIndentLevelForRowRange(9, 11)).toBe 1
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -61,11 +62,6 @@ fdescribe "LanguageMode", ->
       atom.activatePackage('coffee-script-tmbundle', sync: true)
       editSession = project.open('coffee.coffee', autoIndent: false)
       {buffer, languageMode} = editSession
-
-    describe ".minIndentLevelForRowRange(startRow, endRow)", ->
-      it "returns indent levels for ranges", ->
-        expect(languageMode.minIndentLevelForRowRange(4, 6)).toBe 2
-        expect(languageMode.minIndentLevelForRowRange(4, 7)).toBe 2
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
