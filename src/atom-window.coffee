@@ -77,8 +77,7 @@ class AtomWindow
         buttons: ['Close', 'Keep Waiting']
         message: 'Editor is not responsing'
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
-      if chosen is 0
-        setImmediate => @browserWindow.destroy()
+      @browserWindow.destroy() if chosen is 0
 
     @browserWindow.on 'crashed', =>
       chosen = dialog.showMessageBox @browserWindow,
@@ -87,7 +86,7 @@ class AtomWindow
         message: 'The editor has crashed'
         detail: 'Please report this issue to https://github.com/github/atom/issues'
       switch chosen
-        when 0 then setImmediate => @browserWindow.destroy()
+        when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
 
     if isSpec
