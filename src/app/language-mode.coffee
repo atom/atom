@@ -189,9 +189,9 @@ class LanguageMode
   #
   # Returns a {Number} of the indent level of the block of lines.
   minIndentLevelForRowRange: (startRow, endRow) ->
-    indents = (@editSession.indentationForBufferRow(row) for row in [startRow..endRow] when @editSession.lineForBufferRow(row).trim())
-    min = Math.min(indents...)
-    if min == Infinity then 0 else min
+    indents = (@editSession.indentationForBufferRow(row) for row in [startRow..endRow] when not @editSession.isBufferRowBlank(row))
+    indents = [0] unless indents.length
+    Math.min(indents...)
 
   # Indents all the rows between two buffer row numbers.
   #
