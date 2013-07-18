@@ -2,7 +2,7 @@ Project = require 'project'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 
-describe "LanguageMode", ->
+fdescribe "LanguageMode", ->
   [editSession, buffer, languageMode] = []
 
   afterEach ->
@@ -160,58 +160,147 @@ describe "LanguageMode", ->
 
   describe "folding", ->
 
-    describe "with comments", ->
-      beforeEach ->
-        atom.activatePackage('javascript-tmbundle', sync: true)
-        editSession = project.open('sample-with-comments.js', autoIndent: false)
-        {buffer, languageMode} = editSession
+    beforeEach ->
+      atom.activatePackage('javascript-tmbundle', sync: true)
+      editSession = project.open('sample.js', autoIndent: false)
+      {buffer, languageMode} = editSession
 
-      describe ".unfoldAll()", ->
-        it "unfolds every folded line", ->
-          initialScreenLineCount = editSession.getScreenLineCount()
-          editSession.foldBufferRow(0)
-          editSession.foldBufferRow(5)
-          expect(editSession.getScreenLineCount()).toBeLessThan initialScreenLineCount
-          editSession.unfoldAll()
-          expect(editSession.getScreenLineCount()).toBe initialScreenLineCount
+    it "maintains cursor buffer position when a folding/unfolding", ->
+      editSession.setCursorBufferPosition([5,5])
+      languageMode.foldAll()
+      expect(editSession.getCursorBufferPosition()).toEqual([5,5])
 
-      describe ".foldAll()", ->
-        it "folds every foldable line", ->
-          editSession.foldAll()
+    describe ".unfoldAll()", ->
+      it "unfolds every folded line", ->
+        initialScreenLineCount = editSession.getScreenLineCount()
+        languageMode.foldBufferRow(0)
+        languageMode.foldBufferRow(1)
+        expect(editSession.getScreenLineCount()).toBeLessThan initialScreenLineCount
+        languageMode.unfoldAll()
+        expect(editSession.getScreenLineCount()).toBe initialScreenLineCount
 
-          fold1 = editSession.lineForScreenRow(0).fold
-          expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
-          fold1.destroy()
+    describe ".foldAll()", ->
+      it "folds every foldable line", ->
+        languageMode.foldAll()
 
-          fold2 = editSession.lineForScreenRow(1).fold
-          expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 4]
+        fold1 = editSession.lineForScreenRow(0).fold
+        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 12]
+        fold1.destroy()
 
-          fold3 = editSession.lineForScreenRow(2).fold.destroy()
+        fold2 = editSession.lineForScreenRow(1).fold
+        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 9]
+        fold2.destroy()
 
-          fold4 = editSession.lineForScreenRow(3).fold
-          expect([fold4.getStartRow(), fold4.getEndRow()]).toEqual [6, 8]
+        fold3 = editSession.lineForScreenRow(4).fold
+        expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [4, 7]
 
-      describe ".foldAllAtIndentLevel()", ->
-        it "folds every foldable range at a given indentLevel", ->
-          editSession.foldAllAtIndentLevel(2)
+    describe ".foldBufferRow(bufferRow)", ->
+      describe "when bufferRow can be folded", ->
+        it "creates a fold based on the syntactic region starting at the given row", ->
+          languageMode.foldBufferRow(1)
+          fold = editSession.lineForScreenRow(1).fold
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 9
 
-          fold1 = editSession.lineForScreenRow(6).fold
-          expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [6, 8]
-          fold1.destroy()
+      describe "when bufferRow can't be folded", ->
+        it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
+          languageMode.foldBufferRow(8)
+          fold = editSession.lineForScreenRow(1).fold
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 9
 
-          fold2 = editSession.lineForScreenRow(11).fold
-          expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [11, 14]
-          fold2.destroy()
+      describe "when the bufferRow is already folded", ->
+        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
+          languageMode.foldBufferRow(2)
+          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
+          expect(editSession.lineForScreenRow(0).fold).not.toBeDefined()
 
-        it "does not fold anything but the indentLevel", ->
-          editSession.foldAllAtIndentLevel(0)
+          languageMode.foldBufferRow(1)
+          expect(editSession.lineForScreenRow(0).fold).toBeDefined()
 
-          fold1 = editSession.lineForScreenRow(0).fold
-          expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
-          fold1.destroy()
+      describe "when the bufferRow is in a multi-line comment", ->
+        it "searches upward and downward for surrounding comment lines and folds them as a single fold", ->
+          buffer.insert([1,0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
+          languageMode.foldBufferRow(1)
+          fold = editSession.lineForScreenRow(1).fold
+          expect(fold.getStartRow()).toBe 1
+          expect(fold.getEndRow()).toBe 3
 
-          fold2 = editSession.lineForScreenRow(5).fold
-          expect(fold2).toBeFalsy()
+      describe "when the bufferRow is a single-line comment", ->
+        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
+          buffer.insert([1,0], "  //this is a single line comment\n")
+          languageMode.foldBufferRow(1)
+          fold = editSession.lineForScreenRow(0).fold
+          expect(fold.getStartRow()).toBe 0
+          expect(fold.getEndRow()).toBe 13
+
+    describe ".unfoldBufferRow(bufferRow)", ->
+      describe "when bufferRow can be unfolded", ->
+        it "destroys a fold based on the syntactic region starting at the given row", ->
+          languageMode.foldBufferRow(1)
+          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
+
+          languageMode.unfoldBufferRow(1)
+          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+
+      describe "when bufferRow can't be unfolded", ->
+        it "does not throw an error", ->
+          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+          languageMode.unfoldBufferRow(1)
+          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+
+  describe "folding with comments", ->
+    beforeEach ->
+      atom.activatePackage('javascript-tmbundle', sync: true)
+      editSession = project.open('sample-with-comments.js', autoIndent: false)
+      {buffer, languageMode} = editSession
+
+    describe ".unfoldAll()", ->
+      it "unfolds every folded line", ->
+        initialScreenLineCount = editSession.getScreenLineCount()
+        languageMode.foldBufferRow(0)
+        languageMode.foldBufferRow(5)
+        expect(editSession.getScreenLineCount()).toBeLessThan initialScreenLineCount
+        languageMode.unfoldAll()
+        expect(editSession.getScreenLineCount()).toBe initialScreenLineCount
+
+    describe ".foldAll()", ->
+      it "folds every foldable line", ->
+        languageMode.foldAll()
+
+        fold1 = editSession.lineForScreenRow(0).fold
+        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
+        fold1.destroy()
+
+        fold2 = editSession.lineForScreenRow(1).fold
+        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 4]
+
+        fold3 = editSession.lineForScreenRow(2).fold.destroy()
+
+        fold4 = editSession.lineForScreenRow(3).fold
+        expect([fold4.getStartRow(), fold4.getEndRow()]).toEqual [6, 8]
+
+    describe ".foldAllAtIndentLevel()", ->
+      it "folds every foldable range at a given indentLevel", ->
+        languageMode.foldAllAtIndentLevel(2)
+
+        fold1 = editSession.lineForScreenRow(6).fold
+        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [6, 8]
+        fold1.destroy()
+
+        fold2 = editSession.lineForScreenRow(11).fold
+        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [11, 14]
+        fold2.destroy()
+
+      it "does not fold anything but the indentLevel", ->
+        languageMode.foldAllAtIndentLevel(0)
+
+        fold1 = editSession.lineForScreenRow(0).fold
+        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
+        fold1.destroy()
+
+        fold2 = editSession.lineForScreenRow(5).fold
+        expect(fold2).toBeFalsy()
 
 
 
