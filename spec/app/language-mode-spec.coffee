@@ -158,3 +158,40 @@ describe "LanguageMode", ->
         languageMode.toggleLineCommentsForBufferRows(0, 0)
         expect(buffer.lineForRow(0)).toBe "// @color: #4D926F;"
 
+  fdescribe "folding", ->
+
+    describe "with comments", ->
+      beforeEach ->
+        atom.activatePackage('javascript-tmbundle', sync: true)
+        editSession = project.open('sample-with-comments.js', autoIndent: false)
+        {buffer, languageMode} = editSession
+
+      describe ".unfoldAll()", ->
+        it "unfolds every folded line", ->
+          initialScreenLineCount = editSession.getScreenLineCount()
+          editSession.foldBufferRow(0)
+          editSession.foldBufferRow(5)
+          expect(editSession.getScreenLineCount()).toBeLessThan initialScreenLineCount
+          editSession.unfoldAll()
+          expect(editSession.getScreenLineCount()).toBe initialScreenLineCount
+
+      describe ".foldAll()", ->
+        it "folds every foldable line", ->
+          editSession.foldAll()
+
+          fold1 = editSession.lineForScreenRow(0).fold
+          expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
+          fold1.destroy()
+
+          fold2 = editSession.lineForScreenRow(1).fold
+          expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 4]
+
+          fold3 = editSession.lineForScreenRow(2).fold.destroy()
+
+          fold4 = editSession.lineForScreenRow(3).fold
+          expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [6, 8]
+
+
+
+
+
