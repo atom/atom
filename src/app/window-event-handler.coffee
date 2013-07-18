@@ -1,6 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 ipc = require 'ipc'
+remote = require 'remote'
 Subscriber = require 'subscriber'
 fsUtils = require 'fs-utils'
 
@@ -31,6 +32,10 @@ class WindowEventHandler
       e.stopPropagation()
 
     @subscribe $(document), 'click', 'a', @openLink
+
+    @subscribe $(document), 'contextmenu', (e) ->
+      e.preventDefault()
+      remote.getCurrentWindow().emit('context-menu', e.pageX, e.pageY)
 
   openLink: (event) =>
     location = $(event.target).attr('href')
