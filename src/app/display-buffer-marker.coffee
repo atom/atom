@@ -27,6 +27,9 @@ class DisplayBufferMarker
 
   ### Public ###
 
+  copy: (attributes) ->
+    @displayBuffer.getMarker(@bufferMarker.copy(attributes).id)
+
   # Gets the screen range of the display marker.
   #
   # Returns a {Range}.
@@ -119,6 +122,9 @@ class DisplayBufferMarker
   clearTail: ->
     @bufferMarker.clearTail()
 
+  hasTail: ->
+    @bufferMarker.hasTail()
+
   # Returns whether the head precedes the tail in the buffer
   isReversed: ->
     @bufferMarker.isReversed()
@@ -145,6 +151,13 @@ class DisplayBufferMarker
   destroy: ->
     @bufferMarker.destroy()
     @unsubscribe()
+
+  isEqual: (other) ->
+    return false unless other instanceof @constructor
+    @getBufferRange().isEqual(other.getBufferRange()) and
+      @isReversed() is other.isReversed() and
+      @hasTail() is other.hasTail() and
+      _.isEqual(@getAttributes(), other.getAttributes())
 
   # Returns a {String} representation of the marker
   inspect: ->

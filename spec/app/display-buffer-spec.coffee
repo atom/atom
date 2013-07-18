@@ -841,3 +841,15 @@ describe "DisplayBuffer", ->
         marker2.on 'destroyed', destroyedHandler
         buffer.getMarker(marker2.id).destroy()
         expect(destroyedHandler).toHaveBeenCalled()
+
+    describe "DisplayBufferMarker.copy(attributes)", ->
+      it "creates a copy of the marker with the given attributes merged in", ->
+        initialMarkerCount = displayBuffer.getMarkerCount()
+        marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]], a: 1, b: 2)
+        expect(displayBuffer.getMarkerCount()).toBe initialMarkerCount + 1
+
+        marker2 = marker1.copy(b: 3)
+        expect(marker2.getBufferRange()).toEqual marker1.getBufferRange()
+        expect(displayBuffer.getMarkerCount()).toBe initialMarkerCount + 2
+        expect(marker1.getAttributes()).toEqual a: 1, b: 2, invalidation: 'overlap'
+        expect(marker2.getAttributes()).toEqual a: 1, b: 3, invalidation: 'overlap'
