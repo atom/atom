@@ -670,8 +670,7 @@ class Editor extends View
     $(document).one "mouseup.editor-#{@id}", =>
       clearInterval(interval)
       $(document).off 'mousemove', moveHandler
-      reverse = @activeEditSession.getLastSelection().isReversed()
-      @activeEditSession.mergeIntersectingSelections({reverse})
+      @activeEditSession.mergeIntersectingSelections(isReversed: @activeEditSession.getLastSelection().isReversed())
       @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
 
