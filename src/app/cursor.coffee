@@ -244,14 +244,14 @@ class Cursor
     if position = @getBeginningOfNextWordBufferPosition()
       @setBufferPosition(position)
 
-  # Moves the cursor to the previous word boundry.
-  moveToPreviousWordBoundry: ->
-    if position = @getMovePreviousWordBoundryBufferPosition()
+  # Moves the cursor to the previous word boundary.
+  moveToPreviousWordBoundary: ->
+    if position = @getMovePreviousWordBoundaryBufferPosition()
       @setBufferPosition(position)
 
-  # Moves the cursor to the next word boundry.
-  moveToNextWordBoundry: ->
-    if position = @getMoveNextWordBoundryBufferPosition()
+  # Moves the cursor to the next word boundary.
+  moveToNextWordBoundary: ->
+    if position = @getMoveNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
 
   # Retrieves the buffer position of where the current word starts.
@@ -277,7 +277,7 @@ class Cursor
 
   # Retrieves buffer position of previous word boiundry. It might be on the
   # current word, or the previous word.
-  getMovePreviousWordBoundryBufferPosition: (options = {}) ->
+  getMovePreviousWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
@@ -299,7 +299,7 @@ class Cursor
 
   # Retrieves buffer position of previous word boiundry. It might be on the
   # current word, or the previous word.
-  getMoveNextWordBoundryBufferPosition: (options = {}) ->
+  getMoveNextWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     scanRange = [currentBufferPosition, @editSession.getEofBufferPosition()]
 

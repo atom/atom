@@ -141,8 +141,8 @@ class Editor extends View
       'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord
       'editor:move-to-end-of-word': @moveCursorToEndOfWord
       'editor:move-to-beginning-of-next-word': @moveCursorToBeginningOfNextWord
-      'editor:move-to-previous-word-boundry': @moveCursorToPreviousWordBoundry
-      'editor:move-to-next-word-boundry': @moveCursorToNextWordBoundry
+      'editor:move-to-previous-word-boundary': @moveCursorToPreviousWordBoundary
+      'editor:move-to-next-word-boundary': @moveCursorToNextWordBoundary
       'editor:select-to-end-of-line': @selectToEndOfLine
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
@@ -239,11 +239,11 @@ class Editor extends View
   # {Delegates to: EditSession.moveCursorToFirstCharacterOfLine}
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
 
-  # {Delegates to: EditSession.moveCursorToPreviousWordBoundry}
-  moveCursorToPreviousWordBoundry: -> @activeEditSession.moveCursorToPreviousWordBoundry()
+  # {Delegates to: EditSession.moveCursorToPreviousWordBoundary}
+  moveCursorToPreviousWordBoundary: -> @activeEditSession.moveCursorToPreviousWordBoundary()
 
-  # {Delegates to: EditSession.moveCursorToNextWordBoundry}
-  moveCursorToNextWordBoundry: -> @activeEditSession.moveCursorToNextWordBoundry()
+  # {Delegates to: EditSession.moveCursorToNextWordBoundary}
+  moveCursorToNextWordBoundary: -> @activeEditSession.moveCursorToNextWordBoundary()
 
   # {Delegates to: EditSession.moveCursorToEndOfLine}
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()

@@ -1101,11 +1101,11 @@ class EditSession
   moveCursorToBeginningOfNextWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
 
-  moveCursorToPreviousWordBoundry: ->
-    @moveCursors (cursor) -> cursor.moveToPreviousWordBoundry()
+  moveCursorToPreviousWordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToPreviousWordBoundary()
 
-  moveCursorToNextWordBoundry: ->
-    @moveCursors (cursor) -> cursor.moveToNextWordBoundry()
+  moveCursorToNextWordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
   # Internal:
   moveCursors: (fn) ->
@@ -1156,11 +1156,11 @@ class EditSession
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()
 
-  selectToPreviousWordBoundry: ->
-    @expandSelectionsBackward (selection) => selection.selectToPreviousWordBoundry()
+  selectToPreviousWordBoundary: ->
+    @expandSelectionsBackward (selection) => selection.selectToPreviousWordBoundary()
 
-  selectToNextWordBoundry: ->
-    @expandSelectionsForward (selection) => selection.selectToNextWordBoundry()
+  selectToNextWordBoundary: ->
+    @expandSelectionsForward (selection) => selection.selectToNextWordBoundary()
 
   # Selects the current line.
   selectLine: ->

@@ -313,30 +313,30 @@ describe "EditSession", ->
         editSession.moveCursorToBeginningOfWord()
         expect(editSession.getCursorBufferPosition()).toEqual [9, 2]
 
-    describe ".moveCursorToPreviousWordBoundry()", ->
-      it "moves the cursor to the previous word boundry", ->
+    describe ".moveCursorToPreviousWordBoundary()", ->
+      it "moves the cursor to the previous word boundary", ->
         editSession.setCursorBufferPosition [0, 8]
         editSession.addCursorAtBufferPosition [2, 0]
         editSession.addCursorAtBufferPosition [2, 4]
         editSession.addCursorAtBufferPosition [3, 14]
         [cursor1, cursor2, cursor3, cursor4] = editSession.getCursors()
 
-        editSession.moveCursorToPreviousWordBoundry()
+        editSession.moveCursorToPreviousWordBoundary()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 4]
         expect(cursor2.getBufferPosition()).toEqual [1, 30]
         expect(cursor3.getBufferPosition()).toEqual [2, 0]
         expect(cursor4.getBufferPosition()).toEqual [3, 13]
 
-    describe ".moveCursorToNextWordBoundry()", ->
-      it "moves the cursor to the previous word boundry", ->
+    describe ".moveCursorToNextWordBoundary()", ->
+      it "moves the cursor to the previous word boundary", ->
         editSession.setCursorBufferPosition [0, 8]
         editSession.addCursorAtBufferPosition [2, 40]
         editSession.addCursorAtBufferPosition [3, 0]
         editSession.addCursorAtBufferPosition [3, 30]
         [cursor1, cursor2, cursor3, cursor4] = editSession.getCursors()
 
-        editSession.moveCursorToNextWordBoundry()
+        editSession.moveCursorToNextWordBoundary()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 13]
         expect(cursor2.getBufferPosition()).toEqual [3, 0]
@@ -698,14 +698,14 @@ describe "EditSession", ->
         expect(selection2.getBufferRange()).toEqual [[3,48], [3,51]]
         expect(selection2.isReversed()).toBeFalsy()
 
-    describe ".selectToPreviousWordBoundry()", ->
-      it "select to the previous word boundry", ->
+    describe ".selectToPreviousWordBoundary()", ->
+      it "select to the previous word boundary", ->
         editSession.setCursorBufferPosition [0, 8]
         editSession.addCursorAtBufferPosition [2, 0]
         editSession.addCursorAtBufferPosition [3, 4]
         editSession.addCursorAtBufferPosition [3, 14]
 
-        editSession.selectToPreviousWordBoundry()
+        editSession.selectToPreviousWordBoundary()
 
         expect(editSession.getSelections().length).toBe 4
         [selection1, selection2, selection3, selection4] = editSession.getSelections()
@@ -718,14 +718,14 @@ describe "EditSession", ->
         expect(selection4.getBufferRange()).toEqual [[3,14], [3,13]]
         expect(selection4.isReversed()).toBeTruthy()
 
-    describe ".selectToNextWordBoundry()", ->
-      it "select to the next word boundry", ->
+    describe ".selectToNextWordBoundary()", ->
+      it "select to the next word boundary", ->
         editSession.setCursorBufferPosition [0, 8]
         editSession.addCursorAtBufferPosition [2, 40]
         editSession.addCursorAtBufferPosition [4, 0]
         editSession.addCursorAtBufferPosition [3, 30]
 
-        editSession.selectToNextWordBoundry()
+        editSession.selectToNextWordBoundary()
 
         expect(editSession.getSelections().length).toBe 4
         [selection1, selection2, selection3, selection4] = editSession.getSelections()
