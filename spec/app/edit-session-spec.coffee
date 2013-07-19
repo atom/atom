@@ -755,8 +755,10 @@ describe "EditSession", ->
         it "does not remove folds that contain the selections", ->
           editSession.setSelectedBufferRange([[0,0], [0,0]])
           editSession.createFold(1, 4)
-          editSession.setSelectedBufferRanges([[[2, 2], [3, 3]]], preserveFolds: true)
-          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
+          editSession.createFold(6, 8)
+          editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 0], [6, 1]]], preserveFolds: true)
+          expect(editSession.isFoldedAtBufferRow(1)).toBeTruthy()
+          expect(editSession.isFoldedAtBufferRow(6)).toBeTruthy()
 
     describe ".selectMarker(marker)", ->
       describe "if the marker is valid", ->

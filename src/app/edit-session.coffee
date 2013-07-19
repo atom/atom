@@ -875,7 +875,7 @@ class EditSession
   #
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
-    unless options.preserveFolds
+    unless marker.getAttributes().preserveFolds
       @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
