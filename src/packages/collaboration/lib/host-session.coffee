@@ -42,24 +42,18 @@ class HostSession
       @peer.on 'connection', (connection) =>
         connection.on 'open', =>
           console.log 'sending document'
-          connection.send({repoSnapshot, doc: @doc.serialize()})
+          connection.send({repoSnapshot, doc: @doc.serialize(), telepath: true})
           connectDocument(@doc, connection)
+          @sharing = true
+          @trigger 'started'
 
         connection.on 'close', =>
-          console.log 'conection closed'
+          console.log 'sharing session stopped'
+          @sharing = false
           @participants.each (participant, index) =>
             if connection.peer is participant.get('id')
               @participants.remove(index)
-
-      @peer.on 'open', =>
-        console.log 'sharing session started'
-        @sharing = true
-        @trigger 'started'
-
-      @peer.on 'close', =>
-        console.log 'sharing session stopped'
-        @sharing = false
-        @trigger 'stopped'
+          @trigger 'stopped'
 
     @getId()
 
