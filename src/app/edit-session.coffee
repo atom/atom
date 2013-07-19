@@ -1104,6 +1104,9 @@ class EditSession
   moveCursorToPreviousWordBoundry: ->
     @moveCursors (cursor) -> cursor.moveToPreviousWordBoundry()
 
+  moveCursorToNextWordBoundry: ->
+    @moveCursors (cursor) -> cursor.moveToNextWordBoundry()
+
   # Internal:
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()

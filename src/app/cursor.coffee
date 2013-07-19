@@ -249,6 +249,11 @@ class Cursor
     if position = @getMovePreviousWordBoundryBufferPosition()
       @setBufferPosition(position)
 
+  # Moves the cursor to the next word boundry.
+  moveToNextWordBoundry: ->
+    if position = @getMoveNextWordBoundryBufferPosition()
+      @setBufferPosition(position)
+
   # Retrieves the buffer position of where the current word starts.
   #
   # options - A hash with one option:
@@ -291,6 +296,27 @@ class Cursor
         stop()
 
     beginningOfWordPosition or currentBufferPosition
+
+  # Retrieves buffer position of previous word boiundry. It might be on the
+  # current word, or the previous word.
+  getMoveNextWordBoundryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    scanRange = [currentBufferPosition, @editSession.getEofBufferPosition()]
+
+    endOfWordPosition = null
+    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      if range.start.row > currentBufferPosition.row # and currentBufferPosition.column > 0
+        # force it to stop at the beginning of each line
+        endOfWordPosition = new Point(range.start.row, 0)
+      else if range.start.isGreaterThan(currentBufferPosition)
+        endOfWordPosition = range.start
+      else
+        endOfWordPosition = range.end
+
+      if not endOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    endOfWordPosition or currentBufferPosition
 
   # Retrieves the buffer position of where the current word ends.
   #
