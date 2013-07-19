@@ -18,21 +18,26 @@ class GuestSession
 
   constructor: (sessionId) ->
     @peer = createPeer()
-    connection = @peer.connect(sessionId, {reliable: true, connectionId: @getId()})
+    connection = @peer.connect(sessionId, reliable: true)
+
     connection.on 'open', =>
       console.log 'connection opened'
       @trigger 'connection-opened'
-      connection.once 'data', (data) =>
-        @trigger 'connection-document-received'
-        console.log 'received document', data
-        doc = telepath.Document.deserialize(data.doc, site: telepath.createSite(@getId()))
-        atom.windowState = doc.get('windowState')
-        @repository = doc.get('collaborationState.repositoryState')
-        @participants = doc.get('collaborationState.participants')
-        @participants.on 'changed', =>
-          @trigger 'participants-changed', @participants.toObject()
-        connectDocument(doc, connection)
-        @mirrorRepository(data.repoSnapshot)
+
+    connection.on 'data', (data) =>
+      console.log 'received document', data
+      @trigger 'connection-document-received'
+      @createTelepathDocument(data, connection)
+
+  createTelepathDocument: (data, connection) ->
+    doc = telepath.Document.deserialize(data.doc, site: telepath.createSite(@getId()))
+    atom.windowState = doc.get('windowState')
+    @repository = doc.get('collaborationState.repositoryState')
+    @participants = doc.get('collaborationState.participants')
+    @participants.on 'changed', =>
+      @trigger 'participants-changed', @participants.toObject()
+    connectDocument(doc, connection)
+    @mirrorRepository(data.repoSnapshot)
 
   mirrorRepository: (repoSnapshot)->
     repoUrl = @repository.get('url')
