@@ -19,13 +19,20 @@ describe "EditSession", ->
     it "returns a different edit session with the same initial state", ->
       editSession.setSelectedBufferRange([[1, 2], [3, 4]])
       editSession.addSelectionForBufferRange([[5, 6], [7, 8]], isReversed: true)
+      editSession.foldBufferRow(4)
+      expect(editSession.isFoldedAtBufferRow(4)).toBeTruthy()
+
       editSession2 = editSession.copy()
       expect(editSession2.id).not.toBe editSession.id
       expect(editSession2.getSelectedBufferRanges()).toEqual editSession.getSelectedBufferRanges()
       expect(editSession2.getSelection(1).isReversed()).toBeTruthy()
+      expect(editSession2.isFoldedAtBufferRow(4)).toBeTruthy()
 
+      # editSession2 can now diverge from its origin edit session
       editSession2.getSelection().setBufferRange([[2, 1], [4, 3]])
       expect(editSession2.getSelectedBufferRanges()).not.toEqual editSession.getSelectedBufferRanges()
+      editSession2.unfoldBufferRow(4)
+      expect(editSession2.isFoldedAtBufferRow(4)).not.toBe editSession.isFoldedAtBufferRow(4)
 
   describe "title", ->
     describe ".getTitle()", ->

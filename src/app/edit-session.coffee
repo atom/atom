@@ -45,12 +45,12 @@ class EditSession
       @state = optionsOrState
       {@id, tabLength, softTabs, @softWrap} = @state.toObject()
       @setBuffer(project.bufferForId(@state.get('bufferId')))
-      @buildDisplayBuffer({tabLength})
+      @setDisplayBuffer(new DisplayBuffer(@buffer, { tabLength }))
       @addSelection(marker) for marker in @findMarkers(@getSelectionMarkerAttributes())
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
     else
-      {buffer, tabLength, softTabs, @softWrap} = optionsOrState
+      {buffer, displayBuffer, tabLength, softTabs, @softWrap, suppressCursorCreation} = optionsOrState
       @id = guid.create().toString()
       @state = telepath.Document.create
         deserializer: 'EditSession'
@@ -59,8 +59,8 @@ class EditSession
         scrollTop: 0
         scrollLeft: 0
       @setBuffer(buffer)
-      @buildDisplayBuffer({tabLength})
-      @addCursorAtScreenPosition([0, 0])
+      @setDisplayBuffer(displayBuffer ? new DisplayBuffer(@buffer, { tabLength }))
+      @addCursorAtScreenPosition([0, 0]) unless suppressCursorCreation
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
@@ -82,8 +82,7 @@ class EditSession
     @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
     @preserveCursorPositionOnBufferReload()
 
-  buildDisplayBuffer: ({tabLength}) ->
-    @displayBuffer = new DisplayBuffer(@buffer, { tabLength })
+  setDisplayBuffer: (@displayBuffer) ->
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
     @subscribe @displayBuffer, "changed", (e) => @trigger 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
@@ -120,15 +119,13 @@ class EditSession
   # Creates an {EditSession} with the same initial state
   copy: ->
     tabLength = @getTabLength()
-    copy = new EditSession({@buffer, tabLength, @softTabs, @softWrap})
-    copy.setScrollTop(@getScrollTop())
-    copy.setScrollLeft(@getScrollLeft())
-    for selection, i in @getSelections()
-      if i is 0
-        copy.setSelectedBufferRange(selection.getBufferRange(), isReversed: selection.isReversed())
-      else
-        copy.addSelectionForBufferRange(selection.getBufferRange(), isReversed: selection.isReversed())
-    copy
+    displayBuffer = @displayBuffer.copy()
+    newEditSession = new EditSession({@buffer, displayBuffer, tabLength, @softTabs, @softWrap, suppressCursorCreation: true})
+    newEditSession.setScrollTop(@getScrollTop())
+    newEditSession.setScrollLeft(@getScrollLeft())
+    for marker in @findMarkers(editSessionId: @id)
+      marker.copy(editSessionId: newEditSession.id, preserveFolds: true)
+    newEditSession
 
   ### Public ###
 
@@ -605,8 +602,7 @@ class EditSession
   #
   # Returns `true` if the buffer row is folded, `false` otherwise.
   isFoldedAtBufferRow: (bufferRow) ->
-    screenRow = @screenPositionForBufferPosition([bufferRow]).row
-    @isFoldedAtScreenRow(screenRow)
+    @displayBuffer.isFoldedAtBufferRow(bufferRow)
 
   # Determines if the given screen row is folded.
   #
@@ -614,7 +610,7 @@ class EditSession
   #
   # Returns `true` if the screen row is folded, `false` otherwise.
   isFoldedAtScreenRow: (screenRow) ->
-    @lineForScreenRow(screenRow)?.fold?
+    @displayBuffer.isFoldedAtScreenRow(screenRow)
 
   # {Delegates to: DisplayBuffer.largestFoldContainingBufferRow}
   largestFoldContainingBufferRow: (bufferRow) ->
@@ -786,6 +782,9 @@ class EditSession
   # Returns a valid {DisplayBufferMarker} object for the given id if one exists.
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
+
+  getMarkers: ->
+    @displayBuffer.getMarkers()
 
   findMarkers: (attributes) ->
     @displayBuffer.findMarkers(attributes)
