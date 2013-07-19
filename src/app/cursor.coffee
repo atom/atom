@@ -305,7 +305,7 @@ class Cursor
 
     endOfWordPosition = null
     @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
-      if range.start.row > currentBufferPosition.row # and currentBufferPosition.column > 0
+      if range.start.row > currentBufferPosition.row
         # force it to stop at the beginning of each line
         endOfWordPosition = new Point(range.start.row, 0)
       else if range.start.isGreaterThan(currentBufferPosition)
