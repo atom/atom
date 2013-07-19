@@ -148,6 +148,8 @@ class Editor extends View
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
       'editor:select-to-beginning-of-next-word': @selectToBeginningOfNextWord
+      'editor:select-to-next-word-boundary': @selectToNextWordBoundary
+      'editor:select-to-previous-word-boundary': @selectToPreviousWordBoundary
       'editor:add-selection-below': @addSelectionBelow
       'editor:add-selection-above': @addSelectionAbove
       'editor:select-line': @selectLine
@@ -337,6 +339,12 @@ class Editor extends View
 
   # {Delegates to: EditSession.selectToEndOfLine}
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+
+  # {Delegates to: EditSession.selectToPreviousWordBoundary}
+  selectToPreviousWordBoundary: -> @activeEditSession.selectToPreviousWordBoundary()
+
+  # {Delegates to: EditSession.selectToNextWordBoundary}
+  selectToNextWordBoundary: -> @activeEditSession.selectToNextWordBoundary()
 
   # {Delegates to: EditSession.addSelectionBelow}
   addSelectionBelow: -> @activeEditSession.addSelectionBelow()
