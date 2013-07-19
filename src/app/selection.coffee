@@ -84,7 +84,7 @@ class Selection
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
-    options.reverse ?= @isReversed()
+    options.isReversed ?= @isReversed()
     @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       @cursor.needsAutoscroll = false if options.autoscroll?
