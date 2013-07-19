@@ -439,8 +439,8 @@ class TextBuffer
   #   hasTail - if `false`, the marker is created without a tail
   #
   # Returns a {Number} representing the new marker's ID.
-  markRange: (range, attributes={}) ->
-    @text.markRange(range, attributes)
+  markRange: (range, options={}) ->
+    @text.markRange(range, options)
 
   # Constructs a new marker at a given position.
   #
