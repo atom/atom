@@ -698,6 +698,46 @@ describe "EditSession", ->
         expect(selection2.getBufferRange()).toEqual [[3,48], [3,51]]
         expect(selection2.isReversed()).toBeFalsy()
 
+    describe ".selectToPreviousWordBoundry()", ->
+      it "select to the previous word boundry", ->
+        editSession.setCursorBufferPosition [0, 8]
+        editSession.addCursorAtBufferPosition [2, 0]
+        editSession.addCursorAtBufferPosition [3, 4]
+        editSession.addCursorAtBufferPosition [3, 14]
+
+        editSession.selectToPreviousWordBoundry()
+
+        expect(editSession.getSelections().length).toBe 4
+        [selection1, selection2, selection3, selection4] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,8], [0,4]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[2,0], [1,30]]
+        expect(selection2.isReversed()).toBeTruthy()
+        expect(selection3.getBufferRange()).toEqual [[3,4], [3,0]]
+        expect(selection3.isReversed()).toBeTruthy()
+        expect(selection4.getBufferRange()).toEqual [[3,14], [3,13]]
+        expect(selection4.isReversed()).toBeTruthy()
+
+    describe ".selectToNextWordBoundry()", ->
+      it "select to the next word boundry", ->
+        editSession.setCursorBufferPosition [0, 8]
+        editSession.addCursorAtBufferPosition [2, 40]
+        editSession.addCursorAtBufferPosition [4, 0]
+        editSession.addCursorAtBufferPosition [3, 30]
+
+        editSession.selectToNextWordBoundry()
+
+        expect(editSession.getSelections().length).toBe 4
+        [selection1, selection2, selection3, selection4] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,8], [0,13]]
+        expect(selection1.isReversed()).toBeFalsy()
+        expect(selection2.getBufferRange()).toEqual [[2,40], [3,0]]
+        expect(selection2.isReversed()).toBeFalsy()
+        expect(selection3.getBufferRange()).toEqual [[4,0], [4,4]]
+        expect(selection3.isReversed()).toBeFalsy()
+        expect(selection4.getBufferRange()).toEqual [[3,30], [3,31]]
+        expect(selection4.isReversed()).toBeFalsy()
+
     describe ".selectWord()", ->
       describe "when the cursor is inside a word", ->
         it "selects the entire word", ->

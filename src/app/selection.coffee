@@ -214,6 +214,14 @@ class Selection
   selectToBeginningOfNextWord: ->
     @modifySelection => @cursor.moveToBeginningOfNextWord()
 
+  # Selects text to the previous word boundry.
+  selectToPreviousWordBoundry: ->
+    @modifySelection => @cursor.moveToPreviousWordBoundry()
+
+  # Selects text to the next word boundry.
+  selectToNextWordBoundry: ->
+    @modifySelection => @cursor.moveToNextWordBoundry()
+
   # Moves the selection down one row.
   addSelectionBelow: ->
     range = (@goalBufferRange ? @getBufferRange()).copy()

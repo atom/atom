@@ -1156,6 +1156,12 @@ class EditSession
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()
 
+  selectToPreviousWordBoundry: ->
+    @expandSelectionsBackward (selection) => selection.selectToPreviousWordBoundry()
+
+  selectToNextWordBoundry: ->
+    @expandSelectionsForward (selection) => selection.selectToNextWordBoundry()
+
   # Selects the current line.
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
