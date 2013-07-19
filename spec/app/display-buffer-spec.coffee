@@ -873,5 +873,5 @@ describe "DisplayBuffer", ->
         marker2 = marker1.copy(b: 3)
         expect(marker2.getBufferRange()).toEqual marker1.getBufferRange()
         expect(displayBuffer.getMarkerCount()).toBe initialMarkerCount + 2
-        expect(marker1.getAttributes()).toEqual a: 1, b: 2, invalidation: 'overlap'
-        expect(marker2.getAttributes()).toEqual a: 1, b: 3, invalidation: 'overlap'
+        expect(marker1.getAttributes()).toEqual a: 1, b: 2
+        expect(marker2.getAttributes()).toEqual a: 1, b: 3

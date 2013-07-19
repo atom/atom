@@ -12,13 +12,13 @@ module.exports =
       event.id = nextOutputEventId++
       console.log 'sending event', event.id, event
       connection.send(event)
-    doc.on('output', outputListener)
+    doc.on('replicate-change', outputListener)
 
     queuedEvents = []
     nextInputEventId = 1
     handleInputEvent = (event) ->
       console.log 'received event', event.id, event
-      doc.handleInputEvent(event)
+      doc.applyRemoteChange(event)
       nextInputEventId = event.id + 1
     flushQueuedEvents = ->
       loop
