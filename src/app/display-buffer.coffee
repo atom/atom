@@ -35,7 +35,8 @@ class DisplayBuffer
 
   copy: ->
     newDisplayBuffer = new DisplayBuffer(@buffer, tabLength: @getTabLength())
-    @findMarkers(displayBufferId: @id).map (marker) -> marker.copy(displayBufferId: newDisplayBuffer.id)
+    for marker in @findMarkers(displayBufferId: @id)
+      marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
 
   updateAllScreenLines: ->
@@ -404,8 +405,7 @@ class DisplayBuffer
   #
   # Returns the {DisplayBufferMarker} (if it exists).
   getMarker: (id) ->
-    marker = @markers[id]
-    unless marker?
+    unless marker = @markers[id]
       if bufferMarker = @buffer.getMarker(id)
         marker = new DisplayBufferMarker({bufferMarker, displayBuffer: this})
         @markers[id] = marker
