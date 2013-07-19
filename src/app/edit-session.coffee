@@ -1146,7 +1146,7 @@ class EditSession
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
 
-  # Moves every cursor to the first non-whitespace character of the line.
+  # Selects to the first non-whitespace character of the line.
   selectToFirstCharacterOfLine: ->
     @expandSelectionsBackward (selection) => selection.selectToFirstCharacterOfLine()
 
