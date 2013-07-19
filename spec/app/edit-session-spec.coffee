@@ -313,6 +313,21 @@ describe "EditSession", ->
         editSession.moveCursorToBeginningOfWord()
         expect(editSession.getCursorBufferPosition()).toEqual [9, 2]
 
+    fdescribe ".moveCursorToPreviousWordBoundry()", ->
+      it "moves the cursor to the previous word boundry", ->
+        editSession.setCursorBufferPosition [0, 8]
+        editSession.addCursorAtBufferPosition [2, 0]
+        editSession.addCursorAtBufferPosition [2, 4]
+        editSession.addCursorAtBufferPosition [3, 14]
+        [cursor1, cursor2, cursor3, cursor4] = editSession.getCursors()
+
+        editSession.moveCursorToPreviousWordBoundry()
+
+        expect(cursor1.getBufferPosition()).toEqual [0, 4]
+        expect(cursor2.getBufferPosition()).toEqual [1, 30]
+        expect(cursor3.getBufferPosition()).toEqual [2, 0]
+        expect(cursor4.getBufferPosition()).toEqual [3, 13]
+
     describe ".moveCursorToEndOfWord()", ->
       it "moves the cursor to the end of the word", ->
         editSession.setCursorBufferPosition [0, 6]
