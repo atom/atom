@@ -3,17 +3,15 @@ TokenizedLine = require 'tokenized-line'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Token = require 'token'
-{Point, Range} = require 'telepath'
+telepath = require 'telepath'
+{Point, Range} = telepath
 
 ### Internal ###
 
 module.exports =
 class TokenizedBuffer
-  @idCounter: 1
-
   grammar: null
   currentGrammarScore: null
-  tabLength: null
   buffer: null
   aceAdaptor: null
   tokenizedLines: null
@@ -21,9 +19,22 @@ class TokenizedBuffer
   invalidRows: null
   visible: false
 
-  constructor: (@buffer, { @tabLength } = {}) ->
-    @tabLength ?= 2
-    @id = @constructor.idCounter++
+  @acceptsDocuments: true
+  registerDeserializer(this)
+
+  @deserialize: (state) ->
+    new this(state)
+
+  constructor: (optionsOrState) ->
+    if optionsOrState instanceof telepath.Document
+      @state = optionsOrState
+      @buffer = project.bufferForId(optionsOrState.get('bufferId'))
+    else
+      { @buffer, tabLength } = optionsOrState
+      @state = telepath.create
+        deserializer: @constructor.name
+        bufferId: @buffer.id
+        tabLength: tabLength ? 2
 
     @subscribe syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
@@ -33,9 +44,12 @@ class TokenizedBuffer
         @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
     @on 'grammar-changed grammar-updated', => @resetTokenizedLines()
-    @subscribe @buffer, "changed.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
+    @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
 
     @reloadGrammar()
+
+  serialize: -> @state.clone()
+  getState: -> @state
 
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
@@ -70,12 +84,13 @@ class TokenizedBuffer
   #
   # Returns a {Number}.
   getTabLength: ->
-    @tabLength
+    @state.get('tabLength')
 
   # Specifies the tab length.
   #
   # tabLength - A {Number} that defines the new tab length.
-  setTabLength: (@tabLength) ->
+  setTabLength: (tabLength) ->
+    @state.set('tabLength', tabLength)
     lastRow = @buffer.getLastRow()
     @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
     @invalidateRow(0)
@@ -174,13 +189,15 @@ class TokenizedBuffer
   buildPlaceholderTokenizedLineForRow: (row) ->
     line = @buffer.lineForRow(row)
     tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
-    new TokenizedLine({tokens, @tabLength})
+    tabLength = @getTabLength()
+    new TokenizedLine({tokens, tabLength})
 
   buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
+    tabLength = @getTabLength()
     { tokens, ruleStack } = @grammar.tokenizeLine(line, ruleStack, row is 0)
-    new TokenizedLine({tokens, ruleStack, @tabLength, lineEnding})
+    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding})
 
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
@@ -200,7 +217,6 @@ class TokenizedBuffer
 
   destroy: ->
     @unsubscribe()
-    @buffer.off ".tokenized-buffer#{@id}"
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)

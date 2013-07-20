@@ -22,7 +22,7 @@ class DisplayBuffer
 
   constructor: (@buffer, options={}) ->
     @id = guid.create().toString()
-    @tokenizedBuffer = new TokenizedBuffer(@buffer, options)
+    @tokenizedBuffer = new TokenizedBuffer(_.defaults({@buffer}, options))
     @softWrapColumn = options.softWrapColumn ? Infinity
     @markers = {}
     @foldsByMarkerId = {}

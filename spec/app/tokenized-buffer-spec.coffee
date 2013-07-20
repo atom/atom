@@ -16,10 +16,18 @@ describe "TokenizedBuffer", ->
     advanceClock() while tokenizedBuffer.firstInvalidRow()?
     changeHandler?.reset()
 
+  describe "@deserialize(state)", ->
+    it "constructs a tokenized buffer with the same buffer and tabLength setting", ->
+      buffer = project.bufferForPath('sample.js')
+      tokenizedBuffer1 = new TokenizedBuffer(buffer: buffer, tabLength: 4)
+      tokenizedBuffer2 = deserialize(tokenizedBuffer1.serialize())
+      expect(tokenizedBuffer2.buffer).toBe tokenizedBuffer1.buffer
+      expect(tokenizedBuffer2.getTabLength()).toBe tokenizedBuffer1.getTabLength()
+
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
       buffer = project.bufferForPath('sample.js')
-      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setVisible(true)
       tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
 
@@ -299,7 +307,7 @@ describe "TokenizedBuffer", ->
     beforeEach ->
       atom.activatePackage('coffee-script-tmbundle', sync: true)
       buffer = project.bufferForPath('sample-with-tabs.coffee')
-      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setVisible(true)
 
     afterEach ->
@@ -311,7 +319,7 @@ describe "TokenizedBuffer", ->
         fullyTokenize(tokenizedBuffer)
 
       it "renders each tab as its own atomic token with a value of size tabLength", ->
-        tabAsSpaces = _.multiplyString(' ', tokenizedBuffer.tabLength)
+        tabAsSpaces = _.multiplyString(' ', tokenizedBuffer.getTabLength())
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
         { tokens } = screenLine0
@@ -332,7 +340,7 @@ describe "TokenizedBuffer", ->
         'abc\uD835\uDF97def'
         //\uD835\uDF97xyz
       """
-      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setVisible(true)
       fullyTokenize(tokenizedBuffer)
 
@@ -369,7 +377,7 @@ describe "TokenizedBuffer", ->
       atom.activatePackage('ruby-on-rails-tmbundle', sync: true)
 
       buffer = project.bufferForPath(null, "<div class='name'><%= User.find(2).full_name %></div>")
-      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setGrammar(syntax.selectGrammar('test.erb'))
       tokenizedBuffer.setVisible(true)
       fullyTokenize(tokenizedBuffer)
@@ -389,7 +397,7 @@ describe "TokenizedBuffer", ->
 
     it "returns the correct token (regression)", ->
       buffer = project.bufferForPath('sample.js')
-      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setVisible(true)
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
