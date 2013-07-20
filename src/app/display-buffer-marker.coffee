@@ -144,6 +144,9 @@ class DisplayBufferMarker
   getAttributes: ->
     @bufferMarker.getAttributes()
 
+  setAttributes: (attributes) ->
+    @bufferMarker.setAttributes(attributes)
+
   matchesAttributes: (attributes) ->
     @bufferMarker.matchesAttributes(attributes)
 

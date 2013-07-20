@@ -108,7 +108,7 @@ class Selection
 
   # Clears the selection, moving the marker to move to the head.
   clear: ->
-    @setGoalBufferRange(null)
+    @marker.setAttributes(goalBufferRange: null)
     @marker.clearTail() unless @retainSelection
 
   # Modifies the selection to mark the current word.
@@ -231,9 +231,6 @@ class Selection
 
   getGoalBufferRange: ->
     @marker.getAttributes().goalBufferRange
-
-  setGoalBufferRange: (goalBufferRange) ->
-    @marker.getAttributes().goalBufferRange = goalBufferRange
 
   # Moves the selection up one row.
   addSelectionAbove: ->
@@ -514,14 +511,13 @@ class Selection
   # otherSelection - A `Selection` to merge with
   # options - A hash of options matching those found in {.setBufferRange}
   merge: (otherSelection, options) ->
-    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
-
     myGoalBufferRange = @getGoalBufferRange()
     otherGoalBufferRange = otherSelection.getGoalBufferRange()
     if myGoalBufferRange? and otherGoalBufferRange?
-      @setGoalBufferRange(myGoalBufferRange.union(otherGoalBufferRange))
-    else if otherGoalBufferRange
-      @setGoalBufferRange(otherGoalBufferRange)
+      options.goalBufferRange = myGoalBufferRange.union(otherGoalBufferRange)
+    else
+      options.goalBufferRange = myGoalBufferRange ? otherGoalBufferRange
+    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
     otherSelection.destroy()
 
   ### Internal ###
