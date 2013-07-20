@@ -37,3 +37,16 @@ fdescribe "Bookmarks package", ->
 
       editor.trigger 'bookmarks:toggle-bookmark'
       expect(displayBuffer.findMarkers(class: 'bookmark').length).toEqual 0
+
+    it "toggles proper classes on proper gutter row", ->
+      editSession.setCursorBufferPosition([3, 10])
+      expect(editor.find('.bookmarked').length).toEqual 0
+
+      editor.trigger 'bookmarks:toggle-bookmark'
+
+      lines = editor.find('.bookmarked')
+      expect(lines.length).toEqual 1
+      expect(lines.attr('linenumber')).toEqual '3'
+
+      editor.trigger 'bookmarks:toggle-bookmark'
+      expect(editor.find('.bookmarked').length).toEqual 0

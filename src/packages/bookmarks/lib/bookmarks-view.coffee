@@ -9,7 +9,8 @@ class BookmarksView
   editor: null
 
   constructor: (@editor) ->
-    @editor.on 'editor:display-updated', @updateBookmarkedLines
+    @gutter = @editor.gutter
+    @editor.on 'editor:display-updated', @renderBookmarkMarkers
 
     rootView.command 'bookmarks:toggle-bookmark', '.editor', @toggleBookmark
     rootView.command 'bookmarks:jump-to-next-bookmark', '.editor', @jumpToNextBookmark
@@ -19,7 +20,7 @@ class BookmarksView
     cursors = @editor.getCursors()
     for cursor in cursors
       position = cursor.getBufferPosition()
-      bookmarks = @findBookmarkMarkers(position.row)
+      bookmarks = @findBookmarkMarkers(startBufferRow: position.row)
 
       if bookmarks and bookmarks.length
         bookmark.destroy() for bookmark in bookmarks
@@ -28,8 +29,7 @@ class BookmarksView
         newmark = @createBookmarkMarker(position.row)
         console.log('bookmarking', position, newmark)
 
-  updateBookmarkedLines: =>
-    console.log('update!', @editor)
+    @renderBookmarkMarkers()
 
   jumpToNextBookmark: =>
     console.log('next bm', @editor)
@@ -37,6 +37,15 @@ class BookmarksView
   jumpToPreviousBookmark: =>
     console.log('prev bm', @editor)
 
+  renderBookmarkMarkers: =>
+    return unless @gutter.isVisible()
+
+    @gutter.find(".line-number.bookmarked").removeClass('bookmarked')
+
+    markers = @findBookmarkMarkers()
+    for marker in markers
+      row = marker.getBufferRange().start.row
+      @gutter.find(".line-number[lineNumber=#{row}]").addClass('bookmarked')
 
   ### Internal ###
 
@@ -44,8 +53,8 @@ class BookmarksView
     range = [[bufferRow, 0], [bufferRow, 0]]
     @displayBuffer().markBufferRange(range, @bookmarkMarkerAttributes(invalidationStrategy: 'never'))
 
-  findBookmarkMarkers: (bufferRow) ->
-    @displayBuffer().findMarkers(@bookmarkMarkerAttributes(startBufferRow: bufferRow))
+  findBookmarkMarkers: (attributes={}) ->
+    @displayBuffer().findMarkers(@bookmarkMarkerAttributes(attributes))
 
   bookmarkMarkerAttributes: (attributes={}) ->
     _.extend(attributes, class: 'bookmark', displayBufferId: @displayBuffer().id)
