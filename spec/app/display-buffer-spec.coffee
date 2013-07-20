@@ -17,13 +17,15 @@ describe "DisplayBuffer", ->
     buffer.release()
 
   describe "@deserialize(state)", ->
-    it "constructs a display buffer with the same buffer, softWrapColumn, and tabLength", ->
+    it "constructs a display buffer with the same buffer, folds, softWrapColumn, and tabLength", ->
       displayBuffer.setTabLength(4)
       displayBuffer.setSoftWrapColumn(64)
+      displayBuffer.createFold(2, 4)
       displayBuffer2 = deserialize(displayBuffer.serialize())
       expect(displayBuffer2.id).toBe displayBuffer.id
       expect(displayBuffer2.buffer).toBe displayBuffer.buffer
       expect(displayBuffer2.tokenizedBuffer.buffer).toBe displayBuffer.tokenizedBuffer.buffer
+      expect(displayBuffer2.isFoldedAtBufferRow(2)).toBeTruthy()
       expect(displayBuffer2.getSoftWrapColumn()).toBe displayBuffer.getSoftWrapColumn()
       expect(displayBuffer2.getTabLength()).toBe displayBuffer.getTabLength()
 
