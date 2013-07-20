@@ -45,8 +45,8 @@ class DisplayBuffer
     @updateAllScreenLines()
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
-    @subscribe @buffer, 'markers-updated', @handleMarkersUpdated
-    @subscribe @buffer, 'marker-created', @handleMarkerCreated
+    @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
+    @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
   serialize: -> @state.clone()
   getState: -> @state
@@ -135,7 +135,7 @@ class DisplayBuffer
   createFold: (startRow, endRow) ->
     foldMarker =
       @findFoldMarker({startRow, endRow}) ?
-        @buffer.markRange([[startRow, 0], [endRow, Infinity]], @foldMarkerAttributes())
+        @buffer.markRange([[startRow, 0], [endRow, Infinity]], @getFoldMarkerAttributes())
     @foldForMarker(foldMarker)
 
   isFoldedAtBufferRow: (bufferRow) ->
@@ -514,9 +514,9 @@ class DisplayBuffer
     @findFoldMarkers(attributes)[0]
 
   findFoldMarkers: (attributes) ->
-    @buffer.findMarkers(@foldMarkerAttributes(attributes))
+    @buffer.findMarkers(@getFoldMarkerAttributes(attributes))
 
-  foldMarkerAttributes: (attributes={}) ->
+  getFoldMarkerAttributes: (attributes={}) ->
     _.extend(attributes, class: 'fold', displayBufferId: @id)
 
   pauseMarkerObservers: ->
@@ -641,14 +641,17 @@ class DisplayBuffer
         @longestScreenRow = maxLengthCandidatesStartRow + screenRow
         @maxLineLength = length
 
-  handleMarkersUpdated: =>
+  handleBufferMarkersUpdated: =>
     if event = @pendingChangeEvent
       @pendingChangeEvent = null
       @triggerChanged(event, false)
 
-  handleMarkerCreated: (marker) =>
-    new Fold(this, marker) if marker.matchesAttributes(@foldMarkerAttributes())
+  handleBufferMarkerCreated: (marker) =>
+    @createFoldForMarker(marker) if marker.matchesAttributes(@getFoldMarkerAttributes())
     @trigger 'marker-created', @getMarker(marker.id)
+
+  createFoldForMarker: (marker) ->
+    new Fold(this, marker)
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
