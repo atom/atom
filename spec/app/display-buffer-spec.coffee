@@ -8,13 +8,24 @@ describe "DisplayBuffer", ->
     tabLength = 2
     atom.activatePackage('javascript-tmbundle', sync: true)
     buffer = project.bufferForPath('sample.js')
-    displayBuffer = new DisplayBuffer(buffer, { tabLength })
+    displayBuffer = new DisplayBuffer({buffer, tabLength})
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'changed', changeHandler
 
   afterEach ->
     displayBuffer.destroy()
     buffer.release()
+
+  describe "@deserialize(state)", ->
+    it "constructs a display buffer with the same buffer, softWrapColumn, and tabLength", ->
+      displayBuffer.setTabLength(4)
+      displayBuffer.setSoftWrapColumn(64)
+      displayBuffer2 = deserialize(displayBuffer.serialize())
+      expect(displayBuffer2.id).toBe displayBuffer.id
+      expect(displayBuffer2.buffer).toBe displayBuffer.buffer
+      expect(displayBuffer2.tokenizedBuffer.buffer).toBe displayBuffer.tokenizedBuffer.buffer
+      expect(displayBuffer2.getSoftWrapColumn()).toBe displayBuffer.getSoftWrapColumn()
+      expect(displayBuffer2.getTabLength()).toBe displayBuffer.getTabLength()
 
   describe ".copy()", ->
     it "creates a new DisplayBuffer with the same initial state", ->
@@ -168,7 +179,7 @@ describe "DisplayBuffer", ->
       displayBuffer.destroy()
       buffer.release()
       buffer = project.bufferForPath('two-hundred.txt')
-      displayBuffer = new DisplayBuffer(buffer, { tabLength })
+      displayBuffer = new DisplayBuffer({buffer, tabLength})
       displayBuffer.on 'changed', changeHandler
 
     describe "when folds are created and destroyed", ->
@@ -274,7 +285,7 @@ describe "DisplayBuffer", ->
 
       describe "when there is another display buffer pointing to the same buffer", ->
         it "does not create folds in the other display buffer", ->
-          otherDisplayBuffer = new DisplayBuffer(buffer, { tabLength })
+          otherDisplayBuffer = new DisplayBuffer({buffer, tabLength})
           displayBuffer.createFold(2, 4)
           expect(otherDisplayBuffer.foldsStartingAtBufferRow(2).length).toBe 0
 

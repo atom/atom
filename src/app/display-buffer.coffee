@@ -1,6 +1,7 @@
 _ = require 'underscore'
 guid = require 'guid'
-{Point, Range} = require 'telepath'
+telepath = require 'telepath'
+{Point, Range} = telepath
 TokenizedBuffer = require 'tokenized-buffer'
 RowMap = require 'row-map'
 EventEmitter = require 'event-emitter'
@@ -11,30 +12,47 @@ Subscriber = require 'subscriber'
 
 module.exports =
 class DisplayBuffer
-  @idCounter: 1
   screenLines: null
   rowMap: null
   tokenizedBuffer: null
   markers: null
   foldsByMarkerId: null
 
-  ### Internal ###
+  @acceptsDocuments: true
+  registerDeserializer(this)
 
-  constructor: (@buffer, options={}) ->
-    @id = guid.create().toString()
-    @tokenizedBuffer = new TokenizedBuffer(_.defaults({@buffer}, options))
-    @softWrapColumn = options.softWrapColumn ? Infinity
+  @deserialize: (state) ->
+    new DisplayBuffer(state)
+
+  constructor: (optionsOrState) ->
+    if optionsOrState instanceof telepath.Document
+      @state = optionsOrState
+      @id = @state.get('id')
+      @tokenizedBuffer = deserialize(@state.get('tokenizedBuffer'))
+      @buffer = @tokenizedBuffer.buffer
+    else
+      {@buffer, softWrapColumn} = optionsOrState
+      @id = guid.create().toString()
+      @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
+      @state = telepath.create
+        deserializer: @constructor.name
+        id: @id
+        tokenizedBuffer: @tokenizedBuffer.getState()
+        softWrapColumn: softWrapColumn ? Infinity
+
     @markers = {}
     @foldsByMarkerId = {}
     @updateAllScreenLines()
-
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
     @subscribe @buffer, 'markers-updated', @handleMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleMarkerCreated
 
+  serialize: -> @state.clone()
+  getState: -> @state
+
   copy: ->
-    newDisplayBuffer = new DisplayBuffer(@buffer, tabLength: @getTabLength())
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
     newDisplayBuffer
@@ -62,13 +80,17 @@ class DisplayBuffer
   # Defines the limit at which the buffer begins to soft wrap text.
   #
   # softWrapColumn - A {Number} defining the soft wrap limit.
-  setSoftWrapColumn: (@softWrapColumn) ->
+  setSoftWrapColumn: (softWrapColumn) ->
+    @state.set('softWrapColumn', softWrapColumn)
     start = 0
     end = @getLastRow()
     @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
     @triggerChanged({ start, end, screenDelta, bufferDelta })
+
+  getSoftWrapColumn: ->
+    @state.get('softWrapColumn')
 
   # Gets the screen line for the given screen row.
   #
@@ -379,7 +401,7 @@ class DisplayBuffer
   #
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (line, softWrapColumn=@softWrapColumn) ->
+  findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])

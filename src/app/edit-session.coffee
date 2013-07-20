@@ -45,7 +45,7 @@ class EditSession
       @state = optionsOrState
       {@id, tabLength, softTabs, @softWrap} = @state.toObject()
       @setBuffer(project.bufferForId(@state.get('bufferId')))
-      @setDisplayBuffer(new DisplayBuffer(@buffer, { tabLength }))
+      @setDisplayBuffer(new DisplayBuffer({@buffer, tabLength}))
       @addSelection(marker) for marker in @findMarkers(@getSelectionMarkerAttributes())
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
@@ -59,7 +59,7 @@ class EditSession
         scrollTop: 0
         scrollLeft: 0
       @setBuffer(buffer)
-      @setDisplayBuffer(displayBuffer ? new DisplayBuffer(@buffer, { tabLength }))
+      @setDisplayBuffer(displayBuffer ? new DisplayBuffer({@buffer, tabLength}))
       @addCursorAtScreenPosition([0, 0]) unless suppressCursorCreation
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
