@@ -108,7 +108,7 @@ class EditSession
     @off()
 
   serialize: -> @state.clone()
-  getState: -> @serialize()
+  getState: -> @state
 
   # Creates an {EditSession} with the same initial state
   copy: ->
