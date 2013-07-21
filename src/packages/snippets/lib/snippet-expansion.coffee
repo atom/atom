@@ -8,7 +8,6 @@ class SnippetExpansion
   settingTabStop: false
 
   constructor: (@snippet, @editSession) ->
-
     @editSession.selectToBeginningOfWord()
     startPosition = @editSession.getCursorBufferPosition()
     @editSession.transact =>
@@ -60,7 +59,7 @@ class SnippetExpansion
     markerSelected
 
   tabStopsForBufferPosition: (bufferPosition) ->
-    _.intersection(@tabStopMarkers, @editSession.markersForBufferPosition(bufferPosition))
+    _.intersection(@tabStopMarkers, @editSession.findMarkers(containsBufferPosition: bufferPosition))
 
   destroy: ->
     @unsubscribe()
