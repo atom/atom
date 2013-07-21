@@ -1244,14 +1244,6 @@ class EditSession
       @setSelectedBufferRange(range)
       range
 
-  # Given a buffer position, this finds all markers that contain the position.
-  #
-  # bufferPosition - A {Point} to check
-  #
-  # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
-  markersForBufferPosition: (bufferPosition) ->
-    @buffer.markersForPosition(bufferPosition)
-
   mergeCursors: ->
     positions = []
     for cursor in @getCursors()
