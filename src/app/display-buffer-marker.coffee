@@ -148,7 +148,21 @@ class DisplayBufferMarker
     @bufferMarker.setAttributes(attributes)
 
   matchesAttributes: (attributes) ->
-    @bufferMarker.matchesAttributes(attributes)
+    for key, value of attributes
+      return false unless @matchesAttribute(key, value)
+    true
+
+  matchesAttribute: (key, value) ->
+    switch key
+      when 'startBufferRow'
+        key = 'startRow'
+      when 'endBufferRow'
+        key = 'endRow'
+      when 'containsBufferRange'
+        key = 'containsRange'
+      when 'containsBufferPosition'
+        key = 'containsPosition'
+    @bufferMarker.matchesAttribute(key, value)
 
   # Destroys the marker
   destroy: ->
@@ -158,6 +172,9 @@ class DisplayBufferMarker
   isEqual: (other) ->
     return false unless other instanceof @constructor
     @bufferMarker.isEqual(other.bufferMarker)
+
+  compare: (other) ->
+    @bufferMarker.compare(other.bufferMarker)
 
   # Returns a {String} representation of the marker
   inspect: ->

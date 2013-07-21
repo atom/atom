@@ -504,12 +504,8 @@ class DisplayBuffer
   #
   # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (attributes) ->
-    { startBufferRow, endBufferRow, containsBufferRange } = attributes
-    attributes.startRow = startBufferRow if startBufferRow?
-    attributes.endRow = endBufferRow if endBufferRow?
-    attributes.containsRange = containsBufferRange if containsBufferRange?
-    attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow', 'containsBufferRange'])
-    @buffer.findMarkers(attributes).map ({id}) => @getMarker(id)
+    markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
+    markers.sort (a, b) -> a.compare(b)
 
   findFoldMarker: (attributes) ->
     @findFoldMarkers(attributes)[0]
