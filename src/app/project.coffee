@@ -71,8 +71,8 @@ class Project
       for insertedBuffer, i in inserted
         @addBufferAtIndex(deserialize(insertedBuffer), index + i, updateState: false)
 
-  serialize: ->
-    @state
+  serialize: -> @state.clone()
+  getState: -> @state
 
   # Retrieves the project path.
   #

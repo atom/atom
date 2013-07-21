@@ -11,7 +11,7 @@ describe "Project replication", ->
     project1.bufferForPath('a')
     expect(project1.getBuffers().length).toBe 1
 
-    doc1 = project1.serialize()
+    doc1 = project1.getState()
     doc2 = doc1.clone(createSite(2))
     doc1.connect(doc2)
 
