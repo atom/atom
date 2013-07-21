@@ -403,6 +403,9 @@ class TextBuffer
   getMarker: (id) ->
     @text.getMarker(id)
 
+  destroyMarker: (id) ->
+    @getMarker(id)?.destroy()
+
   # Public: Finds the first marker satisfying the given attributes
   #
   # Returns a {String} marker-identifier
