@@ -90,9 +90,7 @@ class TextBuffer
     this
 
   serialize: ->
-    state = @state.clone()
-    state.remove('text') unless @isModified()
-    state
+    @state.clone()
 
   getState: -> @state
 

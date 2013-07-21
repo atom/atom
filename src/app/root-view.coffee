@@ -32,7 +32,7 @@ class RootView extends View
     @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
-          @subview 'panes', deserialize(state?.get?('panes')) ? new PaneContainer
+          @div outlet: 'panes'
 
   @deserialize: (state) ->
     new RootView(state)
@@ -40,8 +40,16 @@ class RootView extends View
   initialize: (state={}) ->
     if state instanceof telepath.Document
       @state = state
+      panes = deserialize(state.get('panes'))
     else
-      @state = telepath.Document.create(_.extend({version: RootView.version, deserializer: 'RootView', panes: @panes.serialize()}, state))
+      panes = new PaneContainer
+      @state = telepath.create
+        deserializer: @constructor.name
+        version: @constructor.version
+        panes: panes.getState()
+
+    @panes.replaceWith(panes)
+    @panes = panes
 
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
@@ -83,9 +91,12 @@ class RootView extends View
     _.nextTick => atom.setFullScreen(@state.get('fullScreen'))
 
   serialize: ->
-    @panes.serialize()
-    @state.set('fullScreen', atom.isFullScreen())
-    @state
+    state = @state.clone()
+    state.set('panes', @panes.serialize())
+    state.set('fullScreen', atom.isFullScreen())
+    state
+
+  getState: -> @state
 
   handleFocus: (e) ->
     if @getActivePane()

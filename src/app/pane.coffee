@@ -33,7 +33,7 @@ class Pane extends View
       @items = args
       @state = telepath.Document.create
         deserializer: 'Pane'
-        items: @items.map (item) -> item.getState?() ? item.serialize()
+        items: @items.map (item) -> item.getState()
 
     @state.get('items').on 'changed', ({index, removed, inserted, site}) =>
       return if site is @state.site.id
@@ -315,9 +315,10 @@ class Pane extends View
     @viewForItem(@activeItem)
 
   serialize: ->
-    @state.get('items').set(index, item.serialize()) for item, index in @items
-    @state.set focused: @is(':has(:focus)')
-    @state
+    state = @state.clone()
+    state.set('items', item.serialize() for item, index in @items)
+    state.set('focused', @is(':has(:focus)'))
+    state
 
   getState: -> @state
 
@@ -374,7 +375,7 @@ class Pane extends View
     @closest('#panes').view()
 
   copyActiveItem: ->
-    deserialize(@activeItem.serialize())
+    @activeItem.copy?() ? deserialize(@activeItem.serialize())
 
   remove: (selector, keepData) ->
     return super if keepData
