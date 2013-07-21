@@ -22,7 +22,7 @@ class EditSession
 
   ### Internal ###
 
-  @version: 3
+  @version: 4
 
   @deserialize: (state) ->
     new EditSession(state)
@@ -32,45 +32,49 @@ class EditSession
   displayBuffer: null
   cursors: null
   selections: null
-  softTabs: true
-  softWrap: false
   suppressSelectionMerging: false
 
   constructor: (optionsOrState) ->
     @cursors = []
     @selections = []
-
     if optionsOrState instanceof telepath.Document
-      project.editSessions.push(this)
       @state = optionsOrState
-      {@id, tabLength, softTabs, @softWrap} = @state.toObject()
-      @setBuffer(project.bufferForId(@state.get('bufferId')))
-      @setDisplayBuffer(new DisplayBuffer({@buffer, tabLength}))
-      @addSelection(marker) for marker in @findMarkers(@getSelectionMarkerAttributes())
+      @id = @state.get('id')
+      displayBuffer = deserialize(@state.get('displayBuffer'))
+      @setBuffer(displayBuffer.buffer)
+      @setDisplayBuffer(displayBuffer)
+      for marker in @findMarkers(@getSelectionMarkerAttributes())
+        marker.setAttributes(preserveFolds: true)
+        @addSelection(marker)
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
     else
-      {buffer, displayBuffer, tabLength, softTabs, @softWrap, suppressCursorCreation} = optionsOrState
+      {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation} = optionsOrState
       @id = guid.create().toString()
+      displayBuffer ?= new DisplayBuffer({buffer, tabLength})
       @state = telepath.Document.create
         deserializer: 'EditSession'
         version: @constructor.version
         id: @id
+        bufferId: buffer.id
+        displayBuffer: displayBuffer.getState()
+        softWrap: softWrap ? false
+        softTabs: buffer.usesSoftTabs() ? softTabs ? true
         scrollTop: 0
         scrollLeft: 0
       @setBuffer(buffer)
-      @setDisplayBuffer(displayBuffer ? new DisplayBuffer({@buffer, tabLength}))
+      @setDisplayBuffer(displayBuffer)
       @addCursorAtScreenPosition([0, 0]) unless suppressCursorCreation
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
-
     @state.on 'changed', ({key, newValue}) =>
       switch key
         when 'scrollTop'
           @trigger 'scroll-top-changed', newValue
         when 'scrollLeft'
           @trigger 'scroll-left-changed', newValue
+
+    project.editSessions.push(this)
 
   setBuffer: (@buffer) ->
     @buffer.retain()
@@ -103,24 +107,16 @@ class EditSession
     @trigger 'destroyed'
     @off()
 
-  serialize: ->
-    @state.set
-      bufferId: @buffer.id
-      scrollTop: @getScrollTop()
-      scrollLeft: @getScrollLeft()
-      tabLength: @getTabLength()
-      softTabs: @softTabs
-      softWrap: @softWrap
-      cursorScreenPosition: @getCursorScreenPosition().serialize()
-    @state
-
+  serialize: -> @state.clone()
   getState: -> @serialize()
 
   # Creates an {EditSession} with the same initial state
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
-    newEditSession = new EditSession({@buffer, displayBuffer, tabLength, @softTabs, @softWrap, suppressCursorCreation: true})
+    softTabs = @getSoftTabs()
+    softWrap = @getSoftWrap()
+    newEditSession = new EditSession({@buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation: true})
     newEditSession.setScrollTop(@getScrollTop())
     newEditSession.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editSessionId: @id)
@@ -197,20 +193,26 @@ class EditSession
   # softWrapColumn - A {Number} defining the soft wrap limit
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
 
+  getSoftTabs: ->
+    @state.get('softTabs')
+
   # Defines whether to use soft tabs.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft tabs.
-  setSoftTabs: (@softTabs) ->
+  setSoftTabs: (softTabs) ->
+    @state.set('softTabs', softTabs)
 
   # Retrieves whether soft tabs are enabled.
   #
   # Returns a {Boolean}.
-  getSoftWrap: -> @softWrap
+  getSoftWrap: ->
+    @state.get('softWrap')
 
   # Defines whether to use soft wrapping of text.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft wraps.
-  setSoftWrap: (@softWrap) ->
+  setSoftWrap: (softWrap) ->
+    @state.set('softWrap', softWrap)
 
   # Retrieves that character used to indicate a tab.
   #
@@ -286,7 +288,7 @@ class EditSession
 
   # Constructs the string used for tabs.
   buildIndentString: (number) ->
-    if @softTabs
+    if @getSoftTabs()
       _.multiplyString(" ", number * @getTabLength())
     else
       _.multiplyString("\t", Math.floor(number))
@@ -491,7 +493,7 @@ class EditSession
   #
   # bufferRange - The {Range} to perform the replace in
   normalizeTabsInBufferRange: (bufferRange) ->
-    return unless @softTabs
+    return unless @getSoftTabs()
     @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
 
   # Performs a cut to the end of the current line.

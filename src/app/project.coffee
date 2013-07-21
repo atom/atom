@@ -333,7 +333,6 @@ class Project
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
     options.buffer = buffer
     editSession = new EditSession(options)
-    @editSessions.push editSession
     @trigger 'edit-session-created', editSession
     editSession
 

@@ -357,7 +357,7 @@ class Cursor
   #
   # Returns a {Number}.
   getIndentLevel: ->
-    if @editSession.softTabs
+    if @editSession.getSoftTabs()
       @getBufferColumn() / @editSession.getTabLength()
     else
       @getBufferColumn()
