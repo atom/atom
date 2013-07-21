@@ -33,7 +33,7 @@ class Pane extends View
       @items = args
       @state = telepath.Document.create
         deserializer: 'Pane'
-        items: @items.map (item) -> item.getState()
+        items: @items.map (item) -> item.getState?() ? item.serialize()
 
     @state.get('items').on 'changed', ({index, removed, inserted, site}) =>
       return if site is @state.site.id
