@@ -193,6 +193,10 @@ class TextBuffer
 
     return multipleLines.join ''
 
+  # {Delegates to: Buffer.change}
+  setTextInRange: (range, text) ->
+    @change(range, text)
+
   # Gets all the lines in a file.
   #
   # Returns an {Array} of {String}s.
@@ -659,6 +663,14 @@ class TextBuffer
 
   abort: -> @undoManager.abort()
 
+  # Given a range, replaces it with some new text.
+  #
+  # oldRange - A {Range} object specifying your points of interest
+  # newText - A {String} representing the new text
+  # options - An optional {Object} with the following keys:
+  #           normalizeLineEndings: A {Boolean} which, if `true`, normalizes the text's line endings
+  #
+  # Returns a {Range} representing the new text range.
   change: (oldRange, newText, options) ->
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})

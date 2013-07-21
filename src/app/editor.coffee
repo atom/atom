@@ -564,6 +564,9 @@ class Editor extends View
   #  {Delegates to: Buffer.getTextInRange}
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
 
+  #  {Delegates to: Buffer.getTextInRange}
+  setTextInRange: (range, text) -> @getBuffer().setTextInRange(range, text)
+
   #  {Delegates to: Buffer.getEofPosition}
   getEofPosition: -> @getBuffer().getEofPosition()
 
