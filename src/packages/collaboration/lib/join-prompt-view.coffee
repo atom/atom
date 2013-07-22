@@ -2,7 +2,8 @@
 Editor = require 'editor'
 $ = require 'jquery'
 _ = require 'underscore'
-Guid = require 'guid'
+
+{getSessionId} = require './session-utils'
 
 module.exports =
 class JoinPromptView extends View
@@ -19,8 +20,8 @@ class JoinPromptView extends View
     @on 'core:cancel', => @remove()
 
     clipboard = pasteboard.read()[0]
-    if Guid.isGuid(clipboard)
-      @miniEditor.setText(clipboard)
+    if sessionId = getSessionId(clipboard)
+      @miniEditor.setText(sessionId)
 
     @attach()
 
@@ -29,7 +30,7 @@ class JoinPromptView extends View
     @miniEditor.setText('')
 
   confirm: ->
-    @confirmed(@miniEditor.getText())
+    @confirmed(@miniEditor.getText().trim())
     @remove()
 
   attach: ->

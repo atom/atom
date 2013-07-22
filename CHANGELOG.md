@@ -1,3 +1,11 @@
+* Fixed: Search never completing in the command panel
+
+* Fixed: cmd-n now works when no windows are open
+
+* Fixed: Error selecting a grammar for an untitled editor
+
+* Added: j/k now can be used to navigate the tree view and archive editor
+
 * Fixed: Atom can now be launched when ~/.atom/config.cson doesn't exist
 * Added: Initial collaboration sessions
 * Fixed: Empty lines being deleted via uppercase/downcase command

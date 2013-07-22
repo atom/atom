@@ -75,6 +75,12 @@ describe "the `syntax` global", ->
 
         expect(syntax.selectGrammar('more.test', '')).toBe grammar1
 
+    describe "when there is no file path", ->
+      it "does not throw an exception (regression)", ->
+        expect(-> syntax.selectGrammar(null, '#!/usr/bin/ruby')).not.toThrow()
+        expect(-> syntax.selectGrammar(null, '')).not.toThrow()
+        expect(-> syntax.selectGrammar(null, null)).not.toThrow()
+
   describe ".removeGrammar(grammar)", ->
     it "removes the grammar, so it won't be returned by selectGrammar", ->
       grammar = syntax.selectGrammar('foo.js')

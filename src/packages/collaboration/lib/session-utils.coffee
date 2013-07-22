@@ -1,7 +1,26 @@
-Peer = require './peer'
+Peer = require '../vendor/peer.js'
 Guid = require 'guid'
 
+url = require 'url'
+
 module.exports =
+  getSessionId: (text) ->
+    return null unless text
+
+    text = text.trim()
+    sessionUrl = url.parse(text)
+    if sessionUrl.host is 'session'
+      sessionId = sessionUrl.path.split('/')[1]
+    else
+      sessionId = text
+
+    if Guid.isGuid(sessionId)
+      sessionId
+    else
+      null
+
+  getSessionUrl: (sessionId) -> "atom://session/#{sessionId}"
+
   createPeer: ->
     id = Guid.create().toString()
     new Peer(id, key: '0njqmaln320dlsor')
@@ -9,6 +28,7 @@ module.exports =
   connectDocument: (doc, connection) ->
     nextOutputEventId = 1
     outputListener = (event) ->
+      return unless connection.open
       event.id = nextOutputEventId++
       console.log 'sending event', event.id, event
       connection.send(event)
@@ -39,7 +59,7 @@ module.exports =
         queuedEvents.push(event)
 
     connection.on 'close', ->
-      doc.off('output', outputListener)
+      doc.off('replicate-change', outputListener)
 
     connection.on 'error', (error) ->
       console.error 'connection error', error.stack ? error

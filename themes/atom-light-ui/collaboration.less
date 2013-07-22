@@ -1,0 +1,18 @@
+@runningColor: #f78a46;
+
+.collaboration {
+  background: #dde3e8;
+  border-left: 1px solid #989898;
+
+  .guest {
+    color: #5293d8;
+  }
+
+  .running {
+    color: @runningColor;
+
+    &:hover {
+      color: darken(@runningColor, 10%);
+    }
+  }
+}

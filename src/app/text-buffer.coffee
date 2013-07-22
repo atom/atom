@@ -147,6 +147,9 @@ class TextBuffer
   getPath: ->
     @file?.getPath()
 
+  getUri: ->
+    project?.relativize(@getPath()) ? @getPath()
+
   # Sets the path for the file.
   #
   # path - A {String} representing the new file path

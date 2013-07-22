@@ -74,11 +74,10 @@ class TextMateGrammar
   getScore: (filePath, contents) ->
     contents = fsUtils.read(filePath) if not contents? and fsUtils.isFileSync(filePath)
 
-
     if syntax.grammarOverrideForPath(filePath) is @scopeName
-      2 + filePath.length
+      2 + (filePath?.length ? 0)
     else if @matchesContents(contents)
-      1 + filePath.length
+      1 + (filePath?.length ? 0)
     else
       @getPathScore(filePath)
 

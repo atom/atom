@@ -29,7 +29,7 @@ on creating your first package.
 
 ## package.json
 
-Similar to [npm packages](http://en.wikipedia.org/wiki/Npm_(software)), Atom packages
+Similar to [npm packages](http://en.wikipedia.org/wiki/Npm_(software\)), Atom packages
 can contain a _package.json_ file in their top-level directory. This file contains metadata
 about the package, such as the path to its "main" module, library dependencies,
 and manifests specifying the order in which its resources should be loaded.

@@ -49,7 +49,9 @@ class Directory
   # pathToCheck - the {String} path to check.
   #
   # Returns a {Boolean}.
-  contains: (pathToCheck='') ->
+  contains: (pathToCheck) ->
+    return false unless pathToCheck
+
     if pathToCheck.indexOf(path.join(@getPath(), path.sep)) is 0
       true
     else if pathToCheck.indexOf(path.join(@getRealPath(), path.sep)) is 0
@@ -62,7 +64,9 @@ class Directory
   # fullPath - The {String} path to convert.
   #
   # Returns a {String}.
-  relativize: (fullPath='') ->
+  relativize: (fullPath) ->
+    return fullPath unless fullPath
+
     if fullPath is @getPath()
       ''
     else if fullPath.indexOf(path.join(@getPath(), path.sep)) is 0

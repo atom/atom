@@ -82,7 +82,8 @@ describe "Project", ->
 
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
-        expect(project.open("a.foo", hey: "there")).toEqual { foo: "a.foo", options: {hey: "there"} }
+        pathToOpen = project.resolve('a.foo')
+        expect(project.open(pathToOpen, hey: "there")).toEqual { foo: pathToOpen, options: {hey: "there"} }
         expect(project.open("bar://baz")).toEqual { bar: "bar://baz" }
 
   describe ".bufferForPath(path)", ->

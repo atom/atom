@@ -1,3 +1,31 @@
+var _ = require('underscore');
+var convertStackTrace = require('coffeestack').convertStackTrace;
+
+var sourceMaps = {};
+var formatStackTrace = function(stackTrace) {
+  if (!stackTrace)
+    return stackTrace;
+
+  // Remove all lines containing jasmine.js path
+  var jasminePath = require.resolve('jasmine');
+  var jasminePattern = new RegExp("\\(" + _.escapeRegExp(jasminePath) + ":\\d+:\\d+\\)\\s*$");
+  var convertedLines = [];
+  var lines = stackTrace.split('\n');
+  for (var i = 0; i < lines.length; i++)
+    if (!jasminePattern.test(lines[i]))
+      convertedLines.push(lines[i]);
+
+  //Remove last util.spawn.callDone line and all lines after it
+  var gruntSpawnPattern = /^\s*at util\.spawn\.callDone\s*\(.*\/grunt\/util\.js:\d+:\d+\)\s*$/
+  for (var i = convertedLines.length - 1; i > 0; i--)
+    if (gruntSpawnPattern.test(convertedLines[i])) {
+      convertedLines = convertedLines.slice(0, i);
+      break;
+    }
+
+  return convertStackTrace(convertedLines.join('\n'), sourceMaps);
+}
+
 jasmine.ConsoleReporter = function(doc, logErrors) {
   this.logErrors = logErrors == false ? false : true
 };
@@ -35,7 +63,7 @@ jasmine.ConsoleReporter.prototype.reportSpecResults = function(spec) {
       console.log("\n\n" + message)
       console.log((new Array(message.length + 1)).join('-'))
       if (result.trace.stack) {
-        console.log(result.trace.stack)
+        console.log(formatStackTrace(result.trace.stack));
       }
       else {
        console.log(result.message)

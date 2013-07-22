@@ -12,6 +12,8 @@
   'a': 'tree-view:add'
   'delete': 'tree-view:remove'
   'backspace': 'tree-view:remove'
+  'k': 'core:move-up'
+  'j': 'core:move-down'
 
 '.tree-view-dialog .mini.editor':
   'enter': 'core:confirm'
