@@ -45,18 +45,15 @@ class AutocompleteView extends SelectList
 
   selectItem: (item) ->
     super
-
     match = @getSelectedElement()
     @replaceSelectedTextWithMatch(match) if match
 
   selectNextItem: ->
     super
-
     false
 
   selectPreviousItem: ->
     super
-
     false
 
   buildWordList: ->
