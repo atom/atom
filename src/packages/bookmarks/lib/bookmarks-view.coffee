@@ -61,6 +61,7 @@ class BookmarksView
   getPreviousBookmark: (bufferRow) ->
     markers = @findBookmarkMarkers()
     return null unless markers.length
+    return markers[0] if markers.length == 1
 
     bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
       if marker.getBufferRange then marker.getBufferRange().start.row else marker
@@ -73,6 +74,7 @@ class BookmarksView
   getNextBookmark: (bufferRow) ->
     markers = @findBookmarkMarkers()
     return null unless markers.length
+    return markers[0] if markers.length == 1
 
     bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
       if marker.getBufferRange then marker.getBufferRange().start.row else marker

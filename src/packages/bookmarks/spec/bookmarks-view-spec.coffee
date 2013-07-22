@@ -62,6 +62,39 @@ describe "Bookmarks package", ->
       editor.trigger 'bookmarks:jump-to-previous-bookmark'
       expect(editSession.getCursor().getBufferPosition()).toEqual [5, 10]
 
+    describe "with one bookmark", ->
+      beforeEach ->
+        editSession.setCursorBufferPosition([2, 0])
+        editor.trigger 'bookmarks:toggle-bookmark'
+
+      it "jump-to-next-bookmark jumps to the right place", ->
+        editSession.setCursorBufferPosition([0, 0])
+
+        editor.trigger 'bookmarks:jump-to-next-bookmark'
+        expect(editSession.getCursor().getBufferPosition()).toEqual [2, 0]
+
+        editor.trigger 'bookmarks:jump-to-next-bookmark'
+        expect(editSession.getCursor().getBufferPosition()).toEqual [2, 0]
+
+        editSession.setCursorBufferPosition([5, 0])
+
+        editor.trigger 'bookmarks:jump-to-next-bookmark'
+        expect(editSession.getCursor().getBufferPosition()).toEqual [2, 0]
+
+      it "jump-to-previous-bookmark jumps to the right place", ->
+        editSession.setCursorBufferPosition([0, 0])
+
+        editor.trigger 'bookmarks:jump-to-previous-bookmark'
+        expect(editSession.getCursor().getBufferPosition()).toEqual [2, 0]
+
+        editor.trigger 'bookmarks:jump-to-previous-bookmark'
+        expect(editSession.getCursor().getBufferPosition()).toEqual [2, 0]
+
+        editSession.setCursorBufferPosition([5, 0])
+
+        editor.trigger 'bookmarks:jump-to-previous-bookmark'
+        expect(editSession.getCursor().getBufferPosition()).toEqual [2, 0]
+
     describe "with bookmarks", ->
       beforeEach ->
         editSession.setCursorBufferPosition([2, 0])
