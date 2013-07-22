@@ -105,7 +105,13 @@ class Installer extends Command
   isTextMateBundlePath: (bundlePath) ->
     path.extname(path.basename(bundlePath, '.git')) is '.tmbundle'
 
+  createAtomDirectories: ->
+    mkdir(@atomDirectory)
+    mkdir(@atomPackagesDirectory)
+    mkdir(@atomNodeDirectory)
+
   run: (options) ->
+    @createAtomDirectories()
     modulePath = options.commandArgs.shift() ? '.'
     if modulePath is '.'
       @installDependencies(options)

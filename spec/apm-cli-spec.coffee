@@ -131,6 +131,21 @@ describe 'apm command line interface', ->
             expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'package.json'))).toBeTruthy()
             expect(callback.mostRecentCall.args[0]).toBeUndefined()
 
+      describe "when the packages directory does not exist", ->
+        it "creates the packages directory and any intermediate directories that do not exist", ->
+          atomHome = temp.path('apm-home-dir-')
+          process.env.ATOM_HOME = atomHome
+          expect(fs.existsSync(atomHome)).toBe false
+
+          callback = jasmine.createSpy('callback')
+          apm.run(['install', "http://localhost:3000/test-module-1.0.0.tgz"], callback)
+
+          waitsFor 'waiting for install to complete', 600000, ->
+            callback.callCount is 1
+
+          runs ->
+            expect(fs.existsSync(atomHome)).toBe true
+
   describe 'apm list', ->
     [resourcePath, atomHome] = []
 
