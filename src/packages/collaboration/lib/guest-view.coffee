@@ -26,8 +26,6 @@ class GuestView extends View
 
   addStream: (stream) ->
     return unless stream
-    console.log "STREAM", @video[0]
-
     @video[0].src = URL.createObjectURL(stream)
 
   updateParticipants: (participants) ->

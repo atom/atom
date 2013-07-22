@@ -6,6 +6,7 @@ class HostView extends View
   @content: ->
     @div class: 'collaboration', tabindex: -1, =>
       @div outlet: 'share', type: 'button', class: 'share'
+      @video autoplay: true, outlet: 'video'
       @div outlet: 'participants'
 
   hostSession: null
@@ -28,7 +29,16 @@ class HostView extends View
     @hostSession.on 'participants-changed', (participants) =>
       @updateParticipants(participants)
 
+    @addStream(@hostSession.stream)
+    @hostSession.on 'stream-ready', (stream) =>
+      console.log "Stream is ready", stream
+      @addStream(stream)
+
     @attach()
+
+  addStream: (stream) ->
+    return unless stream
+    @video[0].src = URL.createObjectURL(stream)
 
   updateParticipants: (participants) ->
     @participants.empty()

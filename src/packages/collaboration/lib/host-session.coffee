@@ -14,21 +14,24 @@ class HostSession
   participants: null
   peer: null
   sharing: false
-  mediaConnection: null
+  stream: null
 
   start: ->
     return if @peer?
 
     servers = null
-    @mediaConnection = new webkitRTCPeerConnection(servers)
-    @mediaConnection.onicecandidate = (event) =>
+    mediaConnection = new webkitRTCPeerConnection(servers)
+    mediaConnection.onicecandidate = (event) =>
       return unless event.candidate?
       console.log "Set Host Candidate", event.candidate
       @doc.set 'collaborationState.host.candidate', event.candidate
 
-    constraints = {video: true, audio: true}
-    success = (stream) => @mediaConnection.addStream(stream)
+    mediaConnection.onaddstream = ({@stream}) =>
+      @trigger 'stream-ready', @stream
+      console.log('Added Stream', @stream)
 
+    constraints = {video: true, audio: true}
+    success = (stream) => mediaConnection.addStream(stream)
     navigator.webkitGetUserMedia constraints, success, console.error
 
     @peer = createPeer()
@@ -53,19 +56,19 @@ class HostSession
       guest.on 'changed', ({key, newValue}) =>
         switch key
           when 'ready'
-            @mediaConnection.createOffer (description) =>
+            mediaConnection.createOffer (description) =>
               console.log "Create Offer", description
-              @mediaConnection.setLocalDescription(description)
+              mediaConnection.setLocalDescription(description)
               host.set 'description', description
           when 'description'
             guestDescription = newValue.toObject()
             console.log "Received Guest description", guestDescription
             sessionDescription = new RTCSessionDescription(guestDescription)
-            @mediaConnection.setRemoteDescription(sessionDescription)
+            mediaConnection.setRemoteDescription(sessionDescription)
           when 'candidate'
             guestCandidate = new RTCIceCandidate newValue.toObject()
             console.log('Host received candidate', guestCandidate)
-            @mediaConnection.addIceCandidate(new RTCIceCandidate(guestCandidate))
+            mediaConnection.addIceCandidate(new RTCIceCandidate(guestCandidate))
           else
             throw new Error("Unknown guest key '#{key}'")
 

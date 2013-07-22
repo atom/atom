@@ -33,6 +33,7 @@ class GuestSession
   createTelepathDocument: (data, connection) ->
     doc = telepath.Document.deserialize(data.doc, site: telepath.createSite(@getId()))
 
+
     servers = null
     mediaConnection = new webkitRTCPeerConnection(servers)
     mediaConnection.onicecandidate = (event) =>
@@ -43,6 +44,10 @@ class GuestSession
     mediaConnection.onaddstream = ({@stream}) =>
       @trigger 'stream-ready', @stream
       console.log('Added Stream', @stream)
+
+    constraints = {video: true, audio: true}
+    success = (stream) => mediaConnection.addStream(stream)
+    navigator.webkitGetUserMedia constraints, success, console.error
 
     atom.windowState = doc.get('windowState')
     @repository = doc.get('collaborationState.repositoryState')
