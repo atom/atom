@@ -187,6 +187,18 @@ describe "EditSession", ->
           editSession.moveCursorLeft()
           expect(editSession.getCursorBufferPosition()).toEqual [5, 4]
 
+      describe "when there is a selection", ->
+        beforeEach ->
+          editSession.setSelectedBufferRange([[5, 22],[5, 27]])
+
+        it "moves to the left of the selection", ->
+          cursor = editSession.getCursor()
+          editSession.moveCursorLeft()
+          expect(cursor.getBufferPosition()).toEqual [5, 22]
+
+          editSession.moveCursorLeft()
+          expect(cursor.getBufferPosition()).toEqual [5, 21]
+
       it "merges cursors when they overlap", ->
         editSession.setCursorScreenPosition([0, 0])
         editSession.addCursorAtScreenPosition([0, 1])
@@ -220,6 +232,18 @@ describe "EditSession", ->
             editSession.moveCursorRight()
 
             expect(editSession.getCursorScreenPosition()).toEqual(lastPosition)
+
+      describe "when there is a selection", ->
+        beforeEach ->
+          editSession.setSelectedBufferRange([[5, 22],[5, 27]])
+
+        it "moves to the left of the selection", ->
+          cursor = editSession.getCursor()
+          editSession.moveCursorRight()
+          expect(cursor.getBufferPosition()).toEqual [5, 27]
+
+          editSession.moveCursorRight()
+          expect(cursor.getBufferPosition()).toEqual [5, 28]
 
       it "merges cursors when they overlap", ->
         editSession.setCursorScreenPosition([12, 2])
