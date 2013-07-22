@@ -1,3 +1,6 @@
+* Fixed: Save As dialog now defaults to directory path of current editor
+* Fixed: Using toggle comment shortcut respects indentation level
+
 * Fixed: Search never completing in the command panel
 
 * Fixed: cmd-n now works when no windows are open

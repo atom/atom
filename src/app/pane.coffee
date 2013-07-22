@@ -1,3 +1,4 @@
+{dirname} = require 'path'
 {View} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'
@@ -221,7 +222,10 @@ class Pane extends View
 
   saveItemAs: (item, nextAction) ->
     return unless item.saveAs?
-    path = atom.showSaveDialogSync()
+
+    itemPath = item.getUri?()
+    itemPath = dirname(itemPath) if itemPath
+    path = atom.showSaveDialogSync(itemPath)
     if path
       item.saveAs(path)
       nextAction?()

@@ -739,6 +739,31 @@ describe "EditSession", ->
           editSession.selectWord()
           expect(editSession.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
 
+    describe ".selectToFirstCharacterOfLine()", ->
+      it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
+        editSession.setCursorScreenPosition [0,5]
+        editSession.addCursorAtScreenPosition [1,7]
+
+        editSession.selectToFirstCharacterOfLine()
+
+        [cursor1, cursor2] = editSession.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor2.getBufferPosition()).toEqual [1,2]
+
+        expect(editSession.getSelections().length).toBe 2
+        [selection1, selection2] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,0], [0,5]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[1,2], [1,7]]
+        expect(selection2.isReversed()).toBeTruthy()
+
+        editSession.selectToFirstCharacterOfLine()
+        [selection1, selection2] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,0], [0,5]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[1,0], [1,7]]
+        expect(selection2.isReversed()).toBeTruthy()
+
     describe ".setSelectedBufferRanges(ranges)", ->
       it "clears existing selections and creates selections for each of the given ranges", ->
         editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
@@ -1761,10 +1786,10 @@ describe "EditSession", ->
         editSession.setSelectedBufferRange([[4, 5], [7, 5]])
         editSession.toggleLineCommentsInSelection()
 
-        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "//       current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//     }"
+        expect(buffer.lineForRow(4)).toBe "    // while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "    //   current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "    //   current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "    // }"
         expect(editSession.getSelectedBufferRange()).toEqual [[4, 8], [7, 8]]
 
         editSession.toggleLineCommentsInSelection()
@@ -1776,9 +1801,9 @@ describe "EditSession", ->
       it "does not comment the last line of a non-empty selection if it ends at column 0", ->
         editSession.setSelectedBufferRange([[4, 5], [7, 0]])
         editSession.toggleLineCommentsInSelection()
-        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "//       current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(4)).toBe "    // while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "    //   current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "    //   current < pivot ? left.push(current) : right.push(current);"
         expect(buffer.lineForRow(7)).toBe "    }"
 
       it "uncomments lines if all lines match the comment regex", ->
@@ -2378,54 +2403,9 @@ describe "EditSession", ->
             editSession.insertText('foo')
             expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
-    describe "editor.autoIndentOnPaste", ->
-      describe "when the text contains multiple lines", ->
-        beforeEach ->
-          copyText("function() {\ninside=true\n}\n  i=1\n")
-          editSession.setCursorBufferPosition([2, 0])
-
-        it "does not auto-indent pasted text by default", ->
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(2)).toBe "function() {"
-          expect(editSession.lineForBufferRow(3)).toBe "inside=true"
-          expect(editSession.lineForBufferRow(4)).toBe "}"
-          expect(editSession.lineForBufferRow(5)).toBe "  i=1"
-
-        it "auto-indents pasted text when editor.autoIndentOnPaste is true", ->
-          config.set("editor.autoIndentOnPaste", true)
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(2)).toBe "    function() {"
-          expect(editSession.lineForBufferRow(3)).toBe "      inside=true"
-          expect(editSession.lineForBufferRow(4)).toBe "    }"
-          expect(editSession.lineForBufferRow(5)).toBe "    i=1"
-
-      describe "when the text contains no newlines", ->
-        it "increaseses indent of pasted text when editor.autoIndentOnPaste is true", ->
-          copyText("var number")
-          editSession.setCursorBufferPosition([10, 0])
-          config.set("editor.autoIndentOnPaste", true)
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(10)).toBe "  var number"
-
-        it "decreaseses indent of pasted text when editor.autoIndentOnPaste is true", ->
-          copyText("    var number")
-          editSession.setCursorBufferPosition([10, 0])
-          config.set("editor.autoIndentOnPaste", true)
-          editSession.pasteText()
-          expect(editSession.lineForBufferRow(10)).toBe "  var number"
-
     describe "editor.normalizeIndentOnPaste", ->
       beforeEach ->
         config.set('editor.normalizeIndentOnPaste', true)
-
-      it "does not normalize the indentation level of the text when editor.autoIndentOnPaste is true", ->
-        copyText("   function() {\nvar cool = 1;\n  }\n")
-        config.set('editor.autoIndentOnPaste', true)
-        editSession.setCursorBufferPosition([5, ])
-        editSession.pasteText()
-        expect(editSession.lineForBufferRow(5)).toBe "      function() {"
-        expect(editSession.lineForBufferRow(6)).toBe "        var cool = 1;"
-        expect(editSession.lineForBufferRow(7)).toBe "      }"
 
       it "does not normalize the indentation level of the text when editor.normalizeIndentOnPaste is false", ->
         copyText("   function() {\nvar cool = 1;\n  }\n")

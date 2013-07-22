@@ -14,19 +14,27 @@ describe "LanguageMode", ->
       editSession = project.open('sample.js', autoIndent: false)
       {buffer, languageMode} = editSession
 
+    describe ".minIndentLevelForRowRange(startRow, endRow)", ->
+      it "returns the minimum indent level for the given row range", ->
+        expect(languageMode.minIndentLevelForRowRange(4, 7)).toBe 2
+        expect(languageMode.minIndentLevelForRowRange(5, 7)).toBe 2
+        expect(languageMode.minIndentLevelForRowRange(5, 6)).toBe 3
+        expect(languageMode.minIndentLevelForRowRange(9, 11)).toBe 1
+        expect(languageMode.minIndentLevelForRowRange(10, 10)).toBe 0
+
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
         languageMode.toggleLineCommentsForBufferRows(4, 7)
-        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "//       current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//     }"
+        expect(buffer.lineForRow(4)).toBe "    // while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "    //   current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "    //   current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "    // }"
 
         languageMode.toggleLineCommentsForBufferRows(4, 5)
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
         expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//     }"
+        expect(buffer.lineForRow(6)).toBe "    //   current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "    // }"
 
     describe "fold suggestion", ->
       describe ".doesBufferRowStartFold(bufferRow)", ->
@@ -58,17 +66,28 @@ describe "LanguageMode", ->
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
-        languageMode.toggleLineCommentsForBufferRows(4, 7)
-        expect(buffer.lineForRow(4)).toBe "#     pivot = items.shift()"
-        expect(buffer.lineForRow(5)).toBe "#     left = []"
-        expect(buffer.lineForRow(6)).toBe "#     right = []"
-        expect(buffer.lineForRow(7)).toBe "# "
+        languageMode.toggleLineCommentsForBufferRows(4, 6)
+        expect(buffer.lineForRow(4)).toBe "    # pivot = items.shift()"
+        expect(buffer.lineForRow(5)).toBe "    # left = []"
+        expect(buffer.lineForRow(6)).toBe "    # right = []"
 
         languageMode.toggleLineCommentsForBufferRows(4, 5)
         expect(buffer.lineForRow(4)).toBe "    pivot = items.shift()"
         expect(buffer.lineForRow(5)).toBe "    left = []"
-        expect(buffer.lineForRow(6)).toBe "#     right = []"
-        expect(buffer.lineForRow(7)).toBe "# "
+        expect(buffer.lineForRow(6)).toBe "    # right = []"
+
+      it "comments/uncomments lines when empty line", ->
+        languageMode.toggleLineCommentsForBufferRows(4, 7)
+        expect(buffer.lineForRow(4)).toBe "    # pivot = items.shift()"
+        expect(buffer.lineForRow(5)).toBe "    # left = []"
+        expect(buffer.lineForRow(6)).toBe "    # right = []"
+        expect(buffer.lineForRow(7)).toBe "    # "
+
+        languageMode.toggleLineCommentsForBufferRows(4, 5)
+        expect(buffer.lineForRow(4)).toBe "    pivot = items.shift()"
+        expect(buffer.lineForRow(5)).toBe "    left = []"
+        expect(buffer.lineForRow(6)).toBe "    # right = []"
+        expect(buffer.lineForRow(7)).toBe "    # "
 
     describe "fold suggestion", ->
       describe ".doesBufferRowStartFold(bufferRow)", ->

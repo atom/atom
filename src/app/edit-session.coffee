@@ -525,7 +525,6 @@ class EditSession
   pasteText: (options={}) ->
     [text, metadata] = pasteboard.read()
 
-    options.autoIndent ?= @shouldAutoIndentPastedText()
     if config.get('editor.normalizeIndentOnPaste') and metadata
       options.indentBasis ?= metadata.indentBasis
 
@@ -1166,6 +1165,10 @@ class EditSession
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
 
+  # Selects to the first non-whitespace character of the line.
+  selectToFirstCharacterOfLine: ->
+    @expandSelectionsBackward (selection) => selection.selectToFirstCharacterOfLine()
+
   # Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()
@@ -1311,9 +1314,6 @@ class EditSession
 
   shouldAutoIndent: ->
     config.get("editor.autoIndent")
-
-  shouldAutoIndentPastedText: ->
-    config.get("editor.autoIndentOnPaste")
 
   transact: (fn) -> @buffer.transact(fn)
 

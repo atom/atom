@@ -20,7 +20,6 @@ class Editor extends View
     showIndentGuide: false
     showLineNumbers: true
     autoIndent: true
-    autoIndentOnPaste: false
     normalizeIndentOnPaste: true
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
     preferredLineLength: 80
@@ -146,6 +145,7 @@ class Editor extends View
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
       'editor:select-to-beginning-of-next-word': @selectToBeginningOfNextWord
+      'editor:select-to-first-character-of-line': @selectToFirstCharacterOfLine
       'editor:add-selection-below': @addSelectionBelow
       'editor:add-selection-above': @addSelectionAbove
       'editor:select-line': @selectLine
@@ -326,6 +326,9 @@ class Editor extends View
 
   # {Delegates to: EditSession.selectToBeginningOfLine}
   selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
+
+  # {Delegates to: EditSession.selectToFirstCharacterOfLine}
+  selectToFirstCharacterOfLine: -> @activeEditSession.selectToFirstCharacterOfLine()
 
   # {Delegates to: EditSession.selectToEndOfLine}
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()

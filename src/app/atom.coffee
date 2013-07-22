@@ -199,9 +199,10 @@ window.atom =
   showSaveDialog: (callback) ->
     callback(showSaveDialogSync())
 
-  showSaveDialogSync: ->
+  showSaveDialogSync: (defaultPath) ->
+    defaultPath ?= project?.getPath()
     currentWindow = remote.getCurrentWindow()
-    dialog.showSaveDialog currentWindow, title: 'Save File'
+    dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
 
   openDevTools: ->
     remote.getCurrentWindow().openDevTools()

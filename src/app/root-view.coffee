@@ -79,9 +79,6 @@ class RootView extends View
     @command 'window:toggle-auto-indent', =>
       config.set("editor.autoIndent", !config.get("editor.autoIndent"))
 
-    @command 'window:toggle-auto-indent-on-paste', =>
-      config.set("editor.autoIndentOnPaste", !config.get("editor.autoIndentOnPaste"))
-
     @command 'pane:reopen-closed-item', =>
       @panes.reopenItem()
 
