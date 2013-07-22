@@ -1,2 +1,4 @@
-'main': 'autoflow'
+'main': './lib/autoflow'
 'description': 'Format the current paragraph to have lines no longer than 80 characters.\n\nThis packages uses the config value of `editor.preferredLineLength` when set.'
+'activationEvents':
+  'autoflow:reflow-paragraph': '.editor'
