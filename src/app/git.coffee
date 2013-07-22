@@ -223,6 +223,8 @@ class Git
 
   getConfigValue: (key) -> @getRepo().getConfigValue(key)
 
+  getOriginUrl: -> @getConfigValue('remote.origin.url')
+
   getReferenceTarget: (reference) -> @getRepo().getReferenceTarget(reference)
 
   getAheadBehindCount: (reference) -> @getRepo().getAheadBehindCount(reference)

@@ -1,14 +1,17 @@
 fsUtils = require 'fs-utils'
 path = require 'path'
+url = require 'url'
+
 _ = require 'underscore'
 $ = require 'jquery'
 telepath = require 'telepath'
 {Range} = telepath
-Buffer = require 'text-buffer'
+TextBuffer = require 'text-buffer'
 EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 BufferedProcess = require 'buffered-process'
+Git = require 'git'
 
 # Public: Represents a project that's opened in Atom.
 #
@@ -43,6 +46,8 @@ class Project
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
     buffer.release() for buffer in @getBuffers()
+    window.git?.destroy()
+    delete window.git
 
   ### Public ###
 
@@ -55,9 +60,13 @@ class Project
 
     if pathOrState instanceof telepath.Document
       @state = pathOrState
-      @setPath(pathOrState.get('path'))
+      if projectPath = @state.get('path')
+        @setPath(projectPath)
+      else
+        @setPath(@pathForRepositoryUrl(@state.get('repoUrl')))
+
       @state.get('buffers').each (bufferState) =>
-        if buffer = deserialize(bufferState)
+        if buffer = deserialize(bufferState, project: this)
           @addBuffer(buffer, updateState: false)
     else
       @state = telepath.Document.create(deserializer: @constructor.name, version: @constructor.version, buffers: [])
@@ -69,10 +78,16 @@ class Project
       for removedBuffer in removed
         @removeBufferAtIndex(index, updateState: false)
       for insertedBuffer, i in inserted
-        @addBufferAtIndex(deserialize(insertedBuffer), index + i, updateState: false)
+        @addBufferAtIndex(deserialize(insertedBuffer, project: this), index + i, updateState: false)
+
+  pathForRepositoryUrl: (repoUrl) ->
+    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
+    repoName = repoName.replace(/\.git$/, '')
+    path.join(config.get('core.projectHome'), repoName)
 
   serialize: ->
     state = @state.clone()
+    state.set('path', @getPath())
     state.set('buffers', buffer.serialize() for buffer in @getBuffers())
     state
 
@@ -93,10 +108,15 @@ class Project
     if projectPath?
       directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
+      window.git = Git.open(projectPath)
     else
       @rootDirectory = null
+      window.git?.destroy()
+      delete window.git
 
-    @state.set('path', projectPath)
+    if originUrl = window.git?.getOriginUrl()
+      @state.set('repoUrl', originUrl)
+
     @trigger "path-changed"
 
   # Retrieves the name of the root directory.
@@ -246,8 +266,8 @@ class Project
   # text - The {String} text to use as a buffer
   #
   # Returns the {Buffer}.
-  buildBuffer: (filePath, text) ->
-    buffer = new Buffer(filePath, text)
+  buildBuffer: (filePath, initialText) ->
+    buffer = new TextBuffer({project: this, filePath, initialText})
     @addBuffer(buffer)
     @trigger 'buffer-created', buffer
     buffer
@@ -263,7 +283,8 @@ class Project
   #
   # Returns the removed {Buffer}.
   removeBuffer: (buffer) ->
-    @removeBufferAtIndex(@buffers.indexOf(buffer))
+    index = @buffers.indexOf(buffer)
+    @removeBufferAtIndex(index) unless index is -1
 
   removeBufferAtIndex: (index, options={}) ->
     [buffer] = @buffers.splice(index, 1)

@@ -1,4 +1,3 @@
-Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 {Range} = require 'telepath'
 
@@ -6,7 +5,7 @@ describe "Selection", ->
   [buffer, editSession, selection] = []
 
   beforeEach ->
-    buffer = new Buffer(require.resolve('fixtures/sample.js'))
+    buffer = project.buildBuffer('sample.js')
     editSession = new EditSession(buffer: buffer, tabLength: 2)
     selection = editSession.getSelection()
 

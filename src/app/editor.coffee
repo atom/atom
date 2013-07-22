@@ -1,5 +1,5 @@
 {View, $$} = require 'space-pen'
-Buffer = require 'text-buffer'
+TextBuffer = require 'text-buffer'
 Gutter = require 'gutter'
 {Point, Range} = require 'telepath'
 EditSession = require 'edit-session'
@@ -96,7 +96,7 @@ class Editor extends View
       @edit(editSession)
     else if @mini
       @edit(new EditSession
-        buffer: new Buffer()
+        buffer: new TextBuffer
         softWrap: false
         tabLength: 2
         softTabs: true

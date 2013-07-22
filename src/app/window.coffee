@@ -132,13 +132,9 @@ window.deserializeEditorWindow = ->
 
   $(rootViewParentSelector).append(rootView)
 
-  window.git = Git.open(project.getPath())
   project.on 'path-changed', ->
     projectPath = project.getPath()
     atom.getLoadSettings().initialPath = projectPath
-
-    window.git?.destroy()
-    window.git = Git.open(projectPath)
 
 window.deserializeConfigWindow = ->
   ConfigView = require 'config-view'
@@ -232,13 +228,13 @@ window.registerDeferredDeserializer = (name, fn) ->
 window.unregisterDeserializer = (klass) ->
   delete deserializers[klass.name]
 
-window.deserialize = (state) ->
+window.deserialize = (state, params) ->
   if deserializer = getDeserializer(state)
     stateVersion = state.get?('version') ? state.version
     return if deserializer.version? and deserializer.version isnt stateVersion
     if (state instanceof telepath.Document) and not deserializer.acceptsDocuments
       state = state.toObject()
-    deserializer.deserialize(state)
+    deserializer.deserialize(state, params)
 
 window.getDeserializer = (state) ->
   return unless state?

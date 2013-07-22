@@ -18,8 +18,8 @@ class TextBuffer
   @version: 2
   registerDeserializer(this)
 
-  @deserialize: (state) ->
-    new TextBuffer(state)
+  @deserialize: (state, params) ->
+    new this(state, params)
 
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
@@ -34,14 +34,15 @@ class TextBuffer
   #
   # path - A {String} representing the file path
   # initialText - A {String} setting the starting text
-  constructor: (args...) ->
-    if args[0] instanceof telepath.Document
-      @state = args[0]
+  constructor: (optionsOrState={}, params={}) ->
+    if optionsOrState instanceof telepath.Document
+      @state = optionsOrState
+      {@project} = params
       @text = @state.get('text')
-      path = @state.get('path')
+      filePath = @state.get('relativePath')
       @id = @state.get('id')
     else
-      [path, initialText] = args
+      {@project, filePath, initialText} = optionsOrState
       @text = telepath.Document.create(initialText, shareStrings: true) if initialText
       @id = guid.create().toString()
       @state = telepath.Document.create
@@ -49,13 +50,13 @@ class TextBuffer
         deserializer: @constructor.name
         version: @constructor.version
 
-    if path
-      @setPath(path)
+    if filePath
+      @setPath(@project.resolve(filePath))
       if @text
         @updateCachedDiskContents()
       else
         @text = telepath.Document.create('', shareStrings: true)
-        @reload() if fsUtils.exists(path)
+        @reload() if fsUtils.exists(filePath)
     else
       @text ?= telepath.Document.create('', shareStrings: true)
 
@@ -148,7 +149,13 @@ class TextBuffer
     @file?.getPath()
 
   getUri: ->
-    project?.relativize(@getPath()) ? @getPath()
+    @getRelativePath()
+
+  getRelativePath: ->
+    @state.get('relativePath')
+
+  setRelativePath: (relativePath) ->
+    @setPath(@project.resolve(relativePath))
 
   # Sets the path for the file.
   #
@@ -160,9 +167,7 @@ class TextBuffer
     @file = new File(path)
     @file.read() if @file.exists()
     @subscribeToFile()
-
-    @state.set('path', path)
-
+    @state.set('relativePath', @project.relativize(path))
     @trigger "path-changed", this
 
   # Retrieves the current buffer's file extension.

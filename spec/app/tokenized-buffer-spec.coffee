@@ -1,5 +1,4 @@
 TokenizedBuffer = require 'tokenized-buffer'
-Buffer = require 'text-buffer'
 {Range} = require 'telepath'
 _ = require 'underscore'
 
@@ -336,7 +335,7 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains surrogate pairs", ->
     beforeEach ->
       atom.activatePackage('javascript-tmbundle', sync: true)
-      buffer = new Buffer 'sample-with-pairs.js', """
+      buffer = project.buildBuffer 'sample-with-pairs.js',  """
         'abc\uD835\uDF97def'
         //\uD835\uDF97xyz
       """

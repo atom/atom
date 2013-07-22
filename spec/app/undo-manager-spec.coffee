@@ -1,12 +1,11 @@
 UndoManager = require 'undo-manager'
-Buffer = require 'text-buffer'
 {Range} = require 'telepath'
 
 describe "UndoManager", ->
   [buffer, undoManager] = []
 
   beforeEach ->
-    buffer = new Buffer(require.resolve('fixtures/sample.js'))
+    buffer = project.buildBuffer('sample.js')
     undoManager = buffer.undoManager
 
   afterEach ->

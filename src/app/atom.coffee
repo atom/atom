@@ -8,6 +8,7 @@ remote = require 'remote'
 crypto = require 'crypto'
 path = require 'path'
 dialog = remote.require 'dialog'
+app = remote.require 'app'
 telepath = require 'telepath'
 
 window.atom =
@@ -224,7 +225,7 @@ window.atom =
     remote.getCurrentWindow().hide()
 
   exit: (status) ->
-    remote.require('app').exit(status)
+    app.exit(status)
 
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
@@ -234,6 +235,9 @@ window.atom =
 
   isFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
+
+  getHomeDirPath: ->
+    app.getHomeDir()
 
   getWindowStatePath: ->
     switch @windowMode
