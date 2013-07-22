@@ -703,6 +703,31 @@ describe "EditSession", ->
           editSession.selectWord()
           expect(editSession.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
 
+    describe ".selectToFirstCharacterOfLine()", ->
+      it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
+        editSession.setCursorScreenPosition [0,5]
+        editSession.addCursorAtScreenPosition [1,7]
+
+        editSession.selectToFirstCharacterOfLine()
+
+        [cursor1, cursor2] = editSession.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor2.getBufferPosition()).toEqual [1,2]
+
+        expect(editSession.getSelections().length).toBe 2
+        [selection1, selection2] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,0], [0,5]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[1,2], [1,7]]
+        expect(selection2.isReversed()).toBeTruthy()
+
+        editSession.selectToFirstCharacterOfLine()
+        [selection1, selection2] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,0], [0,5]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[1,0], [1,7]]
+        expect(selection2.isReversed()).toBeTruthy()
+
     describe ".setSelectedBufferRanges(ranges)", ->
       it "clears existing selections and creates selections for each of the given ranges", ->
         editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
