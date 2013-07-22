@@ -7,10 +7,10 @@ module.exports =
 
   reflowParagraph: (editor) ->
     if range = editor.getCurrentParagraphBufferRange()
-      editor.getBuffer().change(range, @reflow(editor.getTextInRange(range)))
+      wrapColumn = config.getPositiveInt('editor.preferredLineLength', 80)
+      editor.getBuffer().change(range, @reflow(editor.getTextInRange(range), {wrapColumn}))
 
-  reflow: (text) ->
-    wrapColumn = config.getPositiveInt('editor.preferredLineLength', 80)
+  reflow: (text, {wrapColumn}) ->
     lines = []
 
     currentLine = []
