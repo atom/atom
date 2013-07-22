@@ -1,7 +1,9 @@
 module.exports =
   activate: ->
-    rootView.command 'autoflow:reflow-paragraph', '.editor', (e) =>
-      @reflowParagraph(e.currentTargetView())
+    rootView.eachEditor (editor) =>
+      return unless editor.attached and editor.getPane()?
+      editor.command 'autoflow:reflow-paragraph', (e) =>
+        @reflowParagraph(e.currentTargetView())
 
   reflowParagraph: (editor) ->
     if range = editor.getCurrentParagraphBufferRange()

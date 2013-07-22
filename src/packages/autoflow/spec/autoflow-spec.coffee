@@ -1,13 +1,15 @@
 RootView = require 'root-view'
 
-describe "Autoflow package", ->
+fdescribe "Autoflow package", ->
   editor = null
 
   beforeEach ->
     window.rootView = new RootView
     rootView.open()
     atom.activatePackage('autoflow')
+    rootView.attachToDom()
     editor = rootView.getActiveView()
+
     config.set('editor.preferredLineLength', 30)
 
   describe "autoflow:reflow-paragraph", ->
