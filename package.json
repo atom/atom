@@ -39,7 +39,7 @@
     "semver": "~1.1.4"
   },
   "devDependencies": {
-    "jasmine-focused": "~0.7.0",
+    "jasmine-focused": "~0.12.0",
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-cli": "~0.1.8",
