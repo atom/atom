@@ -13,9 +13,9 @@ class BookmarksView
     @gutter = @editor.gutter
     @editor.on 'editor:display-updated', @renderBookmarkMarkers
 
-    rootView.command 'bookmarks:toggle-bookmark', '.editor', @toggleBookmark
-    rootView.command 'bookmarks:jump-to-next-bookmark', '.editor', @jumpToNextBookmark
-    rootView.command 'bookmarks:jump-to-previous-bookmark', '.editor', @jumpToPreviousBookmark
+    @editor.command 'bookmarks:toggle-bookmark', @toggleBookmark
+    @editor.command 'bookmarks:jump-to-next-bookmark', @jumpToNextBookmark
+    @editor.command 'bookmarks:jump-to-previous-bookmark', @jumpToPreviousBookmark
 
   toggleBookmark: =>
     cursors = @editor.getCursors()
