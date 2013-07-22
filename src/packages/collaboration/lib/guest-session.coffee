@@ -24,7 +24,7 @@ class GuestSession
       console.log 'connection opened'
       @trigger 'connection-opened'
 
-    connection.on 'data', (data) =>
+    connection.once 'data', (data) =>
       console.log 'received document', data
       @trigger 'connection-document-received'
       @createTelepathDocument(data, connection)
