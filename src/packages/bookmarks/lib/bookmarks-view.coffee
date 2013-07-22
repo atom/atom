@@ -1,4 +1,5 @@
 _ = require 'underscore'
+shell = require 'shell'
 
 module.exports =
 class BookmarksView
@@ -51,10 +52,16 @@ class BookmarksView
     cursor = @editor.getCursor()
     position = cursor.getBufferPosition()
     bookmarkMarker = @[getBookmarkFunction](position.row)
-    @editor.activeEditSession.setSelectedBufferRange(bookmarkMarker.getBufferRange(), autoscroll: true)
+
+    if bookmarkMarker
+      @editor.activeEditSession.setSelectedBufferRange(bookmarkMarker.getBufferRange(), autoscroll: true)
+    else
+      shell.beep()
 
   getPreviousBookmark: (bufferRow) ->
     markers = @findBookmarkMarkers()
+    return null unless markers.length
+
     bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
       if marker.getBufferRange then marker.getBufferRange().start.row else marker
 
@@ -65,6 +72,8 @@ class BookmarksView
 
   getNextBookmark: (bufferRow) ->
     markers = @findBookmarkMarkers()
+    return null unless markers.length
+
     bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
       if marker.getBufferRange then marker.getBufferRange().start.row else marker
 

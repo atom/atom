@@ -51,16 +51,26 @@ describe "Bookmarks package", ->
       editor.trigger 'bookmarks:toggle-bookmark'
       expect(editor.find('.bookmarked').length).toEqual 0
 
-  describe "moving between bookmarks", ->
-    beforeEach ->
-      editSession.setCursorBufferPosition([2, 0])
-      editor.trigger 'bookmarks:toggle-bookmark'
+  describe "jumping between bookmarks", ->
 
-      editSession.setCursorBufferPosition([10, 0])
-      editor.trigger 'bookmarks:toggle-bookmark'
+    it "doesnt die when no bookmarks", ->
+      editSession.setCursorBufferPosition([5, 10])
 
-    describe "jump-to-next-bookmark", ->
-      it "finds next bookmark", ->
+      editor.trigger 'bookmarks:jump-to-next-bookmark'
+      expect(editSession.getCursor().getBufferPosition()).toEqual [5, 10]
+
+      editor.trigger 'bookmarks:jump-to-previous-bookmark'
+      expect(editSession.getCursor().getBufferPosition()).toEqual [5, 10]
+
+    describe "with bookmarks", ->
+      beforeEach ->
+        editSession.setCursorBufferPosition([2, 0])
+        editor.trigger 'bookmarks:toggle-bookmark'
+
+        editSession.setCursorBufferPosition([10, 0])
+        editor.trigger 'bookmarks:toggle-bookmark'
+
+      it "jump-to-next-bookmark finds next bookmark", ->
         editSession.setCursorBufferPosition([0, 0])
 
         editor.trigger 'bookmarks:jump-to-next-bookmark'
@@ -72,9 +82,7 @@ describe "Bookmarks package", ->
         editor.trigger 'bookmarks:jump-to-next-bookmark'
         expect(editSession.getCursor().getBufferPosition()).toEqual [2, 0]
 
-
-    describe "jump-to-previous-bookmark", ->
-      it "finds previous bookmark", ->
+      it "jump-to-previous-bookmark finds previous bookmark", ->
         editSession.setCursorBufferPosition([0, 0])
 
         editor.trigger 'bookmarks:jump-to-previous-bookmark'
