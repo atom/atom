@@ -183,15 +183,29 @@ class Cursor
     @goalColumn = column
 
   # Moves the cursor left one screen column.
-  moveLeft: ->
-    { row, column } = @getScreenPosition()
-    [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
-    @setScreenPosition({row, column})
+  #
+  # options -
+  #   moveToEndOfSelection: true will move to the left of the selection if a selection
+  moveLeft: ({moveToEndOfSelection}={}) ->
+    range = @marker.getScreenRange()
+    if moveToEndOfSelection and not range.isEmpty()
+      @setScreenPosition(range.start)
+    else
+      {row, column} = @getScreenPosition()
+      [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
+      @setScreenPosition({row, column})
 
   # Moves the cursor right one screen column.
-  moveRight: ->
-    { row, column } = @getScreenPosition()
-    @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+  #
+  # options -
+  #   moveToEndOfSelection: true will move to the right of the selection if a selection
+  moveRight: ({moveToEndOfSelection}={}) ->
+    range = @marker.getScreenRange()
+    if moveToEndOfSelection and not range.isEmpty()
+      @setScreenPosition(range.end)
+    else
+      { row, column } = @getScreenPosition()
+      @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Moves the cursor to the top of the buffer.
   moveToTop: ->
