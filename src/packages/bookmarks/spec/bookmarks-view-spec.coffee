@@ -1,7 +1,7 @@
 RootView = require 'root-view'
 _ = require 'underscore'
 
-fdescribe "Bookmarks package", ->
+describe "Bookmarks package", ->
   editor = null
   editSession = null
   displayBuffer = null
