@@ -1063,11 +1063,11 @@ class EditSession
 
   # Moves every cursor left one column.
   moveCursorLeft: ->
-    @moveCursors (cursor) -> cursor.moveLeft()
+    @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
 
   # Moves every cursor right one column.
   moveCursorRight: ->
-    @moveCursors (cursor) -> cursor.moveRight()
+    @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
 
   # Moves every cursor to the top of the buffer.
   moveCursorToTop: ->
