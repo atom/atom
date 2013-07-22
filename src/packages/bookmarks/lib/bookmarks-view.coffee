@@ -86,6 +86,8 @@ class BookmarksView
 
   createBookmarkMarker: (bufferRow) ->
     range = [[bufferRow, 0], [bufferRow, 0]]
+
+    # TODO: use the 'surround' strategy when collaboration is merged in
     @displayBuffer().markBufferRange(range, @bookmarkMarkerAttributes(invalidationStrategy: 'never'))
 
   findBookmarkMarkers: (attributes={}) ->
