@@ -6,6 +6,7 @@ class GuestView extends View
   @content: ->
     @div class: 'collaboration', tabindex: -1, =>
       @div class: 'guest'
+      @video autoplay: true, outlet: 'video'
       @div outlet: 'participants'
 
   guestSession: null
@@ -16,7 +17,18 @@ class GuestView extends View
 
     @updateParticipants(@guestSession.participants.toObject())
 
+    @addStream(@guestSession.stream)
+    @guestSession.on 'stream-ready', (stream) =>
+      console.log "Stream is ready", stream
+      @addStream(stream)
+
     @attach()
+
+  addStream: (stream) ->
+    return unless stream
+    console.log "STREAM", @video[0]
+
+    @video[0].src = URL.createObjectURL(stream)
 
   updateParticipants: (participants) ->
     @participants.empty()

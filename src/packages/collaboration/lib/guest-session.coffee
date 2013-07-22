@@ -15,6 +15,7 @@ class GuestSession
   participants: null
   repository: null
   peer: null
+  stream: null
 
   constructor: (sessionId) ->
     @peer = createPeer()
@@ -31,13 +32,49 @@ class GuestSession
 
   createTelepathDocument: (data, connection) ->
     doc = telepath.Document.deserialize(data.doc, site: telepath.createSite(@getId()))
+
+    servers = null
+    mediaConnection = new webkitRTCPeerConnection(servers)
+    mediaConnection.onicecandidate = (event) =>
+      return unless event.candidate?
+      console.log "Set Guest Candidate", event.candidate
+      doc.set 'collaborationState.guest.candidate', event.candidate
+
+    mediaConnection.onaddstream = ({@stream}) =>
+      @trigger 'stream-ready', @stream
+      console.log('Added Stream', @stream)
+
     atom.windowState = doc.get('windowState')
     @repository = doc.get('collaborationState.repositoryState')
+
     @participants = doc.get('collaborationState.participants')
     @participants.on 'changed', =>
       @trigger 'participants-changed', @participants.toObject()
+
+    guest = doc.get 'collaborationState.guest'
+    host = doc.get('collaborationState.host')
+    host.on 'changed', ({key, newValue}) =>
+      switch key
+        when 'description'
+          hostDescription = newValue.toObject()
+          console.log "Received host description", hostDescription
+          sessionDescription = new RTCSessionDescription(hostDescription)
+          mediaConnection.setRemoteDescription(sessionDescription)
+          mediaConnection.createAnswer (guestDescription) =>
+            console.log "Set guest description", guestDescription
+            mediaConnection.setLocalDescription(guestDescription)
+            guest.set('description', guestDescription)
+        when 'candidate'
+          hostCandidate = new RTCIceCandidate newValue.toObject()
+          console.log('Guest received candidate', hostCandidate)
+          mediaConnection.addIceCandidate(hostCandidate)
+        else
+          throw new Error("Unknown host key '#{key}'")
+
     connectDocument(doc, connection)
     @mirrorRepository(data.repoSnapshot)
+
+    guest.set 'ready', true
 
   mirrorRepository: (repoSnapshot)->
     repoUrl = @repository.get('url')
