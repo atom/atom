@@ -24,18 +24,16 @@ class BookmarksView
 
       if bookmarks and bookmarks.length
         bookmark.destroy() for bookmark in bookmarks
-        console.log('removing mark', position, bookmark)
       else
         newmark = @createBookmarkMarker(position.row)
-        console.log('bookmarking', position, newmark)
 
     @renderBookmarkMarkers()
 
   jumpToNextBookmark: =>
-    console.log('next bm', @editor)
+    @jumpToBookmark('getNextBookmark')
 
   jumpToPreviousBookmark: =>
-    console.log('prev bm', @editor)
+    @jumpToBookmark('getPreviousBookmark')
 
   renderBookmarkMarkers: =>
     return unless @gutter.isVisible()
@@ -48,6 +46,32 @@ class BookmarksView
       @gutter.find(".line-number[lineNumber=#{row}]").addClass('bookmarked')
 
   ### Internal ###
+
+  jumpToBookmark: (getBookmarkFunction) =>
+    cursor = @editor.getCursor()
+    position = cursor.getBufferPosition()
+    bookmarkMarker = @[getBookmarkFunction](position.row)
+    @editor.activeEditSession.setSelectedBufferRange(bookmarkMarker.getBufferRange(), autoscroll: true)
+
+  getPreviousBookmark: (bufferRow) ->
+    markers = @findBookmarkMarkers()
+    bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
+      if marker.getBufferRange then marker.getBufferRange().start.row else marker
+
+    bookmarkIndex--
+    bookmarkIndex = markers.length - 1 if bookmarkIndex < 0
+
+    markers[bookmarkIndex]
+
+  getNextBookmark: (bufferRow) ->
+    markers = @findBookmarkMarkers()
+    bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
+      if marker.getBufferRange then marker.getBufferRange().start.row else marker
+
+    bookmarkIndex++ if markers[bookmarkIndex].getBufferRange().start.row == bufferRow
+    bookmarkIndex = 0 if bookmarkIndex >= markers.length
+
+    markers[bookmarkIndex]
 
   createBookmarkMarker: (bufferRow) ->
     range = [[bufferRow, 0], [bufferRow, 0]]
