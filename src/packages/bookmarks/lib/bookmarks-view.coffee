@@ -79,7 +79,7 @@ class BookmarksView
     bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
       if marker.getBufferRange then marker.getBufferRange().start.row else marker
 
-    bookmarkIndex++ if markers[bookmarkIndex].getBufferRange().start.row == bufferRow
+    bookmarkIndex++ if markers[bookmarkIndex] and markers[bookmarkIndex].getBufferRange().start.row == bufferRow
     bookmarkIndex = 0 if bookmarkIndex >= markers.length
 
     markers[bookmarkIndex]
