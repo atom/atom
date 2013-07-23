@@ -141,11 +141,15 @@ class Editor extends View
       'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord
       'editor:move-to-end-of-word': @moveCursorToEndOfWord
       'editor:move-to-beginning-of-next-word': @moveCursorToBeginningOfNextWord
+      'editor:move-to-previous-word-boundary': @moveCursorToPreviousWordBoundary
+      'editor:move-to-next-word-boundary': @moveCursorToNextWordBoundary
       'editor:select-to-end-of-line': @selectToEndOfLine
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
       'editor:select-to-beginning-of-next-word': @selectToBeginningOfNextWord
+      'editor:select-to-next-word-boundary': @selectToNextWordBoundary
+      'editor:select-to-previous-word-boundary': @selectToPreviousWordBoundary
       'editor:select-to-first-character-of-line': @selectToFirstCharacterOfLine
       'editor:add-selection-below': @addSelectionBelow
       'editor:add-selection-above': @addSelectionAbove
@@ -237,6 +241,12 @@ class Editor extends View
 
   # {Delegates to: EditSession.moveCursorToFirstCharacterOfLine}
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
+
+  # {Delegates to: EditSession.moveCursorToPreviousWordBoundary}
+  moveCursorToPreviousWordBoundary: -> @activeEditSession.moveCursorToPreviousWordBoundary()
+
+  # {Delegates to: EditSession.moveCursorToNextWordBoundary}
+  moveCursorToNextWordBoundary: -> @activeEditSession.moveCursorToNextWordBoundary()
 
   # {Delegates to: EditSession.moveCursorToEndOfLine}
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
@@ -333,6 +343,12 @@ class Editor extends View
 
   # {Delegates to: EditSession.selectToEndOfLine}
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+
+  # {Delegates to: EditSession.selectToPreviousWordBoundary}
+  selectToPreviousWordBoundary: -> @activeEditSession.selectToPreviousWordBoundary()
+
+  # {Delegates to: EditSession.selectToNextWordBoundary}
+  selectToNextWordBoundary: -> @activeEditSession.selectToNextWordBoundary()
 
   # {Delegates to: EditSession.addSelectionBelow}
   addSelectionBelow: -> @activeEditSession.addSelectionBelow()
