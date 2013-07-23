@@ -177,6 +177,38 @@ class LanguageMode
     return false unless nextNonEmptyRow?
     @editSession.indentationForBufferRow(nextNonEmptyRow) > @editSession.indentationForBufferRow(bufferRow)
 
+  # Find a row range for a 'paragraph' around specified bufferRow.
+  # Right now, a paragraph is a block of text bounded by and empty line or a
+  # block of text that is not the same type (comments next to source code).
+  rowRangeForParagraphAtBufferRow: (bufferRow) ->
+    return unless /\w/.test(@editSession.lineForBufferRow(bufferRow))
+
+    isRowComment = (row) =>
+      !!@editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
+
+    if isRowComment(bufferRow)
+      isOriginalRowComment = true
+      range = @rowRangeForCommentAtBufferRow(bufferRow)
+      [firstRow, lastRow] = range or [bufferRow, bufferRow]
+    else
+      isOriginalRowComment = false
+      [firstRow, lastRow] = [0, @editSession.getLastBufferRow()-1]
+
+    startRow = bufferRow
+    while startRow > firstRow
+      break if isRowComment(startRow - 1) != isOriginalRowComment
+      break unless /\w/.test(@editSession.lineForBufferRow(startRow - 1))
+      startRow--
+
+    endRow = bufferRow
+    lastRow = @editSession.getLastBufferRow()
+    while endRow < lastRow
+      break if isRowComment(endRow + 1) != isOriginalRowComment
+      break unless /\w/.test(@editSession.lineForBufferRow(endRow + 1))
+      endRow++
+
+    new Range([startRow, 0], [endRow, @editSession.lineLengthForBufferRow(endRow)])
+
   # Given a buffer row, this returns a suggested indentation level.
   #
   # The indentation level provided is based on the current {LanguageMode}.

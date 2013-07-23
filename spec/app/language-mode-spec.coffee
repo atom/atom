@@ -58,6 +58,47 @@ describe "LanguageMode", ->
         expect(languageMode.suggestedIndentForBufferRow(2)).toBe 2
         expect(languageMode.suggestedIndentForBufferRow(9)).toBe 1
 
+    describe "rowRangeForParagraphAtBufferRow", ->
+      describe "with code and comments", ->
+        beforeEach ->
+          buffer.setText '''
+            var quicksort = function () {
+              /* Single line comment block */
+              var sort = function(items) {};
+
+              /*
+              A multiline
+              comment is here
+              */
+              var sort = function(items) {};
+
+              // A comment
+              //
+              // Multiple comment
+              // lines
+              var sort = function(items) {};
+              // comment line after fn
+            };
+          '''
+
+      it "will limit paragraph range to comments", ->
+        range = languageMode.rowRangeForParagraphAtBufferRow(0)
+        expect(range).toEqual [[0,0], [0,29]]
+
+        range = languageMode.rowRangeForParagraphAtBufferRow(10)
+        expect(range).toEqual [[10,0], [10,14]]
+        range = languageMode.rowRangeForParagraphAtBufferRow(11)
+        expect(range).toBeFalsy()
+        range = languageMode.rowRangeForParagraphAtBufferRow(12)
+        expect(range).toEqual [[12,0], [13,10]]
+
+        range = languageMode.rowRangeForParagraphAtBufferRow(14)
+        expect(range).toEqual [[14,0], [14,32]]
+
+        range = languageMode.rowRangeForParagraphAtBufferRow(15)
+        expect(range).toEqual [[15,0], [15,26]]
+
+
   describe "coffeescript", ->
     beforeEach ->
       atom.activatePackage('coffee-script-tmbundle', sync: true)
@@ -159,7 +200,6 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(0)).toBe "// @color: #4D926F;"
 
   describe "folding", ->
-
     beforeEach ->
       atom.activatePackage('javascript-tmbundle', sync: true)
       editSession = project.open('sample.js', autoIndent: false)
@@ -301,9 +341,3 @@ describe "LanguageMode", ->
 
         fold2 = editSession.lineForScreenRow(5).fold
         expect(fold2).toBeFalsy()
-
-
-
-
-
-
