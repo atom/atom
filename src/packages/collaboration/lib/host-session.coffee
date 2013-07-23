@@ -90,7 +90,7 @@ class HostSession
       @peer.on 'connection', (connection) =>
         connection.on 'open', =>
           console.log 'sending document'
-          connection.send({repoSnapshot, doc: @doc.serialize(), telepath: true})
+          connection.send({repoSnapshot, doc: @doc.serialize()})
           connectDocument(@doc, connection)
 
         connection.on 'close', =>
