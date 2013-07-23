@@ -12,23 +12,26 @@ module.exports =
 
   reflow: (text, {wrapColumn}) ->
     paragraphs = []
-
     paragraphBlocks = text.split(/\n\s*\n/g)
 
     for block in paragraphBlocks
+
+      linePrefix = block.match(/^\s*/g)[0]
+      blockLines = block.split('\n')
+      blockLines = (blockLine.replace(new RegExp('^'+linePrefix), '') for blockLine in blockLines) if linePrefix
+
       lines = []
       currentLine = []
-      currentLineLength = 0
+      currentLineLength = linePrefix.length
 
-      for segment in @segmentText(block.replace(/\n/g, ' '))
+      for segment in @segmentText(blockLines.join(' '))
         if @wrapSegment(segment, currentLineLength, wrapColumn)
-          lines.push(currentLine.join(''))
+          lines.push(linePrefix + currentLine.join(''))
           currentLine = []
-          currentLineLength = 0
+          currentLineLength = linePrefix.length
         currentLine.push(segment)
         currentLineLength += segment.length
-
-      lines.push(currentLine.join(''))
+      lines.push(linePrefix + currentLine.join(''))
 
       paragraphs.push(lines.join('\n').replace(/\s+\n/g, '\n'))
 
