@@ -1055,11 +1055,11 @@ class EditSession
 
   # Moves every cursor up one row.
   moveCursorUp: (lineCount) ->
-    @moveCursors (cursor) -> cursor.moveUp(lineCount)
+    @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
 
   # Moves every cursor down one row.
   moveCursorDown: (lineCount) ->
-    @moveCursors (cursor) -> cursor.moveDown(lineCount)
+    @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
 
   # Moves every cursor left one column.
   moveCursorLeft: ->

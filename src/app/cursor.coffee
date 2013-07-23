@@ -169,15 +169,25 @@ class Cursor
     @editSession.lineForBufferRow(@getBufferRow())
 
   # Moves the cursor up one screen row.
-  moveUp: (rowCount = 1) ->
-    { row, column } = @getScreenPosition()
+  moveUp: (rowCount = 1, {moveToEndOfSelection}={}) ->
+    range = @marker.getScreenRange()
+    if moveToEndOfSelection and not range.isEmpty()
+      { row, column } = range.start
+    else
+      { row, column } = @getScreenPosition()
+
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row - rowCount, column: column})
     @goalColumn = column
 
   # Moves the cursor down one screen row.
-  moveDown: (rowCount = 1) ->
-    { row, column } = @getScreenPosition()
+  moveDown: (rowCount = 1, {moveToEndOfSelection}={}) ->
+    range = @marker.getScreenRange()
+    if moveToEndOfSelection and not range.isEmpty()
+      { row, column } = range.end
+    else
+      { row, column } = @getScreenPosition()
+
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row + rowCount, column: column})
     @goalColumn = column
