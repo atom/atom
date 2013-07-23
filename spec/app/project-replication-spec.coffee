@@ -1,4 +1,4 @@
-{createSite} = require 'telepath'
+{Site} = require 'telepath'
 fsUtils = require 'fs-utils'
 Project = require 'project'
 Git = require 'git'
@@ -19,7 +19,7 @@ describe "Project replication", ->
     expect(project1.getBuffers().length).toBe 1
 
     doc1 = project1.getState()
-    doc2 = doc1.clone(createSite(2))
+    doc2 = doc1.clone(new Site(2))
     connection = doc1.connect(doc2)
 
     # pretend we're bootstrapping a joining window

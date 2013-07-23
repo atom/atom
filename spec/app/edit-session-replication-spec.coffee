@@ -1,4 +1,4 @@
-{createSite} = require 'telepath'
+{Site} = require 'telepath'
 Editor = require 'editor'
 
 describe "EditSession replication", ->
@@ -11,7 +11,7 @@ describe "EditSession replication", ->
     editSession1.addSelectionForBufferRange([[1, 2], [3, 4]])
 
     doc1 = editSession1.getState()
-    doc2 = doc1.clone(createSite(2))
+    doc2 = doc1.clone(new Site(2))
     doc1.connect(doc2)
     editSession2 = deserialize(doc2)
 

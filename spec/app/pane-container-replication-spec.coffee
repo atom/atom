@@ -1,4 +1,4 @@
-{createSite} = require 'telepath'
+{Site} = require 'telepath'
 {View} = require 'space-pen'
 PaneContainer = require 'pane-container'
 Pane = require 'pane'
@@ -24,7 +24,7 @@ describe "PaneContainer replication", ->
     pane1c = pane1b.splitDown(new TestView('C'))
 
     doc1 = container1.getState()
-    doc2 = doc1.clone(createSite(2))
+    doc2 = doc1.clone(new Site(2))
     doc1.connect(doc2)
     container2 = deserialize(doc2)
 

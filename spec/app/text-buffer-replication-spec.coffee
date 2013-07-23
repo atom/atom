@@ -1,4 +1,4 @@
-{createSite} = require 'telepath'
+{Site} = require 'telepath'
 
 describe "TextBuffer replication", ->
   [buffer1, buffer2] = []
@@ -7,7 +7,7 @@ describe "TextBuffer replication", ->
     buffer1 = project.buildBuffer('sample.js')
     buffer1.insert([0, 0], 'changed\n')
     doc1 = buffer1.getState()
-    doc2 = doc1.clone(createSite(2))
+    doc2 = doc1.clone(new Site(2))
     doc1.connect(doc2)
     buffer2 = deserialize(doc2, {project})
 

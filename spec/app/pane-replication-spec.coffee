@@ -1,6 +1,6 @@
 PaneContainer = require 'pane-container'
 Pane = require 'pane'
-{createSite} = require 'telepath'
+{Site} = require 'telepath'
 
 describe "Pane replication", ->
   [editSession1a, editSession1b, container1, pane1, doc1] = []
@@ -14,7 +14,7 @@ describe "Pane replication", ->
     container1.setRoot(pane1)
 
     doc1 = container1.getState()
-    doc2 = doc1.clone(createSite(2))
+    doc2 = doc1.clone(new Site(2))
     doc1.connect(doc2)
 
     container2 = deserialize(doc2)
