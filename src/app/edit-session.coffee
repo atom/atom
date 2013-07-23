@@ -964,6 +964,9 @@ class EditSession
     else
       false
 
+  getAllSelections: ->
+    @getSelections().concat(@getRemoteSelections())
+
   # Gets all the selections.
   #
   # Returns an {Array} of {Selection}s.

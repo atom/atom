@@ -1102,7 +1102,7 @@ class Editor extends View
     @scrollTop(editSessionScrollTop)
     @scrollLeft(editSessionScrollLeft)
     @newCursors = @activeEditSession.getCursors()
-    @newSelections = @activeEditSession.getSelections()
+    @newSelections = @activeEditSession.getAllSelections()
     @updateDisplay(suppressAutoScroll: true)
 
   requestDisplayUpdate: ->
