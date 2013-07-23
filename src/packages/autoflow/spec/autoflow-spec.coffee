@@ -147,3 +147,20 @@ describe "Autoflow package", ->
         // enim eu orci tincidunt adipiscing aliquam ligula.
       '''
       expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
+
+    it 'properly handles * prefix', ->
+      text = '''
+        * Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida
+        et enim eu orci tincidunt adipiscing
+        aliquam ligula.
+
+          * soidjfiojsoidj foi
+      '''
+
+      res = '''
+        * Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida et
+        * enim eu orci tincidunt adipiscing aliquam ligula.
+
+          * soidjfiojsoidj foi
+      '''
+      expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
