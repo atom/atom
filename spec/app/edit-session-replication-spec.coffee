@@ -1,5 +1,4 @@
 {Site} = require 'telepath'
-Editor = require 'editor'
 Environment = require 'environment'
 
 describe "EditSession replication", ->
