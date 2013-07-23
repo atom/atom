@@ -649,7 +649,10 @@ class Editor extends View
       false if @isFocused
 
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
-      @activeEditSession.destroyFoldWithId($(e.currentTarget).attr('fold-id'))
+      id = $(e.currentTarget).attr('fold-id')
+      marker = @activeEditSession.displayBuffer.getMarker(id)
+      @activeEditSession.setCursorBufferPosition(marker.getBufferRange().start)
+      @activeEditSession.destroyFoldWithId(id)
       false
 
     @renderedLines.on 'mousedown', (e) =>
