@@ -33,6 +33,7 @@ class GuestSession
       guest = doc.get('collaborationState.guest')
       host = doc.get('collaborationState.host')
       @mediaConnection = new MediaConnection(guest, host, isHost: false)
+      @mediaConnection.start()
 
   waitForStream: (callback) ->
     @mediaConnection.waitForStream callback

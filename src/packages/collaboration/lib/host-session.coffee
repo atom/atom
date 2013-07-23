@@ -37,6 +37,7 @@ class HostSession
   start: ->
     return if @isSharing()
 
+    @mediaConnection.start()
     patrick.snapshot project.getPath(), (error, repoSnapshot) =>
       throw new Error(error) if error
 

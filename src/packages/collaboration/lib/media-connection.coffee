@@ -13,6 +13,8 @@ class MediaConnection
   isHost: null
 
   constructor: (@local, @remote, {@isHost}={}) ->
+
+  start: ->
     constraints = {video: true, audio: true}
     navigator.webkitGetUserMedia constraints, @onUserMediaAvailable, @onUserMediaUnavailable
 
