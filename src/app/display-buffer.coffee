@@ -10,6 +10,8 @@ Token = require 'token'
 DisplayBufferMarker = require 'display-buffer-marker'
 Subscriber = require 'subscriber'
 
+DefaultSoftWrapColumn = 1000000
+
 module.exports =
 class DisplayBuffer
   screenLines: null
@@ -38,7 +40,7 @@ class DisplayBuffer
         deserializer: @constructor.name
         id: @id
         tokenizedBuffer: @tokenizedBuffer.getState()
-        softWrapColumn: softWrapColumn ? Infinity
+        softWrapColumn: softWrapColumn ? DefaultSoftWrapColumn
 
     @markers = {}
     @foldsByMarkerId = {}
