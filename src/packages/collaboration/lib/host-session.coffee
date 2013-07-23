@@ -19,19 +19,22 @@ class HostSession
   start: ->
     return if @peer?
 
-    servers = {iceServers: [{url: "turn:54.218.196.152:3478", credential:"youhavetoberealistic"}]}
-    mediaConnection = new webkitRTCPeerConnection(servers)
-    mediaConnection.onicecandidate = (event) =>
-      return unless event.candidate?
-      console.log "Set Host Candidate", event.candidate
-      @doc.set 'collaborationState.host.candidate', event.candidate
-
-    mediaConnection.onaddstream = ({@stream}) =>
-      @trigger 'stream-ready', @stream
-      console.log('Added Stream', @stream)
+    servers = {iceServers: [{url: "stun:54.218.196.152:3478"}, {url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}]}
+    mediaConnection = null
 
     constraints = {video: true, audio: true}
-    success = (stream) => mediaConnection.addStream(stream)
+    success = (stream) =>
+      mediaConnection = new webkitRTCPeerConnection(servers)
+      mediaConnection.onicecandidate = (event) =>
+        return unless event.candidate?
+        console.log "Set Host Candidate", event.candidate
+        @doc.set 'collaborationState.host.candidate', event.candidate
+
+      mediaConnection.onaddstream = ({@stream}) =>
+        @trigger 'stream-ready', @stream
+        console.log('Added Guest\'s Stream', @stream)
+
+      mediaConnection.addStream(stream)
     navigator.webkitGetUserMedia constraints, success, console.error
 
     @peer = createPeer()
@@ -56,10 +59,12 @@ class HostSession
       guest.on 'changed', ({key, newValue}) =>
         switch key
           when 'ready'
-            mediaConnection.createOffer (description) =>
+            success = (description) =>
               console.log "Create Offer", description
               mediaConnection.setLocalDescription(description)
               host.set 'description', description
+
+            mediaConnection.createOffer success, console.error
           when 'description'
             guestDescription = newValue.toObject()
             console.log "Received Guest description", guestDescription

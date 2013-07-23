@@ -35,19 +35,25 @@ class GuestSession
     window.site = new telepath.Site(@getId())
     doc = window.site.deserializeDocument(data.doc)
 
-    servers = {iceServers: [{url: "turn:54.218.196.152:3478", credential:"youhavetoberealistic"}]}
-    mediaConnection = new webkitRTCPeerConnection(servers)
-    mediaConnection.onicecandidate = (event) =>
-      return unless event.candidate?
-      console.log "Set Guest Candidate", event.candidate
-      doc.set 'collaborationState.guest.candidate', event.candidate
-
-    mediaConnection.onaddstream = ({@stream}) =>
-      @trigger 'stream-ready', @stream
-      console.log('Added Stream', @stream)
+    servers = {iceServers: [{url: "stun:54.218.196.152:3478"}, {url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}]}
+    mediaConnection = null
 
     constraints = {video: true, audio: true}
-    success = (stream) => mediaConnection.addStream(stream)
+    success = (stream) =>
+      mediaConnection = new webkitRTCPeerConnection(servers)
+      mediaConnection.onicecandidate = (event) =>
+        return unless event.candidate?
+        console.log "Set Guest Candidate", event.candidate
+        doc.set 'collaborationState.guest.candidate', event.candidate
+
+      mediaConnection.onaddstream = ({@stream}) =>
+        @trigger 'stream-ready', @stream
+        console.log('Added Host\'s Stream', @stream)
+
+      mediaConnection.addStream(stream)
+      guest = doc.get 'collaborationState.guest'
+      guest.set 'ready', true
+
     navigator.webkitGetUserMedia constraints, success, console.error
 
     atom.windowState = doc.get('windowState')
@@ -66,10 +72,13 @@ class GuestSession
           console.log "Received host description", hostDescription
           sessionDescription = new RTCSessionDescription(hostDescription)
           mediaConnection.setRemoteDescription(sessionDescription)
-          mediaConnection.createAnswer (guestDescription) =>
+          success = (guestDescription) =>
             console.log "Set guest description", guestDescription
             mediaConnection.setLocalDescription(guestDescription)
             guest.set('description', guestDescription)
+
+          console.log "COOL?", mediaConnection?
+          mediaConnection.createAnswer success, console.error
         when 'candidate'
           hostCandidate = new RTCIceCandidate newValue.toObject()
           console.log('Guest received candidate', hostCandidate)
@@ -79,8 +88,6 @@ class GuestSession
 
     connectDocument(doc, connection)
     @mirrorRepository(data.repoSnapshot)
-
-    guest.set 'ready', true
 
   mirrorRepository: (repoSnapshot) ->
     repoPath = Project.pathForRepositoryUrl(@repository.get('url'))

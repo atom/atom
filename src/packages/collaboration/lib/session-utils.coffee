@@ -24,7 +24,8 @@ module.exports =
   createPeer: ->
     id = Guid.create().toString()
     key = '0njqmaln320dlsor'
-    config = {iceServers: [{url: "turn:54.218.196.152:3478", credential:"youhavetoberealistic"}]}
+    # config = {iceServers: [{url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}]}
+    config = {iceServers: [{url: "stun:54.218.196.152:3478"}, {url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}]}
     new Peer(id, {key, config})
 
   connectDocument: (doc, connection) ->
@@ -32,14 +33,14 @@ module.exports =
     outputListener = (event) ->
       return unless connection.open
       event.id = nextOutputEventId++
-      console.log 'sending event', event.id, event
+#       console.log 'sending event', event.id, event
       connection.send(event)
     doc.on('replicate-change', outputListener)
 
     queuedEvents = []
     nextInputEventId = 1
     handleInputEvent = (event) ->
-      console.log 'received event', event.id, event
+#       console.log 'received event', event.id, event
       doc.applyRemoteChange(event)
       nextInputEventId = event.id + 1
     flushQueuedEvents = ->
@@ -57,7 +58,7 @@ module.exports =
         handleInputEvent(event)
         flushQueuedEvents()
       else
-        console.log 'enqueing event', event.id, event
+#         console.log 'enqueing event', event.id, event
         queuedEvents.push(event)
 
     connection.on 'close', ->
