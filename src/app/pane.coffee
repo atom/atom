@@ -223,7 +223,7 @@ class Pane extends View
   saveItemAs: (item, nextAction) ->
     return unless item.saveAs?
 
-    itemPath = item.getUri?()
+    itemPath = item.getPath?()
     itemPath = dirname(itemPath) if itemPath
     path = atom.showSaveDialogSync(itemPath)
     if path
