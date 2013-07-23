@@ -20,6 +20,7 @@ windowEventHandler = null
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = (windowMode) ->
+  window.site = new telepath.Site(1)
   atom.windowMode = windowMode
   window.resourcePath = remote.getCurrentWindow().loadSettings.resourcePath
 

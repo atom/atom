@@ -35,7 +35,7 @@ class HostSession
     navigator.webkitGetUserMedia constraints, success, console.error
 
     @peer = createPeer()
-    @doc = telepath.Document.create({}, site: telepath.createSite(@getId()))
+    @doc = site.createDocument({})
     @doc.set('windowState', atom.windowState)
     patrick.snapshot project.getPath(), (error, repoSnapshot) =>
       if error?

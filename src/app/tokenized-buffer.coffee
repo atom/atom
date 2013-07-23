@@ -31,7 +31,7 @@ class TokenizedBuffer
       @buffer = project.bufferForId(optionsOrState.get('bufferId'))
     else
       { @buffer, tabLength } = optionsOrState
-      @state = telepath.create
+      @state = site.createDocument
         deserializer: @constructor.name
         bufferId: @buffer.id
         tabLength: tabLength ? 2

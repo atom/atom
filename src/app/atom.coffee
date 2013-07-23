@@ -275,8 +275,7 @@ window.atom =
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
     windowState ?= {}
-    site = telepath.createSite(1)
-    telepath.Document.deserialize(windowState, {site}) ? telepath.Document.create({}, {site})
+    site.deserializeDocument(windowState) ? site.createDocument({})
 
   saveWindowState: ->
     windowStateJson = JSON.stringify(@getWindowState().serialize())

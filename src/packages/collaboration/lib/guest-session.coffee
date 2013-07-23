@@ -31,8 +31,8 @@ class GuestSession
       @createTelepathDocument(data, connection)
 
   createTelepathDocument: (data, connection) ->
-    doc = telepath.Document.deserialize(data.doc, site: telepath.createSite(@getId()))
-
+    window.site = new telepath.Site(@getId())
+    doc = window.site.deserializeDocument(data.doc)
 
     servers = null
     mediaConnection = new webkitRTCPeerConnection(servers)

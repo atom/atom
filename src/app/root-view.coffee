@@ -45,7 +45,7 @@ class RootView extends View
       panes = deserialize(state.get('panes'))
     else
       panes = new PaneContainer
-      @state = telepath.create
+      @state = site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         panes: panes.getState()

@@ -15,7 +15,7 @@ class PaneAxis extends View
       @state = args[0]
       @state.get('children').each (child, index) => @addChild(deserialize(child), index, updateState: false)
     else
-      @state = telepath.create(deserializer: @className(), children: [])
+      @state = site.createDocument(deserializer: @className(), children: [])
       @addChild(child) for child in args
 
     @state.get('children').on 'changed', ({index, inserted, removed, site}) =>

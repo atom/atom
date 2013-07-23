@@ -43,9 +43,9 @@ class TextBuffer
       @id = @state.get('id')
     else
       {@project, filePath, initialText} = optionsOrState
-      @text = telepath.Document.create(initialText, shareStrings: true) if initialText
+      @text = site.createDocument(initialText, shareStrings: true) if initialText
       @id = guid.create().toString()
-      @state = telepath.Document.create
+      @state = site.createDocument
         id: @id
         deserializer: @constructor.name
         version: @constructor.version
@@ -55,10 +55,10 @@ class TextBuffer
       if @text
         @updateCachedDiskContents()
       else
-        @text = telepath.Document.create('', shareStrings: true)
+        @text = site.createDocument('', shareStrings: true)
         @reload() if fsUtils.exists(filePath)
     else
-      @text ?= telepath.Document.create('', shareStrings: true)
+      @text ?= site.createDocument('', shareStrings: true)
 
     @state.set('text', @text)
     @text.on 'changed', @handleTextChange

@@ -32,7 +32,7 @@ class Pane extends View
       @items = _.compact(@state.get('items').map (item) -> deserialize(item))
     else
       @items = args
-      @state = telepath.Document.create
+      @state = site.createDocument
         deserializer: 'Pane'
         items: @items.map (item) -> item.getState?() ? item.serialize()
 

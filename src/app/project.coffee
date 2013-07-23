@@ -69,7 +69,7 @@ class Project
         if buffer = deserialize(bufferState, project: this)
           @addBuffer(buffer, updateState: false)
     else
-      @state = telepath.Document.create(deserializer: @constructor.name, version: @constructor.version, buffers: [])
+      @state = site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
       @setPath(pathOrState)
 
     @state.get('buffers').on 'changed', ({inserted, removed, index, site}) =>

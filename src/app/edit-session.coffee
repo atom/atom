@@ -52,7 +52,7 @@ class EditSession
       {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation} = optionsOrState
       @id = guid.create().toString()
       displayBuffer ?= new DisplayBuffer({buffer, tabLength})
-      @state = telepath.Document.create
+      @state = site.createDocument
         deserializer: 'EditSession'
         version: @constructor.version
         id: @id

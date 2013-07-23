@@ -36,7 +36,7 @@ class DisplayBuffer
       {@buffer, softWrapColumn} = optionsOrState
       @id = guid.create().toString()
       @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
-      @state = telepath.create
+      @state = site.createDocument
         deserializer: @constructor.name
         id: @id
         tokenizedBuffer: @tokenizedBuffer.getState()
