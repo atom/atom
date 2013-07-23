@@ -95,7 +95,6 @@ class GuestSession
       else
         @trigger 'started'
 
-        atom.getLoadSettings().initialPath = repoPath
         window.startEditorWindow()
         @participants.push
           id: @getId()
