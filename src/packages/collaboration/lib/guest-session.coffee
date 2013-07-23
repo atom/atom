@@ -81,7 +81,7 @@ class GuestSession
 
     guest.set 'ready', true
 
-  mirrorRepository: (repoSnapshot)->
+  mirrorRepository: (repoSnapshot) ->
     repoUrl = @repository.get('url')
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
     repoName = repoName.replace(/\.git$/, '')
