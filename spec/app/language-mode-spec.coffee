@@ -81,22 +81,22 @@ describe "LanguageMode", ->
             };
           '''
 
-      it "will limit paragraph range to comments", ->
-        range = languageMode.rowRangeForParagraphAtBufferRow(0)
-        expect(range).toEqual [[0,0], [0,29]]
+        it "will limit paragraph range to comments", ->
+          range = languageMode.rowRangeForParagraphAtBufferRow(0)
+          expect(range).toEqual [[0,0], [0,29]]
 
-        range = languageMode.rowRangeForParagraphAtBufferRow(10)
-        expect(range).toEqual [[10,0], [10,14]]
-        range = languageMode.rowRangeForParagraphAtBufferRow(11)
-        expect(range).toBeFalsy()
-        range = languageMode.rowRangeForParagraphAtBufferRow(12)
-        expect(range).toEqual [[12,0], [13,10]]
+          range = languageMode.rowRangeForParagraphAtBufferRow(10)
+          expect(range).toEqual [[10,0], [10,14]]
+          range = languageMode.rowRangeForParagraphAtBufferRow(11)
+          expect(range).toBeFalsy()
+          range = languageMode.rowRangeForParagraphAtBufferRow(12)
+          expect(range).toEqual [[12,0], [13,10]]
 
-        range = languageMode.rowRangeForParagraphAtBufferRow(14)
-        expect(range).toEqual [[14,0], [14,32]]
+          range = languageMode.rowRangeForParagraphAtBufferRow(14)
+          expect(range).toEqual [[14,0], [14,32]]
 
-        range = languageMode.rowRangeForParagraphAtBufferRow(15)
-        expect(range).toEqual [[15,0], [15,26]]
+          range = languageMode.rowRangeForParagraphAtBufferRow(15)
+          expect(range).toEqual [[15,0], [15,26]]
 
 
   describe "coffeescript", ->
