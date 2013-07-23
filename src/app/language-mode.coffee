@@ -222,7 +222,7 @@ class LanguageMode
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
 
     currentLine = @buffer.lineForRow(bufferRow)
-    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    precedingRow = if bufferRow > 0 then bufferRow - 1 else null
     return currentIndentLevel unless precedingRow?
 
     precedingLine = @buffer.lineForRow(precedingRow)
