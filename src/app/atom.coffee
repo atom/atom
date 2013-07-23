@@ -278,9 +278,9 @@ window.atom =
     site.deserializeDocument(windowState) ? site.createDocument({})
 
   saveWindowState: ->
-    windowStateJson = JSON.stringify(@getWindowState().serialize())
+    windowStateJson = JSON.stringify(@getWindowState().serialize(), null, 2)
     if windowStatePath = @getWindowStatePath()
-      fsUtils.writeSync(windowStatePath, windowStateJson)
+      fsUtils.writeSync(windowStatePath, "#{windowStateJson}\n")
     else
       @getLoadSettings().windowState = windowStateJson
 
