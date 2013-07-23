@@ -1,12 +1,9 @@
-path = require 'path'
-remote = require 'remote'
-url = require 'url'
-
 _ = require 'underscore'
 patrick = require 'patrick'
 telepath = require 'telepath'
 
 Project = require 'project'
+MediaConnection = require './media-connection'
 sessionUtils = require './session-utils'
 
 module.exports =
@@ -14,94 +11,57 @@ class GuestSession
   _.extend @prototype, require('event-emitter')
 
   participants: null
-  repository: null
   peer: null
-  stream: null
+  mediaConnection: null
 
   constructor: (sessionId) ->
     @peer = sessionUtils.createPeer()
     connection = @peer.connect(sessionId, reliable: true)
+    window.site = new telepath.Site(@getId())
 
     connection.on 'open', =>
-      console.log 'connection opened'
       @trigger 'connection-opened'
 
     connection.once 'data', (data) =>
-      console.log 'received document', data
       @trigger 'connection-document-received'
-      @createTelepathDocument(data, connection)
+
+      doc = @createTelepathDocument(data, connection)
+      repoUrl = doc.get('collaborationState.repositoryState.url')
+
+      @mirrorRepository(repoUrl, data.repoSnapshot)
+
+      guest = doc.get('collaborationState.guest')
+      host = doc.get('collaborationState.host')
+      @mediaConnection = new MediaConnection(guest, host)
+
+  waitForStream: (callback) ->
+    @mediaConnection.waitForStream callback
+
+  getId: -> @peer.id
 
   createTelepathDocument: (data, connection) ->
-    window.site = new telepath.Site(@getId())
     doc = window.site.deserializeDocument(data.doc)
-
-    mediaConnection = null
-
-    constraints = {video: true, audio: true}
-    success = (stream) =>
-      mediaConnection = new webkitRTCPeerConnection(sessionUtils.getIceServers())
-      mediaConnection.onicecandidate = (event) =>
-        return unless event.candidate?
-        console.log "Set Guest Candidate", event.candidate
-        doc.set 'collaborationState.guest.candidate', event.candidate
-
-      mediaConnection.onaddstream = ({@stream}) =>
-        @trigger 'stream-ready', @stream
-        console.log('Added Host\'s Stream', @stream)
-
-      mediaConnection.addStream(stream)
-      guest = doc.get 'collaborationState.guest'
-      guest.set 'ready', true
-
-    navigator.webkitGetUserMedia constraints, success, console.error
+    sessionUtils.connectDocument(doc, connection)
 
     atom.windowState = doc.get('windowState')
-    @repository = doc.get('collaborationState.repositoryState')
 
     @participants = doc.get('collaborationState.participants')
     @participants.on 'changed', =>
       @trigger 'participants-changed', @participants.toObject()
 
-    guest = doc.get 'collaborationState.guest'
-    host = doc.get('collaborationState.host')
-    host.on 'changed', ({key, newValue}) =>
-      switch key
-        when 'description'
-          hostDescription = newValue.toObject()
-          console.log "Received host description", hostDescription
-          sessionDescription = new RTCSessionDescription(hostDescription)
-          mediaConnection.setRemoteDescription(sessionDescription)
-          success = (guestDescription) =>
-            console.log "Set guest description", guestDescription
-            mediaConnection.setLocalDescription(guestDescription)
-            guest.set('description', guestDescription)
+    doc
 
-          console.log "COOL?", mediaConnection?
-          mediaConnection.createAnswer success, console.error
-        when 'candidate'
-          hostCandidate = new RTCIceCandidate newValue.toObject()
-          console.log('Guest received candidate', hostCandidate)
-          mediaConnection.addIceCandidate(hostCandidate)
-        else
-          throw new Error("Unknown host key '#{key}'")
-
-    sessionUtils.connectDocument(doc, connection)
-    @mirrorRepository(data.repoSnapshot)
-
-  mirrorRepository: (repoSnapshot) ->
-    repoPath = Project.pathForRepositoryUrl(@repository.get('url'))
+  mirrorRepository: (repoUrl, repoSnapshot) ->
+    repoPath = Project.pathForRepositoryUrl(repoUrl)
 
     progressCallback = (args...) => @trigger 'mirror-progress', args...
 
     patrick.mirror repoPath, repoSnapshot, {progressCallback}, (error) =>
-      if error?
-        console.error(error)
-      else
-        @trigger 'started'
+      throw new Error(error) if error
 
-        window.startEditorWindow()
-        @participants.push
-          id: @getId()
-          email: git.getConfigValue('user.email')
+      # 'started' will trigger window.startEditorWindow() which creates the git global
+      @trigger 'started'
 
-  getId: -> @peer.id
+      id = @getId()
+      email = git.getConfigValue('user.email')
+      @participants.push {id, email}

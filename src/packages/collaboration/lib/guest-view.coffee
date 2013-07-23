@@ -17,16 +17,10 @@ class GuestView extends View
 
     @updateParticipants(@guestSession.participants.toObject())
 
-    @addStream(@guestSession.stream)
-    @guestSession.on 'stream-ready', (stream) =>
-      console.log "Stream is ready", stream
-      @addStream(stream)
+    @guestSession.waitForStream (stream) =>
+      @video[0].src = URL.createObjectURL(stream)
 
     @attach()
-
-  addStream: (stream) ->
-    return unless stream
-    @video[0].src = URL.createObjectURL(stream)
 
   updateParticipants: (participants) ->
     @participants.empty()
