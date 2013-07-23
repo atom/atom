@@ -56,7 +56,7 @@ describe "Autoflow package", ->
         words
       """
 
-  fdescribe "reflowing text", ->
+  describe "reflowing text", ->
     beforeEach ->
       window.rootView = new RootView
       autoflow = atom.activatePackage('autoflow', immediate: true).mainModule
