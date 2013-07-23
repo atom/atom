@@ -168,7 +168,7 @@ describe "EditSession", ->
         it "moves below the selection", ->
           cursor = editSession.getCursor()
           editSession.moveCursorDown()
-          expect(cursor.getBufferPosition()).toEqual [6, 9]
+          expect(cursor.getBufferPosition()).toEqual [6, 10]
 
       it "merges cursors when they overlap", ->
         editSession.setCursorScreenPosition([12, 2])
