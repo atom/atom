@@ -16,7 +16,8 @@ module.exports =
 
     for block in paragraphBlocks
 
-      linePrefix = block.match(/^\s*/g)[0]
+      # TODO: this could be more language specific. Use the actual comment char.
+      linePrefix = block.match(/^\s*[\/#*-]*\s*/g)[0]
       blockLines = block.split('\n')
       blockLines = (blockLine.replace(new RegExp('^'+linePrefix), '') for blockLine in blockLines) if linePrefix
 

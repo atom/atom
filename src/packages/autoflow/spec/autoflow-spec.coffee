@@ -95,7 +95,7 @@ describe "Autoflow package", ->
             Phasellus gravida
             nibh id magna ullamcorper
             tincidunt adipiscing lacinia a dui. Etiam quis erat dolor.
-            rutrum nisl fermentum rhoncus. Duis blandit ligula facilisis fermentum
+            rutrum nisl fermentum  rhoncus. Duis blandit ligula facilisis fermentum
       '''
 
       res = '''
@@ -105,7 +105,45 @@ describe "Autoflow package", ->
 
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida
             nibh id magna ullamcorper tincidunt adipiscing lacinia a dui. Etiam quis
-            erat dolor. rutrum nisl fermentum rhoncus. Duis blandit ligula facilisis
+            erat dolor. rutrum nisl fermentum  rhoncus. Duis blandit ligula facilisis
             fermentum
+      '''
+      expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
+
+    it 'respects prefixed text (comments!)', ->
+      text = '''
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida nibh id magna ullamcorper sagittis. Maecenas
+        et enim eu orci tincidunt adipiscing
+        aliquam ligula.
+
+          #  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          #  Phasellus gravida
+          #  nibh id magna ullamcorper
+          #  tincidunt adipiscing lacinia a dui. Etiam quis erat dolor.
+          #  rutrum nisl fermentum  rhoncus. Duis blandit ligula facilisis fermentum
+      '''
+
+      res = '''
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida nibh
+        id magna ullamcorper sagittis. Maecenas et enim eu orci tincidunt adipiscing
+        aliquam ligula.
+
+          #  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida
+          #  nibh id magna ullamcorper tincidunt adipiscing lacinia a dui. Etiam quis
+          #  erat dolor. rutrum nisl fermentum  rhoncus. Duis blandit ligula facilisis
+          #  fermentum
+      '''
+      expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
+
+    it 'respects multiple prefixes (js/c comments)', ->
+      text = '''
+        // Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida
+        et enim eu orci tincidunt adipiscing
+        aliquam ligula.
+      '''
+
+      res = '''
+        // Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida et
+        // enim eu orci tincidunt adipiscing aliquam ligula.
       '''
       expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res
