@@ -21,11 +21,15 @@ module.exports =
 
   getSessionUrl: (sessionId) -> "atom://session/#{sessionId}"
 
+  getIceServers: ->
+    stunServer = {url: "stun:54.218.196.152:3478"}
+    turnServer = {url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}
+    iceServers: [stunServer, turnServer]
+
   createPeer: ->
     id = Guid.create().toString()
     key = '0njqmaln320dlsor'
-    # config = {iceServers: [{url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}]}
-    config = {iceServers: [{url: "stun:54.218.196.152:3478"}, {url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}]}
+    config = @getIceServers()
     new Peer(id, {key, config})
 
   connectDocument: (doc, connection) ->

@@ -7,7 +7,7 @@ patrick = require 'patrick'
 telepath = require 'telepath'
 
 Project = require 'project'
-{connectDocument, createPeer} = require './session-utils'
+sessionUtils = require './session-utils'
 
 module.exports =
 class GuestSession
@@ -19,7 +19,7 @@ class GuestSession
   stream: null
 
   constructor: (sessionId) ->
-    @peer = createPeer()
+    @peer = sessionUtils.createPeer()
     connection = @peer.connect(sessionId, reliable: true)
 
     connection.on 'open', =>
@@ -35,12 +35,11 @@ class GuestSession
     window.site = new telepath.Site(@getId())
     doc = window.site.deserializeDocument(data.doc)
 
-    servers = {iceServers: [{url: "stun:54.218.196.152:3478"}, {url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}]}
     mediaConnection = null
 
     constraints = {video: true, audio: true}
     success = (stream) =>
-      mediaConnection = new webkitRTCPeerConnection(servers)
+      mediaConnection = new webkitRTCPeerConnection(sessionUtils.getIceServers())
       mediaConnection.onicecandidate = (event) =>
         return unless event.candidate?
         console.log "Set Guest Candidate", event.candidate
@@ -86,7 +85,7 @@ class GuestSession
         else
           throw new Error("Unknown host key '#{key}'")
 
-    connectDocument(doc, connection)
+    sessionUtils.connectDocument(doc, connection)
     @mirrorRepository(data.repoSnapshot)
 
   mirrorRepository: (repoSnapshot) ->

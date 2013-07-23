@@ -4,7 +4,7 @@ _ = require 'underscore'
 patrick = require 'patrick'
 telepath = require 'telepath'
 
-{createPeer, connectDocument} = require './session-utils'
+sessionUtils = require './session-utils'
 
 module.exports =
 class HostSession
@@ -19,12 +19,11 @@ class HostSession
   start: ->
     return if @peer?
 
-    servers = {iceServers: [{url: "stun:54.218.196.152:3478"}, {url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}]}
     mediaConnection = null
 
     constraints = {video: true, audio: true}
     success = (stream) =>
-      mediaConnection = new webkitRTCPeerConnection(servers)
+      mediaConnection = new webkitRTCPeerConnection(sessionUtils.getIceServers())
       mediaConnection.onicecandidate = (event) =>
         return unless event.candidate?
         console.log "Set Host Candidate", event.candidate
@@ -37,7 +36,7 @@ class HostSession
       mediaConnection.addStream(stream)
     navigator.webkitGetUserMedia constraints, success, console.error
 
-    @peer = createPeer()
+    @peer = sessionUtils.createPeer()
     @doc = site.createDocument({})
     @doc.set('windowState', atom.windowState)
     patrick.snapshot project.getPath(), (error, repoSnapshot) =>
@@ -96,7 +95,7 @@ class HostSession
         connection.on 'open', =>
           console.log 'sending document'
           connection.send({repoSnapshot, doc: @doc.serialize()})
-          connectDocument(@doc, connection)
+          sessionUtils.connectDocument(@doc, connection)
 
         connection.on 'close', =>
           console.log 'sharing session stopped'
