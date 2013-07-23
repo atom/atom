@@ -31,12 +31,16 @@ class EditSession
   languageMode: null
   displayBuffer: null
   cursors: null
+  remoteCursors: null
   selections: null
+  remoteSelections: null
   suppressSelectionMerging: false
 
   constructor: (optionsOrState) ->
     @cursors = []
+    @remoteCursors = []
     @selections = []
+    @remoteSelections = []
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
       @id = @state.get('id')
@@ -64,7 +68,10 @@ class EditSession
         scrollLeft: 0
       @setBuffer(buffer)
       @setDisplayBuffer(displayBuffer)
-      @addCursorAtScreenPosition([0, 0]) unless suppressCursorCreation
+
+    if @getCursors().length is 0 and not suppressCursorCreation
+      position = _.last(@getRemoteCursors())?.getBufferPosition() ? [0, 0]
+      @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @state.on 'changed', ({key, newValue}) =>
@@ -831,6 +838,8 @@ class EditSession
   getCursor: ->
     _.last(@cursors)
 
+  getRemoteCursors: -> new Array(@remoteCursors...)
+
   # Adds a cursor at the provided `screenPosition`.
   #
   # screenPosition - An {Array} of two numbers: the screen row, and the screen column.
@@ -856,7 +865,10 @@ class EditSession
   # Returns the new {Cursor}.
   addCursor: (marker) ->
     cursor = new Cursor(editSession: this, marker: marker)
-    @cursors.push(cursor)
+    if marker.isLocal()
+      @cursors.push(cursor)
+    else
+      @remoteCursors.push(cursor)
     @trigger 'cursor-added', cursor
     cursor
 
@@ -879,7 +891,12 @@ class EditSession
       @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
-    @selections.push(selection)
+
+    if marker.isLocal()
+      @selections.push(selection)
+    else
+      @remoteSelections.push(selection)
+
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections()
     if selection.destroyed
@@ -929,7 +946,10 @@ class EditSession
   #
   # selection - The {Selection} to remove.
   removeSelection: (selection) ->
-    _.remove(@selections, selection)
+    if selection.isLocal()
+      _.remove(@selections, selection)
+    else
+      _.remove(@remoteSelections, selection)
 
   # Clears every selection. TODO
   clearSelections: ->
@@ -964,14 +984,16 @@ class EditSession
   getLastSelection: ->
     _.last(@selections)
 
+  getRemoteSelections: -> new Array(@remoteSelections...)
+
   # Gets all selections, ordered by their position in the buffer.
   #
   # Returns an {Array} of {Selection}s.
   getSelectionsOrderedByBufferPosition: ->
-    @getSelections().sort (a, b) ->
-      aRange = a.getBufferRange()
-      bRange = b.getBufferRange()
-      aRange.end.compare(bRange.end)
+    @getSelections().sort (a, b) -> a.compare(b)
+
+  getRemoteSelectionsOrderedByBufferPosition: ->
+    @getRemoteSelections().sort (a, b) -> a.compare(b)
 
   # Gets the very last selection, as it's ordered in the buffer.
   #
@@ -1041,6 +1063,9 @@ class EditSession
   # Returns an {Array} of {Range}s.
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
+
+  getRemoteSelectedBufferRanges: ->
+    selection.getBufferRange() for selection in @getRemoteSelectionsOrderedByBufferPosition()
 
   # Gets the selected text of the most recently added {Selection}.
   #

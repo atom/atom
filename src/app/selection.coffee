@@ -524,6 +524,15 @@ class Selection
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
     otherSelection.destroy()
 
+  compare: (other) ->
+    @getBufferRange().compare(other.getBufferRange())
+
+  isLocal: ->
+    @marker.isLocal()
+
+  isRemote: ->
+    @marker.isRemote()
+
   ### Internal ###
 
   screenRangeChanged: ->

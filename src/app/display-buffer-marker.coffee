@@ -141,6 +141,15 @@ class DisplayBufferMarker
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
+  getOriginSiteId: ->
+    @bufferMarker.getOriginSiteId()
+
+  isLocal: ->
+    @bufferMarker.isLocal()
+
+  isRemote: ->
+    @bufferMarker.isRemote()
+
   getAttributes: ->
     @bufferMarker.getAttributes()
 
