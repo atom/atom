@@ -184,7 +184,7 @@ class LanguageMode
     return unless /\w/.test(@editSession.lineForBufferRow(bufferRow))
 
     isRowComment = (row) =>
-      !!@editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
+      @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
 
     if isRowComment(bufferRow)
       isOriginalRowComment = true
