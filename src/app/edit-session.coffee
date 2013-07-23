@@ -1152,6 +1152,10 @@ class EditSession
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
 
+  # Selects to the first non-whitespace character of the line.
+  selectToFirstCharacterOfLine: ->
+    @expandSelectionsBackward (selection) => selection.selectToFirstCharacterOfLine()
+
   # Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()

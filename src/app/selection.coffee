@@ -198,6 +198,10 @@ class Selection
   selectToBeginningOfLine: ->
     @modifySelection => @cursor.moveToBeginningOfLine()
 
+  # Selects all the text from the current cursor position to the first character of the line.
+  selectToFirstCharacterOfLine: ->
+    @modifySelection => @cursor.moveToFirstCharacterOfLine()
+
   # Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: ->
     @modifySelection => @cursor.moveToEndOfLine()

@@ -2,6 +2,7 @@ PaneContainer = require 'pane-container'
 Pane = require 'pane'
 {View} = require 'space-pen'
 $ = require 'jquery'
+{dirname} = require 'path'
 
 describe "Pane", ->
   [container, view1, view2, editSession1, editSession2, pane] = []
@@ -373,7 +374,7 @@ describe "Pane", ->
 
         pane.trigger 'core:save-as'
 
-        expect(atom.showSaveDialogSync).toHaveBeenCalled()
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(dirname(editSession2.getPath()))
         expect(editSession2.saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
