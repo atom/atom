@@ -6,6 +6,7 @@ _ = require 'underscore'
 patrick = require 'patrick'
 telepath = require 'telepath'
 
+Project = require 'project'
 {connectDocument, createPeer} = require './session-utils'
 
 module.exports =
@@ -82,10 +83,7 @@ class GuestSession
     guest.set 'ready', true
 
   mirrorRepository: (repoSnapshot) ->
-    repoUrl = @repository.get('url')
-    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
-    repoName = repoName.replace(/\.git$/, '')
-    repoPath = path.join(remote.require('app').getHomeDir(), 'github', repoName)
+    repoPath = Project.pathForRepositoryUrl(@repository.get('url'))
 
     progressCallback = (args...) => @trigger 'mirror-progress', args...
 

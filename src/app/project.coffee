@@ -34,6 +34,11 @@ class Project
   @unregisterOpener: (opener) ->
     _.remove(@openers, opener)
 
+  @pathForRepositoryUrl: (repoUrl) ->
+    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
+    repoName = repoName.replace(/\.git$/, '')
+    path.join(config.get('core.projectHome'), repoName)
+
   tabLength: 2
   softTabs: true
   softWrap: false
@@ -63,7 +68,7 @@ class Project
       if projectPath = @state.remove('path')
         @setPath(projectPath)
       else
-        @setPath(@pathForRepositoryUrl(@state.get('repoUrl')))
+        @setPath(@constructor.pathForRepositoryUrl(@state.get('repoUrl')))
 
       @state.get('buffers').each (bufferState) =>
         if buffer = deserialize(bufferState, project: this)
@@ -79,11 +84,6 @@ class Project
         @removeBufferAtIndex(index, updateState: false)
       for insertedBuffer, i in inserted
         @addBufferAtIndex(deserialize(insertedBuffer, project: this), index + i, updateState: false)
-
-  pathForRepositoryUrl: (repoUrl) ->
-    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
-    repoName = repoName.replace(/\.git$/, '')
-    path.join(config.get('core.projectHome'), repoName)
 
   serialize: ->
     state = @state.clone()
