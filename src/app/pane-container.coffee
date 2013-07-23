@@ -28,7 +28,10 @@ class PaneContainer extends View
     @state.on 'changed', ({key, newValue, site}) =>
       return if site is @state.site.id
       if key is 'root'
-        @setRoot(deserialize(newValue))
+        if newValue?
+          @setRoot(deserialize(newValue))
+        else
+          @setRoot(null)
 
     @destroyedItemStates = []
 
@@ -91,7 +94,7 @@ class PaneContainer extends View
   getRoot: ->
     @children().first().view()
 
-  setRoot: (root, options={}) ->
+  setRoot: (root) ->
     @empty()
     @append(root) if root?
     @state.set(root: root?.getState())
