@@ -6,12 +6,13 @@ module.exports =
 class MediaConnection
   _.extend @prototype, require('event-emitter')
 
-  guest: null
-  host: null
+  local: null
+  remote: null
   connection: null
   stream: null
+  isHost: null
 
-  constructor: (@guest, @host) ->
+  constructor: (@local, @remote, {@isHost}={}) ->
     constraints = {video: true, audio: true}
     navigator.webkitGetUserMedia constraints, @onUserMediaAvailable, @onUserMediaUnavailable
 
@@ -27,31 +28,40 @@ class MediaConnection
   onUserMediaAvailable: (stream) =>
     @connection = new webkitRTCPeerConnection(sessionUtils.getIceServers())
     @connection.addStream(stream)
-    @host.on 'changed', @onHostSignal
+    @remote.on 'changed', @onRemoteSignal
 
     @connection.onicecandidate = (event) =>
       return unless event.candidate?
-      @guest.set 'candidate', event.candidate
+      @local.set 'candidate', event.candidate
 
     @connection.onaddstream = (event) =>
       @stream = event.stream
       @trigger 'stream-ready', @stream
 
-    @guest.set 'ready', true
+    @local.set 'ready', true unless @isHost
 
-  onHostSignal: ({key, newValue}) =>
+  onRemoteSignal: ({key, newValue}) =>
     switch key
-      when 'description'
-        hostDescription = newValue.toObject()
-        sessionDescription = new RTCSessionDescription(hostDescription)
-        @connection.setRemoteDescription(sessionDescription)
-        success = (guestDescription) =>
-          @connection.setLocalDescription(guestDescription)
-          @guest.set('description', guestDescription)
+      when 'ready'
+        success = (description) =>
+          @connection.setLocalDescription(description)
+          @local.set 'description', description
+        @connection.createOffer success, console.error
 
-        @connection.createAnswer success, console.error
+      when 'description'
+        remoteDescription = newValue.toObject()
+        sessionDescription = new RTCSessionDescription(remoteDescription)
+        @connection.setRemoteDescription(sessionDescription)
+
+        if not @isHost
+          success = (localDescription) =>
+            @connection.setLocalDescription(localDescription)
+            @local.set('description', localDescription)
+          @connection.createAnswer success, console.error
+
       when 'candidate'
-        hostCandidate = new RTCIceCandidate newValue.toObject()
-        @connection.addIceCandidate(hostCandidate)
+        remoteCandidate = new RTCIceCandidate newValue.toObject()
+        @connection.addIceCandidate(remoteCandidate)
+
       else
-        throw new Error("Unknown host key '#{key}'")
+        throw new Error("Unknown remote key '#{key}'")

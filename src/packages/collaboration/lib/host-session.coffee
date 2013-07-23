@@ -4,48 +4,23 @@ _ = require 'underscore'
 patrick = require 'patrick'
 telepath = require 'telepath'
 
+MediaConnection = require './media-connection'
 sessionUtils = require './session-utils'
 
 module.exports =
 class HostSession
   _.extend @prototype, require('event-emitter')
 
-  doc: null
   participants: null
   peer: null
+  mediaConnection: null
+  doc: null
   sharing: false
-  stream: null
 
-  start: ->
-    return if @peer?
-
-    mediaConnection = null
-
-    constraints = {video: true, audio: true}
-    success = (stream) =>
-      mediaConnection = new webkitRTCPeerConnection(sessionUtils.getIceServers())
-      mediaConnection.onicecandidate = (event) =>
-        return unless event.candidate?
-        console.log "Set Host Candidate", event.candidate
-        @doc.set 'collaborationState.host.candidate', event.candidate
-
-      mediaConnection.onaddstream = ({@stream}) =>
-        @trigger 'stream-ready', @stream
-        console.log('Added Guest\'s Stream', @stream)
-
-      mediaConnection.addStream(stream)
-    navigator.webkitGetUserMedia constraints, success, console.error
-
-    @peer = sessionUtils.createPeer()
-    @doc = site.createDocument({})
-    @doc.set('windowState', atom.windowState)
-    patrick.snapshot project.getPath(), (error, repoSnapshot) =>
-      if error?
-        console.error(error)
-        return
-
-      # FIXME: There be dragons here
-      @doc.set 'collaborationState',
+  constructor: ->
+    @doc = site.createDocument
+      windowState: atom.windowState
+      collaborationState:
         guest: {description: '', candidate: '', ready: false}
         host: {description: '', candidate: ''}
         participants: []
@@ -53,63 +28,49 @@ class HostSession
           url: git.getConfigValue('remote.origin.url')
           branch: git.getShortHead()
 
-      host = @doc.get 'collaborationState.host'
-      guest = @doc.get 'collaborationState.guest'
-      guest.on 'changed', ({key, newValue}) =>
-        switch key
-          when 'ready'
-            success = (description) =>
-              console.log "Create Offer", description
-              mediaConnection.setLocalDescription(description)
-              host.set 'description', description
+    host = @doc.get('collaborationState.host')
+    guest = @doc.get('collaborationState.guest')
+    @mediaConnection = new MediaConnection(host, guest, isHost: true)
 
-            mediaConnection.createOffer success, console.error
-          when 'description'
-            guestDescription = newValue.toObject()
-            console.log "Received Guest description", guestDescription
-            sessionDescription = new RTCSessionDescription(guestDescription)
-            mediaConnection.setRemoteDescription(sessionDescription)
-          when 'candidate'
-            guestCandidate = new RTCIceCandidate newValue.toObject()
-            console.log('Host received candidate', guestCandidate)
-            mediaConnection.addIceCandidate(new RTCIceCandidate(guestCandidate))
-          else
-            throw new Error("Unknown guest key '#{key}'")
+    @peer = sessionUtils.createPeer()
+
+  start: ->
+    return if @isSharing()
+
+    patrick.snapshot project.getPath(), (error, repoSnapshot) =>
+      throw new Error(error) if error
 
       @participants = @doc.get('collaborationState.participants')
       @participants.push
         id: @getId()
         email: git.getConfigValue('user.email')
+
       @participants.on 'changed', =>
         @trigger 'participants-changed', @participants.toObject()
 
-      @peer.on 'open', =>
-        @sharing = true
-        @trigger 'started'
-
-      @peer.on 'close', =>
-        @sharing = false
-        @trigger 'stopped'
-
       @peer.on 'connection', (connection) =>
         connection.on 'open', =>
-          console.log 'sending document'
+          @sharing = true
           connection.send({repoSnapshot, doc: @doc.serialize()})
           sessionUtils.connectDocument(@doc, connection)
+          @trigger 'started'
 
         connection.on 'close', =>
-          console.log 'sharing session stopped'
+          @sharing = false
           @participants.each (participant, index) =>
             if connection.peer is participant.get('id')
               @participants.remove(index)
+          @trigger 'stopped'
 
     @getId()
 
   stop: ->
     return unless @peer?
-
     @peer.destroy()
     @peer = null
+
+  waitForStream: (callback) ->
+    @mediaConnection.waitForStream callback
 
   getId: ->
     @peer.id
