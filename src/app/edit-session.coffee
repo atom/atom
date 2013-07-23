@@ -827,6 +827,9 @@ class EditSession
   hasMultipleCursors: ->
     @getCursors().length > 1
 
+  getAllCursors: ->
+    @getCursors().concat(@getRemoteCursors())
+
   # Retrieves all the cursors.
   #
   # Returns an {Array} of {Cursor}s.

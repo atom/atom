@@ -29,6 +29,9 @@ describe "Editor replication", ->
     env1.destroy()
     env2.destroy()
 
-  it "displays the selections from all replicas", ->
+  it "displays the cursors and selections from all replicas", ->
     expect(editor1.getSelectionViews().length).toBe 2
     expect(editor2.getSelectionViews().length).toBe 2
+
+    expect(editor1.getCursorViews().length).toBe 2
+    expect(editor2.getCursorViews().length).toBe 2

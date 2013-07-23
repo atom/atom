@@ -1101,7 +1101,7 @@ class Editor extends View
     @updateLayerDimensions()
     @scrollTop(editSessionScrollTop)
     @scrollLeft(editSessionScrollLeft)
-    @newCursors = @activeEditSession.getCursors()
+    @newCursors = @activeEditSession.getAllCursors()
     @newSelections = @activeEditSession.getAllSelections()
     @updateDisplay(suppressAutoScroll: true)
 
