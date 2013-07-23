@@ -267,6 +267,7 @@ class Project
   #
   # Returns the {Buffer}.
   buildBuffer: (filePath, initialText) ->
+    filePath = @resolve(filePath) if filePath?
     buffer = new TextBuffer({project: this, filePath, initialText})
     @addBuffer(buffer)
     @trigger 'buffer-created', buffer
