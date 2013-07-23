@@ -60,7 +60,7 @@ class Project
 
     if pathOrState instanceof telepath.Document
       @state = pathOrState
-      if projectPath = @state.get('path')
+      if projectPath = @state.remove('path')
         @setPath(projectPath)
       else
         @setPath(@pathForRepositoryUrl(@state.get('repoUrl')))
