@@ -244,6 +244,16 @@ class Cursor
     if position = @getBeginningOfNextWordBufferPosition()
       @setBufferPosition(position)
 
+  # Moves the cursor to the previous word boundary.
+  moveToPreviousWordBoundary: ->
+    if position = @getMovePreviousWordBoundaryBufferPosition()
+      @setBufferPosition(position)
+
+  # Moves the cursor to the next word boundary.
+  moveToNextWordBoundary: ->
+    if position = @getMoveNextWordBoundaryBufferPosition()
+      @setBufferPosition(position)
+
   # Retrieves the buffer position of where the current word starts.
   #
   # options - A hash with one option:
@@ -264,6 +274,49 @@ class Cursor
         stop()
 
     beginningOfWordPosition or currentBufferPosition
+
+  # Retrieves buffer position of previous word boiundry. It might be on the
+  # current word, or the previous word.
+  getMovePreviousWordBoundaryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
+    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
+
+    beginningOfWordPosition = null
+    @editSession.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      if range.start.row < currentBufferPosition.row and currentBufferPosition.column > 0
+        # force it to stop at the beginning of each line
+        beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
+      else if range.end.isLessThan(currentBufferPosition)
+        beginningOfWordPosition = range.end
+      else
+        beginningOfWordPosition = range.start
+
+      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    beginningOfWordPosition or currentBufferPosition
+
+  # Retrieves buffer position of previous word boiundry. It might be on the
+  # current word, or the previous word.
+  getMoveNextWordBoundaryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    scanRange = [currentBufferPosition, @editSession.getEofBufferPosition()]
+
+    endOfWordPosition = null
+    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      if range.start.row > currentBufferPosition.row
+        # force it to stop at the beginning of each line
+        endOfWordPosition = new Point(range.start.row, 0)
+      else if range.start.isGreaterThan(currentBufferPosition)
+        endOfWordPosition = range.start
+      else
+        endOfWordPosition = range.end
+
+      if not endOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    endOfWordPosition or currentBufferPosition
 
   # Retrieves the buffer position of where the current word ends.
   #
