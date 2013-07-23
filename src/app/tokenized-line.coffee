@@ -111,3 +111,4 @@ class TokenizedLine
       for scope in token.scopes
         return true if _.contains(scope.split('.'), 'comment')
       break
+    false
