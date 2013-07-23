@@ -1,18 +1,19 @@
 RootView = require 'root-view'
 
-fdescribe "Autoflow package", ->
+describe "Autoflow package", ->
   editor = null
-
-  beforeEach ->
-    window.rootView = new RootView
-    rootView.open()
-    atom.activatePackage('autoflow')
-    rootView.attachToDom()
-    editor = rootView.getActiveView()
-
-    config.set('editor.preferredLineLength', 30)
+  autoflow = null
 
   describe "autoflow:reflow-paragraph", ->
+    beforeEach ->
+      window.rootView = new RootView
+      rootView.open()
+      atom.activatePackage('autoflow')
+      rootView.attachToDom()
+      editor = rootView.getActiveView()
+
+      config.set('editor.preferredLineLength', 30)
+
     it "rearranges line breaks in the current paragraph to ensure lines are shorter than config.editor.preferredLineLength", ->
       editor.setText """
         This is a preceding paragraph, which shouldn't be modified by a reflow of the following paragraph.
@@ -54,3 +55,32 @@ fdescribe "Autoflow package", ->
         and these are some smaller
         words
       """
+
+  fdescribe "reflowing text", ->
+    beforeEach ->
+      window.rootView = new RootView
+      autoflow = atom.activatePackage('autoflow', immediate: true).mainModule
+
+    it 'respects current paragraphs', ->
+      text = '''
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida nibh id magna ullamcorper sagittis. Maecenas
+        et enim eu orci tincidunt adipiscing
+        aliquam ligula.
+
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Phasellus gravida
+        nibh id magna ullamcorper
+        tincidunt adipiscing lacinia a dui. Etiam quis erat dolor.
+        rutrum nisl fermentum rhoncus. Duis blandit ligula facilisis fermentum.
+      '''
+
+      res = '''
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida nibh
+        id magna ullamcorper sagittis. Maecenas et enim eu orci tincidunt adipiscing
+        aliquam ligula.
+
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida nibh
+        id magna ullamcorper tincidunt adipiscing lacinia a dui. Etiam quis erat dolor.
+        rutrum nisl fermentum rhoncus. Duis blandit ligula facilisis fermentum.
+      '''
+      expect(autoflow.reflow(text, wrapColumn: 80)).toEqual res

@@ -11,20 +11,28 @@ module.exports =
       editor.getBuffer().change(range, @reflow(editor.getTextInRange(range), {wrapColumn}))
 
   reflow: (text, {wrapColumn}) ->
-    lines = []
+    paragraphs = []
 
-    currentLine = []
-    currentLineLength = 0
-    for segment in @segmentText(text.replace(/\n/g, ' '))
-      if @wrapSegment(segment, currentLineLength, wrapColumn)
-        lines.push(currentLine.join(''))
-        currentLine = []
-        currentLineLength = 0
-      currentLine.push(segment)
-      currentLineLength += segment.length
-    lines.push(currentLine.join(''))
+    paragraphBlocks = text.split(/\n\s*\n/g)
 
-    lines.join('\n').replace(/\s+\n/g, '\n')
+    for block in paragraphBlocks
+      lines = []
+      currentLine = []
+      currentLineLength = 0
+
+      for segment in @segmentText(block.replace(/\n/g, ' '))
+        if @wrapSegment(segment, currentLineLength, wrapColumn)
+          lines.push(currentLine.join(''))
+          currentLine = []
+          currentLineLength = 0
+        currentLine.push(segment)
+        currentLineLength += segment.length
+
+      lines.push(currentLine.join(''))
+
+      paragraphs.push(lines.join('\n').replace(/\s+\n/g, '\n'))
+
+    paragraphs.join('\n\n')
 
   wrapSegment: (segment, currentLineLength, wrapColumn) ->
     /\w/.test(segment) and
