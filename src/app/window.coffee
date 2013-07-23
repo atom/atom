@@ -77,6 +77,7 @@ window.startConfigWindow = ->
 window.unloadEditorWindow = ->
   return if not project and not rootView
   windowState = atom.getWindowState()
+  windowState.set('project', project.serialize())
   windowState.set('syntax', syntax.serialize())
   windowState.set('rootView', rootView.serialize())
   atom.deactivatePackages()
