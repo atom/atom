@@ -1,4 +1,4 @@
-Peer = require '../vendor/peer.js'
+{Peer} = require '../vendor/peer.js'
 Guid = require 'guid'
 
 url = require 'url'

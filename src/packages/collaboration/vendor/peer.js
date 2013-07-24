@@ -1,6 +1,14 @@
-/*! peerjs.js build:0.2.7, development. Copyright(c) 2013 Michelle Bu <michelle@michellebu.com> */
+/*! peerjs.js build:0.2.8, development. Copyright(c) 2013 Michelle Bu <michelle@michellebu.com> */
+(function(exports){
 var binaryFeatures = {};
-binaryFeatures.useBlobBuilder = false;
+binaryFeatures.useBlobBuilder = (function(){
+  try {
+    new Blob([]);
+    return false;
+  } catch (e) {
+    return true;
+  }
+})();
 
 binaryFeatures.useArrayBufferView = !binaryFeatures.useBlobBuilder && (function(){
   try {
@@ -9,6 +17,9 @@ binaryFeatures.useArrayBufferView = !binaryFeatures.useBlobBuilder && (function(
     return true;
   }
 })();
+
+exports.binaryFeatures = binaryFeatures;
+exports.BlobBuilder = window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder || window.BlobBuilder;
 
 function BufferBuilder(){
   this._pieces = [];
@@ -47,7 +58,7 @@ BufferBuilder.prototype.getBuffer = function() {
     return new Blob(this._parts);
   }
 };
-BinaryPack = {
+exports.BinaryPack = {
   unpack: function(data){
     var unpacker = new Unpacker(data);
     return unpacker.unpack();
@@ -736,8 +747,8 @@ var util = {
     }
     return dest;
   },
-  pack: BinaryPack.pack,
-  unpack: BinaryPack.unpack,
+  pack: exports.BinaryPack.pack,
+  unpack: exports.BinaryPack.unpack,
 
   log: function () {
     if (util.debug) {
@@ -810,6 +821,9 @@ var util = {
   },
   isBrowserCompatible: function() {
     return true;
+  },
+  isSecure: function() {
+    return location.protocol === 'https:';
   }
 };
 /**
@@ -1114,6 +1128,7 @@ Reliable.higherBandwidthSDP = function(sdp) {
 // Overwritten, typically.
 Reliable.prototype.onmessage = function(msg) {};
 
+exports.Reliable = Reliable;
 if (window.mozRTCPeerConnection) {
   util.browserisms = 'Firefox';
 } else if (window.webkitRTCPeerConnection) {
@@ -1122,8 +1137,8 @@ if (window.mozRTCPeerConnection) {
   util.browserisms = 'Unknown';
 }
 
-RTCSessionDescription = window.RTCSessionDescription;
-RTCPeerConnection = window.webkitRTCPeerConnection;
+exports.RTCSessionDescription = window.mozRTCSessionDescription || window.RTCSessionDescription;
+exports.RTCPeerConnection = window.mozRTCPeerConnection || window.webkitRTCPeerConnection || window.RTCPeerConnection;
 /**
  * A peer who can initiate connections with other peers.
  */
@@ -1134,6 +1149,7 @@ function Peer(id, options) {
   }
   if (!(this instanceof Peer)) return new Peer(id, options);
   EventEmitter.call(this);
+
 
   options = util.extend({
     debug: false,
@@ -1175,6 +1191,16 @@ function Peer(id, options) {
     return;
   }
 
+  this._secure = util.isSecure();
+  // Errors for now because no support for SSL on cloud server.
+  if (this._secure && options.host === '0.peerjs.com') {
+    util.setZeroTimeout(function() {
+      self._abort('ssl-unavailable',
+        'The cloud server currently does not support HTTPS. Please run your own PeerServer to use HTTPS.');
+    });
+    return;
+  }
+
   // States.
   this.destroyed = false;
   this.disconnected = false;
@@ -1203,7 +1229,8 @@ Peer.prototype._retrieveId = function(cb) {
   var self = this;
   try {
     var http = new XMLHttpRequest();
-    var url = 'http://' + this._options.host + ':' + this._options.port + '/' + this._options.key + '/id';
+    var protocol = this._secure ? 'https://' : 'http://';
+    var url = protocol + this._options.host + ':' + this._options.port + '/' + this._options.key + '/id';
     var queryString = '?ts=' + new Date().getTime() + '' + Math.random();
     url += queryString;
     // If there's no ID we need to wait for one before trying to init socket.
@@ -1211,7 +1238,7 @@ Peer.prototype._retrieveId = function(cb) {
     http.onreadystatechange = function() {
       if (http.readyState === 4) {
         if (http.status !== 200) {
-          throw 'Retrieve id response not 200';
+          throw 'Retrieve ID response not 200';
           return;
         }
         self.id = http.responseText;
@@ -1451,6 +1478,7 @@ Peer.prototype.isDestroyed = function() {
   return this.destroyed;
 };
 
+exports.Peer = Peer;
 /**
  * Wraps a DataChannel between two Peers.
  */
@@ -1694,7 +1722,7 @@ ConnectionManager.prototype.initialize = function(id, socket) {
 /** Start a PC. */
 ConnectionManager.prototype._startPeerConnection = function() {
   util.log('Creating RTCPeerConnection');
-  this.pc = new RTCPeerConnection(this._options.config, { optional: [ { RtpDataChannels: true } ]});
+  this.pc = new exports.RTCPeerConnection(this._options.config, { optional: [ { RtpDataChannels: true } ]});
 };
 
 /** Add DataChannels to all queued DataConnections. */
@@ -1793,6 +1821,9 @@ ConnectionManager.prototype._makeOffer = function() {
       self.emit('error', err);
       util.log('Failed to setLocalDescription, ', err);
     });
+  }, function(err) {
+    self.emit('error', err);
+    util.log('Failed to createOffer, ', err);
   });
 };
 
@@ -1967,8 +1998,11 @@ function Socket(host, port, key, id) {
 
   this.disconnected = false;
 
-  this._httpUrl = 'http://' + host + ':' + port + '/' + key + '/' + id + '/' + token;
-  this._wsUrl = 'ws://' + host + ':' + port + '/peerjs?key='+key+'&id='+id+'&token='+token;
+  var secure = util.isSecure();
+  var protocol = secure ? 'https://' : 'http://';
+  var wsProtocol = secure ? 'wss://' : 'ws://';
+  this._httpUrl = protocol + host + ':' + port + '/' + key + '/' + id + '/' + token;
+  this._wsUrl = wsProtocol + host + ':' + port + '/peerjs?key='+key+'&id='+id+'&token='+token;
 };
 
 util.inherits(Socket, EventEmitter);
@@ -2132,4 +2166,4 @@ Socket.prototype.close = function() {
   }
 };
 
-module.exports = Peer;
+})(exports);
