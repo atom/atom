@@ -404,21 +404,7 @@ class Cursor
   #
   # Returns a {Range}.
   getCurrentParagraphBufferRange: ->
-    row = @getBufferRow()
-    return unless /\w/.test(@editSession.lineForBufferRow(row))
-
-    startRow = row
-    while startRow > 0
-      break unless /\w/.test(@editSession.lineForBufferRow(startRow - 1))
-      startRow--
-
-    endRow = row
-    lastRow = @editSession.getLastBufferRow()
-    while endRow < lastRow
-      break unless /\w/.test(@editSession.lineForBufferRow(endRow + 1))
-      endRow++
-
-    new Range([startRow, 0], [endRow, @editSession.lineLengthForBufferRow(endRow)])
+    @editSession.languageMode.rowRangeForParagraphAtBufferRow(@getBufferRow())
 
   # Retrieves the characters that constitute a word preceeding the current cursor position.
   #

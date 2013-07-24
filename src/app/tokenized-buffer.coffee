@@ -183,9 +183,13 @@ class TokenizedBuffer
     { tokens, ruleStack } = @grammar.tokenizeLine(line, ruleStack, row is 0)
     new TokenizedLine({tokens, ruleStack, @tabLength, lineEnding})
 
+  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
+  # accounted for in @tokenizedLines
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
 
+  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
+  # accounted for in @tokenizedLines
   linesForScreenRows: (startRow, endRow) ->
     @tokenizedLines[startRow..endRow]
 
