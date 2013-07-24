@@ -35,7 +35,7 @@ class GuestSession
     window.site = new telepath.Site(@getId())
     doc = window.site.deserializeDocument(data.doc)
 
-    servers = null
+    servers = {iceServers: [{url: "turn:54.218.196.152:3478", credential:"youhavetoberealistic"}]}
     mediaConnection = new webkitRTCPeerConnection(servers)
     mediaConnection.onicecandidate = (event) =>
       return unless event.candidate?

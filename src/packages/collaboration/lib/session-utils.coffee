@@ -23,7 +23,9 @@ module.exports =
 
   createPeer: ->
     id = Guid.create().toString()
-    new Peer(id, key: '0njqmaln320dlsor')
+    key = '0njqmaln320dlsor'
+    config = {iceServers: [{url: "turn:54.218.196.152:3478", credential:"youhavetoberealistic"}]}
+    new Peer(id, {key, config})
 
   connectDocument: (doc, connection) ->
     nextOutputEventId = 1

@@ -1135,7 +1135,6 @@ function Peer(id, options) {
   if (!(this instanceof Peer)) return new Peer(id, options);
   EventEmitter.call(this);
 
-
   options = util.extend({
     debug: false,
     host: '0.peerjs.com',
