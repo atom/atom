@@ -37,14 +37,14 @@ module.exports =
     outputListener = (event) ->
       return unless connection.open
       event.id = nextOutputEventId++
-#       console.log 'sending event', event.id, event
+      console.log 'sending event', event.id, event
       connection.send(event)
     doc.on('replicate-change', outputListener)
 
     queuedEvents = []
     nextInputEventId = 1
     handleInputEvent = (event) ->
-#       console.log 'received event', event.id, event
+      console.log 'received event', event.id, event
       doc.applyRemoteChange(event)
       nextInputEventId = event.id + 1
     flushQueuedEvents = ->
@@ -62,7 +62,7 @@ module.exports =
         handleInputEvent(event)
         flushQueuedEvents()
       else
-#         console.log 'enqueing event', event.id, event
+        console.log 'enqueing event', event.id, event
         queuedEvents.push(event)
 
     connection.on 'close', ->
