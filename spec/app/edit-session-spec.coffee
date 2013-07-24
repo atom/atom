@@ -473,6 +473,26 @@ describe "EditSession", ->
         editSession.setCursorBufferPosition([3, 1])
         expect(editSession.getCurrentParagraphBufferRange()).toBeUndefined()
 
+    describe ".indexForBufferPosition()", ->
+      it "returns the buffer index for the start of a line", ->
+        expect(editSession.indexForBufferPosition({row: 3, column: 0 })).toBe 102
+
+      it "returns the buffer index for the start of a line, relative to a non-zero starting row", ->
+        expect(editSession.indexForBufferPosition({row: 3, column: 0 }, 2)).toBe 41
+
+      it "returns the buffer index for the middle of a line", ->
+        expect(editSession.indexForBufferPosition({row: 6, column: 10 })).toBe 236
+
+    describe ".bufferPositionForIndex()", ->
+      it "returns the buffer position for the start of a line", ->
+        expect(editSession.bufferPositionForIndex(102)).toEqual {row: 3, column: 0 }
+
+      it "returns the buffer position for the start of a line, relative to a non-zero starting row", ->
+        expect(editSession.bufferPositionForIndex(41, 2)).toEqual {row: 3, column: 0 }
+
+      it "returns the buffer position for the middle of a line", ->
+        expect(editSession.bufferPositionForIndex(236)).toEqual {row: 6, column: 10 }
+
     describe "cursor-moved events", ->
       cursorMovedHandler = null
 

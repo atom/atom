@@ -389,6 +389,63 @@ class EditSession
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
+  # Converts the `{row, column}` buffer position to its character index.
+  #
+  # Index refers to the "absolute position" of a character in the buffer. For example:
+  #
+  # ```javascript
+  # var x = 0; // 10 characters, plus one for newline
+  # var y = -1;
+  # ```
+  #
+  # Here, `y` is at index 15: 11 characters for the first row, and 5 characters until `y` in the second.
+  #
+  # bufferPosition - The buffer position
+  # startRow - The buffer row to start calculating from (default: 0)
+  #
+  # Returns the index {Number}.
+  indexForBufferPosition: (bufferPosition, startRow=0) ->
+    newlineLength = 1
+    bufferSize = @getText().length
+    row = Math.min(bufferPosition.row, bufferSize)
+    startRow = bufferSize if startRow > bufferSize
+
+    i = startRow - 1
+    index = 0
+    while ++i < row
+      index += @lineLengthForBufferRow(i) + newlineLength
+
+    return index + bufferPosition.column
+
+  # Converts a character index position to its `{row, column}` buffer position.
+  #
+  # Index refers to the "absolute position" of a character in the buffer. For example:
+  #
+  # ```javascript
+  # var x = 0; // 10 characters, plus one for newline
+  # var y = -1;
+  # ```
+  #
+  # Here, `y` is at index 15: 11 characters for the first row, and 5 characters until `y` in the second.
+  #
+  # indexPosition - The index position
+  # startRow - The buffer row to start calculating from (default: 0)
+  #
+  # Returns the buffer position {Object} as a `{row, column}`.
+  bufferPositionForIndex: (indexPosition, startRow=0) ->
+    lines = @getText()
+    newlineLength = 1
+
+    i = startRow - 1
+    bufferSize = @getText().length
+    while ++i < bufferSize
+      indexPosition -= @lineLengthForBufferRow(i) + newlineLength
+
+      if indexPosition < 0
+        return {row: i, column: indexPosition + @lineLengthForBufferRow(i) + newlineLength}
+
+    return {row: l - 1, column: lines[l - 1].length}
+
   # Retrieves the grammar's token scopes for the line with the most recently added cursor.
   #
   # Returns an {Array} of {String}s.
