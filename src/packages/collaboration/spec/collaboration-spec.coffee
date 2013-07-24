@@ -24,9 +24,9 @@ class ChannelServer
     setTimeout =>
       for client in @getChannelClients()
         if client is channelClient
-          client.trigger 'pusher:subscription_succeeded'
+          client.trigger 'channel:opened'
         else
-          client.trigger 'pusher:member_added'
+          client.trigger 'channel:participant-joined'
     channelClient
 
   getChannelClients: -> _.values(@channelClients)
@@ -53,7 +53,7 @@ class ChannelClient
   send: (eventName, eventData) ->
     @channelServer.send(this, eventName, eventData)
 
-fdescribe "Collaboration", ->
+describe "Collaboration", ->
   describe "joining a host session", ->
     [hostSession, guestSession, pusher, repositoryMirrored] = []
 

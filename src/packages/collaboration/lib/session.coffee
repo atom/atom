@@ -1,14 +1,14 @@
 _ = require 'underscore'
 keytar = require 'keytar'
 
-RateLimitedChannel = require './rate-limited-channel'
+RedisChannel = require './redis-channel'
 
 module.exports =
 class Session
   _.extend @prototype, require('event-emitter')
 
   subscribe: (channelName) ->
-    new RateLimitedChannel(@getPusherConnection().subscribe(channelName))
+    new RedisChannel(channelName)
 
   getPusherConnection: ->
     @pusher ?= new Pusher '490be67c75616316d386',

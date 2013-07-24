@@ -68,7 +68,8 @@
     "todo-tmbundle": "1.0.0",
     "xml-tmbundle": "1.0.0",
     "yaml-tmbundle": "1.0.0",
-    "nslog": "0.1.0"
+    "nslog": "0.1.0",
+    "redis": "0.8.4"
   },
   "devDependencies": {
     "biscotto": "0.0.12",

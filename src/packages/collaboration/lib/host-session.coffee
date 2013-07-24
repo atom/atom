@@ -41,11 +41,11 @@ class HostSession extends Session
 
     @doc = @createDocument()
     channel = @subscribe("presence-atom")
-    channel.on 'pusher:subscription_succeeded', =>
+    channel.on 'channel:opened', =>
       @trigger 'started'
       @connectDocument(@doc, channel)
 
-    channel.on 'pusher:member_added', =>
+    channel.on 'channel:participant-joined', =>
       @snapshotRepository (repoSnapshot) =>
         welcomePackage =
           siteId: @nextGuestSiteId++
