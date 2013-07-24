@@ -904,6 +904,7 @@ Reliable.prototype._intervalSend = function(msg) {
   var self = this;
   msg = util.pack(msg);
   util.blobToBinaryString(msg, function(str) {
+    console.log('sending', msg);
     self._dc.send(str);
   });
   if (self._queue.length === 0) {
@@ -965,6 +966,7 @@ Reliable.prototype._handleMessage = function(msg) {
   var idata = this._incoming[id];
   var odata = this._outgoing[id];
   var data;
+  console.log('handle message', msg);
   switch (msg[0]) {
     // No chunking was done.
     case 'no':
@@ -984,7 +986,8 @@ Reliable.prototype._handleMessage = function(msg) {
         break;
       }
 
-      this._ack(id);
+      if (!window.disableEnd)
+        this._ack(id);
       break;
     case 'ack':
       data = odata;

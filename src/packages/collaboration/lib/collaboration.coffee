@@ -11,7 +11,7 @@ module.exports =
     if atom.getLoadSettings().sessionId
       new GuestView(atom.guestSession)
     else
-      hostSession = new HostSession()
+      hostSession = new HostSession(window.site)
 
       copySession = ->
         sessionId = hostSession.getId()

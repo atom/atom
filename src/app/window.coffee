@@ -118,6 +118,7 @@ window.deserializeEditorWindow = ->
   windowState = atom.getWindowState()
 
   atom.packageStates = windowState.getObject('packageStates') ? {}
+  windowState.remove('packageStates')
 
   window.project = deserialize(windowState.get('project'))
   unless window.project?

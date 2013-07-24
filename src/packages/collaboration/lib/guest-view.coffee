@@ -12,13 +12,13 @@ class GuestView extends View
   guestSession: null
 
   initialize: (@guestSession) ->
-    @guestSession.on 'participants-changed', (participants) =>
-      @updateParticipants(participants)
-
-    @updateParticipants(@guestSession.participants.toObject())
-
-    @guestSession.waitForStream (stream) =>
-      @video[0].src = URL.createObjectURL(stream)
+    # @guestSession.on 'participants-changed', (participants) =>
+    #   @updateParticipants(participants)
+    #
+    # @updateParticipants(@guestSession.participants.toObject())
+    #
+    # @guestSession.waitForStream (stream) =>
+    #   @video[0].src = URL.createObjectURL(stream)
 
     @attach()
 

@@ -29,8 +29,8 @@ class HostView extends View
     @hostSession.on 'participants-changed', (participants) =>
       @updateParticipants(participants)
 
-    @hostSession.waitForStream (stream) =>
-      @video[0].src = URL.createObjectURL(stream)
+    # @hostSession.waitForStream (stream) =>
+    #   @video[0].src = URL.createObjectURL(stream)
 
     @attach()
 

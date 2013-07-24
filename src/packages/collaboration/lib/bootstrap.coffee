@@ -25,6 +25,8 @@ updateProgressBar = (message, percentDone) ->
 guestSession = new GuestSession(sessionId)
 
 guestSession.on 'started', ->
+  atom.windowState = guestSession.getDocument().get('windowState')
+  window.site = guestSession.getSite()
   loadingView.remove()
   window.startEditorWindow()
 
@@ -33,6 +35,8 @@ guestSession.on 'connection-opened', ->
 
 guestSession.on 'connection-document-received', ->
   updateProgressBar('Synchronizing repository', 50)
+
+guestSession.start()
 
 operationsDone = -1
 guestSession.on 'mirror-progress', (message, command, operationCount) ->

@@ -16,7 +16,7 @@ class MediaConnection
 
   start: ->
     constraints = {video: true, audio: true}
-    navigator.webkitGetUserMedia constraints, @onUserMediaAvailable, @onUserMediaUnavailable
+    # navigator.webkitGetUserMedia constraints, @onUserMediaAvailable, @onUserMediaUnavailable
 
   waitForStream: (callback) ->
     if @stream
