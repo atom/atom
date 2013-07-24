@@ -15,7 +15,6 @@ class HostSession
   peer: null
   mediaConnection: null
   doc: null
-  sharing: false
 
   constructor: ->
     @doc = site.createDocument
@@ -51,13 +50,11 @@ class HostSession
 
       @peer.on 'connection', (connection) =>
         connection.on 'open', =>
-          @sharing = true
           connection.send({repoSnapshot, doc: @doc.serialize()})
           sessionUtils.connectDocument(@doc, connection)
           @trigger 'started'
 
         connection.on 'close', =>
-          @sharing = false
           @participants.each (participant, index) =>
             if connection.peer is participant.get('id')
               @participants.remove(index)
@@ -77,4 +74,4 @@ class HostSession
     @peer.id
 
   isSharing: ->
-    @sharing
+    @peer? and not _.isEmpty(@peer.connections)
