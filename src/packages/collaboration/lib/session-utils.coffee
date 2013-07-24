@@ -30,7 +30,7 @@ module.exports =
     id = Guid.create().toString()
     key = '0njqmaln320dlsor'
     config = @getIceServers()
-    new Peer(id, {key, config})
+    new Peer(id, {key, config, debug: true})
 
   connectDocument: (doc, connection) ->
     nextOutputEventId = 1
