@@ -179,6 +179,15 @@ class Editor extends View
         'editor:fold-current-row': @foldCurrentRow
         'editor:unfold-current-row': @unfoldCurrentRow
         'editor:fold-selection': @foldSelection
+        'editor:fold-at-indent-level-1': => @foldAllAtIndentLevel(0)
+        'editor:fold-at-indent-level-2': => @foldAllAtIndentLevel(1)
+        'editor:fold-at-indent-level-3': => @foldAllAtIndentLevel(2)
+        'editor:fold-at-indent-level-4': => @foldAllAtIndentLevel(3)
+        'editor:fold-at-indent-level-5': => @foldAllAtIndentLevel(4)
+        'editor:fold-at-indent-level-6': => @foldAllAtIndentLevel(5)
+        'editor:fold-at-indent-level-7': => @foldAllAtIndentLevel(6)
+        'editor:fold-at-indent-level-8': => @foldAllAtIndentLevel(7)
+        'editor:fold-at-indent-level-9': => @foldAllAtIndentLevel(8)
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
@@ -475,6 +484,8 @@ class Editor extends View
 
   # {Delegates to: EditSession.isFoldedAtCursorRow}
   isFoldedAtCursorRow: -> @activeEditSession.isFoldedAtCursorRow()
+
+  foldAllAtIndentLevel: (indentLevel) -> @activeEditSession.foldAllAtIndentLevel(indentLevel)
 
   # {Delegates to: EditSession.lineForScreenRow}
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
