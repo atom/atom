@@ -3,27 +3,24 @@ Subscriber = require 'subscriber'
 
 module.exports =
 class GitDiffView
-  diffs: null
-  editor: null
-
   constructor: (@editor) ->
     @gutter = @editor.gutter
     @diffs = {}
 
     @subscribe @editor, 'editor:path-changed', @subscribeToBuffer
     @subscribe @editor, 'editor:display-updated', @renderDiffs
-    @subscribe git, 'statuses-changed', =>
+    @subscribe project.getRepo(), 'statuses-changed', =>
       @diffs = {}
       @scheduleUpdate()
-    @subscribe git, 'status-changed', (path) =>
+    @subscribe project.getRepo(), 'status-changed', (path) =>
       delete @diffs[path]
       @scheduleUpdate() if path is @editor.getPath()
 
     @subscribeToBuffer()
 
-  beforeRemove: ->
-    @unsubscribe()
-    @unsubscribeFromBuffer()
+    @subscribe @editor, 'editor:will-be-removed', =>
+      @unsubscribe()
+      @unsubscribeFromBuffer()
 
   unsubscribeFromBuffer: ->
     if @buffer?
@@ -43,12 +40,13 @@ class GitDiffView
     _.nextTick(@updateDiffs)
 
   updateDiffs: =>
+    return unless @buffer?
     @generateDiffs()
     @renderDiffs()
 
   generateDiffs: ->
     if path = @buffer.getPath()
-      @diffs[path] = git?.getLineDiffs(path, @buffer.getText())
+      @diffs[path] = project.getRepo()?.getLineDiffs(path, @buffer.getText())
 
   removeDiffs: =>
     if @gutter.hasGitLineDiffs

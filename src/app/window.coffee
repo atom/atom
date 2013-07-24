@@ -86,11 +86,9 @@ window.unloadEditorWindow = ->
   atom.saveWindowState()
   rootView.remove()
   project.destroy()
-  git?.destroy()
   windowEventHandler?.unsubscribe()
   window.rootView = null
   window.project = null
-  window.git = null
 
 window.installAtomCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'atom.sh')
@@ -116,7 +114,6 @@ window.onDrop = (e) ->
 window.deserializeEditorWindow = ->
   RootView = require 'root-view'
   Project = require 'project'
-  Git = require 'git'
 
   windowState = atom.getWindowState()
 

@@ -935,16 +935,16 @@ describe "TreeView", ->
       config.set "core.hideGitIgnoredFiles", false
       ignoreFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view'), '.gitignore')
       fsUtils.writeSync(ignoreFile, 'tree-view.js')
-      git.getPathStatus(ignoreFile)
+      project.getRepo().getPathStatus(ignoreFile)
 
       newFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view/dir2'), 'new2')
       fsUtils.writeSync(newFile, '')
-      git.getPathStatus(newFile)
+      project.getRepo().getPathStatus(newFile)
 
       modifiedFile = path.join(fsUtils.resolveOnLoadPath('fixtures/tree-view/dir1'), 'file1')
       originalFileContent = fsUtils.read(modifiedFile)
       fsUtils.writeSync modifiedFile, 'ch ch changes'
-      git.getPathStatus(modifiedFile)
+      project.getRepo().getPathStatus(modifiedFile)
 
       treeView.updateRoot()
       treeView.root.entries.find('.directory:contains(dir2)').view().expand()

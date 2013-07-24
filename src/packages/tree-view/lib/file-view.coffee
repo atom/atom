@@ -31,26 +31,28 @@ class FileView extends View
       else
         @fileName.addClass('text-icon')
 
-    if git?
-      @subscribe git, 'status-changed', (changedPath, status) =>
+    repo = project.getRepo()
+    if repo?
+      @subscribe repo, 'status-changed', (changedPath, status) =>
         @updateStatus() if changedPath is @getPath()
-      @subscribe git, 'statuses-changed', =>
+      @subscribe repo, 'statuses-changed', =>
         @updateStatus()
 
     @updateStatus()
 
   updateStatus: ->
     @removeClass('ignored modified new')
-    return unless git?
+    repo = project.getRepo()
+    return unless repo?
 
     filePath = @getPath()
-    if git.isPathIgnored(filePath)
+    if repo.isPathIgnored(filePath)
       @addClass('ignored')
     else
-      status = git.statuses[filePath]
-      if git.isStatusModified(status)
+      status = repo.statuses[filePath]
+      if repo.isStatusModified(status)
         @addClass('modified')
-      else if git.isStatusNew(status)
+      else if repo.isStatusNew(status)
         @addClass('new')
 
   getPath: ->

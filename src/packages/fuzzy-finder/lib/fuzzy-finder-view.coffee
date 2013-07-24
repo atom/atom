@@ -45,11 +45,12 @@ class FuzzyFinderView extends SelectList
   itemForElement: ({filePath, projectRelativePath}) ->
     $$ ->
       @li class: 'two-lines', =>
-        if git?
-          status = git.statuses[filePath]
-          if git.isStatusNew(status)
+        repo = project.getRepo()
+        if repo?
+          status = repo.statuses[filePath]
+          if repo.isStatusNew(status)
             @div class: 'status new'
-          else if git.isStatusModified(status)
+          else if repo.isStatusModified(status)
             @div class: 'status modified'
 
         ext = path.extname(filePath)
@@ -130,7 +131,7 @@ class FuzzyFinderView extends SelectList
     if @hasParent()
       @cancel()
     else
-      return unless project.getPath()? and git?
+      return unless project.getPath()? and project.getRepo()
       @allowActiveEditorChange = false
       @populateGitStatusPaths()
       @attach()
@@ -197,7 +198,7 @@ class FuzzyFinderView extends SelectList
 
   populateGitStatusPaths: ->
     paths = []
-    paths.push(filePath) for filePath, status of git.statuses when fsUtils.isFileSync(filePath)
+    paths.push(filePath) for filePath, status of project.getRepo().statuses when fsUtils.isFileSync(filePath)
 
     @setArray(paths)
 

@@ -242,11 +242,11 @@ describe 'FuzzyFinder', ->
       originalText = editor.getText()
       originalPath = editor.getPath()
       fsUtils.writeSync(originalPath, 'making a change for the better')
-      git.getPathStatus(originalPath)
+      project.getRepo().getPathStatus(originalPath)
 
       newPath = project.resolve('newsample.js')
       fsUtils.writeSync(newPath, '')
-      git.getPathStatus(newPath)
+      project.getRepo().getPathStatus(newPath)
 
     afterEach ->
       fsUtils.writeSync(originalPath, originalText)
@@ -515,7 +515,7 @@ describe 'FuzzyFinder', ->
       it "displays the modified icon", ->
         editor.setText('modified')
         editor.activeEditSession.save()
-        git.getPathStatus(editor.getPath())
+        project.getRepo().getPathStatus(editor.getPath())
 
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         expect(finderView.find('.status.modified').length).toBe 1
@@ -525,7 +525,7 @@ describe 'FuzzyFinder', ->
     describe "when a new file is shown in the list", ->
       it "displays the new icon", ->
         rootView.open('newsample.js')
-        git.getPathStatus(editor.getPath())
+        project.getRepo().getPathStatus(editor.getPath())
 
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         expect(finderView.find('.status.new').length).toBe 1

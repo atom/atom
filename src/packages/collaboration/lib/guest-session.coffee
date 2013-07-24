@@ -64,5 +64,5 @@ class GuestSession
       @trigger 'started'
 
       id = @getId()
-      email = git.getConfigValue('user.email')
+      email = project.getRepo().getConfigValue('user.email')
       @participants.push {id, email}

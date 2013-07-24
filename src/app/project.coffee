@@ -51,8 +51,9 @@ class Project
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
     buffer.release() for buffer in @getBuffers()
-    window.git?.destroy()
-    delete window.git
+    if @repo?
+      @repo.destroy()
+      @repo = null
 
   ### Public ###
 
@@ -93,6 +94,8 @@ class Project
 
   getState: -> @state
 
+  getRepo: -> @repo
+
   # Retrieves the project path.
   #
   # Returns a {String}.
@@ -108,13 +111,14 @@ class Project
     if projectPath?
       directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
-      window.git = Git.open(projectPath)
+      @repo = Git.open(projectPath)
     else
       @rootDirectory = null
-      window.git?.destroy()
-      delete window.git
+      if @repo?
+        @repo.destroy()
+        @repo = null
 
-    if originUrl = window.git?.getOriginUrl()
+    if originUrl = @repo?.getOriginUrl()
       @state.set('repoUrl', originUrl)
 
     @trigger "path-changed"
@@ -155,7 +159,7 @@ class Project
   #
   # Returns a {Boolean}.
   ignoreRepositoryPath: (repositoryPath) ->
-    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(path.join(@getPath(), repositoryPath))
+    config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(path.join(@getPath(), repositoryPath))
 
   # Given a uri, this resolves it relative to the project directory. If the path
   # is already absolute or if it is prefixed with a scheme, it is returned unchanged.

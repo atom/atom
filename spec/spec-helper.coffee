@@ -16,7 +16,6 @@ TokenizedBuffer = require 'tokenized-buffer'
 fsUtils = require 'fs-utils'
 pathwatcher = require 'pathwatcher'
 RootView = require 'root-view'
-Git = require 'git'
 clipboard = require 'clipboard'
 requireStylesheet "jasmine"
 fixturePackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
@@ -36,10 +35,6 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 beforeEach ->
   jQuery.fx.off = true
   window.project = new Project(fsUtils.resolveOnLoadPath('fixtures'))
-  window.git = Git.open(project.getPath())
-  window.project.on 'path-changed', ->
-    window.git?.destroy()
-    window.git = Git.open(window.project.getPath())
 
   window.resetTimeouts()
   atom.windowMode = 'editor'
@@ -89,9 +84,6 @@ afterEach ->
   if project?
     project.destroy()
     window.project = null
-  if git?
-    git.destroy()
-    window.git = null
   $('#jasmine-content').empty() unless window.debugContent
   delete atom.windowState
   jasmine.unspy(atom, 'saveWindowState')

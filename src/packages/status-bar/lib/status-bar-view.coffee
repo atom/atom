@@ -34,10 +34,11 @@ class StatusBarView extends View
     @subscribe @grammarName, 'click', => @pane.activeView.trigger 'grammar-selector:show'
     @subscribe @pane, 'editor:grammar-changed', => @updateGrammarText()
 
-    if git?
-      @subscribe git, 'status-changed', (path, status) =>
+    repo = project.getRepo()
+    if repo?
+      @subscribe repo, 'status-changed', (path, status) =>
         @updateStatusBar() if path is @getActiveItemPath()
-      @subscribe git, 'statuses-changed', @updateStatusBar
+      @subscribe repo, 'statuses-changed', @updateStatusBar
 
     @subscribeToBuffer()
 
@@ -87,7 +88,7 @@ class StatusBarView extends View
     @branchArea.hide()
     return unless project.contains(@getActiveItemPath())
 
-    head = git?.getShortHead() or ''
+    head = project.getRepo()?.getShortHead() or ''
     @branchLabel.text(head)
     @branchArea.show() if head
 
@@ -97,22 +98,23 @@ class StatusBarView extends View
     return unless project.contains(itemPath)
 
     @gitStatusIcon.addClass('git-status octicons')
-    return unless git?
+    repo = project.getRepo()
+    return unless repo?
 
-    if git.upstream.ahead > 0
-      @commitsAhead.text(git.upstream.ahead).show()
+    if repo.upstream.ahead > 0
+      @commitsAhead.text(repo.upstream.ahead).show()
     else
       @commitsAhead.hide()
 
-    if git.upstream.behind > 0
-      @commitsBehind.text(git.upstream.behind).show()
+    if repo.upstream.behind > 0
+      @commitsBehind.text(repo.upstream.behind).show()
     else
       @commitsBehind.hide()
 
-    status = git.statuses[itemPath]
-    if git.isStatusModified(status)
+    status = repo.statuses[itemPath]
+    if repo.isStatusModified(status)
       @gitStatusIcon.addClass('modified-status-icon')
-      stats = git.getDiffStats(itemPath)
+      stats = repo.getDiffStats(itemPath)
       if stats.added and stats.deleted
         @gitStatusIcon.text("+#{stats.added},-#{stats.deleted}")
       else if stats.added
@@ -121,13 +123,13 @@ class StatusBarView extends View
         @gitStatusIcon.text("-#{stats.deleted}")
       else
         @gitStatusIcon.text('')
-    else if git.isStatusNew(status)
+    else if repo.isStatusNew(status)
       @gitStatusIcon.addClass('new-status-icon')
       if @buffer?
         @gitStatusIcon.text("+#{@buffer.getLineCount()}")
       else
         @gitStatusIcon.text('')
-    else if git.isPathIgnored(itemPath)
+    else if repo.isPathIgnored(itemPath)
       @gitStatusIcon.addClass('ignored-status-icon')
       @gitStatusIcon.text('')
 

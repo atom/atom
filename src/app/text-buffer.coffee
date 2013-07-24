@@ -596,7 +596,7 @@ class TextBuffer
   checkoutHead: ->
     path = @getPath()
     return unless path
-    git?.checkoutHead(path)
+    project.getRepo()?.checkoutHead(path)
 
   # Checks to see if a file exists.
   #

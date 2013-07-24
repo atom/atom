@@ -24,8 +24,8 @@ class HostSession
         host: {description: '', candidate: ''}
         participants: []
         repositoryState:
-          url: git.getConfigValue('remote.origin.url')
-          branch: git.getShortHead()
+          url: project.getRepo().getConfigValue('remote.origin.url')
+          branch: project.getRepo().getShortHead()
 
     host = @doc.get('collaborationState.host')
     guest = @doc.get('collaborationState.guest')
@@ -43,7 +43,7 @@ class HostSession
       @participants = @doc.get('collaborationState.participants')
       @participants.push
         id: @getId()
-        email: git.getConfigValue('user.email')
+        email: project.getRepo().getConfigValue('user.email')
 
       @participants.on 'changed', =>
         @trigger 'participants-changed', @participants.toObject()
