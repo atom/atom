@@ -1,6 +1,6 @@
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
-Range = require 'range'
+{Range} = require 'telepath'
 
 describe "Selection", ->
   [buffer, editSession, selection] = []
@@ -60,7 +60,7 @@ describe "Selection", ->
 
   describe "when only the selection's tail is moved (regression)", ->
     it "emits the 'screen-range-changed' event", ->
-      selection.setBufferRange([[2, 0], [2, 10]], reverse: true)
+      selection.setBufferRange([[2, 0], [2, 10]], isReversed: true)
       changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
       selection.on 'screen-range-changed', changeScreenRangeHandler
 

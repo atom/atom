@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
-Range = require 'range'
+{Range} = require 'telepath'
 SelectList = require 'select-list'
 
 module.exports =
@@ -45,18 +45,15 @@ class AutocompleteView extends SelectList
 
   selectItem: (item) ->
     super
-
     match = @getSelectedElement()
     @replaceSelectedTextWithMatch(match) if match
 
   selectNextItem: ->
     super
-
     false
 
   selectPreviousItem: ->
     super
-
     false
 
   buildWordList: ->

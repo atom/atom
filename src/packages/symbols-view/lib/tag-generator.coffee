@@ -1,4 +1,4 @@
-Point = require 'point'
+{Point} = require 'telepath'
 $ = require 'jquery'
 BufferedProcess = require 'buffered-process'
 fsUtils = require 'fs-utils'

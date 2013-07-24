@@ -6,7 +6,7 @@ humanize = require 'humanize-plus'
 fsUtils = require 'fs-utils'
 path = require 'path'
 PathLoader = require './path-loader'
-Point = require 'point'
+{Point} = require 'telepath'
 
 module.exports =
 class FuzzyFinderView extends SelectList

@@ -1,5 +1,5 @@
 _ = require 'underscore'
-Range = require 'range'
+{Range} = require 'telepath'
 
 module.exports =
 class Snippet

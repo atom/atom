@@ -1,8 +1,7 @@
 {View, $$} = require 'space-pen'
 Buffer = require 'text-buffer'
 Gutter = require 'gutter'
-Point = require 'point'
-Range = require 'range'
+{Point, Range} = require 'telepath'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
@@ -690,8 +689,7 @@ class Editor extends View
     $(document).one "mouseup.editor-#{@id}", =>
       clearInterval(interval)
       $(document).off 'mousemove', moveHandler
-      reverse = @activeEditSession.getLastSelection().isReversed()
-      @activeEditSession.mergeIntersectingSelections({reverse})
+      @activeEditSession.mergeIntersectingSelections(isReversed: @activeEditSession.getLastSelection().isReversed())
       @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
 
@@ -1264,6 +1262,7 @@ class Editor extends View
             )
       intactRanges = newIntactRanges
     @pendingChanges = []
+
     intactRanges
 
   truncateIntactRanges: (intactRanges, renderFrom, renderTo) ->

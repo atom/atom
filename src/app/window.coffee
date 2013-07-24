@@ -123,7 +123,7 @@ window.deserializeEditorWindow = ->
   window.project = deserialize(windowState.get('project'))
   unless window.project?
     window.project = new Project(atom.getLoadSettings().initialPath)
-    windowState.set('project', window.project.serialize())
+    windowState.set('project', window.project.getState())
 
   window.rootView = deserialize(windowState.get('rootView'))
   unless window.rootView?

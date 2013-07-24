@@ -168,7 +168,7 @@ describe "Snippets extension", ->
       describe "when the snippet contains hard tabs", ->
         describe "when the edit session is in soft-tabs mode", ->
           it "translates hard tabs in the snippet to the appropriate number of spaces", ->
-            expect(editSession.softTabs).toBeTruthy()
+            expect(editSession.getSoftTabs()).toBeTruthy()
             editor.insertText("t3")
             editor.trigger keydownEvent('tab', target: editor[0])
             expect(buffer.lineForRow(1)).toBe "  line 2"
@@ -192,7 +192,7 @@ describe "Snippets extension", ->
 
         describe "when the snippet spans multiple lines", ->
           it "indents the subsequent lines of the snippet to be even with the start of the first line", ->
-            expect(editSession.softTabs).toBeTruthy()
+            expect(editSession.getSoftTabs()).toBeTruthy()
             editor.setCursorScreenPosition([2, Infinity])
             editor.insertText ' t3'
             editor.trigger 'snippets:expand'

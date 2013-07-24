@@ -8,7 +8,6 @@ class SnippetExpansion
   settingTabStop: false
 
   constructor: (@snippet, @editSession) ->
-
     @editSession.selectToBeginningOfWord()
     startPosition = @editSession.getCursorBufferPosition()
     @editSession.transact =>
@@ -23,8 +22,8 @@ class SnippetExpansion
         @editSession.normalizeTabsInBufferRange(newRange)
       @indentSubsequentLines(startPosition.row, snippet) if snippet.lineCount > 1
 
-  cursorMoved: ({oldBufferPosition, newBufferPosition, bufferChanged}) ->
-    return if @settingTabStop or bufferChanged
+  cursorMoved: ({oldBufferPosition, newBufferPosition, textChanged}) ->
+    return if @settingTabStop or textChanged
     oldTabStops = @tabStopsForBufferPosition(oldBufferPosition)
     newTabStops = @tabStopsForBufferPosition(newBufferPosition)
     @destroy() unless _.intersection(oldTabStops, newTabStops).length
@@ -60,7 +59,7 @@ class SnippetExpansion
     markerSelected
 
   tabStopsForBufferPosition: (bufferPosition) ->
-    _.intersection(@tabStopMarkers, @editSession.markersForBufferPosition(bufferPosition))
+    _.intersection(@tabStopMarkers, @editSession.findMarkers(containsBufferPosition: bufferPosition))
 
   destroy: ->
     @unsubscribe()

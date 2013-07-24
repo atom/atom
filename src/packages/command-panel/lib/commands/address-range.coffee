@@ -1,5 +1,5 @@
 Address = require 'command-panel/lib/commands/address'
-Range = require 'range'
+{Range} = require 'telepath'
 
 module.exports =
 class AddressRange extends Address

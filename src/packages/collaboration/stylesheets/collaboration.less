@@ -1,0 +1,30 @@
+@import "bootstrap/less/variables.less";
+@import "octicon-mixins.less";
+
+.collaboration {
+  @item-line-height: @line-height-base * 1.25;
+  padding: 10px;
+  -webkit-user-select: none;
+
+  .share {
+    cursor: pointer;
+    .mini-icon(notifications);
+    position: relative;
+    right: -1px;
+    margin-bottom: 5px;
+  }
+
+  .guest {
+    .mini-icon(watchers);
+    position: relative;
+    right: -2px;
+    margin-bottom: 5px;
+  }
+
+  .avatar {
+    border-radius: 3px;
+    height: 16px;
+    width: 16px;
+    margin: 2px;
+  }
+}

@@ -2,7 +2,8 @@ _ = require 'underscore'
 fsUtils = require 'fs-utils'
 path = require 'path'
 telepath = require 'telepath'
-Point = require 'point'
+guid = require 'guid'
+{Point, Range} = telepath
 Buffer = require 'text-buffer'
 LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
@@ -10,7 +11,6 @@ Cursor = require 'cursor'
 Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
-Range = require 'range'
 TextMateScopeSelector = require 'text-mate-scope-selector'
 
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
@@ -22,65 +22,75 @@ class EditSession
 
   ### Internal ###
 
-  @version: 1
+  @version: 4
 
   @deserialize: (state) ->
     new EditSession(state)
 
+  id: null
   languageMode: null
   displayBuffer: null
   cursors: null
   selections: null
-  softTabs: true
-  softWrap: false
+  suppressSelectionMerging: false
 
   constructor: (optionsOrState) ->
+    @cursors = []
+    @selections = []
     if optionsOrState instanceof telepath.Document
-      project.editSessions.push(this)
       @state = optionsOrState
-      {tabLength, softTabs, @softWrap} = @state.toObject()
-      @buffer = deserialize(@state.get('buffer'))
+      @id = @state.get('id')
+      displayBuffer = deserialize(@state.get('displayBuffer'))
+      @setBuffer(displayBuffer.buffer)
+      @setDisplayBuffer(displayBuffer)
+      for marker in @findMarkers(@getSelectionMarkerAttributes())
+        marker.setAttributes(preserveFolds: true)
+        @addSelection(marker)
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
-      cursorScreenPosition = @state.getObject('cursorScreenPosition')
     else
-      {@buffer, tabLength, softTabs, @softWrap} = optionsOrState
+      {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation} = optionsOrState
+      @id = guid.create().toString()
+      displayBuffer ?= new DisplayBuffer({buffer, tabLength})
       @state = telepath.Document.create
         deserializer: 'EditSession'
         version: @constructor.version
+        id: @id
+        bufferId: buffer.id
+        displayBuffer: displayBuffer.getState()
+        softWrap: softWrap ? false
+        softTabs: buffer.usesSoftTabs() ? softTabs ? true
         scrollTop: 0
         scrollLeft: 0
-      cursorScreenPosition = [0, 0]
+      @setBuffer(buffer)
+      @setDisplayBuffer(displayBuffer)
+      @addCursorAtScreenPosition([0, 0]) unless suppressCursorCreation
 
-    @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
-    @cursors = []
-    @selections = []
-    @addCursorAtScreenPosition(cursorScreenPosition)
+    @state.on 'changed', ({key, newValue}) =>
+      switch key
+        when 'scrollTop'
+          @trigger 'scroll-top-changed', newValue
+        when 'scrollLeft'
+          @trigger 'scroll-left-changed', newValue
 
+    project.editSessions.push(this)
+
+  setBuffer: (@buffer) ->
     @buffer.retain()
     @subscribe @buffer, "path-changed", =>
       project.setPath(path.dirname(@getPath())) unless project.getPath()?
       @trigger "title-changed"
       @trigger "path-changed"
     @subscribe @buffer, "contents-conflicted", => @trigger "contents-conflicted"
-    @subscribe @buffer, "markers-updated", => @mergeCursors()
     @subscribe @buffer, "modified-status-changed", => @trigger "modified-status-changed"
-
     @preserveCursorPositionOnBufferReload()
 
-    @subscribe @displayBuffer, "changed", (e) =>
-      @trigger 'screen-lines-changed', e
-
-    @displayBuffer.on 'grammar-changed', => @handleGrammarChange()
-
-    @state.observe ({key, newValue}) =>
-      switch key
-        when 'scrollTop'
-          @trigger 'scroll-top-changed', newValue
-        when 'scrollLeft'
-          @trigger 'scroll-left-changed', newValue
+  setDisplayBuffer: (@displayBuffer) ->
+    @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
+    @subscribe @displayBuffer, "changed", (e) => @trigger 'screen-lines-changed', e
+    @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
+    @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
 
   getViewClass: ->
     require 'editor'
@@ -97,22 +107,21 @@ class EditSession
     @trigger 'destroyed'
     @off()
 
-  serialize: ->
-    @state.set
-      buffer: @buffer.serialize()
-      scrollTop: @getScrollTop()
-      scrollLeft: @getScrollLeft()
-      tabLength: @getTabLength()
-      softTabs: @softTabs
-      softWrap: @softWrap
-      cursorScreenPosition: @getCursorScreenPosition().serialize()
-    @state
+  serialize: -> @state.clone()
+  getState: -> @state
 
-  getState: -> @serialize()
-
-  # Creates a copy of the current {EditSession}.Returns an identical `EditSession`.
+  # Creates an {EditSession} with the same initial state
   copy: ->
-    EditSession.deserialize(@serialize())
+    tabLength = @getTabLength()
+    displayBuffer = @displayBuffer.copy()
+    softTabs = @getSoftTabs()
+    softWrap = @getSoftWrap()
+    newEditSession = new EditSession({@buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation: true})
+    newEditSession.setScrollTop(@getScrollTop())
+    newEditSession.setScrollLeft(@getScrollLeft())
+    for marker in @findMarkers(editSessionId: @id)
+      marker.copy(editSessionId: newEditSession.id, preserveFolds: true)
+    newEditSession
 
   ### Public ###
 
@@ -184,20 +193,26 @@ class EditSession
   # softWrapColumn - A {Number} defining the soft wrap limit
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
 
+  getSoftTabs: ->
+    @state.get('softTabs')
+
   # Defines whether to use soft tabs.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft tabs.
-  setSoftTabs: (@softTabs) ->
+  setSoftTabs: (softTabs) ->
+    @state.set('softTabs', softTabs)
 
   # Retrieves whether soft tabs are enabled.
   #
   # Returns a {Boolean}.
-  getSoftWrap: -> @softWrap
+  getSoftWrap: ->
+    @state.get('softWrap')
 
   # Defines whether to use soft wrapping of text.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft wraps.
-  setSoftWrap: (@softWrap) ->
+  setSoftWrap: (softWrap) ->
+    @state.set('softWrap', softWrap)
 
   # Retrieves that character used to indicate a tab.
   #
@@ -273,7 +288,7 @@ class EditSession
 
   # Constructs the string used for tabs.
   buildIndentString: (number) ->
-    if @softTabs
+    if @getSoftTabs()
       _.multiplyString(" ", number * @getTabLength())
     else
       _.multiplyString("\t", Math.floor(number))
@@ -304,7 +319,7 @@ class EditSession
   # Retrieves the current buffer's URI.
   #
   # Returns a {String}.
-  getUri: -> @getPath()
+  getUri: -> @buffer.getUri()
 
   # {Delegates to: Buffer.isRowBlank}
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
@@ -478,7 +493,7 @@ class EditSession
   #
   # bufferRange - The {Range} to perform the replace in
   normalizeTabsInBufferRange: (bufferRange) ->
-    return unless @softTabs
+    return unless @getSoftTabs()
     @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
 
   # Performs a cut to the end of the current line.
@@ -588,8 +603,7 @@ class EditSession
   #
   # Returns `true` if the buffer row is folded, `false` otherwise.
   isFoldedAtBufferRow: (bufferRow) ->
-    screenRow = @screenPositionForBufferPosition([bufferRow]).row
-    @isFoldedAtScreenRow(screenRow)
+    @displayBuffer.isFoldedAtBufferRow(bufferRow)
 
   # Determines if the given screen row is folded.
   #
@@ -597,7 +611,7 @@ class EditSession
   #
   # Returns `true` if the screen row is folded, `false` otherwise.
   isFoldedAtScreenRow: (screenRow) ->
-    @lineForScreenRow(screenRow)?.fold?
+    @displayBuffer.isFoldedAtScreenRow(screenRow)
 
   # {Delegates to: DisplayBuffer.largestFoldContainingBufferRow}
   largestFoldContainingBufferRow: (bufferRow) ->
@@ -770,6 +784,12 @@ class EditSession
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
+  getMarkers: ->
+    @displayBuffer.getMarkers()
+
+  findMarkers: (attributes) ->
+    @displayBuffer.findMarkers(attributes)
+
   # {Delegates to: DisplayBuffer.markScreenRange}
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
@@ -817,8 +837,8 @@ class EditSession
   #
   # Returns the new {Cursor}.
   addCursorAtScreenPosition: (screenPosition) ->
-    marker = @markScreenPosition(screenPosition, invalidationStrategy: 'never')
-    @addSelection(marker).cursor
+    @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor
 
   # Adds a cursor at the provided `bufferPosition`.
   #
@@ -826,8 +846,8 @@ class EditSession
   #
   # Returns the new {Cursor}.
   addCursorAtBufferPosition: (bufferPosition) ->
-    marker = @markBufferPosition(bufferPosition, invalidationStrategy: 'never')
-    @addSelection(marker).cursor
+    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor
 
   # Adds a cursor to the `EditSession`.
   #
@@ -855,13 +875,13 @@ class EditSession
   #
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
-    unless options.preserveFolds
+    unless marker.getAttributes().preserveFolds
       @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editSession: this, marker, cursor}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
-    @mergeIntersectingSelections() unless options.suppressMerge
+    @mergeIntersectingSelections()
     if selection.destroyed
       for selection in @getSelections()
         if selection.intersectsBufferRange(selectionBufferRange)
@@ -877,9 +897,8 @@ class EditSession
   #
   # Returns the new {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    options = _.defaults({invalidationStrategy: 'never'}, options)
-    marker = @markBufferRange(bufferRange, options)
-    @addSelection(marker, options)
+    @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @getLastSelection()
 
   # Given a buffer range, this removes all previous selections and creates a new selection for it.
   #
@@ -898,13 +917,13 @@ class EditSession
     selections = @getSelections()
     selection.destroy() for selection in selections[bufferRanges.length...]
 
-    for bufferRange, i in bufferRanges
-      bufferRange = Range.fromObject(bufferRange)
-      if selections[i]
-        selections[i].setBufferRange(bufferRange, options)
-      else
-        @addSelectionForBufferRange(bufferRange, options)
-    @mergeIntersectingSelections(options)
+    @mergeIntersectingSelections options, =>
+      for bufferRange, i in bufferRanges
+        bufferRange = Range.fromObject(bufferRange)
+        if selections[i]
+          selections[i].setBufferRange(bufferRange, options)
+        else
+          @addSelectionForBufferRange(bufferRange, options)
 
   # Unselects a given selection.
   #
@@ -1118,7 +1137,7 @@ class EditSession
   selectToScreenPosition: (position) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
-    @mergeIntersectingSelections(reverse: lastSelection.isReversed())
+    @mergeIntersectingSelections(isReversed: lastSelection.isReversed())
 
   # Selects the text one position right of the cursor.
   selectRight: ->
@@ -1240,14 +1259,6 @@ class EditSession
       @setSelectedBufferRange(range)
       range
 
-  # Given a buffer position, this finds all markers that contain the position.
-  #
-  # bufferPosition - A {Point} to check
-  #
-  # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
-  markersForBufferPosition: (bufferPosition) ->
-    @buffer.markersForPosition(bufferPosition)
-
   mergeCursors: ->
     positions = []
     for cursor in @getCursors()
@@ -1258,25 +1269,38 @@ class EditSession
         positions.push(position)
 
   expandSelectionsForward: (fn) ->
-    fn(selection) for selection in @getSelections()
-    @mergeIntersectingSelections()
+    @mergeIntersectingSelections =>
+      fn(selection) for selection in @getSelections()
 
   expandSelectionsBackward: (fn) ->
-    fn(selection) for selection in @getSelections()
-    @mergeIntersectingSelections(reverse: true)
+    @mergeIntersectingSelections isReversed: true, =>
+      fn(selection) for selection in @getSelections()
 
   finalizeSelections: ->
     selection.finalize() for selection in @getSelections()
 
-  mergeIntersectingSelections: (options) ->
-    for selection in @getSelections()
-      otherSelections = @getSelections()
-      _.remove(otherSelections, selection)
-      for otherSelection in otherSelections
-        if selection.intersectsWith(otherSelection)
-          selection.merge(otherSelection, options)
-          @mergeIntersectingSelections(options)
-          return
+  # Merges intersecting selections. If passed a function, it executes the function
+  # with merging suppressed, then merges intersecting selections afterward.
+  mergeIntersectingSelections: (args...) ->
+    fn = args.pop() if _.isFunction(_.last(args))
+    options = args.pop() ? {}
+
+    return fn?() if @suppressSelectionMerging
+
+    if fn?
+      @suppressSelectionMerging = true
+      result = fn()
+      @suppressSelectionMerging = false
+
+    reducer = (disjointSelections, selection) ->
+      intersectingSelection = _.find(disjointSelections, (s) -> s.intersectsWith(selection))
+      if intersectingSelection?
+        intersectingSelection.merge(selection, options)
+        disjointSelections
+      else
+        disjointSelections.concat([selection])
+
+    _.reduce(@getSelections(), reducer, [])
 
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
@@ -1317,6 +1341,13 @@ class EditSession
   handleGrammarChange: ->
     @unfoldAll()
     @trigger 'grammar-changed'
+
+  handleMarkerCreated: (marker) =>
+    if marker.matchesAttributes(@getSelectionMarkerAttributes())
+      @addSelection(marker)
+
+  getSelectionMarkerAttributes: ->
+    type: 'selection', editSessionId: @id, invalidation: 'never'
 
   getDebugSnapshot: ->
     [

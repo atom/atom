@@ -2,7 +2,7 @@ RootView = require 'root-view'
 EditSession = require 'edit-session'
 Buffer = require 'text-buffer'
 Editor = require 'editor'
-Range = require 'range'
+{Range} = require 'telepath'
 Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
@@ -2024,7 +2024,7 @@ describe "Editor", ->
       it "adds/removes the 'selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
         editor.createFold(2, 4)
 
-        editor.setSelectedBufferRange([[1, 0], [2, 0]], preserveFolds: true, reverse: true)
+        editor.setSelectedBufferRange([[1, 0], [2, 0]], preserveFolds: true, isReversed: true)
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
 
         editor.setSelectedBufferRange([[1, 0], [1, 1]], preserveFolds: true)
@@ -2440,7 +2440,7 @@ describe "Editor", ->
         editor.trigger 'editor:move-line-down'
         expect(buffer.lineForRow(11)).toBe '};'
         expect(buffer.lineForRow(12)).toBe '  return sort(Array.apply(this, arguments));'
-        expect(buffer.lineForRow(13)).toBeUndefined()
+        expect(buffer.lineForRow(13)).toBeNull()
 
     describe "when the cursor is on the second to last line and the last line is empty", ->
       it "does not move the line", ->
@@ -2537,7 +2537,7 @@ describe "Editor", ->
           editor.trigger 'editor:duplicate-line'
           expect(buffer.lineForRow(12)).toBe '};'
           expect(buffer.lineForRow(13)).toBe '};'
-          expect(buffer.lineForRow(14)).toBeUndefined()
+          expect(buffer.lineForRow(14)).toBeNull()
           expect(editor.getCursorBufferPosition()).toEqual [13, 2]
 
       describe "when the cursor in on the last line and it is only a newline", ->
@@ -2548,7 +2548,7 @@ describe "Editor", ->
           editor.trigger 'editor:duplicate-line'
           expect(buffer.lineForRow(13)).toBe ''
           expect(buffer.lineForRow(14)).toBe ''
-          expect(buffer.lineForRow(15)).toBeUndefined()
+          expect(buffer.lineForRow(15)).toBeNull()
           expect(editor.getCursorBufferPosition()).toEqual [14, 0]
 
       describe "when the cursor is on the second to last line and the last line only a newline", ->
@@ -2560,7 +2560,7 @@ describe "Editor", ->
           expect(buffer.lineForRow(12)).toBe '};'
           expect(buffer.lineForRow(13)).toBe '};'
           expect(buffer.lineForRow(14)).toBe ''
-          expect(buffer.lineForRow(15)).toBeUndefined()
+          expect(buffer.lineForRow(15)).toBeNull()
           expect(editor.getCursorBufferPosition()).toEqual [13, 0]
 
   describe "editor:save-debug-snapshot", ->

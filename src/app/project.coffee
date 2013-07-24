@@ -2,7 +2,8 @@ fsUtils = require 'fs-utils'
 path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
-Range = require 'range'
+telepath = require 'telepath'
+{Range} = telepath
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
@@ -15,9 +16,12 @@ BufferedProcess = require 'buffered-process'
 # of directories and files that you can operate on.
 module.exports =
 class Project
+  @acceptsDocuments: true
+  @version: 1
+
   registerDeserializer(this)
 
-  @deserialize: (state) -> new Project(state.path)
+  @deserialize: (state) -> new Project(state)
 
   @openers: []
 
@@ -45,14 +49,34 @@ class Project
   # Establishes a new project at a given path.
   #
   # path - The {String} name of the path
-  constructor: (path) ->
-    @setPath(path)
+  constructor: (pathOrState) ->
     @editSessions = []
     @buffers = []
 
+    if pathOrState instanceof telepath.Document
+      @state = pathOrState
+      @setPath(pathOrState.get('path'))
+      @state.get('buffers').each (bufferState) =>
+        if buffer = deserialize(bufferState)
+          @addBuffer(buffer, updateState: false)
+    else
+      @state = telepath.Document.create(deserializer: @constructor.name, version: @constructor.version, buffers: [])
+      @setPath(pathOrState)
+
+    @state.get('buffers').on 'changed', ({inserted, removed, index, site}) =>
+      return if site is @state.site.id
+
+      for removedBuffer in removed
+        @removeBufferAtIndex(index, updateState: false)
+      for insertedBuffer, i in inserted
+        @addBufferAtIndex(deserialize(insertedBuffer), index + i, updateState: false)
+
   serialize: ->
-    deserializer: 'Project'
-    path: @getPath()
+    state = @state.clone()
+    state.set('buffers', buffer.serialize() for buffer in @getBuffers())
+    state
+
+  getState: -> @state
 
   # Retrieves the project path.
   #
@@ -72,6 +96,7 @@ class Project
     else
       @rootDirectory = null
 
+    @state.set('path', projectPath)
     @trigger "path-changed"
 
   # Retrieves the name of the root directory.
@@ -168,6 +193,7 @@ class Project
   #
   # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
   open: (filePath, options={}) ->
+    filePath = @resolve(filePath) if filePath?
     for opener in @constructor.openers
       return resource if resource = opener(filePath, options)
 
@@ -211,6 +237,9 @@ class Project
     else
       @buildBuffer(null, text)
 
+  bufferForId: (id) ->
+    _.find @buffers, (buffer) -> buffer.id is id
+
   # Given a file path, this sets its {Buffer}.
   #
   # filePath - A {String} representing a path
@@ -219,15 +248,27 @@ class Project
   # Returns the {Buffer}.
   buildBuffer: (filePath, text) ->
     buffer = new Buffer(filePath, text)
-    @buffers.push buffer
+    @addBuffer(buffer)
     @trigger 'buffer-created', buffer
     buffer
+
+  addBuffer: (buffer, options={}) ->
+    @addBufferAtIndex(buffer, @buffers.length, options)
+
+  addBufferAtIndex: (buffer, index, options={}) ->
+    @buffers[index] = buffer
+    @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
 
   # Removes a {Buffer} association from the project.
   #
   # Returns the removed {Buffer}.
   removeBuffer: (buffer) ->
-    _.remove(@buffers, buffer)
+    @removeBufferAtIndex(@buffers.indexOf(buffer))
+
+  removeBufferAtIndex: (index, options={}) ->
+    [buffer] = @buffers.splice(index, 1)
+    @state.get('buffers').remove(index) if options.updateState ? true
+    buffer?.destroy()
 
   # Performs a search across all the files in the project.
   #
@@ -297,7 +338,6 @@ class Project
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
     options.buffer = buffer
     editSession = new EditSession(options)
-    @editSessions.push editSession
     @trigger 'edit-session-created', editSession
     editSession
 

@@ -1,6 +1,5 @@
 {View} = require 'space-pen'
-Point = require 'point'
-Range = require 'range'
+{Point, Range} = require 'telepath'
 _ = require 'underscore'
 
 ### Internal ###

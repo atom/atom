@@ -22,6 +22,15 @@ describe "RootView", ->
   describe "@deserialize()", ->
     viewState = null
 
+    refreshRootViewAndProject = ->
+      rootViewState = rootView.serialize()
+      projectState = project.serialize()
+      rootView.remove()
+      project.destroy()
+      window.project = deserialize(projectState)
+      window.rootView = deserialize(rootViewState)
+      rootView.attachToDom()
+
     describe "when the serialized RootView has an unsaved buffer", ->
       it "constructs the view with the same panes", ->
         rootView.attachToDom()
@@ -29,14 +38,12 @@ describe "RootView", ->
         editor1 = rootView.getActiveView()
         buffer = editor1.getBuffer()
         editor1.splitRight()
-        viewState = rootView.serialize()
-        rootView.remove()
+        expect(rootView.getActiveView()).toBe rootView.getEditors()[1]
 
-        window.rootView = deserialize(viewState)
-        rootView.attachToDom()
+        refreshRootViewAndProject()
 
         expect(rootView.getEditors().length).toBe 2
-        expect(rootView.getActiveView().getText()).toBe buffer.getText()
+        expect(rootView.getActiveView()).toBe rootView.getEditors()[1]
         expect(rootView.title).toBe "untitled - #{project.getPath()}"
 
     describe "when there are open editors", ->
@@ -53,10 +60,7 @@ describe "RootView", ->
         pane4.activeItem.setCursorScreenPosition([0, 2])
         pane2.focus()
 
-        viewState = rootView.serialize()
-        rootView.remove()
-        window.rootView = deserialize(viewState)
-        rootView.attachToDom()
+        refreshRootViewAndProject()
 
         expect(rootView.getEditors().length).toBe 4
         editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
@@ -89,12 +93,7 @@ describe "RootView", ->
       it "constructs the view with no open editors", ->
         rootView.getActivePane().remove()
         expect(rootView.getEditors().length).toBe 0
-
-        viewState = rootView.serialize()
-        rootView.remove()
-        window.rootView = deserialize(viewState)
-
-        rootView.attachToDom()
+        refreshRootViewAndProject()
         expect(rootView.getEditors().length).toBe 0
 
   describe "focus", ->

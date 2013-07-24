@@ -1,5 +1,5 @@
 {$$} = require 'space-pen'
-Range = require 'range'
+{Range} = require 'telepath'
 SelectList = require 'select-list'
 
 module.exports =
