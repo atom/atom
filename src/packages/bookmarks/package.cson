@@ -1,0 +1,2 @@
+'main': './lib/bookmarks-view'
+'description': 'Can mark lines, then jump back to them'
