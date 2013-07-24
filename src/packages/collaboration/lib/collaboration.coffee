@@ -1,32 +1,33 @@
+GuestView = require './guest-view'
+HostView = require './host-view'
+HostSession = require './host-session'
 JoinPromptView = require './join-prompt-view'
-{createSite, Document} = require 'telepath'
-{createPeer, connectDocument} = require './session-utils'
-
-startSession = ->
-  peer = createPeer()
-  peer.on 'connection', (connection) ->
-    connection.on 'open', ->
-      console.log 'sending document'
-      windowState = atom.getWindowState()
-      connection.send(windowState.serialize())
-      connectDocument(windowState, connection)
-  peer.id
+{getSessionUrl} = require './session-utils'
 
 module.exports =
   activate: ->
-    sessionId = null
+    hostView = null
 
-    rootView.command 'collaboration:copy-session-id', ->
-      pasteboard.write(sessionId) if sessionId
+    if atom.getLoadSettings().sessionId
+      new GuestView(atom.guestSession)
+    else
+      hostSession = new HostSession()
 
-    rootView.command 'collaboration:start-session', ->
-      if sessionId = startSession()
-        pasteboard.write(sessionId)
+      copySession = ->
+        sessionId = hostSession.getId()
+        pasteboard.write(getSessionUrl(sessionId)) if sessionId
 
-    rootView.command 'collaboration:join-session', ->
-      new JoinPromptView (id) ->
-        windowSettings =
-          bootstrapScript: require.resolve('collaboration/lib/bootstrap')
-          resourcePath: window.resourcePath
-          sessionId: id
-        atom.openWindow(windowSettings)
+      rootView.command 'collaboration:copy-session-id', copySession
+
+      rootView.command 'collaboration:start-session', ->
+        hostView ?= new HostView(hostSession)
+        copySession() if hostSession.start()
+
+      rootView.command 'collaboration:join-session', ->
+        new JoinPromptView (id) ->
+          return unless id
+          windowSettings =
+            bootstrapScript: require.resolve('collaboration/lib/bootstrap')
+            resourcePath: window.resourcePath
+            sessionId: id
+          atom.openWindow(windowSettings)

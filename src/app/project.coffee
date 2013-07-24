@@ -15,8 +15,6 @@ BufferedProcess = require 'buffered-process'
 # of directories and files that you can operate on.
 module.exports =
 class Project
-  registerDeserializer(this)
-
   @deserialize: (state) -> new Project(state.path)
 
   @openers: []
@@ -49,10 +47,6 @@ class Project
     @setPath(path)
     @editSessions = []
     @buffers = []
-
-  serialize: ->
-    deserializer: 'Project'
-    path: @getPath()
 
   # Retrieves the project path.
   #
@@ -168,6 +162,7 @@ class Project
   #
   # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
   open: (filePath, options={}) ->
+    filePath = @resolve(filePath) if filePath?
     for opener in @constructor.openers
       return resource if resource = opener(filePath, options)
 

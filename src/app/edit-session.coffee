@@ -75,7 +75,7 @@ class EditSession
 
     @displayBuffer.on 'grammar-changed', => @handleGrammarChange()
 
-    @state.observe ({key, newValue}) =>
+    @state.on 'changed', ({key, newValue}) =>
       switch key
         when 'scrollTop'
           @trigger 'scroll-top-changed', newValue
@@ -304,7 +304,7 @@ class EditSession
   # Retrieves the current buffer's URI.
   #
   # Returns a {String}.
-  getUri: -> @getPath()
+  getUri: -> @buffer.getUri()
 
   # {Delegates to: Buffer.isRowBlank}
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)

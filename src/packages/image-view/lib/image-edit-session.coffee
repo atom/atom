@@ -8,6 +8,7 @@ _ = require 'underscore'
 module.exports=
 class ImageEditSession
   registerDeserializer(this)
+  @version: 1
 
   @activate: ->
     # Files with these extensions will be opened as images
@@ -18,7 +19,8 @@ class ImageEditSession
         new ImageEditSession(filePath)
 
   @deserialize: ({path}={}) ->
-    if fsUtils.exists(path)
+    path = project.resolve(path)
+    if fsUtils.isFileSync(path)
       new ImageEditSession(path)
     else
       console.warn "Could not build image edit session for path '#{path}' because that file no longer exists"
@@ -27,7 +29,7 @@ class ImageEditSession
 
   serialize: ->
     deserializer: 'ImageEditSession'
-    path: @path
+    path: @getUri()
 
   getViewClass: ->
     require './image-view'
@@ -48,7 +50,7 @@ class ImageEditSession
   # Retrieves the URI of the current image.
   #
   # Returns a {String}.
-  getUri: -> @path
+  getUri: -> project?.relativize(@getPath()) ? @getPath()
 
   # Retrieves the path of the current image.
   #

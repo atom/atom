@@ -74,7 +74,7 @@ class TextBuffer
 
   serialize: ->
     deserializer: 'TextBuffer'
-    path: @getPath()
+    path: @getUri()
     text: @getText() if @isModified()
 
   @deserialize: ({path, text}) ->
@@ -132,6 +132,9 @@ class TextBuffer
   # Returns a {String}.
   getPath: ->
     @file?.getPath()
+
+  getUri: ->
+    project?.relativize(@getPath()) ? @getPath()
 
   # Sets the path for the file.
   #
