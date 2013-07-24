@@ -135,11 +135,11 @@ class LanguageMode
   #
   # Returns an {Array} of the [startRow, endRow]. Returns null if no range.
   rowRangeForFoldAtBufferRow: (bufferRow) ->
-    rowRange = @rowRangeForCommentFoldAtBufferRow(bufferRow)
+    rowRange = @rowRangeForCommentAtBufferRow(bufferRow)
     rowRange ?= @rowRangeForCodeFoldAtBufferRow(bufferRow)
     rowRange
 
-  rowRangeForCommentFoldAtBufferRow: (bufferRow) ->
+  rowRangeForCommentAtBufferRow: (bufferRow) ->
     return unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
 
     startRow = bufferRow

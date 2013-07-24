@@ -2,7 +2,7 @@ Project = require 'project'
 Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
 
-describe "LanguageMode", ->
+fdescribe "LanguageMode", ->
   [editSession, buffer, languageMode] = []
 
   afterEach ->
