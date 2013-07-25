@@ -8,6 +8,7 @@ ParticipantView = require './participant-view'
 module.exports =
   activate: ->
     hostView = null
+    participantViews = {}
 
     if atom.getLoadSettings().sessionId
       session = atom.guestSession
@@ -19,10 +20,12 @@ module.exports =
       @handleEvents(session)
 
     session.on 'participant-entered', (participant) =>
-      @createParticipant(session, participant)
+      view = @createParticipant(session, participant)
+      participantViews[participant.id] = view
 
     session.on 'participant-exited', (participant) =>
-      console.error "Someone left"
+      view = participantViews[participant.id]
+      view.detach()
 
     rootView.eachPane (pane) ->
       setTimeout ->
@@ -33,6 +36,7 @@ module.exports =
   createParticipant: (session, participant) ->
     view = new ParticipantView(session, participant)
     view.attach()
+    view
 
   handleEvents: (session) ->
     copySessionId = ->
