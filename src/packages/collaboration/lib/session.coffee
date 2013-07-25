@@ -1,14 +1,15 @@
 _ = require 'underscore'
 keytar = require 'keytar'
 
-RedisChannel = require './redis-channel'
+WsChannel = require './ws-channel'
 
 module.exports =
 class Session
   _.extend @prototype, require('event-emitter')
 
   subscribe: (channelName) ->
-    new RedisChannel(channelName)
+    console.log "subscribing", channelName
+    new WsChannel(channelName)
 
   getPusherConnection: ->
     @pusher ?= new Pusher '490be67c75616316d386',

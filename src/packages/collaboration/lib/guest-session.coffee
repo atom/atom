@@ -19,7 +19,7 @@ class GuestSession extends Session
   start: ->
     channel = @subscribe("presence-atom")
 
-    channel.on 'channel:open', =>
+    channel.on 'channel:opened', =>
       console.log 'in the channel', arguments
 
     channel.one 'client-welcome', ({doc, siteId, repoSnapshot}) =>
