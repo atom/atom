@@ -17,8 +17,8 @@ class Session
     @participants = []
 
     if @site?
-      @id = guid.create().toString()
       @leader = true
+      @id = guid.create().toString()
       @nextGuestSiteId = @site.id + 1
     else
       @leader = false
@@ -55,6 +55,8 @@ class Session
             doc: @doc.serialize()
             repoSnapshot: repoSnapshot
           @channel.send 'welcome', welcomePackage
+
+      @trigger 'listening'
 
     else
       @channel.one 'channel:subscribed', (@participants) =>

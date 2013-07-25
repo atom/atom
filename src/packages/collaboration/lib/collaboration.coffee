@@ -14,30 +14,8 @@ module.exports =
       session = atom.guestSession
     else
       session = new Session(site: window.site)
+      @handleEvents(session)
 
-      copySessionId = ->
-        console.log 'copy'
-        sessionId = session.getId()
-        pasteboard.write(getSessionUrl(sessionId)) if sessionId
-
-      rootView.command 'collaboration:copy-session-id', copySession
-      rootView.command 'collaboration:start-session', ->
-        hostView ?= new HostView(hostSession)
-        hostSession.start()
-        copySession()
-
-      rootView.command 'collaboration:copy-session-id', copySessionId
-      rootView.command 'collaboration:start-session', -> session.start()
-      rootView.command 'collaboration:join-session', ->
-        new JoinPromptView (id) ->
-          return unless id
-          windowSettings =
-            bootstrapScript: require.resolve('collaboration/lib/bootstrap')
-            resourcePath: window.resourcePath
-            sessionId: id
-          atom.openWindow(windowSettings)
-
-    session.on 'listening', copySessionId
     session.on 'participants-changed', (participants) =>
       console.log 'participant', participants
       for participant in participants
@@ -53,4 +31,21 @@ module.exports =
         buttons.insertAfter(pane.find('.git-branch'))
       , 0
 
-    window.sess = session
+  handleEvents: (session) ->
+    copySessionId = ->
+      sessionId = session.getId()
+      pasteboard.write(getSessionUrl(sessionId)) if sessionId
+
+    rootView.command 'collaboration:copy-session-id', copySessionId
+    rootView.command 'collaboration:start-session', ->
+      session.start()
+      copySessionId()
+
+    rootView.command 'collaboration:join-session', ->
+      new JoinPromptView (id) ->
+        return unless id
+        windowSettings =
+          bootstrapScript: require.resolve('collaboration/lib/bootstrap')
+          resourcePath: window.resourcePath
+          sessionId: id
+        atom.openWindow(windowSettings)
