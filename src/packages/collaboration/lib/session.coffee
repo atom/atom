@@ -13,7 +13,7 @@ class Session
   _.extend @prototype, require('event-emitter')
 
   constructor: ({@site, @id, @host, @port}) ->
-    @host ?= 'ec2-user@ec2-54-218-196-152.us-west-2.compute.amazonaws.com'
+    @host ?= 'ec2-54-218-196-152.us-west-2.compute.amazonaws.com'
     @participants = []
 
     if @site?
