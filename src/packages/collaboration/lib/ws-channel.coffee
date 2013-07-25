@@ -1,5 +1,6 @@
 _ = require 'underscore'
 guid = require 'guid'
+keytar = require 'keytar'
 
 module.exports =
 class WsChannel
@@ -7,7 +8,8 @@ class WsChannel
 
   constructor: (@name) ->
     @clientId = guid.create().toString()
-    @socket = new WebSocket('ws://localhost:8080')
+    token = keytar.getPassword('github.com', 'github')
+    @socket = new WebSocket("ws://localhost:8080?token=#{token}")
     @socket.onopen = =>
       @rawSend 'subscribe', @name, @clientId
       @trigger 'channel:opened'
