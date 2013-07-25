@@ -53,6 +53,9 @@ class HostSession extends Session
           repoSnapshot: repoSnapshot
         channel.send 'welcome', welcomePackage
 
+    channel.on 'channel:participant-exited', (participant) =>
+      @trigger 'participant-exited', participant
+
     # host = @doc.get('collaborationState.host')
     # guest = @doc.get('collaborationState.guest')
     # @mediaConnection = new MediaConnection(host, guest, isHost: true)

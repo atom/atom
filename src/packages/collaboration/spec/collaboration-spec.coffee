@@ -80,7 +80,9 @@ describe "Collaboration", ->
     it "reports on the participants of the channel", ->
       hostSession.one 'started', hostStartedHandler = jasmine.createSpy("hostStartedHandler")
       guestSession.one 'started', guestStartedHandler = jasmine.createSpy("guestStartedHandler")
+      guestSession.one 'stopped', guestStoppedHandler = jasmine.createSpy("guestS")
       hostSession.on 'participant-entered', hostParticipantEnteredHandler = jasmine.createSpy("hostParticipantEnteredHandler")
+      hostSession.on 'participant-exited', hostParticipantExitedHandler = jasmine.createSpy("hostParticipantExitedHandler")
 
       hostSession.start()
       waitsFor "host session to start", -> hostStartedHandler.callCount > 0
@@ -97,4 +99,15 @@ describe "Collaboration", ->
           { login: 'hubot', clientId: hostSession.clientId }
           { login: 'octocat', clientId: guestSession.clientId }
         ]
+
+      waitsFor "host to see guest enter", -> hostParticipantEnteredHandler.callCount > 0
+
+      runs ->
         expect(hostParticipantEnteredHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
+        guestSession.stop()
+
+      waitsFor "guest session to stop", -> guestStoppedHandler.callCount > 0
+      waitsFor "host to see guest exit", -> hostParticipantExitedHandler.callCount > 0
+
+      runs ->
+        expect(hostParticipantExitedHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)

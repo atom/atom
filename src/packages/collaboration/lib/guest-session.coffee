@@ -16,17 +16,21 @@ class GuestSession extends Session
   constructor: (@hostId) ->
 
   start: ->
-    channel = @subscribe(@hostId)
+    @channel = @subscribe(@hostId)
 
-    channel.on 'channel:subscribed', (participants) =>
+    @channel.on 'channel:subscribed', (participants) =>
       @trigger 'started', participants
 
-    channel.one 'welcome', ({doc, siteId, repoSnapshot}) =>
+    @channel.on 'channel:closed', => @trigger 'stopped'
+
+    @channel.one 'welcome', ({doc, siteId, repoSnapshot}) =>
       @site = new telepath.Site(siteId)
       @doc = @site.deserializeDocument(doc)
-      @connectDocument(@doc, channel)
+      @connectDocument(@doc, @channel)
       repoUrl = @doc.get('collaborationState.repositoryState.url')
       @mirrorRepository repoUrl, repoSnapshot, => @trigger 'started'
+
+  stop: -> @channel.stop()
 
   getSite: -> @site
 

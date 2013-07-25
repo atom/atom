@@ -13,9 +13,15 @@ class WsChannel
     @socket.onopen = =>
       @rawSend 'subscribe', @name, @clientId
 
+    @socket.onclose = =>
+      @trigger 'channel:closed'
+
     @socket.onmessage = (message) =>
       data = JSON.parse(message.data)
       @trigger(data...)
+
+  stop: ->
+    @socket.close()
 
   send: (data...) ->
     @rawSend('broadcast', data)
