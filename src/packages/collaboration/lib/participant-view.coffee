@@ -7,6 +7,5 @@ class ParticipantView extends View
     @div class: 'participant', =>
       @img class: 'avatar', outlet: 'avatar'
 
-  initialize: ({id, email}) ->
-    emailMd5 = crypto.createHash('md5').update(email).digest('hex')
-    @avatar.attr('src', "http://www.gravatar.com/avatar/#{emailMd5}?s=32")
+  initialize: ({id, avatar_url}) ->
+    @avatar.attr('src', avatar_url)
