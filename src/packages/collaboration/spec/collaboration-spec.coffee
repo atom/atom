@@ -80,6 +80,7 @@ describe "Collaboration", ->
     it "reports on the participants of the channel", ->
       hostSession.one 'started', hostStartedHandler = jasmine.createSpy("hostStartedHandler")
       guestSession.one 'started', guestStartedHandler = jasmine.createSpy("guestStartedHandler")
+      hostSession.on 'participant-entered', hostParticipantEnteredHandler = jasmine.createSpy("hostParticipantEnteredHandler")
 
       hostSession.start()
       waitsFor "host session to start", -> hostStartedHandler.callCount > 0
@@ -96,3 +97,4 @@ describe "Collaboration", ->
           { login: 'hubot', clientId: hostSession.clientId }
           { login: 'octocat', clientId: guestSession.clientId }
         ]
+        expect(hostParticipantEnteredHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)

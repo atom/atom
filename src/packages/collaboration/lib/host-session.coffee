@@ -44,7 +44,8 @@ class HostSession extends Session
       @trigger 'started', participants
       @connectDocument(@doc, channel)
 
-    channel.on 'channel:participant-entered', =>
+    channel.on 'channel:participant-entered', (participant) =>
+      @trigger 'participant-entered', participant
       @snapshotRepository (repoSnapshot) =>
         welcomePackage =
           siteId: @nextGuestSiteId++
