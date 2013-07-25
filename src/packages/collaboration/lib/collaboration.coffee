@@ -8,28 +8,31 @@ ParticipantView = require './participant-view'
 module.exports =
   activate: ->
     hostView = null
-    loadedParticipants = {}
 
     if atom.getLoadSettings().sessionId
       session = atom.guestSession
+      for participant in session.getParticipants()
+        continue if participant.id == session.getId()
+        @createParticipant(session, participant)
     else
       session = new Session(site: window.site)
       @handleEvents(session)
 
-    session.on 'participants-changed', (participants) =>
-      console.log 'participant', participants
-      for participant in participants
-        continue if participant.id == session.getId()
-        continue if participant.id of loadedParticipants
-        console.log 'adding', participant.id, participant
-        loadedParticipants[participant.id] = new ParticipantView(session, participant)
-        loadedParticipants[participant.id].attach()
+    session.on 'participant-entered', (participant) =>
+      @createParticipant(session, participant)
+
+    session.on 'participant-exited', (participant) =>
+      console.error "Someone left"
 
     rootView.eachPane (pane) ->
       setTimeout ->
         buttons = if session.isLeader() then new HostStatusBar(session) else new GuestStatusBar(session)
         buttons.insertAfter(pane.find('.git-branch'))
       , 0
+
+  createParticipant: (session, participant) ->
+    view = new ParticipantView(session, participant)
+    view.attach()
 
   handleEvents: (session) ->
     copySessionId = ->

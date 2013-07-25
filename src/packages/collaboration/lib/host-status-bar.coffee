@@ -17,9 +17,6 @@ class HostStatusBar extends View
     @session.on 'listening started stopped', @update
     @update()
 
-    #@hostSession.waitForStream (stream) =>
-    #  @video[0].src = URL.createObjectURL(stream)
-
   update: =>
     console.log 'updating', this
     if @session.isListening()

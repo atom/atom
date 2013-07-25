@@ -13,7 +13,7 @@ class Session
   _.extend @prototype, require('event-emitter')
 
   constructor: ({@site, @id, @host, @port}) ->
-    @host ?= 'ec2-54-218-196-152.us-west-2.compute.amazonaws.com'
+    @host ?= 'localhost'
     @participants = []
     @listening = false
 
@@ -78,7 +78,10 @@ class Session
   createMediaConnection: ->
     guest = @doc.get('collaborationState.guest')
     host = @doc.get('collaborationState.host')
-    new MediaConnection(guest, host, isLeader: @isLeader())
+    if @isLeader()
+      new MediaConnection(guest, host, isLeader: true)
+    else
+      new MediaConnection(host, guest)
 
   waitForStream: (callback) ->
     @mediaConnection.waitForStream callback
