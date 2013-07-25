@@ -7,7 +7,6 @@ telepath = require 'telepath'
 
 MediaConnection = require './media-connection'
 sessionUtils = require './session-utils'
-Pusher = require '../vendor/pusher'
 Session = require './session'
 
 module.exports =

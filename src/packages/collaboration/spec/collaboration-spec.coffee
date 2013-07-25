@@ -5,14 +5,23 @@ keytar = require 'keytar'
 GuestSession = require '../lib/guest-session'
 HostSession = require '../lib/host-session'
 
-class PusherServer
+class Server
   constructor: ->
     @channels = {}
 
   getChannel: (channelName) ->
     @channels[channelName] ?= new ChannelServer(channelName)
 
-  createClient: -> new PusherClient(this)
+  createClient: -> new Client(this)
+
+class Client
+  @nextId: 1
+
+  constructor: (@server) ->
+    @id = @constructor.nextId++
+
+  subscribe: (channelName) ->
+    @server.getChannel(channelName).subscribe(this)
 
 class ChannelServer
   constructor: (@name) ->
@@ -36,15 +45,6 @@ class ChannelServer
       for client in @getChannelClients() when client isnt sendingClient
         client.trigger(eventName, eventData)
 
-class PusherClient
-  @nextId: 1
-
-  constructor: (@server) ->
-    @id = @constructor.nextId++
-
-  subscribe: (channelName) ->
-    @server.getChannel(channelName).subscribe(this)
-
 class ChannelClient
   _.extend @prototype, require('event-emitter')
 
@@ -53,14 +53,14 @@ class ChannelClient
   send: (eventName, eventData) ->
     @channelServer.send(this, eventName, eventData)
 
-describe "Collaboration", ->
+fdescribe "Collaboration", ->
   describe "joining a host session", ->
     [hostSession, guestSession, pusher, repositoryMirrored] = []
 
     beforeEach ->
       spyOn(keytar, 'getPassword')
       jasmine.unspy(window, 'setTimeout')
-      pusherServer = new PusherServer()
+      pusherServer = new Server()
       hostSession = new HostSession(new Site(1))
       spyOn(hostSession, 'snapshotRepository').andCallFake (callback) ->
         callback({url: 'git://server/repo.git'})

@@ -11,14 +11,6 @@ class Session
     console.log "subscribing", channelName
     new WsChannel(channelName)
 
-  getPusherConnection: ->
-    @pusher ?= new Pusher '490be67c75616316d386',
-      encrypted: true
-      authEndpoint: 'https://fierce-caverns-8387.herokuapp.com/pusher/auth'
-      auth:
-        params:
-          oauth_token: keytar.getPassword('github.com', 'github')
-
   connectDocument: (doc, channel) ->
     nextOutputEventId = 1
     outputListener = (event) ->
