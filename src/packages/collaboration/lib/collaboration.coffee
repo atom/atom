@@ -27,7 +27,7 @@ module.exports =
 
     rootView.eachPane (pane) ->
       setTimeout ->
-        buttons = if session.isHost() then new HostStatusBar(session) else new GuestStatusBar(session)
+        buttons = if session.isLeader() then new HostStatusBar(session) else new GuestStatusBar(session)
         buttons.insertAfter(pane.find('.git-branch'))
       , 0
 
