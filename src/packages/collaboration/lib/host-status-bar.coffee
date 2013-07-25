@@ -14,11 +14,10 @@ class HostStatusBar extends View
       else
         @session.start()
 
-    @session.on 'listening started stopped', @update
+    @session.on 'listening started stopped participant-entered participant-exited', @update
     @update()
 
   update: =>
-    console.log 'updating', this
     if @session.isListening()
       @status.addClass('running')
       @connections.show().text(@session.participants.length)
