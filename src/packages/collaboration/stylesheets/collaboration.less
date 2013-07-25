@@ -3,12 +3,10 @@
 
 @avatar-width: 32px;
 
-.collaboration {
-  @item-line-height: @line-height-base * 1.25;
-  padding: 10px;
-  -webkit-user-select: none;
+.collaboration-status{
+  float: right;
 
-  .share {
+  .status.share {
     cursor: pointer;
     .mini-icon(notifications);
     position: relative;
@@ -16,12 +14,26 @@
     margin-bottom: 5px;
   }
 
-  .guest {
+  .status.guest {
     .mini-icon(watchers);
     position: relative;
     right: -2px;
     margin-bottom: 5px;
   }
+
+  /* is there a way to specify this 14px is a more general way? or remove the
+  .mini-icon mixin and use classes so we can use the status bar icon sizes.*/
+  .status.guest:before, .status.share:before {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.collaboration {
+  @item-line-height: @line-height-base * 1.25;
+  padding: 10px;
+  -webkit-user-select: none;
 
   .avatar {
     border-radius: 3px;

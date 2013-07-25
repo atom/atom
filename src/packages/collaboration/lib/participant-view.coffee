@@ -4,8 +4,17 @@ crypto = require 'crypto'
 module.exports =
 class ParticipantView extends View
   @content: ->
-    @div class: 'participant', =>
-      @img class: 'avatar', outlet: 'avatar'
+  	@div class: 'collaboration-participant overlay large', =>
+      @video autoplay: true, outlet: 'video'
+      @div class: 'volume-container', outlet: 'volumeContainer', =>
+      	@div class: 'volume', outlet: 'volume'
 
-  initialize: ({id, avatar_url}) ->
-    @avatar.attr('src', avatar_url)
+  initialize: (@session, {id, email}) ->
+  	@session.waitForStream (stream) =>
+      @video[0].src = URL.createObjectURL(stream)
+
+    # emailMd5 = crypto.createHash('md5').update(email).digest('hex')
+    # @avatar.attr('src', "http://www.gravatar.com/avatar/#{emailMd5}?s=32")
+
+  attach: ->
+    rootView.append(this)
