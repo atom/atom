@@ -40,8 +40,8 @@ class HostSession extends Session
 
     @doc = @createDocument()
     channel = @subscribe(@id)
-    channel.on 'channel:opened', =>
-      @trigger 'started'
+    channel.on 'channel:subscribed', (participants) =>
+      @trigger 'started', participants
       @connectDocument(@doc, channel)
 
     channel.on 'channel:participant-entered', =>

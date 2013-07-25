@@ -8,14 +8,24 @@ HostSession = require '../lib/host-session'
 
 describe "Collaboration", ->
   describe "when a host and a guest join a channel", ->
-    [server, hostSession, guestSession, repositoryMirrored] = []
+    [server, hostSession, guestSession, repositoryMirrored, token, userDataByToken] = []
 
     beforeEach ->
       jasmine.unspy(window, 'setTimeout')
-      spyOn(keytar, 'getPassword')
+      spyOn(keytar, 'getPassword').andCallFake -> token
+      token = 'hubot-token'
+      userDataByToken =
+        'hubot-token':
+          login: 'hubot'
 
       server = new Server()
-      spyOn(server, 'verifyClient').andCallFake (info, verify) -> verify(true)
+      spyOn(server, 'log')
+      spyOn(server, 'error')
+      spyOn(server, 'authenticate').andCallFake (token, callback) ->
+        if userData = userDataByToken[token]
+          callback(null, userData)
+        else
+          callback("Invalid token")
 
       waitsFor "server to start", (started) ->
         server.once 'started', started
@@ -64,3 +74,15 @@ describe "Collaboration", ->
 
       runs ->
         expect(repositoryMirrored).toBe true
+
+    it "reports on the participants of the channel", ->
+      hostSession.start()
+
+      waitsFor "host session to start", (started) ->
+        participants = null
+        hostSession.one 'started', (participantsArg) ->
+          participants = participantsArg
+          started()
+
+        runs ->
+          expect(participants).toEqual [login: 'hubot', clientId: hostSession.clientId]

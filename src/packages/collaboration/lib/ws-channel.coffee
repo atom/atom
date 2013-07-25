@@ -12,10 +12,9 @@ class WsChannel
     @socket = new WebSocket("ws://localhost:8080?token=#{token}")
     @socket.onopen = =>
       @rawSend 'subscribe', @name, @clientId
-      @trigger 'channel:opened'
 
     @socket.onmessage = (message) =>
-      [operation, data] = JSON.parse(message.data)
+      data = JSON.parse(message.data)
       @trigger(data...)
 
   send: (data...) ->
