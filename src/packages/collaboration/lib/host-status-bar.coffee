@@ -9,7 +9,7 @@ class HostStatusBar extends View
 
   initialize: (@session) ->
     @status.on 'click', =>
-      if @session.isSharing()
+      if @session.isListening()
         @session.stop()
       else
         @session.start()

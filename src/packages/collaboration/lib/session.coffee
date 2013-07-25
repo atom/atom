@@ -15,6 +15,7 @@ class Session
   constructor: ({@site, @id, @host, @port}) ->
     @host ?= 'ec2-54-218-196-152.us-west-2.compute.amazonaws.com'
     @participants = []
+    @listening = false
 
     if @site?
       @leader = true
@@ -24,6 +25,8 @@ class Session
       @leader = false
 
   isLeader: -> @leader
+
+  isListening: -> @listening
 
   start: ->
     @channel = @subscribe(@id)
@@ -56,6 +59,7 @@ class Session
             repoSnapshot: repoSnapshot
           @channel.send 'welcome', welcomePackage
 
+      @listening = true
       @trigger 'listening'
 
     else
