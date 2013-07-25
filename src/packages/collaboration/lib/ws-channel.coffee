@@ -9,13 +9,10 @@ class WsChannel
     @clientId = guid.create().toString()
     @socket = new WebSocket('ws://localhost:8080')
     @socket.onopen = =>
-      console.log "opened"
-      @rawSend 'subscribe', @name
-      @send 'channel:participant-joined', @clientId
+      @rawSend 'subscribe', @name, @clientId
       @trigger 'channel:opened'
 
     @socket.onmessage = (message) =>
-      console.log "received", message.data
       [operation, data] = JSON.parse(message.data)
       @trigger(data...)
 
@@ -23,5 +20,4 @@ class WsChannel
     @rawSend('broadcast', data)
 
   rawSend: (args...) ->
-    console.log "sending", args
     @socket.send(JSON.stringify(args))

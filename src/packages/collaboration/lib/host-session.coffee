@@ -39,18 +39,18 @@ class HostSession extends Session
     return if @isSharing()
 
     @doc = @createDocument()
-    channel = @subscribe("presence-atom")
+    channel = @subscribe(@id)
     channel.on 'channel:opened', =>
       @trigger 'started'
       @connectDocument(@doc, channel)
 
-    channel.on 'channel:participant-joined', =>
+    channel.on 'channel:participant-entered', =>
       @snapshotRepository (repoSnapshot) =>
         welcomePackage =
           siteId: @nextGuestSiteId++
           doc: @doc.serialize()
           repoSnapshot: repoSnapshot
-        channel.send 'client-welcome', welcomePackage
+        channel.send 'welcome', welcomePackage
 
     # host = @doc.get('collaborationState.host')
     # guest = @doc.get('collaborationState.guest')

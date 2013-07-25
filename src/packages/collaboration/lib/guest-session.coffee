@@ -16,13 +16,11 @@ class GuestSession extends Session
   constructor: (@hostId) ->
 
   start: ->
-    channel = @subscribe("presence-atom")
+    channel = @subscribe(@hostId)
 
-    channel.on 'channel:opened', =>
-      console.log 'in the channel', arguments
+    channel.on 'channel:opened', => console.log 'opened channel'
 
-    channel.one 'client-welcome', ({doc, siteId, repoSnapshot}) =>
-      console.log 'here? client welcome'
+    channel.one 'welcome', ({doc, siteId, repoSnapshot}) =>
       @site = new telepath.Site(siteId)
       @doc = @site.deserializeDocument(doc)
       @connectDocument(@doc, channel)

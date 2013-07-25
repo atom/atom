@@ -35,7 +35,7 @@ class ChannelServer
         if client is channelClient
           client.trigger 'channel:opened'
         else
-          client.trigger 'channel:participant-joined'
+          client.trigger 'channel:participant-entered'
     channelClient
 
   getChannelClients: -> _.values(@channelClients)
