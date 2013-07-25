@@ -3,7 +3,7 @@ require 'window'
 
 $ = require 'jquery'
 {$$} = require 'space-pen'
-GuestSession = require './guest-session'
+Session = require './session'
 
 window.setDimensions(width: 350, height: 125)
 window.setUpEnvironment('editor')
@@ -22,7 +22,7 @@ updateProgressBar = (message, percentDone) ->
   loadingView.find('.progress-bar-message').text("#{message}\u2026")
   loadingView.find('.progress-bar').css('width', "#{percentDone}%")
 
-guestSession = new GuestSession(sessionId)
+guestSession = new Session(id: sessionId)
 
 guestSession.on 'started', ->
   atom.windowState = guestSession.getDocument().get('windowState')

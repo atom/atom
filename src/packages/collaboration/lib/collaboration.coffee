@@ -1,6 +1,6 @@
 GuestView = require './guest-view'
 HostView = require './host-view'
-HostSession = require './host-session'
+Session = require './session'
 JoinPromptView = require './join-prompt-view'
 {getSessionUrl} = require './session-utils'
 
@@ -11,7 +11,7 @@ module.exports =
     if atom.getLoadSettings().sessionId
       new GuestView(atom.guestSession)
     else
-      hostSession = new HostSession(window.site)
+      hostSession = new Session(site: window.site)
 
       copySession = ->
         sessionId = hostSession.getId()

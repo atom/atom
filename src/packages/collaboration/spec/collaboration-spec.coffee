@@ -3,8 +3,7 @@ keytar = require 'keytar'
 {Site} = require 'telepath'
 
 Server = require '../vendor/atom-collaboration-server'
-GuestSession = require '../lib/guest-session'
-HostSession = require '../lib/host-session'
+Session = require '../lib/session'
 
 describe "Collaboration", ->
   describe "when a host and a guest join a channel", ->
@@ -34,8 +33,8 @@ describe "Collaboration", ->
         server.start()
 
       runs ->
-        hostSession = new HostSession(new Site(1))
-        guestSession = new GuestSession(hostSession.getId())
+        hostSession = new Session(site: new Site(1))
+        guestSession = new Session(id: hostSession.getId())
 
         spyOn(hostSession, 'snapshotRepository').andCallFake (callback) ->
           callback({url: 'git://server/repo.git'})
