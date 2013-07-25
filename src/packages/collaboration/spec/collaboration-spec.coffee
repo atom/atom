@@ -76,13 +76,10 @@ describe "Collaboration", ->
         expect(repositoryMirrored).toBe true
 
     it "reports on the participants of the channel", ->
+      hostSession.one 'started', startedHandler = jasmine.createSpy("startedHandler")
       hostSession.start()
 
-      waitsFor "host session to start", (started) ->
-        participants = null
-        hostSession.one 'started', (participantsArg) ->
-          participants = participantsArg
-          started()
+      waitsFor "host session to start", -> startedHandler.callCount > 0
 
-        runs ->
-          expect(participants).toEqual [login: 'hubot', clientId: hostSession.clientId]
+      runs ->
+        expect(startedHandler).toHaveBeenCalledWith [login: 'hubot', clientId: hostSession.clientId]
