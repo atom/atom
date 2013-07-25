@@ -18,7 +18,8 @@ class GuestSession extends Session
   start: ->
     channel = @subscribe(@hostId)
 
-    channel.on 'channel:opened', => console.log 'opened channel'
+    channel.on 'channel:subscribed', (participants) =>
+      @trigger 'started', participants
 
     channel.one 'welcome', ({doc, siteId, repoSnapshot}) =>
       @site = new telepath.Site(siteId)

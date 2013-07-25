@@ -17,6 +17,8 @@ describe "Collaboration", ->
       userDataByToken =
         'hubot-token':
           login: 'hubot'
+        'octocat-token':
+          login: 'octocat'
 
       server = new Server()
       spyOn(server, 'log')
@@ -76,10 +78,21 @@ describe "Collaboration", ->
         expect(repositoryMirrored).toBe true
 
     it "reports on the participants of the channel", ->
-      hostSession.one 'started', startedHandler = jasmine.createSpy("startedHandler")
-      hostSession.start()
+      hostSession.one 'started', hostStartedHandler = jasmine.createSpy("hostStartedHandler")
+      guestSession.one 'started', guestStartedHandler = jasmine.createSpy("guestStartedHandler")
 
-      waitsFor "host session to start", -> startedHandler.callCount > 0
+      hostSession.start()
+      waitsFor "host session to start", -> hostStartedHandler.callCount > 0
 
       runs ->
-        expect(startedHandler).toHaveBeenCalledWith [login: 'hubot', clientId: hostSession.clientId]
+        expect(hostStartedHandler).toHaveBeenCalledWith [login: 'hubot', clientId: hostSession.clientId]
+        token = 'octocat-token'
+        guestSession.start()
+
+      waitsFor "guest session to start", -> guestStartedHandler.callCount > 0
+
+      runs ->
+        expect(guestStartedHandler).toHaveBeenCalledWith [
+          { login: 'hubot', clientId: hostSession.clientId }
+          { login: 'octocat', clientId: guestSession.clientId }
+        ]
