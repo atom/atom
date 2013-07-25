@@ -8,8 +8,9 @@ class Session
   _.extend @prototype, require('event-emitter')
 
   subscribe: (channelName) ->
-    console.log "subscribing", channelName
-    new WsChannel(channelName)
+    channel = new WsChannel(channelName)
+    {@clientId} = channel
+    channel
 
   connectDocument: (doc, channel) ->
     doc.on 'replicate-change', (event) ->
