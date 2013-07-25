@@ -4,7 +4,7 @@ crypto = require 'crypto'
 module.exports =
 class ParticipantView extends View
   @content: ->
-  	@div class: 'collaboration-participant overlay large', =>
+  	@div class: 'collaboration-participant overlay floating large', =>
       @video autoplay: true, outlet: 'video'
       @div class: 'volume-container', outlet: 'volumeContainer', =>
       	@div class: 'volume', outlet: 'volume'

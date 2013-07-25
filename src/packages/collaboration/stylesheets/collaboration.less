@@ -1,7 +1,9 @@
 @import "bootstrap/less/variables.less";
 @import "octicon-mixins.less";
 
-@avatar-width: 32px;
+@video-padding: 5px;
+@large-width: 160px;
+@user-color: #3facc1;
 
 .collaboration-status{
   float: right;
@@ -30,19 +32,37 @@
   }
 }
 
+.collaboration-participant{
+  bottom: 36px;
+  right: 10px;
+
+  &.large {
+    padding: @video-padding;
+    width: @large-width + @video-padding*2 + 2px;
+
+    video {
+      width: @large-width;
+      border-radius: 2px 2px 0 0;
+      display: block;
+    }
+    .volume-container { 
+      position: relative;
+      width: @large-width;
+      border-radius: 0;
+      height: 5px;
+      background: lighten(@user-color, 15%);
+
+      .volume{
+        height: 5px;
+        width: 60%;
+        background: @user-color;
+      }
+    }
+  }
+}
+
 .collaboration {
   @item-line-height: @line-height-base * 1.25;
   padding: 10px;
   -webkit-user-select: none;
-
-  .avatar {
-    border-radius: 3px;
-    height: @avatar-width;
-    width: @avatar-width;
-    margin: 2px;
-  }
-
-  video {
-    width: @avatar-width;
-  }
 }
