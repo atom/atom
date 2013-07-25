@@ -5,6 +5,8 @@ keytar = require 'keytar'
 Server = require '../vendor/atom-collaboration-server'
 Session = require '../lib/session'
 
+ServerPort = 8081
+
 describe "Collaboration", ->
   describe "when a host and a guest join a channel", ->
     [server, hostSession, guestSession, repositoryMirrored, token, userDataByToken] = []
@@ -19,7 +21,7 @@ describe "Collaboration", ->
         'octocat-token':
           login: 'octocat'
 
-      server = new Server()
+      server = new Server(port: ServerPort)
       spyOn(server, 'log')
       spyOn(server, 'error')
       spyOn(server, 'authenticate').andCallFake (token, callback) ->
@@ -33,8 +35,8 @@ describe "Collaboration", ->
         server.start()
 
       runs ->
-        hostSession = new Session(site: new Site(1))
-        guestSession = new Session(id: hostSession.getId())
+        hostSession = new Session(site: new Site(1), port: ServerPort)
+        guestSession = new Session(id: hostSession.getId(), port: ServerPort)
 
         spyOn(hostSession, 'snapshotRepository').andCallFake (callback) ->
           callback({url: 'git://server/repo.git'})
@@ -88,6 +90,8 @@ describe "Collaboration", ->
 
       runs ->
         expect(hostStartedHandler).toHaveBeenCalledWith [login: 'hubot', clientId: hostSession.clientId]
+        expect(hostSession.getParticipants()).toEqual [login: 'hubot', clientId: hostSession.clientId]
+        expect(hostSession.getOtherParticipants()).toEqual []
         token = 'octocat-token'
         guestSession.start()
 
@@ -98,11 +102,25 @@ describe "Collaboration", ->
           { login: 'hubot', clientId: hostSession.clientId }
           { login: 'octocat', clientId: guestSession.clientId }
         ]
+        expect(guestSession.getParticipants()).toEqual [
+          { login: 'hubot', clientId: hostSession.clientId }
+          { login: 'octocat', clientId: guestSession.clientId }
+        ]
+        expect(guestSession.getOtherParticipants()).toEqual [
+          { login: 'hubot', clientId: hostSession.clientId }
+        ]
 
       waitsFor "host to see guest enter", -> hostParticipantEnteredHandler.callCount > 0
 
       runs ->
         expect(hostParticipantEnteredHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
+        expect(hostSession.getParticipants()).toEqual [
+          { login: 'hubot', clientId: hostSession.clientId }
+          { login: 'octocat', clientId: guestSession.clientId }
+        ]
+        expect(hostSession.getOtherParticipants()).toEqual [
+          { login: 'octocat', clientId: guestSession.clientId }
+        ]
         guestSession.stop()
 
       waitsFor "guest session to stop", -> guestStoppedHandler.callCount > 0
@@ -110,3 +128,5 @@ describe "Collaboration", ->
 
       runs ->
         expect(hostParticipantExitedHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
+        expect(hostSession.getParticipants()).toEqual [login: 'hubot', clientId: hostSession.clientId]
+        expect(hostSession.getOtherParticipants()).toEqual []

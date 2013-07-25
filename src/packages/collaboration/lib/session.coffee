@@ -4,6 +4,7 @@ keytar = require 'keytar'
 patrick = require 'patrick'
 {Site} = require 'telepath'
 
+MediaConnection = require './media-connection'
 Project = require 'project'
 WsChannel = require './ws-channel'
 
@@ -11,7 +12,9 @@ module.exports =
 class Session
   _.extend @prototype, require('event-emitter')
 
-  constructor: ({@site, @id}) ->
+  constructor: ({@site, @id, @port}) ->
+    @participants = []
+
     if @site?
       @id = guid.create().toString()
       @leader = true
@@ -26,13 +29,25 @@ class Session
 
     @channel.on 'channel:closed', => @trigger 'stopped'
 
-    @channel.on 'channel:participant-exited', (participant) =>
-      @trigger 'participant-exited', participant
-
     @channel.on 'channel:participant-entered', (participant) =>
+      @participants.push(participant)
       @trigger 'participant-entered', participant
 
-      if @isLeader()
+    @channel.on 'channel:participant-exited', (participant) =>
+      @participants = @participants.filter ({clientId}) ->
+        clientId isnt participant.clientId
+      @trigger 'participant-exited', participant
+
+    if @isLeader()
+      @doc = @createDocument()
+      @mediaConnection = @createMediaConnection()
+      @mediaConnection.start()
+
+      @connectDocument()
+      @channel.one 'channel:subscribed', (@participants) =>
+        @trigger 'started', @getParticipants()
+
+      @on 'participant-entered', =>
         @snapshotRepository (repoSnapshot) =>
           welcomePackage =
             siteId: @nextGuestSiteId++
@@ -40,20 +55,26 @@ class Session
             repoSnapshot: repoSnapshot
           @channel.send 'welcome', welcomePackage
 
-    if @isLeader()
-      @doc = @createDocument()
-      @connectDocument()
-      @channel.one 'channel:subscribed', (participants) =>
-        @trigger 'started', participants
     else
-      @channel.one 'channel:subscribed', (participants) =>
+      @channel.one 'channel:subscribed', (@participants) =>
         @channel.one 'welcome', ({doc, siteId, repoSnapshot}) =>
           @site = new Site(siteId)
           @doc = @site.deserializeDocument(doc)
           @connectDocument()
+          @mediaConnection = @createMediaConnection()
+          @mediaConnection.start()
+
           repoUrl = @doc.get('collaborationState.repositoryState.url')
           @mirrorRepository repoUrl, repoSnapshot, =>
-            @trigger 'started', participants
+            @trigger 'started', @getParticipants()
+
+  createMediaConnection: ->
+    guest = @doc.get('collaborationState.guest')
+    host = @doc.get('collaborationState.host')
+    new MediaConnection(guest, host, isLeader: @isLeader())
+
+  waitForStream: (callback) ->
+    @mediaConnection.waitForStream callback
 
   createDocument: ->
     @site.createDocument
@@ -73,8 +94,13 @@ class Session
 
   getId: -> @id
 
-  subscribe: (channelName) ->
-    channel = new WsChannel(channelName)
+  getParticipants: -> _.clone(@participants)
+
+  getOtherParticipants: ->
+    @getParticipants().filter ({clientId}) => clientId isnt @clientId
+
+  subscribe: (name) ->
+    channel = new WsChannel({name, @port})
     {@clientId} = channel
     channel
 

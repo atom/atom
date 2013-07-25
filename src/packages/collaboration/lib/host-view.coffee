@@ -12,32 +12,22 @@ class HostView extends View
   hostSession: null
 
   initialize: (@hostSession) ->
-    if @hostSession.isSharing()
-      @share.addClass('running')
-
-    @share.on 'click', =>
-      @share.disable()
-
-      if @hostSession.isSharing()
-        @hostSession.stop()
-      else
-        @hostSession.start()
-
     @hostSession.on 'started stopped', =>
       @share.toggleClass('running').enable()
 
-    @hostSession.on 'participants-changed', (participants) =>
-      @updateParticipants(participants)
+    @hostSession.on 'participant-entered participant-exited', =>
+      @updateParticipants()
 
-    # @hostSession.waitForStream (stream) =>
-    #   @video[0].src = URL.createObjectURL(stream)
+    @hostSession.one 'started', =>
+      @updateParticipants()
+      @hostSession.waitForStream (stream) =>
+        @video[0].src = URL.createObjectURL(stream)
 
     @attach()
 
-  updateParticipants: (participants) ->
+  updateParticipants: ->
     @participants.empty()
-    hostId = @hostSession.getId()
-    for participant in participants when participant.id isnt hostId
+    for participant in @hostSession.getOtherParticipants()
       @participants.append(new ParticipantView(participant))
 
   toggle: ->

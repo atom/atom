@@ -10,13 +10,13 @@ class MediaConnection
   remote: null
   connection: null
   stream: null
-  isHost: null
+  isLeader: null
 
-  constructor: (@local, @remote, {@isHost}={}) ->
+  constructor: (@local, @remote, {@isLeader}={}) ->
 
   start: ->
     constraints = {video: true, audio: true}
-    # navigator.webkitGetUserMedia constraints, @onUserMediaAvailable, @onUserMediaUnavailable
+    navigator.webkitGetUserMedia constraints, @onUserMediaAvailable, @onUserMediaUnavailable
 
   waitForStream: (callback) ->
     if @stream
@@ -40,7 +40,7 @@ class MediaConnection
       @stream = event.stream
       @trigger 'stream-ready', @stream
 
-    @local.set 'ready', true unless @isHost
+    @local.set 'ready', true unless @isLeader
 
   onRemoteSignal: ({key, newValue}) =>
     switch key
@@ -55,7 +55,7 @@ class MediaConnection
         sessionDescription = new RTCSessionDescription(remoteDescription)
         @connection.setRemoteDescription(sessionDescription)
 
-        if not @isHost
+        if not @isLeader
           success = (localDescription) =>
             @connection.setLocalDescription(localDescription)
             @local.set('description', localDescription)

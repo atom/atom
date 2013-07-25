@@ -6,10 +6,11 @@ module.exports =
 class WsChannel
   _.extend @prototype, require('event-emitter')
 
-  constructor: (@name) ->
+  constructor: ({@name, @port}) ->
+    @port ?= 8080
     @clientId = guid.create().toString()
     token = keytar.getPassword('github.com', 'github')
-    @socket = new WebSocket("ws://localhost:8080?token=#{token}")
+    @socket = new WebSocket("ws://localhost:#{@port}?token=#{token}")
     @socket.onopen = =>
       @rawSend 'subscribe', @name, @clientId
 

@@ -21,7 +21,8 @@ module.exports =
 
       rootView.command 'collaboration:start-session', ->
         hostView ?= new HostView(hostSession)
-        copySession() if hostSession.start()
+        hostSession.start()
+        copySession()
 
       rootView.command 'collaboration:join-session', ->
         new JoinPromptView (id) ->
