@@ -82,7 +82,8 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-less": "~0.5.2",
     "jasmine-focused": "~0.7.0",
-    "walkdir": "0.0.7"
+    "walkdir": "0.0.7",
+    "ws": "0.4.27"
   },
   "private": true,
   "scripts": {

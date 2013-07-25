@@ -2,79 +2,43 @@ _ = require 'underscore'
 keytar = require 'keytar'
 {Site} = require 'telepath'
 
+Server = require '../vendor/atom-collaboration-server'
 GuestSession = require '../lib/guest-session'
 HostSession = require '../lib/host-session'
 
-class Server
-  constructor: ->
-    @channels = {}
-
-  getChannel: (channelName) ->
-    @channels[channelName] ?= new ChannelServer(channelName)
-
-  createClient: -> new Client(this)
-
-class Client
-  @nextId: 1
-
-  constructor: (@server) ->
-    @id = @constructor.nextId++
-
-  subscribe: (channelName) ->
-    @server.getChannel(channelName).subscribe(this)
-
-class ChannelServer
-  constructor: (@name) ->
-    @channelClients = {}
-
-  subscribe: (subscribingClient) ->
-    channelClient = new ChannelClient(subscribingClient, this)
-    @channelClients[subscribingClient.id] = channelClient
-    setTimeout =>
-      for client in @getChannelClients()
-        if client is channelClient
-          client.trigger 'channel:opened'
-        else
-          client.trigger 'channel:participant-entered'
-    channelClient
-
-  getChannelClients: -> _.values(@channelClients)
-
-  send: (sendingClient, eventName, eventData) ->
-    setTimeout =>
-      for client in @getChannelClients() when client isnt sendingClient
-        client.trigger(eventName, eventData)
-
-class ChannelClient
-  _.extend @prototype, require('event-emitter')
-
-  constructor: (@pusherClient, @channelServer) ->
-
-  send: (eventName, eventData) ->
-    @channelServer.send(this, eventName, eventData)
-
-fdescribe "Collaboration", ->
-  describe "joining a host session", ->
-    [hostSession, guestSession, pusher, repositoryMirrored] = []
+describe "Collaboration", ->
+  describe "when a host and a guest join a channel", ->
+    [server, hostSession, guestSession, repositoryMirrored] = []
 
     beforeEach ->
-      spyOn(keytar, 'getPassword')
       jasmine.unspy(window, 'setTimeout')
-      pusherServer = new Server()
-      hostSession = new HostSession(new Site(1))
-      spyOn(hostSession, 'snapshotRepository').andCallFake (callback) ->
-        callback({url: 'git://server/repo.git'})
-      spyOn(hostSession, 'subscribe').andCallFake (channelName) ->
-        pusherServer.createClient().subscribe(channelName)
-      guestSession = new GuestSession(hostSession.getId())
-      spyOn(guestSession, 'subscribe').andCallFake (channelName) ->
-        pusherServer.createClient().subscribe(channelName)
-      spyOn(guestSession, 'mirrorRepository').andCallFake (repoUrl, repoSnapshot, callback) ->
-        setTimeout ->
-          repositoryMirrored = true
-          callback()
+      spyOn(keytar, 'getPassword')
 
-    it "sends the document from the host session to the guest session", ->
+      server = new Server()
+      spyOn(server, 'verifyClient').andCallFake (info, verify) -> verify(true)
+
+      waitsFor "server to start", (started) ->
+        server.once 'started', started
+        server.start()
+
+      runs ->
+        hostSession = new HostSession(new Site(1))
+        guestSession = new GuestSession(hostSession.getId())
+
+        spyOn(hostSession, 'snapshotRepository').andCallFake (callback) ->
+          callback({url: 'git://server/repo.git'})
+
+        spyOn(guestSession, 'mirrorRepository').andCallFake (repoUrl, repoSnapshot, callback) ->
+          setTimeout ->
+            repositoryMirrored = true
+            callback()
+
+    afterEach ->
+      waitsFor "server to stop", (stopped) ->
+        server.once 'stopped', stopped
+        server.stop()
+
+    it "sends the document and file system from the host session to the guest session", ->
       hostSession.start()
       startedHandler = jasmine.createSpy('startedHandler')
       guestSession.on 'started', startedHandler
