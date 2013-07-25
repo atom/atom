@@ -5,6 +5,7 @@ keytar = require 'keytar'
 Server = require '../vendor/atom-collaboration-server'
 Session = require '../lib/session'
 
+ServerHost = 'localhost'
 ServerPort = 8081
 
 describe "Collaboration", ->
@@ -35,8 +36,8 @@ describe "Collaboration", ->
         server.start()
 
       runs ->
-        hostSession = new Session(site: new Site(1), port: ServerPort)
-        guestSession = new Session(id: hostSession.getId(), port: ServerPort)
+        hostSession = new Session(site: new Site(1), host: ServerHost, port: ServerPort)
+        guestSession = new Session(id: hostSession.getId(), host: ServerHost, port: ServerPort)
 
         spyOn(hostSession, 'snapshotRepository').andCallFake (callback) ->
           callback({url: 'git://server/repo.git'})
