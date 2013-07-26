@@ -22,8 +22,8 @@ class ParticipantView extends View
     @video.click =>
       @toggleClass('large')
 
-    emailMd5 = crypto.createHash('md5').update(@participant.email).digest('hex')
-    @avatar.css('background-image': "http://www.gravatar.com/avatar/#{emailMd5}?s=160")
+    #emailMd5 = crypto.createHash('md5').update(@participant.email).digest('hex')
+    #@avatar.css('background-image': "http://www.gravatar.com/avatar/#{emailMd5}?s=160")
 
     @removeButton.click @onClickRemove
     @toggleVideoButton.click @onClickToggleVideo
