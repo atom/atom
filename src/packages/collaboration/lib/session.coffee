@@ -134,6 +134,7 @@ class Session
   setParticipantStates: (participantStates) ->
     @participants = participantStates.map (state) -> new Participant(state)
 
+  # TODO: move this functionality into the Participant Object
   getClientIdToSiteIdMap: -> @doc.get('collaborationState.clientIdToSiteId')
 
   subscribe: (name) ->
