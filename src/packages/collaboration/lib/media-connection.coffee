@@ -14,7 +14,7 @@ class MediaConnection
   constructor: (@channel, {@isLeader}={}) ->
 
   start: ->
-    video = config.get('collaboration.enableVideo') ? true
+    video = config.get('collaboration.enableVideo') ? mandatory: { maxWidth: 320, maxHeight: 240 }, optional: []
     audio = config.get('collaboration.enableAudio') ? true
     navigator.webkitGetUserMedia({video, audio}, @onUserMediaAvailable, @onUserMediaUnavailable)
 
