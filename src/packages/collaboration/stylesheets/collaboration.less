@@ -58,13 +58,23 @@
     }
   }
 
+  .actions {
+    display: none;
+  }
+
   &.large {
     padding: @video-padding;
     width: @large-width + @video-padding*2 + 2px;
 
+    .video-container {
+      overflow: hidden;
+      position: relative;
+    }
+
     video {
       width: @large-width;
       border-radius: 2px 2px 0 0;
+      cursor: pointer;
     }
     .volume-container { 
       width: @large-width;
@@ -72,6 +82,49 @@
 
       .volume{
         height: 5px;
+      }
+    }
+
+    .actions {
+      position: absolute;
+      display: block;
+
+      width: @large-width;
+      height: 24px;
+      line-height: 24px;
+
+      bottom: -24px;
+
+      background: rgba(0, 0, 0, 0.6);
+
+      transition: bottom .15s;
+
+      .remove{
+        float: right;
+        margin-right: 5px;
+        .mini-icon(remove-close);
+      }
+
+      .toggle-video{
+        margin-left: 5px;
+        .mini-icon(arr-right);
+      }
+      .toggle-audio{
+        margin-left: 5px;
+        .mini-icon(arr-up);
+      }
+
+      .remove:before, .toggle-audio:before, .toggle-video:before {
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .remove:hover:before, .toggle-audio:hover:before, .toggle-video:hover:before {
+        color: #fff;
+      }
+    }
+
+    &:hover{
+      .actions{
+        bottom: 0px;
       }
     }
   }

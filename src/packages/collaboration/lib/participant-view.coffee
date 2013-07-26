@@ -5,7 +5,12 @@ module.exports =
 class ParticipantView extends View
   @content: ->
   	@div class: 'collaboration-participant overlay floating large', =>
-      @video autoplay: true, outlet: 'video'
+  	  @div class: 'video-container', =>
+  	    @video autoplay: true, outlet: 'video'
+  	    @div class: 'actions', =>
+  	      @a href: '#', class: 'remove', type: 'button', outlet: 'removeButton', title: 'Remove this person'
+  	      @a href: '#', class: 'toggle-video', type: 'button', outlet: 'toggleVideoButton', title: 'Toggle video on/off'
+  	      @a href: '#', class: 'toggle-audio', type: 'button', outlet: 'toggleAudioButton', title: 'Toggle audio on/off'
       @div class: 'volume-container', outlet: 'volumeContainer', =>
       	@div class: 'volume', outlet: 'volume'
 
@@ -16,10 +21,20 @@ class ParticipantView extends View
     @video.click =>
       @toggleClass('large')
 
-    @attr('title', email)
+    @removeButton.click @onClickRemove
+    @toggleVideoButton.click @onClickToggleVideo
+    @toggleAudioButton.click @onClickToggleAudio
 
+    # @attr('title', email)
     # emailMd5 = crypto.createHash('md5').update(email).digest('hex')
     # @avatar.attr('src', "http://www.gravatar.com/avatar/#{emailMd5}?s=32")
 
   attach: ->
     rootView.append(this)
+
+  onClickRemove: =>
+  	false
+  onClickToggleVideo: =>
+  	false
+  onClickToggleAudio: =>
+  	false
