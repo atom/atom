@@ -6,6 +6,12 @@
 @site-3-color: #db2ff4;
 @site-4-color: #f4541e;
 
+@action-icon-disabled-color: rgba(255, 255, 255, 0.5);
+@action-icon-disabled-hover-color: #fff;
+
+@action-icon-color: fade(@running-color, 80%);
+@action-icon-hover-color: @running-color;
+
 .site-colors(@site, @color) {
   .collaboration-participant{
     .site-@{site} {
@@ -35,13 +41,32 @@
 .site-colors(8, @site-4-color);
 
 .collaboration-status{
-
   .guest {
-    color: #96CBFE;
+    color: @guest-color;
   }
 
   .running {
     color: @running-color;
     &:hover { color: lighten(@running-color, 15%); }
+  }
+}
+
+.collaboration-participant {
+  &.large{
+    .actions{
+      .remove:before, .toggle-audio.disabled:before, .toggle-video.disabled:before {
+        color: @action-icon-disabled-color;
+      }
+      .remove:hover:before, .toggle-audio.disabled:hover:before, .toggle-video.disabled:hover:before {
+        color: @action-icon-disabled-hover-color;
+      }
+
+      .toggle-audio:before, .toggle-video:before {
+        color: @action-icon-color;
+      }
+      .toggle-audio:hover:before, .toggle-video:hover:before {
+        color: @action-icon-hover-color;
+      }
+    }
   }
 }

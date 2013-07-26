@@ -41,6 +41,8 @@ class ParticipantView extends View
   onClickRemove: =>
     false
   onClickToggleVideo: =>
+    @toggleVideoButton.toggleClass('disabled')
     false
   onClickToggleAudio: =>
+    @toggleAudioButton.toggleClass('disabled')
     false
