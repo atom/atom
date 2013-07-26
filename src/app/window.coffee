@@ -128,7 +128,7 @@ window.deserializeEditorWindow = ->
   window.rootView = deserialize(windowState.get('rootView'))
   unless window.rootView?
     window.rootView = new RootView()
-    windowState.set('rootView', window.rootView.serialize())
+    windowState.set('rootView', window.rootView.getState())
 
   $(rootViewParentSelector).append(rootView)
 
