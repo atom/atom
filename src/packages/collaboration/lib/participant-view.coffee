@@ -1,7 +1,6 @@
 crypto = require 'crypto'
 {View} = require 'space-pen'
 
-module.exports =
 class ParticipantView extends View
   @content: ->
     @div class: 'collaboration-participant overlay floating large', =>
@@ -15,7 +14,7 @@ class ParticipantView extends View
       @div class: 'volume-container lighter', outlet: 'volumeContainer', =>
         @div class: 'volume', outlet: 'volume'
 
-  initialize: (@session, @participant, index) ->
+  initialize: (@session, @participant) ->
     @participant.getMediaConnection().getInboundStreamPromise().done (stream) =>
       @video[0].src = URL.createObjectURL(stream)
 
@@ -29,8 +28,6 @@ class ParticipantView extends View
     @toggleVideoButton.click @onClickToggleVideo
     @toggleAudioButton.click @onClickToggleAudio
 
-    @css(bottom: "#{(142 * index + 36)}px")
-
     map = @session.getClientIdToSiteIdMap()
     @setSiteId(map.get(@participant.clientId))
     map.on 'changed', ({key}={}) =>
@@ -40,9 +37,6 @@ class ParticipantView extends View
     return unless siteId
     @volumeContainer.addClass("site-#{siteId}")
     @volume.addClass("site-#{siteId}")
-
-  attach: ->
-    rootView.append(this)
 
   onClickRemove: =>
     false
@@ -55,3 +49,24 @@ class ParticipantView extends View
     @toggleAudioButton.toggleClass('disabled')
     @toggleClass('hide-audio')
     false
+
+class ParticipantViewContainer extends View
+  @content: ->
+    @div class: 'collaboration-participant-container'
+
+  initialize: ->
+    @participantViews = {}
+
+  add: (session, participant) ->
+    view = new ParticipantView(session, participant)
+    @participantViews[participant.clientId] = view
+    @append(view)
+
+  remove: (participant) ->
+    @participantViews[participant.clientId].remove()
+
+  attach: ->
+    rootView.append(this)
+    this
+
+module.exports = {ParticipantView, ParticipantViewContainer}

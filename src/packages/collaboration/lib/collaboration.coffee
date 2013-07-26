@@ -2,41 +2,32 @@ Session = require './session'
 JoinPromptView = require './join-prompt-view'
 HostStatusBar = require './host-status-bar'
 GuestStatusBar = require './guest-status-bar'
-ParticipantView = require './participant-view'
-_ = require 'underscore'
+{ParticipantView, ParticipantViewContainer} = require './participant-view'
 
 module.exports =
   activate: ->
     hostView = null
-    participantViews = {}
+    participantViews = new ParticipantViewContainer().attach()
 
     if atom.getLoadSettings().sessionId
       session = atom.guestSession
       for participant in session.getOtherParticipants()
-        participantViews[participant.clientId] = @createParticipant(session, participant, _.size(participantViews))
+        participantViews.add(session, participant)
     else
       session = new Session(site: window.site)
       @handleEvents(session)
 
     session.on 'participant-entered', (participant) =>
-      index = _.size(participantViews)
-      view = @createParticipant(session, participant, index)
-      participantViews[participant.clientId] = view
+      participantViews.add(session, participant)
 
     session.on 'participant-exited', (participant) =>
-      view = participantViews[participant.clientId]
-      view.detach()
+      participantViews.remove(participant)
 
     rootView.eachPane (pane) ->
       setTimeout ->
         buttons = if session.isLeader() then new HostStatusBar(session) else new GuestStatusBar(session)
         buttons.insertAfter(pane.find('.git-branch'))
       , 0
-
-  createParticipant: (session, participant, index) ->
-    view = new ParticipantView(session, participant, index)
-    view.attach()
-    view
 
   handleEvents: (session) ->
     rootView.command 'collaboration:copy-session-id', ->

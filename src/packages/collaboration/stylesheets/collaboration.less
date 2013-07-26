@@ -32,6 +32,13 @@
   }
 }
 
+.collaboration-participant-container {
+  position: absolute;
+  bottom: 36px;
+  right: 10px;
+  width: 10px;
+}
+
 .collaboration-participant.hide-video {
   video {
     display: none;
@@ -58,8 +65,10 @@
 }
 
 .collaboration-participant {
-  bottom: 36px;
-  right: 10px;
+  position: relative;
+  top: auto; left: auto; bottom: auto; right: auto;
+  margin: 10px 0 0 0;
+  float: right;
 
   padding: @video-padding;
   width: @small-width + @video-padding*2 + 2px;
@@ -122,7 +131,7 @@
 
       background: rgba(0, 0, 0, 0.6);
 
-      transition: bottom .15s;
+      transition: bottom .05s;
 
       .remove{
         float: right;
