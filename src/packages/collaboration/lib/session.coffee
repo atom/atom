@@ -52,16 +52,23 @@ class Session
       @mediaConnection = @createMediaConnection()
       @mediaConnection.start()
 
+      @getClientIdToSiteIdMap().set(@clientId, @site.id)
+
       @connectDocument()
       @channel.one 'channel:subscribed', (participantStates) =>
         @setParticipantStates(participantStates)
         @listening = true
         @trigger 'started', @getParticipants()
 
-      @on 'participant-entered', =>
+      @on 'participant-entered', (participant) =>
+        # inject siteId; TODO: should be moved to somewhere less sketch
+        guestSiteId = @nextGuestSiteId++
+        clientIdToSiteId = @getClientIdToSiteIdMap()
+        clientIdToSiteId.set(participant.clientId, guestSiteId)
+
         @snapshotRepository (repoSnapshot) =>
           welcomePackage =
-            siteId: @nextGuestSiteId++
+            siteId: guestSiteId
             doc: @doc.serialize()
             repoSnapshot: repoSnapshot
           @channel.send 'welcome', welcomePackage
@@ -95,6 +102,7 @@ class Session
       collaborationState:
         guest: {description: '', candidate: '', ready: false}
         host: {description: '', candidate: ''}
+        clientIdToSiteId: {}
         repositoryState:
           url: project.getRepo().getConfigValue('remote.origin.url')
           branch: project.getRepo().getShortHead()
@@ -125,6 +133,8 @@ class Session
 
   setParticipantStates: (participantStates) ->
     @participants = participantStates.map (state) -> new Participant(state)
+
+  getClientIdToSiteIdMap: -> @doc.get('collaborationState.clientIdToSiteId')
 
   subscribe: (name) ->
     token = keytar.getPassword('github.com', 'github')
