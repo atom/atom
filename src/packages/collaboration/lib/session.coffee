@@ -13,6 +13,9 @@ class Session
   _.extend @prototype, require('event-emitter')
 
   constructor: ({@site, @id, @host, @port, @secure}) ->
+    @nextOutgoingEventId = 1
+    @lastEventIdsBySite = {}
+
     @secure ?= config.get('collaboration.secure') ? true
     @host ?= config.get('collaboration.host') ? 'fallout.in'
     @participants = []
@@ -32,7 +35,7 @@ class Session
   start: ->
     @channel = @subscribe(@id)
 
-    @channel.on 'channel:closed', => 
+    @channel.on 'channel:closed', =>
       @listening = false
       @trigger 'stopped'
 
@@ -116,11 +119,24 @@ class Session
     {@clientId} = channel
     channel
 
+  verifyEvent: (event) ->
+    {site, id} = event
+    lastId = @lastEventIdsBySite[site]
+    if lastId? and id isnt lastId + 1
+      console.error("Expected next event to be #{lastId + 1} but got #{id} for site #{site}")
+    @lastEventIdsBySite[site] = id
+
+  stampEvent: (event) ->
+    event.id = @nextOutgoingEventId++
+    event.site = window.site.id
+
   connectDocument:  ->
     @doc.on 'replicate-change', (event) =>
+      @stampEvent(event)
       @channel.send('document-changed', event)
 
     @channel.on 'document-changed', (event) =>
+      @verifyEvent(event)
       @doc.applyRemoteChange(event)
 
   snapshotRepository: (callback) ->
