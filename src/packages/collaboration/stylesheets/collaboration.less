@@ -4,7 +4,8 @@
 @video-padding: 5px;
 @large-width: 160px;
 @small-width: 42px;
-@user-color: #3facc1;
+// @user-color: #3facc1;
+@user-color: #00f;
 
 .collaboration-status{
   float: right;
@@ -33,6 +34,13 @@
   }
 }
 
+.site-1, .site-2 {
+  background-color: @user-color;
+}
+.site-1.lighter, .site-2.lighter {
+  background-color: lighten(@user-color, 30%);
+}
+
 .collaboration-participant{
   bottom: 36px;
   right: 10px;
@@ -49,12 +57,10 @@
 
     width: @small-width;
     height: 3px;
-    background: lighten(@user-color, 30%);
 
     .volume{
       height: 3px;
       width: 60%;
-      background: @user-color;
     }
   }
 
