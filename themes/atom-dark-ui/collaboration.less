@@ -1,4 +1,32 @@
-@runningColor: #99CC99;
+@guest-color: #96cbfe;
+@running-color: #99cc99;
+
+@site-1-color: #4dd157;
+@site-2-color: #3facc1;
+@site-3-color: #db2ff4;
+@site-4-color: #f4541e;
+
+.site-colors(@site, @color) {
+  .site-@{site} {
+    background-color: @color;
+    &.lighter {
+      background-color: lighten(@color, 30%);
+    }
+  }
+  .editor .selection.site-@{site} .region {
+    background-color: darken(@color, 30%);
+  }
+}
+
+.site-colors(1, @site-1-color);
+.site-colors(2, @site-2-color);
+.site-colors(3, @site-3-color);
+.site-colors(4, @site-4-color);
+
+.site-colors(5, @site-1-color);
+.site-colors(6, @site-2-color);
+.site-colors(7, @site-3-color);
+.site-colors(8, @site-4-color);
 
 .collaboration-status{
 
@@ -7,18 +35,7 @@
   }
 
   .running {
-    color: @runningColor;
-
-    &:hover {
-      color: lighten(@runningColor, 15%);
-    }
+    color: @running-color;
+    &:hover { color: lighten(@running-color, 15%); }
   }
-}
-
-.collaboration {
-  background: #1b1c1e;
-  box-shadow:
-    1px 0 0 #131516,
-    inset -1px 0 0 rgba(255, 255, 255, 0.02),
-    1px 0 3px rgba(0, 0, 0, 0.2);
 }
