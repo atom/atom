@@ -12,8 +12,7 @@ module.exports =
 
     if atom.getLoadSettings().sessionId
       session = atom.guestSession
-      for participant in session.getParticipants()
-        continue if participant.id == session.getId()
+      for participant in session.getOtherParticipants()
         @createParticipant(session, participant)
     else
       session = new Session(site: window.site)
