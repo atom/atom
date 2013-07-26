@@ -7,14 +7,20 @@
 @site-4-color: #f4541e;
 
 .site-colors(@site, @color) {
-  .site-@{site} {
-    background-color: @color;
-    &.lighter {
-      background-color: lighten(@color, 30%);
+  .collaboration-participant{
+    .site-@{site} {
+      background-color: @color;
+      &.lighter {
+        background-color: lighten(@color, 30%);
+      }
     }
   }
   .editor .selection.site-@{site} .region {
     background-color: darken(@color, 30%);
+  }
+  .editor .cursor.site-@{site} {
+    border-color: @color;
+    border-width: 2px;
   }
 }
 
