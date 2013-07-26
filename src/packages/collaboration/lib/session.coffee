@@ -32,7 +32,9 @@ class Session
   start: ->
     @channel = @subscribe(@id)
 
-    @channel.on 'channel:closed', => @trigger 'stopped'
+    @channel.on 'channel:closed', => 
+      @listening = false
+      @trigger 'stopped'
 
     @channel.on 'channel:participant-entered', (participant) =>
       @participants.push(participant)
@@ -50,6 +52,7 @@ class Session
 
       @connectDocument()
       @channel.one 'channel:subscribed', (@participants) =>
+        @listening = true
         @trigger 'started', @getParticipants()
 
       @on 'participant-entered', =>
@@ -59,9 +62,6 @@ class Session
             doc: @doc.serialize()
             repoSnapshot: repoSnapshot
           @channel.send 'welcome', welcomePackage
-
-      @listening = true
-      @trigger 'listening'
 
     else
       @channel.one 'channel:subscribed', (@participants) =>

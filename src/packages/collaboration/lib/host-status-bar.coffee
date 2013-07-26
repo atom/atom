@@ -12,15 +12,16 @@ class HostStatusBar extends View
       if @session.isListening()
         @session.stop()
       else
+        @status.addClass('running') # for immediate feedback to user
         @session.start()
 
-    @session.on 'listening started stopped participant-entered participant-exited', @update
+    @session.on 'started stopped participant-entered participant-exited', @update
     @update()
 
   update: =>
     if @session.isListening()
       @status.addClass('running')
-      @connections.show().text(@session.participants.length)
+      @connections.show().text(@session.getOtherParticipants().length)
     else
       @status.removeClass('running')
       @connections.hide()
