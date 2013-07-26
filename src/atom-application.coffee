@@ -255,6 +255,8 @@ class AtomApplication
       if sessionId
         bootstrapScript = 'collaboration/lib/bootstrap'
         new AtomWindow({bootstrapScript, @resourcePath, sessionId})
+    else
+      console.log "Opening unknown url #{urlToOpen}"
 
   openConfig: ->
     if @configWindow
