@@ -14,7 +14,7 @@ class ParticipantView extends View
       @div class: 'volume-container lighter', outlet: 'volumeContainer', =>
         @div class: 'volume', outlet: 'volume'
 
-  initialize: (@session, {id, email, clientId, siteId}) ->
+  initialize: (@session, @participant) ->
     @session.waitForStream (stream) =>
       @video[0].src = URL.createObjectURL(stream)
 
@@ -26,9 +26,9 @@ class ParticipantView extends View
     @toggleAudioButton.click @onClickToggleAudio
 
     map = @session.getClientIdToSiteIdMap()
-    @setSiteId(map.get(clientId))
+    @setSiteId(map.get(@participant.clientId))
     map.on 'changed', ({key}={}) =>
-      @setSiteId(map.get(clientId)) if key == clientId
+      @setSiteId(map.get(@participant.clientId)) if key == @participant.clientId
 
   setSiteId: (siteId) ->
     return unless siteId
