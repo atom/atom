@@ -14,6 +14,7 @@ class HostStatusBar extends View
       else
         @status.addClass('running') # for immediate feedback to user
         @session.start()
+        @session.copySessionId()
 
     @session.on 'started stopped participant-entered participant-exited', @update
     @update()

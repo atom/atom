@@ -3,7 +3,6 @@ JoinPromptView = require './join-prompt-view'
 HostStatusBar = require './host-status-bar'
 GuestStatusBar = require './guest-status-bar'
 ParticipantView = require './participant-view'
-{getSessionUrl} = require './session-utils'
 
 module.exports =
   activate: ->
@@ -38,14 +37,12 @@ module.exports =
     view
 
   handleEvents: (session) ->
-    copySessionId = ->
-      sessionId = session.getId()
-      pasteboard.write(getSessionUrl(sessionId)) if sessionId
+    rootView.command 'collaboration:copy-session-id', ->
+      session.copySessionId()
 
-    rootView.command 'collaboration:copy-session-id', copySessionId
     rootView.command 'collaboration:start-session', ->
       session.start()
-      copySessionId()
+      session.copySessionId()
 
     rootView.command 'collaboration:join-session', ->
       new JoinPromptView (id) ->

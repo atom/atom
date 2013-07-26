@@ -8,6 +8,7 @@ MediaConnection = require './media-connection'
 Project = require 'project'
 WsChannel = require './ws-channel'
 Participant = require './participant'
+{getSessionUrl} = require './session-utils'
 
 module.exports =
 class Session
@@ -81,6 +82,9 @@ class Session
 
   createMediaConnection: ->
     new MediaConnection(@channel, isLeader: @isLeader())
+
+  copySessionId: ->
+    pasteboard.write(getSessionUrl(@id)) if @id
 
   waitForStream: (callback) ->
     @mediaConnection.waitForStream callback
