@@ -251,6 +251,7 @@ class AtomApplication
     parsedUrl = url.parse(urlToOpen)
     if parsedUrl.host is 'session'
       sessionId = parsedUrl.path.split('/')[1]
+      console.log "Joining session #{sessionId}"
       if sessionId
         bootstrapScript = 'collaboration/lib/bootstrap'
         new AtomWindow({bootstrapScript, @resourcePath, sessionId})
