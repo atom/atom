@@ -13,6 +13,9 @@ class ParticipantView extends View
   	@session.waitForStream (stream) =>
       @video[0].src = URL.createObjectURL(stream)
 
+    @video.click =>
+      @toggleClass('large')
+
     # emailMd5 = crypto.createHash('md5').update(email).digest('hex')
     # @avatar.attr('src', "http://www.gravatar.com/avatar/#{emailMd5}?s=32")
 

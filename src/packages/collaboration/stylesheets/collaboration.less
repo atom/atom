@@ -3,6 +3,7 @@
 
 @video-padding: 5px;
 @large-width: 160px;
+@small-width: 42px;
 @user-color: #3facc1;
 
 .collaboration-status{
@@ -36,6 +37,27 @@
   bottom: 36px;
   right: 10px;
 
+  padding: @video-padding;
+  width: @small-width + @video-padding*2 + 2px;
+
+  video {
+    width: @small-width;
+    display: block;
+  }
+  .volume-container { 
+    position: relative;
+
+    width: @small-width;
+    height: 3px;
+    background: lighten(@user-color, 30%);
+
+    .volume{
+      height: 3px;
+      width: 60%;
+      background: @user-color;
+    }
+  }
+
   &.large {
     padding: @video-padding;
     width: @large-width + @video-padding*2 + 2px;
@@ -43,19 +65,13 @@
     video {
       width: @large-width;
       border-radius: 2px 2px 0 0;
-      display: block;
     }
     .volume-container { 
-      position: relative;
       width: @large-width;
-      border-radius: 0;
       height: 5px;
-      background: lighten(@user-color, 15%);
 
       .volume{
         height: 5px;
-        width: 60%;
-        background: @user-color;
       }
     }
   }
