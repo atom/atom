@@ -126,3 +126,7 @@ describe "Collaboration", ->
         expect(hostParticipantExitedHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
         expect(leaderSession.getParticipants()).toEqual [login: 'hubot', clientId: leaderSession.clientId]
         expect(leaderSession.getOtherParticipants()).toEqual []
+
+        siteIdMap = leaderSession.getClientIdToSiteIdMap()
+        expect(siteIdMap.get(leaderSession.clientId)).toEqual 1
+        expect(siteIdMap.get(guestSession.clientId)).toEqual 2
