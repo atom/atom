@@ -1,73 +1,67 @@
+$ = require 'jquery'
 _ = require 'underscore'
-
-sessionUtils = require './session-utils'
 
 module.exports =
 class MediaConnection
-  _.extend @prototype, require('event-emitter')
+  _.extend(@prototype, require 'event-emitter')
 
-  channel: null
-  connection: null
-  stream: null
-  isLeader: null
+  constructor: (@remoteParticipant) ->
+    @inboundStreamPromise = $.Deferred()
 
-  constructor: (@channel, {@isLeader}={}) ->
+    @remoteParticipant.on 'add-ice-candidate', (candidate) =>
+      @getOutboundStreamPromise().done =>
+        @getPeerConnection().addIceCandidate(new RTCIceCandidate(candidate))
 
-  start: ->
+    @on 'connected', => @connected = true
+
+  getInboundStreamPromise: -> @inboundStreamPromise
+
+  getOutboundStreamPromise: ->
+    @outboundStreamPromise ?= @createOutboundStreamPromise()
+
+  createOutboundStreamPromise: ->
+    deferred = $.Deferred()
     video = config.get('collaboration.enableVideo') ? mandatory: { maxWidth: 320, maxHeight: 240 }, optional: []
     audio = config.get('collaboration.enableAudio') ? true
-    navigator.webkitGetUserMedia({video, audio}, @onUserMediaAvailable, @onUserMediaUnavailable)
+    success = (stream) =>
+      @getPeerConnection().addStream(stream)
+      deferred.resolve(stream)
+    error = (args...) ->
+      deferred.reject(args...)
+    navigator.webkitGetUserMedia({video, audio}, success, error)
+    deferred.promise()
 
-  waitForStream: (callback) ->
-    if @stream
-      callback(@stream)
-    else
-      @on 'stream-ready', callback
+  sendOffer: ->
+    @getOutboundStreamPromise().done =>
+      @getPeerConnection().createOffer (localDescription) =>
+        @getPeerConnection().setLocalDescription(localDescription)
+        @remoteParticipant.send('offer-media-connection', localDescription)
+        @remoteParticipant.one 'answer-media-connection', (remoteDescription) =>
+          @getPeerConnection().setRemoteDescription(new RTCSessionDescription(remoteDescription))
+          @trigger 'connected'
 
-  onUserMediaUnavailable: (args...) =>
-    console.error "User's webcam is unavailable.", args...
+  waitForOffer: ->
+    @remoteParticipant.one 'offer-media-connection', (remoteDescription) =>
+      @getOutboundStreamPromise().done =>
+        @getPeerConnection().setRemoteDescription(new RTCSessionDescription(remoteDescription))
+        @getPeerConnection().createAnswer (localDescription) =>
+          @getPeerConnection().setLocalDescription(localDescription)
+          @remoteParticipant.send('answer-media-connection', localDescription)
+          @trigger 'connected'
 
-  onUserMediaAvailable: (stream) =>
-    @connection = new webkitRTCPeerConnection(sessionUtils.getIceServers())
-    @connection.addStream(stream)
-    @channel.on 'media-handshake', (event) =>
-      try
-        @onSignal(event)
-      catch e
-        console.error event
-        throw e
+  isConnected: -> @connected
 
-    @connection.onicecandidate = (event) =>
-      return unless event.candidate?
-      @channel.send 'media-handshake', {candidate: event.candidate}
+  getPeerConnection: ->
+    @peerConnection ?= @createPeerConnection()
 
-    @connection.onaddstream = (event) =>
-      @stream = event.stream
-      @trigger 'stream-ready', @stream
+  createPeerConnection: ->
+    stunServer = {url: "stun:54.218.196.152:3478"}
+    turnServer = {url: "turn:ninefingers@54.218.196.152:3478", credential:"youhavetoberealistic"}
+    iceServers = [stunServer, turnServer]
 
-    unless @isLeader
-      @channel.send 'media-handshake', {ready: true}
-
-  onSignal: (event) =>
-    if value = event.ready
-      success = (description) =>
-        @connection.setLocalDescription(description)
-        @channel.send 'media-handshake', {description}
-      @connection.createOffer success, console.error
-
-    else if value = event.description
-      remoteDescription = value
-      sessionDescription = new RTCSessionDescription(remoteDescription)
-      @connection.setRemoteDescription(sessionDescription)
-
-      if not @isLeader
-        success = (localDescription) =>
-          @connection.setLocalDescription(localDescription)
-          @channel.send 'media-handshake', {description: localDescription}
-        @connection.createAnswer success, console.error
-
-    else if value = event.candidate
-      remoteCandidate = new RTCIceCandidate value
-      @connection.addIceCandidate(remoteCandidate)
-    else
-      throw new Error("Unknown remote key '#{event}'")
+    peerConnection = new webkitRTCPeerConnection({iceServers})
+    peerConnection.onaddstream = ({stream}) =>
+      @inboundStreamPromise.resolve(stream)
+    peerConnection.onicecandidate = ({candidate}) =>
+      @remoteParticipant.send('add-ice-candidate', candidate) if candidate?
+    peerConnection

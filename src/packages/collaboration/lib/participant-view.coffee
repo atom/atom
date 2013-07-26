@@ -15,7 +15,7 @@ class ParticipantView extends View
         @div class: 'volume', outlet: 'volume'
 
   initialize: (@session, @participant) ->
-    @session.waitForStream (stream) =>
+    @participant.getMediaConnection().getInboundStreamPromise().done (stream) =>
       @video[0].src = URL.createObjectURL(stream)
 
     @video.click =>

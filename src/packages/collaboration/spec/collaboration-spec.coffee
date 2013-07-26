@@ -8,9 +8,11 @@ Session = require '../lib/session'
 ServerHost = 'localhost'
 ServerPort = 8081
 
-describe "Collaboration", ->
-  fdescribe "when a host and a guest join a channel", ->
-    [server, leaderSession, guestSession, leaderStartedHandler, guestStartedHandler, guestStoppedHandler, token, userDataByToken] = []
+fdescribe "Collaboration", ->
+  describe "when a host and a guest join a channel", ->
+    [server, token, userDataByToken] = []
+    [leaderSession, leaderStartedHandler, leaderParticipantEnteredHandler, leaderParticipantExitedHandler] = []
+    [guestSession, guestStartedHandler, guestStoppedHandler] = []
 
     beforeEach ->
       jasmine.unspy(window, 'setTimeout')
@@ -37,10 +39,13 @@ describe "Collaboration", ->
 
       runs ->
         leaderSession = new Session(site: new Site(1), host: ServerHost, port: ServerPort, secure: false)
-        guestSession = new Session(id: leaderSession.getId(), host: ServerHost, port: ServerPort, secure: false)
         leaderSession.one 'started', leaderStartedHandler = jasmine.createSpy("leaderStartedHandler")
+        leaderSession.on 'participant-entered', leaderParticipantEnteredHandler = jasmine.createSpy("leaderParticipantEnteredHandler")
+        leaderSession.on 'participant-exited', leaderParticipantExitedHandler = jasmine.createSpy("leaderParticipantExitedHandler")
+
+        guestSession = new Session(id: leaderSession.getId(), host: ServerHost, port: ServerPort, secure: false)
         guestSession.one 'started', guestStartedHandler = jasmine.createSpy("guestStartedHandler")
-        guestSession.one 'stopped', guestStoppedHandler = jasmine.createSpy("guestS")
+        guestSession.one 'stopped', guestStoppedHandler = jasmine.createSpy("guestStoppedHandler")
 
         spyOn(leaderSession, 'snapshotRepository').andCallFake (callback) -> callback({url: 'git://server/repo.git'})
 
@@ -78,9 +83,6 @@ describe "Collaboration", ->
       runs -> expect(guestSession.repositoryMirrored).toBe true
 
     it "reports on the participants of the channel", ->
-      leaderSession.on 'participant-entered', hostParticipantEnteredHandler = jasmine.createSpy("hostParticipantEnteredHandler")
-      leaderSession.on 'participant-exited', hostParticipantExitedHandler = jasmine.createSpy("hostParticipantExitedHandler")
-
       leaderSession.start()
       waitsFor "leader session to start", -> leaderStartedHandler.callCount > 0
 
@@ -106,10 +108,10 @@ describe "Collaboration", ->
           { login: 'hubot', clientId: leaderSession.clientId }
         ]
 
-      waitsFor "host to see guest enter", -> hostParticipantEnteredHandler.callCount > 0
+      waitsFor "leader to see guest enter", -> leaderParticipantEnteredHandler.callCount > 0
 
       runs ->
-        expect(hostParticipantEnteredHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
+        expect(leaderParticipantEnteredHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
         expect(leaderSession.getParticipants()).toEqual [
           { login: 'hubot', clientId: leaderSession.clientId }
           { login: 'octocat', clientId: guestSession.clientId }
@@ -120,13 +122,36 @@ describe "Collaboration", ->
         guestSession.stop()
 
       waitsFor "guest session to stop", -> guestStoppedHandler.callCount > 0
-      waitsFor "host to see guest exit", -> hostParticipantExitedHandler.callCount > 0
+      waitsFor "host to see guest exit", -> leaderParticipantExitedHandler.callCount > 0
 
       runs ->
-        expect(hostParticipantExitedHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
+        expect(leaderParticipantExitedHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
         expect(leaderSession.getParticipants()).toEqual [login: 'hubot', clientId: leaderSession.clientId]
         expect(leaderSession.getOtherParticipants()).toEqual []
 
         siteIdMap = leaderSession.getClientIdToSiteIdMap()
         expect(siteIdMap.get(leaderSession.clientId)).toEqual 1
         expect(siteIdMap.get(guestSession.clientId)).toEqual 2
+
+    it "performs a webrtc handshake between all participants", ->
+      leaderSession.start()
+      waitsFor "leader session to start", -> leaderStartedHandler.callCount > 0
+
+      runs ->
+        token = 'octocat-token'
+        guestSession.start()
+
+      waitsFor "leader to see guest enter", -> leaderParticipantEnteredHandler.callCount > 0
+
+      [leaderGuestMediaConnection, guestLeaderMediaConnection] = []
+      runs ->
+        leaderGuestMediaConnection = leaderSession.getOtherParticipants()[0].mediaConnection
+        guestLeaderMediaConnection = guestSession.getOtherParticipants()[0].mediaConnection
+
+      waitsFor "media connection to be established between leader and guest", ->
+        leaderGuestMediaConnection.isConnected() and guestLeaderMediaConnection.isConnected()
+
+      # This will fail when there is no internet connection
+      waitsFor "media stream to be established on leader and guest", (stream1Established, stream2Established) ->
+        leaderGuestMediaConnection.getInboundStreamPromise().done(stream1Established)
+        guestLeaderMediaConnection.getInboundStreamPromise().done(stream2Established)

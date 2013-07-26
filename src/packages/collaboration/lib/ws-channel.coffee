@@ -25,8 +25,11 @@ class WsChannel
   stop: ->
     @socket.close()
 
-  send: (data...) ->
+  broadcast: (data...) ->
     @rawSend('broadcast', data)
+
+  send: (data...) ->
+    @rawSend('send', [@clientId, data...])
 
   rawSend: (args...) ->
     @socket.send(JSON.stringify(args))

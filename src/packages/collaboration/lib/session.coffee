@@ -4,7 +4,6 @@ keytar = require 'keytar'
 patrick = require 'patrick'
 {Site} = require 'telepath'
 
-MediaConnection = require './media-connection'
 Project = require 'project'
 WsChannel = require './ws-channel'
 Participant = require './participant'
@@ -47,10 +46,11 @@ class Session
     @channel.on 'channel:participant-exited', (participantState) =>
       @trigger 'participant-exited', @removeParticipant(participantState)
 
+    @channel.on 'channel:direct-message', (senderId, data...) =>
+      @participantForClientId(senderId)?.trigger(data...)
+
     if @isLeader()
       @doc = @createDocument()
-      @mediaConnection = @createMediaConnection()
-      @mediaConnection.start()
 
       @getClientIdToSiteIdMap().set(@clientId, @site.id)
 
@@ -71,7 +71,7 @@ class Session
             siteId: guestSiteId
             doc: @doc.serialize()
             repoSnapshot: repoSnapshot
-          @channel.send 'welcome', welcomePackage
+          @channel.broadcast 'welcome', welcomePackage
 
     else
       @channel.one 'channel:subscribed', (participantStates) =>
@@ -80,21 +80,14 @@ class Session
           @site = new Site(siteId)
           @doc = @site.deserializeDocument(doc)
           @connectDocument()
-          @mediaConnection = @createMediaConnection()
-          @mediaConnection.start()
 
           repoUrl = @doc.get('collaborationState.repositoryState.url')
           @mirrorRepository repoUrl, repoSnapshot, =>
+            @sendMediaConnectionOffers()
             @trigger 'started', @getParticipants()
-
-  createMediaConnection: ->
-    new MediaConnection(@channel, isLeader: @isLeader())
 
   copySessionId: ->
     pasteboard.write(getSessionUrl(@id)) if @id
-
-  waitForStream: (callback) ->
-    @mediaConnection.waitForStream callback
 
   createDocument: ->
     @site.createDocument
@@ -115,14 +108,18 @@ class Session
 
   getId: -> @id
 
+  participantForClientId: (targetClientId) ->
+    _.find @getParticipants(), ({clientId}) -> clientId is targetClientId
+
   getParticipants: -> _.clone(@participants)
 
   getOtherParticipants: ->
     @getParticipants().filter ({clientId}) => clientId isnt @clientId
 
   addParticipant: (participantState) ->
-    participant = new Participant(participantState)
+    participant = new Participant(@channel, participantState)
     @participants.push(participant)
+    participant.getMediaConnection().waitForOffer()
     participant
 
   removeParticipant: (participantState) ->
@@ -132,7 +129,11 @@ class Session
     participant
 
   setParticipantStates: (participantStates) ->
-    @participants = participantStates.map (state) -> new Participant(state)
+    @participants = participantStates.map (state) => new Participant(@channel, state)
+
+  sendMediaConnectionOffers: ->
+    for participant in @getOtherParticipants()
+      participant.getMediaConnection().sendOffer()
 
   # TODO: move this functionality into the Participant Object
   getClientIdToSiteIdMap: -> @doc.get('collaborationState.clientIdToSiteId')
@@ -157,7 +158,7 @@ class Session
   connectDocument:  ->
     @doc.on 'replicate-change', (event) =>
       @stampEvent(event)
-      @channel.send('document-changed', event)
+      @channel.broadcast('document-changed', event)
 
     @channel.on 'document-changed', (event) =>
       @verifyEvent(event)

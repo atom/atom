@@ -1,11 +1,20 @@
 _ = require 'underscore'
 
+MediaConnection = require './media-connection'
+
 module.exports =
 class Participant
-  constructor: (@state) ->
+  _.extend(@prototype, require 'event-emitter')
+
+  constructor: (@channel, @state) ->
     {@clientId} = @state
+    @mediaConnection = new MediaConnection(this)
 
   getState: -> @state
+
+  send: (data...) -> @channel.send(@clientId, data...)
+
+  getMediaConnection: -> @mediaConnection
 
   isEqual: (other) ->
     if other instanceof @constructor
