@@ -91,7 +91,7 @@ class Session
 
   createDocument: ->
     @site.createDocument
-      windowState: atom.windowState
+      windowState: atom.getWindowState()
       collaborationState:
         guest: {description: '', candidate: '', ready: false}
         host: {description: '', candidate: ''}
