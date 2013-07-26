@@ -3,6 +3,7 @@ JoinPromptView = require './join-prompt-view'
 HostStatusBar = require './host-status-bar'
 GuestStatusBar = require './guest-status-bar'
 ParticipantView = require './participant-view'
+_ = require 'underscore'
 
 module.exports =
   activate: ->
@@ -12,13 +13,14 @@ module.exports =
     if atom.getLoadSettings().sessionId
       session = atom.guestSession
       for participant in session.getOtherParticipants()
-        @createParticipant(session, participant)
+        participantViews[participant.clientId] = @createParticipant(session, participant, _.size(participantViews))
     else
       session = new Session(site: window.site)
       @handleEvents(session)
 
     session.on 'participant-entered', (participant) =>
-      view = @createParticipant(session, participant)
+      index = _.size(participantViews)
+      view = @createParticipant(session, participant, index)
       participantViews[participant.clientId] = view
 
     session.on 'participant-exited', (participant) =>
@@ -31,8 +33,8 @@ module.exports =
         buttons.insertAfter(pane.find('.git-branch'))
       , 0
 
-  createParticipant: (session, participant) ->
-    view = new ParticipantView(session, participant)
+  createParticipant: (session, participant, index) ->
+    view = new ParticipantView(session, participant, index)
     view.attach()
     view
 

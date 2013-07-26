@@ -15,7 +15,7 @@ class ParticipantView extends View
       @div class: 'volume-container lighter', outlet: 'volumeContainer', =>
         @div class: 'volume', outlet: 'volume'
 
-  initialize: (@session, @participant) ->
+  initialize: (@session, @participant, index) ->
     @participant.getMediaConnection().getInboundStreamPromise().done (stream) =>
       @video[0].src = URL.createObjectURL(stream)
 
@@ -28,6 +28,8 @@ class ParticipantView extends View
     @removeButton.click @onClickRemove
     @toggleVideoButton.click @onClickToggleVideo
     @toggleAudioButton.click @onClickToggleAudio
+
+    @css(bottom: "#{(142 * index + 36)}px")
 
     map = @session.getClientIdToSiteIdMap()
     @setSiteId(map.get(@participant.clientId))
