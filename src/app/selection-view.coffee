@@ -18,6 +18,9 @@ class SelectionView extends View
       @needsRemoval = true
       @editor.requestDisplayUpdate()
 
+    if @selection.marker.isRemote()
+      @addClass("site-#{@selection.marker.getOriginSiteId()}") 
+
   updateDisplay: ->
     @clearRegions()
     range = @getScreenRange()
