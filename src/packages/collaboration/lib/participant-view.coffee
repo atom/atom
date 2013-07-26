@@ -7,6 +7,7 @@ class ParticipantView extends View
     @div class: 'collaboration-participant overlay floating large', =>
       @div class: 'video-container', =>
         @video autoplay: true, outlet: 'video'
+        @div class: 'avatar', outlet: 'avatar'
         @div class: 'actions', =>
           @a href: '#', class: 'remove', type: 'button', outlet: 'removeButton', title: 'Remove this person'
           @a href: '#', class: 'toggle-video', type: 'button', outlet: 'toggleVideoButton', title: 'Toggle video on/off'
@@ -20,6 +21,9 @@ class ParticipantView extends View
 
     @video.click =>
       @toggleClass('large')
+
+    emailMd5 = crypto.createHash('md5').update(@participant.email).digest('hex')
+    @avatar.css('background-image': "http://www.gravatar.com/avatar/#{emailMd5}?s=160")
 
     @removeButton.click @onClickRemove
     @toggleVideoButton.click @onClickToggleVideo
@@ -42,7 +46,10 @@ class ParticipantView extends View
     false
   onClickToggleVideo: =>
     @toggleVideoButton.toggleClass('disabled')
+    @toggleClass('hide-video')
     false
+
   onClickToggleAudio: =>
     @toggleAudioButton.toggleClass('disabled')
+    @toggleClass('hide-audio')
     false

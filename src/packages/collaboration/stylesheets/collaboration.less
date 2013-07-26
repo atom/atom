@@ -32,7 +32,32 @@
   }
 }
 
-.collaboration-participant{
+.collaboration-participant.hide-video {
+  video {
+    display: none;
+  }
+  .avatar {
+    display: block;
+    width: @small-width;
+    height: @small-width;
+    background-size: cover;
+  }
+
+  &.large {
+    .avatar {
+      width: @large-width;
+      height: @large-width;
+    }
+  }
+}
+
+.collaboration-participant.hide-audio {
+  .volume-container {
+    display: none;
+  }
+}
+
+.collaboration-participant {
   bottom: 36px;
   right: 10px;
 
@@ -42,6 +67,9 @@
   video {
     width: @small-width;
     display: block;
+  }
+  .avatar {
+    display: none;
   }
   .volume-container { 
     position: relative;
