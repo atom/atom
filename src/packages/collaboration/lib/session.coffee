@@ -80,12 +80,7 @@ class Session
             @trigger 'started', @getParticipants()
 
   createMediaConnection: ->
-    guest = @doc.get('collaborationState.guest')
-    host = @doc.get('collaborationState.host')
-    if @isLeader()
-      new MediaConnection(guest, host, isLeader: true)
-    else
-      new MediaConnection(host, guest)
+    new MediaConnection(@channel, isLeader: @isLeader())
 
   waitForStream: (callback) ->
     @mediaConnection.waitForStream callback
