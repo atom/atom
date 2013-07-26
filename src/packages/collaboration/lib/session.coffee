@@ -12,8 +12,9 @@ module.exports =
 class Session
   _.extend @prototype, require('event-emitter')
 
-  constructor: ({@site, @id, @host, @port}) ->
-    @host ?= 'localhost'
+  constructor: ({@site, @id, @host, @port, @secure}) ->
+    @secure ?= config.get('collaboration.secure') ? true
+    @host ?= config.get('collaboration.host') ? 'fallout.in'
     @participants = []
     @listening = false
 
@@ -111,7 +112,7 @@ class Session
 
   subscribe: (name) ->
     token = keytar.getPassword('github.com', 'github')
-    channel = new WsChannel({name, @host, @port, token})
+    channel = new WsChannel({name, @host, @port, @secure, token})
     {@clientId} = channel
     channel
 

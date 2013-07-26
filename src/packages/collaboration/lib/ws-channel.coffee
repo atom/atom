@@ -5,11 +5,13 @@ module.exports =
 class WsChannel
   _.extend @prototype, require('event-emitter')
 
-  constructor: ({@name, host, port, token}) ->
+  constructor: ({@name, host, port, token, secure}) ->
     host ?= 'localhost'
     port ?= 8080
     @clientId = guid.create().toString()
-    @socket = new WebSocket("ws://#{host}:#{port}?token=#{token}")
+    protocol = 'ws'
+    protocol += 's' if secure
+    @socket = new WebSocket("#{protocol}://#{host}:#{port}/?token=#{token}")
     @socket.onopen = =>
       @rawSend 'subscribe', @name, @clientId
 

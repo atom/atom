@@ -22,7 +22,7 @@ describe "Collaboration", ->
         'octocat-token':
           login: 'octocat'
 
-      server = new Server(port: ServerPort)
+      server = new Server(port: ServerPort, secure: false)
       spyOn(server, 'log')
       spyOn(server, 'error')
       spyOn(server, 'authenticate').andCallFake (token, callback) ->
@@ -36,8 +36,8 @@ describe "Collaboration", ->
         server.start()
 
       runs ->
-        hostSession = new Session(site: new Site(1), host: ServerHost, port: ServerPort)
-        guestSession = new Session(id: hostSession.getId(), host: ServerHost, port: ServerPort)
+        hostSession = new Session(site: new Site(1), host: ServerHost, port: ServerPort, secure: false)
+        guestSession = new Session(id: hostSession.getId(), host: ServerHost, port: ServerPort, secure: false)
 
         spyOn(hostSession, 'snapshotRepository').andCallFake (callback) ->
           callback({url: 'git://server/repo.git'})

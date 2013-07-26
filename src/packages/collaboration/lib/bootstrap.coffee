@@ -7,6 +7,7 @@ Session = require './session'
 
 window.setDimensions(width: 350, height: 125)
 window.setUpEnvironment('editor')
+config.load() # FIXME this should happen earlier during environment setup
 {sessionId} = atom.getLoadSettings()
 
 loadingView = $$ ->
