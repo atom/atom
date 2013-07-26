@@ -21,8 +21,8 @@ class MediaConnection
 
   createOutboundStreamPromise: ->
     deferred = $.Deferred()
-    video = config.get('collaboration.enableVideo') ? mandatory: { maxWidth: 320, maxHeight: 240 }, optional: []
-    audio = config.get('collaboration.enableAudio') ? true
+    video = config.get('collaboration.video') ? mandatory: { maxWidth: 320, maxHeight: 240 }, optional: []
+    audio = config.get('collaboration.audio') ? true
     success = (stream) =>
       @getPeerConnection().addStream(stream)
       deferred.resolve(stream)
