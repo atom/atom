@@ -10,7 +10,7 @@ ServerPort = 8081
 
 describe "Collaboration", ->
   describe "when a host and a guest join a channel", ->
-    [server, hostSession, guestSession, repositoryMirrored, token, userDataByToken] = []
+    [server, leaderSession, guestSession, leaderStartedHandler, guestStartedHandler, guestStoppedHandler, token, userDataByToken] = []
 
     beforeEach ->
       jasmine.unspy(window, 'setTimeout')
@@ -36,15 +36,17 @@ describe "Collaboration", ->
         server.start()
 
       runs ->
-        hostSession = new Session(site: new Site(1), host: ServerHost, port: ServerPort, secure: false)
-        guestSession = new Session(id: hostSession.getId(), host: ServerHost, port: ServerPort, secure: false)
+        leaderSession = new Session(site: new Site(1), host: ServerHost, port: ServerPort, secure: false)
+        guestSession = new Session(id: leaderSession.getId(), host: ServerHost, port: ServerPort, secure: false)
+        leaderSession.one 'started', leaderStartedHandler = jasmine.createSpy("leaderStartedHandler")
+        guestSession.one 'started', guestStartedHandler = jasmine.createSpy("guestStartedHandler")
+        guestSession.one 'stopped', guestStoppedHandler = jasmine.createSpy("guestS")
 
-        spyOn(hostSession, 'snapshotRepository').andCallFake (callback) ->
-          callback({url: 'git://server/repo.git'})
+        spyOn(leaderSession, 'snapshotRepository').andCallFake (callback) -> callback({url: 'git://server/repo.git'})
 
-        spyOn(guestSession, 'mirrorRepository').andCallFake (repoUrl, repoSnapshot, callback) ->
-          setTimeout ->
-            repositoryMirrored = true
+        spyOn(Session.prototype, 'mirrorRepository').andCallFake (repoUrl, repoSnapshot, callback) ->
+          setTimeout =>
+            @repositoryMirrored = true
             callback()
 
     afterEach ->
@@ -53,46 +55,39 @@ describe "Collaboration", ->
         server.stop()
 
     it "sends the document and file system from the host session to the guest session", ->
-      hostSession.start()
-      startedHandler = jasmine.createSpy('startedHandler')
-      guestSession.on 'started', startedHandler
+      leaderSession.start()
 
-      waitsFor "host session to start", (started) -> hostSession.one 'started', started
+      waitsFor "leader session to start", -> leaderStartedHandler.callCount > 0
 
-      runs ->
-        guestSession.start()
+      runs -> guestSession.start()
 
       waitsFor "guest session to receive document", -> guestSession.getDocument()?
 
       runs ->
         expect(guestSession.mirrorRepository.argsForCall[0][1]).toEqual {url: 'git://server/repo.git'}
         expect(guestSession.getSite().id).toBe 2
-        hostSession.getDocument().set('this should', 'replicate')
+        leaderSession.getDocument().set('this should', 'replicate')
         guestSession.getDocument().set('this also', 'replicates')
 
       waitsFor "documents to replicate", ->
         guestSession.getDocument().get('this should') is 'replicate' and
-          hostSession.getDocument().get('this also') is 'replicates'
+          leaderSession.getDocument().get('this also') is 'replicates'
 
-      waitsFor "guest session to start", -> startedHandler.callCount is 1
+      waitsFor "guest session to start", -> guestStartedHandler.callCount is 1
 
-      runs ->
-        expect(repositoryMirrored).toBe true
+      runs -> expect(guestSession.repositoryMirrored).toBe true
 
     it "reports on the participants of the channel", ->
-      hostSession.one 'started', hostStartedHandler = jasmine.createSpy("hostStartedHandler")
-      guestSession.one 'started', guestStartedHandler = jasmine.createSpy("guestStartedHandler")
-      guestSession.one 'stopped', guestStoppedHandler = jasmine.createSpy("guestS")
-      hostSession.on 'participant-entered', hostParticipantEnteredHandler = jasmine.createSpy("hostParticipantEnteredHandler")
-      hostSession.on 'participant-exited', hostParticipantExitedHandler = jasmine.createSpy("hostParticipantExitedHandler")
+      leaderSession.on 'participant-entered', hostParticipantEnteredHandler = jasmine.createSpy("hostParticipantEnteredHandler")
+      leaderSession.on 'participant-exited', hostParticipantExitedHandler = jasmine.createSpy("hostParticipantExitedHandler")
 
-      hostSession.start()
-      waitsFor "host session to start", -> hostStartedHandler.callCount > 0
+      leaderSession.start()
+      waitsFor "leader session to start", -> leaderStartedHandler.callCount > 0
 
       runs ->
-        expect(hostStartedHandler).toHaveBeenCalledWith [login: 'hubot', clientId: hostSession.clientId]
-        expect(hostSession.getParticipants()).toEqual [login: 'hubot', clientId: hostSession.clientId]
-        expect(hostSession.getOtherParticipants()).toEqual []
+        expect(leaderStartedHandler).toHaveBeenCalledWith [login: 'hubot', clientId: leaderSession.clientId]
+        expect(leaderSession.getParticipants()).toEqual [login: 'hubot', clientId: leaderSession.clientId]
+        expect(leaderSession.getOtherParticipants()).toEqual []
         token = 'octocat-token'
         guestSession.start()
 
@@ -100,26 +95,26 @@ describe "Collaboration", ->
 
       runs ->
         expect(guestStartedHandler).toHaveBeenCalledWith [
-          { login: 'hubot', clientId: hostSession.clientId }
+          { login: 'hubot', clientId: leaderSession.clientId }
           { login: 'octocat', clientId: guestSession.clientId }
         ]
         expect(guestSession.getParticipants()).toEqual [
-          { login: 'hubot', clientId: hostSession.clientId }
+          { login: 'hubot', clientId: leaderSession.clientId }
           { login: 'octocat', clientId: guestSession.clientId }
         ]
         expect(guestSession.getOtherParticipants()).toEqual [
-          { login: 'hubot', clientId: hostSession.clientId }
+          { login: 'hubot', clientId: leaderSession.clientId }
         ]
 
       waitsFor "host to see guest enter", -> hostParticipantEnteredHandler.callCount > 0
 
       runs ->
         expect(hostParticipantEnteredHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
-        expect(hostSession.getParticipants()).toEqual [
-          { login: 'hubot', clientId: hostSession.clientId }
+        expect(leaderSession.getParticipants()).toEqual [
+          { login: 'hubot', clientId: leaderSession.clientId }
           { login: 'octocat', clientId: guestSession.clientId }
         ]
-        expect(hostSession.getOtherParticipants()).toEqual [
+        expect(leaderSession.getOtherParticipants()).toEqual [
           { login: 'octocat', clientId: guestSession.clientId }
         ]
         guestSession.stop()
@@ -129,5 +124,5 @@ describe "Collaboration", ->
 
       runs ->
         expect(hostParticipantExitedHandler).toHaveBeenCalledWith(login: 'octocat', clientId: guestSession.clientId)
-        expect(hostSession.getParticipants()).toEqual [login: 'hubot', clientId: hostSession.clientId]
-        expect(hostSession.getOtherParticipants()).toEqual []
+        expect(leaderSession.getParticipants()).toEqual [login: 'hubot', clientId: leaderSession.clientId]
+        expect(leaderSession.getOtherParticipants()).toEqual []
