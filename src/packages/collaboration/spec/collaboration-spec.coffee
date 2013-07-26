@@ -9,7 +9,7 @@ ServerHost = 'localhost'
 ServerPort = 8081
 
 describe "Collaboration", ->
-  describe "when a host and a guest join a channel", ->
+  fdescribe "when a host and a guest join a channel", ->
     [server, leaderSession, guestSession, leaderStartedHandler, guestStartedHandler, guestStoppedHandler, token, userDataByToken] = []
 
     beforeEach ->

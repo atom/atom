@@ -14,8 +14,10 @@ class ParticipantView extends View
       @div class: 'volume-container', outlet: 'volumeContainer', =>
       	@div class: 'volume', outlet: 'volume'
 
-  initialize: (@session, {id, email}) ->
-  	@session.waitForStream (stream) =>
+  initialize: (@session, @participant) ->
+    {id, email} = @participant.getState()
+
+    @session.waitForStream (stream) =>
       @video[0].src = URL.createObjectURL(stream)
 
     @video.click =>

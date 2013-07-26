@@ -7,6 +7,7 @@ patrick = require 'patrick'
 MediaConnection = require './media-connection'
 Project = require 'project'
 WsChannel = require './ws-channel'
+Participant = require './participant'
 
 module.exports =
 class Session
@@ -39,14 +40,11 @@ class Session
       @listening = false
       @trigger 'stopped'
 
-    @channel.on 'channel:participant-entered', (participant) =>
-      @participants.push(participant)
-      @trigger 'participant-entered', participant
+    @channel.on 'channel:participant-entered', (participantState) =>
+      @trigger 'participant-entered', @addParticipant(participantState)
 
-    @channel.on 'channel:participant-exited', (participant) =>
-      @participants = @participants.filter ({clientId}) ->
-        clientId isnt participant.clientId
-      @trigger 'participant-exited', participant
+    @channel.on 'channel:participant-exited', (participantState) =>
+      @trigger 'participant-exited', @removeParticipant(participantState)
 
     if @isLeader()
       @doc = @createDocument()
@@ -54,7 +52,8 @@ class Session
       @mediaConnection.start()
 
       @connectDocument()
-      @channel.one 'channel:subscribed', (@participants) =>
+      @channel.one 'channel:subscribed', (participantStates) =>
+        @setParticipantStates(participantStates)
         @listening = true
         @trigger 'started', @getParticipants()
 
@@ -67,7 +66,8 @@ class Session
           @channel.send 'welcome', welcomePackage
 
     else
-      @channel.one 'channel:subscribed', (@participants) =>
+      @channel.one 'channel:subscribed', (participantStates) =>
+        @setParticipantStates(participantStates)
         @channel.one 'welcome', ({doc, siteId, repoSnapshot}) =>
           @site = new Site(siteId)
           @doc = @site.deserializeDocument(doc)
@@ -107,6 +107,20 @@ class Session
 
   getOtherParticipants: ->
     @getParticipants().filter ({clientId}) => clientId isnt @clientId
+
+  addParticipant: (participantState) ->
+    participant = new Participant(participantState)
+    @participants.push(participant)
+    participant
+
+  removeParticipant: (participantState) ->
+    clientIdToRemove = participantState.clientId
+    participant = _.find @participants, ({clientId}) -> clientId is clientIdToRemove
+    @participants = _.without(@participants, participant)
+    participant
+
+  setParticipantStates: (participantStates) ->
+    @participants = participantStates.map (state) -> new Participant(state)
 
   subscribe: (name) ->
     token = keytar.getPassword('github.com', 'github')

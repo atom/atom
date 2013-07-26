@@ -20,10 +20,10 @@ module.exports =
 
     session.on 'participant-entered', (participant) =>
       view = @createParticipant(session, participant)
-      participantViews[participant.id] = view
+      participantViews[participant.clientId] = view
 
     session.on 'participant-exited', (participant) =>
-      view = participantViews[participant.id]
+      view = participantViews[participant.clientId]
       view.detach()
 
     rootView.eachPane (pane) ->
