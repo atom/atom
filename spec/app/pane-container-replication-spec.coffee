@@ -2,9 +2,10 @@
 {View} = require 'space-pen'
 PaneContainer = require 'pane-container'
 Pane = require 'pane'
+Environment = require 'environment'
 
 describe "PaneContainer replication", ->
-  [container1, container2, pane1a, pane1b, pane1c] = []
+  [env1, env2, envConnection, container1, container2, pane1a, pane1b, pane1c] = []
 
   class TestView extends View
     @deserialize: ({name}) -> new TestView(name)
@@ -17,16 +18,25 @@ describe "PaneContainer replication", ->
 
   beforeEach ->
     registerDeserializer(TestView)
-    container1 = new PaneContainer
-    pane1a = new Pane(new TestView('A'))
-    container1.setRoot(pane1a)
-    pane1b = pane1a.splitRight(new TestView('B'))
-    pane1c = pane1b.splitDown(new TestView('C'))
 
-    doc1 = container1.getState()
-    doc2 = doc1.clone(new Site(2))
-    doc1.connect(doc2)
-    container2 = deserialize(doc2)
+    env1 = new Environment(siteId: 1)
+    env2 = env1.clone(siteId: 2)
+    envConnection = env1.connect(env2)
+    doc2 = null
+
+    env1.run ->
+      container1 = new PaneContainer
+      pane1a = new Pane(new TestView('A'))
+      container1.setRoot(pane1a)
+      pane1b = pane1a.splitRight(new TestView('B'))
+      pane1c = pane1b.splitDown(new TestView('C'))
+
+      doc1 = container1.getState()
+      doc2 = doc1.clone(env2.site)
+      envConnection.connect(doc1, doc2)
+
+    env2.run ->
+      container2 = deserialize(doc2)
 
   afterEach ->
     unregisterDeserializer(TestView)
@@ -80,3 +90,16 @@ describe "PaneContainer replication", ->
 
     expect(container1.children()).not.toExist()
     expect(container2.children()).not.toExist()
+
+  it "replicates splitting of panes containing edit sessions", ->
+    env1.run ->
+      pane1a.showItem(project.open('dir/a'))
+      pane1a.splitDown()
+
+      expect(project.getBuffers().length).toBe 1
+      expect(container1.find('.row > :eq(0) > :eq(0)').view().activeItem.getRelativePath()).toBe 'dir/a'
+      expect(container1.find('.row > :eq(0) > :eq(1)').view().activeItem.getRelativePath()).toBe 'dir/a'
+
+    env2.run ->
+      expect(container2.find('.row > :eq(0) > :eq(0)').view().activeItem.getRelativePath()).toBe 'dir/a'
+      expect(container2.find('.row > :eq(0) > :eq(1)').view().activeItem.getRelativePath()).toBe 'dir/a'
