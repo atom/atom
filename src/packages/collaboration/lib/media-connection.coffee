@@ -15,8 +15,9 @@ class MediaConnection
   constructor: (@local, @remote, {@isLeader}={}) ->
 
   start: ->
-    constraints = {video: true, audio: true}
-    navigator.webkitGetUserMedia constraints, @onUserMediaAvailable, @onUserMediaUnavailable
+    video = config.get('collaboration.enableVideo') ? true
+    audio = config.get('collaboration.enableAudio') ? true
+    navigator.webkitGetUserMedia({video, audio}, @onUserMediaAvailable, @onUserMediaUnavailable)
 
   waitForStream: (callback) ->
     if @stream
