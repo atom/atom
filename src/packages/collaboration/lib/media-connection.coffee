@@ -8,6 +8,7 @@ class MediaConnection
   constructor: (@remoteParticipant) ->
     if @remoteParticipant.isSelf()
       @inboundStreamPromise = @createStreamPromise()
+      @inboundStreamPromise.done => @trigger 'connected'
     else
       @inboundStreamPromise = $.Deferred()
       @remoteParticipant.on 'add-ice-candidate', (candidate) =>

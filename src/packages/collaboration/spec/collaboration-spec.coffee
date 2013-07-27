@@ -155,3 +155,29 @@ describe "Collaboration", ->
       waitsFor "media stream to be established on leader and guest", (stream1Established, stream2Established) ->
         leaderGuestMediaConnection.getInboundStreamPromise().done(stream1Established)
         guestLeaderMediaConnection.getInboundStreamPromise().done(stream2Established)
+
+    it "establishes a local media connection for each session participant", ->
+      [leaderSelfMediaConnection, guestSelfMediaConnection] = []
+
+      leaderSession.start()
+      waitsFor "leader session to start", -> leaderStartedHandler.callCount > 0
+
+      runs ->
+        leaderSelfMediaConnection = leaderSession.getSelfParticipant().mediaConnection
+
+      waitsFor "leader self connection to be established", -> leaderSelfMediaConnection.isConnected()
+
+      runs ->
+        token = 'octocat-token'
+        guestSession.start()
+
+      waitsFor "leader to see guest enter", -> leaderParticipantEnteredHandler.callCount > 0
+
+      runs ->
+        guestSelfMediaConnection = guestSession.getSelfParticipant().mediaConnection
+
+      waitsFor "guest self connection to be established", -> guestSelfMediaConnection.isConnected()
+
+      waitsFor "local media streams to be established on leader and guest", (stream1Established, stream2Established) ->
+        leaderSelfMediaConnection.getInboundStreamPromise().done(stream1Established)
+        guestSelfMediaConnection.getInboundStreamPromise().done(stream2Established)
