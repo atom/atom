@@ -8,7 +8,7 @@ Session = require '../lib/session'
 ServerHost = 'localhost'
 ServerPort = 8081
 
-fdescribe "Collaboration", ->
+describe "Collaboration", ->
   describe "when a host and a guest join a channel", ->
     [server, token, userDataByToken] = []
     [leaderSession, leaderStartedHandler, leaderParticipantEnteredHandler, leaderParticipantExitedHandler] = []
