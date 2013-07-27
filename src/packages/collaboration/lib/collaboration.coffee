@@ -11,7 +11,8 @@ module.exports =
 
     if atom.getLoadSettings().sessionId
       session = atom.guestSession
-      for participant in session.getParticipants()
+      participantViews.add(session, session.getSelfParticipant())
+      for participant in session.getOtherParticipants()
         participantViews.add(session, participant)
     else
       session = new Session(site: window.site)

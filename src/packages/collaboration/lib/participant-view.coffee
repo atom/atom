@@ -67,7 +67,7 @@ class ParticipantViewContainer extends View
   add: (session, participant) ->
     view = new ParticipantView(session, participant)
     @participantViews[participant.clientId] = view
-    @append(view)
+    @prepend(view)
 
   remove: (participant) ->
     @participantViews[participant.clientId].remove()
