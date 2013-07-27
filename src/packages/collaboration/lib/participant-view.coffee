@@ -1,4 +1,3 @@
-crypto = require 'crypto'
 {View} = require 'space-pen'
 
 class ParticipantView extends View
