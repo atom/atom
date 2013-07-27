@@ -7,7 +7,7 @@ class MediaConnection
 
   constructor: (@remoteParticipant) ->
     if @remoteParticipant.isSelf()
-      @inboundStreamPromise = @createStreamPromise()
+      @inboundStreamPromise = @createStreamPromise(audio: false)
       @inboundStreamPromise.done => @trigger 'connected'
     else
       @inboundStreamPromise = $.Deferred()
@@ -27,12 +27,13 @@ class MediaConnection
 
     @outboundStreamPromise
 
-  createStreamPromise: ->
+  createStreamPromise: ({audio}={}) ->
     deferred = $.Deferred()
 
     _.nextTick =>
       video = config.get('collaboration.video') ? mandatory: { maxWidth: 320, maxHeight: 240 }, optional: []
-      audio = config.get('collaboration.audio') ? true
+      audio ?= config.get('collaboration.audio') ? true
+
       success = (stream) =>
         deferred.resolve(stream)
       error = (args...) ->
