@@ -91,7 +91,10 @@ class TextBuffer
     this
 
   serialize: ->
-    @state.clone()
+    state = @state.clone()
+    for marker in state.get('text').getMarkers() when marker.isRemote()
+      marker.destroy()
+    state
 
   getState: -> @state
 

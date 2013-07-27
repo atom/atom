@@ -3,6 +3,7 @@ Buffer = require 'text-buffer'
 fsUtils = require 'fs-utils'
 path = require 'path'
 _ = require 'underscore'
+{Site} = require 'telepath'
 
 describe 'TextBuffer', ->
   [filePath, fileContents, buffer] = []
@@ -936,3 +937,27 @@ describe 'TextBuffer', ->
         buffer2 = deserialize(state)
         expect(buffer2.getPath()).toBeUndefined()
         expect(buffer2.getText()).toBe("abc")
+
+    describe "when the buffer has remote markers", ->
+      [buffer2, buffer3] = []
+
+      afterEach ->
+        buffer2.destroy()
+        buffer3.destroy()
+
+      it "does not include them in the serialized state", ->
+        doc1 = buffer.getState()
+        doc2 = doc1.clone(new Site(2))
+        doc1.connect(doc2)
+        buffer2 = deserialize(doc2, {project})
+
+        buffer.markPosition [1, 0]
+        buffer2.markPosition [2, 0]
+        expect(buffer.getMarkerCount()).toBe 2
+        expect(buffer.getMarkers()[0].isRemote()).toBe false
+        expect(buffer.getMarkers()[1].isRemote()).toBe true
+
+        buffer3 = deserialize(buffer.serialize(), {project})
+        expect(buffer3.getMarkerCount()).toBe 1
+        expect(buffer3.getMarkers()[0].isRemote()).toBe false
+        expect(buffer3.getMarkers()[0].getRange()).toEqual [[1, 0], [1, 0]]
