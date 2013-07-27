@@ -6,27 +6,33 @@ class MediaConnection
   _.extend(@prototype, require 'event-emitter')
 
   constructor: (@remoteParticipant) ->
-    @inboundStreamPromise = $.Deferred()
-
-    @remoteParticipant.on 'add-ice-candidate', (candidate) =>
-      @getOutboundStreamPromise().done =>
-        @getPeerConnection().addIceCandidate(new RTCIceCandidate(candidate))
+    if @remoteParticipant.isSelf()
+      @inboundStreamPromise = @createStreamPromise()
+    else
+      @inboundStreamPromise = $.Deferred()
+      @remoteParticipant.on 'add-ice-candidate', (candidate) =>
+        @getOutboundStreamPromise().done =>
+          @getPeerConnection().addIceCandidate(new RTCIceCandidate(candidate))
 
     @on 'connected', => @connected = true
 
   getInboundStreamPromise: -> @inboundStreamPromise
 
   getOutboundStreamPromise: ->
-    @outboundStreamPromise ?= @createOutboundStreamPromise()
+    unless @outboundStreamPromise?
+      @outboundStreamPromise = @createStreamPromise()
+      @outboundStreamPromise.done (stream) =>
+        @getPeerConnection().addStream(stream)
 
-  createOutboundStreamPromise: ->
+    @outboundStreamPromise
+
+  createStreamPromise: ->
     deferred = $.Deferred()
 
     _.nextTick =>
       video = config.get('collaboration.video') ? mandatory: { maxWidth: 320, maxHeight: 240 }, optional: []
       audio = config.get('collaboration.audio') ? true
       success = (stream) =>
-        @getPeerConnection().addStream(stream)
         deferred.resolve(stream)
       error = (args...) ->
         deferred.reject(args...)

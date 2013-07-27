@@ -6,7 +6,7 @@ module.exports =
 class Participant
   _.extend(@prototype, require 'event-emitter')
 
-  constructor: (@channel, @state) ->
+  constructor: (@channel, @state, @sessionClientId) ->
     {@clientId} = @state
     @mediaConnection = new MediaConnection(this)
 
@@ -22,3 +22,5 @@ class Participant
     else
       otherState = other
     _.isEqual(@getState(), otherState)
+
+  isSelf: -> @clientId is @sessionClientId

@@ -113,13 +113,16 @@ class Session
   participantForClientId: (targetClientId) ->
     _.find @getParticipants(), ({clientId}) -> clientId is targetClientId
 
+  getSelfParticipant: ->
+    _.find @getParticipants(), (participant) -> participant.isSelf()
+
   getParticipants: -> _.clone(@participants)
 
   getOtherParticipants: ->
     @getParticipants().filter ({clientId}) => clientId isnt @clientId
 
   addParticipant: (participantState) ->
-    participant = new Participant(@channel, participantState)
+    participant = new Participant(@channel, participantState, @clientId)
     @participants.push(participant)
     participant.getMediaConnection().waitForOffer()
     participant
@@ -131,7 +134,8 @@ class Session
     participant
 
   setParticipantStates: (participantStates) ->
-    @participants = participantStates.map (state) => new Participant(@channel, state)
+    @participants = participantStates.map (state) =>
+      new Participant(@channel, state, @clientId)
 
   sendMediaConnectionOffers: ->
     for participant in @getOtherParticipants()
