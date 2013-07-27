@@ -18,11 +18,11 @@ class ParticipantView extends View
     @participant.getMediaConnection().getInboundStreamPromise().done (stream) =>
       @video[0].src = URL.createObjectURL(stream)
 
-    @video.click =>
-      @toggleClass('large')
+    @video.click => @toggleClass('large')
+    @avatar.click => @toggleClass('large')
 
-    #emailMd5 = crypto.createHash('md5').update(@participant.email).digest('hex')
-    #@avatar.css('background-image': "http://www.gravatar.com/avatar/#{emailMd5}?s=160")
+    emailMd5 = crypto.createHash('md5').update(@participant.state.email).digest('hex')
+    @avatar.css('background-image': "url(http://www.gravatar.com/avatar/#{emailMd5}?s=160)")
 
     @removeButton.click @onClickRemove
     @toggleVideoButton.click @onClickToggleVideo
