@@ -19,7 +19,7 @@ class SelectionView extends View
       @editor.requestDisplayUpdate()
 
     if @selection.marker.isRemote()
-      @addClass("site-#{@selection.marker.getOriginSiteId()}") 
+      @addClass("site-#{@selection.marker.getOriginSiteId()}")
 
   updateDisplay: ->
     @clearRegions()

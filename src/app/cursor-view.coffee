@@ -31,7 +31,7 @@ class CursorView extends View
       @needsRemoval = true
 
     if @cursor.marker.isRemote()
-      @addClass("site-#{@cursor.marker.getOriginSiteId()}") 
+      @addClass("site-#{@cursor.marker.getOriginSiteId()}")
 
   remove: ->
     @editor.removeCursorView(this)
