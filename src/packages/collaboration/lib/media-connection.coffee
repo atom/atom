@@ -21,14 +21,17 @@ class MediaConnection
 
   createOutboundStreamPromise: ->
     deferred = $.Deferred()
-    video = config.get('collaboration.video') ? mandatory: { maxWidth: 320, maxHeight: 240 }, optional: []
-    audio = config.get('collaboration.audio') ? true
-    success = (stream) =>
-      @getPeerConnection().addStream(stream)
-      deferred.resolve(stream)
-    error = (args...) ->
-      deferred.reject(args...)
-    navigator.webkitGetUserMedia({video, audio}, success, error)
+
+    _.nextTick =>
+      video = config.get('collaboration.video') ? mandatory: { maxWidth: 320, maxHeight: 240 }, optional: []
+      audio = config.get('collaboration.audio') ? true
+      success = (stream) =>
+        @getPeerConnection().addStream(stream)
+        deferred.resolve(stream)
+      error = (args...) ->
+        deferred.reject(args...)
+      navigator.webkitGetUserMedia({video, audio}, success, error)
+
     deferred.promise()
 
   sendOffer: ->
