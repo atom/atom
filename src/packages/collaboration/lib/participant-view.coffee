@@ -1,3 +1,5 @@
+url = require 'url'
+
 {View} = require 'space-pen'
 
 class ParticipantView extends View
@@ -20,9 +22,7 @@ class ParticipantView extends View
     @video.click => @toggleClass('large')
     @avatar.click => @toggleClass('large')
 
-    avatarUrl = participant.getState().avatar_url
-    @avatar.css('background-image', "url('#{avatarUrl}')")
-    @video.css('background-image', "url('#{avatarUrl}')")
+    @avatar.css('background-image', "url('#{@getAvatarUrl()}')")
 
     @removeButton.click @onClickRemove
     @toggleVideoButton.click @onClickToggleVideo
@@ -32,6 +32,12 @@ class ParticipantView extends View
     @setSiteId(map.get(@participant.clientId))
     map.on 'changed', ({key}={}) =>
       @setSiteId(map.get(@participant.clientId)) if key == @participant.clientId
+
+  getAvatarUrl: ->
+    avatarUrl = url.parse(@participant.getState().avatar_url, true)
+    delete avatarUrl.search
+    avatarUrl.query.s = '420'
+    url.format(avatarUrl)
 
   setSiteId: (siteId) ->
     return unless siteId
