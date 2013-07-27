@@ -56,6 +56,7 @@ class Session
 
       @connectDocument()
       @channel.one 'channel:subscribed', (participantStates) =>
+        console.log "subscribed to #{@id} as leader"
         @setParticipantStates(participantStates)
         @listening = true
         @trigger 'started', @getParticipants()
@@ -75,6 +76,7 @@ class Session
 
     else
       @channel.one 'channel:subscribed', (participantStates) =>
+        console.log "subscribed to #{@id} as peer"
         @setParticipantStates(participantStates)
         @channel.one 'welcome', ({doc, siteId, repoSnapshot}) =>
           @site = new Site(siteId)
@@ -139,6 +141,7 @@ class Session
   getClientIdToSiteIdMap: -> @doc.get('collaborationState.clientIdToSiteId')
 
   subscribe: (name) ->
+    console.log "subscribing to #{name}"
     token = keytar.getPassword('github.com', 'github')
     channel = new WsChannel({name, @host, @port, @secure, token})
     {@clientId} = channel
@@ -158,9 +161,11 @@ class Session
   connectDocument:  ->
     @doc.on 'replicate-change', (event) =>
       @stampEvent(event)
+      console.log "sending replication event", event
       @channel.broadcast('document-changed', event)
 
     @channel.on 'document-changed', (event) =>
+      console.log "receiving replication event", event
       @verifyEvent(event)
       @doc.applyRemoteChange(event)
 
