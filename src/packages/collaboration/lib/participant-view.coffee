@@ -20,7 +20,9 @@ class ParticipantView extends View
     @video.click => @toggleClass('large')
     @avatar.click => @toggleClass('large')
 
-    @video.css('background-image', "url('#{participant.getState().avatar_url}')")
+    avatarUrl = participant.getState().avatar_url
+    @avatar.css('background-image', "url('#{avatarUrl}')")
+    @video.css('background-image', "url('#{avatarUrl}')")
 
     @removeButton.click @onClickRemove
     @toggleVideoButton.click @onClickToggleVideo
@@ -38,6 +40,7 @@ class ParticipantView extends View
 
   onClickRemove: =>
     false
+
   onClickToggleVideo: =>
     @toggleVideoButton.toggleClass('disabled')
     @toggleClass('hide-video')
