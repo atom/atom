@@ -11,25 +11,22 @@
 
   .status.share {
     cursor: pointer;
-    .mini-icon(notifications);
+    .mini-icon(notifications, 14px);
     position: relative;
     right: -1px;
     margin-bottom: 5px;
   }
 
   .status.guest {
-    .mini-icon(watchers);
+    .mini-icon(watchers, 14px);
     position: relative;
     right: -2px;
     margin-bottom: 5px;
   }
 
-  /* is there a way to specify this 14px is a more general way? or remove the
-  .mini-icon mixin and use classes so we can use the status bar icon sizes.*/
-  .status.guest:before, .status.share:before {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
+  .connections {
+    padding-left: 5px;
+    padding-right: 2px;
   }
 }
 
