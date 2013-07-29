@@ -52,7 +52,7 @@ class MarkdownPreviewView extends ScrollView
     path: @buffer.getPath()
 
   getTitle: ->
-    "Markdown Preview – #{@buffer.getBaseName()}"
+    "#{@buffer.getBaseName()} Preview"
 
   getUri: ->
     "markdown-preview:#{@buffer.getPath()}"
