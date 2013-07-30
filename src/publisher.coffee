@@ -9,7 +9,7 @@ class Publisher extends Command
 
   constructor: ->
     @userConfigPath = config.getUserConfigPath()
-    @atomNpmPath = require.resolve('.bin/npm')
+    @atomNpmPath = require.resolve('npm/bin/npm-cli')
 
   run: (options) ->
     publishArgs = ['--userconfig', @userConfigPath, 'publish']

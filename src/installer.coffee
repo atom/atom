@@ -24,8 +24,8 @@ class Installer extends Command
     @atomDirectory = config.getAtomDirectory()
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
-    @atomNpmPath = require.resolve('.bin/npm')
-    @atomNodeGypPath = require.resolve('.bin/node-gyp')
+    @atomNpmPath = require.resolve('npm/bin/npm-cli')
+    @atomNodeGypPath = require.resolve('node-gyp/bin/node-gyp')
 
   installNode: (callback) =>
     process.stdout.write "Installing node@#{config.getNodeVersion()} "
