@@ -37,7 +37,7 @@ class Installer extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
     mkdir(@atomDirectory)
-    @spawn @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='') ->
+    @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='') ->
       if code is 0
         process.stdout.write '\u2713\n'.green
         callback()
@@ -58,7 +58,7 @@ class Installer extends Command
     installDirectory = temp.mkdirSync('apm-install-dir-')
     nodeModulesDirectory = path.join(installDirectory, 'node_modules')
     mkdir(nodeModulesDirectory)
-    @spawn @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code, stderr='') =>
+    @fork @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code, stderr='') =>
       if code is 0
         for child in fs.readdirSync(nodeModulesDirectory)
           cp(path.join(nodeModulesDirectory, child), path.join(@atomPackagesDirectory, child), forceDelete: true)
@@ -79,7 +79,7 @@ class Installer extends Command
     installArgs.push('--silent') if options.argv.silent
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
-    @spawn @atomNpmPath, installArgs, {env}, (code) ->
+    @fork @atomNpmPath, installArgs, {env}, (code) ->
       if code is 0
         callback()
       else

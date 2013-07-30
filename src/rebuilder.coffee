@@ -25,7 +25,7 @@ class Rebuilder extends Command
         rebuildArgs.push('--arch=ia32')
         env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
-        @spawn @atomNpmPath, rebuildArgs, {env}, (code, stderr='') ->
+        @fork @atomNpmPath, rebuildArgs, {env}, (code, stderr='') ->
           if code is 0
             process.stdout.write '\u2713\n'.green
             callback()

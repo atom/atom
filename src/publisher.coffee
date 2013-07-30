@@ -13,7 +13,7 @@ class Publisher extends Command
 
   run: (options) ->
     publishArgs = ['--userconfig', @userConfigPath, 'publish']
-    @spawn @atomNpmPath, publishArgs, (code) =>
+    @fork @atomNpmPath, publishArgs, (code) =>
       if code is 0
         options.callback()
       else
