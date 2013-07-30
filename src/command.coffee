@@ -17,5 +17,5 @@ class Command
       callback(code, Buffer.concat(errorChunks).toString())
 
   fork: (script, args, remaining...) ->
-    args.push(script)
+    args.unshift(script)
     @spawn(process.execPath, args, remaining...)
