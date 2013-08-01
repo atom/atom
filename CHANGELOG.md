@@ -1,3 +1,4 @@
+* Added: Ability to bookmark lines and navigate bookmarks
 * Fixed: Error when inserting newlines in CSS
 
 * Improved: cmd-n now opens a new tab and cmd-shift-n now opens a new window.
