@@ -2,9 +2,7 @@ RootView = require 'root-view'
 _ = require 'underscore'
 
 describe "Bookmarks package", ->
-  editor = null
-  editSession = null
-  displayBuffer = null
+  [editor, editSession, displayBuffer] = []
 
   beforeEach ->
     window.rootView = new RootView
@@ -15,7 +13,6 @@ describe "Bookmarks package", ->
     editor = rootView.getActiveView()
     editSession = editor.activeEditSession
     displayBuffer = editSession.displayBuffer
-
 
   describe "toggling bookmarks", ->
     it "creates a marker when toggled", ->
