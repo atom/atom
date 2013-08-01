@@ -1,12 +1,12 @@
 * Added: Ability to bookmark lines and navigate bookmarks
 * Fixed: Error when inserting newlines in CSS
+* Fixed: Folding all will fold comments as well
+* Added: Ability to fold all code at a given indentation level
 
 * Improved: cmd-n now opens a new tab and cmd-shift-n now opens a new window.
 * Added: Inspect Element context menu
 * Fixed: Save As dialog now defaults to directory path of current editor
 * Fixed: Using toggle comment shortcut respects indentation level
-* Fixed: Folding all will fold comments as well
-* Added: Ability to fold all code at a given indentation level
 
 * Fixed: Search never completing in the command panel
 
