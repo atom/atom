@@ -232,7 +232,7 @@ class LanguageMode
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
     desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
 
-    desiredIndentLevel
+    Math.max(desiredIndentLevel, 0)
 
   # Calculate a minimum indent level for a range of lines excluding empty lines.
   #

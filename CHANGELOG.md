@@ -1,3 +1,5 @@
+* Fixed: Error when inserting newlines in CSS
+
 * Improved: cmd-n now opens a new tab and cmd-shift-n now opens a new window.
 * Added: Inspect Element context menu
 * Fixed: Save As dialog now defaults to directory path of current editor

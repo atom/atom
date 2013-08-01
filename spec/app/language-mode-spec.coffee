@@ -341,3 +341,14 @@ describe "LanguageMode", ->
 
         fold2 = editSession.lineForScreenRow(5).fold
         expect(fold2).toBeFalsy()
+
+  describe "css", ->
+    beforeEach ->
+      atom.activatePackage('source-tmbundle', sync: true)
+      atom.activatePackage('css-tmbundle', sync: true)
+      editSession = project.open('css.css', autoIndent: true)
+
+    describe "suggestedIndentForBufferRow", ->
+      it "does not return negative values (regression)", ->
+        editSession.setText('.test {\npadding: 0;\n}')
+        expect(editSession.suggestedIndentForBufferRow(2)).toBe 0
