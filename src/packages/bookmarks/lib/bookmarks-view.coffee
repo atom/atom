@@ -1,108 +1,77 @@
-_ = require 'underscore'
-shell = require 'shell'
+path = require 'path'
+
+{$$} = require 'space-pen'
+
+SelectList = require 'select-list'
 
 module.exports =
-class BookmarksView
-  @activate: ->
-    bookmarksList = null
+class BookmarksView extends SelectList
+  @viewClass: -> "#{super} bookmarks-view overlay from-top"
 
-    rootView.command 'bookmarks:view-all', ->
-      unless bookmarksList?
-        BookmarksListView = require './bookmarks-list-view'
-        bookmarksList = new BookmarksListView()
-      bookmarksList.toggle()
+  filterKey: 'bookmarkFilterText'
 
-    rootView.eachEditor (editor) =>
-      new BookmarksView(editor) if editor.attached and editor.getPane()?
+  initialize: ->
+    super
 
-  editor: null
-
-  constructor: (@editor) ->
-    @gutter = @editor.gutter
-    @editor.on 'editor:display-updated', @renderBookmarkMarkers
-
-    @editor.command 'bookmarks:toggle-bookmark', @toggleBookmark
-    @editor.command 'bookmarks:jump-to-next-bookmark', @jumpToNextBookmark
-    @editor.command 'bookmarks:jump-to-previous-bookmark', @jumpToPreviousBookmark
-
-  toggleBookmark: =>
-    cursors = @editor.getCursors()
-    for cursor in cursors
-      position = cursor.getBufferPosition()
-      bookmarks = @findBookmarkMarkers(startBufferRow: position.row)
-
-      if bookmarks and bookmarks.length
-        bookmark.destroy() for bookmark in bookmarks
-      else
-        newmark = @createBookmarkMarker(position.row)
-
-    @renderBookmarkMarkers()
-
-  jumpToNextBookmark: =>
-    @jumpToBookmark('getNextBookmark')
-
-  jumpToPreviousBookmark: =>
-    @jumpToBookmark('getPreviousBookmark')
-
-  renderBookmarkMarkers: =>
-    return unless @gutter.isVisible()
-
-    @gutter.find(".line-number.bookmarked").removeClass('bookmarked')
-
-    markers = @findBookmarkMarkers()
-    for marker in markers
-      row = marker.getBufferRange().start.row
-      @gutter.find(".line-number[lineNumber=#{row}]").addClass('bookmarked')
-
-  ### Internal ###
-
-  jumpToBookmark: (getBookmarkFunction) =>
-    cursor = @editor.getCursor()
-    position = cursor.getBufferPosition()
-    bookmarkMarker = @[getBookmarkFunction](position.row)
-
-    if bookmarkMarker
-      @editor.activeEditSession.setSelectedBufferRange(bookmarkMarker.getBufferRange(), autoscroll: true)
+  toggle: ->
+    if @hasParent()
+      @cancel()
     else
-      shell.beep()
+      @populateBookmarks()
+      @attach()
 
-  getPreviousBookmark: (bufferRow) ->
-    markers = @findBookmarkMarkers()
-    return null unless markers.length
-    return markers[0] if markers.length == 1
+  getFilterText: (bookmark) ->
+    segments = []
+    bookmarkRow = bookmark.getStartPosition().row
+    segments.push(bookmarkRow)
+    if bufferPath = bookmark.buffer.getPath()
+      segments.push(bufferPath)
+    if lineText = @getLineText(bookmark)
+      segments.push(lineText)
+    segments.join(' ')
 
-    bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
-      if marker.getBufferRange then marker.getBufferRange().start.row else marker
+  getLineText: (bookmark) ->
+    bookmark.buffer.lineForRow(bookmark.getStartPosition().row)?.trim()
 
-    bookmarkIndex--
-    bookmarkIndex = markers.length - 1 if bookmarkIndex < 0
+  populateBookmarks: ->
+    markers = []
+    attributes = class: 'bookmark'
+    for buffer in project.getBuffers()
+      for marker in buffer.findMarkers(attributes)
+        marker.bookmarkFilterText = @getFilterText(marker)
+        markers.push(marker)
+    @setArray(markers)
 
-    markers[bookmarkIndex]
+  itemForElement: (bookmark) ->
+    bookmarkRow = bookmark.getStartPosition().row
+    if filePath = bookmark.buffer.getPath()
+      bookmarkLocation = "#{path.basename(filePath)}:#{bookmarkRow + 1}"
+    else
+      bookmarkLocation = "untitled:#{bookmarkRow + 1}"
+    lineText = @getLineText(bookmark)
 
-  getNextBookmark: (bufferRow) ->
-    markers = @findBookmarkMarkers()
-    return null unless markers.length
-    return markers[0] if markers.length == 1
+    $$ ->
+      if lineText
+        @li class: 'bookmark two-lines', =>
+          @div bookmarkLocation, class: 'primary-line'
+          @div lineText, class: 'secondary-line line-text'
+      else
+        @li class: 'bookmark', =>
+          @div bookmarkLocation, class: 'primary-line'
 
-    bookmarkIndex = _.sortedIndex markers, bufferRow, (marker) ->
-      if marker.getBufferRange then marker.getBufferRange().start.row else marker
+  getEmptyMessage: (itemCount) ->
+    if itemCount is 0
+      'No bookmarks found'
+    else
+      super
 
-    bookmarkIndex++ if markers[bookmarkIndex] and markers[bookmarkIndex].getBufferRange().start.row == bufferRow
-    bookmarkIndex = 0 if bookmarkIndex >= markers.length
+  confirmed : (bookmark) ->
+    for editor in rootView.getEditors()
+      if editor.getBuffer() is bookmark.buffer
+        editor.activeEditSession.setSelectedBufferRange(bookmark.getRange(), autoscroll: true)
 
-    markers[bookmarkIndex]
+  attach: ->
+    super
 
-  createBookmarkMarker: (bufferRow) ->
-    range = [[bufferRow, 0], [bufferRow, 0]]
-
-    # TODO: use the 'surround' strategy when collaboration is merged in
-    @displayBuffer().markBufferRange(range, @bookmarkMarkerAttributes(invalidationStrategy: 'never'))
-
-  findBookmarkMarkers: (attributes={}) ->
-    @displayBuffer().findMarkers(@bookmarkMarkerAttributes(attributes))
-
-  bookmarkMarkerAttributes: (attributes={}) ->
-    _.extend(attributes, class: 'bookmark', displayBufferId: @displayBuffer().id)
-
-  displayBuffer: ->
-    @editor.activeEditSession.displayBuffer
+    rootView.append(this)
+    @miniEditor.focus()
