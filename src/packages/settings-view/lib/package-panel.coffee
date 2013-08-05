@@ -119,7 +119,9 @@ class PackagePanel extends View
   filterPackages: (filterString) ->
     for children in [@installedPackages.children(), @availablePackages.children()]
       for packageView in children
-        if /^\s*$/.test(filterString) or stringScore(packageView.getAttribute('name'), filterString)
+        name = packageView.getAttribute('name')
+        continue unless name
+        if /^\s*$/.test(filterString) or stringScore(name, filterString)
           $(packageView).show()
         else
           $(packageView).hide()
