@@ -1,7 +1,9 @@
 path = require 'path'
-fs = require './fs'
-CSON = require 'season'
+
 _ = require 'underscore'
+CSON = require 'season'
+
+fs = require './fs'
 config = require './config'
 tree = require './tree'
 
@@ -47,7 +49,7 @@ class Lister
 
   listUserPackages: ->
     userPackages = @listPackages(@userPackagesDirectory)
-    console.log "#{@userPackagesDirectory} (#{userPackages.length})"
+    console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
     @logPackages(userPackages)
 
   listNodeModulesWithAtomEngine: ->
@@ -60,7 +62,7 @@ class Lister
     vendoredPackages = @listPackages(@vendoredPackagesDirectory)
     atomEnginePackages = @listNodeModulesWithAtomEngine()
     packages = _.sortBy(bundledPackages.concat(vendoredPackages).concat(atomEnginePackages), 'name')
-    console.log "Built-in Atom packages (#{packages.length})"
+    console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
     @logPackages(packages)
 
   run: (options) ->
