@@ -47,7 +47,7 @@ class Fetcher
         if options.argv.json
           console.log(JSON.stringify(packages))
         else
-          console.log "Available Atom packages (#{packages.length})"
+          console.log "#{'Available Atom packages'.cyan} (#{packages.length})"
           tree packages, ({name, version}) ->
             "#{name}@#{version}"
         options.callback()
