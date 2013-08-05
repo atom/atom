@@ -8,6 +8,7 @@ class Command
 
     spawned = child_process.spawn(command, args, options)
     errorChunks = []
+    spawned.stdout.on 'data', (chunk) ->
     spawned.stderr.on 'data', (chunk) -> errorChunks.push(chunk)
     spawned.on 'error', (error) ->
       callback(error, Buffer.concat(errorChunks).toString())
