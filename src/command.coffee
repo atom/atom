@@ -7,7 +7,9 @@ class Command
     callback = remaining.shift()
 
     spawned = child_process.spawn(command, args, options)
-    spawned.stdout.pipe(process.stdout)
-    spawned.stderr.pipe(process.stderr)
-    spawned.on('error', callback)
-    spawned.on('close', callback)
+    errorChunks = []
+    spawned.stderr.on 'data', (chunk) -> errorChunks.push(chunk)
+    spawned.on 'error', (error) ->
+      callback(error, Buffer.concat(errorChunks).toString())
+    spawned.on 'close', (code) ->
+      callback(code, Buffer.concat(errorChunks).toString())

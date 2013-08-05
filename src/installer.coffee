@@ -1,11 +1,14 @@
 fs = require 'fs'
+path = require 'path'
+
 async = require 'async'
 _ = require 'underscore'
 mkdir = require('mkdirp').sync
-path = require 'path'
 temp = require 'temp'
 cp = require('wrench').copyDirSyncRecursive
 rm = require('rimraf').sync
+require 'colors'
+
 config = require './config'
 Command = require './command'
 
@@ -25,7 +28,7 @@ class Installer extends Command
     @atomNodeGypPath = require.resolve('.bin/node-gyp')
 
   installNode: (callback) =>
-    console.log '\nInstalling node...'
+    process.stdout.write "Installing node@#{config.getNodeVersion()} "
 
     installNodeArgs = ['install']
     installNodeArgs.push("--target=#{config.getNodeVersion()}")
@@ -34,14 +37,16 @@ class Installer extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
     mkdir(@atomDirectory)
-    @spawn @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code) ->
+    @spawn @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='') ->
       if code is 0
+        process.stdout.write '\u2713\n'.green
         callback()
       else
-        callback("Installing node failed with code: #{code}")
+        process.stdout.write '\u2717\n'.red
+        callback(stderr.red)
 
   installModule: (options, modulePath, callback) ->
-    console.log '\nInstalling module...'
+    process.stdout.write "Installing #{modulePath} to #{@atomPackagesDirectory} "
 
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
@@ -53,15 +58,17 @@ class Installer extends Command
     installDirectory = temp.mkdirSync('apm-install-dir-')
     nodeModulesDirectory = path.join(installDirectory, 'node_modules')
     mkdir(nodeModulesDirectory)
-    @spawn @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code) =>
+    @spawn @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code, stderr='') =>
       if code is 0
         for child in fs.readdirSync(nodeModulesDirectory)
           cp(path.join(nodeModulesDirectory, child), path.join(@atomPackagesDirectory, child), forceDelete: true)
         rm(installDirectory)
+        process.stdout.write '\u2713\n'.green
         callback()
       else
         rm(installDirectory)
-        callback("Installing module failed with code: #{code}")
+        process.stdout.write '\u2717\n'.red
+        callback(stderr.red)
 
   installModules: (options, callback) =>
     console.log '\nInstalling modules...'
