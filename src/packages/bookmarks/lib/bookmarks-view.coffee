@@ -4,6 +4,14 @@ shell = require 'shell'
 module.exports =
 class BookmarksView
   @activate: ->
+    bookmarksList = null
+
+    rootView.command 'bookmarks:view-all', ->
+      unless bookmarksList?
+        BookmarksListView = require './bookmarks-list-view'
+        bookmarksList = new BookmarksListView()
+      bookmarksList.toggle()
+
     rootView.eachEditor (editor) =>
       new BookmarksView(editor) if editor.attached and editor.getPane()?
 

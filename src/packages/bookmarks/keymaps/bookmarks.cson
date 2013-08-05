@@ -1,4 +1,5 @@
 '.editor':
+  'meta-shift-f2': 'bookmarks:view-all'
   'meta-f2': 'bookmarks:toggle-bookmark'
   'f2': 'bookmarks:jump-to-next-bookmark'
   'shift-f2': 'bookmarks:jump-to-previous-bookmark'

@@ -133,3 +133,37 @@ describe "Bookmarks package", ->
 
         editor.trigger 'bookmarks:jump-to-previous-bookmark'
         expect(editSession.getCursor().getBufferPosition()).toEqual [10, 0]
+
+  describe "browsing bookmarks", ->
+    it "displays a select list of all bookmarks", ->
+      editSession.setCursorBufferPosition([0])
+      editor.trigger 'bookmarks:toggle-bookmark'
+      editSession.setCursorBufferPosition([2])
+      editor.trigger 'bookmarks:toggle-bookmark'
+      editSession.setCursorBufferPosition([4])
+      editor.trigger 'bookmarks:toggle-bookmark'
+
+      rootView.trigger 'bookmarks:view-all'
+
+      bookmarks = rootView.find('.bookmarks-view')
+      expect(bookmarks).toExist()
+      expect(bookmarks.find('.bookmark').length).toBe 3
+      expect(bookmarks.find('.bookmark:eq(0)').find('.primary-line').text()).toBe 'sample.js:1'
+      expect(bookmarks.find('.bookmark:eq(0)').find('.secondary-line').text()).toBe 'var quicksort = function () {'
+      expect(bookmarks.find('.bookmark:eq(1)').find('.primary-line').text()).toBe 'sample.js:3'
+      expect(bookmarks.find('.bookmark:eq(1)').find('.secondary-line').text()).toBe 'if (items.length <= 1) return items;'
+      expect(bookmarks.find('.bookmark:eq(2)').find('.primary-line').text()).toBe 'sample.js:5'
+      expect(bookmarks.find('.bookmark:eq(2)').find('.secondary-line').text()).toBe 'while(items.length > 0) {'
+
+    describe "when a bookmark is selected", ->
+      it "sets the cursor to the location the bookmark", ->
+        editSession.setCursorBufferPosition([8])
+        editor.trigger 'bookmarks:toggle-bookmark'
+        editSession.setCursorBufferPosition([0])
+
+        rootView.trigger 'bookmarks:view-all'
+
+        bookmarks = rootView.find('.bookmarks-view')
+        expect(bookmarks).toExist()
+        bookmarks.find('.bookmark').mousedown().mouseup()
+        expect(editSession.getCursorBufferPosition()).toEqual [8, 0]
