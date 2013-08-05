@@ -1,3 +1,7 @@
+* Added: Filter package list
+* Added: Dynamic loading of config options
+* Improved: Settings GUI
+
 * Added: Ability to bookmark lines and navigate bookmarks
 * Fixed: Error when inserting newlines in CSS
 * Fixed: Folding all will fold comments as well
