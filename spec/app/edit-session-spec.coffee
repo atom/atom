@@ -427,6 +427,14 @@ describe "EditSession", ->
         expect(cursor2.getBufferPosition()).toEqual [1, 13]
         expect(cursor3.getBufferPosition()).toEqual [2, 4]
 
+        # When the cursor is on whitespace
+        editSession.setText("ab cde- ")
+        editSession.setCursorBufferPosition [0,2]
+        cursor = editSession.getCursor()
+        editSession.moveCursorToBeginningOfNextWord()
+
+        expect(cursor.getBufferPosition()).toEqual [0, 3]
+
       it "does not blow up when there is no next word", ->
         editSession.setCursorBufferPosition [Infinity, Infinity]
         endPosition = editSession.getCursorBufferPosition()

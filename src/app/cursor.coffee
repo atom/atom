@@ -128,6 +128,11 @@ class Cursor
     range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
     /^\s+$/.test @editSession.getTextInBufferRange(range)
 
+  isInsideWord: ->
+    {row, column} = @getBufferPosition()
+    range = [[row, column], [row, Infinity]]
+    @editSession.getTextInBufferRange(range).search(@wordRegExp()) == 0
+
   # Removes the setting for auto-scroll.
   clearAutoscroll: ->
     @needsAutoscroll = null
@@ -370,7 +375,7 @@ class Cursor
   # Returns a {Range}.
   getBeginningOfNextWordBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
-    start = if @isSurroundedByWhitespace() then currentBufferPosition else @getEndOfCurrentWordBufferPosition()
+    start = if @isInsideWord() then @getEndOfCurrentWordBufferPosition() else currentBufferPosition
     scanRange = [start, @editSession.getEofBufferPosition()]
 
     beginningOfNextWordPosition = null
