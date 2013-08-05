@@ -80,7 +80,6 @@ class AtomApplication
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
   checkForUpdates: ->
-    console.log "DO NOT AUTO-UPDATE?", /\w{7}/.test(@version), @version
     return if /\w{7}/.test @version # Don't check for updates if version is a short sha
 
     autoUpdater.setAutomaticallyDownloadsUpdates true
