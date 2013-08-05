@@ -1,9 +1,7 @@
 @import "bootstrap/less/variables.less";
 @import "octicon-mixins.less";
 
-#config-view {
-  height: 100%;
-  width: 100%;
+#settings-view {
   background: white;
   display: -webkit-flex;
 
@@ -102,37 +100,6 @@
       border-radius: 0;
       box-shadow: 0 0 5px rgba(0, 0, 0, .5);
     }
-
-/*    li.ui-draggable-dragging, li.ui-sortable-helper {
-      width: 300px;
-      background: white;
-      border: 1px solid #eee;
-      padding: 10px;
-    }
-
-    ol {
-      box-sizing: border-box;
-      height: 400px;
-      overflow-y:  auto;
-      border: 1px solid #ccc;
-      border-top-width: 0;
-      background: #fafafa;
-
-      li {
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-        background: white;
-
-        input[type='checkbox'] {
-          margin-right: 10px;
-        }
-
-        .close-icon {
-          display: none;
-        }
-      }
-    }*/
-
   }
 
   #packages {
@@ -141,6 +108,10 @@
       width: 30px;
       text-align: center;
     }
+  }
+
+  #package-filter {
+    margin: 1em 0;
   }
 
   .btn-retry {

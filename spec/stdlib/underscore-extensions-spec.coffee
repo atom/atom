@@ -76,3 +76,34 @@ describe "underscore extensions", ->
       it "space separates the undasherized/capitalized versions of the namespace and event name", ->
         expect(_.humanizeEventName('space:final-frontier')).toBe 'Space: Final Frontier'
         expect(_.humanizeEventName('star-trek:the-next-generation')).toBe 'Star Trek: The Next Generation'
+
+  describe "_.deepExtend(objects...)", ->
+    it "copies all key/values from each object into a new object", ->
+      first =
+        things:
+          string: "oh"
+          boolean: false
+          anotherArray: ['a', 'b', 'c']
+          object:
+            first: 1
+            second: 2
+
+      second =
+        things:
+          string: "cool"
+          array: [1,2,3]
+          anotherArray: ['aa', 'bb', 'cc']
+          object:
+            first: 1
+
+      result = _.deepExtend(first, second)
+
+      expect(result).toEqual
+        things:
+          string: "oh"
+          boolean: false
+          array: [1,2,3]
+          anotherArray: ['a', 'b', 'c']
+          object:
+            first: 1
+            second: 2

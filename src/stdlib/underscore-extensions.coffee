@@ -93,6 +93,10 @@ _.mixin
       else
         "-"
 
+  uncamelcase: (string) ->
+    result = string.replace /([A-Z])|(_)/g, (m, letter, underscore) -> " " + letter
+    _.capitalize(result)
+
   undasherize: (string) ->
     string.split('-').map(_.capitalize).join(' ')
 
@@ -155,6 +159,17 @@ _.mixin
       @mapObject object, (key, value) => [key, @deepClone(value)]
     else
       object
+
+  deepExtend: (objects...) ->
+    result = {}
+    for object in objects
+      for key, value of object
+        if _.isObject(value) and not _.isArray(value)
+          result[key] = @deepExtend(result[key], value)
+        else
+          result[key] ?= value
+
+    result
 
   valueForKeyPath: (object, keyPath) ->
     keys = keyPath.split('.')

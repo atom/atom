@@ -31,7 +31,6 @@ class Keymap
 
   bindDefaultKeys: ->
     $(document).command 'new-window', => atom.newWindow()
-    $(document).command 'open-user-configuration', => atom.openConfig()
     $(document).command 'open', => atom.open()
     $(document).command 'open-dev', => atom.openDev()
     $(document).command 'toggle-dev-tools', => atom.toggleDevTools()

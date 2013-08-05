@@ -32,7 +32,6 @@ class AtomApplication
     client.on 'error', createAtomApplication
 
   windows: null
-  configWindow: null
   menu: null
   resourcePath: null
   installUpdate: null
@@ -93,7 +92,7 @@ class AtomApplication
       submenu: [
         { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
         { type: 'separator' }
-        { label: 'Preferences...', accelerator: 'Command+,', click: => @openConfig() }
+        { label: 'Preferences...', accelerator: 'Command+,', click: => console.error("preferences not setup yet") }
         { type: 'separator' }
         { label: 'Hide Atom', accelerator: 'Command+H', selector: 'hide:' }
         { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
@@ -177,8 +176,10 @@ class AtomApplication
       @installUpdate = quitAndUpdate
       @buildApplicationMenu version, quitAndUpdate
 
-    ipc.on 'open-config', =>
-      @openConfig()
+    ipc.on 'close-without-confirm', (processId, routingId) ->
+      window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
+      window.removeAllListeners 'close'
+      window.close()
 
     ipc.on 'open', (processId, routingId, pathsToOpen) =>
       if pathsToOpen?.length > 0
@@ -240,17 +241,6 @@ class AtomApplication
           if error.code isnt 'ESRCH'
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
-
-  openConfig: ->
-    if @configWindow
-      @configWindow.focus()
-      return
-
-    @configWindow = new AtomWindow
-      bootstrapScript: 'config-bootstrap'
-      resourcePath: @resourcePath
-    @configWindow.browserWindow.on 'destroyed', =>
-      @configWindow = null
 
   runSpecs: ({exitWhenDone, resourcePath}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)

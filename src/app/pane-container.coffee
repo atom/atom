@@ -77,9 +77,9 @@ class PaneContainer extends View
         newPane.focus()
 
   itemDestroyed: (item) ->
-    state = item.serialize?()
-    state.uri ?= item.getUri?()
-    @destroyedItemStates.push(state) if state?
+    if state = item.serialize?()
+      state.uri ?= item.getUri?()
+      @destroyedItemStates.push(state)
 
   itemAdded: (item) ->
     itemUri = item.getUri?()
