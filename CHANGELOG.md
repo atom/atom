@@ -1,7 +1,6 @@
 * Improved: Settings GUI is now a pane item
 * Added: Support package filtering in Settings GUI
 * Added: Dynamically load all config options in the Settings GUI
-
 * Added: Ability to bookmark lines and navigate bookmarks
 * Fixed: Error when inserting newlines in CSS
 * Fixed: Folding all will fold comments as well
