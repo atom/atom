@@ -27,6 +27,8 @@ class TextMatePackage extends Package
     @metadata = {@name}
 
   load: ({sync}={}) ->
+    @metadata = Package.loadMetadata(@path, true)
+
     if sync
       @loadGrammarsSync()
       @loadScopedPropertiesSync()
