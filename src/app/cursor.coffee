@@ -230,20 +230,20 @@ class Cursor
   moveToBottom: ->
     @setBufferPosition(@editSession.getEofBufferPosition())
 
-  # Moves the cursor to the beginning of the buffer line.
+  # Moves the cursor to the beginning of the screen line.
   moveToBeginningOfLine: ->
-    @setBufferPosition([@getBufferRow(), 0])
+    @setScreenPosition([@getScreenRow(), 0])
 
   # Moves the cursor to the beginning of the first character in the line.
   moveToFirstCharacterOfLine: ->
-    position = @getBufferPosition()
-    scanRange = @getCurrentLineBufferRange()
-    newPosition = null
-    @editSession.scanInBufferRange /^\s*/, scanRange, ({range}) =>
-      newPosition = range.end
-    return unless newPosition
-    newPosition = [position.row, 0] if newPosition.isEqual(position)
-    @setBufferPosition(newPosition)
+    {row, column} = @getScreenPosition()
+    screenline = @editSession.lineForScreenRow(row)
+
+    goalColumn = screenline.text.search(/\S/)
+    return if goalColumn == -1
+
+    goalColumn = 0 if goalColumn == column
+    @setScreenPosition([row, goalColumn])
 
   # Moves the cursor to the beginning of the buffer line, skipping all whitespace.
   skipLeadingWhitespace: ->
@@ -257,7 +257,7 @@ class Cursor
 
   # Moves the cursor to the end of the buffer line.
   moveToEndOfLine: ->
-    @setBufferPosition([@getBufferRow(), Infinity])
+    @setScreenPosition([@getScreenRow(), Infinity])
 
   # Moves the cursor to the beginning of the word.
   moveToBeginningOfWord: ->
