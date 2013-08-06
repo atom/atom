@@ -433,7 +433,7 @@ describe "AutocompleteView", ->
     editor.attachToDom()
     editor.insertText('thisIsAReallyReallyReallyLongCompletion ')
     editor.moveCursorToBottom()
-    editor.insertNewline
+    editor.insertNewline()
     editor.insertText('t')
     autocomplete.attach()
     expect(autocomplete.list.prop('scrollWidth')).toBe autocomplete.list.width()
