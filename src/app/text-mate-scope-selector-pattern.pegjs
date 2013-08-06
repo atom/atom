@@ -7,7 +7,7 @@ start = _ selector:(selector) _ {
 }
 
 segment
-  = _ segment:([a-zA-Z0-9+]+[a-zA-Z0-9-+]*) _ {
+  = _ segment:([a-zA-Z0-9+_]+[a-zA-Z0-9-+_]*) _ {
     return new matchers.SegmentMatcher(segment);
   }
 
