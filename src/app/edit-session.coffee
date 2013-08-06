@@ -383,7 +383,7 @@ class EditSession
   # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
 
-  # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
+  # {Delegates to: DisplayBuffer.scopesForBufferPosition}
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}

@@ -1560,6 +1560,10 @@ class Editor extends View
   reloadGrammar: ->
     @activeEditSession.reloadGrammar()
 
+  # {Delegates to: EditSession.scopesForBufferPosition}
+  scopesForBufferPosition: (bufferPosition) ->
+    @activeEditSession.scopesForBufferPosition(bufferPosition)
+
   # Copies the current file path to the native clipboard.
   copyPathToPasteboard: ->
     path = @getPath()
