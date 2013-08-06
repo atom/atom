@@ -28,3 +28,5 @@ class TextMateScopeSelector
   # Return a {Boolean}.
   matches: (scopes) ->
     @matcher.matches(scopes)
+
+  toCssSelector: -> @matcher.toCssSelector()

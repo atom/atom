@@ -6,14 +6,19 @@ class SegmentMatcher
   constructor: (segment) ->
     @segment = _.flatten(segment).join('')
 
-  matches: (scope) ->
-    scope is @segment
+  matches: (scope) -> scope is @segment
+
+  toCssSelector: ->
+    @segment.split('.').map((dotFragment) ->
+      '.' + dotFragment.replace(/\+/g, '\\+')
+    ).join('')
 
 class TrueMatcher
   constructor: ->
 
-  matches: ->
-    true
+  matches: -> true
+
+  toCssSelector: -> '*'
 
 class ScopeMatcher
   constructor: (first, others) ->
@@ -29,6 +34,9 @@ class ScopeMatcher
 
     true
 
+  toCssSelector: ->
+    @segments.map((matcher) -> matcher.toCssSelector()).join('')
+
 class PathMatcher
   constructor: (first, others) ->
     @matchers = [first]
@@ -42,11 +50,17 @@ class PathMatcher
       return true unless matcher?
     false
 
+  toCssSelector: ->
+    @matchers.map((matcher) -> matcher.toCssSelector()).join(' ')
+
 class OrMatcher
   constructor: (@left, @right) ->
 
   matches: (scopes) ->
     @left.matches(scopes) or @right.matches(scopes)
+
+  toCssSelector: ->
+    "#{@left.toCssSelector()} #{@right.toCssSelector()}"
 
 class AndMatcher
   constructor: (@left, @right) ->
@@ -54,11 +68,17 @@ class AndMatcher
   matches: (scopes) ->
     @left.matches(scopes) and @right.matches(scopes)
 
+  toCssSelector: ->
+    "#{@left.toCssSelector()} #{@right.toCssSelector()}"
+
 class NegateMatcher
   constructor: (@left, @right) ->
 
   matches: (scopes) ->
     @left.matches(scopes) and not @right.matches(scopes)
+
+  toCssSelector: ->
+    "#{@left.toCssSelector()} :not(#{@right.toCssSelector()})"
 
 class CompositeMatcher
   constructor: (left, operator, right) ->
@@ -69,6 +89,8 @@ class CompositeMatcher
 
   matches: (scopes) ->
     @matcher.matches(scopes)
+
+  toCssSelector: -> @matcher.toCssSelector()
 
 module.exports = {
   AndMatcher
