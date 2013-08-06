@@ -30,14 +30,29 @@ group
     return selector;
   }
 
+filter
+  = prefix:([LRB]":") _ group:group {
+    return group;
+  }
+
+  / prefix:([LRB]":") _ path:path {
+    return path;
+  }
+
 expression
-  = "-" _ group:group _ {
+  = "-" _ filter:filter _ {
+    return new matchers.NegateMatcher(filter);
+  }
+
+  / "-" _ group:group _ {
     return new matchers.NegateMatcher(group);
   }
 
   / "-" _ path:path _ {
     return new matchers.NegateMatcher(path);
   }
+
+  / filter
 
   / group
 

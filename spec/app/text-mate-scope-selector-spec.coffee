@@ -21,6 +21,9 @@ describe "TextMateScopeSelector", ->
       expect(new TextMateScopeSelector('a_b_c').matches(['a_b_c'])).toBeTruthy()
       expect(new TextMateScopeSelector('a_b_c').matches(['a_b'])).toBeFalsy()
 
+    it "matches filters", ->
+      expect(new TextMateScopeSelector('R:g').matches(['g'])).toBeTruthy()
+
     it "matches disjunction", ->
       expect(new TextMateScopeSelector('a | b').matches(['b'])).toBeTruthy()
       expect(new TextMateScopeSelector('a|b|c').matches(['c'])).toBeTruthy()
