@@ -396,3 +396,21 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1,1]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1,2]).scopes).toEqual ["source.js", "storage.modifier.js"]
+
+  describe ".bufferRangeForScopeAtPosition(selector, position)", ->
+    beforeEach ->
+      buffer = project.bufferForPath('sample.js')
+      tokenizedBuffer = new TokenizedBuffer(buffer)
+      fullyTokenize(tokenizedBuffer)
+
+    describe "when the selector does not match the token at the position", ->
+      it "returns a falsy value", ->
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.bogus', [0, 1])).toBeFalsy()
+
+    describe "when the selector matches a single token at the position", ->
+      it "returns the range covered by the token", ->
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.modifier.js', [0, 1])).toEqual [[0, 0], [0, 3]]
+
+    describe "when the selector matches a run of multiple tokens at the position", ->
+      it "returns the range covered by all contigous tokens (within a single line)", ->
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.function', [1, 18])).toEqual [[1, 6], [1, 28]]
