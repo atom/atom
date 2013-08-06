@@ -42,6 +42,8 @@ describe "TextMateScopeSelector", ->
       expect(new TextMateScopeSelector('a,b,c').matches(['b', 'c'])).toBeTruthy()
       expect(new TextMateScopeSelector('a, b, c').matches(['d', 'e'])).toBeFalsy()
       expect(new TextMateScopeSelector('a, b, c').matches(['d', 'c.e'])).toBeTruthy()
+      expect(new TextMateScopeSelector('a,').matches(['a', 'c'])).toBeTruthy()
+      expect(new TextMateScopeSelector('a,').matches(['b', 'c'])).toBeFalsy()
 
     it "matches groups", ->
       expect(new TextMateScopeSelector('(a,b) | (c, d)').matches(['a'])).toBeTruthy()

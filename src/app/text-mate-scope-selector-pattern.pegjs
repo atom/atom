@@ -40,8 +40,11 @@ composite
   / expression
 
 selector
-  = left:composite _ "," _ right:selector {
-    return new matchers.OrMatcher(left, right);
+  = left:composite _ "," _ right:selector? {
+    if (right)
+      return new matchers.OrMatcher(left, right);
+    else
+      return left;
   }
 
   / composite
