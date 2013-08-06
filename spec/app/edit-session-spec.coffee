@@ -289,44 +289,72 @@ describe "EditSession", ->
         expect(editSession.getCursorBufferPosition()).toEqual [12,2]
 
     describe ".moveCursorToBeginningOfLine()", ->
-      it "moves cursor to the beginning of line", ->
-        editSession.setCursorScreenPosition [0,5]
-        editSession.addCursorAtScreenPosition [1,7]
-        editSession.moveCursorToBeginningOfLine()
-        expect(editSession.getCursors().length).toBe 2
-        [cursor1, cursor2] = editSession.getCursors()
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor2.getBufferPosition()).toEqual [1,0]
+      describe "when soft wrap is on", ->
+        it "moves cursor to the beginning of the screen line", ->
+          editSession.setSoftWrapColumn(10)
+          editSession.setCursorScreenPosition([1, 2])
+          editSession.moveCursorToBeginningOfLine()
+          cursor = editSession.getCursor()
+          expect(cursor.getScreenPosition()).toEqual [1, 0]
+
+      describe "when soft wrap is off", ->
+        it "moves cursor to the beginning of then line", ->
+          editSession.setCursorScreenPosition [0,5]
+          editSession.addCursorAtScreenPosition [1,7]
+          editSession.moveCursorToBeginningOfLine()
+          expect(editSession.getCursors().length).toBe 2
+          [cursor1, cursor2] = editSession.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [0,0]
+          expect(cursor2.getBufferPosition()).toEqual [1,0]
 
     describe ".moveCursorToEndOfLine()", ->
-      it "moves cursor to the end of line", ->
-        editSession.setCursorScreenPosition [0,0]
-        editSession.addCursorAtScreenPosition [1,0]
-        editSession.moveCursorToEndOfLine()
-        expect(editSession.getCursors().length).toBe 2
-        [cursor1, cursor2] = editSession.getCursors()
-        expect(cursor1.getBufferPosition()).toEqual [0,29]
-        expect(cursor2.getBufferPosition()).toEqual [1,30]
+      describe "when soft wrap is on", ->
+        it "moves cursor to the beginning of the screen line", ->
+          editSession.setSoftWrapColumn(10)
+          editSession.setCursorScreenPosition([1, 2])
+          editSession.moveCursorToEndOfLine()
+          cursor = editSession.getCursor()
+          expect(cursor.getScreenPosition()).toEqual [1, 9]
+
+      describe "when soft wrap is off", ->
+        it "moves cursor to the end of line", ->
+          editSession.setCursorScreenPosition [0,0]
+          editSession.addCursorAtScreenPosition [1,0]
+          editSession.moveCursorToEndOfLine()
+          expect(editSession.getCursors().length).toBe 2
+          [cursor1, cursor2] = editSession.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [0,29]
+          expect(cursor2.getBufferPosition()).toEqual [1,30]
 
     describe ".moveCursorToFirstCharacterOfLine()", ->
-      it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
-        editSession.setCursorScreenPosition [0,5]
-        editSession.addCursorAtScreenPosition [1,7]
+      describe "when soft wrap is on", ->
+        it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
+          editSession.setSoftWrapColumn(10)
+          editSession.setCursorScreenPosition [2,5]
+          editSession.addCursorAtScreenPosition [8,7]
 
-        editSession.moveCursorToFirstCharacterOfLine()
-        [cursor1, cursor2] = editSession.getCursors()
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor2.getBufferPosition()).toEqual [1,2]
-
-        editSession.moveCursorToFirstCharacterOfLine()
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor2.getBufferPosition()).toEqual [1,0]
-
-      describe "when triggered ", ->
-        it "does not move the cursor", ->
-          editSession.setCursorBufferPosition([10, 0])
           editSession.moveCursorToFirstCharacterOfLine()
-          expect(editSession.getCursorBufferPosition()).toEqual [10, 0]
+          [cursor1, cursor2] = editSession.getCursors()
+          expect(cursor1.getScreenPosition()).toEqual [2,0]
+          expect(cursor2.getScreenPosition()).toEqual [8,4]
+
+          editSession.moveCursorToFirstCharacterOfLine()
+          expect(cursor1.getScreenPosition()).toEqual [2,0]
+          expect(cursor2.getScreenPosition()).toEqual [8,0]
+
+      describe "when soft wrap is of", ->
+        it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
+          editSession.setCursorScreenPosition [0,5]
+          editSession.addCursorAtScreenPosition [1,7]
+
+          editSession.moveCursorToFirstCharacterOfLine()
+          [cursor1, cursor2] = editSession.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [0,0]
+          expect(cursor2.getBufferPosition()).toEqual [1,2]
+
+          editSession.moveCursorToFirstCharacterOfLine()
+          expect(cursor1.getBufferPosition()).toEqual [0,0]
+          expect(cursor2.getBufferPosition()).toEqual [1,0]
 
     describe ".moveCursorToBeginningOfWord()", ->
       it "moves the cursor to the beginning of the word", ->
