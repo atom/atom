@@ -1732,24 +1732,32 @@ describe "EditSession", ->
           expect(clipboard.readText()).toBe 'quicksort\nsort'
 
       describe ".cutToEndOfLine()", ->
-        describe "when nothing is selected", ->
+        describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
-            editSession.setCursorBufferPosition([2, 20])
-            editSession.addCursorAtBufferPosition([3, 20])
+            editSession.setSoftWrapColumn(10)
+            editSession.setCursorScreenPosition([2, 2])
             editSession.cutToEndOfLine()
-            expect(buffer.lineForRow(2)).toBe '    if (items.length'
-            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-            expect(pasteboard.read()[0]).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+            expect(editSession.lineForScreenRow(2).text).toBe '=  () {'
 
-        describe "when text is selected", ->
-          it "only cuts the selected text, not to the end of the line", ->
-            editSession.setSelectedBufferRanges([[[2,20], [2, 30]], [[3, 20], [3, 20]]])
+        describe "when soft wrap is off", ->
+          describe "when nothing is selected", ->
+            it "cuts up to the end of the line", ->
+              editSession.setCursorBufferPosition([2, 20])
+              editSession.addCursorAtBufferPosition([3, 20])
+              editSession.cutToEndOfLine()
+              expect(buffer.lineForRow(2)).toBe '    if (items.length'
+              expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+              expect(pasteboard.read()[0]).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
 
-            editSession.cutToEndOfLine()
+          describe "when text is selected", ->
+            it "only cuts the selected text, not to the end of the line", ->
+              editSession.setSelectedBufferRanges([[[2,20], [2, 30]], [[3, 20], [3, 20]]])
 
-            expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
-            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-            expect(pasteboard.read()[0]).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+              editSession.cutToEndOfLine()
+
+              expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
+              expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+              expect(pasteboard.read()[0]).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
