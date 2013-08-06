@@ -11,6 +11,7 @@ describe "TextMateScopeSelector", ->
   it "matches prefixes", ->
     expect(new TextMateScopeSelector('a').matches(['a'])).toBeTruthy()
     expect(new TextMateScopeSelector('a').matches(['a.b'])).toBeTruthy()
+    expect(new TextMateScopeSelector('a.b').matches(['a.b.c'])).toBeTruthy()
     expect(new TextMateScopeSelector('a').matches(['abc'])).toBeFalsy()
 
   it "matches disjunction", ->
