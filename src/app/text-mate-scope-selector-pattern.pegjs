@@ -25,15 +25,26 @@ path
     return new matchers.PathMatcher(first, others);
   }
 
-expression
-  = path
-
-  / "(" _ selector:selector _ ")" {
+group
+  = "(" _ selector:selector _ ")" {
     return selector;
   }
 
+expression
+  = "-" _ group:group _ {
+    return new matchers.NegateMatcher(group);
+  }
+
+  / "-" _ path:path _ {
+    return new matchers.NegateMatcher(path);
+  }
+
+  / group
+
+  / path
+
 composite
-  = left:expression  _ operator:[|&-] _ right:composite {
+  = left:expression _ operator:[|&-] _ right:composite {
     return new matchers.CompositeMatcher(left, operator, right);
   }
 

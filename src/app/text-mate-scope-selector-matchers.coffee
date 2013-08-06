@@ -72,20 +72,20 @@ class AndMatcher
     "#{@left.toCssSelector()} #{@right.toCssSelector()}"
 
 class NegateMatcher
-  constructor: (@left, @right) ->
+  constructor: (@matcher) ->
 
   matches: (scopes) ->
-    @left.matches(scopes) and not @right.matches(scopes)
+    not @matcher.matches(scopes)
 
   toCssSelector: ->
-    "#{@left.toCssSelector()} :not(#{@right.toCssSelector()})"
+    ":not(#{@matcher.toCssSelector()})"
 
 class CompositeMatcher
   constructor: (left, operator, right) ->
     switch operator
       when '|' then @matcher = new OrMatcher(left, right)
       when '&' then @matcher = new AndMatcher(left, right)
-      when '-' then @matcher = new NegateMatcher(left, right)
+      when '-' then @matcher = new AndMatcher(left, new NegateMatcher(right))
 
   matches: (scopes) ->
     @matcher.matches(scopes)
