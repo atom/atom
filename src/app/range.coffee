@@ -31,9 +31,9 @@ class Range
   # columnDelta - A {Number} indicating how far from the starting {Point} the range's column should be
   #
   # Returns the new {Range}.
-  @fromPointWithDelta: (point, rowDelta, columnDelta) ->
-    pointA = Point.fromObject(point)
-    pointB = new Point(point.row + rowDelta, point.column + columnDelta)
+  @fromPointWithDelta: (pointA, rowDelta, columnDelta) ->
+    pointA = Point.fromObject(pointA)
+    pointB = new Point(pointA.row + rowDelta, pointA.column + columnDelta)
     new Range(pointA, pointB)
 
   # Creates a new `Range` object based on two {Point}s.
