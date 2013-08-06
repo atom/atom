@@ -25,7 +25,7 @@
     "temp": "0.5.0",
     "rimraf": "2.1.4",
     "plist": "git://github.com/nathansobo/node-plist.git",
-    "space-pen": "1.0.0",
+    "space-pen": "1.1.0",
     "less": "git://github.com/nathansobo/less.js.git",
     "roaster": "0.0.5",
     "jqueryui-browser": "1.10.2-1",
