@@ -275,7 +275,7 @@ class Cursor
 
   # Moves the cursor to the previous word boundary.
   moveToPreviousWordBoundary: ->
-    if position = @getMovePreviousWordBoundaryBufferPosition()
+    if position = @getPreviousWordBoundaryBufferPosition()
       @setBufferPosition(position)
 
   # Moves the cursor to the next word boundary.
@@ -306,7 +306,7 @@ class Cursor
 
   # Retrieves buffer position of previous word boiundry. It might be on the
   # current word, or the previous word.
-  getMovePreviousWordBoundaryBufferPosition: (options = {}) ->
+  getPreviousWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
