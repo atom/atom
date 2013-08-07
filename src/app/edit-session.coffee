@@ -42,7 +42,7 @@ class EditSession
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
       cursorScreenPosition = @state.getObject('cursorScreenPosition')
-      project.addEditSession(this)
+      registerEditSession = true
     else
       {@buffer, tabLength, softTabs, @softWrap} = optionsOrState
       @state = telepath.Document.create
@@ -81,6 +81,8 @@ class EditSession
           @trigger 'scroll-top-changed', newValue
         when 'scrollLeft'
           @trigger 'scroll-left-changed', newValue
+
+    project.addEditSession(this) if registerEditSession
 
   getViewClass: ->
     require 'editor'
