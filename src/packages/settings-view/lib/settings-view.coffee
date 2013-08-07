@@ -32,7 +32,7 @@ class SettingsView extends ScrollView
     @div id: 'settings-view', tabindex: -1, =>
       @div id: 'config-menu', =>
         @ul id: 'panels-menu', class: 'nav nav-pills nav-stacked', outlet: 'panelMenu'
-        @button "open .atom", id: 'open-dot-atom', class: 'btn btn-default btn-small'
+        @button "Open ~/.atom", id: 'open-dot-atom', class: 'btn btn-default btn-small'
       @div id: 'panels', outlet: 'panels'
 
   activePanelName: null
