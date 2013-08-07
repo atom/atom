@@ -10,10 +10,10 @@ fs = require 'fs'
 YAML = require 'js-yaml'
 
 scriptPath = process.argv[1]
-pathToOcticons = process.argv[2]
+pathToOcticons = process.argv[2] ? path.join(process.env.HOME, 'github', 'octicons')
 atomDir = path.resolve(scriptPath, "../../..")
 
-unless pathToOcticons
+unless fs.existsSync(pathToOcticons)
   console.error(usage)
   process.exit(1)
 
