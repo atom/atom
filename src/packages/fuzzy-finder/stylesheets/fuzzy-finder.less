@@ -1,3 +1,5 @@
+@import "octicon-utf-codes.less";
+
 .fuzzy-finder {
 
   &.select-list li {
@@ -20,16 +22,16 @@
     color: #9d9d9d;
     float: right;
 
-    &new:before {
+    &.new:before {
       position: relative;
       top: 3px;
-      content: "\f06b";
+      content: @diff-added;
     }
 
-    &:before {
+    &.modified:before {
       position: relative;
       top: 3px;
-      content: "\f06d";
+      content: @diff-modified;
     }
   }
 
@@ -46,27 +48,27 @@
     }
 
     &.text-name:before {
-      content: "\f011";
+      content: @file-text;
     }
 
     &.image-name:before {
-      content: "\f012";
+      content: @file-media;
     }
 
     &.compressed-name:before {
-      content: "\f013";
+      content: @file-zip;
     }
 
     &.pdf-name:before {
-      content: "\f014";
+      content: @file-pdf;
     }
 
     &.readme-name:before {
-      content: "\f007";
+      content: @book;
     }
 
     &.binary-name:before {
-      content: "\f094";
+      content: @file-binary;
     }
   }
 }
