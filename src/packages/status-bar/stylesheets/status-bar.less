@@ -1,3 +1,5 @@
+@import "octicon-utf-codes.less";
+
 .status-bar {
   padding: 5px 10px;
   font-size: 11px;
@@ -49,19 +51,19 @@
 }
 
 .status-bar .branch-icon:before {
-  content: "\f020";
+  content: @git-branch;
 }
 
 .status-bar .modified-status-icon:before {
-  content: "\f26d";
+  content: @diff-modified;
 }
 
 .status-bar .new-status-icon:before {
-  content: "\f26b";
+  content: @diff-added;
 }
 
 .status-bar .ignored-status-icon:before {
-  content: "\f099";
+  content: @diff-ignored;
   margin-right: 0;
 }
 
@@ -69,12 +71,12 @@
   margin-top: -3px;
   margin-left: 3px;
   margin-right: 1px;
-  content: "\f03f";
+  content: @arrow-down;
 }
 
 .status-bar .commits-ahead-label:before {
   margin-top: -3px;
   margin-left: 3px;
   margin-right: 1px;
-  content: "\f03d";
+  content: @arrow-up;
 }
