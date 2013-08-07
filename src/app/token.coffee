@@ -109,6 +109,12 @@ class Token
   isOnlyWhitespace: ->
     not /\S/.test(@value)
 
+  matchesScopeSelector: (selector) ->
+    targetClasses = selector.replace(/^\.?/, '').split('.')
+    _.any @scopes, (scope) ->
+      scopeClasses = scope.split('.')
+      _.isSubset(targetClasses, scopeClasses)
+
   getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace, hasIndentGuide})->
     invisibles ?= {}
     html = @value

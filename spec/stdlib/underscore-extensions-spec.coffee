@@ -107,3 +107,11 @@ describe "underscore extensions", ->
           object:
             first: 1
             second: 2
+
+  describe "_.isSubset(potentialSubset, potentialSuperset)", ->
+    it "returns whether the first argument is a subset of the second", ->
+      expect(_.isSubset([1, 2], [1, 2])).toBeTruthy()
+      expect(_.isSubset([1, 2], [1, 2, 3])).toBeTruthy()
+      expect(_.isSubset([], [1])).toBeTruthy()
+      expect(_.isSubset([], [])).toBeTruthy()
+      expect(_.isSubset([1, 2], [2, 3])).toBeFalsy()

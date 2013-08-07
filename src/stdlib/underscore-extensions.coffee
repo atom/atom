@@ -195,4 +195,7 @@ _.mixin
       newObject[key] = value if value?
     newObject
 
+  isSubset: (potentialSubset, potentialSuperset) ->
+    _.every potentialSubset, (element) -> _.include(potentialSuperset, element)
+
 _.isEqual = require 'tantamount'
