@@ -90,11 +90,22 @@ class TokenizedLine
     @lineEnding is null
 
   tokenAtBufferColumn: (bufferColumn) ->
+    @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
+
+  tokenIndexAtBufferColumn: (bufferColumn) ->
+    delta = 0
+    for token, index in @tokens
+      delta += token.bufferDelta
+      return index if delta > bufferColumn
+    index - 1
+
+  tokenStartColumnForBufferColumn: (bufferColumn) ->
     delta = 0
     for token in @tokens
-      delta += token.bufferDelta
-      return token if delta > bufferColumn
-    token
+      nextDelta = delta + token.bufferDelta
+      break if nextDelta > bufferColumn
+      delta = nextDelta
+    delta
 
   breakOutAtomicTokens: (inputTokens, tabLength) ->
     outputTokens = []
@@ -112,3 +123,15 @@ class TokenizedLine
         return true if _.contains(scope.split('.'), 'comment')
       break
     false
+
+  tokenAtIndex: (index) ->
+    @tokens[index]
+
+  getTokenCount: ->
+    @tokens.length
+
+  bufferColumnForToken: (targetToken) ->
+    column = 0
+    for token in @tokens
+      return column if token is targetToken
+      column += token.bufferDelta

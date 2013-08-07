@@ -388,6 +388,9 @@ class EditSession
   # {Delegates to: DisplayBuffer.scopesForBufferPosition}
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
 
+  bufferRangeForScopeAtCursor: (selector) ->
+    @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
+
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
@@ -1041,6 +1044,8 @@ class EditSession
   # Returns a {String} of the combined lines.
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
+
+  setTextInBufferRange: (range, text) -> @getBuffer().change(range, text)
 
   # Retrieves the range for the current paragraph.
   #
