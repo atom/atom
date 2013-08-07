@@ -24,8 +24,8 @@ class Installer extends Command
     @atomDirectory = config.getAtomDirectory()
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
-    @atomNpmPath = require.resolve('.bin/npm')
-    @atomNodeGypPath = require.resolve('.bin/node-gyp')
+    @atomNpmPath = require.resolve('npm/bin/npm-cli')
+    @atomNodeGypPath = require.resolve('node-gyp/bin/node-gyp')
 
   installNode: (callback) =>
     process.stdout.write "Installing node@#{config.getNodeVersion()} "
@@ -37,7 +37,7 @@ class Installer extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
     mkdir(@atomDirectory)
-    @spawn @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='') ->
+    @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='') ->
       if code is 0
         process.stdout.write '\u2713\n'.green
         callback()
@@ -58,7 +58,7 @@ class Installer extends Command
     installDirectory = temp.mkdirSync('apm-install-dir-')
     nodeModulesDirectory = path.join(installDirectory, 'node_modules')
     mkdir(nodeModulesDirectory)
-    @spawn @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code, stderr='') =>
+    @fork @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code, stderr='') =>
       if code is 0
         for child in fs.readdirSync(nodeModulesDirectory)
           cp(path.join(nodeModulesDirectory, child), path.join(@atomPackagesDirectory, child), forceDelete: true)
@@ -79,7 +79,7 @@ class Installer extends Command
     installArgs.push('--silent') if options.argv.silent
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
-    @spawn @atomNpmPath, installArgs, {env}, (code) ->
+    @fork @atomNpmPath, installArgs, {env}, (code) ->
       if code is 0
         callback()
       else

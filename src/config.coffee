@@ -1,8 +1,11 @@
 path = require 'path'
 
 module.exports =
+  getHomeDirectory: ->
+    if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
+
   getAtomDirectory: ->
-    process.env.ATOM_HOME ? path.join(process.env.HOME, '.atom')
+    process.env.ATOM_HOME ? path.join(@getHomeDirectory(), '.atom')
 
   getResourcePath: ->
     process.env.ATOM_RESOURCE_PATH ? '/Applications/Atom.app/Contents/Resources/app'
