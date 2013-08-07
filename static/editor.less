@@ -12,17 +12,6 @@
   line-height: 1.3;
 }
 
-.editor.mini {
-  height: auto;
-  line-height: 25px;
-}
-
-.editor.mini .cursor {
-  width: 2px;
-  line-height: 20px;
-  margin-top: 2px;
-}
-
 .editor .gutter .line-number.cursor-line {
   opacity: 1;
 }
@@ -52,10 +41,6 @@
 
 .editor .gutter .line-number.fold:after {
   visibility: visible;
-}
-
-.editor.mini .gutter {
-  display: none;
 }
 
 .editor .gutter .line-number:after {
@@ -109,10 +94,6 @@
   -webkit-flex: 1;
   min-width: 0;
   position: relative;
-}
-
-.editor.mini .scroll-view {
-  overflow: hidden;
 }
 
 .editor.soft-wrap .scroll-view {
@@ -176,4 +157,23 @@
   position: absolute;
   pointer-events: none;
   z-index: -1;
+}
+
+.editor.mini {
+  height: auto;
+  line-height: 25px;
+
+  .cursor {
+    width: 2px;
+    line-height: 20px;
+    margin-top: 2px;
+  }
+
+  .gutter {
+    display: none;
+  }
+
+  .scroll-view {
+    overflow: hidden;
+  }
 }
