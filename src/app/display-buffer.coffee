@@ -282,6 +282,9 @@ class DisplayBuffer
   scopesForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopesForPosition(bufferPosition)
 
+  bufferRangeForScopeAtPosition: (selector, position) ->
+    @tokenizedBuffer.bufferRangeForScopeAtPosition(selector, position)
+
   # Retrieves the grammar's token for a buffer position.
   #
   # bufferPosition - A {Point} in the {Buffer}.
