@@ -29,7 +29,7 @@ class ThemeConfigPanel extends View
 
   constructor: ->
     super
-    for name in atom.getAvailableThemeNames()
+    for name in atom.themes.getAvailableNames()
       @availableThemes.append(@buildThemeLi(name, draggable: true))
 
     @observeConfig "core.themes", (enabledThemes) =>

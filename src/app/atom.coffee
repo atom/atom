@@ -2,19 +2,19 @@ fsUtils = require 'fs-utils'
 $ = require 'jquery'
 _ = require 'underscore'
 Package = require 'package'
-Theme = require 'theme'
 ipc = require 'ipc'
 remote = require 'remote'
 crypto = require 'crypto'
 path = require 'path'
 dialog = remote.require 'dialog'
 telepath = require 'telepath'
+ThemeManager = require 'theme-manager'
 
 window.atom =
-  loadedThemes: []
   loadedPackages: {}
   activePackages: {}
   packageStates: {}
+  themes: new ThemeManager()
 
   getLoadSettings: ->
     remote.getCurrentWindow().loadSettings
@@ -125,34 +125,6 @@ window.atom =
       metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
-
-  loadThemes: ->
-    themeNames = config.get("core.themes")
-    themeNames = [themeNames] unless _.isArray(themeNames)
-    @loadTheme(themeName) for themeName in themeNames
-    @loadUserStylesheet()
-
-  getAvailableThemePaths: ->
-    themePaths = []
-    for themeDirPath in config.themeDirPaths
-      themePaths.push(fsUtils.listSync(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
-    _.uniq(themePaths)
-
-  getAvailableThemeNames: ->
-    path.basename(themePath).split('.')[0] for themePath in @getAvailableThemePaths()
-
-  loadTheme: (name) ->
-    @loadedThemes.push Theme.load(name)
-
-  loadUserStylesheet: ->
-    userStylesheetPath = fsUtils.resolve(path.join(config.configDirPath, 'user'), ['css', 'less'])
-    if fsUtils.isFileSync(userStylesheetPath)
-      userStyleesheetContents = loadStylesheet(userStylesheetPath)
-      applyStylesheet(userStylesheetPath, userStyleesheetContents, 'userTheme')
-
-  getAtomThemeStylesheets: ->
-    themeNames = config.get("core.themes") ? ['atom-dark-ui', 'atom-dark-syntax']
-    themeNames = [themeNames] unless _.isArray(themeNames)
 
   open: (url...) ->
     ipc.sendChannel('open', [url...])

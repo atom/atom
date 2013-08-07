@@ -4,17 +4,17 @@ fsUtils = require 'fs-utils'
 
 module.exports =
 class Theme
-  @stylesheets: null
+  @resolve: (name) ->
+    if fsUtils.exists(name)
+      name
+    else
+      fsUtils.resolve(config.themeDirPaths..., name, ['', '.tmTheme', '.css', 'less'])
 
   @load: (name) ->
     TextMateTheme = require 'text-mate-theme'
     AtomTheme = require 'atom-theme'
 
-    if fsUtils.exists(name)
-      path = name
-    else
-      path = fsUtils.resolve(config.themeDirPaths..., name, ['', '.tmTheme', '.css', 'less'])
-
+    path = Theme.resolve(name)
     throw new Error("No theme exists named '#{name}'") unless path
 
     theme =

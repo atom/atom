@@ -50,7 +50,7 @@ window.startEditorWindow = ->
   restoreDimensions()
   config.load()
   keymap.loadBundledKeymaps()
-  atom.loadThemes()
+  atom.themes.load()
   atom.loadPackages()
   deserializeEditorWindow()
   atom.activatePackages()
