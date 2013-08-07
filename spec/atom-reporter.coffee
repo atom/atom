@@ -21,7 +21,10 @@ class AtomReporter extends View
     @div id: 'HTMLReporter', class: 'jasmine_reporter', =>
       @div outlet: 'specPopup', class: "spec-popup"
       @div outlet: "suites"
-      @ul outlet: "symbolSummary", class: 'symbolSummary list-unstyled'
+      @div outlet: 'coreHeader', class: 'symbolHeader'
+      @ul outlet: 'coreSummary', class: 'symbolSummary list-unstyled'
+      @div outlet: 'packagesHeader', class: 'symbolHeader'
+      @ul outlet: 'packagesSummary', class: 'symbolSummary list-unstyled'
       @div outlet: "status", class: 'status', =>
         @div outlet: "time", class: 'time'
         @div outlet: "specCount", class: 'spec-count'
@@ -118,9 +121,19 @@ class AtomReporter extends View
     @time.text "#{time[0...-2]}.#{time[-2..]}s"
 
   addSpecs: (specs) ->
+    coreSpecs = 0
+    packageSpecs = 0
     for spec in specs
       symbol = $$ -> @li class: "spec-summary pending spec-summary-#{spec.id}"
-      @symbolSummary.append symbol
+      if spec.coreSpec
+        coreSpecs++
+        @coreSummary.append symbol
+      else
+        packageSpecs++
+        @packagesSummary.append symbol
+
+    @coreHeader.text("Core Specs (#{coreSpecs}):")
+    @packagesHeader.text("Package Specs (#{packageSpecs}):")
 
   specStarted: (spec) ->
     @runningSpecCount++

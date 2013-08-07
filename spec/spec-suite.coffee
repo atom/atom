@@ -9,6 +9,8 @@ measure 'spec suite require time', ->
   for specPath in fsUtils.listTreeSync(fsUtils.resolveOnLoadPath("spec")) when /-spec\.coffee$/.test specPath
     require specPath
 
+  spec.coreSpec = true for spec in jasmine.getEnv().currentRunner().specs()
+
   # Run extension specs
   for packageDirPath in config.packageDirPaths
     for packagePath in fsUtils.listSync(packageDirPath)
