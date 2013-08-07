@@ -1042,6 +1042,8 @@ class EditSession
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
 
+  setTextInBufferRange: (range, text) -> @getBuffer().change(range, text)
+
   # Retrieves the range for the current paragraph.
   #
   # A paragraph is defined as a block of text surrounded by empty lines.
