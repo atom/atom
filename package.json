@@ -80,7 +80,8 @@
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-contrib-less": "~0.6.4",
     "jasmine-focused": "~0.7.0",
-    "walkdir": "0.0.7"
+    "walkdir": "0.0.7",
+    "js-yaml": "~2.1.0"
   },
   "private": true,
   "scripts": {
