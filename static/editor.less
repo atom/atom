@@ -1,3 +1,5 @@
+@import "octicon-utf-codes.less";
+
 .editor {
   overflow: hidden;
   cursor: text;
@@ -57,7 +59,7 @@
 
 .editor .gutter .line-number:after {
   font-size: 0.8em;
-  content: '\f078';
+  content: @chevron-right;
   font-family: 'Octicons Regular';
   -webkit-font-smoothing: antialiased;
   opacity: .8;
@@ -66,7 +68,7 @@
 
 .editor .fold-marker:after {
   font-size: .8em;
-  content: '\f09a';
+  content: @ellipsis;
   opacity: .8;
   padding-left: .2em;
   font-family: 'Octicons Regular';

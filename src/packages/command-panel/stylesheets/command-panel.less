@@ -1,3 +1,5 @@
+@import "octicon-utf-codes.less";
+
 .command-panel {
   position: relative;
   padding: 0;
@@ -22,7 +24,7 @@
         height: 1.1em;
         margin-right: 5px;
         -webkit-font-smoothing: antialiased;
-        content: '\f09e';
+        content: @hourglass;
       }
     }
   }
@@ -54,13 +56,13 @@
       margin-right: 5px;
       margin-left: 5px;
       -webkit-font-smoothing: antialiased;
-      content: "\f05b";
+      content: @triangle-down;
       position: relative;
       top: 0;
     }
 
     .is-collapsed .path-details:before {
-      content: "\f05a";
+      content: @triangle-right;
     }
 
     .path-name:before {
@@ -70,13 +72,13 @@
       height: 16px;
       margin-right: 5px;
       -webkit-font-smoothing: antialiased;
-      content: "\f011";
+      content: @file-text;
       position: relative;
       top: 1px;
     }
 
     .path.readme .path-name:before {
-      content: "\f007";
+      content: @book;
     }
 
     .operation {
