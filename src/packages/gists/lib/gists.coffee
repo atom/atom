@@ -28,7 +28,7 @@ class Gists
         pasteboard.write(response.html_url)
         notification = $$ ->
           @div class: 'notification', =>
-            @span class: 'icon icon-gist mega-icon'
+            @span class: 'icon icon-gist mega-octicon'
             @div class: 'content', =>
               @h3 "Gist #{response.id} created", class: 'title'
               @p "The url is on your clipboard", class: 'message'

@@ -84,26 +84,26 @@
 
   .directory > .header {
     .disclosure-arrow {
-      .mini-icon(arr-collapsed, @disclosure-arrow-size);
+      .octicon(triangle-right, @disclosure-arrow-size);
       position: relative;
     }
-    .directory-icon { .mini-icon(directory); }
-    .repository-icon { .mini-icon(public-repo); }
-    .submodule-icon { .mini-icon(submodule); }
+    .directory-icon { .octicon(file-directory); }
+    .repository-icon { .octicon(repo); }
+    .submodule-icon { .octicon(file-submodule); }
   }
 
   .directory.expanded > .header {
-    .disclosure-arrow { .mini-icon(arr-expanded, @disclosure-arrow-size); }
+    .disclosure-arrow { .octicon(triangle-down, @disclosure-arrow-size); }
   }
 
   .file {
-    .text-icon { .mini-icon(text-file); }
-    .image-icon { .mini-icon(download-media); }
-    .compressed-icon { .mini-icon(download-zip); }
-    .pdf-icon { .mini-icon(download-pdf); }
-    .readme-icon { .mini-icon(readme); }
-    .binary-icon { .mini-icon(binary-file); }
-    .symlink-icon { .mini-icon(symlink); }
+    .text-icon { .octicon(file-text); }
+    .image-icon { .octicon(file-media); }
+    .compressed-icon { .octicon(file-zip); }
+    .pdf-icon { .octicon(file-pdf); }
+    .readme-icon { .octicon(book); }
+    .binary-icon { .octicon(file-binary); }
+    .symlink-icon { .octicon(file-symlink-file); }
   }
 }
 
@@ -121,8 +121,8 @@
     font-size: 12px;
     line-height: 16px;
     &:before { margin-right: @line-height-base / 4; }
-    &.add-file { .mini-icon(new-file); }
-    &.add-directory { .mini-icon(create-directory); }
-    &.prompt.move { .mini-icon(arr-right); }
+    &.add-file { .octicon(file-add); }
+    &.add-directory { .octicon(file-directory-create); }
+    &.prompt.move { .octicon(arrow-right); }
   }
 }

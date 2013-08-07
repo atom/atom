@@ -15,16 +15,16 @@
   height: @size;
 }
 
-.mini-icon(@name, @size: 16px) {
-  @import "mini-octicon-utf-codes.less";
+.octicon(@name, @size: 16px) {
+  @import "octicon-utf-codes.less";
   &:before {
     .icon(@size);
     content: @@name
   }
 }
 
-.mega-icon(@name, @size: 32px) {
-  @import "mega-octicon-utf-codes.less";
+.mega-octicon(@name, @size: 32px) {
+  @import "octicon-utf-codes.less";
   &:before {
     .icon(@size);
     content: @@name
