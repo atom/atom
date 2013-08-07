@@ -1,5 +1,6 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
+_ = require 'underscore'
 Range = require 'range'
 SelectList = require 'select-list'
 
@@ -59,10 +60,17 @@ class AutocompleteView extends SelectList
 
     false
 
+  getCompletionsForCursorScope: ->
+    cursorScope = @editor.scopesForBufferPosition(@editor.getCursorBufferPosition())
+    completions = syntax.propertiesForScope(cursorScope, 'editor.completions')
+    completions = completions.map (properties) -> _.valueForKeyPath(properties, 'editor.completions')
+    _.uniq(_.flatten(completions))
+
   buildWordList: ->
     wordHash = {}
     matches = @currentBuffer.getText().match(@wordRegex)
-    wordHash[word] ?= true for word in (matches or [])
+    wordHash[word] ?= true for word in matches ? []
+    wordHash[word] ?= true for word in @getCompletionsForCursorScope()
 
     @wordList = Object.keys(wordHash).sort (word1, word2) ->
       word1 = word1.toLowerCase()

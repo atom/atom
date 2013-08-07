@@ -65,7 +65,11 @@ class AndMatcher
 
   matches: (scopes) -> @left.matches(scopes) and @right.matches(scopes)
 
-  toCssSelector: -> "#{@left.toCssSelector()} #{@right.toCssSelector()}"
+  toCssSelector: ->
+    if @right instanceof NegateMatcher
+      "#{@left.toCssSelector()}#{@right.toCssSelector()}"
+    else
+      "#{@left.toCssSelector()} #{@right.toCssSelector()}"
 
 class NegateMatcher
   constructor: (@matcher) ->

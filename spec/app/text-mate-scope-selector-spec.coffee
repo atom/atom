@@ -31,6 +31,7 @@ describe "TextMateScopeSelector", ->
 
     it "matches negation", ->
       expect(new TextMateScopeSelector('a - c').matches(['a', 'b'])).toBeTruthy()
+      expect(new TextMateScopeSelector('a - c').matches(['a'])).toBeTruthy()
       expect(new TextMateScopeSelector('-c').matches(['b'])).toBeTruthy()
       expect(new TextMateScopeSelector('-c').matches(['c', 'b'])).toBeFalsy()
       expect(new TextMateScopeSelector('a-b').matches(['a', 'b'])).toBeFalsy()
@@ -70,7 +71,8 @@ describe "TextMateScopeSelector", ->
       expect(new TextMateScopeSelector('a b c').toCssSelector()).toBe '.a .b .c'
       expect(new TextMateScopeSelector('a.b.c').toCssSelector()).toBe '.a.b.c'
       expect(new TextMateScopeSelector('*').toCssSelector()).toBe '*'
-      expect(new TextMateScopeSelector('a - b').toCssSelector()).toBe '.a :not(.b)'
+      expect(new TextMateScopeSelector('a - b').toCssSelector()).toBe '.a:not(.b)'
       expect(new TextMateScopeSelector('a & b').toCssSelector()).toBe '.a .b'
+      expect(new TextMateScopeSelector('a & -b').toCssSelector()).toBe '.a:not(.b)'
       expect(new TextMateScopeSelector('a | b').toCssSelector()).toBe '.a .b'
-      expect(new TextMateScopeSelector('a - (b.c d)').toCssSelector()).toBe '.a :not(.b.c .d)'
+      expect(new TextMateScopeSelector('a - (b.c d)').toCssSelector()).toBe '.a:not(.b.c .d)'

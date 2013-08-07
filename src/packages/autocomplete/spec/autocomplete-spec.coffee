@@ -437,3 +437,20 @@ describe "AutocompleteView", ->
     editor.insertText('t')
     autocomplete.attach()
     expect(autocomplete.list.prop('scrollWidth')).toBe autocomplete.list.width()
+
+  it "includes completions for the scope's completion preferences", ->
+    atom.activatePackage('css-tmbundle', sync: true)
+    cssEditor = new Editor(editSession: project.open('css.css'))
+    autocomplete = new AutocompleteView(cssEditor)
+
+    cssEditor.attachToDom()
+    cssEditor.moveCursorToEndOfLine()
+    cssEditor.insertText(' out')
+    cssEditor.moveCursorToEndOfLine()
+
+    autocomplete.attach()
+    expect(autocomplete.list.find('li').length).toBe 4
+    expect(autocomplete.list.find('li:eq(0)')).toHaveText 'outline'
+    expect(autocomplete.list.find('li:eq(1)')).toHaveText 'outline-color'
+    expect(autocomplete.list.find('li:eq(2)')).toHaveText 'outline-style'
+    expect(autocomplete.list.find('li:eq(3)')).toHaveText 'outline-width'

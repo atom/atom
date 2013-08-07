@@ -1,3 +1,4 @@
+* Improved: Autocomplete now includes CSS property names and values
 * Improved: Settings GUI is now a pane item
 * Added: Support package filtering in Settings GUI
 * Added: Dynamically load all config options in the Settings GUI
