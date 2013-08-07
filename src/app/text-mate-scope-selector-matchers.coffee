@@ -56,29 +56,23 @@ class PathMatcher
 class OrMatcher
   constructor: (@left, @right) ->
 
-  matches: (scopes) ->
-    @left.matches(scopes) or @right.matches(scopes)
+  matches: (scopes) -> @left.matches(scopes) or @right.matches(scopes)
 
-  toCssSelector: ->
-    "#{@left.toCssSelector()} #{@right.toCssSelector()}"
+  toCssSelector: -> "#{@left.toCssSelector()} #{@right.toCssSelector()}"
 
 class AndMatcher
   constructor: (@left, @right) ->
 
-  matches: (scopes) ->
-    @left.matches(scopes) and @right.matches(scopes)
+  matches: (scopes) -> @left.matches(scopes) and @right.matches(scopes)
 
-  toCssSelector: ->
-    "#{@left.toCssSelector()} #{@right.toCssSelector()}"
+  toCssSelector: -> "#{@left.toCssSelector()} #{@right.toCssSelector()}"
 
 class NegateMatcher
   constructor: (@matcher) ->
 
-  matches: (scopes) ->
-    not @matcher.matches(scopes)
+  matches: (scopes) -> not @matcher.matches(scopes)
 
-  toCssSelector: ->
-    ":not(#{@matcher.toCssSelector()})"
+  toCssSelector: -> ":not(#{@matcher.toCssSelector()})"
 
 class CompositeMatcher
   constructor: (left, operator, right) ->
@@ -87,8 +81,7 @@ class CompositeMatcher
       when '&' then @matcher = new AndMatcher(left, right)
       when '-' then @matcher = new AndMatcher(left, new NegateMatcher(right))
 
-  matches: (scopes) ->
-    @matcher.matches(scopes)
+  matches: (scopes) -> @matcher.matches(scopes)
 
   toCssSelector: -> @matcher.toCssSelector()
 
