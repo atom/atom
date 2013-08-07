@@ -110,6 +110,10 @@ module.exports =
 
   enableSnippetsInEditor: (editor) ->
     editor.command 'snippets:expand', (e) =>
+      unless editor.getSelection().isEmpty()
+        e.abortKeyBinding()
+        return
+
       editSession = editor.activeEditSession
       prefix = editSession.getCursor().getCurrentWordPrefix()
       if snippet = syntax.getProperty(editSession.getCursorScopes(), "snippets.#{prefix}")
