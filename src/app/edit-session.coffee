@@ -36,13 +36,13 @@ class EditSession
 
   constructor: (optionsOrState) ->
     if optionsOrState instanceof telepath.Document
-      project.editSessions.push(this)
       @state = optionsOrState
       {tabLength, softTabs, @softWrap} = @state.toObject()
       @buffer = deserialize(@state.get('buffer'))
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
       cursorScreenPosition = @state.getObject('cursorScreenPosition')
+      project.addEditSession(this)
     else
       {@buffer, tabLength, softTabs, @softWrap} = optionsOrState
       @state = telepath.Document.create

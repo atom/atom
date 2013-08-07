@@ -179,6 +179,10 @@ class Project
   getEditSessions: ->
     new Array(@editSessions...)
 
+  addEditSession: (editSession) ->
+    @editSessions.push editSession
+    @trigger 'edit-session-created', editSession
+
   ### Public ###
 
   # Removes an {EditSession} association from the project.
@@ -297,8 +301,7 @@ class Project
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
     options.buffer = buffer
     editSession = new EditSession(options)
-    @editSessions.push editSession
-    @trigger 'edit-session-created', editSession
+    @addEditSession(editSession)
     editSession
 
   defaultEditSessionOptions: ->

@@ -1,3 +1,4 @@
+* Fixed: Wrap in quotes/parens now works in split panes
 * Improved: Autocomplete now includes CSS property names and values
 * Improved: Settings GUI is now a pane item
 * Added: Support package filtering in Settings GUI
