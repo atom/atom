@@ -14,12 +14,12 @@ describe "ThemeManager", ->
 
       config.set('core.themes', ['atom-dark-syntax'])
       expect($('style.userTheme').length).toBe 1
-      expect($('style.userTheme:eq(0)').attr('id')).toBe Theme.resolve('atom-dark-syntax')
+      expect($('style.userTheme:eq(0)').attr('id')).toMatch /atom-dark-syntax.less$/
 
       config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
       expect($('style.userTheme').length).toBe 2
-      expect($('style.userTheme:eq(0)').attr('id')).toBe Theme.resolve('atom-light-syntax')
-      expect($('style.userTheme:eq(1)').attr('id')).toBe Theme.resolve('atom-dark-syntax')
+      expect($('style.userTheme:eq(0)').attr('id')).toMatch /atom-light-syntax.less$/
+      expect($('style.userTheme:eq(1)').attr('id')).toMatch /atom-dark-syntax.less$/
 
       config.set('core.themes', [])
       expect($('style.userTheme').length).toBe 0

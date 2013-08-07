@@ -79,6 +79,8 @@ class AtomApplication
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
   checkForUpdates: ->
+    autoUpdater.on 'will-install-update-raw', console.log 'will-install-update-raw'
+    autoUpdater.on 'ready-for-update-on-quit-raw', console.log 'ready-for-update-on-quit-raw'
     return if /\w{7}/.test @version # Don't check for updates if version is a short sha
 
     autoUpdater.setAutomaticallyDownloadsUpdates true

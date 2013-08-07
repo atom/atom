@@ -13,7 +13,7 @@ class ThemeManager
   getAvailablePaths: ->
     themePaths = []
     for themeDirPath in config.themeDirPaths
-      themePaths.push(fsUtils.listSync(themeDirPath, ['', '.tmTheme', '.css', 'less'])...)
+      themePaths.push(fsUtils.listSync(themeDirPath, ['', '.css', 'less'])...)
     _.uniq(themePaths)
 
   getAvailableNames: ->
@@ -27,7 +27,7 @@ class ThemeManager
       @loadTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
 
-  loadTheme: (name) -> @loadedThemes.push(Theme.load(name))
+  loadTheme: (name) -> @loadedThemes.push(new Theme(name))
 
   getUserStylesheetPath: ->
     stylesheetPath = fsUtils.resolve(path.join(config.configDirPath, 'user'), ['css', 'less'])
