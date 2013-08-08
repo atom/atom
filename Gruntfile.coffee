@@ -77,6 +77,7 @@ module.exports = (grunt) ->
         'box-sizing': false
         'bulletproof-font-face': false
         'compatible-vendor-prefixes': false
+        'display-property-grouping': false
         'fallback-colors': false
         'font-sizes': false
         'gradients': false
