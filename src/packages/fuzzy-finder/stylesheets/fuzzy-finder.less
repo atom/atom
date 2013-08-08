@@ -1,4 +1,5 @@
 @import "octicon-utf-codes.less";
+@import "octicon-mixins.less";
 
 .fuzzy-finder {
 
@@ -13,12 +14,8 @@
   }
 
   .status {
-    font-family: 'Octicons Regular';
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    .icon(16px);
     margin-left: 5px;
-    -webkit-font-smoothing: antialiased;
     color: #9d9d9d;
     float: right;
 
@@ -37,13 +34,9 @@
 
   .file {
     &:before {
-      font-family: 'Octicons Regular';
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
+      .icon(16px);
       margin-right: 5px;
       margin-left: 5px;
-      -webkit-font-smoothing: antialiased;
       color: #9d9d9d;
     }
 
