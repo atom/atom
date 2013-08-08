@@ -79,11 +79,15 @@ class AtomApplication
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
   checkForUpdates: ->
-    return if /\w{7}/.test @version # Don't check for updates if version is a short sha
+    versionIsSha = /\w{7}/.test @version
 
-    autoUpdater.setAutomaticallyDownloadsUpdates true
-    autoUpdater.setAutomaticallyChecksForUpdates true
-    autoUpdater.checkForUpdatesInBackground()
+    if versionIsSha
+      autoUpdater.setAutomaticallyDownloadsUpdates false
+      autoUpdater.setAutomaticallyChecksForUpdates false
+    else
+      autoUpdater.setAutomaticallyDownloadsUpdates true
+      autoUpdater.setAutomaticallyChecksForUpdates true
+      autoUpdater.checkForUpdatesInBackground()
 
   buildApplicationMenu: (version, continueUpdate) ->
     menus = []
