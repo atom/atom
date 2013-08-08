@@ -96,6 +96,8 @@ class GeneralPanel extends View
 ###
 
 appendSetting = (namespace, name, value) ->
+  return if namespace is 'core' and name is 'themes' # Handled in the Themes panel
+
   @div class: 'control-group', =>
     @div class: 'controls', =>
       if _.isBoolean(value)
