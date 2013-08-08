@@ -1499,7 +1499,7 @@ class Editor extends View
     range = document.createRange()
     range.setEnd(textNode, offset)
     range.collapse()
-    leftPixels = range.getClientRects()[0].left - @scrollView.offset().left + @scrollLeft()
+    leftPixels = range.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
     range.detach()
     leftPixels
 
