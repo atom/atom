@@ -11,7 +11,6 @@ configDirPath = fsUtils.absolute("~/.atom")
 bundledPackagesDirPath = path.join(resourcePath, "src/packages")
 nodeModulesDirPath = path.join(resourcePath, "node_modules")
 bundledThemesDirPath = path.join(resourcePath, "themes")
-vendoredPackagesDirPath = path.join(resourcePath, "vendor/packages")
 userThemesDirPath = path.join(configDirPath, "themes")
 userPackagesDirPath = path.join(configDirPath, "packages")
 userStoragePath = path.join(configDirPath, ".storage")
@@ -24,8 +23,8 @@ module.exports =
 class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
-  bundledPackageDirPaths: [vendoredPackagesDirPath, bundledPackagesDirPath, nodeModulesDirPath]
-  packageDirPaths: [userPackagesDirPath, vendoredPackagesDirPath, bundledPackagesDirPath]
+  bundledPackageDirPaths: [bundledPackagesDirPath, nodeModulesDirPath]
+  packageDirPaths: [userPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
   userStoragePath: userStoragePath
   lessSearchPaths: [path.join(resourcePath, 'static'), path.join(resourcePath, 'vendor')]
