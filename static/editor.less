@@ -1,4 +1,5 @@
 @import "octicon-utf-codes.less";
+@import "octicon-mixins.less";
 
 .editor {
   overflow: hidden;
@@ -58,21 +59,20 @@
 }
 
 .editor .gutter .line-number:after {
-  font-size: 0.8em;
+  .icon(0.8em);
   content: @chevron-right;
-  font-family: 'Octicons Regular';
-  -webkit-font-smoothing: antialiased;
   opacity: .8;
   visibility: hidden;
+  position: relative;
+  top: -0.2em;
 }
 
 .editor .fold-marker:after {
-  font-size: 0.8em;
+  .icon(0.8em);
   content: @ellipsis;
-  opacity: 0.8;
   padding-left: 0.2em;
-  font-family: 'Octicons Regular';
-  -webkit-font-smoothing: antialiased;
+  position: relative;
+  top: -0.2em;
 }
 
 .editor .line.cursor-line .fold-marker:after {
