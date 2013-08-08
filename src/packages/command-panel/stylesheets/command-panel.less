@@ -1,4 +1,5 @@
 @import "octicon-utf-codes.less";
+@import "octicon-mixins.less";
 
 .command-panel {
   position: relative;
@@ -17,14 +18,10 @@
       border-top: 1px solid rgba(0,0,0,1);
       border-left: 1px solid rgba(0,0,0,1);
 
+      .octicon(hourglass, 1.1em);
+
       &:before {
-        font-family: 'Octicons Regular';
-        font-size: 1.1em;
-        width: 1.1em;
-        height: 1.1em;
         margin-right: 5px;
-        -webkit-font-smoothing: antialiased;
-        content: @hourglass;
       }
     }
   }
@@ -48,33 +45,29 @@
       -webkit-user-select: none;
     }
 
-    .path-details:before {
-      font-family: 'Octicons Regular';
-      font-size: 12px;
-      width: 12px;
-      height: 12px;
-      margin-right: 5px;
-      margin-left: 5px;
-      -webkit-font-smoothing: antialiased;
-      content: @triangle-down;
-      position: relative;
-      top: 0;
+    .path-details {
+      .octicon(triangle-down, 12px);
+
+      &:before {
+        margin-right: 5px;
+        margin-left: 5px;
+        position: relative;
+        top: 0;
+      }
     }
 
     .is-collapsed .path-details:before {
       content: @triangle-right;
     }
 
-    .path-name:before {
-      font-family: 'Octicons Regular';
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-      margin-right: 5px;
-      -webkit-font-smoothing: antialiased;
-      content: @file-text;
-      position: relative;
-      top: 1px;
+    .path-name {
+      .octicon(file-text);
+
+      &:before {
+        margin-right: 5px;
+        position: relative;
+        top: 1px;
+      }
     }
 
     .path.readme .path-name:before {
