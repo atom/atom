@@ -74,5 +74,6 @@ describe "TextMateScopeSelector", ->
       expect(new TextMateScopeSelector('a - b').toCssSelector()).toBe '.a:not(.b)'
       expect(new TextMateScopeSelector('a & b').toCssSelector()).toBe '.a .b'
       expect(new TextMateScopeSelector('a & -b').toCssSelector()).toBe '.a:not(.b)'
-      expect(new TextMateScopeSelector('a | b').toCssSelector()).toBe '.a .b'
+      expect(new TextMateScopeSelector('a | b').toCssSelector()).toBe '.a, .b'
       expect(new TextMateScopeSelector('a - (b.c d)').toCssSelector()).toBe '.a:not(.b.c .d)'
+      expect(new TextMateScopeSelector('a, b').toCssSelector()).toBe '.a, .b'

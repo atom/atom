@@ -58,7 +58,7 @@ class OrMatcher
 
   matches: (scopes) -> @left.matches(scopes) or @right.matches(scopes)
 
-  toCssSelector: -> "#{@left.toCssSelector()} #{@right.toCssSelector()}"
+  toCssSelector: -> "#{@left.toCssSelector()}, #{@right.toCssSelector()}"
 
 class AndMatcher
   constructor: (@left, @right) ->
