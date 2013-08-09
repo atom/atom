@@ -15,7 +15,7 @@ vendoredPackagesDirPath = path.join(resourcePath, "vendor/packages")
 vendoredThemesDirPath = path.join(resourcePath, "vendor/themes")
 userThemesDirPath = path.join(configDirPath, "themes")
 userPackagesDirPath = path.join(configDirPath, "packages")
-userStoragePath = path.join(configDirPath, ".storage")
+userStoragePath = path.join(configDirPath, "storage")
 
 # Public: Handles all of Atom's configuration details.
 #
