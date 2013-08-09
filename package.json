@@ -35,6 +35,7 @@
     "semver": "1.1.4",
     "guid": "0.0.10",
     "tantamount": "0.3.0",
+    "nslog": "0.1.0",
     "coffeestack": "0.4.0",
     "c-tmbundle": "1.0.0",
     "coffee-script-tmbundle": "4.0.0",
@@ -67,7 +68,7 @@
     "todo-tmbundle": "1.0.0",
     "xml-tmbundle": "1.0.0",
     "yaml-tmbundle": "1.0.0",
-    "nslog": "0.1.0"
+    "terminal": "0.2.0"
   },
   "devDependencies": {
     "biscotto": "0.0.12",
