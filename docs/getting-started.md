@@ -192,12 +192,12 @@ to apply styles to elements, Atom keymaps use selectors to associate keystrokes
 with events in specific contexts. Here's a small example, excerpted from Atom's
 built-in keymaps:
 
-```coffee-script
+```coffeescript
 '.editor':
   'enter': 'editor:newline'
 
-".select-list .editor.mini":
-  'enter': 'core:confirm',
+'.select-list .editor.mini':
+  'enter': 'core:confirm'
 ```
 
 This keymap defines the meaning of `enter` in two different contexts. In a
