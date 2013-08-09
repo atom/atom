@@ -9,6 +9,7 @@ fenceNameToExtension =
   'bash': 'sh'
   'coffee': 'coffee'
   'coffeescript': 'coffee'
+  'coffee-script': 'coffee'
   'css': 'css'
   'go': 'go'
   'java': 'java'
