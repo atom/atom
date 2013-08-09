@@ -96,7 +96,7 @@ class AtomApplication
       submenu: [
         { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
         { type: 'separator' }
-        { label: 'Preferences...', accelerator: 'Command+,', click: => @sendCommand('window:open-config') }
+        { label: 'Preferences...', accelerator: 'Command+,', click: => @sendCommand('window:open-settings') }
         { type: 'separator' }
         { label: 'Hide Atom', accelerator: 'Command+H', selector: 'hide:' }
         { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }

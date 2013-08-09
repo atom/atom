@@ -25,7 +25,7 @@ class SettingsView extends ScrollView
     rootView.command 'settings-view:toggle', ->
       rootView.open(configUri)
 
-    $(window).on 'window:open-config', ->
+    $(window).on 'window:open-settings', ->
       rootView.open(configUri)
 
   @deserialize: ({activePanelName}={}) ->
