@@ -1,3 +1,5 @@
+* Fixed: Atom failing to launch if the theme being used was not found
+
 * Improved: Theme changes now immediately take effect
 * Fixed: Wrap in quotes/parens now works in split panes
 * Improved: Autocomplete now includes CSS property names and values
