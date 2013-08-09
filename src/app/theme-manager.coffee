@@ -27,7 +27,11 @@ class ThemeManager
       @loadTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
 
-  loadTheme: (name) -> @loadedThemes.push(new Theme(name))
+  loadTheme: (name) ->
+    try
+      @loadedThemes.push(new Theme(name))
+    catch error
+      console.warn("Failed to load theme #{name}", error.stack ? error)
 
   getUserStylesheetPath: ->
     stylesheetPath = fsUtils.resolve(path.join(config.configDirPath, 'user'), ['css', 'less'])

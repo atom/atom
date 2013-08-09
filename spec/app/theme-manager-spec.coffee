@@ -23,3 +23,10 @@ describe "ThemeManager", ->
 
       config.set('core.themes', [])
       expect($('style.userTheme').length).toBe 0
+
+  describe "when a theme fails to load", ->
+    it "logs a warning", ->
+      themeManager = new ThemeManager()
+      spyOn(console, 'warn')
+      themeManager.loadTheme('a-theme-that-will-not-be-found')
+      expect(console.warn).toHaveBeenCalled()
