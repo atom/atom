@@ -55,7 +55,7 @@
     'name': 'comment.hr.gfm'
   }
   {
-    'begin': '^`{3,}\\s*coffee(script)?$'
+    'begin': '^`{3,}\\s*coffee-?(script)?$'
     'beginCaptures':
       '0': 'name': 'support.gfm'
     'end': '^`{3,}$'
