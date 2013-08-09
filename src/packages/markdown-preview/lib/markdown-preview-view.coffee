@@ -37,6 +37,7 @@ class MarkdownPreviewView extends ScrollView
     super
 
     @renderMarkdown()
+    syntax.on 'grammar-added', => @renderMarkdown()
     @on 'core:move-up', => @scrollUp()
     @on 'core:move-down', => @scrollDown()
 
@@ -71,7 +72,6 @@ class MarkdownPreviewView extends ScrollView
 
   setLoading: ->
     @html($$$ -> @div class: 'markdown-spinner', 'Loading Markdown...')
-
 
   tokenizeCodeBlocks: (html) =>
     html = $(html)

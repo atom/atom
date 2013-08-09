@@ -122,3 +122,13 @@ describe "MarkdownPreview package", ->
               pane1.activeItem.buffer.trigger 'saved'
               expect(preview.renderMarkdown).toHaveBeenCalled()
               expect(pane2.activeItem).toBe preview
+
+      describe "when a new grammar is loaded", ->
+        it "reloads the view to colorize any fenced code blocks matching the newly loaded grammar", ->
+          rootView.getActiveView().trigger 'markdown-preview:show'
+          [pane1, pane2] = rootView.getPanes()
+          preview = pane2.activeItem
+          preview.renderMarkdown.reset()
+
+          atom.activatePackage('javascript-tmbundle', sync: true)
+          expect(preview.renderMarkdown).toHaveBeenCalled()
