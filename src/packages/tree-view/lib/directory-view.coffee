@@ -22,7 +22,11 @@ class DirectoryView extends View
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
 
-    iconClass = 'directory-icon'
+    if @directory.symlink
+      iconClass = 'symlink-icon'
+    else
+      iconClass = 'directory-icon'
+
     if git?
       path = @directory.getPath()
       if parent
