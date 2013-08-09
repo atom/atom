@@ -27,7 +27,7 @@
     "plist": "git://github.com/nathansobo/node-plist.git",
     "space-pen": "1.2.0",
     "less": "git://github.com/nathansobo/less.js.git",
-    "roaster": "0.0.5",
+    "roaster": "0.0.7",
     "jqueryui-browser": "1.10.2-1",
     "optimist": "0.4.0",
     "season": "0.10.0",
