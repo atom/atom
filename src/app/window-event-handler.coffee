@@ -9,7 +9,7 @@ module.exports =
 class WindowEventHandler
   constructor: ->
     @subscribe ipc, 'command', (command, args...) ->
-      $(window).trigger(command, args...)
+      $(document.activeElement).trigger(command, args...)
 
     @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
     @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
