@@ -2,7 +2,7 @@ RootView = require 'root-view'
 MarkdownPreviewView = require 'markdown-preview/lib/markdown-preview-view'
 {$$} = require 'space-pen'
 
-describe "MarkdownPreview package", ->
+describe "Markdown preview package", ->
   beforeEach ->
     atom.activatePackage('gfm')
     project.setPath(project.resolve('markdown'))
