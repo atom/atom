@@ -24,15 +24,13 @@ class WrapGuideView extends View
   getGuideColumn: (path) ->
     customColumns = config.get('wrapGuide.columns')
     return @getDefaultColumn() unless _.isArray(customColumns)
-    for customColumn in customColumns
-      continue unless _.isObject(customColumn)
-      pattern = customColumn['pattern']
-      continue unless pattern
-      return parseInt(customColumn['column']) if new RegExp(pattern).test(path)
+    for customColumn in customColumns when _.isObject(customColumn)
+      {pattern, column} = customColumn
+      return parseInt(column) if pattern and new RegExp(pattern).test(path)
     @getDefaultColumn()
 
   updateGuide: ->
-    column = @getGuideColumn(@editor.getPath(), @defaultColumn)
+    column = @getGuideColumn(@editor.getPath())
     if column > 0
       columnWidth = @editor.charWidth * column
       if columnWidth < @editor.layerMinWidth or columnWidth < @editor.width()
