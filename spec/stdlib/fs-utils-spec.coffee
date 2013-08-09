@@ -1,6 +1,7 @@
 fsUtils = require 'fs-utils'
 fs = require 'fs'
 path = require 'path'
+temp = require 'temp'
 
 describe "fsUtils", ->
   describe ".read(path)", ->
@@ -81,6 +82,14 @@ describe "fsUtils", ->
       fsUtils.traverseTreeSync(regularPath, onPath, onPath)
 
       expect(symlinkPaths).toEqual(paths)
+
+    it "ignores missing symlinks", ->
+      directory = temp.mkdirSync('symlink-in-here')
+      paths = []
+      onPath = (childPath) -> paths.push(childPath)
+      fs.symlinkSync(path.join(directory, 'source'), path.join(directory, 'destination'))
+      fsUtils.traverseTreeSync(directory, onPath)
+      expect(paths.length).toBe 0
 
   describe ".md5ForPath(path)", ->
     it "returns the MD5 hash of the file at the given path", ->
