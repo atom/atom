@@ -117,7 +117,7 @@ class Config
   #
   # Returns the value from Atom's default settings, the user's configuration file,
   # or `NaN` if the key doesn't exist in either.
-  getInt: (keyPath, defaultValueWhenFalsy) ->
+  getInt: (keyPath) ->
     parseInt(@get(keyPath))
 
   # Retrieves the setting for the given key as a positive integer.
