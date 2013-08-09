@@ -59,7 +59,7 @@ parseCommandLine = ->
   options.usage """
     Atom #{version}
 
-    Usage: atom [options] [file ..]
+    Usage: atom [options] [file ...]
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
