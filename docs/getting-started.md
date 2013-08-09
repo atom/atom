@@ -22,7 +22,7 @@ You can always use `meta-p` to explore available commands and their
 bindings, but here's a list of a few useful commands.
 
 - `meta-o` : open a file or directory
-- `meta-n` : open new window
+- `meta-shift-n` : open new window
 - `meta-r` : reload the current window
 - `meta-alt-ctrl-s` : run test specs
 - `meta-t` : open file finder to navigate files in your project
