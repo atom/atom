@@ -5,14 +5,23 @@ measure 'spec suite require time', ->
   path = require 'path'
   require 'spec-helper'
 
+  requireSpecs = (directoryPath, specType) ->
+    for specPath in fsUtils.listTreeSync(path.join(directoryPath, 'spec')) when /-spec\.coffee$/.test specPath
+      require specPath
+    for spec in jasmine.getEnv().currentRunner().specs() when not spec.specType?
+      spec.specType = specType
+
   # Run core specs
-  for specPath in fsUtils.listTreeSync(fsUtils.resolveOnLoadPath("spec")) when /-spec\.coffee$/.test specPath
-    require specPath
+  requireSpecs(window.resourcePath, 'core')
 
-  spec.coreSpec = true for spec in jasmine.getEnv().currentRunner().specs()
+  # Run internal package specs
+  for packagePath in fsUtils.listTreeSync(config.bundledPackagesDirPath)
+    requireSpecs(packagePath, 'internal')
 
-  # Run extension specs
-  for packageDirPath in config.packageDirPaths
-    for packagePath in fsUtils.listSync(packageDirPath)
-      for specPath in fsUtils.listTreeSync(path.join(packagePath, "spec")) when /-spec\.coffee$/.test specPath
-        require specPath
+  # Run bundled package specs
+  for packagePath in fsUtils.listTreeSync(config.nodeModulesDirPath) when atom.isInternalPackage(packagePath)
+    requireSpecs(packagePath, 'bundled')
+
+  # Run user package specs
+  for packagePath in fsUtils.listTreeSync(config.userPackagesDirPath)
+    requireSpecs(packagePath, 'user')

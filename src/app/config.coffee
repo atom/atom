@@ -24,6 +24,8 @@ class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
   bundledPackageDirPaths: [bundledPackagesDirPath, nodeModulesDirPath]
+  bundledPackagesDirPath: bundledPackagesDirPath
+  nodeModulesDirPath: nodeModulesDirPath
   packageDirPaths: [userPackagesDirPath, bundledPackagesDirPath]
   userPackagesDirPath: userPackagesDirPath
   userStoragePath: userStoragePath

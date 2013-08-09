@@ -21,10 +21,18 @@ class AtomReporter extends View
     @div id: 'HTMLReporter', class: 'jasmine_reporter', =>
       @div outlet: 'specPopup', class: "spec-popup"
       @div outlet: "suites"
-      @div outlet: 'coreHeader', class: 'symbolHeader'
-      @ul outlet: 'coreSummary', class: 'symbolSummary list-unstyled'
-      @div outlet: 'packagesHeader', class: 'symbolHeader'
-      @ul outlet: 'packagesSummary', class: 'symbolSummary list-unstyled'
+      @div outlet: 'coreArea', =>
+        @div outlet: 'coreHeader', class: 'symbolHeader'
+        @ul outlet: 'coreSummary', class: 'symbolSummary list-unstyled'
+      @div outlet: 'internalArea', =>
+        @div outlet: 'internalHeader', class: 'symbolHeader'
+        @ul outlet: 'internalSummary', class: 'symbolSummary list-unstyled'
+      @div outlet: 'bundledArea', =>
+        @div outlet: 'bundledHeader', class: 'symbolHeader'
+        @ul outlet: 'bundledSummary', class: 'symbolSummary list-unstyled'
+      @div outlet: 'userArea', =>
+        @div outlet: 'userHeader', class: 'symbolHeader'
+        @ul outlet: 'userSummary', class: 'symbolSummary list-unstyled'
       @div outlet: "status", class: 'status', =>
         @div outlet: "time", class: 'time'
         @div outlet: "specCount", class: 'spec-count'
@@ -122,18 +130,41 @@ class AtomReporter extends View
 
   addSpecs: (specs) ->
     coreSpecs = 0
-    packageSpecs = 0
+    internalPackageSpecs = 0
+    bundledPackageSpecs = 0
+    userPackageSpecs = 0
     for spec in specs
       symbol = $$ -> @li class: "spec-summary pending spec-summary-#{spec.id}"
-      if spec.coreSpec
-        coreSpecs++
-        @coreSummary.append symbol
-      else
-        packageSpecs++
-        @packagesSummary.append symbol
+      switch spec.specType
+        when 'core'
+          coreSpecs++
+          @coreSummary.append symbol
+        when 'internal'
+          internalPackageSpecs++
+          @internalSummary.append symbol
+        when 'bundled'
+          bundledPackageSpecs++
+          @bundledSummary.append symbol
+        when 'user'
+          userPackageSpecs++
+          @userSummary.append symbol
 
-    @coreHeader.text("Core Specs (#{coreSpecs}):")
-    @packagesHeader.text("Package Specs (#{packageSpecs}):")
+    if coreSpecs > 0
+      @coreHeader.text("Core Specs (#{coreSpecs}):")
+    else
+      @coreArea.hide()
+    if internalPackageSpecs > 0
+      @internalHeader.text("Internal Package Specs (#{internalPackageSpecs}):")
+    else
+      @internalArea.hide()
+    if bundledPackageSpecs > 0
+      @bundledHeader.text("Bundled Package Specs (#{bundledPackageSpecs}):")
+    else
+      @bundledArea.hide()
+    if userPackageSpecs > 0
+      @userHeader.text("User Package Specs (#{userPackageSpecs}):")
+    else
+      @userArea.hide()
 
   specStarted: (spec) ->
     @runningSpecCount++
