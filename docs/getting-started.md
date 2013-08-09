@@ -146,10 +146,13 @@ Atom loads configuration settings from the `config.cson` file in your `~/.atom`
 directory, which contains CoffeeScript-style JSON:
 
 ```coffeescript
-core:
-  hideGitIgnoredFiles: true
-editor:
-  fontSize: 18
+'editor':
+  'fontSize': 16
+'core':
+  'themes': [
+    'atom-dark-ui'
+    'atom-dark-syntax'
+  ]
 ```
 
 Configuration is broken into namespaces, which are defined by the config hash's
@@ -220,7 +223,7 @@ active at the same time. For example, you'll usually select a theme for the UI
 and another theme for syntax highlighting.  You can select themes by specifying
 them in the `core.themes` array in your `config.cson`:
 
-```coffee-script
+```coffeescript
 core:
   themes: ["atom-light-ui", "atom-light-syntax"]
   # or, if the sun is going down:
