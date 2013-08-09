@@ -37,7 +37,7 @@ class MarkdownPreviewView extends ScrollView
     super
 
     @renderMarkdown()
-    syntax.on 'grammar-added', => @renderMarkdown()
+    syntax.on 'grammar-added grammar-updated', _.debounce((=> @renderMarkdown()), 250)
     @on 'core:move-up', => @scrollUp()
     @on 'core:move-down', => @scrollDown()
 

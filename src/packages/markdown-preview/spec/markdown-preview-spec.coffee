@@ -129,6 +129,7 @@ describe "MarkdownPreview package", ->
           [pane1, pane2] = rootView.getPanes()
           preview = pane2.activeItem
           preview.renderMarkdown.reset()
+          jasmine.unspy(window, 'setTimeout')
 
           atom.activatePackage('javascript-tmbundle', sync: true)
-          expect(preview.renderMarkdown).toHaveBeenCalled()
+          waitsFor -> preview.renderMarkdown.callCount > 0
