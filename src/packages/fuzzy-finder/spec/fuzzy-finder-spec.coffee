@@ -109,12 +109,12 @@ describe 'FuzzyFinder', ->
         expect(editor2.getPath()).toBe expectedPath
         expect(editor2.isFocused).toBeTruthy()
 
-      describe "when the selected path isn't a file that exists", ->
+      describe "when the selected path is a directory", ->
         it "leaves the the tree view open, doesn't open the path in the editor, and displays an error", ->
           rootView.attachToDom()
           editorPath = rootView.getActiveView().getPath()
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          finderView.confirmed({filePath: 'dir/this/is/not/a/file.txt'})
+          finderView.confirmed({filePath: project.resolve('dir')})
           expect(finderView.hasParent()).toBeTruthy()
           expect(rootView.getActiveView().getPath()).toBe editorPath
           expect(finderView.error.text().length).toBeGreaterThan 0

@@ -98,13 +98,13 @@ class FuzzyFinderView extends SelectList
   confirmed : ({filePath}) ->
     return unless filePath
 
-    if fsUtils.isFileSync(filePath)
+    if fsUtils.isDirectorySync(filePath)
+      @setError('Selected path is a directory')
+      setTimeout((=> @setError()), 2000)
+    else
       lineNumber = @getLineNumber()
       @cancel()
       @openPath(filePath, lineNumber)
-    else
-      @setError('Selected path does not exist')
-      setTimeout((=> @setError()), 2000)
 
   toggleFileFinder: ->
     @finderMode = 'file'
