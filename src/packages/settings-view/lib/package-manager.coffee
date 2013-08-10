@@ -56,7 +56,7 @@ install = ({name, version}, callback) ->
       atom.activatePackage(name) if activateOnSuccess
       callback()
     else
-      actom.activatePackage(name) if activateOnFailure
+      atom.activatePackage(name) if activateOnFailure
       callback(new Error("Installing '#{name}' failed."))
 
   new BufferedNodeProcess({command, args, exit})
