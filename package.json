@@ -68,7 +68,7 @@
     "todo-tmbundle": "1.0.0",
     "xml-tmbundle": "1.0.0",
     "yaml-tmbundle": "1.0.0",
-    "terminal": "0.2.0"
+    "terminal": "0.3.0"
   },
   "devDependencies": {
     "biscotto": "0.0.12",
