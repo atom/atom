@@ -1,4 +1,4 @@
-BufferedProcess = require 'buffered-process'
+BufferedNodeProcess = require 'buffered-node-process'
 roaster = require 'roaster'
 async = require 'async'
 
@@ -41,7 +41,7 @@ getAvailable = (callback) ->
     else
       callback(new Error("apm failed with code: #{code}"))
 
-  new BufferedProcess({command, args, stdout, exit})
+  new BufferedNodeProcess({command, args, stdout, exit})
 
 install = ({name, version}, callback) ->
   activateOnSuccess = !atom.isPackageDisabled(name)
@@ -59,7 +59,7 @@ install = ({name, version}, callback) ->
       actom.activatePackage(name) if activateOnFailure
       callback(new Error("Installing '#{name}' failed."))
 
-  new BufferedProcess({command, args, exit})
+  new BufferedNodeProcess({command, args, exit})
 
 uninstall = ({name}, callback) ->
   atom.deactivatePackage(name) if atom.isPackageActive(name)
@@ -73,6 +73,6 @@ uninstall = ({name}, callback) ->
     else
       callback(new Error("Uninstalling '#{name}' failed."))
 
-  new BufferedProcess({command, args, exit})
+  new BufferedNodeProcess({command, args, exit})
 
 module.exports = {renderMarkdownInMetadata, install, uninstall, getAvailable}
