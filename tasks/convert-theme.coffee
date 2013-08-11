@@ -14,7 +14,7 @@ module.exports = (grunt) ->
         grunt.file.write(atomThemePath, textMateTheme.getStylesheet())
         grunt.log.ok("Atom theme written to: #{atomThemePath}")
       else
-        grunt.log.error("Theme file at path not found: #{textMateThemePath}")
+        grunt.log.error("No theme file found at: #{textMateThemePath}")
         false
     else
       grunt.log.error('Must specify --path=<path to TextMate theme>')
