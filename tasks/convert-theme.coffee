@@ -10,7 +10,8 @@ module.exports = (grunt) ->
       textMateThemePath = path.resolve(textMateThemePath)
       if grunt.file.isFile(textMateThemePath)
         textMateTheme = new TextMateTheme(textMateThemePath)
-        atomThemePath = path.join(path.dirname(textMateThemePath), "#{path.basename(textMateThemePath, path.extname(textMateThemePath))}.css")
+        themeName = path.basename(textMateThemePath, path.extname(textMateThemePath))
+        atomThemePath = path.join(path.dirname(textMateThemePath), "#{themeName.toLowerCase()}-syntax.css")
         grunt.file.write(atomThemePath, textMateTheme.getStylesheet())
         grunt.log.ok("Atom theme written to: #{atomThemePath}")
       else
