@@ -23,13 +23,12 @@ class SignInView extends ScrollView
 
     @username.hiddenInput.attr('tabindex', 1)
     @username.on 'core:confirm', => @generateOAuth2Token()
-    @username.on 'keypress', => @validate()
+    @username.getBuffer().on 'changed', => @validate()
 
     @password.hiddenInput.attr('tabindex', 2)
-    # @password.hmtl ''
     @password.addClass 'password'
     @password.on 'core:confirm', => @generateOAuth2Token()
-    @password.on 'keypress', => @validate()
+    @password.getBuffer().on 'changed', => @validate()
 
     @signIn.on 'core:confirm', => @generateOAuth2Token()
     @signIn.on 'click', => @generateOAuth2Token()
@@ -45,7 +44,6 @@ class SignInView extends ScrollView
   serialize: -> {@signedInUser}
 
   validate: ->
-    console.log('I am validating')
     if $.trim(@username.getText()).length > 0 and @password.getText().length > 0
       @signIn.enable()
     else
