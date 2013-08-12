@@ -1,5 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
+Editor = require 'editor'
 ScrollView = require 'scroll-view'
 keytar = require 'keytar'
 
@@ -9,8 +10,10 @@ class SignInView extends ScrollView
       @h4 'Sign in to GitHub'
       @p 'Your password will only be used to generate a token that will be stored in your keychain.'
       @div class: 'form-inline', =>
-        @input outlet: 'username', type: 'text', placeholder: 'Username or Email', tabindex: 1
-        @input outlet: 'password', type: 'password', placeholder: 'Password', tabindex: 2
+        @span 'Username or Email'
+        @subview 'username', new Editor(mini: true)
+        @span 'Password'
+        @subview 'password', new Editor(mini: true)
         @button outlet: 'signIn', class: 'btn', disabled: 'disabled', tabindex: 3, 'Sign in'
         @button outlet: 'cancel', class: 'btn', tabindex: 4, 'Cancel'
       @div outlet: 'alert', class: 'alert alert-error'
@@ -18,11 +21,15 @@ class SignInView extends ScrollView
   initialize: ({@signedInUser}={})->
     rootView.command 'github:sign-in', => @attach()
 
+    @username.hiddenInput.attr('tabindex', 1)
     @username.on 'core:confirm', => @generateOAuth2Token()
-    @username.on 'input', => @validate()
+    @username.on 'keypress', => @validate()
 
+    @password.hiddenInput.attr('tabindex', 2)
+    @password.hmtl ''
+    @password.attr('class', 'password')
     @password.on 'core:confirm', => @generateOAuth2Token()
-    @password.on 'input', => @validate()
+    @password.on 'keypress', => @validate()
 
     @signIn.on 'core:confirm', => @generateOAuth2Token()
     @signIn.on 'click', => @generateOAuth2Token()
@@ -38,7 +45,8 @@ class SignInView extends ScrollView
   serialize: -> {@signedInUser}
 
   validate: ->
-    if $.trim(@username.val()).length > 0 and @password.val().length > 0
+    console.log('I am validating')
+    if $.trim(@username.getText()).length > 0 and @password.getText().length > 0
       @signIn.enable()
     else
       @signIn.disable()
