@@ -26,8 +26,8 @@ class SignInView extends ScrollView
     @username.on 'keypress', => @validate()
 
     @password.hiddenInput.attr('tabindex', 2)
-    @password.hmtl ''
-    @password.attr('class', 'password')
+    # @password.hmtl ''
+    @password.addClass 'password'
     @password.on 'core:confirm', => @generateOAuth2Token()
     @password.on 'keypress', => @validate()
 
