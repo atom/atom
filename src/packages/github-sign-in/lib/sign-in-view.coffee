@@ -93,12 +93,16 @@ class SignInView extends ScrollView
         @signIn.enable()
         @password.focus()
 
+  detach: ->
+    @username.setText('')
+    @username.updateDisplay()
+    @password.setText('')
+    @password.updateDisplay()
+
+    super
+
   attach: ->
-    if @signedInUser?
-      @username.val(@signedInUser)
-    else
-      @username.val('')
-    @password.val('')
+    @username.setText(@signedInUser) if @signedInUser?
     @username.enable()
     @password.enable()
     @alert.hide()
