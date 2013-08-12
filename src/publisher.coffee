@@ -1,4 +1,6 @@
 path = require 'path'
+colors = require 'colors'
+CSON = require 'season'
 config = require './config'
 Command = require './command'
 
@@ -12,9 +14,16 @@ class Publisher extends Command
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
 
   run: (options) ->
+    process.stdout.write 'Publishing '
+    try
+      {name, version} = CSON.readFileSync(CSON.resolve('package')) ? {}
+      process.stdout.write "#{name}@#{version} "
+    catch e
     publishArgs = ['--userconfig', @userConfigPath, 'publish']
-    @fork @atomNpmPath, publishArgs, (code) =>
+    @fork @atomNpmPath, publishArgs, (code, stderr='') =>
       if code is 0
+        process.stdout.write '\u2713\n'.green
         options.callback()
       else
-        options.callback("Publishing module failed with code: #{code}")
+        process.stdout.write '\u2717\n'.red
+        options.callback(stderr.red)
