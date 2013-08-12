@@ -71,7 +71,7 @@ class Installer extends Command
         callback(stderr.red)
 
   installModules: (options, callback) =>
-    console.log '\nInstalling modules...'
+    process.stdout.write 'Installing modules '
 
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push("--target=#{config.getNodeVersion()}")
@@ -79,11 +79,13 @@ class Installer extends Command
     installArgs.push('--silent') if options.argv.silent
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
-    @fork @atomNpmPath, installArgs, {env}, (code) ->
+    @fork @atomNpmPath, installArgs, {env}, (code, stderr='') ->
       if code is 0
+        process.stdout.write '\u2713\n'.green
         callback()
       else
-        callback("Installing modules failed with code: #{code}")
+        process.stdout.write '\u2717\n'.red
+        callback(stderr.red)
 
   installPackage: (options, modulePath) ->
     commands = []
