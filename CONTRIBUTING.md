@@ -1,39 +1,5 @@
 # :rotating_light: Contributing to Atom :rotating_light:
 
-# Write Beautiful Code
-
-As GitHub's largest open-source project, we want Atom to be beautiful inside and out. Your code will serve as an example for new members of the community, and will ultimately be a factor in how Atom and GitHub as a whole are judged. Please respect the company's reputation and the efforts of those that have come before you by always striving to do your best work when contributing to Atom.
-
-Be pragmatic, but don't confuse pragmatism with laziness. Avoid hacks and shortcuts motivated by impatience. Stay present, and focus on the quality of the code you are writing *now*. It's not enough for your code to "work", it also needs to communicate to other humans who will need to modify and build upon it. Once you get something working, take the time to consider whether you can achieve it in a more elegant way.
-
-## Care hard, but fear not
-We want your best work: nothing more, nothing less. Don't be afraid to put yourself out there. We will always treat your contributions with respect.
-
-## When in doubt, pair-up
-
-## Write tests, and write them first
-Without tests, building a large application in a dynamic language is like building a sky scraper out of play dough. The test suite is our first, last, and only line of defense against the entropic heat death of our codebase. You should almost always write a failing test *before* adding implementation code, to prove to yourself that the test is actually falsifiable. If you add a feature that can break without alerting us via a failing test, then you haven't added a feature, you've created a liability. If you haven't coded in this style before, seek out a community member who can help you. A healthy test suite is essential to our success, and only you can maintain the practices that keep it healthy.
-
-## Leave the test suite better than you found it
-
-## Tests cost resources: write them judiciously
-
-## Solve today's problem
-Avoid adding flexibility that isn't needed *today*. Nothing is ever set in stone, and we can always go back and add flexibility later. Adding it early just means we have to pay for complexity that we might not end up using.
-
-## Don't be defensive
-Do handle errors when writing to a file or calling a remote API. Don't handle errors when interacting with logic that we own. Always assume that our code works properly, even though that won't always be true. When it does break, we don't want to paper over the problem with exception handling. We just want to fix the original issue. Avoiding defensiveness keeps our code lean and on-topic.
-
-## Don't be afraid to add classes and methods
-Code rarely suffers from too many methods and classes. Code often suffers from too few. Don't be afraid to use the tools offered by the language. Write lots of short, well-named methods. Pull out classes with well-defined roles.
-
-## Favor clarity over brevity or cleverness.
-You've heard it before. We're saying it again. Three lines that someone else can read beats one line that's inscrutable every time.
-
-## Rip shit out
-
-## Maintain a consistent level of abstraction
-Every line in a method should read at the same basic level of abstraction. If there's a section of a method that goes into a lot more detail than the rest of the method, consider extracting a new method and giving it a clear name.
 
 ## Issues
   * Include screenshots and animated GIFs whenever possible, they are immensely
@@ -61,3 +27,35 @@ Every line in a method should read at the same basic level of abstraction. If th
     * Class methods (methods starting with a `@`)
     * Instance variables
     * Instance methods
+
+## Philosophy
+
+### Write Beautiful Code
+Once you get something working, take the time to consider whether you can achieve it in a more elegant way. We're planning on open-sourcing Atom, so let's put our best foot forward.
+
+### When in doubt, pair-up
+Pairing can be an effective and fun way to pass on culture, knowledge, and taste. If you can find the time, we encourage you to work synchronously with other community members of all experience levels to help the knowledge-mulching process. It doesn't have to be all the time; a little pairing goes a long way.
+
+### Write tests, and write them first
+The test suite keeps protects our codebase from the ravages of entropy, but it only works when we have thorough coverage. Before you write implementation code, write a  failing test proving that it's needed.
+
+### Leave the test suite better than you found it
+Consider how the specs you are adding fit into the spec-file as a whole. Is this the right place for your spec? Does the spec need to be reorganized now that you're adding this extra dimension? Specs are only as useful as the next person's ability to understand them.
+
+### Solve today's problem
+Avoid adding flexibility that isn't needed *today*. Nothing is ever set in stone, and we can always go back and add flexibility later. Adding it early just means we have to pay for complexity that we might not end up using.
+
+### Favor clarity over brevity or cleverness.
+Three lines that someone else can read are better than one line that's tricky.
+
+### Don't be defensive
+Only catch exceptions that are truly exceptional. Assume that components we control will honor their contracts. If they don't, the solution is to find and fix the problem in code rather than cluttering the code with attempts to foresee all potential issues at runtime.
+
+### Don't be afraid to add classes and methods
+Code rarely suffers from too many methods and classes, and  often suffers from too few. Err on the side of numerous short, well-named methods. Pull out classes with well-defined roles.
+
+### Rip shit out
+Don't be afraid to delete code. Don't be afraid to rewrite something that needs to be refreshed. If it's in version control, we can always resurrect it.
+
+### Maintain a consistent level of abstraction
+Every line in a method should read at the same basic level of abstraction. If there's a section of a method that goes into a lot more detail than the rest of the method, consider extracting a new method and giving it a clear name.
