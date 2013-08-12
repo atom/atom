@@ -12,7 +12,7 @@ module.exports = (candidates, query, options={}) ->
         score += stringScore(path.basename(string), query)
 
         # Shallow files are scored higher
-        depth = Math.min(1, 10 - string.split('/').length - 1)
+        depth = Math.max(1, 10 - string.split('/').length - 1)
         score *= depth * 0.01
 
       { candidate, score }
