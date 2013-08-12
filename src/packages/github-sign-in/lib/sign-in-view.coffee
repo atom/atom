@@ -57,8 +57,8 @@ class SignInView extends ScrollView
     @password.disable()
     @signIn.disable()
 
-    username = $.trim(@username.val())
-    credentials = btoa("#{username}:#{@password.val()}")
+    username = $.trim(@username.getText())
+    credentials = btoa("#{username}:#{@password.getText()}")
     request =
       scopes: ['user', 'repo', 'gist']
       note: 'GitHub Atom'
