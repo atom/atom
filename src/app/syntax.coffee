@@ -5,7 +5,7 @@ Specificity = require 'specificity'
 fsUtils = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 NullGrammar = require 'null-grammar'
-TextMateScopeSelector = require 'text-mate-scope-selector'
+TextMateScopeSelector = require('first-mate').ScopeSelector
 
 ### Internal ###
 

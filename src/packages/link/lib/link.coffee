@@ -8,8 +8,8 @@ module.exports =
       return unless token?
 
       unless @selector?
-        TextMateScopeSelector = require 'text-mate-scope-selector'
-        @selector = new TextMateScopeSelector('markup.underline.link')
+        {ScopeSelector} = require 'first-mate'
+        @selector = new ScopeSelector('markup.underline.link')
 
       if @selector.matches(token.scopes)
         require('shell').openExternal token.value

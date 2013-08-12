@@ -11,7 +11,7 @@ Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 Range = require 'range'
-TextMateScopeSelector = require 'text-mate-scope-selector'
+TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
 module.exports =
