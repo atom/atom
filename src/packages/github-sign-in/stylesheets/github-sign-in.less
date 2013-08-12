@@ -1,4 +1,7 @@
 .sign-in-view {
+  width: 350px;
+  margin-left: -175px;
+
   input, button, .alert {
     margin-bottom: 10px;
   }
@@ -10,5 +13,9 @@
   .alert:before {
     content: 'Sign in failed. ';
     font-weight: bold;
+  }
+
+  .password .line span {
+    -webkit-text-security: disc;
   }
 }
