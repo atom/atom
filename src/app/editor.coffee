@@ -1384,7 +1384,6 @@ class Editor extends View
     new Array(div.children...)
 
   htmlForScreenRows: (startRow, endRow) ->
-    lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     htmlLines = []
     screenRow = startRow
     for line in @activeEditSession.linesForScreenRows(startRow, endRow)
