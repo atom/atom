@@ -8,6 +8,7 @@ Fetcher = require './fetcher'
 Linker = require './linker'
 Unlinker = require './unlinker'
 Rebuilder = require './rebuilder'
+Updater = require './updater'
 
 parseOptions = (args=[]) ->
   options = optimist(args)
@@ -56,6 +57,7 @@ module.exports =
         when 'rebuild' then new Rebuilder().run(options)
         when 'uninstall' then new Uninstaller().run(options)
         when 'unlink' then new Unlinker().run(options)
+        when 'update' then new Updater().run(options)
         else
           options.callback("Unrecognized command: #{command}")
     else
