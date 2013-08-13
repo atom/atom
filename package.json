@@ -72,7 +72,8 @@
     "command-logger": "0.1.0",
     "image-view": "0.1.0",
     "spell-check": "0.1.0",
-    "terminal": "0.3.0"
+    "terminal": "0.3.0",
+    "wrap-guide": "0.1.0"
   },
   "devDependencies": {
     "biscotto": "0.0.12",
