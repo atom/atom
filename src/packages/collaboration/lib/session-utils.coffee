@@ -39,13 +39,13 @@ module.exports =
       event.id = nextOutputEventId++
       console.log 'sending event', event.id, event
       connection.send(event)
-    doc.on('replicate-change', outputListener)
+    doc.on('replicate-patch', outputListener)
 
     queuedEvents = []
     nextInputEventId = 1
     handleInputEvent = (event) ->
       console.log 'received event', event.id, event
-      doc.applyRemoteChange(event)
+      doc.applyPatch(event)
       nextInputEventId = event.id + 1
     flushQueuedEvents = ->
       loop
@@ -66,7 +66,7 @@ module.exports =
         queuedEvents.push(event)
 
     connection.on 'close', ->
-      doc.off('replicate-change', outputListener)
+      doc.off('replicate-patch', outputListener)
 
     connection.on 'error', (error) ->
       console.error 'connection error', error.stack ? error

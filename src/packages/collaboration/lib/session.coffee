@@ -163,7 +163,7 @@ class Session
     event.site = window.site.id
 
   connectDocument:  ->
-    @doc.on 'replicate-change', (event) =>
+    @doc.on 'replicate-patch', (event) =>
       @stampEvent(event)
       console.log "sending replication event", event
       @channel.broadcast('document-changed', event)
@@ -171,7 +171,7 @@ class Session
     @channel.on 'document-changed', (event) =>
       console.log "receiving replication event", event
       @verifyEvent(event)
-      @doc.applyRemoteChange(event)
+      @doc.applyPatch(event)
 
   snapshotRepository: (callback) ->
     patrick.snapshot project.getPath(), (error, repoSnapshot) =>
