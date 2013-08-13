@@ -66,6 +66,7 @@
     "xml-tmbundle": "1.0.0",
     "yaml-tmbundle": "1.0.0",
     "archive-view": "0.1.0",
+    "autocomplete": "0.1.0",
     "autoflow": "0.1.0",
     "bookmarks": "0.1.0",
     "bracket-matcher": "0.1.0",
