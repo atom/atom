@@ -79,6 +79,7 @@
     "image-view": "0.1.0",
     "link": "0.1.0",
     "markdown-preview": "0.1.0",
+    "package-generator": "0.1.0",
     "spell-check": "0.1.0",
     "symbols-view": "0.1.0",
     "terminal": "0.3.0",
