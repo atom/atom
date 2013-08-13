@@ -1,3 +1,0 @@
-'description': 'View the files and folders inside archive files'
-'main': './lib/archive-edit-session'
-'deferredDeserializers': ['ArchiveEditSession']
