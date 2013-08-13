@@ -69,6 +69,7 @@
     "yaml-tmbundle": "1.0.0",
     "archive-view": "0.1.0",
     "autoflow": "0.1.0",
+    "command-logger": "0.1.0",
     "spell-check": "0.1.0",
     "terminal": "0.3.0"
   },
