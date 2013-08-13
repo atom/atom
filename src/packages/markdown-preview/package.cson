@@ -1,5 +1,0 @@
-'main': './lib/markdown-preview'
-'description': 'Open a rendered version of the Markdown in the current editor with `ctrl-m`.'
-'activationEvents':
-  'markdown-preview:show': '.editor'
-'deferredDeserializers': ['MarkdownPreviewView']
