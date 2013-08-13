@@ -83,6 +83,7 @@
     "package-generator": "0.1.0",
     "spell-check": "0.1.0",
     "symbols-view": "0.1.0",
+    "tabs": "0.1.0",
     "terminal": "0.3.0",
     "toml": "0.1.0",
     "whitespace": "0.1.0",
