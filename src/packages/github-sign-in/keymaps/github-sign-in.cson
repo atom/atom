@@ -1,9 +1,0 @@
-'.sign-in-view':
-  'esc': 'core:cancel'
-'.sign-in-view input':
-  'meta-enter': 'core:confirm'
-  'tab': 'core:focus-next'
-  'shift-tab': 'core:focus-previous'
-'.sign-in-view button':
-  'enter': 'core:confirm'
-  'meta-enter': 'core:confirm'
