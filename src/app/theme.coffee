@@ -24,11 +24,12 @@ class Theme
     if path.extname(@stylesheetPath) in ['.css', '.less']
       @loadStylesheet(@stylesheetPath)
     else
+      @directoryPath = @stylesheetPath
       metadataPath = fsUtils.resolveExtension(path.join(@stylesheetPath, 'package'), ['cson', 'json'])
       if fsUtils.isFileSync(metadataPath)
-        stylesheetNames = fsUtils.readObjectSync(metadataPath)?.stylesheets
-        if stylesheetNames
-          for name in stylesheetNames
+        @metadata = fsUtils.readObjectSync(metadataPath)
+        if @metadata?.stylesheets
+          for name in @metadata.stylesheets
             filename = fsUtils.resolveExtension(path.join(@stylesheetPath, name), ['.css', '.less', ''])
             @loadStylesheet(filename)
       else

@@ -24,6 +24,12 @@ describe "ThemeManager", ->
       config.set('core.themes', [])
       expect($('style.userTheme').length).toBe 0
 
+      # atom-dark-ui has an directory path, the syntax ones dont.
+      config.set('core.themes', ['atom-light-syntax', 'atom-dark-ui', 'atom-dark-syntax'])
+      importPaths = themeManager.getImportPaths()
+      expect(importPaths.length).toBe 1
+      expect(importPaths[0]).toContain 'atom-dark-ui'
+
   describe "when a theme fails to load", ->
     it "logs a warning", ->
       themeManager = new ThemeManager()

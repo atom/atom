@@ -40,6 +40,9 @@ class ThemeManager
     else
       null
 
+  getImportPaths: ->
+    (theme.directoryPath for theme in @loadedThemes when theme.directoryPath)
+
   loadUserStylesheet: ->
     if userStylesheetPath = @getUserStylesheetPath()
       @userStylesheetPath = userStylesheetPath
