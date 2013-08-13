@@ -72,6 +72,7 @@
     "bracket-matcher": "0.1.0",
     "command-logger": "0.1.0",
     "command-palette": "0.1.0",
+    "fuzzy-finder": "0.1.0",
     "editor-stats": "0.1.0",
     "gfm": "0.1.0",
     "git-diff": "0.1.0",
