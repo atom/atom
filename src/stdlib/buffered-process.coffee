@@ -9,7 +9,6 @@ class BufferedProcess
 
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
-    @addNodeDirectoryToPath(options)
     @process = ChildProcess.spawn(command, args, options)
 
     stdoutClosed = true
@@ -39,14 +38,6 @@ class BufferedProcess
         exitCode = code
         processExited = true
         triggerExitCallback()
-
-  addNodeDirectoryToPath: (options) ->
-    options.env ?= process.env
-    pathSegments = []
-    nodeDirectoryPath = path.resolve(process.execPath, '..', '..', '..', '..', '..', 'Resources')
-    pathSegments.push(nodeDirectoryPath)
-    pathSegments.push(options.env.PATH) if options.env.PATH
-    options.env = _.extend({}, options.env, PATH: pathSegments.join(path.delimiter))
 
   bufferStream: (stream, onLines, onDone) ->
     stream.setEncoding('utf8')
