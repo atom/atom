@@ -18,6 +18,7 @@ class Linker
       mkdir path.dirname(targetPath)
       fs.symlinkSync(linkPath, targetPath)
       console.log "#{targetPath} -> #{linkPath}"
+      options.callback()
     catch error
       console.error("Linking #{targetPath} to #{linkPath} failed")
       options.callback(error)

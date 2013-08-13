@@ -317,3 +317,31 @@ describe 'apm command line interface', ->
         expect(fs.existsSync(removedPath)).toBeFalsy()
         expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'index.js'))).toBeTruthy()
         expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'package.json'))).toBeTruthy()
+
+  describe 'apm link/unlink', ->
+    it 'symlinks packages to $ATOM_HOME/packages', ->
+      atomHome = temp.mkdirSync('apm-home-dir-')
+      process.env.ATOM_HOME = atomHome
+      packageToLink = temp.mkdirSync('a-package-')
+      process.chdir(packageToLink)
+      callback = jasmine.createSpy('callback')
+
+      runs ->
+        apm.run(['link'], callback)
+
+      waitsFor 'waiting for link to complete', ->
+        callback.callCount > 0
+
+      runs ->
+        expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeTruthy()
+        expect(fs.realpathSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBe fs.realpathSync(packageToLink)
+        callback.reset()
+
+      runs ->
+        apm.run(['unlink'], callback)
+
+      waitsFor 'waiting for unlink to complete', ->
+        callback.callCount > 0
+
+      runs ->
+        expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeFalsy()

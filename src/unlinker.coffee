@@ -17,6 +17,7 @@ class Unlinker
     try
       fs.unlinkSync(targetPath) if fs.existsSync(targetPath)
       console.log "Unlinked #{targetPath}"
+      options.callback()
     catch error
       console.error("Unlinking #{targetPath} failed")
       options.callback(error)
