@@ -116,6 +116,12 @@ class AtomPackage extends Package
     keymap.remove(keymapPath) for [keymapPath] in @keymaps
     removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
 
+  reloadStylesheets: ->
+    oldSheets = _.clone(@stylesheets)
+    @loadStylesheets()
+    removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
+    applyStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
+
   requireMainModule: ->
     return @mainModule if @mainModule
     mainModulePath = @getMainModulePath()
