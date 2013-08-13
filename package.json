@@ -83,6 +83,7 @@
     "symbols-view": "0.1.0",
     "terminal": "0.3.0",
     "toml": "0.1.0",
+    "whitespace": "0.1.0",
     "wrap-guide": "0.1.0"
   },
   "devDependencies": {
