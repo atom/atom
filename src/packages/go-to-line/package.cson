@@ -1,4 +1,0 @@
-'main': './lib/go-to-line-view'
-'description': 'Jump to a specific editor line number with `cmd-l`.'
-'activationEvents':
-  'editor:go-to-line': '.editor'

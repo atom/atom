@@ -73,6 +73,7 @@
     "gfm": "0.1.0",
     "git-diff": "0.1.0",
     "gists": "0.1.0",
+    "go-to-line": "0.1.0",
     "image-view": "0.1.0",
     "spell-check": "0.1.0",
     "terminal": "0.3.0",
