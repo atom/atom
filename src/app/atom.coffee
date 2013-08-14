@@ -57,7 +57,7 @@ window.atom =
 
   loadPackages: ->
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
-    @themes.on 'reload', =>
+    @themes.on 'reloaded', =>
       pack.reloadStylesheets?() for name, pack of @loadedPackages
       null
 

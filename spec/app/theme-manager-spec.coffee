@@ -7,7 +7,7 @@ describe "ThemeManager", ->
   describe "when the core.themes config value changes", ->
     it "add/removes stylesheets to reflect the new config value", ->
       themeManager = new ThemeManager()
-      themeManager.on 'reload', reloadHandler = jasmine.createSpy()
+      themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
       spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
       themeManager.load()
 

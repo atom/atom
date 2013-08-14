@@ -30,7 +30,7 @@ class ThemeManager
       @loadTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
 
-      @trigger('reload')
+      @trigger('reloaded')
 
   loadTheme: (name) ->
     try
