@@ -18,4 +18,5 @@ git submodule --quiet update --recursive --init
 (cd vendor/apm && npm install .)
 
 npm install --silent vendor/apm
+echo ""
 ./node_modules/.bin/apm install --silent
