@@ -2,7 +2,7 @@
 
 ![atom](http://f.cl.ly/items/3h1L1O333p1d0W3D2K3r/atom-sketch.jpg)
 
-Check out our [documentation on the docs tab](https://github.com/github/atom/docs).
+Check out our [documentation in this repo](https://github.com/github/atom/tree/master/docs).
 
 ## Building from source
 
