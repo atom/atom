@@ -24,7 +24,6 @@
     "less": "git://github.com/nathansobo/less.js.git",
     "optimist": "0.4.0",
     "season": "0.10.0",
-    "humanize-plus": "1.1.0",
     "semver": "1.1.4",
     "guid": "0.0.10",
     "tantamount": "0.3.0",
