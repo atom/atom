@@ -58,7 +58,6 @@ class TextBuffer
       @updateCachedDiskContents()
 
       unless wasModified
-        console.log "isModified?", @isModified()
         @reload() if @isModified() and fsUtils.exists(@getPath())
     else
       @text ?= site.createDocument('', shareStrings: true)
