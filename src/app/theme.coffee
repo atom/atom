@@ -1,5 +1,6 @@
 fsUtils = require 'fs-utils'
 path = require 'path'
+$ = require 'jquery'
 
 ### Internal ###
 
@@ -14,6 +15,8 @@ class Theme
       @stylesheetPath = name
     else
       @stylesheetPath = fsUtils.resolve(config.themeDirPaths..., name, ['', '.css', 'less'])
+
+    @name = path.basename(@stylesheetPath, path.extname(@stylesheetPath))
 
     throw new Error("No theme exists named '#{name}'") unless @stylesheetPath
 
@@ -41,6 +44,8 @@ class Theme
     @stylesheets.push stylesheetPath
     content = window.loadStylesheet(stylesheetPath)
     window.applyStylesheet(stylesheetPath, content, 'userTheme')
+    $('body').addClass(@name)
 
   deactivate: ->
     window.removeStylesheet(stylesheetPath) for stylesheetPath in @stylesheets
+    $('body').removeClass(@name)

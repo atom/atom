@@ -24,6 +24,7 @@ describe "Theme", ->
       themePath = project.resolve('themes/theme-stylesheet.less')
       theme = new Theme(themePath)
       expect($(".editor").css("padding-top")).toBe "4321px"
+      expect($('body')).toHaveClass('theme-stylesheet')
 
   describe "when the theme contains a package.json file", ->
     it "loads and applies stylesheets from package.json in the correct order", ->
@@ -36,6 +37,13 @@ describe "Theme", ->
       expect($(".editor").css("padding-top")).toBe("101px")
       expect($(".editor").css("padding-right")).toBe("102px")
       expect($(".editor").css("padding-bottom")).toBe("103px")
+
+    it "adds a class to the body, and removes it when deactivated", ->
+      themePath = project.resolve('themes/theme-with-package-file')
+      theme = new Theme(themePath)
+      expect($('body')).toHaveClass('theme-with-package-file')
+      theme.deactivate()
+      expect($('body')).not.toHaveClass('theme-with-package-file')
 
   describe "when the theme does not contain a package.json file and is a directory", ->
     it "loads all stylesheet files in the directory", ->
