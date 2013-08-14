@@ -36,31 +36,29 @@ class TextBuffer
       {@project} = params
       @state = optionsOrState
       @id = @state.get('id')
-      wasModified = @state.get('isModified')
       filePath = @state.get('relativePath')
       @text = @state.get('text')
+      reloadFromDisk = @state.get('isModified') is false
     else
       {@project, filePath, initialText} = optionsOrState
       @text = site.createDocument(initialText ? '', shareStrings: true)
+      reloadFromDisk = true
       @id = guid.create().toString()
       @state = site.createDocument
         id: @id
         deserializer: @constructor.name
         version: @constructor.version
+        text: @text
 
-    @state.set('text', @text)
     @text.on 'changed', @handleTextChange
     @text.on 'marker-created', (marker) => @trigger 'marker-created', marker
     @text.on 'markers-updated', => @trigger 'markers-updated'
 
     if filePath
       @setPath(@project.resolve(filePath))
-      @updateCachedDiskContents()
-
-      unless wasModified
-        @reload() if @isModified() and fsUtils.exists(@getPath())
-    else
-      @text ?= site.createDocument('', shareStrings: true)
+      if fsUtils.exists(@getPath())
+        @updateCachedDiskContents()
+        @reload() if reloadFromDisk and @isModified()
 
   ### Internal ###
 
