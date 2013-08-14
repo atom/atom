@@ -7,10 +7,13 @@ describe "ThemeManager", ->
   describe "when the core.themes config value changes", ->
     it "add/removes stylesheets to reflect the new config value", ->
       themeManager = new ThemeManager()
+      themeManager.on 'reload', reloadHandler = jasmine.createSpy()
       spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
       themeManager.load()
+
       config.set('core.themes', [])
       expect($('style.userTheme').length).toBe 0
+      expect(reloadHandler).toHaveBeenCalled()
 
       config.set('core.themes', ['atom-dark-syntax'])
       expect($('style.userTheme').length).toBe 1

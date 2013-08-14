@@ -1,4 +1,5 @@
 path = require 'path'
+EventEmitter = require 'event-emitter'
 
 _ = require 'underscore'
 
@@ -7,6 +8,8 @@ Theme = require 'theme'
 
 module.exports =
 class ThemeManager
+  _.extend @prototype, EventEmitter
+
   constructor: ->
     @loadedThemes = []
 
@@ -26,6 +29,8 @@ class ThemeManager
       themeNames = [themeNames] unless _.isArray(themeNames)
       @loadTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
+
+      @trigger('reload')
 
   loadTheme: (name) ->
     try
