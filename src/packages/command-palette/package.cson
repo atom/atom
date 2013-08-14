@@ -1,3 +1,0 @@
-'main': './lib/command-palette-view'
-'description': 'Find and run available commands.'
-'activationEvents': 'command-palette:toggle'

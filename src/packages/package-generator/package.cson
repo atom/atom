@@ -1,3 +1,0 @@
-'main': './lib/package-generator'
-'description': 'Generate and open a new sample package.'
-'activationEvents': 'package-generator:generate'

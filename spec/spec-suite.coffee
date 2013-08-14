@@ -14,10 +14,6 @@ measure 'spec suite require time', ->
   # Run core specs
   requireSpecs(window.resourcePath, 'core')
 
-  # Run internal package specs
-  for packagePath in fsUtils.listTreeSync(config.bundledPackagesDirPath)
-    requireSpecs(packagePath, 'internal')
-
   # Run bundled package specs
   for packagePath in fsUtils.listTreeSync(config.nodeModulesDirPath) when atom.isInternalPackage(packagePath)
     requireSpecs(packagePath, 'bundled')

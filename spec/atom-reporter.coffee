@@ -24,9 +24,6 @@ class AtomReporter extends View
       @div outlet: 'coreArea', =>
         @div outlet: 'coreHeader', class: 'symbolHeader'
         @ul outlet: 'coreSummary', class: 'symbolSummary list-unstyled'
-      @div outlet: 'internalArea', =>
-        @div outlet: 'internalHeader', class: 'symbolHeader'
-        @ul outlet: 'internalSummary', class: 'symbolSummary list-unstyled'
       @div outlet: 'bundledArea', =>
         @div outlet: 'bundledHeader', class: 'symbolHeader'
         @ul outlet: 'bundledSummary', class: 'symbolSummary list-unstyled'
@@ -130,7 +127,6 @@ class AtomReporter extends View
 
   addSpecs: (specs) ->
     coreSpecs = 0
-    internalPackageSpecs = 0
     bundledPackageSpecs = 0
     userPackageSpecs = 0
     for spec in specs
@@ -139,9 +135,6 @@ class AtomReporter extends View
         when 'core'
           coreSpecs++
           @coreSummary.append symbol
-        when 'internal'
-          internalPackageSpecs++
-          @internalSummary.append symbol
         when 'bundled'
           bundledPackageSpecs++
           @bundledSummary.append symbol
@@ -153,10 +146,6 @@ class AtomReporter extends View
       @coreHeader.text("Core Specs (#{coreSpecs}):")
     else
       @coreArea.hide()
-    if internalPackageSpecs > 0
-      @internalHeader.text("Internal Package Specs (#{internalPackageSpecs}):")
-    else
-      @internalArea.hide()
     if bundledPackageSpecs > 0
       @bundledHeader.text("Bundled Package Specs (#{bundledPackageSpecs}):")
     else

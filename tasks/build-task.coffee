@@ -18,22 +18,26 @@ module.exports = (grunt) ->
     cp 'atom.sh', path.join(appDir, 'atom.sh')
     cp 'package.json', path.join(appDir, 'package.json')
 
-    directories = [
+    packageDirectories = []
+    nonPackageDirectories = [
       'benchmark'
       'dot-atom'
       'spec'
       'vendor'
     ]
 
-    {devDependencies, dependencies} = grunt.file.readJSON('package.json')
+    {devDependencies} = grunt.file.readJSON('package.json')
     for child in fs.readdirSync('node_modules')
       directory = path.join('node_modules', child)
       try
-        {name} = grunt.file.readJSON(path.join(directory, 'package.json'))
-        if not devDependencies[name]? or dependencies[name]?
-          directories.push(directory)
+        {name, engines} = grunt.file.readJSON(path.join(directory, 'package.json'))
+        continue if devDependencies[name]?
+        if engines?.atom?
+          packageDirectories.push(directory)
+        else
+          nonPackageDirectories.push(directory)
       catch e
-        directories.push(directory)
+        nonPackageDirectories.push(directory)
 
     ignoredPaths = [
       path.join('git-utils', 'deps')
@@ -43,8 +47,10 @@ module.exports = (grunt) ->
     ]
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
-    for directory in directories
+    for directory in nonPackageDirectories
       cp directory, path.join(appDir, directory), filter: nodeModulesFilter
+    for directory in packageDirectories
+      cp directory, path.join(appDir, directory), filter: /.+\.(cson|coffee|less)$/
 
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee|less)$/
     cp 'static', path.join(appDir, 'static'), filter: /.+\.less$/

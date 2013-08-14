@@ -1,2 +1,0 @@
-'main': './lib/whitespace'
-'description': 'Strip trailing whitespace and add a trailing newline when the current editor is saved.'
