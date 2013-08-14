@@ -117,7 +117,7 @@ window.atom =
     _.uniq(packagePaths)
 
   getAvailablePackageNames: ->
-    path.basename(packagePath) for packagePath in @getAvailablePackagePaths()
+    _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
 
   getAvailablePackageMetadata: ->
     packages = []
