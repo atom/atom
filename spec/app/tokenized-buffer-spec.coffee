@@ -407,7 +407,7 @@ describe "TokenizedBuffer", ->
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
       buffer = project.bufferForPath('sample.js')
-      tokenizedBuffer = new TokenizedBuffer(buffer)
+      tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 
     describe "when the selector does not match the token at the position", ->
