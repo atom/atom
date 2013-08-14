@@ -26,4 +26,3 @@ It will automatically update when a new release is available.
   2. `cd ~/github/atom`
 
   3. `script/build`
-
