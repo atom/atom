@@ -24,29 +24,35 @@ module.exports = (grunt) ->
   grunt.registerTask 'deploy-docs', 'Publishes latest API docs to atom-docs.githubapp.com', ->
     done = @async()
 
-    pushHeroku = (error, result, code) ->
-      sha = String(result).trim()
-      cmd = 'git'
-      args = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/', 'push', 'heroku', 'master']
-      grunt.util.spawn({cmd, args, opts}, done)
+    copyDocs = (args..., callback) ->
+      cmd = 'cp'
+      args = ['-r', 'docs/api', '../atom-docs/public/']
+      grunt.util.spawn({cmd, args, opts}, callback)
 
-    pushOrigin = (error, result, code) ->
-      sha = String(result).trim()
-      cmd = 'git'
-      args = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/', 'push', 'origin', 'master']
-      grunt.util.spawn({cmd, args, opts}, pushHeroku)
-
-    commitChanges = (error, result, code) ->
-      sha = String(result).trim()
-      cmd = 'git'
-      args = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/', 'commit', '-a', "-m Update API docs to #{sha}"]
-      grunt.util.spawn({cmd, args, opts}, pushOrigin)
-
-    fetchSha = (error, result, code) ->
+    fetchSha = (args..., callback) ->
       cmd = 'git'
       args = ['rev-parse', 'HEAD']
-      grunt.util.spawn({cmd, args}, commitChanges)
+      grunt.util.spawn {cmd, args}, (error, result) ->
+        if error?
+          callback(error)
+        else
+          callback(null, String(result).trim())
 
-    cmd = 'cp'
-    args = ['-r', 'docs/api', '../atom-docs/public/']
-    grunt.util.spawn {cmd, args, opts}, fetchSha
+    docsRepoArgs = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/']
+
+    commitChanges = (sha, callback) ->
+      cmd = 'git'
+      args = [docsRepoArgs..., 'commit', '-a', "-m Update API docs to #{sha}"]
+      grunt.util.spawn({cmd, args, opts}, callback)
+
+    pushOrigin = (args..., callback) ->
+      cmd = 'git'
+      args = [docsRepoArgs..., 'push', 'origin', 'master']
+      grunt.util.spawn({cmd, args, opts}, callback)
+
+    pushHeroku = (args..., callback) ->
+      cmd = 'git'
+      args = [docsRepoArgs..., 'push', 'heroku', 'master']
+      grunt.util.spawn({cmd, args, opts}, callback)
+
+    grunt.util.async.waterfall [copyDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done
