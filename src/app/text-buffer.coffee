@@ -33,12 +33,13 @@ class TextBuffer
   # initialText - A {String} setting the starting text
   constructor: (optionsOrState={}, params={}) ->
     if optionsOrState instanceof telepath.Document
+      {@project} = params
       @state = optionsOrState
       @text = @state.get('text')
       filePath = @state.get('relativePath')
       @id = @state.get('id')
     else
-      {filePath, initialText} = optionsOrState
+      {@project, filePath, initialText} = optionsOrState
       @text = site.createDocument(initialText, shareStrings: true) if initialText
       @id = guid.create().toString()
       @state = site.createDocument
@@ -47,7 +48,7 @@ class TextBuffer
         version: @constructor.version
 
     if filePath
-      @setPath(project.resolve(filePath))
+      @setPath(@project.resolve(filePath))
       if @text
         @updateCachedDiskContents()
       else
@@ -74,7 +75,7 @@ class TextBuffer
     unless @destroyed
       @file?.off()
       @destroyed = true
-      project?.removeBuffer(this)
+      @project?.removeBuffer(this)
 
   retain: ->
     @refcount++
@@ -156,7 +157,7 @@ class TextBuffer
     @state.get('relativePath')
 
   setRelativePath: (relativePath) ->
-    @setPath(project.resolve(relativePath))
+    @setPath(@project.resolve(relativePath))
 
   # Sets the path for the file.
   #
@@ -168,7 +169,7 @@ class TextBuffer
     @file = new File(path)
     @file.read() if @file.exists()
     @subscribeToFile()
-    @state.set('relativePath', project.relativize(path))
+    @state.set('relativePath', @project.relativize(path))
     @trigger "path-changed", this
 
   # Retrieves the current buffer's file extension.
@@ -593,7 +594,7 @@ class TextBuffer
   checkoutHead: ->
     path = @getPath()
     return unless path
-    project.getRepo()?.checkoutHead(path)
+    @project.getRepo()?.checkoutHead(path)
 
   # Checks to see if a file exists.
   #
