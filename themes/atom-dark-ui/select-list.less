@@ -1,5 +1,7 @@
+@import "ui-colors";
+
 .select-list {
-  background: #202123;
+  background: @background-color-3;
 
   .error {
     color: white;
@@ -11,12 +13,12 @@
   }
 
   ol {
-    border: 1px solid #212121;
+    border: 1px solid #222;
 
     li {
-      background-color: #27292b;
+      background-color: @background-color-2;
       border-bottom: 1px solid #1e1e1e;
-      color: #bbb;
+      color: @text-color-2;
     }
 
     .key-binding {
@@ -34,20 +36,20 @@
     }
 
     li:hover {
-      color: #fff;
+      color: @text-color-1;
     }
 
     .selected {
-      background-color: #373A3c;
+      background-color: @highlight-background-color-2;
     }
 
     .right,
     .secondary-line {
-      color: #777;
+      color: @text-color-subtle-1;
     }
 
     .selected {
-      color: #fff;
+      color: @text-color-1;
     }
 
     .selected .right,
@@ -56,11 +58,11 @@
     }
 
     .modified {
-      color: #f78a46;
+      color: @accent-color-error-1;
     }
 
     .new {
-      color: #5293d8;
+      color: @accent-color-info-1;
     }
   }
 }

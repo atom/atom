@@ -1,15 +1,16 @@
+@import "ui-colors";
 @import "bootstrap/less/mixins.less";
 
 .command-panel {
-  background-color: #1b1c1e;
+  background-color: @background-color-4;
   color: #dedede;
   border-top: 1px solid rgba(0, 0, 0, 0.5);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   padding: 10px;
 
   .btn {
-    .btn-pseudo-states(#19191a, #1a1b1c);
-    color: #969696;
+    .btn-pseudo-states(@background-color-6, @background-color-4);
+    color: @text-color-4;
   }
 }
 
@@ -26,7 +27,7 @@
 }
 
 .command-panel .preview-list {
-  background-color: #19191b;
+  background-color: @background-color-6;
   color: #6d736f;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -34,16 +35,16 @@
 }
 
 .command-panel .preview-count {
-  color: #969696;
+  color: @text-color-4;
   text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.05);
 }
 
 .command-panel .expand-collapse {
-  color: #969696;
+  color: @text-color-4;
 }
 
 .command-panel .expand-collapse li {
-  background: -webkit-linear-gradient(#19191a, #1a1b1c);
+  background: -webkit-linear-gradient(@background-color-6, @background-color-4);
   box-shadow:
     inset -1px -1px 0 rgba(255, 255, 255, 0.1),
     inset 1px 1px rgba(0, 0, 0, 0.1);
@@ -64,20 +65,20 @@
 }
 
 .command-panel .preview-list .path {
-  color: #bbb;
+  color: @text-color-2;
   border-top: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .command-panel .preview-list .path:hover .path-name {
-  color: #fff;
+  color: @text-color-1;
 }
 
 .command-panel .preview-list .path:before {
-  color: #555;
+  color: @text-color-subtle-2;
 }
 
 .command-panel .preview-list .path:hover:before {
-  color: #fff;
+  color: @text-color-1;
 }
 
 .command-panel .preview-list .path:first-child {
@@ -103,10 +104,10 @@
 }
 
 .command-panel .preview-list li.operation {
-  color: #777;
+  color: @text-color-subtle-1;
 }
 
 .command-panel .preview-list li.operation:hover,
 .command-panel li.operation.selected .preview {
-  color: #fff;
+  color: @text-color-1;
 }

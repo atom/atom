@@ -1,3 +1,5 @@
+@import "ui-colors";
+
 .tabs {
   background: #161719;
   border: none;
@@ -7,7 +9,7 @@
 
 .tab {
   margin: 0 0 1px 1px;
-  background-image: -webkit-linear-gradient(#292c2f, #1d1f21);
+  background-image: -webkit-linear-gradient(#292c2f, @background-color-4);
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.1),
     inset 0 1px 0 rgba(0, 0, 0, 1),
@@ -17,7 +19,7 @@
 }
 
 .tab:hover {
-  color: #fff;
+  color: @text-color-1;
 }
 
 .tab.active {
@@ -33,5 +35,5 @@
 }
 
 .tab.active:hover .close-icon {
-  color: #fff;
+  color: @text-color-1;
 }
