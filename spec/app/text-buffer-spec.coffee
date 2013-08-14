@@ -898,9 +898,9 @@ describe 'TextBuffer', ->
         expect(buffer.isModified()).toBeFalsy()
 
         state = buffer.serialize()
-        expect(state.get('text')).toBeUndefined()
+        state.get('text').insert([0, 0], 'simulate divergence of on-disk contents from serialized contents')
 
-        buffer2 = deserialize(state)
+        buffer2 = deserialize(state, {project})
         expect(buffer2.isModified()).toBeFalsy()
         expect(buffer2.getPath()).toBe(buffer.getPath())
         expect(buffer2.getText()).toBe(buffer.getText())
@@ -913,7 +913,7 @@ describe 'TextBuffer', ->
         state = buffer.serialize()
         expect(state.getObject('text')).toBe 'abc'
 
-        buffer2 = deserialize(state)
+        buffer2 = deserialize(state, {project})
         expect(buffer2.getPath()).toBe(buffer.getPath())
         expect(buffer2.getText()).toBe(buffer.getText())
         expect(buffer2.isModified()).toBeTruthy()
@@ -941,8 +941,6 @@ describe 'TextBuffer', ->
         buffer3.destroy()
 
       it "does not include them in the serialized state", ->
-        buffer.append("// appending text so buffer.isModified() is true")
-
         doc1 = buffer.getState()
         doc2 = doc1.clone(new Site(2))
         doc1.connect(doc2)

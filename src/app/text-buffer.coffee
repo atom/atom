@@ -35,32 +35,33 @@ class TextBuffer
     if optionsOrState instanceof telepath.Document
       {@project} = params
       @state = optionsOrState
-      @text = @state.get('text')
-      filePath = @state.get('relativePath')
       @id = @state.get('id')
+      wasModified = @state.get('isModified')
+      filePath = @state.get('relativePath')
+      @text = @state.get('text')
     else
       {@project, filePath, initialText} = optionsOrState
-      @text = site.createDocument(initialText, shareStrings: true) if initialText
+      @text = site.createDocument(initialText ? '', shareStrings: true)
       @id = guid.create().toString()
       @state = site.createDocument
         id: @id
         deserializer: @constructor.name
         version: @constructor.version
 
-    if filePath
-      @setPath(@project.resolve(filePath))
-      if @text
-        @updateCachedDiskContents()
-      else
-        @text = site.createDocument('', shareStrings: true)
-        @reload() if fsUtils.exists(@getPath())
-    else
-      @text ?= site.createDocument('', shareStrings: true)
-
     @state.set('text', @text)
     @text.on 'changed', @handleTextChange
     @text.on 'marker-created', (marker) => @trigger 'marker-created', marker
     @text.on 'markers-updated', => @trigger 'markers-updated'
+
+    if filePath
+      @setPath(@project.resolve(filePath))
+      @updateCachedDiskContents()
+
+      unless wasModified
+        console.log "isModified?", @isModified()
+        @reload() if @isModified() and fsUtils.exists(@getPath())
+    else
+      @text ?= site.createDocument('', shareStrings: true)
 
   ### Internal ###
 
@@ -88,11 +89,9 @@ class TextBuffer
 
   serialize: ->
     state = @state.clone()
-    if @isModified()
-      for marker in state.get('text').getMarkers() when marker.isRemote()
-        marker.destroy()
-    else
-      state.remove('text')
+    state.set('isModified', @isModified())
+    for marker in state.get('text').getMarkers() when marker.isRemote()
+      marker.destroy()
     state
 
   getState: -> @state
