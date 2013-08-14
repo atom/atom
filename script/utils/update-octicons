@@ -1,0 +1,32 @@
+#!/usr/bin/env coffee
+
+usage = """
+Usage:
+  update-octicons PATH-TO-OCTICONS
+"""
+
+path = require 'path'
+fs = require 'fs'
+YAML = require 'js-yaml'
+
+scriptPath = process.argv[1]
+pathToOcticons = process.argv[2] ? path.join(process.env.HOME, 'github', 'octicons')
+atomDir = path.resolve(scriptPath, "../../..")
+
+unless fs.existsSync(pathToOcticons)
+  console.error(usage)
+  process.exit(1)
+
+# Copy font-file
+fontSrc = path.join(pathToOcticons, 'octicons', 'octicons.woff')
+fontDest = path.join(atomDir, 'static', 'octicons.woff')
+fs.createReadStream(fontSrc).pipe(fs.createWriteStream(fontDest))
+
+# Update Octicon UTF codes
+glyphsSrc = path.join(pathToOcticons, 'data', 'glyphs.yml')
+octiconUtfDest = path.join atomDir, 'static', 'octicon-utf-codes.less'
+output = []
+for {css, code} in YAML.load(fs.readFileSync(glyphsSrc).toString())
+  output.push "@#{css}: \"\\#{code}\";"
+
+fs.writeFileSync octiconUtfDest, "#{output.join('\n')}\n"

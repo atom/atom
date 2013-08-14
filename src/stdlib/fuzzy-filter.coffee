@@ -1,4 +1,5 @@
 stringScore = require 'stringscore'
+path = require 'path'
 
 module.exports = (candidates, query, options={}) ->
   if query
@@ -6,9 +7,13 @@ module.exports = (candidates, query, options={}) ->
       string = if options.key? then candidate[options.key] else candidate
       score = stringScore(string, query)
 
-      # Basename matches count for more.
       unless /\//.test(query)
-        score += stringScore(string.replace(/^.*\//,''), query)
+        # Basename matches count for more.
+        score += stringScore(path.basename(string), query)
+
+        # Shallow files are scored higher
+        depth = Math.max(1, 10 - string.split('/').length - 1)
+        score *= depth * 0.01
 
       { candidate, score }
 

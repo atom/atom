@@ -147,13 +147,16 @@ module.exports =
   makeTree: (directoryPath) ->
     mkdirp.sync(directoryPath) if directoryPath and not @exists(directoryPath)
 
-  traverseTreeSync: (rootPath, onFile, onDirectory) ->
+  traverseTreeSync: (rootPath, onFile, onDirectory=onFile) ->
     return unless @isDirectorySync(rootPath)
 
     traverse = (directoryPath, onFile, onDirectory) ->
       for file in fs.readdirSync(directoryPath)
         childPath = path.join(directoryPath, file)
-        stats = fs.statSync(childPath)
+        stats = fs.lstatSync(childPath)
+        if stats.isSymbolicLink()
+          try
+            stats = fs.statSync(childPath)
         if stats.isDirectory()
           traverse(childPath, onFile, onDirectory) if onDirectory(childPath)
         else if stats.isFile()

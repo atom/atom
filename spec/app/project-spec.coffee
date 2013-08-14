@@ -31,6 +31,22 @@ describe "Project", ->
       expect(project.getPath()).toBe '/tmp'
       fsUtils.remove('/tmp/atom-test-save-sets-project-path')
 
+  describe "when an edit session is deserialized", ->
+    it "emits an 'edit-session-created' event and stores the edit session", ->
+      handler = jasmine.createSpy('editSessionCreatedHandler')
+      project.on 'edit-session-created', handler
+
+      editSession1 = project.open("a")
+      expect(handler.callCount).toBe 1
+      expect(project.getEditSessions().length).toBe 1
+      expect(project.getEditSessions()[0]).toBe editSession1
+
+      editSession2 = deserialize(editSession1.serialize())
+      expect(handler.callCount).toBe 2
+      expect(project.getEditSessions().length).toBe 2
+      expect(project.getEditSessions()[0]).toBe editSession1
+      expect(project.getEditSessions()[1]).toBe editSession2
+
   describe ".open(path)", ->
     [fooOpener, barOpener, absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->

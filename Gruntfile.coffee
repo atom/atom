@@ -1,3 +1,4 @@
+fs = require 'fs'
 path = require 'path'
 
 module.exports = (grunt) ->
@@ -8,51 +9,65 @@ module.exports = (grunt) ->
   appDir = path.join(contentsDir, 'Resources', 'app')
   installDir = path.join('/Applications', appName)
 
+  coffeeConfig =
+    options:
+      sourceMap: true
+    glob_to_multiple:
+      expand: true
+      src: [
+        'src/**/*.coffee'
+        'static/**/*.coffee'
+      ]
+      dest: appDir
+      ext: '.js'
+
+  lessConfig =
+    options:
+      paths: [
+        'static'
+        'vendor'
+      ]
+    glob_to_multiple:
+      expand: true
+      src: [
+        'src/**/*.less'
+        'static/**/*.less'
+        'themes/**/*.less'
+      ]
+      dest: appDir
+      ext: '.css'
+
+  csonConfig =
+    options:
+      rootObject: true
+    glob_to_multiple:
+      expand: true
+      src: [
+        'src/**/*.cson'
+        'static/**/*.cson'
+        'themes/**/*.cson'
+      ]
+      dest: appDir
+      ext: '.json'
+
+  for child in fs.readdirSync('node_modules') when child isnt '.bin'
+    directory = path.join('node_modules', child)
+    {engines} = grunt.file.readJSON(path.join(directory, 'package.json'))
+    if engines?.atom?
+      coffeeConfig.glob_to_multiple.src.push("#{directory}/**/*.coffee")
+      lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
+      csonConfig.glob_to_multiple.src.push("#{directory}/**/*.cson")
+
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
     atom: {appDir, appName, buildDir, contentsDir, installDir, shellAppDir}
 
-    coffee:
-      options:
-        sourceMap: true
-      glob_to_multiple:
-        expand: true
-        src: [
-          'src/**/*.coffee'
-          'static/**/*.coffee'
-        ]
-        dest: appDir
-        ext: '.js'
+    coffee: coffeeConfig
 
-    less:
-      options:
-        paths: [
-          'static'
-          'vendor'
-        ]
-      glob_to_multiple:
-        expand: true
-        src: [
-          'src/**/*.less'
-          'static/**/*.less'
-          'themes/**/*.less'
-        ]
-        dest: appDir
-        ext: '.css'
+    less: lessConfig
 
-    cson:
-      options:
-        rootObject: true
-      glob_to_multiple:
-        expand: true
-        src: [
-          'src/**/*.cson'
-          'static/**/*.cson'
-          'themes/**/*.cson'
-        ]
-        dest: appDir
-        ext: '.json'
+    cson: csonConfig
 
     coffeelint:
       options:
@@ -77,6 +92,7 @@ module.exports = (grunt) ->
         'box-sizing': false
         'bulletproof-font-face': false
         'compatible-vendor-prefixes': false
+        'display-property-grouping': false
         'fallback-colors': false
         'font-sizes': false
         'gradients': false
@@ -112,6 +128,6 @@ module.exports = (grunt) ->
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
-  grunt.registerTask('ci', ['lint', 'partial-clean', 'update-atom-shell', 'build', 'test'])
+  grunt.registerTask('ci', ['lint', 'partial-clean', 'update-atom-shell', 'build', 'set-development-version', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
   grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])

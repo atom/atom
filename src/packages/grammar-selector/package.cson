@@ -1,3 +1,0 @@
-'main': './lib/grammar-selector'
-'description': 'Select the grammar to use for the current editor.'
-'activationEvents': 'grammar-selector:show'

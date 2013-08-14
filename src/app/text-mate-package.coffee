@@ -27,6 +27,8 @@ class TextMatePackage extends Package
     @metadata = {@name}
 
   load: ({sync}={}) ->
+    @metadata = Package.loadMetadata(@path, true)
+
     if sync
       @loadGrammarsSync()
       @loadScopedPropertiesSync()
@@ -100,8 +102,9 @@ class TextMatePackage extends Package
         selector = syntax.cssSelectorFromScopeSelector(scope) if scope?
         @scopedProperties.push({selector, properties})
 
-    for {selector, properties} in @scopedProperties
-      syntax.addProperties(@path, selector, properties)
+    if @isActive()
+      for {selector, properties} in @scopedProperties
+        syntax.addProperties(@path, selector, properties)
 
   loadScopedProperties: (callback) ->
     scopedProperties = []
@@ -157,5 +160,6 @@ class TextMatePackage extends Package
       increaseIndentPattern: textMateSettings.increaseIndentPattern
       decreaseIndentPattern: textMateSettings.decreaseIndentPattern
       foldEndPattern: textMateSettings.foldingStopMarker
+      completions: textMateSettings.completions
     )
     { editor: editorProperties } if _.size(editorProperties) > 0

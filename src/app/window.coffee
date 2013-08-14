@@ -51,27 +51,13 @@ window.startEditorWindow = ->
   restoreDimensions()
   config.load()
   keymap.loadBundledKeymaps()
-  atom.loadThemes()
+  atom.themes.load()
   atom.loadPackages()
   deserializeEditorWindow()
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
   $(window).on 'unload', -> unloadEditorWindow(); false
-  atom.show()
-  atom.focus()
-
-window.startConfigWindow = ->
-  restoreDimensions()
-  windowEventHandler = new WindowEventHandler
-  config.load()
-  keymap.loadBundledKeymaps()
-  atom.loadThemes()
-  atom.loadPackages()
-  deserializeConfigWindow()
-  atom.activatePackageConfigs()
-  keymap.loadUserKeymaps()
-  $(window).on 'unload', -> unloadConfigWindow(); false
   atom.show()
   atom.focus()
 
@@ -97,13 +83,6 @@ window.installAtomCommand = (callback) ->
 window.installApmCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'node_modules', '.bin', 'apm')
   require('command-installer').install(commandPath, callback)
-
-window.unloadConfigWindow = ->
-  return if not configView
-  atom.getWindowState().set('configView', configView.serialize())
-  configView.remove()
-  windowEventHandler?.unsubscribe()
-  window.configView = null
 
 window.onDrop = (e) ->
   e.preventDefault()
@@ -135,11 +114,6 @@ window.deserializeEditorWindow = ->
   project.on 'path-changed', ->
     projectPath = project.getPath()
     atom.getLoadSettings().initialPath = projectPath
-
-window.deserializeConfigWindow = ->
-  ConfigView = require 'config-view'
-  window.configView = deserialize(atom.getWindowState('configView')) ? new ConfigView()
-  $(rootViewParentSelector).append(configView)
 
 window.stylesheetElementForId = (id) ->
   $("""head style[id="#{id}"]""")
@@ -229,12 +203,15 @@ window.unregisterDeserializer = (klass) ->
   delete deserializers[klass.name]
 
 window.deserialize = (state, params) ->
+  return unless state?
   if deserializer = getDeserializer(state)
     stateVersion = state.get?('version') ? state.version
     return if deserializer.version? and deserializer.version isnt stateVersion
     if (state instanceof telepath.Document) and not deserializer.acceptsDocuments
       state = state.toObject()
     deserializer.deserialize(state, params)
+  else
+    console.warn "No deserializer found for", state
 
 window.getDeserializer = (state) ->
   return unless state?
@@ -243,6 +220,7 @@ window.getDeserializer = (state) ->
   if deferredDeserializers[name]
     deferredDeserializers[name]()
     delete deferredDeserializers[name]
+
   deserializers[name]
 
 window.requireWithGlobals = (id, globals={}) ->

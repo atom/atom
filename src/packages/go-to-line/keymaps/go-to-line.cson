@@ -1,6 +1,0 @@
-'body':
-  'meta-l': 'editor:go-to-line'
-'.go-to-line .mini.editor input':
-  'enter': 'core:confirm',
-  'escape': 'core:cancel'
-  'meta-w': 'core:cancel'

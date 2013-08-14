@@ -5,7 +5,7 @@ Token = require 'token'
 {OnigRegExp, OnigScanner} = require 'oniguruma'
 path = require 'path'
 EventEmitter = require 'event-emitter'
-TextMateScopeSelector = require 'text-mate-scope-selector'
+{ScopeSelector} = require 'first-mate'
 
 pathSplitRegex = new RegExp("[#{path.sep}.]")
 
@@ -40,7 +40,7 @@ class TextMateGrammar
     @injections = new Injections(this, injections)
 
     if injectionSelector?
-      @injectionSelector = new TextMateScopeSelector(injectionSelector)
+      @injectionSelector = new ScopeSelector(injectionSelector)
 
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
     @fileTypes ?= []
@@ -197,7 +197,7 @@ class Injections
         patterns.push(pattern.getIncludedPatterns(grammar, patterns)...)
       @injections.push
         anchored: anchored
-        selector: new TextMateScopeSelector(selector)
+        selector: new ScopeSelector(selector)
         patterns: patterns
 
   getScanner: (injection, firstLine, position, anchorPosition) ->

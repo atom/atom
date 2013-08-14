@@ -10,7 +10,7 @@ TextBuffer = require 'text-buffer'
 EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
-BufferedProcess = require 'buffered-process'
+BufferedNodeProcess = require 'buffered-node-process'
 Git = require 'git'
 
 # Public: Represents a project that's opened in Atom.
@@ -229,6 +229,10 @@ class Project
   getEditSessions: ->
     new Array(@editSessions...)
 
+  addEditSession: (editSession) ->
+    @editSessions.push editSession
+    @trigger 'edit-session-created', editSession
+
   ### Public ###
 
   # Removes an {EditSession} association from the project.
@@ -355,7 +359,7 @@ class Project
     ignoredNames = config.get('core.ignoredNames') ? []
     args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
     args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
-    new BufferedProcess({command, args, stdout, stderr, exit})
+    new BufferedNodeProcess({command, args, stdout, stderr, exit})
     deferred
 
   ### Internal ###
@@ -364,7 +368,7 @@ class Project
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
     options.buffer = buffer
     editSession = new EditSession(options)
-    @trigger 'edit-session-created', editSession
+    @addEditSession(editSession)
     editSession
 
   defaultEditSessionOptions: ->

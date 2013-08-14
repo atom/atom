@@ -22,7 +22,7 @@ You can always use `meta-p` to explore available commands and their
 bindings, but here's a list of a few useful commands.
 
 - `meta-o` : open a file or directory
-- `meta-n` : open new window
+- `meta-shift-n` : open new window
 - `meta-r` : reload the current window
 - `meta-alt-ctrl-s` : run test specs
 - `meta-t` : open file finder to navigate files in your project
@@ -146,10 +146,13 @@ Atom loads configuration settings from the `config.cson` file in your `~/.atom`
 directory, which contains CoffeeScript-style JSON:
 
 ```coffeescript
-core:
-  hideGitIgnoredFiles: true
-editor:
-  fontSize: 18
+'editor':
+  'fontSize': 16
+'core':
+  'themes': [
+    'atom-dark-ui'
+    'atom-dark-syntax'
+  ]
 ```
 
 Configuration is broken into namespaces, which are defined by the config hash's
@@ -192,12 +195,12 @@ to apply styles to elements, Atom keymaps use selectors to associate keystrokes
 with events in specific contexts. Here's a small example, excerpted from Atom's
 built-in keymaps:
 
-```coffee-script
+```coffeescript
 '.editor':
   'enter': 'editor:newline'
 
-".select-list .editor.mini":
-  'enter': 'core:confirm',
+'.select-list .editor.mini':
+  'enter': 'core:confirm'
 ```
 
 This keymap defines the meaning of `enter` in two different contexts. In a
@@ -220,7 +223,7 @@ active at the same time. For example, you'll usually select a theme for the UI
 and another theme for syntax highlighting.  You can select themes by specifying
 them in the `core.themes` array in your `config.cson`:
 
-```coffee-script
+```coffeescript
 core:
   themes: ["atom-light-ui", "atom-light-syntax"]
   # or, if the sun is going down:

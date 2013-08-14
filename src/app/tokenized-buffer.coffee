@@ -199,9 +199,13 @@ class TokenizedBuffer
     { tokens, ruleStack } = @grammar.tokenizeLine(line, ruleStack, row is 0)
     new TokenizedLine({tokens, ruleStack, tabLength, lineEnding})
 
+  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
+  # accounted for in @tokenizedLines
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
 
+  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
+  # accounted for in @tokenizedLines
   linesForScreenRows: (startRow, endRow) ->
     @tokenizedLines[startRow..endRow]
 
@@ -212,8 +216,34 @@ class TokenizedBuffer
     @tokenForPosition(position).scopes
 
   tokenForPosition: (position) ->
+    {row, column} = Point.fromObject(position)
+    @tokenizedLines[row].tokenAtBufferColumn(column)
+
+  tokenStartPositionForPosition: (position) ->
+    {row, column} = Point.fromObject(position)
+    column = @tokenizedLines[row].tokenStartColumnForBufferColumn(column)
+    new Point(row, column)
+
+  bufferRangeForScopeAtPosition: (selector, position) ->
     position = Point.fromObject(position)
-    @tokenizedLines[position.row].tokenAtBufferColumn(position.column)
+    tokenizedLine = @tokenizedLines[position.row]
+    startIndex = tokenizedLine.tokenIndexAtBufferColumn(position.column)
+
+    for index in [startIndex..0]
+      token = tokenizedLine.tokenAtIndex(index)
+      break unless token.matchesScopeSelector(selector)
+      firstToken = token
+
+    for index in [startIndex...tokenizedLine.getTokenCount()]
+      token = tokenizedLine.tokenAtIndex(index)
+      break unless token.matchesScopeSelector(selector)
+      lastToken = token
+
+    return unless firstToken? and lastToken?
+
+    startColumn = tokenizedLine.bufferColumnForToken(firstToken)
+    endColumn = tokenizedLine.bufferColumnForToken(lastToken) + lastToken.bufferDelta
+    new Range([position.row, startColumn], [position.row, endColumn])
 
   destroy: ->
     @unsubscribe()

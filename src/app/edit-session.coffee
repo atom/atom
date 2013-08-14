@@ -11,7 +11,7 @@ Cursor = require 'cursor'
 Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
-TextMateScopeSelector = require 'text-mate-scope-selector'
+TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
 module.exports =
@@ -52,6 +52,7 @@ class EditSession
         @addSelection(marker)
       @setScrollTop(@state.get('scrollTop'))
       @setScrollLeft(@state.get('scrollLeft'))
+      registerEditSession = true
     else
       {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation} = optionsOrState
       @id = guid.create().toString()
@@ -81,7 +82,7 @@ class EditSession
         when 'scrollLeft'
           @trigger 'scroll-left-changed', newValue
 
-    project.editSessions.push(this)
+    project.addEditSession(this) if registerEditSession
 
   setBuffer: (@buffer) ->
     @buffer.retain()
@@ -405,8 +406,11 @@ class EditSession
   # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
 
-  # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
+  # {Delegates to: DisplayBuffer.scopesForBufferPosition}
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+
+  bufferRangeForScopeAtCursor: (selector) ->
+    @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
@@ -552,6 +556,9 @@ class EditSession
   # Unfolds all the rows.
   unfoldAll: ->
     @languageMode.unfoldAll()
+
+  foldAllAtIndentLevel: (indentLevel) ->
+    @languageMode.foldAllAtIndentLevel(indentLevel)
 
   # Folds the current row.
   foldCurrentRow: ->
@@ -1084,6 +1091,8 @@ class EditSession
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
 
+  setTextInBufferRange: (range, text) -> @getBuffer().change(range, text)
+
   # Retrieves the range for the current paragraph.
   #
   # A paragraph is defined as a block of text surrounded by empty lines.
@@ -1102,19 +1111,19 @@ class EditSession
 
   # Moves every cursor up one row.
   moveCursorUp: (lineCount) ->
-    @moveCursors (cursor) -> cursor.moveUp(lineCount)
+    @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
 
   # Moves every cursor down one row.
   moveCursorDown: (lineCount) ->
-    @moveCursors (cursor) -> cursor.moveDown(lineCount)
+    @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
 
   # Moves every cursor left one column.
   moveCursorLeft: ->
-    @moveCursors (cursor) -> cursor.moveLeft()
+    @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
 
   # Moves every cursor right one column.
   moveCursorRight: ->
-    @moveCursors (cursor) -> cursor.moveRight()
+    @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
 
   # Moves every cursor to the top of the buffer.
   moveCursorToTop: ->
@@ -1147,6 +1156,12 @@ class EditSession
   # Moves every cursor to the beginning of the next word.
   moveCursorToBeginningOfNextWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
+
+  moveCursorToPreviousWordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToPreviousWordBoundary()
+
+  moveCursorToNextWordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
 
   # Internal:
   moveCursors: (fn) ->
@@ -1200,6 +1215,12 @@ class EditSession
   # Selects all the text from the current cursor position to the end of the line.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()
+
+  selectToPreviousWordBoundary: ->
+    @expandSelectionsBackward (selection) => selection.selectToPreviousWordBoundary()
+
+  selectToNextWordBoundary: ->
+    @expandSelectionsForward (selection) => selection.selectToNextWordBoundary()
 
   # Selects the current line.
   selectLine: ->

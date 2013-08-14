@@ -91,13 +91,24 @@ class LanguageMode
     for currentRow in [0..@buffer.getLastRow()]
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
-
       @editSession.createFold(startRow, endRow)
 
   # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
     for row in [@buffer.getLastRow()..0]
       fold.destroy() for fold in @editSession.displayBuffer.foldsStartingAtBufferRow(row)
+
+  # Fold all comment and code blocks at a given indentLevel
+  #
+  # indentLevel - A {Number} indicating indentLevel; 0 based.
+  foldAllAtIndentLevel: (indentLevel) ->
+    for currentRow in [0..@buffer.getLastRow()]
+      [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
+      continue unless startRow?
+
+      # assumption: startRow will always be the min indent level for the entire range
+      if @editSession.indentationForBufferRow(startRow) == indentLevel
+        @editSession.createFold(startRow, endRow)
 
   # Given a buffer row, creates a fold at it.
   #
@@ -106,9 +117,7 @@ class LanguageMode
   # Returns the new {Fold}.
   foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
-      rowRange = @rowRangeForCommentAtBufferRow(currentRow)
-      rowRange ?= @rowRangeForFoldAtBufferRow(currentRow)
-      [startRow, endRow] = rowRange ? []
+      [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
       fold = @editSession.displayBuffer.largestFoldStartingAtBufferRow(startRow)
       return @editSession.createFold(startRow, endRow) unless fold
@@ -119,13 +128,33 @@ class LanguageMode
   unfoldBufferRow: (bufferRow) ->
     @editSession.displayBuffer.largestFoldContainingBufferRow(bufferRow)?.destroy()
 
-  doesBufferRowStartFold: (bufferRow) ->
-    return false if @editSession.isBufferRowBlank(bufferRow)
-    nextNonEmptyRow = @editSession.nextNonBlankBufferRow(bufferRow)
-    return false unless nextNonEmptyRow?
-    @editSession.indentationForBufferRow(nextNonEmptyRow) > @editSession.indentationForBufferRow(bufferRow)
-
+  # Find the row range for a fold at a given bufferRow. Will handle comments
+  # and code.
+  #
+  # bufferRow - A {Number} indicating the buffer row
+  #
+  # Returns an {Array} of the [startRow, endRow]. Returns null if no range.
   rowRangeForFoldAtBufferRow: (bufferRow) ->
+    rowRange = @rowRangeForCommentAtBufferRow(bufferRow)
+    rowRange ?= @rowRangeForCodeFoldAtBufferRow(bufferRow)
+    rowRange
+
+  rowRangeForCommentAtBufferRow: (bufferRow) ->
+    return unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+
+    startRow = bufferRow
+    for currentRow in [bufferRow-1..0]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      startRow = currentRow
+    endRow = bufferRow
+    for currentRow in [bufferRow+1..@buffer.getLastRow()]
+      break if @buffer.isRowBlank(currentRow)
+      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      endRow = currentRow
+    return [startRow, endRow] if startRow isnt endRow
+
+  rowRangeForCodeFoldAtBufferRow: (bufferRow) ->
     return null unless @doesBufferRowStartFold(bufferRow)
 
     startIndentLevel = @editSession.indentationForBufferRow(bufferRow)
@@ -142,20 +171,43 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
-  rowRangeForCommentAtBufferRow: (row) ->
-    return unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
+  doesBufferRowStartFold: (bufferRow) ->
+    return false if @editSession.isBufferRowBlank(bufferRow)
+    nextNonEmptyRow = @editSession.nextNonBlankBufferRow(bufferRow)
+    return false unless nextNonEmptyRow?
+    @editSession.indentationForBufferRow(nextNonEmptyRow) > @editSession.indentationForBufferRow(bufferRow)
 
-    startRow = row
-    for currentRow in [row-1..0]
-      break if @buffer.isRowBlank(currentRow)
-      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
-      startRow = currentRow
-    endRow = row
-    for currentRow in [row+1..@buffer.getLastRow()]
-      break if @buffer.isRowBlank(currentRow)
-      break unless @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
-      endRow = currentRow
-    return [startRow, endRow] if startRow isnt endRow
+  # Find a row range for a 'paragraph' around specified bufferRow.
+  # Right now, a paragraph is a block of text bounded by and empty line or a
+  # block of text that is not the same type (comments next to source code).
+  rowRangeForParagraphAtBufferRow: (bufferRow) ->
+    return unless /\w/.test(@editSession.lineForBufferRow(bufferRow))
+
+    isRowComment = (row) =>
+      @editSession.displayBuffer.tokenizedBuffer.lineForScreenRow(row).isComment()
+
+    if isRowComment(bufferRow)
+      isOriginalRowComment = true
+      range = @rowRangeForCommentAtBufferRow(bufferRow)
+      [firstRow, lastRow] = range or [bufferRow, bufferRow]
+    else
+      isOriginalRowComment = false
+      [firstRow, lastRow] = [0, @editSession.getLastBufferRow()-1]
+
+    startRow = bufferRow
+    while startRow > firstRow
+      break if isRowComment(startRow - 1) != isOriginalRowComment
+      break unless /\w/.test(@editSession.lineForBufferRow(startRow - 1))
+      startRow--
+
+    endRow = bufferRow
+    lastRow = @editSession.getLastBufferRow()
+    while endRow < lastRow
+      break if isRowComment(endRow + 1) != isOriginalRowComment
+      break unless /\w/.test(@editSession.lineForBufferRow(endRow + 1))
+      endRow++
+
+    new Range([startRow, 0], [endRow, @editSession.lineLengthForBufferRow(endRow)])
 
   # Given a buffer row, this returns a suggested indentation level.
   #
@@ -170,7 +222,7 @@ class LanguageMode
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
 
     currentLine = @buffer.lineForRow(bufferRow)
-    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    precedingRow = if bufferRow > 0 then bufferRow - 1 else null
     return currentIndentLevel unless precedingRow?
 
     precedingLine = @buffer.lineForRow(precedingRow)
@@ -180,7 +232,7 @@ class LanguageMode
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
     desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
 
-    desiredIndentLevel
+    Math.max(desiredIndentLevel, 0)
 
   # Calculate a minimum indent level for a range of lines excluding empty lines.
   #

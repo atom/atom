@@ -140,11 +140,15 @@ class Editor extends View
       'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord
       'editor:move-to-end-of-word': @moveCursorToEndOfWord
       'editor:move-to-beginning-of-next-word': @moveCursorToBeginningOfNextWord
+      'editor:move-to-previous-word-boundary': @moveCursorToPreviousWordBoundary
+      'editor:move-to-next-word-boundary': @moveCursorToNextWordBoundary
       'editor:select-to-end-of-line': @selectToEndOfLine
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
       'editor:select-to-beginning-of-next-word': @selectToBeginningOfNextWord
+      'editor:select-to-next-word-boundary': @selectToNextWordBoundary
+      'editor:select-to-previous-word-boundary': @selectToPreviousWordBoundary
       'editor:select-to-first-character-of-line': @selectToFirstCharacterOfLine
       'editor:add-selection-below': @addSelectionBelow
       'editor:add-selection-above': @addSelectionAbove
@@ -174,6 +178,15 @@ class Editor extends View
         'editor:fold-current-row': @foldCurrentRow
         'editor:unfold-current-row': @unfoldCurrentRow
         'editor:fold-selection': @foldSelection
+        'editor:fold-at-indent-level-1': => @foldAllAtIndentLevel(0)
+        'editor:fold-at-indent-level-2': => @foldAllAtIndentLevel(1)
+        'editor:fold-at-indent-level-3': => @foldAllAtIndentLevel(2)
+        'editor:fold-at-indent-level-4': => @foldAllAtIndentLevel(3)
+        'editor:fold-at-indent-level-5': => @foldAllAtIndentLevel(4)
+        'editor:fold-at-indent-level-6': => @foldAllAtIndentLevel(5)
+        'editor:fold-at-indent-level-7': => @foldAllAtIndentLevel(6)
+        'editor:fold-at-indent-level-8': => @foldAllAtIndentLevel(7)
+        'editor:fold-at-indent-level-9': => @foldAllAtIndentLevel(8)
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
@@ -236,6 +249,12 @@ class Editor extends View
 
   # {Delegates to: EditSession.moveCursorToFirstCharacterOfLine}
   moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
+
+  # {Delegates to: EditSession.moveCursorToPreviousWordBoundary}
+  moveCursorToPreviousWordBoundary: -> @activeEditSession.moveCursorToPreviousWordBoundary()
+
+  # {Delegates to: EditSession.moveCursorToNextWordBoundary}
+  moveCursorToNextWordBoundary: -> @activeEditSession.moveCursorToNextWordBoundary()
 
   # {Delegates to: EditSession.moveCursorToEndOfLine}
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
@@ -332,6 +351,12 @@ class Editor extends View
 
   # {Delegates to: EditSession.selectToEndOfLine}
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+
+  # {Delegates to: EditSession.selectToPreviousWordBoundary}
+  selectToPreviousWordBoundary: -> @activeEditSession.selectToPreviousWordBoundary()
+
+  # {Delegates to: EditSession.selectToNextWordBoundary}
+  selectToNextWordBoundary: -> @activeEditSession.selectToNextWordBoundary()
 
   # {Delegates to: EditSession.addSelectionBelow}
   addSelectionBelow: -> @activeEditSession.addSelectionBelow()
@@ -458,6 +483,8 @@ class Editor extends View
 
   # {Delegates to: EditSession.isFoldedAtCursorRow}
   isFoldedAtCursorRow: -> @activeEditSession.isFoldedAtCursorRow()
+
+  foldAllAtIndentLevel: (indentLevel) -> @activeEditSession.foldAllAtIndentLevel(indentLevel)
 
   # {Delegates to: EditSession.lineForScreenRow}
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
@@ -624,7 +651,10 @@ class Editor extends View
       false if @isFocused
 
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
-      @activeEditSession.destroyFoldWithId($(e.currentTarget).attr('fold-id'))
+      id = $(e.currentTarget).attr('fold-id')
+      marker = @activeEditSession.displayBuffer.getMarker(id)
+      @activeEditSession.setCursorBufferPosition(marker.getBufferRange().start)
+      @activeEditSession.destroyFoldWithId(id)
       false
 
     @renderedLines.on 'mousedown', (e) =>
@@ -1356,7 +1386,6 @@ class Editor extends View
     new Array(div.children...)
 
   htmlForScreenRows: (startRow, endRow) ->
-    lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     htmlLines = []
     screenRow = startRow
     for line in @activeEditSession.linesForScreenRows(startRow, endRow)
@@ -1471,7 +1500,7 @@ class Editor extends View
     range = document.createRange()
     range.setEnd(textNode, offset)
     range.collapse()
-    leftPixels = range.getClientRects()[0].left - @scrollView.offset().left + @scrollLeft()
+    leftPixels = range.getClientRects()[0].left - Math.floor(@scrollView.offset().left) + Math.floor(@scrollLeft())
     range.detach()
     leftPixels
 
@@ -1531,6 +1560,10 @@ class Editor extends View
    # {Delegates to: EditSession.reloadGrammar}
   reloadGrammar: ->
     @activeEditSession.reloadGrammar()
+
+  # {Delegates to: EditSession.scopesForBufferPosition}
+  scopesForBufferPosition: (bufferPosition) ->
+    @activeEditSession.scopesForBufferPosition(bufferPosition)
 
   # Copies the current file path to the native clipboard.
   copyPathToPasteboard: ->

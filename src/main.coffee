@@ -56,7 +56,6 @@ setupCrashReporter = ->
 
 setupAutoUpdater = ->
   autoUpdater.setFeedUrl 'https://speakeasy.githubapp.com/apps/27/appcast.xml'
-  autoUpdater.setAutomaticallyDownloadsUpdates true
 
 parseCommandLine = ->
   version = app.getVersion()
@@ -64,7 +63,7 @@ parseCommandLine = ->
   options.usage """
     Atom #{version}
 
-    Usage: atom [options] [file ..]
+    Usage: atom [options] [file ...]
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')

@@ -11,7 +11,11 @@ describe "TokenizedBuffer", ->
     TokenizedBuffer.prototype.chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
 
+  startTokenizing = (tokenizedBuffer) ->
+    tokenizedBuffer.setVisible(true)
+
   fullyTokenize = (tokenizedBuffer) ->
+    tokenizedBuffer.setVisible(true)
     advanceClock() while tokenizedBuffer.firstInvalidRow()?
     changeHandler?.reset()
 
@@ -27,7 +31,7 @@ describe "TokenizedBuffer", ->
     beforeEach ->
       buffer = project.bufferForPath('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
-      tokenizedBuffer.setVisible(true)
+      startTokenizing(tokenizedBuffer)
       tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
 
     afterEach ->
@@ -307,7 +311,7 @@ describe "TokenizedBuffer", ->
       atom.activatePackage('coffee-script-tmbundle', sync: true)
       buffer = project.bufferForPath('sample-with-tabs.coffee')
       tokenizedBuffer = new TokenizedBuffer({buffer})
-      tokenizedBuffer.setVisible(true)
+      startTokenizing(tokenizedBuffer)
 
     afterEach ->
       tokenizedBuffer.destroy()
@@ -340,7 +344,6 @@ describe "TokenizedBuffer", ->
         //\uD835\uDF97xyz
       """
       tokenizedBuffer = new TokenizedBuffer({buffer})
-      tokenizedBuffer.setVisible(true)
       fullyTokenize(tokenizedBuffer)
 
     afterEach ->
@@ -378,7 +381,6 @@ describe "TokenizedBuffer", ->
       buffer = project.bufferForPath(null, "<div class='name'><%= User.find(2).full_name %></div>")
       tokenizedBuffer = new TokenizedBuffer({buffer})
       tokenizedBuffer.setGrammar(syntax.selectGrammar('test.erb'))
-      tokenizedBuffer.setVisible(true)
       fullyTokenize(tokenizedBuffer)
 
       {tokens} = tokenizedBuffer.lineForScreenRow(0)
@@ -397,8 +399,25 @@ describe "TokenizedBuffer", ->
     it "returns the correct token (regression)", ->
       buffer = project.bufferForPath('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
-      tokenizedBuffer.setVisible(true)
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1,1]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1,2]).scopes).toEqual ["source.js", "storage.modifier.js"]
+
+  describe ".bufferRangeForScopeAtPosition(selector, position)", ->
+    beforeEach ->
+      buffer = project.bufferForPath('sample.js')
+      tokenizedBuffer = new TokenizedBuffer(buffer)
+      fullyTokenize(tokenizedBuffer)
+
+    describe "when the selector does not match the token at the position", ->
+      it "returns a falsy value", ->
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.bogus', [0, 1])).toBeFalsy()
+
+    describe "when the selector matches a single token at the position", ->
+      it "returns the range covered by the token", ->
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.modifier.js', [0, 1])).toEqual [[0, 0], [0, 3]]
+
+    describe "when the selector matches a run of multiple tokens at the position", ->
+      it "returns the range covered by all contigous tokens (within a single line)", ->
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.function', [1, 18])).toEqual [[1, 6], [1, 28]]

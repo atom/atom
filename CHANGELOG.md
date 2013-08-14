@@ -1,3 +1,22 @@
+* Added: Terminal package now bundled by default, open with ctrl-`
+* Fixed: Fuzzy finder not showing results for files at a certain depth
+* Fixed: Atom > Preferences... menu not opening settings in focused window
+
+* Fixed: Atom failing to launch if the theme being used was not found
+
+* Improved: Theme changes now immediately take effect
+* Fixed: Wrap in quotes/parens now works in split panes
+* Improved: Autocomplete now includes CSS property names and values
+* Improved: Settings GUI is now a pane item
+* Added: Support package filtering in Settings GUI
+* Added: Dynamically load all config options in the Settings GUI
+* Added: Ability to bookmark lines and navigate bookmarks
+* Fixed: Error when inserting newlines in CSS
+* Fixed: Folding all will fold comments as well
+* Added: Ability to fold all code at a given indentation level
+
+* Improved: cmd-n now opens a new tab and cmd-shift-n now opens a new window.
+* Added: Inspect Element context menu
 * Fixed: Save As dialog now defaults to directory path of current editor
 * Fixed: Using toggle comment shortcut respects indentation level
 

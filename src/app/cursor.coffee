@@ -128,6 +128,11 @@ class Cursor
     range = [[row, Math.min(0, column - 1)], [row, Math.max(0, column + 1)]]
     /^\s+$/.test @editSession.getTextInBufferRange(range)
 
+  isInsideWord: ->
+    {row, column} = @getBufferPosition()
+    range = [[row, column], [row, Infinity]]
+    @editSession.getTextInBufferRange(range).search(@wordRegExp()) == 0
+
   # Removes the setting for auto-scroll.
   clearAutoscroll: ->
     @needsAutoscroll = null
@@ -167,29 +172,53 @@ class Cursor
     @editSession.lineForBufferRow(@getBufferRow())
 
   # Moves the cursor up one screen row.
-  moveUp: (rowCount = 1) ->
-    { row, column } = @getScreenPosition()
+  moveUp: (rowCount = 1, {moveToEndOfSelection}={}) ->
+    range = @marker.getScreenRange()
+    if moveToEndOfSelection and not range.isEmpty()
+      { row, column } = range.start
+    else
+      { row, column } = @getScreenPosition()
+
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row - rowCount, column: column})
     @goalColumn = column
 
   # Moves the cursor down one screen row.
-  moveDown: (rowCount = 1) ->
-    { row, column } = @getScreenPosition()
+  moveDown: (rowCount = 1, {moveToEndOfSelection}={}) ->
+    range = @marker.getScreenRange()
+    if moveToEndOfSelection and not range.isEmpty()
+      { row, column } = range.end
+    else
+      { row, column } = @getScreenPosition()
+
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row + rowCount, column: column})
     @goalColumn = column
 
   # Moves the cursor left one screen column.
-  moveLeft: ->
-    { row, column } = @getScreenPosition()
-    [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
-    @setScreenPosition({row, column})
+  #
+  # options -
+  #   moveToEndOfSelection: true will move to the left of the selection if a selection
+  moveLeft: ({moveToEndOfSelection}={}) ->
+    range = @marker.getScreenRange()
+    if moveToEndOfSelection and not range.isEmpty()
+      @setScreenPosition(range.start)
+    else
+      {row, column} = @getScreenPosition()
+      [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
+      @setScreenPosition({row, column})
 
   # Moves the cursor right one screen column.
-  moveRight: ->
-    { row, column } = @getScreenPosition()
-    @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+  #
+  # options -
+  #   moveToEndOfSelection: true will move to the right of the selection if a selection
+  moveRight: ({moveToEndOfSelection}={}) ->
+    range = @marker.getScreenRange()
+    if moveToEndOfSelection and not range.isEmpty()
+      @setScreenPosition(range.end)
+    else
+      { row, column } = @getScreenPosition()
+      @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Moves the cursor to the top of the buffer.
   moveToTop: ->
@@ -199,20 +228,20 @@ class Cursor
   moveToBottom: ->
     @setBufferPosition(@editSession.getEofBufferPosition())
 
-  # Moves the cursor to the beginning of the buffer line.
+  # Moves the cursor to the beginning of the screen line.
   moveToBeginningOfLine: ->
-    @setBufferPosition([@getBufferRow(), 0])
+    @setScreenPosition([@getScreenRow(), 0])
 
   # Moves the cursor to the beginning of the first character in the line.
   moveToFirstCharacterOfLine: ->
-    position = @getBufferPosition()
-    scanRange = @getCurrentLineBufferRange()
-    newPosition = null
-    @editSession.scanInBufferRange /^\s*/, scanRange, ({range}) =>
-      newPosition = range.end
-    return unless newPosition
-    newPosition = [position.row, 0] if newPosition.isEqual(position)
-    @setBufferPosition(newPosition)
+    {row, column} = @getScreenPosition()
+    screenline = @editSession.lineForScreenRow(row)
+
+    goalColumn = screenline.text.search(/\S/)
+    return if goalColumn == -1
+
+    goalColumn = 0 if goalColumn == column
+    @setScreenPosition([row, goalColumn])
 
   # Moves the cursor to the beginning of the buffer line, skipping all whitespace.
   skipLeadingWhitespace: ->
@@ -226,7 +255,7 @@ class Cursor
 
   # Moves the cursor to the end of the buffer line.
   moveToEndOfLine: ->
-    @setBufferPosition([@getBufferRow(), Infinity])
+    @setScreenPosition([@getScreenRow(), Infinity])
 
   # Moves the cursor to the beginning of the word.
   moveToBeginningOfWord: ->
@@ -240,6 +269,16 @@ class Cursor
   # Moves the cursor to the beginning of the next word.
   moveToBeginningOfNextWord: ->
     if position = @getBeginningOfNextWordBufferPosition()
+      @setBufferPosition(position)
+
+  # Moves the cursor to the previous word boundary.
+  moveToPreviousWordBoundary: ->
+    if position = @getPreviousWordBoundaryBufferPosition()
+      @setBufferPosition(position)
+
+  # Moves the cursor to the next word boundary.
+  moveToNextWordBoundary: ->
+    if position = @getMoveNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
 
   # Retrieves the buffer position of where the current word starts.
@@ -262,6 +301,49 @@ class Cursor
         stop()
 
     beginningOfWordPosition or currentBufferPosition
+
+  # Retrieves buffer position of previous word boiundry. It might be on the
+  # current word, or the previous word.
+  getPreviousWordBoundaryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
+    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
+
+    beginningOfWordPosition = null
+    @editSession.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      if range.start.row < currentBufferPosition.row and currentBufferPosition.column > 0
+        # force it to stop at the beginning of each line
+        beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
+      else if range.end.isLessThan(currentBufferPosition)
+        beginningOfWordPosition = range.end
+      else
+        beginningOfWordPosition = range.start
+
+      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    beginningOfWordPosition or currentBufferPosition
+
+  # Retrieves buffer position of previous word boiundry. It might be on the
+  # current word, or the previous word.
+  getMoveNextWordBoundaryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    scanRange = [currentBufferPosition, @editSession.getEofBufferPosition()]
+
+    endOfWordPosition = null
+    @editSession.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) =>
+      if range.start.row > currentBufferPosition.row
+        # force it to stop at the beginning of each line
+        endOfWordPosition = new Point(range.start.row, 0)
+      else if range.start.isGreaterThan(currentBufferPosition)
+        endOfWordPosition = range.start
+      else
+        endOfWordPosition = range.end
+
+      if not endOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    endOfWordPosition or currentBufferPosition
 
   # Retrieves the buffer position of where the current word ends.
   #
@@ -291,7 +373,7 @@ class Cursor
   # Returns a {Range}.
   getBeginningOfNextWordBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
-    start = if @isSurroundedByWhitespace() then currentBufferPosition else @getEndOfCurrentWordBufferPosition()
+    start = if @isInsideWord() then @getEndOfCurrentWordBufferPosition() else currentBufferPosition
     scanRange = [start, @editSession.getEofBufferPosition()]
 
     beginningOfNextWordPosition = null
@@ -325,21 +407,7 @@ class Cursor
   #
   # Returns a {Range}.
   getCurrentParagraphBufferRange: ->
-    row = @getBufferRow()
-    return unless /\w/.test(@editSession.lineForBufferRow(row))
-
-    startRow = row
-    while startRow > 0
-      break unless /\w/.test(@editSession.lineForBufferRow(startRow - 1))
-      startRow--
-
-    endRow = row
-    lastRow = @editSession.getLastBufferRow()
-    while endRow < lastRow
-      break unless /\w/.test(@editSession.lineForBufferRow(endRow + 1))
-      endRow++
-
-    new Range([startRow, 0], [endRow, @editSession.lineLengthForBufferRow(endRow)])
+    @editSession.languageMode.rowRangeForParagraphAtBufferRow(@getBufferRow())
 
   # Retrieves the characters that constitute a word preceeding the current cursor position.
   #

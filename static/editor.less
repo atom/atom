@@ -1,3 +1,6 @@
+@import "octicon-utf-codes.less";
+@import "octicon-mixins.less";
+
 .editor {
   overflow: hidden;
   cursor: text;
@@ -7,17 +10,6 @@
   z-index: 0;
   font-family: Inconsolata, Monaco, Courier;
   line-height: 1.3;
-}
-
-.editor.mini {
-  height: auto;
-  line-height: 25px;
-}
-
-.editor.mini .cursor {
-  width: 2px;
-  line-height: 20px;
-  margin-top: 2px;
 }
 
 .editor .gutter .line-number.cursor-line {
@@ -51,26 +43,21 @@
   visibility: visible;
 }
 
-.editor.mini .gutter {
-  display: none;
-}
-
 .editor .gutter .line-number:after {
-  font-size: 0.8em;
-  content: '\f078';
-  font-family: 'Octicons Regular';
-  -webkit-font-smoothing: antialiased;
+  .icon(0.8em);
+  content: @chevron-right;
   opacity: .8;
   visibility: hidden;
+  position: relative;
+  top: -0.2em;
 }
 
 .editor .fold-marker:after {
-  font-size: .8em;
-  content: '\f09a';
-  opacity: .8;
-  padding-left: .2em;
-  font-family: 'Octicons Regular';
-  -webkit-font-smoothing: antialiased;
+  .icon(0.8em);
+  content: @ellipsis;
+  padding-left: 0.2em;
+  position: relative;
+  top: -0.2em;
 }
 
 .editor .line.cursor-line .fold-marker:after {
@@ -98,7 +85,7 @@
   bottom: 0;
   width: 15px;
   overflow-y: auto;
-  z-index: 1;
+  z-index: 3;
 }
 
 .editor .scroll-view {
@@ -107,10 +94,6 @@
   -webkit-flex: 1;
   min-width: 0;
   position: relative;
-}
-
-.editor.mini .scroll-view {
-  overflow: hidden;
 }
 
 .editor.soft-wrap .scroll-view {
@@ -174,4 +157,23 @@
   position: absolute;
   pointer-events: none;
   z-index: -1;
+}
+
+.editor.mini {
+  height: auto;
+  line-height: 25px;
+
+  .cursor {
+    width: 2px;
+    line-height: 20px;
+    margin-top: 2px;
+  }
+
+  .gutter {
+    display: none;
+  }
+
+  .scroll-view {
+    overflow: hidden;
+  }
 }

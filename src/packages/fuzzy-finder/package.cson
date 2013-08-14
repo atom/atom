@@ -1,2 +1,0 @@
-'main': './lib/fuzzy-finder'
-'description': 'Open an editor to a file in the project with `cmd-t`.'

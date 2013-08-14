@@ -33,7 +33,6 @@ class AtomApplication
     client.on 'error', createAtomApplication
 
   windows: null
-  configWindow: null
   menu: null
   resourcePath: null
   installUpdate: null
@@ -83,10 +82,15 @@ class AtomApplication
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
   checkForUpdates: ->
-    return if /\w{7}/.test @version # Don't check for updates if version is a short sha
+    versionIsSha = /\w{7}/.test @version
 
-    autoUpdater.setAutomaticallyChecksForUpdates true
-    autoUpdater.checkForUpdatesInBackground()
+    if versionIsSha
+      autoUpdater.setAutomaticallyDownloadsUpdates false
+      autoUpdater.setAutomaticallyChecksForUpdates false
+    else
+      autoUpdater.setAutomaticallyDownloadsUpdates true
+      autoUpdater.setAutomaticallyChecksForUpdates true
+      autoUpdater.checkForUpdatesInBackground()
 
   buildApplicationMenu: (version, continueUpdate) ->
     menus = []
@@ -95,7 +99,7 @@ class AtomApplication
       submenu: [
         { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
         { type: 'separator' }
-        { label: 'Preferences...', accelerator: 'Command+,', click: => @openConfig() }
+        { label: 'Preferences...', accelerator: 'Command+,', click: => @sendCommand('window:open-settings') }
         { type: 'separator' }
         { label: 'Hide Atom', accelerator: 'Command+H', selector: 'hide:' }
         { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
@@ -127,7 +131,7 @@ class AtomApplication
     menus.push
       label: 'File'
       submenu: [
-        { label: 'New Window', accelerator: 'Command+N', click: => @openPath() }
+        { label: 'New Window', accelerator: 'Command+Shift+N', click: => @openPath() }
         { label: 'Open...', accelerator: 'Command+O', click: => @promptForPath() }
         { label: 'Open In Dev Mode...', accelerator: 'Command+Shift+O', click: => @promptForPath(devMode: true) }
       ]
@@ -183,8 +187,10 @@ class AtomApplication
       @installUpdate = quitAndUpdate
       @buildApplicationMenu version, quitAndUpdate
 
-    ipc.on 'open-config', =>
-      @openConfig()
+    ipc.on 'close-without-confirm', (processId, routingId) ->
+      window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
+      window.removeAllListeners 'close'
+      window.close()
 
     ipc.on 'open', (processId, routingId, pathsToOpen) =>
       if pathsToOpen?.length > 0
@@ -257,17 +263,6 @@ class AtomApplication
         new AtomWindow({bootstrapScript, @resourcePath, sessionId})
     else
       console.log "Opening unknown url #{urlToOpen}"
-
-  openConfig: ->
-    if @configWindow
-      @configWindow.focus()
-      return
-
-    @configWindow = new AtomWindow
-      bootstrapScript: 'config-bootstrap'
-      resourcePath: @resourcePath
-    @configWindow.browserWindow.on 'destroyed', =>
-      @configWindow = null
 
   runSpecs: ({exitWhenDone, resourcePath}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)

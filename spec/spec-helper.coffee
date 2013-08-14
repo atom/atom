@@ -37,7 +37,6 @@ beforeEach ->
   window.project = new Project(fsUtils.resolveOnLoadPath('fixtures'))
 
   window.resetTimeouts()
-  atom.windowMode = 'editor'
   atom.packageStates = {}
   spyOn(atom, 'saveWindowState')
   syntax.clearGrammarOverrides()

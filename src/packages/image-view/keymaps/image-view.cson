@@ -1,6 +1,0 @@
-'.image-view':
-  'meta-+': 'image-view:zoom-in'
-  'meta-=': 'image-view:zoom-in'
-  'meta--': 'image-view:zoom-out'
-  'meta-_': 'image-view:zoom-out'
-  'meta-0': 'image-view:reset-zoom'

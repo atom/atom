@@ -1,7 +1,0 @@
-'.sign-in-view':
-  'esc': 'core:cancel'
-'.sign-in-view input':
-  'meta-enter': 'core:confirm'
-'.sign-in-view button':
-  'enter': 'core:confirm'
-  'meta-enter': 'core:confirm'

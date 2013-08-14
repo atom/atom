@@ -1,2 +1,0 @@
-'main': './lib/spell-check'
-'description': 'Highlight misspelled words in the current text or Markdown editor.\n\nDisplay corrections for the misspelling under the cursor with `meta-0`.'

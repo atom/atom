@@ -1,2 +1,0 @@
-'main': './lib/bracket-matcher'
-'description': 'Highlight the matching bracket for the `(){}[]` character under the cursor.\n\nMove the cursor to the matching bracket with `ctrl-j`.'

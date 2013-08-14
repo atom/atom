@@ -5,6 +5,7 @@ Specificity = require 'specificity'
 fsUtils = require 'fs-utils'
 EventEmitter = require 'event-emitter'
 NullGrammar = require 'null-grammar'
+TextMateScopeSelector = require('first-mate').ScopeSelector
 
 ### Internal ###
 
@@ -131,12 +132,6 @@ class Syntax
       element[0]
 
   cssSelectorFromScopeSelector: (scopeSelector) ->
-    scopeSelector.split(', ').map((commaFragment) ->
-      commaFragment.split(' ').map((spaceFragment) ->
-        spaceFragment.split('.').map((dotFragment) ->
-          '.' + dotFragment.replace(/\+/g, '\\+')
-        ).join('')
-      ).join(' ')
-    ).join(', ')
+    new TextMateScopeSelector(scopeSelector).toCssSelector()
 
 _.extend(Syntax.prototype, EventEmitter)

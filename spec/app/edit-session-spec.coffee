@@ -137,6 +137,15 @@ describe "EditSession", ->
           editSession.moveCursorDown()
           expect(editSession.getCursorScreenPosition()).toEqual([1, 4])
 
+      describe "when there is a selection", ->
+        beforeEach ->
+          editSession.setSelectedBufferRange([[4, 9],[5, 10]])
+
+        it "moves above the selection", ->
+          cursor = editSession.getCursor()
+          editSession.moveCursorUp()
+          expect(cursor.getBufferPosition()).toEqual [3, 9]
+
       it "merges cursors when they overlap", ->
         editSession.addCursorAtScreenPosition([1, 0])
         [cursor1, cursor2] = editSession.getCursors()
@@ -186,6 +195,15 @@ describe "EditSession", ->
           editSession.moveCursorUp()
           expect(editSession.getCursorScreenPosition().column).toBe 0
 
+      describe "when there is a selection", ->
+        beforeEach ->
+          editSession.setSelectedBufferRange([[4, 9],[5, 10]])
+
+        it "moves below the selection", ->
+          cursor = editSession.getCursor()
+          editSession.moveCursorDown()
+          expect(cursor.getBufferPosition()).toEqual [6, 10]
+
       it "merges cursors when they overlap", ->
         editSession.setCursorScreenPosition([12, 2])
         editSession.addCursorAtScreenPosition([11, 2])
@@ -221,6 +239,18 @@ describe "EditSession", ->
           editSession.moveCursorLeft()
           expect(editSession.getCursorBufferPosition()).toEqual [5, 4]
 
+      describe "when there is a selection", ->
+        beforeEach ->
+          editSession.setSelectedBufferRange([[5, 22],[5, 27]])
+
+        it "moves to the left of the selection", ->
+          cursor = editSession.getCursor()
+          editSession.moveCursorLeft()
+          expect(cursor.getBufferPosition()).toEqual [5, 22]
+
+          editSession.moveCursorLeft()
+          expect(cursor.getBufferPosition()).toEqual [5, 21]
+
       it "merges cursors when they overlap", ->
         editSession.setCursorScreenPosition([0, 0])
         editSession.addCursorAtScreenPosition([0, 1])
@@ -255,6 +285,18 @@ describe "EditSession", ->
 
             expect(editSession.getCursorScreenPosition()).toEqual(lastPosition)
 
+      describe "when there is a selection", ->
+        beforeEach ->
+          editSession.setSelectedBufferRange([[5, 22],[5, 27]])
+
+        it "moves to the left of the selection", ->
+          cursor = editSession.getCursor()
+          editSession.moveCursorRight()
+          expect(cursor.getBufferPosition()).toEqual [5, 27]
+
+          editSession.moveCursorRight()
+          expect(cursor.getBufferPosition()).toEqual [5, 28]
+
       it "merges cursors when they overlap", ->
         editSession.setCursorScreenPosition([12, 2])
         editSession.addCursorAtScreenPosition([12, 1])
@@ -281,44 +323,72 @@ describe "EditSession", ->
         expect(editSession.getCursorBufferPosition()).toEqual [12,2]
 
     describe ".moveCursorToBeginningOfLine()", ->
-      it "moves cursor to the beginning of line", ->
-        editSession.setCursorScreenPosition [0,5]
-        editSession.addCursorAtScreenPosition [1,7]
-        editSession.moveCursorToBeginningOfLine()
-        expect(editSession.getCursors().length).toBe 2
-        [cursor1, cursor2] = editSession.getCursors()
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor2.getBufferPosition()).toEqual [1,0]
+      describe "when soft wrap is on", ->
+        it "moves cursor to the beginning of the screen line", ->
+          editSession.setSoftWrapColumn(10)
+          editSession.setCursorScreenPosition([1, 2])
+          editSession.moveCursorToBeginningOfLine()
+          cursor = editSession.getCursor()
+          expect(cursor.getScreenPosition()).toEqual [1, 0]
+
+      describe "when soft wrap is off", ->
+        it "moves cursor to the beginning of then line", ->
+          editSession.setCursorScreenPosition [0,5]
+          editSession.addCursorAtScreenPosition [1,7]
+          editSession.moveCursorToBeginningOfLine()
+          expect(editSession.getCursors().length).toBe 2
+          [cursor1, cursor2] = editSession.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [0,0]
+          expect(cursor2.getBufferPosition()).toEqual [1,0]
 
     describe ".moveCursorToEndOfLine()", ->
-      it "moves cursor to the end of line", ->
-        editSession.setCursorScreenPosition [0,0]
-        editSession.addCursorAtScreenPosition [1,0]
-        editSession.moveCursorToEndOfLine()
-        expect(editSession.getCursors().length).toBe 2
-        [cursor1, cursor2] = editSession.getCursors()
-        expect(cursor1.getBufferPosition()).toEqual [0,29]
-        expect(cursor2.getBufferPosition()).toEqual [1,30]
+      describe "when soft wrap is on", ->
+        it "moves cursor to the beginning of the screen line", ->
+          editSession.setSoftWrapColumn(10)
+          editSession.setCursorScreenPosition([1, 2])
+          editSession.moveCursorToEndOfLine()
+          cursor = editSession.getCursor()
+          expect(cursor.getScreenPosition()).toEqual [1, 9]
+
+      describe "when soft wrap is off", ->
+        it "moves cursor to the end of line", ->
+          editSession.setCursorScreenPosition [0,0]
+          editSession.addCursorAtScreenPosition [1,0]
+          editSession.moveCursorToEndOfLine()
+          expect(editSession.getCursors().length).toBe 2
+          [cursor1, cursor2] = editSession.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [0,29]
+          expect(cursor2.getBufferPosition()).toEqual [1,30]
 
     describe ".moveCursorToFirstCharacterOfLine()", ->
-      it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
-        editSession.setCursorScreenPosition [0,5]
-        editSession.addCursorAtScreenPosition [1,7]
+      describe "when soft wrap is on", ->
+        it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
+          editSession.setSoftWrapColumn(10)
+          editSession.setCursorScreenPosition [2,5]
+          editSession.addCursorAtScreenPosition [8,7]
 
-        editSession.moveCursorToFirstCharacterOfLine()
-        [cursor1, cursor2] = editSession.getCursors()
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor2.getBufferPosition()).toEqual [1,2]
-
-        editSession.moveCursorToFirstCharacterOfLine()
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor2.getBufferPosition()).toEqual [1,0]
-
-      describe "when triggered ", ->
-        it "does not move the cursor", ->
-          editSession.setCursorBufferPosition([10, 0])
           editSession.moveCursorToFirstCharacterOfLine()
-          expect(editSession.getCursorBufferPosition()).toEqual [10, 0]
+          [cursor1, cursor2] = editSession.getCursors()
+          expect(cursor1.getScreenPosition()).toEqual [2,0]
+          expect(cursor2.getScreenPosition()).toEqual [8,4]
+
+          editSession.moveCursorToFirstCharacterOfLine()
+          expect(cursor1.getScreenPosition()).toEqual [2,0]
+          expect(cursor2.getScreenPosition()).toEqual [8,0]
+
+      describe "when soft wrap is of", ->
+        it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
+          editSession.setCursorScreenPosition [0,5]
+          editSession.addCursorAtScreenPosition [1,7]
+
+          editSession.moveCursorToFirstCharacterOfLine()
+          [cursor1, cursor2] = editSession.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [0,0]
+          expect(cursor2.getBufferPosition()).toEqual [1,2]
+
+          editSession.moveCursorToFirstCharacterOfLine()
+          expect(cursor1.getBufferPosition()).toEqual [0,0]
+          expect(cursor2.getBufferPosition()).toEqual [1,0]
 
     describe ".moveCursorToBeginningOfWord()", ->
       it "moves the cursor to the beginning of the word", ->
@@ -346,6 +416,36 @@ describe "EditSession", ->
         editSession.setCursorBufferPosition([10, 0])
         editSession.moveCursorToBeginningOfWord()
         expect(editSession.getCursorBufferPosition()).toEqual [9, 2]
+
+    describe ".moveCursorToPreviousWordBoundary()", ->
+      it "moves the cursor to the previous word boundary", ->
+        editSession.setCursorBufferPosition [0, 8]
+        editSession.addCursorAtBufferPosition [2, 0]
+        editSession.addCursorAtBufferPosition [2, 4]
+        editSession.addCursorAtBufferPosition [3, 14]
+        [cursor1, cursor2, cursor3, cursor4] = editSession.getCursors()
+
+        editSession.moveCursorToPreviousWordBoundary()
+
+        expect(cursor1.getBufferPosition()).toEqual [0, 4]
+        expect(cursor2.getBufferPosition()).toEqual [1, 30]
+        expect(cursor3.getBufferPosition()).toEqual [2, 0]
+        expect(cursor4.getBufferPosition()).toEqual [3, 13]
+
+    describe ".moveCursorToNextWordBoundary()", ->
+      it "moves the cursor to the previous word boundary", ->
+        editSession.setCursorBufferPosition [0, 8]
+        editSession.addCursorAtBufferPosition [2, 40]
+        editSession.addCursorAtBufferPosition [3, 0]
+        editSession.addCursorAtBufferPosition [3, 30]
+        [cursor1, cursor2, cursor3, cursor4] = editSession.getCursors()
+
+        editSession.moveCursorToNextWordBoundary()
+
+        expect(cursor1.getBufferPosition()).toEqual [0, 13]
+        expect(cursor2.getBufferPosition()).toEqual [3, 0]
+        expect(cursor3.getBufferPosition()).toEqual [3, 4]
+        expect(cursor4.getBufferPosition()).toEqual [3, 31]
 
     describe ".moveCursorToEndOfWord()", ->
       it "moves the cursor to the end of the word", ->
@@ -388,6 +488,14 @@ describe "EditSession", ->
         expect(cursor1.getBufferPosition()).toEqual [0, 14]
         expect(cursor2.getBufferPosition()).toEqual [1, 13]
         expect(cursor3.getBufferPosition()).toEqual [2, 4]
+
+        # When the cursor is on whitespace
+        editSession.setText("ab cde- ")
+        editSession.setCursorBufferPosition [0,2]
+        cursor = editSession.getCursor()
+        editSession.moveCursorToBeginningOfNextWord()
+
+        expect(cursor.getBufferPosition()).toEqual [0, 3]
 
       it "does not blow up when there is no next word", ->
         editSession.setCursorBufferPosition [Infinity, Infinity]
@@ -703,6 +811,46 @@ describe "EditSession", ->
         expect(selection1.isReversed()).toBeFalsy()
         expect(selection2.getBufferRange()).toEqual [[3,48], [3,51]]
         expect(selection2.isReversed()).toBeFalsy()
+
+    describe ".selectToPreviousWordBoundary()", ->
+      it "select to the previous word boundary", ->
+        editSession.setCursorBufferPosition [0, 8]
+        editSession.addCursorAtBufferPosition [2, 0]
+        editSession.addCursorAtBufferPosition [3, 4]
+        editSession.addCursorAtBufferPosition [3, 14]
+
+        editSession.selectToPreviousWordBoundary()
+
+        expect(editSession.getSelections().length).toBe 4
+        [selection1, selection2, selection3, selection4] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,8], [0,4]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[2,0], [1,30]]
+        expect(selection2.isReversed()).toBeTruthy()
+        expect(selection3.getBufferRange()).toEqual [[3,4], [3,0]]
+        expect(selection3.isReversed()).toBeTruthy()
+        expect(selection4.getBufferRange()).toEqual [[3,14], [3,13]]
+        expect(selection4.isReversed()).toBeTruthy()
+
+    describe ".selectToNextWordBoundary()", ->
+      it "select to the next word boundary", ->
+        editSession.setCursorBufferPosition [0, 8]
+        editSession.addCursorAtBufferPosition [2, 40]
+        editSession.addCursorAtBufferPosition [4, 0]
+        editSession.addCursorAtBufferPosition [3, 30]
+
+        editSession.selectToNextWordBoundary()
+
+        expect(editSession.getSelections().length).toBe 4
+        [selection1, selection2, selection3, selection4] = editSession.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,8], [0,13]]
+        expect(selection1.isReversed()).toBeFalsy()
+        expect(selection2.getBufferRange()).toEqual [[2,40], [3,0]]
+        expect(selection2.isReversed()).toBeFalsy()
+        expect(selection3.getBufferRange()).toEqual [[4,0], [4,4]]
+        expect(selection3.isReversed()).toBeFalsy()
+        expect(selection4.getBufferRange()).toEqual [[3,30], [3,31]]
+        expect(selection4.isReversed()).toBeFalsy()
 
     describe ".selectWord()", ->
       describe "when the cursor is inside a word", ->
@@ -1628,24 +1776,32 @@ describe "EditSession", ->
           expect(clipboard.readText()).toBe 'quicksort\nsort'
 
       describe ".cutToEndOfLine()", ->
-        describe "when nothing is selected", ->
+        describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
-            editSession.setCursorBufferPosition([2, 20])
-            editSession.addCursorAtBufferPosition([3, 20])
+            editSession.setSoftWrapColumn(10)
+            editSession.setCursorScreenPosition([2, 2])
             editSession.cutToEndOfLine()
-            expect(buffer.lineForRow(2)).toBe '    if (items.length'
-            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-            expect(pasteboard.read()[0]).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+            expect(editSession.lineForScreenRow(2).text).toBe '=  () {'
 
-        describe "when text is selected", ->
-          it "only cuts the selected text, not to the end of the line", ->
-            editSession.setSelectedBufferRanges([[[2,20], [2, 30]], [[3, 20], [3, 20]]])
+        describe "when soft wrap is off", ->
+          describe "when nothing is selected", ->
+            it "cuts up to the end of the line", ->
+              editSession.setCursorBufferPosition([2, 20])
+              editSession.addCursorAtBufferPosition([3, 20])
+              editSession.cutToEndOfLine()
+              expect(buffer.lineForRow(2)).toBe '    if (items.length'
+              expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+              expect(pasteboard.read()[0]).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
 
-            editSession.cutToEndOfLine()
+          describe "when text is selected", ->
+            it "only cuts the selected text, not to the end of the line", ->
+              editSession.setSelectedBufferRanges([[[2,20], [2, 30]], [[3, 20], [3, 20]]])
 
-            expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
-            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-            expect(pasteboard.read()[0]).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+              editSession.cutToEndOfLine()
+
+              expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
+              expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+              expect(pasteboard.read()[0]).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
@@ -2010,91 +2166,6 @@ describe "EditSession", ->
         expect(editSession.getCursors()).toEqual [cursor1, cursor3]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
         expect(cursor3.getBufferPosition()).toEqual [1,2]
-
-  describe "folding", ->
-    describe ".unfoldAll()", ->
-      it "unfolds every folded line", ->
-        initialScreenLineCount = editSession.getScreenLineCount()
-        editSession.foldBufferRow(0)
-        editSession.foldBufferRow(1)
-        expect(editSession.getScreenLineCount()).toBeLessThan initialScreenLineCount
-        editSession.unfoldAll()
-        expect(editSession.getScreenLineCount()).toBe initialScreenLineCount
-
-    describe ".foldAll()", ->
-      it "folds every foldable line", ->
-        editSession.foldAll()
-
-        fold1 = editSession.lineForScreenRow(0).fold
-        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 12]
-        fold1.destroy()
-
-        fold2 = editSession.lineForScreenRow(1).fold
-        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 9]
-        fold2.destroy()
-
-        fold3 = editSession.lineForScreenRow(4).fold
-        expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [4, 7]
-
-    describe ".foldBufferRow(bufferRow)", ->
-      describe "when bufferRow can be folded", ->
-        it "creates a fold based on the syntactic region starting at the given row", ->
-          editSession.foldBufferRow(1)
-          fold = editSession.lineForScreenRow(1).fold
-          expect(fold.getStartRow()).toBe 1
-          expect(fold.getEndRow()).toBe 9
-
-      describe "when bufferRow can't be folded", ->
-        it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
-          editSession.foldBufferRow(8)
-          fold = editSession.lineForScreenRow(1).fold
-          expect(fold.getStartRow()).toBe 1
-          expect(fold.getEndRow()).toBe 9
-
-      describe "when the bufferRow is already folded", ->
-        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
-          editSession.foldBufferRow(2)
-          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
-          expect(editSession.lineForScreenRow(0).fold).not.toBeDefined()
-
-          editSession.foldBufferRow(1)
-          expect(editSession.lineForScreenRow(0).fold).toBeDefined()
-
-      describe "when the bufferRow is in a multi-line comment", ->
-        it "searches upward and downward for surrounding comment lines and folds them as a single fold", ->
-          buffer.insert([1,0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
-          editSession.foldBufferRow(1)
-          fold = editSession.lineForScreenRow(1).fold
-          expect(fold.getStartRow()).toBe 1
-          expect(fold.getEndRow()).toBe 3
-
-      describe "when the bufferRow is a single-line comment", ->
-        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
-          buffer.insert([1,0], "  //this is a single line comment\n")
-          editSession.foldBufferRow(1)
-          fold = editSession.lineForScreenRow(0).fold
-          expect(fold.getStartRow()).toBe 0
-          expect(fold.getEndRow()).toBe 13
-
-    describe ".unfoldBufferRow(bufferRow)", ->
-      describe "when bufferRow can be unfolded", ->
-        it "destroys a fold based on the syntactic region starting at the given row", ->
-          editSession.foldBufferRow(1)
-          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
-
-          editSession.unfoldBufferRow(1)
-          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
-
-      describe "when bufferRow can't be unfolded", ->
-        it "does not throw an error", ->
-          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
-          editSession.unfoldBufferRow(1)
-          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
-
-    it "maintains cursor buffer position when a folding/unfolding", ->
-      editSession.setCursorBufferPosition([5,5])
-      editSession.foldAll()
-      expect(editSession.getCursorBufferPosition()).toEqual([5,5])
 
   describe ".deleteLine()", ->
     it "deletes the first line when the cursor is there", ->

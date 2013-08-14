@@ -55,8 +55,8 @@
   'alt-meta-w': 'pane:close-other-items'
   'meta-P': 'pane:close'
 
-  'meta-n': 'new-window'
-  'meta-N': 'new-editor'
+  'meta-n': 'new-editor'
+  'meta-N': 'new-window'
   'meta-,': 'open-user-configuration'
   'meta-o': 'open'
   'meta-O': 'open-dev'

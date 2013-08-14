@@ -40,7 +40,6 @@ class AtomWindow
     paths = [
       'src/stdlib'
       'src/app'
-      'src/packages'
       'src'
       'vendor'
       'static'

@@ -1,2 +1,0 @@
-'main': './lib/snippets'
-'description': 'Expand snippets matching the current prefix with `tab`.'
