@@ -1,3 +1,5 @@
+fs = require 'fs'
+
 require 'window'
 
 measure 'spec suite require time', ->
@@ -18,11 +20,14 @@ measure 'spec suite require time', ->
   setSpecType('core')
 
   # Run bundled package specs
-  for packagePath in fsUtils.listTreeSync(config.nodeModulesDirPath) when atom.isInternalPackage(packagePath)
-    requireSpecs(packagePath, 'bundled')
-  setSpecType('bundled')
+  if fsUtils.isDirectorySync(config.nodeModulesDirPath)
+    for packageName in fs.readdirSync(config.nodeModulesDirPath)
+      packagePath = path.join(config.nodeModulesDirPath, packageName)
+      requireSpecs(packagePath, 'bundled') if atom.isInternalPackage(packagePath)
+    setSpecType('bundled')
 
   # Run user package specs
-  for packagePath in fsUtils.listTreeSync(config.userPackagesDirPath)
-    requireSpecs(packagePath, 'user')
-  setSpecType('user')
+  if fsUtils.isDirectorySync(config.userPackagesDirPath)
+    for packageName in fs.readdirSync(config.userPackagesDirPath)
+      requireSpecs(path.join(config.userPackagesDirPath, packageName))
+    setSpecType('user')
