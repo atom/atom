@@ -4,8 +4,6 @@ telepath = require 'telepath'
 fsUtils = require 'fs-utils'
 File = require 'file'
 EventEmitter = require 'event-emitter'
-UndoManager = require 'undo-manager'
-BufferChangeOperation = require 'buffer-change-operation'
 guid = require 'guid'
 
 # Public: Represents the contents of a file.
@@ -23,7 +21,6 @@ class TextBuffer
 
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
-  undoManager: null
   cachedDiskContents: null
   cachedMemoryContents: null
   conflict: false
@@ -37,12 +34,11 @@ class TextBuffer
   constructor: (optionsOrState={}, params={}) ->
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
-      {@project} = params
       @text = @state.get('text')
       filePath = @state.get('relativePath')
       @id = @state.get('id')
     else
-      {@project, filePath, initialText} = optionsOrState
+      {filePath, initialText} = optionsOrState
       @text = site.createDocument(initialText, shareStrings: true) if initialText
       @id = guid.create().toString()
       @state = site.createDocument
@@ -51,12 +47,12 @@ class TextBuffer
         version: @constructor.version
 
     if filePath
-      @setPath(@project.resolve(filePath))
+      @setPath(project.resolve(filePath))
       if @text
         @updateCachedDiskContents()
       else
         @text = site.createDocument('', shareStrings: true)
-        @reload() if fsUtils.exists(filePath)
+        @reload() if fsUtils.exists(@getPath())
     else
       @text ?= site.createDocument('', shareStrings: true)
 
@@ -64,7 +60,6 @@ class TextBuffer
     @text.on 'changed', @handleTextChange
     @text.on 'marker-created', (marker) => @trigger 'marker-created', marker
     @text.on 'markers-updated', => @trigger 'markers-updated'
-    @undoManager = new UndoManager(this)
 
   ### Internal ###
 
@@ -92,8 +87,11 @@ class TextBuffer
 
   serialize: ->
     state = @state.clone()
-    for marker in state.get('text').getMarkers() when marker.isRemote()
-      marker.destroy()
+    if @isModified()
+      for marker in state.get('text').getMarkers() when marker.isRemote()
+        marker.destroy()
+    else
+      state.remove('text')
     state
 
   getState: -> @state
@@ -158,7 +156,7 @@ class TextBuffer
     @state.get('relativePath')
 
   setRelativePath: (relativePath) ->
-    @setPath(@project.resolve(relativePath))
+    @setPath(project.resolve(relativePath))
 
   # Sets the path for the file.
   #
@@ -170,7 +168,7 @@ class TextBuffer
     @file = new File(path)
     @file.read() if @file.exists()
     @subscribeToFile()
-    @state.set('relativePath', @project.relativize(path))
+    @state.set('relativePath', project.relativize(path))
     @trigger "path-changed", this
 
   # Retrieves the current buffer's file extension.
@@ -360,15 +358,11 @@ class TextBuffer
     range = Range.fromObject(range)
     new Range(@clipPosition(range.start), @clipPosition(range.end))
 
-  # Undos the last operation.
-  #
-  # editSession - The {EditSession} associated with the buffer.
-  undo: (editSession) -> @undoManager.undo(editSession)
+  undo: ->
+    @text.undo()
 
-  # Redos the last operation.
-  #
-  # editSession - The {EditSession} associated with the buffer.
-  redo: (editSession) -> @undoManager.redo(editSession)
+  redo: ->
+    @text.redo()
 
   # Saves the buffer.
   save: ->
@@ -609,26 +603,14 @@ class TextBuffer
 
   ### Internal ###
 
-  pushOperation: (operation, editSession) ->
-    if @undoManager
-      @undoManager.pushOperation(operation, editSession)
-    else
-      operation.do()
-
   transact: (fn) ->
-    if isNewTransaction = @undoManager.transact()
-      @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on undo
-    if fn
-      try
-        fn()
-      finally
-        @commit() if isNewTransaction
+    @text.transact fn
 
   commit: ->
-    @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on redo
-    @undoManager.commit()
+    @text.commit()
 
-  abort: -> @undoManager.abort()
+  abort: ->
+    @text.abort()
 
   change: (oldRange, newText, options={}) ->
     oldRange = @clipRange(oldRange)

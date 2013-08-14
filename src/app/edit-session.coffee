@@ -782,9 +782,6 @@ class EditSession
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
-  pushOperation: (operation) ->
-    @buffer.pushOperation(operation, this)
-
   ### Public ###
 
   # Returns a valid {DisplayBufferMarker} object for the given id if one exists.

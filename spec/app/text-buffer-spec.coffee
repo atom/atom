@@ -28,11 +28,6 @@ describe 'TextBuffer', ->
           buffer = project.bufferForPath(filePath)
           expect(buffer.getText()).toBe fsUtils.read(filePath)
 
-        it "is not modified and has no undo history", ->
-          buffer = project.bufferForPath(filePath)
-          expect(buffer.isModified()).toBeFalsy()
-          expect(buffer.undoManager.undoHistory.length).toBe 0
-
       describe "when no file exists for the path", ->
         it "is modified and is initially empty", ->
           filePath = "does-not-exist.txt"
@@ -420,7 +415,7 @@ describe 'TextBuffer', ->
         expect(event.newText).toBe "foo\nbar"
 
     it "allows a 'changed' event handler to safely undo the change", ->
-      buffer.on 'changed', -> buffer.undo()
+      buffer.one 'changed', -> buffer.undo()
       buffer.change([0, 0], "hello")
       expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
@@ -896,7 +891,7 @@ describe 'TextBuffer', ->
     buffer2 = null
 
     afterEach ->
-      buffer2.release()
+      buffer2?.release()
 
     describe "when the serialized buffer had no unsaved changes", ->
       it "loads the current contents of the file at the serialized path", ->
@@ -946,6 +941,8 @@ describe 'TextBuffer', ->
         buffer3.destroy()
 
       it "does not include them in the serialized state", ->
+        buffer.append("// appending text so buffer.isModified() is true")
+
         doc1 = buffer.getState()
         doc2 = doc1.clone(new Site(2))
         doc1.connect(doc2)
