@@ -8,17 +8,17 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
     done = @async()
-    args = [commonArgs..., '-o', 'docs/api', 'src/app/']
+    args = [commonArgs..., '-o', 'docs/api', 'src/']
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
     done = @async()
-    args = [commonArgs..., '--noOutput', 'src/app/']
+    args = [commonArgs..., '--noOutput', 'src/']
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'missing-docs', 'Generate stats about the doc coverage', ->
     done = @async()
-    args = [commonArgs..., '--noOutput', '--missing', 'src/app/']
+    args = [commonArgs..., '--noOutput', '--missing', 'src/']
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'deploy-docs', 'Publishes latest API docs to atom-docs.githubapp.com', ->
