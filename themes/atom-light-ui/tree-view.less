@@ -1,3 +1,5 @@
+@import "ui-colors";
+
 .tree-view {
   background: #dde3e8;
 }
@@ -15,7 +17,8 @@
   color: #262626;
 }
 
-.tree-view .selected > .highlight {
+.tree-view .selected > .highlight,
+.tree-view .entry:hover > .highlight, {
   box-sizing: border-box;
   border-top: 1px solid #97a4a7;
   border-bottom: 1px solid #97a4a7;
@@ -67,22 +70,22 @@
 }
 
 .tree-view .ignored {
-  color: #555;
+  color: @text-color-3;
 }
 
 .tree-view .modified {
-  color: #f78a46;
+  color: @accent-color-error-1;
 }
 
 .tree-view .new {
-  color: #5293d8;
+  color: @accent-color-info-1;
 }
 
 .tree-view-dialog {
-  background-color: #e7e7e7;
+  background-color: @background-color-1;
   border-top: 1px solid #989898;
 }
 
 .tree-view-dialog .prompt {
-  color: #333;
+  color: @text-color-1;
 }
