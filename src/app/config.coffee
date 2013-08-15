@@ -12,6 +12,8 @@ nodeModulesDirPath = path.join(resourcePath, "node_modules")
 bundledThemesDirPath = path.join(resourcePath, "themes")
 userThemesDirPath = path.join(configDirPath, "themes")
 userPackagesDirPath = path.join(configDirPath, "packages")
+packageDirPaths = [userPackagesDirPath]
+packageDirPaths.unshift(path.join(configDirPath, "dev", "packages")) if atom.getLoadSettings().devMode
 userStoragePath = path.join(configDirPath, "storage")
 
 # Public: Handles all of Atom's configuration details.
@@ -24,7 +26,7 @@ class Config
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
   bundledPackageDirPaths: [nodeModulesDirPath]
   nodeModulesDirPath: nodeModulesDirPath
-  packageDirPaths: [userPackagesDirPath]
+  packageDirPaths: packageDirPaths
   userPackagesDirPath: userPackagesDirPath
   userStoragePath: userStoragePath
   lessSearchPaths: [path.join(resourcePath, 'static'), path.join(resourcePath, 'vendor')]
