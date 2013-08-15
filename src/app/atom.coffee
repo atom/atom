@@ -269,3 +269,6 @@ window.atom =
 
   getVersion: ->
     ipc.sendChannelSync 'get-version'
+
+  isDevMode: ->
+    @getLoadSettings().devMode?

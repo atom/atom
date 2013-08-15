@@ -38,7 +38,7 @@ class AtomApplication
   installUpdate: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, @devMode, newWindow}) ->
+  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -55,12 +55,11 @@ class AtomApplication
     if test
       @runSpecs({exitWhenDone: true, @resourcePath})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, @devMode})
+      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode})
     else if urlsToOpen.length > 0
-      @openUrl(urlToOpen) for urlToOpen in urlsToOpen
-    else
-      # Always open a editor window if this is the first instance of Atom.
-      @openPath({pidToKillWhenClosed, newWindow, @devMode})
+      @openUrl({urlToOpen, devMode}) for urlToOpen in urlsToOpen
+    else      
+      @openPath({pidToKillWhenClosed, newWindow, devMode}) # Always open a editor window if this is the first instance of Atom.
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -123,7 +122,7 @@ class AtomApplication
         label: "Version #{@version}"
         enabled: false
 
-    if @devMode
+    if devMode
       menus.push
         label: '\uD83D\uDC80' # Skull emoji
         submenu: [ { label: 'In Development Mode', enabled: false } ]
@@ -248,14 +247,14 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
-  openUrl: (urlToOpen) ->
+  openUrl: ({urlToOpen, devMode}) ->
     parsedUrl = url.parse(urlToOpen)
     if parsedUrl.host is 'session'
       sessionId = parsedUrl.path.split('/')[1]
       console.log "Joining session #{sessionId}"
       if sessionId
         bootstrapScript = 'collaboration/lib/bootstrap'
-        new AtomWindow({bootstrapScript, @resourcePath, sessionId, @devMode})
+        new AtomWindow({bootstrapScript, @resourcePath, sessionId, devMode})
     else
       console.log "Opening unknown url #{urlToOpen}"
 
