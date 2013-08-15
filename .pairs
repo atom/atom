@@ -1,0 +1,16 @@
+pairs:
+  ns: Nathan Sobo; nathan
+  cj: Corey Johnson; cj
+  dg: David Graham; dgraham
+  ks: Kevin Sawicki; kevin
+  jc: Jerry Cheung; jerry
+  bl: Brian Lopez; brian
+  jp: Justin Palmer; justin
+  gt: Garen Torikian; garen
+  mc: Matt Colyer; mcolyer
+  bo: Ben Ogle; benogle
+  jr: Jason Rudolph; jasonrudolph
+  jl: Jessica Lord; jlord
+email:
+  domain: github.com
+#global: true
