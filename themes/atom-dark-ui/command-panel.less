@@ -2,24 +2,24 @@
 @import "bootstrap/less/mixins.less";
 
 .command-panel {
-  background-color: @background-color-4;
+  background-color: @background-color-2;
   color: #dedede;
   border-top: 1px solid rgba(0, 0, 0, 0.5);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 @highlight-background-color-1;
   padding: 10px;
 
   .btn {
-    .btn-pseudo-states(@background-color-6, @background-color-4);
+    .btn-pseudo-states(@dark-background-color-2, @background-color-2);
     color: @text-color-4;
   }
 }
 
 .command-panel .header {
-  background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  background-image: -webkit-linear-gradient(@highlight-background-color-2, @highlight-background-color-1);
   border: 1px solid rgba(0, 0, 0, 0.5);
   padding: 5px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 @highlight-background-color-1,
     inset 0 -1px 0 rgba(255, 255, 255, 0.02);
   margin-bottom: 0;
   border-top-right-radius: 3px;
@@ -27,11 +27,11 @@
 }
 
 .command-panel .preview-list {
-  background-color: @background-color-6;
+  background-color: @dark-background-color-2;
   color: #6d736f;
   border: 1px solid rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid @border-color-1;
+  border-right: 1px solid @border-color-1;
 }
 
 .command-panel .preview-count {
@@ -44,7 +44,7 @@
 }
 
 .command-panel .expand-collapse li {
-  background: -webkit-linear-gradient(@background-color-6, @background-color-4);
+  background: -webkit-linear-gradient(@dark-background-color-2, @background-color-2);
   box-shadow:
     inset -1px -1px 0 rgba(255, 255, 255, 0.1),
     inset 1px 1px rgba(0, 0, 0, 0.1);
@@ -56,12 +56,12 @@
 
 .command-panel .preview-list .path.selected .path-details,
 .command-panel .preview-list li.operation.selected {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: @highlight-background-color-1;
 }
 
 .command-panel .preview-list:focus .path.selected .path-details,
 .command-panel .preview-list:focus li.operation.selected {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: @highlight-background-color-1;
 }
 
 .command-panel .preview-list .path {

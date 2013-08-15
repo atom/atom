@@ -1,7 +1,7 @@
 @import "ui-colors";
 
 .select-list {
-  background: @background-color-3;
+  background: @background-color-1;
 
   .error {
     color: white;
@@ -9,15 +9,15 @@
   }
 
   .loading {
-    color: #ccc;
+    color: @text-color-3;
   }
 
   ol {
     border: 1px solid #222;
 
     li {
-      background-color: @background-color-2;
-      border-bottom: 1px solid #1e1e1e;
+      background-color: @background-color-3;
+      border-bottom: 1px solid @border-color-3;
       color: @text-color-2;
     }
 
@@ -25,7 +25,7 @@
       background: -webkit-linear-gradient(
         rgba(100, 100, 100, 0.5),
         rgba(70,70,70, 0.5));
-      color: #ccc;
+      color: @text-color-3;
       -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1);
       display: inline-block;
       line-height: 100%;

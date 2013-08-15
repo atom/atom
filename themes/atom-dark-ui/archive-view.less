@@ -1,7 +1,7 @@
 @import "ui-colors";
 
 .archive-view {
-  background-color: @background-color-4;
+  background-color: @background-color-2;
   color: @text-color-subtle-1;
 
   .selected {
@@ -10,11 +10,11 @@
   }
 
   .summary {
-    background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    background-image: -webkit-linear-gradient(@highlight-background-color-2, @highlight-background-color-1);
     border: 1px solid rgba(0, 0, 0, 0.5);
     padding: 5px;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      inset 0 1px 0 @highlight-background-color-1,
       inset 0 -1px 0 rgba(255, 255, 255, 0.02);
   }
 }
