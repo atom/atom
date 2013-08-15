@@ -19,8 +19,9 @@ parseOptions = (args=[]) ->
     where <command> is one of:
         available, help, install, link, list, publish, rebuild, uninstall, unlink
   """
-  options.alias('v', 'version').describe('v', 'Print the apm version')
-  options.alias('h', 'help').describe('h', 'Print this usage message')
+  options.alias('v', 'version').describe('version', 'Print the apm version')
+  options.alias('h', 'help').describe('help', 'Print this usage message')
+  options.alias('d', 'dev').boolean('dev')
   remainingArguments = options.argv._
   options.command = remainingArguments.shift()
   options.commandArgs = remainingArguments
@@ -42,9 +43,9 @@ module.exports =
 
     args = options.argv
     command = options.command
-    if args.v
+    if args.version
       console.log require('../package.json').version
-    else if args.h
+    else if args.help
       options.showHelp()
     else if command
       switch command

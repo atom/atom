@@ -319,29 +319,58 @@ describe 'apm command line interface', ->
         expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'package.json'))).toBeTruthy()
 
   describe 'apm link/unlink', ->
-    it 'symlinks packages to $ATOM_HOME/packages', ->
-      atomHome = temp.mkdirSync('apm-home-dir-')
-      process.env.ATOM_HOME = atomHome
-      packageToLink = temp.mkdirSync('a-package-')
-      process.chdir(packageToLink)
-      callback = jasmine.createSpy('callback')
+    describe "when the dev flag is false (the default)", ->
+      it 'symlinks packages to $ATOM_HOME/packages', ->
+        atomHome = temp.mkdirSync('apm-home-dir-')
+        process.env.ATOM_HOME = atomHome
+        packageToLink = temp.mkdirSync('a-package-')
+        process.chdir(packageToLink)
+        callback = jasmine.createSpy('callback')
 
-      runs ->
-        apm.run(['link'], callback)
+        runs ->
+          apm.run(['link'], callback)
 
-      waitsFor 'waiting for link to complete', ->
-        callback.callCount > 0
+        waitsFor 'waiting for link to complete', ->
+          callback.callCount > 0
 
-      runs ->
-        expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeTruthy()
-        expect(fs.realpathSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBe fs.realpathSync(packageToLink)
-        callback.reset()
+        runs ->
+          expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeTruthy()
+          expect(fs.realpathSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBe fs.realpathSync(packageToLink)
+          callback.reset()
 
-      runs ->
-        apm.run(['unlink'], callback)
+        runs ->
+          apm.run(['unlink'], callback)
 
-      waitsFor 'waiting for unlink to complete', ->
-        callback.callCount > 0
+        waitsFor 'waiting for unlink to complete', ->
+          callback.callCount > 0
 
-      runs ->
-        expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeFalsy()
+        runs ->
+          expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeFalsy()
+
+    describe "when the dev flag is true", ->
+      it 'symlinks packages to $ATOM_HOME/dev/packages', ->
+        atomHome = temp.mkdirSync('apm-home-dir-')
+        process.env.ATOM_HOME = atomHome
+        packageToLink = temp.mkdirSync('a-package-')
+        process.chdir(packageToLink)
+        callback = jasmine.createSpy('callback')
+
+        runs ->
+          apm.run(['link', '--dev'], callback)
+
+        waitsFor 'waiting for link to complete', ->
+          callback.callCount > 0
+
+        runs ->
+          expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink)))).toBeTruthy()
+          expect(fs.realpathSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink)))).toBe fs.realpathSync(packageToLink)
+          callback.reset()
+
+        runs ->
+          apm.run(['unlink', '--dev'], callback)
+
+        waitsFor 'waiting for unlink to complete', ->
+          callback.callCount > 0
+
+        runs ->
+          expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink)))).toBeFalsy()

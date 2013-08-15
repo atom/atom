@@ -13,7 +13,11 @@ class Unlinker
       packageName = CSON.readFileSync(CSON.resolve(path.join(linkPath, 'package'))).name
     packageName = path.basename(linkPath) unless packageName
 
-    targetPath = path.join(config.getAtomDirectory(), 'packages', packageName)
+    if options.argv.dev
+      targetPath = path.join(config.getAtomDirectory(), 'dev', 'packages', packageName)
+    else
+      targetPath = path.join(config.getAtomDirectory(), 'packages', packageName)
+
     try
       fs.unlinkSync(targetPath) if fs.existsSync(targetPath)
       console.log "Unlinked #{targetPath}"
