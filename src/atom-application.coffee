@@ -38,7 +38,7 @@ class AtomApplication
   installUpdate: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, @dev, newWindow}) ->
+  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, @devMode, newWindow}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -55,12 +55,12 @@ class AtomApplication
     if test
       @runSpecs({exitWhenDone: true, @resourcePath})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow})
+      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, @devMode})
     else if urlsToOpen.length > 0
       @openUrl(urlToOpen) for urlToOpen in urlsToOpen
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath({pidToKillWhenClosed, newWindow})
+      @openPath({pidToKillWhenClosed, newWindow, @devMode})
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -123,7 +123,7 @@ class AtomApplication
         label: "Version #{@version}"
         enabled: false
 
-    if @dev
+    if @devMode
       menus.push
         label: '\uD83D\uDC80' # Skull emoji
         submenu: [ { label: 'In Development Mode', enabled: false } ]
@@ -239,7 +239,7 @@ class AtomApplication
         resourcePath = global.devResourcePath
       else
         resourcePath = @resourcePath
-      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, resourcePath})
+      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, resourcePath, devMode})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -260,7 +260,7 @@ class AtomApplication
       console.log "Joining session #{sessionId}"
       if sessionId
         bootstrapScript = 'collaboration/lib/bootstrap'
-        new AtomWindow({bootstrapScript, @resourcePath, sessionId})
+        new AtomWindow({bootstrapScript, @resourcePath, sessionId, @devMode})
     else
       console.log "Opening unknown url #{urlToOpen}"
 
@@ -270,7 +270,8 @@ class AtomApplication
 
     bootstrapScript = 'spec-bootstrap'
     isSpec = true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec})
+    devMode = true
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode})
 
   promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']

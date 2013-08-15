@@ -82,7 +82,7 @@ parseCommandLine = ->
     process.exit(0)
 
   executedFrom = args['executed-from']
-  dev = args['dev']
+  devMode = args['dev']
   pathsToOpen = args._
   pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
@@ -90,15 +90,16 @@ parseCommandLine = ->
   pidToKillWhenClosed = args['pid'] if args['wait']
 
   if args['resource-path']
-    dev = true
+    devMode = true
     resourcePath = args['resource-path']
-  else if dev
+  else if devMode
     resourcePath = global.devResourcePath
 
   try
     fs.statSync resourcePath
   catch e
-    dev = false
+    devMode = false
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, dev, newWindow}
+  console.log devMode
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow}
