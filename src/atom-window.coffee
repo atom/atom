@@ -14,15 +14,16 @@ class AtomWindow
   contextMenu: null
   inspectElementMenuItem: null
   loaded: null
+  isSpec: null
 
   constructor: (settings={}) ->
-    {resourcePath, pathToOpen, isSpec} = settings
+    {resourcePath, pathToOpen, @isSpec} = settings
     global.atomApplication.addWindow(this)
 
     @setupNodePath(resourcePath)
     @createContextMenu()
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
-    @handleEvents(isSpec)
+    @handleEvents()
 
     loadSettings = _.extend({}, settings)
     loadSettings.windowState ?= ''
@@ -70,7 +71,7 @@ class AtomWindow
     else
       false
 
-  handleEvents: (isSpec)->
+  handleEvents: ->
     @browserWindow.on 'destroyed', =>
       global.atomApplication.removeWindow(this)
 
@@ -96,7 +97,7 @@ class AtomWindow
       @inspectElementMenuItem.click = => @browserWindow.inspectElement(x, y)
       @contextMenu.popup(@browserWindow)
 
-    if isSpec
+    if @isSpec
       # Spec window's web view should always have focus
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
@@ -116,6 +117,16 @@ class AtomWindow
   sendCommand: (command, args...) ->
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command, args...
 
+  close: -> @browserWindow.close()
+
   focus: -> @browserWindow.focus()
 
   isFocused: -> @browserWindow.isFocused()
+
+  isWebViewFocused: -> @browserWindow.isWebViewFocused()
+
+  isSpecWindow: -> @isSpec
+
+  reload: -> @browserWindow.restart()
+
+  toggleDevTools: -> @browserWindow.toggleDevTools()

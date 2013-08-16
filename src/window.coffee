@@ -5,6 +5,7 @@ $ = require 'jquery'
 less = require 'less'
 remote = require 'remote'
 WindowEventHandler = require 'window-event-handler'
+MenuBar = require 'menu-bar'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -33,8 +34,8 @@ window.setUpEnvironment = (windowMode) ->
   window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
-
   keymap.bindDefaultKeys()
+
 
   requireStylesheet 'atom'
 
@@ -56,6 +57,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
+  MenuBar.show()
   $(window).on 'unload', -> unloadEditorWindow(); false
   atom.show()
   atom.focus()

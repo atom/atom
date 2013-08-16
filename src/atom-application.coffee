@@ -9,6 +9,7 @@ fs = require 'fs'
 path = require 'path'
 net = require 'net'
 url = require 'url'
+_ = require 'underscore'
 
 socketPath = '/tmp/atom.sock'
 
@@ -35,7 +36,6 @@ class AtomApplication
   windows: null
   menu: null
   resourcePath: null
-  installUpdate: null
   version: null
 
   constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow}) ->
@@ -47,9 +47,7 @@ class AtomApplication
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
-    @buildApplicationMenu()
     @handleEvents()
-
     @checkForUpdates()
 
     if test
@@ -63,6 +61,7 @@ class AtomApplication
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
+    @enableWindowMenuItems(false) if @windows.length == 0
 
   addWindow: (window) ->
     @windows.push window
@@ -91,87 +90,9 @@ class AtomApplication
       autoUpdater.setAutomaticallyChecksForUpdates true
       autoUpdater.checkForUpdatesInBackground()
 
-  buildApplicationMenu: (version, continueUpdate) ->
-    menus = []
-    menus.push
-      label: 'Atom'
-      submenu: [
-        { label: 'About Atom', selector: 'orderFrontStandardAboutPanel:' }
-        { type: 'separator' }
-        { label: 'Preferences...', accelerator: 'Command+,', click: => @sendCommand('window:open-settings') }
-        { type: 'separator' }
-        { label: 'Hide Atom', accelerator: 'Command+H', selector: 'hide:' }
-        { label: 'Hide Others', accelerator: 'Command+Shift+H', selector: 'hideOtherApplications:' }
-        { label: 'Show All', selector: 'unhideAllApplications:' }
-        { type: 'separator' }
-        {
-          label: 'Run Specs'
-          accelerator: 'Command+MacCtrl+Alt+S'
-          click: =>
-            @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
-        }
-        { type: 'separator' }
-        { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
-      ]
-
-    menus[0].submenu[1..0] =
-      if version
-        label: "Update to #{version}"
-        click: continueUpdate
-      else
-        label: "Version #{@version}"
-        enabled: false
-
-    if devMode
-      menus.push
-        label: '\uD83D\uDC80' # Skull emoji
-        submenu: [ { label: 'In Development Mode', enabled: false } ]
-
-    menus.push
-      label: 'File'
-      submenu: [
-        { label: 'New Window', accelerator: 'Command+Shift+N', click: => @openPath() }
-        { label: 'Open...', accelerator: 'Command+O', click: => @promptForPath() }
-        { label: 'Open In Dev Mode...', accelerator: 'Command+Shift+O', click: => @promptForPath(devMode: true) }
-      ]
-
-    menus.push
-      label: 'Edit'
-      submenu:[
-        { label: 'Undo', accelerator: 'Command+Z', selector: 'undo:' }
-        { label: 'Redo', accelerator: 'Command+Shift+Z', selector: 'redo:' }
-        { type: 'separator' }
-        { label: 'Cut', accelerator: 'Command+X', selector: 'cut:' }
-        { label: 'Copy', accelerator: 'Command+C', selector: 'copy:' }
-        { label: 'Paste', accelerator: 'Command+V', selector: 'paste:' }
-        { label: 'Select All', accelerator: 'Command+A', selector: 'selectAll:' }
-      ]
-
-    menus.push
-      label: 'View'
-      submenu:[
-        { label: 'Reload', accelerator: 'Command+R', click: => BrowserWindow.getFocusedWindow()?.restart() }
-        { label: 'Toggle Full Screen', accelerator: 'Command+MacCtrl+F', click: => BrowserWindow.getFocusedWindow()?.setFullScreen(!BrowserWindow.getFocusedWindow().isFullScreen()) }
-        { label: 'Toggle Developer Tools', accelerator: 'Alt+Command+I', click: => BrowserWindow.getFocusedWindow()?.toggleDevTools() }
-      ]
-
-    menus.push
-      label: 'Window'
-      submenu: [
-        { label: 'Minimize', accelerator: 'Command+M', selector: 'performMiniaturize:' }
-        { label: 'Zoom', accelerator: 'Alt+Command+MacCtrl+M', selector: 'zoom:' }
-        { label: 'Close', accelerator: 'Command+W', selector: 'performClose:' }
-        { type: 'separator' }
-        { label: 'Bring All to Front', selector: 'arrangeInFront:' }
-      ]
-
-    @menu = Menu.buildFromTemplate menus
-    Menu.setApplicationMenu @menu
-
   handleEvents: ->
-    # Clean the socket file when quit normally.
     app.on 'will-quit', =>
-      fs.unlinkSync socketPath if fs.existsSync(socketPath)
+      fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.
 
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()
@@ -181,10 +102,12 @@ class AtomApplication
       event.preventDefault()
       @openUrl(urlToOpen)
 
-    autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdate) =>
+    autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
       event.preventDefault()
-      @installUpdate = quitAndUpdate
-      @buildApplicationMenu version, quitAndUpdate
+      updateMenuItem = _.find @allMenuItems(), (menuItem) -> menuItem.label == 'Install update'
+      if updateMenuItem
+        updateMenuItem.visible = true
+        updateMenuItem.click = quitAndUpdateCallback
 
     ipc.on 'open', (processId, routingId, pathsToOpen) =>
       if pathsToOpen?.length > 0
@@ -192,31 +115,90 @@ class AtomApplication
       else
         @promptForPath()
 
-    ipc.on 'open-window', (processId, routingId, windowSettings) ->
-      new AtomWindow(windowSettings)
-
-    ipc.on 'open-dev', (processId, routingId, pathsToOpen) =>
-      if pathsToOpen?.length > 0
-        @openPaths({pathsToOpen, devMode: true})
-      else
-        @promptForPath(devMode: true)
-
-    ipc.on 'new-window', =>
-      @openPath()
-
-    ipc.on 'install-update', =>
-      @installUpdate?()
-
     ipc.on 'get-version', (event) =>
       event.result = @version
 
+    ipc.once 'build-menu-bar-from-template', (processId, routingId, menuTemplate) =>
+      @buildMenu(menuTemplate)
+
+  buildMenu: (menuTemplate) ->
+    @parseMenuTemplate(menuTemplate)
+    @menu = Menu.buildFromTemplate(menuTemplate)
+    Menu.setApplicationMenu(@menu)
+    @enableWindowMenuItems(true)
+
+  allMenuItems: (menu=@menu) ->
+    return [] unless menu?
+
+    menuItems = []
+    for index, item of menu.items or {}
+      menuItems.push(item)
+      menuItems = menuItems.concat(@allMenuItems(item.submenu)) if item.submenu
+
+    menuItems
+
+  enableWindowMenuItems: (enable) ->
+    for menuItem in @allMenuItems()
+      menuItem.enabled = enable if menuItem.metadata?['windowSpecificItem']
+
+  parseMenuTemplate: (menuTemplate) ->
+    menuTemplate.forEach (menuItem) =>
+      menuItem.metadata = {}
+      if menuItem.command
+        menuItem.click = => @sendCommand(menuItem.command)
+        menuItem.metadata['windowSpecificItem'] = true unless /^application:/.test(menuItem.command)
+      if menuItem.submenu
+        @parseMenuTemplate(menuItem.submenu)
+
   sendCommand: (command, args...) ->
-    for atomWindow in @windows when atomWindow.isFocused()
-      atomWindow.sendCommand(command, args...)
+    return if @interceptApplicationCommands(command)
+    return if @interceptAlternativeWindowCommands(command)
+    @focusedWindow()?.sendCommand(command, args...)
+
+  interceptApplicationCommands: (command) ->
+    switch command
+      when 'application:about' then Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
+      when 'application:run-specs' then @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
+      when 'application:show-settings' then (@focusedWindow() ? this).openPath("atom://config")
+      when 'application:quit' then app.quit()
+      when 'application:hide' then Menu.sendActionToFirstResponder('hide:')
+      when 'application:hide-other-applications' then Menu.sendActionToFirstResponder('hideOtherApplications:')
+      when 'application:unhide-all-applications' then Menu.sendActionToFirstResponder('unhideAllApplications:')
+      when 'application:new-window' then  @openPath()
+      when 'application:new-file' then (@focusedWindow() ? this).openPath()
+      when 'application:open' then @promptForPath()
+      when 'application:open-dev' then @promptForPath(devMode: true)
+      when 'application:minimize' then Menu.sendActionToFirstResponder('performMiniaturize:')
+      when 'application:zoom' then Menu.sendActionToFirstResponder('zoom:')
+      when 'application:bring-all-windows-to-front' then Menu.sendActionToFirstResponder('arrangeInFront:')
+      else
+        return false
+
+    true
+
+  interceptAlternativeWindowCommands: (command) ->
+    return if not @focusedWindow()?.isSpecWindow() and @focusedWindow()?.isWebViewFocused()
+
+    switch command
+      when 'core:undo' then Menu.sendActionToFirstResponder('undo:')
+      when 'core:redo' then Menu.sendActionToFirstResponder('redo:')
+      when 'core:copy' then Menu.sendActionToFirstResponder('copy:')
+      when 'core:cut' then Menu.sendActionToFirstResponder('cut:')
+      when 'core:paste' then Menu.sendActionToFirstResponder('paste:')
+      when 'core:select-all' then Menu.sendActionToFirstResponder('selectAll:')
+      when 'command-panel:find-in-file' then Menu.sendActionToFirstResponder('performTextFinderAction:')
+      when 'window:reload' then @focusedWindow()?.reload()
+      when 'window:toggle-dev-tools' then @focusedWindow()?.toggleDevTools()
+      when 'window:close' then @focusedWindow()?.close()
+      else return false
+    return true
 
   windowForPath: (pathToOpen) ->
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
+
+  focusedWindow: ->
+    _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode}) ->
     @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode}) for pathToOpen in pathsToOpen ? []
@@ -247,6 +229,8 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
+    openedWindow
+    
   openUrl: ({urlToOpen, devMode}) ->
     parsedUrl = url.parse(urlToOpen)
     if parsedUrl.host is 'session'
