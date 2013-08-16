@@ -59,6 +59,7 @@ class TextBuffer
       if fsUtils.exists(@getPath())
         @updateCachedDiskContents()
         @reload() if reloadFromDisk and @isModified()
+    @text.clearUndoStack()
 
   ### Internal ###
 

@@ -28,6 +28,12 @@ describe 'TextBuffer', ->
           buffer = project.bufferForPath(filePath)
           expect(buffer.getText()).toBe fsUtils.read(filePath)
 
+        it "does not allow the initial state of the buffer to be undone", ->
+          filePath = require.resolve 'fixtures/sample.txt'
+          buffer = project.bufferForPath(filePath)
+          buffer.undo()
+          expect(buffer.getText()).toBe fsUtils.read(filePath)
+
       describe "when no file exists for the path", ->
         it "is modified and is initially empty", ->
           filePath = "does-not-exist.txt"
