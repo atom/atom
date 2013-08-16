@@ -100,7 +100,9 @@ class Pane extends View
     @trigger 'pane:became-active' unless wasActive
 
   makeInactive: ->
+    wasActive = @isActive()
     @removeClass('active')
+    @trigger 'pane:became-inactive' if wasActive
 
   isActive: ->
     @hasClass('active')
