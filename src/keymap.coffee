@@ -29,12 +29,6 @@ class Keymap
     @bindingSets = []
     @bindingSetsByFirstKeystroke = {}
 
-  bindDefaultKeys: ->
-    $(document).command 'new-window', => atom.newWindow()
-    $(document).command 'open', => atom.open()
-    $(document).command 'open-dev', => atom.openDev()
-    $(document).command 'toggle-dev-tools', => atom.toggleDevTools()
-
   loadBundledKeymaps: ->
     @loadDirectory(config.bundledKeymapsDirPath)
 

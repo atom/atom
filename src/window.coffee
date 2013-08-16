@@ -34,8 +34,6 @@ window.setUpEnvironment = (windowMode) ->
   window.syntax = deserialize(atom.getWindowState('syntax')) ? new Syntax
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
-  keymap.bindDefaultKeys()
-
 
   requireStylesheet 'atom'
 
