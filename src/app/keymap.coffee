@@ -75,7 +75,6 @@ class Keymap
       bindingSet.selector is selector and bindingSet.bindings is bindings
 
     if bindingSet
-      console.log "binding set", bindingSet
       _.remove(@bindingSets, bindingSet)
 
   bindingsForElement: (element) ->
