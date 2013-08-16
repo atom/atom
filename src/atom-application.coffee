@@ -45,6 +45,7 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
+    @createDefaultMenu()
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
@@ -65,6 +66,20 @@ class AtomApplication
 
   addWindow: (window) ->
     @windows.push window
+    @enableWindowMenuItems(true) == 0
+
+  createDefaultMenu: ->
+    @menu = Menu.buildFromTemplate [
+      label: "Atom"
+      submenu: [
+          { label: 'Reload', accelerator: 'Command+R', click: -> @focusedWindow()?.reload() }
+          { label: 'Close Window', accelerator: 'Command+Shift+W', click: -> @focusedWindow()?.close() }
+          { label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: -> @focusedWindow()?.toggleDevTools() }
+          { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit }
+      ]
+    ]
+
+    Menu.setApplicationMenu @menu
 
   listenForArgumentsFromNewProcess: ->
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
