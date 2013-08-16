@@ -1366,9 +1366,11 @@ class EditSession
 
   transact: (fn) -> @buffer.transact(fn)
 
-  commit: -> @buffer.commit()
+  beginTransaction: -> @buffer.beginTransaction()
 
-  abort: -> @buffer.abort()
+  commitTransaction: -> @buffer.commitTransaction()
+
+  abortTransaction: -> @buffer.abortTransaction()
 
   inspect: ->
     JSON.stringify @state.toObject()

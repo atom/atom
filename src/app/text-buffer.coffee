@@ -600,14 +600,13 @@ class TextBuffer
 
   ### Internal ###
 
-  transact: (fn) ->
-    @text.transact fn
+  transact: (fn) -> @text.transact fn
 
-  commit: ->
-    @text.commit()
+  beginTransaction: -> @text.beginTransaction()
 
-  abort: ->
-    @text.abort()
+  commitTransaction: -> @text.commitTransaction()
+
+  abortTransaction: -> @text.abortTransaction()
 
   change: (oldRange, newText, options={}) ->
     oldRange = @clipRange(oldRange)

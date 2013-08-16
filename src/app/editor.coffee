@@ -1672,8 +1672,9 @@ class Editor extends View
     console.log @activeEditSession.getCursorScopes()
 
   transact: (fn) -> @activeEditSession.transact(fn)
-  commit: -> @activeEditSession.commit()
-  abort: -> @activeEditSession.abort()
+  beginTransaction: -> @activeEditSession.beginTransaction()
+  commitTransaction: -> @activeEditSession.commitTransaction()
+  abortTransaction: -> @activeEditSession.abortTransaction()
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>
