@@ -132,13 +132,6 @@ window.atom =
 
   open: (url...) ->
     ipc.sendChannel('open', [url...])
-
-  openDev: (url...) ->
-    ipc.sendChannel('open-dev', [url...])
-
-  newWindow: ->
-    ipc.sendChannel('new-window')
-
   openWindow: (windowSettings) ->
     ipc.sendChannel('open-window', windowSettings)
 
@@ -253,9 +246,6 @@ window.atom =
       @windowState.get(keyPath)
     else
       @windowState
-
-  update: ->
-    ipc.sendChannel 'install-update'
 
   crashMainProcess: ->
     remote.process.crash()
