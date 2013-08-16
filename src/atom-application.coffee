@@ -180,11 +180,6 @@ class AtomApplication
       @installUpdate = quitAndUpdate
       @buildApplicationMenu version, quitAndUpdate
 
-    ipc.on 'close-without-confirm', (processId, routingId) ->
-      window = BrowserWindow.fromProcessIdAndRoutingId processId, routingId
-      window.removeAllListeners 'close'
-      window.close()
-
     ipc.on 'open', (processId, routingId, pathsToOpen) =>
       if pathsToOpen?.length > 0
         @openPaths({pathsToOpen})
