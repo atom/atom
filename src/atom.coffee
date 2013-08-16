@@ -132,8 +132,6 @@ window.atom =
 
   open: (url...) ->
     ipc.sendChannel('open', [url...])
-  openWindow: (windowSettings) ->
-    ipc.sendChannel('open-window', windowSettings)
 
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     buttons = []
