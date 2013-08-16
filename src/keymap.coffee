@@ -169,6 +169,12 @@ class Keymap
 
     [modifiers..., key].join('-')
 
+  keyBindingsForCommand: (command) ->
+    keyBindings = []
+    for bindingSet in @bindingSets
+      keyBindings = keyBindings.concat(bindingSet.keyBindingsForCommand(command))
+    keyBindings
+
   isAscii: (charCode) ->
     0 <= charCode <= 127
 
