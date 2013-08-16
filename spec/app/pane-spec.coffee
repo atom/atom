@@ -517,6 +517,18 @@ describe "Pane", ->
 
       expect(becameActiveHandler.callCount).toBe 1
 
+    it "triggers 'pane:became-inactive' when it was previously active", ->
+      becameInactiveHandler = jasmine.createSpy("becameInactiveHandler")
+      container.on 'pane:became-inactive', becameInactiveHandler
+
+      expect(pane.isActive()).toBeFalsy()
+      pane.focusin()
+      expect(pane.isActive()).toBeTruthy()
+      pane.splitRight()
+      expect(pane.isActive()).toBeFalsy()
+
+      expect(becameInactiveHandler.callCount).toBe 1
+
   describe "split methods", ->
     [pane1, view3, view4] = []
     beforeEach ->
