@@ -20,6 +20,7 @@ class WindowEventHandler
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
     @subscribeToCommand $(window), 'window:close', => window.close()
     @subscribeToCommand $(window), 'window:reload', => atom.reload()
+    @subscribeToCommand $(window), 'window:toggle-dev-tools', => atom.toggleDevTools()
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
