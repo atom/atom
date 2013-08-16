@@ -1,10 +1,10 @@
-fs = require 'fs'
-
 require 'window'
 
 measure 'spec suite require time', ->
+  fs = require 'fs'
   fsUtils = require 'fs-utils'
   path = require 'path'
+  _ = require 'underscore'
   require 'spec-helper'
 
   requireSpecs = (directoryPath, specType) ->
@@ -19,15 +19,20 @@ measure 'spec suite require time', ->
   requireSpecs(window.resourcePath)
   setSpecType('core')
 
+  fixturesPackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
+  packagePaths = atom.getAvailablePackageNames().map (packageName) -> atom.resolvePackagePath(packageName)
+  packagePaths = _.groupBy packagePaths, (packagePath) ->
+    if packagePath.indexOf("#{fixturesPackagesPath}#{path.sep}") is 0
+      'fixtures'
+    else if packagePath.indexOf("#{window.resourcePath}#{path.sep}") is 0
+      'bundled'
+    else
+      'user'
+
   # Run bundled package specs
-  if fsUtils.isDirectorySync(config.nodeModulesDirPath)
-    for packageName in fs.readdirSync(config.nodeModulesDirPath)
-      packagePath = path.join(config.nodeModulesDirPath, packageName)
-      requireSpecs(packagePath, 'bundled') if atom.isInternalPackage(packagePath)
-    setSpecType('bundled')
+  requireSpecs(packagePath) for packagePath in packagePaths.bundled
+  setSpecType('bundled')
 
   # Run user package specs
-  for packageDirPath in config.userPackageDirPaths when fsUtils.isDirectorySync(packageDirPath)
-    for packageName in fs.readdirSync(packageDirPath)
-      requireSpecs(path.join(packageDirPath, packageName))
-    setSpecType('user')
+  requireSpecs(packagePath) for packagePath in packagePaths.user
+  setSpecType('user')
