@@ -29,12 +29,6 @@ class Keymap
     @bindingSets = []
     @bindingSetsByFirstKeystroke = {}
 
-  bindDefaultKeys: ->
-    $(document).command 'new-window', => atom.newWindow()
-    $(document).command 'open', => atom.open()
-    $(document).command 'open-dev', => atom.openDev()
-    $(document).command 'toggle-dev-tools', => atom.toggleDevTools()
-
   loadBundledKeymaps: ->
     @loadDirectory(fsUtils.resolveOnLoadPath('keymaps'))
 
@@ -75,7 +69,6 @@ class Keymap
       bindingSet.selector is selector and bindingSet.bindings is bindings
 
     if bindingSet
-      console.log "binding set", bindingSet
       _.remove(@bindingSets, bindingSet)
 
   bindingsForElement: (element) ->
@@ -103,7 +96,7 @@ class Keymap
         candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
         for bindingSet in candidateBindingSets
           command = bindingSet.commandForEvent(event)
-          if command is 'native!'
+          if command is 'native!' or /^application:/i.test(command)
             return true
           else if command
             continue if @triggerCommandEvent(event, command)

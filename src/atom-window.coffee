@@ -122,3 +122,9 @@ class AtomWindow
   focus: -> @browserWindow.focus()
 
   isFocused: -> @browserWindow.isFocused()
+
+  restart: ->
+    @browserWindow.restart()
+
+  toggleDevTools: ->
+    @browserWindow.toggleDevTools()

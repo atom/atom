@@ -19,11 +19,7 @@ beforeEach ->
   spyOn(config, 'save')
 
 keymap = new Keymap
-keymap.bindDefaultKeys()
 $(window).on 'keydown', (e) -> keymap.handleKeyEvent(e)
-keymap.bindKeys '*',
-  'meta-w': 'close'
-  'alt-meta-i': 'show-console'
 $(document).on 'close', -> window.close()
 
 defaultCount = 100

@@ -1,4 +1,16 @@
 'body':
+  'meta-alt-ctrl-s': 'application:run-specs'
+  'meta-,': 'application:show-settings'
+  'meta-q': 'application:quit'
+  'meta-h': 'application:hide'
+  'meta-H': 'application:hide-other-applications'
+  'meta-n': 'application:new-file'
+  'meta-N': 'application:new-window'
+  'meta-o': 'application:open'
+  'meta-O': 'application:open-dev'
+  'meta-m': 'application:minimize'
+  'alt-meta-ctrl-m': 'application:zoom'
+
   'meta-s': 'core:save'
   'meta-S': 'core:save-as'
   'enter': 'core:confirm'
@@ -26,12 +38,13 @@
 
   'meta-alt-s': 'window:save-all'
   'meta-W': 'window:close'
-  'meta-r': 'window:reload'
   'meta-+': 'window:increase-font-size'
   'meta--': 'window:decrease-font-size'
   'ctrl-w w': 'window:focus-next-pane'
   'ctrl-tab': 'window:focus-next-pane'
   'ctrl-meta-f': 'window:toggle-full-screen'
+  'meta-r': 'window:reload'
+  'alt-meta-i': 'window:toggle-dev-tools'
 
   'ctrl-|': 'pane:split-right'
   'ctrl-w v': 'pane:split-right'
@@ -54,14 +67,6 @@
   'meta-T': 'pane:reopen-closed-item'
   'alt-meta-w': 'pane:close-other-items'
   'meta-P': 'pane:close'
-
-  'meta-n': 'new-editor'
-  'meta-N': 'new-window'
-  'meta-,': 'open-user-configuration'
-  'meta-o': 'open'
-  'meta-O': 'open-dev'
-  'meta-w': 'core:close'
-  'alt-meta-i': 'toggle-dev-tools'
 
 '.tool-panel':
   'meta-escape': 'tool-panel:unfocus'
