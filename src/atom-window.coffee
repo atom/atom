@@ -13,6 +13,7 @@ class AtomWindow
   browserWindow: null
   contextMenu: null
   inspectElementMenuItem: null
+  loaded: null
 
   constructor: (settings={}) ->
     {resourcePath, pathToOpen, isSpec} = settings
