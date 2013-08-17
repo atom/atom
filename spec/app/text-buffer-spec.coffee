@@ -858,7 +858,7 @@ describe 'TextBuffer', ->
       describe "when the current line has a line ending", ->
         it "uses the same line ending as the line where the text is inserted", ->
           buffer.setText("a\r\n")
-          buffer.insert([0,1], "hello\n1\n\n2")
+          buffer.insert([0, 1], "hello\n1\n\n2")
           expect(buffer.getText()).toBe "ahello\r\n1\r\n\r\n2\r\n"
 
       describe "when the current line has no line ending (because it's the last line of the buffer)", ->
