@@ -171,7 +171,6 @@ class AtomApplication
       when 'core:cut' then Menu.sendActionToFirstResponder('cut:')
       when 'core:paste' then Menu.sendActionToFirstResponder('paste:')
       when 'core:select-all' then Menu.sendActionToFirstResponder('selectAll:')
-      when 'command-panel:find-in-file' then Menu.sendActionToFirstResponder('performTextFinderAction:')
       when 'window:reload' then @focusedWindow()?.reload()
       when 'window:toggle-dev-tools' then @focusedWindow()?.toggleDevTools()
       when 'window:close' then @focusedWindow()?.close()
