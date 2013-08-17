@@ -1,20 +1,51 @@
 ipc = require 'ipc'
+Menu = require 'menu'
 
 module.exports =
 class ApplicationMenu
   keyBindingsByCommand: null
+  menu: null
 
-  constructor: (@keyBindingsByCommand) ->
-    menuTemplate = @getMenuTemplate()
-    @parseMenuTemplate(menuTemplate, keyBindingsByCommand)
-    ipc.sendChannel 'build-menu-bar-from-template', menuTemplate
+  constructor: (@keyBindingsByCommand, isDevMode, version) ->
+    menuTemplate = @getMenuTemplate(isDevMode, version)
+    @parseMenuTemplate(menuTemplate)
+    @menu = Menu.buildFromTemplate(menuTemplate)
+    Menu.setApplicationMenu(@menu)
+    @enableWindowMenuItems(true)
 
-  getMenuTemplate: ->
+  allMenuItems: (menu=@menu) ->
+    menuItems = []
+    for index, item of menu.items or {}
+      menuItems.push(item)
+      menuItems = menuItems.concat(@allMenuItems(item.submenu)) if item.submenu
+
+    menuItems
+
+  enableWindowMenuItems: (enable) ->
+    for menuItem in @allMenuItems()
+      menuItem.enabled = enable if menuItem.metadata?['windowMenuItem']
+
+  parseMenuTemplate: (menuTemplate) ->
+    menuTemplate.forEach (menuItem) =>
+      menuItem.metadata = {}
+      if menuItem.command
+        menuItem.accelerator = @acceleratorForCommand(menuItem.command)
+        menuItem.click = => global.atomApplication.sendCommand(menuItem.command)
+        menuItem.metadata['windowMenuItem'] = true unless /^application:/.test(menuItem.command)
+      @parseMenuTemplate(menuItem.submenu) if menuItem.submenu
+
+  showDownloadUpdateItem: (version, quitAndUpdateCallback) ->
+    downloadUpdateItem = _.find @allMenuItems(), (item) -> item.label == 'Install update'
+    if downloadUpdateItem
+      downloadUpdateItem.visible = true
+      downloadUpdateItem.click = quitAndUpdateCallback
+
+  getMenuTemplate: (isDevMode, version) ->
     atomMenu =
       label: 'Atom'
       submenu: [
         { label: 'About Atom', command: 'application:about' }
-        { label: "Version #{atom.getVersion()}", enabled: false }
+        { label: "Version #{version}", enabled: false }
         { label: "Install update", command: 'application:install-update', visible: false }
         { type: 'separator' }
         { label: 'Preferences...', command: 'application:show-settings' }
@@ -69,18 +100,12 @@ class ApplicationMenu
       ]
 
     menu = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
-    if atom.isDevMode()
+    if isDevMode
       menu.push
         label: '\uD83D\uDC80' # Skull emoji
         submenu: [ { label: 'In Development Mode', enabled: false } ]
 
     menu
-
-  parseMenuTemplate: (menuItems) ->
-    for menuItem in menuItems
-      if menuItem.command
-        menuItem.accelerator = @acceleratorForCommand(menuItem.command)
-      @parseMenuTemplate(menuItem.submenu) if menuItem.submenu
 
   acceleratorForCommand: (command) ->
     keyBinding = @keyBindingsByCommand[command]?[0]
