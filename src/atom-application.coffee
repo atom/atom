@@ -197,8 +197,6 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
-    openedWindow
-    
   openUrl: ({urlToOpen, devMode}) ->
     parsedUrl = url.parse(urlToOpen)
     if parsedUrl.host is 'session'
