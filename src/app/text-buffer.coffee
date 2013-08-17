@@ -228,7 +228,10 @@ class TextBuffer
     @text.lineEndingForRow(row)
 
   suggestedLineEndingForRow: (row) ->
-    @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
+    if row is @getLastRow()
+      @lineEndingForRow(row - 1)
+    else
+      @lineEndingForRow(row)
 
   # Given a row, returns the length of the line of text.
   #
