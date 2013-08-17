@@ -4,8 +4,8 @@ telepath = require 'telepath'
 $ = require 'jquery'
 less = require 'less'
 remote = require 'remote'
+ipc = require 'ipc'
 WindowEventHandler = require 'window-event-handler'
-ApplicationMenu = require 'application-menu'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -55,7 +55,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  new ApplicationMenu(keymap.toObject())
+  ipc.sendChannel 'keymap-loaded', keymap.toObject()
   $(window).on 'unload', -> unloadEditorWindow(); false
   atom.show()
   atom.focus()

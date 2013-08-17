@@ -1,4 +1,5 @@
 AtomWindow = require './atom-window'
+ApplicationMenu = require './application-menu'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
@@ -34,11 +35,12 @@ class AtomApplication
     client.on 'error', createAtomApplication
 
   windows: null
-  menu: null
+  applicationMenu: null
   resourcePath: null
   version: null
+  devMode: null
 
-  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, devMode, newWindow}) ->
+  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, @devMode, newWindow}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -54,19 +56,19 @@ class AtomApplication
     if test
       @runSpecs({exitWhenDone: true, @resourcePath})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode})
+      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, @devMode})
     else if urlsToOpen.length > 0
-      @openUrl({urlToOpen, devMode}) for urlToOpen in urlsToOpen
+      @openUrl({urlToOpen, @devMode}) for urlToOpen in urlsToOpen
     else      
-      @openPath({pidToKillWhenClosed, newWindow, devMode}) # Always open a editor window if this is the first instance of Atom.
+      @openPath({pidToKillWhenClosed, newWindow, @devMode}) # Always open a editor window if this is the first instance of Atom.
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
-    @enableWindowMenuItems(false) if @windows.length == 0
+    @applicationMenu?.enableWindowMenuItems(false) if @windows.length == 0
 
   addWindow: (window) ->
     @windows.push window
-    @enableWindowMenuItems(true) == 0
+    @applicationMenu?.enableWindowMenuItems(true) == 0
 
   createDefaultMenu: ->
     @menu = Menu.buildFromTemplate [
@@ -119,10 +121,7 @@ class AtomApplication
 
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdateCallback) =>
       event.preventDefault()
-      updateMenuItem = _.find @allMenuItems(), (menuItem) -> menuItem.label == 'Install update'
-      if updateMenuItem
-        updateMenuItem.visible = true
-        updateMenuItem.click = quitAndUpdateCallback
+      @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
 
     ipc.on 'open', (processId, routingId, pathsToOpen) =>
       if pathsToOpen?.length > 0
@@ -133,37 +132,8 @@ class AtomApplication
     ipc.on 'get-version', (event) =>
       event.result = @version
 
-    ipc.once 'build-menu-bar-from-template', (processId, routingId, menuTemplate) =>
-      @buildMenu(menuTemplate)
-
-  buildMenu: (menuTemplate) ->
-    @parseMenuTemplate(menuTemplate)
-    @menu = Menu.buildFromTemplate(menuTemplate)
-    Menu.setApplicationMenu(@menu)
-    @enableWindowMenuItems(true)
-
-  allMenuItems: (menu=@menu) ->
-    return [] unless menu?
-
-    menuItems = []
-    for index, item of menu.items or {}
-      menuItems.push(item)
-      menuItems = menuItems.concat(@allMenuItems(item.submenu)) if item.submenu
-
-    menuItems
-
-  enableWindowMenuItems: (enable) ->
-    for menuItem in @allMenuItems()
-      menuItem.enabled = enable if menuItem.metadata?['windowSpecificItem']
-
-  parseMenuTemplate: (menuTemplate) ->
-    menuTemplate.forEach (menuItem) =>
-      menuItem.metadata = {}
-      if menuItem.command
-        menuItem.click = => @sendCommand(menuItem.command)
-        menuItem.metadata['windowSpecificItem'] = true unless /^application:/.test(menuItem.command)
-      if menuItem.submenu
-        @parseMenuTemplate(menuItem.submenu)
+    ipc.once 'keymap-loaded', (processId, routingId, keyBindingsByCommand) =>
+      @applicationMenu = new ApplicationMenu(keyBindingsByCommand, @version, @devMode)
 
   sendCommand: (command, args...) ->
     return if @interceptApplicationCommands(command)
@@ -215,22 +185,22 @@ class AtomApplication
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode}) ->
-    @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode}) for pathToOpen in pathsToOpen ? []
+  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, @devMode}) ->
+    @openPath({pathToOpen, pidToKillWhenClosed, newWindow, @devMode}) for pathToOpen in pathsToOpen ? []
 
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode}={}) ->
-    unless devMode
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, @devMode}={}) ->
+    unless @devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
     if existingWindow
       openedWindow = existingWindow
       openedWindow.openPath(pathToOpen)
     else
       bootstrapScript = 'window-bootstrap'
-      if devMode
+      if @devMode
         resourcePath = global.devResourcePath
       else
         resourcePath = @resourcePath
-      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, resourcePath, devMode})
+      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, resourcePath, @devMode})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -266,6 +236,6 @@ class AtomApplication
     devMode = true
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode})
 
-  promptForPath: ({devMode}={}) ->
+  promptForPath: ({@devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
-    @openPaths({pathsToOpen, devMode})
+    @openPaths({pathsToOpen, @devMode})
