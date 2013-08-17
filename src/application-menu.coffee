@@ -4,10 +4,15 @@ Menu = require 'menu'
 module.exports =
 class ApplicationMenu
   keyBindingsByCommand: null
+  version: null
+  devMode: null
   menu: null
 
-  constructor: (@keyBindingsByCommand, isDevMode, version) ->
-    menuTemplate = @getMenuTemplate(isDevMode, version)
+  constructor: (@devMode, @version) ->
+    @createDefaultMenu()
+
+  update: (@keyBindingsByCommand) ->
+    menuTemplate = @getMenuTemplate()
     @parseMenuTemplate(menuTemplate)
     @menu = Menu.buildFromTemplate(menuTemplate)
     Menu.setApplicationMenu(@menu)
@@ -40,12 +45,25 @@ class ApplicationMenu
       downloadUpdateItem.visible = true
       downloadUpdateItem.click = quitAndUpdateCallback
 
-  getMenuTemplate: (isDevMode, version) ->
+  createDefaultMenu: ->
+    @menu = Menu.buildFromTemplate [
+      label: "Atom"
+      submenu: [
+          { label: 'Reload', accelerator: 'Command+R', click: -> @focusedWindow()?.reload() }
+          { label: 'Close Window', accelerator: 'Command+Shift+W', click: -> @focusedWindow()?.close() }
+          { label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: -> @focusedWindow()?.toggleDevTools() }
+          { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit }
+      ]
+    ]
+
+    Menu.setApplicationMenu @menu
+
+  getMenuTemplate: ->
     atomMenu =
       label: 'Atom'
       submenu: [
         { label: 'About Atom', command: 'application:about' }
-        { label: "Version #{version}", enabled: false }
+        { label: "Version #{@version}", enabled: false }
         { label: "Install update", command: 'application:install-update', visible: false }
         { type: 'separator' }
         { label: 'Preferences...', command: 'application:show-settings' }
@@ -100,7 +118,7 @@ class ApplicationMenu
       ]
 
     menu = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
-    if isDevMode
+    if @devMode
       menu.push
         label: '\uD83D\uDC80' # Skull emoji
         submenu: [ { label: 'In Development Mode', enabled: false } ]
