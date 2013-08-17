@@ -1,4 +1,4 @@
-Range = require 'range'
+{Range} = require 'telepath'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
@@ -9,25 +9,21 @@ class Selection
   marker: null
   editSession: null
   initialScreenRange: null
-  goalBufferRange: null
   wordwise: false
   needsAutoscroll: null
 
   ### Internal ###
 
-  constructor: ({@cursor, @marker, @editSession, @goalBufferRange}) ->
+  constructor: ({@cursor, @marker, @editSession}) ->
     @cursor.selection = this
     @marker.on 'changed', => @screenRangeChanged()
-    @cursor.on 'destroyed.selection', =>
-      @cursor = null
-      @destroy()
+    @marker.on 'destroyed', =>
+      @destroyed = true
+      @editSession.removeSelection(this)
+      @trigger 'destroyed' unless @editSession.destroyed
 
   destroy: ->
-    return if @destroyed
-    @destroyed = true
-    @editSession.removeSelection(this)
-    @trigger 'destroyed' unless @editSession.destroyed
-    @cursor?.destroy()
+    @marker.destroy()
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
@@ -88,7 +84,7 @@ class Selection
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
-    options.reverse ?= @isReversed()
+    options.isReversed ?= @isReversed()
     @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       @cursor.needsAutoscroll = false if options.autoscroll?
@@ -112,7 +108,8 @@ class Selection
 
   # Clears the selection, moving the marker to move to the head.
   clear: ->
-    @marker.clearTail()
+    @marker.setAttributes(goalBufferRange: null)
+    @marker.clearTail() unless @retainSelection
 
   # Modifies the selection to mark the current word.
   #
@@ -149,7 +146,7 @@ class Selection
     @modifySelection =>
       if @initialScreenRange
         if position.isLessThan(@initialScreenRange.start)
-          @marker.setScreenRange([position, @initialScreenRange.end], reverse: true)
+          @marker.setScreenRange([position, @initialScreenRange.end], isReversed: true)
         else
           @marker.setScreenRange([@initialScreenRange.start, position])
       else
@@ -228,7 +225,7 @@ class Selection
 
   # Moves the selection down one row.
   addSelectionBelow: ->
-    range = (@goalBufferRange ? @getBufferRange()).copy()
+    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
     nextRow = range.end.row + 1
 
     for row in [nextRow..@editSession.getLastBufferRow()]
@@ -241,12 +238,15 @@ class Selection
       else
         continue if clippedRange.isEmpty()
 
-      @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+      @editSession.addSelectionForBufferRange(range, goalBufferRange: range)
       break
+
+  getGoalBufferRange: ->
+    @marker.getAttributes().goalBufferRange
 
   # Moves the selection up one row.
   addSelectionAbove: ->
-    range = (@goalBufferRange ? @getBufferRange()).copy()
+    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
     previousRow = range.end.row - 1
 
     for row in [previousRow..0]
@@ -259,7 +259,7 @@ class Selection
       else
         continue if clippedRange.isEmpty()
 
-      @editSession.addSelectionForBufferRange(range, goalBufferRange: range, suppressMerge: true)
+      @editSession.addSelectionForBufferRange(range, goalBufferRange: range)
       break
 
   # Replaces text at the current selection.
@@ -283,7 +283,7 @@ class Selection
 
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     if options.select
-      @setBufferRange(newBufferRange, reverse: wasReversed)
+      @setBufferRange(newBufferRange, isReversed: wasReversed)
     else
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
@@ -490,7 +490,7 @@ class Selection
 
   modifySelection: (fn) ->
     @retainSelection = true
-    @placeTail()
+    @plantTail()
     fn()
     @retainSelection = false
 
@@ -499,8 +499,8 @@ class Selection
   # This only works if there isn't already a tail position.
   #
   # Returns a {Point} representing the new tail position.
-  placeTail: ->
-    @marker.placeTail()
+  plantTail: ->
+    @marker.plantTail()
 
   # Identifies if a selection intersects with a given buffer range.
   #
@@ -523,12 +523,23 @@ class Selection
   # otherSelection - A `Selection` to merge with
   # options - A hash of options matching those found in {.setBufferRange}
   merge: (otherSelection, options) ->
+    myGoalBufferRange = @getGoalBufferRange()
+    otherGoalBufferRange = otherSelection.getGoalBufferRange()
+    if myGoalBufferRange? and otherGoalBufferRange?
+      options.goalBufferRange = myGoalBufferRange.union(otherGoalBufferRange)
+    else
+      options.goalBufferRange = myGoalBufferRange ? otherGoalBufferRange
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
-    if @goalBufferRange and otherSelection.goalBufferRange
-      @goalBufferRange = @goalBufferRange.union(otherSelection.goalBufferRange)
-    else if otherSelection.goalBufferRange
-      @goalBufferRange = otherSelection.goalBufferRange
     otherSelection.destroy()
+
+  compare: (other) ->
+    @getBufferRange().compare(other.getBufferRange())
+
+  isLocal: ->
+    @marker.isLocal()
+
+  isRemote: ->
+    @marker.isRemote()
 
   ### Internal ###
 

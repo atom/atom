@@ -1,37 +1,64 @@
 _ = require 'underscore'
+guid = require 'guid'
+telepath = require 'telepath'
+{Point, Range} = telepath
 TokenizedBuffer = require 'tokenized-buffer'
 RowMap = require 'row-map'
-Point = require 'point'
 EventEmitter = require 'event-emitter'
-Range = require 'range'
 Fold = require 'fold'
 Token = require 'token'
 DisplayBufferMarker = require 'display-buffer-marker'
 Subscriber = require 'subscriber'
 
+DefaultSoftWrapColumn = 1000000
+
 module.exports =
 class DisplayBuffer
-  @idCounter: 1
   screenLines: null
   rowMap: null
   tokenizedBuffer: null
   markers: null
   foldsByMarkerId: null
 
-  ### Internal ###
+  @acceptsDocuments: true
+  registerDeserializer(this)
 
-  constructor: (@buffer, options={}) ->
-    @id = @constructor.idCounter++
-    @tokenizedBuffer = new TokenizedBuffer(@buffer, options)
-    @softWrapColumn = options.softWrapColumn ? Infinity
+  @deserialize: (state) ->
+    new DisplayBuffer(state)
+
+  constructor: (optionsOrState) ->
+    if optionsOrState instanceof telepath.Document
+      @state = optionsOrState
+      @id = @state.get('id')
+      @tokenizedBuffer = deserialize(@state.get('tokenizedBuffer'))
+      @buffer = @tokenizedBuffer.buffer
+    else
+      {@buffer, softWrapColumn} = optionsOrState
+      @id = guid.create().toString()
+      @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
+      @state = site.createDocument
+        deserializer: @constructor.name
+        id: @id
+        tokenizedBuffer: @tokenizedBuffer.getState()
+        softWrapColumn: softWrapColumn ? DefaultSoftWrapColumn
+
     @markers = {}
     @foldsByMarkerId = {}
     @updateAllScreenLines()
-
+    @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
-    @subscribe @buffer, 'markers-updated', @handleMarkersUpdated
-    @subscribe @buffer, 'marker-created', @handleMarkerCreated
+    @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
+    @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
+
+  serialize: -> @state.clone()
+  getState: -> @state
+
+  copy: ->
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
+    for marker in @findMarkers(displayBufferId: @id)
+      marker.copy(displayBufferId: newDisplayBuffer.id)
+    newDisplayBuffer
 
   updateAllScreenLines: ->
     @maxLineLength = 0
@@ -56,13 +83,17 @@ class DisplayBuffer
   # Defines the limit at which the buffer begins to soft wrap text.
   #
   # softWrapColumn - A {Number} defining the soft wrap limit.
-  setSoftWrapColumn: (@softWrapColumn) ->
+  setSoftWrapColumn: (softWrapColumn) ->
+    @state.set('softWrapColumn', softWrapColumn)
     start = 0
     end = @getLastRow()
     @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
     @triggerChanged({ start, end, screenDelta, bufferDelta })
+
+  getSoftWrapColumn: ->
+    @state.get('softWrapColumn')
 
   # Gets the screen line for the given screen row.
   #
@@ -107,8 +138,14 @@ class DisplayBuffer
   createFold: (startRow, endRow) ->
     foldMarker =
       @findFoldMarker({startRow, endRow}) ?
-        @buffer.markRange([[startRow, 0], [endRow, Infinity]], @foldMarkerAttributes())
+        @buffer.markRange([[startRow, 0], [endRow, Infinity]], @getFoldMarkerAttributes())
     @foldForMarker(foldMarker)
+
+  isFoldedAtBufferRow: (bufferRow) ->
+    @largestFoldContainingBufferRow(bufferRow)?
+
+  isFoldedAtScreenRow: (screenRow) ->
+    @largestFoldContainingBufferRow(@bufferRowForScreenRow(screenRow))?
 
   # Destroys the fold with the given id
   destroyFoldWithId: (id) ->
@@ -370,7 +407,7 @@ class DisplayBuffer
   #
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (line, softWrapColumn=@softWrapColumn) ->
+  findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])
@@ -396,8 +433,7 @@ class DisplayBuffer
   #
   # Returns the {DisplayBufferMarker} (if it exists).
   getMarker: (id) ->
-    marker = @markers[id]
-    unless marker?
+    unless marker = @markers[id]
       if bufferMarker = @buffer.getMarker(id)
         marker = new DisplayBufferMarker({bufferMarker, displayBuffer: this})
         @markers[id] = marker
@@ -407,7 +443,10 @@ class DisplayBuffer
   #
   # Returns an {Array} of existing {DisplayBufferMarker}s.
   getMarkers: ->
-    _.values(@markers)
+    @buffer.getMarkers().map ({id}) => @getMarker(id)
+
+  getMarkerCount: ->
+    @buffer.getMarkerCount()
 
   # Constructs a new marker at the given screen range.
   #
@@ -470,21 +509,16 @@ class DisplayBuffer
   #
   # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (attributes) ->
-    { startBufferRow, endBufferRow, containsBufferRange, containsBufferRow } = attributes
-    attributes.startRow = startBufferRow if startBufferRow?
-    attributes.endRow = endBufferRow if endBufferRow?
-    attributes.containsRange = containsBufferRange if containsBufferRange?
-    attributes.containsRow = containsBufferRow if containsBufferRow?
-    attributes = _.omit(attributes, ['startBufferRow', 'endBufferRow', 'containsBufferRange', 'containsBufferRow'])
-    @buffer.findMarkers(attributes).map ({id}) => @getMarker(id)
+    markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
+    markers.sort (a, b) -> a.compare(b)
 
   findFoldMarker: (attributes) ->
     @findFoldMarkers(attributes)[0]
 
   findFoldMarkers: (attributes) ->
-    @buffer.findMarkers(@foldMarkerAttributes(attributes))
+    @buffer.findMarkers(@getFoldMarkerAttributes(attributes))
 
-  foldMarkerAttributes: (attributes={}) ->
+  getFoldMarkerAttributes: (attributes={}) ->
     _.extend(attributes, class: 'fold', displayBufferId: @id)
 
   pauseMarkerObservers: ->
@@ -492,10 +526,11 @@ class DisplayBuffer
 
   resumeMarkerObservers: ->
     marker.resumeEvents() for marker in @getMarkers()
+    @trigger 'markers-updated'
 
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
-      marker.notifyObservers(bufferChanged: false)
+      marker.notifyObservers(textChanged: false)
 
   destroy: ->
     marker.unsubscribe() for marker in @getMarkers()
@@ -608,14 +643,17 @@ class DisplayBuffer
         @longestScreenRow = maxLengthCandidatesStartRow + screenRow
         @maxLineLength = length
 
-  handleMarkersUpdated: =>
-    event = @pendingChangeEvent
-    @pendingChangeEvent = null
-    @triggerChanged(event, false)
+  handleBufferMarkersUpdated: =>
+    if event = @pendingChangeEvent
+      @pendingChangeEvent = null
+      @triggerChanged(event, false)
 
-  handleMarkerCreated: (marker) =>
-    new Fold(this, marker) if marker.matchesAttributes(@foldMarkerAttributes())
+  handleBufferMarkerCreated: (marker) =>
+    @createFoldForMarker(marker) if marker.matchesAttributes(@getFoldMarkerAttributes())
     @trigger 'marker-created', @getMarker(marker.id)
+
+  createFoldForMarker: (marker) ->
+    new Fold(this, marker)
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]

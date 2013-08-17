@@ -18,18 +18,21 @@ require 'coffee-script'
 delegate.browserMainParts.preMainMessageLoopRun = ->
   args = parseCommandLine()
 
-  addPathToOpen = (event, filePath) ->
+  addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
-    args.pathsToOpen.push(filePath)
+    args.pathsToOpen.push(pathToOpen)
 
-  app.on 'open-url', (event, url) =>
+  args.urlsToOpen = []
+  addUrlToOpen = (event, urlToOpen) ->
     event.preventDefault()
-    dialog.showMessageBox
-      message: 'Atom opened with URL'
-      detail: url
-      buttons: ['OK']
+    args.urlsToOpen.push(urlToOpen)
+
+  app.on 'open-url', (event, urlToOpen) ->
+    event.preventDefault()
+    args.urlsToOpen.push(urlToOpen)
 
   app.on 'open-file', addPathToOpen
+  app.on 'open-url', addUrlToOpen
 
   app.on 'will-finish-launching', ->
     setupCrashReporter()
@@ -37,6 +40,7 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 
   app.on 'finish-launching', ->
     app.removeListener 'open-file', addPathToOpen
+    app.removeListener 'open-url', addUrlToOpen
 
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen)
@@ -78,7 +82,7 @@ parseCommandLine = ->
     process.exit(0)
 
   executedFrom = args['executed-from']
-  dev = args['dev']
+  devMode = args['dev']
   pathsToOpen = args._
   pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
@@ -86,15 +90,16 @@ parseCommandLine = ->
   pidToKillWhenClosed = args['pid'] if args['wait']
 
   if args['resource-path']
-    dev = true
+    devMode = true
     resourcePath = args['resource-path']
-  else if dev
+  else if devMode
     resourcePath = global.devResourcePath
 
   try
     fs.statSync resourcePath
   catch e
-    dev = false
+    devMode = false
     resourcePath = path.dirname(__dirname)
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, dev, newWindow}
+  console.log devMode
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, newWindow}

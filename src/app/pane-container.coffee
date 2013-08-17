@@ -18,22 +18,27 @@ class PaneContainer extends View
   @content: ->
     @div id: 'panes'
 
-  initialize: (@state) ->
-    if @state?
-      @setRoot(deserialize(@state.get('root')), updateState: false)
+  initialize: (state) ->
+    if state instanceof telepath.Document
+      @state = state
+      @setRoot(deserialize(@state.get('root')))
     else
-      @state = telepath.Document.create(deserializer: 'PaneContainer')
+      @state = site.createDocument(deserializer: 'PaneContainer')
 
-    @state.observe ({key, newValue, site}) =>
+    @state.on 'changed', ({key, newValue, site}) =>
       return if site is @state.site.id
       if key is 'root'
-        @setRoot(deserialize(newValue), updateState: false)
+        if newValue?
+          @setRoot(deserialize(newValue))
+        else
+          @setRoot(null)
 
     @destroyedItemStates = []
 
   serialize: ->
-    @getRoot()?.serialize()
-    @state
+    state = @state.clone()
+    state.set('root', @getRoot()?.serialize())
+    state
 
   getState: -> @state
 
@@ -89,10 +94,10 @@ class PaneContainer extends View
   getRoot: ->
     @children().first().view()
 
-  setRoot: (root, options={}) ->
+  setRoot: (root) ->
     @empty()
     @append(root) if root?
-    @state.set(root: root?.getState()) if options.updateState ? true
+    @state.set(root: root?.getState())
 
   removeChild: (child) ->
     throw new Error("Removing non-existant child") unless @getRoot() is child

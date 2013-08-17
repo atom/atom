@@ -1,8 +1,7 @@
 {View, $$} = require 'space-pen'
-Buffer = require 'text-buffer'
+TextBuffer = require 'text-buffer'
 Gutter = require 'gutter'
-Point = require 'point'
-Range = require 'range'
+{Point, Range} = require 'telepath'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
@@ -97,7 +96,7 @@ class Editor extends View
       @edit(editSession)
     else if @mini
       @edit(new EditSession
-        buffer: new Buffer()
+        buffer: new TextBuffer
         softWrap: false
         tabLength: 2
         softTabs: true
@@ -586,6 +585,9 @@ class Editor extends View
   # {Delegates to: EditSession.getPath}
   getPath: -> @activeEditSession?.getPath()
 
+  # {Delegates to: EditSession.getRelativePath}
+  getRelativePath: -> @activeEditSession?.getRelativePath()
+
   #  {Delegates to: Buffer.getLineCount}
   getLineCount: -> @getBuffer().getLineCount()
 
@@ -704,8 +706,7 @@ class Editor extends View
     $(document).one "mouseup.editor-#{@id}", =>
       clearInterval(interval)
       $(document).off 'mousemove', moveHandler
-      reverse = @activeEditSession.getLastSelection().isReversed()
-      @activeEditSession.mergeIntersectingSelections({reverse})
+      @activeEditSession.mergeIntersectingSelections(isReversed: @activeEditSession.getLastSelection().isReversed())
       @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
 
@@ -1133,8 +1134,8 @@ class Editor extends View
     @updateLayerDimensions()
     @scrollTop(editSessionScrollTop)
     @scrollLeft(editSessionScrollLeft)
-    @newCursors = @activeEditSession.getCursors()
-    @newSelections = @activeEditSession.getSelections()
+    @newCursors = @activeEditSession.getAllCursors()
+    @newSelections = @activeEditSession.getAllSelections()
     @updateDisplay(suppressAutoScroll: true)
 
   requestDisplayUpdate: ->
@@ -1278,6 +1279,7 @@ class Editor extends View
             )
       intactRanges = newIntactRanges
     @pendingChanges = []
+
     intactRanges
 
   truncateIntactRanges: (intactRanges, renderFrom, renderTo) ->
@@ -1670,8 +1672,9 @@ class Editor extends View
     console.log @activeEditSession.getCursorScopes()
 
   transact: (fn) -> @activeEditSession.transact(fn)
-  commit: -> @activeEditSession.commit()
-  abort: -> @activeEditSession.abort()
+  beginTransaction: -> @activeEditSession.beginTransaction()
+  commitTransaction: -> @activeEditSession.commitTransaction()
+  abortTransaction: -> @activeEditSession.abortTransaction()
 
   saveDebugSnapshot: ->
     atom.showSaveDialog (path) =>

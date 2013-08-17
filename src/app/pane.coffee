@@ -29,29 +29,28 @@ class Pane extends View
   initialize: (args...) ->
     if args[0] instanceof telepath.Document
       @state = args[0]
-      @items = @state.get('items').map (item) -> deserialize(item)
+      @items = _.compact(@state.get('items').map (item) -> deserialize(item))
     else
       @items = args
-      @state = telepath.Document.create
+      @state = site.createDocument
         deserializer: 'Pane'
         items: @items.map (item) -> item.getState?() ? item.serialize()
 
-    @state.get('items').observe ({index, removed, inserted, site}) =>
+    @state.get('items').on 'changed', ({index, removed, inserted, site}) =>
       return if site is @state.site.id
       for itemState in removed
         @removeItemAtIndex(index, updateState: false)
       for itemState, i in inserted
         @addItem(deserialize(itemState), index + i, updateState: false)
 
-    @state.observe ({key, newValue, site}) =>
+    @state.on 'changed', ({key, newValue, site}) =>
       return if site is @state.site.id
       @showItemForUri(newValue) if key is 'activeItemUri'
 
     @viewsByClassName = {}
     @viewsByItem = new WeakMap()
-    if activeItemUri = @state.get('activeItemUri')
-      @showItemForUri(activeItemUri)
-    else
+    activeItemUri = @state.get('activeItemUri')
+    unless activeItemUri? and @showItemForUri(activeItemUri)
       @showItem(@items[0]) if @items.length > 0
 
     @command 'core:close', @destroyActiveItem
@@ -226,7 +225,7 @@ class Pane extends View
   saveItemAs: (item, nextAction) ->
     return unless item.saveAs?
 
-    itemPath = item.getUri?()
+    itemPath = item.getPath?()
     itemPath = dirname(itemPath) if itemPath
     path = atom.showSaveDialogSync(itemPath)
     if path
@@ -272,7 +271,11 @@ class Pane extends View
     _.detect @items, (item) -> item.getUri?() is uri
 
   showItemForUri: (uri) ->
-    @showItem(@itemForUri(uri))
+    if item = @itemForUri(uri)
+      @showItem(item)
+      true
+    else
+      false
 
   cleanupItemView: (item) ->
     if item instanceof $
@@ -318,9 +321,10 @@ class Pane extends View
     @viewForItem(@activeItem)
 
   serialize: ->
-    @state.get('items').set(index, item.serialize()) for item, index in @items
-    @state.set focused: @is(':has(:focus)')
-    @state
+    state = @state.clone()
+    state.set('items', item.serialize() for item, index in @items)
+    state.set('focused', @is(':has(:focus)'))
+    state
 
   getState: -> @state
 
@@ -377,7 +381,7 @@ class Pane extends View
     @closest('#panes').view()
 
   copyActiveItem: ->
-    deserialize(@activeItem.serialize())
+    @activeItem.copy?() ? deserialize(@activeItem.serialize())
 
   remove: (selector, keepData) ->
     return super if keepData

@@ -1,3 +1,4 @@
+path = require 'path'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
@@ -26,6 +27,7 @@ class RootView extends View
     excludeVcsIgnoredPaths: false
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
+    projectHome: path.join(atom.getHomeDirPath(), 'github')
 
   ### Internal ###
   @acceptsDocuments: true
@@ -34,7 +36,7 @@ class RootView extends View
     @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
-          @subview 'panes', deserialize(state?.get?('panes')) ? new PaneContainer
+          @div outlet: 'panes'
 
   @deserialize: (state) ->
     new RootView(state)
@@ -42,8 +44,16 @@ class RootView extends View
   initialize: (state={}) ->
     if state instanceof telepath.Document
       @state = state
+      panes = deserialize(state.get('panes'))
     else
-      @state = telepath.Document.create(_.extend({version: RootView.version, deserializer: 'RootView', panes: @panes.serialize()}, state))
+      panes = new PaneContainer
+      @state = site.createDocument
+        deserializer: @constructor.name
+        version: @constructor.version
+        panes: panes.getState()
+
+    @panes.replaceWith(panes)
+    @panes = panes
 
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
@@ -82,9 +92,12 @@ class RootView extends View
     _.nextTick => atom.setFullScreen(@state.get('fullScreen'))
 
   serialize: ->
-    @panes.serialize()
-    @state.set('fullScreen', atom.isFullScreen())
-    @state
+    state = @state.clone()
+    state.set('panes', @panes.serialize())
+    state.set('fullScreen', atom.isFullScreen())
+    state
+
+  getState: -> @state
 
   handleFocus: (e) ->
     if @getActivePane()
@@ -113,7 +126,7 @@ class RootView extends View
   # Returns the `EditSession` for the file URI.
   open: (path, options = {}) ->
     changeFocus = options.changeFocus ? true
-    path = project.resolve(path) if path?
+    path = project.relativize(path)
     if activePane = @getActivePane()
       editSession = activePane.itemForUri(path) ? project.open(path)
       activePane.showItem(editSession)

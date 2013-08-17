@@ -8,6 +8,7 @@ dialog = require 'dialog'
 fs = require 'fs'
 path = require 'path'
 net = require 'net'
+url = require 'url'
 
 socketPath = '/tmp/atom.sock'
 
@@ -37,7 +38,7 @@ class AtomApplication
   installUpdate: null
   version: null
 
-  constructor: ({@resourcePath, pathsToOpen, @version, test, pidToKillWhenClosed, @dev, newWindow}) ->
+  constructor: ({@resourcePath, pathsToOpen, urlsToOpen, @version, test, pidToKillWhenClosed, @devMode, newWindow}) ->
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -54,10 +55,12 @@ class AtomApplication
     if test
       @runSpecs({exitWhenDone: true, @resourcePath})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow})
+      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, @devMode})
+    else if urlsToOpen.length > 0
+      @openUrl(urlToOpen) for urlToOpen in urlsToOpen
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath({pidToKillWhenClosed, newWindow})
+      @openPath({pidToKillWhenClosed, newWindow, @devMode})
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
@@ -120,7 +123,7 @@ class AtomApplication
         label: "Version #{@version}"
         enabled: false
 
-    if @dev
+    if @devMode
       menus.push
         label: '\uD83D\uDC80' # Skull emoji
         submenu: [ { label: 'In Development Mode', enabled: false } ]
@@ -175,6 +178,10 @@ class AtomApplication
       event.preventDefault()
       @openPath({pathToOpen})
 
+    app.on 'open-url', (event, urlToOpen) =>
+      event.preventDefault()
+      @openUrl(urlToOpen)
+
     autoUpdater.on 'ready-for-update-on-quit', (event, version, quitAndUpdate) =>
       event.preventDefault()
       @installUpdate = quitAndUpdate
@@ -227,7 +234,7 @@ class AtomApplication
         resourcePath = global.devResourcePath
       else
         resourcePath = @resourcePath
-      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, resourcePath})
+      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, resourcePath, devMode})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -241,13 +248,25 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
+  openUrl: (urlToOpen) ->
+    parsedUrl = url.parse(urlToOpen)
+    if parsedUrl.host is 'session'
+      sessionId = parsedUrl.path.split('/')[1]
+      console.log "Joining session #{sessionId}"
+      if sessionId
+        bootstrapScript = 'collaboration/lib/bootstrap'
+        new AtomWindow({bootstrapScript, @resourcePath, sessionId, @devMode})
+    else
+      console.log "Opening unknown url #{urlToOpen}"
+
   runSpecs: ({exitWhenDone, resourcePath}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
     bootstrapScript = 'spec-bootstrap'
     isSpec = true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec})
+    devMode = true
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode})
 
   promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']

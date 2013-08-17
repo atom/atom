@@ -1,4 +1,4 @@
-Range = require 'range'
+{Range} = require 'telepath'
 _ = require 'underscore'
 require 'underscore-extensions'
 {OnigRegExp} = require 'oniguruma'

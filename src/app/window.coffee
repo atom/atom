@@ -20,6 +20,7 @@ windowEventHandler = null
 
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = (windowMode) ->
+  window.site = new telepath.Site(1)
   atom.windowMode = windowMode
   window.resourcePath = remote.getCurrentWindow().loadSettings.resourcePath
 
@@ -63,6 +64,7 @@ window.startEditorWindow = ->
 window.unloadEditorWindow = ->
   return if not project and not rootView
   windowState = atom.getWindowState()
+  windowState.set('project', project.serialize())
   windowState.set('syntax', syntax.serialize())
   windowState.set('rootView', rootView.serialize())
   atom.deactivatePackages()
@@ -70,11 +72,9 @@ window.unloadEditorWindow = ->
   atom.saveWindowState()
   rootView.remove()
   project.destroy()
-  git?.destroy()
   windowEventHandler?.unsubscribe()
   window.rootView = null
   window.project = null
-  window.git = null
 
 window.installAtomCommand = (callback) ->
   commandPath = path.join(window.resourcePath, 'atom.sh')
@@ -93,31 +93,27 @@ window.onDrop = (e) ->
 window.deserializeEditorWindow = ->
   RootView = require 'root-view'
   Project = require 'project'
-  Git = require 'git'
 
   windowState = atom.getWindowState()
 
   atom.packageStates = windowState.getObject('packageStates') ? {}
+  windowState.remove('packageStates')
 
   window.project = deserialize(windowState.get('project'))
   unless window.project?
     window.project = new Project(atom.getLoadSettings().initialPath)
-    windowState.set('project', window.project.serialize())
+    windowState.set('project', window.project.getState())
 
   window.rootView = deserialize(windowState.get('rootView'))
   unless window.rootView?
     window.rootView = new RootView()
-    windowState.set('rootView', window.rootView.serialize())
+    windowState.set('rootView', window.rootView.getState())
 
   $(rootViewParentSelector).append(rootView)
 
-  window.git = Git.open(project.getPath())
   project.on 'path-changed', ->
     projectPath = project.getPath()
     atom.getLoadSettings().initialPath = projectPath
-
-    window.git?.destroy()
-    window.git = Git.open(projectPath)
 
 window.stylesheetElementForId = (id) ->
   $("""head style[id="#{id}"]""")
@@ -206,14 +202,14 @@ window.registerDeferredDeserializer = (name, fn) ->
 window.unregisterDeserializer = (klass) ->
   delete deserializers[klass.name]
 
-window.deserialize = (state) ->
+window.deserialize = (state, params) ->
   return unless state?
   if deserializer = getDeserializer(state)
     stateVersion = state.get?('version') ? state.version
     return if deserializer.version? and deserializer.version isnt stateVersion
     if (state instanceof telepath.Document) and not deserializer.acceptsDocuments
       state = state.toObject()
-    deserializer.deserialize(state)
+    deserializer.deserialize(state, params)
   else
     console.warn "No deserializer found for", state
 

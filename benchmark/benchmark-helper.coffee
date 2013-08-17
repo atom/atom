@@ -2,7 +2,7 @@ nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
-Point = require 'point'
+{Point} = require 'telepath'
 Config = require 'config'
 Project = require 'project'
 

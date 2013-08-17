@@ -7,6 +7,7 @@ remote = require 'remote'
 crypto = require 'crypto'
 path = require 'path'
 dialog = remote.require 'dialog'
+app = remote.require 'app'
 telepath = require 'telepath'
 ThemeManager = require 'theme-manager'
 
@@ -116,7 +117,7 @@ window.atom =
     _.uniq(packagePaths)
 
   getAvailablePackageNames: ->
-    path.basename(packagePath) for packagePath in @getAvailablePackagePaths()
+    _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
 
   getAvailablePackageMetadata: ->
     packages = []
@@ -184,7 +185,7 @@ window.atom =
     remote.getCurrentWindow().hide()
 
   exit: (status) ->
-    remote.require('app').exit(status)
+    app.exit(status)
 
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
@@ -194,6 +195,9 @@ window.atom =
 
   isFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
+
+  getHomeDirPath: ->
+    app.getHomeDir()
 
   getWindowStatePath: ->
     switch @windowMode
@@ -231,12 +235,12 @@ window.atom =
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
     windowState ?= {}
-    telepath.Document.create(windowState, site: telepath.createSite(1))
+    site.deserializeDocument(windowState) ? site.createDocument({})
 
   saveWindowState: ->
-    windowStateJson = JSON.stringify(@getWindowState().toObject())
+    windowStateJson = JSON.stringify(@getWindowState().serialize(), null, 2)
     if windowStatePath = @getWindowStatePath()
-      fsUtils.writeSync(windowStatePath, windowStateJson)
+      fsUtils.writeSync(windowStatePath, "#{windowStateJson}\n")
     else
       @getLoadSettings().windowState = windowStateJson
 
