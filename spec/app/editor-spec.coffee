@@ -2440,7 +2440,7 @@ describe "Editor", ->
         editor.trigger 'editor:move-line-down'
         expect(buffer.lineForRow(11)).toBe '};'
         expect(buffer.lineForRow(12)).toBe '  return sort(Array.apply(this, arguments));'
-        expect(buffer.lineForRow(13)).toBeNull()
+        expect(buffer.lineForRow(13)).toBeUndefined()
 
     describe "when the cursor is on the second to last line and the last line is empty", ->
       it "does not move the line", ->
@@ -2537,7 +2537,7 @@ describe "Editor", ->
           editor.trigger 'editor:duplicate-line'
           expect(buffer.lineForRow(12)).toBe '};'
           expect(buffer.lineForRow(13)).toBe '};'
-          expect(buffer.lineForRow(14)).toBeNull()
+          expect(buffer.lineForRow(14)).toBeUndefined()
           expect(editor.getCursorBufferPosition()).toEqual [13, 2]
 
       describe "when the cursor in on the last line and it is only a newline", ->
@@ -2548,7 +2548,7 @@ describe "Editor", ->
           editor.trigger 'editor:duplicate-line'
           expect(buffer.lineForRow(13)).toBe ''
           expect(buffer.lineForRow(14)).toBe ''
-          expect(buffer.lineForRow(15)).toBeNull()
+          expect(buffer.lineForRow(15)).toBeUndefined()
           expect(editor.getCursorBufferPosition()).toEqual [14, 0]
 
       describe "when the cursor is on the second to last line and the last line only a newline", ->
@@ -2560,7 +2560,7 @@ describe "Editor", ->
           expect(buffer.lineForRow(12)).toBe '};'
           expect(buffer.lineForRow(13)).toBe '};'
           expect(buffer.lineForRow(14)).toBe ''
-          expect(buffer.lineForRow(15)).toBeNull()
+          expect(buffer.lineForRow(15)).toBeUndefined()
           expect(editor.getCursorBufferPosition()).toEqual [13, 0]
 
   describe "editor:save-debug-snapshot", ->
