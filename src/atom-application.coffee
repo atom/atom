@@ -116,9 +116,6 @@ class AtomApplication
       else
         @promptForPath()
 
-    ipc.on 'get-version', (event) =>
-      event.result = @version
-
     ipc.once 'keymap-loaded', (processId, routingId, keyBindingsByCommand) =>
       @applicationMenu.update(keyBindingsByCommand)
 

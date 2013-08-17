@@ -257,9 +257,3 @@ window.atom =
       require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
-
-  getVersion: ->
-    ipc.sendChannelSync 'get-version'
-
-  isDevMode: ->
-    @getLoadSettings().devMode?
