@@ -277,7 +277,3 @@ describe "the `atom` global", ->
           atom.activatePackage('ruby-tmbundle', sync: true)
           atom.deactivatePackage('ruby-tmbundle')
           expect(syntax.getProperty(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
-
-  describe ".getVersion", ->
-    it "returns the current version number", ->
-      expect(typeof atom.getVersion()).toBe 'string'
