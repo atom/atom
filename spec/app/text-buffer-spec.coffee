@@ -841,25 +841,6 @@ describe 'TextBuffer', ->
       expect(buffer.getText()).toBe "ab\nc"
 
   describe "line ending support", ->
-    describe ".lineEndingForRow(line)", ->
-      it "returns the line ending for each buffer line", ->
-        buffer.setText("a\r\nb\nc\r\nd")
-        expect(buffer.lineEndingForRow(0)).toBe '\r\n'
-        expect(buffer.lineEndingForRow(1)).toBe '\n'
-        expect(buffer.lineEndingForRow(2)).toBe '\r\n'
-        expect(buffer.lineEndingForRow(3)).toBeUndefined()
-        buffer.setText("abc\r")
-        expect(buffer.lineEndingForRow(0)).toBeUndefined()
-
-    describe ".lineForRow(line)", ->
-      it "returns the line text without the line ending for both lf and crlf lines", ->
-        buffer.setText("a\r\nb\nc")
-        expect(buffer.lineForRow(0)).toBe 'a'
-        expect(buffer.lineForRow(1)).toBe 'b'
-        expect(buffer.lineForRow(2)).toBe 'c'
-        buffer.setText("abc\r")
-        expect(buffer.lineForRow(0)).toBe 'abc\r'
-
     describe ".getText()", ->
       it "returns the text with the corrent line endings for each row", ->
         buffer.setText("a\r\nb\nc")
