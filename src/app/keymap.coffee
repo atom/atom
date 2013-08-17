@@ -163,12 +163,6 @@ class Keymap
 
     [modifiers..., key].join('-')
 
-  keyBindingsForCommand: (command) ->
-    keyBindings = []
-    for bindingSet in @bindingSets
-      keyBindings = keyBindings.concat(bindingSet.keyBindingsForCommand(command))
-    keyBindings
-
   toObject: ->
     keyBindingsForCommands = {}
     for bindingSet in @bindingSets

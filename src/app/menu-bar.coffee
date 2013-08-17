@@ -2,7 +2,7 @@ ipc = require 'ipc'
 
 module.exports =
 class MenuBar
-  @show: ->
+  @show: (keyBindingsByCommand) ->
     atomMenu =
       label: 'Atom'
       submenu: [
@@ -67,18 +67,17 @@ class MenuBar
         label: '\uD83D\uDC80' # Skull emoji
         submenu: [ { label: 'In Development Mode', enabled: false } ]
 
-    @addKeyBindings(menu)
+    @addKeyBindings(menu, keyBindingsByCommand)
     ipc.sendChannel 'build-menu-bar-from-template', menu
 
-  @addKeyBindings: (menuItems) ->
+  @addKeyBindings: (menuItems, keyBindingsByCommand) ->
     for menuItem in menuItems
       if menuItem.command
-        menuItem.accelerator = @acceleratorForCommand(menuItem.command)
-      @addKeyBindings(menuItem.submenu) if menuItem.submenu
+        menuItem.accelerator = @acceleratorForCommand(menuItem.command, keyBindingsByCommand)
+      @addKeyBindings(menuItem.submenu, keyBindingsByCommand) if menuItem.submenu
 
-  @acceleratorForCommand: (command) ->
-    keyBindings = keymap.keyBindingsForCommand(command)
-    keyBinding = keyBindings[0]
+  @acceleratorForCommand: (command, keyBindingsByCommand) ->
+    keyBinding = keyBindingsByCommand[command]?[0]
     return null unless keyBinding
 
     modifiers = keyBinding.split('-')

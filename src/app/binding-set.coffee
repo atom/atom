@@ -28,12 +28,6 @@ class BindingSet
       return command if event.keystrokes == keystrokes
     null
 
-  keyBindingsForCommand: (desiredCommand) ->
-    keyBindings = []
-    for keystrokes, command of @commandsByKeystrokes
-      keyBindings.push(keystrokes) if command == desiredCommand
-    keyBindings
-
   matchesKeystrokePrefix: (event) ->
     eventKeystrokes = event.keystrokes.split(' ')
     for keystrokes, command of @commandsByKeystrokes
