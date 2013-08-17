@@ -30,9 +30,9 @@ measure 'spec suite require time', ->
       'user'
 
   # Run bundled package specs
-  requireSpecs(packagePath) for packagePath in packagePaths.bundled
+  requireSpecs(packagePath) for packagePath in packagePaths.bundled ? []
   setSpecType('bundled')
 
   # Run user package specs
-  requireSpecs(packagePath) for packagePath in packagePaths.user
+  requireSpecs(packagePath) for packagePath in packagePaths.user ? []
   setSpecType('user')
