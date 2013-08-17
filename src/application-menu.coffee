@@ -1,7 +1,7 @@
 ipc = require 'ipc'
 
 module.exports =
-class MenuBar
+class ApplicationMenu
   keyBindingsByCommand: null
 
   constructor: (@keyBindingsByCommand) ->

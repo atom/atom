@@ -5,7 +5,7 @@ $ = require 'jquery'
 less = require 'less'
 remote = require 'remote'
 WindowEventHandler = require 'window-event-handler'
-MenuBar = require 'menu-bar'
+ApplicationMenu = require 'application-menu'
 require 'jquery-extensions'
 require 'underscore-extensions'
 require 'space-pen-extensions'
@@ -55,7 +55,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  new MenuBar(keymap.toObject())
+  new ApplicationMenu(keymap.toObject())
   $(window).on 'unload', -> unloadEditorWindow(); false
   atom.show()
   atom.focus()
