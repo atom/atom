@@ -1,5 +1,6 @@
 ipc = require 'ipc'
 Menu = require 'menu'
+_ = require 'underscore'
 
 module.exports =
 class ApplicationMenu
