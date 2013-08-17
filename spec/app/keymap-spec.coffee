@@ -256,6 +256,18 @@ describe "Keymap", ->
       it "returns false to prevent the browser from transferring focus", ->
         expect(keymap.handleKeyEvent(keydownEvent('U+0009', target: fragment[0]))).toBe false
 
+  describe ".toObject()", ->
+    it "returns a hash of all commands and their keybindings", ->
+      keymap.bindKeys 'body', 'a': 'letter'
+      keymap.bindKeys '.editor', 'b': 'letter'
+      keymap.bindKeys '.editor', '1': 'number'
+      keymap.bindKeys '.editor', 'meta-alt-1': 'number-with-modifiers'
+
+      expect(keymap.toObject()).toEqual
+        'letter': ['b', 'a']
+        'number': ['1']
+        'number-with-modifiers': ['alt-meta-1']
+
   describe ".bindKeys(selector, bindings)", ->
     it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
       fooHandler = jasmine.createSpy('fooHandler')

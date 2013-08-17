@@ -169,6 +169,15 @@ class Keymap
       keyBindings = keyBindings.concat(bindingSet.keyBindingsForCommand(command))
     keyBindings
 
+  toObject: ->
+    keyBindingsForCommands = {}
+    for bindingSet in @bindingSets
+      for keystroke, command of bindingSet.commandsByKeystrokes
+        keyBindingsForCommands[command] ?= []
+        keyBindingsForCommands[command].push keystroke
+
+    keyBindingsForCommands
+
   isAscii: (charCode) ->
     0 <= charCode <= 127
 
