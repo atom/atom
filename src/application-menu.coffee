@@ -9,7 +9,7 @@ class ApplicationMenu
   devMode: null
   menu: null
 
-  constructor: (@devMode, @version) ->
+  constructor: (@version, @devMode) ->
     @menu = Menu.buildFromTemplate @defaultTemplate()
     Menu.setApplicationMenu @menu
 
@@ -41,7 +41,7 @@ class ApplicationMenu
         item.metadata['windowItem'] = true unless /^application:/.test(item.command)
       @parseTemplate(item.submenu) if item.submenu
 
-  showDownloadUpdateItem: (version, quitAndUpdateCallback) ->
+  showDownloadUpdateItem: (newVersion, quitAndUpdateCallback) ->
     downloadUpdateItem = _.find @allItems(), (item) -> item.label == 'Install update'
     if downloadUpdateItem
       downloadUpdateItem.visible = true
