@@ -9,44 +9,45 @@ class ApplicationMenu
   menu: null
 
   constructor: (@devMode, @version) ->
-    @createDefaultMenu()
+    @menu = Menu.buildFromTemplate @defaultTemplate()
+    Menu.setApplicationMenu @menu
 
   update: (@keyBindingsByCommand) ->
-    menuTemplate = @getMenuTemplate()
-    @parseMenuTemplate(menuTemplate)
-    @menu = Menu.buildFromTemplate(menuTemplate)
+    template = @template()
+    @parseTemplate(template)
+    @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
-    @enableWindowMenuItems(true)
+    @enableWindowItems(true)
 
-  allMenuItems: (menu=@menu) ->
-    menuItems = []
+  allItems: (menu=@menu) ->
+    items = []
     for index, item of menu.items or {}
-      menuItems.push(item)
-      menuItems = menuItems.concat(@allMenuItems(item.submenu)) if item.submenu
+      items.push(item)
+      items = items.concat(@allItems(item.submenu)) if item.submenu
 
-    menuItems
+    items
 
-  enableWindowMenuItems: (enable) ->
-    for menuItem in @allMenuItems()
-      menuItem.enabled = enable if menuItem.metadata?['windowMenuItem']
+  enableWindowItems: (enable) ->
+    for item in @allItems()
+      item.enabled = enable if item.metadata?['windowItem']
 
-  parseMenuTemplate: (menuTemplate) ->
-    menuTemplate.forEach (menuItem) =>
-      menuItem.metadata = {}
-      if menuItem.command
-        menuItem.accelerator = @acceleratorForCommand(menuItem.command)
-        menuItem.click = => global.atomApplication.sendCommand(menuItem.command)
-        menuItem.metadata['windowMenuItem'] = true unless /^application:/.test(menuItem.command)
-      @parseMenuTemplate(menuItem.submenu) if menuItem.submenu
+  parseTemplate: (template) ->
+    template.forEach (item) =>
+      item.metadata = {}
+      if item.command
+        item.accelerator = @acceleratorForCommand(item.command)
+        item.click = => global.atomApplication.sendCommand(item.command)
+        item.metadata['windowItem'] = true unless /^application:/.test(item.command)
+      @parseTemplate(item.submenu) if item.submenu
 
   showDownloadUpdateItem: (version, quitAndUpdateCallback) ->
-    downloadUpdateItem = _.find @allMenuItems(), (item) -> item.label == 'Install update'
+    downloadUpdateItem = _.find @allItems(), (item) -> item.label == 'Install update'
     if downloadUpdateItem
       downloadUpdateItem.visible = true
       downloadUpdateItem.click = quitAndUpdateCallback
 
-  createDefaultMenu: ->
-    @menu = Menu.buildFromTemplate [
+  defaultTemplate: ->
+    [
       label: "Atom"
       submenu: [
           { label: 'Reload', accelerator: 'Command+R', click: -> @focusedWindow()?.reload() }
@@ -56,9 +57,7 @@ class ApplicationMenu
       ]
     ]
 
-    Menu.setApplicationMenu @menu
-
-  getMenuTemplate: ->
+  template: ->
     atomMenu =
       label: 'Atom'
       submenu: [
@@ -117,11 +116,12 @@ class ApplicationMenu
         { label: 'Bring All to Front', command: 'application:bring-all-windows-to-front' }
       ]
 
+    devMenu =
+      label: '\uD83D\uDC80' # Skull emoji
+      submenu: [ { label: 'In Development Mode', enabled: false } ]
+
     menu = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
-    if @devMode
-      menu.push
-        label: '\uD83D\uDC80' # Skull emoji
-        submenu: [ { label: 'In Development Mode', enabled: false } ]
+    menu.push devMenu if @devMode
 
     menu
 
