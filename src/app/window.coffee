@@ -55,7 +55,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  MenuBar.show(keymap.toObject())
+  new MenuBar(keymap.toObject())
   $(window).on 'unload', -> unloadEditorWindow(); false
   atom.show()
   atom.focus()
