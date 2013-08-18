@@ -1,30 +1,11 @@
-nakedLoad 'jasmine-jquery'
+require '../spec/spec-helper'
+
 $ = require 'jquery'
 _ = require 'underscore'
-Keymap = require 'keymap'
 {Point} = require 'telepath'
-Config = require 'config'
 Project = require 'project'
-
-require 'window'
-requireStylesheet "jasmine.less"
-
-# Load TextMate bundles, which specs rely on (but not other packages)
-atom.loadTextMatePackages()
-
-beforeEach ->
-  # reset config after each benchmark; don't load or save from/to `config.json`
-  window.config = new Config()
-  spyOn(config, 'load')
-  spyOn(config, 'save')
-
-keymap = new Keymap
-keymap.bindDefaultKeys()
-$(window).on 'keydown', (e) -> keymap.handleKeyEvent(e)
-keymap.bindKeys '*',
-  'meta-w': 'close'
-  'alt-meta-i': 'show-console'
-$(document).on 'close', -> window.close()
+fsUtils = require 'fs-utils'
+TokenizedBuffer = require 'tokenized-buffer'
 
 defaultCount = 100
 window.pbenchmark = (args...) -> window.benchmark(args..., profile: true)
@@ -32,7 +13,13 @@ window.fbenchmark = (args...) -> window.benchmark(args..., focused: true)
 window.fpbenchmark = (args...) -> window.benchmark(args..., profile: true, focused: true)
 window.pfbenchmark = window.fpbenchmark
 
-window.benchmarkFixturesProject = new Project(require.resolve 'benchmark/fixtures')
+window.benchmarkFixturesProject = new Project(fsUtils.resolveOnLoadPath('benchmark/fixtures'))
+
+beforeEach ->
+  window.project = window.benchmarkFixturesProject
+  jasmine.unspy(window, 'setTimeout')
+  jasmine.unspy(window, 'clearTimeout')
+  jasmine.unspy(TokenizedBuffer::, 'tokenizeInBackground')
 
 window.benchmark = (args...) ->
   description = args.shift()
@@ -43,7 +30,6 @@ window.benchmark = (args...) ->
   [fn, options] = args
   { profile, focused } = (options ? {})
 
-  atom.showDevTools() if profile
   method = if focused then fit else it
   method description, ->
     total = measure ->
