@@ -57,7 +57,6 @@ class TokenizedBuffer
     @grammar = grammar
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar, 'grammar-updated', => @resetTokenizedLines()
-    @resetTokenizedLines()
     @trigger 'grammar-changed', grammar
 
   reloadGrammar: ->
