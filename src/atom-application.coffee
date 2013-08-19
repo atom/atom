@@ -10,12 +10,15 @@ fs = require 'fs'
 path = require 'path'
 net = require 'net'
 url = require 'url'
+{EventEmitter} = require 'events'
 _ = require 'underscore'
 
 socketPath = '/tmp/atom.sock'
 
 module.exports =
 class AtomApplication
+  _.extend @prototype, EventEmitter.prototype
+
   @open: (options) ->
     createAtomApplication = -> new AtomApplication(options)
 
@@ -95,6 +98,21 @@ class AtomApplication
       autoUpdater.checkForUpdatesInBackground()
 
   handleEvents: ->
+    @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
+    @on 'application:run-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
+    @on 'application:show-settings', -> (@focusedWindow() ? this).openPath("atom://config")
+    @on 'application:quit', -> app.quit()
+    @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
+    @on 'application:hide-other-applications', -> Menu.sendActionToFirstResponder('hideOtherApplications:')
+    @on 'application:unhide-all-applications', -> Menu.sendActionToFirstResponder('unhideAllApplications:')
+    @on 'application:new-window', ->  @openPath()
+    @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
+    @on 'application:open', -> @promptForPath()
+    @on 'application:open-dev', -> @promptForPath(devMode: true)
+    @on 'application:minimize', -> Menu.sendActionToFirstResponder('performMiniaturize:')
+    @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
+    @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
+
     app.on 'will-quit', =>
       fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.
 
@@ -120,30 +138,10 @@ class AtomApplication
       @applicationMenu.update(keyBindingsByCommand)
 
   sendCommand: (command, args...) ->
-    return if @interceptApplicationCommands(command)
+    return if @emit(command, args...)
     return if @interceptAlternativeWindowCommands(command)
+
     @focusedWindow()?.sendCommand(command, args...)
-
-  interceptApplicationCommands: (command) ->
-    switch command
-      when 'application:about' then Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
-      when 'application:run-specs' then @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
-      when 'application:show-settings' then (@focusedWindow() ? this).openPath("atom://config")
-      when 'application:quit' then app.quit()
-      when 'application:hide' then Menu.sendActionToFirstResponder('hide:')
-      when 'application:hide-other-applications' then Menu.sendActionToFirstResponder('hideOtherApplications:')
-      when 'application:unhide-all-applications' then Menu.sendActionToFirstResponder('unhideAllApplications:')
-      when 'application:new-window' then  @openPath()
-      when 'application:new-file' then (@focusedWindow() ? this).openPath()
-      when 'application:open' then @promptForPath()
-      when 'application:open-dev' then @promptForPath(devMode: true)
-      when 'application:minimize' then Menu.sendActionToFirstResponder('performMiniaturize:')
-      when 'application:zoom' then Menu.sendActionToFirstResponder('zoom:')
-      when 'application:bring-all-windows-to-front' then Menu.sendActionToFirstResponder('arrangeInFront:')
-      else
-        return false
-
-    true
 
   interceptAlternativeWindowCommands: (command) ->
     return if not @focusedWindow()?.isSpecWindow() and @focusedWindow()?.isWebViewFocused()
