@@ -24,9 +24,38 @@ module.exports = (grunt) ->
   grunt.registerTask 'deploy-docs', 'Publishes latest API docs to atom-docs.githubapp.com', ->
     done = @async()
 
-    copyDocs = (args..., callback) ->
+    fetchTag = (args..., callback) ->
+      cmd = 'git'
+      args = ['describe', '--abbrev=0', '--tags']
+      grunt.util.spawn {cmd, args}, (error, result) ->
+        if error?
+          callback(error)
+        else
+          callback(null, String(result).trim())
+
+    copyGuides = (tag, callback) ->
       cmd = 'cp'
-      args = ['-r', 'docs/api', '../atom-docs/public/']
+      args = ['-r', 'docs/guides', "../atom-docs/public/#{tag}"]
+      grunt.util.spawn {cmd, args}, (error, result) ->
+        if error?
+          callback(error)
+        else
+          callback(null, tag)
+
+    copyApiDocs = (tag, callback) ->
+      cmd = 'cp'
+      args = ['-r', 'docs/api', "../atom-docs/public/#{tag}/api"]
+      grunt.util.spawn {cmd, args}, (error, result) ->
+        if error?
+          callback(error)
+        else
+          callback(null, tag)
+
+    docsRepoArgs = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/']
+
+    stageDocs = (tag, callback) ->
+      cmd = 'git'
+      args = [docsRepoArgs..., 'add', "public/#{tag}"]
       grunt.util.spawn({cmd, args, opts}, callback)
 
     fetchSha = (args..., callback) ->
@@ -38,11 +67,9 @@ module.exports = (grunt) ->
         else
           callback(null, String(result).trim())
 
-    docsRepoArgs = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/']
-
     commitChanges = (sha, callback) ->
       cmd = 'git'
-      args = [docsRepoArgs..., 'commit', '-a', "-m Update API docs to #{sha}"]
+      args = [docsRepoArgs..., 'commit', "-m Update API docs to #{sha}"]
       grunt.util.spawn({cmd, args, opts}, callback)
 
     pushOrigin = (args..., callback) ->
@@ -55,4 +82,4 @@ module.exports = (grunt) ->
       args = [docsRepoArgs..., 'push', 'heroku', 'master']
       grunt.util.spawn({cmd, args, opts}, callback)
 
-    grunt.util.async.waterfall [copyDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done
+    grunt.util.async.waterfall [fetchTag, copyGuides, copyApiDocs, stageDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done
