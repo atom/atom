@@ -3,7 +3,7 @@ Menu = require 'menu'
 _ = require 'underscore'
 
 module.exports =
-class ApplicationMenu
+class AtomMenu
   keyBindingsByCommand: null
   version: null
   devMode: null
