@@ -55,7 +55,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
-  ipc.sendChannel 'keymap-loaded', keymap.toObject()
+  ipc.sendChannel 'keymap-loaded', keymap.toObject('body')
   $(window).on 'unload', -> unloadEditorWindow(); false
   atom.show()
   atom.focus()

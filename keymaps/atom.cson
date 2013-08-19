@@ -1,6 +1,4 @@
 'body':
-  'meta-alt-ctrl-s': 'application:run-specs'
-  'meta-,': 'application:show-settings'
   'meta-q': 'application:quit'
   'meta-h': 'application:hide'
   'meta-H': 'application:hide-other-applications'
@@ -9,7 +7,9 @@
   'meta-o': 'application:open'
   'meta-O': 'application:open-dev'
   'meta-m': 'application:minimize'
+  'meta-,': 'application:show-settings'
   'alt-meta-ctrl-m': 'application:zoom'
+  'meta-alt-ctrl-s': 'application:run-specs'
 
   'meta-s': 'core:save'
   'meta-S': 'core:save-as'
