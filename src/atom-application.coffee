@@ -137,6 +137,9 @@ class AtomApplication
     ipc.once 'keymap-loaded', (processId, routingId, keyBindingsByCommand) =>
       @applicationMenu.update(keyBindingsByCommand)
 
+    ipc.on 'command', (processId, routingId, command) =>
+      @emit(command)
+
   sendCommand: (command, args...) ->
     return if @emit(command, args...)
     return if @interceptAlternativeWindowCommands(command)
