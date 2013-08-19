@@ -119,16 +119,30 @@ module.exports = (grunt) ->
         'themes/**/*.less'
       ]
 
+    markdown:
+      guides:
+        files: [
+          expand: true,
+          cwd: 'docs'
+          src: '**/*.md',
+          dest: 'docs/guides/',
+          ext: '.html'
+        ]
+        markdownOptions:
+          gfm: true
+
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
   grunt.loadNpmTasks('grunt-cson')
   grunt.loadNpmTasks('grunt-contrib-csslint')
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
+  grunt.loadNpmTasks('grunt-markdown')
   grunt.loadTasks('tasks')
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['lint', 'partial-clean', 'update-atom-shell', 'build', 'set-development-version', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
+  grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
   grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])
