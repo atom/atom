@@ -1,12 +1,10 @@
-Buffer = require 'text-buffer'
 EditSession = require 'edit-session'
-Range = require 'range'
 
 describe "Selection", ->
   [buffer, editSession, selection] = []
 
   beforeEach ->
-    buffer = new Buffer(require.resolve('fixtures/sample.js'))
+    buffer = project.buildBuffer('sample.js')
     editSession = new EditSession(buffer: buffer, tabLength: 2)
     selection = editSession.getSelection()
 
@@ -16,18 +14,18 @@ describe "Selection", ->
   describe ".deleteSelectedText()", ->
     describe "when nothing is selected", ->
       it "deletes nothing", ->
-        selection.setBufferRange new Range([0,3], [0,3])
+        selection.setBufferRange [[0,3], [0,3]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
     describe "when one line is selected", ->
       it "deletes selected text and clears the selection", ->
-        selection.setBufferRange new Range([0,4], [0,14])
+        selection.setBufferRange [[0,4], [0,14]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "var = function () {"
 
         endOfLine = buffer.lineForRow(0).length
-        selection.setBufferRange new Range([0,0], [0, endOfLine])
+        selection.setBufferRange [[0,0], [0, endOfLine]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe ""
 
@@ -35,7 +33,7 @@ describe "Selection", ->
 
     describe "when multiple lines are selected", ->
       it "deletes selected text and clears the selection", ->
-        selection.setBufferRange new Range([0,1], [2,39])
+        selection.setBufferRange [[0,1], [2,39]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "v;"
         expect(selection.isEmpty()).toBeTruthy()
@@ -60,7 +58,7 @@ describe "Selection", ->
 
   describe "when only the selection's tail is moved (regression)", ->
     it "emits the 'screen-range-changed' event", ->
-      selection.setBufferRange([[2, 0], [2, 10]], reverse: true)
+      selection.setBufferRange([[2, 0], [2, 10]], isReversed: true)
       changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
       selection.on 'screen-range-changed', changeScreenRangeHandler
 

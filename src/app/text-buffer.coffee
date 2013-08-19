@@ -1,12 +1,10 @@
 _ = require 'underscore'
+telepath = require 'telepath'
+{Point, Range} = telepath
 fsUtils = require 'fs-utils'
 File = require 'file'
-Point = require 'point'
-Range = require 'range'
 EventEmitter = require 'event-emitter'
-UndoManager = require 'undo-manager'
-BufferChangeOperation = require 'buffer-change-operation'
-BufferMarker = require 'buffer-marker'
+guid = require 'guid'
 
 # Public: Represents the contents of a file.
 #
@@ -14,54 +12,69 @@ BufferMarker = require 'buffer-marker'
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer
-  @idCounter = 1
+  @acceptsDocuments: true
+  @version: 2
   registerDeserializer(this)
+
+  @deserialize: (state, params) ->
+    new this(state, params)
+
   stoppedChangingDelay: 300
   stoppedChangingTimeout: null
-  undoManager: null
   cachedDiskContents: null
   cachedMemoryContents: null
   conflict: false
-  lines: null
-  lineEndings: null
   file: null
-  validMarkers: null
-  invalidMarkers: null
   refcount: 0
 
   # Creates a new buffer.
   #
   # path - A {String} representing the file path
   # initialText - A {String} setting the starting text
-  constructor: (path, initialText) ->
-    @id = @constructor.idCounter++
-    @nextMarkerId = 1
-    @validMarkers = {}
-    @invalidMarkers = {}
-    @lines = ['']
-    @lineEndings = []
-
-    if path
-      @setPath(path)
-      if initialText?
-        @setText(initialText)
-        @updateCachedDiskContents()
-      else if fsUtils.exists(path)
-        @reload()
-      else
-        @setText('')
+  constructor: (optionsOrState={}, params={}) ->
+    if optionsOrState instanceof telepath.Document
+      {@project} = params
+      @state = optionsOrState
+      @id = @state.get('id')
+      filePath = @state.get('relativePath')
+      @text = @state.get('text')
+      reloadFromDisk = @state.get('isModified') is false
     else
-      @setText(initialText ? '')
+      {@project, filePath, initialText} = optionsOrState
+      @text = site.createDocument(initialText ? '', shareStrings: true)
+      reloadFromDisk = true
+      @id = guid.create().toString()
+      @state = site.createDocument
+        id: @id
+        deserializer: @constructor.name
+        version: @constructor.version
+        text: @text
 
-    @undoManager = new UndoManager(this)
+    @text.on 'changed', @handleTextChange
+    @text.on 'marker-created', (marker) => @trigger 'marker-created', marker
+    @text.on 'markers-updated', => @trigger 'markers-updated'
+
+    if filePath
+      @setPath(@project.resolve(filePath))
+      if fsUtils.exists(@getPath())
+        @updateCachedDiskContents()
+        @reload() if reloadFromDisk and @isModified()
+    @text.clearUndoStack()
 
   ### Internal ###
 
+  handleTextChange: (event) =>
+    @cachedMemoryContents = null
+    @conflict = false if @conflict and !@isModified()
+    bufferChangeEvent = _.pick(event, 'oldRange', 'newRange', 'oldText', 'newText')
+    @trigger 'changed', bufferChangeEvent
+    @scheduleModifiedEvents()
+
   destroy: ->
-    throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
-    @file?.off()
-    @destroyed = true
-    project?.removeBuffer(this)
+    unless @destroyed
+      @file?.off()
+      @destroyed = true
+      @project?.removeBuffer(this)
 
   retain: ->
     @refcount++
@@ -73,12 +86,13 @@ class TextBuffer
     this
 
   serialize: ->
-    deserializer: 'TextBuffer'
-    path: @getPath()
-    text: @getText() if @isModified()
+    state = @state.clone()
+    state.set('isModified', @isModified())
+    for marker in state.get('text').getMarkers() when marker.isRemote()
+      marker.destroy()
+    state
 
-  @deserialize: ({path, text}) ->
-    project.bufferForPath(path, text)
+  getState: -> @state
 
   subscribeToFile: ->
     @file.on "contents-changed", =>
@@ -133,6 +147,15 @@ class TextBuffer
   getPath: ->
     @file?.getPath()
 
+  getUri: ->
+    @getRelativePath()
+
+  getRelativePath: ->
+    @state.get('relativePath')
+
+  setRelativePath: (relativePath) ->
+    @setPath(@project.resolve(relativePath))
+
   # Sets the path for the file.
   #
   # path - A {String} representing the new file path
@@ -143,7 +166,7 @@ class TextBuffer
     @file = new File(path)
     @file.read() if @file.exists()
     @subscribeToFile()
-
+    @state.set('relativePath', @project.relativize(path))
     @trigger "path-changed", this
 
   # Retrieves the current buffer's file extension.
@@ -171,7 +194,8 @@ class TextBuffer
   #
   # Returns a new {Range}, from `[0, 0]` to the end of the buffer.
   getRange: ->
-    new Range([0, 0], [@getLastRow(), @getLastLine().length])
+    lastRow = @getLastRow()
+    new Range([0, 0], [lastRow, @lineLengthForRow(lastRow)])
 
   # Given a range, returns the lines of text within it.
   #
@@ -179,25 +203,13 @@ class TextBuffer
   #
   # Returns a {String} of the combined lines.
   getTextInRange: (range) ->
-    range = @clipRange(range)
-    if range.start.row == range.end.row
-      return @lineForRow(range.start.row)[range.start.column...range.end.column]
-
-    multipleLines = []
-    multipleLines.push @lineForRow(range.start.row)[range.start.column..] # first line
-    multipleLines.push @lineEndingForRow(range.start.row)
-    for row in [range.start.row + 1...range.end.row]
-      multipleLines.push @lineForRow(row) # middle lines
-      multipleLines.push @lineEndingForRow(row)
-    multipleLines.push @lineForRow(range.end.row)[0...range.end.column] # last line
-
-    return multipleLines.join ''
+    @text.getTextInRange(@clipRange(range))
 
   # Gets all the lines in a file.
   #
   # Returns an {Array} of {String}s.
   getLines: ->
-    @lines
+    @text.getLines()
 
   # Given a row, returns the line of text.
   #
@@ -205,7 +217,7 @@ class TextBuffer
   #
   # Returns a {String}.
   lineForRow: (row) ->
-    @lines[row]
+    @text.lineForRow(row)
 
   # Given a row, returns its line ending.
   #
@@ -213,10 +225,13 @@ class TextBuffer
   #
   # Returns a {String}, or `undefined` if `row` is the final row.
   lineEndingForRow: (row) ->
-    @lineEndings[row] unless row is @getLastRow()
+    @text.lineEndingForRow(row)
 
   suggestedLineEndingForRow: (row) ->
-    @lineEndingForRow(row) ? @lineEndingForRow(row - 1)
+    if row is @getLastRow()
+      @lineEndingForRow(row - 1)
+    else
+      @lineEndingForRow(row)
 
   # Given a row, returns the length of the line of text.
   #
@@ -224,7 +239,7 @@ class TextBuffer
   #
   # Returns a {Number}.
   lineLengthForRow: (row) ->
-    @lines[row].length
+    @text.lineLengthForRow(row)
 
   # Given a row, returns the length of the line ending
   #
@@ -251,13 +266,13 @@ class TextBuffer
   #
   # Returns a {Number}.
   getLineCount: ->
-    @getLines().length
+    @text.getLineCount()
 
   # Gets the row number of the last line.
   #
   # Returns a {Number}.
   getLastRow: ->
-    @getLines().length - 1
+    @getLineCount() - 1
 
   # Finds the last line in the current buffer.
   #
@@ -273,20 +288,10 @@ class TextBuffer
     new Point(lastRow, @lineLengthForRow(lastRow))
 
   characterIndexForPosition: (position) ->
-    position = @clipPosition(position)
-
-    index = 0
-    for row in [0...position.row]
-      index += @lineLengthForRow(row) + Math.max(@lineEndingLengthForRow(row), 1)
-    index + position.column
+    @text.indexForPoint(@clipPosition(position))
 
   positionForCharacterIndex: (index) ->
-    row = 0
-    while index >= (lineLength = @lineLengthForRow(row) + Math.max(@lineEndingLengthForRow(row), 1))
-      index -= lineLength
-      row++
-
-    new Point(row, index)
+    @text.pointForIndex(index)
 
   # Given a row, this deletes it from the buffer.
   #
@@ -310,7 +315,6 @@ class TextBuffer
     else
       startPoint = [start, 0]
       endPoint = [end + 1, 0]
-
     @delete(new Range(startPoint, endPoint))
 
   # Adds text to the end of the buffer.
@@ -321,10 +325,10 @@ class TextBuffer
 
   # Adds text to a specific point in the buffer
   #
-  # point - A {Point} in the buffer to insert into
+  # position - A {Point} in the buffer to insert into
   # text - A {String} of text to add
-  insert: (point, text) ->
-    @change(new Range(point, point), text)
+  insert: (position, text) ->
+    @change(new Range(position, position), text)
 
   # Deletes text from the buffer
   #
@@ -340,15 +344,7 @@ class TextBuffer
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipPosition: (position) ->
-    position = Point.fromObject(position)
-    eofPosition = @getEofPosition()
-    if position.isGreaterThan(eofPosition)
-      eofPosition
-    else
-      row = Math.max(position.row, 0)
-      column = Math.max(position.column, 0)
-      column = Math.min(@lineLengthForRow(row), column)
-      new Point(row, column)
+    @text.clipPosition(position)
 
   # Given a range, this clips it to a real range.
   #
@@ -363,19 +359,11 @@ class TextBuffer
     range = Range.fromObject(range)
     new Range(@clipPosition(range.start), @clipPosition(range.end))
 
-  prefixAndSuffixForRange: (range) ->
-    prefix: @lines[range.start.row][0...range.start.column]
-    suffix: @lines[range.end.row][range.end.column..]
+  undo: ->
+    @text.undo()
 
-  # Undos the last operation.
-  #
-  # editSession - The {EditSession} associated with the buffer.
-  undo: (editSession) -> @undoManager.undo(editSession)
-
-  # Redos the last operation.
-  #
-  # editSession - The {EditSession} associated with the buffer.
-  redo: (editSession) -> @undoManager.redo(editSession)
+  redo: ->
+    @text.redo()
 
   # Saves the buffer.
   save: ->
@@ -411,25 +399,24 @@ class TextBuffer
   # Identifies if a buffer is empty.
   #
   # Returns a {Boolean}.
-  isEmpty: -> @lines.length is 1 and @lines[0].length is 0
+  isEmpty: -> @text.isEmpty()
 
   # Returns all valid {BufferMarker}s on the buffer.
-  getMarkers: ({includeInvalid} = {}) ->
-    markers = _.values(@validMarkers)
-    if includeInvalid
-      markers.concat(_.values(@invalidMarkers))
-    else
-      markers
+  getMarkers: ->
+    @text.getMarkers()
 
   # Returns the {BufferMarker} with the given id.
   getMarker: (id) ->
-    @validMarkers[id]
+    @text.getMarker(id)
+
+  destroyMarker: (id) ->
+    @getMarker(id)?.destroy()
 
   # Public: Finds the first marker satisfying the given attributes
   #
   # Returns a {String} marker-identifier
   findMarker: (attributes) ->
-    @findMarkers(attributes)[0]
+    @text.findMarker(attributes)
 
   # Public: Finds all markers satisfying the given attributes
   #
@@ -440,14 +427,13 @@ class TextBuffer
   #
   # Returns an {Array} of {BufferMarker}s
   findMarkers: (attributes) ->
-    markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
-    markers.sort (a, b) -> a.getRange().compare(b.getRange())
+    @text.findMarkers(attributes)
 
   # Retrieves the quantity of markers in a buffer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
-    _.size(@validMarkers)
+    @text.getMarkers().length
 
   # Constructs a new marker at a given range.
   #
@@ -456,23 +442,12 @@ class TextBuffer
   #   Any attributes you pass will be associated with the marker and can be retrieved
   #   or used in marker queries.
   #   The following attribute keys reserved, and control the marker's initial range
-  #   reverse - if `true`, the marker is reversed; that is, its head precedes the tail
-  #   noTail - if `true`, the marker is created without a tail
+  #   isReversed - if `true`, the marker is reversed; that is, its head precedes the tail
+  #   hasTail - if `false`, the marker is created without a tail
   #
   # Returns a {Number} representing the new marker's ID.
-  markRange: (range, attributes={}) ->
-    optionKeys = ['invalidationStrategy', 'noTail', 'reverse']
-    options = _.pick(attributes, optionKeys)
-    attributes = _.omit(attributes, optionKeys)
-    marker = new BufferMarker(_.defaults({
-      id: (@nextMarkerId++).toString()
-      buffer: this
-      range
-      attributes
-    }, options))
-    @validMarkers[marker.id] = marker
-    @trigger 'marker-created', marker
-    marker
+  markRange: (range, options={}) ->
+    @text.markRange(range, options)
 
   # Constructs a new marker at a given position.
   #
@@ -481,16 +456,7 @@ class TextBuffer
   #
   # Returns a {Number} representing the new marker's ID.
   markPosition: (position, options) ->
-    @markRange([position, position], _.defaults({noTail: true}, options))
-
-  # Given a buffer position, this finds all markers that contain the position.
-  #
-  # bufferPosition - A {Point} to check
-  #
-  # Returns an {Array} of {Numbers}, representing marker IDs containing `bufferPosition`.
-  markersForPosition: (position) ->
-    position = Point.fromObject(position)
-    @getMarkers().filter (marker) -> marker.containsPoint(position)
+    @text.markPosition(position, options)
 
   # Identifies if a character sequence is within a certain range.
   #
@@ -628,7 +594,7 @@ class TextBuffer
   checkoutHead: ->
     path = @getPath()
     return unless path
-    git?.checkoutHead(path)
+    @project.getRepo()?.checkoutHead(path)
 
   # Checks to see if a file exists.
   #
@@ -638,37 +604,24 @@ class TextBuffer
 
   ### Internal ###
 
-  pushOperation: (operation, editSession) ->
-    if @undoManager
-      @undoManager.pushOperation(operation, editSession)
+  transact: (fn) -> @text.transact fn
+
+  beginTransaction: -> @text.beginTransaction()
+
+  commitTransaction: -> @text.commitTransaction()
+
+  abortTransaction: -> @text.abortTransaction()
+
+  change: (oldRange, newText, options={}) ->
+    oldRange = @clipRange(oldRange)
+    newText = @normalizeLineEndings(oldRange.start.row, newText) if options.normalizeLineEndings ? true
+    @text.change(oldRange, newText, options)
+
+  normalizeLineEndings: (startRow, text) ->
+    if lineEnding = @suggestedLineEndingForRow(startRow)
+      text.replace(/\r?\n/g, lineEnding)
     else
-      operation.do()
-
-  transact: (fn) ->
-    if isNewTransaction = @undoManager.transact()
-      @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on undo
-    if fn
-      try
-        fn()
-      finally
-        @commit() if isNewTransaction
-
-  commit: ->
-    @pushOperation(new BufferChangeOperation(buffer: this)) # restores markers on redo
-    @undoManager.commit()
-
-  abort: -> @undoManager.abort()
-
-  change: (oldRange, newText, options) ->
-    oldRange = Range.fromObject(oldRange)
-    operation = new BufferChangeOperation({buffer: this, oldRange, newText, options})
-    range = @pushOperation(operation)
-    range
-
-  destroyMarker: (id) ->
-    if marker = @validMarkers[id] ? @invalidMarkers[id]
-      delete @validMarkers[id]
-      delete @invalidMarkers[id]
+      text
 
   scheduleModifiedEvents: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout

@@ -1,6 +1,5 @@
 {View} = require 'space-pen'
-Point = require 'point'
-Range = require 'range'
+{Point, Range} = require 'telepath'
 _ = require 'underscore'
 
 ### Internal ###
@@ -30,6 +29,9 @@ class CursorView extends View
 
     @cursor.on 'destroyed.cursor-view', =>
       @needsRemoval = true
+
+    if @cursor.marker.isRemote()
+      @addClass("site-#{@cursor.marker.getOriginSiteId()}")
 
   remove: ->
     @editor.removeCursorView(this)

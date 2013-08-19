@@ -731,27 +731,31 @@ describe "Pane", ->
       newPane = deserialize(pane.serialize())
       expect(newPane.activeItem).toEqual editSession2
 
-    xit "defaults to the first item on deserialization if the active item was not serializable", ->
-      expect(view2.serialize?()).toBeFalsy()
+    it "does not show items that cannot be deserialized", ->
       pane.showItem(view2)
+      paneState = pane.serialize()
+      paneState.get('items').set(pane.items.indexOf(view2), {deserializer: 'Bogus'}) # nuke serialized state of active item
 
-      console.log pane.serialize().toObject()
-
-      newPane = deserialize(pane.serialize())
-      expect(newPane.activeItem).toEqual editSession1
+      newPane = deserialize(paneState)
+      expect(newPane.activeItem).toEqual pane.items[0]
+      expect(newPane.items.length).toBe pane.items.length - 1
 
     it "focuses the pane after attach only if had focus when serialized", ->
-      container.attachToDom()
+      reloadContainer = ->
+        projectState = project.serialize()
+        containerState = container.serialize()
+        container.remove()
+        project.destroy()
+        window.project = deserialize(projectState)
+        container = deserialize(containerState)
+        pane = container.getRoot()
+        container.attachToDom()
 
+      container.attachToDom()
       pane.focus()
-      state = pane.serialize()
-      pane.remove()
-      newPane = deserialize(state)
-      container.setRoot(newPane)
-      expect(newPane).toMatchSelector(':has(:focus)')
+      reloadContainer()
+      expect(pane).toMatchSelector(':has(:focus)')
 
       $(document.activeElement).blur()
-      state = newPane.serialize()
-      newPane.remove()
-      newerPane = deserialize(state)
-      expect(newerPane).not.toMatchSelector(':has(:focus)')
+      reloadContainer()
+      expect(pane).not.toMatchSelector(':has(:focus)')

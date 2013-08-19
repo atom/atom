@@ -1,4 +1,4 @@
-Range = require 'range'
+{Range} = require 'telepath'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
@@ -6,17 +6,29 @@ Subscriber = require 'subscriber'
 module.exports =
 class DisplayBufferMarker
   bufferMarkerSubscription: null
-  headScreenPosition: null
-  tailScreenPosition: null
-  valid: true
+  oldHeadBufferPosition: null
+  oldHeadScreenPosition: null
+  oldTailBufferPosition: null
+  oldTailScreenPosition: null
+  wasValid: true
 
   ### Internal ###
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
     @id = @bufferMarker.id
-    @observeBufferMarker()
+    @oldHeadBufferPosition = @getHeadBufferPosition()
+    @oldHeadScreenPosition = @getHeadScreenPosition()
+    @oldTailBufferPosition = @getTailBufferPosition()
+    @oldTailScreenPosition = @getTailScreenPosition()
+    @wasValid = @isValid()
+
+    @subscribe @bufferMarker, 'destroyed', => @destroyed()
+    @subscribe @bufferMarker, 'changed', (event) => @notifyObservers(event)
 
   ### Public ###
+
+  copy: (attributes) ->
+    @displayBuffer.getMarker(@bufferMarker.copy(attributes).id)
 
   # Gets the screen range of the display marker.
   #
@@ -48,7 +60,7 @@ class DisplayBufferMarker
   #
   # Returns a {Point}.
   getHeadScreenPosition: ->
-    @headScreenPosition ?= @displayBuffer.screenPositionForBufferPosition(@getHeadBufferPosition(), wrapAtSoftNewlines: true)
+    @displayBuffer.screenPositionForBufferPosition(@getHeadBufferPosition(), wrapAtSoftNewlines: true)
 
   # Sets the screen position of the marker's head.
   #
@@ -75,7 +87,7 @@ class DisplayBufferMarker
   #
   # Returns a {Point}.
   getTailScreenPosition: ->
-    @tailScreenPosition ?= @displayBuffer.screenPositionForBufferPosition(@getTailBufferPosition(), wrapAtSoftNewlines: true)
+    @displayBuffer.screenPositionForBufferPosition(@getTailBufferPosition(), wrapAtSoftNewlines: true)
 
   # Sets the screen position of the marker's tail.
   #
@@ -103,12 +115,15 @@ class DisplayBufferMarker
   # This only works if there isn't already a tail position.
   #
   # Returns a {Point} representing the new tail position.
-  placeTail: ->
-    @bufferMarker.placeTail()
+  plantTail: ->
+    @bufferMarker.plantTail()
 
   # Removes the tail from the marker.
   clearTail: ->
     @bufferMarker.clearTail()
+
+  hasTail: ->
+    @bufferMarker.hasTail()
 
   # Returns whether the head precedes the tail in the buffer
   isReversed: ->
@@ -126,13 +141,49 @@ class DisplayBufferMarker
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
+  getOriginSiteId: ->
+    @bufferMarker.getOriginSiteId()
+
+  isLocal: ->
+    @bufferMarker.isLocal()
+
+  isRemote: ->
+    @bufferMarker.isRemote()
+
+  getAttributes: ->
+    @bufferMarker.getAttributes()
+
+  setAttributes: (attributes) ->
+    @bufferMarker.setAttributes(attributes)
+
   matchesAttributes: (attributes) ->
-    @bufferMarker.matchesAttributes(attributes)
+    for key, value of attributes
+      return false unless @matchesAttribute(key, value)
+    true
+
+  matchesAttribute: (key, value) ->
+    switch key
+      when 'startBufferRow'
+        key = 'startRow'
+      when 'endBufferRow'
+        key = 'endRow'
+      when 'containsBufferRange'
+        key = 'containsRange'
+      when 'containsBufferPosition'
+        key = 'containsPosition'
+    @bufferMarker.matchesAttribute(key, value)
 
   # Destroys the marker
   destroy: ->
     @bufferMarker.destroy()
     @unsubscribe()
+
+  isEqual: (other) ->
+    return false unless other instanceof @constructor
+    @bufferMarker.isEqual(other.bufferMarker)
+
+  compare: (other) ->
+    @bufferMarker.compare(other.bufferMarker)
 
   # Returns a {String} representation of the marker
   inspect: ->
@@ -144,54 +195,37 @@ class DisplayBufferMarker
     delete @displayBuffer.markers[@id]
     @trigger 'destroyed'
 
-  observeBufferMarker: ->
-    @subscribe @bufferMarker, 'destroyed', => @destroyed()
+  notifyObservers: ({textChanged}) ->
+    textChanged ?= false
 
-    @getHeadScreenPosition() # memoize current value
-    @getTailScreenPosition() # memoize current value
-    @subscribe @bufferMarker, 'changed', ({oldHeadPosition, newHeadPosition, oldTailPosition, newTailPosition, bufferChanged, valid}) =>
-      @notifyObservers
-        oldHeadBufferPosition: oldHeadPosition
-        newHeadBufferPosition: newHeadPosition
-        oldTailBufferPosition: oldTailPosition
-        newTailBufferPosition: newTailPosition
-        bufferChanged: bufferChanged
-        valid: valid
+    newHeadBufferPosition = @getHeadBufferPosition()
+    newHeadScreenPosition = @getHeadScreenPosition()
+    newTailBufferPosition = @getTailBufferPosition()
+    newTailScreenPosition = @getTailScreenPosition()
+    isValid = @isValid()
 
-  notifyObservers: ({oldHeadBufferPosition, oldTailBufferPosition, bufferChanged, valid} = {}) ->
-    return unless @valid or @isValid()
-
-    oldHeadScreenPosition = @getHeadScreenPosition()
-    newHeadScreenPosition = oldHeadScreenPosition
-    oldTailScreenPosition = @getTailScreenPosition()
-    newTailScreenPosition = oldTailScreenPosition
-    valid ?= true
-
-    if valid
-      @headScreenPosition = null
-      newHeadScreenPosition = @getHeadScreenPosition()
-      @tailScreenPosition = null
-      newTailScreenPosition = @getTailScreenPosition()
-
-    validChanged = valid isnt @valid
-    headScreenPositionChanged = not _.isEqual(newHeadScreenPosition, oldHeadScreenPosition)
-    tailScreenPositionChanged = not _.isEqual(newTailScreenPosition, oldTailScreenPosition)
-    return unless validChanged or headScreenPositionChanged or tailScreenPositionChanged
-
-    oldHeadBufferPosition ?= @getHeadBufferPosition()
-    newHeadBufferPosition = @getHeadBufferPosition() ? oldHeadBufferPosition
-    oldTailBufferPosition ?= @getTailBufferPosition()
-    newTailBufferPosition = @getTailBufferPosition() ? oldTailBufferPosition
-    @valid = valid
+    changed = false
+    changed = true unless _.isEqual(newHeadBufferPosition, @oldHeadBufferPosition)
+    changed = true unless _.isEqual(newHeadScreenPosition, @oldHeadScreenPosition)
+    changed = true unless _.isEqual(newTailBufferPosition, @oldTailBufferPosition)
+    changed = true unless _.isEqual(newTailScreenPosition, @oldTailScreenPosition)
+    changed = true unless _.isEqual(isValid, @wasValid)
+    return unless changed
 
     @trigger 'changed', {
-      oldHeadScreenPosition, newHeadScreenPosition,
-      oldTailScreenPosition, newTailScreenPosition,
-      oldHeadBufferPosition, newHeadBufferPosition,
-      oldTailBufferPosition, newTailBufferPosition,
-      bufferChanged
-      valid
+      @oldHeadScreenPosition, newHeadScreenPosition,
+      @oldTailScreenPosition, newTailScreenPosition,
+      @oldHeadBufferPosition, newHeadBufferPosition,
+      @oldTailBufferPosition, newTailBufferPosition,
+      textChanged,
+      isValid
     }
+
+    @oldHeadBufferPosition = newHeadBufferPosition
+    @oldHeadScreenPosition = newHeadScreenPosition
+    @oldTailBufferPosition = newTailBufferPosition
+    @oldTailScreenPosition = newTailScreenPosition
+    @wasValid = isValid
 
 _.extend DisplayBufferMarker.prototype, EventEmitter
 _.extend DisplayBufferMarker.prototype, Subscriber

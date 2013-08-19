@@ -15,10 +15,10 @@ class PaneAxis extends View
       @state = args[0]
       @state.get('children').each (child, index) => @addChild(deserialize(child), index, updateState: false)
     else
-      @state = telepath.Document.create(deserializer: @className(), children: [])
+      @state = site.createDocument(deserializer: @className(), children: [])
       @addChild(child) for child in args
 
-    @state.get('children').observe ({index, inserted, removed, site}) =>
+    @state.get('children').on 'changed', ({index, inserted, removed, site}) =>
       return if site is @state.site.id
       for childState in removed
         @removeChild(@children(":eq(#{index})").view(), updateState: false)
@@ -27,7 +27,7 @@ class PaneAxis extends View
 
   addChild: (child, index=@children().length, options={}) ->
     @insertAt(index, child)
-    @state.get('children').insert(index, child.serialize()) if options.updateState ? true
+    @state.get('children').insert(index, child.getState()) if options.updateState ? true
     @getContainer()?.adjustPaneDimensions()
 
   removeChild: (child, options={}) ->
@@ -83,8 +83,9 @@ class PaneAxis extends View
     children.insert(childIndex + 1, newChild.getState())
 
   serialize: ->
-    child.serialize() for child in @children().views()
-    @state
+    state = @state.clone()
+    state.set('children', child.serialize() for child in @children().views())
+    state
 
   getState: -> @state
 

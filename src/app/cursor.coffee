@@ -1,5 +1,4 @@
-Point = require 'point'
-Range = require 'range'
+{Point, Range} = require 'telepath'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
@@ -22,27 +21,28 @@ class Cursor
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
-      {bufferChanged} = e
+      {textChanged} = e
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
-      @needsAutoscroll ?= @isLastCursor() and !bufferChanged
+      @needsAutoscroll ?= @isLastCursor() and !textChanged
 
       movedEvent =
         oldBufferPosition: oldHeadBufferPosition
         oldScreenPosition: oldHeadScreenPosition
         newBufferPosition: newHeadBufferPosition
         newScreenPosition: newHeadScreenPosition
-        bufferChanged: bufferChanged
+        textChanged: textChanged
 
       @trigger 'moved', movedEvent
       @editSession.trigger 'cursor-moved', movedEvent
+    @marker.on 'destroyed', =>
+      @destroyed = true
+      @editSession.removeCursor(this)
+      @trigger 'destroyed'
     @needsAutoscroll = true
 
   destroy: ->
-    @destroyed = true
     @marker.destroy()
-    @editSession.removeCursor(this)
-    @trigger 'destroyed'
 
   changePosition: (options, fn) ->
     @goalColumn = null
@@ -139,9 +139,7 @@ class Cursor
 
   # Deselects whatever the cursor is selecting.
   clearSelection: ->
-    if @selection
-      @selection.goalBufferRange = null
-      @selection.clear() unless @selection.retainSelection
+    @selection?.clear()
 
   # Retrieves the cursor's screen row.
   #
@@ -427,7 +425,7 @@ class Cursor
   #
   # Returns a {Number}.
   getIndentLevel: ->
-    if @editSession.softTabs
+    if @editSession.getSoftTabs()
       @getBufferColumn() / @editSession.getTabLength()
     else
       @getBufferColumn()

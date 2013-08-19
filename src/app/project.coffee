@@ -1,13 +1,17 @@
 fsUtils = require 'fs-utils'
 path = require 'path'
+url = require 'url'
+
 _ = require 'underscore'
 $ = require 'jquery'
-Range = require 'range'
-Buffer = require 'text-buffer'
+telepath = require 'telepath'
+{Range} = telepath
+TextBuffer = require 'text-buffer'
 EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 BufferedNodeProcess = require 'buffered-node-process'
+Git = require 'git'
 
 # Public: Represents a project that's opened in Atom.
 #
@@ -15,9 +19,12 @@ BufferedNodeProcess = require 'buffered-node-process'
 # of directories and files that you can operate on.
 module.exports =
 class Project
+  @acceptsDocuments: true
+  @version: 1
+
   registerDeserializer(this)
 
-  @deserialize: (state) -> new Project(state.path)
+  @deserialize: (state) -> new Project(state)
 
   @openers: []
 
@@ -26,6 +33,11 @@ class Project
 
   @unregisterOpener: (opener) ->
     _.remove(@openers, opener)
+
+  @pathForRepositoryUrl: (repoUrl) ->
+    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
+    repoName = repoName.replace(/\.git$/, '')
+    path.join(config.get('core.projectHome'), repoName)
 
   tabLength: 2
   softTabs: true
@@ -39,20 +51,50 @@ class Project
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
     buffer.release() for buffer in @getBuffers()
+    if @repo?
+      @repo.destroy()
+      @repo = null
 
   ### Public ###
 
   # Establishes a new project at a given path.
   #
   # path - The {String} name of the path
-  constructor: (path) ->
-    @setPath(path)
+  constructor: (pathOrState) ->
     @editSessions = []
     @buffers = []
 
+    if pathOrState instanceof telepath.Document
+      @state = pathOrState
+      if projectPath = @state.remove('path')
+        @setPath(projectPath)
+      else
+        @setPath(@constructor.pathForRepositoryUrl(@state.get('repoUrl')))
+
+      @state.get('buffers').each (bufferState) =>
+        if buffer = deserialize(bufferState, project: this)
+          @addBuffer(buffer, updateState: false)
+    else
+      @state = site.createDocument(deserializer: @constructor.name, version: @constructor.version, buffers: [])
+      @setPath(pathOrState)
+
+    @state.get('buffers').on 'changed', ({inserted, removed, index, site}) =>
+      return if site is @state.site.id
+
+      for removedBuffer in removed
+        @removeBufferAtIndex(index, updateState: false)
+      for insertedBuffer, i in inserted
+        @addBufferAtIndex(deserialize(insertedBuffer, project: this), index + i, updateState: false)
+
   serialize: ->
-    deserializer: 'Project'
-    path: @getPath()
+    state = @state.clone()
+    state.set('path', @getPath())
+    state.set('buffers', buffer.serialize() for buffer in @getBuffers())
+    state
+
+  getState: -> @state
+
+  getRepo: -> @repo
 
   # Retrieves the project path.
   #
@@ -69,8 +111,15 @@ class Project
     if projectPath?
       directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
+      @repo = Git.open(projectPath)
     else
       @rootDirectory = null
+      if @repo?
+        @repo.destroy()
+        @repo = null
+
+    if originUrl = @repo?.getOriginUrl()
+      @state.set('repoUrl', originUrl)
 
     @trigger "path-changed"
 
@@ -110,7 +159,7 @@ class Project
   #
   # Returns a {Boolean}.
   ignoreRepositoryPath: (repositoryPath) ->
-    config.get("core.hideGitIgnoredFiles") and git?.isPathIgnored(path.join(@getPath(), repositoryPath))
+    config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(path.join(@getPath(), repositoryPath))
 
   # Given a uri, this resolves it relative to the project directory. If the path
   # is already absolute or if it is prefixed with a scheme, it is returned unchanged.
@@ -168,6 +217,7 @@ class Project
   #
   # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
   open: (filePath, options={}) ->
+    filePath = @resolve(filePath) if filePath?
     for opener in @constructor.openers
       return resource if resource = opener(filePath, options)
 
@@ -215,23 +265,40 @@ class Project
     else
       @buildBuffer(null, text)
 
+  bufferForId: (id) ->
+    _.find @buffers, (buffer) -> buffer.id is id
+
   # Given a file path, this sets its {Buffer}.
   #
   # filePath - A {String} representing a path
   # text - The {String} text to use as a buffer
   #
   # Returns the {Buffer}.
-  buildBuffer: (filePath, text) ->
-    buffer = new Buffer(filePath, text)
-    @buffers.push buffer
+  buildBuffer: (filePath, initialText) ->
+    filePath = @resolve(filePath) if filePath?
+    buffer = new TextBuffer({project: this, filePath, initialText})
+    @addBuffer(buffer)
     @trigger 'buffer-created', buffer
     buffer
+
+  addBuffer: (buffer, options={}) ->
+    @addBufferAtIndex(buffer, @buffers.length, options)
+
+  addBufferAtIndex: (buffer, index, options={}) ->
+    @buffers[index] = buffer
+    @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
 
   # Removes a {Buffer} association from the project.
   #
   # Returns the removed {Buffer}.
   removeBuffer: (buffer) ->
-    _.remove(@buffers, buffer)
+    index = @buffers.indexOf(buffer)
+    @removeBufferAtIndex(index) unless index is -1
+
+  removeBufferAtIndex: (index, options={}) ->
+    [buffer] = @buffers.splice(index, 1)
+    @state.get('buffers').remove(index) if options.updateState ? true
+    buffer?.destroy()
 
   # Performs a search across all the files in the project.
   #

@@ -1,30 +1,27 @@
-require 'benchmark-helper'
+require './benchmark-helper'
 $ = require 'jquery'
 _ = require 'underscore'
 TokenizedBuffer = require 'tokenized-buffer'
+RootView = require 'root-view'
 
 describe "editor.", ->
   editor = null
 
   beforeEach ->
     window.rootViewParentSelector = '#jasmine-content'
-    window.attachRootView(require.resolve('benchmark/fixtures'))
+    window.rootView = new RootView
+    window.rootView.attachToDom()
+
 
     rootView.width(1024)
     rootView.height(768)
     rootView.open() # open blank editor
-    editor = rootView.getActiveEditor()
+    editor = rootView.getActiveView()
 
   afterEach ->
     if editor.pendingDisplayUpdate
       waitsFor "editor to finish rendering", (done) ->
         editor.on 'editor:display-updated', done
-
-    runs ->
-      projectPath = project.getPath()
-      $(window).off 'beforeunload'
-      window.shutdown()
-      atom.setRootViewStateForPath(projectPath, null)
 
   describe "keymap.", ->
     event = null
