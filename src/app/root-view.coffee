@@ -1,3 +1,4 @@
+ipc = require 'ipc'
 path = require 'path'
 $ = require 'jquery'
 {$$} = require 'space-pen'
@@ -64,6 +65,21 @@ class RootView extends View
     @on 'pane:active-item-changed', '.active.pane', => @updateTitle()
     @on 'pane:removed', => @updateTitle() unless @getActivePane()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
+
+    @command 'application:about', -> ipc.sendChannel('command', 'application:about')
+    @command 'application:run-specs', -> ipc.sendChannel('command', 'application:run-specs')
+    @command 'application:show-settings', -> ipc.sendChannel('command', 'application:show-settings')
+    @command 'application:quit', -> ipc.sendChannel('command', 'application:quit')
+    @command 'application:hide', -> ipc.sendChannel('command', 'application:hide')
+    @command 'application:hide-other-applications', -> ipc.sendChannel('command', 'application:hide-other-applications')
+    @command 'application:unhide-all-applications', -> ipc.sendChannel('command', 'application:unhide-all-applications')
+    @command 'application:new-window', -> ipc.sendChannel('command', 'application:new-window')
+    @command 'application:new-file', -> ipc.sendChannel('command', 'application:new-file')
+    @command 'application:open', -> ipc.sendChannel('command', 'application:open')
+    @command 'application:open-dev', -> ipc.sendChannel('command', 'application:open-dev')
+    @command 'application:minimize', -> ipc.sendChannel('command', 'application:minimize')
+    @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
+    @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
 
     @command 'window:increase-font-size', =>
       config.set("editor.fontSize", config.get("editor.fontSize") + 1)
