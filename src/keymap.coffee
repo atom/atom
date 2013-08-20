@@ -168,7 +168,7 @@ class Keymap
     keyBindingsForCommands = {}
     for bindingSet in @bindingSets
       for keystroke, command of bindingSet.commandsByKeystrokes
-        continue unless selector? and body.is(bindingSet.selector)
+        continue if selector? and selector != bindingSet.selector
         keyBindingsForCommands[command] ?= []
         keyBindingsForCommands[command].push keystroke
 
