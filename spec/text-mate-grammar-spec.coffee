@@ -14,6 +14,7 @@ describe "TextMateGrammar", ->
     atom.activatePackage('ruby-tmbundle', sync: true)
     atom.activatePackage('html-tmbundle', sync: true)
     atom.activatePackage('php-tmbundle', sync: true)
+    atom.activatePackage('python-tmbundle', sync: true)
     grammar = syntax.selectGrammar("hello.coffee")
 
   describe "@loadSync(path)", ->
@@ -661,3 +662,26 @@ describe "TextMateGrammar", ->
         expect(tokens[0].value).toBe "'"
         expect(tokens[1].value).toBe "\uD835\uDF97"
         expect(tokens[2].value).toBe "'"
+
+    describe "python", ->
+      it "parses import blocks correctly", ->
+        grammar = syntax.selectGrammar("file.py")
+        lines = grammar.tokenizeLines "import a\nimport b"
+
+        line1 = lines[0]
+        expect(line1.length).toBe 3
+        expect(line1[0].value).toEqual "import"
+        expect(line1[0].scopes).toEqual ["source.python", "keyword.control.import.python"]
+        expect(line1[1].value).toEqual " "
+        expect(line1[1].scopes).toEqual ["source.python"]
+        expect(line1[2].value).toEqual "a"
+        expect(line1[2].scopes).toEqual ["source.python"]
+
+        line2 = lines[1]
+        expect(line2.length).toBe 3
+        expect(line2[0].value).toEqual "import"
+        expect(line2[0].scopes).toEqual ["source.python", "keyword.control.import.python"]
+        expect(line2[1].value).toEqual " "
+        expect(line2[1].scopes).toEqual ["source.python"]
+        expect(line2[2].value).toEqual "b"
+        expect(line2[2].scopes).toEqual ["source.python"]

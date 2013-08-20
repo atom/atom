@@ -146,7 +146,7 @@ class TextMateGrammar
 
         tokens.push(nextTokens...)
         position = tokensEndPosition
-        break if position is line.length and nextTokens.length is 0
+        break if position is line.length and nextTokens.length is 0 and ruleStack.length is previousRuleStackLength
 
       else # push filler token for unmatched text at end of line
         if position < line.length
