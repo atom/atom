@@ -1,3 +1,7 @@
+{{{
+"title": "Creating Packages"
+}}}
+
 # Included Libraries
 
 In addition to core node.js modules, all packages can `require` the following popular

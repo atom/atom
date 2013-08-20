@@ -1,3 +1,7 @@
+{{{
+"title": "Authoring Themes"
+}}}
+
 # Authoring Themes
 
 If you understand CSS, you can write an Atom theme easily. Your theme can style

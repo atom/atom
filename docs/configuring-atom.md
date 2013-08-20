@@ -1,3 +1,7 @@
+{{{
+"title": "Configuring Atom"
+}}}
+
 # Configuration Settings
 
 ## Your .atom Directory

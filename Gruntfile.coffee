@@ -1,8 +1,14 @@
 fs = require 'fs'
 path = require 'path'
 
+fm = require 'json-front-matter'
+_ = require 'underscore'
+
+packageJson = require './package.json'
+
 module.exports = (grunt) ->
   appName = 'Atom.app'
+  [major, minor, patch] = packageJson.version.split('.')
   buildDir = grunt.option('build-dir') ? '/tmp/atom-build'
   shellAppDir = path.join(buildDir, appName)
   contentsDir = path.join(shellAppDir, 'Contents')
@@ -119,16 +125,39 @@ module.exports = (grunt) ->
         'themes/**/*.less'
       ]
 
+    markdown:
+      guides:
+        files: [
+          expand: true
+          cwd: 'docs'
+          src: '**/*.md'
+          dest: 'docs/output/'
+          ext: '.html'
+        ]
+        options:
+          template: 'docs/template.jst'
+          templateContext:
+            tag: "v#{major}.#{minor}"
+          markdownOptions:
+            gfm: true
+          preCompile: (src, context) ->
+            parsed = fm.parse(src)
+            _.extend(context, parsed.attributes)
+            parsed.body
+
+
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
   grunt.loadNpmTasks('grunt-cson')
   grunt.loadNpmTasks('grunt-contrib-csslint')
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
+  grunt.loadNpmTasks('grunt-markdown')
   grunt.loadTasks('tasks')
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('ci', ['lint', 'partial-clean', 'update-atom-shell', 'build', 'set-development-version', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
+  grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
   grunt.registerTask('default', ['update-atom-shell', 'build', 'set-development-version', 'install'])

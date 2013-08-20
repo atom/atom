@@ -7,8 +7,10 @@ module.exports = (grunt) ->
     stdio: 'inherit'
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
+    grunt.task.run('markdown:guides')
+
     done = @async()
-    args = [commonArgs..., '-o', 'docs/api', 'src/']
+    args = [commonArgs..., '-o', 'docs/output/api', 'src/']
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
@@ -21,12 +23,46 @@ module.exports = (grunt) ->
     args = [commonArgs..., '--noOutput', '--missing', 'src/']
     grunt.util.spawn({cmd, args, opts}, done)
 
-  grunt.registerTask 'deploy-docs', 'Publishes latest API docs to atom-docs.githubapp.com', ->
+  grunt.registerTask 'copy-docs', 'Copies over latest API docs to atom-docs', ->
     done = @async()
 
-    copyDocs = (args..., callback) ->
+    fetchTag = (args..., callback) ->
+      cmd = 'git'
+      args = ['describe', '--abbrev=0', '--tags']
+      grunt.util.spawn {cmd, args}, (error, result) ->
+        if error?
+          callback(error)
+        else
+          callback(null, String(result).trim())
+
+    copyDocs = (tag, callback) ->
       cmd = 'cp'
-      args = ['-r', 'docs/api', '../atom-docs/public/']
+      args = ['-r', 'docs/output/', "../atom-docs/public/#{tag}/"]
+
+      grunt.util.spawn {cmd, args}, (error, result) ->
+        if error?
+          callback(error)
+        else
+          callback(null, tag)
+
+    grunt.util.async.waterfall [fetchTag, copyDocs], done
+
+  grunt.registerTask 'deploy-docs', 'Publishes latest API docs to atom-docs.githubapp.com', ->
+    done = @async()
+    docsRepoArgs = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/']
+
+    fetchTag = (args..., callback) ->
+      cmd = 'git'
+      args = ['describe', '--abbrev=0', '--tags']
+      grunt.util.spawn {cmd, args}, (error, result) ->
+        if error?
+          callback(error)
+        else
+          callback(null, String(result).trim())
+
+    stageDocs = (tag, callback) ->
+      cmd = 'git'
+      args = [docsRepoArgs..., 'add', "public/#{tag}"]
       grunt.util.spawn({cmd, args, opts}, callback)
 
     fetchSha = (args..., callback) ->
@@ -38,11 +74,9 @@ module.exports = (grunt) ->
         else
           callback(null, String(result).trim())
 
-    docsRepoArgs = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/']
-
     commitChanges = (sha, callback) ->
       cmd = 'git'
-      args = [docsRepoArgs..., 'commit', '-a', "-m Update API docs to #{sha}"]
+      args = [docsRepoArgs..., 'commit', "-m Update API docs to #{sha}"]
       grunt.util.spawn({cmd, args, opts}, callback)
 
     pushOrigin = (args..., callback) ->
@@ -55,4 +89,4 @@ module.exports = (grunt) ->
       args = [docsRepoArgs..., 'push', 'heroku', 'master']
       grunt.util.spawn({cmd, args, opts}, callback)
 
-    grunt.util.async.waterfall [copyDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done
+    grunt.util.async.waterfall [fetchTag, stageDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done

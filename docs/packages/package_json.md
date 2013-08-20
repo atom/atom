@@ -1,3 +1,7 @@
+{{{
+"title": "Creating Packages"
+}}}
+
 # package.json format
 
 The following keys are available to your package's _package.json_ manifest file:
