@@ -163,16 +163,14 @@ class Keymap
 
     [modifiers..., key].join('-')
 
-  toObject: (selector)->
-    body = $('body')
-    keyBindingsForCommands = {}
+  keystrokesByCommandForSelector: (selector)->
+    keystrokesByCommand = {}
     for bindingSet in @bindingSets
       for keystroke, command of bindingSet.commandsByKeystrokes
         continue if selector? and selector != bindingSet.selector
-        keyBindingsForCommands[command] ?= []
-        keyBindingsForCommands[command].push keystroke
-
-    keyBindingsForCommands
+        keystrokesByCommand[command] ?= []
+        keystrokesByCommand[command].push keystroke
+    keystrokesByCommand
 
   isAscii: (charCode) ->
     0 <= charCode <= 127

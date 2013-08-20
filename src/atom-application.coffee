@@ -134,8 +134,8 @@ class AtomApplication
       else
         @promptForPath()
 
-    ipc.once 'keymap-loaded', (processId, routingId, keyBindingsByCommand) =>
-      @applicationMenu.update(keyBindingsByCommand)
+    ipc.once 'update-application-menu', (processId, routingId, keystrokesByCommand) =>
+      @applicationMenu.update(keystrokesByCommand)
 
     ipc.on 'command', (processId, routingId, command) =>
       @emit(command)

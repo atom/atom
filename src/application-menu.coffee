@@ -4,7 +4,7 @@ _ = require 'underscore'
 
 module.exports =
 class ApplicationMenu
-  keyBindingsByCommand: null
+  keystrokesByCommand: null
   version: null
   devMode: null
   menu: null
@@ -13,7 +13,7 @@ class ApplicationMenu
     @menu = Menu.buildFromTemplate @defaultTemplate()
     Menu.setApplicationMenu @menu
 
-  update: (@keyBindingsByCommand) ->
+  update: (@keystrokesByCommand) ->
     template = @template()
     @parseTemplate(template)
     @menu = Menu.buildFromTemplate(template)
@@ -127,7 +127,7 @@ class ApplicationMenu
     menu
 
   acceleratorForCommand: (command) ->
-    keyBinding = @keyBindingsByCommand[command]?[0]
+    keyBinding = @keystrokesByCommand[command]?[0]
     return null unless keyBinding
 
     modifiers = keyBinding.split('-')
