@@ -14,6 +14,7 @@ class Updater
     dependencies ?= {}
     for installedModule in fs.list('node_modules')
       continue if installedModule is '.bin'
+      continue if installedModule is 'atom-package-manager'
       continue if dependencies.hasOwnProperty(installedModule)
       continue if devDependencies.hasOwnProperty(installedModule)
 
