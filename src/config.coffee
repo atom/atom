@@ -10,6 +10,7 @@ pathWatcher = require 'pathwatcher'
 configDirPath = fsUtils.absolute("~/.atom")
 nodeModulesDirPath = path.join(resourcePath, "node_modules")
 bundledThemesDirPath = path.join(resourcePath, "themes")
+bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
 userThemesDirPath = path.join(configDirPath, "themes")
 userPackagesDirPath = path.join(configDirPath, "packages")
 userPackageDirPaths = [userPackagesDirPath]
@@ -25,6 +26,7 @@ class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
   bundledPackageDirPaths: [nodeModulesDirPath]
+  bundledKeymapsDirPath: bundledKeymapsDirPath
   nodeModulesDirPath: nodeModulesDirPath
   packageDirPaths: _.clone(userPackageDirPaths)
   userPackageDirPaths: userPackageDirPaths

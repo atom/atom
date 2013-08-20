@@ -36,7 +36,7 @@ class Keymap
     $(document).command 'toggle-dev-tools', => atom.toggleDevTools()
 
   loadBundledKeymaps: ->
-    @loadDirectory(fsUtils.resolveOnLoadPath('keymaps'))
+    @loadDirectory(config.bundledKeymapsDirPath)
 
   loadUserKeymaps: ->
     @loadDirectory(path.join(config.configDirPath, 'keymaps'))

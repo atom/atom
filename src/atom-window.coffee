@@ -38,8 +38,6 @@ class AtomWindow
 
   setupNodePath: (resourcePath) ->
     paths = [
-      'src/stdlib'
-      'src/app'
       'src'
       'vendor'
       'static'
