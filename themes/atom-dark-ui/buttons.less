@@ -1,0 +1,30 @@
+@import "ui-colors";
+
+.btn-toggle.btn-group {
+  .btn {
+    font-weight: bold;
+    background: @button-color-1;
+    color: @text-color-3;
+    font-size: 12px;
+    padding: 3px;
+
+    border: none;
+    border-left: 1px solid @border-color-2;
+
+    &:hover{ background: @button-color-hover-1; }
+    &.enabled{ 
+      color: @accent-color-info-1; 
+      background: @button-color-active-1;
+      box-shadow: inset 1px 1px 1px @highlight-background-color-1;
+    }
+  }
+  .btn:first-child {
+    border-left: none;
+    border-bottom-left-radius: 2px;
+    border-top-left-radius: 2px;
+  }
+  .btn:last-child {
+    border-bottom-right-radius: 2px;
+    border-top-right-radius: 2px;
+  }
+}
