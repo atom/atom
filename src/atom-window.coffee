@@ -115,11 +115,32 @@ class AtomWindow
     @contextMenu.append(@inspectElementMenuItem)
 
   sendCommand: (command, args...) ->
+    if @handlesAtomCommands()
+      @sendAtomCommand(command, args...)
+    else
+      @sendNativeCommand(command)
+
+  sendAtomCommand: (command, args...) ->
     ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command, args...
+
+  sendNativeCommand: (command) ->
+    switch command
+      when 'core:undo' then Menu.sendActionToFirstResponder('undo:')
+      when 'core:redo' then Menu.sendActionToFirstResponder('redo:')
+      when 'core:copy' then Menu.sendActionToFirstResponder('copy:')
+      when 'core:cut' then Menu.sendActionToFirstResponder('cut:')
+      when 'core:paste' then Menu.sendActionToFirstResponder('paste:')
+      when 'core:select-all' then Menu.sendActionToFirstResponder('selectAll:')
+      when 'window:reload' then @reload()
+      when 'window:toggle-dev-tools' then @toggleDevTools()
+      when 'window:close' then @close()
 
   close: -> @browserWindow.close()
 
   focus: -> @browserWindow.focus()
+
+  handlesAtomCommands: ->
+    not @isSpecWindow() and @isWebViewFocused()
 
   isFocused: -> @browserWindow.isFocused()
 

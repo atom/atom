@@ -141,26 +141,8 @@ class AtomApplication
       @emit(command)
 
   sendCommand: (command, args...) ->
-    return if @emit(command, args...)
-    return if @interceptAlternativeWindowCommands(command)
-
-    @focusedWindow()?.sendCommand(command, args...)
-
-  interceptAlternativeWindowCommands: (command) ->
-    return if not @focusedWindow()?.isSpecWindow() and @focusedWindow()?.isWebViewFocused()
-
-    switch command
-      when 'core:undo' then Menu.sendActionToFirstResponder('undo:')
-      when 'core:redo' then Menu.sendActionToFirstResponder('redo:')
-      when 'core:copy' then Menu.sendActionToFirstResponder('copy:')
-      when 'core:cut' then Menu.sendActionToFirstResponder('cut:')
-      when 'core:paste' then Menu.sendActionToFirstResponder('paste:')
-      when 'core:select-all' then Menu.sendActionToFirstResponder('selectAll:')
-      when 'window:reload' then @focusedWindow()?.reload()
-      when 'window:toggle-dev-tools' then @focusedWindow()?.toggleDevTools()
-      when 'window:close' then @focusedWindow()?.close()
-      else return false
-    return true
+    unless @emit(command, args...)
+      @focusedWindow()?.sendCommand(command, args...)
 
   windowForPath: (pathToOpen) ->
     for atomWindow in @windows
