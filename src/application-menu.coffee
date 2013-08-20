@@ -16,7 +16,6 @@ class ApplicationMenu
     template = @getTemplate(keystrokesByCommand)
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
-    @enableWindowSpecificItems(true)
 
   allItems: (menu=@menu) ->
     items = []
