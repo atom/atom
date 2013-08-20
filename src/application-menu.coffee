@@ -10,12 +10,11 @@ class ApplicationMenu
   menu: null
 
   constructor: (@version, @devMode) ->
-    @menu = Menu.buildFromTemplate @defaultTemplate()
+    @menu = Menu.buildFromTemplate @getDefaultTemplate()
     Menu.setApplicationMenu @menu
 
   update: (@keystrokesByCommand) ->
-    template = @template()
-    @parseTemplate(template)
+    template = @getTemplate()
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
     @enableWindowItems(true)
@@ -32,22 +31,13 @@ class ApplicationMenu
     for item in @allItems()
       item.enabled = enable if item.metadata?['windowItem']
 
-  parseTemplate: (template) ->
-    template.forEach (item) =>
-      item.metadata = {}
-      if item.command
-        item.accelerator = @acceleratorForCommand(item.command)
-        item.click = => global.atomApplication.sendCommand(item.command)
-        item.metadata['windowItem'] = true unless /^application:/.test(item.command)
-      @parseTemplate(item.submenu) if item.submenu
-
   showDownloadUpdateItem: (newVersion, quitAndUpdateCallback) ->
     downloadUpdateItem = _.find @allItems(), (item) -> item.label == 'Install update'
     if downloadUpdateItem
       downloadUpdateItem.visible = true
       downloadUpdateItem.click = quitAndUpdateCallback
 
-  defaultTemplate: ->
+  getDefaultTemplate: ->
     [
       label: "Atom"
       submenu: [
@@ -58,7 +48,7 @@ class ApplicationMenu
       ]
     ]
 
-  template: ->
+  getTemplate: ->
     atomMenu =
       label: 'Atom'
       submenu: [
@@ -121,10 +111,20 @@ class ApplicationMenu
       label: '\uD83D\uDC80' # Skull emoji
       submenu: [ { label: 'In Development Mode', enabled: false } ]
 
-    menu = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
-    menu.push devMenu if @devMode
+    template = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
+    template.push devMenu if @devMode
 
-    menu
+    @translateTemplate template
+
+  translateTemplate: (template) ->
+    template.forEach (item) =>
+      item.metadata = {}
+      if item.command
+        item.accelerator = @acceleratorForCommand(item.command)
+        item.click = => global.atomApplication.sendCommand(item.command)
+        item.metadata['windowItem'] = true unless /^application:/.test(item.command)
+      @translateTemplate(item.submenu) if item.submenu
+    template
 
   acceleratorForCommand: (command) ->
     keyBinding = @keystrokesByCommand[command]?[0]
