@@ -22,7 +22,6 @@ class ApplicationMenu
     for index, item of menu.items or {}
       items.push(item)
       items = items.concat(@allItems(item.submenu)) if item.submenu
-
     items
 
   enableWindowSpecificItems: (enable) ->
@@ -125,10 +124,10 @@ class ApplicationMenu
     template
 
   acceleratorForCommand: (command, keystrokesByCommand) ->
-    keyBinding = keystrokesByCommand[command]?[0]
-    return null unless keyBinding
+    keystroke = keystrokesByCommand[command]?[0]
+    return null unless keystroke
 
-    modifiers = keyBinding.split('-')
+    modifiers = keystroke.split('-')
     key = modifiers.pop()
 
     modifiers.push("Shift") if key != key.toLowerCase()
