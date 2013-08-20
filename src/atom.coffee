@@ -130,8 +130,8 @@ window.atom =
       packages.push(metadata)
     packages
 
-  open: (url...) ->
-    ipc.sendChannel('open', [url...])
+  open: (options) ->
+    ipc.sendChannel('open', options)
 
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     buttons = []

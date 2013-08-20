@@ -128,9 +128,12 @@ class AtomApplication
       event.preventDefault()
       @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
 
-    ipc.on 'open', (processId, routingId, pathsToOpen) =>
-      if pathsToOpen?.length > 0
-        @openPaths({pathsToOpen})
+    ipc.on 'open', (processId, routingId, options) =>
+      if options?
+        if options.pathsToOpen?.length > 0
+          @openPaths(options)
+        else
+          new AtomWindow(options)
       else
         @promptForPath()
 

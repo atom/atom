@@ -2,6 +2,7 @@ fsUtils = require 'fs-utils'
 path = require 'path'
 telepath = require 'telepath'
 $ = require 'jquery'
+_ = require 'underscore'
 less = require 'less'
 remote = require 'remote'
 ipc = require 'ipc'
@@ -86,8 +87,8 @@ window.installApmCommand = (callback) ->
 window.onDrop = (e) ->
   e.preventDefault()
   e.stopPropagation()
-  for file in e.originalEvent.dataTransfer.files
-    atom.open(file.path)
+  pathsToOpen = _.pluck(e.originalEvent.dataTransfer.files, 'path')
+  atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
 window.deserializeEditorWindow = ->
   RootView = require 'root-view'

@@ -207,7 +207,8 @@ describe "Window", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
         window.onDrop(event)
-        expect(atom.open.callCount).toBe 2
+        expect(atom.open.callCount).toBe 1
+        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
 
     describe "when a non-file is dragged to window", ->
       it "does nothing", ->
