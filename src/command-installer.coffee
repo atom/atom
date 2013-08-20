@@ -25,7 +25,7 @@ unlinkCommand = (destinationPath, callback) ->
 
 module.exports =
   findInstallDirectory: (callback) ->
-    directories = ['/opt/boxen','/opt/github','/usr/local']
+    directories = ['/opt/boxen', '/opt/github', '/usr/local']
     async.detect(directories, fsUtils.isDirectory, callback)
 
   install: (commandPath, commandName, callback) ->
