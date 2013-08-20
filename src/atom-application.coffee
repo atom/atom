@@ -67,11 +67,11 @@ class AtomApplication
 
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
-    @applicationMenu?.enableWindowItems(false) if @windows.length == 0
+    @applicationMenu?.enableWindowSpecificItems(false) if @windows.length == 0
 
   addWindow: (window) ->
     @windows.push window
-    @applicationMenu?.enableWindowItems(true) == 0
+    @applicationMenu?.enableWindowSpecificItems(true)
 
   listenForArgumentsFromNewProcess: ->
     fs.unlinkSync socketPath if fs.existsSync(socketPath)

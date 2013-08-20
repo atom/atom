@@ -27,9 +27,9 @@ class ApplicationMenu
 
     items
 
-  enableWindowItems: (enable) ->
+  enableWindowSpecificItems: (enable) ->
     for item in @allItems()
-      item.enabled = enable if item.metadata?['windowItem']
+      item.enabled = enable if item.metadata?['windowSpecific']
 
   showDownloadUpdateItem: (newVersion, quitAndUpdateCallback) ->
     downloadUpdateItem = _.find @allItems(), (item) -> item.label == 'Install update'
@@ -122,8 +122,8 @@ class ApplicationMenu
       if item.command
         item.accelerator = @acceleratorForCommand(item.command)
         item.click = => global.atomApplication.sendCommand(item.command)
-        item.metadata['windowItem'] = true unless /^application:/.test(item.command)
       @translateTemplate(item.submenu) if item.submenu
+        item.metadata['windowSpecific'] = true unless /^application:/.test(item.command)
     template
 
   acceleratorForCommand: (command) ->
