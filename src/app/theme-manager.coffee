@@ -1,4 +1,5 @@
 path = require 'path'
+EventEmitter = require 'event-emitter'
 
 _ = require 'underscore'
 
@@ -7,6 +8,8 @@ Theme = require 'theme'
 
 module.exports =
 class ThemeManager
+  _.extend @prototype, EventEmitter
+
   constructor: ->
     @loadedThemes = []
 
@@ -27,6 +30,8 @@ class ThemeManager
       @loadTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
 
+      @trigger('reloaded')
+
   loadTheme: (name) ->
     try
       @loadedThemes.push(new Theme(name))
@@ -39,6 +44,9 @@ class ThemeManager
       stylesheetPath
     else
       null
+
+  getImportPaths: ->
+    theme.directoryPath for theme in @loadedThemes when theme.directoryPath
 
   loadUserStylesheet: ->
     if userStylesheetPath = @getUserStylesheetPath()
