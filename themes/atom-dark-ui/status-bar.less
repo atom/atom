@@ -1,27 +1,29 @@
+@import "ui-colors";
+
 .status-bar {
-  background-color: #1b1c1e;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background-color: @background-color-2;
+  box-shadow: inset 0 1px 0 @highlight-background-color-1;
   border-top: 1px solid rgba(0, 0, 0, 0.8);
-  color: #969696;
+  color: @text-color-4;
 }
 
 .status-bar .grammar-name:hover {
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid @highlight-background-color-1;
   border-radius: 2px;
 }
 
 .status-bar .git-status.octicons.modified-status-icon {
-  color: #f78a46;
+  color: @accent-color-error-1;
   display: inline-block;
 }
 
 .status-bar .git-status.octicons.new-status-icon {
-  color: #5293d8;
+  color: @accent-color-info-1;
   display: inline-block;
 }
 
 .status-bar .git-status.octicons.ignored-status-icon {
-  color: #969696;
+  color: @text-color-4;
   display: inline-block;
 }

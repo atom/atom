@@ -1,5 +1,7 @@
+@import "ui-colors";
+
 .select-list {
-  background-color: #e5e5e5;
+  background-color: @background-color-1;
   border: 1px solid #c6c6c6;
   color: #323232;
   box-shadow: 0 0 10px #555;
@@ -10,7 +12,7 @@
   }
 
   .loading {
-    color: #333;
+    color: @text-color-1;
   }
 
   ol {
@@ -18,7 +20,7 @@
 
     li {
       background-color: #f5f5f5;
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid @border-color-1;
     }
 
     li:hover {
@@ -40,15 +42,15 @@
 
     .right,
     .secondary-line {
-      color: #777;
+      color: @text-color-subtle-1;
     }
 
     .modified {
-      color: #f78a46;
+      color: @accent-color-error-1;
     }
 
     .new {
-      color: #5293d8;
+      color: @accent-color-info-1;
     }
   }
 }

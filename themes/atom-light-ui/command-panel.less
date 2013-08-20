@@ -1,14 +1,15 @@
+@import "ui-colors";
 @import "bootstrap/less/mixins.less";
 
 .command-panel {
-  background-color: #e5e5e5;
+  background-color: @background-color-1;
   border-top: 1px solid #979797;
   color: #ededed;
   padding: 10px;
 
   .btn {
     .btn-pseudo-states(#cbcbcb, #b3b3b3);
-    color: #444;
+    color: @text-color-2;
 
     &:hover,
     &:focus {
@@ -32,21 +33,21 @@
 .command-panel .preview-list {
   background-color: #e3e3e3;
   color: #222;
-  border: 1px solid #999;
+  border: 1px solid @border-color-2;
 }
 
 .command-panel .preview-count {
-  color: #333;
+  color: @text-color-1;
   font-weight: bold;
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .command-panel .expand-collapse {
-  color: #333;
+  color: @text-color-1;
 }
 
 .command-panel .expand-collapse li {
-  color: #555;
+  color: @text-color-3;
   background: -webkit-linear-gradient(#cbcbcb, #b3b3b3);
   box-shadow:
     inset -1px -1px 0 rgba(255, 255, 255, 0.5),
@@ -68,20 +69,20 @@
 }
 
 .command-panel .preview-list .path {
-  color: #333;
-  border-top: 1px solid #ccc;
+  color: @text-color-1;
+  border-top: 1px solid @border-color-1;
 }
 
 .command-panel .preview-list .path:hover .path-name {
-  color: #333;
+  color: @text-color-1;
 }
 
 .command-panel .preview-list .path:before {
-  color: #555;
+  color: @text-color-3;
 }
 
 .command-panel .preview-list .path:hover:before {
-  color: #333;
+  color: @text-color-1;
 }
 
 .command-panel .preview-list .path:first-child {
@@ -89,12 +90,12 @@
 }
 
 .command-panel .preview-list .line-number {
-  color: #777;
+  color: @text-color-subtle-1;
   font-family: monospace;
 }
 
 .command-panel .preview-list .path-match-number {
-  color: #777;
+  color: @text-color-subtle-1;
 }
 
 .command-panel .preview-list .preview {
@@ -102,21 +103,21 @@
 }
 
 .command-panel .preview-list .preview .match {
-  background-color: #0086ca;
-  color: #fff;
+  background-color: @accent-color-info-1;
+  color: @text-alt-color-1;
 }
 
 .command-panel .preview-list li.operation {
-  color: #777;
+  color: @text-color-subtle-1;
 }
 
 .command-panel .preview-list li.operation:hover,
 .command-panel li.operation.selected .preview {
-  color: #333;
+  color: @text-color-1;
 }
 
 .error-messages {
-  color: #333;
+  color: @text-color-1;
 }
 
 .error .error-messages {

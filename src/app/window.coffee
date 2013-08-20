@@ -138,10 +138,12 @@ window.loadStylesheet = (stylesheetPath) ->
     fsUtils.read(stylesheetPath)
 
 window.loadLessStylesheet = (lessStylesheetPath) ->
+  importPaths = atom.themes.getImportPaths()
   parser = new less.Parser
     syncImport: true
-    paths: config.lessSearchPaths
+    paths: importPaths.concat(config.lessSearchPaths)
     filename: lessStylesheetPath
+
   try
     content = null
     parser.parse fsUtils.read(lessStylesheetPath), (e, tree) ->

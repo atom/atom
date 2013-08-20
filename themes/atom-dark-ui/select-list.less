@@ -1,5 +1,7 @@
+@import "ui-colors";
+
 .select-list {
-  background: #202123;
+  background: @background-color-1;
 
   .error {
     color: white;
@@ -7,23 +9,23 @@
   }
 
   .loading {
-    color: #ccc;
+    color: @text-color-3;
   }
 
   ol {
-    border: 1px solid #212121;
+    border: 1px solid #222;
 
     li {
-      background-color: #27292b;
-      border-bottom: 1px solid #1e1e1e;
-      color: #bbb;
+      background-color: @background-color-3;
+      border-bottom: 1px solid @border-color-3;
+      color: @text-color-2;
     }
 
     .key-binding {
       background: -webkit-linear-gradient(
         rgba(100, 100, 100, 0.5),
         rgba(70,70,70, 0.5));
-      color: #ccc;
+      color: @text-color-3;
       -webkit-box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.1);
       display: inline-block;
       line-height: 100%;
@@ -34,20 +36,20 @@
     }
 
     li:hover {
-      color: #fff;
+      color: @text-color-1;
     }
 
     .selected {
-      background-color: #373A3c;
+      background-color: @highlight-background-color-2;
     }
 
     .right,
     .secondary-line {
-      color: #777;
+      color: @text-color-subtle-1;
     }
 
     .selected {
-      color: #fff;
+      color: @text-color-1;
     }
 
     .selected .right,
@@ -56,11 +58,11 @@
     }
 
     .modified {
-      color: #f78a46;
+      color: @accent-color-error-1;
     }
 
     .new {
-      color: #5293d8;
+      color: @accent-color-info-1;
     }
   }
 }

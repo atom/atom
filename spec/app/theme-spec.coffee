@@ -18,6 +18,7 @@ describe "Theme", ->
       themePath = project.resolve('themes/theme-stylesheet.css')
       theme = new Theme(themePath)
       expect($(".editor").css("padding-top")).toBe "1234px"
+      expect(theme.directoryPath).not.toBeDefined()
 
     it "parses, loads and applies less", ->
       expect($(".editor").css("padding-bottom")).not.toBe "1234px"
@@ -33,6 +34,7 @@ describe "Theme", ->
 
       themePath = project.resolve('themes/theme-with-package-file')
       theme = new Theme(themePath)
+      expect(theme.directoryPath).toBe themePath
       expect($(".editor").css("padding-top")).toBe("101px")
       expect($(".editor").css("padding-right")).toBe("102px")
       expect($(".editor").css("padding-bottom")).toBe("103px")
@@ -45,6 +47,7 @@ describe "Theme", ->
 
       themePath = project.resolve('themes/theme-without-package-file')
       theme = new Theme(themePath)
+      expect(theme.directoryPath).toBe themePath
       expect($(".editor").css("padding-top")).toBe "10px"
       expect($(".editor").css("padding-right")).toBe "20px"
       expect($(".editor").css("padding-bottom")).toBe "30px"

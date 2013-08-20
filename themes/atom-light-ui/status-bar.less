@@ -1,21 +1,23 @@
+@import "ui-colors";
+
 .status-bar {
-  background-color: #e5e5e5;
+  background-color: @background-color-1;
   border-top: 1px solid #959595;
-  color: #333;
+  color: @text-color-1;
 }
 
 .status-bar .git-status.octicons.modified-status-icon {
-  color: #f78a46;
+  color: @accent-color-error-1;
   display: inline-block;
 }
 
 .status-bar .git-status.octicons.new-status-icon {
-  color: #5293d8;
+  color: @accent-color-info-1;
   display: inline-block;
 }
 
 .status-bar .git-status.octicons.ignored-status-icon {
-  color: #333;
+  color: @text-color-1;
   display: inline-block;
 }
 
