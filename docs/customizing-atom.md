@@ -7,7 +7,7 @@
 ## Your .atom Directory
 
 When you install Atom, an _.atom_ directory is created in your home directory.
-If you press `meta-,`, that directory is opened in a new window. For the
+If you press `⌘-,`, that directory is opened in a new window. For the
 time being, this serves as the primary interface for adjusting configuration
 settings, adding and changing key bindings, tweaking styles, etc.
 
@@ -85,7 +85,11 @@ keymaps or third-party packages.
 Atom comes bundled with two themes `atom-dark-*` and `atom-light-*`.
 
 Because Atom themes are based on CSS, it's possible to have multiple themes
-active at the same time. For example, you'll usually select a theme for the UI
+active at the same time.
+
+VERIFY: Is this still true?
+
+For example, you'll usually select a theme for the UI
 and another theme for syntax highlighting.  You can select themes by specifying
 them in the `core.themes` array in your `config.cson`:
 
@@ -97,24 +101,13 @@ core:
 ```
 
 You install new themes by placing them in the _~/.atom/themes_ directory. A
-theme can be a CSS file, a directory containing multiple CSS files, or a
-TextMate theme (either _.tmTheme_ or _.plist_).
+theme can be a CSS file or a directory containing multiple CSS files.
 
+VERIFY: Where did we wind up with themes?
 
-## Installing Packages (Partially Implemented)
+## Installing Packages
 
-To install a package, clone it into the _~/.atom/packages_ directory. Atom will
-also load grammars and snippets from TextMate bundles. If you want to disable a
-package without removing it from the packages directory, insert its name into
-_config.core.disabledPackages_:
-
-```coffeescript
-core:
-  disabledPackages: [
-    "fuzzy-finder",
-    "tree-view"
-  ]
-```
+FIXME: Rewrite for the new dialog.
 
 ## Quick Personal Hacks
 
@@ -127,6 +120,8 @@ Please refer to the [Atom Internals Guide](./internals/intro,md) for more inform
 customizations become extensive, consider [creating a package](./packages/creating_packages.md).
 
 ### user.css
+
+VERIFY: Do we favor less or css?
 
 If you want to apply quick-and-dirty personal styling changes without creating
 an entire theme that you intend to distribute, you can add styles to

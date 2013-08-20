@@ -24,22 +24,30 @@ my-package/
   index.coffee
 ```
 
-**NOTE:** NPM behavior is partially implemented until we get a working Node.js
-API built into Atom. The goal is to make Atom packages be a superset of NPM
-packages.
-
-Below, we'll break down each directory. There's also [a tutorial](./creating_a_package.md)
-on creating your first package.
-
 ## package.json
 
-Similar to [npm packages](http://en.wikipedia.org/wiki/Npm_(software\)), Atom packages
+Similar to [npm packages][npm], Atom packages
 can contain a _package.json_ file in their top-level directory. This file contains metadata
 about the package, such as the path to its "main" module, library dependencies,
 and manifests specifying the order in which its resources should be loaded.
 
 In addition to the regular [npm package.json keys](https://npmjs.org/doc/json.html)
-available, Atom package.json files [have their own additions](./package_json.md).
+available, Atom package.json files have their own additions.
+
+- `main` (**Required**): the path to the CoffeeScript file that's the entry point
+to your package
+- `stylesheets` (**Optional**): an Array of Strings identifying the order of the
+stylesheets your package needs to load. If not specified, stylesheets in the _stylesheets_
+directory are added alphabetically.
+- `keymaps`(**Optional**): an Array of Strings identifying the order of the
+key mappings your package needs to load. If not specified, mappings in the _keymaps_
+directory are added alphabetically.
+- `snippets` (**Optional**): an Array of Strings identifying the order of the
+snippets your package needs to load. If not specified, snippets in the _snippets_
+directory are added alphabetically.
+- `activationEvents` (**Optional**): an Array of Strings identifying events that
+trigger your package's activation. You can delay the loading of your package until
+one of these events is trigged.
 
 ## Source Code
 
@@ -104,7 +112,7 @@ please collaborate with us if you need an API that doesn't exist. Our goal is
 to build out Atom's API organically based on the needs of package authors like
 you.
 
-See [Atom's built-in packages](https://github.com/github/atom/tree/master/src/packages)
+See [Atom's built-in packages](https://github.com/atom/atom/)
 for examples of Atom's API in action.
 
 ## Stylesheets
@@ -214,17 +222,17 @@ Under the hood, [Jasmine](https://github.com/pivotal/jasmine) is being used to r
 to execute the tests, so you can assume that any DSL available there is available
 to your package as well.
 
-# Creating Packages
+# Full Example
 
 Let's take a look at creating our first package.
 
 Atom has a command you can enter that'll create a package for you:
-`package-generator:generate`. Otherwise, you can hit `meta-p`, and start typing
+`package-generator:generate`. Otherwise, you can hit `⌘-p`, and start typing
 "Package Generator." Once you activate this package, it'll ask you for a name for
 your new package. Let's call ours _changer_.
 
 Now, _changer_ is going to have a default set of folders and files created for us.
-Hit `meta-R` to reload Atom, then hit `meta-p` and start typing "Changer." You'll
+Hit `cmd-r` to reload Atom, then hit `cmd-p` and start typing "Changer." You'll
 see a new `Changer:Toggle` command which, if selected, pops up a new message. So
 far, so good!
 
@@ -283,7 +291,7 @@ The next step is to hide elements in the tree that aren't modified. To do that,
 we'll first try and get a list of files that have not changed.
 
 All packages are able to use jQuery in their code. In fact, we have [a list of
-some of the bundled libraries Atom provides by default](./included_libraries.md).
+some of the bundled libraries Atom provides by default](#included-libraries).
 
 Let's bring in jQuery:
 
@@ -300,7 +308,7 @@ magic: ->
       console.log el
 ```
 
-You can access the dev console by hitting `alt-meta-i`. When we execute the
+You can access the dev console by hitting `alt-cmd-i`. When we execute the
 `changer:magic` command, the browser console lists the items that are not being
 modified. Let's add a class to each of these elements called `hide-me`:
 
@@ -480,21 +488,5 @@ libraries into their packages:
 
 Additional libraries can be found by browsing Atom's _node_modules_ folder.
 
-# package.json format
 
-The following keys are available to your package's _package.json_ manifest file:
-
-- `main` (**Required**): the path to the CoffeeScript file that's the entry point
-to your package
-- `stylesheets` (**Optional**): an Array of Strings identifying the order of the
-stylesheets your package needs to load. If not specified, stylesheets in the _stylesheets_
-directory are added alphabetically.
-- `keymaps`(**Optional**): an Array of Strings identifying the order of the
-key mappings your package needs to load. If not specified, mappings in the _keymaps_
-directory are added alphabetically.
-- `snippets` (**Optional**): an Array of Strings identifying the order of the
-snippets your package needs to load. If not specified, snippets in the _snippets_
-directory are added alphabetically.
-- `activationEvents` (**Optional**): an Array of Strings identifying events that
-trigger your package's activation. You can delay the loading of your package until
-one of these events is trigged.
+[npm]: http://en.wikipedia.org/wiki/Npm_(software)
