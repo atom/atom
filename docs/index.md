@@ -6,6 +6,12 @@
 
 * [Getting Started](getting-started.html)
 * [Configuring Atom](configuring-atom.html)
+* Internals
+  * [Introduction](internals/intro.html)
+  * [Configuration](internals/configuration.html)
+  * [Keymaps](internals/keymaps.html)
+  * [Serialization](internals/serialization.html)
+  * [View System](internals/view-system.html)
 * Packages
   * [Authoring Packages](packages/authoring-packages.html)
   * [Creating Packages](packages/creating_a_package.html)
