@@ -1,5 +1,5 @@
 {{{
-"title": "Authoring Themes"
+"title": "Creating a Theme"
 }}}
 
 # Authoring Themes

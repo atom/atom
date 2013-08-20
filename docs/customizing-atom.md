@@ -1,5 +1,5 @@
 {{{
-"title": "Configuring Atom"
+"title": "Customizing Atom"
 }}}
 
 # Configuration Settings
