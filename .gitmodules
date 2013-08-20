@@ -3,7 +3,7 @@
 	url = https://github.com/twbs/bootstrap
 [submodule "vendor/apm"]
 	path = vendor/apm
-	url = https://github.com/github/apm.git
+	url = https://github.com/atom/apm.git
 [submodule "vendor/telepath"]
 	path = vendor/telepath
 	url = https://github.com/github/telepath.git
