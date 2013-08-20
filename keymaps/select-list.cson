@@ -1,4 +1,4 @@
-".select-list .mini.editor":
-  'enter': 'core:confirm',
+'.select-list .mini.editor':
+  'enter': 'core:confirm'
   'escape': 'core:cancel'
   'meta-w': 'core:cancel'
