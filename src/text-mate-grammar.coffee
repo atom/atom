@@ -13,6 +13,8 @@ pathSplitRegex = new RegExp("[#{path.sep}.]")
 
 module.exports =
 class TextMateGrammar
+  _.extend @prototype, EventEmitter
+
   @load: (grammarPath, done) ->
     fsUtils.readObject grammarPath, (error, object) ->
       if error?
@@ -219,8 +221,6 @@ class Injections
         scanner = @getScanner(injection, firstLine, position, anchorPosition)
         scanners.push(scanner)
     scanners
-
-_.extend TextMateGrammar.prototype, EventEmitter
 
 class Rule
   grammar: null
