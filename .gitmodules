@@ -7,6 +7,3 @@
 [submodule "vendor/telepath"]
 	path = vendor/telepath
 	url = https://github.com/atom/telepath.git
-[submodule "src/packages/collaboration/vendor/atom-collaboration-server"]
-	path = src/packages/collaboration/vendor/atom-collaboration-server
-	url = https://github.com/github/atom-collaboration-server.git
