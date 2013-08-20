@@ -4,9 +4,16 @@ Theme = require 'theme'
 ThemeManager = require 'theme-manager'
 
 describe "ThemeManager", ->
+  themeManager = null
+
+  beforeEach ->
+    themeManager = new ThemeManager()
+
+  afterEach ->
+    themeManager.unload()
+
   describe "when the core.themes config value changes", ->
     it "add/removes stylesheets to reflect the new config value", ->
-      themeManager = new ThemeManager()
       themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
       spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
       themeManager.load()
@@ -35,7 +42,6 @@ describe "ThemeManager", ->
 
   describe "when a theme fails to load", ->
     it "logs a warning", ->
-      themeManager = new ThemeManager()
       spyOn(console, 'warn')
       themeManager.loadTheme('a-theme-that-will-not-be-found')
       expect(console.warn).toHaveBeenCalled()

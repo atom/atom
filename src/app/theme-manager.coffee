@@ -22,10 +22,13 @@ class ThemeManager
   getAvailableNames: ->
     path.basename(themePath).split('.')[0] for themePath in @getAvailablePaths()
 
+  unload: ->
+    removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
+    theme.deactivate() while theme = @loadedThemes.pop()
+
   load: ->
     config.observe 'core.themes', (themeNames) =>
-      removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
-      theme.deactivate() while theme = @loadedThemes.pop()
+      @unload()
       themeNames = [themeNames] unless _.isArray(themeNames)
       @loadTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
