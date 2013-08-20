@@ -1,2 +1,2 @@
-coffee -c -o /Applications/Atom.app/Contents/Resources/app/src/ src/main.coffee src/atom-application.coffee src/atom-window.coffee src/atom-menu.coffee &&
+coffee -c -o /Applications/Atom.app/Contents/Resources/app/src/ src/main.coffee src/atom-application.coffee src/atom-window.coffee src/application-menu.coffee &&
 /Applications/Atom.app/Contents/MacOS/Atom --resource-path=$(pwd) --executed-from=$(pwd) $@

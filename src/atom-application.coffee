@@ -1,5 +1,5 @@
 AtomWindow = require './atom-window'
-AtomMenu = require './atom-menu'
+ApplicationMenu = require './application-menu'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
@@ -49,7 +49,7 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
-    @applicationMenu = new AtomMenu(@version, devMode)
+    @applicationMenu = new ApplicationMenu(@version, devMode)
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
