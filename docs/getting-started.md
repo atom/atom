@@ -1,3 +1,7 @@
+{{{
+"title": "Getting Started"
+}}}
+
 # Getting Started
 
 Welcome to Atom. This documentation provides a basic introduction to being

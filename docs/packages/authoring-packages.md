@@ -1,3 +1,7 @@
+{{{
+"title": "Authoring Packages"
+}}}
+
 # Authoring Packages
 
 Packages are at the core of Atom. Nearly everything outside of the main editor manipulation

@@ -1,3 +1,7 @@
+{{{
+"title": "Guides"
+}}}
+
 ## Atom Guides
 
 * [Getting Started](getting-started.html)
@@ -9,7 +13,7 @@
   * [Wrap Guide](built-in-packages/wrap-guide.html)
 * Packages
   * [Authoring Packages](packages/authoring-packages.html)
-  * [Creating a Package](packages/creating_a_package.html)
+  * [Creating Packages](packages/creating_a_package.html)
   * [Included Libraries](packages/included_libraries.html)
   * [package.json](packages/package_json.html)
 * Themes
