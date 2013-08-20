@@ -125,7 +125,7 @@ module.exports = (grunt) ->
           expand: true,
           cwd: 'docs'
           src: '**/*.md',
-          dest: 'docs/guides/',
+          dest: 'docs/output/',
           ext: '.html'
         ]
         markdownOptions:

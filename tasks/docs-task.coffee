@@ -8,7 +8,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
     done = @async()
-    args = [commonArgs..., '-o', 'docs/api', 'src/']
+    args = [commonArgs..., '-o', 'docs/output/api', 'src/']
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->
@@ -33,18 +33,9 @@ module.exports = (grunt) ->
         else
           callback(null, String(result).trim())
 
-    copyGuides = (tag, callback) ->
-      cmd = 'cp'
-      args = ['-r', 'docs/guides', "../atom-docs/public/#{tag}"]
-      grunt.util.spawn {cmd, args}, (error, result) ->
-        if error?
-          callback(error)
-        else
-          callback(null, tag)
-
     copyApiDocs = (tag, callback) ->
       cmd = 'cp'
-      args = ['-r', 'docs/api', "../atom-docs/public/#{tag}/api"]
+      args = ['-r', 'docs/output/', "../atom-docs/public/#{tag}/"]
       grunt.util.spawn {cmd, args}, (error, result) ->
         if error?
           callback(error)
@@ -82,4 +73,4 @@ module.exports = (grunt) ->
       args = [docsRepoArgs..., 'push', 'heroku', 'master']
       grunt.util.spawn({cmd, args, opts}, callback)
 
-    grunt.util.async.waterfall [fetchTag, copyGuides, copyApiDocs, stageDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done
+    grunt.util.async.waterfall [fetchTag, copyApiDocs, stageDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done

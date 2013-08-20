@@ -7,5 +7,4 @@ node_modules
 npm-debug.log
 /tags
 /atom-shell/
-docs/api
-docs/guides
+docs/output
