@@ -1,6 +1,8 @@
 _ = require 'underscore'
 textUtils = require 'text-utils'
 
+whitespaceRegexesByTabLength = {}
+
 module.exports =
 class Token
   value: null
@@ -29,6 +31,9 @@ class Token
     value2 = @value.substring(splitIndex)
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
+  whitespaceRegexForTabLength: (tabLength) ->
+    whitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
+
   breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
     if @hasSurrogatePair
       outputTokens = []
@@ -48,8 +53,7 @@ class Token
         return [this] unless /\t/.test(@value)
 
       outputTokens = []
-      regex = new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
-
+      regex = @whitespaceRegexForTabLength(tabLength)
       while match = regex.exec(@value)
         [fullMatch, softTab, hardTab] = match
         if softTab and breakOutLeadingWhitespace
