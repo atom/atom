@@ -1,6 +1,6 @@
 {
   "name": "atom",
-  "version": "0.0.0",
+  "version": "20.0.0",
   "main": "./src/main.js",
   "repository": {
     "type": "git",
@@ -111,7 +111,8 @@
     "walkdir": "0.0.7",
     "ws": "0.4.27",
     "js-yaml": "~2.1.0",
-    "grunt-markdown": "~0.4.0"
+    "grunt-markdown": "~0.4.0",
+    "json-front-matter": "~0.1.3"
   },
   "private": true,
   "scripts": {

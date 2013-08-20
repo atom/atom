@@ -1,8 +1,14 @@
 fs = require 'fs'
 path = require 'path'
 
+fm = require 'json-front-matter'
+_ = require 'underscore'
+
+packageJson = require './package.json'
+
 module.exports = (grunt) ->
   appName = 'Atom.app'
+  [major, minor, patch] = packageJson.version.split('.')
   buildDir = grunt.option('build-dir') ? '/tmp/atom-build'
   shellAppDir = path.join(buildDir, appName)
   contentsDir = path.join(shellAppDir, 'Contents')
@@ -122,14 +128,23 @@ module.exports = (grunt) ->
     markdown:
       guides:
         files: [
-          expand: true,
+          expand: true
           cwd: 'docs'
-          src: '**/*.md',
-          dest: 'docs/output/',
+          src: '**/*.md'
+          dest: 'docs/output/'
           ext: '.html'
         ]
-        markdownOptions:
-          gfm: true
+        options:
+          template: 'docs/template.jst'
+          templateContext:
+            tag: "v#{major}.#{minor}"
+          markdownOptions:
+            gfm: true
+          preCompile: (src, context) ->
+            parsed = fm.parse(src)
+            _.extend(context, parsed.attributes)
+            parsed.body
+
 
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')

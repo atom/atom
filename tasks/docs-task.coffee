@@ -7,6 +7,8 @@ module.exports = (grunt) ->
     stdio: 'inherit'
 
   grunt.registerTask 'build-docs', 'Builds the API docs in src/app', ->
+    grunt.task.run('markdown:guides')
+
     done = @async()
     args = [commonArgs..., '-o', 'docs/output/api', 'src/']
     grunt.util.spawn({cmd, args, opts}, done)
@@ -21,7 +23,7 @@ module.exports = (grunt) ->
     args = [commonArgs..., '--noOutput', '--missing', 'src/']
     grunt.util.spawn({cmd, args, opts}, done)
 
-  grunt.registerTask 'deploy-docs', 'Publishes latest API docs to atom-docs.githubapp.com', ->
+  grunt.registerTask 'copy-docs', 'Copies over latest API docs to atom-docs', ->
     done = @async()
 
     fetchTag = (args..., callback) ->
@@ -33,16 +35,30 @@ module.exports = (grunt) ->
         else
           callback(null, String(result).trim())
 
-    copyApiDocs = (tag, callback) ->
+    copyDocs = (tag, callback) ->
       cmd = 'cp'
       args = ['-r', 'docs/output/', "../atom-docs/public/#{tag}/"]
+
       grunt.util.spawn {cmd, args}, (error, result) ->
         if error?
           callback(error)
         else
           callback(null, tag)
 
+    grunt.util.async.waterfall [fetchTag, copyDocs], done
+
+  grunt.registerTask 'deploy-docs', 'Publishes latest API docs to atom-docs.githubapp.com', ->
+    done = @async()
     docsRepoArgs = ['--work-tree=../atom-docs/', '--git-dir=../atom-docs/.git/']
+
+    fetchTag = (args..., callback) ->
+      cmd = 'git'
+      args = ['describe', '--abbrev=0', '--tags']
+      grunt.util.spawn {cmd, args}, (error, result) ->
+        if error?
+          callback(error)
+        else
+          callback(null, String(result).trim())
 
     stageDocs = (tag, callback) ->
       cmd = 'git'
@@ -73,4 +89,4 @@ module.exports = (grunt) ->
       args = [docsRepoArgs..., 'push', 'heroku', 'master']
       grunt.util.spawn({cmd, args, opts}, callback)
 
-    grunt.util.async.waterfall [fetchTag, copyApiDocs, stageDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done
+    grunt.util.async.waterfall [fetchTag, stageDocs, fetchSha, commitChanges, pushOrigin, pushHeroku], done

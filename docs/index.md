@@ -1,7 +1,3 @@
-## Atom Reference
-
-* [API](api/index.html)
-
 ## Atom Guides
 
 * [Getting Started](getting-started.html)
@@ -18,5 +14,3 @@
   * [package.json](packages/package_json.html)
 * Themes
   * [Authoring Themes](themes/authoring-themes.html)
-
-
