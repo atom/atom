@@ -62,7 +62,7 @@ class AtomApplication
       @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode})
     else if urlsToOpen.length > 0
       @openUrl({urlToOpen, devMode}) for urlToOpen in urlsToOpen
-    else      
+    else
       @openPath({pidToKillWhenClosed, newWindow, devMode}) # Always open a editor window if this is the first instance of Atom.
 
   removeWindow: (window) ->
