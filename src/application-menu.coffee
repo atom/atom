@@ -4,7 +4,6 @@ _ = require 'underscore'
 
 module.exports =
 class ApplicationMenu
-  keystrokesByCommand: null
   version: null
   devMode: null
   menu: null
@@ -13,11 +12,11 @@ class ApplicationMenu
     @menu = Menu.buildFromTemplate @getDefaultTemplate()
     Menu.setApplicationMenu @menu
 
-  update: (@keystrokesByCommand) ->
-    template = @getTemplate()
+  update: (keystrokesByCommand) ->
+    template = @getTemplate(keystrokesByCommand)
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
-    @enableWindowItems(true)
+    @enableWindowSpecificItems(true)
 
   allItems: (menu=@menu) ->
     items = []
@@ -48,7 +47,7 @@ class ApplicationMenu
       ]
     ]
 
-  getTemplate: ->
+  getTemplate: (keystrokesByCommand) ->
     atomMenu =
       label: 'Atom'
       submenu: [
@@ -114,20 +113,20 @@ class ApplicationMenu
     template = [atomMenu, fileMenu, editMenu, viewMenu, windowMenu]
     template.push devMenu if @devMode
 
-    @translateTemplate template
+    @translateTemplate template, keystrokesByCommand
 
-  translateTemplate: (template) ->
+  translateTemplate: (template, keystrokesByCommand) ->
     template.forEach (item) =>
       item.metadata = {}
       if item.command
-        item.accelerator = @acceleratorForCommand(item.command)
+        item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
         item.click = => global.atomApplication.sendCommand(item.command)
-      @translateTemplate(item.submenu) if item.submenu
         item.metadata['windowSpecific'] = true unless /^application:/.test(item.command)
+      @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
     template
 
-  acceleratorForCommand: (command) ->
-    keyBinding = @keystrokesByCommand[command]?[0]
+  acceleratorForCommand: (command, keystrokesByCommand) ->
+    keyBinding = keystrokesByCommand[command]?[0]
     return null unless keyBinding
 
     modifiers = keyBinding.split('-')
