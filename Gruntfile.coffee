@@ -43,6 +43,7 @@ module.exports = (grunt) ->
     glob_to_multiple:
       expand: true
       src: [
+        'keymaps/*.cson'
         'src/**/*.cson'
         'static/**/*.cson'
         'themes/**/*.cson'
