@@ -4,7 +4,7 @@
   "main": "./src/main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/github/atom.git"
+    "url": "https://github.com/atom/atom.git"
   },
   "dependencies": {
     "async": "0.2.6",
