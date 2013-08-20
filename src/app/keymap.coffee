@@ -29,12 +29,6 @@ class Keymap
     @bindingSets = []
     @bindingSetsByFirstKeystroke = {}
 
-  bindDefaultKeys: ->
-    $(document).command 'new-window', => atom.newWindow()
-    $(document).command 'open', => atom.open()
-    $(document).command 'open-dev', => atom.openDev()
-    $(document).command 'toggle-dev-tools', => atom.toggleDevTools()
-
   loadBundledKeymaps: ->
     @loadDirectory(fsUtils.resolveOnLoadPath('keymaps'))
 
@@ -75,7 +69,6 @@ class Keymap
       bindingSet.selector is selector and bindingSet.bindings is bindings
 
     if bindingSet
-      console.log "binding set", bindingSet
       _.remove(@bindingSets, bindingSet)
 
   bindingsForElement: (element) ->
@@ -169,6 +162,17 @@ class Keymap
       key = key.toLowerCase()
 
     [modifiers..., key].join('-')
+
+  toObject: (selector)->
+    body = $('body')
+    keyBindingsForCommands = {}
+    for bindingSet in @bindingSets
+      for keystroke, command of bindingSet.commandsByKeystrokes
+        continue if selector? and selector != bindingSet.selector
+        keyBindingsForCommands[command] ?= []
+        keyBindingsForCommands[command].push keystroke
+
+    keyBindingsForCommands
 
   isAscii: (charCode) ->
     0 <= charCode <= 127

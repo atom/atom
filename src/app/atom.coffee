@@ -133,15 +133,6 @@ window.atom =
   open: (url...) ->
     ipc.sendChannel('open', [url...])
 
-  openDev: (url...) ->
-    ipc.sendChannel('open-dev', [url...])
-
-  newWindow: ->
-    ipc.sendChannel('new-window')
-
-  openWindow: (windowSettings) ->
-    ipc.sendChannel('open-window', windowSettings)
-
   confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     buttons = []
     callbacks = []
@@ -254,9 +245,6 @@ window.atom =
     else
       @windowState
 
-  update: ->
-    ipc.sendChannel 'install-update'
-
   crashMainProcess: ->
     remote.process.crash()
 
@@ -269,6 +257,3 @@ window.atom =
       require userInitScriptPath if fsUtils.isFileSync(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
-
-  getVersion: ->
-    ipc.sendChannelSync 'get-version'

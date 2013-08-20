@@ -365,11 +365,3 @@ describe "RootView", ->
       rootView.open(require.resolve('fixtures/sample.txt'))
       expect(count).toBe 1
       expect(callbackBuffer).toBe rootView.getActiveView().getBuffer()
-
-  describe "when a 'new-editor' event is triggered", ->
-    it "opens a new untitled editor", ->
-      itemCount = rootView.getActivePane().getItems().length
-      rootView.trigger 'new-editor'
-      expect(rootView.getActivePaneItem().getPath()).toBeUndefined()
-      expect(rootView.getActivePaneItem().getBuffer().fileExists()).toBeFalsy()
-      expect(rootView.getActivePane().getItems().length).toBe itemCount + 1

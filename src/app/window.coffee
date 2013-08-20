@@ -3,8 +3,8 @@ path = require 'path'
 telepath = require 'telepath'
 $ = require 'jquery'
 less = require 'less'
-ipc = require 'ipc'
 remote = require 'remote'
+ipc = require 'ipc'
 WindowEventHandler = require 'window-event-handler'
 require 'jquery-extensions'
 require 'underscore-extensions'
@@ -35,8 +35,6 @@ window.setUpEnvironment = (windowMode) ->
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
 
-  keymap.bindDefaultKeys()
-
   requireStylesheet 'atom'
 
   if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
@@ -57,6 +55,7 @@ window.startEditorWindow = ->
   atom.activatePackages()
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
+  ipc.sendChannel 'keymap-loaded', keymap.toObject('body')
   $(window).on 'unload', -> unloadEditorWindow(); false
   atom.show()
   atom.focus()
