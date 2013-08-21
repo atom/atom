@@ -9,12 +9,13 @@ class Command
     spawned = child_process.spawn(command, args, options)
 
     errorChunks = []
-    spawned.stdout.on 'data', (chunk) ->
+    outputChunks = []
+    spawned.stdout.on 'data', (chunk) -> outputChunks.push(chunk)
     spawned.stderr.on 'data', (chunk) -> errorChunks.push(chunk)
     spawned.on 'error', (error) ->
-      callback(error, Buffer.concat(errorChunks).toString())
+      callback(error, Buffer.concat(errorChunks).toString(), Buffer.concat(outputChunks).toString())
     spawned.on 'close', (code) ->
-      callback(code, Buffer.concat(errorChunks).toString())
+      callback(code, Buffer.concat(errorChunks).toString(), Buffer.concat(outputChunks).toString())
 
   fork: (script, args, remaining...) ->
     args.unshift(script)
