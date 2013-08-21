@@ -174,3 +174,6 @@ class RowMap
       bufferRow += region.bufferRows
       screenRow += region.screenRows
     { index, screenRow, bufferRow }
+
+  inspect: ->
+    @regions.map(({screenRows, bufferRows}) -> "#{screenRows}:#{bufferRows}").join(', ')
