@@ -53,18 +53,13 @@ FIXME: Describe https://github.com/atom/find-and-replace
 
 #### Navigating By Symbols
 
-VERIFY: This seems to happen automatically now and cmd+shift+j doesn't seem to work.
+If you want to jump to a method, the `⌘-j` binding opens a list of all symbols
+in the current file. `⌘-.` jumps to the tag for the word currently under the cursor.
 
-If you want to jump to a method, you can use the ctags-based symbols package.
-The `⌘-j` binding opens a list of all symbols in the current file. The
-`⌘-shift-j` binding opens a list of all symbols for the current project
-based on a tags file. `⌘-.` jumps to the tag for the word currently
-under the cursor.
-
-Make sure you have a tags file generated for the project for
-the latter of these two bindings to work. Also, if you're editing CoffeeScript,
-it's a good idea to update your `~/.ctags` file to understand the language. Here
-is [a good example](https://github.com/kevinsawicki/dotfiles/blob/master/.ctags).
+To search for symbols across your project use `cmd-shift-j`, but you'll need to
+make sure you have a tags file generated for the project Also, if you're editing
+CoffeeScript, it's a good idea to update your `~/.ctags` file to understand the
+language. Here is [a good example](https://github.com/kevinsawicki/dotfiles/blob/master/.ctags).
 
 ### Split Panes
 
