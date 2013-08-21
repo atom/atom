@@ -16,7 +16,7 @@ while getopts ":whvf-:" opt; do
         wait)
           WAIT=1
           ;;
-        help|version)
+        help|version|foreground)
           EXPECT_OUTPUT=1
           ;;
       esac
