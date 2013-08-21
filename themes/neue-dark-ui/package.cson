@@ -1,5 +1,8 @@
 'stylesheets': [
   'atom'
-  'panels'
+  'text'
   'buttons'
+  'panels'
+  'lists'
+  'editor'
 ]
