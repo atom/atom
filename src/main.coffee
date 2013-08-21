@@ -46,9 +46,11 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
       require('coffee-script')
       require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache')
       require('module').globalPaths.push(args.resourcePath + "/src")
-      AtomApplication = require 'atom-application'
     else
-      AtomApplication = require './atom-application'
+      appSrcPath = path.resolve(process.argv[0], "../../Resources/app/src")
+      require('module').globalPaths.push(appSrcPath)
+
+    AtomApplication = require 'atom-application'
 
     AtomApplication.open(args)
 
