@@ -404,3 +404,41 @@ describe 'apm command line interface', ->
         runs ->
           expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink)))).toBeFalsy()
           expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeFalsy()
+
+    describe "when the all flag is true", ->
+      it "unlinks all packages in $ATOM_HOME/packages and $ATOM_HOME/dev/packages", ->
+        atomHome = temp.mkdirSync('apm-home-dir-')
+        process.env.ATOM_HOME = atomHome
+        packageToLink1 = temp.mkdirSync('a-package-')
+        packageToLink2 = temp.mkdirSync('a-package-')
+        packageToLink3 = temp.mkdirSync('a-package-')
+        callback = jasmine.createSpy('callback')
+
+        runs ->
+          apm.run(['link', '--dev', packageToLink1], callback)
+
+        waitsFor 'link --dev to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          callback.reset()
+          apm.run(['link', packageToLink2], callback)
+          apm.run(['link', packageToLink3], callback)
+
+        waitsFor 'link to complee', ->
+          callback.callCount is 2
+
+        runs ->
+          callback.reset()
+          expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink1)))).toBeTruthy()
+          expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink2)))).toBeTruthy()
+          expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink3)))).toBeTruthy()
+          apm.run(['unlink', '--all'], callback)
+
+        waitsFor 'unlink --all to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink1)))).toBeFalsy()
+          expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink2)))).toBeFalsy()
+          expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink3)))).toBeFalsy()
