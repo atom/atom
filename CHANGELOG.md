@@ -1,3 +1,5 @@
+* Fixed: Python import statements not syntax highlighting correctly
+
 * Added: Terminal package now bundled by default, open with ctrl-`
 * Fixed: Fuzzy finder not showing results for files at a certain depth
 * Fixed: Atom > Preferences... menu not opening settings in focused window
