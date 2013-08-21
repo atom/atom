@@ -33,10 +33,10 @@ for more details.
 
 ### RootView
 
-The root of Atom's view hiererchy is a global called `rootView`, which is a
+The root of Atom's view hierarchy is a global called `rootView`, which is a
 singleton instance of the `RootView` view class. The root view fills the entire
 window, and contains every other view. If you open Atom's inspector with
-`alt-meta-i`, you can see the internal structure of `RootView`:
+`alt-cmd-i`, you can see the internal structure of `RootView`:
 
 ![RootView in the inspector](http://f.cl.ly/items/2n0s3m0I2d223p3s3W01/root-view-inspector.png)
 

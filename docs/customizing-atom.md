@@ -7,7 +7,7 @@
 ## Your .atom Directory
 
 When you install Atom, an _.atom_ directory is created in your home directory.
-If you press `⌘-,`, that directory is opened in a new window. For the
+If you press `cmd-,`, that directory is opened in a new window. For the
 time being, this serves as the primary interface for adjusting configuration
 settings, adding and changing key bindings, tweaking styles, etc.
 

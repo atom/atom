@@ -227,7 +227,7 @@ to your package as well.
 Let's take a look at creating our first package.
 
 Atom has a command you can enter that'll create a package for you:
-`package-generator:generate`. Otherwise, you can hit `⌘-p`, and start typing
+`package-generator:generate`. Otherwise, you can hit `cmd-p`, and start typing
 "Package Generator." Once you activate this package, it'll ask you for a name for
 your new package. Let's call ours _changer_.
 
