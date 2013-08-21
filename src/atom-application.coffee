@@ -1,5 +1,5 @@
-AtomWindow = require './atom-window'
-ApplicationMenu = require './application-menu'
+AtomWindow = require 'atom-window'
+ApplicationMenu = require 'application-menu'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
