@@ -1,0 +1,26 @@
+@import "mixins";
+@import "ui-colors";
+
+.list-group .list-group-item { .text(normal); }
+
+.generate-list-group-text-color(@class) {
+  .list-group .list-group-item.@{class},
+  .list-group .list-group-nested-item.@{class} > .list-group-item {
+    .text(@class);
+  }
+}
+.generate-list-group-text-color(subtle);
+.generate-list-group-text-color(info);
+.generate-list-group-text-color(success);
+.generate-list-group-text-color(warning);
+.generate-list-group-text-color(error);
+.generate-list-group-text-color(selected);
+
+.list-group .list-group-item:hover,
+.list-group .list-group-nested-item:hover > .list-group-item, // i.e. highlight directory when hover child file
+.list-group .list-group-nested-item .list-group-item:hover,
+.list-group .list-group-nested-item .list-group-item:hover .disclosure-arrow,
+.list-group .selected > .list-group-nested-item > .list-group-item .disclosure-arrow,
+.list-group .selected > .list-group-nested-item > .list-group-item:hover .disclosure-arrow  {
+  .text(highlighted);
+}

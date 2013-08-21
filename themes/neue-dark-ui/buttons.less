@@ -1,0 +1,31 @@
+@import "mixins";
+@import "ui-colors";
+
+.btn-toggle.btn-group {
+  .btn {
+    font-weight: bold;
+    background: @button-color;
+    color: @text-color;
+    font-size: 12px;
+    padding: 3px;
+
+    border: none;
+    //border-left: 1px solid @border-color-2;
+
+    &:hover{ background: @button-color-hover; }
+    &.enabled{
+      color: @text-color-info;
+      background: @button-color-active;
+      //box-shadow: inset 1px 1px 1px @background-color-highlight-1;
+    }
+  }
+  .btn:first-child {
+    border-left: none;
+    border-bottom-left-radius: 2px;
+    border-top-left-radius: 2px;
+  }
+  .btn:last-child {
+    border-bottom-right-radius: 2px;
+    border-top-right-radius: 2px;
+  }
+}

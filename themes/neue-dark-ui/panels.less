@@ -1,0 +1,32 @@
+@import "mixins";
+@import "ui-colors";
+
+.tool-panel {
+  .text(normal);
+
+  opacity: 0.8;
+  background-color: @tool-panel-background-color;
+
+  &:focus {
+    opacity: 1;
+  }
+
+  &.panel-bottom {
+    border-top: 1px solid @tool-panel-border-color;
+    box-shadow: inset 0 1px 0 @tool-panel-border-highlight-color;
+  }
+
+  &.panel-left {
+    border-right: 1px solid @tool-panel-border-color;
+  }
+}
+
+.inset-panel {
+  background-color: @inset-panel-background-color;
+}
+
+.is-blurred {
+  .tool-panel, .inset-panel {
+    opacity: 0.6;
+  }
+}

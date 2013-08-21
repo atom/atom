@@ -1,0 +1,11 @@
+@import "mixins";
+@import "ui-colors";
+
+.selected {
+  .text(highlighted);
+  > .highlight, &.highlight {
+    background-color: #333;
+  }
+}
+.highlighted { .text(highlighted); }
+.subtle { .text(subtle); }
