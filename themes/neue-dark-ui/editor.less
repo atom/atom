@@ -1,0 +1,29 @@
+@import "ui-mixins";
+@import "ui-colors";
+
+.editor.mini {
+  background-color: @input-background-color;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.editor.editor-colors.mini.is-focused {
+  background-color: @input-background-highlight-color;
+}
+
+// FIXME: these should go in syntax themes?
+.editor .gutter.drop-shadow {
+  -webkit-box-shadow: -2px 0 10px 2px #222;
+}
+
+@-webkit-keyframes highlight {
+  from { background-color: rgba(100, 255, 100, 0.7); }
+  to { background-color: null; }
+}
+
+.editor .highlighted.selection .region {
+  -webkit-animation-name: highlight;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: 1;
+}
