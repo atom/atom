@@ -1,6 +1,7 @@
 'stylesheets': [
   'atom'
   'text'
+  'icons'
   'buttons'
   'panels'
   'lists'
