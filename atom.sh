@@ -9,7 +9,7 @@ if [ ! -d $ATOM_PATH ]; then
   exit 1
 fi
 
-while getopts ":whv-:" opt; do
+while getopts ":whvf-:" opt; do
   case "$opt" in
     -)
       case "${OPTARG}" in
@@ -24,7 +24,7 @@ while getopts ":whv-:" opt; do
     w)
       WAIT=1
       ;;
-    h|v)
+    h|v|f)
       EXPECT_OUTPUT=1
       ;;
   esac
