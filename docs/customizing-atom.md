@@ -87,23 +87,11 @@ Atom comes bundled with two themes `atom-dark-*` and `atom-light-*`.
 Because Atom themes are based on CSS, it's possible to have multiple themes
 active at the same time.
 
-VERIFY: Is this still true?
-
-For example, you'll usually select a theme for the UI
-and another theme for syntax highlighting.  You can select themes by specifying
-them in the `core.themes` array in your `config.cson`:
-
-```coffee-script
-core:
-  themes: ["atom-light-ui", "atom-light-syntax"]
-  # or, if the sun is going down:
-  # themes: ["atom-dark-ui", "atom-dark-syntax"]
-```
+For example, you'll usually select a theme for the UI and another theme for
+syntax highlighting.  You can change themes from the preferences pane.
 
 You install new themes by placing them in the _~/.atom/themes_ directory. A
-theme can be a CSS file or a directory containing multiple CSS files.
-
-VERIFY: Where did we wind up with themes?
+theme can be a single LESS file or a directory containing multiple LESS files.
 
 ## Installing Packages
 
