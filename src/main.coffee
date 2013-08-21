@@ -1,4 +1,3 @@
-AtomApplication = require './atom-application'
 autoUpdater = require 'auto-updater'
 crashReporter = require 'crash-reporter'
 delegate = require 'atom-delegate'
@@ -12,8 +11,6 @@ _ = require 'underscore'
 
 console.log = (args...) ->
   nslog(args.map((arg) -> JSON.stringify(arg)).join(" "))
-
-require 'coffee-script'
 
 delegate.browserMainParts.preMainMessageLoopRun = ->
   args = parseCommandLine()
@@ -44,6 +41,14 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen)
+
+    if args.devMode
+      require('coffee-script')
+      require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache')
+      require('module').globalPaths.push(args.resourcePath + "/src")
+      AtomApplication = require 'atom-application'
+    else
+      AtomApplication = require './atom-application'
 
     AtomApplication.open(args)
 
