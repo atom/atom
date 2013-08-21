@@ -6,6 +6,9 @@
     "type": "git",
     "url": "https://github.com/atom/atom.git"
   },
+  "bugs": {
+    "url": "https://github.com/atom/atom/issues"
+  },
   "dependencies": {
     "async": "0.2.6",
     "coffee-cache": "0.1.0",
