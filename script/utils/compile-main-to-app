@@ -1,0 +1,3 @@
+#!/bin/sh
+
+coffee -c -o /Applications/Atom.app/Contents/Resources/app/src/ src/main.coffee
