@@ -206,7 +206,7 @@ class DisplayBuffer
   #
   # Returns an {Array} of {Fold}s.
   foldsContainingBufferRow: (bufferRow) ->
-    for marker in @findFoldMarkers(containsRow: bufferRow)
+    for marker in @findFoldMarkers(intersectsRow: bufferRow)
       @foldForMarker(marker)
 
   # Given a buffer row, this converts it into a screen row.
