@@ -15,7 +15,7 @@ Note that the last example describes multiple keystrokes in succession:
 - `p`
 - `2`
 - `ctrl-p`
-- `ctrl-alt-meta-p`
+- `ctrl-alt-cmd-p`
 - `tab`
 - `escape`
 - `enter`
@@ -23,12 +23,12 @@ Note that the last example describes multiple keystrokes in succession:
 
 A semantic event is the name of the custom event that will be triggered on the
 target of the keydown event when a key binding matches. You can use the command
-palette (bound to `meta-p`), to get a list of relevant events and their bindings
+palette (bound to `cmd-p`), to get a list of relevant events and their bindings
 in any focused context in Atom.
 
 ### Rules for Mapping A Keydown Event to A Semantic Event
 
-A keymap's job is to translate a physical keystroke event (like `meta-D`) into a
+A keymap's job is to translate a physical keystroke event (like `cmd-D`) into a
 semantic event (like `editor:duplicate-line`). Whenever a keydown event occurs
 on a focused element, it bubbles up the DOM as usual. As soon as an element on
 the bubble path matches a key binding for the keystroke, the binding's semantic

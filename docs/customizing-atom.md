@@ -1,5 +1,5 @@
 {{{
-"title": "Configuring Atom"
+"title": "Customizing Atom"
 }}}
 
 # Configuration Settings
@@ -7,7 +7,7 @@
 ## Your .atom Directory
 
 When you install Atom, an _.atom_ directory is created in your home directory.
-If you press `meta-,`, that directory is opened in a new window. For the
+If you press `cmd-,`, that directory is opened in a new window. For the
 time being, this serves as the primary interface for adjusting configuration
 settings, adding and changing key bindings, tweaking styles, etc.
 
@@ -85,36 +85,17 @@ keymaps or third-party packages.
 Atom comes bundled with two themes `atom-dark-*` and `atom-light-*`.
 
 Because Atom themes are based on CSS, it's possible to have multiple themes
-active at the same time. For example, you'll usually select a theme for the UI
-and another theme for syntax highlighting.  You can select themes by specifying
-them in the `core.themes` array in your `config.cson`:
+active at the same time.
 
-```coffee-script
-core:
-  themes: ["atom-light-ui", "atom-light-syntax"]
-  # or, if the sun is going down:
-  # themes: ["atom-dark-ui", "atom-dark-syntax"]
-```
+For example, you'll usually select a theme for the UI and another theme for
+syntax highlighting.  You can change themes from the preferences pane.
 
 You install new themes by placing them in the _~/.atom/themes_ directory. A
-theme can be a CSS file, a directory containing multiple CSS files, or a
-TextMate theme (either _.tmTheme_ or _.plist_).
+theme can be a single LESS file or a directory containing multiple LESS files.
 
+## Installing Packages
 
-## Installing Packages (Partially Implemented)
-
-To install a package, clone it into the _~/.atom/packages_ directory. Atom will
-also load grammars and snippets from TextMate bundles. If you want to disable a
-package without removing it from the packages directory, insert its name into
-_config.core.disabledPackages_:
-
-```coffeescript
-core:
-  disabledPackages: [
-    "fuzzy-finder",
-    "tree-view"
-  ]
-```
+FIXME: Rewrite for the new dialog.
 
 ## Quick Personal Hacks
 
@@ -126,17 +107,19 @@ make customizations. You have full access to Atom's API from code in this file.
 Please refer to the [Atom Internals Guide](./internals/intro,md) for more information. If your
 customizations become extensive, consider [creating a package](./packages/creating_packages.md).
 
-### user.css
+### user.less
 
 If you want to apply quick-and-dirty personal styling changes without creating
 an entire theme that you intend to distribute, you can add styles to
-_user.css_ in your _~/.atom_ directory.
+_user.less_ in your _~/.atom_ directory.
 
 For example, to change the color of the highlighted line number for the line that
-contains the cursor, you could add the following style to _user.css_:
+contains the cursor, you could add the following style to _user.less_:
 
-```css
+```less
+@highlight-color: pink;
+
 .editor .line-number.cursor-line {
-  color: pink;
+  color: @highlight-color;
 }
 ```
