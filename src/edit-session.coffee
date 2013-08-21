@@ -58,7 +58,7 @@ class EditSession
       @id = guid.create().toString()
       displayBuffer ?= new DisplayBuffer({buffer, tabLength})
       @state = site.createDocument
-        deserializer: 'EditSession'
+        deserializer: @constructor.name
         version: @constructor.version
         id: @id
         bufferId: buffer.id
