@@ -509,8 +509,23 @@ class DisplayBuffer
   #
   # Returns an {Array} of {DisplayBufferMarker}s
   findMarkers: (attributes) ->
-    markers = @getMarkers().filter (marker) -> marker.matchesAttributes(attributes)
-    markers.sort (a, b) -> a.compare(b)
+    attributes = @translateToStringMarkerAttributes(attributes)
+    @buffer.findMarkers(attributes).map (stringMarker) => @getMarker(stringMarker.id)
+
+  translateToStringMarkerAttributes: (attributes) ->
+    stringMarkerAttributes = {}
+    for key, value of attributes
+      switch key
+        when 'startBufferRow'
+          key = 'startRow'
+        when 'endBufferRow'
+          key = 'endRow'
+        when 'containsBufferRange'
+          key = 'containsRange'
+        when 'containsBufferPosition'
+          key = 'containsPosition'
+      stringMarkerAttributes[key] = value
+    stringMarkerAttributes
 
   findFoldMarker: (attributes) ->
     @findFoldMarkers(attributes)[0]

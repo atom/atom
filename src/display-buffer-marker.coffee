@@ -157,21 +157,8 @@ class DisplayBufferMarker
     @bufferMarker.setAttributes(attributes)
 
   matchesAttributes: (attributes) ->
-    for key, value of attributes
-      return false unless @matchesAttribute(key, value)
-    true
-
-  matchesAttribute: (key, value) ->
-    switch key
-      when 'startBufferRow'
-        key = 'startRow'
-      when 'endBufferRow'
-        key = 'endRow'
-      when 'containsBufferRange'
-        key = 'containsRange'
-      when 'containsBufferPosition'
-        key = 'containsPosition'
-    @bufferMarker.matchesAttribute(key, value)
+    attributes = @displayBuffer.translateToStringMarkerAttributes(attributes)
+    @bufferMarker.matchesAttributes(attributes)
 
   # Destroys the marker
   destroy: ->
