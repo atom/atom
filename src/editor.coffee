@@ -23,6 +23,7 @@ class Editor extends View
     normalizeIndentOnPaste: true
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
     preferredLineLength: 80
+    tabLength: 2
 
   @nextEditorId: 1
 

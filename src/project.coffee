@@ -39,7 +39,6 @@ class Project
     repoName = repoName.replace(/\.git$/, '')
     path.join(config.get('core.projectHome'), repoName)
 
-  tabLength: 2
   softTabs: true
   softWrap: false
   rootDirectory: null
@@ -372,7 +371,7 @@ class Project
     editSession
 
   defaultEditSessionOptions: ->
-    tabLength: @tabLength
+    tabLength: config.get('editor.tabLength')
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()
 

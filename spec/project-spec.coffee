@@ -66,6 +66,11 @@ describe "Project", ->
       Project.unregisterOpener(barOpener)
 
     describe "when passed a path that doesn't match a custom opener", ->
+      it "creates the edit session with the configured `editor.tabLength` setting", ->
+        config.set('editor.tabLength', 4)
+        editSession = project.open('a')
+        expect(editSession.getTabLength()).toBe 4
+
       describe "when given an absolute path that hasn't been opened previously", ->
         it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->
           editSession = project.open(absolutePath)
