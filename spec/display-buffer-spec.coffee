@@ -140,6 +140,20 @@ describe "DisplayBuffer", ->
 
           expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 9, screenDelta: -6, bufferDelta: -4)
 
+      describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
+        it "correctly renders the original wrapped line", ->
+          buffer = project.buildBuffer(null, '')
+          displayBuffer = new DisplayBuffer({buffer, tabLength, softWrapColumn: 30})
+
+          buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
+          buffer.insert([0, Infinity], '\n')
+          buffer.delete([[0, Infinity], [1, 0]])
+          buffer.insert([0, Infinity], '\n')
+
+          expect(displayBuffer.lineForRow(0).text).toBe "the quick brown fox jumps over "
+          expect(displayBuffer.lineForRow(1).text).toBe "the lazy dog."
+          expect(displayBuffer.lineForRow(2).text).toBe ""
+
     describe "position translation", ->
       it "translates positions accounting for wrapped lines", ->
         # before any wrapped lines

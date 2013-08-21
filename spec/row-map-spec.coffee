@@ -172,6 +172,13 @@ describe "RowMap", ->
         expect(map.bufferRowRangeForScreenRow(7)).toEqual [21, 22]
         expect(map.bufferRowRangeForScreenRow(8)).toEqual [22, 27]
 
+      it "replaces regions that cover 0 buffer rows at the start or end of the buffer row range", ->
+        map.mapBufferRowRange(0, 0, 1)
+        map.mapBufferRowRange(0, 1, 1)
+        map.mapBufferRowRange(1, 1, 1)
+        map.mapBufferRowRange(0, 1, 3)
+        expect(map.screenRowRangeForBufferRow(0)).toEqual [0, 3]
+
     describe "when the row range straddles existing regions", ->
       it "splits the straddled regions and places the new region between them", ->
                                          # filler region 0

@@ -159,7 +159,7 @@ class RowMap
     bufferRow = 0
     screenRow = 0
     for region, index in @regions
-      if (bufferRow + region.bufferRows) > targetBufferRow
+      if (bufferRow + region.bufferRows) > targetBufferRow or region.bufferRows == 0 and bufferRow == targetBufferRow
         return { region, index, screenRow, bufferRow }
       bufferRow += region.bufferRows
       screenRow += region.screenRows
