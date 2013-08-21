@@ -228,11 +228,19 @@ window.atom =
     catch error
       console.warn "Error parsing window state: #{windowStatePath}", error.stack, error
 
-    windowState ?= {}
-    site.deserializeDocument(windowState) ? site.createDocument({})
+    {site, document} = windowState ? {}
+    if site? and document?
+      window.site = telepath.Site.deserialize(site)
+      window.site.deserializeDocument(document)
+    else
+      window.site = new telepath.Site(1)
+      window.site.createDocument({})
 
   saveWindowState: ->
-    windowStateJson = JSON.stringify(@getWindowState().serialize(), null, 2)
+    windowState =
+      site: site.serialize()
+      document: @getWindowState().serialize()
+    windowStateJson = JSON.stringify(windowState, null, 2)
     if windowStatePath = @getWindowStatePath()
       fsUtils.writeSync(windowStatePath, "#{windowStateJson}\n")
     else
