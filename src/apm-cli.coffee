@@ -22,6 +22,7 @@ parseOptions = (args=[]) ->
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
   options.alias('d', 'dev').boolean('dev')
+  options.boolean('hard')
   remainingArguments = options.argv._
   options.command = remainingArguments.shift()
   options.commandArgs = remainingArguments

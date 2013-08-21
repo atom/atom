@@ -374,3 +374,33 @@ describe 'apm command line interface', ->
 
         runs ->
           expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink)))).toBeFalsy()
+
+    describe "when the hard flag is true", ->
+      it "unlinks the package from both $ATOM_HOME/packages and $ATOM_HOME/dev/packages", ->
+        atomHome = temp.mkdirSync('apm-home-dir-')
+        process.env.ATOM_HOME = atomHome
+        packageToLink = temp.mkdirSync('a-package-')
+        process.chdir(packageToLink)
+        callback = jasmine.createSpy('callback')
+
+        runs ->
+          apm.run(['link', '--dev'], callback)
+
+        waitsFor 'link --dev to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          apm.run(['link'], callback)
+
+        waitsFor 'link to complete', ->
+          callback.callCount is 2
+
+        runs ->
+          apm.run(['unlink', '--hard'], callback)
+
+        waitsFor 'unlink --hard to complete', ->
+          callback.callCount is 3
+
+        runs ->
+          expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink)))).toBeFalsy()
+          expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeFalsy()
