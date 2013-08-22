@@ -2,6 +2,10 @@ ipc = require 'ipc'
 Menu = require 'menu'
 _ = require 'underscore'
 
+# Private: Used to manage the global application menu.
+#
+# It's created by {AtomApplication} upon instantiation and used to add, remove
+# and maintain the state of all menu items.
 module.exports =
 class ApplicationMenu
   version: null
@@ -12,11 +16,22 @@ class ApplicationMenu
     @menu = Menu.buildFromTemplate @getDefaultTemplate()
     Menu.setApplicationMenu @menu
 
+  # Public: Updates the entire menu with the given keybindings.
+  #
+  # keystrokesByCommand - An Object where the keys are commands and the values
+  #                       are Arrays containing the keystrokes.
+  #
+  # Returns nothing.
   update: (keystrokesByCommand) ->
     template = @getTemplate(keystrokesByCommand)
     @menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(@menu)
 
+  # Private: Flattens the given menu and submenu items into an single Array.
+  #
+  # menu - A complete menu configuration object for atom-shell's menu API.
+  #
+  # Returns an Array of native menu items.
   allItems: (menu=@menu) ->
     items = []
     for index, item of menu.items or {}
@@ -24,16 +39,31 @@ class ApplicationMenu
       items = items.concat(@allItems(item.submenu)) if item.submenu
     items
 
+  # Public: Used to make all window related menu items are active.
+  #
+  # enable - If true enables all window specific items, if false disables all
+  #          window specific items.
+  #
+  # Returns nothing.
   enableWindowSpecificItems: (enable) ->
     for item in @allItems()
       item.enabled = enable if item.metadata?['windowSpecific']
 
+  # Public: Makes the download menu item visible if available.
+  #
+  # Note: The update menu item's must match 'Install update' exactly otherwise
+  # this function will fail to work.
+  #
+  # Returns nothing.
   showDownloadUpdateItem: (newVersion, quitAndUpdateCallback) ->
     downloadUpdateItem = _.find @allItems(), (item) -> item.label == 'Install update'
     if downloadUpdateItem
       downloadUpdateItem.visible = true
       downloadUpdateItem.click = quitAndUpdateCallback
 
+  # Private: Default list of menu items.
+  #
+  # Returns an Array of menu item Objects.
   getDefaultTemplate: ->
     [
       label: "Atom"
@@ -45,6 +75,13 @@ class ApplicationMenu
       ]
     ]
 
+  # Private: The complete list of menu items.
+  #
+  # keystrokesByCommand - An Object where the keys are commands and the values
+  #                       are Arrays containing the keystrokes.
+  #
+  # Returns a complete menu configuration Object for use with atom-shell's
+  #   native menu API.
   getTemplate: (keystrokesByCommand) ->
     atomMenu =
       label: 'Atom'
@@ -113,6 +150,14 @@ class ApplicationMenu
 
     @translateTemplate template, keystrokesByCommand
 
+  # Private: Combines a menu template with the appropriate keystrokes.
+  #
+  # template            - An Object conforming to atom-shell's menu api but
+  #                       lacking accelerator and click properties.
+  # keystrokesByCommand - An Object where the keys are commands and the values
+  #                       are Arrays containing the keystrokes.
+  #
+  # Returns a complete menu configuration object for atom-shell's menu API.
   translateTemplate: (template, keystrokesByCommand) ->
     template.forEach (item) =>
       item.metadata = {}
@@ -123,6 +168,14 @@ class ApplicationMenu
       @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
     template
 
+  # Private: Determine the accelerator for a given command.
+  #
+  # command - The name of the command.
+  # keystrokesByCommand - An Object where the keys are commands and the values
+  #                       are Arrays containing the keystrokes.
+  #
+  # Returns a String containing the keystroke in a format that can be interpreted
+  #   by atom shell to provide nice icons where available.
   acceleratorForCommand: (command, keystrokesByCommand) ->
     keystroke = keystrokesByCommand[command]?[0]
     return null unless keystroke
