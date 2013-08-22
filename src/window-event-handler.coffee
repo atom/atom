@@ -5,6 +5,7 @@ remote = require 'remote'
 Subscriber = require 'subscriber'
 fsUtils = require 'fs-utils'
 
+# Private: Handles low-level events related to the window.
 module.exports =
 class WindowEventHandler
   _.extend @prototype, Subscriber

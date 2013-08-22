@@ -1,5 +1,5 @@
-## Internal ##
-
+# Private: Maintains the canonical map between screen and buffer positions.
+#
 # Facilitates the mapping of screen rows to buffer rows and vice versa. All row
 # ranges dealt with by this class are end-row exclusive. For example, a fold of
 # rows 4 through 8 would be expressed as `mapBufferRowRange(4, 9, 1)`, which maps

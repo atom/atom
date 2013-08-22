@@ -3,6 +3,8 @@ $ = require 'jquery'
 Editor = require 'editor'
 fuzzyFilter = require 'fuzzy-filter'
 
+# Public: Provides an interface for users to make a selection from a list of
+# choices.
 module.exports =
 class SelectList extends View
 

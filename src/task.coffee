@@ -2,6 +2,9 @@ _ = require 'underscore'
 child_process = require 'child_process'
 EventEmitter = require 'event-emitter'
 
+# Public: Run a node script in a separate process.
+#
+# Used by the fuzzy-finder.
 module.exports =
 class Task
   _.extend @prototype, EventEmitter
