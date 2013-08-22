@@ -17,3 +17,5 @@
   'meta-backspace': 'editor:backspace-to-beginning-of-line'
   'alt-delete': 'editor:delete-to-end-of-word'
   'ctrl-t': 'editor:transpose'
+  'ctrl-A': 'editor:select-to-first-character-of-line'
+  'ctrl-E': 'editor:select-to-end-of-line'
