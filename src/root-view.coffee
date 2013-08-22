@@ -176,7 +176,7 @@ class RootView extends View
 
   # Retrieves all of the modified buffers that are open and unsaved.
   #
-  # Returns an {Array} of {Buffer}s.
+  # Returns an {Array} of {TextBuffer}s.
   getModifiedBuffers: ->
     modifiedBuffers = []
     for pane in @getPanes()
@@ -245,7 +245,7 @@ class RootView extends View
   eachEditSession: (callback) ->
     project.eachEditSession(callback)
 
-  # Fires a callback on each open {Buffer}.
+  # Fires a callback on each open {TextBuffer}.
   #
   # callback - A {Function} to call
   eachBuffer: (callback) ->

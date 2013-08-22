@@ -8,7 +8,7 @@ _ = require 'underscore'
 # Public: Represents an individual file in the editor.
 #
 # The entry point for this class is in two locations:
-# * {Buffer}, which associates text contents with a file
+# * {TextBuffer}, which associates text contents with a file
 # * {Directory}, which associcates the children of a directory as files
 module.exports =
 class File

@@ -13,7 +13,7 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
-# An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
+# An `EditSession` manages the states between {Editor}s, {TextBuffer}s, and the project as a whole.
 module.exports =
 class EditSession
   _.extend @prototype, EventEmitter
@@ -162,7 +162,7 @@ class EditSession
   #
   # Equality is based on the condition that:
   #
-  # * the two {Buffer}s are the same
+  # * the two {TextBuffer}s are the same
   # * the two `scrollTop` and `scrollLeft` property are the same
   # * the two {Cursor} screen positions are the same
   #
@@ -285,7 +285,7 @@ class EditSession
 
   # Given a line, this retrieves the indentation level.
   #
-  # line - A {String} in the current {Buffer}.
+  # line - A {String} in the current {TextBuffer}.
   #
   # Returns a {Number}.
   indentLevelForLine: (line) ->
@@ -304,30 +304,30 @@ class EditSession
     else
       _.multiplyString("\t", Math.floor(number))
 
-  # {Delegates to: Buffer.save}
+  # {Delegates to: TextBuffer.save}
   save: -> @buffer.save()
 
-  # {Delegates to: Buffer.saveAs}
+  # {Delegates to: TextBuffer.saveAs}
   saveAs: (path) -> @buffer.saveAs(path)
 
-  # {Delegates to: Buffer.getExtension}
+  # {Delegates to: TextBuffer.getExtension}
   getFileExtension: -> @buffer.getExtension()
 
-  # {Delegates to: Buffer.getPath}
+  # {Delegates to: TextBuffer.getPath}
   getPath: -> @buffer.getPath()
 
-  # {Delegates to: Buffer.getRelativePath}
+  # {Delegates to: TextBuffer.getRelativePath}
   getRelativePath: -> @buffer.getRelativePath()
 
-  # {Delegates to: Buffer.getText}
+  # {Delegates to: TextBuffer.getText}
   getText: -> @buffer.getText()
 
-  # {Delegates to: Buffer.setText}
+  # {Delegates to: TextBuffer.setText}
   setText: (text) -> @buffer.setText(text)
 
   # Retrieves the current buffer.
   #
-  # Returns a {Buffer}.
+  # Returns a {TextBuffer}.
   getBuffer: -> @buffer
 
   # Retrieves the current buffer's URI.
@@ -335,7 +335,7 @@ class EditSession
   # Returns a {String}.
   getUri: -> @buffer.getUri()
 
-  # {Delegates to: Buffer.isRowBlank}
+  # {Delegates to: TextBuffer.isRowBlank}
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
 
   # Test if an entire row is a comment
@@ -346,31 +346,31 @@ class EditSession
       scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
       new TextMateScopeSelector('comment.*').matches(scopes)
 
-  # {Delegates to: Buffer.nextNonBlankRow}
+  # {Delegates to: TextBuffer.nextNonBlankRow}
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
 
-  # {Delegates to: Buffer.getEofPosition}
+  # {Delegates to: TextBuffer.getEofPosition}
   getEofBufferPosition: -> @buffer.getEofPosition()
 
-  # {Delegates to: Buffer.getLastRow}
+  # {Delegates to: TextBuffer.getLastRow}
   getLastBufferRow: -> @buffer.getLastRow()
 
-  # {Delegates to: Buffer.rangeForRow}
+  # {Delegates to: TextBuffer.rangeForRow}
   bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
 
-  # {Delegates to: Buffer.lineForRow}
+  # {Delegates to: TextBuffer.lineForRow}
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
 
-  # {Delegates to: Buffer.lineLengthForRow}
+  # {Delegates to: TextBuffer.lineLengthForRow}
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
 
-  # {Delegates to: Buffer.scanInRange}
+  # {Delegates to: TextBuffer.scanInRange}
   scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
 
-  # {Delegates to: Buffer.backwardsScanInRange}
+  # {Delegates to: TextBuffer.backwardsScanInRange}
   backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
-  # {Delegates to: Buffer.isModified}
+  # {Delegates to: TextBuffer.isModified}
   isModified: -> @buffer.isModified()
 
   # Identifies if the modified buffer should let you know if it's closing
@@ -547,11 +547,11 @@ class EditSession
 
     @insertText(text, options)
 
-  # Undos the last {Buffer} change.
+  # Undos the last {TextBuffer} change.
   undo: ->
     @buffer.undo(this)
 
-  # Redos the last {Buffer} change.
+  # Redos the last {TextBuffer} change.
   redo: ->
     @buffer.redo(this)
 

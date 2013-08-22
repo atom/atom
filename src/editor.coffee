@@ -577,7 +577,7 @@ class Editor extends View
     @showIndentGuide = showIndentGuide
     @resetDisplay()
 
-  # {Delegates to: Buffer.checkoutHead}
+  # {Delegates to: TextBuffer.checkoutHead}
   checkoutHead: -> @getBuffer().checkoutHead()
 
   # {Delegates to: EditSession.setText}
@@ -592,31 +592,31 @@ class Editor extends View
   # {Delegates to: EditSession.getRelativePath}
   getRelativePath: -> @activeEditSession?.getRelativePath()
 
-  #  {Delegates to: Buffer.getLineCount}
+  #  {Delegates to: TextBuffer.getLineCount}
   getLineCount: -> @getBuffer().getLineCount()
 
-  #  {Delegates to: Buffer.getLastRow}
+  #  {Delegates to: TextBuffer.getLastRow}
   getLastBufferRow: -> @getBuffer().getLastRow()
 
-  #  {Delegates to: Buffer.getTextInRange}
+  #  {Delegates to: TextBuffer.getTextInRange}
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
 
-  #  {Delegates to: Buffer.getEofPosition}
+  #  {Delegates to: TextBuffer.getEofPosition}
   getEofPosition: -> @getBuffer().getEofPosition()
 
-  #  {Delegates to: Buffer.lineForRow}
+  #  {Delegates to: TextBuffer.lineForRow}
   lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
 
-  #  {Delegates to: Buffer.lineLengthForRow}
+  #  {Delegates to: TextBuffer.lineLengthForRow}
   lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
 
-  #  {Delegates to: Buffer.rangeForRow}
+  #  {Delegates to: TextBuffer.rangeForRow}
   rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
 
-  #  {Delegates to: Buffer.scanInRange}
+  #  {Delegates to: TextBuffer.scanInRange}
   scanInBufferRange: (args...) -> @getBuffer().scanInRange(args...)
 
-  #  {Delegates to: Buffer.backwardsScanInRange}
+  #  {Delegates to: TextBuffer.backwardsScanInRange}
   backwardsScanInBufferRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   ### Internal ###
@@ -838,7 +838,7 @@ class Editor extends View
 
   # Retrieves the {EditSession}'s buffer.
   #
-  # Returns the current {Buffer}.
+  # Returns the current {TextBuffer}.
   getBuffer: -> @activeEditSession.buffer
 
   # Scrolls the editor to the bottom.

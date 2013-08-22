@@ -46,7 +46,7 @@ class Selection
 
   # Identifies if the ending position of a marker is greater than the starting position.
   #
-  # This can happen when, for example, you highlight text "up" in a {Buffer}.
+  # This can happen when, for example, you highlight text "up" in a {TextBuffer}.
   #
   # Returns a {Boolean}.
   isReversed: ->
@@ -127,7 +127,7 @@ class Selection
   expandOverWord: ->
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
-  # Selects an entire line in the {Buffer}.
+  # Selects an entire line in the {TextBuffer}.
   #
   # row - The line {Number} to select (default: the row of the cursor)
   selectLine: (row=@cursor.getBufferPosition().row) ->

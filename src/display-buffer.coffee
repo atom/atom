@@ -335,7 +335,7 @@ class DisplayBuffer
 
   # Retrieves the grammar's token scopes for a buffer position.
   #
-  # bufferPosition - A {Point} in the {Buffer}
+  # bufferPosition - A {Point} in the {TextBuffer}
   #
   # Returns an {Array} of {String}s.
   scopesForBufferPosition: (bufferPosition) ->
@@ -346,7 +346,7 @@ class DisplayBuffer
 
   # Retrieves the grammar's token for a buffer position.
   #
-  # bufferPosition - A {Point} in the {Buffer}.
+  # bufferPosition - A {Point} in the {TextBuffer}.
   #
   # Returns a {Token}.
   tokenForBufferPosition: (bufferPosition) ->
@@ -444,7 +444,7 @@ class DisplayBuffer
         return column + 1 if /\s/.test(line[column])
       return softWrapColumn
 
-  # Calculates a {Range} representing the start of the {Buffer} until the end.
+  # Calculates a {Range} representing the start of the {TextBuffer} until the end.
   #
   # Returns a {Range}.
   rangeForAllLines: ->

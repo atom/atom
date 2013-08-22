@@ -220,13 +220,13 @@ class Project
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
 
-  # Retrieves all the {Buffer}s in the project; that is, the buffers for all open files.
+  # Retrieves all the {TextBuffer}s in the project; that is, the buffers for all open files.
   #
-  # Returns an {Array} of {Buffer}s.
+  # Returns an {Array} of {TextBuffer}s.
   getBuffers: ->
     new Array(@buffers...)
 
-  # Given a file path, this retrieves or creates a new {Buffer}.
+  # Given a file path, this retrieves or creates a new {TextBuffer}.
   #
   # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
   # `text` is used as the contents of the new buffer.
@@ -234,7 +234,7 @@ class Project
   # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
   # text - The {String} text to use as a buffer, if the file doesn't have any contents
   #
-  # Returns the {Buffer}.
+  # Returns the {TextBuffer}.
   bufferForPath: (filePath, text) ->
     if filePath?
       filePath = @resolve(filePath)
@@ -247,12 +247,12 @@ class Project
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
-  # Given a file path, this sets its {Buffer}.
+  # Given a file path, this sets its {TextBuffer}.
   #
   # filePath - A {String} representing a path
   # text - The {String} text to use as a buffer
   #
-  # Returns the {Buffer}.
+  # Returns the {TextBuffer}.
   buildBuffer: (filePath, initialText) ->
     filePath = @resolve(filePath) if filePath?
     buffer = new TextBuffer({project: this, filePath, initialText})
@@ -267,9 +267,9 @@ class Project
     @buffers[index] = buffer
     @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
 
-  # Removes a {Buffer} association from the project.
+  # Removes a {TextBuffer} association from the project.
   #
-  # Returns the removed {Buffer}.
+  # Returns the removed {TextBuffer}.
   removeBuffer: (buffer) ->
     index = @buffers.indexOf(buffer)
     @removeBufferAtIndex(index) unless index is -1
