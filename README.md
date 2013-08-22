@@ -2,8 +2,7 @@
 
 ![atom](https://s3.amazonaws.com/speakeasy/apps/icons/27/medium/7db16e44-ba57-11e2-8c6f-981faf658e00.png)
 
-Check out our [documentation in this repo](https://github.com/atom/atom/tree/master/docs).
-There is also [API documentation](https://atom-docs.githubapp.com/api/index.html).
+Check out our [guides](https://atom-docs.githubapp.com/v20.0/index.html) and [API documentation](https://atom-docs.githubapp.com/v20.0/api/index.html).
 
 ## Installing
 

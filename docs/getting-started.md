@@ -6,7 +6,7 @@
 
 Welcome to Atom! This guide provides a quick introduction so you can be
 productive as quickly as possible. There are also guides which cover
-[configuring](customizing-atom.md), [theming.md](creating-a-theme.md), and [extending.md](creating-a-package.md) Atom.
+[configuring][configuring], [theming][theming], and [extending][extending] Atom.
 
 ## The Command Palette
 
