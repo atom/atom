@@ -2,6 +2,7 @@
   'atom'
   'text'
   'icons'
+  'loading'
   'buttons'
   'panels'
   'lists'
