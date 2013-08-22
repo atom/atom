@@ -109,6 +109,15 @@ describe "PaneContainer", ->
         expect(container.reopenItem()).toBeFalsy()
         expect(pane1.activeItem).toEqual item3
 
+      describe "when the last-closed pane item is an edit session", ->
+        it "reopens the edit session (regression)", ->
+          editSession = project.open('sample.js')
+          pane3.showItem(editSession)
+          pane3.destroyItem(editSession)
+          expect(container.reopenItem()).toBeTruthy()
+          expect(pane3.activeItem.getPath()).toBe editSession.getPath()
+          expect(container.reopenItem()).toBeFalsy()
+
     describe "when there is no active pane", ->
       it "attaches a new pane with the reconstructed last pane item and focuses it", ->
         container.attachToDom()

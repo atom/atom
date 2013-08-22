@@ -27,12 +27,12 @@ class TokenizedBuffer
   constructor: (optionsOrState) ->
     if optionsOrState instanceof telepath.Document
       @state = optionsOrState
-      @buffer = project.bufferForId(optionsOrState.get('bufferId'))
+      @buffer = project.bufferForPath(optionsOrState.get('bufferPath'))
     else
       { @buffer, tabLength } = optionsOrState
       @state = site.createDocument
         deserializer: @constructor.name
-        bufferId: @buffer.id
+        bufferPath: @buffer.getRelativePath()
         tabLength: tabLength ? 2
 
     @subscribe syntax, 'grammar-added grammar-updated', (grammar) =>
@@ -44,6 +44,7 @@ class TokenizedBuffer
 
     @on 'grammar-changed grammar-updated', => @resetTokenizedLines()
     @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
+    @subscribe @buffer, "path-changed", => @state.set('bufferPath', @buffer.getRelativePath())
 
     @reloadGrammar()
 
