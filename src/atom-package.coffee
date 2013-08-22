@@ -43,17 +43,19 @@ class AtomPackage extends Package
 
   activateNow: ->
     try
-      if @requireMainModule()
-        config.setDefaults(@name, @mainModule.configDefaults)
-        @mainModule.activate(atom.getPackageState(@name) ? {})
+      @activateConfig()
+      @mainModule.activate(atom.getPackageState(@name) ? {}) if @requireMainModule()
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
   activateConfig: ->
-    @activateResources()
-    if @requireMainModule()
+    return if @configActivated
+
+    @requireMainModule()
+    if @mainModule?
       config.setDefaults(@name, @mainModule.configDefaults)
-      @mainModule?.activateConfig?()
+      @mainModule.activateConfig?()
+    @configActivated = true
 
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
@@ -123,7 +125,7 @@ class AtomPackage extends Package
     applyStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
 
   requireMainModule: ->
-    return @mainModule if @mainModule
+    return @mainModule if @mainModule?
     mainModulePath = @getMainModulePath()
     @mainModule = require(mainModulePath) if fsUtils.isFileSync(mainModulePath)
 
