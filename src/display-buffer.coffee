@@ -23,8 +23,7 @@ class DisplayBuffer
   @acceptsDocuments: true
   registerDeserializer(this)
 
-  @deserialize: (state) ->
-    new DisplayBuffer(state)
+  @deserialize: (state) -> new this(state)
 
   constructor: (optionsOrState) ->
     if optionsOrState instanceof telepath.Document
