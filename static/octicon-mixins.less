@@ -1,15 +1,12 @@
-.icon() {
+.icon(@size, @display: inline-block) {
   font-family: 'Octicons Regular';
   font-weight: normal;
   font-style: normal;
-  display: inline-block;
+  display: @display;
   line-height: 1;
   -webkit-font-smoothing: antialiased;
   text-decoration: none;
-}
 
-.icon(@size) {
-  .icon;
   font-size: @size;
   width: @size;
   height: @size;
