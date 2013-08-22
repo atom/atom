@@ -106,11 +106,12 @@ class AtomPackage extends Package
   deactivate: ->
     @unsubscribeFromActivationEvents()
     @deactivateResources()
+    @deactivateConfig()
     @mainModule?.deactivate?()
 
   deactivateConfig: ->
-    @deactivateResources()
     @mainModule?.deactivateConfig?()
+    @configActivated = false
 
   deactivateResources: ->
     syntax.removeGrammar(grammar) for grammar in @grammars
