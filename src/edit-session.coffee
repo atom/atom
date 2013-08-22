@@ -61,7 +61,6 @@ class EditSession
         deserializer: @constructor.name
         version: @constructor.version
         id: @id
-        bufferId: buffer.id
         displayBuffer: displayBuffer.getState()
         softWrap: softWrap ? false
         softTabs: buffer.usesSoftTabs() ? softTabs ? true
