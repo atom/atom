@@ -34,11 +34,17 @@
     .text(highlighted);
   }
 
-  .list-nested-item.collapsed > .list-group {
+  .list-nested-item.collapsed > .list-group,
+  .list-nested-item.collapsed > .list-tree {
     display: none;
   }
   .list-nested-item.collapsed > .list-item > .disclosure-arrow {
     .octicon(chevron-right, @disclosure-arrow-size);
+  }
+
+  .list-item.selected,
+  .list-nested-item.selected > .list-item {
+    background-color: @tool-panel-background-highlight-color;
   }
 }
 
@@ -55,6 +61,4 @@
   .list-nested-item > .list-group {
     margin-left: @disclosure-arrow-padding;
   }
-
-
 }
