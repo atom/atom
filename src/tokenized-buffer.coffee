@@ -13,7 +13,6 @@ class TokenizedBuffer
   grammar: null
   currentGrammarScore: null
   buffer: null
-  aceAdaptor: null
   tokenizedLines: null
   chunkSize: 50
   invalidRows: null
