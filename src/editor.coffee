@@ -24,6 +24,7 @@ class Editor extends View
     nonWordCharacters: "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-"
     preferredLineLength: 80
     tabLength: 2
+    softWrap: false
 
   @nextEditorId: 1
 

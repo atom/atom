@@ -373,7 +373,7 @@ class Project
   defaultEditSessionOptions: ->
     tabLength: config.get('editor.tabLength')
     softTabs: @getSoftTabs()
-    softWrap: @getSoftWrap()
+    softWrap: config.get('editor.softWrap')
 
   eachEditSession: (callback) ->
     callback(editSession) for editSession in @getEditSessions()
