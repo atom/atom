@@ -69,15 +69,19 @@ describe "Project", ->
       it "creates the edit session with the configured `editor.tabLength` and `editor.softWrap` settings", ->
         config.set('editor.tabLength', 4)
         config.set('editor.softWrap', true)
+        config.set('editor.softTabs', false)
         editSession1 = project.open('a')
         expect(editSession1.getTabLength()).toBe 4
         expect(editSession1.getSoftWrap()).toBe true
+        expect(editSession1.getSoftTabs()).toBe false
 
         config.set('editor.tabLength', 100)
         config.set('editor.softWrap', false)
+        config.set('editor.softTabs', true)
         editSession2 = project.open('b')
         expect(editSession2.getTabLength()).toBe 100
         expect(editSession2.getSoftWrap()).toBe false
+        expect(editSession2.getSoftTabs()).toBe true
 
       describe "when given an absolute path that hasn't been opened previously", ->
         it "returns a new edit session for the given path and emits 'buffer-created' and 'edit-session-created' events", ->

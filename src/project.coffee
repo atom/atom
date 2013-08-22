@@ -39,7 +39,6 @@ class Project
     repoName = repoName.replace(/\.git$/, '')
     path.join(config.get('core.projectHome'), repoName)
 
-  softTabs: true
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -187,16 +186,6 @@ class Project
   # Returns a {Boolean}.
   contains: (pathToCheck) ->
     @rootDirectory?.contains(pathToCheck) ? false
-
-  # Identifies if the project is using soft tabs.
-  #
-  # Returns a {Boolean}.
-  getSoftTabs: -> @softTabs
-
-  # Sets the project to use soft tabs.
-  #
-  # softTabs - A {Boolean} which, if `true`, sets soft tabs
-  setSoftTabs: (@softTabs) ->
 
   # Given a path to a file, this constructs and associates a new `EditSession`, showing the file.
   #
@@ -361,7 +350,7 @@ class Project
 
   defaultEditSessionOptions: ->
     tabLength: config.get('editor.tabLength')
-    softTabs: @getSoftTabs()
+    softTabs: config.get('editor.softTabs')
     softWrap: config.get('editor.softWrap')
 
   eachEditSession: (callback) ->
