@@ -58,7 +58,7 @@ class ApplicationMenu
         { label: 'Hide Others', command: 'application:hide-other-applications' }
         { label: 'Show All', command: 'application:unhide-all-applications' }
         { type: 'separator' }
-        { label: 'Run Specs', command: 'application:run-specs' }
+        { label: 'Run Atom Specs', command: 'application:run-all-specs' }
         { type: 'separator' }
         { label: 'Quit', command: 'application:quit' }
       ]

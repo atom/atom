@@ -99,7 +99,7 @@ class AtomApplication
 
   handleEvents: ->
     @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
-    @on 'application:run-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
+    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
     @on 'application:show-settings', -> (@focusedWindow() ? this).openPath("atom://config")
     @on 'application:quit', -> app.quit()
     @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')

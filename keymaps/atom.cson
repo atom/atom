@@ -9,7 +9,7 @@
   'meta-m': 'application:minimize'
   'meta-,': 'application:show-settings'
   'alt-meta-ctrl-m': 'application:zoom'
-  'meta-alt-ctrl-s': 'application:run-specs'
+  'meta-alt-ctrl-s': 'application:run-all-specs'
 
   'meta-s': 'core:save'
   'meta-S': 'core:save-as'

@@ -67,7 +67,7 @@ class RootView extends View
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
 
     @command 'application:about', -> ipc.sendChannel('command', 'application:about')
-    @command 'application:run-specs', -> ipc.sendChannel('command', 'application:run-specs')
+    @command 'application:run-all-specs', -> ipc.sendChannel('command', 'application:run-all-specs')
     @command 'application:show-settings', -> ipc.sendChannel('command', 'application:show-settings')
     @command 'application:quit', -> ipc.sendChannel('command', 'application:quit')
     @command 'application:hide', -> ipc.sendChannel('command', 'application:hide')
