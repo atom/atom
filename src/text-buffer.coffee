@@ -108,6 +108,7 @@ class TextBuffer
       @triggerModifiedStatusChanged(@isModified())
 
     @file.on "moved", =>
+      @state.set('relativePath', @project.relativize(@getPath()))
       @trigger "path-changed", this
 
   ### Public ###
