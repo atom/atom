@@ -40,7 +40,6 @@ class Project
     path.join(config.get('core.projectHome'), repoName)
 
   softTabs: true
-  softWrap: false
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -198,16 +197,6 @@ class Project
   #
   # softTabs - A {Boolean} which, if `true`, sets soft tabs
   setSoftTabs: (@softTabs) ->
-
-  # Identifies if the project is using soft wrapping.
-  #
-  # Returns a {Boolean}.
-  getSoftWrap: -> @softWrap
-
-  # Sets the project to use soft wrapping.
-  #
-  # softTabs - A {Boolean} which, if `true`, sets soft wrapping
-  setSoftWrap: (@softWrap) ->
 
   # Given a path to a file, this constructs and associates a new `EditSession`, showing the file.
   #
