@@ -15,33 +15,11 @@ _ = require 'underscore'
 
 socketPath = '/tmp/atom.sock'
 
-# Public: The application's singleton class.
+# Private: The application's singleton class.
 #
 # It's the entry point into the Atom application and maintains the global state
-# of the application. For the most part you won't interact directly with this
-# class but you may use one it's provided commands.
+# of the application.
 #
-# ## Commands
-#
-#  * `application:about` - This opens the about dialog.
-#  * `application:show-settings` - This opens the preference pane in the currently
-#    focused editor.
-#  * `application:quit` - This quits the entire application.
-#  * `application:hide` - This hides the entire application.
-#  * `application:hide-other-applications` - This hides other applications
-#    running on the system.
-#  * `application:unhide-other-applications` - This shows other applications
-#    that were previously hidden.
-#  * `application:new-window` - This opens a new {AtomWindow} with no {Project}
-#    path.
-#  * `application:new-file` - This creates a new file within the focused window.
-#    Note: only one new file may exist within an {AtomWindow} at a time.
-#  * `application:open` - Prompts the user for a path to open in a new {AtomWindow}
-#  * `application:minimize` - Minimizes the currently focused {AtomWindow}
-#  * `application:zoom` - Expands the window to fill the screen or returns it to
-#    it's original unzoomed size.
-#  * `application:bring-all-windows-to-front` - Brings all {AtomWindow}s to the
-#    the front.
 module.exports =
 class AtomApplication
   _.extend @prototype, EventEmitter.prototype

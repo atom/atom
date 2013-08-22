@@ -16,6 +16,29 @@ PaneContainer = require 'pane-container'
 EditSession = require 'edit-session'
 
 # Public: The container for the entire Atom application.
+#
+# ## Commands
+#
+#  * `application:about` - Opens the about dialog.
+#  * `application:show-settings` - Opens the preference pane in the currently
+#    focused editor.
+#  * `application:quit` - Quits the entire application.
+#  * `application:hide` - Hides the entire application.
+#  * `application:hide-other-applications` - Hides other applications
+#    running on the system.
+#  * `application:unhide-other-applications` - Shows other applications
+#    that were previously hidden.
+#  * `application:new-window` - Opens a new {AtomWindow} with no {Project}
+#    path.
+#  * `application:new-file` - Creates a new file within the focused window.
+#    Note: only one new file may exist within an {AtomWindow} at a time.
+#  * `application:open` - Prompts the user for a path to open in a new {AtomWindow}
+#  * `application:minimize` - Minimizes the currently focused {AtomWindow}
+#  * `application:zoom` - Expands the window to fill the screen or returns it to
+#    it's original unzoomed size.
+#  * `application:bring-all-windows-to-front` - Brings all {AtomWindow}s to the
+#    the front.
+#
 module.exports =
 class RootView extends View
   registerDeserializers(this, Pane, PaneRow, PaneColumn, Editor)
