@@ -1,3 +1,4 @@
+* Added: Soft wrap and tab length can now be set in the settings view
 * Fixed: Python import statements not syntax highlighting correctly
 
 * Added: Terminal package now bundled by default, open with ctrl-`
