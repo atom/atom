@@ -1,5 +1,8 @@
 @import "ui-mixins";
 @import "ui-colors";
+@import "ui-sizes";
+
+@import "octicon-mixins.less";
 
 a.icon {
   text-decoration: none;
@@ -7,4 +10,12 @@ a.icon {
   &:hover{
     color: @text-color-highlight;
   }
+}
+
+.disclosure-arrow {
+  .octicon(chevron-down, @disclosure-arrow-size);
+  position: relative;
+}
+.disclosure-arrow.collapsed {
+  .octicon(chevron-right, @disclosure-arrow-size);
 }
