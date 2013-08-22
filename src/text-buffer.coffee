@@ -407,11 +407,11 @@ class TextBuffer
   # Returns a {Boolean}.
   isEmpty: -> @text.isEmpty()
 
-  # Returns all valid {BufferMarker}s on the buffer.
+  # Returns all valid {StringMarker}s on the buffer.
   getMarkers: ->
     @text.getMarkers()
 
-  # Returns the {BufferMarker} with the given id.
+  # Returns the {StringMarker} with the given id.
   getMarker: (id) ->
     @text.getMarker(id)
 
@@ -431,7 +431,7 @@ class TextBuffer
   #   startRow - The row at which the marker starts
   #   endRow - The row at which the marker ends
   #
-  # Returns an {Array} of {BufferMarker}s
+  # Returns an {Array} of {StringMarker}s
   findMarkers: (attributes) ->
     @text.findMarkers(attributes)
 
@@ -458,7 +458,7 @@ class TextBuffer
   # Constructs a new marker at a given position.
   #
   # position - The marker {Point}; there won't be a tail
-  # options - Options to pass to the {BufferMarker} constructor
+  # options - Options to pass to the {StringMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markPosition: (position, options) ->

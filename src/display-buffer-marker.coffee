@@ -42,7 +42,7 @@ class DisplayBufferMarker
   # Modifies the screen range of the display marker.
   #
   # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
+  # options - A hash of options matching those found in {StringMarker.setRange}
   setScreenRange: (screenRange, options) ->
     @setBufferRange(@displayBuffer.bufferRangeForScreenRange(screenRange), options)
 
@@ -55,7 +55,7 @@ class DisplayBufferMarker
   # Modifies the buffer range of the display marker.
   #
   # screenRange - The new {Range} to use
-  # options - A hash of options matching those found in {BufferMarker.setRange}
+  # options - A hash of options matching those found in {StringMarker.setRange}
   setBufferRange: (bufferRange, options) ->
     @bufferMarker.setRange(bufferRange, options)
 
@@ -140,7 +140,7 @@ class DisplayBufferMarker
   # Returns a {Boolean} indicating whether the marker has been destroyed. A marker
   # can be invalid without being destroyed, in which case undoing the invalidating
   # operation would restore the marker. Once a marker is destroyed by calling
-  # {BufferMarker.destroy}, no undo/redo operation can ever bring it back.
+  # {StringMarker.destroy}, no undo/redo operation can ever bring it back.
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 

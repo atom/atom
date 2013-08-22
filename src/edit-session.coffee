@@ -827,7 +827,7 @@ class EditSession
   destroyMarker: (args...) ->
     @displayBuffer.destroyMarker(args...)
 
-  # {Delegates to: Buffer.getMarkerCount}
+  # {Delegates to: DisplayBuffer.getMarkerCount}
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
