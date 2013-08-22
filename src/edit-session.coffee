@@ -22,7 +22,7 @@ class EditSession
 
   ### Internal ###
 
-  @version: 4
+  @version: 5
 
   @deserialize: (state) ->
     new EditSession(state)
@@ -56,13 +56,12 @@ class EditSession
     else
       {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation} = optionsOrState
       @id = guid.create().toString()
-      displayBuffer ?= new DisplayBuffer({buffer, tabLength})
+      displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
       @state = site.createDocument
         deserializer: @constructor.name
         version: @constructor.version
         id: @id
         displayBuffer: displayBuffer.getState()
-        softWrap: softWrap ? false
         softTabs: buffer.usesSoftTabs() ? softTabs ? true
         scrollTop: 0
         scrollLeft: 0
@@ -122,8 +121,7 @@ class EditSession
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    softWrap = @getSoftWrap()
-    newEditSession = new EditSession({@buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation: true})
+    newEditSession = new EditSession({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true})
     newEditSession.setScrollTop(@getScrollTop())
     newEditSession.setScrollLeft(@getScrollLeft())
     for marker in @findMarkers(editSessionId: @id)
@@ -212,14 +210,12 @@ class EditSession
   # Retrieves whether soft tabs are enabled.
   #
   # Returns a {Boolean}.
-  getSoftWrap: ->
-    @state.get('softWrap')
+  getSoftWrap: -> @displayBuffer.getSoftWrap()
 
   # Defines whether to use soft wrapping of text.
   #
   # softTabs - A {Boolean} which, if `true`, indicates that you want soft wraps.
-  setSoftWrap: (softWrap) ->
-    @state.set('softWrap', softWrap)
+  setSoftWrap: (softWrap) -> @displayBuffer.setSoftWrap(softWrap)
 
   # Retrieves that character used to indicate a tab.
   #

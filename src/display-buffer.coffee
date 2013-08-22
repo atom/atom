@@ -14,14 +14,9 @@ DefaultSoftWrapColumn = 1000000
 
 module.exports =
 class DisplayBuffer
-  screenLines: null
-  rowMap: null
-  tokenizedBuffer: null
-  markers: null
-  foldsByMarkerId: null
-
   @acceptsDocuments: true
   registerDeserializer(this)
+  @version: 1
 
   @deserialize: (state) -> new this(state)
 
@@ -32,13 +27,15 @@ class DisplayBuffer
       @tokenizedBuffer = deserialize(@state.get('tokenizedBuffer'))
       @buffer = @tokenizedBuffer.buffer
     else
-      {@buffer, softWrapColumn} = optionsOrState
+      {@buffer, softWrap, softWrapColumn} = optionsOrState
       @id = guid.create().toString()
       @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
       @state = site.createDocument
         deserializer: @constructor.name
+        version: @constructor.version
         id: @id
         tokenizedBuffer: @tokenizedBuffer.getState()
+        softWrap: softWrap ? false
         softWrapColumn: softWrapColumn ? DefaultSoftWrapColumn
 
     @markers = {}
@@ -78,6 +75,10 @@ class DisplayBuffer
   #
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
+
+  setSoftWrap: (softWrap) -> @state.set('softWrap', softWrap)
+
+  getSoftWrap: -> @state.get('softWrap')
 
   # Defines the limit at which the buffer begins to soft wrap text.
   #
