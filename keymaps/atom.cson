@@ -45,6 +45,7 @@
   'ctrl-meta-f': 'window:toggle-full-screen'
   'meta-r': 'window:reload'
   'alt-meta-i': 'window:toggle-dev-tools'
+  'meta-alt-ctrl-p': 'window:run-package-specs'
 
   'ctrl-|': 'pane:split-right'
   'ctrl-w v': 'pane:split-right'

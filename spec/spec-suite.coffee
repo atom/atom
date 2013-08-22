@@ -15,24 +15,33 @@ measure 'spec suite require time', ->
     for spec in jasmine.getEnv().currentRunner().specs() when not spec.specType?
       spec.specType = specType
 
-  # Run core specs
-  requireSpecs(window.resourcePath)
-  setSpecType('core')
+  runAllSpecs = ->
+    requireSpecs(window.resourcePath)
+    setSpecType('core')
 
-  fixturesPackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
-  packagePaths = atom.getAvailablePackageNames().map (packageName) -> atom.resolvePackagePath(packageName)
-  packagePaths = _.groupBy packagePaths, (packagePath) ->
-    if packagePath.indexOf("#{fixturesPackagesPath}#{path.sep}") is 0
-      'fixtures'
-    else if packagePath.indexOf("#{window.resourcePath}#{path.sep}") is 0
-      'bundled'
-    else
-      'user'
+    fixturesPackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
+    packagePaths = atom.getAvailablePackageNames().map (packageName) -> atom.resolvePackagePath(packageName)
+    packagePaths = _.groupBy packagePaths, (packagePath) ->
+      if packagePath.indexOf("#{fixturesPackagesPath}#{path.sep}") is 0
+        'fixtures'
+      else if packagePath.indexOf("#{window.resourcePath}#{path.sep}") is 0
+        'bundled'
+      else
+        'user'
 
-  # Run bundled package specs
-  requireSpecs(packagePath) for packagePath in packagePaths.bundled ? []
-  setSpecType('bundled')
+    # Run bundled package specs
+    requireSpecs(packagePath) for packagePath in packagePaths.bundled ? []
+    setSpecType('bundled')
 
-  # Run user package specs
-  requireSpecs(packagePath) for packagePath in packagePaths.user ? []
-  setSpecType('user')
+    # Run user package specs
+    requireSpecs(packagePath) for packagePath in packagePaths.user ? []
+    setSpecType('user')
+
+  runSpecs = (specPath) ->
+    requireSpecs(specPath)
+    setSpecType("user")
+
+  if specPath = atom.getLoadSettings().specPath
+    runSpecs(specPath)
+  else
+    runAllSpecs()
