@@ -2,33 +2,59 @@
 @import "ui-mixins";
 @import "octicon-mixins";
 
-.list-group .list-group-item { .text(normal); }
+.list-group, .list-tree {
+  margin: 0;
+  list-style: none;
 
-.generate-list-group-text-color(@class) {
-  .list-group .list-group-item.@{class},
-  .list-group .list-group-nested-item.@{class} > .list-group-item {
-    .text(@class);
+  .list-item,
+  .list-nested-item > .list-item {
+    .text(normal);
+    line-height: @component-line-height;
+  }
+
+  .generate-list-item-text-color(@class) {
+    .list-item.@{class},
+    .list-nested-item.@{class} > .list-item {
+      .text(@class);
+    }
+  }
+  .generate-list-item-text-color(subtle);
+  .generate-list-item-text-color(info);
+  .generate-list-item-text-color(success);
+  .generate-list-item-text-color(warning);
+  .generate-list-item-text-color(error);
+  .generate-list-item-text-color(selected);
+
+  .list-item:hover,
+  .list-nested-item:hover > .list-item, // i.e. highlight directory when hover child file
+  .list-nested-item .list-item:hover,
+  .list-nested-item .list-item:hover .disclosure-arrow,
+  .selected > .list-nested-item > .list-item .disclosure-arrow,
+  .selected > .list-nested-item > .list-item:hover .disclosure-arrow  {
+    .text(highlighted);
+  }
+
+  .list-nested-item.collapsed > .list-group {
+    display: none;
+  }
+  .list-nested-item.collapsed > .list-item > .disclosure-arrow {
+    .octicon(chevron-right, @disclosure-arrow-size);
   }
 }
-.generate-list-group-text-color(subtle);
-.generate-list-group-text-color(info);
-.generate-list-group-text-color(success);
-.generate-list-group-text-color(warning);
-.generate-list-group-text-color(error);
-.generate-list-group-text-color(selected);
 
-.list-group .list-group-item:hover,
-.list-group .list-group-nested-item:hover > .list-group-item, // i.e. highlight directory when hover child file
-.list-group .list-group-nested-item .list-group-item:hover,
-.list-group .list-group-nested-item .list-group-item:hover .disclosure-arrow,
-.list-group .selected > .list-group-nested-item > .list-group-item .disclosure-arrow,
-.list-group .selected > .list-group-nested-item > .list-group-item:hover .disclosure-arrow  {
-  .text(highlighted);
-}
+// Handle indentation of the tree. Assume disclosure arrows.
+.list-tree {
+  @disclosure-arrow-padding: @disclosure-arrow-size + @component-icon-padding;
 
-.list-group .list-group-nested-item.collapsed > .list-group {
-  display: none;
-}
-.list-group .list-group-nested-item.collapsed > .list-group-item > .disclosure-arrow {
-  .octicon(chevron-right, @disclosure-arrow-size);
+  .disclosure-arrow { margin-right: @component-icon-padding; }
+
+  &.has-collapsable-children li.list-item {
+    margin-left: @disclosure-arrow-padding;
+  }
+  .list-nested-item > .list-tree,
+  .list-nested-item > .list-group {
+    margin-left: @disclosure-arrow-padding;
+  }
+
+
 }
