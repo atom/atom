@@ -313,6 +313,9 @@ class EditSession
   # {Delegates to: Buffer.getPath}
   getPath: -> @buffer.getPath()
 
+  # {Delegates to: Buffer.getRelativePath}
+  getRelativePath: -> @buffer.getRelativePath()
+
   # {Delegates to: Buffer.getText}
   getText: -> @buffer.getText()
 
