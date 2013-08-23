@@ -10,8 +10,6 @@ Token = require 'token'
 DisplayBufferMarker = require 'display-buffer-marker'
 Subscriber = require 'subscriber'
 
-DefaultSoftWrapColumn = 1000000
-
 module.exports =
 class DisplayBuffer
   @acceptsDocuments: true
@@ -36,7 +34,7 @@ class DisplayBuffer
         id: @id
         tokenizedBuffer: @tokenizedBuffer.getState()
         softWrap: softWrap ? false
-        softWrapColumn: softWrapColumn ? DefaultSoftWrapColumn
+        softWrapColumn: softWrapColumn
 
     @markers = {}
     @foldsByMarkerId = {}
@@ -408,6 +406,7 @@ class DisplayBuffer
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
+    return unless @getSoftWrap()
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])

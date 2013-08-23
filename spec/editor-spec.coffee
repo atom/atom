@@ -2670,3 +2670,11 @@ describe "Editor", ->
 
       for rowNumber in [1..5]
         expect(editor.lineElementForScreenRow(rowNumber).text()).toBe buffer.lineForRow(rowNumber)
+
+  describe "when the window is resized", ->
+    it "updates the active edit session with the current soft wrap column", ->
+      editor.attachToDom()
+      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 78
+      editor.width(editor.width() * 2)
+      $(window).trigger 'resize'
+      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 155

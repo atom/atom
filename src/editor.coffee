@@ -719,8 +719,10 @@ class Editor extends View
     return if @attached
     @attached = true
     @calculateDimensions()
-    @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
-    @subscribe $(window), "resize.editor-#{@id}", => @requestDisplayUpdate()
+    @setSoftWrapColumn()
+    @subscribe $(window), "resize.editor-#{@id}", =>
+      @setSoftWrapColumn()
+      @requestDisplayUpdate()
     @focus() if @isFocused
 
     if pane = @getPane()
@@ -919,11 +921,8 @@ class Editor extends View
     if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
       @scrollLeft(0)
-      @_setSoftWrapColumn = => @setSoftWrapColumn()
-      $(window).on "resize.editor-#{@id}", @_setSoftWrapColumn
     else
       @removeClass 'soft-wrap'
-      $(window).off 'resize', @_setSoftWrapColumn
 
   # Sets the font size for the editor.
   #

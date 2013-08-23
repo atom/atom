@@ -198,6 +198,8 @@ class EditSession
   # softWrapColumn - A {Number} defining the soft wrap limit
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
 
+  getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
+
   getSoftTabs: ->
     @state.get('softTabs')
 
