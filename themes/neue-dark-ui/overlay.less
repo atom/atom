@@ -7,8 +7,22 @@
   border: 1px solid @overlay-border-color;
   box-shadow: 0 0 10px @overlay-shadow-color;
   border-radius: @component-border-radius;
-}
 
-.overlay .editor.mini {
-  margin-bottom: @component-padding;
+  .editor.mini {
+    margin-bottom: @component-padding;
+  }
+
+  &.select-list, .select-list {
+
+    ol.list-group {
+      background-color: @overlay-inner-background-color;
+
+      li {
+        padding: @component-padding;
+        border-bottom: 1px solid @overlay-background-color;
+
+        &.two-lines { padding: @component-padding/2 @component-padding; }
+      }
+    }
+  }
 }

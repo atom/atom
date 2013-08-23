@@ -6,15 +6,15 @@
   margin: 0;
   list-style: none;
 
-  .list-item,
-  .list-nested-item > .list-item {
+  li:not(.list-nested-item),
+  li.list-nested-item > .list-item {
     .text(normal);
     line-height: @component-line-height;
   }
 
   .generate-list-item-text-color(@class) {
-    .list-item.@{class},
-    .list-nested-item.@{class} > .list-item {
+    li:not(.list-nested-item).@{class},
+    li.list-nested-item.@{class} > .list-item {
       .text(@class);
     }
   }
@@ -25,10 +25,10 @@
   .generate-list-item-text-color(error);
   .generate-list-item-text-color(selected);
 
-  .list-item:hover,
-  .list-nested-item:hover > .list-item, // i.e. highlight directory when hover child file
-  .list-nested-item .list-item:hover,
-  .list-nested-item .list-item:hover .disclosure-arrow,
+  li:not(.list-nested-item):hover,
+  li.list-nested-item:hover > .list-item, // i.e. highlight directory when hover child file
+  li.list-nested-item .list-item:hover,
+  li.list-nested-item .list-item:hover .disclosure-arrow,
   .selected > .list-nested-item > .list-item .disclosure-arrow,
   .selected > .list-nested-item > .list-item:hover .disclosure-arrow  {
     .text(highlighted);
@@ -48,6 +48,10 @@
     left: 0;
     right: 0;
     height: @component-line-height;
+  }
+
+  &.highlight-selected .selected{
+    background-color: @tool-panel-background-highlight-color;
   }
 }
 

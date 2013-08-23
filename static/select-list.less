@@ -18,57 +18,21 @@
     }
   }
 
-  ol {
+  ol.list-group {
     position: relative;
     overflow-y: auto;
     max-height: 312px;
     margin: 0;
     padding: 0;
 
-    &:empty {
-      border: none;
-    }
-
     li {
-      padding: 10px;
       display: block;
-
-      &.two-lines {
-        padding: 5px 10px 5px 10px;
-      }
 
       .primary-line, .secondary-line {
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
       }
-    }
-
-    li:last-child {
-      border-bottom: none;
-    }
-
-    li.active-item {
-      .octicon(check, 14px);
-
-      &:before {
-        margin-right: 5px;
-      }
-    }
-
-    li.inactive-item {
-      padding-left: 29px;
-    }
-
-    li .right {
-      float: right;
-    }
-
-    .key-binding {
-      border-radius: 2px;
-      margin-left: 5px;
-      padding: 3px;
-      font-size: 11px;
     }
   }
 }

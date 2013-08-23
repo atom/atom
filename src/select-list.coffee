@@ -16,7 +16,7 @@ class SelectList extends View
       @div class: 'loading', outlet: 'loadingArea', =>
         @span class: 'loading-message', outlet: 'loading'
         @span class: 'badge', outlet: 'loadingBadge'
-      @ol outlet: 'list'
+      @ol class: 'list-group highlight-selected', outlet: 'list'
 
   # Private:
   @viewClass: -> 'select-list'
