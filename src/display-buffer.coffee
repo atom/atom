@@ -9,9 +9,14 @@ Fold = require 'fold'
 Token = require 'token'
 DisplayBufferMarker = require 'display-buffer-marker'
 Subscriber = require 'subscriber'
+ConfigObserver = require 'config-observer'
 
 module.exports =
 class DisplayBuffer
+  _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
+  _.extend @prototype, ConfigObserver
+
   @acceptsDocuments: true
   registerDeserializer(this)
   @version: 1
@@ -51,10 +56,10 @@ class DisplayBuffer
           @trigger 'soft-wrap-changed', newValue
           @updateWrappedScreenLines()
 
-    config.observe 'editor.preferredLineLength', callbackImmediately: false, =>
+    @observeConfig 'editor.preferredLineLength', callbackImmediately: false, =>
       @updateWrappedScreenLines() if @getSoftWrap() and config.get('editor.softWrapAtPreferredLineLength')
 
-    config.observe 'editor.softWrapAtPreferredLineLength', callbackImmediately: false, =>
+    @observeConfig 'editor.softWrapAtPreferredLineLength', callbackImmediately: false, =>
       @updateWrappedScreenLines() if @getSoftWrap()
 
   serialize: -> @state.clone()
@@ -567,6 +572,7 @@ class DisplayBuffer
     marker.unsubscribe() for marker in @getMarkers()
     @tokenizedBuffer.destroy()
     @unsubscribe()
+    @unobserveConfig()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
@@ -688,6 +694,3 @@ class DisplayBuffer
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
-
-_.extend DisplayBuffer.prototype, EventEmitter
-_.extend DisplayBuffer.prototype, Subscriber
