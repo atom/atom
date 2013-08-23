@@ -1,6 +1,22 @@
 @import "ui-mixins";
 @import "ui-variables";
 
+.panel-heading {
+  margin: 0;
+  border-bottom: none;
+  padding: @component-padding - 2px @component-padding;
+
+  font-size: @font-size-base;
+  line-height: 1;
+
+  background-color: transparent;
+  background-image: linear-gradient(@inset-panel-background-highlight-color, fadeout(@tool-panel-background-highlight-color, 1%));
+}
+
+.inset-panel {
+  background-color: @inset-panel-background-color;
+}
+
 .tool-panel {
   .text(normal);
 
@@ -19,10 +35,18 @@
   &.panel-left {
     border-right: 1px solid @tool-panel-border-color;
   }
-}
 
-.inset-panel {
-  background-color: @inset-panel-background-color;
+  .inset-panel {
+    border-radius: @component-border-radius;
+
+    border: 1px solid @tool-panel-border-color;
+    border-bottom-color: @tool-panel-border-highlight-color;
+    border-right-color: @tool-panel-border-highlight-color;
+
+    .panel-heading {
+      margin-right: 1px;
+    }
+  }
 }
 
 .is-blurred {
