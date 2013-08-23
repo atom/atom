@@ -17,10 +17,23 @@ userPackageDirPaths = [userPackagesDirPath]
 userPackageDirPaths.unshift(path.join(configDirPath, "dev", "packages")) if atom.getLoadSettings().devMode
 userStoragePath = path.join(configDirPath, "storage")
 
-# Public: Handles all of Atom's configuration details.
+# Public: Used to access all of Atom's configuration details.
 #
-# This includes loading and setting default options, as well as reading from the
-# user's configuration file.
+# A global instance of this class is available to all plugins which can be
+# referenced using `global.config`
+#
+# ### Best practices ###
+#
+# * Create your own root keypath using your package's name.
+# * Don't depend on (or write to) configuration keys outside of your keypath.
+#
+# ### Example ###
+#
+# ```coffeescript
+# global.config.set('myplugin.key', 'value')
+# global.observe 'myplugin.key', ->
+#   console.log 'My configuration changed:', global.config.get('myplugin.key')
+# ```
 module.exports =
 class Config
   _.extend @prototype, EventEmitter
@@ -38,8 +51,7 @@ class Config
   settings: null
   configFileHasErrors: null
 
-  ### Internal ###
-
+  # Private: Created during initialization, available as `global.config`
   constructor: ->
     @defaultSettings =
       core: _.clone(require('root-view').configDefaults)
@@ -48,6 +60,7 @@ class Config
     @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(configDirPath, 'config.cson')
 
+  # Private:
   initializeConfigDirectory: (done) ->
     return if fsUtils.exists(@configDirPath)
 
@@ -64,11 +77,13 @@ class Config
       queue.push({sourcePath, destinationPath})
     fsUtils.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
+  # Private:
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
     @observeUserConfig()
 
+  # Private:
   loadUserConfig: ->
     if !fsUtils.exists(@configFilePath)
       fsUtils.makeTree(path.dirname(@configFilePath))
@@ -84,14 +99,17 @@ class Config
       console.error "Failed to load user config '#{@configFilePath}'", e.message
       console.error e.stack
 
+  # Private:
   observeUserConfig: ->
     @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
       @loadUserConfig() if eventType is 'change' and @watchSubscription?
 
+  # Private:
   unobserveUserConfig: ->
     @watchSubscription?.close()
     @watchSubscription = null
 
+  # Private:
   setDefaults: (keyPath, defaults) ->
     keys = keyPath.split('.')
     hash = @defaultSettings
@@ -102,12 +120,11 @@ class Config
     _.extend hash, defaults
     @update()
 
-  ### Public ###
-
+  # Public: Returns a new {Object} containing all of settings and defaults.
   getSettings: ->
     _.deepExtend(@settings, @defaultSettings)
 
-  # Retrieves the setting for the given key.
+  # Public: Retrieves the setting for the given key.
   #
   # keyPath - The {String} name of the key to retrieve
   #
@@ -117,7 +134,7 @@ class Config
     value = _.valueForKeyPath(@settings, keyPath) ? _.valueForKeyPath(@defaultSettings, keyPath)
     _.deepClone(value)
 
-  # Retrieves the setting for the given key as an integer.
+  # Public: Retrieves the setting for the given key as an integer.
   #
   # keyPath - The {String} name of the key to retrieve
   #
@@ -126,7 +143,7 @@ class Config
   getInt: (keyPath) ->
     parseInt(@get(keyPath))
 
-  # Retrieves the setting for the given key as a positive integer.
+  # Public: Retrieves the setting for the given key as a positive integer.
   #
   # keyPath - The {String} name of the key to retrieve
   # defaultValue - The integer {Number} to fall back to if the value isn't
@@ -137,7 +154,7 @@ class Config
   getPositiveInt: (keyPath, defaultValue) ->
     Math.max(@getInt(keyPath), 0) or defaultValue
 
-  # Sets the value for a configuration setting.
+  # Public: Sets the value for a configuration setting.
   #
   # This value is stored in Atom's internal configuration file.
   #
@@ -152,7 +169,7 @@ class Config
       @update()
     value
 
-  # Push the value to the array at the key path.
+  # Public: Push the value to the array at the key path.
   #
   # keyPath - The {String} key path.
   # value - The value to push to the array.
@@ -164,7 +181,7 @@ class Config
     @set(keyPath, arrayValue)
     result
 
-  # Remove the value from the array at the key path.
+  # Public: Remove the value from the array at the key path.
   #
   # keyPath - The {String} key path.
   # value - The value to remove from the array.
@@ -176,7 +193,7 @@ class Config
     @set(keyPath, arrayValue)
     result
 
-  # Establishes an event listener for a given key.
+  # Public: Establishes an event listener for a given key.
   #
   # `callback` is fired whenever the value of the key is changed and will
   #  be fired immediately unless the `callNow` option is `false`.
@@ -203,12 +220,12 @@ class Config
     callback(value) if options.callNow ? true
     subscription
 
-  ### Internal ###
-
+  # Private:
   update: ->
     return if @configFileHasErrors
     @save()
     @trigger 'updated'
 
+  # Private:
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)
