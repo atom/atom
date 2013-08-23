@@ -905,10 +905,7 @@ class Editor extends View
     @setSoftWrap(not @activeEditSession.getSoftWrap())
 
   calcSoftWrapColumn: ->
-    if @activeEditSession.getSoftWrap()
-      Math.floor(@scrollView.width() / @charWidth)
-    else
-      Infinity
+    Math.floor(@scrollView.width() / @charWidth)
 
   # Sets the soft wrap column for the editor.
   #
