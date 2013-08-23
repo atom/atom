@@ -15,7 +15,7 @@ _ = require 'underscore'
 
 socketPath = '/tmp/atom.sock'
 
-# Private: The application's singleton class.
+# Public: The application's singleton class.
 #
 # It's the entry point into the Atom application and maintains the global state
 # of the application.
@@ -166,7 +166,7 @@ class AtomApplication
   #
   # If it isn't handled globally, delegate to the currently focused window.
   #
-  # _Arguments_
+  # __Arguments__
   #
   # * command - The string representing the command.
   # * args - The optional arguments to pass along.
@@ -185,7 +185,7 @@ class AtomApplication
 
   # Public: Opens multiple paths, in existing windows if possible.
   #
-  # _Options_
+  # __Options__
   #
   # + pathsToOpen - The array of file paths to open
   # + pidToKillWhenClosed - The integer of the pid to kill
@@ -196,7 +196,7 @@ class AtomApplication
 
   # Public: Opens a single path, in an existing window if possible.
   #
-  # _Options_
+  # __Options__
   #
   # + pathsToOpen - The array of file paths to open
   # + pidToKillWhenClosed - The integer of the pid to kill
@@ -232,7 +232,7 @@ class AtomApplication
   #
   # Currently only supports atom://session/<session-id> urls.
   #
-  # _Options_
+  # __Options__
   #
   # + urlToOpen - The atom:// url to open.
   # + devMode - Boolean to control the opened window's dev mode.
@@ -249,7 +249,7 @@ class AtomApplication
 
   # Private: Opens up a new {AtomWindow} to run specs within.
   #
-  # _Options_
+  # __Options__
   #
   # + exitWhenDone - A Boolean that if true, will close the window upon completion.
   # + resourcePath - The path to include specs from.
@@ -267,7 +267,7 @@ class AtomApplication
   #
   # Once paths are selected, they're opened in a new or existing {AtomWindow}s.
   #
-  # _Options_
+  # __Options__
   #
   # + devMode - A Boolean which controls whether any newly opened windows should
   #   be in dev mode or not.
