@@ -15,7 +15,7 @@ _ = require 'underscore'
 
 socketPath = '/tmp/atom.sock'
 
-# Public: The application's singleton class.
+# Private: The application's singleton class.
 #
 # It's the entry point into the Atom application and maintains the global state
 # of the application.
@@ -166,10 +166,10 @@ class AtomApplication
   #
   # If it isn't handled globally, delegate to the currently focused window.
   #
-  # __Arguments__
-  #
-  # * command - The string representing the command.
-  # * args - The optional arguments to pass along.
+  # * command:
+  #   The string representing the command.
+  # * args:
+  #   The optional arguments to pass along.
   sendCommand: (command, args...) ->
     unless @emit(command, args...)
       @focusedWindow()?.sendCommand(command, args...)
@@ -185,23 +185,29 @@ class AtomApplication
 
   # Public: Opens multiple paths, in existing windows if possible.
   #
-  # __Options__
-  #
-  # + pathsToOpen - The array of file paths to open
-  # + pidToKillWhenClosed - The integer of the pid to kill
-  # + newWindow - Boolean of whether this should be opened in a new window.
-  # + devMode - Boolean to control the opened window's dev mode.
+  # * options
+  #    + pathsToOpen:
+  #      The array of file paths to open
+  #    + pidToKillWhenClosed:
+  #      The integer of the pid to kill
+  #    + newWindow:
+  #      Boolean of whether this should be opened in a new window.
+  #    + devMode:
+  #      Boolean to control the opened window's dev mode.
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode}) ->
     @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode}) for pathToOpen in pathsToOpen ? []
 
   # Public: Opens a single path, in an existing window if possible.
   #
-  # __Options__
-  #
-  # + pathsToOpen - The array of file paths to open
-  # + pidToKillWhenClosed - The integer of the pid to kill
-  # + newWindow - Boolean of whether this should be opened in a new window.
-  # + devMode - Boolean to control the opened window's dev mode.
+  # * options
+  #    + pathsToOpen:
+  #      The array of file paths to open
+  #    + pidToKillWhenClosed:
+  #      The integer of the pid to kill
+  #    + newWindow:
+  #      Boolean of whether this should be opened in a new window.
+  #    + devMode:
+  #      Boolean to control the opened window's dev mode.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode}={}) ->
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
@@ -232,10 +238,11 @@ class AtomApplication
   #
   # Currently only supports atom://session/<session-id> urls.
   #
-  # __Options__
-  #
-  # + urlToOpen - The atom:// url to open.
-  # + devMode - Boolean to control the opened window's dev mode.
+  # * options
+  #    + urlToOpen:
+  #      The atom:// url to open.
+  #    + devMode:
+  #      Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
     parsedUrl = url.parse(urlToOpen)
     if parsedUrl.host is 'session'
@@ -249,11 +256,13 @@ class AtomApplication
 
   # Private: Opens up a new {AtomWindow} to run specs within.
   #
-  # __Options__
-  #
-  # + exitWhenDone - A Boolean that if true, will close the window upon completion.
-  # + resourcePath - The path to include specs from.
-  # + specPath - The directory to load specs from.
+  # * options
+  #    + exitWhenDone:
+  #      A Boolean that if true, will close the window upon completion.
+  #    + resourcePath:
+  #      The path to include specs from.
+  #    + specPath:
+  #      The directory to load specs from.
   runSpecs: ({exitWhenDone, resourcePath}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
@@ -267,10 +276,10 @@ class AtomApplication
   #
   # Once paths are selected, they're opened in a new or existing {AtomWindow}s.
   #
-  # __Options__
-  #
-  # + devMode - A Boolean which controls whether any newly opened windows should
-  #   be in dev mode or not.
+  # * options
+  #    + devMode:
+  #      A Boolean which controls whether any newly opened windows should  be in
+  #      dev mode or not.
   promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
     @openPaths({pathsToOpen, devMode})
