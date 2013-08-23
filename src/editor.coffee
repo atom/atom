@@ -499,10 +499,10 @@ class Editor extends View
   # {Delegates to: EditSession.getScreenLineCount}
   getScreenLineCount: -> @activeEditSession.getScreenLineCount()
 
-  # {Delegates to: EditSession.setSoftWrapColumn}
-  setSoftWrapColumn: (softWrapColumn) ->
-    softWrapColumn ?= @calcSoftWrapColumn()
-    @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
+  # {Delegates to: EditSession.setEditorWidthInChars}
+  setWidthInChars: (widthInChars) ->
+    widthInChars ?= @calculateWidthInChars()
+    @activeEditSession.setEditorWidthInChars(widthInChars) if widthInChars
 
   # {Delegates to: EditSession.getMaxScreenLineLength}
   getMaxScreenLineLength: -> @activeEditSession.getMaxScreenLineLength()
@@ -720,9 +720,9 @@ class Editor extends View
     return if @attached
     @attached = true
     @calculateDimensions()
-    @setSoftWrapColumn()
+    @setWidthInChars()
     @subscribe $(window), "resize.editor-#{@id}", =>
-      @setSoftWrapColumn()
+      @setWidthInChars()
       @requestDisplayUpdate()
     @focus() if @isFocused
 
@@ -908,7 +908,7 @@ class Editor extends View
   toggleSoftWrap: ->
     @activeEditSession.setSoftWrap(not @activeEditSession.getSoftWrap())
 
-  calcSoftWrapColumn: ->
+  calculateWidthInChars: ->
     Math.floor(@scrollView.width() / @charWidth)
 
   # Enables/disables soft wrap on the editor.

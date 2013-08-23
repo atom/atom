@@ -121,7 +121,7 @@ describe "EditSession", ->
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
           editSession.setSoftWrap(true)
-          editSession.setSoftWrapColumn(50)
+          editSession.setEditorWidthInChars(50)
           editSession.createFold(2, 3)
 
         it "positions the cursor at the buffer position that corresponds to the given screen position", ->
@@ -345,7 +345,7 @@ describe "EditSession", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
           editSession.setSoftWrap(true)
-          editSession.setSoftWrapColumn(10)
+          editSession.setEditorWidthInChars(10)
           editSession.setCursorScreenPosition([1, 2])
           editSession.moveCursorToBeginningOfLine()
           cursor = editSession.getCursor()
@@ -365,7 +365,7 @@ describe "EditSession", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
           editSession.setSoftWrap(true)
-          editSession.setSoftWrapColumn(10)
+          editSession.setEditorWidthInChars(10)
           editSession.setCursorScreenPosition([1, 2])
           editSession.moveCursorToEndOfLine()
           cursor = editSession.getCursor()
@@ -385,7 +385,7 @@ describe "EditSession", ->
       describe "when soft wrap is on", ->
         it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
           editSession.setSoftWrap(true)
-          editSession.setSoftWrapColumn(10)
+          editSession.setEditorWidthInChars(10)
           editSession.setCursorScreenPosition [2,5]
           editSession.addCursorAtScreenPosition [8,7]
 
@@ -1801,7 +1801,7 @@ describe "EditSession", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
             editSession.setSoftWrap(true)
-            editSession.setSoftWrapColumn(10)
+            editSession.setEditorWidthInChars(10)
             editSession.setCursorScreenPosition([2, 2])
             editSession.cutToEndOfLine()
             expect(editSession.lineForScreenRow(2).text).toBe '=  () {'
@@ -2258,7 +2258,7 @@ describe "EditSession", ->
     describe "when soft wrap is enabled", ->
       it "deletes the entire line that the cursor is on", ->
         editSession.setSoftWrap(true)
-        editSession.setSoftWrapColumn(10)
+        editSession.setEditorWidthInChars(10)
         editSession.setCursorBufferPosition([6])
 
         line7 = buffer.lineForRow(7)

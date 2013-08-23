@@ -1485,7 +1485,7 @@ describe "Editor", ->
         it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
           editor.setText "a line that wraps"
           editor.attachToDom()
-          editor.setSoftWrapColumn(6)
+          editor.setWidthInChars(6)
           config.set "editor.showInvisibles", true
           space = editor.invisibles?.space
           expect(space).toBeTruthy()
@@ -1497,7 +1497,7 @@ describe "Editor", ->
         it "displays trailing carriage return using a visible non-empty value", ->
           editor.setText "a line that\r\n"
           editor.attachToDom()
-          editor.setSoftWrapColumn(6)
+          editor.setWidthInChars(6)
           config.set "editor.showInvisibles", true
           space = editor.invisibles?.space
           expect(space).toBeTruthy()
@@ -1699,15 +1699,15 @@ describe "Editor", ->
       editor.moveCursorRight()
       expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
-    it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
+    it "calls .setWidthInChars() when the editor is attached because now its dimensions are available to calculate it", ->
       otherEditor = new Editor(editSession: project.open('sample.js'))
-      spyOn(otherEditor, 'setSoftWrapColumn')
+      spyOn(otherEditor, 'setWidthInChars')
 
       otherEditor.activeEditSession.setSoftWrap(true)
-      expect(otherEditor.setSoftWrapColumn).not.toHaveBeenCalled()
+      expect(otherEditor.setWidthInChars).not.toHaveBeenCalled()
 
       otherEditor.simulateDomAttachment()
-      expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
+      expect(otherEditor.setWidthInChars).toHaveBeenCalled()
       otherEditor.remove()
 
   describe "gutter rendering", ->
@@ -1744,7 +1744,7 @@ describe "Editor", ->
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editSession.setSoftWrap(true)
-        editor.setSoftWrapColumn(50)
+        editor.setWidthInChars(50)
         expect(editor.gutter.find('.line-number').length).toEqual(8)
         expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
         expect(editor.gutter.find('.line-number:eq(4)').html()).toBe '&nbsp;•'

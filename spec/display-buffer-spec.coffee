@@ -17,9 +17,9 @@ describe "DisplayBuffer", ->
     buffer.release()
 
   describe "@deserialize(state)", ->
-    it "constructs a display buffer with the same buffer, folds, softWrapColumn, and tabLength", ->
+    it "constructs a display buffer with the same buffer, folds, editorWidthInChars, and tabLength", ->
       displayBuffer.setTabLength(4)
-      displayBuffer.setSoftWrapColumn(64)
+      displayBuffer.setEditorWidthInChars(64)
       displayBuffer.createFold(2, 4)
       displayBuffer2 = deserialize(displayBuffer.serialize())
       expect(displayBuffer2.id).toBe displayBuffer.id
@@ -61,7 +61,7 @@ describe "DisplayBuffer", ->
   describe "soft wrapping", ->
     beforeEach ->
       displayBuffer.setSoftWrap(true)
-      displayBuffer.setSoftWrapColumn(50)
+      displayBuffer.setEditorWidthInChars(50)
       changeHandler.reset()
 
     describe "rendering of soft-wrapped lines", ->
@@ -94,7 +94,7 @@ describe "DisplayBuffer", ->
         describe "when there is no whitespace before the boundary", ->
           it "wraps the line exactly at the boundary since there's no more graceful place to wrap it", ->
             buffer.change([[0, 0], [1, 0]], 'abcdefghijklmnopqrstuvwxyz\n')
-            displayBuffer.setSoftWrapColumn(10)
+            displayBuffer.setEditorWidthInChars(10)
             expect(displayBuffer.lineForRow(0).text).toBe 'abcdefghij'
             expect(displayBuffer.lineForRow(1).text).toBe 'klmnopqrst'
             expect(displayBuffer.lineForRow(2).text).toBe 'uvwxyz'
@@ -156,7 +156,7 @@ describe "DisplayBuffer", ->
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
           buffer = project.buildBuffer(null, '')
-          displayBuffer = new DisplayBuffer({buffer, tabLength, softWrapColumn: 30, softWrap: true})
+          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true})
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
           buffer.insert([0, Infinity], '\n')
@@ -195,9 +195,9 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.bufferPositionForScreenPosition([3, -5])).toEqual([3, 0])
         expect(displayBuffer.bufferPositionForScreenPosition([3, Infinity])).toEqual([3, 50])
 
-    describe ".setSoftWrapColumn(length)", ->
+    describe ".setEditorWidthInChars(length)", ->
       it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
-        displayBuffer.setSoftWrapColumn(40)
+        displayBuffer.setEditorWidthInChars(40)
         expect(tokensText displayBuffer.lineForRow(4).tokens).toBe 'left = [], right = [];'
         expect(tokensText displayBuffer.lineForRow(5).tokens).toBe '    while(items.length > 0) {'
         expect(tokensText displayBuffer.lineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
@@ -519,7 +519,7 @@ describe "DisplayBuffer", ->
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
       displayBuffer.setSoftWrap(true)
-      displayBuffer.setSoftWrapColumn(50)
+      displayBuffer.setEditorWidthInChars(50)
 
     it "allows valid positions", ->
       expect(displayBuffer.clipScreenPosition([4, 5])).toEqual [4, 5]

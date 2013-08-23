@@ -19,7 +19,7 @@ class DisplayBuffer
 
   @acceptsDocuments: true
   registerDeserializer(this)
-  @version: 1
+  @version: 2
 
   @deserialize: (state) -> new this(state)
 
@@ -30,7 +30,7 @@ class DisplayBuffer
       @tokenizedBuffer = deserialize(@state.get('tokenizedBuffer'))
       @buffer = @tokenizedBuffer.buffer
     else
-      {@buffer, softWrap, softWrapColumn} = optionsOrState
+      {@buffer, softWrap, editorWidthInChars} = optionsOrState
       @id = guid.create().toString()
       @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
       @state = site.createDocument
@@ -39,7 +39,7 @@ class DisplayBuffer
         id: @id
         tokenizedBuffer: @tokenizedBuffer.getState()
         softWrap: softWrap ? config.get('editor.softWrap') ? false
-        softWrapColumn: softWrapColumn
+        editorWidthInChars: editorWidthInChars
 
     @markers = {}
     @foldsByMarkerId = {}
@@ -103,15 +103,19 @@ class DisplayBuffer
 
   getSoftWrap: -> @state.get('softWrap')
 
-  # Defines the limit at which the buffer begins to soft wrap text.
+  # Set the number of characters that fit horizontally in the editor.
   #
-  # softWrapColumn - A {Number} defining the soft wrap limit.
-  setSoftWrapColumn: (softWrapColumn) ->
-    @state.set('softWrapColumn', softWrapColumn)
+  # editorWidthInChars - A {Number} of characters.
+  setEditorWidthInChars: (editorWidthInChars) ->
+    @state.set('editorWidthInChars', editorWidthInChars)
     @updateWrappedScreenLines() if @getSoftWrap()
 
   getSoftWrapColumn: ->
-    @state.get('softWrapColumn')
+    editorWidthInChars = @state.get('editorWidthInChars')
+    if config.get('editor.softWrapAtPreferredLineLength')
+      Math.min(editorWidthInChars, config.getPositiveInt('editor.preferredLineLength', editorWidthInChars))
+    else
+      editorWidthInChars
 
   # Gets the screen line for the given screen row.
   #
@@ -426,8 +430,6 @@ class DisplayBuffer
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    if config.get('editor.softWrapAtPreferredLineLength')
-      softWrapColumn = Math.min(softWrapColumn, config.getPositiveInt('editor.preferredLineLength', softWrapColumn))
     return unless @getSoftWrap()
     return unless line.length > softWrapColumn
 

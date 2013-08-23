@@ -194,10 +194,12 @@ class EditSession
   # Returns a {Number} defining the `scrollLeft`, in pixels.
   getScrollLeft: -> @state.get('scrollLeft')
 
-  # Defines the limit at which the buffer begins to soft wrap text.
+  # Set the number of characters that can be displayed horizontally in the
+  # editor that contains this edit session.
   #
-  # softWrapColumn - A {Number} defining the soft wrap limit
-  setSoftWrapColumn: (softWrapColumn) -> @displayBuffer.setSoftWrapColumn(softWrapColumn)
+  # editorWidthInChars - A {Number} of characters
+  setEditorWidthInChars: (editorWidthInChars) ->
+    @displayBuffer.setEditorWidthInChars(editorWidthInChars)
 
   getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 
