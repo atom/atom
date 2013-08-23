@@ -10,7 +10,7 @@ module.exports = (grunt) ->
     grunt.task.run('markdown:guides')
 
     done = @async()
-    args = [commonArgs..., '--title', 'Atom API Documentation', '-o', 'docs/output/api', 'src/', 'vendor/telepath/lib/']
+    args = [commonArgs..., '--title', 'Atom API Documentation', '-o', 'docs/output/api', 'src/', 'vendor/telepath/lib/range.coffee', 'vendor/telepath/lib/point.coffee']
     grunt.util.spawn({cmd, args, opts}, done)
 
   grunt.registerTask 'lint-docs', 'Generate stats about the doc coverage', ->

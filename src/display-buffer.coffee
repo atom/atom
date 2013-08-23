@@ -11,6 +11,7 @@ DisplayBufferMarker = require 'display-buffer-marker'
 Subscriber = require 'subscriber'
 ConfigObserver = require 'config-observer'
 
+# Private:
 module.exports =
 class DisplayBuffer
   _.extend @prototype, EventEmitter

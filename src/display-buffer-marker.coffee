@@ -3,6 +3,7 @@ _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 
+# Private:
 module.exports =
 class DisplayBufferMarker
   _.extend @prototype, EventEmitter
