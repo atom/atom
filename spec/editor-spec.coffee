@@ -1479,10 +1479,13 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
 
       describe "when wrapping is on", ->
+        beforeEach ->
+          editor.setSoftWrap(true)
+
         it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
-          editor.setSoftWrapColumn(6)
           editor.setText "a line that wraps"
           editor.attachToDom()
+          editor.setSoftWrapColumn(6)
           config.set "editor.showInvisibles", true
           space = editor.invisibles?.space
           expect(space).toBeTruthy()
@@ -1492,9 +1495,9 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
 
         it "displays trailing carriage return using a visible non-empty value", ->
-          editor.setSoftWrapColumn(6)
           editor.setText "a line that\r\n"
           editor.attachToDom()
+          editor.setSoftWrapColumn(6)
           config.set "editor.showInvisibles", true
           space = editor.invisibles?.space
           expect(space).toBeTruthy()
@@ -1740,6 +1743,7 @@ describe "Editor", ->
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
+        editor.setSoftWrap(true)
         editor.setSoftWrapColumn(50)
         expect(editor.gutter.find('.line-number').length).toEqual(8)
         expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
