@@ -2674,7 +2674,8 @@ describe "Editor", ->
   describe "when the window is resized", ->
     it "updates the active edit session with the current soft wrap column", ->
       editor.attachToDom()
-      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 78
-      editor.width(editor.width() * 2)
+      setEditorWidthInChars(editor, 50)
+      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 50
+      setEditorWidthInChars(editor, 100)
       $(window).trigger 'resize'
-      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 155
+      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 100
