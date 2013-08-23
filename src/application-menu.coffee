@@ -18,10 +18,9 @@ class ApplicationMenu
 
   # Public: Updates the entire menu with the given keybindings.
   #
-  # keystrokesByCommand - An Object where the keys are commands and the values
-  #                       are Arrays containing the keystrokes.
-  #
-  # Returns nothing.
+  # * keystrokesByCommand:
+  #   An Object where the keys are commands and the values are Arrays containing
+  #   the keystrokes.
   update: (keystrokesByCommand) ->
     template = @getTemplate(keystrokesByCommand)
     @menu = Menu.buildFromTemplate(template)
@@ -29,7 +28,8 @@ class ApplicationMenu
 
   # Private: Flattens the given menu and submenu items into an single Array.
   #
-  # menu - A complete menu configuration object for atom-shell's menu API.
+  # * menu:
+  #   A complete menu configuration object for atom-shell's menu API.
   #
   # Returns an Array of native menu items.
   allItems: (menu=@menu) ->
@@ -41,10 +41,9 @@ class ApplicationMenu
 
   # Public: Used to make all window related menu items are active.
   #
-  # enable - If true enables all window specific items, if false disables all
-  #          window specific items.
-  #
-  # Returns nothing.
+  # * enable:
+  #   If true enables all window specific items, if false disables all  window
+  #   specific items.
   enableWindowSpecificItems: (enable) ->
     for item in @allItems()
       item.enabled = enable if item.metadata?['windowSpecific']
@@ -54,7 +53,10 @@ class ApplicationMenu
   # Note: The update menu item's must match 'Install update' exactly otherwise
   # this function will fail to work.
   #
-  # Returns nothing.
+  # * newVersion:
+  #   FIXME: Unused.
+  # * quitAndUpdateCallback:
+  #   Function to call when the install menu item has been clicked.
   showDownloadUpdateItem: (newVersion, quitAndUpdateCallback) ->
     downloadUpdateItem = _.find @allItems(), (item) -> item.label == 'Install update'
     if downloadUpdateItem
@@ -77,8 +79,9 @@ class ApplicationMenu
 
   # Private: The complete list of menu items.
   #
-  # keystrokesByCommand - An Object where the keys are commands and the values
-  #                       are Arrays containing the keystrokes.
+  # * keystrokesByCommand:
+  #   An Object where the keys are commands and the values are Arrays containing
+  #   the keystrokes.
   #
   # Returns a complete menu configuration Object for use with atom-shell's
   #   native menu API.
@@ -152,10 +155,12 @@ class ApplicationMenu
 
   # Private: Combines a menu template with the appropriate keystrokes.
   #
-  # template            - An Object conforming to atom-shell's menu api but
-  #                       lacking accelerator and click properties.
-  # keystrokesByCommand - An Object where the keys are commands and the values
-  #                       are Arrays containing the keystrokes.
+  # * template:
+  #   An Object conforming to atom-shell's menu api but lacking accelerator and
+  #   click properties.
+  # * keystrokesByCommand:
+  #   An Object where the keys are commands and the values are Arrays containing
+  #   the keystrokes.
   #
   # Returns a complete menu configuration object for atom-shell's menu API.
   translateTemplate: (template, keystrokesByCommand) ->
@@ -170,9 +175,11 @@ class ApplicationMenu
 
   # Private: Determine the accelerator for a given command.
   #
-  # command - The name of the command.
-  # keystrokesByCommand - An Object where the keys are commands and the values
-  #                       are Arrays containing the keystrokes.
+  # * command:
+  #   The name of the command.
+  # * keystrokesByCommand:
+  #   An Object where the keys are commands and the values are Arrays containing
+  #   the keystrokes.
   #
   # Returns a String containing the keystroke in a format that can be interpreted
   #   by atom shell to provide nice icons where available.
