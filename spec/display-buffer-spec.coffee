@@ -60,6 +60,7 @@ describe "DisplayBuffer", ->
 
   describe "soft wrapping", ->
     beforeEach ->
+      displayBuffer.setSoftWrap(true)
       displayBuffer.setSoftWrapColumn(50)
       changeHandler.reset()
 
@@ -143,7 +144,7 @@ describe "DisplayBuffer", ->
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
           buffer = project.buildBuffer(null, '')
-          displayBuffer = new DisplayBuffer({buffer, tabLength, softWrapColumn: 30})
+          displayBuffer = new DisplayBuffer({buffer, tabLength, softWrapColumn: 30, softWrap: true})
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
           buffer.insert([0, Infinity], '\n')
@@ -505,6 +506,7 @@ describe "DisplayBuffer", ->
 
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
+      displayBuffer.setSoftWrap(true)
       displayBuffer.setSoftWrapColumn(50)
 
     it "allows valid positions", ->
