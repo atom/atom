@@ -65,6 +65,21 @@ describe "DisplayBuffer", ->
       changeHandler.reset()
 
     describe "rendering of soft-wrapped lines", ->
+      describe "when editor.softWrapAtPreferredLineLength is set", ->
+        it "uses the preferred line length as the soft wrap column when it is less than the configured soft wrap column", ->
+          config.set('editor.preferredLineLength', 100)
+          config.set('editor.softWrapAtPreferredLineLength', true)
+          displayBuffer.updateWrappedScreenLines()
+          expect(displayBuffer.lineForRow(10).text).toBe '    return '
+
+          config.set('editor.preferredLineLength', 5)
+          displayBuffer.updateWrappedScreenLines()
+          expect(displayBuffer.lineForRow(10).text).toBe 'funct'
+
+          config.set('editor.softWrapAtPreferredLineLength', false)
+          displayBuffer.updateWrappedScreenLines()
+          expect(displayBuffer.lineForRow(10).text).toBe '    return '
+
       describe "when the line is shorter than the max line length", ->
         it "renders the line unchanged", ->
           expect(displayBuffer.lineForRow(0).text).toBe buffer.lineForRow(0)

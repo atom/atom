@@ -415,6 +415,8 @@ class DisplayBuffer
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
+    if config.get('editor.softWrapAtPreferredLineLength')
+      softWrapColumn = Math.min(softWrapColumn, config.getPositiveInt('editor.preferredLineLength', softWrapColumn))
     return unless @getSoftWrap()
     return unless line.length > softWrapColumn
 

@@ -26,6 +26,7 @@ class Editor extends View
     tabLength: 2
     softWrap: false
     softTabs: true
+    softWrapAtPreferredLineLength: false
 
   @nextEditorId: 1
 
