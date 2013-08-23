@@ -773,6 +773,9 @@ class Editor extends View
     @activeEditSession.on 'scroll-left-changed.editor', (scrollLeft) =>
       @scrollLeft(scrollLeft)
 
+    @activeEditSession.on 'soft-wrap-changed.editor', (softWrap) =>
+      @setSoftWrap(softWrap)
+
     @trigger 'editor:path-changed'
     @resetDisplay()
 
@@ -902,7 +905,7 @@ class Editor extends View
 
   # Activates soft wraps in the editor.
   toggleSoftWrap: ->
-    @setSoftWrap(not @activeEditSession.getSoftWrap())
+    @activeEditSession.setSoftWrap(not @activeEditSession.getSoftWrap())
 
   calcSoftWrapColumn: ->
     Math.floor(@scrollView.width() / @charWidth)
@@ -912,10 +915,8 @@ class Editor extends View
   # softWrap - A {Boolean} which, if `true`, sets soft wraps
   # softWrapColumn - A {Number} indicating the length of a line in the editor when soft
   # wrapping turns on
-  setSoftWrap: (softWrap, softWrapColumn=undefined) ->
-    @activeEditSession.setSoftWrap(softWrap)
-    @setSoftWrapColumn(softWrapColumn) if @attached
-    if @activeEditSession.getSoftWrap()
+  setSoftWrap: (softWrap) ->
+    if softWrap
       @addClass 'soft-wrap'
       @scrollLeft(0)
     else
@@ -1133,6 +1134,7 @@ class Editor extends View
     @updateLayerDimensions()
     @scrollTop(editSessionScrollTop)
     @scrollLeft(editSessionScrollLeft)
+    @setSoftWrap(@activeEditSession.getSoftWrap())
     @newCursors = @activeEditSession.getAllCursors()
     @newSelections = @activeEditSession.getAllSelections()
     @updateDisplay(suppressAutoScroll: true)

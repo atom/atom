@@ -1013,7 +1013,7 @@ describe "Editor", ->
 
           describe "when soft-wrap is enabled", ->
             beforeEach ->
-              editor.setSoftWrap(true)
+              editSession.setSoftWrap(true)
 
             it "does not scroll the buffer horizontally", ->
               editor.width(charWidth * 30)
@@ -1480,7 +1480,7 @@ describe "Editor", ->
 
       describe "when wrapping is on", ->
         beforeEach ->
-          editor.setSoftWrap(true)
+          editSession.setSoftWrap(true)
 
         it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
           editor.setText "a line that wraps"
@@ -1631,10 +1631,10 @@ describe "Editor", ->
 
   describe "when soft-wrap is enabled", ->
     beforeEach ->
+      editSession.setSoftWrap(true)
       editor.attachToDom()
       setEditorHeightInLines(editor, 20)
       setEditorWidthInChars(editor, 50)
-      editor.setSoftWrap(true)
       expect(editor.activeEditSession.getSoftWrapColumn()).toBe 50
 
     it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
@@ -1703,7 +1703,7 @@ describe "Editor", ->
       otherEditor = new Editor(editSession: project.open('sample.js'))
       spyOn(otherEditor, 'setSoftWrapColumn')
 
-      otherEditor.setSoftWrap(true)
+      otherEditor.activeEditSession.setSoftWrap(true)
       expect(otherEditor.setSoftWrapColumn).not.toHaveBeenCalled()
 
       otherEditor.simulateDomAttachment()
@@ -1743,7 +1743,7 @@ describe "Editor", ->
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
-        editor.setSoftWrap(true)
+        editSession.setSoftWrap(true)
         editor.setSoftWrapColumn(50)
         expect(editor.gutter.find('.line-number').length).toEqual(8)
         expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
@@ -1883,7 +1883,7 @@ describe "Editor", ->
     describe "when there is wrapping", ->
       beforeEach ->
         editor.attachToDom(30)
-        editor.setSoftWrap(true)
+        editSession.setSoftWrap(true)
         setEditorWidthInChars(editor, 20)
 
       it "highlights the line where the initial cursor position is", ->
@@ -1946,7 +1946,7 @@ describe "Editor", ->
 
     describe "when there is wrapping", ->
       beforeEach ->
-        editor.setSoftWrap(true)
+        editSession.setSoftWrap(true)
         setEditorWidthInChars(editor, 20)
 
       it "highlights the line where the initial cursor position is", ->

@@ -97,6 +97,7 @@ class EditSession
     @subscribe @displayBuffer, "changed", (e) => @trigger 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
     @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
+    @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @trigger 'soft-wrap-changed', args...
 
   getViewClass: ->
     require 'editor'

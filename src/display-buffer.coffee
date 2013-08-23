@@ -45,6 +45,12 @@ class DisplayBuffer
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
+    @state.on 'changed', ({key, newValue}) =>
+      switch key
+        when 'softWrap'
+          @trigger 'soft-wrap-changed', newValue
+          @updateWrappedScreenLines()
+
   serialize: -> @state.clone()
   getState: -> @state
 
@@ -67,6 +73,14 @@ class DisplayBuffer
     @trigger 'changed', eventProperties
     @resumeMarkerObservers()
 
+  updateWrappedScreenLines: ->
+    start = 0
+    end = @getLastRow()
+    @updateAllScreenLines()
+    screenDelta = @getLastRow() - end
+    bufferDelta = 0
+    @triggerChanged({ start, end, screenDelta, bufferDelta })
+
   ### Public ###
 
   # Sets the visibility of the tokenized buffer.
@@ -83,12 +97,7 @@ class DisplayBuffer
   # softWrapColumn - A {Number} defining the soft wrap limit.
   setSoftWrapColumn: (softWrapColumn) ->
     @state.set('softWrapColumn', softWrapColumn)
-    start = 0
-    end = @getLastRow()
-    @updateAllScreenLines()
-    screenDelta = @getLastRow() - end
-    bufferDelta = 0
-    @triggerChanged({ start, end, screenDelta, bufferDelta })
+    @updateWrappedScreenLines() if @getSoftWrap()
 
   getSoftWrapColumn: ->
     @state.get('softWrapColumn')
