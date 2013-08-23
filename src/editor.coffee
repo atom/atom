@@ -911,11 +911,9 @@ class Editor extends View
   calcSoftWrapColumn: ->
     Math.floor(@scrollView.width() / @charWidth)
 
-  # Sets the soft wrap column for the editor.
+  # Enables/disables soft wrap on the editor.
   #
-  # softWrap - A {Boolean} which, if `true`, sets soft wraps
-  # softWrapColumn - A {Number} indicating the length of a line in the editor when soft
-  # wrapping turns on
+  # softWrap - A {Boolean} which, if `true`, enables soft wrap
   setSoftWrap: (softWrap) ->
     if softWrap
       @addClass 'soft-wrap'
