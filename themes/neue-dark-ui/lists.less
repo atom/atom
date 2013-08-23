@@ -42,9 +42,12 @@
     .octicon(chevron-right, @disclosure-arrow-size);
   }
 
-  .list-item.selected,
-  .list-nested-item.selected > .list-item {
+  .selected > .highlight {
     background-color: @tool-panel-background-highlight-color;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: @component-line-height;
   }
 }
 
