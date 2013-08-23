@@ -9,7 +9,7 @@
   'meta-m': 'application:minimize'
   'meta-,': 'application:show-settings'
   'alt-meta-ctrl-m': 'application:zoom'
-  'meta-alt-ctrl-s': 'application:run-specs'
+  'meta-alt-ctrl-s': 'application:run-all-specs'
 
   'meta-s': 'core:save'
   'meta-S': 'core:save-as'
@@ -45,6 +45,7 @@
   'ctrl-meta-f': 'window:toggle-full-screen'
   'meta-r': 'window:reload'
   'alt-meta-i': 'window:toggle-dev-tools'
+  'meta-alt-ctrl-p': 'window:run-package-specs'
 
   'ctrl-|': 'pane:split-right'
   'ctrl-w v': 'pane:split-right'

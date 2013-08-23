@@ -99,7 +99,7 @@ class AtomApplication
 
   handleEvents: ->
     @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
-    @on 'application:run-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
+    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
     @on 'application:show-settings', -> (@focusedWindow() ? this).openPath("atom://config")
     @on 'application:quit', -> app.quit()
     @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
@@ -139,6 +139,9 @@ class AtomApplication
 
     ipc.once 'update-application-menu', (processId, routingId, keystrokesByCommand) =>
       @applicationMenu.update(keystrokesByCommand)
+
+    ipc.on 'run-package-specs', (processId, routingId, packagePath) =>
+      @runSpecs({@resourcePath, specPath: packagePath, exitWhenDone: false})
 
     ipc.on 'command', (processId, routingId, command) =>
       @emit(command)
@@ -194,14 +197,14 @@ class AtomApplication
     else
       console.log "Opening unknown url #{urlToOpen}"
 
-  runSpecs: ({exitWhenDone, resourcePath}) ->
+  runSpecs: ({exitWhenDone, resourcePath, specPath}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
     bootstrapScript = 'spec-bootstrap'
     isSpec = true
     devMode = true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode})
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specPath})
 
   promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
