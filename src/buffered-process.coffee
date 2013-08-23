@@ -2,19 +2,27 @@ ChildProcess = require 'child_process'
 path = require 'path'
 _ = require 'underscore'
 
-# Private: A wrapper which provides buffering for ChildProcess
+# Private: A wrapper which provides buffering for ChildProcess.
 module.exports =
 class BufferedProcess
   process: null
   killed: false
 
-  # options -
-  #  command: The command to execute.
-  #  args: The arguments for the given command.
-  #  options: The options to pass to ChildProcess.
-  #  stdout: The callback to receive stdout data.
-  #  stderr: The callback to receive stderr data.
-  #  exit: The callback to receive exit status.
+  # Executes the given command.
+  #
+  # * options
+  #    + command:
+  #      The command to execute.
+  #    + args:
+  #      The arguments for the given command.
+  #    + options:
+  #      The options to pass to ChildProcess.
+  #    + stdout:
+  #      The callback to receive stdout data.
+  #    + stderr:
+  #      The callback to receive stderr data.
+  #    + exit:
+  #      The callback to receive exit status.
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     options ?= {}
     @process = ChildProcess.spawn(command, args, options)
@@ -49,11 +57,12 @@ class BufferedProcess
 
   # Private: Helper method to pass data line by line.
   #
-  # stream  - The Stream to read from.
-  # onLines - The callback to call with each line of data.
-  # onDone  - The callback to call when the stream has closed.
-  #
-  # Returns nothing.
+  # * stream:
+  #   The Stream to read from.
+  # * onLines:
+  #   The callback to call with each line of data.
+  # * onDone:
+  #   The callback to call when the stream has closed.
   bufferStream: (stream, onLines, onDone) ->
     stream.setEncoding('utf8')
     buffered = ''
@@ -72,8 +81,6 @@ class BufferedProcess
       onDone()
 
   # Public: Terminates the process.
-  #
-  # Returns nothing.
   kill: ->
     @killed = true
     @process.kill()
