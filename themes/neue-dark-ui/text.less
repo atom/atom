@@ -5,9 +5,22 @@
   .text(highlighted);
 }
 
-.highlighted { .text(highlighted); }
-
 .subtle { .text(subtle); }
 .bright { .text(highlighted); }
 
 .smaller { font-size: 0.9em; }
+
+.highlight-color(@name, @color) {
+  .highlight-@{name} {
+    color: @text-color-highlight;
+    font-weight: bold;
+    text-shadow: none;
+    background-color: @color;
+    border-radius: @component-border-radius;
+    padding: 1px 3px;
+  }
+}
+.highlight-color(info, @background-color-info);
+.highlight-color(warning, @background-color-warning);
+.highlight-color(error, @background-color-error);
+.highlight-color(success, @background-color-success);
