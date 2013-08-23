@@ -51,6 +51,12 @@ class DisplayBuffer
           @trigger 'soft-wrap-changed', newValue
           @updateWrappedScreenLines()
 
+    config.observe 'editor.preferredLineLength', callbackImmediately: false, =>
+      @updateWrappedScreenLines() if @getSoftWrap() and config.get('editor.softWrapAtPreferredLineLength')
+
+    config.observe 'editor.softWrapAtPreferredLineLength', callbackImmediately: false, =>
+      @updateWrappedScreenLines() if @getSoftWrap()
+
   serialize: -> @state.clone()
   getState: -> @state
 

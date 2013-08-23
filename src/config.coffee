@@ -176,12 +176,18 @@ class Config
 
   # Establishes an event listener for a given key.
   #
-  # `callback` is fired immediately and whenever the value of the key is changed
+  # `callback` is fired whenever the value of the key is changed and will
+  #  be fired immediately unless the `callbackImmediately` option is `false`.
   #
   # keyPath - The {String} name of the key to watch
+  # options - An optional {Object} containing the `callbackImmediately` key.
   # callback - The {Function} that fires when the. It is given a single argument, `value`,
   #            which is the new value of `keyPath`.
-  observe: (keyPath, callback) ->
+  observe: (keyPath, options={}, callback) ->
+    if _.isFunction(options)
+      callback = options
+      options = {}
+
     value = @get(keyPath)
     previousValue = _.clone(value)
     updateCallback = =>
@@ -192,7 +198,7 @@ class Config
 
     subscription = { cancel: => @off 'updated', updateCallback  }
     @on 'updated', updateCallback
-    callback(value)
+    callback(value) if options.callbackImmediately ? true
     subscription
 
   ### Internal ###
