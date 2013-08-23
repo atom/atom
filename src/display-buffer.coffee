@@ -33,7 +33,7 @@ class DisplayBuffer
         version: @constructor.version
         id: @id
         tokenizedBuffer: @tokenizedBuffer.getState()
-        softWrap: softWrap ? false
+        softWrap: softWrap ? config.get('editor.softWrap') ? false
         softWrapColumn: softWrapColumn
 
     @markers = {}

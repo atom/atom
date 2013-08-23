@@ -49,6 +49,24 @@ describe "EditSession", ->
       editSession2.unfoldBufferRow(4)
       expect(editSession2.isFoldedAtBufferRow(4)).not.toBe editSession.isFoldedAtBufferRow(4)
 
+  describe "config defaults", ->
+    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
+      config.set('editor.tabLength', 4)
+      config.set('editor.softWrap', true)
+      config.set('editor.softTabs', false)
+      editSession1 = project.open('a')
+      expect(editSession1.getTabLength()).toBe 4
+      expect(editSession1.getSoftWrap()).toBe true
+      expect(editSession1.getSoftTabs()).toBe false
+
+      config.set('editor.tabLength', 100)
+      config.set('editor.softWrap', false)
+      config.set('editor.softTabs', true)
+      editSession2 = project.open('b')
+      expect(editSession2.getTabLength()).toBe 100
+      expect(editSession2.getSoftWrap()).toBe false
+      expect(editSession2.getSoftTabs()).toBe true
+
   describe "title", ->
     describe ".getTitle()", ->
       it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->

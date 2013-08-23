@@ -62,7 +62,7 @@ class EditSession
         version: @constructor.version
         id: @id
         displayBuffer: displayBuffer.getState()
-        softTabs: buffer.usesSoftTabs() ? softTabs ? true
+        softTabs: buffer.usesSoftTabs() ? softTabs ? config.get('editor.softTabs') ? true
         scrollTop: 0
         scrollLeft: 0
       @setBuffer(buffer)

@@ -33,7 +33,7 @@ class TokenizedBuffer
       @state = site.createDocument
         deserializer: @constructor.name
         bufferPath: @buffer.getRelativePath()
-        tabLength: tabLength ? 2
+        tabLength: tabLength ? config.get('editor.tabLength') ? 2
 
     @subscribe syntax, 'grammar-added grammar-updated', (grammar) =>
       if grammar.injectionSelector?
