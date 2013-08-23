@@ -900,11 +900,11 @@ class Editor extends View
       @activeEditSession.setScrollTop(@scrollTop())
       @activeEditSession.setScrollLeft(@scrollLeft())
 
-  # {Delegates to: EditSession.setSoftTabs}
+  # Toggle soft tabs on the edit session.
   toggleSoftTabs: ->
     @activeEditSession.setSoftTabs(not @activeEditSession.softTabs)
 
-  # Activates soft wraps in the editor.
+  # Toggle soft wrap on the edit session.
   toggleSoftWrap: ->
     @activeEditSession.setSoftWrap(not @activeEditSession.getSoftWrap())
 
