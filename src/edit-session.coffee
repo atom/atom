@@ -196,7 +196,7 @@ class EditSession
   # Defines the limit at which the buffer begins to soft wrap text.
   #
   # softWrapColumn - A {Number} defining the soft wrap limit
-  setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
+  setSoftWrapColumn: (softWrapColumn) -> @displayBuffer.setSoftWrapColumn(softWrapColumn)
 
   getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 

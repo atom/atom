@@ -1632,7 +1632,7 @@ describe "Editor", ->
       setEditorHeightInLines(editor, 20)
       setEditorWidthInChars(editor, 50)
       editor.setSoftWrap(true)
-      expect(editor.activeEditSession.softWrapColumn).toBe 50
+      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 50
 
     it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
       expect(editor.renderedLines.find('.line').length).toBe 16
