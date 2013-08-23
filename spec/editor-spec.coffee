@@ -1670,13 +1670,9 @@ describe "Editor", ->
       editor.edit(otherEditSession)
       expect(editor.renderedLines.find('.line').length).toBe(1)
 
-    it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
+    it "unwraps lines when softwrap is disabled", ->
       editor.toggleSoftWrap()
       expect(editor.renderedLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
-
-      spyOn(editor, 'setSoftWrapColumn')
-      $(window).trigger 'resize'
-      expect(editor.setSoftWrapColumn).not.toHaveBeenCalled()
 
     it "allows the cursor to move down to the last line", ->
       _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
