@@ -398,7 +398,7 @@ describe "EditSession", ->
           expect(cursor1.getScreenPosition()).toEqual [2,0]
           expect(cursor2.getScreenPosition()).toEqual [8,0]
 
-      describe "when soft wrap is of", ->
+      describe "when soft wrap is off", ->
         it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
           editSession.setCursorScreenPosition [0,5]
           editSession.addCursorAtScreenPosition [1,7]
