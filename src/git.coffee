@@ -10,6 +10,9 @@ GitUtils = require 'git-utils'
 # Ultimately, this is an overlay to the native [git-utils](https://github.com/atom/node-git) module.
 module.exports =
 class Git
+  _.extend @prototype, Subscriber
+  _.extend @prototype, EventEmitter
+
   ### Public ###
   # Creates a new `Git` instance.
   #
@@ -239,6 +242,3 @@ class Git
       @statuses = statuses
       @upstream = upstream
       @trigger 'statuses-changed' unless statusesUnchanged
-
-_.extend Git.prototype, Subscriber
-_.extend Git.prototype, EventEmitter
