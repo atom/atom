@@ -342,16 +342,9 @@ class Project
   ### Internal ###
 
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
-    options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
-    options.buffer = buffer
-    editSession = new EditSession(options)
+    editSession = new EditSession(_.extend({buffer}, editSessionOptions))
     @addEditSession(editSession)
     editSession
-
-  defaultEditSessionOptions: ->
-    tabLength: config.get('editor.tabLength')
-    softTabs: config.get('editor.softTabs')
-    softWrap: config.get('editor.softWrap')
 
   eachEditSession: (callback) ->
     callback(editSession) for editSession in @getEditSessions()

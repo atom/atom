@@ -49,6 +49,24 @@ describe "EditSession", ->
       editSession2.unfoldBufferRow(4)
       expect(editSession2.isFoldedAtBufferRow(4)).not.toBe editSession.isFoldedAtBufferRow(4)
 
+  describe "config defaults", ->
+    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
+      config.set('editor.tabLength', 4)
+      config.set('editor.softWrap', true)
+      config.set('editor.softTabs', false)
+      editSession1 = project.open('a')
+      expect(editSession1.getTabLength()).toBe 4
+      expect(editSession1.getSoftWrap()).toBe true
+      expect(editSession1.getSoftTabs()).toBe false
+
+      config.set('editor.tabLength', 100)
+      config.set('editor.softWrap', false)
+      config.set('editor.softTabs', true)
+      editSession2 = project.open('b')
+      expect(editSession2.getTabLength()).toBe 100
+      expect(editSession2.getSoftWrap()).toBe false
+      expect(editSession2.getSoftTabs()).toBe true
+
   describe "title", ->
     describe ".getTitle()", ->
       it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
@@ -102,7 +120,8 @@ describe "EditSession", ->
 
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
-          editSession.setSoftWrapColumn(50)
+          editSession.setSoftWrap(true)
+          editSession.setEditorWidthInChars(50)
           editSession.createFold(2, 3)
 
         it "positions the cursor at the buffer position that corresponds to the given screen position", ->
@@ -325,7 +344,8 @@ describe "EditSession", ->
     describe ".moveCursorToBeginningOfLine()", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
-          editSession.setSoftWrapColumn(10)
+          editSession.setSoftWrap(true)
+          editSession.setEditorWidthInChars(10)
           editSession.setCursorScreenPosition([1, 2])
           editSession.moveCursorToBeginningOfLine()
           cursor = editSession.getCursor()
@@ -344,7 +364,8 @@ describe "EditSession", ->
     describe ".moveCursorToEndOfLine()", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
-          editSession.setSoftWrapColumn(10)
+          editSession.setSoftWrap(true)
+          editSession.setEditorWidthInChars(10)
           editSession.setCursorScreenPosition([1, 2])
           editSession.moveCursorToEndOfLine()
           cursor = editSession.getCursor()
@@ -363,7 +384,8 @@ describe "EditSession", ->
     describe ".moveCursorToFirstCharacterOfLine()", ->
       describe "when soft wrap is on", ->
         it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
-          editSession.setSoftWrapColumn(10)
+          editSession.setSoftWrap(true)
+          editSession.setEditorWidthInChars(10)
           editSession.setCursorScreenPosition [2,5]
           editSession.addCursorAtScreenPosition [8,7]
 
@@ -1778,7 +1800,8 @@ describe "EditSession", ->
       describe ".cutToEndOfLine()", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
-            editSession.setSoftWrapColumn(10)
+            editSession.setSoftWrap(true)
+            editSession.setEditorWidthInChars(10)
             editSession.setCursorScreenPosition([2, 2])
             editSession.cutToEndOfLine()
             expect(editSession.lineForScreenRow(2).text).toBe '=  () {'
@@ -2234,7 +2257,8 @@ describe "EditSession", ->
 
     describe "when soft wrap is enabled", ->
       it "deletes the entire line that the cursor is on", ->
-        editSession.setSoftWrapColumn(10)
+        editSession.setSoftWrap(true)
+        editSession.setEditorWidthInChars(10)
         editSession.setCursorBufferPosition([6])
 
         line7 = buffer.lineForRow(7)

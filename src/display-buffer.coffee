@@ -9,22 +9,19 @@ Fold = require 'fold'
 Token = require 'token'
 DisplayBufferMarker = require 'display-buffer-marker'
 Subscriber = require 'subscriber'
-
-DefaultSoftWrapColumn = 1000000
+ConfigObserver = require 'config-observer'
 
 module.exports =
 class DisplayBuffer
-  screenLines: null
-  rowMap: null
-  tokenizedBuffer: null
-  markers: null
-  foldsByMarkerId: null
+  _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
+  _.extend @prototype, ConfigObserver
 
   @acceptsDocuments: true
   registerDeserializer(this)
+  @version: 2
 
-  @deserialize: (state) ->
-    new DisplayBuffer(state)
+  @deserialize: (state) -> new this(state)
 
   constructor: (optionsOrState) ->
     if optionsOrState instanceof telepath.Document
@@ -33,14 +30,16 @@ class DisplayBuffer
       @tokenizedBuffer = deserialize(@state.get('tokenizedBuffer'))
       @buffer = @tokenizedBuffer.buffer
     else
-      {@buffer, softWrapColumn} = optionsOrState
+      {@buffer, softWrap, editorWidthInChars} = optionsOrState
       @id = guid.create().toString()
       @tokenizedBuffer = new TokenizedBuffer(optionsOrState)
       @state = site.createDocument
         deserializer: @constructor.name
+        version: @constructor.version
         id: @id
         tokenizedBuffer: @tokenizedBuffer.getState()
-        softWrapColumn: softWrapColumn ? DefaultSoftWrapColumn
+        softWrap: softWrap ? config.get('editor.softWrap') ? false
+        editorWidthInChars: editorWidthInChars
 
     @markers = {}
     @foldsByMarkerId = {}
@@ -50,6 +49,18 @@ class DisplayBuffer
     @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
+
+    @state.on 'changed', ({key, newValue}) =>
+      switch key
+        when 'softWrap'
+          @trigger 'soft-wrap-changed', newValue
+          @updateWrappedScreenLines()
+
+    @observeConfig 'editor.preferredLineLength', callNow: false, =>
+      @updateWrappedScreenLines() if @getSoftWrap() and config.get('editor.softWrapAtPreferredLineLength')
+
+    @observeConfig 'editor.softWrapAtPreferredLineLength', callNow: false, =>
+      @updateWrappedScreenLines() if @getSoftWrap()
 
   serialize: -> @state.clone()
   getState: -> @state
@@ -73,18 +84,7 @@ class DisplayBuffer
     @trigger 'changed', eventProperties
     @resumeMarkerObservers()
 
-  ### Public ###
-
-  # Sets the visibility of the tokenized buffer.
-  #
-  # visible - A {Boolean} indicating of the tokenized buffer is shown
-  setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
-
-  # Defines the limit at which the buffer begins to soft wrap text.
-  #
-  # softWrapColumn - A {Number} defining the soft wrap limit.
-  setSoftWrapColumn: (softWrapColumn) ->
-    @state.set('softWrapColumn', softWrapColumn)
+  updateWrappedScreenLines: ->
     start = 0
     end = @getLastRow()
     @updateAllScreenLines()
@@ -92,8 +92,30 @@ class DisplayBuffer
     bufferDelta = 0
     @triggerChanged({ start, end, screenDelta, bufferDelta })
 
+  ### Public ###
+
+  # Sets the visibility of the tokenized buffer.
+  #
+  # visible - A {Boolean} indicating of the tokenized buffer is shown
+  setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
+
+  setSoftWrap: (softWrap) -> @state.set('softWrap', softWrap)
+
+  getSoftWrap: -> @state.get('softWrap')
+
+  # Set the number of characters that fit horizontally in the editor.
+  #
+  # editorWidthInChars - A {Number} of characters.
+  setEditorWidthInChars: (editorWidthInChars) ->
+    @state.set('editorWidthInChars', editorWidthInChars)
+    @updateWrappedScreenLines() if @getSoftWrap()
+
   getSoftWrapColumn: ->
-    @state.get('softWrapColumn')
+    editorWidthInChars = @state.get('editorWidthInChars')
+    if config.get('editor.softWrapAtPreferredLineLength')
+      Math.min(editorWidthInChars, config.getPositiveInt('editor.preferredLineLength', editorWidthInChars))
+    else
+      editorWidthInChars
 
   # Gets the screen line for the given screen row.
   #
@@ -408,6 +430,7 @@ class DisplayBuffer
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
+    return unless @getSoftWrap()
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])
@@ -551,6 +574,7 @@ class DisplayBuffer
     marker.unsubscribe() for marker in @getMarkers()
     @tokenizedBuffer.destroy()
     @unsubscribe()
+    @unobserveConfig()
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
@@ -672,6 +696,3 @@ class DisplayBuffer
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
-
-_.extend DisplayBuffer.prototype, EventEmitter
-_.extend DisplayBuffer.prototype, Subscriber

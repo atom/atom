@@ -26,6 +26,7 @@ class Editor extends View
     tabLength: 2
     softWrap: false
     softTabs: true
+    softWrapAtPreferredLineLength: false
 
   @nextEditorId: 1
 
@@ -498,10 +499,10 @@ class Editor extends View
   # {Delegates to: EditSession.getScreenLineCount}
   getScreenLineCount: -> @activeEditSession.getScreenLineCount()
 
-  # {Delegates to: EditSession.setSoftWrapColumn}
-  setSoftWrapColumn: (softWrapColumn) ->
-    softWrapColumn ?= @calcSoftWrapColumn()
-    @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
+  # {Delegates to: EditSession.setEditorWidthInChars}
+  setWidthInChars: (widthInChars) ->
+    widthInChars ?= @calculateWidthInChars()
+    @activeEditSession.setEditorWidthInChars(widthInChars) if widthInChars
 
   # {Delegates to: EditSession.getMaxScreenLineLength}
   getMaxScreenLineLength: -> @activeEditSession.getMaxScreenLineLength()
@@ -719,8 +720,10 @@ class Editor extends View
     return if @attached
     @attached = true
     @calculateDimensions()
-    @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
-    @subscribe $(window), "resize.editor-#{@id}", => @requestDisplayUpdate()
+    @setWidthInChars()
+    @subscribe $(window), "resize.editor-#{@id}", =>
+      @setWidthInChars()
+      @requestDisplayUpdate()
     @focus() if @isFocused
 
     if pane = @getPane()
@@ -770,6 +773,9 @@ class Editor extends View
 
     @activeEditSession.on 'scroll-left-changed.editor', (scrollLeft) =>
       @scrollLeft(scrollLeft)
+
+    @activeEditSession.on 'soft-wrap-changed.editor', (softWrap) =>
+      @setSoftWrap(softWrap)
 
     @trigger 'editor:path-changed'
     @resetDisplay()
@@ -894,36 +900,26 @@ class Editor extends View
       @activeEditSession.setScrollTop(@scrollTop())
       @activeEditSession.setScrollLeft(@scrollLeft())
 
-  # {Delegates to: EditSession.setSoftTabs}
+  # Toggle soft tabs on the edit session.
   toggleSoftTabs: ->
     @activeEditSession.setSoftTabs(not @activeEditSession.softTabs)
 
-  # Activates soft wraps in the editor.
+  # Toggle soft wrap on the edit session.
   toggleSoftWrap: ->
-    @setSoftWrap(not @activeEditSession.getSoftWrap())
+    @activeEditSession.setSoftWrap(not @activeEditSession.getSoftWrap())
 
-  calcSoftWrapColumn: ->
-    if @activeEditSession.getSoftWrap()
-      Math.floor(@scrollView.width() / @charWidth)
-    else
-      Infinity
+  calculateWidthInChars: ->
+    Math.floor(@scrollView.width() / @charWidth)
 
-  # Sets the soft wrap column for the editor.
+  # Enables/disables soft wrap on the editor.
   #
-  # softWrap - A {Boolean} which, if `true`, sets soft wraps
-  # softWrapColumn - A {Number} indicating the length of a line in the editor when soft
-  # wrapping turns on
-  setSoftWrap: (softWrap, softWrapColumn=undefined) ->
-    @activeEditSession.setSoftWrap(softWrap)
-    @setSoftWrapColumn(softWrapColumn) if @attached
-    if @activeEditSession.getSoftWrap()
+  # softWrap - A {Boolean} which, if `true`, enables soft wrap
+  setSoftWrap: (softWrap) ->
+    if softWrap
       @addClass 'soft-wrap'
       @scrollLeft(0)
-      @_setSoftWrapColumn = => @setSoftWrapColumn()
-      $(window).on "resize.editor-#{@id}", @_setSoftWrapColumn
     else
       @removeClass 'soft-wrap'
-      $(window).off 'resize', @_setSoftWrapColumn
 
   # Sets the font size for the editor.
   #
@@ -1137,6 +1133,7 @@ class Editor extends View
     @updateLayerDimensions()
     @scrollTop(editSessionScrollTop)
     @scrollLeft(editSessionScrollLeft)
+    @setSoftWrap(@activeEditSession.getSoftWrap())
     @newCursors = @activeEditSession.getAllCursors()
     @newSelections = @activeEditSession.getAllSelections()
     @updateDisplay(suppressAutoScroll: true)

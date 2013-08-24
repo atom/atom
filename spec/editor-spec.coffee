@@ -1013,7 +1013,7 @@ describe "Editor", ->
 
           describe "when soft-wrap is enabled", ->
             beforeEach ->
-              editor.setSoftWrap(true)
+              editSession.setSoftWrap(true)
 
             it "does not scroll the buffer horizontally", ->
               editor.width(charWidth * 30)
@@ -1479,10 +1479,13 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line:first').text()).toBe "a line that ends with a carriage return#{cr}#{eol}"
 
       describe "when wrapping is on", ->
+        beforeEach ->
+          editSession.setSoftWrap(true)
+
         it "doesn't show the end of line invisible at the end of lines broken due to wrapping", ->
-          editor.setSoftWrapColumn(6)
           editor.setText "a line that wraps"
           editor.attachToDom()
+          editor.setWidthInChars(6)
           config.set "editor.showInvisibles", true
           space = editor.invisibles?.space
           expect(space).toBeTruthy()
@@ -1492,9 +1495,9 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:last').text()).toBe "wraps#{eol}"
 
         it "displays trailing carriage return using a visible non-empty value", ->
-          editor.setSoftWrapColumn(6)
           editor.setText "a line that\r\n"
           editor.attachToDom()
+          editor.setWidthInChars(6)
           config.set "editor.showInvisibles", true
           space = editor.invisibles?.space
           expect(space).toBeTruthy()
@@ -1628,11 +1631,11 @@ describe "Editor", ->
 
   describe "when soft-wrap is enabled", ->
     beforeEach ->
+      editSession.setSoftWrap(true)
       editor.attachToDom()
       setEditorHeightInLines(editor, 20)
       setEditorWidthInChars(editor, 50)
-      editor.setSoftWrap(true)
-      expect(editor.activeEditSession.softWrapColumn).toBe 50
+      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 50
 
     it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
       expect(editor.renderedLines.find('.line').length).toBe 16
@@ -1670,13 +1673,9 @@ describe "Editor", ->
       editor.edit(otherEditSession)
       expect(editor.renderedLines.find('.line').length).toBe(1)
 
-    it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
+    it "unwraps lines when softwrap is disabled", ->
       editor.toggleSoftWrap()
       expect(editor.renderedLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
-
-      spyOn(editor, 'setSoftWrapColumn')
-      $(window).trigger 'resize'
-      expect(editor.setSoftWrapColumn).not.toHaveBeenCalled()
 
     it "allows the cursor to move down to the last line", ->
       _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
@@ -1700,15 +1699,15 @@ describe "Editor", ->
       editor.moveCursorRight()
       expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
-    it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
+    it "calls .setWidthInChars() when the editor is attached because now its dimensions are available to calculate it", ->
       otherEditor = new Editor(editSession: project.open('sample.js'))
-      spyOn(otherEditor, 'setSoftWrapColumn')
+      spyOn(otherEditor, 'setWidthInChars')
 
-      otherEditor.setSoftWrap(true)
-      expect(otherEditor.setSoftWrapColumn).not.toHaveBeenCalled()
+      otherEditor.activeEditSession.setSoftWrap(true)
+      expect(otherEditor.setWidthInChars).not.toHaveBeenCalled()
 
       otherEditor.simulateDomAttachment()
-      expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
+      expect(otherEditor.setWidthInChars).toHaveBeenCalled()
       otherEditor.remove()
 
   describe "gutter rendering", ->
@@ -1744,7 +1743,8 @@ describe "Editor", ->
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
-        editor.setSoftWrapColumn(50)
+        editSession.setSoftWrap(true)
+        editor.setWidthInChars(50)
         expect(editor.gutter.find('.line-number').length).toEqual(8)
         expect(editor.gutter.find('.line-number:eq(3)').intValue()).toBe 4
         expect(editor.gutter.find('.line-number:eq(4)').html()).toBe '&nbsp;•'
@@ -1883,7 +1883,7 @@ describe "Editor", ->
     describe "when there is wrapping", ->
       beforeEach ->
         editor.attachToDom(30)
-        editor.setSoftWrap(true)
+        editSession.setSoftWrap(true)
         setEditorWidthInChars(editor, 20)
 
       it "highlights the line where the initial cursor position is", ->
@@ -1946,7 +1946,7 @@ describe "Editor", ->
 
     describe "when there is wrapping", ->
       beforeEach ->
-        editor.setSoftWrap(true)
+        editSession.setSoftWrap(true)
         setEditorWidthInChars(editor, 20)
 
       it "highlights the line where the initial cursor position is", ->
@@ -2670,3 +2670,12 @@ describe "Editor", ->
 
       for rowNumber in [1..5]
         expect(editor.lineElementForScreenRow(rowNumber).text()).toBe buffer.lineForRow(rowNumber)
+
+  describe "when the window is resized", ->
+    it "updates the active edit session with the current soft wrap column", ->
+      editor.attachToDom()
+      setEditorWidthInChars(editor, 50)
+      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 50
+      setEditorWidthInChars(editor, 100)
+      $(window).trigger 'resize'
+      expect(editor.activeEditSession.getSoftWrapColumn()).toBe 100
