@@ -3,7 +3,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-# Public: Represents the portion of the {Editor} containing row numbers.
+# Private: Represents the portion of the {Editor} containing row numbers.
 #
 # The gutter also indicates if rows are folded.
 module.exports =

@@ -7,7 +7,7 @@ EventEmitter = require 'event-emitter'
 Subscriber = require 'subscriber'
 guid = require 'guid'
 
-# Public: Represents the contents of a file.
+# Private: Represents the contents of a file.
 #
 # The `Buffer` is often associated with a {File}. However, this is not always
 # the case, as a `Buffer` could be an unsaved chunk of text.
