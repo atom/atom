@@ -4,6 +4,7 @@ telepath = require 'telepath'
 fsUtils = require 'fs-utils'
 File = require 'file'
 EventEmitter = require 'event-emitter'
+Subscriber = require 'subscriber'
 guid = require 'guid'
 
 # Public: Represents the contents of a file.
@@ -12,6 +13,9 @@ guid = require 'guid'
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer
+  _.extend(@prototype, EventEmitter)
+  _.extend(@prototype, Subscriber)
+
   @acceptsDocuments: true
   @version: 2
   registerDeserializer(this)
@@ -50,9 +54,9 @@ class TextBuffer
         version: @constructor.version
         text: @text
 
-    @text.on 'changed', @handleTextChange
-    @text.on 'marker-created', (marker) => @trigger 'marker-created', marker
-    @text.on 'markers-updated', => @trigger 'markers-updated'
+    @subscribe @text, 'changed', @handleTextChange
+    @subscribe @text, 'marker-created', (marker) => @trigger 'marker-created', marker
+    @subscribe @text, 'markers-updated', => @trigger 'markers-updated'
 
     if filePath
       @setPath(@project.resolve(filePath))
@@ -73,6 +77,7 @@ class TextBuffer
   destroy: ->
     unless @destroyed
       @file?.off()
+      @unsubscribe()
       @destroyed = true
       @project?.removeBuffer(this)
 
@@ -648,5 +653,3 @@ class TextBuffer
     for row in [0..@getLastRow()]
       lines.push "#{row}: #{@lineForRow(row)}"
     lines.join('\n')
-
-_.extend(TextBuffer.prototype, EventEmitter)
