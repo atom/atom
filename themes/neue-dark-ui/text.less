@@ -6,6 +6,21 @@ h1 { font-size: 2em; }
 h2 { font-size: 1.5em; }
 h3 { font-size: 1.2em; }
 
+pre {
+  box-shadow: none;
+  color: @text-color;
+  background: @inset-panel-background-color;
+  border-radius: @component-border-radius;
+  border: none;
+  margin: 0;
+}
+
+code {
+  .text(highlighted);
+  background: lighten(@tool-panel-background-color, 5%);
+  border-radius: @component-border-radius;
+}
+
 .subtle { .text(subtle); }
 .bright { .text(highlighted); }
 .selected { .text(highlighted); }
