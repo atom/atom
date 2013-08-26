@@ -6,10 +6,15 @@ telepath = require 'telepath'
 PaneRow = require 'pane-row'
 PaneColumn = require 'pane-column'
 
+# Public: A container which can contains multiple items to be switched between.
+#
+# Items can be almost anything however most commonly they're {Editors}.
+#
+# Most packages won't need to use this class, unless you're interested in
+# building a package that deals with switching between panes or tiems.
 module.exports =
 class Pane extends View
 
-  ### Internal ###
   @acceptsDocuments: true
 
   @content: (wrappedView) ->
@@ -26,6 +31,7 @@ class Pane extends View
   viewsByClassName: null # Views with a setModel() method are stored here
   viewsByItem: null      # Views without a setModel() method are stored here
 
+  # Private:
   initialize: (args...) ->
     if args[0] instanceof telepath.Document
       @state = args[0]
@@ -80,6 +86,7 @@ class Pane extends View
     @on 'focusin', => @makeActive()
     @on 'focusout', => @autosaveActiveItem()
 
+  # Private:
   afterAttach: (onDom) ->
     if @focusOnAttach and onDom
       @focusOnAttach = null
@@ -89,8 +96,8 @@ class Pane extends View
     @attached = true
     @trigger 'pane:attached', [this]
 
-  ### Public ###
 
+  # Public: Focus this pane.
   makeActive: ->
     for pane in @getContainer().getPanes() when pane isnt this
       pane.makeInactive()
@@ -98,23 +105,28 @@ class Pane extends View
     @addClass('active')
     @trigger 'pane:became-active' unless wasActive
 
+  # Public: Unfocus this pane.
   makeInactive: ->
     wasActive = @isActive()
     @removeClass('active')
     @trigger 'pane:became-inactive' if wasActive
 
+  # Public: Returns whether this pane is currently focused.
   isActive: ->
     @hasClass('active')
 
+  # Public: Returns the next pane, ordered by creation.
   getNextPane: ->
     panes = @getContainer()?.getPanes()
     return unless panes.length > 1
     nextIndex = (panes.indexOf(this) + 1) % panes.length
     panes[nextIndex]
 
+  # Public: Returns all contained views.
   getItems: ->
     new Array(@items...)
 
+  # Public: Switches to the next contained item.
   showNextItem: =>
     index = @getActiveItemIndex()
     if index < @items.length - 1
@@ -122,6 +134,7 @@ class Pane extends View
     else
       @showItemAtIndex(0)
 
+  # Public: Switches to the previous contained item.
   showPreviousItem: =>
     index = @getActiveItemIndex()
     if index > 0
@@ -129,15 +142,19 @@ class Pane extends View
     else
       @showItemAtIndex(@items.length - 1)
 
+  # Public: Returns the index of the currently active item.
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
 
+  # Public: Switch to the item associated with the given index.
   showItemAtIndex: (index) ->
     @showItem(@itemAtIndex(index))
 
+  # Public: Returns the item at the specified index.
   itemAtIndex: (index) ->
     @items[index]
 
+  # Public: Focuses the given item.
   showItem: (item) ->
     return if !item? or item is @activeItem
 
@@ -159,9 +176,11 @@ class Pane extends View
 
     @state.set('activeItemUri', item.getUri?())
 
+  # Private:
   activeItemTitleChanged: =>
     @trigger 'pane:active-item-title-changed'
 
+  # Public: Add an additional item at the specified index.
   addItem: (item, index=@getActiveItemIndex()+1, options={}) ->
     return if _.include(@items, item)
 
@@ -171,10 +190,12 @@ class Pane extends View
     @trigger 'pane:item-added', [item, index]
     item
 
+  # Public: Remove the currently active item.
   destroyActiveItem: =>
     @destroyItem(@activeItem)
     false
 
+  # Public: Remove the specified item.
   destroyItem: (item) ->
     container = @getContainer()
     reallyDestroyItem = =>
@@ -189,12 +210,15 @@ class Pane extends View
     else
       reallyDestroyItem()
 
+  # Public: Remove and delete all items.
   destroyItems: ->
     @destroyItem(item) for item in @getItems()
 
+  # Public: Remove and delete all but the currently focused item.
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
+  # Public: Prompt the user to save the given item.
   promptToSaveItem: (item) ->
     uri = item.getUri()
     currentWindow = require('remote').getCurrentWindow()
@@ -209,12 +233,15 @@ class Pane extends View
       when 1 then false
       when 2 then true
 
+  # Public: Saves the currently focused item.
   saveActiveItem: =>
     @saveItem(@activeItem)
 
+  # Public: Save and prompt for path for the currently focused item.
   saveActiveItemAs: =>
     @saveItemAs(@activeItem)
 
+  # Public: Saves the specified item and call the next action when complete.
   saveItem: (item, nextAction) ->
     if item.getUri?()
       item.save?()
@@ -222,6 +249,8 @@ class Pane extends View
     else
       @saveItemAs(item, nextAction)
 
+  # Public: Prompts for path and then saves the specified item. Upon completion
+  # it also calls the next action.
   saveItemAs: (item, nextAction) ->
     return unless item.saveAs?
 
@@ -232,19 +261,24 @@ class Pane extends View
       item.saveAs(path)
       nextAction?()
 
+  # Public: Saves all items in this pane.
   saveItems: =>
     @saveItem(item) for item in @getItems()
 
+  # Public: Autosaves the currently focused item.
   autosaveActiveItem: ->
     @autosaveItem(@activeItem)
 
+  # Public: Autosaves the given focused item if configured to do so.
   autosaveItem: (item) ->
     @saveItem(item) if config.get('core.autosave') and item.getUri?()
 
+  # Public: Autosaves the given focused item if configured to do so.
   removeItem: (item) ->
     index = @items.indexOf(item)
     @removeItemAtIndex(index) if index >= 0
 
+  # Public: Just remove the item at the given index.
   removeItemAtIndex: (index, options={}) ->
     item = @items[index]
     @showNextItem() if item is @activeItem and @items.length > 1
@@ -253,6 +287,7 @@ class Pane extends View
     @cleanupItemView(item)
     @trigger 'pane:item-removed', [item, index]
 
+  # Public: Moves the given item to a the new index.
   moveItem: (item, newIndex) ->
     oldIndex = @items.indexOf(item)
     @items.splice(oldIndex, 1)
@@ -261,15 +296,18 @@ class Pane extends View
     @state.get('items').splice(newIndex, 0, item.getState?() ? item.serialize())
     @trigger 'pane:item-moved', [item, newIndex]
 
+  # Public: Moves the given item to another pane.
   moveItemToPane: (item, pane, index) ->
     @isMovingItem = true
     @removeItem(item)
     @isMovingItem = false
     pane.addItem(item, index)
 
+  # Public: Finds the first item that matches the given uri.
   itemForUri: (uri) ->
     _.detect @items, (item) -> item.getUri?() is uri
 
+  # Public: Focuses the first item that matches the given uri.
   showItemForUri: (uri) ->
     if item = @itemForUri(uri)
       @showItem(item)
@@ -277,6 +315,7 @@ class Pane extends View
     else
       false
 
+  # Private:
   cleanupItemView: (item) ->
     if item instanceof $
       viewToRemove = item
@@ -300,6 +339,7 @@ class Pane extends View
       viewToRemove?.detach() if @isMovingItem and item is viewToRemove
       @parent().view().removeChild(this, updateState: false)
 
+  # Private:
   viewForItem: (item) ->
     if item instanceof $
       item
@@ -317,35 +357,46 @@ class Pane extends View
           @viewsByItem.set(item, view)
       view
 
+  # Private:
   viewForActiveItem: ->
     @viewForItem(@activeItem)
 
+  # Private:
   serialize: ->
     state = @state.clone()
     state.set('items', item.serialize() for item, index in @items)
     state.set('focused', @is(':has(:focus)'))
     state
 
+  # Private:
   getState: -> @state
 
+  # Private:
   adjustDimensions: -> # do nothing
 
+  # Private:
   horizontalGridUnits: -> 1
 
+  # Private:
   verticalGridUnits: -> 1
 
+  # Public: Creates a new pane above with a copy of the currently focused item.
   splitUp: (items...) ->
     @split(items, 'column', 'before')
 
+  # Public: Creates a new pane below with a copy of the currently focused item.
   splitDown: (items...) ->
     @split(items, 'column', 'after')
 
+  # Public: Creates a new pane left with a copy of the currently focused item.
   splitLeft: (items...) ->
     @split(items, 'row', 'before')
 
+  # Public: Creates a new pane right with a copy of the currently focused item.
   splitRight: (items...) ->
     @split(items, 'row', 'after')
 
+  # Private:
   split: (items, axis, side) ->
     PaneContainer = require 'pane-container'
 
@@ -372,21 +423,26 @@ class Pane extends View
     newPane.focus()
     newPane
 
+  # Private:
   buildPaneAxis: (axis) ->
     switch axis
       when 'row' then new PaneRow()
       when 'column' then new PaneColumn()
 
+  # Private:
   getContainer: ->
     @closest('#panes').view()
 
+  # Private:
   copyActiveItem: ->
     @activeItem.copy?() ? deserialize(@activeItem.serialize())
 
+  # Private:
   remove: (selector, keepData) ->
     return super if keepData
     @parent().view().removeChild(this)
 
+  # Private:
   beforeRemove: ->
     if @is(':has(:focus)')
       @getContainer().focusNextPane() or rootView?.focus()
