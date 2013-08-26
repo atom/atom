@@ -1,5 +1,6 @@
 'stylesheets': [
   'atom'
+  'utilities'
   'text'
   'icons'
   'loading'
@@ -7,6 +8,7 @@
   'panels'
   'lists'
   'editor'
+  'section'
   'tabs'
   'overlay'
   'popover-list'
