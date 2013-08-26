@@ -53,6 +53,15 @@
   &.highlight-selected .selected{
     background-color: @tool-panel-background-highlight-color;
   }
+
+  .icon:before {
+    margin-right: @component-icon-padding;
+    position: relative;
+    top: 1px;
+  }
+  .no-icon {
+    padding-left: @component-icon-padding + @component-icon-size;
+  }
 }
 
 // Handle indentation of the tree. Assume disclosure arrows.
