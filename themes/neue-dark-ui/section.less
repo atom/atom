@@ -2,12 +2,13 @@
 @import "ui-variables";
 
 section {
+  position: relative;
   margin-top: 0;
   &:last-child { margin-bottom: 0; }
 
   &.bordered {
     margin: 0;
-    padding: @component-padding 0;
+    padding: @component-padding*2 0;
     border-top: 1px solid @tool-panel-border-highlight-color;
     border-bottom: 1px solid @tool-panel-border-color;
 
