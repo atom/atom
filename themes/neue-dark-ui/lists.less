@@ -34,14 +34,6 @@
     .text(highlighted);
   }
 
-  .list-nested-item.collapsed > .list-group,
-  .list-nested-item.collapsed > .list-tree {
-    display: none;
-  }
-  .list-nested-item.collapsed > .list-item > .disclosure-arrow {
-    .octicon(chevron-right, @disclosure-arrow-size);
-  }
-
   // The background highlight
   .selected:before {
     content: '';
@@ -68,15 +60,36 @@
 
 // Handle indentation of the tree. Assume disclosure arrows.
 .list-tree {
-  @disclosure-arrow-padding: @disclosure-arrow-size + @component-icon-padding;
+  &.has-collapsable-children {
+    @disclosure-arrow-padding: @disclosure-arrow-size + @component-icon-padding;
+    li.list-item {
+      margin-left: @disclosure-arrow-padding;
+    }
 
-  .disclosure-arrow { margin-right: @component-icon-padding; }
+    .list-nested-item.collapsed > .list-group,
+    .list-nested-item.collapsed > .list-tree {
+      display: none;
+    }
 
-  &.has-collapsable-children li.list-item {
-    margin-left: @disclosure-arrow-padding;
-  }
-  .list-nested-item > .list-tree,
-  .list-nested-item > .list-group {
-    margin-left: @disclosure-arrow-padding;
+    // Nested items always get disclosure arrows
+    .list-nested-item > .list-item {
+      .octicon(chevron-down, @disclosure-arrow-size);
+      &:before{
+        position: relative;
+        top: -1px;
+        margin-right: @component-icon-padding;
+      }
+    }
+    .list-nested-item.collapsed > .list-item {
+      .octicon(chevron-right, @disclosure-arrow-size);
+      &:before{
+        left: 1px;
+      }
+    }
+
+    .list-nested-item > .list-tree,
+    .list-nested-item > .list-group {
+      margin-left: @disclosure-arrow-padding;
+    }
   }
 }
