@@ -30,9 +30,10 @@ class Unlinker
       for child in fs.list(@devPackagesPath)
         packagePath = path.join(@devPackagesPath, child)
         @unlinkPath(packagePath) if fs.isLink(packagePath)
-      for child in fs.list(@packagesPath)
-        packagePath = path.join(@packagesPath, child)
-        @unlinkPath(packagePath) if fs.isLink(packagePath)
+      unless options.argv.dev
+        for child in fs.list(@packagesPath)
+          packagePath = path.join(@packagesPath, child)
+          @unlinkPath(packagePath) if fs.isLink(packagePath)
       options.callback()
     catch error
       options.callback(error)
