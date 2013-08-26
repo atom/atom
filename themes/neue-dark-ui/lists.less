@@ -42,7 +42,9 @@
     .octicon(chevron-right, @disclosure-arrow-size);
   }
 
-  .selected > .highlight {
+  // The background highlight
+  .selected:before {
+    content: '';
     background-color: @tool-panel-background-highlight-color;
     position: absolute;
     left: 0;
