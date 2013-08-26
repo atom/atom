@@ -50,7 +50,7 @@ class DisplayBuffer
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
-    @state.on 'changed', ({key, newValue}) =>
+    @subscribe @state, 'changed', ({key, newValue}) =>
       switch key
         when 'softWrap'
           @trigger 'soft-wrap-changed', newValue

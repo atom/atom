@@ -25,7 +25,7 @@ class PaneContainer extends View
     else
       @state = site.createDocument(deserializer: 'PaneContainer')
 
-    @state.on 'changed', ({key, newValue, site}) =>
+    @subscribe @state, 'changed', ({key, newValue, site}) =>
       return if site is @state.site.id
       if key is 'root'
         if newValue?

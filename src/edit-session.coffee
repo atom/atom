@@ -73,7 +73,7 @@ class EditSession
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @state.on 'changed', ({key, newValue}) =>
+    @subscribe @state, 'changed', ({key, newValue}) =>
       switch key
         when 'scrollTop'
           @trigger 'scroll-top-changed', newValue
