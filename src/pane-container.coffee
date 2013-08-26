@@ -96,7 +96,9 @@ class PaneContainer extends View
 
   setRoot: (root) ->
     @empty()
-    @append(root) if root?
+    if root?
+      @append(root)
+      @itemAdded(root.activeItem) if root.activeItem
     @state.set(root: root?.getState())
 
   removeChild: (child) ->

@@ -149,6 +149,12 @@ describe "PaneContainer", ->
       expect(container.reopenItem()).toBeFalsy()
       expect(pane1.activeItem).toEqual item3
 
+      pane1.destroyItem(item3)
+      container.setRoot(new Pane(item3))
+      expect(container.reopenItem()).toBeFalsy()
+      expect(container.getActivePane().getItems().length).toBe 1
+      expect(container.getActivePaneItem()).toEqual item3
+
   describe ".saveAll()", ->
     it "saves all open pane items", ->
       pane1.showItem(new TestView('4'))
