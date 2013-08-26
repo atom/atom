@@ -53,18 +53,20 @@ class RootView extends View
     themes: ['atom-dark-ui', 'atom-dark-syntax']
     projectHome: path.join(atom.getHomeDirPath(), 'github')
 
-  ### Internal ###
   @acceptsDocuments: true
 
+  # Private:
   @content: (state) ->
     @div id: 'root-view', =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @div outlet: 'panes'
 
+  # Private:
   @deserialize: (state) ->
     new RootView(state)
 
+  # Private:
   initialize: (state={}) ->
     if state instanceof telepath.Document
       @state = state
@@ -128,14 +130,17 @@ class RootView extends View
 
     _.nextTick => atom.setFullScreen(@state.get('fullScreen'))
 
+  # Private:
   serialize: ->
     state = @state.clone()
     state.set('panes', @panes.serialize())
     state.set('fullScreen', atom.isFullScreen())
     state
 
+  # Private:
   getState: -> @state
 
+  # Private:
   handleFocus: (e) ->
     if @getActivePane()
       @getActivePane().focus()
@@ -149,18 +154,17 @@ class RootView extends View
       else
         true
 
+  # Private:
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  ### Public ###
-
-  # Shows a dialog asking if the pane was _really_ meant to be closed.
+  # Public: Shows a dialog asking if the pane was _really_ meant to be closed.
   confirmClose: ->
     @panes.confirmClose()
 
-  # Given a filepath, this opens it in Atom.
+  # Public: Opens a given a filepath in Atom.
   #
-  # Returns the `EditSession` for the file URI.
+  # Returns the {EditSession} for the file URI.
   open: (path, options = {}) ->
     changeFocus = options.changeFocus ? true
     path = project.relativize(path)
@@ -175,7 +179,7 @@ class RootView extends View
     activePane.focus() if changeFocus
     editSession
 
-  # Updates the application's title, based on whichever file is open.
+  # Public: Updates the application's title, based on whichever file is open.
   updateTitle: ->
     if projectPath = project.getPath()
       if item = @getActivePaneItem()
@@ -185,19 +189,15 @@ class RootView extends View
     else
       @setTitle('untitled')
 
-  # Sets the application's title.
-  #
-  # Returns a {String}.
+  # Public: Sets the application's title.
   setTitle: (title) ->
     document.title = title
 
-  # Retrieves all of the application's {Editor}s.
-  #
-  # Returns an {Array} of {Editor}s.
+  # Private: Returns an Array of  all of the application's {Editor}s.
   getEditors: ->
     @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
 
-  # Retrieves all of the modified buffers that are open and unsaved.
+  # Private: Retrieves all of the modified buffers that are open and unsaved.
   #
   # Returns an {Array} of {TextBuffer}s.
   getModifiedBuffers: ->
@@ -207,76 +207,67 @@ class RootView extends View
         modifiedBuffers.push item.buffer if item.buffer.isModified()
     modifiedBuffers
 
-  # Retrieves all of the paths to open files.
+  # Private: Retrieves all of the paths to open files.
   #
   # Returns an {Array} of {String}s.
   getOpenBufferPaths: ->
     _.uniq(_.flatten(@getEditors().map (editor) -> editor.getOpenBufferPaths()))
 
-  # Retrieves the pane that's currently open.
-  #
-  # Returns an {Pane}.
+  # Public: Returns the currently focused {Pane}.
   getActivePane: ->
     @panes.getActivePane()
 
+  # Public: Returns the currently focused {PaneItem}.
   getActivePaneItem: ->
     @panes.getActivePaneItem()
 
+  # Public: Returns the currently focused {PaneItemView}.
   getActiveView: ->
     @panes.getActiveView()
 
+  # Public: Focuses the previous pane by id.
   focusPreviousPane: -> @panes.focusPreviousPane()
+
+  # Public: Focuses the next pane by id.
   focusNextPane: -> @panes.focusNextPane()
+
+  # Public:
+  #
+  # FIXME: Difference between active and focused pane?
   getFocusedPane: -> @panes.getFocusedPane()
 
-  # Saves all of the open buffers.
+  # Public: Saves all of the open {PaneItem}s
   saveAll: ->
     @panes.saveAll()
 
-  # Fires a callback on each open {Pane}.
-  #
-  # callback - A {Function} to call
+  # Public: Fires a callback on each open {Pane}.
   eachPane: (callback) ->
     @panes.eachPane(callback)
 
-  # Retrieves all of the open {Pane}s.
-  #
-  # Returns an {Array} of {Pane}.
+  # Public: Returns an Array of all open {Pane}s.
   getPanes: ->
     @panes.getPanes()
 
-  # Given a {Pane}, this fetches its ID.
-  #
-  # pane - An open {Pane}
-  #
-  # Returns a {Number}.
+  # Public: Return the id of the given a {Pane}
   indexOfPane: (pane) ->
     @panes.indexOfPane(pane)
 
-  # Fires a callback on each open {Editor}.
-  #
-  # callback - A {Function} to call
+  # Private: Fires a callback on each open {Editor}.
   eachEditor: (callback) ->
     callback(editor) for editor in @getEditors()
     attachedCallback = (e, editor) -> callback(editor)
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Fires a callback on each open {EditSession}.
-  #
-  # callback - A {Function} to call
+  # Public: Fires a callback on each open {EditSession}.
   eachEditSession: (callback) ->
     project.eachEditSession(callback)
 
-  # Fires a callback on each open {TextBuffer}.
-  #
-  # callback - A {Function} to call
+  # Private: Fires a callback on each open {TextBuffer}.
   eachBuffer: (callback) ->
     project.eachBuffer(callback)
 
-  ### Internal ###
-
-  # Destroys everything.
+  # Private: Destroys everything.
   remove: ->
     editor.remove() for editor in @getEditors()
     project.destroy()
