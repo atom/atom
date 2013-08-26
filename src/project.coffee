@@ -26,16 +26,20 @@ class Project
 
   registerDeserializer(this)
 
+  # Private:
   @deserialize: (state) -> new Project(state)
 
   @openers: []
 
+  # Public:
   @registerOpener: (opener) ->
     @openers.push(opener)
 
+  # Public:
   @unregisterOpener: (opener) ->
     _.remove(@openers, opener)
 
+  # Public:
   @pathForRepositoryUrl: (repoUrl) ->
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
     repoName = repoName.replace(/\.git$/, '')
@@ -45,8 +49,8 @@ class Project
   editSessions: null
   ignoredPathRegexes: null
 
-  ### Internal ###
 
+  # Private:
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
     buffer.release() for buffer in @getBuffers()
@@ -54,9 +58,7 @@ class Project
       @repo.destroy()
       @repo = null
 
-  ### Public ###
-
-  # Establishes a new project at a given path.
+  # Public: Establishes a new project at a given path.
   #
   # path - The {String} name of the path
   constructor: (pathOrState) ->
@@ -85,25 +87,24 @@ class Project
       for insertedBuffer, i in inserted
         @addBufferAtIndex(deserialize(insertedBuffer, project: this), index + i, updateState: false)
 
+  # Private:
   serialize: ->
     state = @state.clone()
     state.set('path', @getPath())
     state.set('buffers', buffer.serialize() for buffer in @getBuffers())
     state
 
+  # Public: ?
   getState: -> @state
 
+  # Public: Returns the {Git} repository if available.
   getRepo: -> @repo
 
-  # Retrieves the project path.
-  #
-  # Returns a {String}.
+  # Public: Returns the project's fullpath.
   getPath: ->
     @rootDirectory?.path
 
-  # Sets the project path.
-  #
-  # projectPath - A {String} representing the new path
+  # Public: Sets the project's fullpath.
   setPath: (projectPath) ->
     @rootDirectory?.off()
 
@@ -122,13 +123,12 @@ class Project
 
     @trigger "path-changed"
 
-  # Retrieves the name of the root directory.
-  #
-  # Returns a {String}.
+  # Public: Returns the name of the root directory.
   getRootDirectory: ->
     @rootDirectory
 
-  # Retrieves the names of every file (that's not `git ignore`d) in the project.
+  # Public: Fetches the name of every file (that's not `git ignore`d) in the
+  # project.
   #
   # Returns an {Array} of {String}s.
   getFilePaths: ->
@@ -140,11 +140,7 @@ class Project
     deferred.resolve(paths)
     deferred.promise()
 
-  # Identifies if a path is ignored.
-  #
-  # path - The {String} name of the path to check
-  #
-  # Returns a {Boolean}.
+  # Public: Determines if a path is ignored via Atom configuration.
   isPathIgnored: (path) ->
     for segment in path.split("/")
       ignoredNames = config.get("core.ignoredNames") or []
@@ -152,20 +148,18 @@ class Project
 
     @ignoreRepositoryPath(path)
 
-  # Identifies if a path is ignored.
-  #
-  # repositoryPath - The {String} name of the path to check
-  #
-  # Returns a {Boolean}.
+  # Public: Determines if a given path is ignored via repository configuration.
   ignoreRepositoryPath: (repositoryPath) ->
     config.get("core.hideGitIgnoredFiles") and @repo?.isPathIgnored(path.join(@getPath(), repositoryPath))
 
-  # Given a uri, this resolves it relative to the project directory. If the path
-  # is already absolute or if it is prefixed with a scheme, it is returned unchanged.
+  # Public: Given a uri, this resolves it relative to the project directory. If
+  # the path is already absolute or if it is prefixed with a scheme, it is
+  # returned unchanged.
   #
-  # uri - The {String} name of the path to convert
+  # * uri:
+  #   The String name of the path to convert
   #
-  # Returns a {String}.
+  # Returns a String.
   resolve: (uri) ->
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
       uri
@@ -173,28 +167,23 @@ class Project
       uri = path.join(@getPath(), uri) unless uri[0] == '/'
       fsUtils.absolute uri
 
-  # Given a path, this makes it relative to the project directory.
-  #
-  # fullPath - The {String} path to convert.
-  #
-  # Returns a {String}.
+  # Public: Make the given path relative to the project directory.
   relativize: (fullPath) ->
     @rootDirectory?.relativize(fullPath) ? fullPath
 
-  # Is the given path inside this project?
-  #
-  # pathToCheck - the {String} path to check.
-  #
-  # Returns a {Boolean}.
+  # Public: Returns whether the given path is inside this project.
   contains: (pathToCheck) ->
     @rootDirectory?.contains(pathToCheck) ? false
 
-  # Given a path to a file, this constructs and associates a new `EditSession`, showing the file.
+  # Public: Given a path to a file, this constructs and associates a new
+  # {EditSession}, showing the file.
   #
-  # filePath - The {String} path of the file to associate with
-  # editSessionOptions - Options that you can pass to the `EditSession` constructor
+  # * filePath:
+  #   The {String} path of the file to associate with
+  # * editSessionOptions:
+  #   Options that you can pass to the {EditSession} constructor
   #
-  # Returns either an {EditSession} (for text) or {ImageEditSession} (for images).
+  # Returns an {EditSession}.
   open: (filePath, options={}) ->
     filePath = @resolve(filePath) if filePath?
     for opener in @constructor.openers
@@ -202,31 +191,29 @@ class Project
 
     @buildEditSessionForBuffer(@bufferForPath(filePath), options)
 
-  # Retrieves all the {EditSession}s in the project; that is, the `EditSession`s for all open files.
+  # Public: Retrieves all {EditSession}s for all open files.
   #
   # Returns an {Array} of {EditSession}s.
   getEditSessions: ->
     new Array(@editSessions...)
 
+  # Public: Add the given {EditSession}.
   addEditSession: (editSession) ->
     @editSessions.push editSession
     @trigger 'edit-session-created', editSession
 
-  ### Public ###
-
-  # Removes an {EditSession} association from the project.
-  #
-  # Returns the removed {EditSession}.
+  # Public: Return and removes the given {EditSession}.
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
 
-  # Retrieves all the {TextBuffer}s in the project; that is, the buffers for all open files.
+  # Private: Retrieves all the {TextBuffer}s in the project; that is, the
+  # buffers for all open files.
   #
   # Returns an {Array} of {TextBuffer}s.
   getBuffers: ->
     new Array(@buffers...)
 
-  # Given a file path, this retrieves or creates a new {TextBuffer}.
+  # Private: Given a file path, this retrieves or creates a new {TextBuffer}.
   #
   # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
   # `text` is used as the contents of the new buffer.
@@ -244,10 +231,11 @@ class Project
     else
       @buildBuffer(null, text)
 
+  # Private:
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
 
-  # Given a file path, this sets its {TextBuffer}.
+  # Private: Given a file path, this sets its {TextBuffer}.
   #
   # filePath - A {String} representing a path
   # text - The {String} text to use as a buffer
@@ -260,29 +248,34 @@ class Project
     @trigger 'buffer-created', buffer
     buffer
 
+  # Private:
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
 
+  # Private:
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers[index] = buffer
     @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
 
-  # Removes a {TextBuffer} association from the project.
+  # Private: Removes a {TextBuffer} association from the project.
   #
   # Returns the removed {TextBuffer}.
   removeBuffer: (buffer) ->
     index = @buffers.indexOf(buffer)
     @removeBufferAtIndex(index) unless index is -1
 
+  # Private:
   removeBufferAtIndex: (index, options={}) ->
     [buffer] = @buffers.splice(index, 1)
     @state.get('buffers').remove(index) if options.updateState ? true
     buffer?.destroy()
 
-  # Performs a search across all the files in the project.
+  # Public: Performs a search across all the files in the project.
   #
-  # regex - A {RegExp} to search with
-  # iterator - A {Function} callback on each file found
+  # * regex:
+  #   A RegExp to search with
+  # * iterator:
+  #   A Function callback on each file found
   scan: (regex, iterator) ->
     bufferedData = ""
     state = 'readingPath'
@@ -341,17 +334,18 @@ class Project
     new BufferedNodeProcess({command, args, stdout, stderr, exit})
     deferred
 
-  ### Internal ###
-
+  # Private:
   buildEditSessionForBuffer: (buffer, editSessionOptions) ->
     editSession = new EditSession(_.extend({buffer}, editSessionOptions))
     @addEditSession(editSession)
     editSession
 
+  # Private:
   eachEditSession: (callback) ->
     callback(editSession) for editSession in @getEditSessions()
     @on 'edit-session-created', (editSession) -> callback(editSession)
 
+  # Private:
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
