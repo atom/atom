@@ -19,6 +19,8 @@ class PaneContainer extends View
     @div id: 'panes'
 
   initialize: (state) ->
+    @destroyedItemStates = []
+
     if state instanceof telepath.Document
       @state = state
       @setRoot(deserialize(@state.get('root')))
@@ -32,8 +34,6 @@ class PaneContainer extends View
           @setRoot(deserialize(newValue))
         else
           @setRoot(null)
-
-    @destroyedItemStates = []
 
   serialize: ->
     state = @state.clone()
