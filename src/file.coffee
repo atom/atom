@@ -7,9 +7,8 @@ _ = require 'underscore'
 
 # Public: Represents an individual file in the editor.
 #
-# The entry point for this class is in two locations:
-# * {TextBuffer}, which associates text contents with a file
-# * {Directory}, which associcates the children of a directory as files
+# This class shouldn't be created directly, instead you should create a 
+# {Directory} and access the {File} objects that it creates.
 module.exports =
 class File
   _.extend @prototype, EventEmitter
@@ -17,45 +16,41 @@ class File
   path: null
   cachedContents: null
 
-  # Creates a new file.
+  # Private: Creates a new file.
   #
-  # path - A {String} representing the file path
-  # symlink - A {Boolean} indicating if the path is a symlink (default: false)
+  # * path:
+  #   A String representing the file path
+  # * symlink:
+  #   A Boolean indicating if the path is a symlink (default: false)
   constructor: (@path, @symlink=false) ->
     try
       if fs.statSync(@path).isDirectorySync()
         throw new Error("#{@path} is a directory")
 
-  # Sets the path for the file.
-  #
-  # path - A {String} representing the new file path
+  # Private: Sets the path for the file.
   setPath: (@path) ->
 
-  # Retrieves the path for the file.
-  #
-  # Returns a {String}.
+  # Public: Returns the path for the file.
   getPath: -> @path
 
-  # Gets the file's basename--that is, the file without any directory information.
-  #
-  # Returns a {String}.
+  # Public: Return the filename without any directory information.
   getBaseName: ->
     path.basename(@path)
 
-  # Writes (and saves) new contents to the file.
-  #
-  # text - A {String} representing the new contents.
+  # Public: Overwrites the file with the given String.
   write: (text) ->
     previouslyExisted = @exists()
     @cachedContents = text
     fsUtils.writeSync(@getPath(), text)
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
 
-  # Reads the file.
+  # Public: Reads the contents of the file.
   #
-  # flushCache - A {Boolean} indicating if the cache should be erased--_i.e._, a force read is performed
+  # * flushCache:
+  #   A Boolean indicating whether to require a direct read or if a cached
+  #   copy is acceptable.
   #
-  # Returns a {String}.
+  # Returns a String.
   read: (flushCache)->
     if not @exists()
       @cachedContents = null
@@ -64,20 +59,19 @@ class File
     else
       @cachedContents
 
-  # Checks to see if a file exists.
-  #
-  # Returns a {Boolean}.
+  # Public: Returns whether a file exists.
   exists: ->
     fsUtils.exists(@getPath())
 
-  ### Internal ###
-
+  # Private:
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
 
+  # Private:
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
+  # Private:
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "delete"
       @unsubscribeFromNativeChangeEvents()
@@ -91,9 +85,11 @@ class File
       return if oldContents == newContents
       @trigger 'contents-changed'
 
+  # Private:
   detectResurrectionAfterDelay: ->
     _.delay (=> @detectResurrection()), 50
 
+  # Private:
   detectResurrection: ->
     if @exists()
       @subscribeToNativeChangeEvents()
@@ -102,10 +98,12 @@ class File
       @cachedContents = null
       @trigger "removed"
 
+  # Private:
   subscribeToNativeChangeEvents: ->
     @watchSubscription = pathWatcher.watch @path, (eventType, path) =>
       @handleNativeChangeEvent(eventType, path)
 
+  # Private:
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription
       @watchSubscription.close()
