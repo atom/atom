@@ -1,14 +1,21 @@
 @import "ui-mixins";
 @import "ui-variables";
 
-.selected {
-  .text(highlighted);
-}
+h1, h2, h3 { line-height: 1em; }
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.2em; }
 
 .subtle { .text(subtle); }
 .bright { .text(highlighted); }
+.selected { .text(highlighted); }
 
 .smaller { font-size: 0.9em; }
+
+.info { .text(info); }
+.warning { .text(warning); }
+.success { .text(success); }
+.error { .text(error); }
 
 .highlight-color(@name, @color) {
   .highlight-@{name} {
