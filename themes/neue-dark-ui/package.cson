@@ -2,6 +2,7 @@
   'atom'
   'utilities'
   'text'
+  'git'
   'icons'
   'loading'
   'buttons'
