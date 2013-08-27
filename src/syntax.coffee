@@ -11,6 +11,8 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 
 module.exports =
 class Syntax
+  _.extend @prototype, EventEmitter
+
   registerDeserializer(this)
 
   @deserialize: ({grammarOverridesByPath}) ->
@@ -133,5 +135,3 @@ class Syntax
 
   cssSelectorFromScopeSelector: (scopeSelector) ->
     new TextMateScopeSelector(scopeSelector).toCssSelector()
-
-_.extend(Syntax.prototype, EventEmitter)

@@ -5,6 +5,8 @@ _ = require 'underscore'
 # Public: Represents a selection in the {EditSession}.
 module.exports =
 class Selection
+  _.extend @prototype, EventEmitter
+
   cursor: null
   marker: null
   editSession: null
@@ -546,5 +548,3 @@ class Selection
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @trigger 'screen-range-changed', screenRange
-
-_.extend Selection.prototype, EventEmitter

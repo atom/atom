@@ -16,6 +16,9 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # An `EditSession` manages the states between {Editor}s, {Buffer}s, and the project as a whole.
 module.exports =
 class EditSession
+  _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
+
   @acceptsDocuments: true
 
   registerDeserializer(this)
@@ -1396,6 +1399,3 @@ class EditSession
       @displayBuffer.getDebugSnapshot()
       @displayBuffer.tokenizedBuffer.getDebugSnapshot()
     ].join('\n\n')
-
-_.extend(EditSession.prototype, EventEmitter)
-_.extend(EditSession.prototype, Subscriber)

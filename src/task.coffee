@@ -4,6 +4,8 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class Task
+  _.extend @prototype, EventEmitter
+
   @once: (taskPath, args...) ->
     task = new Task(taskPath)
     task.one 'task:completed', -> task.terminate()
@@ -56,5 +58,3 @@ class Task
     @childProcess = null
 
     @off()
-
-_.extend Task.prototype, EventEmitter

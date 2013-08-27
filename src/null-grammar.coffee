@@ -5,6 +5,8 @@ _ = require 'underscore'
 ### Internal ###
 module.exports =
 class NullGrammar
+  _.extend @prototype, EventEmitter
+
   name: 'Null Grammar'
   scopeName: 'text.plain.null-grammar'
 
@@ -20,5 +22,3 @@ class NullGrammar
       tokens
 
   grammarUpdated: -> # noop
-
-_.extend NullGrammar.prototype, EventEmitter

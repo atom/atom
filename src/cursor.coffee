@@ -7,6 +7,8 @@ _ = require 'underscore'
 # Cursors have some metadata attached in the form of a {BufferMarker}.
 module.exports =
 class Cursor
+  _.extend @prototype, EventEmitter
+
   screenPosition: null
   bufferPosition: null
   goalColumn: null
@@ -441,5 +443,3 @@ class Cursor
   # Returns an {Array} of {String}s.
   getScopes: ->
     @editSession.scopesForBufferPosition(@getBufferPosition())
-
-_.extend Cursor.prototype, EventEmitter

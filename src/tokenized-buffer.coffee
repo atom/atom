@@ -10,6 +10,9 @@ telepath = require 'telepath'
 
 module.exports =
 class TokenizedBuffer
+  _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
+
   grammar: null
   currentGrammarScore: null
   buffer: null
@@ -323,6 +326,3 @@ class TokenizedBuffer
     for screenLine, row in @linesForScreenRows(0, @getLastRow())
       lines.push "#{row}: #{screenLine.text}"
     lines.join('\n')
-
-_.extend(TokenizedBuffer.prototype, EventEmitter)
-_.extend(TokenizedBuffer.prototype, Subscriber)

@@ -7,6 +7,8 @@ fsUtils = require 'fs-utils'
 
 module.exports =
 class WindowEventHandler
+  _.extend @prototype, Subscriber
+
   constructor: ->
     @subscribe ipc, 'command', (command, args...) ->
       $(window).trigger(command, args...)
@@ -89,5 +91,3 @@ class WindowEventHandler
         previousElement = element
 
     (previousElement ? highestElement).focus()
-
-_.extend WindowEventHandler.prototype, Subscriber

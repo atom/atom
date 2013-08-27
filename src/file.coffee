@@ -12,6 +12,8 @@ _ = require 'underscore'
 # * {Directory}, which associcates the children of a directory as files
 module.exports =
 class File
+  _.extend @prototype, EventEmitter
+
   path: null
   cachedContents: null
 
@@ -108,5 +110,3 @@ class File
     if @watchSubscription
       @watchSubscription.close()
       @watchSubscription = null
-
-_.extend File.prototype, EventEmitter

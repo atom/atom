@@ -9,6 +9,9 @@ Subscriber = require 'subscriber'
 
 module.exports =
 class LanguageMode
+  _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
+
   buffer: null
   grammar: null
   editSession: null
@@ -296,6 +299,3 @@ class LanguageMode
   foldEndRegexForScopes: (scopes) ->
     if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
       new OnigRegExp(foldEndPattern)
-
-_.extend LanguageMode.prototype, EventEmitter
-_.extend LanguageMode.prototype, Subscriber

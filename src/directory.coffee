@@ -11,6 +11,8 @@ EventEmitter = require 'event-emitter'
 # Directories contain an array of {File}s.
 module.exports =
 class Directory
+  _.extend @prototype, EventEmitter
+
   path: null
   realPath: null
 
@@ -116,5 +118,3 @@ class Directory
     if @watchSubscription?
       @watchSubscription.close()
       @watchSubscription = null
-
-_.extend Directory.prototype, EventEmitter

@@ -23,6 +23,8 @@ userStoragePath = path.join(configDirPath, "storage")
 # user's configuration file.
 module.exports =
 class Config
+  _.extend @prototype, EventEmitter
+
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
   bundledPackageDirPaths: [nodeModulesDirPath]
@@ -210,5 +212,3 @@ class Config
 
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)
-
-_.extend Config.prototype, EventEmitter

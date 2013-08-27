@@ -5,6 +5,9 @@ Subscriber = require 'subscriber'
 
 module.exports =
 class DisplayBufferMarker
+  _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
+
   bufferMarkerSubscription: null
   oldHeadBufferPosition: null
   oldHeadScreenPosition: null
@@ -213,6 +216,3 @@ class DisplayBufferMarker
     @oldTailBufferPosition = newTailBufferPosition
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
-
-_.extend DisplayBufferMarker.prototype, EventEmitter
-_.extend DisplayBufferMarker.prototype, Subscriber

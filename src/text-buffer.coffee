@@ -13,8 +13,8 @@ guid = require 'guid'
 # the case, as a `Buffer` could be an unsaved chunk of text.
 module.exports =
 class TextBuffer
-  _.extend(@prototype, EventEmitter)
-  _.extend(@prototype, Subscriber)
+  _.extend @prototype, EventEmitter
+  _.extend @prototype, Subscriber
 
   @acceptsDocuments: true
   @version: 2

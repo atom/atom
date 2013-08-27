@@ -19,6 +19,8 @@ Git = require 'git'
 # of directories and files that you can operate on.
 module.exports =
 class Project
+  _.extend @prototype, EventEmitter
+
   @acceptsDocuments: true
   @version: 1
 
@@ -359,5 +361,3 @@ class Project
       subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
-
-_.extend Project.prototype, EventEmitter
