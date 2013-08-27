@@ -14,10 +14,8 @@ EventEmitter = require 'event-emitter'
 # * task:complete - Emitted when the task has succeeded or failed.
 module.exports =
 class Task
-<<<<<<< HEAD
   _.extend @prototype, EventEmitter
 
-=======
   # Public: A helper method to easily launch and run a task once.
   #
   # * taskPath:
@@ -25,7 +23,6 @@ class Task
   #   function to execute.
   # * args:
   #   The Array of arguments to pass to the exported function.
->>>>>>> Add comments to Task
   @once: (taskPath, args...) ->
     task = new Task(taskPath)
     task.one 'task:completed', -> task.terminate()
