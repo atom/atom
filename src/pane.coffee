@@ -281,6 +281,7 @@ class Pane extends View
   # Public: Just remove the item at the given index.
   removeItemAtIndex: (index, options={}) ->
     item = @items[index]
+    @activeItem.off? 'title-changed', @activeItemTitleChanged if item is @activeItem
     @showNextItem() if item is @activeItem and @items.length > 1
     _.remove(@items, item)
     @state.get('items').remove(index) if options.updateState ? true
