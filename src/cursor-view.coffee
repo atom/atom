@@ -33,10 +33,10 @@ class CursorView extends View
     if @cursor.marker.isRemote()
       @addClass("site-#{@cursor.marker.getOriginSiteId()}")
 
-  remove: ->
+  beforeRemove: ->
     @editor.removeCursorView(this)
     @cursor.off('.cursor-view')
-    super
+    @stopBlinking()
 
   updateDisplay: ->
     screenPosition = @getScreenPosition()
