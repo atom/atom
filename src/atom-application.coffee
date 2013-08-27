@@ -263,7 +263,7 @@ class AtomApplication
   #      The path to include specs from.
   #    + specPath:
   #      The directory to load specs from.
-  runSpecs: ({exitWhenDone, resourcePath}) ->
+  runSpecs: ({exitWhenDone, resourcePath, specPath}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
