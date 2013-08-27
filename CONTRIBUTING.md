@@ -20,6 +20,9 @@
     appropriate
   * Add 3rd-party packages as a `package.json` dependency
   * Commit messages are in the present tense
+  * Commit messages that improve the format of the code start with :lipstick:
+  * Commit messages that improve the performance start with :racehorse:
+  * Commit messages that remove memory leaks start with :non-potable_water:
   * Files end with a newline
   * Class variables and methods should be in the following order:
     * Class variables (variables starting with a `@`)
