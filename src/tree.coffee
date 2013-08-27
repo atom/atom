@@ -1,6 +1,13 @@
-module.exports = (items, callback) ->
+_ = require 'underscore'
+
+module.exports = (items, options={}, callback) ->
+  if _.isFunction(options)
+    callback = options
+    options = {}
+
   if items.length is 0
-    console.log '\u2514\u2500\u2500 (empty)'
+    emptyMessage = options.emptyMessage ? '(empty)'
+    console.log "\u2514\u2500\u2500 #{emptyMessage}"
   else
     for item, index in items
       if index is items.length - 1

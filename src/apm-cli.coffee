@@ -3,6 +3,7 @@ optimist = require 'optimist'
 Installer = require './installer'
 Uninstaller = require './uninstaller'
 Lister = require './lister'
+LinkLister = require './link-lister'
 Publisher = require './publisher'
 Fetcher = require './fetcher'
 Linker = require './linker'
@@ -17,7 +18,7 @@ parseOptions = (args=[]) ->
     Usage: apm <command>
 
     where <command> is one of:
-        available, help, install, link, list, publish, rebuild, uninstall, unlink
+        available, help, install, link, links, list, publish, rebuild, uninstall, unlink
   """
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
@@ -55,6 +56,7 @@ module.exports =
         when 'help' then options.showHelp()
         when 'install' then new Installer().run(options)
         when 'link' then new Linker().run(options)
+        when 'linked', 'links' then new LinkLister().run(options)
         when 'list', 'ls' then new Lister().run(options)
         when 'publish' then new Publisher().run(options)
         when 'rebuild' then new Rebuilder().run(options)
