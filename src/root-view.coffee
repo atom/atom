@@ -217,11 +217,11 @@ class RootView extends View
   getActivePane: ->
     @panes.getActivePane()
 
-  # Public: Returns the currently focused {PaneItem}.
+  # Public: Returns the currently focused item from within the focused {Pane}
   getActivePaneItem: ->
     @panes.getActivePaneItem()
 
-  # Public: Returns the currently focused {PaneItemView}.
+  # Public: Returns the view of the currently focused item.
   getActiveView: ->
     @panes.getActiveView()
 
@@ -236,7 +236,7 @@ class RootView extends View
   # FIXME: Difference between active and focused pane?
   getFocusedPane: -> @panes.getFocusedPane()
 
-  # Public: Saves all of the open {PaneItem}s
+  # Public: Saves all of the open items within panes.
   saveAll: ->
     @panes.saveAll()
 

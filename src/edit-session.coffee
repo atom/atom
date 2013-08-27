@@ -19,7 +19,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # {Cursor}s and scroll position.
 #
 # For instance if a user creates a split, Atom creates a second {EditSession}
-# but both {EditSessions} interact with the same buffer underlying buffer. So
+# but both {EditSession}s interact with the same buffer underlying buffer. So
 # if you type in either buffer it immediately appears in both but if you scroll
 # in one it doesn't scroll the other.
 #
@@ -527,7 +527,7 @@ class EditSession
   autoIndentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
-  # Public: Converts all indents to the current {.tabTabText} given a {Range}.
+  # Public: Converts all indents to the current {.getTabText} given a {Range}.
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @getSoftTabs()
     @scanInBufferRange /\t/, bufferRange, ({replace}) => replace(@getTabText())
@@ -800,7 +800,7 @@ class EditSession
   getMarkers: ->
     @displayBuffer.getMarkers()
 
-  # Public: Returns all {DisplayBufferMarkers} that match all given attributes.
+  # Public: Returns all {DisplayBufferMarker}s that match all given attributes.
   findMarkers: (attributes) ->
     @displayBuffer.findMarkers(attributes)
 

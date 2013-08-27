@@ -8,7 +8,7 @@ PaneColumn = require 'pane-column'
 
 # Public: A container which can contains multiple items to be switched between.
 #
-# Items can be almost anything however most commonly they're {Editors}.
+# Items can be almost anything however most commonly they're {Editor}s.
 #
 # Most packages won't need to use this class, unless you're interested in
 # building a package that deals with switching between panes or tiems.

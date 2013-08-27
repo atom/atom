@@ -279,7 +279,7 @@ class Cursor
   #
   # * options:
   #    + wordRegex:
-  #      A RegExp indicating what constitutes a "word" (default: {wordRegExp})
+  #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
   #
   # Returns a {Range}.
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
@@ -344,7 +344,7 @@ class Cursor
   #
   # * options:
   #    + wordRegex:
-  #      A RegExp indicating what constitutes a "word" (default: {wordRegExp})
+  #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
   #
   # Returns a {Range}.
   getEndOfCurrentWordBufferPosition: (options = {}) ->
@@ -365,7 +365,7 @@ class Cursor
   #
   # * options:
   #    + wordRegex:
-  #      A RegExp indicating what constitutes a "word" (default: {wordRegExp})
+  #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
   #
   # Returns a {Range}.
   getBeginningOfNextWordBufferPosition: (options = {}) ->
@@ -384,7 +384,7 @@ class Cursor
   #
   # * options:
   #    + wordRegex:
-  #      A RegExp indicating what constitutes a "word" (default: {wordRegExp})
+  #      A RegExp indicating what constitutes a "word" (default: {.wordRegExp})
   getCurrentWordBufferRange: (options={}) ->
     startOptions = _.extend(_.clone(options), allowPrevious: false)
     endOptions = _.extend(_.clone(options), allowNext: false)
