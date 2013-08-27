@@ -7,7 +7,7 @@ _ = require 'underscore'
 
 # Public: Represents an individual file in the editor.
 #
-# This class shouldn't be created directly, instead you should create a 
+# This class shouldn't be created directly, instead you should create a
 # {Directory} and access the {File} objects that it creates.
 module.exports =
 class File
