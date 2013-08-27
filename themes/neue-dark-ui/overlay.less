@@ -12,25 +12,31 @@
     margin-bottom: @component-padding;
   }
 
-  &.select-list, .select-list {
+  &.select-list ol.list-group, .select-list ol.list-group {
 
-    ol.list-group {
-      background-color: @overlay-inner-background-color;
+    background-color: @overlay-inner-background-color;
 
-      li {
-        padding: @component-padding;
-        border-bottom: 1px solid @overlay-background-color;
+    li {
+      padding: @component-padding;
+      border-bottom: 1px solid @overlay-background-color;
 
-        &.two-lines { padding: @component-padding/2 @component-padding; }
+      &.two-lines { padding: @component-padding/2 @component-padding; }
 
-        .status.icon {
-          float: right;
-          margin-left: @component-icon-padding;
-          &:before {
-            margin-right: 0;
-          }
+      // We want to highlight the background of the list items because we dont
+      // know their size.
+      &.selected{
+        background-color: @tool-panel-background-highlight-color;
+        &:before{ display: none; }
+      }
+
+      .status.icon {
+        float: right;
+        margin-left: @component-icon-padding;
+        &:before {
+          margin-right: 0;
         }
       }
     }
+
   }
 }
