@@ -12,8 +12,6 @@ require 'colors'
 config = require './config'
 Command = require './command'
 
-isWin32 = !!process.platform.match(/^win/)
-
 module.exports =
 class Installer extends Command
   atomDirectory: null
@@ -56,7 +54,7 @@ class Installer extends Command
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
-    installArgs.push('--msvs_version=2012') if isWin32
+    installArgs.push('--msvs_version=2012') if config.isWin32()
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
     installDirectory = temp.mkdirSync('apm-install-dir-')
@@ -81,7 +79,7 @@ class Installer extends Command
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
-    installArgs.push('--msvs_version=2012') if isWin32
+    installArgs.push('--msvs_version=2012') if config.isWin32()
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
     @fork @atomNpmPath, installArgs, {env}, (code, stderr='', stdout='') ->
