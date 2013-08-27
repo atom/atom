@@ -8,6 +8,7 @@ path = require 'path'
 fs = require 'fs'
 _ = require 'underscore'
 
+# Private:
 module.exports =
 class AtomWindow
   browserWindow: null

@@ -15,10 +15,16 @@ _ = require 'underscore'
 
 socketPath = '/tmp/atom.sock'
 
+# Private: The application's singleton class.
+#
+# It's the entry point into the Atom application and maintains the global state
+# of the application.
+#
 module.exports =
 class AtomApplication
   _.extend @prototype, EventEmitter.prototype
 
+  # Public: The entry point into the Atom application.
   @open: (options) ->
     createAtomApplication = -> new AtomApplication(options)
 
@@ -65,14 +71,21 @@ class AtomApplication
     else
       @openPath({pidToKillWhenClosed, newWindow, devMode}) # Always open a editor window if this is the first instance of Atom.
 
+  # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
     @applicationMenu?.enableWindowSpecificItems(false) if @windows.length == 0
 
+  # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
     @windows.push window
     @applicationMenu?.enableWindowSpecificItems(true)
 
+  # Private: Creates server to listen for additional atom application launches.
+  #
+  # You can run the atom command multiple times, but after the first launch
+  # the other launches will just pass their information to this server and then
+  # close immediately.
   listenForArgumentsFromNewProcess: ->
     fs.unlinkSync socketPath if fs.existsSync(socketPath)
     server = net.createServer (connection) =>
@@ -83,9 +96,11 @@ class AtomApplication
     server.listen socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
 
+  # Private: Configures required javascript environment flags.
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony_collections'
 
+  # Private: Enable updates unless running from a local build of Atom.
   checkForUpdates: ->
     versionIsSha = /\w{7}/.test @version
 
@@ -97,6 +112,7 @@ class AtomApplication
       autoUpdater.setAutomaticallyChecksForUpdates true
       autoUpdater.checkForUpdatesInBackground()
 
+  # Private: Registers basic application commands, non-idempotent.
   handleEvents: ->
     @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
@@ -146,20 +162,52 @@ class AtomApplication
     ipc.on 'command', (processId, routingId, command) =>
       @emit(command)
 
+  # Public: Executes the given command.
+  #
+  # If it isn't handled globally, delegate to the currently focused window.
+  #
+  # * command:
+  #   The string representing the command.
+  # * args:
+  #   The optional arguments to pass along.
   sendCommand: (command, args...) ->
     unless @emit(command, args...)
       @focusedWindow()?.sendCommand(command, args...)
 
+  # Private: Returns the {AtomWindow} for the given path.
   windowForPath: (pathToOpen) ->
     for atomWindow in @windows
       return atomWindow if atomWindow.containsPath(pathToOpen)
 
+  # Public: Returns the currently focused {AtomWindow} or undefined if none.
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
+  # Public: Opens multiple paths, in existing windows if possible.
+  #
+  # * options
+  #    + pathsToOpen:
+  #      The array of file paths to open
+  #    + pidToKillWhenClosed:
+  #      The integer of the pid to kill
+  #    + newWindow:
+  #      Boolean of whether this should be opened in a new window.
+  #    + devMode:
+  #      Boolean to control the opened window's dev mode.
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode}) ->
     @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode}) for pathToOpen in pathsToOpen ? []
 
+  # Public: Opens a single path, in an existing window if possible.
+  #
+  # * options
+  #    + pathsToOpen:
+  #      The array of file paths to open
+  #    + pidToKillWhenClosed:
+  #      The integer of the pid to kill
+  #    + newWindow:
+  #      Boolean of whether this should be opened in a new window.
+  #    + devMode:
+  #      Boolean to control the opened window's dev mode.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode}={}) ->
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
@@ -186,6 +234,15 @@ class AtomApplication
             console.log("Killing process #{pid} failed: #{error.code}")
         delete @pidsToOpenWindows[pid]
 
+  # Private: Handles an atom:// url.
+  #
+  # Currently only supports atom://session/<session-id> urls.
+  #
+  # * options
+  #    + urlToOpen:
+  #      The atom:// url to open.
+  #    + devMode:
+  #      Boolean to control the opened window's dev mode.
   openUrl: ({urlToOpen, devMode}) ->
     parsedUrl = url.parse(urlToOpen)
     if parsedUrl.host is 'session'
@@ -197,6 +254,15 @@ class AtomApplication
     else
       console.log "Opening unknown url #{urlToOpen}"
 
+  # Private: Opens up a new {AtomWindow} to run specs within.
+  #
+  # * options
+  #    + exitWhenDone:
+  #      A Boolean that if true, will close the window upon completion.
+  #    + resourcePath:
+  #      The path to include specs from.
+  #    + specPath:
+  #      The directory to load specs from.
   runSpecs: ({exitWhenDone, resourcePath, specPath}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
@@ -206,6 +272,14 @@ class AtomApplication
     devMode = true
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specPath})
 
+  # Private: Opens a native dialog to prompt the user for a path.
+  #
+  # Once paths are selected, they're opened in a new or existing {AtomWindow}s.
+  #
+  # * options
+  #    + devMode:
+  #      A Boolean which controls whether any newly opened windows should  be in
+  #      dev mode or not.
   promptForPath: ({devMode}={}) ->
     pathsToOpen = dialog.showOpenDialog title: 'Open', properties: ['openFile', 'openDirectory', 'multiSelections', 'createDirectory']
     @openPaths({pathsToOpen, devMode})

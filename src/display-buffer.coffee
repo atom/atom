@@ -11,6 +11,7 @@ DisplayBufferMarker = require 'display-buffer-marker'
 Subscriber = require 'subscriber'
 ConfigObserver = require 'config-observer'
 
+# Private:
 module.exports =
 class DisplayBuffer
   _.extend @prototype, EventEmitter
@@ -335,7 +336,7 @@ class DisplayBuffer
 
   # Retrieves the grammar's token scopes for a buffer position.
   #
-  # bufferPosition - A {Point} in the {Buffer}
+  # bufferPosition - A {Point} in the {TextBuffer}
   #
   # Returns an {Array} of {String}s.
   scopesForBufferPosition: (bufferPosition) ->
@@ -346,7 +347,7 @@ class DisplayBuffer
 
   # Retrieves the grammar's token for a buffer position.
   #
-  # bufferPosition - A {Point} in the {Buffer}.
+  # bufferPosition - A {Point} in the {TextBuffer}.
   #
   # Returns a {Token}.
   tokenForBufferPosition: (bufferPosition) ->
@@ -444,7 +445,7 @@ class DisplayBuffer
         return column + 1 if /\s/.test(line[column])
       return softWrapColumn
 
-  # Calculates a {Range} representing the start of the {Buffer} until the end.
+  # Calculates a {Range} representing the start of the {TextBuffer} until the end.
   #
   # Returns a {Range}.
   rangeForAllLines: ->
@@ -474,7 +475,7 @@ class DisplayBuffer
   # Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
+  # options - Options to pass to the {StringMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenRange: (args...) ->
@@ -484,7 +485,7 @@ class DisplayBuffer
   # Constructs a new marker at the given buffer range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
+  # options - Options to pass to the {StringMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferRange: (args...) ->
@@ -493,7 +494,7 @@ class DisplayBuffer
   # Constructs a new marker at the given screen position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
+  # options - Options to pass to the {StringMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenPosition: (screenPosition, options) ->
@@ -502,7 +503,7 @@ class DisplayBuffer
   # Constructs a new marker at the given buffer position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {BufferMarker} constructor
+  # options - Options to pass to the {StringMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->

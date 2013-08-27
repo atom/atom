@@ -3,6 +3,7 @@ textUtils = require 'text-utils'
 
 whitespaceRegexesByTabLength = {}
 
+# Private: Represents a single unit of text as selected by a grammar.
 module.exports =
 class Token
   value: null

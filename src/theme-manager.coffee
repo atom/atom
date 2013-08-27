@@ -6,6 +6,7 @@ _ = require 'underscore'
 fsUtils = require 'fs-utils'
 Theme = require 'theme'
 
+# Private: Handles discovering and loading available themes.
 module.exports =
 class ThemeManager
   _.extend @prototype, EventEmitter

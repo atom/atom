@@ -6,9 +6,7 @@ pathWatcher = require 'pathwatcher'
 File = require 'file'
 EventEmitter = require 'event-emitter'
 
-# Public: Represents a directory in the project.
-#
-# Directories contain an array of {File}s.
+# Public: Represents a directory using {File}s
 module.exports =
 class Directory
   _.extend @prototype, EventEmitter
@@ -16,28 +14,26 @@ class Directory
   path: null
   realPath: null
 
-  ### Public ###
-
-  # Creates a new directory.
+  # Public: Configures an new Directory instance, no files are accessed.
   #
-  # path - A {String} representing the file directory
-  # symlink - A {Boolean} indicating if the path is a symlink (default: false)
+  # * path:
+  #   A {String} representing the file directory
+  # + symlink:
+  #   A {Boolean} indicating if the path is a symlink
   constructor: (@path, @symlink=false) ->
 
-  # Retrieves the basename of the directory.
-  #
-  # Returns a {String}.
+  # Public: Returns the basename of the directory.
   getBaseName: ->
     path.basename(@path)
 
-  # Retrieves the directory's path.
+  # Public: Returns the directory's path.
   #
-  # Returns a {String}.
+  # FIXME what is the difference between real path and path?
   getPath: -> @path
 
-  # Retrieves this directory's real path.
+  # Public: Returns this directory's real path.
   #
-  # Returns a {String}.
+  # FIXME what is the difference between real path and path?
   getRealPath: ->
     unless @realPath?
       try
@@ -46,11 +42,7 @@ class Directory
         @realPath = @path
     @realPath
 
-  # Is the given path inside this directory?
-  #
-  # pathToCheck - the {String} path to check.
-  #
-  # Returns a {Boolean}.
+  # Public: Returns whether the given path is inside this directory.
   contains: (pathToCheck) ->
     return false unless pathToCheck
 
@@ -61,11 +53,7 @@ class Directory
     else
       false
 
-  # Make a full path relative to this directory's path.
-  #
-  # fullPath - The {String} path to convert.
-  #
-  # Returns a {String}.
+  # Public: Returns the relative path to the given path from this directory.
   relativize: (fullPath) ->
     return fullPath unless fullPath
 
@@ -80,9 +68,9 @@ class Directory
     else
       fullPath
 
-  # Retrieves the file entries in the directory.
+  # Public: Reads file entries in this directory from disk.
   #
-  # This does follow symlinks.
+  # Note: It follows symlinks.
   #
   # Returns an {Array} of {Files}.
   getEntries: ->
@@ -102,18 +90,20 @@ class Directory
 
     directories.concat(files)
 
-  ### Internal ###
-
+  # Private:
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @subscriptionCount() == 1
 
+  # Private:
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
+  # Private:
   subscribeToNativeChangeEvents: ->
     @watchSubscription = pathWatcher.watch @path, (eventType) =>
       @trigger "contents-changed" if eventType is "change"
 
+  # Private:
   unsubscribeFromNativeChangeEvents: ->
     if @watchSubscription?
       @watchSubscription.close()
