@@ -46,8 +46,8 @@ class DisplayBuffer
     @foldsByMarkerId = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
-    @tokenizedBuffer.on 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
-    @tokenizedBuffer.on 'changed', @handleTokenizedBufferChange
+    @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @trigger 'grammar-changed', grammar
+    @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
     @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
     @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
