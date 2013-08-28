@@ -130,7 +130,7 @@ class AtomReporter extends View
     bundledPackageSpecs = 0
     userPackageSpecs = 0
     for spec in specs
-      symbol = $$ -> @li class: "spec-summary pending spec-summary-#{spec.id}"
+      symbol = $$ -> @li id: "spec-summary-#{spec.id}", class: "spec-summary pending"
       switch spec.specType
         when 'core'
           coreSpecs++
@@ -159,7 +159,7 @@ class AtomReporter extends View
     @runningSpecCount++
 
   specComplete: (spec) ->
-    specSummaryElement = $(".spec-summary-#{spec.id}")
+    specSummaryElement = $("#spec-summary-#{spec.id}")
     specSummaryElement.removeClass('pending')
     specSummaryElement.data("description", spec.getFullName())
 
@@ -185,7 +185,7 @@ class SuiteResultView extends View
   suite: null
 
   initialize: (@suite) ->
-    @addClass("suite-view-#{@suite.id}")
+    @attr('id', "suite-view-#{@suite.id}")
     @description.html @suite.description
 
   attach: ->
@@ -194,7 +194,7 @@ class SuiteResultView extends View
   parentSuiteView: ->
     return unless @suite.parentSuite
 
-    if not suiteView = $(".suite-view-#{@suite.parentSuite.id}").view()
+    if not suiteView = $("#suite-view-#{@suite.parentSuite.id}").view()
       suiteView = new SuiteResultView(@suite.parentSuite)
       suiteView.attach()
 
@@ -222,7 +222,7 @@ class SpecResultView extends View
     @parentSuiteView().append this
 
   parentSuiteView: ->
-    if not suiteView = $(".suite-view-#{@spec.suite.id}").view()
+    if not suiteView = $("#suite-view-#{@spec.suite.id}").view()
       suiteView = new SuiteResultView(@spec.suite)
       suiteView.attach()
 
