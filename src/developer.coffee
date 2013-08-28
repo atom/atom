@@ -46,23 +46,30 @@ class Developer extends Command
           else
             callback("#{packageName} has no repository url".red)
 
-  cloneRepository: (packageName, repoUrl, options) ->
-    packageDirectory = path.join(config.getReposDirectory(), packageName)
+  cloneRepository: (repoUrl, packageDirectory, options) ->
     command = "git"
     args = ['clone', '--recursive', repoUrl, packageDirectory]
     process.stdout.write "Cloning #{repoUrl} "
-    @spawn command, args, (code, stderr, stdout) ->
+    @spawn command, args, (code, stderr, stdout) =>
       if code is 0
         process.stdout.write '\u2713\n'.green
-        linkOptions = _.clone(options)
-        linkOptions.commandArgs = [packageDirectory]
-        linkOptions.argv = {dev: true}
-        new Linker().run(linkOptions)
+        @linkPackage(packageDirectory, options)
       else
         process.stdout.write '\u2717\n'.red
         options.callback("#{stdout}\n#{stderr}".red)
 
+  linkPackage: (packageDirectory, options) ->
+    linkOptions = _.clone(options)
+    linkOptions.commandArgs = [packageDirectory]
+    linkOptions.argv = {dev: true}
+    new Linker().run(linkOptions)
+
   run: (options) ->
     packageName = options.commandArgs.shift()
-    @getRepositoryUrl packageName, (error, repoUrl) =>
-      @cloneRepository packageName, repoUrl, options
+    packageDirectory = path.join(config.getReposDirectory(), packageName)
+
+    if fs.existsSync(packageDirectory)
+      @linkPackage(packageDirectory, options)
+    else
+      @getRepositoryUrl packageName, (error, repoUrl) =>
+        @cloneRepository repoUrl, packageDirectory, options
