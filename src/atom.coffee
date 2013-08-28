@@ -231,7 +231,7 @@ window.atom =
     {site, document} = windowState ? {}
     if site? and document?
       window.site = telepath.Site.deserialize(site)
-      window.site.deserializeDocument(document)
+      window.site.deserializeDocument(document) ? window.site.createDocument({})
     else
       window.site = new telepath.Site(1)
       window.site.createDocument({})
