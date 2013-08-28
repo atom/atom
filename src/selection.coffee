@@ -120,9 +120,8 @@ class Selection
     @wordwise = true
     @initialScreenRange = @getScreenRange()
 
-  # Public:
-  #
-  # FIXME: I have no idea what this does.
+  # Public: Expands the newest selection to include the entire word on which
+  # the cursors rests.
   expandOverWord: ->
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
@@ -137,9 +136,10 @@ class Selection
     @wordwise = false
     @initialScreenRange = @getScreenRange()
 
-  # Public:
+  # Public: Expands the newest selection to include the entire line on which
+  # the cursor currently rests.
   #
-  # FIXME: I have no idea what this does.
+  # It also includes the newline character.
   expandOverLine: ->
     range = @getBufferRange().union(@cursor.getCurrentLineBufferRange(includeNewline: true))
     @setBufferRange(range)

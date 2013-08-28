@@ -1275,9 +1275,7 @@ class EditSession
   joinLine: ->
     @mutateSelectedText (selection) -> selection.joinLine()
 
-  # Public:
-  #
-  # FIXME: No idea what this does.
+  # {Delegates to: Selection.expandOverLine}
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()
 
@@ -1300,9 +1298,7 @@ class EditSession
   selectWord: ->
     @expandSelectionsForward (selection) => selection.selectWord()
 
-  # Public:
-  #
-  # FIXME: No idea what this does.
+  # {Delegates to: Selection.expandOverWord}
   expandLastSelectionOverWord: ->
     @getLastSelection().expandOverWord()
 
