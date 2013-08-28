@@ -39,9 +39,9 @@ describe "Window", ->
 
   describe "window:close event", ->
     it "closes the window", ->
-      spyOn(window, 'close')
+      spyOn(atom, 'close')
       $(window).trigger 'window:close'
-      expect(window.close).toHaveBeenCalled()
+      expect(atom.close).toHaveBeenCalled()
 
     it "emits the beforeunload event", ->
       $(window).off 'beforeunload'
