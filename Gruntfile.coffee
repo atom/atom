@@ -145,6 +145,20 @@ module.exports = (grunt) ->
             _.extend(context, parsed.attributes)
             parsed.body
 
+    shell:
+      'kill-atom':
+        command: 'pkill Atom'
+        options:
+          stdout: false
+          stderr: false
+          failOnError: false
+
+      test:
+        command: "#{path.join(contentsDir, 'MacOS', 'Atom')} --test --resource-path=#{__dirname}"
+        options:
+          stdout: false
+          stderr: false
+          callback: (error, stdout, stderr) -> grunt.warn('Specs failed')
 
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
@@ -153,10 +167,12 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
   grunt.loadNpmTasks('grunt-markdown')
+  grunt.loadNpmTasks('grunt-shell')
   grunt.loadTasks('tasks')
 
   grunt.registerTask('compile', ['coffee', 'less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
+  grunt.registerTask('test', ['shell:kill-atom', 'shell:test'])
   grunt.registerTask('ci', ['lint', 'partial-clean', 'update-atom-shell', 'build', 'set-development-version', 'test'])
   grunt.registerTask('deploy', ['partial-clean', 'update-atom-shell', 'build', 'codesign'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
