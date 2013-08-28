@@ -10,6 +10,9 @@ module.exports =
   getResourcePath: ->
     process.env.ATOM_RESOURCE_PATH ? '/Applications/Atom.app/Contents/Resources/app'
 
+  getReposDirectory: ->
+    process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')
+
   getNodeUrl: ->
     process.env.ATOM_NODE_URL ? 'https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist'
 

@@ -442,3 +442,32 @@ describe 'apm command line interface', ->
           expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink1)))).toBeFalsy()
           expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink2)))).toBeFalsy()
           expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink3)))).toBeFalsy()
+
+  describe "apm develop", ->
+    describe "when the repository hasn't been cloned", ->
+      it "clones the repository to ATOM_REPOS_HOME and links it to ATOM_HOME/dev/packages", ->
+        Developer = require '../lib/developer'
+        spyOn(Developer.prototype, "getRepositoryUrl").andCallFake (packageName, callback) ->
+          repoUrl = path.join(__dirname, 'fixtures', 'make.tmbundle.git')
+          callback(null, repoUrl)
+
+        atomHome = temp.mkdirSync('apm-home-dir-')
+        process.env.ATOM_HOME = atomHome
+
+        atomReposHome = temp.mkdirSync('apm-repos-home-dir-')
+        process.env.ATOM_REPOS_HOME = atomReposHome
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['develop', "fake-package"], callback)
+
+        waitsFor 'waiting for develop to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          repoPath = path.join(atomReposHome, 'fake-package')
+          linkedRepoPath = path.join(atomHome, 'dev', 'packages', 'fake-package')
+
+          expect(fs.existsSync(repoPath)).toBeTruthy()
+          expect(fs.existsSync(path.join(repoPath, 'Syntaxes', 'Makefile.plist'))).toBeTruthy()
+          expect(fs.existsSync(linkedRepoPath)).toBeTruthy()
+          expect(fs.realpathSync(linkedRepoPath)).toBe fs.realpathSync(repoPath)

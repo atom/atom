@@ -1,5 +1,6 @@
 fs = require 'fs'
 optimist = require 'optimist'
+Developer = require './developer'
 Installer = require './installer'
 Uninstaller = require './uninstaller'
 Lister = require './lister'
@@ -18,7 +19,7 @@ parseOptions = (args=[]) ->
     Usage: apm <command>
 
     where <command> is one of:
-        available, help, install, link, links, list, publish, rebuild, uninstall, unlink
+        available, develop, help, install, link, links, list, publish, rebuild, uninstall, unlink
   """
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
@@ -53,6 +54,7 @@ module.exports =
     else if command
       switch command
         when 'available' then new Fetcher().run(options)
+        when 'develop', 'dev' then new Developer().run(options)
         when 'help' then options.showHelp()
         when 'install' then new Installer().run(options)
         when 'link' then new Linker().run(options)
