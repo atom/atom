@@ -30,7 +30,7 @@ class LinkLister
       try
         realpath = fs.realpathSync(link)
       catch error
-        realpath = '???'
+        realpath = '???'.red
       "#{path.basename(link).yellow} -> #{realpath}"
 
   run: ->
