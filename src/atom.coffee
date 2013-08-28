@@ -178,6 +178,9 @@ window.atom =
   hide: ->
     remote.getCurrentWindow().hide()
 
+  close: ->
+    remote.getCurrentWindow().close()
+
   exit: (status) ->
     app.exit(status)
 

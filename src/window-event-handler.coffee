@@ -21,7 +21,7 @@ class WindowEventHandler
     @subscribe $(window), 'beforeunload', -> rootView?.confirmClose()
 
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
-    @subscribeToCommand $(window), 'window:close', => window.close()
+    @subscribeToCommand $(window), 'window:close', => atom.close()
     @subscribeToCommand $(window), 'window:reload', => atom.reload()
     @subscribeToCommand $(window), 'window:toggle-dev-tools', => atom.toggleDevTools()
 
