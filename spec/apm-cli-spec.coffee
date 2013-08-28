@@ -456,6 +456,23 @@ describe 'apm command line interface', ->
       repoPath = path.join(atomReposHome, 'fake-package')
       linkedRepoPath = path.join(atomHome, 'dev', 'packages', 'fake-package')
 
+    describe "when the package doesn't have a published repository url", ->
+      it "logs an error", ->
+        Developer = require '../lib/developer'
+        spyOn(Developer.prototype, "getRepositoryUrl").andCallFake (packageName, callback) ->
+          callback("Here is the error")
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['develop', "fake-package"], callback)
+
+        waitsFor 'waiting for develop to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          expect(callback.mostRecentCall.args[0]).toBe "Here is the error"
+          expect(fs.existsSync(repoPath)).toBeFalsy()
+          expect(fs.existsSync(linkedRepoPath)).toBeFalsy()
+
     describe "when the repository hasn't been cloned", ->
       it "clones the repository to ATOM_REPOS_HOME and links it to ATOM_HOME/dev/packages", ->
         Developer = require '../lib/developer'
@@ -470,6 +487,7 @@ describe 'apm command line interface', ->
           callback.callCount is 1
 
         runs ->
+          expect(callback.mostRecentCall.args[0]).toBeFalsy()
           expect(fs.existsSync(repoPath)).toBeTruthy()
           expect(fs.existsSync(path.join(repoPath, 'Syntaxes', 'Makefile.plist'))).toBeTruthy()
           expect(fs.existsSync(linkedRepoPath)).toBeTruthy()
@@ -486,6 +504,7 @@ describe 'apm command line interface', ->
           callback.callCount is 1
 
         runs ->
+          expect(callback.mostRecentCall.args[0]).toBeFalsy()
           expect(fs.existsSync(repoPath)).toBeTruthy()
           expect(fs.existsSync(linkedRepoPath)).toBeTruthy()
           expect(fs.realpathSync(linkedRepoPath)).toBe fs.realpathSync(repoPath)

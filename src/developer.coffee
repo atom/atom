@@ -72,4 +72,7 @@ class Developer extends Command
       @linkPackage(packageDirectory, options)
     else
       @getRepositoryUrl packageName, (error, repoUrl) =>
-        @cloneRepository repoUrl, packageDirectory, options
+        if error?
+          options.callback(error)
+        else
+          @cloneRepository repoUrl, packageDirectory, options
