@@ -158,8 +158,9 @@ module.exports = (grunt) ->
         options:
           stdout: true
           stderr: true
-          callback: (error, stdout, stderr) ->
+          callback: (error, stdout, stderr, callback) ->
             grunt.warn('Specs failed') if error?
+            callback()
 
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
