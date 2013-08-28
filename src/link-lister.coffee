@@ -27,7 +27,11 @@ class LinkLister
     links = @getSymlinks(directoryPath)
     console.log "#{directoryPath.cyan} (#{links.length})"
     tree links, emptyMessage: '(no links)', (link) =>
-      "#{path.basename(link).yellow} -> #{fs.realpathSync(link)}"
+      try
+        realpath = fs.realpathSync(link)
+      catch error
+        realpath = '???'
+      "#{path.basename(link).yellow} -> #{realpath}"
 
   run: ->
     @logLinks(@devPackagesPath)
