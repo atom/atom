@@ -24,21 +24,31 @@ pre {
 }
 
 code {
-  .text(highlighted);
+  .text(highlight);
   background: @badge-background-color;
   border-radius: @component-border-radius;
 }
 
-.subtle { .text(subtle); }
-.bright { .text(highlighted); }
-.selected { .text(highlighted); }
+.selected { .text(highlight); }
 
-.smaller { font-size: 0.9em; }
+.text-smaller { font-size: 0.8em; }
 
-.info { .text(info); }
-.warning { .text(warning); }
-.success { .text(success); }
-.error { .text(error); }
+.text-subtle { .text(subtle); }
+.text-highlight { .text(highlight); }
+
+.text-info { .text(info); }
+.text-warning { .text(warning); }
+.text-success { .text(success); }
+.text-error { .text(error); }
+
+.highlight {
+  color: @text-color-highlight;
+  font-weight: bold;
+  text-shadow: none;
+  background-color: @badge-background-color;
+  border-radius: @component-border-radius;
+  padding: 1px 3px;
+}
 
 .highlight-color(@name, @color) {
   .highlight-@{name} {
