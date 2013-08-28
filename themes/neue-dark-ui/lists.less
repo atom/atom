@@ -34,7 +34,9 @@
     .text(highlighted);
   }
 
-  // The background highlight
+  // The background highlight uses :before rather than the item background so
+  // it can span the entire width of the parent container rather than the size
+  // of the list item.
   .selected:before {
     content: '';
     background-color: @tool-panel-background-highlight-color;
@@ -89,3 +91,49 @@
     }
   }
 }
+
+&.select-list ol.list-group, .select-list ol.list-group {
+  li.two-lines {
+    .secondary-line { color: @text-color-subtle; }
+    &.selected .secondary-line { color: lighten(@text-color-subtle, 10%); }
+  }
+
+  // We want to highlight the background of the list items because we dont
+  // know their size.
+  li.selected {
+    background-color: @tool-panel-background-highlight-color;
+    &:before{ display: none; }
+  }
+
+  &.mark-active{
+    @active-icon-size: 14px;
+
+    // pad in front of the text where the icon would be We'll pad the non-
+    // active items with a 'fake' icon so other classes can pad the item
+    // without worrying about the icon padding.
+    li:before {
+      content: '';
+      background-color: transparent;
+      position: static;
+      display: inline-block;
+      left: auto; right: auto;
+      height: @active-icon-size;
+      width: @active-icon-size;
+    }
+    > li:not(.active):before {
+      margin-right: @component-icon-padding;
+    }
+    li.active {
+      .octicon(check, @active-icon-size);
+      &:before {
+        margin-right: @component-icon-padding;
+        color: @text-color-success;
+      }
+    }
+  }
+}
+
+
+
+
+
