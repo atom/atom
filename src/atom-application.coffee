@@ -157,7 +157,7 @@ class AtomApplication
       @applicationMenu.update(keystrokesByCommand)
 
     ipc.on 'run-package-specs', (processId, routingId, packagePath) =>
-      @runSpecs({@resourcePath, specPath: packagePath, exitWhenDone: false})
+      @runSpecs({resourcePath: global.devResourcePath, specPath: packagePath, exitWhenDone: false})
 
     ipc.on 'command', (processId, routingId, command) =>
       @emit(command)
