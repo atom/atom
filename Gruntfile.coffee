@@ -156,9 +156,10 @@ module.exports = (grunt) ->
       test:
         command: "#{path.join(contentsDir, 'MacOS', 'Atom')} --test --resource-path=#{__dirname}"
         options:
-          stdout: false
-          stderr: false
-          callback: (error, stdout, stderr) -> grunt.warn('Specs failed')
+          stdout: true
+          stderr: true
+          callback: (error, stdout, stderr) ->
+            grunt.warn('Specs failed') if error?
 
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
