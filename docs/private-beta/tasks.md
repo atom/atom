@@ -35,7 +35,7 @@ package authors about breaking API changes.
 
   * Finish APM backend (integrate with GitHub Releases)
   * Streamline Dev workflow
-    * `api create` - create package scaffolding
+    * `apm create` - create package scaffolding
     * `apm test` - so users can run focused package tests
     * `apm publish` - should integrate release best practices (ie npm version)
   * Determine which classes and methods should be included in the public API
