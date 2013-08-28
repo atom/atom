@@ -21,3 +21,6 @@ module.exports =
 
   getUserConfigPath: ->
     path.resolve(__dirname, '..', '.apmrc')
+
+  isWin32: ->
+    !!process.platform.match(/^win/)
