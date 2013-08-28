@@ -13,8 +13,8 @@
   }
 
   .generate-list-item-text-color(@class) {
-    li:not(.list-nested-item).@{class},
-    li.list-nested-item.@{class} > .list-item {
+    li:not(.list-nested-item).text-@{class},
+    li.list-nested-item.text-@{class} > .list-item {
       .text(@class);
     }
   }
@@ -24,6 +24,18 @@
   .generate-list-item-text-color(warning);
   .generate-list-item-text-color(error);
   .generate-list-item-text-color(selected);
+
+  .generate-list-item-status-color(@textClass, @status) {
+    li:not(.list-nested-item).status-@{status},
+    li.list-nested-item.status-@{status} > .list-item {
+      .text(@textClass);
+    }
+  }
+  .generate-list-item-status-color(subtle, ignored);
+  .generate-list-item-status-color(info, added);
+  .generate-list-item-status-color(success, renamed);
+  .generate-list-item-status-color(warning, modified);
+  .generate-list-item-status-color(error, removed);
 
   li:not(.list-nested-item):hover,
   li.list-nested-item:hover > .list-item, // i.e. highlight directory when hover child file
