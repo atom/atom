@@ -93,7 +93,7 @@ class PaneContainer extends View
       itemState.uri isnt itemUri
 
   triggerActiveItemChange: (item) ->
-    @trigger 'pane-container:active-item-changed', [item]
+    @trigger 'pane-container:active-pane-item-changed', [item]
 
   getRoot: ->
     @children().first().view()
