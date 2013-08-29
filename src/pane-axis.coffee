@@ -69,6 +69,12 @@ class PaneAxis extends View
   getContainer: ->
     @closest('#panes').view()
 
+  getActivePaneItem: ->
+    @getActivePane()?.activeItem
+
+  getActivePane: ->
+    @find('.pane.active').view() ? @find('.pane:first').view()
+
   insertChildBefore: (child, newChild, options={}) ->
     newChild.insertBefore(child)
     if options.updateState ? true
