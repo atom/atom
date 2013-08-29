@@ -15,6 +15,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
 
   $ = require 'jquery'
   TimeReporter = require 'time-reporter'
+  timeReporter = new TimeReporter()
 
   if atom.getLoadSettings().exitWhenDone
     {jasmineNode} = require 'jasmine-node/lib/jasmine-node/reporter'
@@ -22,6 +23,10 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
       print: (args...) ->
         process.stderr.write(args...)
       onComplete: (runner) ->
+        process.stdout.write('\n')
+        timeReporter.logLongestSuites 10, (line) -> process.stdout.write("#{line}\n")
+        process.stdout.write('\n')
+        timeReporter.logLongestSpecs 10, (line) -> process.stdout.write("#{line}\n")
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else
     AtomReporter = require 'atom-reporter'
@@ -31,7 +36,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
 
   jasmineEnv = jasmine.getEnv()
   jasmineEnv.addReporter(reporter)
-  jasmineEnv.addReporter(new TimeReporter())
+  jasmineEnv.addReporter(timeReporter)
 
   $('body').append $$ -> @div id: 'jasmine-content'
 
