@@ -13,20 +13,35 @@
   text-shadow: none;
 
   font-size: 12px;
-  padding: 4px 10px;
+  padding: 5px 10px;
+  z-index: 0;
 
   &:hover {
     color: @text-color-highlight;
     background-image: -webkit-linear-gradient(@button-background-hover-color, darken(@button-background-hover-color, 5%));
   }
   &.selected, &.selected:hover {
+    z-index: 1; // we want the selected button to behave like the :hover button; it's on top of the other buttons.
     color: @text-color-highlight;
-    background-image: -webkit-linear-gradient(@button-background-selected-color, darken(@button-background-selected-color, 5%));
+    background-image: -webkit-linear-gradient(darken(@button-background-selected-color, 5%), @button-background-selected-color);
   }
+}
+
+.btn.btn-xs, .btn-group-xs > .btn {
+  padding: 2px 5px;
+  font-size: 10px;
+}
+.btn.btn-sm, .btn-group-sm > .btn {
+  padding: 2px 5px;
+}
+.btn.btn-lg, .btn-group-lg > .btn {
+  font-size: 14px;
+  padding: 8px 12px;
 }
 
 .btn-group > .btn {
   border-left: 1px solid @button-border-color;
+  border-right: 1px solid @button-border-color;
 }
 .btn-group > .btn:first-child {
   border-left: none;
@@ -34,32 +49,9 @@
   border-bottom-left-radius: @component-border-radius;
 }
 .btn-group > .btn:last-child,
+.btn-group > .btn.selected:last-child,
 .btn-group > .dropdown-toggle {
+  border-right: none;
   border-top-right-radius: @component-border-radius;
   border-bottom-right-radius: @component-border-radius;
-}
-
-.btn-group.btn-group-toggle {
-  .btn {
-    //font-weight: bold;
-    //color: @text-color;
-    //font-size: 12px;
-    //padding: 3px;
-
-    //&:hover{ background: @button-color-hover; }
-    &.enabled{
-      // color: @text-color-info;
-      // background: @button-color-active;
-      //box-shadow: inset 1px 1px 1px @background-color-highlight-1;
-    }
-  }
-  /*.btn:first-child {
-    border-left: none;
-    border-bottom-left-radius: 2px;
-    border-top-left-radius: 2px;
-  }
-  .btn:last-child {
-    border-bottom-right-radius: 2px;
-    border-top-right-radius: 2px;
-  }*/
 }
