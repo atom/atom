@@ -35,6 +35,7 @@ class PaneAxis extends View
 
     parent = @parent().view()
     container = @getContainer()
+    childWasInactive = not child.isActive?()
 
     primitiveRemove = (child) =>
       node = child[0]
@@ -48,8 +49,9 @@ class PaneAxis extends View
       sibling = @children().view()
       siblingFocused = sibling.is(':has(:focus)')
       sibling.detach()
+
       if parent.setRoot?
-        parent.setRoot(sibling, options)
+        parent.setRoot(sibling, suppressPaneItemChangeEvents: childWasInactive)
       else
         parent.insertChildBefore(this, sibling, options)
         parent.removeChild(this, options)

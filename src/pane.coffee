@@ -113,7 +113,7 @@ class Pane extends View
 
   # Public: Returns whether this pane is currently focused.
   isActive: ->
-    @hasClass('active')
+    @getContainer()?.getActivePane() == this
 
   # Public: Returns the next pane, ordered by creation.
   getNextPane: ->
@@ -175,6 +175,7 @@ class Pane extends View
     view.focus() if isFocused
     @activeItem = item
     @activeView = view
+    @getContainer()?.triggerActiveItemChange(item) if @isActive()
     @trigger 'pane:active-item-changed', [item]
 
     @state.set('activeItemUri', item.getUri?())
@@ -425,6 +426,7 @@ class Pane extends View
       when 'after' then parent.insertChildAfter(this, newPane)
     @getContainer().adjustPaneDimensions()
     newPane.focus()
+    @getContainer().triggerActiveItemChange(newPane.getActivePaneItem())
     newPane
 
   # Private:
