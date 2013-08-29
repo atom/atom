@@ -24,6 +24,14 @@ section below.
 
 ### Working With Files
 
+Atom windows are scoped to the directory in which they're opened from. So if
+you launch Atom from the command line, everything will be relative to the
+current directory. This means that the tree view on the left will only show files
+contained within that directory.
+
+This can be a useful way to organize multiple projects, as each project will be
+contained within it's own window and it's state will be unique to that window.
+
 #### Finding Files
 
 The fastest way to find a file in your project is to use the fuzzy finder. Just
