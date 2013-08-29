@@ -169,6 +169,7 @@ describe "Window", ->
       unregisterDeserializer(Foo)
 
     it "calls deserialize on the deserializer for the given state object, or returns undefined if one can't be found", ->
+      spyOn(console, 'warn')
       object = deserialize({ deserializer: 'Foo', name: 'Bar' })
       expect(object.name).toBe 'Bar'
       expect(deserialize({ deserializer: 'Bogus' })).toBeUndefined()
