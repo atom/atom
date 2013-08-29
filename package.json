@@ -121,6 +121,7 @@
   },
   "private": true,
   "scripts": {
-    "preinstall": "true"
+    "preinstall": "true",
+    "test": "grunt test"
   }
 }
