@@ -1,25 +1,59 @@
 @import "ui-variables";
 @import "ui-mixins";
 
-.btn-toggle.btn-group {
+.btn {
+  color: @text-color;
+  border-radius: @component-border-radius;
+  border: none;
+
+  background-color: transparent;
+  background-image: -webkit-linear-gradient(@button-background-color, darken(@button-background-color, 5%));
+
+  font-weight: bold;
+  text-shadow: none;
+
+  font-size: 12px;
+  padding: 4px 10px;
+
+  &:hover {
+    color: @text-color-highlight;
+    background-image: -webkit-linear-gradient(@button-background-hover-color, darken(@button-background-hover-color, 5%));
+  }
+  &.selected, &.selected:hover {
+    color: @text-color-highlight;
+    background-image: -webkit-linear-gradient(@button-background-selected-color, darken(@button-background-selected-color, 5%));
+  }
+}
+
+.btn-group > .btn {
+  border-left: 1px solid @button-border-color;
+}
+.btn-group > .btn:first-child {
+  border-left: none;
+  border-top-left-radius: @component-border-radius;
+  border-bottom-left-radius: @component-border-radius;
+}
+.btn-group > .btn:last-child,
+.btn-group > .dropdown-toggle {
+  border-top-right-radius: @component-border-radius;
+  border-bottom-right-radius: @component-border-radius;
+}
+
+.btn-group.btn-group-toggle {
   .btn {
-    font-weight: bold;
-    background: @button-color;
-    color: @text-color;
-    font-size: 12px;
-    padding: 3px;
+    //font-weight: bold;
+    //color: @text-color;
+    //font-size: 12px;
+    //padding: 3px;
 
-    border: none;
-    //border-left: 1px solid @border-color-2;
-
-    &:hover{ background: @button-color-hover; }
+    //&:hover{ background: @button-color-hover; }
     &.enabled{
-      color: @text-color-info;
-      background: @button-color-active;
+      // color: @text-color-info;
+      // background: @button-color-active;
       //box-shadow: inset 1px 1px 1px @background-color-highlight-1;
     }
   }
-  .btn:first-child {
+  /*.btn:first-child {
     border-left: none;
     border-bottom-left-radius: 2px;
     border-top-left-radius: 2px;
@@ -27,5 +61,5 @@
   .btn:last-child {
     border-bottom-right-radius: 2px;
     border-top-right-radius: 2px;
-  }
+  }*/
 }
