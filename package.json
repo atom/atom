@@ -32,8 +32,10 @@
     "semver": "1.1.4",
     "space-pen": "1.2.0",
     "tantamount": "0.3.0",
+    "telepath": "0.1.0",
     "temp": "0.5.0",
     "underscore": "1.4.4",
+
     "archive-view": "0.3.0",
     "autocomplete": "0.3.0",
     "autoflow": "0.1.0",
@@ -66,6 +68,7 @@
     "tree-view": "0.2.0",
     "whitespace": "0.1.0",
     "wrap-guide": "0.1.0",
+
     "c-tmbundle": "1.0.0",
     "coffee-script-tmbundle": "4.0.0",
     "css-tmbundle": "1.0.0",
