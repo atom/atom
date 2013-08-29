@@ -1,13 +1,27 @@
 @import "ui-variables";
 @import "ui-mixins";
 
-.btn {
+.btn-background (@color, @hover-color, @selected-color, @text-color) {
   color: @text-color;
+  background-color: transparent;
+  background-image: -webkit-linear-gradient(@color, darken(@color, 5%));
+
+  &:hover {
+    color: @text-color-highlight;
+    background-image: -webkit-linear-gradient(@hover-color, darken(@hover-color, 5%));
+  }
+  &.selected, &.selected:hover {
+    color: @text-color-highlight;
+    background-image: -webkit-linear-gradient(darken(@selected-color, 5%), @selected-color);
+    &:hover {
+      background-image: -webkit-linear-gradient(@selected-color, darken(@selected-color, 5%));
+    }
+  }
+}
+
+.btn {
   border-radius: @component-border-radius;
   border: none;
-
-  background-color: transparent;
-  background-image: -webkit-linear-gradient(@button-background-color, darken(@button-background-color, 5%));
 
   font-weight: bold;
   text-shadow: none;
@@ -16,17 +30,11 @@
   padding: 5px 10px;
   z-index: 0;
 
-  &:hover {
-    color: @text-color-highlight;
-    background-image: -webkit-linear-gradient(@button-background-hover-color, darken(@button-background-hover-color, 5%));
-  }
+  .btn-background(@button-background-color, @button-background-hover-color, @button-background-selected-color, @text-color);
+
   &.selected, &.selected:hover {
-    z-index: 1; // we want the selected button to behave like the :hover button; it's on top of the other buttons.
-    color: @text-color-highlight;
-    background-image: -webkit-linear-gradient(darken(@button-background-selected-color, 5%), @button-background-selected-color);
-    &:hover {
-      background-image: -webkit-linear-gradient(@button-background-selected-color, darken(@button-background-selected-color, 5%));
-    }
+    // we want the selected button to behave like the :hover button; it's on top of the other buttons.
+    z-index: 1;
   }
 }
 
@@ -57,4 +65,18 @@
   border-right: none;
   border-top-right-radius: @component-border-radius;
   border-bottom-right-radius: @component-border-radius;
+}
+
+.btn-toolbar {
+  > .btn-group {
+    float: none;
+    display: inline-block;
+  }
+  > * {
+    margin-right: 0;
+    margin-left: @component-padding/2;
+  }
+  > *:first-child {
+    margin-left: 0;
+  }
 }
