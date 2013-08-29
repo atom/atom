@@ -142,6 +142,9 @@ class Pane extends View
     else
       @showItemAtIndex(@items.length - 1)
 
+  getActivePaneItem: ->
+    @activeItem
+
   # Public: Returns the index of the currently active item.
   getActiveItemIndex: ->
     @items.indexOf(@activeItem)
