@@ -205,3 +205,132 @@ describe "PaneContainer", ->
       newContainer = deserialize(container.serialize())
       expect(newContainer.find('.row, .column')).not.toExist()
       expect(newContainer.find('> :contains(1)')).toExist()
+
+  describe "pane-container:active-item-changed", ->
+    [pane1, item1a, item1b, item2a, item2b, item3a, container, activeItemChangedHandler] = []
+    beforeEach ->
+      item1a = new TestView('1a')
+      item1b = new TestView('1b')
+      item2a = new TestView('2a')
+      item2b = new TestView('2b')
+      item3a = new TestView('3a')
+
+      container = new PaneContainer
+      container.attachToDom()
+      pane1 = new Pane(item1a)
+      container.setRoot(pane1)
+
+      activeItemChangedHandler = jasmine.createSpy("activeItemChangedHandler")
+      container.on 'pane-container:active-item-changed', activeItemChangedHandler
+
+    describe "when there are no panes", ->
+      it "is triggered when a new pane item is added", ->
+        container.setRoot()
+        expect(container.getPanes().length).toBe 0
+        activeItemChangedHandler.reset()
+
+        pane = new Pane(item1a)
+        container.setRoot(pane)
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
+
+    describe "when there is one pane", ->
+      it "is triggered when a new pane item is added", ->
+        pane1.showItem(item1b)
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1b
+
+      it "is not triggered when the active pane item is shown again", ->
+        pane1.showItem(item1a)
+        expect(activeItemChangedHandler).not.toHaveBeenCalled()
+
+      it "is triggered when switching to an existing pane item", ->
+        pane1.showItem(item1b)
+        activeItemChangedHandler.reset()
+
+        pane1.showItem(item1a)
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
+
+      it "is triggered when the active pane item is removed", ->
+        pane1.showItem(item1b)
+        activeItemChangedHandler.reset()
+
+        pane1.removeItem(item1b)
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
+
+      it "is not triggered when an inactive pane item is removed", ->
+        pane1.showItem(item1b)
+        activeItemChangedHandler.reset()
+
+        pane1.removeItem(item1a)
+        expect(activeItemChangedHandler).not.toHaveBeenCalled()
+
+      it "is triggered when all pane items are removed", ->
+        pane1.removeItem(item1a)
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toBe undefined
+
+      it "is triggered when the pane is removed", ->
+        pane1.remove()
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toBe undefined
+
+    describe "when there are two panes", ->
+      [pane2] = []
+
+      beforeEach ->
+        pane2 = pane1.splitLeft(item2a)
+        activeItemChangedHandler.reset()
+
+      it "is triggered when a new pane item is added to the active pane", ->
+        pane2.showItem(item2b)
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item2b
+
+      it "is not triggered when a new pane item is added to an inactive pane", ->
+        pane1.showItem(item1b)
+        expect(activeItemChangedHandler).not.toHaveBeenCalled()
+
+      it "is triggered when the active pane item removed from the active pane", ->
+        pane2.showItem(item2b)
+        activeItemChangedHandler.reset()
+
+        pane2.removeItem(item2b)
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item2a
+
+      it "is not triggered when the active pane item removed from an inactive pane", ->
+        pane1.showItem(item1b)
+        activeItemChangedHandler.reset()
+
+        pane1.removeItem(item1b)
+        expect(activeItemChangedHandler).not.toHaveBeenCalled()
+
+      it "is triggered when the active pane is removed", ->
+        pane2.remove()
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
+
+      it "is not triggered when an inactive pane is removed", ->
+        pane1.remove()
+        expect(activeItemChangedHandler).not.toHaveBeenCalled()
+
+    describe "when there are multiple panes", ->
+      beforeEach ->
+        pane2 = pane1.splitRight(item2a)
+        activeItemChangedHandler.reset()
+
+      it "is triggered when a new pane is added", ->
+        pane2.splitDown(item3a)
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item3a
+
+      it "is not triggered when the non active pane is removed", ->
+        pane3 = pane2.splitDown(item3a)
+        activeItemChangedHandler.reset()
+
+        pane1.remove()
+        pane2.remove()
+        expect(activeItemChangedHandler).not.toHaveBeenCalled()

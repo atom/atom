@@ -92,14 +92,18 @@ class PaneContainer extends View
     @destroyedItemStates = @destroyedItemStates.filter (itemState) ->
       itemState.uri isnt itemUri
 
+  triggerActiveItemChange: (item) ->
+    @trigger 'pane-container:active-item-changed', [item]
+
   getRoot: ->
     @children().first().view()
 
-  setRoot: (root) ->
+  setRoot: (root, {suppressPaneItemChangeEvents}={}) ->
     @empty()
     if root?
       @append(root)
       @itemAdded(root.activeItem) if root.activeItem
+    @triggerActiveItemChange(root?.getActivePaneItem()) unless suppressPaneItemChangeEvents
     @state.set(root: root?.getState())
 
   removeChild: (child) ->
