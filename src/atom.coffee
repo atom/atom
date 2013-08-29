@@ -243,7 +243,7 @@ window.atom =
     windowState =
       site: site.serialize()
       document: @getWindowState().serialize()
-    windowStateJson = JSON.stringify(windowState, null, 2)
+    windowStateJson = JSON.stringify(windowState)
     if windowStatePath = @getWindowStatePath()
       fsUtils.writeSync(windowStatePath, "#{windowStateJson}\n")
     else
