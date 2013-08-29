@@ -97,7 +97,7 @@ class Project
 
   # Private:
   destroyUnretainedBuffers: ->
-     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
+    buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
 
   # Public: ?
   getState: -> @state
