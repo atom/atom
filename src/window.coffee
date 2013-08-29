@@ -56,7 +56,10 @@ window.startEditorWindow = ->
   keymap.loadUserKeymaps()
   atom.requireUserInitScript()
   ipc.sendChannel 'update-application-menu', keymap.keystrokesByCommandForSelector('body')
-  $(window).on 'unload', -> unloadEditorWindow(); false
+  $(window).on 'unload', ->
+    $(document.body).hide()
+    unloadEditorWindow()
+    false
   atom.show()
   atom.focus()
 
