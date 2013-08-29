@@ -1,50 +1,48 @@
-@import "bootstrap/less/variables.less";
-
 // Colors
 
 @text-color: #aaa;
-@text-color-highlight: #fff;
 @text-color-subtle: #555;
+@text-color-highlight: #fff;
 
 @text-color-info: #5293d8;
+@text-color-success: #1fe977;
 @text-color-warning: #f78a46;
 @text-color-error: #c00;
-@text-color-success: #1fe977;
 
 @background-color-info: #0098ff;
+@background-color-success: #17ca65;
 @background-color-warning: #ff4800;
 @background-color-error: #c00;
-@background-color-success: #17ca65;
-
-@input-background-color: #212224;
-@input-background-highlight-color: lighten(@input-background-color, 5%);
-@input-border-color: rgba(0, 0, 0, 0.5);
-
-@tool-panel-background-color: #1d1f21;
-@tool-panel-background-highlight-color: rgba(255, 255, 255, 0.05);
-@tool-panel-border-color: rgba(0, 0, 0, 0.5);
-@tool-panel-border-highlight-color: rgba(255, 255, 255, 0.05);
-
-@inset-panel-background-color: #161719;
-@inset-panel-background-highlight-color: rgba(255, 255, 255, 0.07);
-
-@panel-heading-background-color: #43484d;
-
-@overlay-background-color: #202123;
-@overlay-inner-background-color: #27292b;
-@overlay-border-color: rgba(255, 255, 255, 0.05);
-@overlay-shadow-color: rgba(0, 0, 0, 0.5);
-
-@button-background-color: #43484d;
-@button-background-hover-color: lighten(@button-background-color, 5%);
-@button-background-selected-color: #5c6064;
-@button-border-color: rgba(0, 0, 0, 0.5);
+@background-color-highlight: rgba(255, 255, 255, 0.07);
 
 @app-background-color: #333;
-@workspace-background-color: lighten(@tool-panel-background-color, 5%);
 
+@base-background-color: lighten(@tool-panel-background-color, 5%);
+@base-border-color: rgba(0, 0, 0, 0.5);
+
+@input-background-color: #212224;
+@input-border-color: @base-border-color;
+
+@tool-panel-background-color: #1d1f21;
+@tool-panel-border-color: @base-border-color;
+
+@inset-panel-background-color: #161719;
+@inset-panel-border-color: @base-border-color;
+
+@panel-heading-background-color: #43484d;
+@panel-heading-border-color: transparent;
+
+@overlay-background-color: #202123;
+@overlay-border-color: @background-color-highlight;
+
+@button-background-color: #43484d;
+@button-background-color-hover: lighten(@button-background-color, 5%);
+@button-background-color-selected: #5c6064;
+@button-border-color: @base-border-color;
+
+@tab-background-color: #292c2f;
 @tab-background-color-active: @panel-heading-background-color;
-@tab-background-color-inactive: #292c2f;
+@tab-border-color: darken(@tab-background-color-active, 10%);
 
 @site-color-1: #4dd157;
 @site-color-2: #3facc1;
@@ -62,13 +60,7 @@
 @component-padding: 10px;
 @component-icon-padding: 5px;
 @component-icon-size: 16px;
-@component-line-height: @line-height-base * 1.25;
+@component-line-height: 25px;
 @component-border-radius: 2px;
 
 @tab-height: 30px;
-
-
-// Non-api variables
-// Dont use these in your package! They may change, and all themes may not support them.
-
-@badge-background-color: lighten(@tool-panel-background-color, 10%);

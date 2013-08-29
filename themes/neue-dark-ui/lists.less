@@ -51,7 +51,7 @@
   // of the list item.
   .selected:before {
     content: '';
-    background-color: @tool-panel-background-highlight-color;
+    background-color: @background-color-highlight;
     position: absolute;
     left: 0;
     right: 0;
@@ -113,7 +113,7 @@
   // We want to highlight the background of the list items because we dont
   // know their size.
   li.selected {
-    background-color: @tool-panel-background-highlight-color;
+    background-color: @background-color-highlight;
     &:before{ display: none; }
   }
 

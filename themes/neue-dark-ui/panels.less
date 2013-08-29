@@ -7,7 +7,7 @@
   border-bottom: none;
   padding: @component-padding - 2px @component-padding;
 
-  font-size: @font-size-base;
+  font-size: @font-size;
   line-height: 1;
 
   background-color: transparent;
@@ -19,8 +19,8 @@
     position: relative; top: -1px;
 
     @bg: lighten(@button-background-color, 10%);
-    @hover: lighten(@button-background-hover-color, 10%);
-    @selected: lighten(@button-background-selected-color, 10%);
+    @hover: lighten(@button-background-color-hover, 10%);
+    @selected: lighten(@button-background-color-selected, 10%);
     @text: lighten(@text-color, 10%);
     .btn-background(@bg, @hover, @selected, @text);
   }
@@ -44,7 +44,7 @@
 
   &.panel-bottom {
     border-top: 1px solid @tool-panel-border-color;
-    box-shadow: inset 0 1px 0 @tool-panel-border-highlight-color;
+    box-shadow: inset 0 1px 0 @background-color-highlight;
   }
 
   &.panel-left {
@@ -55,8 +55,8 @@
     border-radius: @component-border-radius;
 
     border: 1px solid @tool-panel-border-color;
-    border-bottom-color: @tool-panel-border-highlight-color;
-    border-right-color: @tool-panel-border-highlight-color;
+    border-bottom-color: @background-color-highlight;
+    border-right-color: @background-color-highlight;
 
     .panel-heading {
       margin-right: 1px;

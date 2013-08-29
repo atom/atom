@@ -5,7 +5,7 @@
   background-color: @overlay-background-color;
   padding: @component-padding;
   border: 1px solid @overlay-border-color;
-  box-shadow: 0 0 10px @overlay-shadow-color;
+  box-shadow: 0 0 10px @base-border-color;
   border-radius: @component-border-radius;
 
   .editor.mini {
@@ -14,7 +14,7 @@
 
   &.select-list ol.list-group, .select-list ol.list-group {
 
-    background-color: @overlay-inner-background-color;
+    background-color: lighten(@overlay-background-color, 3%);
 
     li {
       padding: @component-padding;
