@@ -81,13 +81,15 @@ class TextBuffer
       @destroyed = true
       @project?.removeBuffer(this)
 
+  isRetained: -> @refcount > 0
+
   retain: ->
     @refcount++
     this
 
   release: ->
     @refcount--
-    @destroy() if @refcount <= 0
+    @destroy() unless @isRetained()
     this
 
   serialize: ->

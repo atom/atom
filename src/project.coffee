@@ -91,8 +91,13 @@ class Project
   serialize: ->
     state = @state.clone()
     state.set('path', @getPath())
+    @destroyUnretainedBuffers()
     state.set('buffers', buffer.serialize() for buffer in @getBuffers())
     state
+
+  # Private:
+  destroyUnretainedBuffers: ->
+     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
 
   # Public: ?
   getState: -> @state
