@@ -507,9 +507,10 @@ describe "Pane", ->
       expect(focusHandler).toHaveBeenCalled()
 
     it "triggers 'pane:became-active' if it was not previously active", ->
-      becameActiveHandler = jasmine.createSpy("becameActiveHandler")
-      container.on 'pane:became-active', becameActiveHandler
+      pane2 = pane.splitRight(view2) # Make pane inactive
 
+      becameActiveHandler = jasmine.createSpy("becameActiveHandler")
+      pane.on 'pane:became-active', becameActiveHandler
       expect(pane.isActive()).toBeFalsy()
       pane.focusin()
       expect(pane.isActive()).toBeTruthy()
@@ -518,8 +519,10 @@ describe "Pane", ->
       expect(becameActiveHandler.callCount).toBe 1
 
     it "triggers 'pane:became-inactive' when it was previously active", ->
+      pane2 = pane.splitRight(view2) # Make pane inactive
+
       becameInactiveHandler = jasmine.createSpy("becameInactiveHandler")
-      container.on 'pane:became-inactive', becameInactiveHandler
+      pane.on 'pane:became-inactive', becameInactiveHandler
 
       expect(pane.isActive()).toBeFalsy()
       pane.focusin()
