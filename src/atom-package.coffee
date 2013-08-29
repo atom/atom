@@ -44,7 +44,9 @@ class AtomPackage extends Package
   activateNow: ->
     try
       @activateConfig()
-      @mainModule.activate(atom.getPackageState(@name) ? {}) if @requireMainModule()
+      if @requireMainModule()
+        @mainModule.activate(atom.getPackageState(@name) ? {})
+        @mainActivated = true
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
@@ -98,16 +100,17 @@ class AtomPackage extends Package
         @scopedProperties.push([scopedPropertiesPath, selector, properties])
 
   serialize: ->
-    try
-      @mainModule?.serialize?()
-    catch e
-      console.error "Error serializing package '#{@name}'", e.stack
+    if @mainActivated
+      try
+        @mainModule?.serialize?()
+      catch e
+        console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
     @unsubscribeFromActivationEvents()
     @deactivateResources()
     @deactivateConfig()
-    @mainModule?.deactivate?()
+    @mainModule?.deactivate?() if @mainActivated
 
   deactivateConfig: ->
     @mainModule?.deactivateConfig?()

@@ -219,7 +219,7 @@ describe "the `atom` global", ->
 
     describe ".deactivatePackage(id)", ->
       describe "atom packages", ->
-        it "calls `deactivate` on the package's main module", ->
+        it "calls `deactivate` on the package's main module if activate was successful", ->
           pack = atom.activatePackage("package-with-deactivate")
           expect(atom.isPackageActive("package-with-deactivate")).toBeTruthy()
           spyOn(pack.mainModule, 'deactivate').andCallThrough()
@@ -227,6 +227,23 @@ describe "the `atom` global", ->
           atom.deactivatePackage("package-with-deactivate")
           expect(pack.mainModule.deactivate).toHaveBeenCalled()
           expect(atom.isPackageActive("package-with-module")).toBeFalsy()
+
+          spyOn(console, 'warn')
+          badPack = atom.activatePackage("package-that-throws-on-activate")
+          expect(atom.isPackageActive("package-that-throws-on-activate")).toBeTruthy()
+          spyOn(badPack.mainModule, 'deactivate').andCallThrough()
+
+          atom.deactivatePackage("package-that-throws-on-activate")
+          expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
+          expect(atom.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
+
+        it "does not serialize packages that have not been activated called on their main module", ->
+          spyOn(console, 'warn')
+          badPack = atom.activatePackage("package-that-throws-on-activate")
+          spyOn(badPack.mainModule, 'serialize').andCallThrough()
+
+          atom.deactivatePackage("package-that-throws-on-activate")
+          expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
         it "absorbs exceptions that are thrown by the package module's serialize methods", ->
           spyOn(console, 'error')
@@ -265,7 +282,7 @@ describe "the `atom` global", ->
           atom.deactivatePackage("package-with-scoped-properties")
           expect(syntax.getProperty ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
 
-      describe "texmate packages", ->
+      describe "textmate packages", ->
         it "removes the package's grammars", ->
           expect(syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
           atom.activatePackage('ruby-tmbundle', sync: true)
