@@ -13,8 +13,6 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   nakedLoad 'jasmine'
   require 'jasmine-focused'
 
-  AtomReporter = require 'atom-reporter'
-
   $ = require 'jquery'
   TimeReporter = require 'time-reporter'
 
@@ -26,6 +24,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
       onComplete: (runner) ->
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else
+    AtomReporter = require 'atom-reporter'
     reporter = new AtomReporter()
 
   require specSuite
