@@ -206,7 +206,7 @@ describe "PaneContainer", ->
       expect(newContainer.find('.row, .column')).not.toExist()
       expect(newContainer.find('> :contains(1)')).toExist()
 
-  describe "pane-container:active-item-changed", ->
+  describe "pane-container:active-pane-item-changed", ->
     [pane1, item1a, item1b, item2a, item2b, item3a, container, activeItemChangedHandler] = []
     beforeEach ->
       item1a = new TestView('1a')
@@ -221,7 +221,7 @@ describe "PaneContainer", ->
       container.setRoot(pane1)
 
       activeItemChangedHandler = jasmine.createSpy("activeItemChangedHandler")
-      container.on 'pane-container:active-item-changed', activeItemChangedHandler
+      container.on 'pane-container:active-pane-item-changed', activeItemChangedHandler
 
     describe "when there are no panes", ->
       it "is triggered when a new pane item is added", ->
