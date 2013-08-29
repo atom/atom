@@ -1,5 +1,6 @@
 @import "ui-mixins";
 @import "ui-variables";
+@import "buttons";
 
 .panel-heading {
   margin: 0;
@@ -11,6 +12,18 @@
 
   background-color: transparent;
   background-image: -webkit-linear-gradient(@panel-heading-background-color, darken(@panel-heading-background-color, 10%));
+
+  .btn {
+    padding: 1px 5px;
+    font-size: 10px;
+    position: relative; top: -1px;
+
+    @bg: lighten(@button-background-color, 10%);
+    @hover: lighten(@button-background-hover-color, 10%);
+    @selected: lighten(@button-background-selected-color, 10%);
+    @text: lighten(@text-color, 10%);
+    .btn-background(@bg, @hover, @selected, @text);
+  }
 }
 
 .inset-panel {
