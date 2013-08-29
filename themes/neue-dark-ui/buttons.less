@@ -19,6 +19,13 @@
   }
 }
 
+.btn-variant (@color) {
+  @bg: darken(@color, 10%);
+  @hover: @color;
+  @selected: @color;
+  .btn-background(@bg, @hover, @selected, @text-color-highlight);
+}
+
 .btn {
   border-radius: @component-border-radius;
   border: none;
@@ -36,6 +43,22 @@
     // we want the selected button to behave like the :hover button; it's on top of the other buttons.
     z-index: 1;
   }
+}
+
+.btn.btn-primary {
+  .btn-variant(@background-color-info);
+}
+.btn.btn-info {
+  .btn-variant(@background-color-info);
+}
+.btn.btn-success {
+  .btn-variant(@background-color-success);
+}
+.btn.btn-warning {
+  .btn-variant(@background-color-warning);
+}
+.btn.btn-error {
+  .btn-variant(@background-color-error);
 }
 
 .btn.btn-xs, .btn-group-xs > .btn {
