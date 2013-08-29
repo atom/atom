@@ -99,9 +99,9 @@ class Pane extends View
 
   # Public: Focus this pane.
   makeActive: ->
+    wasActive = @isActive()
     for pane in @getContainer().getPanes() when pane isnt this
       pane.makeInactive()
-    wasActive = @isActive()
     @addClass('active')
     @trigger 'pane:became-active' unless wasActive
 
