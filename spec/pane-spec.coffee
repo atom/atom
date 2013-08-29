@@ -732,6 +732,8 @@ describe "Pane", ->
       expect(newPane.activeItem).toEqual editSession2
 
     it "does not show items that cannot be deserialized", ->
+      spyOn(console, 'warn')
+
       pane.showItem(view2)
       paneState = pane.serialize()
       paneState.get('items').set(pane.items.indexOf(view2), {deserializer: 'Bogus'}) # nuke serialized state of active item
