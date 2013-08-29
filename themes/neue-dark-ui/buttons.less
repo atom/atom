@@ -33,8 +33,8 @@
   font-weight: bold;
   text-shadow: none;
 
-  font-size: 12px;
-  padding: 5px 10px;
+  font-size: @font-size;
+  padding: @component-padding/2 @component-padding;
   z-index: 0;
 
   .btn-background(@button-background-color, @button-background-hover-color, @button-background-selected-color, @text-color);
@@ -62,15 +62,15 @@
 }
 
 .btn.btn-xs, .btn-group-xs > .btn {
-  padding: 2px 5px;
-  font-size: 10px;
+  padding: @component-padding/4 @component-padding/2;
+  font-size: @font-size - 2px;
 }
 .btn.btn-sm, .btn-group-sm > .btn {
-  padding: 2px 5px;
+  padding: @component-padding/4 @component-padding/2;
 }
 .btn.btn-lg, .btn-group-lg > .btn {
-  font-size: 14px;
-  padding: 8px 12px;
+  font-size: @font-size + 2px;
+  padding: @component-padding - 2px  @component-padding + 2px;
 }
 
 .btn-group > .btn {
