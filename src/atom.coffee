@@ -66,8 +66,10 @@ window.atom =
     if packagePath = @resolvePackagePath(name)
       return pack if pack = @getLoadedPackage(name)
       pack = Package.load(packagePath, options)
-      @loadedPackages[pack.name] = pack
-      @themes.register(pack) if pack.metadata.theme?
+      if pack.metadata.theme
+        @themes.register(pack)
+      else
+        @loadedPackages[pack.name] = pack
       pack
     else
       throw new Error("Could not resolve '#{name}' to a package path")

@@ -38,7 +38,7 @@ class ThemeManager
       @trigger('reloaded')
 
   activateTheme: (name) ->
-    theme = _.find(@registeredTheme, (t) -> t.metadata.name == name)
+    theme = _.find(@registeredThemes, (t) -> t.metadata.name == name)
     return console.warn("Theme '#{name}' not found.") unless theme
 
     try
