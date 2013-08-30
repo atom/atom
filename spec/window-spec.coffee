@@ -10,6 +10,7 @@ describe "Window", ->
 
   beforeEach ->
     atom.getLoadSettings().initialPath = project.getPath()
+    project.destroy()
     windowEventHandler = new WindowEventHandler()
     window.deserializeEditorWindow()
     projectPath = project.getPath()
