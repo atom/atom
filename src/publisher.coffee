@@ -48,4 +48,4 @@ class Publisher extends Command
         else
           @publishPackage(options)
     else
-      @publishPackage()
+      @publishPackage(options)
