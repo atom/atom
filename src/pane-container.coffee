@@ -36,6 +36,21 @@ class PaneContainer extends View
         else
           @setRoot(null)
 
+    @on 'pane:attached', (event, pane) =>
+      @triggerActiveItemChange() if @getActivePane() is pane
+
+    @on 'pane:removed', (event, pane) =>
+      @triggerActiveItemChange() unless @getActivePane()?
+
+    @on 'pane:became-active', =>
+      @triggerActiveItemChange()
+
+    @on 'pane:active-item-changed', (event, item) =>
+      @triggerActiveItemChange() if @getActivePaneItem() is item
+
+  triggerActiveItemChange: ->
+    @trigger 'pane-container:active-pane-item-changed', [@getActivePaneItem()]
+
   serialize: ->
     state = @state.clone()
     state.set('root', @getRoot()?.serialize())
@@ -92,9 +107,6 @@ class PaneContainer extends View
     @destroyedItemStates = @destroyedItemStates.filter (itemState) ->
       itemState.uri isnt itemUri
 
-  triggerActiveItemChange: (item) ->
-    @trigger 'pane-container:active-pane-item-changed', [item]
-
   getRoot: ->
     @children().first().view()
 
@@ -103,7 +115,6 @@ class PaneContainer extends View
     if root?
       @append(root)
       @itemAdded(root.activeItem) if root.activeItem
-    @triggerActiveItemChange(root?.getActivePaneItem()) unless suppressPaneItemChangeEvents
     @state.set(root: root?.getState())
 
   removeChild: (child) ->
