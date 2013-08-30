@@ -21,7 +21,7 @@
     "less": "git://github.com/nathansobo/less.js.git",
     "nak": "0.2.16",
     "nslog": "0.1.0",
-    "oniguruma": "0.16.0",
+    "oniguruma": "0.20.0",
     "optimist": "0.4.0",
     "pathwatcher": "0.5.0",
     "patrick": "0.4.0",
