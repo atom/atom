@@ -39,6 +39,8 @@ describe "PaneContainer replication", ->
       container2 = deserialize(doc2)
 
   afterEach ->
+    env1.destroy()
+    env2.destroy()
     unregisterDeserializer(TestView)
 
   it "replicates the inital state of a pane container with splits", ->
