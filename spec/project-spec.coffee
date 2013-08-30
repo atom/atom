@@ -9,10 +9,16 @@ describe "Project", ->
     project.setPath(project.resolve('dir'))
 
   describe "serialization", ->
+    deserializedProject = null
+
+    afterEach ->
+      deserializedProject?.destroy()
+
     it "destroys unretained buffers and does not include them in the serialized state", ->
       project.bufferForPath('a')
       expect(project.getBuffers().length).toBe 1
-      expect(deserialize(project.serialize()).getBuffers().length).toBe 0
+      deserializedProject = deserialize(project.serialize())
+      expect(deserializedProject.getBuffers().length).toBe 0
       expect(project.getBuffers().length).toBe 0
 
   describe "when an edit session is destroyed", ->
