@@ -317,6 +317,11 @@ describe "PaneContainer", ->
         pane1.remove()
         expect(activeItemChangedHandler).not.toHaveBeenCalled()
 
+      it "is triggered when the active pane is changed", ->
+        pane1.makeActive()
+        expect(activeItemChangedHandler.callCount).toBe 1
+        expect(activeItemChangedHandler.argsForCall[0][1]).toEqual item1a
+
     describe "when there are multiple panes", ->
       beforeEach ->
         pane2 = pane1.splitRight(item2a)
