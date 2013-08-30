@@ -593,8 +593,8 @@ class TextBuffer
   #
   # Returns a {Boolean},
   usesSoftTabs: ->
-    for line in @getLines()
-      if match = line.match(/^\s/)
+    for row in [0..@getLastRow()]
+      if match = @lineForRow(row).match(/^\s/)
         return match[0][0] != '\t'
     undefined
 
