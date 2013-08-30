@@ -12,16 +12,14 @@ class ThemeManager
   _.extend @prototype, EventEmitter
 
   constructor: ->
+    @registeredThemes = []
     @activeThemes = []
 
-  getAvailablePaths: ->
-    themePaths = []
-    for themeDirPath in config.themeDirPaths
-      themePaths.push(fsUtils.listSync(themeDirPath, ['', '.css', 'less'])...)
-    _.uniq(themePaths)
+  register: (theme) ->
+    @registeredThemes.push(theme)
 
   getAvailableNames: ->
-    path.basename(themePath).split('.')[0] for themePath in @getAvailablePaths()
+    _.map(@registeredThemes, (t) -> t?.metadata?.name)
 
   getActiveThemes: ->
     _.clone(@activeThemes)
@@ -40,8 +38,11 @@ class ThemeManager
       @trigger('reloaded')
 
   activateTheme: (name) ->
+    theme = _.find(@registeredTheme, (t) -> t.metadata.name == name)
+    return console.warn("Theme '#{name}' not found.") unless theme
+
     try
-      theme = new Theme(name)
+      theme.activate()
       @activeThemes.push(theme)
       @trigger('theme-activated', theme)
     catch error
@@ -56,13 +57,13 @@ class ThemeManager
 
   getImportPaths: ->
     if @activeThemes.length
-      theme.directoryPath for theme in @activeThemes when theme.directoryPath
+      theme.getStylesheetPath() for theme in @activeThemes when theme.getStylesheetPath
     else
       themeNames = config.get('core.themes')
       themes = []
       for themeName in themeNames
-        themePath = Theme.resolve(themeName)
-        themes.push(themePath) if fsUtils.isDirectorySync(themePath)
+        theme = _.find(@registeredTheme, (t) -> t.metadata.name == themeName)
+        themes.push(theme.getStylesheetPath()) if theme?.getStylesheetPath
       themes
 
   loadUserStylesheet: ->
