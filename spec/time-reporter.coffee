@@ -17,14 +17,16 @@ class TimeReporter extends jasmine.Reporter
     log "Longest running suites:"
     suites = _.map(window.timedSuites, (key, value) -> [value, key])
     for suite in _.sortBy(suites, (suite) => -suite[1])[0...number]
-      log "  #{suite[0]} (#{suite[1]}ms)"
+      time = Math.round(suite[1] / 100) / 10
+      log "  #{suite[0]} (#{time}s)"
     undefined
 
   logLongestSpecs: (number=10, log) ->
     log ?= (line) -> console.log(line)
     log "Longest running specs:"
     for spec in _.sortBy(window.timedSpecs, (spec) -> -spec.time)[0...number]
-      log "#{spec.description} (#{spec.time}ms)"
+      time = Math.round(spec.time / 100) / 10
+      log "#{spec.description} (#{time}s)"
     undefined
 
   reportSpecStarting: (spec) ->
