@@ -224,7 +224,7 @@ describe "PaneContainer", ->
       container.on 'pane-container:active-pane-item-changed', activeItemChangedHandler
 
     describe "when there are no panes", ->
-      it "is triggered when a new pane item is added", ->
+      it "is triggered when a new pane containing a pane item is added", ->
         container.setRoot()
         expect(container.getPanes().length).toBe 0
         activeItemChangedHandler.reset()
