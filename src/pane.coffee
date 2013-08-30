@@ -175,7 +175,6 @@ class Pane extends View
     view.focus() if isFocused
     @activeItem = item
     @activeView = view
-    @getContainer()?.triggerActiveItemChange(item) if @isActive()
     @trigger 'pane:active-item-changed', [item]
 
     @state.set('activeItemUri', item.getUri?())
@@ -426,7 +425,6 @@ class Pane extends View
       when 'after' then parent.insertChildAfter(this, newPane)
     @getContainer().adjustPaneDimensions()
     newPane.focus()
-    @getContainer().triggerActiveItemChange(newPane.getActivePaneItem())
     newPane
 
   # Private:
