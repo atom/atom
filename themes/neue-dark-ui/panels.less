@@ -2,35 +2,6 @@
 @import "ui-variables";
 @import "buttons";
 
-.panel-heading {
-  margin: 0;
-  border-bottom: none;
-  padding: @component-padding - 2px @component-padding;
-
-  font-size: @font-size;
-  line-height: 1;
-
-  background-color: transparent;
-  background-image: -webkit-linear-gradient(@panel-heading-background-color, darken(@panel-heading-background-color, 10%));
-
-  .btn {
-    padding: 1px 5px;
-    font-size: 10px;
-    position: relative; top: -1px;
-
-    @bg: lighten(@button-background-color, 10%);
-    @hover: lighten(@button-background-color-hover, 10%);
-    @selected: lighten(@button-background-color-selected, 10%);
-    @text: lighten(@text-color, 10%);
-    .btn-background(@bg, @hover, @selected, @text);
-  }
-}
-
-.inset-panel {
-  position: relative;
-  background-color: @inset-panel-background-color;
-}
-
 .tool-panel {
   .text(normal);
   position: relative;
@@ -64,8 +35,37 @@
   }
 }
 
+.inset-panel {
+  position: relative;
+  background-color: @inset-panel-background-color;
+}
+
 .is-blurred {
   .tool-panel, .inset-panel {
     opacity: 0.6;
+  }
+}
+
+.panel-heading {
+  margin: 0;
+  border-bottom: none;
+  padding: @component-padding - 2px @component-padding;
+
+  font-size: @font-size;
+  line-height: 1;
+
+  background-color: transparent;
+  background-image: -webkit-linear-gradient(@panel-heading-background-color, darken(@panel-heading-background-color, 10%));
+
+  .btn {
+    padding: 1px 5px;
+    font-size: 10px;
+    position: relative; top: -1px;
+
+    @bg: lighten(@button-background-color, 10%);
+    @hover: lighten(@button-background-color-hover, 10%);
+    @selected: lighten(@button-background-color-selected, 10%);
+    @text: lighten(@text-color, 10%);
+    .btn-background(@bg, @hover, @selected, @text);
   }
 }
