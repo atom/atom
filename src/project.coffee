@@ -54,6 +54,10 @@ class Project
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
     buffer.release() for buffer in @getBuffers()
+    @destroyRepo()
+
+  # Private:
+  destroyRepo: ->
     if @repo?
       @repo.destroy()
       @repo = null
@@ -113,15 +117,13 @@ class Project
   setPath: (projectPath) ->
     @rootDirectory?.off()
 
+    @destroyRepo()
     if projectPath?
       directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
       @repo = Git.open(projectPath)
     else
       @rootDirectory = null
-      if @repo?
-        @repo.destroy()
-        @repo = null
 
     if originUrl = @repo?.getOriginUrl()
       @state.set('repoUrl', originUrl)
