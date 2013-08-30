@@ -126,6 +126,22 @@
   background-color: rgba(86, 45, 86, 0.75);
 }
 
+// String interpolation in Ruby, CoffeeScript, and others
+.source .string {
+  .source,
+  .meta.embedded.line {
+    color: #EDEDED;
+  }
+
+  .punctuation.section.embedded {
+    color: #00A0A0;
+
+    .source {
+      color: #00A0A0;  // Required for the end of embedded strings in Ruby #716
+    }
+  }
+}
+
 .string {
   color: #A8FF60;
 

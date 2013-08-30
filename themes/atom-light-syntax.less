@@ -48,6 +48,23 @@
     color: #D14;
   }
 
+  // String interpolation in Ruby, CoffeeScript, and others
+  .source .string {
+    .source,
+    .meta.embedded.line {
+      color: #5A5A5A;
+    }
+
+    .punctuation.section.embedded {
+      color: #920B2D;
+
+      .source {
+        color: #920B2D;  // Required for the end of embedded strings in Ruby #716
+      }
+    }
+  }
+
+
   .constant {
     &.numeric {
       color: #D14;
