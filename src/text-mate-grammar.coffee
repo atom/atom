@@ -130,10 +130,6 @@ class TextMateGrammar
         ruleStack = originalRuleStack
         break
 
-      if line.length == 0
-        tokens = [new Token(value: "", scopes: scopes)]
-        return { tokens, ruleStack }
-
       break if position == line.length + 1 # include trailing newline position
 
       if match = _.last(ruleStack).getNextTokens(ruleStack, line, position, firstLine)
