@@ -87,8 +87,14 @@ class AtomPackage extends Package
 
   getStylesheetPaths: ->
     stylesheetDirPath = @getStylesheetsPath()
-    if @metadata.stylesheets
+    indexStylesheet = fsUtils.resolve(@path, 'index', ['css', 'less'])
+
+    if @metadata.stylesheetMain
+      [fsUtils.resolve(stylesheetDirPath, @metadata.stylesheetMain)]
+    else if @metadata.stylesheets
       @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+    else if indexStylesheet
+      [indexStylesheet]
     else
       fsUtils.listSync(stylesheetDirPath, ['css', 'less'])
 
