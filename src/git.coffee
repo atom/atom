@@ -217,6 +217,17 @@ class Git
   # Public: Returns the origin url of the repository.
   getOriginUrl: -> @getConfigValue('remote.origin.url')
 
+  # Public: Returns the upstream branch for the current HEAD, or null if there
+  # is no upstream branch for the current HEAD.
+  #
+  # Examples
+  #
+  #   getUpstreamBranch()
+  #   # => "refs/remotes/origin/master"
+  #
+  # Returns a String.
+  getUpstreamBranch: -> @getRepo().getUpstreamBranch()
+
   # Public: ?
   getReferenceTarget: (reference) -> @getRepo().getReferenceTarget(reference)
 
