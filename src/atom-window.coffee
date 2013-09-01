@@ -18,12 +18,16 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {resourcePath, pathToOpen, @isSpec} = settings
+    {@resourcePath, pathToOpen, @isSpec} = settings
     global.atomApplication.addWindow(this)
 
-    @setupNodePath(resourcePath)
+    @setupNodePath(@resourcePath)
     @createContextMenu()
     @browserWindow = new BrowserWindow show: false, title: 'Atom'
+    @browserWindow.restart = _.wrap _.bind(@browserWindow.restart, @browserWindow), (restart) =>
+      @setupNodePath(@resourcePath)
+      restart()
+
     @handleEvents()
 
     loadSettings = _.extend({}, settings)
@@ -35,7 +39,7 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', => @loaded = true
-    @browserWindow.loadUrl "file://#{resourcePath}/static/index.html"
+    @browserWindow.loadUrl "file://#{@resourcePath}/static/index.html"
 
     @openPath(pathToOpen)
 
