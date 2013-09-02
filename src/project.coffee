@@ -121,7 +121,7 @@ class Project
     if projectPath?
       directory = if fsUtils.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
-      @repo = Git.open(projectPath)
+      @repo = Git.open(projectPath, project: this)
     else
       @rootDirectory = null
 

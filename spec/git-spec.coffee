@@ -204,3 +204,39 @@ describe "Git", ->
         expect(statuses[cleanPath]).toBeUndefined()
         expect(repo.isStatusNew(statuses[newPath])).toBeTruthy()
         expect(repo.isStatusModified(statuses[modifiedPath])).toBeTruthy()
+
+  describe "when a buffer is changed and then saved", ->
+    [originalContent, editSession] = []
+
+    afterEach ->
+      fsUtils.writeSync(editSession.getPath(), originalContent)
+
+    it "emits a status-changed event", ->
+      editSession = project.open('sample.js')
+      originalContent = editSession.getText()
+      editSession.insertNewline()
+
+      statusHandler = jasmine.createSpy('statusHandler')
+      project.getRepo().on 'status-changed', statusHandler
+      editSession.save()
+      expect(statusHandler.callCount).toBe 1
+      expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
+
+  describe "when a buffer is reloaded and has been changed", ->
+    [originalContent, editSession] = []
+
+    afterEach ->
+      fsUtils.writeSync(editSession.getPath(), originalContent)
+
+    it "emits a status-changed event", ->
+      editSession = project.open('sample.js')
+      originalContent = editSession.getText()
+      fsUtils.writeSync(editSession.getPath(), 'changed')
+
+      statusHandler = jasmine.createSpy('statusHandler')
+      project.getRepo().on 'status-changed', statusHandler
+      editSession.getBuffer().reload()
+      expect(statusHandler.callCount).toBe 1
+      expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
+      editSession.getBuffer().reload()
+      expect(statusHandler.callCount).toBe 1

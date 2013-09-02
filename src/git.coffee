@@ -52,6 +52,8 @@ class Git
   # * options:
   #    + refreshOnWindowFocus: If `true`, {#refreshIndex} and {#refreshStatus}
   #      are called on focus
+  #    + project: A project that supplies buffers that will be monitored for
+  #      save and reload events to trigger status refreshes.
   constructor: (path, options={}) ->
     @repo = GitUtils.open(path)
     unless @repo?
@@ -59,20 +61,25 @@ class Git
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
+    {project, refreshOnWindowFocus} = options
 
-    refreshOnWindowFocus = options.refreshOnWindowFocus ? true
+    refreshOnWindowFocus ?= true
     if refreshOnWindowFocus
       $ = require 'jquery'
       @subscribe $(window), 'focus', =>
         @refreshIndex()
         @refreshStatus()
 
-    project?.eachBuffer this, (buffer) =>
-      bufferStatusHandler = =>
-        path = buffer.getPath()
-        @getPathStatus(path) if path
-      @subscribe buffer, 'saved', bufferStatusHandler
-      @subscribe buffer, 'reloaded', bufferStatusHandler
+    if project?
+      @subscribeToBuffer(buffer) for buffer in project.getBuffers()
+      @subscribe project, 'buffer-created', (buffer) => @subscribeToBuffer(buffer)
+
+  subscribeToBuffer: (buffer) ->
+    bufferStatusHandler = =>
+      if path = buffer.getPath()
+        @getPathStatus(path)
+    @subscribe buffer, 'saved', bufferStatusHandler
+    @subscribe buffer, 'reloaded', bufferStatusHandler
 
   # Private:
   destroy: ->
