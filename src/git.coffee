@@ -81,7 +81,8 @@ class Git
     @subscribe buffer, 'saved', bufferStatusHandler
     @subscribe buffer, 'reloaded', bufferStatusHandler
 
-  # Private:
+  # Public:  Destroy this `Git` object. This destroys any tasks and
+  # subscriptions and releases the underlying libgit2 repository handle.
   destroy: ->
     if @statusTask?
       @statusTask.terminate()
