@@ -1,5 +1,8 @@
 fs = require 'fs'
+
 optimist = require 'optimist'
+
+Cleaner = require './cleaner'
 Developer = require './developer'
 Installer = require './installer'
 Uninstaller = require './uninstaller'
@@ -54,6 +57,7 @@ module.exports =
     else if command
       switch command
         when 'available' then new Fetcher().run(options)
+        when 'clean' then new Cleaner().run(options)
         when 'develop', 'dev' then new Developer().run(options)
         when 'help' then options.showHelp()
         when 'install' then new Installer().run(options)
