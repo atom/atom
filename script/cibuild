@@ -7,5 +7,6 @@ cd "$(dirname "$0")/.."
 rm -rf ~/.atom
 git clean -dff
 
-rm -fr node_modules
-./script/test
+./script/bootstrap
+./node_modules/.bin/apm clean
+./node_modules/.bin/grunt ci --stack --no-color
