@@ -240,3 +240,23 @@ describe "Git", ->
       expect(statusHandler).toHaveBeenCalledWith editSession.getPath(), 256
       editSession.getBuffer().reload()
       expect(statusHandler.callCount).toBe 1
+
+  describe "when a project is deserialized", ->
+    [originalContent, buffer, project2] = []
+
+    afterEach ->
+      fsUtils.writeSync(buffer.getPath(), originalContent)
+      project2?.destroy()
+
+    it "subscribes to all the serialized buffers in the project", ->
+      project.open('sample.js')
+      project2 = deserialize(project.serialize())
+      buffer = project2.getBuffers()[0]
+      originalContent = buffer.getText()
+      buffer.append('changes')
+
+      statusHandler = jasmine.createSpy('statusHandler')
+      project2.getRepo().on 'status-changed', statusHandler
+      buffer.save()
+      expect(statusHandler.callCount).toBe 1
+      expect(statusHandler).toHaveBeenCalledWith buffer.getPath(), 256

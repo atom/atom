@@ -252,7 +252,6 @@ class Project
     filePath = @resolve(filePath) if filePath?
     buffer = new TextBuffer({project: this, filePath, initialText})
     @addBuffer(buffer)
-    @trigger 'buffer-created', buffer
     buffer
 
   # Private:
@@ -263,6 +262,7 @@ class Project
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers[index] = buffer
     @state.get('buffers').insert(index, buffer.getState()) if options.updateState ? true
+    @trigger 'buffer-created', buffer
 
   # Private: Removes a {TextBuffer} association from the project.
   #
