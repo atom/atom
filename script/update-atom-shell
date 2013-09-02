@@ -20,7 +20,7 @@ if [[ ${LATEST_VERSION} != ${CURRENT_VERSION} ]]; then
   else
     echo "Downloading/extracting atom-shell ${LATEST_VERSION}..."
     mkdir -p $TEMP_DIR
-    curl "${DISTURL}/${LATEST_VERSION}/atom-shell.zip" > "${TEMP_DIR}/atom-shell.zip"
+    curl "${DISTURL}/${LATEST_VERSION}/atom-shell-${LATEST_VERSION}-darwin.zip" > "${TEMP_DIR}/atom-shell.zip"
     unzip -q "${TEMP_DIR}/atom-shell.zip" -d "${TEMP_DIR}"
     rm "${TEMP_DIR}/atom-shell.zip"
   fi
