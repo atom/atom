@@ -1,6 +1,6 @@
 ## Proposed Timeline
 
-1. **October 30st** - Internal launch - persuade as many githubers to switch as
+1. **October 30st** - Internal launch - persuade as many githubbers to switch as
 possible.
 
 1. Triage bugs and identify what needs to be fixed before private alpha. Maybe
