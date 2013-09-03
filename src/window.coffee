@@ -35,10 +35,8 @@ window.setUpEnvironment = (windowMode) ->
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
 
-  requireStylesheet 'atom'
-
-  if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
-    requireStylesheet(nativeStylesheetPath)
+  config.load()
+  atom.loadBaseStylesheets()
 
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
@@ -47,7 +45,7 @@ window.startEditorWindow = ->
 
   windowEventHandler = new WindowEventHandler
   restoreDimensions()
-  config.load()
+  config.observeUserConfig()
   keymap.loadBundledKeymaps()
   atom.themes.load()
   atom.loadPackages()
@@ -69,6 +67,7 @@ window.unloadEditorWindow = ->
   windowState.set('project', project.serialize())
   windowState.set('syntax', syntax.serialize())
   windowState.set('rootView', rootView.serialize())
+  config.unobserveUserConfig()
   atom.deactivatePackages()
   windowState.set('packageStates', atom.packageStates)
   atom.saveWindowState()
@@ -126,12 +125,20 @@ window.resolveStylesheet = (stylesheetPath) ->
   else
     fsUtils.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
 
+# Public: resolves and applies the stylesheet specified by the path.
+#
+# * stylesheetPath: String. Can be an absolute path or the name of a CSS or
+#   LESS file in the stylesheets path.
+#
+# Returns the absolute path to the stylesheet
 window.requireStylesheet = (stylesheetPath) ->
   if fullPath = window.resolveStylesheet(stylesheetPath)
     content = window.loadStylesheet(fullPath)
     window.applyStylesheet(fullPath, content)
   else
     throw new Error("Could not find a file at path '#{stylesheetPath}'")
+
+  fullPath
 
 window.loadStylesheet = (stylesheetPath) ->
   if path.extname(stylesheetPath) is '.less'
@@ -146,6 +153,7 @@ window.loadLessStylesheet = (lessStylesheetPath) ->
     paths: importPaths.concat(config.lessSearchPaths)
     filename: lessStylesheetPath
 
+  console.log importPaths.concat(config.lessSearchPaths)
   try
     content = null
     parser.parse fsUtils.read(lessStylesheetPath), (e, tree) ->

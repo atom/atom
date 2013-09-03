@@ -81,7 +81,6 @@ class Config
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()
-    @observeUserConfig()
 
   # Private:
   loadUserConfig: ->

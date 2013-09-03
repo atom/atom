@@ -12,6 +12,7 @@ telepath = require 'telepath'
 ThemeManager = require 'theme-manager'
 
 window.atom =
+  baseStylesheetPaths: []
   loadedPackages: {}
   activePackages: {}
   packageStates: {}
@@ -58,6 +59,7 @@ window.atom =
   loadPackages: ->
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
     @themes.on 'reloaded', =>
+      @loadBaseStylesheets()
       pack.reloadStylesheets?() for name, pack of @loadedPackages
       null
 
@@ -129,6 +131,17 @@ window.atom =
       metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
+
+  loadBaseStylesheets: ->
+    @unloadBaseStylesheets()
+    @baseStylesheetPaths.push(requireStylesheet('atom'))
+    if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
+      requireStylesheet(nativeStylesheetPath)
+      @baseStylesheetPaths.push(nativeStylesheetPath)
+
+  unloadBaseStylesheets: ->
+    removeStylesheet(sheet) for sheet in @baseStylesheetPaths
+    @baseStylesheetPaths = []
 
   open: (options) ->
     ipc.sendChannel('open', options)
