@@ -36,16 +36,16 @@ class PaneContainer extends View
         else
           @setRoot(null)
 
-    @on 'pane:attached', (event, pane) =>
+    @subscribe this, 'pane:attached', (event, pane) =>
       @triggerActiveItemChange() if @getActivePane() is pane
 
-    @on 'pane:removed', (event, pane) =>
+    @subscribe this, 'pane:removed', (event, pane) =>
       @triggerActiveItemChange() unless @getActivePane()?
 
-    @on 'pane:became-active', =>
+    @subscribe this, 'pane:became-active', =>
       @triggerActiveItemChange()
 
-    @on 'pane:active-item-changed', (event, item) =>
+    @subscribe this, 'pane:active-item-changed', (event, item) =>
       @triggerActiveItemChange() if @getActivePaneItem() is item
 
   triggerActiveItemChange: ->
