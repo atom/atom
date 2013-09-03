@@ -5,15 +5,15 @@
   "licenses": [
     {
       "type": "MIT",
-      "url": "http://github.com/github/apm/raw/master/LICENSE.md"
+      "url": "http://github.com/atom/apm/raw/master/LICENSE.md"
     }
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/github/apm.git"
+    "url": "https://github.com/atom/apm.git"
   },
   "bugs": {
-    "url": "https://github.com/github/apm/issues"
+    "url": "https://github.com/atom/apm/issues"
   },
   "main": "./lib/apm.js",
   "bin": {
