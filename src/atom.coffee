@@ -88,9 +88,6 @@ window.atom =
     packagePath = fsUtils.resolve(config.packageDirPaths..., name)
     return packagePath if fsUtils.isDirectorySync(packagePath)
 
-    packagePath = path.join(window.resourcePath, 'node_modules', name)
-    return packagePath if @isInternalPackage(packagePath)
-
   isInternalPackage: (packagePath) ->
     {engines} = Package.loadMetadata(packagePath, true)
     engines?.atom?

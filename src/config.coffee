@@ -8,7 +8,10 @@ async = require 'async'
 pathWatcher = require 'pathwatcher'
 
 configDirPath = fsUtils.absolute("~/.atom")
-nodeModulesDirPath = path.join(resourcePath, "node_modules")
+nodeModulesDirPath = path.join(global.resourcePath, "node_modules")
+nodeSubmodulesDirPath = path.join(global.resourcePath, "node_submodules")
+bundledPackageDirPaths = [nodeModulesDirPath]
+bundledPackageDirPaths.unshift(nodeSubmodulesDirPath) if fsUtils.exists(nodeSubmodulesDirPath)
 bundledThemesDirPath = path.join(resourcePath, "themes")
 bundledKeymapsDirPath = path.join(resourcePath, "keymaps")
 userThemesDirPath = path.join(configDirPath, "themes")
@@ -40,10 +43,10 @@ class Config
 
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
-  bundledPackageDirPaths: [nodeModulesDirPath]
+  bundledPackageDirPaths: bundledPackageDirPaths
   bundledKeymapsDirPath: bundledKeymapsDirPath
   nodeModulesDirPath: nodeModulesDirPath
-  packageDirPaths: _.clone(userPackageDirPaths)
+  packageDirPaths: [userPackageDirPaths..., bundledPackageDirPaths...]
   userPackageDirPaths: userPackageDirPaths
   userStoragePath: userStoragePath
   lessSearchPaths: [path.join(resourcePath, 'static'), path.join(resourcePath, 'vendor')]
