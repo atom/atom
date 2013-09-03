@@ -130,10 +130,6 @@ class TextMateGrammar
         ruleStack = originalRuleStack
         break
 
-      if line.length == 0
-        tokens = [new Token(value: "", scopes: scopes)]
-        return { tokens, ruleStack }
-
       break if position == line.length + 1 # include trailing newline position
 
       if match = _.last(ruleStack).getNextTokens(ruleStack, line, position, firstLine)
@@ -149,7 +145,7 @@ class TextMateGrammar
         break if position is line.length and nextTokens.length is 0 and ruleStack.length is previousRuleStackLength
 
       else # push filler token for unmatched text at end of line
-        if position < line.length
+        if position < line.length or line.length == 0
           tokens.push(new Token(
             value: line[position...line.length]
             scopes: scopes
