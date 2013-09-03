@@ -28,8 +28,6 @@ class SelectList extends View
 
   # Public:
   initialize: ->
-    requireStylesheet 'select-list'
-
     @miniEditor.getBuffer().on 'changed', => @schedulePopulateList()
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
