@@ -54,6 +54,7 @@ class AtomReporter extends View
     $(document.body).append this
 
   reportRunnerResults: (runner) ->
+    @updateSpecCounts()
     if @failedCount == 0
       @message.text "Success!"
     else
@@ -107,15 +108,18 @@ class AtomReporter extends View
       if specFailures.is(":visible") then element.text "\uf03d" else element.html "\uf03f"
       false
 
-  updateStatusView: (spec) ->
-    if @failedCount > 0
-      @status.addClass('failed') unless @status.hasClass('failed')
-
+  updateSpecCounts: ->
     if @skippedCount
       specCount = "#{@completeSpecCount - @skippedCount}/#{@totalSpecCount - @skippedCount} (#{@skippedCount} skipped)"
     else
       specCount = "#{@completeSpecCount}/#{@totalSpecCount}"
     @specCount.text specCount
+
+  updateStatusView: (spec) ->
+    if @failedCount > 0
+      @status.addClass('failed') unless @status.hasClass('failed')
+
+    @updateSpecCounts()
 
     rootSuite = spec.suite
     rootSuite = rootSuite.parentSuite while rootSuite.parentSuite
