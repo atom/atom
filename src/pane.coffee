@@ -99,9 +99,9 @@ class Pane extends View
 
   # Public: Focus this pane.
   makeActive: ->
+    wasActive = @isActive()
     for pane in @getContainer().getPanes() when pane isnt this
       pane.makeInactive()
-    wasActive = @isActive()
     @addClass('active')
     @trigger 'pane:became-active' unless wasActive
 
@@ -113,7 +113,7 @@ class Pane extends View
 
   # Public: Returns whether this pane is currently focused.
   isActive: ->
-    @hasClass('active')
+    @getContainer()?.getActivePane() == this
 
   # Public: Returns the next pane, ordered by creation.
   getNextPane: ->
@@ -141,6 +141,9 @@ class Pane extends View
       @showItemAtIndex(index - 1)
     else
       @showItemAtIndex(@items.length - 1)
+
+  getActivePaneItem: ->
+    @activeItem
 
   # Public: Returns the index of the currently active item.
   getActiveItemIndex: ->
