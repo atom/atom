@@ -1,16 +1,17 @@
 @import "bootstrap/less/bootstrap";
 
-@import "./octicon-utf-codes.less";
-@import "./octicon-mixins.less";
+// Import from the theme's variables with a fallback to /static/less-imports/ui-variables.less
+@import "ui-variables";
+@import "octicon-utf-codes";
+@import "octicon-mixins";
 
-@import "./root-view.less";
-@import "./overlay.less";
-@import "./popover-list.less";
-@import "./notification.less";
-@import "./markdown.less";
-
-@import "./editor.less";
-@import "./select-list.less";
+@import "root-view.less";
+@import "overlay.less";
+@import "popover-list.less";
+@import "notification.less";
+@import "markdown.less";
+@import "editor.less";
+@import "select-list.less";
 
 :focus {
   outline: none;

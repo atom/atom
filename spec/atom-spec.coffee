@@ -9,6 +9,27 @@ describe "the `atom` global", ->
   beforeEach ->
     window.rootView = new RootView
 
+  describe "base stylesheet loading", ->
+    beforeEach ->
+      rootView.append $("<div class='editor'></div>")
+      $("#jasmine-content").append(rootView)
+      atom.themes.load()
+      atom.watchThemes()
+
+    afterEach ->
+      atom.themes.unload()
+
+    it "The correct values are loaded from ui-variables", ->
+      config.set('core.themes', [project.resolve('themes/theme-with-ui-variables')])
+
+      # an override loaded in the base css
+      expect(rootView.css("background-color")).toBe "rgb(0, 0, 255)"
+
+      # from within the theme itself
+      expect($(".editor").css("padding-top")).toBe "150px"
+      expect($(".editor").css("padding-right")).toBe "150px"
+      expect($(".editor").css("padding-bottom")).toBe "150px"
+
   describe "package lifecycle methods", ->
     describe ".loadPackage(name)", ->
       describe "when the package has deferred deserializers", ->

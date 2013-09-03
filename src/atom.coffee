@@ -58,10 +58,7 @@ window.atom =
 
   loadPackages: ->
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
-    @themes.on 'reloaded', =>
-      @loadBaseStylesheets()
-      pack.reloadStylesheets?() for name, pack of @loadedPackages
-      null
+    @watchThemes()
 
   loadPackage: (name, options) ->
     if @isPackageDisabled(name)
@@ -131,6 +128,12 @@ window.atom =
       metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
+
+  watchThemes: ->
+    @themes.on 'reloaded', =>
+      @loadBaseStylesheets()
+      pack.reloadStylesheets?() for name, pack of @loadedPackages
+      null
 
   loadBaseStylesheets: ->
     @unloadBaseStylesheets()
