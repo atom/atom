@@ -170,11 +170,12 @@ snippets match a scope with the same specificity.
 If you're developing a new language grammar, you'll want to place your file in
 the _grammars_ directory. Each grammar is a pairing of two keys, `match` and
 `captures`. `match` is a regular expression identifying the pattern to highlight,
-while `captures` is a JSON representing what to do with each matching group.
+while `captures` is an object representing what to do with each matching group.
+
 For example:
 
 
-```json
+```coffeescript
 {
   'match': '(?:^|\\s)(__[^_]+__)'
   'captures':
@@ -187,7 +188,7 @@ This indicates that the first matching capture (`(__[^_]+__)`) should have the
 
 To capture a single group, simply use the `name` key instead:
 
-```json
+```coffeescript
 {
   'match': '^#{1,6}\\s+.+$'
   'name': 'markup.heading.gfm'
@@ -203,7 +204,7 @@ More information about the significance of these tokens can be found in
 Your grammar should also include a `filetypes` array, which is a list of file extensions
 your grammar supports:
 
-```
+```coffeescript
 'fileTypes': [
   'markdown'
   'md'
@@ -218,8 +219,8 @@ your grammar supports:
 Your package **should** have tests, and if they're placed in the _spec_ directory,
 they can be run by Atom.
 
-Under the hood, [Jasmine](https://github.com/pivotal/jasmine) is being used to run
-to execute the tests, so you can assume that any DSL available there is available
+Under the hood, [Jasmine](https://github.com/pivotal/jasmine) is being used to
+execute the tests, so you can assume that any DSL available there is available
 to your package as well.
 
 # Full Example
@@ -253,7 +254,7 @@ our keybinding executes a new command called `magic`.
 
 _keymaps/changer.cson_ can easily become this:
 
-```cson
+```coffeescript
 '.tree-view-scroller':
   'ctrl-V': 'changer:magic'
 ```
