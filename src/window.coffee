@@ -153,7 +153,6 @@ window.loadLessStylesheet = (lessStylesheetPath) ->
     paths: importPaths.concat(config.lessSearchPaths)
     filename: lessStylesheetPath
 
-  console.log importPaths.concat(config.lessSearchPaths)
   try
     content = null
     parser.parse fsUtils.read(lessStylesheetPath), (e, tree) ->
