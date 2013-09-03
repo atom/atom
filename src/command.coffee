@@ -19,4 +19,10 @@ class Command
 
   fork: (script, args, remaining...) ->
     args.unshift(script)
+
+    # FIXME temporary hack until https://github.atom/atom-shell/issues/83 is
+    # resolved
+    if /Atom Helper$/.test process.execPath
+      args.unshift('--atom-child_process-fork')
+
     @spawn(process.execPath, args, remaining...)
