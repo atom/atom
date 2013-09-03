@@ -22,7 +22,6 @@ module.exports = (grunt) ->
     nonPackageDirectories = [
       'benchmark'
       'dot-atom'
-      'spec'
       'vendor'
     ]
 
@@ -52,6 +51,7 @@ module.exports = (grunt) ->
     for directory in packageDirectories
       cp directory, path.join(appDir, directory), filter: /.+\.(cson|coffee|less)$/
 
+    cp 'spec', path.join(appDir, 'spec')
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee|less)$/
     cp 'static', path.join(appDir, 'static'), filter: /.+\.less$/
     cp 'themes', path.join(appDir, 'themes'), filter: /.+\.(cson|less)$/

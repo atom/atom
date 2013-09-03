@@ -5,6 +5,7 @@ measure 'spec suite require time', ->
   fsUtils = require 'fs-utils'
   path = require 'path'
   _ = require 'underscore'
+  Git = require 'git'
   require 'spec-helper'
 
   requireSpecs = (directoryPath, specType) ->
@@ -16,8 +17,10 @@ measure 'spec suite require time', ->
       spec.specType = specType
 
   runAllSpecs = ->
-    requireSpecs(window.resourcePath)
-    setSpecType('core')
+    # Only run core specs when resource path is the Atom repository
+    if Git.exists(window.resourcePath)
+      requireSpecs(window.resourcePath)
+      setSpecType('core')
 
     fixturesPackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
     packagePaths = atom.getAvailablePackageNames().map (packageName) -> atom.resolvePackagePath(packageName)
