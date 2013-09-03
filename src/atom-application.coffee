@@ -157,8 +157,8 @@ class AtomApplication
     ipc.once 'update-application-menu', (processId, routingId, keystrokesByCommand) =>
       @applicationMenu.update(keystrokesByCommand)
 
-    ipc.on 'run-package-specs', (processId, routingId, packagePath) =>
-      @runSpecs({resourcePath: global.devResourcePath, specPath: packagePath, exitWhenDone: false})
+    ipc.on 'run-package-specs', (processId, routingId, specDirectory) =>
+      @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
 
     ipc.on 'command', (processId, routingId, command) =>
       @emit(command)
@@ -264,14 +264,14 @@ class AtomApplication
   #      The path to include specs from.
   #    + specPath:
   #      The directory to load specs from.
-  runSpecs: ({exitWhenDone, resourcePath, specPath}) ->
+  runSpecs: ({exitWhenDone, resourcePath, specDirectory}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
     bootstrapScript = 'spec-bootstrap'
     isSpec = true
     devMode = true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specPath})
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory})
 
   runBenchmarks: ->
     bootstrapScript = 'benchmark/benchmark-bootstrap'

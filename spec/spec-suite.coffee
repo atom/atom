@@ -44,7 +44,7 @@ measure 'spec suite require time', ->
     requireSpecs(specPath)
     setSpecType("user")
 
-  if specPath = atom.getLoadSettings().specPath
     runSpecs(specPath)
+  if specDirectory = atom.getLoadSettings().specDirectory
   else
     runAllSpecs()
