@@ -15,7 +15,7 @@ exit_unless_npm_exists
 git submodule --quiet sync
 git submodule --quiet update --recursive --init
 
-(cd vendor/apm && npm install .)
+(cd vendor/apm && npm install --silent .)
 
 npm install --silent vendor/apm
 echo ""
