@@ -2,7 +2,8 @@
 
 @text-color: #444;
 @text-color-subtle: #999;
-@text-color-highlight: #111;
+@text-color-highlight: #000;
+@text-color-selected: #fff;
 
 @text-color-info: #5293d8;
 @text-color-success: #1fe977;
@@ -35,10 +36,10 @@
 @overlay-background-color: #ececec;
 @overlay-border-color: @base-border-color;
 
-@button-background-color: #43484d;
+@button-background-color: @base-background-color;
 @button-background-color-hover: lighten(@button-background-color, 5%);
-@button-background-color-selected: #5c6064;
-@button-border-color: @base-border-color;
+@button-background-color-selected: #888;
+@button-border-color: rgba(0, 0, 0, 0.15);
 
 @tab-background-color: darken(@tab-background-color-active, 10%);
 @tab-background-color-active: @base-background-color;
