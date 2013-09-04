@@ -12,7 +12,7 @@ describe "the `atom` global", ->
   describe "base stylesheet loading", ->
     beforeEach ->
       rootView.append $("<div class='editor'></div>")
-      $("#jasmine-content").append(rootView)
+      rootView.attachToDom()
       atom.themes.load()
       atom.watchThemes()
 
