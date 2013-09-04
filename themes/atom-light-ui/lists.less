@@ -1,0 +1,107 @@
+@import "ui-variables";
+@import "ui-mixins";
+@import "octicon-mixins";
+
+.list-group, .list-tree {
+  li:not(.list-nested-item),
+  li.list-nested-item > .list-item {
+    .text(normal);
+  }
+
+  .generate-list-item-text-color(@class) {
+    li:not(.list-nested-item).text-@{class},
+    li.list-nested-item.text-@{class} > .list-item {
+      .text(@class);
+    }
+  }
+  .generate-list-item-text-color(subtle);
+  .generate-list-item-text-color(info);
+  .generate-list-item-text-color(success);
+  .generate-list-item-text-color(warning);
+  .generate-list-item-text-color(error);
+  .generate-list-item-text-color(selected);
+
+  .generate-list-item-status-color(@textClass, @status) {
+    li:not(.list-nested-item).status-@{status},
+    li.list-nested-item.status-@{status} > .list-item {
+      .text(@textClass);
+    }
+  }
+  .generate-list-item-status-color(subtle, ignored);
+  .generate-list-item-status-color(info, added);
+  .generate-list-item-status-color(success, renamed);
+  .generate-list-item-status-color(warning, modified);
+  .generate-list-item-status-color(error, removed);
+
+  li:not(.list-nested-item):hover,
+  li.list-nested-item:hover > .list-item, // i.e. highlight directory when hover child file
+  li.list-nested-item .list-item:hover,
+  li.list-nested-item .list-item:hover .disclosure-arrow,
+  .selected > .list-nested-item > .list-item .disclosure-arrow,
+  .selected > .list-nested-item > .list-item:hover .disclosure-arrow  {
+    .text(highlight);
+  }
+}
+
+&.select-list ol.list-group, .select-list ol.list-group {
+  li.two-lines {
+    .secondary-line { color: @text-color-subtle; }
+    &.selected .secondary-line { color: lighten(@text-color-subtle, 10%); }
+  }
+
+  // We want to highlight the background of the list items because we dont
+  // know their size.
+  li.selected {
+    background-color: @background-color-highlight;
+    &:before{ display: none; }
+  }
+
+  &.mark-active{
+    @active-icon-size: 14px;
+
+    // pad in front of the text where the icon would be We'll pad the non-
+    // active items with a 'fake' icon so other classes can pad the item
+    // without worrying about the icon padding.
+    li:before {
+      content: '';
+      background-color: transparent;
+      position: static;
+      display: inline-block;
+      left: auto; right: auto;
+      height: @active-icon-size;
+      width: @active-icon-size;
+    }
+    > li:not(.active):before {
+      margin-right: @component-icon-padding;
+    }
+    li.active {
+      .octicon(check, @active-icon-size);
+      &:before {
+        margin-right: @component-icon-padding;
+        color: @text-color-success;
+      }
+    }
+  }
+}
+
+.select-list.popover-list {
+  background-color: @overlay-background-color;
+  -webkit-box-shadow: 0 0 3px 3px @base-border-color;
+  padding: @component-padding/2;
+  border-radius: @component-border-radius;
+  border: 1px solid @overlay-border-color;
+
+  .editor {
+    margin-bottom: @component-padding/2;
+  }
+
+  .list-group li {
+    padding-left: @component-padding/2;
+  }
+}
+
+
+
+
+
+

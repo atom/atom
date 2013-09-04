@@ -1,0 +1,14 @@
+@import "ui-mixins";
+@import "ui-variables";
+
+.ui-site(@num, @color) {
+  .ui-site-@{num} {
+    background-color: @color;
+  }
+}
+
+.ui-site(1, @ui-site-color-1);
+.ui-site(2, @ui-site-color-2);
+.ui-site(3, @ui-site-color-3);
+.ui-site(4, @ui-site-color-4);
+.ui-site(5, @ui-site-color-5);
