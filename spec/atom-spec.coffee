@@ -19,7 +19,7 @@ describe "the `atom` global", ->
     afterEach ->
       atom.themes.unload()
 
-    it "The correct values are loaded from ui-variables", ->
+    it "loads the correct values from the theme's ui-variables file", ->
       config.set('core.themes', [project.resolve('themes/theme-with-ui-variables')])
 
       # an override loaded in the base css
