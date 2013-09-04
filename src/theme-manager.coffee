@@ -50,7 +50,15 @@ class ThemeManager
       null
 
   getImportPaths: ->
-    theme.directoryPath for theme in @loadedThemes when theme.directoryPath
+    if @loadedThemes.length
+      theme.directoryPath for theme in @loadedThemes when theme.directoryPath
+    else
+      themeNames = config.get('core.themes')
+      themes = []
+      for themeName in themeNames
+        themePath = Theme.resolve(themeName)
+        themes.push(themePath) if fsUtils.isDirectorySync(themePath)
+      themes
 
   loadUserStylesheet: ->
     if userStylesheetPath = @getUserStylesheetPath()

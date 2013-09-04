@@ -1,4 +1,5 @@
-@import "octicon-mixins.less";
+@import "ui-variables";
+@import "octicon-mixins";
 
 @font-face { .octicon-font(); }
 
@@ -12,6 +13,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   position: relative;
+  background-color: @app-background-color;
 
   #horizontal {
     display: -webkit-flex;

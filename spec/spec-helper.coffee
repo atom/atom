@@ -17,7 +17,10 @@ fsUtils = require 'fs-utils'
 pathwatcher = require 'pathwatcher'
 RootView = require 'root-view'
 clipboard = require 'clipboard'
+
+atom.loadBaseStylesheets()
 requireStylesheet "jasmine"
+
 fixturePackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
 config.packageDirPaths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()

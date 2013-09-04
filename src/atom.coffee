@@ -12,6 +12,7 @@ telepath = require 'telepath'
 ThemeManager = require 'theme-manager'
 
 window.atom =
+  baseStylesheetPaths: []
   loadedPackages: {}
   activePackages: {}
   packageStates: {}
@@ -57,9 +58,7 @@ window.atom =
 
   loadPackages: ->
     @loadPackage(name) for name in @getAvailablePackageNames() when not @isPackageDisabled(name)
-    @themes.on 'reloaded', =>
-      pack.reloadStylesheets?() for name, pack of @loadedPackages
-      null
+    @watchThemes()
 
   loadPackage: (name, options) ->
     if @isPackageDisabled(name)
@@ -129,6 +128,30 @@ window.atom =
       metadata = atom.getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
       packages.push(metadata)
     packages
+
+  loadThemes: ->
+    @themes.load()
+
+  watchThemes: ->
+    @themes.on 'reloaded', =>
+      @reloadBaseStylesheets()
+      pack.reloadStylesheets?() for name, pack of @loadedPackages
+      null
+
+  loadBaseStylesheets: ->
+    requireStylesheet("bootstrap/less/bootstrap")
+    @reloadBaseStylesheets()
+
+  reloadBaseStylesheets: ->
+    @unloadBaseStylesheets()
+    @baseStylesheetPaths.push(requireStylesheet('atom'))
+    if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
+      requireStylesheet(nativeStylesheetPath)
+      @baseStylesheetPaths.push(nativeStylesheetPath)
+
+  unloadBaseStylesheets: ->
+    removeStylesheet(sheet) for sheet in @baseStylesheetPaths
+    @baseStylesheetPaths = []
 
   open: (options) ->
     ipc.sendChannel('open', options)

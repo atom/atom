@@ -35,11 +35,6 @@ window.setUpEnvironment = (windowMode) ->
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
 
-  requireStylesheet 'atom'
-
-  if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
-    requireStylesheet(nativeStylesheetPath)
-
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
   installAtomCommand()
@@ -49,7 +44,8 @@ window.startEditorWindow = ->
   restoreDimensions()
   config.load()
   keymap.loadBundledKeymaps()
-  atom.themes.load()
+  atom.loadBaseStylesheets()
+  atom.loadThemes()
   atom.loadPackages()
   deserializeEditorWindow()
   atom.activatePackages()
@@ -126,12 +122,20 @@ window.resolveStylesheet = (stylesheetPath) ->
   else
     fsUtils.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
 
+# Public: resolves and applies the stylesheet specified by the path.
+#
+# * stylesheetPath: String. Can be an absolute path or the name of a CSS or
+#   LESS file in the stylesheets path.
+#
+# Returns the absolute path to the stylesheet
 window.requireStylesheet = (stylesheetPath) ->
   if fullPath = window.resolveStylesheet(stylesheetPath)
     content = window.loadStylesheet(fullPath)
     window.applyStylesheet(fullPath, content)
   else
     throw new Error("Could not find a file at path '#{stylesheetPath}'")
+
+  fullPath
 
 window.loadStylesheet = (stylesheetPath) ->
   if path.extname(stylesheetPath) is '.less'

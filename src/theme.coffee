@@ -8,12 +8,15 @@ class Theme
   stylesheetPath: null
   stylesheets: null
 
+  @resolve: (themeName) ->
+    if fsUtils.exists(themeName)
+      themeName
+    else
+      fsUtils.resolve(config.themeDirPaths..., themeName, ['', '.css', 'less'])
+
   constructor: (name) ->
     @stylesheets = []
-    if fsUtils.exists(name)
-      @stylesheetPath = name
-    else
-      @stylesheetPath = fsUtils.resolve(config.themeDirPaths..., name, ['', '.css', 'less'])
+    @stylesheetPath = Theme.resolve(name)
 
     throw new Error("No theme exists named '#{name}'") unless @stylesheetPath
 
