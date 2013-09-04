@@ -1,3 +1,5 @@
+@import "ui-variables";
+
 :focus {
   outline: none;
 }
@@ -5,4 +7,30 @@
 .pull-center {
   margin-left: auto;
   margin-right: auto;
+}
+
+.padded {
+  padding: @component-padding;
+}
+
+.block {
+  display: block;
+  margin-bottom: @component-padding;
+}
+div > .block:last-child {
+  margin-bottom: 0;
+}
+
+.inline-block, .inline-block-tight {
+  display: inline-block;
+  vertical-align: middle;
+}
+.inline-block {
+  margin-right: @component-padding;
+}
+.inline-block-tight {
+  margin-right: @component-padding/2;
+}
+div > .inline-block:last-child, div > .inline-block-tight:last-child {
+  margin-right: 0;
 }
