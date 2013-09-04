@@ -18,7 +18,7 @@ pathwatcher = require 'pathwatcher'
 RootView = require 'root-view'
 clipboard = require 'clipboard'
 
-requireStylesheet "bootstrap/less/bootstrap"
+atom.loadBaseStylesheets()
 requireStylesheet "jasmine"
 
 fixturePackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
