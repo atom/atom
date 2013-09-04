@@ -35,9 +35,6 @@ window.setUpEnvironment = (windowMode) ->
   window.pasteboard = new Pasteboard
   window.keymap = new Keymap()
 
-  config.load()
-  atom.loadBaseStylesheets()
-
 # This method is only called when opening a real application window
 window.startEditorWindow = ->
   installAtomCommand()
@@ -45,8 +42,9 @@ window.startEditorWindow = ->
 
   windowEventHandler = new WindowEventHandler
   restoreDimensions()
-  config.observeUserConfig()
+  config.load()
   keymap.loadBundledKeymaps()
+  atom.loadBaseStylesheets()
   atom.themes.load()
   atom.loadPackages()
   deserializeEditorWindow()
@@ -67,7 +65,6 @@ window.unloadEditorWindow = ->
   windowState.set('project', project.serialize())
   windowState.set('syntax', syntax.serialize())
   windowState.set('rootView', rootView.serialize())
-  config.unobserveUserConfig()
   atom.deactivatePackages()
   windowState.set('packageStates', atom.packageStates)
   atom.saveWindowState()
