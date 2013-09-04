@@ -21,6 +21,11 @@
   .generate-list-item-text-color(error);
   .generate-list-item-text-color(selected);
 
+  li:not(.list-nested-item).selected,
+  li.list-nested-item.selected > .list-item {
+    .text(selected);
+  }
+
   .generate-list-item-status-color(@textClass, @status) {
     li:not(.list-nested-item).status-@{status},
     li.list-nested-item.status-@{status} > .list-item {
