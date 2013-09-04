@@ -1,5 +1,4 @@
 Git = require 'git-utils'
-fsUtils = require 'fs-utils'
 path = require 'path'
 
 module.exports = (repoPath) ->
