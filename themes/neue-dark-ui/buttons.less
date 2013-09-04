@@ -27,22 +27,7 @@
 }
 
 .btn {
-  border-radius: @component-border-radius;
-  border: none;
-
-  font-weight: bold;
-  text-shadow: none;
-
-  font-size: @font-size;
-  padding: @component-padding/2 @component-padding;
-  z-index: 0;
-
   .btn-background(@button-background-color, @button-background-color-hover, @button-background-color-selected, @text-color);
-
-  &.selected, &.selected:hover {
-    // we want the selected button to behave like the :hover button; it's on top of the other buttons.
-    z-index: 1;
-  }
 }
 
 .btn.btn-primary {
@@ -59,47 +44,4 @@
 }
 .btn.btn-error {
   .btn-variant(@background-color-error);
-}
-
-.btn.btn-xs, .btn-group-xs > .btn {
-  padding: @component-padding/4 @component-padding/2;
-  font-size: @font-size - 2px;
-}
-.btn.btn-sm, .btn-group-sm > .btn {
-  padding: @component-padding/4 @component-padding/2;
-}
-.btn.btn-lg, .btn-group-lg > .btn {
-  font-size: @font-size + 2px;
-  padding: @component-padding - 2px  @component-padding + 2px;
-}
-
-.btn-group > .btn {
-  border-left: 1px solid @button-border-color;
-  border-right: 1px solid @button-border-color;
-}
-.btn-group > .btn:first-child {
-  border-left: none;
-  border-top-left-radius: @component-border-radius;
-  border-bottom-left-radius: @component-border-radius;
-}
-.btn-group > .btn:last-child,
-.btn-group > .btn.selected:last-child,
-.btn-group > .dropdown-toggle {
-  border-right: none;
-  border-top-right-radius: @component-border-radius;
-  border-bottom-right-radius: @component-border-radius;
-}
-
-.btn-toolbar {
-  > .btn-group {
-    float: none;
-    display: inline-block;
-  }
-  > * {
-    margin-right: 0;
-    margin-left: @component-padding/2;
-  }
-  > *:first-child {
-    margin-left: 0;
-  }
 }
