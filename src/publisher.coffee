@@ -33,6 +33,8 @@ class Publisher extends Command
     publishArgs = ['--userconfig', @userConfigPath, 'publish']
     if tag = options.argv.tag
       publishArgs.push('--tag', tag)
+    if force = options.argv.force
+      publishArgs.push('--force')
 
     @fork @atomNpmPath, publishArgs, (code, stderr='', stdout='') ->
       if code is 0
