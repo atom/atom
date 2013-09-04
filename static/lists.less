@@ -1,0 +1,69 @@
+@import "ui-variables";
+@import "octicon-mixins";
+
+.list-group, .list-tree {
+  margin: 0; padding: 0;
+  list-style: none;
+
+  li:not(.list-nested-item),
+  li.list-nested-item > .list-item {
+    line-height: @component-line-height;
+  }
+
+  // The background highlight uses :before rather than the item background so
+  // it can span the entire width of the parent container rather than the size
+  // of the list item.
+  .selected:before {
+    content: '';
+    background-color: @background-color-highlight;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: @component-line-height;
+  }
+
+  .icon:before {
+    margin-right: @component-icon-padding;
+    position: relative;
+    top: 1px;
+  }
+  .no-icon {
+    padding-left: @component-icon-padding + @component-icon-size;
+  }
+}
+
+// Handle indentation of the tree. Assume disclosure arrows.
+.list-tree {
+  &.has-collapsable-children {
+    @disclosure-arrow-padding: @disclosure-arrow-size + @component-icon-padding;
+    li.list-item {
+      margin-left: @disclosure-arrow-padding;
+    }
+
+    .list-nested-item.collapsed > .list-group,
+    .list-nested-item.collapsed > .list-tree {
+      display: none;
+    }
+
+    // Nested items always get disclosure arrows
+    .list-nested-item > .list-item {
+      .octicon(chevron-down, @disclosure-arrow-size);
+      &:before{
+        position: relative;
+        top: -1px;
+        margin-right: @component-icon-padding;
+      }
+    }
+    .list-nested-item.collapsed > .list-item {
+      .octicon(chevron-right, @disclosure-arrow-size);
+      &:before{
+        left: 1px;
+      }
+    }
+
+    .list-nested-item > .list-tree,
+    .list-nested-item > .list-group {
+      margin-left: @disclosure-arrow-padding;
+    }
+  }
+}
