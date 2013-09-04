@@ -129,6 +129,9 @@ window.atom =
       packages.push(metadata)
     packages
 
+  loadThemes: ->
+    @themes.load()
+
   watchThemes: ->
     @themes.on 'reloaded', =>
       @reloadBaseStylesheets()

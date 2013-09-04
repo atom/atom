@@ -45,7 +45,7 @@ window.startEditorWindow = ->
   config.load()
   keymap.loadBundledKeymaps()
   atom.loadBaseStylesheets()
-  atom.themes.load()
+  atom.loadThemes()
   atom.loadPackages()
   deserializeEditorWindow()
   atom.activatePackages()
