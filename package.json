@@ -58,7 +58,7 @@
     "markdown-preview": "0.2.0",
     "metrics": "0.1.0",
     "package-generator": "0.4.0",
-    "settings-view": "0.11.0",
+    "settings-view": "bo-upgrade-bootstrap",
     "snippets": "0.2.0",
     "spell-check": "0.3.0",
     "status-bar": "0.3.0",
