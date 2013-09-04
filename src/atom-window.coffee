@@ -49,6 +49,7 @@ class AtomWindow
       'vendor'
       'static'
       'node_modules'
+      'node_submodules'
       'spec'
       ''
     ]
@@ -57,6 +58,7 @@ class AtomWindow
 
     paths = paths.map (relativeOrAbsolutePath) ->
       path.resolve resourcePath, relativeOrAbsolutePath
+    paths = _.compact(paths)
 
     process.env['NODE_PATH'] = paths.join path.delimiter
 
