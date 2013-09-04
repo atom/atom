@@ -107,7 +107,7 @@ class RootView extends View
     @command 'application:zoom', -> ipc.sendChannel('command', 'application:zoom')
     @command 'application:bring-all-windows-to-front', -> ipc.sendChannel('command', 'application:bring-all-windows-to-front')
 
-    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', project.getPath())
+    @command 'window:run-package-specs', => ipc.sendChannel('run-package-specs', path.join(project.getPath(), 'spec'))
     @command 'window:increase-font-size', =>
       config.set("editor.fontSize", config.get("editor.fontSize") + 1)
 

@@ -8,9 +8,9 @@ measure 'spec suite require time', ->
   Git = require 'git'
   require 'spec-helper'
 
-  requireSpecs = (directoryPath, specType) ->
-    for specPath in fsUtils.listTreeSync(path.join(directoryPath, 'spec')) when /-spec\.coffee$/.test specPath
-      require specPath
+  requireSpecs = (specDirectory, specType) ->
+    for specFilePath in fsUtils.listTreeSync(specDirectory) when /-spec\.coffee$/.test specFilePath
+      require specFilePath
 
   setSpecType = (specType) ->
     for spec in jasmine.getEnv().currentRunner().specs() when not spec.specType?
@@ -19,7 +19,7 @@ measure 'spec suite require time', ->
   runAllSpecs = ->
     # Only run core specs when resource path is the Atom repository
     if Git.exists(window.resourcePath)
-      requireSpecs(window.resourcePath)
+      requireSpecs(path.join(window.resourcePath, 'spec'))
       setSpecType('core')
 
     fixturesPackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
@@ -33,18 +33,15 @@ measure 'spec suite require time', ->
         'user'
 
     # Run bundled package specs
-    requireSpecs(packagePath) for packagePath in packagePaths.bundled ? []
+    requireSpecs(path.join(packagePath, 'spec')) for packagePath in packagePaths.bundled ? []
     setSpecType('bundled')
 
     # Run user package specs
-    requireSpecs(packagePath) for packagePath in packagePaths.user ? []
+    requireSpecs(path.join(packagePath, 'spec')) for packagePath in packagePaths.user ? []
     setSpecType('user')
 
-  runSpecs = (specPath) ->
-    requireSpecs(specPath)
-    setSpecType("user")
-
-    runSpecs(specPath)
   if specDirectory = atom.getLoadSettings().specDirectory
+    requireSpecs(specDirectory)
+    setSpecType('user')
   else
     runAllSpecs()
