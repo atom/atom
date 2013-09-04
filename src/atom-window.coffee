@@ -53,8 +53,6 @@ class AtomWindow
       ''
     ]
 
-    paths.push path.join(app.getHomeDir(), '.atom', 'packages')
-
     paths = paths.map (relativeOrAbsolutePath) ->
       path.resolve resourcePath, relativeOrAbsolutePath
 
