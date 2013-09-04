@@ -1,6 +1,6 @@
 {
   "name": "atom",
-  "version": "22.0.0",
+  "version": "23.0.0",
   "main": "./src/main.js",
   "repository": {
     "type": "git",
@@ -36,7 +36,6 @@
     "telepath": "0.1.2",
     "temp": "0.5.0",
     "underscore": "1.4.4",
-
     "archive-view": "0.3.0",
     "autocomplete": "0.4.0",
     "autoflow": "0.1.0",
@@ -69,7 +68,6 @@
     "tree-view": "0.2.1",
     "whitespace": "0.1.0",
     "wrap-guide": "0.1.0",
-
     "c-tmbundle": "1.0.0",
     "coffee-script-tmbundle": "6.0.0",
     "css-tmbundle": "1.0.0",
