@@ -46,7 +46,7 @@ class Installer extends Command
         process.stdout.write '\u2717\n'.red
         callback(stdout.red + stderr.red)
 
-  determineVsInstallArgs: () ->
+  determineVsInstallArgs: ->
     return null unless config.isWin32
 
     # NB: We want to prefer 2012 over 2010 if both are installed. This
@@ -55,7 +55,7 @@ class Installer extends Command
     return "--msvs_version=2012" if config.isVs2012Installed()
     return "--msvs_version=2010" if config.isVs2010Installed()
 
-    throw "You must have either VS2010 or VS2012 installed"
+    throw new Error("You must have either VS2010 or VS2012 installed")
 
   installModule: (options, modulePath, callback) ->
     process.stdout.write "Installing #{modulePath} to #{@atomPackagesDirectory} "
