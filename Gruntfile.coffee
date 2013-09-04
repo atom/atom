@@ -50,7 +50,6 @@ module.exports = (grunt) ->
       expand: true
       src: [
         'keymaps/*.cson'
-        'src/**/*.cson'
         'static/**/*.cson'
         'themes/**/*.cson'
       ]
@@ -88,8 +87,6 @@ module.exports = (grunt) ->
       ]
       test: [
         'spec/*.coffee'
-        'spec/app/**/*.coffee'
-        'spec/stdlib/**/*.coffee'
       ]
 
     csslint:
@@ -113,14 +110,12 @@ module.exports = (grunt) ->
         'universal-selector': false
         'vendor-prefix': false
       src: [
-        'src/**/*.css',
         'static/**/*.css'
         'themes/**/*.css'
       ]
 
     lesslint:
       src: [
-        'src/**/*.less',
         'static/**/*.less'
         'themes/**/*.less'
       ]
