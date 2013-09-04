@@ -408,7 +408,7 @@ describe "Editor", ->
           editor.clearFontFamily()
 
         it "positions the cursor to the clicked row and column", ->
-          {top, left} = editor.pixelOffsUtilsetForScreenPosition([3, 30])
+          {top, left} = editor.pixelOffsetForScreenPosition([3, 30])
           editor.renderedLines.trigger mousedownEvent(pageX: left, pageY: top)
           expect(editor.getCursorScreenPosition()).toEqual [3, 30]
 

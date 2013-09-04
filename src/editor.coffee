@@ -1502,7 +1502,7 @@ class Editor extends View
     range.detach()
     leftPixels
 
-  pixelOffsUtilsetForScreenPosition: (position) ->
+  pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
     offset = @renderedLines.offset()
     {top: top + offset.top, left: left + offset.left}
