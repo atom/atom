@@ -29,6 +29,7 @@ parseOptions = (args=[]) ->
   options.alias('d', 'dev').boolean('dev')
   options.alias('a', 'all').boolean('all')
   options.boolean('hard')
+  options.string('tag')
   remainingArguments = options.argv._
   options.command = remainingArguments.shift()
   options.commandArgs = remainingArguments

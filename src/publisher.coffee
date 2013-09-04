@@ -31,6 +31,9 @@ class Publisher extends Command
       process.stdout.write "#{name}@#{version} "
 
     publishArgs = ['--userconfig', @userConfigPath, 'publish']
+    if tag = options.argv.tag
+      publishArgs.push('--tag', tag)
+
     @fork @atomNpmPath, publishArgs, (code, stderr='', stdout='') ->
       if code is 0
         process.stdout.write '\u2713\n'.green
