@@ -1,7 +1,7 @@
 @import "ui-variables";
 
 .tab-bar {
-  height: @tab-height + 6px;
+  height: @tab-height + 5px;
   box-shadow:
     inset 0px 5px 3px -4px fadeout(@base-border-color, 10%),
     inset 0px -5px 3px -4px fadeout(@base-border-color, 10%),
@@ -10,8 +10,7 @@
   margin-bottom: 1px;
   background-color: @tab-bar-background-color;
 
-  border-top: 1px solid @tab-bar-border-color;
-  border-bottom: 4px solid @tab-border-color;
+  border-bottom: 4px solid @tab-bar-border-color;
 }
 
 .tab {
@@ -23,7 +22,7 @@
   box-shadow:
     inset 0px 5px 3px -4px fadeout(@base-border-color, 10%),
     inset 0px -5px 3px -4px fadeout(@base-border-color, 10%);
-  border-right: 1px solid @base-border-color;
+  border-right: 1px solid @tab-border-color;
 }
 
 .tab:hover {
@@ -32,7 +31,7 @@
 
 .tab.active {
   height: @tab-height + 1px;
-  background-image: -webkit-linear-gradient(@tab-background-color-active, @tab-border-color);
+  background-image: -webkit-linear-gradient(@tab-background-color-active, @tab-bar-border-color);
   color: @text-color-highlight;
   z-index: 2;
   box-shadow:
