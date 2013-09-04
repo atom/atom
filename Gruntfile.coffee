@@ -30,6 +30,7 @@ module.exports = (grunt) ->
   lessConfig =
     options:
       paths: [
+        'static/less-imports'
         'static'
         'vendor'
       ]
