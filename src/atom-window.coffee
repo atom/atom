@@ -49,12 +49,12 @@ class AtomWindow
       'vendor'
       'static'
       'node_modules'
-      'spec'
-      ''
     ]
+    paths.push('spec') if @isSpec
 
     paths = paths.map (relativeOrAbsolutePath) ->
       path.resolve resourcePath, relativeOrAbsolutePath
+    paths.push(resourcePath)
 
     process.env['NODE_PATH'] = paths.join path.delimiter
 
