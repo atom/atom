@@ -275,7 +275,7 @@ class AtomApplication
 
   runBenchmarks: ->
     bootstrapScript = 'benchmark/benchmark-bootstrap'
-    isSpec = true # So the spec folder is added to NODE_PATH
+    isSpec = true # Needed because this flag adds the spec directory to the NODE_PATH
     new AtomWindow({bootstrapScript, @resourcePath, isSpec})
 
   # Private: Opens a native dialog to prompt the user for a path.
