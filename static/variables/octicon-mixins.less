@@ -1,3 +1,9 @@
+.icon-size(@size) {
+  font-size: @size;
+  width: @size;
+  height: @size;
+}
+
 .icon(@size, @display: inline-block) {
   font-family: 'Octicons Regular';
   font-weight: normal;
@@ -7,9 +13,7 @@
   -webkit-font-smoothing: antialiased;
   text-decoration: none;
 
-  font-size: @size;
-  width: @size;
-  height: @size;
+  .icon-size(@size);
 }
 
 .octicon(@name, @size: 16px) {
