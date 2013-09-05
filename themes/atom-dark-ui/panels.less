@@ -21,23 +21,24 @@
   &.panel-left {
     border-right: 1px solid @tool-panel-border-color;
   }
+}
 
-  .inset-panel {
-    border-radius: @component-border-radius;
-
-    border: 1px solid @tool-panel-border-color;
-    border-bottom-color: @background-color-highlight;
-    border-right-color: @background-color-highlight;
-
-    .panel-heading {
-      margin-right: 1px;
-    }
-  }
+.panel-heading {
+  .text(normal);
 }
 
 .inset-panel {
   position: relative;
   background-color: @inset-panel-background-color;
+
+  border-radius: @component-border-radius;
+  border: 1px solid @tool-panel-border-color;
+  border-bottom-color: @background-color-highlight;
+  border-right-color: @background-color-highlight;
+
+  .panel-heading {
+    margin-right: 1px;
+  }
 }
 
 .is-blurred {
