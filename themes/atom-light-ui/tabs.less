@@ -3,9 +3,9 @@
 .tab-bar {
   height: @tab-height + 5px;
   box-shadow:
-    inset 0px 5px 3px -4px fadeout(@base-border-color, 10%),
-    inset 0px -5px 3px -4px fadeout(@base-border-color, 10%),
-    inset 0px -1px 0 0 @base-border-color,
+    inset 0 5px 3px -4px fadeout(@base-border-color, 10%),
+    inset 0 -5px 3px -4px fadeout(@base-border-color, 10%),
+    inset 0 -1px 0 0 @base-border-color,
     0 1px 0 rgba(0, 0, 0, 0.15);
   margin-bottom: 1px;
   background-color: @tab-bar-background-color;
@@ -20,8 +20,8 @@
   margin: 0;
   background-image: -webkit-linear-gradient(@tab-background-color, darken(@tab-background-color, 10%));
   box-shadow:
-    inset 0px 5px 3px -4px fadeout(@base-border-color, 10%),
-    inset 0px -5px 3px -4px fadeout(@base-border-color, 10%);
+    inset 0 5px 3px -4px fadeout(@base-border-color, 10%),
+    inset 0 -5px 3px -4px fadeout(@base-border-color, 10%);
   border-right: 1px solid @tab-border-color;
 }
 
@@ -35,8 +35,8 @@
   color: @text-color-highlight;
   z-index: 2;
   box-shadow:
-    inset 0px 1px 2px 0px #ffffff,
-    0px -2px 2px 0 @base-border-color;
+    inset 0 1px 2px 0 #ffffff,
+    0 -2px 2px 0 @base-border-color;
 }
 
 .tab.active:hover .close-icon {
