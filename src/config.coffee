@@ -1,4 +1,5 @@
 path = require 'path'
+fs = require 'fs'
 
 fileExistsAndIsAccessible = (file) ->
   try
