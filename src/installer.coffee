@@ -45,28 +45,22 @@ class Installer extends Command
       else
         process.stdout.write '\u2717\n'.red
         callback(stdout.red + stderr.red)
-
-  determineVsInstallArgs: ->
-    return null unless config.isWin32
-
-    # NB: We want to prefer 2012 over 2010 if both are installed. This
-    # currently will break all the varieties of VS Express SKU but we're
-    # punting on this for the moment.
-    return "--msvs_version=2012" if config.isVs2012Installed()
-    return "--msvs_version=2010" if config.isVs2010Installed()
-
-    throw new Error("You must have either VS2010 or VS2012 installed")
-
   installModule: (options, modulePath, callback) ->
     process.stdout.write "Installing #{modulePath} to #{@atomPackagesDirectory} "
 
-    vsArgs = determineVsInstallArgs()
+    vsArgs = null
+    if config.isWin32()
+      vsArgs = "--msvs_version=2010" if config.isVs2010Installed()
+      vsArgs = "--msvs_version=2012" if config.isVs2012Installed()
+  
+      throw new Error("You must have either VS2010 or VS2012 installed") unless vsArgs
+
     installArgs = ['--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{config.getNodeVersion()}")
     installArgs.push('--arch=ia32')
     installArgs.push('--silent') if options.argv.silent
-    installArgs.push(vsArgs) if vsArgs
+    installArgs.push(vsArgs) if vsArgs != null
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
 
