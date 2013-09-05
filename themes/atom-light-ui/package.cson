@@ -8,7 +8,8 @@
   'buttons'
   'panels'
   'lists'
+  'overlays'
   'editor'
   'tabs'
-  'overlays'
+  'tree-view'
 ]
