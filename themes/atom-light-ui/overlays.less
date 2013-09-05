@@ -14,13 +14,20 @@
 
   &.select-list ol.list-group, .select-list ol.list-group {
 
-    background-color: lighten(@overlay-background-color, 3%);
+    background-color: @inset-panel-background-color;
 
     li {
       padding: @component-padding;
-      border-bottom: 1px solid @overlay-background-color;
+      border-top: 1px solid @inset-panel-border-color;
+      border-left: 1px solid @inset-panel-border-color;
+      border-right: 1px solid @inset-panel-border-color;
+      &:last-child { border-bottom: 1px solid @inset-panel-border-color; }
 
       &.two-lines { padding: @component-padding/2 @component-padding; }
+      &.selected {
+        color: @text-color;
+        background-color: @background-color-highlight;
+      }
 
       .status.icon {
         float: right;

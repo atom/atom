@@ -14,7 +14,8 @@
 @background-color-success: #17ca65;
 @background-color-warning: #ff4800;
 @background-color-error: #c00;
-@background-color-highlight: rgba(255, 255, 255, 0.4);
+@background-color-highlight: rgba(0, 0, 0, .1);
+@background-color-selected: #6aa5e9;
 
 @app-background-color: #ccc;
 
@@ -28,7 +29,7 @@
 @tool-panel-border-color: @base-border-color;
 
 @inset-panel-background-color: #fff;
-@inset-panel-border-color: @base-border-color;
+@inset-panel-border-color: fadeout(@base-border-color, 10%);
 
 @panel-heading-background-color: #c3c3c3;
 @panel-heading-border-color: transparent;
