@@ -41,9 +41,6 @@ module.exports = (grunt) ->
   unzipAtomShell = (zipPath, callback) ->
     grunt.log.writeln('Unzipping atom-shell')
     directoryPath = path.dirname(zipPath)
-    inputStream = fs.createReadStream(zipPath)
-    inputStream.on 'close', -> callback()
-    inputStream.on 'error', -> callback(new Error("Unzipping #{zipPath} failed"))
 
     try
       zip = new AdmZip(zipPath);
