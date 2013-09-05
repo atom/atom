@@ -2,16 +2,17 @@
 
 .tab-bar {
   height: @tab-height + 5px;
-  border-bottom: 4px solid @tab-border-color;
+  border-bottom: 4px solid @tab-bar-border-color;
   box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(0, 0, 0, 0.5);
   margin-bottom: 1px;
+  background-color: @tab-bar-background-color;
 }
 
 .tab {
   height: @tab-height;
   line-height: @tab-height;
   color: @text-color;
-  margin: 0 0 1px 1px;
+  margin: 0;
   background-image: -webkit-linear-gradient(@tab-background-color, darken(@tab-background-color, 10%));
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.1),
@@ -26,7 +27,7 @@
 
 .tab.active {
   height: @tab-height + 1px;
-  background-image: -webkit-linear-gradient(@tab-background-color-active, @tab-border-color);
+  background-image: -webkit-linear-gradient(@tab-background-color-active, @tab-bar-border-color);
   color: @text-color-highlight;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
   z-index: 2;

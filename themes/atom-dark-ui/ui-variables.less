@@ -14,6 +14,7 @@
 @background-color-warning: #ff4800;
 @background-color-error: #c00;
 @background-color-highlight: rgba(255, 255, 255, 0.07);
+@background-color-selected: @background-color-highlight;
 
 @app-background-color: #333;
 
@@ -40,9 +41,14 @@
 @button-background-color-selected: #5c6064;
 @button-border-color: @base-border-color;
 
+@tab-bar-background-color: @inset-panel-background-color;
+@tab-bar-border-color: darken(@tab-background-color-active, 10%);
 @tab-background-color: #292c2f;
 @tab-background-color-active: @panel-heading-background-color;
-@tab-border-color: darken(@tab-background-color-active, 10%);
+@tab-border-color: transparent;
+
+@tree-view-background-color: @tool-panel-background-color;
+@tree-view-border-color: @tool-panel-border-color;
 
 @ui-site-color-1: @background-color-success; // green
 @ui-site-color-2: @background-color-info; // blue
