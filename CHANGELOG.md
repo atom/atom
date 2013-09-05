@@ -1,3 +1,4 @@
+* Fixed: Save sometimes failing from an editor that was split
 * Fixed: Search results not appearing when set to exclude ignores
 
 * Fixed: Status bar and gutter displaying incorrect Git status information
