@@ -22,6 +22,11 @@
     height: @component-line-height;
   }
 
+  // Make sure the background highlight is below the content.
+  .selected > * {
+    position: relative;
+  }
+
   .icon:before {
     margin-right: @component-icon-padding;
     position: relative;
