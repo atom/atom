@@ -65,10 +65,10 @@ module.exports = (grunt) ->
   grunt.registerTask 'update-atom-shell', 'Update atom-shell', ->
     done = @async()
     {atomShellVersion} = grunt.file.readJSON('package.json')
-    currentAtomShellVersion = getAtomShellVersion()
     if atomShellVersion
       atomShellVersion = "v#{atomShellVersion}"
-      if atomShellVersion isnt getAtomShellVersion()
+      currentAtomShellVersion = getAtomShellVersion()
+      if atomShellVersion isnt currentAtomShellVersion
         if isAtomShellVersionCached(atomShellVersion)
           grunt.log.writeln("Installing cached atom-shell #{atomShellVersion.cyan}")
           installAtomShell(atomShellVersion)
