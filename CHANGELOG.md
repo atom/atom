@@ -1,3 +1,5 @@
+* Fixed: Precompile bootstrap.less for faster startup
+
 * Fixed: Save sometimes failing from an editor that was split
 * Fixed: Search results not appearing when set to exclude ignores
 
