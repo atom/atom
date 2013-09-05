@@ -2,12 +2,16 @@
 @import "octicon-mixins";
 
 .list-group, .list-tree {
-  margin: 0; padding: 0;
+  margin: 0;
+  padding: 0;
   list-style: none;
+  cursor: default;
 
   li:not(.list-nested-item),
   li.list-nested-item > .list-item {
     line-height: @component-line-height;
+    text-wrap: none;
+    white-space: nowrap;
   }
 
   // The background highlight uses :before rather than the item background so
