@@ -14,6 +14,7 @@
 @background-color-warning: #ff4800;
 @background-color-error: #c00;
 @background-color-highlight: rgba(255, 255, 255, 0.10);
+@background-color-selected: @background-color-highlight;
 
 @app-background-color: #00f; // Changed
 
@@ -40,9 +41,14 @@
 @button-background-color-selected: @button-background-color-hover;
 @button-border-color: #aaa;
 
+@tab-bar-background-color: #fff;
+@tab-bar-border-color: darken(@tab-background-color-active, 10%);
 @tab-background-color: #f4f4f4;
 @tab-background-color-active: #fff;
-@tab-border-color: darken(@tab-background-color-active, 10%);
+@tab-border-color: @base-border-color;
+
+@tree-view-background-color: @tool-panel-background-color;
+@tree-view-border-color: @tool-panel-border-color;
 
 @ui-site-color-1: @background-color-success; // green
 @ui-site-color-2: @background-color-info; // blue
