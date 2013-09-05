@@ -85,6 +85,8 @@ module.exports = (grunt) ->
                   rebuildNativeModules(currentAtomShellVersion, done)
             else
               done(false)
+      else
+        done()
     else
       grunt.log.error("atom-shell version missing from package.json")
       done(false)
