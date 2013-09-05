@@ -1,3 +1,5 @@
+* Fixed: Search results not appearing when set to exclude ignores
+
 * Fixed: Status bar and gutter displaying incorrect Git status information
 * Fixed: Packages not installing from the Settings view
 * Fixed: Spec runner now works from a released build
