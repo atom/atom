@@ -18,7 +18,7 @@ key commands interactively. If you'd like to learn about adding or changing a
 binding for a command, refer to the [key bindings](#customizing-key-bindings)
 section below.
 
-![Command Palette](http://f.cl.ly/items/32041o3w471F3C0F0V2O/Screen%20Shot%202013-02-13%20at%207.27.41%20PM.png)
+![Command Palette](https://f.cloud.github.com/assets/1424/1091618/ee7c3554-166a-11e3-9955-aaa61bb5509c.png)
 
 ## The Basics
 
