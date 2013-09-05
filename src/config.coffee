@@ -20,7 +20,7 @@ module.exports =
     process.env.ATOM_PACKAGES_URL ? 'http://atom.iriscouch.com/registry/_design/apm/_view/atom_packages'
 
   getNodeVersion: ->
-    process.env.ATOM_NODE_VERSION ? '0.10.15'
+    process.env.ATOM_NODE_VERSION ? '0.10.18'
 
   getUserConfigPath: ->
     path.resolve(__dirname, '..', '.apmrc')
