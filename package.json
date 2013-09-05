@@ -46,7 +46,7 @@
     "command-logger": "0.2.0",
     "command-panel": "0.2.0",
     "command-palette": "0.1.0",
-    "fuzzy-finder": "0.3.0",
+    "fuzzy-finder": "bo-theme-rework",
     "editor-stats": "0.1.0",
     "gfm": "0.3.0",
     "git-diff": "0.2.0",
