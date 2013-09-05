@@ -45,9 +45,12 @@ module.exports = (grunt) ->
     inputStream.on 'close', -> callback()
     inputStream.on 'error', -> callback(new Error("Unzipping #{zipPath} failed"))
 
-    zip = new AdmZip(zipPath);
-    zip.extractAllTo(directoryPath, true)
-    rm(zipPath, force: true)
+    try
+      zip = new AdmZip(zipPath);
+      zip.extractAllTo(directoryPath, true)
+      rm(zipPath, force: true)
+    catch error
+      callback(error)
 
   rebuildNativeModules = (previousVersion, callback) ->
     newVersion = getAtomShellVersion()
