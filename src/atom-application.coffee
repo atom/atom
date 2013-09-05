@@ -116,6 +116,7 @@ class AtomApplication
   handleEvents: ->
     @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath)
+    @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:show-settings', -> (@focusedWindow() ? this).openPath("atom://config")
     @on 'application:quit', -> app.quit()
     @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
@@ -271,6 +272,11 @@ class AtomApplication
     isSpec = true
     devMode = true
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specPath})
+
+  runBenchmarks: ->
+    bootstrapScript = 'benchmark/benchmark-bootstrap'
+    isSpec = true # So the spec folder is added to NODE_PATH
+    new AtomWindow({bootstrapScript, @resourcePath, isSpec})
 
   # Private: Opens a native dialog to prompt the user for a path.
   #

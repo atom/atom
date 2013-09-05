@@ -2,4 +2,5 @@ require 'atom'
 {runSpecSuite} = require 'jasmine-helper'
 
 document.title = "Benchmark Suite"
-runSpecSuite("benchmark-suite", true)
+benchmarkSuite = require.resolve('./benchmark-suite')
+runSpecSuite(benchmarkSuite, true)
