@@ -2,6 +2,17 @@
 @import "ui-variables";
 @import "buttons";
 
+.panel {
+  &.bordered {
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+
+    .panel-heading {
+      border-radius: @component-border-radius @component-border-radius 0 0;
+    }
+  }
+}
+
 .tool-panel {
   .text(normal);
   position: relative;
