@@ -88,5 +88,12 @@
     .list-nested-item > .list-group {
       margin-left: @disclosure-arrow-padding;
     }
+
+    // You want a subtree to be flat -- no collapsable children
+    &.has-flat-children, .has-flat-children {
+      li.list-item {
+        margin-left: 0;
+      }
+    }
   }
 }
