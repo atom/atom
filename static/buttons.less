@@ -14,21 +14,25 @@
   &:hover {
     background-color: @button-background-color-hover;
   }
-  &.selected, &.selected:hover {
+  &.selected,
+  &.selected:hover {
     // we want the selected button to behave like the :hover button; it's on top of the other buttons.
     z-index: 1;
     background-color: @button-background-color-selected;
   }
 }
 
-.btn.btn-xs, .btn-group-xs > .btn {
+.btn.btn-xs,
+.btn-group-xs > .btn {
   padding: @component-padding/4 @component-padding/2;
   font-size: @font-size - 2px;
 }
-.btn.btn-sm, .btn-group-sm > .btn {
+.btn.btn-sm,
+.btn-group-sm > .btn {
   padding: @component-padding/4 @component-padding/2;
 }
-.btn.btn-lg, .btn-group-lg > .btn {
+.btn.btn-lg,
+.btn-group-lg > .btn {
   font-size: @font-size + 2px;
   padding: @component-padding - 2px  @component-padding + 2px;
 }

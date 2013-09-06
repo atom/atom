@@ -2,7 +2,8 @@
 @import "octicon-mixins";
 
 // This is a bootstrap override
-.list-group, .list-group .list-group-item {
+.list-group,
+.list-group .list-group-item {
   background-color: transparent;
   border: none;
   padding: 0;
@@ -10,7 +11,8 @@
   position: static;
 }
 
-.list-group, .list-tree {
+.list-group,
+.list-tree {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -90,7 +92,8 @@
     }
 
     // You want a subtree to be flat -- no collapsable children
-    &.has-flat-children, .has-flat-children {
+    .has-flat-children,
+    &.has-flat-children {
       li.list-item {
         margin-left: 0;
       }
