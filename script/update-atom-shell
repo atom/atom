@@ -5,7 +5,7 @@ cd "$(dirname "${BASH_SOURCE[0]}" )/.."
 TARGET=${1:-atom-shell}
 DISTURL="https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell"
 CURRENT_VERSION=$(cat "${TARGET}/version" 2>&1)
-LATEST_VERSION="v0.4.3"
+LATEST_VERSION="v0.4.4"
 
 if [ -z "${LATEST_VERSION}" ] ; then
   echo "Could determine lastest version of atom-shell" >&2
