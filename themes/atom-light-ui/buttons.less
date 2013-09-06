@@ -13,10 +13,12 @@
     color: @text-color-hover;
     background-image: -webkit-linear-gradient(@hover-color, darken(@hover-color, 8%));
   }
-  &:active, &.selected:hover:active {
+  &:active,
+  &.selected:hover:active {
     box-shadow: @active-shadow, @border-shadow;
   }
-  &.selected, &.selected:hover {
+  &.selected,
+  &.selected:hover {
     color: @text-color-selected;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0,.3), @border-shadow;
     text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
