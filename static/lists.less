@@ -43,6 +43,11 @@
 
 // Handle indentation of the tree. Assume disclosure arrows.
 .list-tree {
+  .list-nested-item > .list-tree,
+  .list-nested-item > .list-group {
+    margin-left: @component-icon-size + @component-icon-padding;
+  }
+
   &.has-collapsable-children {
     @disclosure-arrow-padding: @disclosure-arrow-size + @component-icon-padding;
     li.list-item {
