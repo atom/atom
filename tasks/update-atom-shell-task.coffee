@@ -17,7 +17,7 @@ module.exports = (grunt) ->
   getCachePath = (version) -> "/tmp/atom-cached-atom-shells/#{version}"
 
   isAtomShellVersionCached = (version) ->
-    grunt.file.isDir(getCachePath(version))
+    grunt.file.isFile(getCachePath(version), 'version')
 
   downloadAtomShell = (version, callback) ->
     downloadUrl = "https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/#{version}/atom-shell-#{version}-darwin.zip"
