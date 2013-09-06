@@ -31,13 +31,13 @@
   position: relative;
   background-color: @inset-panel-background-color;
 
-  border-radius: @component-border-radius;
-  border: 1px solid @tool-panel-border-color;
-  border-bottom-color: @background-color-highlight;
-  border-right-color: @background-color-highlight;
+  border: 1px solid @inset-panel-border-color;
+  box-shadow:
+    inset 0 1px 3px fadeout(@inset-panel-border-color, 40%),
+    inset 0 -1px 3px fadeout(@background-color-highlight, 3%);
 
   .panel-heading {
-    margin-right: 1px;
+    border-radius: @component-border-radius @component-border-radius 0 0;
   }
 }
 
@@ -49,7 +49,8 @@
 
 .panel-heading {
   margin: 0;
-  border-bottom: none;
+  border-bottom: 1px solid @panel-heading-border-color;
+  border-top: 1px solid fadein(@background-color-highlight, 10%);
   padding: @component-padding - 2px @component-padding;
 
   font-size: @font-size;
