@@ -18,8 +18,8 @@ class BufferedNodeProcess extends BufferedProcess
         process.execPath
 
     # Tell atom-shell to run like upstream node.
-    options = {} if not options?
-    options.env = Object.create(process.env) if not options.env?
+    options ?= {}
+    options.env ?= Object.create(process.env)
     options.env['ATOM_SHELL_INTERNAL_RUN_AS_NODE'] = 1
 
     args.unshift(command)
