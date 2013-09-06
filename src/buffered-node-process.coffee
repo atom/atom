@@ -8,7 +8,6 @@ path = require 'path'
 module.exports =
 class BufferedNodeProcess extends BufferedProcess
   constructor: ({command, args, options, stdout, stderr, exit}) ->
-    args = ['--atom-child_process-fork', command].concat(args)
     node =
       if process.platform is 'darwin'
         # On OS X we use the helper process to run script, because it doesn't
@@ -18,4 +17,10 @@ class BufferedNodeProcess extends BufferedProcess
       else
         process.execPath
 
+    # Tell atom-shell to run like upstream node.
+    options = {} if not options?
+    options.env = Object.create(process.env) if not options.env?
+    options.env['ATOM_SHELL_INTERNAL_RUN_AS_NODE'] = 1
+
+    args.unshift(command)
     super({command: node, args, options, stdout, stderr, exit})
