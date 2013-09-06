@@ -26,10 +26,12 @@ module.exports = (grunt) ->
     inputStream.on 'response', (response) ->
       if response.statusCode is 200
         grunt.log.writeln("Downloading atom-shell version #{version.cyan}")
-        cachePath = "#{getCachePath(version)}/atom-shell.zip"
-        mkdir(path.dirname(cachePath))
-        outputStream = fs.createWriteStream(cachePath)
-        outputStream.on 'close', -> callback(null, cachePath)
+        cacheDirectory = getCachePath(version)
+        rm(cacheDirectory)
+        mkdir(cacheDirectory)
+        cacheFile = path.join(cacheDirectory, 'atom-shell.zip')
+        outputStream = fs.createWriteStream(cacheFile)
+        outputStream.on 'close', -> callback(null, cacheFile)
         inputStream.pipe(outputStream)
       else
         if response.statusCode is 404
@@ -45,7 +47,7 @@ module.exports = (grunt) ->
     try
       zip = new AdmZip(zipPath);
       zip.extractAllTo(directoryPath, true)
-      rm(zipPath, force: true)
+      rm(zipPath)
       callback()
     catch error
       callback(error)
