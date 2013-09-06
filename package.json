@@ -44,7 +44,7 @@
     "bracket-matcher": "0.3.0",
     "collaboration": "0.9.0",
     "command-logger": "0.2.0",
-    "command-panel": "0.2.0",
+    "command-panel": "bo-theme-rework",
     "command-palette": "bo-theme-rework",
     "fuzzy-finder": "bo-theme-rework",
     "editor-stats": "0.1.0",
