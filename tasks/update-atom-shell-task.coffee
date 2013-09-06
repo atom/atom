@@ -46,6 +46,7 @@ module.exports = (grunt) ->
       zip = new AdmZip(zipPath);
       zip.extractAllTo(directoryPath, true)
       rm(zipPath, force: true)
+      callback()
     catch error
       callback(error)
 
