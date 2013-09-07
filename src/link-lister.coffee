@@ -8,6 +8,8 @@ tree = require './tree'
 
 module.exports =
 class LinkLister
+  @commandNames: ['linked', 'links']
+
   constructor: ->
     @devPackagesPath = path.join(config.getAtomDirectory(), 'dev', 'packages')
     @packagesPath = path.join(config.getAtomDirectory(), 'packages')

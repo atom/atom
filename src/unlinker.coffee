@@ -8,6 +8,8 @@ config = require './config'
 
 module.exports =
 class Unlinker
+  @commandNames: ['unlink']
+
   constructor: ->
     @devPackagesPath = path.join(config.getAtomDirectory(), 'dev', 'packages')
     @packagesPath = path.join(config.getAtomDirectory(), 'packages')

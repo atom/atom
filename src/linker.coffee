@@ -6,6 +6,8 @@ mkdir = require('mkdirp').sync
 
 module.exports =
 class Linker
+  @commandNames: ['link']
+
   run: (options) ->
     linkPath = path.resolve(process.cwd(), options.commandArgs.shift() ? '.')
     try

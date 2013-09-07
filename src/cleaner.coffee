@@ -10,6 +10,8 @@ Installer = require './installer'
 
 module.exports =
 class Cleaner extends Command
+  @commandNames: ['clean']
+
   constructor: ->
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
 

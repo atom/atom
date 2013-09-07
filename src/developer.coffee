@@ -17,6 +17,8 @@ Linker = require './linker'
 
 module.exports =
 class Developer extends Command
+  @commandNames: ['dev', 'develop']
+
   atomDirectory: null
   atomDevPackagesDirectory: null
 

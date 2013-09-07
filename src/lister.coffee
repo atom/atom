@@ -9,6 +9,8 @@ tree = require './tree'
 
 module.exports =
 class Lister
+  @commandNames: ['list', 'ls']
+
   userPackagesDirectory: null
   bundledPackagesDirectory: null
   disabledPackages: null

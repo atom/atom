@@ -14,6 +14,8 @@ Command = require './command'
 
 module.exports =
 class Installer extends Command
+  @commandNames: ['install']
+
   atomDirectory: null
   atomPackagesDirectory: null
   atomNodeDirectory: null

@@ -3,6 +3,8 @@ Installer = require './installer'
 
 module.exports =
 class Updater
+  @commandNames: ['update']
+
   run: (options) ->
     finalCallback = options.callback
     options.callback = (error) ->

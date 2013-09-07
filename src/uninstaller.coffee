@@ -5,6 +5,8 @@ config = require './config'
 
 module.exports =
 class Uninstaller
+  @commandNames: ['uninstall']
+
   run: (options) ->
     packageName = options.commandArgs.shift()
     if packageName

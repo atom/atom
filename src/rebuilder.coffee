@@ -9,6 +9,8 @@ Installer = require './installer'
 
 module.exports =
 class Rebuilder extends Command
+  @commandNames: ['rebuild']
+
   constructor: ->
     @atomNodeDirectory = path.join(config.getAtomDirectory(), '.node-gyp')
     @atomNpmPath = require.resolve('npm/bin/npm-cli')

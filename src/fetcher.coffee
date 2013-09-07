@@ -7,6 +7,8 @@ _ = require 'underscore'
 
 module.exports =
 class Fetcher
+  @commandNames: ['available']
+
   getAvailablePackages: (atomVersion, callback) ->
     [callback, atomVersion] = [atomVersion, null] if _.isFunction(atomVersion)
 

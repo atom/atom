@@ -6,6 +6,8 @@ Command = require './command'
 
 module.exports =
 class Publisher extends Command
+  @commandNames: ['publish']
+
   userConfigPath: null
   atomNpmPath: null
 
