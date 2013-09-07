@@ -8,9 +8,6 @@ module.exports =
 class Publisher extends Command
   @commandNames: ['publish']
 
-  userConfigPath: null
-  atomNpmPath: null
-
   constructor: ->
     @userConfigPath = config.getUserConfigPath()
     @atomNpmPath = require.resolve('npm/bin/npm-cli')

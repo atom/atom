@@ -11,10 +11,6 @@ module.exports =
 class Lister
   @commandNames: ['list', 'ls']
 
-  userPackagesDirectory: null
-  bundledPackagesDirectory: null
-  disabledPackages: null
-
   constructor: ->
     @userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
     @bundledPackagesDirectory = path.join(config.getResourcePath(), 'src', 'packages')

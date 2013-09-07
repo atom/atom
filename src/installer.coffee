@@ -16,12 +16,6 @@ module.exports =
 class Installer extends Command
   @commandNames: ['install']
 
-  atomDirectory: null
-  atomPackagesDirectory: null
-  atomNodeDirectory: null
-  atomNpmPath: null
-  atomNodeGypPath: null
-
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
