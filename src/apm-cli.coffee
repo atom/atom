@@ -32,7 +32,7 @@ parseOptions = (args=[]) ->
     where <command> is one of:\n
   """
   usage += wordwrap(4, 80)(Object.keys(commands).sort().join(', '))
-  usage += ".\n\nRun apm help <command> to see the more details about a specific command."
+  usage += ".\n\nRun `apm help <command>` to see the more details about a specific command."
   options.usage(usage)
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
