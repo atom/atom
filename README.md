@@ -10,7 +10,7 @@ apm is bundled and installed automatically with Atom.
   * Clone the repository
   * Run `npm install`
   * Run `grunt` to compile the CoffeeScript code
-  * Run `grunt test` to run the specs
+  * Run `npm test` to run the specs
 
 ## Using
 
