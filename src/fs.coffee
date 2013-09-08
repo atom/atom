@@ -1,6 +1,9 @@
 fs = require 'fs'
+
 _ = require 'underscore'
+mkdirp = require 'mkdirp'
 rimraf = require 'rimraf'
+wrench = require 'wrench'
 
 fsAdditions =
   isDirectory: (directoryPath) ->
@@ -32,5 +35,11 @@ fsAdditions =
 
   rm: (pathToRemove) ->
     rimraf.sync(pathToRemove)
+
+  mkdir: (directoryPath) ->
+    mkdirp.sync(directoryPath)
+
+  cp: (sourcePath, destinationPath, options) ->
+    wrench.copyDirSyncRecursive(sourcePath, destinationPath, options)
 
 module.exports = _.extend(fsAdditions, fs)

@@ -6,12 +6,11 @@ _ = require 'underscore'
 mkdir = require('mkdirp').sync
 optimist = require 'optimist'
 temp = require 'temp'
-cp = require('wrench').copyDirSyncRecursive
-rm = require('rimraf').sync
 require 'colors'
 
 config = require './config'
 Command = require './command'
+fs = require './fs'
 
 module.exports =
 class Installer extends Command
@@ -76,12 +75,12 @@ class Installer extends Command
     @fork @atomNpmPath, installArgs, {env, cwd: installDirectory}, (code, stderr='', stdout='') =>
       if code is 0
         for child in fs.readdirSync(nodeModulesDirectory)
-          cp(path.join(nodeModulesDirectory, child), path.join(@atomPackagesDirectory, child), forceDelete: true)
-        rm(installDirectory)
+          fs.cp(path.join(nodeModulesDirectory, child), path.join(@atomPackagesDirectory, child), forceDelete: true)
+        fs.rm(installDirectory)
         process.stdout.write '\u2713\n'.green
         callback()
       else
-        rm(installDirectory)
+        fs.rm(installDirectory)
         process.stdout.write '\u2717\n'.red
         callback(stdout.red + stderr.red)
 
