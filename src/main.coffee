@@ -44,8 +44,8 @@ delegate.browserMainParts.preMainMessageLoopRun = ->
 
     if args.devMode
       require('coffee-script')
-      require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache')
-      require('module').globalPaths.push(args.resourcePath + "/src")
+      require(path.join(args.resourcePath, 'src', 'coffee-cache'))
+      require('module').globalPaths.push(path.join(args.resourcePath, 'src'))
     else
       appSrcPath = path.resolve(process.argv[0], "../../Resources/app/src")
       require('module').globalPaths.push(appSrcPath)

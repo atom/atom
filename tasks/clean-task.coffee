@@ -5,7 +5,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'partial-clean', 'Delete some of the build files', ->
     rm grunt.config.get('atom.buildDir')
-    rm '/tmp/atom-coffee-cache'
+    rm '/tmp/atom-compile-cache'
     rm '/tmp/atom-cached-atom-shells'
     rm 'atom-shell'
 
