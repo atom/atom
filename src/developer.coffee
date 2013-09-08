@@ -31,10 +31,10 @@ class Developer extends Command
     options = optimist(argv)
 
     options.usage """
-      Usage: apm develop <name>
+      Usage: apm develop <package_name>
 
-      Clone the given package's Git repository to ~/github/<name> and link it
-      for development to ~/.atom/packages/dev/<name>.
+      Clone the given package's Git repository to ~/github/<package_name> and
+      link it for development to ~/.atom/packages/dev/<package_name>.
 
       Once this command completes you can open a dev window from atom using
       cmd-shift-o to run the package out of the newly cloned repository.
