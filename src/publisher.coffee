@@ -68,7 +68,7 @@ class Publisher extends Command
 
   run: (options) ->
     {callback} = options
-    options = @parseOptions(options)
+    options = @parseOptions(options.commandArgs)
 
     if version = options.argv._[0]
       @versionPackage version, (error) =>
