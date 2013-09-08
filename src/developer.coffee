@@ -6,6 +6,7 @@ _ = require 'underscore'
 mkdir = require('mkdirp').sync
 npm = require 'npm'
 npmconf = require 'npmconf'
+optimist = require 'optimist'
 temp = require 'temp'
 cp = require('wrench').copyDirSyncRecursive
 rm = require('rimraf').sync
@@ -25,6 +26,21 @@ class Developer extends Command
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
     @atomDevPackagesDirectory = path.join(@atomDirectory, 'dev', 'packages')
+
+  parseOptions: (argv) ->
+    options = optimist(argv)
+
+    options.usage """
+      Usage: apm develop <name>
+
+      Clone the given package's Git repository to ~/github/<name> and link it
+      for development to ~/.atom/packages/dev/<name>.
+
+      Once this command completes you can open a dev window from atom using
+      cmd-shift-o to run the package out of the newly cloned repository.
+    """
+
+  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   loadNpm: (callback) ->
     npmOptions =
