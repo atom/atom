@@ -12,31 +12,11 @@ apm is bundled and installed automatically with Atom.
   * Run `grunt` to compile the CoffeeScript code
   * Run `grunt test` to run the specs
 
-## Commands
+## Using
 
-```sh
-apm install
-```
+Run `apm help` to see all the supported commands and `apm help <command>` to
+learn more about a specific command.
 
-Run this with no arguments from Atom or an Atom package to build and install
-all node module dependencies.
-
-```sh
-apm install aural-coding
-```
-
-Install the [aural-coding](https://github.com/atom/aural-coding/) package
-into `~/.atom/packages`.
-
-```sh
-apm available
-```
-
-List all the Atom packages available for installation
-
-```sh
-apm list
-```
-
-List all the Atom packages currently installed.  This will include the packages
-that come bundled with Atom.
+The common commands are `apm install <package_name>` to install a new package,
+`apm available` to see all the published packages, and `apm publish` to publish
+a package to the apm registry.
