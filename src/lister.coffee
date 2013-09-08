@@ -2,6 +2,7 @@ path = require 'path'
 
 _ = require 'underscore'
 CSON = require 'season'
+optimist = require 'optimist'
 
 fs = require './fs'
 config = require './config'
@@ -19,6 +20,18 @@ class Lister
       try
         @disabledPackages = CSON.readFileSync(configPath)?.core?.disabledPackages
     @disabledPackages ?= []
+
+  parseOptions: (argv) ->
+    options = optimist(argv)
+    options.usage """
+
+      Usage: apm list
+
+      List all the installed packages and also the packages bundled with Atom.
+    """
+    options.alias('h', 'help').describe('help', 'Print this usage message')
+
+  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   isPackageDisabled: (name) ->
     @disabledPackages.indexOf(name) isnt -1
@@ -67,3 +80,4 @@ class Lister
     @listUserPackages()
     console.log ''
     @listBundledPackages()
+    options.callback()
