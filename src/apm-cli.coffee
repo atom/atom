@@ -36,10 +36,6 @@ parseOptions = (args=[]) ->
   options.usage(usage)
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
-  options.alias('a', 'all').boolean('all')
-  options.boolean('hard')
-  options.boolean('force')
-  options.string('tag')
   options.command = options.argv._[0]
   for arg, index in args when arg is options.command
     options.commandArgs = args[index+1..]
