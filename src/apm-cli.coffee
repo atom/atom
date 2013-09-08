@@ -65,7 +65,10 @@ module.exports =
     if args.version
       console.log require('../package.json').version
     else if args.help
-      options.showHelp()
+      if Command = commands[options.command]
+        new Command().showHelp(options.command)
+      else
+        options.showHelp()
     else if command
       if command is 'help'
         if Command = commands[options.commandArgs]
