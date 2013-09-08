@@ -29,7 +29,7 @@ class Unlinker
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('d', 'dev').boolean('dev').describe('dev', 'Unlink from ~/.atom/dev/packages')
     options.boolean('hard').describe('hard', 'Unlink from ~/.atom/packages and ~/.atom/dev/packages')
-    options.alias('a', 'a').boolean('all').describe('all', 'Unlink all packages in ~/.atom/packagea and ~/.atom/dev/packages')
+    options.alias('a', 'all').boolean('all').describe('all', 'Unlink all packages in ~/.atom/packagea and ~/.atom/dev/packages')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
