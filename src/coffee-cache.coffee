@@ -5,20 +5,23 @@ path = require 'path'
 CoffeeScript = require 'coffee-script'
 mkdir = require('mkdirp').sync
 
-getCachePath = (coffeeContents)->
-  digest = crypto.createHash('sha1').update(coffeeContents, 'utf8').digest('hex')
+getCachePath = (coffee) ->
+  digest = crypto.createHash('sha1').update(coffee, 'utf8').digest('hex')
   path.join('/tmp/atom-compile-cache/coffee', "#{digest}.coffee")
 
-require.extensions['.coffee'] = (module, filePath) ->
-  coffeeContents = fs.readFileSync(filePath, 'utf8')
-  cachePath = getCachePath(coffeeContents)
+getCachedJavaScript = (cachePath) ->
   try
-    jsContents = fs.readFileSync(cachePath, 'utf8') if fs.statSync(cachePath).isFile()
+    fs.readFileSync(cachePath, 'utf8') if fs.statSync(cachePath).isFile()
 
-  unless jsContents?
-    jsContents = CoffeeScript.compile(coffeeContents, filename: filePath)
-    try
-      mkdir(path.dirname(cachePath))
-      fs.writeFileSync(cachePath, jsContents)
+compileCoffeeScript = (coffee, filePath, cachePath) ->
+  js = CoffeeScript.compile(coffee, filename: filePath)
+  try
+    mkdir(path.dirname(cachePath))
+    fs.writeFileSync(cachePath, js)
+  js
 
-  module._compile(jsContents, filePath)
+require.extensions['.coffee'] = (module, filePath) ->
+  coffee = fs.readFileSync(filePath, 'utf8')
+  cachePath = getCachePath(coffee)
+  js = getCachedJavaScript(cachePath) ? compileCoffeeScript(coffee, filePath, cachePath)
+  module._compile(js, filePath)
