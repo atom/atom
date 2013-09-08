@@ -1,15 +1,10 @@
 fs = require 'fs'
 path = require 'path'
 
-async = require 'async'
 _ = require 'underscore'
-mkdir = require('mkdirp').sync
 npm = require 'npm'
 npmconf = require 'npmconf'
 optimist = require 'optimist'
-temp = require 'temp'
-cp = require('wrench').copyDirSyncRecursive
-rm = require('rimraf').sync
 require 'colors'
 
 config = require './config'
