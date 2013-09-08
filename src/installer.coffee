@@ -4,6 +4,7 @@ path = require 'path'
 async = require 'async'
 _ = require 'underscore'
 mkdir = require('mkdirp').sync
+optimist = require 'optimist'
 temp = require 'temp'
 cp = require('wrench').copyDirSyncRecursive
 rm = require('rimraf').sync
@@ -22,6 +23,22 @@ class Installer extends Command
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
     @atomNodeGypPath = require.resolve('node-gyp/bin/node-gyp')
+
+  parseOptions: (argv) ->
+    options = optimist(argv)
+    options.usage """
+
+      Usage: apm install [<package_name>]
+
+      Install the given Atom package to ~/.atom/packages/<package_name>.
+
+      If no package name is given then all the dependencies in the package.json
+      file are installed into the node_modules folder for the current working
+      directory.
+    """
+    options.alias('h', 'help').describe('help', 'Print this usage message')
+
+  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   installNode: (callback) =>
     process.stdout.write "Installing node@#{config.getNodeVersion()} "
