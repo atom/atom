@@ -2,6 +2,7 @@ path = require 'path'
 
 async = require 'async'
 CSON = require 'season'
+optimist = require 'optimist'
 
 Command = require './command'
 config = require './config'
@@ -30,6 +31,18 @@ class Cleaner extends Command
       modulesToRemove.push(installedModule)
 
     modulesToRemove
+
+  parseOptions: (argv) ->
+    options = optimist(argv)
+
+    options.usage """
+      Usage: apm clean
+
+      Deletes all packages in the node_modules folder that are not referenced
+      as a dependency in the package.json file.
+    """
+
+  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: (options) ->
     uninstallCommands = []

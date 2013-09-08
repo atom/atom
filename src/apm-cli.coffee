@@ -65,7 +65,12 @@ module.exports =
     else if args.help
       options.showHelp()
     else if command
-      if Command = commands[command]
+      if command is 'help'
+        if Command = commands[options.commandArgs]
+          new Command().showHelp(options.commandArgs)
+        else
+          options.showHelp()
+      else if Command = commands[command]
         new Command().run(options)
       else
         options.callback("Unrecognized command: #{command}")
