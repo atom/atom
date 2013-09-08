@@ -1,11 +1,26 @@
 path = require 'path'
-fs = require './fs'
+
 _ = require 'underscore'
 config = require './config'
+optimist = require 'optimist'
+
+fs = require './fs'
 
 module.exports =
 class Uninstaller
   @commandNames: ['uninstall']
+
+  parseOptions: (argv) ->
+    options = optimist(argv)
+    options.usage """
+
+      Usage: apm uninstall <package_name>
+
+      Delete the installed package from the ~/.atom/packages directory.
+    """
+    options.alias('h', 'help').describe('help', 'Print this usage message')
+
+  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: (options) ->
     packageName = options.commandArgs.shift()
