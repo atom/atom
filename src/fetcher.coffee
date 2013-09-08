@@ -1,13 +1,27 @@
+_ = require 'underscore'
+optimist = require 'optimist'
 request = require 'request'
 npmconf = require 'npmconf'
+semver = require 'semver'
+
 config = require './config'
 tree = require './tree'
-semver = require 'semver'
-_ = require 'underscore'
 
 module.exports =
 class Fetcher
   @commandNames: ['available']
+
+  parseOptions: (argv) ->
+    options = optimist(argv)
+    options.usage """
+
+      Usage: apm available
+
+      List all the Atom packages that have been published to the apm registry.
+    """
+    options.alias('h', 'help').describe('help', 'Print this usage message')
+
+  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   getAvailablePackages: (atomVersion, callback) ->
     [callback, atomVersion] = [atomVersion, null] if _.isFunction(atomVersion)
