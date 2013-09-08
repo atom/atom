@@ -2,6 +2,7 @@ path = require 'path'
 
 require 'colors'
 CSON = require 'season'
+optimist = require 'optimist'
 
 fs = require './fs'
 config = require './config'
@@ -13,6 +14,24 @@ class Unlinker
   constructor: ->
     @devPackagesPath = path.join(config.getAtomDirectory(), 'dev', 'packages')
     @packagesPath = path.join(config.getAtomDirectory(), 'packages')
+
+  parseOptions: (argv) ->
+    options = optimist(argv)
+    options.usage """
+
+      Usage: apm unlink [<package_path>]
+
+      Delete the symlink in ~/.atom/packages for the package. The package in the
+      current working directory is unlinked if no path is given.
+
+      Run `apm links` to view all the currently linked packages.
+    """
+    options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.alias('d', 'dev').boolean('dev').describe('dev', 'Unlink from ~/.atom/dev/packages')
+    options.boolean('hard').describe('hard', 'Unlink from ~/.atom/packages and ~/.atom/dev/packages')
+    options.alias('a', 'a').boolean('all').describe('all', 'Unlink all packages in ~/.atom/packagea and ~/.atom/dev/packages')
+
+  showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   getDevPackagePath: (packageName) -> path.join(@devPackagesPath, packageName)
 
@@ -27,7 +46,7 @@ class Unlinker
       process.stdout.write '\u2713\n'.red
       throw error
 
-  unlinkAll: (options) ->
+  unlinkAll: (options, callback) ->
     try
       for child in fs.list(@devPackagesPath)
         packagePath = path.join(@devPackagesPath, child)
@@ -36,12 +55,12 @@ class Unlinker
         for child in fs.list(@packagesPath)
           packagePath = path.join(@packagesPath, child)
           @unlinkPath(packagePath) if fs.isLink(packagePath)
-      options.callback()
+      callback()
     catch error
-      options.callback(error)
+      callback(error)
 
-  unlinkPackage: (options) ->
-    linkPath = path.resolve(process.cwd(), options.commandArgs.shift() ? '.')
+  unlinkPackage: (options, callback) ->
+    linkPath = path.resolve(process.cwd(), options.argv._[0] ? '.')
     try
       packageName = CSON.readFileSync(CSON.resolve(path.join(linkPath, 'package'))).name
     packageName = path.basename(linkPath) unless packageName
@@ -50,9 +69,9 @@ class Unlinker
       try
         @unlinkPath(@getDevPackagePath(packageName))
         @unlinkPath(@getPackagePath(packageName))
-        options.callback()
+        callback()
       catch error
-        options.callback(error)
+        callback(error)
     else
       if options.argv.dev
         targetPath = @getDevPackagePath(packageName)
@@ -60,13 +79,15 @@ class Unlinker
         targetPath = @getPackagePath(packageName)
       try
         @unlinkPath(targetPath)
-        options.callback()
+        callback()
       catch error
-        options.callback(error)
-
+        callback(error)
 
   run: (options) ->
+    {callback} = options
+    options = @parseOptions(options.commandArgs)
+
     if options.argv.all
-      @unlinkAll(options)
+      @unlinkAll(options, callback)
     else
-      @unlinkPackage(options)
+      @unlinkPackage(options, callback)

@@ -78,8 +78,7 @@ class Developer extends Command
 
   linkPackage: (packageDirectory, options) ->
     linkOptions = _.clone(options)
-    linkOptions.commandArgs = [packageDirectory]
-    linkOptions.argv = {dev: true}
+    linkOptions.commandArgs = [packageDirectory, '--dev']
     new Linker().run(linkOptions)
 
   run: (options) ->
