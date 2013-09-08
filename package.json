@@ -37,7 +37,8 @@
     "request": "~2.21.0",
     "npmconf": "0.0.24",
     "semver": "~1.1.4",
-    "colors": "~0.6.1"
+    "colors": "~0.6.1",
+    "wordwrap": "0.0.2"
   },
   "devDependencies": {
     "jasmine-focused": "~0.12.0",

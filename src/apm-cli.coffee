@@ -1,6 +1,7 @@
 fs = require 'fs'
 
 optimist = require 'optimist'
+wordwrap = require 'wordwrap'
 
 commandClasses = [
   require './cleaner'
@@ -24,16 +25,15 @@ for commandClass in commandClasses
 
 parseOptions = (args=[]) ->
   options = optimist(args)
-  options.usage """
+  usage = """
 
     Usage: apm <command>
 
-    where <command> is one of:
-        available, develop, help, install, link, links, list,
-        publish, rebuild, uninstall, unlink
-
-    Run apm help <command> to see the more details about a specific command.
+    where <command> is one of:\n
   """
+  usage += wordwrap(4, 80)(Object.keys(commands).sort().join(', '))
+  usage += ".\n\nRun apm help <command> to see the more details about a specific command."
+  options.usage(usage)
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
   options.alias('a', 'all').boolean('all')
