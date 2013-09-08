@@ -31,6 +31,8 @@ parseOptions = (args=[]) ->
     where <command> is one of:
         available, develop, help, install, link, links, list,
         publish, rebuild, uninstall, unlink
+
+    Run apm help <command> to see the more details about a specific command.
   """
   options.alias('v', 'version').describe('version', 'Print the apm version')
   options.alias('h', 'help').describe('help', 'Print this usage message')
