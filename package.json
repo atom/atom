@@ -119,8 +119,7 @@
     "json-front-matter": "~0.1.3",
     "grunt-shell": "~0.3.1",
     "jasmine-node": "git://github.com/kevinsawicki/jasmine-node.git#short-stacks",
-    "request": "~2.27.0",
-    "adm-zip": "~0.4.3"
+    "request": "~2.27.0"
   },
   "private": true,
   "scripts": {

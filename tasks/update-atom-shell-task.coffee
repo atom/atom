@@ -1,7 +1,6 @@
 fs = require 'fs'
 path = require 'path'
 
-AdmZip = require 'adm-zip'
 request = require 'request'
 
 module.exports = (grunt) ->
@@ -44,14 +43,10 @@ module.exports = (grunt) ->
     grunt.log.writeln('Unzipping atom-shell')
     directoryPath = path.dirname(zipPath)
 
-    try
-      zip = new AdmZip(zipPath)
-      zip.extractAllTo(directoryPath, true)
+    spawn {cmd: 'unzip', args: [zipPath, '-d', directoryPath]}, (error) ->
       rm(zipPath)
-      callback()
-    catch error
       callback(error)
-
+        
   rebuildNativeModules = (previousVersion, callback) ->
     newVersion = getAtomShellVersion()
     if newVersion and newVersion isnt previousVersion
