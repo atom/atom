@@ -19,6 +19,15 @@ defaultWindowDimensions = {width: 800, height: 600}
 
 windowEventHandler = null
 
+# Schedule the window to be shown and focused on the next tick
+#
+# This is done in a next tick to prevent a white flicker from occurring
+# if called synchronously.
+displayWindow = ->
+  _.nextTick ->
+    atom.show()
+    atom.focus()
+
 # This method is called in any window needing a general environment, including specs
 window.setUpEnvironment = (windowMode) ->
   atom.windowMode = windowMode
@@ -56,8 +65,8 @@ window.startEditorWindow = ->
     $(document.body).hide()
     unloadEditorWindow()
     false
-  atom.show()
-  atom.focus()
+
+  displayWindow()
 
 window.unloadEditorWindow = ->
   return if not project and not rootView
