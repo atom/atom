@@ -5,9 +5,11 @@ path = require 'path'
 CoffeeScript = require 'coffee-script'
 mkdir = require('mkdirp').sync
 
+cacheDir = '/tmp/atom-compile-cache/coffee'
+
 getCachePath = (coffee) ->
   digest = crypto.createHash('sha1').update(coffee, 'utf8').digest('hex')
-  path.join('/tmp/atom-compile-cache/coffee', "#{digest}.coffee")
+  path.join(cacheDir, "#{digest}.coffee")
 
 getCachedJavaScript = (cachePath) ->
   try
@@ -25,3 +27,5 @@ require.extensions['.coffee'] = (module, filePath) ->
   cachePath = getCachePath(coffee)
   js = getCachedJavaScript(cachePath) ? compileCoffeeScript(coffee, filePath, cachePath)
   module._compile(js, filePath)
+
+module.exports = {cacheDir}
