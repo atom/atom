@@ -87,6 +87,7 @@ module.exports = (grunt) ->
         'dot-atom/**/*.coffee'
         'src/**/*.coffee'
         'tasks/**/*.coffee'
+        'Gruntfile.coffee'
       ]
       test: [
         'spec/*.coffee'
