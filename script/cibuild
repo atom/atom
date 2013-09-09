@@ -5,7 +5,6 @@ set -e
 cd "$(dirname "$0")/.."
 
 rm -rf ~/.atom
-rm -rf /tmp/atom-coffee-cache
 git clean -dff
 
 ./script/bootstrap

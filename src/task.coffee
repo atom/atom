@@ -45,7 +45,7 @@ class Task
   constructor: (taskPath) ->
     bootstrap = """
       require('coffee-script');
-      require('coffee-cache').setCacheDir('/tmp/atom-coffee-cache');
+      require('coffee-cache');
       Object.defineProperty(require.extensions, '.coffee', {
         writable: false,
         value: require.extensions['.coffee']
