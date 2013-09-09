@@ -118,9 +118,13 @@ addCustomMatchers = (spec) ->
       @actual instanceof expected
 
     toHaveLength: (expected) ->
-      notText = if @isNot then " not" else ""
-      this.message = => "Expected object with length #{@actual.length} to#{notText} have length #{expected}"
-      @actual.length == expected
+      if not @actual?
+        this.message = => "Expected object #{@actual} has no length method"
+        false
+      else
+        notText = if @isNot then " not" else ""
+        this.message = => "Expected object with length #{@actual.length} to#{notText} have length #{expected}"
+        @actual.length == expected
 
     toExistOnDisk: (expected) ->
       notText = this.isNot and " not" or ""
