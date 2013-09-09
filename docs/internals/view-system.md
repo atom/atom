@@ -38,7 +38,7 @@ singleton instance of the `RootView` view class. The root view fills the entire
 window, and contains every other view. If you open Atom's inspector with
 `alt-cmd-i`, you can see the internal structure of `RootView`:
 
-![RootView in the inspector](http://f.cl.ly/items/2n0s3m0I2d223p3s3W01/root-view-inspector.png)
+![RootView in the inspector](https://f.cloud.github.com/assets/1424/1091631/1932c2d6-166b-11e3-8adf-9690fe82d3b8.png)
 
 #### Panes
 
