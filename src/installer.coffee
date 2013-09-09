@@ -48,6 +48,7 @@ class Installer extends Command
     installNodeArgs.push('--arch=ia32')
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
+    env.USERPROFILE = env.HOME if config.isWin32()
 
     mkdir(@atomDirectory)
     @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
@@ -68,6 +69,7 @@ class Installer extends Command
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--msvs_version=2012') if config.isWin32()
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
+    env.USERPROFILE = env.HOME if config.isWin32()
 
     installDirectory = temp.mkdirSync('apm-install-dir-')
     nodeModulesDirectory = path.join(installDirectory, 'node_modules')
@@ -93,6 +95,7 @@ class Installer extends Command
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--msvs_version=2012') if config.isWin32()
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
+    env.USERPROFILE = env.HOME if config.isWin32()
 
     @fork @atomNpmPath, installArgs, {env}, (code, stderr='', stdout='') ->
       if code is 0

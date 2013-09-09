@@ -40,6 +40,7 @@ class Rebuilder extends Command
         rebuildArgs.push("--target=#{config.getNodeVersion()}")
         rebuildArgs.push('--arch=ia32')
         env = _.extend({}, process.env, HOME: @atomNodeDirectory)
+        env.USERPROFILE = env.HOME if config.isWin32()
 
         @fork @atomNpmPath, rebuildArgs, {env}, (code, stderr='') ->
           if code is 0
