@@ -86,6 +86,7 @@ module.exports = (grunt) ->
       src: [
         'dot-atom/**/*.coffee'
         'src/**/*.coffee'
+        'tasks/**/*.coffee'
       ]
       test: [
         'spec/*.coffee'
