@@ -18,6 +18,7 @@ describe "the `atom` global", ->
 
     afterEach ->
       atom.themes.unload()
+      config.set('core.themes', [])
       atom.reloadBaseStylesheets()
 
     it "loads the correct values from the theme's ui-variables file", ->
