@@ -33,7 +33,7 @@ module.exports = (grunt) ->
         if error?
           callback(error)
         else
-          callback(null, String(result).trim())
+          callback(null, String(result).trim().split('.')[0..1].join('.'))
 
     copyDocs = (tag, callback) ->
       cmd = 'cp'
@@ -58,7 +58,7 @@ module.exports = (grunt) ->
         if error?
           callback(error)
         else
-          callback(null, String(result).trim())
+          callback(null, String(result).trim().split('.')[0..1].join('.'))
 
     stageDocs = (tag, callback) ->
       cmd = 'git'
