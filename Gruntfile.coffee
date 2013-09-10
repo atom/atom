@@ -96,6 +96,7 @@ module.exports = (grunt) ->
     csslint:
       options:
         'adjoining-classes': false
+        'duplicate-background-images': false
         'box-model': false
         'box-sizing': false
         'bulletproof-font-face': false

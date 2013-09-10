@@ -1,11 +1,8 @@
-// This file has fallback variables. It specifies the variables themes
-// must implement.
-
 // Colors
 
-@text-color: #333;
-@text-color-subtle: #777;
-@text-color-highlight: #111;
+@text-color: #aaa;
+@text-color-subtle: #555;
+@text-color-highlight: #fff;
 @text-color-selected: @text-color-highlight;
 
 @text-color-info: #5293d8;
@@ -17,42 +14,42 @@
 @background-color-success: #17ca65;
 @background-color-warning: #ff4800;
 @background-color-error: #c00;
-@background-color-highlight: rgba(255, 255, 255, 0.10);
+@background-color-highlight: rgba(255, 255, 255, 0.07);
 @background-color-selected: @background-color-highlight;
 
-@app-background-color: #fff;
+@app-background-color: #333;
 
-@base-background-color: #fff;
-@base-border-color: #eee;
+@base-background-color: lighten(@tool-panel-background-color, 5%);
+@base-border-color: rgba(0, 0, 0, 0.5);
 
 @pane-item-background-color: @base-background-color;
-@pane-item-border-color: @base-border-color;
+@pane-item-border-color: rgba(0, 0, 0, 0.5);
 
-@input-background-color: #fff;
+@input-background-color: #212224;
 @input-border-color: @base-border-color;
 
-@tool-panel-background-color: #f4f4f4;
+@tool-panel-background-color: #1d1f21;
 @tool-panel-border-color: @base-border-color;
 
-@inset-panel-background-color: #eee;
+@inset-panel-background-color: #161719;
 @inset-panel-border-color: @base-border-color;
 
-@panel-heading-background-color: #ddd;
-@panel-heading-border-color: transparent;
+@panel-heading-background-color: #43484d;
+@panel-heading-border-color: fadein(@base-border-color, 10%);
 
-@overlay-background-color: #f4f4f4;
-@overlay-border-color: @base-border-color;
+@overlay-background-color: #202123;
+@overlay-border-color: @background-color-highlight;
 
-@button-background-color: #ccc;
+@button-background-color: #43484d;
 @button-background-color-hover: lighten(@button-background-color, 5%);
-@button-background-color-selected: @button-background-color-hover;
-@button-border-color: #aaa;
+@button-background-color-selected: #5c6064;
+@button-border-color: @base-border-color;
 
-@tab-bar-background-color: #fff;
+@tab-bar-background-color: @inset-panel-background-color;
 @tab-bar-border-color: darken(@tab-background-color-active, 10%);
-@tab-background-color: #f4f4f4;
-@tab-background-color-active: #fff;
-@tab-border-color: @base-border-color;
+@tab-background-color: #292c2f;
+@tab-background-color-active: @panel-heading-background-color;
+@tab-border-color: transparent;
 
 @tree-view-background-color: @tool-panel-background-color;
 @tree-view-border-color: @tool-panel-border-color;

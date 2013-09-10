@@ -3,6 +3,7 @@
 @text-color: #333;
 @text-color-subtle: #777;
 @text-color-highlight: #111;
+@text-color-selected: @text-color-highlight;
 
 @text-color-info: #5293d8;
 @text-color-success: #1fe977;
@@ -14,11 +15,15 @@
 @background-color-warning: #ff4800;
 @background-color-error: #c00;
 @background-color-highlight: rgba(255, 255, 255, 0.10);
+@background-color-selected: @background-color-highlight;
 
 @app-background-color: #00f; // Changed
 
 @base-background-color: #fff;
 @base-border-color: #eee;
+
+@pane-item-background-color: @base-background-color;
+@pane-item-border-color: @base-border-color;
 
 @input-background-color: #f00; // Changed
 @input-border-color: @base-border-color;
@@ -40,9 +45,14 @@
 @button-background-color-selected: @button-background-color-hover;
 @button-border-color: #aaa;
 
+@tab-bar-background-color: #fff;
+@tab-bar-border-color: darken(@tab-background-color-active, 10%);
 @tab-background-color: #f4f4f4;
 @tab-background-color-active: #fff;
-@tab-border-color: darken(@tab-background-color-active, 10%);
+@tab-border-color: @base-border-color;
+
+@tree-view-background-color: @tool-panel-background-color;
+@tree-view-border-color: @tool-panel-border-color;
 
 @ui-site-color-1: @background-color-success; // green
 @ui-site-color-2: @background-color-info; // blue

@@ -1,12 +1,9 @@
-// This file has fallback variables. It specifies the variables themes
-// must implement.
-
 // Colors
 
-@text-color: #333;
-@text-color-subtle: #777;
-@text-color-highlight: #111;
-@text-color-selected: @text-color-highlight;
+@text-color: #444;
+@text-color-subtle: #999;
+@text-color-highlight: #000;
+@text-color-selected: #fff;
 
 @text-color-info: #5293d8;
 @text-color-success: #1fe977;
@@ -17,45 +14,45 @@
 @background-color-success: #17ca65;
 @background-color-warning: #ff4800;
 @background-color-error: #c00;
-@background-color-highlight: rgba(255, 255, 255, 0.10);
-@background-color-selected: @background-color-highlight;
+@background-color-highlight: rgba(0, 0, 0, .1);
+@background-color-selected: #6aa5e9;
 
-@app-background-color: #fff;
+@app-background-color: #ccc;
 
-@base-background-color: #fff;
-@base-border-color: #eee;
+@base-background-color: #f4f4f4;
+@base-border-color: rgba(0, 0, 0, 0.25);
 
 @pane-item-background-color: @base-background-color;
 @pane-item-border-color: @base-border-color;
 
 @input-background-color: #fff;
-@input-border-color: @base-border-color;
+@input-border-color: fadeout(@base-border-color, 10%);
 
-@tool-panel-background-color: #f4f4f4;
+@tool-panel-background-color: @base-background-color;
 @tool-panel-border-color: @base-border-color;
 
-@inset-panel-background-color: #eee;
-@inset-panel-border-color: @base-border-color;
+@inset-panel-background-color: #fff;
+@inset-panel-border-color: fadeout(@base-border-color, 10%);
 
-@panel-heading-background-color: #ddd;
+@panel-heading-background-color: #c3c3c3;
 @panel-heading-border-color: transparent;
 
-@overlay-background-color: #f4f4f4;
+@overlay-background-color: #ececec;
 @overlay-border-color: @base-border-color;
 
-@button-background-color: #ccc;
+@button-background-color: @base-background-color;
 @button-background-color-hover: lighten(@button-background-color, 5%);
-@button-background-color-selected: @button-background-color-hover;
-@button-border-color: #aaa;
+@button-background-color-selected: #888;
+@button-border-color: rgba(0, 0, 0, 0.15);
 
-@tab-bar-background-color: #fff;
-@tab-bar-border-color: darken(@tab-background-color-active, 10%);
-@tab-background-color: #f4f4f4;
-@tab-background-color-active: #fff;
+@tab-bar-background-color: darken(@base-background-color, 5%);
+@tab-bar-border-color: darken(@tab-background-color-active, 15%);
+@tab-background-color: darken(@tab-background-color-active, 8%);
+@tab-background-color-active: @base-background-color;
 @tab-border-color: @base-border-color;
 
-@tree-view-background-color: @tool-panel-background-color;
-@tree-view-border-color: @tool-panel-border-color;
+@tree-view-background-color: #e7eaf1;
+@tree-view-border-color: @base-border-color;
 
 @ui-site-color-1: @background-color-success; // green
 @ui-site-color-2: @background-color-info; // blue

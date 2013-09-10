@@ -1,21 +1,23 @@
-@import "ui-colors";
+@import "ui-variables";
+@import "ui-mixins";
 
 .editor.mini {
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(180, 180, 180, 0.3);
-  border-right: 1px solid rgba(180, 180, 180, 0.3);
-  background-color: @background-color-3;
-  color: @text-color-1;
+  color: @text-color;
+  background-color: @input-background-color;
+  border: 1px solid @input-border-color;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  border-radius: @component-border-radius;
+  padding-left: @component-padding/2;
 
-  .cursor {
-    border-color: #000;
-  }
+  .cursor { border-color: #000; }
+  .selection .region { background-color: #afc4da; }
 }
 
-.editor.mini .selection .region {
-  background-color: #afc4da;
+.editor.editor-colors.mini.is-focused {
+  background-color: lighten(@input-background-color, 5%);
 }
 
+// FIXME: these should go in syntax themes?
 .editor .gutter.drop-shadow {
   -webkit-box-shadow: -2px 0 10px 2px #222;
 }

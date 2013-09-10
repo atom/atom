@@ -1,39 +1,43 @@
-@import "ui-colors";
+@import "ui-variables";
 
-.tabs {
-  background: #161719;
-  border: none;
-  border-bottom: 4px solid rgba(41, 44, 47, 1);
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+.tab-bar {
+  height: @tab-height + 6px;
+  border-bottom: 4px solid @tab-bar-border-color;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.2), 0 1px 0 rgba(0, 0, 0, 0.5);
+  margin-bottom: 1px;
+  background-color: @tab-bar-background-color;
 }
 
 .tab {
-  margin: 0 0 1px 1px;
-  background-image: -webkit-linear-gradient(#292c2f, @background-color-2);
+  height: @tab-height;
+  line-height: @tab-height;
+  color: @text-color;
+  margin: 0;
+  background-image: -webkit-linear-gradient(@tab-background-color, darken(@tab-background-color, 10%));
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.1),
     inset 0 1px 0 rgba(0, 0, 0, 1),
-    inset 1px 0 0 @background-color-highlight-1,
-    inset -1px 0 0 @background-color-highlight-1;
-  color: #b9bdc1;
+    inset 1px 0 0 @background-color-highlight,
+    inset -1px 0 0 @background-color-highlight;
 }
 
 .tab:hover {
-  color: @text-color-1;
+  color: @text-color-highlight;
 }
 
 .tab.active {
-  background-image: -webkit-linear-gradient(#43484d, #303337);
-  color: #fff;
+  height: @tab-height + 1px;
+  background-image: -webkit-linear-gradient(@tab-background-color-active, @tab-bar-border-color);
+  color: @text-color-highlight;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+  z-index: 2;
   box-shadow:
     inset 0 1px 0 rgba(0, 0, 0, 0.5),
     inset 0 2px 0 rgba(255, 255, 255, 0.1),
     inset 1px 0 0 rgba(255, 255, 255, 0.1),
-    inset -1px 0 0 rgba(255, 255, 255, 0.1),
-    inset  0 -1px 0 rgba(0, 0, 0, 0.3);
+    inset -1px 0 0 rgba(255, 255, 255, 0.1)
 }
 
 .tab.active:hover .close-icon {
-  color: @text-color-1;
+  color: @text-color-highlight;
 }
