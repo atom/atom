@@ -56,3 +56,16 @@ describe "ThemeManager", ->
       spyOn(console, 'warn')
       themeManager.loadTheme('a-theme-that-will-not-be-found')
       expect(console.warn).toHaveBeenCalled()
+
+  describe "theme-loaded event", ->
+    beforeEach ->
+      spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
+      themeManager.load()
+
+    it "fires when a new theme has been added", ->
+      themeManager.on 'theme-loaded', loadHandler = jasmine.createSpy()
+
+      config.set('core.themes', ['atom-dark-syntax'])
+
+      expect(loadHandler).toHaveBeenCalled()
+      expect(loadHandler.mostRecentCall.args[0]).toBeInstanceOf Theme

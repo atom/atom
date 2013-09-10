@@ -23,6 +23,9 @@ class ThemeManager
   getAvailableNames: ->
     path.basename(themePath).split('.')[0] for themePath in @getAvailablePaths()
 
+  getThemes: ->
+    _.clone(@loadedThemes)
+
   unload: ->
     removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
     theme.deactivate() while theme = @loadedThemes.pop()
@@ -38,7 +41,9 @@ class ThemeManager
 
   loadTheme: (name) ->
     try
+      theme = new Theme(name)
       @loadedThemes.push(new Theme(name))
+      @trigger('theme-loaded', theme)
     catch error
       console.warn("Failed to load theme #{name}", error.stack ? error)
 
