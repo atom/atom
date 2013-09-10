@@ -62,7 +62,7 @@
     "settings-view": "bo-upgrade-bootstrap",
     "snippets": "0.2.0",
     "spell-check": "0.3.0",
-    "status-bar": "bo-theme-rework",
+    "status-bar": "0.4.0",
     "symbols-view": "0.4.0",
     "tabs": "0.3.0",
     "terminal": "0.7.0",
