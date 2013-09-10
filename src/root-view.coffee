@@ -93,6 +93,7 @@ class RootView extends View
 
     @command 'application:about', -> ipc.sendChannel('command', 'application:about')
     @command 'application:run-all-specs', -> ipc.sendChannel('command', 'application:run-all-specs')
+    @command 'application:run-benchmarks', -> ipc.sendChannel('command', 'application:run-benchmarks')
     @command 'application:show-settings', -> ipc.sendChannel('command', 'application:show-settings')
     @command 'application:quit', -> ipc.sendChannel('command', 'application:quit')
     @command 'application:hide', -> ipc.sendChannel('command', 'application:hide')
