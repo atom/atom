@@ -1,6 +1,6 @@
 @import "ui-variables";
 
-section {
+section, .section {
   position: relative;
   margin-top: 0;
   &:last-child { margin-bottom: 0; }
@@ -20,12 +20,16 @@ section {
 }
 
 div > section:first-child,
-form > section:first-child {
+form > section:first-child,
+div > .section:first-child,
+form > .section:first-child {
   border-top: none;
   padding-top: 0;
 }
 div > section:last-child,
-form > section:last-child {
+form > section:last-child
+div > .section:last-child,
+form > .section:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
