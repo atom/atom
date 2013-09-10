@@ -27,7 +27,6 @@ class Updater
       if error?
         finalCallback(error)
       else
-        options.callback = finalCallback
-        new Installer().installDependencies(options)
+        new Installer().installDependencies(options, finalCallback)
 
     new Cleaner().run(options)

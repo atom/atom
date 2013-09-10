@@ -36,6 +36,7 @@ class Installer extends Command
       directory.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
+    options.boolean('silent').describe('silent', 'Minimize output')
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
@@ -105,29 +106,29 @@ class Installer extends Command
         process.stdout.write '\u2717\n'.red
         callback(stdout.red + stderr.red)
 
-  installPackage: (options, modulePath) ->
+  installPackage: (options, modulePath, callback) ->
     commands = []
     commands.push(@installNode)
     commands.push (callback) => @installModule(options, modulePath, callback)
 
-    async.waterfall(commands, options.callback)
+    async.waterfall(commands, callback)
 
-  installDependencies: (options) ->
+  installDependencies: (options, callback) ->
     commands = []
     commands.push(@installNode)
     commands.push (callback) => @installModules(options, callback)
 
-    async.waterfall commands, options.callback
+    async.waterfall commands, callback
 
-  installTextMateBundle: (options, bundlePath) ->
+  installTextMateBundle: (options, bundlePath, callback) ->
     gitArguments = ['clone']
     gitArguments.push(bundlePath)
     gitArguments.push(path.join(@atomPackagesDirectory, path.basename(bundlePath, '.git')))
     @spawn 'git', gitArguments, (code) ->
       if code is 0
-        options.callback()
+        callback()
       else
-        options.callback("Installing bundle failed with code: #{code}")
+        callback("Installing bundle failed with code: #{code}")
 
   isTextMateBundlePath: (bundlePath) ->
     path.extname(path.basename(bundlePath, '.git')) is '.tmbundle'
@@ -138,11 +139,14 @@ class Installer extends Command
     mkdir(@atomNodeDirectory)
 
   run: (options) ->
+    {callback} = options
+    options = @parseOptions(options.commandArgs)
+
     @createAtomDirectories()
-    modulePath = options.commandArgs.shift() ? '.'
+    modulePath = options.argv._[0] ? '.'
     if modulePath is '.'
-      @installDependencies(options)
+      @installDependencies(options, callback)
     else if @isTextMateBundlePath(modulePath)
-      @installTextMateBundle(options, modulePath)
+      @installTextMateBundle(options, modulePath, callback)
     else
-      @installPackage(options, modulePath)
+      @installPackage(options, modulePath, callback)
