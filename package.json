@@ -102,7 +102,7 @@
     "yaml-tmbundle": "1.0.0"
   },
   "devDependencies": {
-    "biscotto": "0.0.16",
+    "biscotto": "0.0.17",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.9",
     "grunt-coffeelint": "0.0.6",
