@@ -1,10 +1,14 @@
+_ = require 'underscore'
 fsUtils = require 'fs-utils'
 path = require 'path'
+EventEmitter = require 'event-emitter'
 
 ### Internal ###
 
 module.exports =
 class Theme
+  _.extend @prototype, EventEmitter
+
   stylesheetPath: null
   stylesheets: null
 
@@ -24,7 +28,7 @@ class Theme
 
   # Loads the stylesheets found in a `package.cson` file.
   load: ->
-    if path.extname(@stylesheetPath) in ['.css', '.less']
+    if @isFile()
       @loadStylesheet(@stylesheetPath)
     else
       @directoryPath = @stylesheetPath
@@ -38,13 +42,18 @@ class Theme
       else
         @loadStylesheet(stylesheetPath) for stylesheetPath in fsUtils.listSync(@stylesheetPath, ['.css', '.less'])
 
+  isFile: ->
+    path.extname(@stylesheetPath) in ['.css', '.less']
+
   # Given a path, this loads it as a stylesheet.
   #
   # stylesheetPath - A {String} to a stylesheet
   loadStylesheet: (stylesheetPath) ->
-    @stylesheets.push stylesheetPath
+    @stylesheets.push(stylesheetPath) if @stylesheets.indexOf(stylesheetPath) < 0
     content = window.loadStylesheet(stylesheetPath)
     window.applyStylesheet(stylesheetPath, content, 'userTheme')
 
   deactivate: ->
     window.removeStylesheet(stylesheetPath) for stylesheetPath in @stylesheets
+    @trigger('deactivated')
+

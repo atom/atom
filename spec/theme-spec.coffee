@@ -51,3 +51,30 @@ describe "Theme", ->
       expect($(".editor").css("padding-top")).toBe "10px"
       expect($(".editor").css("padding-right")).toBe "20px"
       expect($(".editor").css("padding-bottom")).toBe "30px"
+
+  describe "reloading a theme", ->
+    beforeEach ->
+      themePath = project.resolve('themes/theme-with-package-file')
+      theme = new Theme(themePath)
+      theme.load()
+
+    afterEach ->
+      theme.deactivate()
+
+    it "reloads without readding to the stylesheets list", ->
+      expect(theme.stylesheets.length).toBe 3
+      theme.loadStylesheet(theme.stylesheets[0])
+      expect(theme.stylesheets.length).toBe 3
+
+  describe "events", ->
+    beforeEach ->
+      themePath = project.resolve('themes/theme-with-package-file')
+      theme = new Theme(themePath)
+
+    afterEach ->
+      theme.deactivate()
+
+    it "deactivated event fires on .deactivate()", ->
+      theme.on 'deactivated', spy = jasmine.createSpy()
+      theme.deactivate()
+      expect(spy).toHaveBeenCalled()
