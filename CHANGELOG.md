@@ -1,3 +1,5 @@
+* Fixed: Make Atom's version the same as Speakeasy's version
+
 * Fixed: Package generator package not opening window to generated package
 
 * Fixed: Precompile bootstrap.less for faster startup
