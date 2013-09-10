@@ -100,3 +100,26 @@
     padding-left: @component-padding/2;
   }
 }
+
+.ui-sortable {
+  li {
+    line-height: 2.5;
+  }
+
+  // For sortable lists in the settings view
+  li.ui-sortable-placeholder {
+    visibility: visible !important;
+    background-color: darken(@pane-item-background-color, 3%);
+  }
+}
+
+li.ui-sortable-helper {
+  line-height: 2.5;
+  border: 0;
+  border-radius: 0;
+  list-style: none;
+  box-sizing: content-box;
+  padding: 0 @component-padding;
+  background: @background-color-highlight;
+  box-shadow: 0 0 1px @base-border-color;
+}
