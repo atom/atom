@@ -1,3 +1,5 @@
+* Fixed: Package generator package not opening window to generated package
+
 * Fixed: Precompile bootstrap.less for faster startup
 
 * Fixed: Save sometimes failing from an editor that was split
