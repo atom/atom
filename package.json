@@ -45,7 +45,7 @@
     "collaboration": "bo-theme-rework",
     "command-logger": "0.2.0",
     "command-panel": "bo-theme-rework",
-    "command-palette": "bo-theme-rework",
+    "command-palette": "0.2.0",
     "fuzzy-finder": "0.4.0",
     "editor-stats": "0.1.0",
     "gfm": "0.3.0",
