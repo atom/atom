@@ -42,7 +42,7 @@ class ThemeManager
   loadTheme: (name) ->
     try
       theme = new Theme(name)
-      @loadedThemes.push(new Theme(name))
+      @loadedThemes.push(theme)
       @trigger('theme-loaded', theme)
     catch error
       console.warn("Failed to load theme #{name}", error.stack ? error)
