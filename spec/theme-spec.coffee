@@ -56,7 +56,6 @@ describe "Theme", ->
     beforeEach ->
       themePath = project.resolve('themes/theme-with-package-file')
       theme = new Theme(themePath)
-      theme.load()
 
     afterEach ->
       theme.deactivate()

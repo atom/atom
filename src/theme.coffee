@@ -24,7 +24,7 @@ class Theme
 
     throw new Error("No theme exists named '#{name}'") unless @stylesheetPath
 
-    @load()
+    @activate()
 
   getPath: ->
     @stylesheetPath
@@ -35,8 +35,9 @@ class Theme
   isFile: ->
     path.extname(@stylesheetPath) in ['.css', '.less']
 
-  # Loads the stylesheets found in a `package.cson` file.
-  load: ->
+  # Loads the stylesheets found in a `package.cson` file. If no package.json
+  # file, it will load them in alphabetical order.
+  activate: ->
     if @isFile()
       @loadStylesheet(@stylesheetPath)
     else

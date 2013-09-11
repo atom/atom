@@ -12,7 +12,7 @@ class ThemeManager
   _.extend @prototype, EventEmitter
 
   constructor: ->
-    @loadedThemes = []
+    @activeThemes = []
 
   getAvailablePaths: ->
     themePaths = []
@@ -23,27 +23,27 @@ class ThemeManager
   getAvailableNames: ->
     path.basename(themePath).split('.')[0] for themePath in @getAvailablePaths()
 
-  getLoadedThemes: ->
-    _.clone(@loadedThemes)
+  getActiveThemes: ->
+    _.clone(@activeThemes)
 
   unload: ->
     removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
-    theme.deactivate() while theme = @loadedThemes.pop()
+    theme.deactivate() while theme = @activeThemes.pop()
 
   load: ->
     config.observe 'core.themes', (themeNames) =>
       @unload()
       themeNames = [themeNames] unless _.isArray(themeNames)
-      @loadTheme(themeName) for themeName in themeNames
+      @activateTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
 
       @trigger('reloaded')
 
-  loadTheme: (name) ->
+  activateTheme: (name) ->
     try
       theme = new Theme(name)
-      @loadedThemes.push(theme)
-      @trigger('theme-loaded', theme)
+      @activeThemes.push(theme)
+      @trigger('theme-activated', theme)
     catch error
       console.warn("Failed to load theme #{name}", error.stack ? error)
 
@@ -55,8 +55,8 @@ class ThemeManager
       null
 
   getImportPaths: ->
-    if @loadedThemes.length
-      theme.directoryPath for theme in @loadedThemes when theme.directoryPath
+    if @activeThemes.length
+      theme.directoryPath for theme in @activeThemes when theme.directoryPath
     else
       themeNames = config.get('core.themes')
       themes = []

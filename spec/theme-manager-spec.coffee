@@ -54,7 +54,7 @@ describe "ThemeManager", ->
   describe "when a theme fails to load", ->
     it "logs a warning", ->
       spyOn(console, 'warn')
-      themeManager.loadTheme('a-theme-that-will-not-be-found')
+      themeManager.activateTheme('a-theme-that-will-not-be-found')
       expect(console.warn).toHaveBeenCalled()
 
   describe "theme-loaded event", ->
@@ -63,7 +63,7 @@ describe "ThemeManager", ->
       themeManager.load()
 
     it "fires when a new theme has been added", ->
-      themeManager.on 'theme-loaded', loadHandler = jasmine.createSpy()
+      themeManager.on 'theme-activated', loadHandler = jasmine.createSpy()
 
       config.set('core.themes', ['atom-dark-syntax'])
 
