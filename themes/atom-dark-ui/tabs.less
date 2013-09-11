@@ -1,4 +1,5 @@
 @import "ui-variables";
+@import "ui-mixins";
 
 .tab-bar {
   height: @tab-height + 6px;
@@ -40,4 +41,25 @@
 
 .tab.active:hover .close-icon {
   color: @text-color-highlight;
+}
+
+// Bootstrap nav tabs.
+.nav.nav-tabs {
+  border-bottom-color: @tab-background-color-active;
+
+  > li {
+    margin-bottom: 0px;
+  }
+
+  > li > a {
+    border: none;
+  }
+
+  > li.active > a {
+    .text(highlight);
+    border: none;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    background-color: @background-color-highlight;
+  }
 }
