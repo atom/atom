@@ -48,7 +48,7 @@ class RootView extends View
   @configDefaults:
     autosave: false
     ignoredNames: [".git", ".svn", ".DS_Store"]
-    excludeVcsIgnoredPaths: false
+    excludeVcsIgnoredPaths: true
     disabledPackages: []
     themes: ['atom-dark-ui', 'atom-dark-syntax']
     projectHome: path.join(atom.getHomeDirPath(), 'github')
