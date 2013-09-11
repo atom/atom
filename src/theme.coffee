@@ -26,6 +26,15 @@ class Theme
 
     @load()
 
+  getPath: ->
+    @stylesheetPath
+
+  getLoadedStylesheetPaths: ->
+    _.clone(@stylesheets)
+
+  isFile: ->
+    path.extname(@stylesheetPath) in ['.css', '.less']
+
   # Loads the stylesheets found in a `package.cson` file.
   load: ->
     if @isFile()
