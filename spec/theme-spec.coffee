@@ -62,9 +62,9 @@ describe "Theme", ->
       theme.deactivate()
 
     it "reloads without readding to the stylesheets list", ->
-      expect(theme.getLoadedStylesheetPaths().length).toBe 3
-      theme.loadStylesheet(theme.getLoadedStylesheetPaths()[0])
-      expect(theme.getLoadedStylesheetPaths().length).toBe 3
+      expect(theme.getStylesheetPaths().length).toBe 3
+      theme.loadStylesheet(theme.getStylesheetPaths()[0])
+      expect(theme.getStylesheetPaths().length).toBe 3
 
   describe "events", ->
     beforeEach ->

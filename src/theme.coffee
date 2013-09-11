@@ -29,7 +29,7 @@ class Theme
   getPath: ->
     @stylesheetPath
 
-  getLoadedStylesheetPaths: ->
+  getStylesheetPaths: ->
     _.clone(@stylesheets)
 
   isFile: ->
