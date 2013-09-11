@@ -143,7 +143,8 @@ window.atom =
 
   reloadBaseStylesheets: ->
     requireStylesheet('atom')
-    requireStylesheet(nativeStylesheetPath) if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
+    if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
+      requireStylesheet(nativeStylesheetPath)
 
   open: (options) ->
     ipc.sendChannel('open', options)
