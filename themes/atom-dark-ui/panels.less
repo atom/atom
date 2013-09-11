@@ -37,6 +37,7 @@
 .inset-panel {
   position: relative;
   background-color: @inset-panel-background-color;
+  border-radius: @component-border-radius;
 
   border: 1px solid @inset-panel-border-color;
   box-shadow:
@@ -72,7 +73,8 @@
   .btn {
     padding: 1px 5px;
     font-size: 10px;
-    position: relative; top: -1px;
+    position: relative;
+    top: -3px;
 
     @bg: lighten(@button-background-color, 10%);
     @hover: lighten(@button-background-color-hover, 10%);
