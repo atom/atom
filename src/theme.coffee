@@ -60,7 +60,7 @@ class Theme
   #
   # * stylesheetPath: A {String} to a stylesheet
   loadStylesheet: (stylesheetPath) ->
-    @stylesheets.push(stylesheetPath) if @stylesheets.indexOf(stylesheetPath) < 0
+    @stylesheets.push(stylesheetPath) unless _.contains(@stylesheets, stylesheetPath)
     content = window.loadStylesheet(stylesheetPath)
     window.applyStylesheet(stylesheetPath, content, 'userTheme')
 
