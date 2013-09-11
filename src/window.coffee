@@ -180,7 +180,6 @@ window.removeStylesheet = (stylesheetPath) ->
 window.applyStylesheet = (id, text, ttype = 'bundled') ->
   styleElement = window.stylesheetElementForId(id)
   if styleElement.length
-    console.log 'replacing style in', styleElement
     styleElement.text(text)
   else
     if $("head style.#{ttype}").length
