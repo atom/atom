@@ -23,7 +23,7 @@ class ThemeManager
   getAvailableNames: ->
     path.basename(themePath).split('.')[0] for themePath in @getAvailablePaths()
 
-  getThemes: ->
+  getLoadedThemes: ->
     _.clone(@loadedThemes)
 
   unload: ->
