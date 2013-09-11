@@ -51,18 +51,16 @@ class Theme
       else
         @loadStylesheet(stylesheetPath) for stylesheetPath in fsUtils.listSync(@stylesheetPath, ['.css', '.less'])
 
-  isFile: ->
-    path.extname(@stylesheetPath) in ['.css', '.less']
+  deactivate: ->
+    window.removeStylesheet(stylesheetPath) for stylesheetPath in @stylesheets
+    @trigger('deactivated')
 
-  # Given a path, this loads it as a stylesheet.
+  # Given a path, this loads it as a stylesheet. Can be called more than once
+  # to reload a stylesheet.
   #
-  # stylesheetPath - A {String} to a stylesheet
+  # * stylesheetPath: A {String} to a stylesheet
   loadStylesheet: (stylesheetPath) ->
     @stylesheets.push(stylesheetPath) if @stylesheets.indexOf(stylesheetPath) < 0
     content = window.loadStylesheet(stylesheetPath)
     window.applyStylesheet(stylesheetPath, content, 'userTheme')
-
-  deactivate: ->
-    window.removeStylesheet(stylesheetPath) for stylesheetPath in @stylesheets
-    @trigger('deactivated')
 
