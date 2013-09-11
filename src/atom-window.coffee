@@ -18,7 +18,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, @isSpec} = settings
+    {@resourcePath, pathToOpen, initialLine, @isSpec} = settings
     global.atomApplication.addWindow(this)
 
     @setupNodePath(@resourcePath)
@@ -41,7 +41,7 @@ class AtomWindow
     @browserWindow.once 'window:loaded', => @loaded = true
     @browserWindow.loadUrl "file://#{@resourcePath}/static/index.html"
 
-    @openPath(pathToOpen)
+    @openPath(pathToOpen, initialLine)
 
   setupNodePath: (resourcePath) ->
     paths = [
@@ -104,12 +104,12 @@ class AtomWindow
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
 
-  openPath: (pathToOpen) ->
+  openPath: (pathToOpen, initialLine) ->
     if @loaded
       @focus()
-      @sendCommand('window:open-path', pathToOpen)
+      @sendCommand('window:open-path', {pathToOpen, initialLine})
     else
-      @browserWindow.once 'window:loaded', => @openPath(pathToOpen)
+      @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine)
 
   createContextMenu: ->
     @contextMenu = new Menu

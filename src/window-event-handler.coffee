@@ -16,8 +16,8 @@ class WindowEventHandler
 
     @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
     @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
-    @subscribe $(window), 'window:open-path', (event, pathToOpen) ->
-      rootView?.open(pathToOpen) unless fsUtils.isDirectorySync(pathToOpen)
+    @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
+      rootView?.open(pathToOpen, initialLine: initialLine) unless fsUtils.isDirectorySync(pathToOpen)
     @subscribe $(window), 'beforeunload', -> rootView?.confirmClose()
 
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()

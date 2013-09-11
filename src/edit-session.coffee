@@ -80,7 +80,7 @@ class EditSession
       @setScrollLeft(@state.get('scrollLeft'))
       registerEditSession = true
     else
-      {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation} = optionsOrState
+      {buffer, displayBuffer, tabLength, softTabs, softWrap, suppressCursorCreation, initialLine} = optionsOrState
       @id = guid.create().toString()
       displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap})
       @state = site.createDocument
@@ -95,7 +95,10 @@ class EditSession
       @setDisplayBuffer(displayBuffer)
 
     if @getCursors().length is 0 and not suppressCursorCreation
-      position = _.last(@getRemoteCursors())?.getBufferPosition() ? [0, 0]
+      if initialLine
+        position = [initialLine, 0]
+      else
+        position = _.last(@getRemoteCursors())?.getBufferPosition() ? [0, 0]
       @addCursorAtBufferPosition(position)
 
     @languageMode = new LanguageMode(this, @buffer.getExtension())

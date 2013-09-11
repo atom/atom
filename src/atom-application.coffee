@@ -201,8 +201,8 @@ class AtomApplication
   # Public: Opens a single path, in an existing window if possible.
   #
   # * options
-  #    + pathsToOpen:
-  #      The array of file paths to open
+  #    + pathToOpen:
+  #      The file path to open
   #    + pidToKillWhenClosed:
   #      The integer of the pid to kill
   #    + newWindow:
@@ -210,18 +210,21 @@ class AtomApplication
   #    + devMode:
   #      Boolean to control the opened window's dev mode.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode}={}) ->
+    [pathToOpen, initialLine] = pathToOpen.split(':')
+    initialLine -= 1 # Convert line numbers to a base of 0
+
     unless devMode
       existingWindow = @windowForPath(pathToOpen) unless pidToKillWhenClosed or newWindow
     if existingWindow
       openedWindow = existingWindow
-      openedWindow.openPath(pathToOpen)
+      openedWindow.openPath(pathToOpen, initialLine)
     else
       bootstrapScript = 'window-bootstrap'
       if devMode
         resourcePath = global.devResourcePath
       else
         resourcePath = @resourcePath
-      openedWindow = new AtomWindow({pathToOpen, bootstrapScript, resourcePath, devMode})
+      openedWindow = new AtomWindow({pathToOpen, initialLine, bootstrapScript, resourcePath, devMode})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
