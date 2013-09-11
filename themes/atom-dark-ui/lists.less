@@ -113,12 +113,12 @@
   }
 }
 
-li.ui-sortable-helper {
-  line-height: 2.5;
+li.ui-draggable-dragging, li.ui-sortable-helper {
+  line-height: @component-line-height;
+  height: @component-line-height;
   border: 0;
   border-radius: 0;
   list-style: none;
-  box-sizing: content-box;
   padding: 0 @component-padding;
   background: @background-color-highlight;
   box-shadow: 0 0 1px @base-border-color;
