@@ -39,8 +39,8 @@ describe "ThemeManager", ->
 
       config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
       expect($('style.theme').length).toBe 2
-      expect($('style.theme:eq(0)').attr('id')).toMatch /atom-light-syntax/
-      expect($('style.theme:eq(1)').attr('id')).toMatch /atom-dark-syntax/
+      expect($('style.theme:eq(0)').attr('id')).toMatch /atom-dark-syntax/
+      expect($('style.theme:eq(1)').attr('id')).toMatch /atom-light-syntax/
 
       config.set('core.themes', [])
       expect($('style.theme').length).toBe 0
