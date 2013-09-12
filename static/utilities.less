@@ -15,11 +15,11 @@
 
 // Blocks
 
-.block {
-  display: block;
+// Must be div.block so as not to affect syntax highlighting.
+div.block {
   margin-bottom: @component-padding;
 }
-div > .block:last-child {
+div > div.block:last-child {
   margin-bottom: 0;
 }
 
