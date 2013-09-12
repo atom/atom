@@ -145,7 +145,7 @@ class AtomApplication
       event.preventDefault()
       @applicationMenu.showDownloadUpdateItem(version, quitAndUpdateCallback)
 
-    # A request from the associated browser process to open a new browser process.
+    # A request from the associated render process to open a new render process.
     ipc.on 'open', (processId, routingId, options) =>
       if options?
         if options.pathsToOpen?.length > 0
