@@ -64,7 +64,8 @@ class AtomPackage extends Package
 
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
-    applyStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
+    type = if @metadata.theme then 'theme' else 'bundled'
+    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
       syntax.addProperties(scopedPropertiesPath, selector, properties)
@@ -139,7 +140,8 @@ class AtomPackage extends Package
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
     removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
-    applyStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
+    type = if @metadata.theme then 'theme' else 'bundled'
+    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
 
   requireMainModule: ->
     return @mainModule if @mainModule?
