@@ -1,10 +1,14 @@
+_ = require 'underscore'
 fsUtils = require 'fs-utils'
 path = require 'path'
+EventEmitter = require 'event-emitter'
 
 ### Internal ###
 
 module.exports =
 class Theme
+  _.extend @prototype, EventEmitter
+
   stylesheetPath: null
   stylesheets: null
 
@@ -20,11 +24,21 @@ class Theme
 
     throw new Error("No theme exists named '#{name}'") unless @stylesheetPath
 
-    @load()
+    @activate()
 
-  # Loads the stylesheets found in a `package.cson` file.
-  load: ->
-    if path.extname(@stylesheetPath) in ['.css', '.less']
+  getPath: ->
+    @stylesheetPath
+
+  getStylesheetPaths: ->
+    _.clone(@stylesheets)
+
+  isFile: ->
+    path.extname(@stylesheetPath) in ['.css', '.less']
+
+  # Loads the stylesheets found in a `package.cson` file. If no package.json
+  # file, it will load them in alphabetical order.
+  activate: ->
+    if @isFile()
       @loadStylesheet(@stylesheetPath)
     else
       @directoryPath = @stylesheetPath
@@ -38,13 +52,16 @@ class Theme
       else
         @loadStylesheet(stylesheetPath) for stylesheetPath in fsUtils.listSync(@stylesheetPath, ['.css', '.less'])
 
-  # Given a path, this loads it as a stylesheet.
+  deactivate: ->
+    window.removeStylesheet(stylesheetPath) for stylesheetPath in @stylesheets
+    @trigger('deactivated')
+
+  # Given a path, this loads it as a stylesheet. Can be called more than once
+  # to reload a stylesheet.
   #
-  # stylesheetPath - A {String} to a stylesheet
+  # * stylesheetPath: A {String} to a stylesheet
   loadStylesheet: (stylesheetPath) ->
-    @stylesheets.push stylesheetPath
+    @stylesheets.push(stylesheetPath) unless _.contains(@stylesheets, stylesheetPath)
     content = window.loadStylesheet(stylesheetPath)
     window.applyStylesheet(stylesheetPath, content, 'userTheme')
 
-  deactivate: ->
-    window.removeStylesheet(stylesheetPath) for stylesheetPath in @stylesheets

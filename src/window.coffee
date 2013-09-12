@@ -178,7 +178,10 @@ window.removeStylesheet = (stylesheetPath) ->
   window.stylesheetElementForId(fullPath).remove()
 
 window.applyStylesheet = (id, text, ttype = 'bundled') ->
-  unless window.stylesheetElementForId(id).length
+  styleElement = window.stylesheetElementForId(id)
+  if styleElement.length
+    styleElement.text(text)
+  else
     if $("head style.#{ttype}").length
       $("head style.#{ttype}:last").after "<style class='#{ttype}' id='#{id}'>#{text}</style>"
     else

@@ -5,11 +5,14 @@ path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
 CSON = require 'season'
+EventEmitter = require 'event-emitter'
 
 ### Internal: Loads and resolves packages. ###
 
 module.exports =
 class AtomPackage extends Package
+  _.extend @prototype, EventEmitter
+
   metadata: null
   keymaps: null
   stylesheets: null
@@ -79,8 +82,11 @@ class AtomPackage extends Package
   loadStylesheets: ->
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) -> [stylesheetPath, loadStylesheet(stylesheetPath)]
 
+  getStylesheetsPath: ->
+    path.join(@path, 'stylesheets')
+
   getStylesheetPaths: ->
-    stylesheetDirPath = path.join(@path, 'stylesheets')
+    stylesheetDirPath = @getStylesheetsPath()
     if @metadata.stylesheets
       @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
     else
@@ -111,6 +117,7 @@ class AtomPackage extends Package
     @deactivateResources()
     @deactivateConfig()
     @mainModule?.deactivate?() if @mainActivated
+    @trigger('deactivated')
 
   deactivateConfig: ->
     @mainModule?.deactivateConfig?()

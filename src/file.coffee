@@ -80,7 +80,7 @@ class File
       @setPath(path)
       @trigger "moved"
     else if eventType is "change"
-      oldContents = @read()
+      oldContents = @cachedContents
       newContents = @read(true)
       return if oldContents == newContents
       @trigger 'contents-changed'

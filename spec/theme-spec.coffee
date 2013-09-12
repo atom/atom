@@ -10,7 +10,7 @@ describe "Theme", ->
     $("#jasmine-content").append $("<div class='editor'></div>")
 
   afterEach ->
-    theme.deactivate()
+    theme.deactivate() if theme?
 
   describe "when the theme is a file", ->
     it "loads and applies css", ->
@@ -51,3 +51,23 @@ describe "Theme", ->
       expect($(".editor").css("padding-top")).toBe "10px"
       expect($(".editor").css("padding-right")).toBe "20px"
       expect($(".editor").css("padding-bottom")).toBe "30px"
+
+  describe "reloading a theme", ->
+    beforeEach ->
+      themePath = project.resolve('themes/theme-with-package-file')
+      theme = new Theme(themePath)
+
+    it "reloads without readding to the stylesheets list", ->
+      expect(theme.getStylesheetPaths().length).toBe 3
+      theme.loadStylesheet(theme.getStylesheetPaths()[0])
+      expect(theme.getStylesheetPaths().length).toBe 3
+
+  describe "events", ->
+    beforeEach ->
+      themePath = project.resolve('themes/theme-with-package-file')
+      theme = new Theme(themePath)
+
+    it "deactivated event fires on .deactivate()", ->
+      theme.on 'deactivated', spy = jasmine.createSpy()
+      theme.deactivate()
+      expect(spy).toHaveBeenCalled()
