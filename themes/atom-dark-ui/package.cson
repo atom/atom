@@ -7,8 +7,10 @@
   'loading'
   'buttons'
   'panels'
+  'panes'
   'lists'
   'editor'
   'tabs'
   'overlays'
+  'dropdowns'
 ]
