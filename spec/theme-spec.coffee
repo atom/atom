@@ -1,9 +1,8 @@
 $ = require 'jquery'
 fsUtils = require 'fs-utils'
 path = require 'path'
-Theme = require 'theme'
 
-describe "Theme", ->
+xdescribe "Theme", ->
   theme = null
 
   beforeEach ->

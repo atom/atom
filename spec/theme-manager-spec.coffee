@@ -1,6 +1,5 @@
 $ = require 'jquery'
 
-Theme = require 'theme'
 ThemeManager = require 'theme-manager'
 
 describe "ThemeManager", ->

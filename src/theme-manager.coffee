@@ -4,7 +4,6 @@ EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
 fsUtils = require 'fs-utils'
-Theme = require 'theme'
 
 # Private: Handles discovering and loading available themes.
 module.exports =
