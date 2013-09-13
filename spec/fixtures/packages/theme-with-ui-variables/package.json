@@ -1,3 +1,4 @@
 {
+  "theme": true,
   "stylesheets": ["editor.less"]
 }
