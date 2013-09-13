@@ -13,6 +13,8 @@ module.exports =
 class AtomPackage extends Package
   _.extend @prototype, EventEmitter
 
+  @stylesheetsDir: 'stylesheets'
+
   metadata: null
   keymaps: null
   stylesheets: null
@@ -84,17 +86,16 @@ class AtomPackage extends Package
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) -> [stylesheetPath, loadStylesheet(stylesheetPath)]
 
   getStylesheetsPath: ->
-    path.join(@path, 'stylesheets')
+    path.join(@path, @constructor.stylesheetsDir)
 
   getStylesheetPaths: ->
     stylesheetDirPath = @getStylesheetsPath()
-    indexStylesheet = fsUtils.resolve(@path, 'index', ['css', 'less'])
 
     if @metadata.stylesheetMain
-      [fsUtils.resolve(stylesheetDirPath, @metadata.stylesheetMain)]
+      [fsUtils.resolve(@path, @metadata.stylesheetMain)]
     else if @metadata.stylesheets
       @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
-    else if indexStylesheet
+    else if indexStylesheet = fsUtils.resolve(@path, 'index', ['css', 'less'])
       [indexStylesheet]
     else
       fsUtils.listSync(stylesheetDirPath, ['css', 'less'])
