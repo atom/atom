@@ -3,6 +3,7 @@ window.setUpEnvironment('spec')
 window.restoreDimensions()
 
 nakedLoad 'jasmine-jquery'
+path = require 'path'
 $ = jQuery = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
@@ -37,7 +38,9 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
   jQuery.fx.off = true
-  window.project = new Project(fsUtils.resolveOnLoadPath('fixtures'))
+
+  specDirectory = atom.getLoadSettings().specDirectory ? path.resolve("./specs")
+  window.project = new Project(path.join(specDirectory, 'fixtures'))
 
   window.resetTimeouts()
   atom.packageStates = {}
