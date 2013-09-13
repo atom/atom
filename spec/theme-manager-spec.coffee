@@ -1,6 +1,7 @@
 $ = require 'jquery'
 
 ThemeManager = require 'theme-manager'
+AtomPackage = require 'atom-package'
 
 describe "ThemeManager", ->
   themeManager = null
@@ -33,16 +34,16 @@ describe "ThemeManager", ->
       expect(reloadHandler).toHaveBeenCalled()
 
       config.set('core.themes', ['atom-dark-syntax'])
-      expect($('style.userTheme').length).toBe 1
-      expect($('style.userTheme:eq(0)').attr('id')).toMatch /atom-dark-syntax.less$/
+      expect($('style.theme').length).toBe 1
+      expect($('style.theme:eq(0)').attr('id')).toMatch /atom-dark-syntax/
 
       config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
-      expect($('style.userTheme').length).toBe 2
-      expect($('style.userTheme:eq(0)').attr('id')).toMatch /atom-light-syntax.less$/
-      expect($('style.userTheme:eq(1)').attr('id')).toMatch /atom-dark-syntax.less$/
+      expect($('style.theme').length).toBe 2
+      expect($('style.theme:eq(0)').attr('id')).toMatch /atom-light-syntax/
+      expect($('style.theme:eq(1)').attr('id')).toMatch /atom-dark-syntax/
 
       config.set('core.themes', [])
-      expect($('style.userTheme').length).toBe 0
+      expect($('style.theme').length).toBe 0
 
       # atom-dark-ui has an directory path, the syntax ones dont.
       config.set('core.themes', ['atom-light-syntax', 'atom-dark-ui', 'atom-dark-syntax'])
@@ -67,4 +68,4 @@ describe "ThemeManager", ->
       config.set('core.themes', ['atom-dark-syntax'])
 
       expect(loadHandler).toHaveBeenCalled()
-      expect(loadHandler.mostRecentCall.args[0]).toBeInstanceOf Theme
+      expect(loadHandler.mostRecentCall.args[0]).toBeInstanceOf AtomPackage

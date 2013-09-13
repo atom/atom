@@ -22,7 +22,7 @@ describe "the `atom` global", ->
       atom.reloadBaseStylesheets()
 
     it "loads the correct values from the theme's ui-variables file", ->
-      config.set('core.themes', [project.resolve('themes/theme-with-ui-variables')])
+      config.set('core.themes', ['theme-with-ui-variables'])
 
       # an override loaded in the base css
       expect(rootView.css("background-color")).toBe "rgb(0, 0, 255)"
