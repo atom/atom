@@ -681,10 +681,11 @@ class Editor extends View
       @insertText(e.originalEvent.data)
       false
 
-    @scrollView.on 'mousewheel', (e) =>
-      if delta = e.originalEvent.wheelDeltaY
-        @scrollTop(@scrollTop() - delta)
-        false
+    unless @mini
+      @scrollView.on 'mousewheel', (e) =>
+        if delta = e.originalEvent.wheelDeltaY
+          @scrollTop(@scrollTop() - delta)
+          false
 
     @verticalScrollbar.on 'scroll', =>
       @scrollTop(@verticalScrollbar.scrollTop(), adjustVerticalScrollbar: false)
