@@ -165,15 +165,21 @@ class RootView extends View
 
   # Public: Opens a given a filepath in Atom.
   #
+  # * path: A file path
+  # * options
+  #    + initialLine:
+  #      The buffer line number to open to.
+  #
   # Returns the {EditSession} for the file URI.
   open: (path, options = {}) ->
     changeFocus = options.changeFocus ? true
+    initialLine = options.initialLine
     path = project.relativize(path)
     if activePane = @getActivePane()
-      editSession = activePane.itemForUri(path) ? project.open(path)
+      editSession = activePane.itemForUri(path) ? project.open(path, {initialLine})
       activePane.showItem(editSession)
     else
-      editSession = project.open(path)
+      editSession = project.open(path, {initialLine})
       activePane = new Pane(editSession)
       @panes.setRoot(activePane)
 
