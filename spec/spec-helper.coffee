@@ -39,7 +39,7 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 beforeEach ->
   jQuery.fx.off = true
 
-  specDirectory = atom.getLoadSettings().specDirectory ? path.resolve("./specs")
+  specDirectory = atom.getLoadSettings().specDirectory ? fsUtils.resolveOnLoadPath("spec")
   window.project = new Project(path.join(specDirectory, 'fixtures'))
 
   window.resetTimeouts()
