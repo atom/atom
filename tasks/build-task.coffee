@@ -54,7 +54,6 @@ module.exports = (grunt) ->
     cp 'spec', path.join(appDir, 'spec')
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee|less)$/
     cp 'static', path.join(appDir, 'static'), filter: /.+\.less$/
-    cp 'themes', path.join(appDir, 'themes'), filter: /.+\.(cson|less)$/
 
     grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
       unless /.+\.plist/.test(sourcePath)
