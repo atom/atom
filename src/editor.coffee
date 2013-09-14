@@ -705,11 +705,13 @@ class Editor extends View
     startScreenPosition = null
     @hiddenInput.on 'compositionstart', =>
       startScreenPosition = @getCursorScreenPosition()
+      @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
       @insertText(e.originalEvent.data)
       @selectToScreenPosition(startScreenPosition)
     @hiddenInput.on 'compositionend', =>
       @delete()
+      @hiddenInput.css('width', '1px')
       startScreenPosition = null
 
   selectOnMousemoveUntilMouseup: ->
