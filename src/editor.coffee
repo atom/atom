@@ -88,6 +88,7 @@ class Editor extends View
     @configure()
     @bindKeys()
     @handleEvents()
+    @handleImeEvents()
     @cursorViews = []
     @selectionViews = []
     @pendingChanges = []
@@ -695,6 +696,10 @@ class Editor extends View
         @gutter.removeClass('drop-shadow')
       else
         @gutter.addClass('drop-shadow')
+
+  handleImeEvents: ->
+    @on 'cursor:moved', =>
+      @hiddenInput.offset(@getCursorView().offset())
 
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
