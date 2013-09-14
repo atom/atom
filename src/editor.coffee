@@ -702,17 +702,13 @@ class Editor extends View
       cursorView = @getCursorView()
       @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
 
-    startScreenPosition = null
     @hiddenInput.on 'compositionstart', =>
-      startScreenPosition = @getCursorScreenPosition()
       @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
-      @insertText(e.originalEvent.data)
-      @selectToScreenPosition(startScreenPosition)
+      @insertText(e.originalEvent.data, select: true)
     @hiddenInput.on 'compositionend', =>
       @delete()
       @hiddenInput.css('width', '1px')
-      startScreenPosition = null
 
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
