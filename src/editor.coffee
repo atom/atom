@@ -699,7 +699,18 @@ class Editor extends View
 
   handleImeEvents: ->
     @on 'cursor:moved', =>
-      @hiddenInput.offset(@getCursorView().offset())
+      cursorView = @getCursorView()
+      @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
+
+    startScreenPosition = null
+    @hiddenInput.on 'compositionstart', =>
+      startScreenPosition = @getCursorScreenPosition()
+    @hiddenInput.on 'compositionupdate', (e) =>
+      @insertText(e.originalEvent.data)
+      @selectToScreenPosition(startScreenPosition)
+    @hiddenInput.on 'compositionend', =>
+      @delete()
+      startScreenPosition = null
 
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
