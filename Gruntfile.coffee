@@ -32,14 +32,12 @@ module.exports = (grunt) ->
       paths: [
         'static/variables'
         'static'
-        'vendor/bootstrap/less'
       ]
     glob_to_multiple:
       expand: true
       src: [
         'src/**/*.less'
         'static/**/*.less'
-        'vendor/bootstrap/less/bootstrap.less'
       ]
       dest: appDir
       ext: '.css'
