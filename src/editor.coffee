@@ -88,7 +88,7 @@ class Editor extends View
     @configure()
     @bindKeys()
     @handleEvents()
-    @handleImeEvents()
+    @handleInputEvents()
     @cursorViews = []
     @selectionViews = []
     @pendingChanges = []
@@ -678,10 +678,6 @@ class Editor extends View
 
       @selectOnMousemoveUntilMouseup() unless e.ctrlKey or e.originalEvent.which > 1
 
-    @on "textInput", (e) =>
-      @insertText(e.originalEvent.data)
-      false
-
     unless @mini
       @scrollView.on 'mousewheel', (e) =>
         if delta = e.originalEvent.wheelDeltaY
@@ -697,7 +693,7 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-  handleImeEvents: ->
+  handleInputEvents: ->
     @on 'cursor:moved', =>
       cursorView = @getCursorView()
       @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
@@ -711,6 +707,20 @@ class Editor extends View
     @hiddenInput.on 'compositionend', =>
       @insertText(selectedText, {select: true, skipUndo: true})
       @hiddenInput.css('width', '1px')
+
+    lastInput = ''
+    @on "textInput", (e) =>
+      # Work around of the accented character suggestion feature in OS X.
+      selectedLength = @hiddenInput[0].selectionEnd - @hiddenInput[0].selectionStart
+      if selectedLength is 1 and lastInput is @hiddenInput.val()
+        position = @getCursorScreenPosition()
+        position.column -= 1
+        @selectToScreenPosition(position)
+
+      lastInput = e.originalEvent.data
+      @insertText(lastInput)
+      @hiddenInput.val(lastInput)
+      false
 
   selectOnMousemoveUntilMouseup: ->
     lastMoveEvent = null
