@@ -3,7 +3,6 @@ path = require 'path'
 _ = require 'underscore'
 LessCache = require 'less-cache'
 
-
 module.exports =
 class LessCompileCache
   _.extend @prototype, require('./subscriber')
