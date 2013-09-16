@@ -39,7 +39,10 @@ class WindowEventHandler
 
     @subscribe $(document), 'contextmenu', (e) ->
       e.preventDefault()
-      remote.getCurrentWindow().emit('context-menu', e.pageX, e.pageY)
+      menuTemplate = [
+        { label: 'Inspect Element', click: -> remote.getCurrentWindow().inspectElement(e.pageX, e.pageY) }
+      ]
+      remote.getCurrentWindow().emit('context-menu', menuTemplate)
 
   openLink: (event) =>
     location = $(event.target).attr('href')
