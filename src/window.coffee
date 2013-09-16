@@ -3,7 +3,6 @@ path = require 'path'
 telepath = require 'telepath'
 $ = require 'jquery'
 _ = require 'underscore'
-less = require 'less'
 remote = require 'remote'
 ipc = require 'ipc'
 WindowEventHandler = require 'window-event-handler'
@@ -14,6 +13,7 @@ require 'space-pen-extensions'
 deserializers = {}
 deferredDeserializers = {}
 defaultWindowDimensions = {width: 800, height: 600}
+lessCache = null
 
 ### Internal ###
 
@@ -80,6 +80,7 @@ window.unloadEditorWindow = ->
   rootView.remove()
   project.destroy()
   windowEventHandler?.unsubscribe()
+  lessCache?.destroy()
   window.rootView = null
   window.project = null
 
@@ -153,18 +154,12 @@ window.loadStylesheet = (stylesheetPath) ->
     fsUtils.read(stylesheetPath)
 
 window.loadLessStylesheet = (lessStylesheetPath) ->
-  importPaths = atom.themes.getImportPaths()
-  parser = new less.Parser
-    syncImport: true
-    paths: importPaths.concat(config.lessSearchPaths)
-    filename: lessStylesheetPath
+  unless lessCache?
+    LessCompileCache = require 'less-compile-cache'
+    lessCache = new LessCompileCache()
 
   try
-    content = null
-    parser.parse fsUtils.read(lessStylesheetPath), (e, tree) ->
-      throw e if e?
-      content = tree.toCSS()
-    content
+    lessCache.read(lessStylesheetPath)
   catch e
     console.error """
       Error compiling less stylesheet: #{lessStylesheetPath}
