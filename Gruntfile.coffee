@@ -172,7 +172,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadTasks('tasks')
 
-  grunt.registerTask('compile', ['coffee', 'less', 'cson'])
+  grunt.registerTask('compile', ['coffee', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'shell:test'])
   grunt.registerTask('ci', ['lint', 'update-atom-shell', 'build', 'set-development-version', 'test'])
