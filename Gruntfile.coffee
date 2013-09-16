@@ -39,7 +39,6 @@ module.exports = (grunt) ->
       src: [
         'src/**/*.less'
         'static/**/*.less'
-        'themes/**/*.less'
         'vendor/bootstrap/less/bootstrap.less'
       ]
       dest: appDir
