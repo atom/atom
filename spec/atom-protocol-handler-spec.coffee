@@ -1,6 +1,4 @@
 $ = require 'jquery'
-fs = require 'fs'
-path = require 'path'
 
 describe '"atom" protocol URL', ->
   it 'sends the file relative in the package as response', ->
@@ -11,7 +9,7 @@ describe '"atom" protocol URL', ->
       success: callback
       # In old versions of jQuery, ajax calls to custom protocol would always
       # be treated as error eventhough the browser thinks it's a success
-      # request
+      # request.
       error: callback
 
     waitsFor 'request to be done', -> called is true
