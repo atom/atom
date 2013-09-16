@@ -46,7 +46,6 @@ class Config
   lessSearchPaths: [
     path.join(resourcePath, 'static', 'variables')
     path.join(resourcePath, 'static')
-    path.join(resourcePath, 'vendor', 'less')
   ]
   defaultSettings: null
   settings: null
