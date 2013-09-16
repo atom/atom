@@ -36,3 +36,6 @@ class Package
 
   isActive: ->
     atom.isPackageActive(@name)
+
+  isTheme: ->
+    !!@metadata?.theme

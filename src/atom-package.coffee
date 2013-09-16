@@ -13,6 +13,8 @@ module.exports =
 class AtomPackage extends Package
   _.extend @prototype, EventEmitter
 
+  @stylesheetsDir: 'stylesheets'
+
   metadata: null
   keymaps: null
   stylesheets: null
@@ -64,7 +66,8 @@ class AtomPackage extends Package
 
   activateResources: ->
     keymap.add(keymapPath, map) for [keymapPath, map] in @keymaps
-    applyStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
+    type = if @metadata.theme then 'theme' else 'bundled'
+    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
     syntax.addGrammar(grammar) for grammar in @grammars
     for [scopedPropertiesPath, selector, properties] in @scopedProperties
       syntax.addProperties(scopedPropertiesPath, selector, properties)
@@ -83,12 +86,17 @@ class AtomPackage extends Package
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) -> [stylesheetPath, loadStylesheet(stylesheetPath)]
 
   getStylesheetsPath: ->
-    path.join(@path, 'stylesheets')
+    path.join(@path, @constructor.stylesheetsDir)
 
   getStylesheetPaths: ->
     stylesheetDirPath = @getStylesheetsPath()
-    if @metadata.stylesheets
+
+    if @metadata.stylesheetMain
+      [fsUtils.resolve(@path, @metadata.stylesheetMain)]
+    else if @metadata.stylesheets
       @metadata.stylesheets.map (name) -> fsUtils.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+    else if indexStylesheet = fsUtils.resolve(@path, 'index', ['css', 'less'])
+      [indexStylesheet]
     else
       fsUtils.listSync(stylesheetDirPath, ['css', 'less'])
 
@@ -133,7 +141,11 @@ class AtomPackage extends Package
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
     removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
-    applyStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
+    @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
+
+  reloadStylesheet: (stylesheetPath, content) ->
+    type = if @metadata.theme then 'theme' else 'bundled'
+    window.applyStylesheet(stylesheetPath, content, type)
 
   requireMainModule: ->
     return @mainModule if @mainModule?
