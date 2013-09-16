@@ -14,11 +14,7 @@ module.exports = (grunt) ->
     directory = path.join(grunt.config.get('atom.appDir'), 'less-compile-cache')
 
     for configuration in prebuiltConfigurations
-      importPaths = [
-        path.resolve('static/variables')
-        path.resolve('static')
-        path.resolve('vendor')
-      ]
+      importPaths = grunt.config.get('less.options.paths')
       themeMains = []
       for theme in configuration
         # TODO Use AtomPackage class once it runs outside of an Atom context
