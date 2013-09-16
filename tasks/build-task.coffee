@@ -30,7 +30,6 @@ module.exports = (grunt) ->
       directory = path.join('node_modules', child)
       try
         {name, engines} = grunt.file.readJSON(path.join(directory, 'package.json'))
-        continue if devDependencies[name]?
         if engines?.atom?
           packageDirectories.push(directory)
         else
