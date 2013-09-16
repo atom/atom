@@ -3,7 +3,7 @@ LessCache = require 'less-cache'
 
 module.exports =
 class LessCompileCache
-  _.extend @prototype, require('subscriber')
+  _.extend @prototype, require('./subscriber')
 
   @cacheDir: '/tmp/atom-compile-cache/less'
 
