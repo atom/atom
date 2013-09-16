@@ -58,7 +58,6 @@ module.exports = (grunt) ->
       src: [
         'keymaps/*.cson'
         'static/**/*.cson'
-        'themes/**/*.cson'
       ]
       dest: appDir
       ext: '.json'
@@ -124,13 +123,11 @@ module.exports = (grunt) ->
         'vendor-prefix': false
       src: [
         'static/**/*.css'
-        'themes/**/*.css'
       ]
 
     lesslint:
       src: [
         'static/**/*.less'
-        'themes/**/*.less'
       ]
 
     markdown:
