@@ -20,7 +20,7 @@ module.exports = (grunt) ->
         path.resolve('vendor')
       ]
       for theme in configuration
-        # TODO Using AtomPackage class once it runs outside of an Atom context
+        # TODO Use AtomPackage class once it runs outside of an Atom context
         themePath = path.resolve('node_modules', theme, 'stylesheets')
         importPaths.unshift(themePath) if grunt.file.isDir(themePath)
 
