@@ -296,6 +296,8 @@ class Selection
   #    + autoDecreaseIndent:
   #      if `true`, decreases indent level appropriately (for example, when a
   #      closing bracket is inserted)
+  #    + skipUndo:
+  #      if `true`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
@@ -306,7 +308,7 @@ class Selection
     if options.indentBasis? and not options.autoIndent
       text = @normalizeIndents(text, options.indentBasis)
 
-    newBufferRange = @editSession.buffer.change(oldBufferRange, text)
+    newBufferRange = @editSession.buffer.change(oldBufferRange, text, skipUndo: options.skipUndo)
     if options.select
       @setBufferRange(newBufferRange, isReversed: wasReversed)
     else

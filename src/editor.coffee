@@ -705,9 +705,9 @@ class Editor extends View
     @hiddenInput.on 'compositionstart', =>
       @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
-      @insertText(e.originalEvent.data, select: true)
+      @insertText(e.originalEvent.data, {select: true, skipUndo: true})
     @hiddenInput.on 'compositionend', =>
-      @delete()
+      @insertText('', skipUndo: true)
       @hiddenInput.css('width', '1px')
 
   selectOnMousemoveUntilMouseup: ->
