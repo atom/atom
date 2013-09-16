@@ -32,7 +32,7 @@ module.exports = (grunt) ->
       paths: [
         'static/variables'
         'static'
-        'vendor'
+        'vendor/bootstrap/less'
       ]
     glob_to_multiple:
       expand: true

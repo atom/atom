@@ -43,7 +43,11 @@ class Config
   packageDirPaths: _.clone(userPackageDirPaths)
   userPackageDirPaths: userPackageDirPaths
   userStoragePath: userStoragePath
-  lessSearchPaths: [path.join(resourcePath, 'static', 'variables'), path.join(resourcePath, 'static'), path.join(resourcePath, 'vendor')]
+  lessSearchPaths: [
+    path.join(resourcePath, 'static', 'variables')
+    path.join(resourcePath, 'static')
+    path.join(resourcePath, 'vendor', 'less')
+  ]
   defaultSettings: null
   settings: null
   configFileHasErrors: null
