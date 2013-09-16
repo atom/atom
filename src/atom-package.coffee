@@ -141,8 +141,11 @@ class AtomPackage extends Package
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
     removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
+    @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
+
+  reloadStylesheet: (stylesheetPath, content) ->
     type = if @metadata.theme then 'theme' else 'bundled'
-    applyStylesheet(stylesheetPath, content, type) for [stylesheetPath, content] in @stylesheets
+    window.applyStylesheet(stylesheetPath, content, type)
 
   requireMainModule: ->
     return @mainModule if @mainModule?
