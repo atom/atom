@@ -36,7 +36,6 @@ module.exports = (grunt) ->
     glob_to_multiple:
       expand: true
       src: [
-        'src/**/*.less'
         'static/**/*.less'
       ]
       dest: appDir
