@@ -341,7 +341,8 @@ describe "Project", ->
           expect(paths[0]).toBe filePath
           expect(matches.length).toBe 1
 
-      it "excludes values in core.ignoredNames", ->
+      xit "excludes values in core.ignoredNames", ->
+        # FIXME: this test doesnt make any sense. Why should it ignore the whole project dir?
         projectPath = '/tmp/atom-tests/folder-with-dot-git/.git'
         filePath = path.join(projectPath, 'test.txt')
         fsUtils.writeSync(filePath, 'match this')
