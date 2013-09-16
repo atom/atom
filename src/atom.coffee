@@ -141,7 +141,7 @@ window.atom =
       null
 
   loadBaseStylesheets: ->
-    requireStylesheet('bootstrap')
+    requireStylesheet('bootstrap/less/bootstrap')
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
