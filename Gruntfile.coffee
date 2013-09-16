@@ -32,18 +32,20 @@ module.exports = (grunt) ->
       paths: [
         'static/variables'
         'static'
-        'vendor'
       ]
     glob_to_multiple:
       expand: true
       src: [
-        'src/**/*.less'
         'static/**/*.less'
-        'themes/**/*.less'
-        'vendor/bootstrap/less/bootstrap.less'
       ]
       dest: appDir
       ext: '.css'
+
+  prebuildLessConfig =
+    src: [
+      'static/**/*.less'
+      'vendor/bootstrap/less/bootstrap.less'
+    ]
 
   csonConfig =
     options:
@@ -53,17 +55,17 @@ module.exports = (grunt) ->
       src: [
         'keymaps/*.cson'
         'static/**/*.cson'
-        'themes/**/*.cson'
       ]
       dest: appDir
       ext: '.json'
 
   for child in fs.readdirSync('node_modules') when child isnt '.bin'
     directory = path.join('node_modules', child)
-    {engines} = grunt.file.readJSON(path.join(directory, 'package.json'))
+    {engines, theme} = grunt.file.readJSON(path.join(directory, 'package.json'))
     if engines?.atom?
       coffeeConfig.glob_to_multiple.src.push("#{directory}/**/*.coffee")
       lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
+      prebuildLessConfig.src.push("#{directory}/**/*.less") unless theme
       csonConfig.glob_to_multiple.src.push("#{directory}/**/*.cson")
 
   grunt.initConfig
@@ -74,6 +76,8 @@ module.exports = (grunt) ->
     coffee: coffeeConfig
 
     less: lessConfig
+
+    'prebuild-less': prebuildLessConfig
 
     cson: csonConfig
 
@@ -116,13 +120,11 @@ module.exports = (grunt) ->
         'vendor-prefix': false
       src: [
         'static/**/*.css'
-        'themes/**/*.css'
       ]
 
     lesslint:
       src: [
         'static/**/*.less'
-        'themes/**/*.less'
       ]
 
     markdown:
@@ -172,7 +174,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadTasks('tasks')
 
-  grunt.registerTask('compile', ['coffee', 'less', 'cson'])
+  grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'shell:test'])
   grunt.registerTask('ci', ['lint', 'update-atom-shell', 'build', 'set-development-version', 'test'])

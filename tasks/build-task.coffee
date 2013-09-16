@@ -30,7 +30,6 @@ module.exports = (grunt) ->
       directory = path.join('node_modules', child)
       try
         {name, engines} = grunt.file.readJSON(path.join(directory, 'package.json'))
-        continue if devDependencies[name]?
         if engines?.atom?
           packageDirectories.push(directory)
         else
@@ -49,11 +48,11 @@ module.exports = (grunt) ->
     for directory in nonPackageDirectories
       cp directory, path.join(appDir, directory), filter: nodeModulesFilter
     for directory in packageDirectories
-      cp directory, path.join(appDir, directory), filter: /.+\.(cson|coffee|less)$/
+      cp directory, path.join(appDir, directory), filter: /.+\.(cson|coffee)$/
 
     cp 'spec', path.join(appDir, 'spec')
-    cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee|less)$/
-    cp 'static', path.join(appDir, 'static'), filter: /.+\.less$/
+    cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
+    cp 'static', path.join(appDir, 'static')
 
     grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
       unless /.+\.plist/.test(sourcePath)
