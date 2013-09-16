@@ -3,7 +3,6 @@ path = require 'path'
 module.exports = (grunt) ->
   {rm} = require('./task-helpers')(grunt)
 
-
   grunt.registerTask 'partial-clean', 'Delete some of the build files', ->
     rm grunt.config.get('atom.buildDir')
     rm require('../src/coffee-cache').cacheDir
