@@ -702,12 +702,14 @@ class Editor extends View
       cursorView = @getCursorView()
       @hiddenInput.offset(cursorView.offset()) if cursorView.is(':visible')
 
+    selectedText = null
     @hiddenInput.on 'compositionstart', =>
+      selectedText = @getSelectedText()
       @hiddenInput.css('width', '100%')
     @hiddenInput.on 'compositionupdate', (e) =>
       @insertText(e.originalEvent.data, {select: true, skipUndo: true})
     @hiddenInput.on 'compositionend', =>
-      @insertText('', skipUndo: true)
+      @insertText(selectedText, {select: true, skipUndo: true})
       @hiddenInput.css('width', '1px')
 
   selectOnMousemoveUntilMouseup: ->
