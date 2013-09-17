@@ -1,1 +1,1 @@
-module.exports = require('./atom-api').$
+module.exports = require '../vendor/jquery'
