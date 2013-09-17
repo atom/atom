@@ -39,9 +39,13 @@ class WindowEventHandler
 
     @subscribe $(document), 'contextmenu', (e) ->
       e.preventDefault()
-      menuTemplate = [
-        { label: 'Inspect Element', click: -> remote.getCurrentWindow().inspectElement(e.pageX, e.pageY) }
-      ]
+      menuTemplate = atom.contextMenuMap.menuTemplateForElement(e.target)
+
+      # FIXME: This should be registered as a dev binding on
+      # atom.contextMenuMapping, but I'm not sure where in the source.
+      menuTemplate.push({ type: 'separator' })
+      menuTemplate.push({ label: 'Inspect Element', click: -> remote.getCurrentWindow().inspectElement(e.pageX, e.pageY) })
+
       remote.getCurrentWindow().emit('context-menu', menuTemplate)
 
   openLink: (event) =>

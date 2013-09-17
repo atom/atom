@@ -10,12 +10,14 @@ dialog = remote.require 'dialog'
 app = remote.require 'app'
 telepath = require 'telepath'
 ThemeManager = require 'theme-manager'
+ContextMenuMap = require 'context-menu-map'
 
 window.atom =
   loadedPackages: {}
   activePackages: {}
   packageStates: {}
   themes: new ThemeManager()
+  contextMenuMap: new ContextMenuMap()
 
   getLoadSettings: ->
     remote.getCurrentWindow().loadSettings
