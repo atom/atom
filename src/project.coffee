@@ -316,8 +316,8 @@ class Project
 
       for [column, length] in matchPositions
         range = new Range([row, column], [row, column + length])
-        match = lineText.substr(column, length)
-        iterator({path: filePath, range, match})
+        matchText = lineText.substr(column, length)
+        iterator({path: filePath, range, matchText, lineText})
 
     deferred = $.Deferred()
     errors = []
