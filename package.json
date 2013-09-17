@@ -41,7 +41,7 @@
     "atom-light-ui": "0.1.1",
     "atom-light-syntax": "0.1.0",
     "atom-dark-ui": "0.1.1",
-    "atom-dark-syntax": "0.1.0",
+    "atom-dark-syntax": "0.2.0",
 
     "archive-view": "0.5.0",
     "autocomplete": "0.4.0",
