@@ -1,6 +1,6 @@
 $ = require 'jquery'
 
-# Public: Provides a registry for commands that you'd wish to appear in the
+# Public: Provides a registry for commands that you'd like to appear in the
 # context menu.
 #
 # Should be accessed via `atom.contextMenuMap`.
@@ -15,7 +15,7 @@ class ContextMenuMap
   # clicked.
   #
   # * selector: The css selector for the active element which should include
-  #   the given command in it's context menu.
+  #   the given command in its context menu.
   # * label: The text that should appear in the context menu.
   # * command: The command string that should be triggered on the activeElement
   #   which matches your selector.
