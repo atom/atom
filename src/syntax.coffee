@@ -1,6 +1,6 @@
 _ = require 'underscore'
 jQuery = require 'jquery'
-Specificity = require 'specificity'
+Specificity = require '../vendor/specificity'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
 EventEmitter = require 'event-emitter'

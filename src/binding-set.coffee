@@ -2,7 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fsUtils = require 'fs-utils'
 
-Specificity = require 'specificity'
+Specificity = require '../vendor/specificity'
 PEG = require 'pegjs'
 
 ### Internal ###

@@ -4,7 +4,7 @@
 //    for (var ii = nots.length; ii--;) s += this.specificity(nots[ii]);
 //    for (var ii = nots.length; ii--;) s += nots[ii];
 
-var Slick = require('slick');
+var Slick = require('./slick');
 
 module.exports = function(selector){
   var parsed = Slick.parse(selector);
@@ -32,4 +32,3 @@ module.exports = function(selector){
   }
   return specificity;
 };
-
