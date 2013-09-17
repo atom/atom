@@ -141,11 +141,11 @@ window.atom =
       null
 
   loadBaseStylesheets: ->
-    requireStylesheet('bootstrap/less/bootstrap')
+    requireStylesheet('../vendor/bootstrap/less/bootstrap')
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
-    requireStylesheet('atom')
+    requireStylesheet('../static/atom')
     if nativeStylesheetPath = fsUtils.resolveOnLoadPath(process.platform, ['css', 'less'])
       requireStylesheet(nativeStylesheetPath)
 
