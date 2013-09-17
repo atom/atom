@@ -8,4 +8,4 @@ module.exports =
   File: require '../src/file'
   fs: require '../src/fs-utils'
   View: View
-  WorkspaceView: require '../src/root-view'
+  RootView: require '../src/root-view'
