@@ -126,3 +126,5 @@ $.fn.intValue = ->
 $.Event.prototype.abortKeyBinding = ->
 $.Event.prototype.currentTargetView = -> $(this.currentTarget).view()
 $.Event.prototype.targetView = -> $(this.target).view()
+
+module.exports = $
