@@ -1,6 +1,5 @@
 TextMateGrammar = require 'text-mate-grammar'
 TextMatePackage = require 'text-mate-package'
-plist = require 'plist'
 fsUtils = require 'fs-utils'
 _ = require 'underscore'
 

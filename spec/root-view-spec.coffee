@@ -1,10 +1,7 @@
 $ = require 'jquery'
 fsUtils = require 'fs-utils'
 path = require 'path'
-Project = require 'project'
 RootView = require 'root-view'
-Buffer = require 'text-buffer'
-Editor = require 'editor'
 Pane = require 'pane'
 {View, $$} = require 'space-pen'
 

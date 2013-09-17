@@ -2,7 +2,6 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 fsUtils = require 'fs-utils'
 path = require 'path'
-{less} = require 'less'
 WindowEventHandler = require 'window-event-handler'
 
 describe "Window", ->

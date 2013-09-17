@@ -1,5 +1,4 @@
 $ = require 'jquery'
-fsUtils = require 'fs-utils'
 path = require 'path'
 Package = require 'package'
 
