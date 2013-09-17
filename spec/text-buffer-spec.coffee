@@ -7,7 +7,7 @@ describe 'TextBuffer', ->
   [filePath, fileContents, buffer] = []
 
   beforeEach ->
-    filePath = require.resolve('fixtures/sample.js')
+    filePath = require.resolve('./fixtures/sample.js')
     fileContents = fsUtils.read(filePath)
     buffer = project.bufferForPath(filePath)
 
@@ -22,12 +22,12 @@ describe 'TextBuffer', ->
     describe "when given a path", ->
       describe "when a file exists for the path", ->
         it "loads the contents of that file", ->
-          filePath = require.resolve 'fixtures/sample.txt'
+          filePath = require.resolve './fixtures/sample.txt'
           buffer = project.bufferForPath(filePath)
           expect(buffer.getText()).toBe fsUtils.read(filePath)
 
         it "does not allow the initial state of the buffer to be undone", ->
-          filePath = require.resolve 'fixtures/sample.txt'
+          filePath = require.resolve './fixtures/sample.txt'
           buffer = project.bufferForPath(filePath)
           buffer.undo()
           expect(buffer.getText()).toBe fsUtils.read(filePath)
@@ -49,7 +49,7 @@ describe 'TextBuffer', ->
     [filePath, newPath, bufferToChange, eventHandler] = []
 
     beforeEach ->
-      filePath = path.join(fsUtils.resolveOnLoadPath("fixtures"), "atom-manipulate-me")
+      filePath = path.join(__dirname, "fixtures", "atom-manipulate-me")
       newPath = "#{filePath}-i-moved"
       fsUtils.writeSync(filePath, "")
       bufferToChange = project.bufferForPath(filePath)
@@ -545,7 +545,7 @@ describe 'TextBuffer', ->
     [filePath, newPath, bufferToChange, eventHandler] = []
 
     beforeEach ->
-      filePath = path.join(fsUtils.resolveOnLoadPath("fixtures"), "atom-manipulate-me")
+      filePath = path.join(__dirname, "fixtures", "atom-manipulate-me")
       newPath = "#{filePath}-i-moved"
       fsUtils.writeSync(filePath, "")
       bufferToChange = project.bufferForPath(filePath)

@@ -6,7 +6,7 @@ describe "Directory", ->
   directory = null
 
   beforeEach ->
-    directory = new Directory(fsUtils.resolveOnLoadPath('fixtures'))
+    directory = new Directory(path.join(__dirname, 'fixtures'))
 
   afterEach ->
     directory.off()
@@ -15,7 +15,7 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = path.join(fsUtils.resolveOnLoadPath('fixtures'), 'temporary')
+      temporaryFilePath = path.join(__dirname, 'fixtures', 'temporary')
       fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
 
     afterEach ->
@@ -84,9 +84,9 @@ describe "Directory", ->
       expect(directory.relativize(path.join(absolutePath, "file.coffee"))).toBe "file.coffee"
 
     it "returns a relative path based on the directory's symlinked source path", ->
-      symlinkPath = path.join(fsUtils.resolveOnLoadPath('fixtures'), 'symlink-to-dir')
+      symlinkPath = path.join(__dirname, 'fixtures', 'symlink-to-dir')
       symlinkDirectory = new Directory(symlinkPath)
-      realFilePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
+      realFilePath = require.resolve('./fixtures/dir/a')
       expect(symlinkDirectory.relativize(symlinkPath)).toBe ''
       expect(symlinkDirectory.relativize(realFilePath)).toBe 'a'
 
@@ -97,13 +97,13 @@ describe "Directory", ->
     it "returns true if the path is a child of the directory's path", ->
       absolutePath = directory.getPath()
       expect(directory.contains(path.join(absolutePath, "b"))).toBe true
-      expect(directory.contains(path.join(absolutePath, "b/file.coffee"))).toBe true
+      expect(directory.contains(path.join(absolutePath, "b", "file.coffee"))).toBe true
       expect(directory.contains(path.join(absolutePath, "file.coffee"))).toBe true
 
     it "returns true if the path is a child of the directory's symlinked source path", ->
-      symlinkPath = path.join(fsUtils.resolveOnLoadPath('fixtures'), 'symlink-to-dir')
+      symlinkPath = path.join(__dirname, 'fixtures', 'symlink-to-dir')
       symlinkDirectory = new Directory(symlinkPath)
-      realFilePath = fsUtils.resolveOnLoadPath('fixtures/dir/a')
+      realFilePath = require.resolve('./fixtures/dir/a')
       expect(symlinkDirectory.contains(realFilePath)).toBe true
 
     it "returns false if the directory's path is not a prefix of the path", ->

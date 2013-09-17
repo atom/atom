@@ -6,7 +6,7 @@ describe 'File', ->
   [filePath, file] = []
 
   beforeEach ->
-    filePath = path.join(fsUtils.resolveOnLoadPath('fixtures'), "atom-file-test.txt") # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
+    filePath = path.join(__dirname, 'fixtures', 'atom-file-test.txt') # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
     fsUtils.remove(filePath) if fsUtils.exists(filePath)
     fsUtils.writeSync(filePath, "this is old!")
     file = new File(filePath)

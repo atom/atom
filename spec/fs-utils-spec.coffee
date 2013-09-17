@@ -4,16 +4,16 @@ path = require 'path'
 temp = require 'temp'
 
 describe "fsUtils", ->
+  fixturesDir = path.join(__dirname, 'fixtures')
+
   describe ".read(path)", ->
     it "return contents of file", ->
-      expect(fsUtils.read(require.resolve("fixtures/sample.txt"))).toBe "Some text.\n"
+      expect(fsUtils.read(require.resolve("./fixtures/sample.txt"))).toBe "Some text.\n"
 
     it "does not through an exception when the path is a binary file", ->
-      expect(-> fsUtils.read(require.resolve("fixtures/binary-file.png"))).not.toThrow()
+      expect(-> fsUtils.read(require.resolve("./fixtures/binary-file.png"))).not.toThrow()
 
   describe ".isFileSync(path)", ->
-    fixturesDir = fsUtils.resolveOnLoadPath('fixtures')
-
     it "returns true with a file path", ->
       expect(fsUtils.isFileSync(path.join(fixturesDir,  'sample.js'))).toBe true
 
@@ -26,10 +26,10 @@ describe "fsUtils", ->
 
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
-      expect(fsUtils.exists(fsUtils.resolveOnLoadPath('fixtures'))).toBe true
+      expect(fsUtils.exists(fixturesDir)).toBe true
 
     it "returns false when path doesn't exsit", ->
-      expect(fsUtils.exists(fsUtils.resolveOnLoadPath("fixtures") + "/-nope-does-not-exist")).toBe false
+      expect(fsUtils.exists(path.join(fixturesDir, "-nope-does-not-exist"))).toBe false
       expect(fsUtils.exists("")).toBe false
       expect(fsUtils.exists(null)).toBe false
 
@@ -42,11 +42,6 @@ describe "fsUtils", ->
       expect(fsUtils.exists("/tmp/a/b/c")).toBeTruthy()
 
   describe ".traverseTreeSync(path, onFile, onDirectory)", ->
-    fixturesDir = null
-
-    beforeEach ->
-      fixturesDir = fsUtils.resolveOnLoadPath('fixtures')
-
     it "calls fn for every path in the tree at the given path", ->
       paths = []
       onPath = (childPath) ->
@@ -93,7 +88,7 @@ describe "fsUtils", ->
 
   describe ".md5ForPath(path)", ->
     it "returns the MD5 hash of the file at the given path", ->
-      expect(fsUtils.md5ForPath(require.resolve('fixtures/sample.js'))).toBe 'dd38087d0d7e3e4802a6d3f9b9745f2b'
+      expect(fsUtils.md5ForPath(require.resolve('./fixtures/sample.js'))).toBe 'dd38087d0d7e3e4802a6d3f9b9745f2b'
 
   describe ".list(path, extensions)", ->
     it "returns the absolute paths of entries within the given directory", ->
