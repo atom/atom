@@ -23,7 +23,7 @@ class ThemeManager
 
   # Internal-only:
   getAvailableNames: ->
-    _.map(@loadedThemes, (t) -> t.metadata.name)
+    _.map @loadedThemes, (theme) -> theme.metadata.name
 
   # Internal-only:
   getActiveThemes: ->
@@ -63,7 +63,7 @@ class ThemeManager
 
   # Private:
   getLoadedTheme: (name) ->
-    _.find(@loadedThemes, (t) -> t.metadata.name == name)
+    _.find @loadedThemes, (theme) -> theme.metadata.name is name
 
   # Private:
   resolveThemePath: (name) ->
