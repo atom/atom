@@ -49,7 +49,6 @@ class AtomWindow
       'src'
       'node_modules'
     ]
-    paths.push('spec') if @isSpec
 
     paths = paths.map (relativePath) -> path.resolve(resourcePath, relativePath)
     paths.push(resourcePath)
