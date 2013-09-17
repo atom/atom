@@ -9,7 +9,7 @@
   "bugs": {
     "url": "https://github.com/atom/atom/issues"
   },
-  "atomShellVersion": "0.4.5",
+  "atomShellVersion": "0.4.7",
   "dependencies": {
     "async": "0.2.6",
     "coffee-script": "1.6.2",
