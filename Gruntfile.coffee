@@ -44,7 +44,7 @@ module.exports = (grunt) ->
   prebuildLessConfig =
     src: [
       'static/**/*.less'
-      'vendor/bootstrap/less/bootstrap.less'
+      'node_modules/bootstrap/less/bootstrap.less'
     ]
 
   csonConfig =
