@@ -11,6 +11,8 @@ class WindowEventHandler
   _.extend @prototype, Subscriber
 
   constructor: ->
+    @reloadRequested = false
+
     @subscribe ipc, 'command', (command, args...) ->
       $(window).trigger(command, args...)
 
@@ -18,11 +20,16 @@ class WindowEventHandler
     @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
       rootView?.open(pathToOpen, {initialLine}) unless fsUtils.isDirectorySync(pathToOpen)
-    @subscribe $(window), 'beforeunload', -> rootView?.confirmClose()
-
+    @subscribe $(window), 'beforeunload', =>
+      confirmed = rootView?.confirmClose()
+      atom.hide() if confirmed and not @reloadRequested
+      @reloadRequested = false
+      confirmed
     @subscribeToCommand $(window), 'window:toggle-full-screen', => atom.toggleFullScreen()
     @subscribeToCommand $(window), 'window:close', => atom.close()
-    @subscribeToCommand $(window), 'window:reload', => atom.reload()
+    @subscribeToCommand $(window), 'window:reload', =>
+      @reloadRequested = true
+      atom.reload()
     @subscribeToCommand $(window), 'window:toggle-dev-tools', => atom.toggleDevTools()
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
