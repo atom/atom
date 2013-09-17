@@ -1,16 +1,7 @@
-window.nakedLoad = (file) ->
-  fsUtils = require 'fs-utils'
-  path = require 'path'
-  file = require.resolve(file)
-  code = fsUtils.read(file)
-  if path.extname(file) is '.coffee'
-    require('coffee-script').eval(code, filename: file)
-  else
-    window.eval("#{code}\n//@ sourceURL=#{file}")
-
 module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   {$$} = require 'space-pen'
-  nakedLoad 'jasmine'
+  for key, value of require '../vendor/jasmine'
+    window[key] = value
   require 'jasmine-focused'
 
   $ = require 'jquery'

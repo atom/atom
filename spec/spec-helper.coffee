@@ -2,7 +2,7 @@ require 'window'
 window.setUpEnvironment('spec')
 window.restoreDimensions()
 
-nakedLoad 'jasmine-jquery'
+require '../vendor/jasmine-jquery'
 path = require 'path'
 $ = jQuery = require 'jquery'
 _ = require 'underscore'
