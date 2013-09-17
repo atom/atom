@@ -3,9 +3,9 @@ $ = require 'jquery'
 # Public: Provides a registry for commands that you'd like to appear in the
 # context menu.
 #
-# Should be accessed via `atom.contextMenuMap`.
+# Should be accessed via `atom.contextMenu`.
 module.exports =
-class ContextMenuMap
+class ContextMenuManager
   # Private:
   constructor: ->
     @mappings = {}
