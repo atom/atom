@@ -48,7 +48,6 @@ class AtomWindow
       'exports'
       'src'
       'vendor'
-      'static'
       'node_modules'
     ]
     paths.push('spec') if @isSpec
