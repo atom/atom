@@ -6,7 +6,7 @@ async = require 'async'
 rimraf = require 'rimraf'
 path = require 'path'
 
-module.exports =
+fsExtensions =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (relativePath) ->
@@ -301,3 +301,5 @@ module.exports =
       CSON.readFile(objectPath, done)
     else
       @readPlist(objectPath, done)
+
+module.exports = _.extend(fsExtensions, fs)
