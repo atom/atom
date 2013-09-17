@@ -1,7 +1,7 @@
 module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   {$$} = require 'space-pen'
-  for key, value of require '../vendor/jasmine'
-    window[key] = value
+  window[key] = value for key, value of require '../vendor/jasmine'
+
   require 'jasmine-focused'
 
   $ = require 'jquery'
