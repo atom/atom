@@ -219,7 +219,7 @@ describe "RootView", ->
         it "creates an edit session for the given path as an item on a new pane, and focuses the pane", ->
           editSession = rootView.open('b')
           expect(rootView.getActivePane().activeItem).toBe editSession
-          expect(editSession.getPath()).toBe fsUtils.resolveOnLoadPath('fixtures/dir/b')
+          expect(editSession.getPath()).toBe require.resolve('./fixtures/dir/b')
           expect(rootView.getActivePane().focus).toHaveBeenCalled()
 
       describe "when the changeFocus option is false", ->
@@ -359,6 +359,6 @@ describe "RootView", ->
       rootView.eachBuffer(callback)
       count = 0
       callbackBuffer = null
-      rootView.open(require.resolve('fixtures/sample.txt'))
+      rootView.open(require.resolve('./fixtures/sample.txt'))
       expect(count).toBe 1
       expect(callbackBuffer).toBe rootView.getActiveView().getBuffer()

@@ -28,7 +28,7 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar("/hu.git/config").name).toBe "Null Grammar"
 
     it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
-      filePath = require.resolve("fixtures/shebang")
+      filePath = require.resolve("./fixtures/shebang")
       expect(syntax.selectGrammar(filePath).name).toBe "Ruby"
 
     it "uses the number of newlines in the first line regex to determine the number of lines to test against", ->
@@ -44,7 +44,7 @@ describe "the `syntax` global", ->
       expect(syntax.selectGrammar("grammar.tmLanguage", fileContent).name).toBe "Property List (XML)"
 
     it "doesn't read the file when the file contents are specified", ->
-      filePath = require.resolve("fixtures/shebang")
+      filePath = require.resolve("./fixtures/shebang")
       filePathContents = fsUtils.read(filePath)
       spyOn(fsUtils, 'read').andCallThrough()
       expect(syntax.selectGrammar(filePath, filePathContents).name).toBe "Ruby"
