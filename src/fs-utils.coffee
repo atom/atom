@@ -302,4 +302,4 @@ fsExtensions =
     else
       @readPlist(objectPath, done)
 
-module.exports = _.extend(fsExtensions, fs)
+module.exports = _.extend({}, fs, fsExtensions)
