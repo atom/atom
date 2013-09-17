@@ -22,7 +22,7 @@ clipboard = require 'clipboard'
 atom.loadBaseStylesheets()
 requireStylesheet '../static/jasmine'
 
-fixturePackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
+fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 config.packageDirPaths.unshift(fixturePackagesPath)
 keymap.loadBundledKeymaps()
 [bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
@@ -39,7 +39,7 @@ jasmine.getEnv().defaultTimeoutInterval = 5000
 beforeEach ->
   jQuery.fx.off = true
 
-  specDirectory = atom.getLoadSettings().specDirectory ? fsUtils.resolveOnLoadPath("spec")
+  specDirectory = atom.getLoadSettings().specDirectory ? __dirname
   window.project = new Project(path.join(specDirectory, 'fixtures'))
 
   window.resetTimeouts()
@@ -247,5 +247,5 @@ $.fn.textInput = (data) ->
     event = jQuery.event.fix(event)
     $(this).trigger(event)
 
-unless fsUtils.md5ForPath(require.resolve('fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
+unless fsUtils.md5ForPath(require.resolve('./fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
   throw new Error("Sample.js is modified")

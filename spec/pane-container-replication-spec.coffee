@@ -2,7 +2,7 @@
 {View} = require 'space-pen'
 PaneContainer = require 'pane-container'
 Pane = require 'pane'
-Environment = require 'environment'
+Environment = require './environment'
 
 describe "PaneContainer replication", ->
   [env1, env2, envConnection, container1, container2, pane1a, pane1b, pane1c] = []

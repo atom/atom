@@ -5,7 +5,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   require 'jasmine-focused'
 
   $ = require 'jquery'
-  TimeReporter = require 'time-reporter'
+  TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
 
   if atom.getLoadSettings().exitWhenDone
@@ -20,7 +20,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
         timeReporter.logLongestSpecs 10, (line) -> process.stdout.write("#{line}\n")
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else
-    AtomReporter = require 'atom-reporter'
+    AtomReporter = require './atom-reporter'
     reporter = new AtomReporter()
 
   require specSuite

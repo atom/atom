@@ -276,7 +276,7 @@ class AtomApplication
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
-    bootstrapScript = 'spec-bootstrap'
+    bootstrapScript = require.resolve('../spec/spec-bootstrap')
     isSpec = true
     devMode = true
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory})

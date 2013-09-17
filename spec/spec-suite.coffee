@@ -6,7 +6,7 @@ measure 'spec suite require time', ->
   path = require 'path'
   _ = require 'underscore'
   Git = require 'git'
-  require 'spec-helper'
+  require './spec-helper'
 
   requireSpecs = (specDirectory, specType) ->
     for specFilePath in fsUtils.listTreeSync(specDirectory) when /-spec\.coffee$/.test specFilePath
