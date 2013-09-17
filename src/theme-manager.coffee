@@ -42,7 +42,7 @@ class ThemeManager
 
       # Reverse so the first (top) theme is loaded after the others. We want
       # the first/top theme to override later themes in the stack.
-      (themeNames = _.clone(themeNames)).reverse()
+      themeNames = _.clone(themeNames).reverse()
 
       @activateTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
