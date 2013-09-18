@@ -7,6 +7,7 @@ commandClasses = [
   require './cleaner'
   require './developer'
   require './fetcher'
+  require './init'
   require './installer'
   require './link-lister'
   require './linker'
@@ -16,7 +17,6 @@ commandClasses = [
   require './uninstaller'
   require './unlinker'
   require './updater'
-  require './init'
 ]
 
 commands = {}
