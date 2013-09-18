@@ -94,7 +94,7 @@ describe "the `atom` global", ->
             beforeEach ->
               mainModule = require './fixtures/packages/package-with-activation-events/index'
               spyOn(mainModule, 'activate').andCallThrough()
-              AtomPackage = require 'atom-package'
+              AtomPackage = require '../src/atom-package'
               spyOn(AtomPackage.prototype, 'requireMainModule').andCallThrough()
               pack = atom.activatePackage('package-with-activation-events')
 
