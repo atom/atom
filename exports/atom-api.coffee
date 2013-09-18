@@ -15,6 +15,7 @@ module.exports =
   Point: Point
   Range: Range
   ScrollView: require '../src/scroll-view'
+  stringscore: require '../vendor/stringscore'
   Subscriber: require '../src/subscriber'
   View: View
 
