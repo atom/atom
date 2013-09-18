@@ -1,9 +1,9 @@
-$ = require 'jquery'
-_ = require 'underscore'
-fsUtils = require 'fs-utils'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
+fsUtils = require './fs-utils'
 path = require 'path'
 CSON = require 'season'
-BindingSet = require 'binding-set'
+BindingSet = require './binding-set'
 
 # Internal: Associates keymaps with actions.
 #

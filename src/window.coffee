@@ -1,14 +1,11 @@
-fsUtils = require 'fs-utils'
+fsUtils = require './fs-utils'
 path = require 'path'
 telepath = require 'telepath'
-$ = require 'jquery'
-_ = require 'underscore'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
 remote = require 'remote'
 ipc = require 'ipc'
-WindowEventHandler = require 'window-event-handler'
-require 'jquery-extensions'
-require 'underscore-extensions'
-require 'space-pen-extensions'
+WindowEventHandler = require './window-event-handler'
 
 deserializers = {}
 deferredDeserializers = {}

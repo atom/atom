@@ -1,5 +1,5 @@
-_ = require 'underscore'
-textUtils = require 'text-utils'
+_ = require './underscore-extensions'
+textUtils = require './text-utils'
 
 whitespaceRegexesByTabLength = {}
 

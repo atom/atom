@@ -1,8 +1,8 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 spacePen = require 'space-pen'
-jQuery = require 'jquery'
-ConfigObserver = require 'config-observer'
-Subscriber = require 'subscriber'
+jQuery = require './jquery-extensions'
+ConfigObserver = require './config-observer'
+Subscriber = require './subscriber'
 
 _.extend spacePen.View.prototype, ConfigObserver
 _.extend spacePen.View.prototype, Subscriber

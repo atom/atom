@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 fs = require 'fs'
 mkdirp = require 'mkdirp'
 Module = require 'module'

@@ -1,6 +1,6 @@
 {Range} = require 'telepath'
-EventEmitter = require 'event-emitter'
-_ = require 'underscore'
+EventEmitter = require './event-emitter'
+_ = require './underscore-extensions'
 
 # Public: Represents a selection in the {EditSession}.
 module.exports =

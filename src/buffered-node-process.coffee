@@ -1,4 +1,4 @@
-BufferedProcess = require 'buffered-process'
+BufferedProcess = require './buffered-process'
 path = require 'path'
 
 # Private: Like BufferedProcess, but accepts a node script instead of an

@@ -1,6 +1,6 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 child_process = require 'child_process'
-EventEmitter = require 'event-emitter'
+EventEmitter = require './event-emitter'
 
 # Public: Run a node script in a separate process.
 #

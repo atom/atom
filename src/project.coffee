@@ -1,17 +1,17 @@
-fsUtils = require 'fs-utils'
+fsUtils = require './fs-utils'
 path = require 'path'
 url = require 'url'
 
-_ = require 'underscore'
-$ = require 'jquery'
+_ = require './underscore-extensions'
+$ = require './jquery-extensions'
 telepath = require 'telepath'
 {Range} = telepath
-TextBuffer = require 'text-buffer'
-EditSession = require 'edit-session'
-EventEmitter = require 'event-emitter'
-Directory = require 'directory'
-BufferedNodeProcess = require 'buffered-node-process'
-Git = require 'git'
+TextBuffer = require './text-buffer'
+EditSession = require './edit-session'
+EventEmitter = require './event-emitter'
+Directory = require './directory'
+BufferedNodeProcess = require './buffered-node-process'
+Git = require './git'
 
 # Public: Represents a project that's opened in Atom.
 #

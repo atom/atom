@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 
 module.exports =
   subscribeWith: (eventEmitter, methodName, args) ->

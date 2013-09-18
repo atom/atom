@@ -1,8 +1,8 @@
-_ = require 'underscore'
-fsUtils = require 'fs-utils'
-Subscriber = require 'subscriber'
-EventEmitter = require 'event-emitter'
-Task = require 'task'
+_ = require './underscore-extensions'
+fsUtils = require './fs-utils'
+Subscriber = require './subscriber'
+EventEmitter = require './event-emitter'
+Task = require './task'
 GitUtils = require 'git-utils'
 
 # Public: Represents the underlying git operations performed by Atom.

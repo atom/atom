@@ -1,16 +1,15 @@
-_ = require 'underscore'
-fsUtils = require 'fs-utils'
+_ = require './underscore-extensions'
+fsUtils = require './fs-utils'
 path = require 'path'
 telepath = require 'telepath'
 guid = require 'guid'
 {Point, Range} = telepath
-Buffer = require 'text-buffer'
-LanguageMode = require 'language-mode'
-DisplayBuffer = require 'display-buffer'
-Cursor = require 'cursor'
-Selection = require 'selection'
-EventEmitter = require 'event-emitter'
-Subscriber = require 'subscriber'
+LanguageMode = require './language-mode'
+DisplayBuffer = require './display-buffer'
+Cursor = require './cursor'
+Selection = require './selection'
+EventEmitter = require './event-emitter'
+Subscriber = require './subscriber'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
 # Public: The core model of Atom.

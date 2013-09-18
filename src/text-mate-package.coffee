@@ -1,8 +1,8 @@
-Package = require 'package'
-fsUtils = require 'fs-utils'
+Package = require './package'
+fsUtils = require './fs-utils'
 path = require 'path'
-_ = require 'underscore'
-TextMateGrammar = require 'text-mate-grammar'
+_ = require './underscore-extensions'
+TextMateGrammar = require './text-mate-grammar'
 async = require 'async'
 
 ### Internal ###

@@ -1,11 +1,11 @@
 path = require 'path'
-EventEmitter = require 'event-emitter'
-Package = require 'package'
-AtomPackage = require 'atom-package'
+EventEmitter = require './event-emitter'
+Package = require './package'
+AtomPackage = require './atom-package'
 
-_ = require 'underscore'
+_ = require './underscore-extensions'
 
-fsUtils = require 'fs-utils'
+fsUtils = require './fs-utils'
 
 # Private: Handles discovering and loading available themes.
 module.exports =

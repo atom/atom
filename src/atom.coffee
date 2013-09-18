@@ -1,6 +1,6 @@
-fsUtils = require 'fs-utils'
-$ = require 'jquery'
-_ = require 'underscore'
+fsUtils = require './fs-utils'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
 Package = require 'package'
 ipc = require 'ipc'
 remote = require 'remote'
@@ -9,7 +9,7 @@ path = require 'path'
 dialog = remote.require 'dialog'
 app = remote.require 'app'
 telepath = require 'telepath'
-ThemeManager = require 'theme-manager'
+ThemeManager = require './theme-manager'
 
 window.atom =
   loadedPackages: {}

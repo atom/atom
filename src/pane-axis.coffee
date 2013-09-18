@@ -1,5 +1,5 @@
-$ = require 'jquery'
-{View} = require 'space-pen'
+$ = require './jquery-extensions'
+{View} = require './space-pen-extensions'
 telepath = require 'telepath'
 
 ### Internal ###

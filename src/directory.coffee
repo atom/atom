@@ -1,10 +1,10 @@
-_ = require 'underscore'
+_ = require './underscore-extensions'
 fs = require 'fs'
 path = require 'path'
-fsUtils = require 'fs-utils'
+fsUtils = require './fs-utils'
 pathWatcher = require 'pathwatcher'
-File = require 'file'
-EventEmitter = require 'event-emitter'
+File = require './file'
+EventEmitter = require './event-emitter'
 
 # Public: Represents a directory using {File}s
 module.exports =

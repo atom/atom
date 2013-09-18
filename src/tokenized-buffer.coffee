@@ -1,8 +1,8 @@
-_ = require 'underscore'
-TokenizedLine = require 'tokenized-line'
-EventEmitter = require 'event-emitter'
-Subscriber = require 'subscriber'
-Token = require 'token'
+_ = require './underscore-extensions'
+TokenizedLine = require './tokenized-line'
+EventEmitter = require './event-emitter'
+Subscriber = require './subscriber'
+Token = require './token'
 telepath = require 'telepath'
 {Point, Range} = telepath
 

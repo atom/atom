@@ -1,4 +1,4 @@
-{View} = require 'space-pen'
+{View} = require './space-pen-extensions'
 
 # Public: Represents a view that scrolls.
 #

@@ -1,5 +1,5 @@
-$ = require 'jquery'
-_ = require 'underscore'
+$ = require '../vendor/jquery'
+_ = require './underscore-extensions'
 
 $.fn.scrollBottom = (newValue) ->
   if newValue?

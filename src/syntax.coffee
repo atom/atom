@@ -1,10 +1,10 @@
-_ = require 'underscore'
-jQuery = require 'jquery'
+_ = require './underscore-extensions'
+jQuery = require './jquery-extensions'
 Specificity = require '../vendor/specificity'
-{$$} = require 'space-pen'
-fsUtils = require 'fs-utils'
-EventEmitter = require 'event-emitter'
-NullGrammar = require 'null-grammar'
+{$$} = require './space-pen-extensions'
+fsUtils = require './fs-utils'
+EventEmitter = require './event-emitter'
+NullGrammar = require './null-grammar'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 
 ### Internal ###

@@ -1,6 +1,6 @@
-$ = require 'jquery'
-_ = require 'underscore'
-PaneAxis = require 'pane-axis'
+$ = require './jquery-extensions'
+_ = require './underscore-extensions'
+PaneAxis = require './pane-axis'
 
 ### Internal ###
 
