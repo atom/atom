@@ -29,8 +29,9 @@ class Generator extends Command
     if options.argv.package?
       packagePath = path.join(process.cwd(), options.argv.package)
       @generatePackage(packagePath)
-
-    callback()
+      callback()
+    else
+      callback('Error: You must specify either --project or --theme to `apm init`')
 
   generatePackage: (packagePath) ->
     templatePath = path.resolve(__dirname, '..', 'templates', 'package')
