@@ -247,7 +247,7 @@ class Git
 
   # Private:
   refreshStatus: ->
-    @statusTask = Task.once 'repository-status-handler', @getPath(), ({statuses, upstream}) =>
+    @statusTask = Task.once require.resolve('./repository-status-handler'), @getPath(), ({statuses, upstream}) =>
       statusesUnchanged = _.isEqual(statuses, @statuses) and _.isEqual(upstream, @upstream)
       @statuses = statuses
       @upstream = upstream
