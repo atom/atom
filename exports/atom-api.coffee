@@ -5,6 +5,7 @@ module.exports =
   $: require '../src/jquery-extensions'
   $$: $$
   $$$: $$$
+  Editor: require '../src/editor'
   File: require '../src/file'
   fs: require '../src/fs-utils'
   RootView: require '../src/root-view'
