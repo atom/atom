@@ -40,9 +40,6 @@ class Project
   ignoredPathRegexes: null
   openers: null
 
-  constructor: ->
-    @openers = []
-
   # Public:
   registerOpener: (opener) -> @openers.push(opener)
 
@@ -65,6 +62,7 @@ class Project
   #
   # path - The {String} name of the path
   constructor: (pathOrState) ->
+    @openers = []
     @editSessions = []
     @buffers = []
 
