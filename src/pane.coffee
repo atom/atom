@@ -402,7 +402,7 @@ class Pane extends View
 
   # Private:
   split: (items, axis, side) ->
-    PaneContainer = require 'pane-container'
+    PaneContainer = require './pane-container'
 
     parent = @parent().view()
     unless parent.hasClass(axis)
