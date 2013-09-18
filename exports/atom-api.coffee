@@ -12,5 +12,6 @@ module.exports =
   fs: require '../src/fs-utils'
   RootView: require '../src/root-view'
   ScrollView: require '../src/scroll-view'
+  SelectList: require '../src/select-list'
   Subscriber: require '../src/subscriber'
   View: View
