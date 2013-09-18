@@ -1,5 +1,4 @@
-File = require '../src/file'
-{fs} = require 'atom-api'
+{File, fs} = require 'atom-api'
 path = require 'path'
 
 describe 'File', ->
