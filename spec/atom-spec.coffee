@@ -289,9 +289,9 @@ describe "the `atom` global", ->
         it "removes the package's stylesheets", ->
           atom.activatePackage('package-with-stylesheets')
           atom.deactivatePackage('package-with-stylesheets')
-          one = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/1.css")
-          two = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/2.less")
-          three = fs.resolveOnLoadPath("package-with-stylesheets/stylesheets/3.css")
+          one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
+          two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
+          three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
           expect(stylesheetElementForId(one)).not.toExist()
           expect(stylesheetElementForId(two)).not.toExist()
           expect(stylesheetElementForId(three)).not.toExist()
