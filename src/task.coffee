@@ -43,17 +43,17 @@ class Task
   #   The path to the Coffeescript/Javascript file that exports a single
   #   function to execute.
   constructor: (taskPath) ->
-    coffeeScriptPath = require.resolve('coffee-script')
-    coffeeCachePath = require.resolve('./coffee-cache')
-    taskBootstrapPath = require.resolve('./task-bootstrap')
+    coffeeScriptRequire = "require('#{require.resolve('coffee-script')}');"
+    coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}');"
+    taskBootstrapRequire = "require('#{require.resolve('task-bootstrap')}');"
     bootstrap = """
-      require('#{coffeeScriptPath}');
-      require('#{coffeeCachePath}');
+      #{coffeeScriptRequire}
+      #{coffeeCacheRequire}
       Object.defineProperty(require.extensions, '.coffee', {
         writable: false,
         value: require.extensions['.coffee']
       });
-      require('#{taskBootstrapPath}');
+      #{taskBootstrapRequire}
     """
 
     taskPath = require.resolve(taskPath)
