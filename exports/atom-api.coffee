@@ -10,3 +10,4 @@ module.exports =
   View: View
   RootView: require '../src/root-view'
   ScrollView: require '../src/scroll-view'
+  Subscriber: require '../src/subscriber'
