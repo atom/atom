@@ -1,19 +1,13 @@
 path = require 'path'
 
-async = require 'async'
 optimist = require 'optimist'
 
 Command = require './command'
-config = require './config'
 fs = require './fs'
-Installer = require './installer'
 
 module.exports =
 class Generator extends Command
   @commandNames: ['init']
-
-  constructor: ->
-    @atomNpmPath = require.resolve('npm/bin/npm-cli')
 
   parseOptions: (argv) ->
     options = optimist(argv)
