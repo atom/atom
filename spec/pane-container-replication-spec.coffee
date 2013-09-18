@@ -1,7 +1,7 @@
 {Site} = require 'telepath'
-{View} = require 'space-pen'
-PaneContainer = require 'pane-container'
-Pane = require 'pane'
+{View} = require 'atom-api'
+PaneContainer = require '../src/pane-container'
+Pane = require '../src/pane'
 Environment = require './environment'
 
 describe "PaneContainer replication", ->

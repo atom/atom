@@ -1,7 +1,7 @@
-$ = require 'jquery'
+{$} = require 'atom-api'
 
-ThemeManager = require 'theme-manager'
-AtomPackage = require 'atom-package'
+ThemeManager = require '../src/theme-manager'
+AtomPackage = require '../src/atom-package'
 
 describe "ThemeManager", ->
   themeManager = null

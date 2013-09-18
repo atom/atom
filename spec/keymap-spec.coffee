@@ -1,7 +1,5 @@
-Keymap = require 'keymap'
-$ = require 'jquery'
-{$$} = require 'space-pen'
-RootView = require 'root-view'
+Keymap = require '../src/keymap'
+{$, $$, RootView} = require 'atom-api'
 
 describe "Keymap", ->
   fragment = null

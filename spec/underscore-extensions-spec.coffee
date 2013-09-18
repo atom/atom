@@ -1,4 +1,4 @@
-_ = require 'underscore'
+{_} = require 'atom-api'
 
 describe "underscore extensions", ->
   describe "_.adviseBefore", ->

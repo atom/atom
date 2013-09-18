@@ -1,5 +1,5 @@
-PaneContainer = require 'pane-container'
-Pane = require 'pane'
+PaneContainer = require '../src/pane-container'
+Pane = require '../src/pane'
 {Site} = require 'telepath'
 
 describe "Pane replication", ->

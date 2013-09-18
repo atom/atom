@@ -1,6 +1,5 @@
-fs = require 'fs'
-fsUtils = require 'fs-utils'
-installer = require 'command-installer'
+{fs} = require 'atom-api'
+installer = require '../src/command-installer'
 
 describe "install(commandPath, callback)", ->
   directory = '/tmp/install-atom-command/atom'
@@ -11,13 +10,13 @@ describe "install(commandPath, callback)", ->
     spyOn(installer, 'findInstallDirectory').andCallFake (callback) ->
       callback(directory)
 
-    fsUtils.remove(directory) if fsUtils.exists(directory)
+    fs.remove(directory) if fs.exists(directory)
 
   it "symlinks the command and makes it executable", ->
-    fsUtils.writeSync(commandPath, 'test')
-    expect(fsUtils.isFileSync(commandPath)).toBeTruthy()
-    expect(fsUtils.isExecutableSync(commandPath)).toBeFalsy()
-    expect(fsUtils.isFileSync(destinationPath)).toBeFalsy()
+    fs.writeSync(commandPath, 'test')
+    expect(fs.isFileSync(commandPath)).toBeTruthy()
+    expect(fs.isExecutableSync(commandPath)).toBeFalsy()
+    expect(fs.isFileSync(destinationPath)).toBeFalsy()
 
     installDone = false
     installError = null
@@ -29,6 +28,6 @@ describe "install(commandPath, callback)", ->
 
     runs ->
       expect(installError).toBeNull()
-      expect(fsUtils.isFileSync(destinationPath)).toBeTruthy()
+      expect(fs.isFileSync(destinationPath)).toBeTruthy()
       expect(fs.realpathSync(destinationPath)).toBe fs.realpathSync(commandPath)
-      expect(fsUtils.isExecutableSync(destinationPath)).toBeTruthy()
+      expect(fs.isExecutableSync(destinationPath)).toBeTruthy()

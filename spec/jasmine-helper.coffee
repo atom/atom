@@ -1,10 +1,9 @@
 module.exports.runSpecSuite = (specSuite, logErrors=true) ->
-  {$$} = require 'space-pen'
+  {$, $$} = require 'atom-api'
   window[key] = value for key, value of require '../vendor/jasmine'
 
   require 'jasmine-focused'
 
-  $ = require 'jquery'
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
 

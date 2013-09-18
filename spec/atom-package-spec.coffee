@@ -1,6 +1,6 @@
-$ = require 'jquery'
+{$} = require 'atom-api'
 path = require 'path'
-Package = require 'package'
+Package = require '../src/package'
 
 describe "AtomPackage", ->
   describe "theme", ->

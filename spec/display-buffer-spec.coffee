@@ -1,5 +1,5 @@
-DisplayBuffer = require 'display-buffer'
-_ = require 'underscore'
+DisplayBuffer = require '../src/display-buffer'
+{_} = require 'atom-api'
 
 describe "DisplayBuffer", ->
   [displayBuffer, buffer, changeHandler, tabLength] = []

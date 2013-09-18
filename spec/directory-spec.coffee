@@ -1,5 +1,5 @@
-Directory = require 'directory'
-fsUtils = require 'fs-utils'
+Directory = require '../src/directory'
+{fs} = require 'atom-api'
 path = require 'path'
 
 describe "Directory", ->
@@ -16,10 +16,10 @@ describe "Directory", ->
 
     beforeEach ->
       temporaryFilePath = path.join(__dirname, 'fixtures', 'temporary')
-      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     afterEach ->
-      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     it "triggers 'contents-changed' event handlers", ->
       changeHandler = null
@@ -27,13 +27,13 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fsUtils.writeSync(temporaryFilePath, '')
+        fs.writeSync(temporaryFilePath, '')
 
       waitsFor "first change", -> changeHandler.callCount > 0
 
       runs ->
         changeHandler.reset()
-        fsUtils.remove(temporaryFilePath)
+        fs.remove(temporaryFilePath)
 
       waitsFor "second change", -> changeHandler.callCount > 0
 
@@ -42,10 +42,10 @@ describe "Directory", ->
 
     beforeEach ->
       temporaryFilePath = path.join(directory.path, 'temporary')
-      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     afterEach ->
-      fsUtils.remove(temporaryFilePath) if fsUtils.exists(temporaryFilePath)
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     it "no longer triggers events", ->
       changeHandler = null
@@ -53,7 +53,7 @@ describe "Directory", ->
       runs ->
         changeHandler = jasmine.createSpy('changeHandler')
         directory.on 'contents-changed', changeHandler
-        fsUtils.writeSync(temporaryFilePath, '')
+        fs.writeSync(temporaryFilePath, '')
 
       waitsFor "change event", -> changeHandler.callCount > 0
 
@@ -62,7 +62,7 @@ describe "Directory", ->
         directory.off()
       waits 20
 
-      runs -> fsUtils.remove(temporaryFilePath)
+      runs -> fs.remove(temporaryFilePath)
       waits 20
       runs -> expect(changeHandler.callCount).toBe 0
 

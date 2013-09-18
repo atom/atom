@@ -1,9 +1,6 @@
-$ = require 'jquery'
-fsUtils = require 'fs-utils'
+{$, $$, fs, RootView, View} = require 'atom-api'
 path = require 'path'
-RootView = require 'root-view'
-Pane = require 'pane'
-{View, $$} = require 'space-pen'
+Pane = require '../src/pane'
 
 describe "RootView", ->
   pathToOpen = null

@@ -1,4 +1,4 @@
-_ = require 'underscore'
+{_} = require 'atom-api'
 
 module.exports =
 class TimeReporter extends jasmine.Reporter

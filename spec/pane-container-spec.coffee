@@ -1,8 +1,6 @@
-PaneContainer = require 'pane-container'
-Pane = require 'pane'
-{View, $$} = require 'space-pen'
-_ = require 'underscore'
-$ = require 'jquery'
+PaneContainer = require '../src/pane-container'
+Pane = require '../src/pane'
+{_, $, View, $$} = require 'atom-api'
 
 describe "PaneContainer", ->
   [TestView, container, pane1, pane2, pane3] = []

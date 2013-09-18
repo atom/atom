@@ -1,5 +1,5 @@
-_ = require 'underscore'
-EventEmitter = require 'event-emitter'
+{_} = require 'atom-api'
+EventEmitter = require '../src/event-emitter'
 
 describe "EventEmitter mixin", ->
   [object, fooHandler1, fooHandler2, barHandler] = []

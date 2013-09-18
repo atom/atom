@@ -1,4 +1,4 @@
-Task = require 'task'
+Task = require '../src/task'
 
 describe "Task", ->
   describe "populating the window with fake properties", ->

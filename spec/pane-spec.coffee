@@ -1,7 +1,6 @@
-PaneContainer = require 'pane-container'
-Pane = require 'pane'
-{View} = require 'space-pen'
-$ = require 'jquery'
+PaneContainer = require '../src/pane-container'
+Pane = require '../src/pane'
+{$, View} = require 'atom-api'
 {dirname} = require 'path'
 
 describe "Pane", ->

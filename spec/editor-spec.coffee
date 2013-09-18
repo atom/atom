@@ -1,10 +1,6 @@
-RootView = require 'root-view'
-Editor = require 'editor'
+{_, $, $$, fs, RootView} = require 'atom-api'
+Editor = require '../src/editor'
 {Range} = require 'telepath'
-$ = require 'jquery'
-{$$} = require 'space-pen'
-_ = require 'underscore'
-fsUtils = require 'fs-utils'
 path = require 'path'
 
 describe "Editor", ->
@@ -82,7 +78,7 @@ describe "Editor", ->
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
       filePath = "/tmp/atom-changed-file.txt"
-      fsUtils.writeSync(filePath, "")
+      fs.writeSync(filePath, "")
       editSession = project.open(filePath)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
@@ -92,7 +88,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fsUtils.writeSync(filePath, "a file change")
+      fs.writeSync(filePath, "a file change")
 
       waitsFor "file to trigger contents-changed event", ->
         fileChangeHandler.callCount > 0
@@ -147,7 +143,7 @@ describe "Editor", ->
 
     it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
       filePath = "/tmp/atom-changed-file.txt"
-      fsUtils.writeSync(filePath, "")
+      fs.writeSync(filePath, "")
       tempEditSession = project.open(filePath)
       editor.edit(tempEditSession)
       tempEditSession.insertText("a buffer change")
@@ -156,7 +152,7 @@ describe "Editor", ->
 
       contentsConflictedHandler = jasmine.createSpy("contentsConflictedHandler")
       tempEditSession.on 'contents-conflicted', contentsConflictedHandler
-      fsUtils.writeSync(filePath, "a file change")
+      fs.writeSync(filePath, "a file change")
       waitsFor ->
         contentsConflictedHandler.callCount > 0
 
@@ -243,10 +239,10 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = "/tmp/something.txt"
-      fsUtils.writeSync(filePath, filePath)
+      fs.writeSync(filePath, filePath)
 
     afterEach ->
-      fsUtils.remove(filePath) if fsUtils.exists(filePath)
+      fs.remove(filePath) if fs.exists(filePath)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
@@ -2105,11 +2101,11 @@ describe "Editor", ->
 
     beforeEach ->
       filePath = project.resolve('git/working-dir/file.txt')
-      originalPathText = fsUtils.read(filePath)
+      originalPathText = fs.read(filePath)
       editor.edit(project.open(filePath))
 
     afterEach ->
-      fsUtils.writeSync(filePath, originalPathText)
+      fs.writeSync(filePath, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
@@ -2220,11 +2216,11 @@ describe "Editor", ->
     [filePath] = []
 
     beforeEach ->
-      filePath = path.join(fsUtils.absolute("/tmp"), "grammar-change.txt")
-      fsUtils.writeSync(filePath, "var i;")
+      filePath = path.join(fs.absolute("/tmp"), "grammar-change.txt")
+      fs.writeSync(filePath, "var i;")
 
     afterEach ->
-      fsUtils.remove(filePath) if fsUtils.exists(filePath)
+      fs.remove(filePath) if fs.exists(filePath)
 
     it "updates all the rendered lines when the grammar changes", ->
       editor.edit(project.open(filePath))
@@ -2568,15 +2564,15 @@ describe "Editor", ->
     it "saves the state of the rendered lines, the display buffer, and the buffer to a file of the user's choosing", ->
       saveDialogCallback = null
       spyOn(atom, 'showSaveDialog').andCallFake (callback) -> saveDialogCallback = callback
-      spyOn(fsUtils, 'writeSync')
+      spyOn(fs, 'writeSync')
 
       editor.trigger 'editor:save-debug-snapshot'
 
       expect(atom.showSaveDialog).toHaveBeenCalled()
       saveDialogCallback('/tmp/state')
-      expect(fsUtils.writeSync).toHaveBeenCalled()
-      expect(fsUtils.writeSync.argsForCall[0][0]).toBe '/tmp/state'
-      expect(typeof fsUtils.writeSync.argsForCall[0][1]).toBe 'string'
+      expect(fs.writeSync).toHaveBeenCalled()
+      expect(fs.writeSync.argsForCall[0][0]).toBe '/tmp/state'
+      expect(typeof fs.writeSync.argsForCall[0][1]).toBe 'string'
 
   describe "when the escape key is pressed on the editor", ->
     it "clears multiple selections if there are any, and otherwise allows other bindings to be handled", ->

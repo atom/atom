@@ -1,8 +1,7 @@
-Project = require 'project'
-fsUtils = require 'fs-utils'
+Project = require '../src/project'
+{_, fs} = require 'atom-api'
 path = require 'path'
-_ = require 'underscore'
-BufferedProcess = require 'buffered-process'
+BufferedProcess = require '../src/buffered-process'
 
 describe "Project", ->
   beforeEach ->
@@ -42,7 +41,7 @@ describe "Project", ->
       editSession = project.open()
       editSession.saveAs('/tmp/atom-test-save-sets-project-path')
       expect(project.getPath()).toBe '/tmp'
-      fsUtils.remove('/tmp/atom-test-save-sets-project-path')
+      fs.remove('/tmp/atom-test-save-sets-project-path')
 
   describe "when an edit session is deserialized", ->
     it "emits an 'edit-session-created' event and stores the edit session", ->
@@ -150,7 +149,7 @@ describe "Project", ->
 
     describe "when path is a directory", ->
       it "sets its path to the directory and updates the root directory", ->
-        directory = fsUtils.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
+        directory = fs.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
         project.setPath(directory)
         expect(project.getPath()).toEqual directory
         expect(project.getRootDirectory().path).toEqual directory
@@ -197,10 +196,10 @@ describe "Project", ->
 
       beforeEach ->
         ignoredFile = path.join(__dirname, 'fixtures', 'dir', 'ignored.txt')
-        fsUtils.writeSync(ignoredFile, "")
+        fs.writeSync(ignoredFile, "")
 
       afterEach ->
-        fsUtils.remove(ignoredFile)
+        fs.remove(ignoredFile)
 
       it "ignores ignored.txt file", ->
         paths = null
@@ -216,10 +215,10 @@ describe "Project", ->
 
       beforeEach ->
         ignoredFile = path.join(__dirname, 'fixtures', 'dir', 'ignored', 'ignored.txt')
-        fsUtils.writeSync(ignoredFile, "")
+        fs.writeSync(ignoredFile, "")
 
       afterEach ->
-        fsUtils.remove(ignoredFile)
+        fs.remove(ignoredFile)
 
       it "ignores ignored folder", ->
         paths = null
@@ -314,10 +313,10 @@ describe "Project", ->
         beforeEach ->
           projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
           ignoredPath = path.join(projectPath, 'ignored.txt')
-          fsUtils.writeSync(ignoredPath, 'this match should not be included')
+          fs.writeSync(ignoredPath, 'this match should not be included')
 
         afterEach ->
-          fsUtils.remove(ignoredPath) if fsUtils.exists(ignoredPath)
+          fs.remove(ignoredPath) if fs.exists(ignoredPath)
 
         it "excludes ignored files", ->
           project.setPath(projectPath)
@@ -336,7 +335,7 @@ describe "Project", ->
       it "includes files and folders that begin with a '.'", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-file'
         filePath = path.join(projectPath, '.text')
-        fsUtils.writeSync(filePath, 'match this')
+        fs.writeSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []
@@ -353,7 +352,7 @@ describe "Project", ->
       it "excludes values in core.ignoredNames", ->
         projectPath = '/tmp/atom-tests/folder-with-dot-git/.git'
         filePath = path.join(projectPath, 'test.txt')
-        fsUtils.writeSync(filePath, 'match this')
+        fs.writeSync(filePath, 'match this')
         project.setPath(projectPath)
         paths = []
         matches = []

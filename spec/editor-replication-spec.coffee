@@ -1,5 +1,5 @@
 {Site} = require 'telepath'
-Editor = require 'editor'
+Editor = require '../src/editor'
 Environment = require './environment'
 
 describe "Editor replication", ->

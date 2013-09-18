@@ -1,21 +1,17 @@
-require 'window'
+require '../src/window'
 window.setUpEnvironment('spec')
 window.restoreDimensions()
 
 require '../vendor/jasmine-jquery'
 path = require 'path'
-$ = jQuery = require 'jquery'
-_ = require 'underscore'
-Keymap = require 'keymap'
-Config = require 'config'
+{_, $, File, RootView, fs} = require 'atom-api'
+Keymap = require '../src/keymap'
+Config = require '../src/config'
 {Point} = require 'telepath'
-Project = require 'project'
-File = require 'file'
-Editor = require 'editor'
-TokenizedBuffer = require 'tokenized-buffer'
-fsUtils = require 'fs-utils'
+Project = require '../src/project'
+Editor = require '../src/editor'
+TokenizedBuffer = require '../src/tokenized-buffer'
 pathwatcher = require 'pathwatcher'
-RootView = require 'root-view'
 clipboard = require 'clipboard'
 
 atom.loadBaseStylesheets()
@@ -36,7 +32,7 @@ jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of e
 jasmine.getEnv().defaultTimeoutInterval = 5000
 
 beforeEach ->
-  jQuery.fx.off = true
+  $.fx.off = true
 
   specDirectory = atom.getLoadSettings().specDirectory ? __dirname
   window.project = new Project(path.join(specDirectory, 'fixtures'))
@@ -131,7 +127,7 @@ addCustomMatchers = (spec) ->
     toExistOnDisk: (expected) ->
       notText = this.isNot and " not" or ""
       @message = -> return "Expected path '" + @actual + "'" + notText + " to exist."
-      fsUtils.exists(@actual)
+      fs.exists(@actual)
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
@@ -243,8 +239,8 @@ $.fn.textInput = (data) ->
   this.each ->
     event = document.createEvent('TextEvent')
     event.initTextEvent('textInput', true, true, window, data)
-    event = jQuery.event.fix(event)
+    event = $.event.fix(event)
     $(this).trigger(event)
 
-unless fsUtils.md5ForPath(require.resolve('./fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
+unless fs.md5ForPath(require.resolve('./fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
   throw new Error("Sample.js is modified")

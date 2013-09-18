@@ -1,7 +1,6 @@
-TextMateGrammar = require 'text-mate-grammar'
-TextMatePackage = require 'text-mate-package'
-fsUtils = require 'fs-utils'
-_ = require 'underscore'
+TextMateGrammar = require '../src/text-mate-grammar'
+TextMatePackage = require '../src/text-mate-package'
+{_, fs} = require 'atom-api'
 
 describe "TextMateGrammar", ->
   grammar = null
@@ -24,7 +23,7 @@ describe "TextMateGrammar", ->
       expect(tokens[0]).toEqual value: "this text is so plain. i love it.", scopes: ["text.plain", "meta.paragraph.text"]
 
     it "loads grammars from cson files", ->
-      grammar = TextMateGrammar.loadSync(fsUtils.resolveOnLoadPath('spec/fixtures/packages/package-with-grammars/grammars/alot.cson'))
+      grammar = TextMateGrammar.loadSync(fs.resolveOnLoadPath('spec/fixtures/packages/package-with-grammars/grammars/alot.cson'))
       expect(grammar.scopeName).toBe "source.alot"
       {tokens} = grammar.tokenizeLine("this is alot of code")
       expect(tokens[1]).toEqual value: "alot", scopes: ["source.alot", "keyword.alot"]

@@ -1,7 +1,7 @@
 path = require 'path'
 {Site} = require 'telepath'
-fsUtils = require 'fs-utils'
-Project = require 'project'
+{fs} = require 'atom-api'
+Project = require '../src/project'
 
 module.exports =
 class Environment

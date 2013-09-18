@@ -1,8 +1,6 @@
-$ = require 'jquery'
-{$$} = require 'space-pen'
-fsUtils = require 'fs-utils'
+{$, $$, fs} = require 'atom-api'
 path = require 'path'
-WindowEventHandler = require 'window-event-handler'
+WindowEventHandler = require '../src/window-event-handler'
 
 describe "Window", ->
   [projectPath, windowEventHandler] = []
@@ -87,7 +85,7 @@ describe "Window", ->
 
       element = $('head style[id*="css.css"]')
       expect(element.attr('id')).toBe cssPath
-      expect(element.text()).toBe fsUtils.read(cssPath)
+      expect(element.text()).toBe fs.read(cssPath)
 
       # doesn't append twice
       requireStylesheet(cssPath)

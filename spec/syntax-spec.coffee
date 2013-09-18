@@ -1,5 +1,5 @@
-fsUtils = require 'fs-utils'
-TextMateGrammar = require 'text-mate-grammar'
+{fs} = require 'atom-api'
+TextMateGrammar = require '../src/text-mate-grammar'
 
 describe "the `syntax` global", ->
   beforeEach ->
@@ -45,10 +45,10 @@ describe "the `syntax` global", ->
 
     it "doesn't read the file when the file contents are specified", ->
       filePath = require.resolve("./fixtures/shebang")
-      filePathContents = fsUtils.read(filePath)
-      spyOn(fsUtils, 'read').andCallThrough()
+      filePathContents = fs.read(filePath)
+      spyOn(fs, 'read').andCallThrough()
       expect(syntax.selectGrammar(filePath, filePathContents).name).toBe "Ruby"
-      expect(fsUtils.read).not.toHaveBeenCalled()
+      expect(fs.read).not.toHaveBeenCalled()
 
     it "allows the default grammar to be overridden for a path", ->
       path = '/foo/bar/file.js'

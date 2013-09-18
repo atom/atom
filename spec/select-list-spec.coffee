@@ -1,6 +1,5 @@
-SelectList = require 'select-list'
-{$$} = require 'space-pen'
-$ = require 'jquery'
+SelectList = require '../src/select-list'
+{$, $$} = require 'atom-api'
 
 describe "SelectList", ->
   [selectList, array, list, miniEditor] = []

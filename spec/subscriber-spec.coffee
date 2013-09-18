@@ -1,7 +1,6 @@
-Subscriber = require 'subscriber'
-EventEmitter = require 'event-emitter'
-_ = require 'underscore'
-{$$} = require 'space-pen'
+Subscriber = require '../src/subscriber'
+EventEmitter = require '../src/event-emitter'
+{_, $$} = require 'atom-api'
 
 describe "Subscriber", ->
   [emitter1, emitter2, emitter3, event1Handler, event2Handler, event3Handler, subscriber] = []

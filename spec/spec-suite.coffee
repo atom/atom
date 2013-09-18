@@ -1,15 +1,11 @@
-require 'window'
-
 measure 'spec suite require time', ->
-  fs = require 'fs'
-  fsUtils = require 'fs-utils'
+  {_, fs} = require 'atom-api'
   path = require 'path'
-  _ = require 'underscore'
-  Git = require 'git'
+  Git = require '../src/git'
   require './spec-helper'
 
   requireSpecs = (specDirectory, specType) ->
-    for specFilePath in fsUtils.listTreeSync(specDirectory) when /-spec\.coffee$/.test specFilePath
+    for specFilePath in fs.listTreeSync(specDirectory) when /-spec\.coffee$/.test specFilePath
       require specFilePath
 
   setSpecType = (specType) ->
@@ -22,7 +18,7 @@ measure 'spec suite require time', ->
       requireSpecs(path.join(window.resourcePath, 'spec'))
       setSpecType('core')
 
-    fixturesPackagesPath = fsUtils.resolveOnLoadPath('fixtures/packages')
+    fixturesPackagesPath = fs.resolveOnLoadPath('fixtures/packages')
     packagePaths = atom.getAvailablePackageNames().map (packageName) -> atom.resolvePackagePath(packageName)
     packagePaths = _.groupBy packagePaths, (packagePath) ->
       if packagePath.indexOf("#{fixturesPackagesPath}#{path.sep}") is 0
