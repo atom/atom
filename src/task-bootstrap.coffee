@@ -28,7 +28,8 @@ setupGlobals = ->
   global.window = global
 
 handleEvents = ->
-  process.on 'uncaughtException', (error) -> console.error(error.message)
+  process.on 'uncaughtException', (error) ->
+    console.error(error.message, error.stack)
   process.on 'message', ({args}) ->
     isAsync = false
     async = ->
