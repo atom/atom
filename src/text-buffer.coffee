@@ -1,4 +1,4 @@
-_ = require './underscore–extensions'
+_ = require './underscore-extensions'
 telepath = require 'telepath'
 {Point, Range} = telepath
 fsUtils = require './fs-utils'
