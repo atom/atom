@@ -190,7 +190,7 @@ class Project
   # Returns an {EditSession}.
   open: (filePath, options={}) ->
     filePath = @resolve(filePath) if filePath?
-    for opener in @constructor.openers
+    for opener in @openers
       return resource if resource = opener(filePath, options)
 
     @buildEditSessionForBuffer(@bufferForPath(filePath), options)
