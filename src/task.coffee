@@ -45,7 +45,7 @@ class Task
   constructor: (taskPath) ->
     coffeeScriptRequire = "require('#{require.resolve('coffee-script')}');"
     coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}');"
-    taskBootstrapRequire = "require('#{require.resolve('task-bootstrap')}');"
+    taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
       #{coffeeScriptRequire}
       #{coffeeCacheRequire}
