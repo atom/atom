@@ -129,6 +129,7 @@ class AtomApplication
     @on 'application:minimize', -> Menu.sendActionToFirstResponder('performMiniaturize:')
     @on 'application:zoom', -> Menu.sendActionToFirstResponder('zoom:')
     @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
+    @on 'application:inspect', ({x,y}) -> @focusedWindow().browserWindow.inspectElement(x, y)
 
     app.on 'will-quit', =>
       fs.unlinkSync socketPath if fs.existsSync(socketPath) # Clean the socket file when quit normally.

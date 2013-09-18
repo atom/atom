@@ -14,6 +14,9 @@ class WindowEventHandler
     @subscribe ipc, 'command', (command, args...) ->
       $(window).trigger(command, args...)
 
+    @subscribe ipc, 'context-command', (command, args...) ->
+      $(atom.contextMenu.activeElement).trigger(command, args...)
+
     @subscribe $(window), 'focus', -> $("body").removeClass('is-blurred')
     @subscribe $(window), 'blur',  -> $("body").addClass('is-blurred')
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine}) ->
@@ -39,14 +42,7 @@ class WindowEventHandler
 
     @subscribe $(document), 'contextmenu', (e) ->
       e.preventDefault()
-      menuTemplate = atom.contextMenu.menuTemplateForElement(e.target)
-
-      # FIXME: This should be registered as a dev binding on
-      # atom.contextMenu, but I'm not sure where in the source.
-      menuTemplate.push({ type: 'separator' })
-      menuTemplate.push({ label: 'Inspect Element', click: -> remote.getCurrentWindow().inspectElement(e.pageX, e.pageY) })
-
-      remote.getCurrentWindow().emit('context-menu', menuTemplate)
+      atom.contextMenu.showForEvent(e)
 
   openLink: (event) =>
     location = $(event.target).attr('href')

@@ -115,7 +115,8 @@ class AtomWindow
       @sendNativeCommand(command)
 
   sendAtomCommand: (command, args...) ->
-    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), 'command', command, args...
+    action = if args[0]?.contextCommand then 'context-command' else 'command'
+    ipc.sendChannel @browserWindow.getProcessId(), @browserWindow.getRoutingId(), action, command, args...
 
   sendNativeCommand: (command) ->
     switch command
