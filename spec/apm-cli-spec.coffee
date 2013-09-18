@@ -508,3 +508,32 @@ describe 'apm command line interface', ->
           expect(fs.existsSync(repoPath)).toBeTruthy()
           expect(fs.existsSync(linkedRepoPath)).toBeTruthy()
           expect(fs.realpathSync(linkedRepoPath)).toBe fs.realpathSync(repoPath)
+
+  describe "apm init", ->
+    [packagePath] = []
+
+    beforeEach ->
+      currentDir = temp.mkdirSync('apm-init-')
+      spyOn(process, 'cwd').andReturn(currentDir)
+      packagePath = path.join(currentDir, 'fake-package')
+
+    describe "when creating a package", ->
+      it "generates the proper file structure", ->
+        callback = jasmine.createSpy('callback')
+        apm.run(['init', '--package', 'fake-package'], callback)
+
+        waitsFor 'waiting for develop to complete', ->
+          callback.callCount is 1
+
+        runs ->
+          expect(fs.existsSync(packagePath)).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'keymaps'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'keymaps', 'fake-package.cson'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'lib'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'lib', 'fake-package-view.coffee'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'lib', 'fake-package.coffee'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-view-spec.coffee'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'spec', 'fake-package-spec.coffee'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'stylesheets', 'fake-package.css'))).toBeTruthy()
+          expect(fs.existsSync(path.join(packagePath, 'package.cson'))).toBeTruthy()
+

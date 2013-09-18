@@ -16,6 +16,7 @@ commandClasses = [
   require './uninstaller'
   require './unlinker'
   require './updater'
+  require './init'
 ]
 
 commands = {}
