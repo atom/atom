@@ -46,7 +46,6 @@ class AtomWindow
   setupNodePath: (resourcePath) ->
     paths = [
       'exports'
-      'src'
       'node_modules'
     ]
 
