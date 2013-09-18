@@ -26,6 +26,8 @@ class TextMatePackage extends Package
     @scopedProperties = []
     @metadata = {@name}
 
+  getType: -> 'textmate'
+
   load: ({sync}={}) ->
     @metadata = Package.loadMetadata(@path, true)
 

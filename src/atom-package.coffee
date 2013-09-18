@@ -24,6 +24,8 @@ class AtomPackage extends Package
   resolvedMainModulePath: false
   mainModule: null
 
+  getType: -> 'atom'
+
   load: ->
     try
       @metadata = Package.loadMetadata(@path)
