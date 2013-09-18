@@ -7,6 +7,7 @@ module.exports =
   $$$: $$$
   BufferedNodeProcess: '../src/buffered-node-process'
   Editor: require '../src/editor'
+  EventEmitter: require '../src/event-emitter'
   File: require '../src/file'
   fs: require '../src/fs-utils'
   RootView: require '../src/root-view'
