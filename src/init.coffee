@@ -27,7 +27,7 @@ class Generator extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
     if options.argv.package?
-      packagePath = path.join(process.cwd(), options.argv.package)
+      packagePath = path.resolve(options.argv.package)
       @generatePackage(packagePath)
       callback()
     else
