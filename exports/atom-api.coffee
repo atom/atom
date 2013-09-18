@@ -10,6 +10,7 @@ module.exports =
   EventEmitter: require '../src/event-emitter'
   File: require '../src/file'
   fs: require '../src/fs-utils'
+  Git: require '../src/git'
   RootView: require '../src/root-view'
   ScrollView: require '../src/scroll-view'
   SelectList: require '../src/select-list'
