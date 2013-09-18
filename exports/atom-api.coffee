@@ -14,4 +14,5 @@ module.exports =
   ScrollView: require '../src/scroll-view'
   SelectList: require '../src/select-list'
   Subscriber: require '../src/subscriber'
+  Task: require '../src/task'
   View: View
