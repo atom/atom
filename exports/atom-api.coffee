@@ -1,5 +1,4 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
-{pathForRepositoryUrl} = require '../src/project'
 
 module.exports =
   _: require '../src/underscore-extensions'
@@ -8,15 +7,19 @@ module.exports =
   $$$: $$$
   BufferedNodeProcess: require '../src/buffered-node-process'
   Directory: require '../src/directory'
-  Editor: require '../src/editor'
   EventEmitter: require '../src/event-emitter'
   File: require '../src/file'
   fs: require '../src/fs-utils'
   Git: require '../src/git'
-  pathForRepositoryUrl: pathForRepositoryUrl
-  RootView: require '../src/root-view'
   ScrollView: require '../src/scroll-view'
-  SelectList: require '../src/select-list'
   Subscriber: require '../src/subscriber'
-  Task: require '../src/task'
   View: View
+
+# The following classes can't be used from a Task handler and should therefore
+# only be exported when not running as a child node process
+unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
+  module.exports.Editor = require '../src/editor'
+  module.exports.pathForRepositoryUrl = require('../src/project').pathForRepositoryUrl
+  module.exports.RootView = require '../src/root-view'
+  module.exports.SelectList = require '../src/select-list'
+  module.exports.Task = require '../src/task'
