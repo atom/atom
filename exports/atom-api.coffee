@@ -6,7 +6,7 @@ module.exports =
   $: require '../src/jquery-extensions'
   $$: $$
   $$$: $$$
-  BufferedNodeProcess: '../src/buffered-node-process'
+  BufferedNodeProcess: require '../src/buffered-node-process'
   Directory: require '../src/directory'
   Editor: require '../src/editor'
   EventEmitter: require '../src/event-emitter'
