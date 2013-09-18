@@ -1,8 +1,7 @@
 path = require 'path'
 {Site} = require 'telepath'
-fsUtils = require 'fs-utils'
-Project = require 'project'
-Git = require 'git'
+Project = require '../src/project'
+Git = require '../src/git'
 
 describe "Project replication", ->
   [doc1, doc2, project1, project2] = []
