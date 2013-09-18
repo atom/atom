@@ -1,4 +1,5 @@
 {View, $$, $$$} = require '../src/space-pen-extensions'
+{Point, Range} = require 'telepath'
 
 module.exports =
   _: require '../src/underscore-extensions'
@@ -11,6 +12,8 @@ module.exports =
   File: require '../src/file'
   fs: require '../src/fs-utils'
   Git: require '../src/git'
+  Point: Point
+  Range: Range
   ScrollView: require '../src/scroll-view'
   Subscriber: require '../src/subscriber'
   View: View
