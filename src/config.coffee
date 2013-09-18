@@ -54,8 +54,8 @@ class Config
   # Private: Created during initialization, available as `global.config`
   constructor: ->
     @defaultSettings =
-      core: _.clone(require('root-view').configDefaults)
-      editor: _.clone(require('editor').configDefaults)
+      core: _.clone(require('./root-view').configDefaults)
+      editor: _.clone(require('./editor').configDefaults)
     @settings = {}
     @configFilePath = fsUtils.resolve(configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(configDirPath, 'config.cson')
