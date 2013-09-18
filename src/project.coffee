@@ -337,6 +337,7 @@ class Project
     args = ['--hidden', '--ackmate', regex.source, @getPath()]
     ignoredNames = config.get('core.ignoredNames') ? []
     args.unshift('--ignore', ignoredNames.join(',')) if ignoredNames.length > 0
+    args.unshift('--ignoreCase') if regex.ignoreCase
     args.unshift('--addVCSIgnores') if config.get('core.excludeVcsIgnoredPaths')
     new BufferedNodeProcess({command, args, stdout, stderr, exit})
     deferred
