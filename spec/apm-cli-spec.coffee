@@ -522,7 +522,7 @@ describe 'apm command line interface', ->
         callback = jasmine.createSpy('callback')
         apm.run(['init', '--package', 'fake-package'], callback)
 
-        waitsFor 'waiting for develop to complete', ->
+        waitsFor 'waiting for init to complete', ->
           callback.callCount is 1
 
         runs ->
