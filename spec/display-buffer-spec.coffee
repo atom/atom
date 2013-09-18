@@ -1,5 +1,4 @@
 DisplayBuffer = require 'display-buffer'
-Buffer = require 'text-buffer'
 _ = require 'underscore'
 
 describe "DisplayBuffer", ->

@@ -1,5 +1,4 @@
 {View, $$} = require 'space-pen'
-EventEmitter = require 'event-emitter'
 
 describe "SpacePen extensions", ->
   class TestView extends View
