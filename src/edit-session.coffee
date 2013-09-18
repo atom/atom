@@ -131,7 +131,7 @@ class EditSession
 
   # Private:
   getViewClass: ->
-    require 'editor'
+    require './editor'
 
   # Private:
   destroy: ->
