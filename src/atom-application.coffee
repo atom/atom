@@ -224,7 +224,7 @@ class AtomApplication
       openedWindow = existingWindow
       openedWindow.openPath(pathToOpen, initialLine)
     else
-      bootstrapScript = 'window-bootstrap'
+      bootstrapScript = require.resolve('./window-bootstrap')
       if devMode
         resourcePath = global.devResourcePath
       else
