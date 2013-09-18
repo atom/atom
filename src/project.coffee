@@ -29,16 +29,6 @@ class Project
   # Private:
   @deserialize: (state) -> new Project(state)
 
-  @openers: []
-
-  # Public:
-  @registerOpener: (opener) ->
-    @openers.push(opener)
-
-  # Public:
-  @unregisterOpener: (opener) ->
-    _.remove(@openers, opener)
-
   # Public:
   @pathForRepositoryUrl: (repoUrl) ->
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
@@ -48,7 +38,16 @@ class Project
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
+  openers: null
 
+  constructor: ->
+    @openers = []
+
+  # Public:
+  registerOpener: (opener) -> @openers.push(opener)
+
+  # Public:
+  unregisterOpener: (opener) -> _.remove(@openers, opener)
 
   # Private:
   destroy: ->

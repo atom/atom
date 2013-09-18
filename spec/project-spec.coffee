@@ -70,12 +70,12 @@ describe "Project", ->
 
       fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
       barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
-      Project.registerOpener(fooOpener)
-      Project.registerOpener(barOpener)
+      project.registerOpener(fooOpener)
+      project.registerOpener(barOpener)
 
     afterEach ->
-      Project.unregisterOpener(fooOpener)
-      Project.unregisterOpener(barOpener)
+      project.unregisterOpener(fooOpener)
+      project.unregisterOpener(barOpener)
 
     describe "when passed a path that doesn't match a custom opener", ->
       describe "when given an absolute path that hasn't been opened previously", ->
