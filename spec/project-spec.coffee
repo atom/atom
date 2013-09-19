@@ -279,6 +279,14 @@ describe "Project", ->
           expect(paths[3]).toMatch /quote".txt$/m
           expect(path.basename(paths[4])).toBe "utfa\u0306.md"
 
+      it "ignores case if the regex includes the `i` flag", ->
+        matches = []
+        waitsForPromise ->
+          project.scan /DOLLAR/i, (match) -> matches.push(match)
+
+        runs ->
+          expect(matches).toHaveLength 1
+
       it "handles breaks in the search subprocess's output following the filename", ->
         spyOn(BufferedProcess.prototype, 'bufferStream')
 

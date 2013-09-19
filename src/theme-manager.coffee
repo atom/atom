@@ -23,7 +23,7 @@ class ThemeManager
 
   # Internal-only:
   getAvailableNames: ->
-    _.map(@loadedThemes, (t) -> t.metadata.name)
+    _.map @loadedThemes, (theme) -> theme.metadata.name
 
   # Internal-only:
   getActiveThemes: ->
@@ -39,6 +39,11 @@ class ThemeManager
     config.observe 'core.themes', (themeNames) =>
       @unload()
       themeNames = [themeNames] unless _.isArray(themeNames)
+
+      # Reverse so the first (top) theme is loaded after the others. We want
+      # the first/top theme to override later themes in the stack.
+      themeNames = _.clone(themeNames).reverse()
+
       @activateTheme(themeName) for themeName in themeNames
       @loadUserStylesheet()
 
@@ -58,7 +63,7 @@ class ThemeManager
 
   # Private:
   getLoadedTheme: (name) ->
-    _.find(@loadedThemes, (t) -> t.metadata.name == name)
+    _.find @loadedThemes, (theme) -> theme.metadata.name is name
 
   # Private:
   resolveThemePath: (name) ->

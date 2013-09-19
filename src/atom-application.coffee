@@ -1,5 +1,6 @@
 AtomWindow = require 'atom-window'
 ApplicationMenu = require 'application-menu'
+AtomProtocolHandler = require 'atom-protocol-handler'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 autoUpdater = require 'auto-updater'
@@ -45,6 +46,7 @@ class AtomApplication
 
   windows: null
   applicationMenu: null
+  atomProtocolHandler: null
   resourcePath: null
   version: null
 
@@ -56,6 +58,7 @@ class AtomApplication
     @windows = []
 
     @applicationMenu = new ApplicationMenu(@version, devMode)
+    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()

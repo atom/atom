@@ -884,6 +884,10 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(cursorView).toBeVisible()
 
+      it "moves the hiddenInput to the same position with cursor's view", ->
+        editor.setCursorScreenPosition(row: 2, column: 2)
+        expect(editor.getCursorView().offset()).toEqual(editor.hiddenInput.offset())
+
       describe "when the editor is using a variable-width font", ->
         beforeEach ->
           editor.setFontFamily('sans-serif')

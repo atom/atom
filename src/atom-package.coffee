@@ -27,19 +27,28 @@ class AtomPackage extends Package
   load: ->
     try
       @metadata = Package.loadMetadata(@path)
-      @loadKeymaps()
-      @loadStylesheets()
-      @loadGrammars()
-      @loadScopedProperties()
-      if @metadata.activationEvents?
-        @registerDeferredDeserializers()
+      if @isTheme()
+        @stylesheets = []
+        @keymaps = []
+        @grammars = []
+        @scopedProperties = []
       else
-        @requireMainModule()
+        @loadKeymaps()
+        @loadStylesheets()
+        @loadGrammars()
+        @loadScopedProperties()
+
+        if @metadata.activationEvents?
+          @registerDeferredDeserializers()
+        else
+          @requireMainModule()
+
     catch e
       console.warn "Failed to load package named '#{@name}'", e.stack ? e
     this
 
   activate: ({immediate}={}) ->
+    @loadStylesheets() if @isTheme()
     @activateResources()
     if @metadata.activationEvents? and not immediate
       @subscribeToActivationEvents()

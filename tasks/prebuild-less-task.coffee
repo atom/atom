@@ -7,8 +7,12 @@ module.exports = (grunt) ->
     prebuiltConfigurations = [
       ['atom-dark-ui', 'atom-dark-syntax']
       ['atom-dark-ui', 'atom-light-syntax']
+      ['atom-dark-ui', 'solarized-dark-syntax']
+      ['atom-dark-ui', 'base16-tomorrow-dark-theme']
       ['atom-light-ui', 'atom-light-syntax']
       ['atom-light-ui', 'atom-dark-syntax']
+      ['atom-light-ui', 'solarized-dark-syntax']
+      ['atom-light-ui', 'base16-tomorrow-dark-theme']
     ]
 
     directory = path.join(grunt.config.get('atom.appDir'), 'less-compile-cache')

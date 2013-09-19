@@ -9,6 +9,7 @@ describe "Window", ->
   [projectPath, windowEventHandler] = []
 
   beforeEach ->
+    spyOn(atom, 'hide')
     atom.getLoadSettings().initialPath = project.getPath()
     project.destroy()
     windowEventHandler = new WindowEventHandler()

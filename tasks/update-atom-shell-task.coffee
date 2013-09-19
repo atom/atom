@@ -19,9 +19,11 @@ module.exports = (grunt) ->
     grunt.file.isFile(getCachePath(version), 'version')
 
   downloadAtomShell = (version, callback) ->
-    downloadUrl = "https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/#{version}/atom-shell-#{version}-darwin.zip"
+    options =
+      url: "https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/#{version}/atom-shell-#{version}-darwin.zip"
+      proxy: process.env.http_proxy || process.env.https_proxy
 
-    inputStream = request(downloadUrl)
+    inputStream = request(options)
     inputStream.on 'response', (response) ->
       if response.statusCode is 200
         grunt.log.writeln("Downloading atom-shell version #{version.cyan}")

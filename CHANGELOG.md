@@ -1,3 +1,5 @@
+* Added: Base16 Tomorrow Dark theme now bundled by default
+
 * Fixed: Make Atom's version the same as Speakeasy's version
 
 * Fixed: Package generator package not opening window to generated package
