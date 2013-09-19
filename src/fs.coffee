@@ -33,6 +33,9 @@ fsAdditions =
     else
       []
 
+  listRecursive: (directoryPath) ->
+    wrench.readdirSyncRecursive(directoryPath)
+
   rm: (pathToRemove) ->
     rimraf.sync(pathToRemove)
 
