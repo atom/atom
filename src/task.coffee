@@ -11,7 +11,7 @@ EventEmitter = require './event-emitter'
 # * task:log - Emitted when console.log is called within the task.
 # * task:warn - Emitted when console.warn is called within the task.
 # * task:error - Emitted when console.error is called within the task.
-# * task:complete - Emitted when the task has succeeded or failed.
+# * task:completed - Emitted when the task has succeeded or failed.
 module.exports =
 class Task
   _.extend @prototype, EventEmitter
