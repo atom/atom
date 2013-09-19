@@ -14,12 +14,12 @@ class ContextMenuManager
     @devModeDefinitions = {}
     @activeElement = null
 
-    @devModeDefinitions['#root-view'] = [{ type: 'separator' }]
-    @devModeDefinitions['#root-view'].push
+    @devModeDefinitions['#root-view'] = [
       label: 'Inspect Element'
       command: 'application:inspect'
       executeAtBuild: (e) ->
         @.commandOptions = x: e.pageX, y: e.pageY
+    ]
 
   # Public: Creates menu definitions from the object specified by the menu
   # cson API.
@@ -76,9 +76,12 @@ class ContextMenuManager
   # Private: Returns a menu template for both normal entries as well as
   # development mode entries.
   combinedMenuTemplateForElement: (element) ->
-    menuTemplate = @menuTemplateForMostSpecificElement(element)
-    menuTemplate = menuTemplate.concat(@menuTemplateForMostSpecificElement(element, devMode: true)) if @devMode
-    menuTemplate
+    normalItems = @menuTemplateForMostSpecificElement(element)
+    devItems = if @devMode then @menuTemplateForMostSpecificElement(element, devMode: true) else []
+
+    menuTemplate = normalItems
+    menuTemplate.push({ type: 'separator' }) if normalItems.length > 0 and devItems.length > 0
+    menuTemplate.concat(devItems)
 
   # Private: Executes `executeAtBuild` if defined for each menu item with
   # the provided event and then removes the `executeAtBuild` property from
