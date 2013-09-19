@@ -175,8 +175,10 @@ describe "the `atom` global", ->
               expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
         describe "menu loading", ->
+          beforeEach -> atom.contextMenu.definitions = []
+
           describe "when the metadata does not contain a 'menus' manifest", ->
-            it "loads all the .cson/.json files in the keymaps directory", ->
+            it "loads all the .cson/.json files in the menus directory", ->
               element = ($$ -> @div class: 'test-1')[0]
 
               expect(atom.contextMenu.definitionsForElement(element)).toEqual []
@@ -187,7 +189,7 @@ describe "the `atom` global", ->
               expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 2"
               expect(atom.contextMenu.definitionsForElement(element)[2].label).toBe "Menu item 3"
 
-          describe "when the metadata contains a 'keymaps' manifest", ->
+          describe "when the metadata contains a 'menus' manifest", ->
             it "loads only the menus specified by the manifest, in the specified order", ->
               element = ($$ -> @div class: 'test-1')[0]
 

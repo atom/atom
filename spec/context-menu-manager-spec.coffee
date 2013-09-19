@@ -67,8 +67,9 @@ describe "ContextMenuManager", ->
 
           expect(menu[0].label).toEqual 'parent'
           expect(menu[0].command).toEqual 'command-p'
-          expect(menu[1].label).toEqual 'dev-label'
-          expect(menu[1].command).toEqual 'dev-command'
+          expect(menu[1].type).toEqual 'separator'
+          expect(menu[2].label).toEqual 'dev-label'
+          expect(menu[2].command).toEqual 'dev-command'
 
 
     describe "on multiple elements", ->
