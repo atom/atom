@@ -45,4 +45,4 @@ fsAdditions =
   cp: (sourcePath, destinationPath, options) ->
     wrench.copyDirSyncRecursive(sourcePath, destinationPath, options)
 
-module.exports = _.extend(fsAdditions, fs)
+module.exports = _.extend({}, fs, fsAdditions)
